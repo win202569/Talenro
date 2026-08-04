@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package talenro.events.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "talenro.local/platform/gen/go/talenro/events/v1;eventsv1";
+
+// EventEnvelope carries shared metadata for an at-least-once event delivery.
+// Consumers must deduplicate using event_id or the business idempotency_key.
+message EventEnvelope {
+  string event_id = 1;
+  string event_type = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string producer = 4;
+  string aggregate_type = 5;
+  string aggregate_id = 6;
+  uint64 aggregate_version = 7;
+  string idempotency_key = 8;
+  string trace_parent = 9;
+  bytes payload = 10;
+}
