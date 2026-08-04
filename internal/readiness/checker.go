@@ -2,6 +2,7 @@ package readiness
 
 import (
 	"context"
+	"reflect"
 	"time"
 )
 
@@ -17,11 +18,30 @@ type Probe interface {
 
 type Checker struct {
 	timeout time.Duration
-	probes  []Probe
+	probes  []checkedProbe
 }
 
 func New(timeout time.Duration, probes ...Probe) *Checker {
-	return &Checker{timeout: timeout, probes: append([]Probe(nil), probes...)}
+	checked := make([]checkedProbe, 0, len(probes))
+	seen := make(map[string]struct{}, len(probes))
+	for _, probe := range probes {
+		if isNilProbe(probe) {
+			panic("readiness: nil probe")
+		}
+
+		name := probe.Name()
+		if !isPublicProbeName(name) {
+			panic("readiness: unsafe probe name")
+		}
+		if _, exists := seen[name]; exists {
+			panic("readiness: duplicate probe name")
+		}
+
+		seen[name] = struct{}{}
+		checked = append(checked, checkedProbe{name: name, probe: probe})
+	}
+
+	return &Checker{timeout: timeout, probes: checked}
 }
 
 func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
@@ -36,15 +56,14 @@ func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
 	checks := make(map[string]string, len(c.probes))
 	results := make(chan result, len(c.probes))
 	for _, probe := range c.probes {
-		name := probe.Name()
-		checks[name] = statusUnavailable
+		checks[probe.name] = statusUnavailable
 
 		go func() {
 			status := statusOK
-			if probe.Ping(checkCtx) != nil {
+			if probe.probe.Ping(checkCtx) != nil {
 				status = statusUnavailable
 			}
-			results <- result{name: name, status: status}
+			results <- result{name: probe.name, status: status}
 		}()
 	}
 
@@ -71,4 +90,32 @@ func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
 	}
 
 	return ready, checks
+}
+
+type checkedProbe struct {
+	name  string
+	probe Probe
+}
+
+func isNilProbe(probe Probe) bool {
+	if probe == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(probe)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
+}
+
+func isPublicProbeName(name string) bool {
+	switch name {
+	case "postgres", "redis", "nats":
+		return true
+	default:
+		return false
+	}
 }

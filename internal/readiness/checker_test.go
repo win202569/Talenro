@@ -13,6 +13,12 @@ type fakeProbe struct {
 	ping func(context.Context) error
 }
 
+type typedNilProbe struct{}
+
+func (*typedNilProbe) Name() string { panic("typed nil probe name called") }
+
+func (*typedNilProbe) Ping(context.Context) error { panic("typed nil probe ping called") }
+
 func (p fakeProbe) Name() string { return p.name }
 
 func (p fakeProbe) Ping(ctx context.Context) error {
@@ -183,4 +189,108 @@ func TestCheckHonorsEarlierCallerCancellation(t *testing.T) {
 	if elapsed := time.Since(startedAt); elapsed >= 100*time.Millisecond {
 		t.Fatalf("caller cancellation was not prompt: %v", elapsed)
 	}
+}
+
+func TestNewRejectsNilProbeBeforeStartingChecks(t *testing.T) {
+	pingCalled := false
+	requirePanic(t, "readiness: nil probe", func() {
+		New(time.Second,
+			fakeProbe{name: "postgres", ping: func(context.Context) error {
+				pingCalled = true
+				return nil
+			}},
+			nil,
+		)
+	})
+
+	if pingCalled {
+		t.Fatal("invalid construction started a probe check")
+	}
+}
+
+func TestNewRejectsTypedNilProbeBeforeCallingIt(t *testing.T) {
+	var probe *typedNilProbe
+
+	requirePanic(t, "readiness: nil probe", func() {
+		New(time.Second, probe)
+	})
+}
+
+func TestNewRejectsNamesOutsidePublicComponentAllowlist(t *testing.T) {
+	for _, name := range []string{
+		"redis://user:secret@example.internal/account/device/node",
+		"10.0.0.1",
+		"tenant-device-123",
+	} {
+		t.Run(name, func(t *testing.T) {
+			pingCalled := false
+			requirePanic(t, "readiness: unsafe probe name", func() {
+				New(time.Second, fakeProbe{name: name, ping: func(context.Context) error {
+					pingCalled = true
+					return nil
+				}})
+			})
+
+			if pingCalled {
+				t.Fatal("invalid construction started a probe check")
+			}
+		})
+	}
+}
+
+func TestNewRejectsDuplicateNamesBeforeOpposingChecksCanFinishOutOfOrder(t *testing.T) {
+	pingCalls := 0
+	releaseFirst := make(chan struct{})
+	first := fakeProbe{name: "redis", ping: func(context.Context) error {
+		pingCalls++
+		<-releaseFirst
+		return nil
+	}}
+	second := fakeProbe{name: "redis", ping: func(context.Context) error {
+		pingCalls++
+		close(releaseFirst)
+		return errors.New("sensitive dependency detail")
+	}}
+
+	requirePanic(t, "readiness: duplicate probe name", func() {
+		New(time.Second, first, second)
+	})
+
+	if pingCalls != 0 {
+		t.Fatalf("invalid construction started %d probe checks", pingCalls)
+	}
+}
+
+func TestNewAcceptsAllReviewedPublicComponentNames(t *testing.T) {
+	checker := New(time.Second,
+		fakeProbe{name: "postgres"},
+		fakeProbe{name: "redis"},
+		fakeProbe{name: "nats"},
+	)
+
+	ready, checks := checker.Check(context.Background())
+
+	if !ready {
+		t.Fatal("expected ready")
+	}
+	want := map[string]string{"postgres": "ok", "redis": "ok", "nats": "ok"}
+	if !reflect.DeepEqual(checks, want) {
+		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
+	}
+}
+
+func requirePanic(t *testing.T, want string, action func()) {
+	t.Helper()
+
+	defer func() {
+		got := recover()
+		if got == nil {
+			t.Fatalf("expected panic %q", want)
+		}
+		if got != want {
+			t.Fatalf("unexpected panic: got %q, want %q", got, want)
+		}
+	}()
+
+	action()
 }
