@@ -1,27 +1,39 @@
 $ErrorActionPreference = 'Stop'
 
-$expected = @{
-  buf = '1.72.0'
-  protoc = 'protoc-gen-go v1.36.11'
-  oapi = 'v2.8.0'
-  sqlc = 'v1.31.1'
-  goose = 'v3.27.1'
-  lint = '2.12.2'
-}
+function Invoke-ToolVersion {
+  param(
+    [string]$Tool,
+    [string[]]$Arguments
+  )
 
-$actual = @{
-  buf = (@(go tool buf --version) -join "`n")
-  protoc = (@(go tool protoc-gen-go --version) -join "`n")
-  oapi = (@(go tool oapi-codegen --version) -join "`n")
-  sqlc = (@(go tool sqlc version) -join "`n")
-  goose = (@(go tool goose -version) -join "`n")
-  lint = (@(go tool golangci-lint version) -join "`n")
-}
-
-$actual.protoc = $actual.protoc -replace '^protoc-gen-go\.exe ', 'protoc-gen-go '
-
-foreach ($name in $expected.Keys) {
-  if ($actual[$name] -notmatch [regex]::Escape($expected[$name])) {
-    throw "$name version mismatch: $($actual[$name])"
+  $output = @(& go tool $Tool @Arguments 2>&1)
+  $exitCode = $LASTEXITCODE
+  if ($exitCode -ne 0) {
+    throw "$Tool failed with exit code ${exitCode}: $($output -join "`n")"
   }
+
+  return $output
+}
+
+$checks = @(
+  [pscustomobject]@{ Tool = 'buf'; Arguments = @('--version'); Pattern = '^1\.72\.0$' }
+  [pscustomobject]@{ Tool = 'protoc-gen-go'; Arguments = @('--version'); Pattern = '^protoc-gen-go v1\.36\.11$' }
+  [pscustomobject]@{ Tool = 'oapi-codegen'; Arguments = @('--version'); Pattern = '^v2\.8\.0$' }
+  [pscustomobject]@{ Tool = 'sqlc'; Arguments = @('version'); Pattern = '^v1\.31\.1$' }
+  [pscustomobject]@{ Tool = 'goose'; Arguments = @('-version'); Pattern = '^goose version: v3\.27\.1$' }
+  [pscustomobject]@{ Tool = 'golangci-lint'; Arguments = @('version'); Pattern = '^golangci-lint has version 2\.12\.2 built with .+$' }
+)
+
+foreach ($check in $checks) {
+  $lines = @(Invoke-ToolVersion -Tool $check.Tool -Arguments $check.Arguments | ForEach-Object { $_.ToString() })
+  if ($check.Tool -eq 'protoc-gen-go') {
+    $lines = @($lines | ForEach-Object { $_ -replace '^protoc-gen-go\.exe ', 'protoc-gen-go ' })
+  }
+
+  $matches = @($lines | Where-Object { $_ -match $check.Pattern })
+  if ($matches.Count -ne 1) {
+    throw "$($check.Tool) version mismatch: $($lines -join "`n")"
+  }
+
+  Write-Output $matches[0]
 }
