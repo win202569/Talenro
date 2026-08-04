@@ -1,10 +1,10 @@
 package events
 
 import (
-	"strings"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
 )
@@ -133,27 +133,60 @@ func TestEnvelopeRoundTrip(t *testing.T) {
 	}
 }
 
-func TestEnvelopeSchemaExcludesSensitiveFields(t *testing.T) {
+func TestEnvelopeSchemaMatchesApprovedPrivacySurface(t *testing.T) {
 	t.Parallel()
 
-	forbidden := []string{
-		"credential",
-		"destination",
-		"dns",
-		"domain",
-		"email",
-		"error",
-		"ip_address",
-		"password",
-		"traffic",
+	type expectedField struct {
+		name        protoreflect.Name
+		number      protoreflect.FieldNumber
+		cardinality protoreflect.Cardinality
+		kind        protoreflect.Kind
+		messageType protoreflect.FullName
 	}
+	expected := []expectedField{
+		{name: "event_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "event_type", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "occurred_at", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.MessageKind, messageType: "google.protobuf.Timestamp"},
+		{name: "producer", number: 4, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "aggregate_type", number: 5, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "aggregate_id", number: 6, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "aggregate_version", number: 7, cardinality: protoreflect.Optional, kind: protoreflect.Uint64Kind},
+		{name: "idempotency_key", number: 8, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "trace_parent", number: 9, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+		{name: "payload", number: 10, cardinality: protoreflect.Optional, kind: protoreflect.BytesKind},
+	}
+
 	fields := (&eventsv1.EventEnvelope{}).ProtoReflect().Descriptor().Fields()
-	for i := range fields.Len() {
-		name := string(fields.Get(i).Name())
-		for _, fragment := range forbidden {
-			if strings.Contains(name, fragment) {
-				t.Errorf("sensitive field %q contains forbidden fragment %q", name, fragment)
-			}
+	if fields.Len() != len(expected) {
+		t.Fatalf("field count = %d, want %d approved fields", fields.Len(), len(expected))
+	}
+
+	for i, want := range expected {
+		field := fields.Get(i)
+		var messageType protoreflect.FullName
+		if field.Message() != nil {
+			messageType = field.Message().FullName()
+		}
+
+		if field.Name() != want.name ||
+			field.Number() != want.number ||
+			field.Cardinality() != want.cardinality ||
+			field.Kind() != want.kind ||
+			messageType != want.messageType {
+			t.Errorf(
+				"field %d = {name:%q number:%d cardinality:%s kind:%s message:%q}, want {name:%q number:%d cardinality:%s kind:%s message:%q}",
+				i,
+				field.Name(),
+				field.Number(),
+				field.Cardinality(),
+				field.Kind(),
+				messageType,
+				want.name,
+				want.number,
+				want.cardinality,
+				want.kind,
+				want.messageType,
+			)
 		}
 	}
 }
