@@ -1,0 +1,8 @@
+package: controlapiv1
+output: gen/go/talenro/controlapi/v1/server.gen.go
+generate:
+  models: true
+  std-http-server: true
+  embedded-spec: true
+output-options:
+  skip-prune: false
