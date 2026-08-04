@@ -37,7 +37,11 @@ func TestDependenciesAreReachable(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer nc.Close()
-	if _, err := nc.JetStream(); err != nil {
-		t.Fatal(err)
+	js, err := nc.JetStream()
+	if err != nil {
+		t.Fatalf("create JetStream context: %v", err)
+	}
+	if _, err := js.AccountInfo(nats.Context(ctx)); err != nil {
+		t.Fatalf("query JetStream account info: %v", err)
 	}
 }
