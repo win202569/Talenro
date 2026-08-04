@@ -19,10 +19,11 @@ func TestEmbeddedContractHasHealthRoutes(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		statuses []string
+		operationID string
+		statuses    []string
 	}{
-		"/livez":  {statuses: []string{"200"}},
-		"/readyz": {statuses: []string{"200", "503"}},
+		"/livez":  {operationID: "getLiveness", statuses: []string{"200"}},
+		"/readyz": {operationID: "getReadiness", statuses: []string{"200", "503"}},
 	}
 	for path, test := range tests {
 		t.Run(path, func(t *testing.T) {
@@ -31,6 +32,9 @@ func TestEmbeddedContractHasHealthRoutes(t *testing.T) {
 			item := spec.Paths.Find(path)
 			if item == nil || item.Get == nil {
 				t.Fatalf("missing GET %s", path)
+			}
+			if item.Get.OperationID != test.operationID {
+				t.Errorf("GET %s operation ID = %q, want %q", path, item.Get.OperationID, test.operationID)
 			}
 			if item.Get.Responses.Len() != len(test.statuses) {
 				t.Errorf("GET %s response count = %d, want %d", path, item.Get.Responses.Len(), len(test.statuses))
