@@ -30,7 +30,11 @@ func TestSystemMetadataRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(got) != string(want) {
-		t.Fatalf("got %s want %s", got, want)
+	equal, err := jsonEquivalent(got, want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !equal {
+		t.Fatalf("got JSON %s want JSON %s", got, want)
 	}
 }
