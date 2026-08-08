@@ -2,6 +2,8 @@ package observability
 
 import (
 	"bufio"
+	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -125,6 +127,73 @@ func TestMiddlewareRecordsFirstActualStatus(t *testing.T) {
 				t.Fatalf("status class = %q, want %q", got, "2xx")
 			}
 		})
+	}
+}
+
+func TestMiddlewareRecordsFlushCommittedStatus(t *testing.T) {
+	registry := NewRegistry()
+	handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		flusher.Flush()
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+
+	response, err := http.Get(server.URL + "/livez")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, copyErr := io.Copy(io.Discard, response.Body)
+	closeErr := response.Body.Close()
+	if copyErr != nil || closeErr != nil {
+		t.Fatalf("consume response: copy=%v close=%v", copyErr, closeErr)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("client status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+	if got := gatheredRequestLabel(t, registry, "status_class"); got != "2xx" {
+		t.Fatalf("status class = %q, want %q", got, "2xx")
+	}
+}
+
+func TestMiddlewareRecordsFlushErrorCommittedStatus(t *testing.T) {
+	registry := NewRegistry()
+	flushErrCh := make(chan error, 1)
+	handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		flusher, ok := w.(interface{ FlushError() error })
+		if !ok {
+			flushErrCh <- errors.New("wrapped server writer does not implement FlushError")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		flushErrCh <- flusher.FlushError()
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+
+	response, err := http.Get(server.URL + "/livez")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, copyErr := io.Copy(io.Discard, response.Body)
+	closeErr := response.Body.Close()
+	if copyErr != nil || closeErr != nil {
+		t.Fatalf("consume response: copy=%v close=%v", copyErr, closeErr)
+	}
+	if flushErr := <-flushErrCh; flushErr != nil {
+		t.Fatal(flushErr)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("client status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+	if got := gatheredRequestLabel(t, registry, "status_class"); got != "2xx" {
+		t.Fatalf("status class = %q, want %q", got, "2xx")
 	}
 }
 

@@ -107,3 +107,26 @@ An initial race run exposed a brittle protobuf text-spacing assertion while the 
 - Windows build: `go build ./...` -> PASS with VCS stamping enabled through process-scoped safe-directory entries.
 - Full suite: `go test -count=1 ./...` -> PASS across all repository packages.
 - Scope: metric names, help strings, labels, default buckets, `unmatched` behavior, private mux, dual-listener shutdown, safe logging, generated contracts, and Task 9 server limits/forced-close behavior are unchanged.
+
+## Review fix round 2
+
+### Finding disposition
+
+- Valid. Independent inspection of pinned `github.com/felixge/httpsnoop v1.1.0` showed `CaptureMetrics` hooks `WriteHeader`, `Write`, `WriteString`, and `ReadFrom`, but not `Flush` or `FlushError`.
+- Go 1.26.5 `net/http` server `FlushError` calls `WriteHeader(200)` before flushing when no header is committed; `httptest.ResponseRecorder.Flush` has the same implicit-200 behavior. Because the underlying writer commits without re-entering the wrapper's `WriteHeader` hook, a later ignored `WriteHeader(500)` was incorrectly recorded as 500 by `CaptureMetrics`.
+
+### Round-2 TDD evidence
+
+- RED: real `httptest.Server` client tests for both direct `http.Flusher.Flush` and supported `FlushError` received actual HTTP 200, while `talenro_control_http_requests_total` recorded `status_class=5xx` after a late `WriteHeader(500)`.
+- GREEN: both tests receive HTTP 200 and gather `status_class=2xx` after replacing `CaptureMetrics` with explicit `httpsnoop.Wrap` hooks.
+- The hook set records the first non-informational `WriteHeader` or implicit commit from `Write`, `WriteString`, `ReadFrom`, `Flush`, or `FlushError`. Status is stored with atomic compare-and-swap so later operations cannot overwrite the first committed status.
+- `httpsnoop.Wrap` remains responsible for exact optional-interface projection and `Unwrap`; no local capability-combination wrapper was introduced.
+
+### Round-2 verification
+
+- Focused: `go test ./internal/observability -count=1` -> PASS.
+- Focused race: `go test -race ./internal/observability ./internal/config ./internal/platform/... ./cmd/control-api -count=1` -> PASS.
+- Static analysis: `go vet ./...` -> PASS.
+- Windows build: `go build ./...` -> PASS with VCS stamping enabled through process-scoped safe-directory entries.
+- Full suite: `go test -count=1 ./...` -> PASS across all repository packages.
+- Scope: only `internal/observability/http.go`, its regression tests, and this report changed. Pinned dependencies, metrics schema, labels/buckets, route privacy, public-metrics config, mux separation, server lifecycle, safe logging, generated contracts, and Task 9 behavior remain unchanged.
