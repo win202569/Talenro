@@ -239,7 +239,7 @@ wait_status() {
 }
 
 terminate_child() {
-  local attempt
+  local attempt deadline remaining sleep_ms sleep_value
   if [[ -z "${api_pid}" ]] || ! kill -0 "${api_pid}" 2>/dev/null; then
     if [[ -n "${api_pid}" ]]; then
       wait "${api_pid}" >/dev/null 2>&1 || true
@@ -249,14 +249,30 @@ terminate_child() {
   fi
 
   kill -TERM "${api_pid}" 2>/dev/null || true
-  for ((attempt = 0; attempt < 20; attempt++)); do
+  if now_milliseconds; then
+    deadline=$((now_ms + 4750))
+    while kill -0 "${api_pid}" 2>/dev/null; do
+      if ! now_milliseconds; then
+        break
+      fi
+      remaining=$((deadline - now_ms))
+      if (( remaining <= 0 )); then
+        break
+      fi
+      if (( remaining > 250 )); then
+        sleep_ms=250
+      else
+        sleep_ms=${remaining}
+      fi
+      printf -v sleep_value '%d.%03d' "$((sleep_ms / 1000))" "$((sleep_ms % 1000))"
+      sleep "${sleep_value}"
+    done
     if ! kill -0 "${api_pid}" 2>/dev/null; then
       wait "${api_pid}" >/dev/null 2>&1 || true
       api_pid=''
       return 0
     fi
-    sleep 0.25
-  done
+  fi
 
   kill -KILL "${api_pid}" 2>/dev/null || true
   for ((attempt = 0; attempt < 4; attempt++)); do
