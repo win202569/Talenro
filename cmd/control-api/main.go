@@ -1,3 +1,4 @@
+// Package main runs the Talenro control API process.
 package main
 
 import (
@@ -77,9 +78,9 @@ func runWithFactory(ctx context.Context, lookup config.Lookup, factory runtimeFa
 
 	select {
 	case <-ctx.Done():
-		return shutdownHTTPServers(metricsServer, publicServer, cfg.ShutdownTimeout)
+		return shutdownHTTPServers(ctx, metricsServer, publicServer, cfg.ShutdownTimeout)
 	case err := <-errCh:
-		shutdownErr := shutdownHTTPServers(metricsServer, publicServer, cfg.ShutdownTimeout)
+		shutdownErr := shutdownHTTPServers(ctx, metricsServer, publicServer, cfg.ShutdownTimeout)
 		if errors.Is(err, http.ErrServerClosed) {
 			return shutdownErr
 		}
@@ -93,8 +94,12 @@ func shutdownHTTPServer(server *http.Server, timeout time.Duration) error {
 	return shutdownHTTPServerWithContext(shutdownCtx, server)
 }
 
-func shutdownHTTPServers(metricsServer, publicServer *http.Server, timeout time.Duration) error {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
+func shutdownHTTPServers(
+	lifecycleCtx context.Context,
+	metricsServer, publicServer *http.Server,
+	timeout time.Duration,
+) error {
+	shutdownCtx, cancel := deriveShutdownContext(lifecycleCtx, timeout)
 	defer cancel()
 
 	metricsErr := shutdownHTTPServerWithContext(shutdownCtx, metricsServer)
@@ -103,6 +108,10 @@ func shutdownHTTPServers(metricsServer, publicServer *http.Server, timeout time.
 		return metricsErr
 	}
 	return publicErr
+}
+
+func deriveShutdownContext(lifecycleCtx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.WithoutCancel(lifecycleCtx), timeout)
 }
 
 func shutdownHTTPServerWithContext(shutdownCtx context.Context, server *http.Server) error {

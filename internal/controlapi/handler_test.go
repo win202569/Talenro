@@ -37,7 +37,7 @@ func TestHealthRoutes(t *testing.T) {
 		{path: "/readyz", status: http.StatusServiceUnavailable},
 	}
 	for _, tt := range tests {
-		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.path, nil)
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, req)
 		if rec.Code != tt.status {

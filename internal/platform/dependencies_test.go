@@ -14,7 +14,7 @@ import (
 )
 
 func TestOpenReturnsSafeCategoryForDependencyErrors(t *testing.T) {
-	secret := "credential@private.example:6543"
+	privateDetail := "private dependency detail"
 	tests := []struct {
 		name   string
 		mutate func(*dependencyOperations, error)
@@ -51,7 +51,7 @@ func TestOpenReturnsSafeCategoryForDependencyErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cause := errors.New(secret)
+			cause := errors.New(privateDetail)
 			operations := successfulDependencyOperations()
 			tt.mutate(&operations, cause)
 
@@ -68,7 +68,7 @@ func TestOpenReturnsSafeCategoryForDependencyErrors(t *testing.T) {
 			if got := err.Error(); got != string(CategoryDependencies) {
 				t.Fatalf("error = %q, want %q", got, CategoryDependencies)
 			}
-			if strings.Contains(err.Error(), secret) {
+			if strings.Contains(err.Error(), privateDetail) {
 				t.Fatalf("error exposed dependency details: %q", err)
 			}
 			if !errors.Is(err, cause) {
@@ -124,7 +124,7 @@ func TestOpenHonorsCancelledContext(t *testing.T) {
 
 	started := time.Now()
 	deps, err := Open(ctx, config.Config{
-		DatabaseURL:       "postgres://ignored:ignored@127.0.0.1:1/ignored",
+		DatabaseURL:       "postgres://127.0.0.1:1/fixture?sslmode=disable",
 		DependencyTimeout: time.Minute,
 	})
 	if err == nil {

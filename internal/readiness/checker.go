@@ -1,3 +1,4 @@
+// Package readiness performs bounded dependency health aggregation.
 package readiness
 
 import (
@@ -11,16 +12,19 @@ const (
 	statusUnavailable = "unavailable"
 )
 
+// Probe is a named dependency health check.
 type Probe interface {
 	Name() string
 	Ping(context.Context) error
 }
 
+// Checker runs validated probes within a shared timeout.
 type Checker struct {
 	timeout time.Duration
 	probes  []checkedProbe
 }
 
+// New validates and constructs a readiness checker.
 func New(timeout time.Duration, probes ...Probe) *Checker {
 	checked := make([]checkedProbe, 0, len(probes))
 	seen := make(map[string]struct{}, len(probes))
@@ -44,6 +48,7 @@ func New(timeout time.Duration, probes ...Probe) *Checker {
 	return &Checker{timeout: timeout, probes: checked}
 }
 
+// Check runs all probes and returns only bounded public states.
 func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
 	checkCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
@@ -103,12 +108,14 @@ func isNilProbe(probe Probe) bool {
 	}
 
 	value := reflect.ValueOf(probe)
-	switch value.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		return value.IsNil()
-	default:
-		return false
-	}
+	kind := value.Kind()
+	isNilCapable := kind == reflect.Chan ||
+		kind == reflect.Func ||
+		kind == reflect.Interface ||
+		kind == reflect.Map ||
+		kind == reflect.Pointer ||
+		kind == reflect.Slice
+	return isNilCapable && value.IsNil()
 }
 
 func isPublicProbeName(name string) bool {

@@ -1,3 +1,4 @@
+// Package controlapi implements the generated control API server contract.
 package controlapi
 
 import (
@@ -75,7 +76,7 @@ func TestGeneratedHandlerRoutesHealthResponses(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
-			request := httptest.NewRequest(http.MethodGet, path, nil)
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
 			recorder := httptest.NewRecorder()
 			handler.ServeHTTP(recorder, request)
 

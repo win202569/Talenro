@@ -12,12 +12,13 @@ import (
 
 const unmatchedRoute = "unmatched"
 
+// Middleware records bounded request metrics around next.
 func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
 	dynamicRoute := route == ""
 	route = boundedRoute(route)
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		started := time.Now()
-		var status atomic.Int32
+		var status atomic.Int64
 		commitOK := func() {
 			status.CompareAndSwap(0, http.StatusOK)
 		}
@@ -26,7 +27,7 @@ func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
 				return func(code int) {
 					next(code)
 					if code < 100 || code > 199 {
-						status.CompareAndSwap(0, int32(code))
+						status.CompareAndSwap(0, int64(code))
 					}
 				}
 			},

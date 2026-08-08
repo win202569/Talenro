@@ -1,3 +1,4 @@
+// Package platform owns control API infrastructure lifecycles and safe error categories.
 package platform
 
 import (
@@ -23,6 +24,7 @@ type dependencyOperations struct {
 	closeNATS     func(*nats.Conn)
 }
 
+// Dependencies contains the live PostgreSQL, Redis, and NATS clients.
 type Dependencies struct {
 	Postgres *pgxpool.Pool
 	Redis    *redis.Client
@@ -34,6 +36,7 @@ type Dependencies struct {
 	closeNATS     func()
 }
 
+// Open connects and checks all required infrastructure dependencies.
 func Open(ctx context.Context, cfg config.Config) (_ *Dependencies, err error) {
 	return openWithOperations(ctx, cfg, dependencyOperations{
 		newPostgres:   pgxpool.New,
@@ -101,6 +104,7 @@ func openWithOperations(
 	return deps, nil
 }
 
+// Close releases dependencies once in reverse acquisition order.
 func (d *Dependencies) Close() {
 	if d == nil {
 		return

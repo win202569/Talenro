@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Config contains validated control API process settings.
 type Config struct {
 	HTTPAddress        string
 	MetricsAddress     string
@@ -20,8 +21,10 @@ type Config struct {
 	ShutdownTimeout    time.Duration
 }
 
+// Lookup retrieves a configuration value by environment-style key.
 type Lookup func(string) (string, bool)
 
+// Load reads and validates control API configuration through lookup.
 func Load(lookup Lookup) (Config, error) {
 	cfg := Config{
 		HTTPAddress:       "127.0.0.1:8080",

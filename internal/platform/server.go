@@ -21,6 +21,7 @@ func (w *sanitizedServerErrorWriter) Write(message []byte) (int, error) {
 	return len(message), nil
 }
 
+// NewHTTPServer constructs a bounded, privacy-safe HTTP server.
 func NewHTTPServer(address string, handler http.Handler) *http.Server {
 	errorWriter := &sanitizedServerErrorWriter{logger: slog.Default()}
 	return &http.Server{

@@ -20,7 +20,7 @@ func TestMiddlewareUsesOnlyBoundedRouteLabel(t *testing.T) {
 		"/readyz?email=user@example.invalid",
 		"/random-device-123?target=198.51.100.1",
 	} {
-		handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, target, nil))
+		handler.ServeHTTP(httptest.NewRecorder(), newServerRequest(t, target))
 	}
 	families, err := registry.Gatherer.Gather()
 	if err != nil {
@@ -47,7 +47,7 @@ func TestMiddlewareCollapsesUnknownRouteToUnmatched(t *testing.T) {
 	}))
 	handler.ServeHTTP(
 		httptest.NewRecorder(),
-		httptest.NewRequest(http.MethodGet, "/device/private-node-123?email=user@example.invalid", nil),
+		newServerRequest(t, "/device/private-node-123?email=user@example.invalid"),
 	)
 
 	families, err := registry.Gatherer.Gather()
@@ -118,7 +118,7 @@ func TestMiddlewareRecordsFirstActualStatus(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			registry.Middleware("/livez", test.handler).ServeHTTP(
 				recorder,
-				httptest.NewRequest(http.MethodGet, "/livez", nil),
+				newServerRequest(t, "/livez"),
 			)
 			if recorder.Code != test.wantStatus {
 				t.Fatalf("response status = %d, want %d", recorder.Code, test.wantStatus)
@@ -144,7 +144,7 @@ func TestMiddlewareRecordsFlushCommittedStatus(t *testing.T) {
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
 
-	response, err := http.Get(server.URL + "/livez")
+	response, err := server.Client().Do(newClientRequest(t, server.URL+"/livez"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +177,7 @@ func TestMiddlewareRecordsFlushErrorCommittedStatus(t *testing.T) {
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
 
-	response, err := http.Get(server.URL + "/livez")
+	response, err := server.Client().Do(newClientRequest(t, server.URL+"/livez"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func TestMiddlewarePreservesOnlyUnderlyingResponseWriterCapabilities(t *testing.
 			}
 			_ = pusher.Push("/asset", nil)
 		}))
-		handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+		handler.ServeHTTP(underlying, newServerRequest(t, "/livez"))
 		if underlying.flushCalls != 1 || underlying.hijackCalls != 1 || underlying.pushCalls != 1 {
 			t.Fatalf(
 				"capability calls = flush:%d hijack:%d push:%d, want each once",
@@ -252,7 +252,7 @@ func TestMiddlewarePreservesOnlyUnderlyingResponseWriterCapabilities(t *testing.
 				t.Error("wrapped writer does not unwrap to the underlying writer")
 			}
 		}))
-		handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+		handler.ServeHTTP(underlying, newServerRequest(t, "/livez"))
 	})
 }
 
@@ -265,7 +265,7 @@ func TestMiddlewareAllowsResponseControllerTraversal(t *testing.T) {
 			t.Errorf("set write deadline through wrapped writer: %v", err)
 		}
 	}))
-	handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+	handler.ServeHTTP(underlying, newServerRequest(t, "/livez"))
 	if !underlying.writeDeadline.Equal(wantDeadline) {
 		t.Fatalf("write deadline = %s, want %s", underlying.writeDeadline, wantDeadline)
 	}
@@ -289,6 +289,20 @@ func gatheredRequestLabel(t *testing.T, registry *Registry, name string) string 
 	}
 	t.Fatalf("request label %q was not gathered", name)
 	return ""
+}
+
+func newServerRequest(t *testing.T, target string) *http.Request {
+	t.Helper()
+	return httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+}
+
+func newClientRequest(t *testing.T, target string) *http.Request {
+	t.Helper()
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return request
 }
 
 type minimalResponseWriter struct {

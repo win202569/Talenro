@@ -22,7 +22,7 @@ func TestLoadRequiresDatabaseURL(t *testing.T) {
 
 func TestLoadAppliesSafeDefaults(t *testing.T) {
 	got, err := Load(lookup(map[string]string{
-		"TALENRO_DATABASE_URL": "postgres://talenro:talenro_dev@localhost:5432/talenro?sslmode=disable",
+		"TALENRO_DATABASE_URL": "database-fixture",
 	}))
 	if err != nil {
 		t.Fatal(err)

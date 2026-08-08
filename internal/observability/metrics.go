@@ -10,6 +10,7 @@ import (
 	"talenro.local/platform/internal/buildinfo"
 )
 
+// Registry owns the control API's bounded Prometheus collectors.
 type Registry struct {
 	prometheus.Registerer
 	Gatherer  prometheus.Gatherer
@@ -18,6 +19,7 @@ type Registry struct {
 	BuildInfo *prometheus.GaugeVec
 }
 
+// NewRegistry constructs an isolated registry with control API collectors.
 func NewRegistry() *Registry {
 	registry := prometheus.NewRegistry()
 	requests := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -45,6 +47,7 @@ func NewRegistry() *Registry {
 	}
 }
 
+// Handler serves metrics gathered from the registry.
 func (r *Registry) Handler() http.Handler {
 	return promhttp.HandlerFor(r.Gatherer, promhttp.HandlerOpts{})
 }

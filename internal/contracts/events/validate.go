@@ -1,3 +1,4 @@
+// Package events validates shared event contracts before publication or consumption.
 package events
 
 import (

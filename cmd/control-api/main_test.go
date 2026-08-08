@@ -77,7 +77,7 @@ func TestRunShutsDownHTTPServerAndClosesRuntime(t *testing.T) {
 	}
 
 	client := &http.Client{Timeout: 100 * time.Millisecond}
-	if response, err := client.Get("http://" + address); err == nil {
+	if response, err := client.Do(newGETRequest(t, "http://"+address)); err == nil {
 		_ = response.Body.Close()
 		t.Fatal("HTTP server still accepted requests after shutdown")
 	}
@@ -109,7 +109,7 @@ func TestRunServesMetricsOnlyOnPrivateListener(t *testing.T) {
 
 	assertHTTPStatus(t, "http://"+publicAddress+"/metrics", http.StatusNotFound)
 	assertHTTPStatus(t, "http://"+metricsAddress+"/livez", http.StatusNotFound)
-	response, err := http.Get("http://" + metricsAddress + "/metrics")
+	response, err := http.DefaultClient.Do(newGETRequest(t, "http://"+metricsAddress+"/metrics"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestRunServesMetricsOnlyOnPrivateListener(t *testing.T) {
 
 func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 	logs := captureLogs(t)
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 
 func TestShutdownForcesClosedBlockingHandler(t *testing.T) {
 	logs := captureLogs(t)
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,9 +201,10 @@ func TestShutdownForcesClosedBlockingHandler(t *testing.T) {
 	}()
 
 	clientDone := make(chan struct{})
+	clientRequest := newGETRequest(t, "http://"+listener.Addr().String())
 	go func() {
 		client := &http.Client{Timeout: 2 * time.Second}
-		response, requestErr := client.Get("http://" + listener.Addr().String())
+		response, requestErr := client.Do(clientRequest)
 		if response != nil {
 			_ = response.Body.Close()
 		}
@@ -246,6 +247,26 @@ func TestShutdownForcesClosedBlockingHandler(t *testing.T) {
 	)
 }
 
+func TestShutdownContextRetainsLifecycleValuesAfterCancellation(t *testing.T) {
+	type contextKey struct{}
+
+	parent, cancelParent := context.WithCancel(context.WithValue(t.Context(), contextKey{}, "request-id"))
+	cancelParent()
+
+	shutdownCtx, cancelShutdown := deriveShutdownContext(parent, time.Second)
+	defer cancelShutdown()
+
+	if err := shutdownCtx.Err(); err != nil {
+		t.Fatalf("shutdown context inherited cancellation: %v", err)
+	}
+	if got := shutdownCtx.Value(contextKey{}); got != "request-id" {
+		t.Fatalf("shutdown context value = %v, want request-id", got)
+	}
+	if _, ok := shutdownCtx.Deadline(); !ok {
+		t.Fatal("shutdown context has no deadline")
+	}
+}
+
 func captureLogs(t *testing.T) *bytes.Buffer {
 	t.Helper()
 	var logs bytes.Buffer
@@ -267,7 +288,7 @@ func assertSanitizedLog(t *testing.T, output, event, category, private string) {
 
 func unusedLocalAddress(t *testing.T) string {
 	t.Helper()
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +311,7 @@ func waitForServer(t *testing.T, url string) {
 	deadline := time.Now().Add(2 * time.Second)
 	client := &http.Client{Timeout: 100 * time.Millisecond}
 	for time.Now().Before(deadline) {
-		response, err := client.Get(url)
+		response, err := client.Do(newGETRequest(t, url))
 		if err == nil {
 			_, _ = io.Copy(io.Discard, response.Body)
 			_ = response.Body.Close()
@@ -306,7 +327,7 @@ func waitForServer(t *testing.T, url string) {
 func assertHTTPStatus(t *testing.T, url string, want int) {
 	t.Helper()
 	client := &http.Client{Timeout: time.Second}
-	response, err := client.Get(url)
+	response, err := client.Do(newGETRequest(t, url))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -321,13 +342,22 @@ func assertServerStopped(t *testing.T, url string) {
 	deadline := time.Now().Add(2 * time.Second)
 	client := &http.Client{Timeout: 100 * time.Millisecond}
 	for time.Now().Before(deadline) {
-		response, err := client.Get(url)
+		response, err := client.Do(newGETRequest(t, url))
 		if err == nil {
 			_ = response.Body.Close()
 			t.Fatalf("server still accepted a request at %s", url)
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
+}
+
+func newGETRequest(t *testing.T, target string) *http.Request {
+	t.Helper()
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return request
 }
 
 func lookupValue(t *testing.T, lookup config.Lookup, key string) string {
