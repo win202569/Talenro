@@ -89,6 +89,90 @@ func TestMiddlewareCollapsesUnknownRouteToUnmatched(t *testing.T) {
 	}
 }
 
+func TestMiddlewareBoundsMethodLabelsForAllHTTPMetricFamilies(t *testing.T) {
+	registry := NewRegistry()
+	handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	methods := []string{
+		"POST",
+		"PUT",
+		"PATCH",
+		"DELETE",
+		"OPTIONS",
+		"HEAD",
+		"CONNECT",
+		"TRACE",
+		"DEVICE-private-node-123",
+		"TENANT-customer-8472",
+		"USER-session-token-991",
+		"REQUEST-correlation-id-550e8400",
+	}
+	handler.ServeHTTP(httptest.NewRecorder(), newServerRequest(t, "/livez"))
+	for _, method := range methods {
+		request := httptest.NewRequestWithContext(t.Context(), method, "/livez", nil)
+		handler.ServeHTTP(httptest.NewRecorder(), request)
+	}
+
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantFamilies := map[string]bool{
+		"talenro_control_http_requests_total":           false,
+		"talenro_control_http_request_duration_seconds": false,
+	}
+	for _, family := range families {
+		if _, ok := wantFamilies[family.GetName()]; !ok {
+			continue
+		}
+		wantFamilies[family.GetName()] = true
+		if got := len(family.GetMetric()); got != 2 {
+			t.Fatalf("%s series count = %d, want 2", family.GetName(), got)
+		}
+
+		observationsByMethod := make(map[string]float64)
+		for _, metric := range family.GetMetric() {
+			labels := make(map[string]string)
+			for _, label := range metric.GetLabel() {
+				labels[label.GetName()] = label.GetValue()
+				for _, forbidden := range methods {
+					if strings.Contains(label.GetValue(), forbidden) {
+						t.Fatalf("%s label %s leaked raw method %q", family.GetName(), label.GetName(), forbidden)
+					}
+				}
+			}
+			if labels["route"] != "/livez" || labels["status_class"] != "2xx" {
+				t.Fatalf("%s labels = %v, want route /livez and status class 2xx", family.GetName(), labels)
+			}
+			method := labels["method"]
+			if method != http.MethodGet && method != "other" {
+				t.Fatalf("%s method label = %q, want GET or other", family.GetName(), method)
+			}
+			if _, exists := observationsByMethod[method]; exists {
+				t.Fatalf("%s has multiple %q method series", family.GetName(), method)
+			}
+			switch family.GetName() {
+			case "talenro_control_http_requests_total":
+				observationsByMethod[method] = metric.GetCounter().GetValue()
+			case "talenro_control_http_request_duration_seconds":
+				observationsByMethod[method] = float64(metric.GetHistogram().GetSampleCount())
+			}
+		}
+		if got := observationsByMethod[http.MethodGet]; got != 1 {
+			t.Errorf("%s GET observations = %v, want 1", family.GetName(), got)
+		}
+		if got := observationsByMethod["other"]; got != 12 {
+			t.Errorf("%s other observations = %v, want 12", family.GetName(), got)
+		}
+	}
+	for name, found := range wantFamilies {
+		if !found {
+			t.Errorf("metric family %s was not gathered", name)
+		}
+	}
+}
+
 func TestMiddlewareRecordsFirstActualStatus(t *testing.T) {
 	tests := []struct {
 		name       string

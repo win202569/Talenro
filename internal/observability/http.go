@@ -10,7 +10,10 @@ import (
 	"github.com/felixge/httpsnoop"
 )
 
-const unmatchedRoute = "unmatched"
+const (
+	unmatchedRoute = "unmatched"
+	otherMethod    = "other"
+)
 
 // Middleware records bounded request metrics around next.
 func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
@@ -76,10 +79,17 @@ func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
 		if dynamicRoute {
 			requestRoute = boundedRoute(req.Pattern)
 		}
-		labels := []string{req.Method, requestRoute, statusClass}
+		labels := []string{boundedMethod(req.Method), requestRoute, statusClass}
 		r.Requests.WithLabelValues(labels...).Inc()
 		r.Duration.WithLabelValues(labels...).Observe(time.Since(started).Seconds())
 	})
+}
+
+func boundedMethod(method string) string {
+	if method == http.MethodGet {
+		return method
+	}
+	return otherMethod
 }
 
 func boundedRoute(route string) string {
