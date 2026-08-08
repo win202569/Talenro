@@ -13,6 +13,7 @@ import (
 	controlapiv1 "talenro.local/platform/gen/go/talenro/controlapi/v1"
 	"talenro.local/platform/internal/config"
 	"talenro.local/platform/internal/controlapi"
+	"talenro.local/platform/internal/observability"
 	"talenro.local/platform/internal/platform"
 	natsprobe "talenro.local/platform/internal/platform/nats"
 	postgresprobe "talenro.local/platform/internal/platform/postgres"
@@ -60,18 +61,27 @@ func runWithFactory(ctx context.Context, lookup config.Lookup, factory runtimeFa
 
 	slog.Info("control_api_starting", "category", platform.CategoryStartup)
 
-	server := platform.NewHTTPServer(cfg.HTTPAddress, runtime.handler)
-	errCh := make(chan error, 1)
+	metrics := observability.NewRegistry()
+	metricsMux := http.NewServeMux()
+	metricsMux.Handle("/metrics", metrics.Handler())
+	metricsServer := platform.NewHTTPServer(cfg.MetricsAddress, metricsMux)
+	publicServer := platform.NewHTTPServer(cfg.HTTPAddress, metrics.Middleware("", runtime.handler))
+
+	errCh := make(chan error, 2)
 	go func() {
-		errCh <- server.ListenAndServe()
+		errCh <- metricsServer.ListenAndServe()
+	}()
+	go func() {
+		errCh <- publicServer.ListenAndServe()
 	}()
 
 	select {
 	case <-ctx.Done():
-		return shutdownHTTPServer(server, cfg.ShutdownTimeout)
+		return shutdownHTTPServers(metricsServer, publicServer, cfg.ShutdownTimeout)
 	case err := <-errCh:
+		shutdownErr := shutdownHTTPServers(metricsServer, publicServer, cfg.ShutdownTimeout)
 		if errors.Is(err, http.ErrServerClosed) {
-			return nil
+			return shutdownErr
 		}
 		return platform.NewCategorizedError(platform.CategoryHTTPListenOrServe, err)
 	}
@@ -80,7 +90,22 @@ func runWithFactory(ctx context.Context, lookup config.Lookup, factory runtimeFa
 func shutdownHTTPServer(server *http.Server, timeout time.Duration) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	return shutdownHTTPServerWithContext(shutdownCtx, server)
+}
 
+func shutdownHTTPServers(metricsServer, publicServer *http.Server, timeout time.Duration) error {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	metricsErr := shutdownHTTPServerWithContext(shutdownCtx, metricsServer)
+	publicErr := shutdownHTTPServerWithContext(shutdownCtx, publicServer)
+	if metricsErr != nil {
+		return metricsErr
+	}
+	return publicErr
+}
+
+func shutdownHTTPServerWithContext(shutdownCtx context.Context, server *http.Server) error {
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		slog.Warn("control_api_shutdown_failed", "category", platform.CategoryHTTPShutdown)
 		slog.Warn("control_api_forced_close", "category", platform.CategoryHTTPForcedClose)

@@ -42,8 +42,9 @@ func TestRunReportsSanitizedDependencyError(t *testing.T) {
 func TestRunShutsDownHTTPServerAndClosesRuntime(t *testing.T) {
 	address := unusedLocalAddress(t)
 	lookup := testLookup(map[string]string{
-		"TALENRO_DATABASE_URL": "postgres://unused",
-		"TALENRO_HTTP_ADDRESS": address,
+		"TALENRO_DATABASE_URL":    "postgres://unused",
+		"TALENRO_HTTP_ADDRESS":    address,
+		"TALENRO_METRICS_ADDRESS": unusedLocalAddress(t),
 	})
 
 	var closeCalls atomic.Int32
@@ -82,6 +83,62 @@ func TestRunShutsDownHTTPServerAndClosesRuntime(t *testing.T) {
 	}
 }
 
+func TestRunServesMetricsOnlyOnPrivateListener(t *testing.T) {
+	publicAddress := unusedLocalAddress(t)
+	metricsAddress := unusedLocalAddress(t)
+	lookup := testLookup(map[string]string{
+		"TALENRO_DATABASE_URL":    "postgres://unused",
+		"TALENRO_HTTP_ADDRESS":    publicAddress,
+		"TALENRO_METRICS_ADDRESS": metricsAddress,
+	})
+
+	factory := func(context.Context, config.Config) (*openedRuntime, error) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("GET /livez", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		return &openedRuntime{handler: mux, close: func() {}}, nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	errCh := make(chan error, 1)
+	go func() { errCh <- runWithFactory(ctx, lookup, factory) }()
+	waitForServer(t, "http://"+publicAddress+"/livez")
+	waitForServer(t, "http://"+metricsAddress+"/metrics")
+
+	assertHTTPStatus(t, "http://"+publicAddress+"/metrics", http.StatusNotFound)
+	assertHTTPStatus(t, "http://"+metricsAddress+"/livez", http.StatusNotFound)
+	response, err := http.Get("http://" + metricsAddress + "/metrics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := io.ReadAll(response.Body)
+	_ = response.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{
+		"talenro_control_build_info",
+		"talenro_control_http_requests_total",
+		`route="/livez"`,
+	} {
+		if !strings.Contains(string(body), expected) {
+			t.Fatalf("metrics response missing %q: %s", expected, body)
+		}
+	}
+
+	cancel()
+	select {
+	case err := <-errCh:
+		if err != nil {
+			t.Fatalf("runWithFactory returned error: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("runWithFactory did not stop both listeners")
+	}
+}
+
 func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 	logs := captureLogs(t)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -91,8 +148,9 @@ func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 	defer func() { _ = listener.Close() }()
 
 	lookup := testLookup(map[string]string{
-		"TALENRO_DATABASE_URL": "postgres://unused",
-		"TALENRO_HTTP_ADDRESS": listener.Addr().String(),
+		"TALENRO_DATABASE_URL":    "postgres://unused",
+		"TALENRO_HTTP_ADDRESS":    listener.Addr().String(),
+		"TALENRO_METRICS_ADDRESS": unusedLocalAddress(t),
 	})
 	var closeCalls atomic.Int32
 	factory := func(context.Context, config.Config) (*openedRuntime, error) {
@@ -117,6 +175,7 @@ func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 		string(platform.CategoryHTTPListenOrServe),
 		listener.Addr().String(),
 	)
+	assertServerStopped(t, "http://"+lookupValue(t, lookup, "TALENRO_METRICS_ADDRESS")+"/metrics")
 }
 
 func TestShutdownForcesClosedBlockingHandler(t *testing.T) {
@@ -242,4 +301,40 @@ func waitForServer(t *testing.T, url string) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatal("HTTP server did not become ready within 2s")
+}
+
+func assertHTTPStatus(t *testing.T, url string, want int) {
+	t.Helper()
+	client := &http.Client{Timeout: time.Second}
+	response, err := client.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = response.Body.Close() }()
+	if response.StatusCode != want {
+		t.Fatalf("GET %s status = %d, want %d", url, response.StatusCode, want)
+	}
+}
+
+func assertServerStopped(t *testing.T, url string) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	client := &http.Client{Timeout: 100 * time.Millisecond}
+	for time.Now().Before(deadline) {
+		response, err := client.Get(url)
+		if err == nil {
+			_ = response.Body.Close()
+			t.Fatalf("server still accepted a request at %s", url)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+func lookupValue(t *testing.T, lookup config.Lookup, key string) string {
+	t.Helper()
+	value, ok := lookup(key)
+	if !ok {
+		t.Fatalf("test lookup missing %s", key)
+	}
+	return value
 }

@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	HTTPAddress       string
+	MetricsAddress    string
 	DatabaseURL       string
 	RedisAddress      string
 	NATSURL           string
@@ -22,6 +23,7 @@ type Lookup func(string) (string, bool)
 func Load(lookup Lookup) (Config, error) {
 	cfg := Config{
 		HTTPAddress:       "127.0.0.1:8080",
+		MetricsAddress:    "127.0.0.1:9090",
 		RedisAddress:      "127.0.0.1:6379",
 		NATSURL:           "nats://127.0.0.1:4222",
 		DependencyTimeout: 2 * time.Second,
@@ -34,6 +36,9 @@ func Load(lookup Lookup) (Config, error) {
 	}
 	if value, exists := lookup("TALENRO_HTTP_ADDRESS"); exists && value != "" {
 		cfg.HTTPAddress = value
+	}
+	if value, exists := lookup("TALENRO_METRICS_ADDRESS"); exists && value != "" {
+		cfg.MetricsAddress = value
 	}
 	if value, exists := lookup("TALENRO_REDIS_ADDRESS"); exists && value != "" {
 		cfg.RedisAddress = value
@@ -59,6 +64,16 @@ func Load(lookup Lookup) (Config, error) {
 	publicBind := host == "" || (ip != nil && ip.IsUnspecified())
 	if publicBind && !allowPublic {
 		return Config{}, fmt.Errorf("public HTTP bind requires TALENRO_ALLOW_PUBLIC_HTTP=true")
+	}
+
+	metricsHost, _, err := net.SplitHostPort(cfg.MetricsAddress)
+	if err != nil {
+		return Config{}, fmt.Errorf("parse TALENRO_METRICS_ADDRESS: %w", err)
+	}
+	metricsIP := net.ParseIP(metricsHost)
+	publicMetricsBind := metricsHost == "" || (metricsIP != nil && metricsIP.IsUnspecified())
+	if publicMetricsBind && !allowPublic {
+		return Config{}, fmt.Errorf("public METRICS bind requires TALENRO_ALLOW_PUBLIC_HTTP=true")
 	}
 
 	return cfg, nil
