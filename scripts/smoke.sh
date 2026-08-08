@@ -1,0 +1,260 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_source=${BASH_SOURCE[0]}
+case "${script_source}" in
+  */*) script_parent=${script_source%/*} ;;
+  *) script_parent=. ;;
+esac
+if ! script_dir="$(cd -- "${script_parent}" 2>/dev/null && pwd -P)" ||
+   ! repo_root="$(cd -- "${script_dir}/.." 2>/dev/null && pwd -P)"; then
+  printf '%s\n' 'smoke: repository resolution failed with exit code 2.' >&2
+  exit 2
+fi
+compose=(docker compose -f "${repo_root}/deploy/dev/compose.yaml")
+compose_touched=0
+api_pid=''
+quiet_exit=0
+quiet_output=''
+
+invoke_quiet() {
+  set +e
+  quiet_output="$("$@" 2>&1)"
+  quiet_exit=$?
+  set -e
+}
+
+run_quiet() {
+  local stage=$1
+  shift
+  invoke_quiet "$@"
+  if (( quiet_exit != 0 )); then
+    printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
+    return "${quiet_exit}"
+  fi
+}
+
+load_environment() {
+  local env_file="${repo_root}/.env.example"
+  local line name value existing
+  local -a required=(
+    TALENRO_HTTP_ADDRESS
+    TALENRO_METRICS_ADDRESS
+    TALENRO_ALLOW_PUBLIC_METRICS
+    TALENRO_DATABASE_URL
+    TALENRO_REDIS_ADDRESS
+    TALENRO_NATS_URL
+    TALENRO_ALLOW_PUBLIC_HTTP
+  )
+  local -A allowed=()
+  local -A parsed=()
+
+  for name in "${required[@]}"; do
+    allowed["${name}"]=1
+  done
+
+  if [[ ! -f "${env_file}" ]]; then
+    printf '%s\n' 'smoke: environment failed with exit code 2.' >&2
+    return 2
+  fi
+
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    if [[ -z "${line}" || "${line}" == \#* ]]; then
+      continue
+    fi
+    if [[ ! "${line}" =~ ^([A-Z][A-Z0-9_]*)=([A-Za-z0-9._:/?@=+-]+)$ ]]; then
+      printf '%s\n' 'smoke: environment failed with exit code 2.' >&2
+      return 2
+    fi
+    name=${BASH_REMATCH[1]}
+    value=${BASH_REMATCH[2]}
+    if [[ -z "${allowed[${name}]+present}" || -n "${parsed[${name}]+present}" ]]; then
+      printf '%s\n' 'smoke: environment failed with exit code 2.' >&2
+      return 2
+    fi
+    parsed["${name}"]=${value}
+  done < "${env_file}"
+
+  for name in "${required[@]}"; do
+    if [[ -z "${parsed[${name}]+present}" ]]; then
+      printf '%s\n' 'smoke: environment failed with exit code 2.' >&2
+      return 2
+    fi
+  done
+
+  while IFS= read -r existing; do
+    unset "${existing}"
+  done < <(compgen -v TALENRO_ || true)
+  for name in "${required[@]}"; do
+    printf -v "${name}" '%s' "${parsed[${name}]}"
+    export "${name}"
+  done
+}
+
+now_milliseconds() {
+  local whole fraction
+  if [[ -z "${EPOCHREALTIME:-}" ]]; then
+    return 70
+  fi
+  whole=${EPOCHREALTIME%%.*}
+  fraction=${EPOCHREALTIME#*.}000
+  now_ms=$((10#${whole} * 1000 + 10#${fraction:0:3}))
+}
+
+get_status() {
+  local url=$1
+  local timeout_ms=$2
+  local timeout
+  printf -v timeout '%d.%03d' "$((timeout_ms / 1000))" "$((timeout_ms % 1000))"
+
+  set +e
+  http_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+    --no-keepalive --connect-timeout "${timeout}" --max-time "${timeout}" -- "${url}" 2>/dev/null)"
+  curl_exit=$?
+  set -e
+}
+
+wait_status() {
+  local url=$1
+  local expected=$2
+  local seconds=$3
+  local stage=$4
+  local deadline remaining sleep_ms sleep_value process_exit
+
+  if ! now_milliseconds; then
+    printf '%s\n' 'smoke: clock failed with exit code 70.' >&2
+    return 70
+  fi
+  deadline=$((now_ms + seconds * 1000))
+
+  while true; do
+    if [[ -n "${api_pid}" ]] && ! kill -0 "${api_pid}" 2>/dev/null; then
+      set +e
+      wait "${api_pid}" >/dev/null 2>&1
+      process_exit=$?
+      set -e
+      api_pid=''
+      if (( process_exit == 0 )); then
+        process_exit=1
+      fi
+      printf 'smoke: control API failed with exit code %d.\n' "${process_exit}" >&2
+      return "${process_exit}"
+    fi
+
+    now_milliseconds
+    remaining=$((deadline - now_ms))
+    if (( remaining <= 0 )); then
+      printf '%s failed with exit code 1.\n' "${stage}" >&2
+      return 1
+    fi
+    if (( remaining > 1000 )); then
+      request_timeout=1000
+    else
+      request_timeout=${remaining}
+    fi
+    get_status "${url}" "${request_timeout}"
+    if (( curl_exit == 127 )); then
+      printf '%s\n' 'smoke: HTTP client failed with exit code 127.' >&2
+      return 127
+    fi
+    if (( curl_exit == 0 )) && [[ "${http_status}" == "${expected}" ]]; then
+      return 0
+    fi
+
+    now_milliseconds
+    remaining=$((deadline - now_ms))
+    if (( remaining <= 0 )); then
+      continue
+    fi
+    if (( remaining > 250 )); then
+      sleep_ms=250
+    else
+      sleep_ms=${remaining}
+    fi
+    printf -v sleep_value '0.%03d' "${sleep_ms}"
+    sleep "${sleep_value}"
+  done
+}
+
+terminate_child() {
+  local attempt
+  if [[ -z "${api_pid}" ]] || ! kill -0 "${api_pid}" 2>/dev/null; then
+    if [[ -n "${api_pid}" ]]; then
+      wait "${api_pid}" >/dev/null 2>&1 || true
+    fi
+    api_pid=''
+    return 0
+  fi
+
+  kill -TERM "${api_pid}" 2>/dev/null || true
+  for ((attempt = 0; attempt < 20; attempt++)); do
+    if ! kill -0 "${api_pid}" 2>/dev/null; then
+      wait "${api_pid}" >/dev/null 2>&1 || true
+      api_pid=''
+      return 0
+    fi
+    sleep 0.25
+  done
+
+  kill -KILL "${api_pid}" 2>/dev/null || true
+  wait "${api_pid}" >/dev/null 2>&1 || true
+  api_pid=''
+}
+
+cleanup() {
+  local original_exit=$?
+  local cleanup_exit=0
+  trap - EXIT INT TERM
+  set +e
+
+  terminate_child
+  if (( compose_touched )); then
+    invoke_quiet "${compose[@]}" down
+    if (( quiet_exit != 0 )); then
+      cleanup_exit=${quiet_exit}
+    fi
+  fi
+
+  quiet_output=''
+  if (( original_exit != 0 )); then
+    exit "${original_exit}"
+  fi
+  if (( cleanup_exit != 0 )); then
+    printf 'smoke: compose down failed with exit code %d.\n' "${cleanup_exit}" >&2
+    exit "${cleanup_exit}"
+  fi
+  printf '%s\n' 'smoke: foundation acceptance passed.'
+  exit 0
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+load_environment
+if [[ ! "${TALENRO_HTTP_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
+      ! "${TALENRO_METRICS_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
+      ! "${TALENRO_REDIS_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
+      ! "${TALENRO_NATS_URL}" =~ ^nats://127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
+      ! "${TALENRO_DATABASE_URL}" =~ ^postgres://[^@/]+@127\.0\.0\.1:[1-9][0-9]{0,4}/[^?]+\?sslmode=disable$ ||
+      "${TALENRO_ALLOW_PUBLIC_METRICS}" != false ||
+      "${TALENRO_ALLOW_PUBLIC_HTTP}" != false ]]; then
+  printf '%s\n' 'smoke: local environment failed with exit code 2.' >&2
+  exit 2
+fi
+http_base="http://${TALENRO_HTTP_ADDRESS}"
+
+compose_touched=1
+run_quiet 'smoke: compose up' "${compose[@]}" up -d --wait
+run_quiet 'smoke: migrations' go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
+
+go run ./cmd/control-api >/dev/null 2>&1 &
+api_pid=$!
+wait_status "${http_base}/livez" 200 10 'smoke: initial liveness'
+wait_status "${http_base}/readyz" 200 10 'smoke: initial readiness'
+
+run_quiet 'smoke: postgres stop' "${compose[@]}" stop postgres
+wait_status "${http_base}/readyz" 503 5 'smoke: readiness failure'
+wait_status "${http_base}/livez" 200 2 'smoke: failure liveness'
+
+run_quiet 'smoke: postgres start' "${compose[@]}" start postgres
+wait_status "${http_base}/readyz" 200 10 'smoke: readiness recovery'
