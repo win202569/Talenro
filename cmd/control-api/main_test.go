@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"strings"
@@ -11,7 +14,30 @@ import (
 	"time"
 
 	"talenro.local/platform/internal/config"
+	"talenro.local/platform/internal/platform"
 )
+
+func TestRunReportsSanitizedDependencyError(t *testing.T) {
+	logs := captureLogs(t)
+	private := "credential@private.example:6543"
+	cause := errors.New(private)
+	lookup := testLookup(map[string]string{
+		"TALENRO_DATABASE_URL": "postgres://unused",
+	})
+	factory := func(context.Context, config.Config) (*openedRuntime, error) {
+		return nil, cause
+	}
+
+	err := runWithFactory(context.Background(), lookup, factory)
+	reportStopped(err)
+	if got := err.Error(); got != string(platform.CategoryDependencies) {
+		t.Fatalf("error = %q, want %q", got, platform.CategoryDependencies)
+	}
+	if !errors.Is(err, cause) {
+		t.Fatal("categorized error did not retain internal cause")
+	}
+	assertSanitizedLog(t, logs.String(), "control_api_stopped", string(platform.CategoryDependencies), private)
+}
 
 func TestRunShutsDownHTTPServerAndClosesRuntime(t *testing.T) {
 	address := unusedLocalAddress(t)
@@ -57,6 +83,7 @@ func TestRunShutsDownHTTPServerAndClosesRuntime(t *testing.T) {
 }
 
 func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
+	logs := captureLogs(t)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -76,11 +103,106 @@ func TestRunClosesRuntimeWhenHTTPServerFails(t *testing.T) {
 	}
 
 	err = runWithFactory(context.Background(), lookup, factory)
-	if err == nil || !strings.Contains(err.Error(), "serve HTTP") {
-		t.Fatalf("runWithFactory error = %v, want serve HTTP category", err)
+	reportStopped(err)
+	if err == nil || err.Error() != string(platform.CategoryHTTPListenOrServe) {
+		t.Fatalf("runWithFactory error = %v, want %q", err, platform.CategoryHTTPListenOrServe)
 	}
 	if got := closeCalls.Load(); got != 1 {
 		t.Fatalf("runtime close calls = %d, want 1", got)
+	}
+	assertSanitizedLog(
+		t,
+		logs.String(),
+		"control_api_stopped",
+		string(platform.CategoryHTTPListenOrServe),
+		listener.Addr().String(),
+	)
+}
+
+func TestShutdownForcesClosedBlockingHandler(t *testing.T) {
+	logs := captureLogs(t)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+
+	requestStarted := make(chan struct{})
+	handlerFinished := make(chan struct{})
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, request *http.Request) {
+		close(requestStarted)
+		<-request.Context().Done()
+		close(handlerFinished)
+	})
+	server := platform.NewHTTPServer(listener.Addr().String(), handler)
+	serveDone := make(chan struct{})
+	go func() {
+		_ = server.Serve(listener)
+		close(serveDone)
+	}()
+
+	clientDone := make(chan struct{})
+	go func() {
+		client := &http.Client{Timeout: 2 * time.Second}
+		response, requestErr := client.Get("http://" + listener.Addr().String())
+		if response != nil {
+			_ = response.Body.Close()
+		}
+		_ = requestErr
+		close(clientDone)
+	}()
+
+	select {
+	case <-requestStarted:
+	case <-time.After(time.Second):
+		t.Fatal("blocking handler did not start within 1s")
+	}
+
+	started := time.Now()
+	err = shutdownHTTPServer(server, 50*time.Millisecond)
+	if elapsed := time.Since(started); elapsed > time.Second {
+		t.Fatalf("forced shutdown took %s, want at most 1s", elapsed)
+	}
+	if err == nil || err.Error() != string(platform.CategoryHTTPShutdown) {
+		t.Fatalf("shutdown error = %v, want %q", err, platform.CategoryHTTPShutdown)
+	}
+
+	for name, done := range map[string]<-chan struct{}{
+		"handler": handlerFinished,
+		"client":  clientDone,
+		"server":  serveDone,
+	} {
+		select {
+		case <-done:
+		case <-time.After(time.Second):
+			t.Fatalf("%s remained active after forced close", name)
+		}
+	}
+	assertSanitizedLog(
+		t,
+		logs.String(),
+		"control_api_forced_close",
+		string(platform.CategoryHTTPForcedClose),
+		listener.Addr().String(),
+	)
+}
+
+func captureLogs(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+	return &logs
+}
+
+func assertSanitizedLog(t *testing.T, output, event, category, private string) {
+	t.Helper()
+	if !strings.Contains(output, "msg="+event) || !strings.Contains(output, "category="+category) {
+		t.Fatalf("event/category missing from log: %q", output)
+	}
+	if strings.Contains(output, private) {
+		t.Fatalf("private detail %q leaked in log: %q", private, output)
 	}
 }
 

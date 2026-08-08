@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -11,6 +10,18 @@ import (
 	"github.com/redis/go-redis/v9"
 	"talenro.local/platform/internal/config"
 )
+
+type dependencyOperations struct {
+	newPostgres   func(context.Context, string) (*pgxpool.Pool, error)
+	pingPostgres  func(context.Context, *pgxpool.Pool) error
+	closePostgres func(*pgxpool.Pool)
+	newRedis      func(*redis.Options) *redis.Client
+	pingRedis     func(context.Context, *redis.Client) error
+	closeRedis    func(*redis.Client) error
+	connectNATS   func(string, ...nats.Option) (*nats.Conn, error)
+	drainNATS     func(*nats.Conn) error
+	closeNATS     func(*nats.Conn)
+}
 
 type Dependencies struct {
 	Postgres *pgxpool.Pool
@@ -24,6 +35,24 @@ type Dependencies struct {
 }
 
 func Open(ctx context.Context, cfg config.Config) (_ *Dependencies, err error) {
+	return openWithOperations(ctx, cfg, dependencyOperations{
+		newPostgres:   pgxpool.New,
+		pingPostgres:  func(ctx context.Context, pool *pgxpool.Pool) error { return pool.Ping(ctx) },
+		closePostgres: func(pool *pgxpool.Pool) { pool.Close() },
+		newRedis:      redis.NewClient,
+		pingRedis:     func(ctx context.Context, client *redis.Client) error { return client.Ping(ctx).Err() },
+		closeRedis:    func(client *redis.Client) error { return client.Close() },
+		connectNATS:   nats.Connect,
+		drainNATS:     func(conn *nats.Conn) error { return conn.Drain() },
+		closeNATS:     func(conn *nats.Conn) { conn.Close() },
+	})
+}
+
+func openWithOperations(
+	ctx context.Context,
+	cfg config.Config,
+	operations dependencyOperations,
+) (_ *Dependencies, err error) {
 	deps := new(Dependencies)
 	defer func() {
 		if err != nil {
@@ -34,27 +63,27 @@ func Open(ctx context.Context, cfg config.Config) (_ *Dependencies, err error) {
 	checkCtx, cancel := context.WithTimeout(ctx, cfg.DependencyTimeout)
 	defer cancel()
 
-	deps.Postgres, err = pgxpool.New(checkCtx, cfg.DatabaseURL)
+	deps.Postgres, err = operations.newPostgres(checkCtx, cfg.DatabaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("create postgres pool: %w", err)
+		return nil, NewCategorizedError(CategoryDependencies, err)
 	}
-	deps.closePostgres = deps.Postgres.Close
-	if err = deps.Postgres.Ping(checkCtx); err != nil {
-		return nil, fmt.Errorf("ping postgres: %w", err)
+	deps.closePostgres = func() { operations.closePostgres(deps.Postgres) }
+	if err = operations.pingPostgres(checkCtx, deps.Postgres); err != nil {
+		return nil, NewCategorizedError(CategoryDependencies, err)
 	}
 
-	deps.Redis = redis.NewClient(&redis.Options{
+	deps.Redis = operations.newRedis(&redis.Options{
 		Addr:         cfg.RedisAddress,
 		DialTimeout:  2 * time.Second,
 		ReadTimeout:  2 * time.Second,
 		WriteTimeout: 2 * time.Second,
 	})
-	deps.closeRedis = func() { _ = deps.Redis.Close() }
-	if err = deps.Redis.Ping(checkCtx).Err(); err != nil {
-		return nil, fmt.Errorf("ping redis: %w", err)
+	deps.closeRedis = func() { _ = operations.closeRedis(deps.Redis) }
+	if err = operations.pingRedis(checkCtx, deps.Redis); err != nil {
+		return nil, NewCategorizedError(CategoryDependencies, err)
 	}
 
-	deps.NATS, err = nats.Connect(cfg.NATSURL,
+	deps.NATS, err = operations.connectNATS(cfg.NATSURL,
 		nats.Name("talenro-control-api"),
 		nats.Timeout(2*time.Second),
 		nats.ReconnectWait(500*time.Millisecond),
@@ -62,11 +91,11 @@ func Open(ctx context.Context, cfg config.Config) (_ *Dependencies, err error) {
 		nats.DrainTimeout(5*time.Second),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("connect nats: %w", err)
+		return nil, NewCategorizedError(CategoryDependencies, err)
 	}
 	deps.closeNATS = func() {
-		_ = deps.NATS.Drain()
-		deps.NATS.Close()
+		_ = operations.drainNATS(deps.NATS)
+		operations.closeNATS(deps.NATS)
 	}
 
 	return deps, nil

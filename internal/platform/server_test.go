@@ -1,10 +1,36 @@
 package platform
 
 import (
+	"bytes"
+	"log/slog"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
+
+func TestHTTPServerReportsSanitizedInternalErrors(t *testing.T) {
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	server := NewHTTPServer("unused", http.NewServeMux())
+	if server.ErrorLog == nil {
+		t.Fatal("ErrorLog is nil; net/http would use its raw default logger")
+	}
+	server.ErrorLog.Print("panic serving credential@private.example:8443 with stack trace")
+
+	output := logs.String()
+	if !strings.Contains(output, "msg=http_server_error") || !strings.Contains(output, "category=http_internal") {
+		t.Fatalf("sanitized event/category missing from log: %q", output)
+	}
+	for _, private := range []string{"credential", "private.example", "8443", "stack trace"} {
+		if strings.Contains(output, private) {
+			t.Fatalf("private net/http detail %q leaked in log: %q", private, output)
+		}
+	}
+}
 
 func TestNewHTTPServerConfiguresResourceBounds(t *testing.T) {
 	handler := http.NewServeMux()
