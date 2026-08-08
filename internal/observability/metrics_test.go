@@ -1,10 +1,13 @@
 package observability
 
 import (
+	"bufio"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestMiddlewareUsesOnlyBoundedRouteLabel(t *testing.T) {
@@ -82,4 +85,200 @@ func TestMiddlewareCollapsesUnknownRouteToUnmatched(t *testing.T) {
 	if !foundRequests {
 		t.Fatal("request counter metric family was not gathered")
 	}
+}
+
+func TestMiddlewareRecordsFirstActualStatus(t *testing.T) {
+	tests := []struct {
+		name       string
+		handler    http.HandlerFunc
+		wantStatus int
+	}{
+		{
+			name: "implicit 200 ignores later 500",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				_, _ = w.Write([]byte("ok"))
+				w.WriteHeader(http.StatusInternalServerError)
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "explicit 204 ignores later 500",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+				w.WriteHeader(http.StatusInternalServerError)
+			},
+			wantStatus: http.StatusNoContent,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			registry := NewRegistry()
+			recorder := httptest.NewRecorder()
+			registry.Middleware("/livez", test.handler).ServeHTTP(
+				recorder,
+				httptest.NewRequest(http.MethodGet, "/livez", nil),
+			)
+			if recorder.Code != test.wantStatus {
+				t.Fatalf("response status = %d, want %d", recorder.Code, test.wantStatus)
+			}
+			if got := gatheredRequestLabel(t, registry, "status_class"); got != "2xx" {
+				t.Fatalf("status class = %q, want %q", got, "2xx")
+			}
+		})
+	}
+}
+
+func TestMiddlewarePreservesOnlyUnderlyingResponseWriterCapabilities(t *testing.T) {
+	t.Run("capable writer", func(t *testing.T) {
+		registry := NewRegistry()
+		underlying := newCapableResponseWriter()
+		handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			flusher, ok := w.(http.Flusher)
+			if !ok {
+				t.Error("wrapped writer does not implement http.Flusher")
+				return
+			}
+			flusher.Flush()
+
+			hijacker, ok := w.(http.Hijacker)
+			if !ok {
+				t.Error("wrapped writer does not implement http.Hijacker")
+				return
+			}
+			_, _, _ = hijacker.Hijack()
+
+			pusher, ok := w.(http.Pusher)
+			if !ok {
+				t.Error("wrapped writer does not implement http.Pusher")
+				return
+			}
+			_ = pusher.Push("/asset", nil)
+		}))
+		handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+		if underlying.flushCalls != 1 || underlying.hijackCalls != 1 || underlying.pushCalls != 1 {
+			t.Fatalf(
+				"capability calls = flush:%d hijack:%d push:%d, want each once",
+				underlying.flushCalls,
+				underlying.hijackCalls,
+				underlying.pushCalls,
+			)
+		}
+	})
+
+	t.Run("minimal writer", func(t *testing.T) {
+		registry := NewRegistry()
+		underlying := newMinimalResponseWriter()
+		handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			if _, ok := w.(http.Flusher); ok {
+				t.Error("wrapped writer falsely implements http.Flusher")
+			}
+			if _, ok := w.(http.Hijacker); ok {
+				t.Error("wrapped writer falsely implements http.Hijacker")
+			}
+			if _, ok := w.(http.Pusher); ok {
+				t.Error("wrapped writer falsely implements http.Pusher")
+			}
+			unwrapper, ok := w.(interface{ Unwrap() http.ResponseWriter })
+			if !ok || unwrapper.Unwrap() != underlying {
+				t.Error("wrapped writer does not unwrap to the underlying writer")
+			}
+		}))
+		handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+	})
+}
+
+func TestMiddlewareAllowsResponseControllerTraversal(t *testing.T) {
+	registry := NewRegistry()
+	underlying := &writeDeadlineResponseWriter{minimalResponseWriter: *newMinimalResponseWriter()}
+	wantDeadline := time.Unix(123, 456)
+	handler := registry.Middleware("/livez", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if err := http.NewResponseController(w).SetWriteDeadline(wantDeadline); err != nil {
+			t.Errorf("set write deadline through wrapped writer: %v", err)
+		}
+	}))
+	handler.ServeHTTP(underlying, httptest.NewRequest(http.MethodGet, "/livez", nil))
+	if !underlying.writeDeadline.Equal(wantDeadline) {
+		t.Fatalf("write deadline = %s, want %s", underlying.writeDeadline, wantDeadline)
+	}
+}
+
+func gatheredRequestLabel(t *testing.T, registry *Registry, name string) string {
+	t.Helper()
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, family := range families {
+		if family.GetName() != "talenro_control_http_requests_total" {
+			continue
+		}
+		for _, label := range family.GetMetric()[0].GetLabel() {
+			if label.GetName() == name {
+				return label.GetValue()
+			}
+		}
+	}
+	t.Fatalf("request label %q was not gathered", name)
+	return ""
+}
+
+type minimalResponseWriter struct {
+	header http.Header
+	status int
+}
+
+func newMinimalResponseWriter() *minimalResponseWriter {
+	return &minimalResponseWriter{header: make(http.Header)}
+}
+
+func (w *minimalResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *minimalResponseWriter) Write(body []byte) (int, error) {
+	if w.status == 0 {
+		w.status = http.StatusOK
+	}
+	return len(body), nil
+}
+
+func (w *minimalResponseWriter) WriteHeader(status int) {
+	if w.status == 0 {
+		w.status = status
+	}
+}
+
+type capableResponseWriter struct {
+	minimalResponseWriter
+	flushCalls  int
+	hijackCalls int
+	pushCalls   int
+}
+
+func newCapableResponseWriter() *capableResponseWriter {
+	return &capableResponseWriter{minimalResponseWriter: *newMinimalResponseWriter()}
+}
+
+func (w *capableResponseWriter) Flush() {
+	w.flushCalls++
+}
+
+func (w *capableResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	w.hijackCalls++
+	return nil, nil, nil
+}
+
+func (w *capableResponseWriter) Push(string, *http.PushOptions) error {
+	w.pushCalls++
+	return nil
+}
+
+type writeDeadlineResponseWriter struct {
+	minimalResponseWriter
+	writeDeadline time.Time
+}
+
+func (w *writeDeadlineResponseWriter) SetWriteDeadline(deadline time.Time) error {
+	w.writeDeadline = deadline
+	return nil
 }

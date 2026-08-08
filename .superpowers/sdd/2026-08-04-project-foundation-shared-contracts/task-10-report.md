@@ -16,7 +16,7 @@ Implemented the private Prometheus surface with `github.com/prometheus/client_go
 - The middleware never uses raw request path, query, URL, address, domain, error text, credentials, or protocol/traffic contents as a label.
 - The public handler is wrapped outside the generated `http.ServeMux`; after routing, `Request.Pattern` is normalized to a known template. Unknown requests have an empty/unrecognized pattern and become `unmatched`.
 - `/metrics` is mounted on a dedicated mux/server only. The public mux does not expose it, and the metrics mux does not expose control API routes.
-- `TALENRO_METRICS_ADDRESS` defaults to `127.0.0.1:9090`. It uses `net.SplitHostPort` validation and rejects unspecified/public binds unless the existing explicit public-bind opt-in is set.
+- `TALENRO_METRICS_ADDRESS` defaults to `127.0.0.1:9090`. Without the independent `TALENRO_ALLOW_PUBLIC_METRICS=true` opt-in, only case-insensitive `localhost` and IPs accepted by `net.IP.IsLoopback()` are allowed. Public HTTP authorization never authorizes public metrics.
 
 ## TDD evidence
 
@@ -80,4 +80,30 @@ An initial race run exposed a brittle protobuf text-spacing assertion while the 
 
 ## Concerns
 
-- No implementation concerns. Public metrics binds rely on the existing explicit `TALENRO_ALLOW_PUBLIC_HTTP` deployment opt-in; deployments using it must place the listener behind authenticated infrastructure as required by the brief.
+- No implementation concerns. Public metrics binds require the independent explicit `TALENRO_ALLOW_PUBLIC_METRICS` deployment opt-in; deployments using it must place the listener behind authenticated infrastructure.
+
+## Review fix round 1
+
+### Findings resolved
+
+- Metrics bind validation now rejects every non-loopback host by default, including concrete non-loopback IPv4, ordinary hostnames, IPv4/IPv6 unspecified addresses, and empty hosts. IPv4 loopback, IPv6 loopback, and case-insensitive `localhost` are accepted.
+- Added `Config.AllowPublicMetrics` from `TALENRO_ALLOW_PUBLIC_METRICS`, defaulting to false. `TALENRO_ALLOW_PUBLIC_HTTP=true` alone is proven insufficient to authorize metrics. Explicit metrics opt-in permits a deployment-chosen syntactically valid host:port.
+- Metrics bind rejection and syntax errors do not echo the configured address.
+- Replaced the ad-hoc status recorder with `github.com/felixge/httpsnoop v1.1.0`, promoted from the already-pinned transitive dependency to a direct dependency. Its generated wrapper preserves exactly the underlying optional HTTP interface set, supplies `Unwrap`, and implements first-write status semantics. This avoids maintaining an error-prone local combinatorial wrapper.
+- Implicit body write followed by `WriteHeader(500)` records HTTP 200/`2xx`; `WriteHeader(204)` followed by `WriteHeader(500)` records HTTP 204/`2xx`.
+- Capable writers retain direct `http.Flusher`, `http.Hijacker`, and `http.Pusher`; calls reach the underlying writer. Minimal writers do not falsely acquire those capabilities. `http.ResponseController.SetWriteDeadline` traverses `Unwrap` to a writer that implements only that controller method.
+
+### Round-1 TDD evidence
+
+- Config RED: tests failed to compile because `AllowPublicMetrics` did not exist.
+- Config GREEN: all default, loopback, default-rejection, independent opt-in, and HTTP-opt-in-isolation tests passed.
+- HTTP RED: both first-write cases emitted `5xx`; the wrapper hid Flusher/Hijacker/Pusher, lacked `Unwrap`, and caused `ResponseController` to return `feature not supported`.
+- HTTP GREEN: `go test ./internal/observability -count=1` passed after switching to `httpsnoop.CaptureMetrics`.
+
+### Round-1 verification
+
+- Focused: `go test ./internal/config ./internal/observability ./cmd/control-api -count=1` -> PASS.
+- Focused race: `go test -race ./internal/observability ./internal/config ./internal/platform/... ./cmd/control-api -count=1` -> PASS.
+- Windows build: `go build ./...` -> PASS with VCS stamping enabled through process-scoped safe-directory entries.
+- Full suite: `go test -count=1 ./...` -> PASS across all repository packages.
+- Scope: metric names, help strings, labels, default buckets, `unmatched` behavior, private mux, dual-listener shutdown, safe logging, generated contracts, and Task 9 server limits/forced-close behavior are unchanged.

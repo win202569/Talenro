@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type Config struct {
-	HTTPAddress       string
-	MetricsAddress    string
-	DatabaseURL       string
-	RedisAddress      string
-	NATSURL           string
-	DependencyTimeout time.Duration
-	ShutdownTimeout   time.Duration
+	HTTPAddress        string
+	MetricsAddress     string
+	AllowPublicMetrics bool
+	DatabaseURL        string
+	RedisAddress       string
+	NATSURL            string
+	DependencyTimeout  time.Duration
+	ShutdownTimeout    time.Duration
 }
 
 type Lookup func(string) (string, bool)
@@ -55,6 +57,13 @@ func Load(lookup Lookup) (Config, error) {
 		}
 		allowPublic = parsed
 	}
+	if value, exists := lookup("TALENRO_ALLOW_PUBLIC_METRICS"); exists {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, fmt.Errorf("parse TALENRO_ALLOW_PUBLIC_METRICS: invalid boolean")
+		}
+		cfg.AllowPublicMetrics = parsed
+	}
 
 	host, _, err := net.SplitHostPort(cfg.HTTPAddress)
 	if err != nil {
@@ -68,13 +77,19 @@ func Load(lookup Lookup) (Config, error) {
 
 	metricsHost, _, err := net.SplitHostPort(cfg.MetricsAddress)
 	if err != nil {
-		return Config{}, fmt.Errorf("parse TALENRO_METRICS_ADDRESS: %w", err)
+		return Config{}, fmt.Errorf("parse TALENRO_METRICS_ADDRESS: invalid host:port")
 	}
-	metricsIP := net.ParseIP(metricsHost)
-	publicMetricsBind := metricsHost == "" || (metricsIP != nil && metricsIP.IsUnspecified())
-	if publicMetricsBind && !allowPublic {
-		return Config{}, fmt.Errorf("public METRICS bind requires TALENRO_ALLOW_PUBLIC_HTTP=true")
+	if !cfg.AllowPublicMetrics && !isLoopbackHost(metricsHost) {
+		return Config{}, fmt.Errorf("non-loopback metrics bind requires TALENRO_ALLOW_PUBLIC_METRICS=true")
 	}
 
 	return cfg, nil
+}
+
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }

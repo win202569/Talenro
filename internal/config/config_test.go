@@ -33,6 +33,9 @@ func TestLoadAppliesSafeDefaults(t *testing.T) {
 	if got.MetricsAddress != "127.0.0.1:9090" {
 		t.Fatalf("unexpected metrics address: %s", got.MetricsAddress)
 	}
+	if got.AllowPublicMetrics {
+		t.Fatal("public metrics must be disabled by default")
+	}
 	if got.DependencyTimeout != 2*time.Second || got.ShutdownTimeout != 10*time.Second {
 		t.Fatalf("unexpected timeouts: %+v", got)
 	}
@@ -79,5 +82,78 @@ func TestLoadRejectsUnsafeMetricsAddress(t *testing.T) {
 				t.Fatalf("expected metrics bind rejection, got %v", err)
 			}
 		})
+	}
+}
+
+func TestLoadAcceptsLoopbackMetricsAddresses(t *testing.T) {
+	for _, address := range []string{
+		"127.0.0.1:9090",
+		"[::1]:9090",
+		"LOCALHOST:9090",
+	} {
+		t.Run(address, func(t *testing.T) {
+			got, err := Load(lookup(map[string]string{
+				"TALENRO_DATABASE_URL":    "postgres://local",
+				"TALENRO_METRICS_ADDRESS": address,
+			}))
+			if err != nil {
+				t.Fatalf("loopback metrics address rejected: %v", err)
+			}
+			if got.MetricsAddress != address {
+				t.Fatalf("metrics address = %q, want %q", got.MetricsAddress, address)
+			}
+		})
+	}
+}
+
+func TestLoadRejectsNonLoopbackMetricsAddressesByDefault(t *testing.T) {
+	for _, address := range []string{
+		"192.0.2.10:9090",
+		"metrics.internal:9090",
+		"0.0.0.0:9090",
+		"[::]:9090",
+	} {
+		t.Run(address, func(t *testing.T) {
+			_, err := Load(lookup(map[string]string{
+				"TALENRO_DATABASE_URL":    "postgres://local",
+				"TALENRO_METRICS_ADDRESS": address,
+			}))
+			if err == nil || !strings.Contains(err.Error(), "TALENRO_ALLOW_PUBLIC_METRICS") {
+				t.Fatalf("expected private metrics bind rejection, got %v", err)
+			}
+			if strings.Contains(err.Error(), address) {
+				t.Fatalf("metrics address leaked in error: %v", err)
+			}
+		})
+	}
+}
+
+func TestLoadRequiresIndependentPublicMetricsOptIn(t *testing.T) {
+	_, err := Load(lookup(map[string]string{
+		"TALENRO_DATABASE_URL":      "postgres://local",
+		"TALENRO_METRICS_ADDRESS":   "192.0.2.10:9090",
+		"TALENRO_ALLOW_PUBLIC_HTTP": "true",
+	}))
+	if err == nil {
+		t.Fatal("public HTTP opt-in unexpectedly authorized public metrics")
+	}
+
+	for _, address := range []string{
+		"192.0.2.10:9090",
+		"metrics.internal:9090",
+		"0.0.0.0:9090",
+		"[::]:9090",
+	} {
+		got, err := Load(lookup(map[string]string{
+			"TALENRO_DATABASE_URL":         "postgres://local",
+			"TALENRO_METRICS_ADDRESS":      address,
+			"TALENRO_ALLOW_PUBLIC_METRICS": "true",
+		}))
+		if err != nil {
+			t.Fatalf("independent public metrics opt-in rejected %q: %v", address, err)
+		}
+		if !got.AllowPublicMetrics {
+			t.Fatal("public metrics opt-in was not retained")
+		}
 	}
 }
