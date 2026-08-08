@@ -1,6 +1,47 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.Net.Http
+$null = Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+public static class TalenroSmokeEnvironment {
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr GetEnvironmentStringsW();
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool FreeEnvironmentStringsW(IntPtr environmentBlock);
+
+    public static string[] NamesWithPrefix(string prefix) {
+        var names = new List<string>();
+        IntPtr block = GetEnvironmentStringsW();
+        if (block == IntPtr.Zero) {
+            throw new InvalidOperationException("environment block unavailable");
+        }
+        try {
+            long offset = 0;
+            while (true) {
+                string entry = Marshal.PtrToStringUni(new IntPtr(block.ToInt64() + offset));
+                if (String.IsNullOrEmpty(entry)) {
+                    break;
+                }
+                offset += (entry.Length + 1) * 2L;
+                int separator = entry.IndexOf('=');
+                if (separator > 0) {
+                    string name = entry.Substring(0, separator);
+                    if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) {
+                        names.Add(name);
+                    }
+                }
+            }
+        } finally {
+            FreeEnvironmentStringsW(block);
+        }
+        return names.ToArray();
+    }
+}
+'@
 
 function Stop-Smoke {
   param(
@@ -39,7 +80,9 @@ function Invoke-QuietExternal {
     [string]$FilePath,
 
     [Parameter(Mandatory)]
-    [string[]]$ArgumentList
+    [string[]]$ArgumentList,
+
+    [string]$WorkingDirectory = ''
   )
 
   $commands = @(Get-Command -Name $FilePath -CommandType Application, ExternalScript -ErrorAction SilentlyContinue)
@@ -49,11 +92,19 @@ function Invoke-QuietExternal {
 
   $previousErrorAction = $ErrorActionPreference
   $ErrorActionPreference = 'Continue'
+  $locationChanged = $false
   try {
+    if ($WorkingDirectory.Length -ne 0) {
+      Push-Location -LiteralPath $WorkingDirectory
+      $locationChanged = $true
+    }
     $global:LASTEXITCODE = 0
     $null = @(& $commands[0].Source @ArgumentList 2>&1 | ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
   } finally {
+    if ($locationChanged) {
+      Pop-Location
+    }
     $ErrorActionPreference = $previousErrorAction
   }
 
@@ -108,53 +159,82 @@ function Import-SmokeEnvironment {
     }
   }
 
+  try {
+    $ambientNames = @([TalenroSmokeEnvironment]::NamesWithPrefix('TALENRO_'))
+    foreach ($ambientName in $ambientNames) {
+      [System.Environment]::SetEnvironmentVariable($ambientName, $null, 'Process')
+    }
+  } catch {
+    Stop-Smoke -ExitCode 2 -Stage 'smoke: environment isolation'
+  }
   foreach ($name in $requiredNames) {
-    [System.Environment]::SetEnvironmentVariable($name, $null, 'Process')
     [System.Environment]::SetEnvironmentVariable($name, [string]$parsed[$name], 'Process')
   }
 
   return $parsed
 }
 
-function Start-ControlAPI {
-  param([Parameter(Mandatory)][string]$WorkingDirectory)
-
-  $commands = @(Get-Command -Name 'go' -CommandType Application -ErrorAction SilentlyContinue)
-  if ($commands.Count -eq 0) {
-    Stop-Smoke -ExitCode 127 -Stage 'smoke: control API start'
-  }
-
-  $argumentList = @('run', './cmd/control-api')
-  foreach ($argument in $argumentList) {
-    if ($argument -notmatch '^[A-Za-z0-9./-]+$') {
-      Stop-Smoke -ExitCode 2 -Stage 'smoke: control API arguments'
-    }
-  }
-
-  $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-  $startInfo.FileName = $commands[0].Source
-  $startInfo.Arguments = $argumentList -join ' '
-  $startInfo.WorkingDirectory = $WorkingDirectory
-  $startInfo.UseShellExecute = $false
-  $startInfo.CreateNoWindow = $true
-  $startInfo.RedirectStandardOutput = $true
-  $startInfo.RedirectStandardError = $true
-
-  $process = [System.Diagnostics.Process]::new()
-  $process.StartInfo = $startInfo
+function New-ControlAPIBuildDirectory {
+  $tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd('\')
   try {
-    if (-not $process.Start()) {
-      $process.Dispose()
-      Stop-Smoke -ExitCode 127 -Stage 'smoke: control API start'
-    }
-    $stdoutDrain = $process.StandardOutput.ReadToEndAsync()
-    $stderrDrain = $process.StandardError.ReadToEndAsync()
-    $process | Add-Member -NotePropertyName SmokeStdoutDrain -NotePropertyValue $stdoutDrain
-    $process | Add-Member -NotePropertyName SmokeStderrDrain -NotePropertyValue $stderrDrain
-    return $process
+    $leaf = 'talenro-smoke-control-api-' + [System.Guid]::NewGuid().ToString('N')
+    $directory = Join-Path $tempRoot $leaf
+    $null = [System.IO.Directory]::CreateDirectory($directory)
+    return $directory
   } catch {
-    $process.Dispose()
+    Stop-Smoke -ExitCode 1 -Stage 'smoke: build directory'
+  }
+}
+
+function Start-ControlAPI {
+  param(
+    [Parameter(Mandatory)][string]$FilePath,
+    [Parameter(Mandatory)][string]$WorkingDirectory,
+    [Parameter(Mandatory)][string]$StandardOutputPath,
+    [Parameter(Mandatory)][string]$StandardErrorPath
+  )
+
+  try {
+    return Start-Process -FilePath $FilePath -WorkingDirectory $WorkingDirectory -PassThru -WindowStyle Hidden -RedirectStandardOutput $StandardOutputPath -RedirectStandardError $StandardErrorPath
+  } catch {
     Stop-Smoke -ExitCode 127 -Stage 'smoke: control API start'
+  }
+}
+
+function Remove-ControlAPIBuildDirectory {
+  param(
+    [Parameter(Mandatory)][string]$Directory,
+    [Parameter(Mandatory)][string[]]$Files
+  )
+
+  $tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd('\')
+  $fullDirectory = [System.IO.Path]::GetFullPath($Directory).TrimEnd('\')
+  $leaf = [System.IO.Path]::GetFileName($fullDirectory)
+  if (
+    [System.IO.Path]::GetDirectoryName($fullDirectory) -ne $tempRoot -or
+    $leaf -notmatch '^talenro-smoke-control-api-[0-9a-f]{32}$'
+  ) {
+    Stop-Smoke -ExitCode 1 -Stage 'smoke: build cleanup validation'
+  }
+
+  try {
+    foreach ($file in $Files) {
+      $fullFile = [System.IO.Path]::GetFullPath($file)
+      if ([System.IO.Path]::GetDirectoryName($fullFile) -ne $fullDirectory) {
+        Stop-Smoke -ExitCode 1 -Stage 'smoke: build cleanup validation'
+      }
+      if ([System.IO.File]::Exists($fullFile)) {
+        [System.IO.File]::Delete($fullFile)
+      }
+    }
+    if ([System.IO.Directory]::Exists($fullDirectory)) {
+      [System.IO.Directory]::Delete($fullDirectory, $false)
+    }
+  } catch {
+    if ($_.Exception.Data.Contains('Stage')) {
+      throw
+    }
+    Stop-Smoke -ExitCode 1 -Stage 'smoke: build cleanup'
   }
 }
 
@@ -226,6 +306,10 @@ $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $composeArguments = @('compose', '-f', (Join-Path $repoRoot 'deploy\dev\compose.yaml'))
 $composeTouched = $false
 $controlAPI = $null
+$buildDirectory = $null
+$controlAPIBinary = $null
+$stdoutSink = $null
+$stderrSink = $null
 $client = $null
 $primaryFailure = $null
 $cleanupFailure = $null
@@ -250,6 +334,11 @@ try {
   $client = [System.Net.Http.HttpClient]::new($handler, $true)
   $client.Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
 
+  $buildDirectory = New-ControlAPIBuildDirectory
+  $controlAPIBinary = Join-Path $buildDirectory 'control-api.exe'
+  $stdoutSink = Join-Path $buildDirectory 'control-api.stdout.sink'
+  $stderrSink = Join-Path $buildDirectory 'control-api.stderr.sink'
+
   $composeTouched = $true
   Invoke-QuietExternal -Stage 'smoke: compose up' -FilePath 'docker' -ArgumentList (
     $composeArguments + @('up', '-d', '--wait')
@@ -263,8 +352,14 @@ try {
     [string]$localEnvironment['TALENRO_DATABASE_URL'],
     'up'
   )
+  Invoke-QuietExternal -Stage 'smoke: control API build' -FilePath 'go' -WorkingDirectory $repoRoot -ArgumentList @(
+    'build',
+    '-o',
+    $controlAPIBinary,
+    (Join-Path $repoRoot 'cmd\control-api')
+  )
 
-  $controlAPI = Start-ControlAPI -WorkingDirectory $repoRoot
+  $controlAPI = Start-ControlAPI -FilePath $controlAPIBinary -WorkingDirectory $repoRoot -StandardOutputPath $stdoutSink -StandardErrorPath $stderrSink
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/livez') -Expected 200 -Seconds 10 -Stage 'smoke: initial liveness'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 200 -Seconds 10 -Stage 'smoke: initial readiness'
 
@@ -286,9 +381,9 @@ try {
       if (-not $controlAPI.HasExited) {
         Stop-Process -Id $controlAPI.Id -Force -ErrorAction Stop
       }
-      $controlAPI.WaitForExit()
-      $null = $controlAPI.SmokeStdoutDrain.GetAwaiter().GetResult()
-      $null = $controlAPI.SmokeStderrDrain.GetAwaiter().GetResult()
+      if (-not $controlAPI.WaitForExit(5000)) {
+        Stop-Smoke -ExitCode 1 -Stage 'smoke: control API cleanup timeout'
+      }
     } catch {
       if ($null -eq $cleanupFailure) {
         $cleanupFailure = @{ ExitCode = 1; Stage = 'smoke: control API cleanup' }
@@ -307,6 +402,16 @@ try {
       Invoke-QuietExternal -Stage 'smoke: compose down' -FilePath 'docker' -ArgumentList (
         $composeArguments + @('down')
       )
+    } catch {
+      if ($null -eq $cleanupFailure) {
+        $cleanupFailure = Get-SmokeFailure -ErrorRecord $_
+      }
+    }
+  }
+
+  if ($null -ne $buildDirectory) {
+    try {
+      Remove-ControlAPIBuildDirectory -Directory $buildDirectory -Files @($controlAPIBinary, $stdoutSink, $stderrSink)
     } catch {
       if ($null -eq $cleanupFailure) {
         $cleanupFailure = Get-SmokeFailure -ErrorRecord $_

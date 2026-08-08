@@ -14,6 +14,8 @@ fi
 compose=(docker compose -f "${repo_root}/deploy/dev/compose.yaml")
 compose_touched=0
 api_pid=''
+build_dir=''
+api_binary=''
 quiet_exit=0
 quiet_output=''
 
@@ -32,6 +34,66 @@ run_quiet() {
     printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
     return "${quiet_exit}"
   fi
+}
+
+run_quiet_in_directory() {
+  local stage=$1
+  local directory=$2
+  shift 2
+  set +e
+  quiet_output="$(cd -- "${directory}" 2>/dev/null && "$@" 2>&1)"
+  quiet_exit=$?
+  set -e
+  if (( quiet_exit != 0 )); then
+    printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
+    return "${quiet_exit}"
+  fi
+}
+
+create_build_directory() {
+  local requested_root=${TMPDIR:-/tmp}
+  local canonical_root candidate
+
+  if ! canonical_root="$(cd -- "${requested_root}" 2>/dev/null && pwd -P)"; then
+    printf '%s\n' 'smoke: build directory failed with exit code 1.' >&2
+    return 1
+  fi
+  set +e
+  candidate="$(mktemp -d "${canonical_root}/talenro-smoke-control-api.XXXXXX" 2>/dev/null)"
+  quiet_exit=$?
+  set -e
+  if (( quiet_exit != 0 )); then
+    printf 'smoke: build directory failed with exit code %d.\n' "${quiet_exit}" >&2
+    return "${quiet_exit}"
+  fi
+  if ! build_dir="$(cd -- "${candidate}" 2>/dev/null && pwd -P)" ||
+     [[ "${build_dir}" != "${canonical_root}"/talenro-smoke-control-api.* ]]; then
+    rmdir -- "${candidate}" >/dev/null 2>&1 || true
+    build_dir=''
+    printf '%s\n' 'smoke: build directory validation failed with exit code 1.' >&2
+    return 1
+  fi
+  api_binary="${build_dir}/control-api"
+}
+
+remove_build_directory() {
+  local canonical_root expected_prefix
+  [[ -n "${build_dir}" ]] || return 0
+  if ! canonical_root="$(cd -- "${TMPDIR:-/tmp}" 2>/dev/null && pwd -P)"; then
+    return 1
+  fi
+  expected_prefix="${canonical_root}/talenro-smoke-control-api."
+  if [[ "${build_dir}" != "${expected_prefix}"* || "${api_binary}" != "${build_dir}/control-api" ]]; then
+    return 1
+  fi
+  if [[ -e "${api_binary}" ]] && ! rm -f -- "${api_binary}" >/dev/null 2>&1; then
+    return 1
+  fi
+  if ! rmdir -- "${build_dir}" >/dev/null 2>&1; then
+    return 1
+  fi
+  build_dir=''
+  api_binary=''
 }
 
 load_environment() {
@@ -197,21 +259,40 @@ terminate_child() {
   done
 
   kill -KILL "${api_pid}" 2>/dev/null || true
-  wait "${api_pid}" >/dev/null 2>&1 || true
-  api_pid=''
+  for ((attempt = 0; attempt < 4; attempt++)); do
+    if ! kill -0 "${api_pid}" 2>/dev/null; then
+      wait "${api_pid}" >/dev/null 2>&1 || true
+      api_pid=''
+      return 0
+    fi
+    sleep 0.25
+  done
+  return 1
 }
 
 cleanup() {
   local original_exit=$?
   local cleanup_exit=0
+  local cleanup_stage='smoke: cleanup'
   trap - EXIT INT TERM
   set +e
 
   terminate_child
+  if (( $? != 0 )); then
+    cleanup_exit=1
+    cleanup_stage='smoke: control API cleanup'
+  fi
   if (( compose_touched )); then
     invoke_quiet "${compose[@]}" down
     if (( quiet_exit != 0 )); then
       cleanup_exit=${quiet_exit}
+      cleanup_stage='smoke: compose down'
+    fi
+  fi
+  if ! remove_build_directory; then
+    if (( cleanup_exit == 0 )); then
+      cleanup_exit=1
+      cleanup_stage='smoke: build cleanup'
     fi
   fi
 
@@ -220,7 +301,7 @@ cleanup() {
     exit "${original_exit}"
   fi
   if (( cleanup_exit != 0 )); then
-    printf 'smoke: compose down failed with exit code %d.\n' "${cleanup_exit}" >&2
+    printf '%s failed with exit code %d.\n' "${cleanup_stage}" "${cleanup_exit}" >&2
     exit "${cleanup_exit}"
   fi
   printf '%s\n' 'smoke: foundation acceptance passed.'
@@ -243,12 +324,20 @@ if [[ ! "${TALENRO_HTTP_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
 fi
 http_base="http://${TALENRO_HTTP_ADDRESS}"
 
+create_build_directory
+
 compose_touched=1
 run_quiet 'smoke: compose up' "${compose[@]}" up -d --wait
 run_quiet 'smoke: migrations' go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
+run_quiet_in_directory 'smoke: control API build' "${repo_root}" go build -o "${api_binary}" "${repo_root}/cmd/control-api"
 
-go run ./cmd/control-api >/dev/null 2>&1 &
+if ! pushd "${repo_root}" >/dev/null; then
+  printf '%s\n' 'smoke: control API start failed with exit code 1.' >&2
+  exit 1
+fi
+"${api_binary}" >/dev/null 2>&1 &
 api_pid=$!
+popd >/dev/null
 wait_status "${http_base}/livez" 200 10 'smoke: initial liveness'
 wait_status "${http_base}/readyz" 200 10 'smoke: initial readiness'
 

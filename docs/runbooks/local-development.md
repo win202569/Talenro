@@ -29,7 +29,7 @@ docker compose -f deploy/dev/compose.yaml version
 
 ## Environment
 
-Use a fresh process environment containing exactly the seven tracked `TALENRO_*` assignments in `.env.example`. Keep the HTTP and metrics listeners on their tracked loopback defaults and keep both public-listener override flags false. Do not source, evaluate, print, paste into tickets, or commit a copy of the file. The smoke scripts enforce this policy with an allowlist parser and replace conflicting values for the seven keys before starting the API.
+Use a fresh process environment containing exactly the seven tracked `TALENRO_*` assignments in `.env.example`. Keep the HTTP and metrics listeners on their tracked loopback defaults and keep both public-listener override flags false. Do not source, evaluate, print, paste into tickets, or commit a copy of the file. The smoke scripts enforce this policy with an allowlist parser, clear every ambient `TALENRO_*` variable, and then set only the seven parsed keys before starting the API.
 
 For manual commands below, load those exact local-only values into the current shell by a trusted environment manager, then verify presence without displaying values.
 
@@ -128,7 +128,7 @@ go test -tags=integration -count=1 ./internal/testinfra ./internal/store
 ./scripts/smoke.sh
 ```
 
-The smoke test owns its compose lifecycle. It migrates, starts the API, verifies liveness and readiness, stops only PostgreSQL, proves readiness fails while liveness remains healthy, restarts PostgreSQL, proves recovery, then terminates its child and runs compose down even after a partial failure.
+The smoke test owns its compose lifecycle. It migrates, builds `cmd/control-api` into a unique task-specific temporary directory, starts that binary from the repository root, verifies liveness and readiness, stops only PostgreSQL, proves readiness fails while liveness remains healthy, restarts PostgreSQL, and proves recovery. Cleanup targets the actual API PID, removes the exact temporary binary, removes only the now-empty temporary directory, and runs compose down even after a partial failure.
 
 ## Safe diagnostics
 
