@@ -89,24 +89,18 @@ func isForbiddenPayloadFieldTerm(term string) bool {
 }
 
 func forbiddenCompoundPayloadFieldTerm(name string) string {
-	switch name {
-	case "hockey", "monkey", "premailer", "security":
-		return ""
-	}
-
 	qualifiers := map[string][]string{
-		"error":   {"internal", "provider", "raw", "upstream"},
-		"locator": {"artifact", "bundle", "resource"},
-		"body":    {"provider", "raw", "request", "response"},
-	}
-
-	for _, marker := range []string{"ciphertext", "email", "key", "nonce", "provider", "token", "url"} {
-		if strings.Contains(name, marker) {
-			return marker
-		}
-	}
-	if strings.HasPrefix(name, "uri") || strings.HasSuffix(name, "uri") {
-		return "uri"
+		"body":       {"provider", "raw", "request", "response"},
+		"ciphertext": {"encrypted", "field", "hpke", "payload", "value"},
+		"email":      {"account", "address", "contact", "customer", "destination", "primary", "recipient", "sender", "user", "verified"},
+		"error":      {"internal", "provider", "raw", "upstream"},
+		"key":        {"api", "auth", "config", "encryption", "hpke", "lookup", "private", "public", "root", "secret", "signing"},
+		"locator":    {"artifact", "bundle", "resource"},
+		"nonce":      {"challenge", "client", "csrf", "request", "response"},
+		"provider":   {"body", "email", "error", "fieldprotector", "material", "payload", "request", "response", "signer"},
+		"token":      {"access", "account", "auth", "bearer", "device", "enrollment", "opaque", "refresh", "session", "verification"},
+		"uri":        {"callback", "download", "provisioning", "redirect", "source", "webhook"},
+		"url":        {"callback", "download", "redirect", "source", "webhook"},
 	}
 	for term, allowedQualifiers := range qualifiers {
 		for _, qualifier := range allowedQualifiers {
