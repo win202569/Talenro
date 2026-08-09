@@ -10,6 +10,7 @@ import (
 
 // Handler implements the generated liveness and readiness endpoints.
 type Handler struct {
+	C1Unavailable
 	checker *readiness.Checker
 }
 

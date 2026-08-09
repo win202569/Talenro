@@ -1,0 +1,16 @@
+syntax = "proto3";
+package talenro.identity.v1;
+option go_package = "talenro.local/platform/gen/go/talenro/identity/v1;identityv1";
+
+message AccountStateChanged {
+  string principal_id = 1;
+  string state = 2;
+  uint64 version = 3;
+}
+
+message EmailDeliveryRequested {
+  string delivery_id = 1;
+  string principal_id = 2;
+  string template_id = 3;
+  string locale = 4;
+}

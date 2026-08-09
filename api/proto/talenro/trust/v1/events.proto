@@ -1,0 +1,16 @@
+syntax = "proto3";
+package talenro.trust.v1;
+option go_package = "talenro.local/platform/gen/go/talenro/trust/v1;trustv1";
+
+message BundleIssued {
+  string authorization_id = 1;
+  string bundle_id = 2;
+  string bundle_version = 3;
+  string envelope_sha256 = 4;
+}
+
+message BundleAcknowledged {
+  string authorization_id = 1;
+  string bundle_id = 2;
+  string bundle_version = 3;
+}

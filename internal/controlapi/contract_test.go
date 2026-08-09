@@ -3,14 +3,93 @@ package controlapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	controlapiv1 "talenro.local/platform/gen/go/talenro/controlapi/v1"
 )
 
-func TestEmbeddedContractHasHealthRoutes(t *testing.T) {
+var c11Operations = map[string]string{
+	"POST /v1/accounts":                       "createAccount",
+	"POST /v1/email-verification-deliveries":  "createEmailVerificationDelivery",
+	"POST /v1/email-verifications":            "verifyEmail",
+	"POST /v1/password-reset-deliveries":      "createPasswordResetDelivery",
+	"POST /v1/password-resets":                "resetPassword",
+	"POST /v1/password-changes":               "changePassword",
+	"POST /v1/account-sessions":               "createAccountSession",
+	"POST /v1/account-auth-challenges":        "createAccountAuthChallenge",
+	"POST /v1/account-token-rotations":        "rotateAccountToken",
+	"POST /v1/account-session-revocations":    "revokeAccountSessions",
+	"POST /v1/passkey-registration-options":   "createPasskeyRegistrationOptions",
+	"POST /v1/passkey-credentials":            "createPasskeyCredential",
+	"POST /v1/passkey-authentication-options": "createPasskeyAuthenticationOptions",
+	"POST /v1/passkey-revocations":            "revokePasskey",
+	"POST /v1/totp-enrollments":               "createTOTPEnrollment",
+	"POST /v1/totp-verifications":             "verifyTOTPEnrollment",
+	"POST /v1/totp-revocations":               "revokeTOTP",
+	"POST /v1/recovery-code-rotations":        "rotateRecoveryCodes",
+	"POST /v1/recovery-code-consumptions":     "consumeRecoveryCode",
+	"POST /v1/device-enrollment-grants":       "createDeviceEnrollmentGrant",
+	"POST /v1/device-auth-challenges":         "createDeviceAuthChallenge",
+	"POST /v1/devices":                        "registerDevice",
+	"POST /v1/device-token-rotations":         "rotateDeviceToken",
+	"POST /v1/device-revocations":             "revokeDevice",
+	"POST /v1/config-bundle-resolutions":      "resolveConfigBundle",
+	"POST /v1/config-bundle-acknowledgements": "acknowledgeConfigBundle",
+	"GET /b/{bundle_locator}":                 "getImmutableBundle",
+}
+
+var c11SuccessStatuses = map[string]string{
+	"createAccount":                      "202",
+	"createEmailVerificationDelivery":    "202",
+	"verifyEmail":                        "204",
+	"createPasswordResetDelivery":        "202",
+	"resetPassword":                      "200",
+	"changePassword":                     "200",
+	"createAccountSession":               "200",
+	"createAccountAuthChallenge":         "201",
+	"rotateAccountToken":                 "200",
+	"revokeAccountSessions":              "204",
+	"createPasskeyRegistrationOptions":   "200",
+	"createPasskeyCredential":            "204",
+	"createPasskeyAuthenticationOptions": "200",
+	"revokePasskey":                      "204",
+	"createTOTPEnrollment":               "201",
+	"verifyTOTPEnrollment":               "204",
+	"revokeTOTP":                         "204",
+	"rotateRecoveryCodes":                "201",
+	"consumeRecoveryCode":                "200",
+	"createDeviceEnrollmentGrant":        "201",
+	"createDeviceAuthChallenge":          "201",
+	"registerDevice":                     "201",
+	"rotateDeviceToken":                  "200",
+	"revokeDevice":                       "204",
+	"resolveConfigBundle":                "200",
+	"acknowledgeConfigBundle":            "204",
+	"getImmutableBundle":                 "200",
+}
+
+var c11OperationSecurity = map[string]string{
+	"changePassword":                   "AccountOpaqueToken",
+	"revokeAccountSessions":            "AccountOpaqueToken",
+	"createPasskeyRegistrationOptions": "AccountOpaqueToken",
+	"createPasskeyCredential":          "AccountOpaqueToken",
+	"revokePasskey":                    "AccountOpaqueToken",
+	"createTOTPEnrollment":             "AccountOpaqueToken",
+	"verifyTOTPEnrollment":             "AccountOpaqueToken",
+	"revokeTOTP":                       "AccountOpaqueToken",
+	"rotateRecoveryCodes":              "AccountOpaqueToken",
+	"createDeviceEnrollmentGrant":      "AccountOpaqueToken",
+	"revokeDevice":                     "AccountOpaqueToken",
+	"resolveConfigBundle":              "DeviceOpaqueToken",
+	"acknowledgeConfigBundle":          "DeviceOpaqueToken",
+}
+
+func TestOpenAPIContract(t *testing.T) {
 	t.Parallel()
 
 	// Task 7 requires exercising the generated compatibility entry point.
@@ -19,14 +98,14 @@ func TestEmbeddedContractHasHealthRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := map[string]struct {
+	healthOperations := map[string]struct {
 		operationID string
 		statuses    []string
 	}{
 		"/livez":  {operationID: "getLiveness", statuses: []string{"200"}},
 		"/readyz": {operationID: "getReadiness", statuses: []string{"200", "503"}},
 	}
-	for path, test := range tests {
+	for path, test := range healthOperations {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
@@ -46,6 +125,133 @@ func TestEmbeddedContractHasHealthRoutes(t *testing.T) {
 				}
 			}
 		})
+	}
+
+	for route, operationID := range c11Operations {
+		method, path, ok := strings.Cut(route, " ")
+		if !ok {
+			t.Fatalf("invalid operation fixture %q", route)
+		}
+		item := spec.Paths.Find(path)
+		if item == nil {
+			t.Fatalf("missing C1.1 path %s", path)
+		}
+		operation := operationForMethod(item, method)
+		if operation == nil {
+			t.Fatalf("missing C1.1 operation %s", route)
+		}
+		if operation.OperationID != operationID {
+			t.Errorf("%s operation ID = %q, want %q", route, operation.OperationID, operationID)
+		}
+		assertOperationSecurity(t, route, operation, c11OperationSecurity[operationID])
+		if operation.Responses.Value(c11SuccessStatuses[operationID]) == nil {
+			t.Errorf("%s missing success response %s", route, c11SuccessStatuses[operationID])
+		}
+		for _, status := range []string{"400", "401", "403", "409", "413", "415", "429", "503"} {
+			if operation.Responses.Value(status) == nil {
+				t.Errorf("%s missing stable error response %s", route, status)
+			}
+		}
+		if method == http.MethodPost {
+			assertRequiredParameter(t, operation, "header", "Idempotency-Key")
+			if operation.RequestBody == nil || operation.RequestBody.Value == nil {
+				t.Errorf("%s missing request body", route)
+			} else if got := fmt.Sprint(operation.RequestBody.Value.Extensions["x-talenro-max-bytes"]); got != "65536" {
+				t.Errorf("%s x-talenro-max-bytes = %q, want 65536", route, got)
+			}
+		} else {
+			assertRequiredParameter(t, operation, "path", "bundle_locator")
+		}
+	}
+
+	for _, name := range []string{"AccountOpaqueToken", "DeviceOpaqueToken"} {
+		if spec.Components == nil || spec.Components.SecuritySchemes[name] == nil || spec.Components.SecuritySchemes[name].Value == nil {
+			t.Errorf("missing security scheme %s", name)
+			continue
+		}
+		scheme := spec.Components.SecuritySchemes[name].Value
+		if scheme.Type != "http" || scheme.Scheme != "bearer" {
+			t.Errorf("security scheme %s = type %q scheme %q, want http bearer", name, scheme.Type, scheme.Scheme)
+		}
+	}
+
+	bundleOperation := spec.Paths.Find("/b/{bundle_locator}").Get
+	bundleResponse := bundleOperation.Responses.Value("200")
+	if bundleResponse == nil || bundleResponse.Value == nil || bundleResponse.Value.Content["application/vnd.talenro.bundle+json"] == nil {
+		t.Error("immutable bundle response missing application/vnd.talenro.bundle+json media type")
+	}
+
+	for name, schemaRef := range spec.Components.Schemas {
+		assertObjectsClosed(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
+	}
+}
+
+func assertOperationSecurity(t *testing.T, route string, operation *openapi3.Operation, scheme string) {
+	t.Helper()
+	if operation.Security == nil {
+		t.Errorf("%s must declare operation-level security", route)
+		return
+	}
+	requirements := *operation.Security
+	if scheme == "" {
+		if len(requirements) != 0 {
+			t.Errorf("%s security = %#v, want public", route, requirements)
+		}
+		return
+	}
+	if len(requirements) != 1 || len(requirements[0]) != 1 {
+		t.Errorf("%s security = %#v, want only %s", route, requirements, scheme)
+		return
+	}
+	if _, exists := requirements[0][scheme]; !exists {
+		t.Errorf("%s security = %#v, want only %s", route, requirements, scheme)
+	}
+}
+
+func operationForMethod(item *openapi3.PathItem, method string) *openapi3.Operation {
+	switch method {
+	case http.MethodGet:
+		return item.Get
+	case http.MethodPost:
+		return item.Post
+	default:
+		return nil
+	}
+}
+
+func assertRequiredParameter(t *testing.T, operation *openapi3.Operation, location, name string) {
+	t.Helper()
+	for _, parameterRef := range operation.Parameters {
+		if parameterRef.Value != nil && parameterRef.Value.In == location && parameterRef.Value.Name == name {
+			if !parameterRef.Value.Required {
+				t.Errorf("%s parameter %s must be required", location, name)
+			}
+			return
+		}
+	}
+	t.Errorf("missing required %s parameter %s", location, name)
+}
+
+func assertObjectsClosed(t *testing.T, location string, schemaRef *openapi3.SchemaRef, seen map[*openapi3.Schema]bool) {
+	t.Helper()
+	if schemaRef == nil || schemaRef.Value == nil || seen[schemaRef.Value] {
+		return
+	}
+	schema := schemaRef.Value
+	seen[schema] = true
+	if schema.Type != nil && schema.Type.Is(openapi3.TypeObject) {
+		if schema.AdditionalProperties.Schema == nil && (schema.AdditionalProperties.Has == nil || *schema.AdditionalProperties.Has) {
+			t.Errorf("%s must set additionalProperties: false", location)
+		}
+	}
+	for name, property := range schema.Properties {
+		assertObjectsClosed(t, location+"/properties/"+name, property, seen)
+	}
+	for index, variant := range schema.OneOf {
+		assertObjectsClosed(t, fmt.Sprintf("%s/oneOf/%d", location, index), variant, seen)
+	}
+	if schema.Items != nil {
+		assertObjectsClosed(t, location+"/items", schema.Items, seen)
 	}
 }
 
@@ -118,7 +324,7 @@ func TestGeneratedHandlerRoutesHealthResponses(t *testing.T) {
 	}
 }
 
-type contractServer struct{}
+type contractServer struct{ C1Unavailable }
 
 var _ controlapiv1.ServerInterface = contractServer{}
 

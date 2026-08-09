@@ -1,0 +1,17 @@
+syntax = "proto3";
+package talenro.deviceauth.v1;
+option go_package = "talenro.local/platform/gen/go/talenro/deviceauth/v1;deviceauthv1";
+
+message DeviceAuthorizationChanged {
+  string principal_id = 1;
+  string device_id = 2;
+  string authorization_id = 3;
+  string state = 4;
+  uint64 version = 5;
+}
+
+message DeviceTokenFamilyCompromised {
+  string authorization_id = 1;
+  string family_id = 2;
+  uint64 version = 3;
+}

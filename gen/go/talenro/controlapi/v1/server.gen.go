@@ -9,14 +9,93 @@ import (
 	"bytes"
 	"compress/flate"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for ConfigBundleResolution0Status.
+const (
+	Available ConfigBundleResolution0Status = "available"
+)
+
+// Valid indicates whether the value is a known member of the ConfigBundleResolution0Status enum.
+func (e ConfigBundleResolution0Status) Valid() bool {
+	switch e {
+	case Available:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConfigBundleResolution1Status.
+const (
+	UpToDate ConfigBundleResolution1Status = "up_to_date"
+)
+
+// Valid indicates whether the value is a known member of the ConfigBundleResolution1Status enum.
+func (e ConfigBundleResolution1Status) Valid() bool {
+	switch e {
+	case UpToDate:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAccountSessionRequest0Method.
+const (
+	CreateAccountSessionRequest0MethodPassword CreateAccountSessionRequest0Method = "password"
+)
+
+// Valid indicates whether the value is a known member of the CreateAccountSessionRequest0Method enum.
+func (e CreateAccountSessionRequest0Method) Valid() bool {
+	switch e {
+	case CreateAccountSessionRequest0MethodPassword:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAccountSessionRequest1Method.
+const (
+	CreateAccountSessionRequest1MethodPasskey CreateAccountSessionRequest1Method = "passkey"
+)
+
+// Valid indicates whether the value is a known member of the CreateAccountSessionRequest1Method enum.
+func (e CreateAccountSessionRequest1Method) Valid() bool {
+	switch e {
+	case CreateAccountSessionRequest1MethodPasskey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GenericAcceptedStatus.
+const (
+	Accepted GenericAcceptedStatus = "accepted"
+)
+
+// Valid indicates whether the value is a known member of the GenericAcceptedStatus enum.
+func (e GenericAcceptedStatus) Valid() bool {
+	switch e {
+	case Accepted:
+		return true
+	default:
+		return false
+	}
+}
 
 // Defines values for HealthResponseStatus.
 const (
@@ -36,6 +115,365 @@ func (e HealthResponseStatus) Valid() bool {
 	}
 }
 
+// Defines values for PublicErrorAction.
+const (
+	ContactSupport PublicErrorAction = "contact_support"
+	Reauthenticate PublicErrorAction = "reauthenticate"
+	Reenroll       PublicErrorAction = "reenroll"
+	Retry          PublicErrorAction = "retry"
+	UpgradeClient  PublicErrorAction = "upgrade_client"
+)
+
+// Valid indicates whether the value is a known member of the PublicErrorAction enum.
+func (e PublicErrorAction) Valid() bool {
+	switch e {
+	case ContactSupport:
+		return true
+	case Reauthenticate:
+		return true
+	case Reenroll:
+		return true
+	case Retry:
+		return true
+	case UpgradeClient:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PublicErrorCode.
+const (
+	PublicErrorCodeActionNotAllowed      PublicErrorCode = "action_not_allowed"
+	PublicErrorCodeAuthenticationFailed  PublicErrorCode = "authentication_failed"
+	PublicErrorCodeDependencyUnavailable PublicErrorCode = "dependency_unavailable"
+	PublicErrorCodeIdempotencyConflict   PublicErrorCode = "idempotency_conflict"
+	PublicErrorCodeMalformedRequest      PublicErrorCode = "malformed_request"
+	PublicErrorCodeRateLimited           PublicErrorCode = "rate_limited"
+	PublicErrorCodeRequestTooLarge       PublicErrorCode = "request_too_large"
+	PublicErrorCodeSigningUnavailable    PublicErrorCode = "signing_unavailable"
+	PublicErrorCodeStateConflict         PublicErrorCode = "state_conflict"
+	PublicErrorCodeUnsupportedSchema     PublicErrorCode = "unsupported_schema"
+	PublicErrorCodeVersionRollback       PublicErrorCode = "version_rollback"
+)
+
+// Valid indicates whether the value is a known member of the PublicErrorCode enum.
+func (e PublicErrorCode) Valid() bool {
+	switch e {
+	case PublicErrorCodeActionNotAllowed:
+		return true
+	case PublicErrorCodeAuthenticationFailed:
+		return true
+	case PublicErrorCodeDependencyUnavailable:
+		return true
+	case PublicErrorCodeIdempotencyConflict:
+		return true
+	case PublicErrorCodeMalformedRequest:
+		return true
+	case PublicErrorCodeRateLimited:
+		return true
+	case PublicErrorCodeRequestTooLarge:
+		return true
+	case PublicErrorCodeSigningUnavailable:
+		return true
+	case PublicErrorCodeStateConflict:
+		return true
+	case PublicErrorCodeUnsupportedSchema:
+		return true
+	case PublicErrorCodeVersionRollback:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Reauthentication0Method.
+const (
+	Reauthentication0MethodPassword Reauthentication0Method = "password"
+)
+
+// Valid indicates whether the value is a known member of the Reauthentication0Method enum.
+func (e Reauthentication0Method) Valid() bool {
+	switch e {
+	case Reauthentication0MethodPassword:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Reauthentication1Method.
+const (
+	Totp Reauthentication1Method = "totp"
+)
+
+// Valid indicates whether the value is a known member of the Reauthentication1Method enum.
+func (e Reauthentication1Method) Valid() bool {
+	switch e {
+	case Totp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Reauthentication2Method.
+const (
+	Reauthentication2MethodPasskey Reauthentication2Method = "passkey"
+)
+
+// Valid indicates whether the value is a known member of the Reauthentication2Method enum.
+func (e Reauthentication2Method) Valid() bool {
+	switch e {
+	case Reauthentication2MethodPasskey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Reauthentication3Method.
+const (
+	Reauthentication3MethodRecoveryCode Reauthentication3Method = "recovery_code"
+)
+
+// Valid indicates whether the value is a known member of the Reauthentication3Method enum.
+func (e Reauthentication3Method) Valid() bool {
+	switch e {
+	case Reauthentication3MethodRecoveryCode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RevokeAccountSessionsRequest0Scope.
+const (
+	All    RevokeAccountSessionsRequest0Scope = "all"
+	Others RevokeAccountSessionsRequest0Scope = "others"
+)
+
+// Valid indicates whether the value is a known member of the RevokeAccountSessionsRequest0Scope enum.
+func (e RevokeAccountSessionsRequest0Scope) Valid() bool {
+	switch e {
+	case All:
+		return true
+	case Others:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RevokeAccountSessionsRequest1Scope.
+const (
+	One RevokeAccountSessionsRequest1Scope = "one"
+)
+
+// Valid indicates whether the value is a known member of the RevokeAccountSessionsRequest1Scope enum.
+func (e RevokeAccountSessionsRequest1Scope) Valid() bool {
+	switch e {
+	case One:
+		return true
+	default:
+		return false
+	}
+}
+
+// AccountTokens defines model for AccountTokens.
+type AccountTokens struct {
+	AccessToken  OpaqueToken     `json:"access_token"`
+	ExpiresAt    TimestampString `json:"expires_at"`
+	PrincipalId  UUID            `json:"principal_id"`
+	RefreshToken OpaqueToken     `json:"refresh_token"`
+	SessionId    UUID            `json:"session_id"`
+}
+
+// AcknowledgeConfigBundleRequest defines model for AcknowledgeConfigBundleRequest.
+type AcknowledgeConfigBundleRequest struct {
+	BundleId      UUID          `json:"bundle_id"`
+	BundleVersion BundleVersion `json:"bundle_version"`
+}
+
+// AuthChallenge defines model for AuthChallenge.
+type AuthChallenge struct {
+	// Challenge Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	Challenge   Base64URL32     `json:"challenge"`
+	ChallengeId UUID            `json:"challenge_id"`
+	ExpiresAt   TimestampString `json:"expires_at"`
+}
+
+// Base64URL32 Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+type Base64URL32 = string
+
+// BundleVersion defines model for BundleVersion.
+type BundleVersion = string
+
+// ChangePasswordRequest defines model for ChangePasswordRequest.
+type ChangePasswordRequest struct {
+	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	ClientSigningPublicKey Base64URL32      `json:"client_signing_public_key"`
+	CurrentPassword        Password         `json:"current_password"`
+	NewPassword            Password         `json:"new_password"`
+	Reauthentication       Reauthentication `json:"reauthentication"`
+}
+
+// ConfigBundleResolution defines model for ConfigBundleResolution.
+type ConfigBundleResolution struct {
+	union json.RawMessage
+}
+
+// ConfigBundleResolution0 defines model for ConfigBundleResolution.0.
+type ConfigBundleResolution0 struct {
+	BundleId       UUID                          `json:"bundle_id"`
+	BundleLocator  string                        `json:"bundle_locator"`
+	BundleVersion  BundleVersion                 `json:"bundle_version"`
+	EnvelopeSha256 SHA256Hex                     `json:"envelope_sha256"`
+	Status         ConfigBundleResolution0Status `json:"status"`
+}
+
+// ConfigBundleResolution0Status defines model for ConfigBundleResolution.0.Status.
+type ConfigBundleResolution0Status string
+
+// ConfigBundleResolution1 defines model for ConfigBundleResolution.1.
+type ConfigBundleResolution1 struct {
+	Status ConfigBundleResolution1Status `json:"status"`
+}
+
+// ConfigBundleResolution1Status defines model for ConfigBundleResolution.1.Status.
+type ConfigBundleResolution1Status string
+
+// ConsumeRecoveryCodeRequest defines model for ConsumeRecoveryCodeRequest.
+type ConsumeRecoveryCodeRequest struct {
+	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	ClientSigningPublicKey Base64URL32  `json:"client_signing_public_key"`
+	Code                   RecoveryCode `json:"code"`
+	Email                  Email        `json:"email"`
+}
+
+// CreateAccountAuthChallengeRequest defines model for CreateAccountAuthChallengeRequest.
+type CreateAccountAuthChallengeRequest struct {
+	RefreshToken OpaqueToken `json:"refresh_token"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+}
+
+// CreateAccountRequest defines model for CreateAccountRequest.
+type CreateAccountRequest struct {
+	Email    Email    `json:"email"`
+	Locale   Locale   `json:"locale"`
+	Password Password `json:"password"`
+}
+
+// CreateAccountSessionRequest defines model for CreateAccountSessionRequest.
+type CreateAccountSessionRequest struct {
+	union json.RawMessage
+}
+
+// CreateAccountSessionRequest0 defines model for CreateAccountSessionRequest.0.
+type CreateAccountSessionRequest0 struct {
+	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	ClientSigningPublicKey Base64URL32                        `json:"client_signing_public_key"`
+	Email                  Email                              `json:"email"`
+	Method                 CreateAccountSessionRequest0Method `json:"method"`
+	Password               Password                           `json:"password"`
+}
+
+// CreateAccountSessionRequest0Method defines model for CreateAccountSessionRequest.0.Method.
+type CreateAccountSessionRequest0Method string
+
+// CreateAccountSessionRequest1 defines model for CreateAccountSessionRequest.1.
+type CreateAccountSessionRequest1 struct {
+	CeremonyId UUID `json:"ceremony_id"`
+
+	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	ClientSigningPublicKey Base64URL32                        `json:"client_signing_public_key"`
+	Method                 CreateAccountSessionRequest1Method `json:"method"`
+	Response               WebAuthnResponse                   `json:"response"`
+}
+
+// CreateAccountSessionRequest1Method defines model for CreateAccountSessionRequest.1.Method.
+type CreateAccountSessionRequest1Method string
+
+// CreateDeviceAuthChallengeRequest defines model for CreateDeviceAuthChallengeRequest.
+type CreateDeviceAuthChallengeRequest struct {
+	union json.RawMessage
+}
+
+// CreateDeviceAuthChallengeRequest0 defines model for CreateDeviceAuthChallengeRequest.0.
+type CreateDeviceAuthChallengeRequest0 struct {
+	EnrollmentGrant OpaqueToken `json:"enrollment_grant"`
+
+	// HpkePublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	HpkePublicKey Base64URL32 `json:"hpke_public_key"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+
+	// SigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	SigningPublicKey Base64URL32 `json:"signing_public_key"`
+}
+
+// CreateDeviceAuthChallengeRequest1 defines model for CreateDeviceAuthChallengeRequest.1.
+type CreateDeviceAuthChallengeRequest1 struct {
+	RefreshToken OpaqueToken `json:"refresh_token"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+}
+
+// CreateEmailVerificationDeliveryRequest defines model for CreateEmailVerificationDeliveryRequest.
+type CreateEmailVerificationDeliveryRequest struct {
+	Email  Email  `json:"email"`
+	Locale Locale `json:"locale"`
+}
+
+// CreatePasskeyCredentialRequest defines model for CreatePasskeyCredentialRequest.
+type CreatePasskeyCredentialRequest struct {
+	CeremonyId       UUID             `json:"ceremony_id"`
+	Reauthentication Reauthentication `json:"reauthentication"`
+	Response         WebAuthnResponse `json:"response"`
+}
+
+// CreatePasswordResetDeliveryRequest defines model for CreatePasswordResetDeliveryRequest.
+type CreatePasswordResetDeliveryRequest struct {
+	Email  Email  `json:"email"`
+	Locale Locale `json:"locale"`
+}
+
+// DeviceEnrollmentGrant defines model for DeviceEnrollmentGrant.
+type DeviceEnrollmentGrant struct {
+	EnrollmentGrant OpaqueToken     `json:"enrollment_grant"`
+	ExpiresAt       TimestampString `json:"expires_at"`
+}
+
+// DeviceTokens defines model for DeviceTokens.
+type DeviceTokens struct {
+	AccessToken     OpaqueToken     `json:"access_token"`
+	AuthorizationId UUID            `json:"authorization_id"`
+	DeviceId        UUID            `json:"device_id"`
+	ExpiresAt       TimestampString `json:"expires_at"`
+	RefreshToken    OpaqueToken     `json:"refresh_token"`
+}
+
+// Ed25519Signature Unpadded base64url; handlers validate an exact decoded length of 64 bytes.
+type Ed25519Signature = string
+
+// Email defines model for Email.
+type Email = openapi_types.Email
+
+// EmptyRequest defines model for EmptyRequest.
+type EmptyRequest = map[string]interface{}
+
+// GenericAccepted defines model for GenericAccepted.
+type GenericAccepted struct {
+	Status GenericAcceptedStatus `json:"status"`
+}
+
+// GenericAcceptedStatus defines model for GenericAccepted.Status.
+type GenericAcceptedStatus string
+
 // HealthResponse defines model for HealthResponse.
 type HealthResponse struct {
 	Checks map[string]string    `json:"checks"`
@@ -45,14 +483,924 @@ type HealthResponse struct {
 // HealthResponseStatus defines model for HealthResponse.Status.
 type HealthResponseStatus string
 
+// IdempotencyKey defines model for IdempotencyKey.
+type IdempotencyKey = string
+
+// Locale defines model for Locale.
+type Locale = string
+
+// OpaqueToken defines model for OpaqueToken.
+type OpaqueToken = string
+
+// Password defines model for Password.
+type Password = string
+
+// PublicError defines model for PublicError.
+type PublicError struct {
+	Action       PublicErrorAction `json:"action"`
+	Code         PublicErrorCode   `json:"code"`
+	RetryAfterMs *int64            `json:"retry_after_ms,omitempty"`
+	TraceId      string            `json:"trace_id"`
+}
+
+// PublicErrorAction defines model for PublicError.Action.
+type PublicErrorAction string
+
+// PublicErrorCode defines model for PublicError.Code.
+type PublicErrorCode string
+
+// Reauthentication defines model for Reauthentication.
+type Reauthentication struct {
+	union json.RawMessage
+}
+
+// Reauthentication0 defines model for Reauthentication.0.
+type Reauthentication0 struct {
+	Method   Reauthentication0Method `json:"method"`
+	Password Password                `json:"password"`
+}
+
+// Reauthentication0Method defines model for Reauthentication.0.Method.
+type Reauthentication0Method string
+
+// Reauthentication1 defines model for Reauthentication.1.
+type Reauthentication1 struct {
+	Code   TOTPCode                `json:"code"`
+	Method Reauthentication1Method `json:"method"`
+}
+
+// Reauthentication1Method defines model for Reauthentication.1.Method.
+type Reauthentication1Method string
+
+// Reauthentication2 defines model for Reauthentication.2.
+type Reauthentication2 struct {
+	CeremonyId UUID                    `json:"ceremony_id"`
+	Method     Reauthentication2Method `json:"method"`
+	Response   WebAuthnResponse        `json:"response"`
+}
+
+// Reauthentication2Method defines model for Reauthentication.2.Method.
+type Reauthentication2Method string
+
+// Reauthentication3 defines model for Reauthentication.3.
+type Reauthentication3 struct {
+	Code   RecoveryCode            `json:"code"`
+	Method Reauthentication3Method `json:"method"`
+}
+
+// Reauthentication3Method defines model for Reauthentication.3.Method.
+type Reauthentication3Method string
+
+// ReauthenticationRequest defines model for ReauthenticationRequest.
+type ReauthenticationRequest struct {
+	Reauthentication Reauthentication `json:"reauthentication"`
+}
+
+// RecoveryCode defines model for RecoveryCode.
+type RecoveryCode = string
+
+// RecoveryCodes defines model for RecoveryCodes.
+type RecoveryCodes struct {
+	Codes []RecoveryCode `json:"codes"`
+}
+
+// RegisterDeviceRequest defines model for RegisterDeviceRequest.
+type RegisterDeviceRequest struct {
+	ChallengeId UUID `json:"challenge_id"`
+
+	// DisplayName At most 64 Unicode scalar values and 256 UTF-8 bytes, validated by handlers.
+	DisplayName     string      `json:"display_name"`
+	EnrollmentGrant OpaqueToken `json:"enrollment_grant"`
+
+	// HpkePublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	HpkePublicKey Base64URL32 `json:"hpke_public_key"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+
+	// Signature Unpadded base64url; handlers validate an exact decoded length of 64 bytes.
+	Signature Ed25519Signature `json:"signature"`
+
+	// SigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	SigningPublicKey Base64URL32 `json:"signing_public_key"`
+}
+
+// ResetPasswordRequest defines model for ResetPasswordRequest.
+type ResetPasswordRequest struct {
+	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	ClientSigningPublicKey Base64URL32 `json:"client_signing_public_key"`
+	Email                  Email       `json:"email"`
+	NewPassword            Password    `json:"new_password"`
+	Token                  OpaqueToken `json:"token"`
+}
+
+// RevokeAccountSessionsRequest defines model for RevokeAccountSessionsRequest.
+type RevokeAccountSessionsRequest struct {
+	union json.RawMessage
+}
+
+// RevokeAccountSessionsRequest0 defines model for RevokeAccountSessionsRequest.0.
+type RevokeAccountSessionsRequest0 struct {
+	Reauthentication Reauthentication                   `json:"reauthentication"`
+	Scope            RevokeAccountSessionsRequest0Scope `json:"scope"`
+}
+
+// RevokeAccountSessionsRequest0Scope defines model for RevokeAccountSessionsRequest.0.Scope.
+type RevokeAccountSessionsRequest0Scope string
+
+// RevokeAccountSessionsRequest1 defines model for RevokeAccountSessionsRequest.1.
+type RevokeAccountSessionsRequest1 struct {
+	Reauthentication Reauthentication                   `json:"reauthentication"`
+	Scope            RevokeAccountSessionsRequest1Scope `json:"scope"`
+	SessionId        UUID                               `json:"session_id"`
+}
+
+// RevokeAccountSessionsRequest1Scope defines model for RevokeAccountSessionsRequest.1.Scope.
+type RevokeAccountSessionsRequest1Scope string
+
+// RevokeDeviceRequest defines model for RevokeDeviceRequest.
+type RevokeDeviceRequest struct {
+	DeviceId         UUID             `json:"device_id"`
+	Reauthentication Reauthentication `json:"reauthentication"`
+}
+
+// RevokePasskeyRequest defines model for RevokePasskeyRequest.
+type RevokePasskeyRequest struct {
+	// CredentialId Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	CredentialId     WebAuthnCredentialID `json:"credential_id"`
+	Reauthentication Reauthentication     `json:"reauthentication"`
+}
+
+// RotateAccountTokenRequest defines model for RotateAccountTokenRequest.
+type RotateAccountTokenRequest struct {
+	ChallengeId  UUID        `json:"challenge_id"`
+	RefreshToken OpaqueToken `json:"refresh_token"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+
+	// Signature Unpadded base64url; handlers validate an exact decoded length of 64 bytes.
+	Signature Ed25519Signature `json:"signature"`
+}
+
+// RotateDeviceTokenRequest defines model for RotateDeviceTokenRequest.
+type RotateDeviceTokenRequest struct {
+	ChallengeId  UUID        `json:"challenge_id"`
+	RefreshToken OpaqueToken `json:"refresh_token"`
+
+	// RequestNonce Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	RequestNonce Base64URL32 `json:"request_nonce"`
+
+	// Signature Unpadded base64url; handlers validate an exact decoded length of 64 bytes.
+	Signature Ed25519Signature `json:"signature"`
+}
+
+// SHA256Hex defines model for SHA256Hex.
+type SHA256Hex = string
+
+// TOTPCode defines model for TOTPCode.
+type TOTPCode = string
+
+// TOTPEnrollment defines model for TOTPEnrollment.
+type TOTPEnrollment struct {
+	ExpiresAt       TimestampString `json:"expires_at"`
+	ProvisioningUri string          `json:"provisioning_uri"`
+	Secret          string          `json:"secret"`
+}
+
+// TimestampString defines model for TimestampString.
+type TimestampString = time.Time
+
+// UUID defines model for UUID.
+type UUID = openapi_types.UUID
+
+// VerifyEmailRequest defines model for VerifyEmailRequest.
+type VerifyEmailRequest struct {
+	Token OpaqueToken `json:"token"`
+}
+
+// VerifyTOTPEnrollmentRequest defines model for VerifyTOTPEnrollmentRequest.
+type VerifyTOTPEnrollmentRequest struct {
+	Code             TOTPCode         `json:"code"`
+	Reauthentication Reauthentication `json:"reauthentication"`
+}
+
+// WebAuthnCredentialID Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+type WebAuthnCredentialID = string
+
+// WebAuthnOptions defines model for WebAuthnOptions.
+type WebAuthnOptions struct {
+	AllowedCredentialIds *[]WebAuthnCredentialID `json:"allowed_credential_ids,omitempty"`
+	CeremonyId           UUID                    `json:"ceremony_id"`
+
+	// Challenge Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	Challenge             Base64URL32             `json:"challenge"`
+	ExcludedCredentialIds *[]WebAuthnCredentialID `json:"excluded_credential_ids,omitempty"`
+	RpId                  string                  `json:"rp_id"`
+	TimeoutMs             int64                   `json:"timeout_ms"`
+
+	// UserId Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	UserId *Base64URL32 `json:"user_id,omitempty"`
+}
+
+// WebAuthnResponse defines model for WebAuthnResponse.
+type WebAuthnResponse struct {
+	AttestationObject *string `json:"attestation_object,omitempty"`
+	AuthenticatorData string  `json:"authenticator_data"`
+	ClientDataJson    string  `json:"client_data_json"`
+
+	// CredentialId Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	CredentialId WebAuthnCredentialID `json:"credential_id"`
+	Signature    string               `json:"signature"`
+	UserHandle   *string              `json:"user_handle,omitempty"`
+}
+
+// BundleLocator defines model for BundleLocator.
+type BundleLocator = string
+
+// ActionNotAllowed defines model for ActionNotAllowed.
+type ActionNotAllowed = PublicError
+
+// AuthenticationFailed defines model for AuthenticationFailed.
+type AuthenticationFailed = PublicError
+
+// BadRequest defines model for BadRequest.
+type BadRequest = PublicError
+
+// Conflict defines model for Conflict.
+type Conflict = PublicError
+
+// DependencyUnavailable defines model for DependencyUnavailable.
+type DependencyUnavailable = PublicError
+
+// RateLimited defines model for RateLimited.
+type RateLimited = PublicError
+
+// RequestTooLarge defines model for RequestTooLarge.
+type RequestTooLarge = PublicError
+
+// UnsupportedSchema defines model for UnsupportedSchema.
+type UnsupportedSchema = PublicError
+
+// CreateAccountAuthChallengeParams defines parameters for CreateAccountAuthChallenge.
+type CreateAccountAuthChallengeParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RevokeAccountSessionsParams defines parameters for RevokeAccountSessions.
+type RevokeAccountSessionsParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateAccountSessionParams defines parameters for CreateAccountSession.
+type CreateAccountSessionParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RotateAccountTokenParams defines parameters for RotateAccountToken.
+type RotateAccountTokenParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateAccountParams defines parameters for CreateAccount.
+type CreateAccountParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// AcknowledgeConfigBundleParams defines parameters for AcknowledgeConfigBundle.
+type AcknowledgeConfigBundleParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ResolveConfigBundleParams defines parameters for ResolveConfigBundle.
+type ResolveConfigBundleParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateDeviceAuthChallengeParams defines parameters for CreateDeviceAuthChallenge.
+type CreateDeviceAuthChallengeParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateDeviceEnrollmentGrantParams defines parameters for CreateDeviceEnrollmentGrant.
+type CreateDeviceEnrollmentGrantParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RevokeDeviceParams defines parameters for RevokeDevice.
+type RevokeDeviceParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RotateDeviceTokenParams defines parameters for RotateDeviceToken.
+type RotateDeviceTokenParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RegisterDeviceParams defines parameters for RegisterDevice.
+type RegisterDeviceParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateEmailVerificationDeliveryParams defines parameters for CreateEmailVerificationDelivery.
+type CreateEmailVerificationDeliveryParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// VerifyEmailParams defines parameters for VerifyEmail.
+type VerifyEmailParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreatePasskeyAuthenticationOptionsParams defines parameters for CreatePasskeyAuthenticationOptions.
+type CreatePasskeyAuthenticationOptionsParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreatePasskeyCredentialParams defines parameters for CreatePasskeyCredential.
+type CreatePasskeyCredentialParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreatePasskeyRegistrationOptionsParams defines parameters for CreatePasskeyRegistrationOptions.
+type CreatePasskeyRegistrationOptionsParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RevokePasskeyParams defines parameters for RevokePasskey.
+type RevokePasskeyParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ChangePasswordParams defines parameters for ChangePassword.
+type ChangePasswordParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreatePasswordResetDeliveryParams defines parameters for CreatePasswordResetDelivery.
+type CreatePasswordResetDeliveryParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ResetPasswordParams defines parameters for ResetPassword.
+type ResetPasswordParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ConsumeRecoveryCodeParams defines parameters for ConsumeRecoveryCode.
+type ConsumeRecoveryCodeParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RotateRecoveryCodesParams defines parameters for RotateRecoveryCodes.
+type RotateRecoveryCodesParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateTOTPEnrollmentParams defines parameters for CreateTOTPEnrollment.
+type CreateTOTPEnrollmentParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// RevokeTOTPParams defines parameters for RevokeTOTP.
+type RevokeTOTPParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// VerifyTOTPEnrollmentParams defines parameters for VerifyTOTPEnrollment.
+type VerifyTOTPEnrollmentParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// CreateAccountAuthChallengeJSONRequestBody defines body for CreateAccountAuthChallenge for application/json ContentType.
+type CreateAccountAuthChallengeJSONRequestBody = CreateAccountAuthChallengeRequest
+
+// RevokeAccountSessionsJSONRequestBody defines body for RevokeAccountSessions for application/json ContentType.
+type RevokeAccountSessionsJSONRequestBody = RevokeAccountSessionsRequest
+
+// CreateAccountSessionJSONRequestBody defines body for CreateAccountSession for application/json ContentType.
+type CreateAccountSessionJSONRequestBody = CreateAccountSessionRequest
+
+// RotateAccountTokenJSONRequestBody defines body for RotateAccountToken for application/json ContentType.
+type RotateAccountTokenJSONRequestBody = RotateAccountTokenRequest
+
+// CreateAccountJSONRequestBody defines body for CreateAccount for application/json ContentType.
+type CreateAccountJSONRequestBody = CreateAccountRequest
+
+// AcknowledgeConfigBundleJSONRequestBody defines body for AcknowledgeConfigBundle for application/json ContentType.
+type AcknowledgeConfigBundleJSONRequestBody = AcknowledgeConfigBundleRequest
+
+// ResolveConfigBundleJSONRequestBody defines body for ResolveConfigBundle for application/json ContentType.
+type ResolveConfigBundleJSONRequestBody = EmptyRequest
+
+// CreateDeviceAuthChallengeJSONRequestBody defines body for CreateDeviceAuthChallenge for application/json ContentType.
+type CreateDeviceAuthChallengeJSONRequestBody = CreateDeviceAuthChallengeRequest
+
+// CreateDeviceEnrollmentGrantJSONRequestBody defines body for CreateDeviceEnrollmentGrant for application/json ContentType.
+type CreateDeviceEnrollmentGrantJSONRequestBody = ReauthenticationRequest
+
+// RevokeDeviceJSONRequestBody defines body for RevokeDevice for application/json ContentType.
+type RevokeDeviceJSONRequestBody = RevokeDeviceRequest
+
+// RotateDeviceTokenJSONRequestBody defines body for RotateDeviceToken for application/json ContentType.
+type RotateDeviceTokenJSONRequestBody = RotateDeviceTokenRequest
+
+// RegisterDeviceJSONRequestBody defines body for RegisterDevice for application/json ContentType.
+type RegisterDeviceJSONRequestBody = RegisterDeviceRequest
+
+// CreateEmailVerificationDeliveryJSONRequestBody defines body for CreateEmailVerificationDelivery for application/json ContentType.
+type CreateEmailVerificationDeliveryJSONRequestBody = CreateEmailVerificationDeliveryRequest
+
+// VerifyEmailJSONRequestBody defines body for VerifyEmail for application/json ContentType.
+type VerifyEmailJSONRequestBody = VerifyEmailRequest
+
+// CreatePasskeyAuthenticationOptionsJSONRequestBody defines body for CreatePasskeyAuthenticationOptions for application/json ContentType.
+type CreatePasskeyAuthenticationOptionsJSONRequestBody = EmptyRequest
+
+// CreatePasskeyCredentialJSONRequestBody defines body for CreatePasskeyCredential for application/json ContentType.
+type CreatePasskeyCredentialJSONRequestBody = CreatePasskeyCredentialRequest
+
+// CreatePasskeyRegistrationOptionsJSONRequestBody defines body for CreatePasskeyRegistrationOptions for application/json ContentType.
+type CreatePasskeyRegistrationOptionsJSONRequestBody = ReauthenticationRequest
+
+// RevokePasskeyJSONRequestBody defines body for RevokePasskey for application/json ContentType.
+type RevokePasskeyJSONRequestBody = RevokePasskeyRequest
+
+// ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
+type ChangePasswordJSONRequestBody = ChangePasswordRequest
+
+// CreatePasswordResetDeliveryJSONRequestBody defines body for CreatePasswordResetDelivery for application/json ContentType.
+type CreatePasswordResetDeliveryJSONRequestBody = CreatePasswordResetDeliveryRequest
+
+// ResetPasswordJSONRequestBody defines body for ResetPassword for application/json ContentType.
+type ResetPasswordJSONRequestBody = ResetPasswordRequest
+
+// ConsumeRecoveryCodeJSONRequestBody defines body for ConsumeRecoveryCode for application/json ContentType.
+type ConsumeRecoveryCodeJSONRequestBody = ConsumeRecoveryCodeRequest
+
+// RotateRecoveryCodesJSONRequestBody defines body for RotateRecoveryCodes for application/json ContentType.
+type RotateRecoveryCodesJSONRequestBody = ReauthenticationRequest
+
+// CreateTOTPEnrollmentJSONRequestBody defines body for CreateTOTPEnrollment for application/json ContentType.
+type CreateTOTPEnrollmentJSONRequestBody = ReauthenticationRequest
+
+// RevokeTOTPJSONRequestBody defines body for RevokeTOTP for application/json ContentType.
+type RevokeTOTPJSONRequestBody = ReauthenticationRequest
+
+// VerifyTOTPEnrollmentJSONRequestBody defines body for VerifyTOTPEnrollment for application/json ContentType.
+type VerifyTOTPEnrollmentJSONRequestBody = VerifyTOTPEnrollmentRequest
+
+// AsConfigBundleResolution0 returns the union data inside the ConfigBundleResolution as a ConfigBundleResolution0
+func (t ConfigBundleResolution) AsConfigBundleResolution0() (ConfigBundleResolution0, error) {
+	var body ConfigBundleResolution0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromConfigBundleResolution0 overwrites any union data inside the ConfigBundleResolution as the provided ConfigBundleResolution0
+func (t *ConfigBundleResolution) FromConfigBundleResolution0(v ConfigBundleResolution0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeConfigBundleResolution0 performs a merge with any union data inside the ConfigBundleResolution, using the provided ConfigBundleResolution0
+func (t *ConfigBundleResolution) MergeConfigBundleResolution0(v ConfigBundleResolution0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsConfigBundleResolution1 returns the union data inside the ConfigBundleResolution as a ConfigBundleResolution1
+func (t ConfigBundleResolution) AsConfigBundleResolution1() (ConfigBundleResolution1, error) {
+	var body ConfigBundleResolution1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromConfigBundleResolution1 overwrites any union data inside the ConfigBundleResolution as the provided ConfigBundleResolution1
+func (t *ConfigBundleResolution) FromConfigBundleResolution1(v ConfigBundleResolution1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeConfigBundleResolution1 performs a merge with any union data inside the ConfigBundleResolution, using the provided ConfigBundleResolution1
+func (t *ConfigBundleResolution) MergeConfigBundleResolution1(v ConfigBundleResolution1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ConfigBundleResolution) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ConfigBundleResolution) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsCreateAccountSessionRequest0 returns the union data inside the CreateAccountSessionRequest as a CreateAccountSessionRequest0
+func (t CreateAccountSessionRequest) AsCreateAccountSessionRequest0() (CreateAccountSessionRequest0, error) {
+	var body CreateAccountSessionRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateAccountSessionRequest0 overwrites any union data inside the CreateAccountSessionRequest as the provided CreateAccountSessionRequest0
+func (t *CreateAccountSessionRequest) FromCreateAccountSessionRequest0(v CreateAccountSessionRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCreateAccountSessionRequest0 performs a merge with any union data inside the CreateAccountSessionRequest, using the provided CreateAccountSessionRequest0
+func (t *CreateAccountSessionRequest) MergeCreateAccountSessionRequest0(v CreateAccountSessionRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsCreateAccountSessionRequest1 returns the union data inside the CreateAccountSessionRequest as a CreateAccountSessionRequest1
+func (t CreateAccountSessionRequest) AsCreateAccountSessionRequest1() (CreateAccountSessionRequest1, error) {
+	var body CreateAccountSessionRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateAccountSessionRequest1 overwrites any union data inside the CreateAccountSessionRequest as the provided CreateAccountSessionRequest1
+func (t *CreateAccountSessionRequest) FromCreateAccountSessionRequest1(v CreateAccountSessionRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCreateAccountSessionRequest1 performs a merge with any union data inside the CreateAccountSessionRequest, using the provided CreateAccountSessionRequest1
+func (t *CreateAccountSessionRequest) MergeCreateAccountSessionRequest1(v CreateAccountSessionRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CreateAccountSessionRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateAccountSessionRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsCreateDeviceAuthChallengeRequest0 returns the union data inside the CreateDeviceAuthChallengeRequest as a CreateDeviceAuthChallengeRequest0
+func (t CreateDeviceAuthChallengeRequest) AsCreateDeviceAuthChallengeRequest0() (CreateDeviceAuthChallengeRequest0, error) {
+	var body CreateDeviceAuthChallengeRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateDeviceAuthChallengeRequest0 overwrites any union data inside the CreateDeviceAuthChallengeRequest as the provided CreateDeviceAuthChallengeRequest0
+func (t *CreateDeviceAuthChallengeRequest) FromCreateDeviceAuthChallengeRequest0(v CreateDeviceAuthChallengeRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCreateDeviceAuthChallengeRequest0 performs a merge with any union data inside the CreateDeviceAuthChallengeRequest, using the provided CreateDeviceAuthChallengeRequest0
+func (t *CreateDeviceAuthChallengeRequest) MergeCreateDeviceAuthChallengeRequest0(v CreateDeviceAuthChallengeRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsCreateDeviceAuthChallengeRequest1 returns the union data inside the CreateDeviceAuthChallengeRequest as a CreateDeviceAuthChallengeRequest1
+func (t CreateDeviceAuthChallengeRequest) AsCreateDeviceAuthChallengeRequest1() (CreateDeviceAuthChallengeRequest1, error) {
+	var body CreateDeviceAuthChallengeRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateDeviceAuthChallengeRequest1 overwrites any union data inside the CreateDeviceAuthChallengeRequest as the provided CreateDeviceAuthChallengeRequest1
+func (t *CreateDeviceAuthChallengeRequest) FromCreateDeviceAuthChallengeRequest1(v CreateDeviceAuthChallengeRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCreateDeviceAuthChallengeRequest1 performs a merge with any union data inside the CreateDeviceAuthChallengeRequest, using the provided CreateDeviceAuthChallengeRequest1
+func (t *CreateDeviceAuthChallengeRequest) MergeCreateDeviceAuthChallengeRequest1(v CreateDeviceAuthChallengeRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CreateDeviceAuthChallengeRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateDeviceAuthChallengeRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsReauthentication0 returns the union data inside the Reauthentication as a Reauthentication0
+func (t Reauthentication) AsReauthentication0() (Reauthentication0, error) {
+	var body Reauthentication0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromReauthentication0 overwrites any union data inside the Reauthentication as the provided Reauthentication0
+func (t *Reauthentication) FromReauthentication0(v Reauthentication0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeReauthentication0 performs a merge with any union data inside the Reauthentication, using the provided Reauthentication0
+func (t *Reauthentication) MergeReauthentication0(v Reauthentication0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsReauthentication1 returns the union data inside the Reauthentication as a Reauthentication1
+func (t Reauthentication) AsReauthentication1() (Reauthentication1, error) {
+	var body Reauthentication1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromReauthentication1 overwrites any union data inside the Reauthentication as the provided Reauthentication1
+func (t *Reauthentication) FromReauthentication1(v Reauthentication1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeReauthentication1 performs a merge with any union data inside the Reauthentication, using the provided Reauthentication1
+func (t *Reauthentication) MergeReauthentication1(v Reauthentication1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsReauthentication2 returns the union data inside the Reauthentication as a Reauthentication2
+func (t Reauthentication) AsReauthentication2() (Reauthentication2, error) {
+	var body Reauthentication2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromReauthentication2 overwrites any union data inside the Reauthentication as the provided Reauthentication2
+func (t *Reauthentication) FromReauthentication2(v Reauthentication2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeReauthentication2 performs a merge with any union data inside the Reauthentication, using the provided Reauthentication2
+func (t *Reauthentication) MergeReauthentication2(v Reauthentication2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsReauthentication3 returns the union data inside the Reauthentication as a Reauthentication3
+func (t Reauthentication) AsReauthentication3() (Reauthentication3, error) {
+	var body Reauthentication3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromReauthentication3 overwrites any union data inside the Reauthentication as the provided Reauthentication3
+func (t *Reauthentication) FromReauthentication3(v Reauthentication3) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeReauthentication3 performs a merge with any union data inside the Reauthentication, using the provided Reauthentication3
+func (t *Reauthentication) MergeReauthentication3(v Reauthentication3) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Reauthentication) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Reauthentication) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRevokeAccountSessionsRequest0 returns the union data inside the RevokeAccountSessionsRequest as a RevokeAccountSessionsRequest0
+func (t RevokeAccountSessionsRequest) AsRevokeAccountSessionsRequest0() (RevokeAccountSessionsRequest0, error) {
+	var body RevokeAccountSessionsRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRevokeAccountSessionsRequest0 overwrites any union data inside the RevokeAccountSessionsRequest as the provided RevokeAccountSessionsRequest0
+func (t *RevokeAccountSessionsRequest) FromRevokeAccountSessionsRequest0(v RevokeAccountSessionsRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRevokeAccountSessionsRequest0 performs a merge with any union data inside the RevokeAccountSessionsRequest, using the provided RevokeAccountSessionsRequest0
+func (t *RevokeAccountSessionsRequest) MergeRevokeAccountSessionsRequest0(v RevokeAccountSessionsRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRevokeAccountSessionsRequest1 returns the union data inside the RevokeAccountSessionsRequest as a RevokeAccountSessionsRequest1
+func (t RevokeAccountSessionsRequest) AsRevokeAccountSessionsRequest1() (RevokeAccountSessionsRequest1, error) {
+	var body RevokeAccountSessionsRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRevokeAccountSessionsRequest1 overwrites any union data inside the RevokeAccountSessionsRequest as the provided RevokeAccountSessionsRequest1
+func (t *RevokeAccountSessionsRequest) FromRevokeAccountSessionsRequest1(v RevokeAccountSessionsRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRevokeAccountSessionsRequest1 performs a merge with any union data inside the RevokeAccountSessionsRequest, using the provided RevokeAccountSessionsRequest1
+func (t *RevokeAccountSessionsRequest) MergeRevokeAccountSessionsRequest1(v RevokeAccountSessionsRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t RevokeAccountSessionsRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RevokeAccountSessionsRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (GET /b/{bundle_locator})
+	GetImmutableBundle(w http.ResponseWriter, r *http.Request, bundleLocator BundleLocator)
 
 	// (GET /livez)
 	GetLiveness(w http.ResponseWriter, r *http.Request)
 
 	// (GET /readyz)
 	GetReadiness(w http.ResponseWriter, r *http.Request)
+
+	// (POST /v1/account-auth-challenges)
+	CreateAccountAuthChallenge(w http.ResponseWriter, r *http.Request, params CreateAccountAuthChallengeParams)
+
+	// (POST /v1/account-session-revocations)
+	RevokeAccountSessions(w http.ResponseWriter, r *http.Request, params RevokeAccountSessionsParams)
+
+	// (POST /v1/account-sessions)
+	CreateAccountSession(w http.ResponseWriter, r *http.Request, params CreateAccountSessionParams)
+
+	// (POST /v1/account-token-rotations)
+	RotateAccountToken(w http.ResponseWriter, r *http.Request, params RotateAccountTokenParams)
+
+	// (POST /v1/accounts)
+	CreateAccount(w http.ResponseWriter, r *http.Request, params CreateAccountParams)
+
+	// (POST /v1/config-bundle-acknowledgements)
+	AcknowledgeConfigBundle(w http.ResponseWriter, r *http.Request, params AcknowledgeConfigBundleParams)
+
+	// (POST /v1/config-bundle-resolutions)
+	ResolveConfigBundle(w http.ResponseWriter, r *http.Request, params ResolveConfigBundleParams)
+
+	// (POST /v1/device-auth-challenges)
+	CreateDeviceAuthChallenge(w http.ResponseWriter, r *http.Request, params CreateDeviceAuthChallengeParams)
+
+	// (POST /v1/device-enrollment-grants)
+	CreateDeviceEnrollmentGrant(w http.ResponseWriter, r *http.Request, params CreateDeviceEnrollmentGrantParams)
+
+	// (POST /v1/device-revocations)
+	RevokeDevice(w http.ResponseWriter, r *http.Request, params RevokeDeviceParams)
+
+	// (POST /v1/device-token-rotations)
+	RotateDeviceToken(w http.ResponseWriter, r *http.Request, params RotateDeviceTokenParams)
+
+	// (POST /v1/devices)
+	RegisterDevice(w http.ResponseWriter, r *http.Request, params RegisterDeviceParams)
+
+	// (POST /v1/email-verification-deliveries)
+	CreateEmailVerificationDelivery(w http.ResponseWriter, r *http.Request, params CreateEmailVerificationDeliveryParams)
+
+	// (POST /v1/email-verifications)
+	VerifyEmail(w http.ResponseWriter, r *http.Request, params VerifyEmailParams)
+
+	// (POST /v1/passkey-authentication-options)
+	CreatePasskeyAuthenticationOptions(w http.ResponseWriter, r *http.Request, params CreatePasskeyAuthenticationOptionsParams)
+
+	// (POST /v1/passkey-credentials)
+	CreatePasskeyCredential(w http.ResponseWriter, r *http.Request, params CreatePasskeyCredentialParams)
+
+	// (POST /v1/passkey-registration-options)
+	CreatePasskeyRegistrationOptions(w http.ResponseWriter, r *http.Request, params CreatePasskeyRegistrationOptionsParams)
+
+	// (POST /v1/passkey-revocations)
+	RevokePasskey(w http.ResponseWriter, r *http.Request, params RevokePasskeyParams)
+
+	// (POST /v1/password-changes)
+	ChangePassword(w http.ResponseWriter, r *http.Request, params ChangePasswordParams)
+
+	// (POST /v1/password-reset-deliveries)
+	CreatePasswordResetDelivery(w http.ResponseWriter, r *http.Request, params CreatePasswordResetDeliveryParams)
+
+	// (POST /v1/password-resets)
+	ResetPassword(w http.ResponseWriter, r *http.Request, params ResetPasswordParams)
+
+	// (POST /v1/recovery-code-consumptions)
+	ConsumeRecoveryCode(w http.ResponseWriter, r *http.Request, params ConsumeRecoveryCodeParams)
+
+	// (POST /v1/recovery-code-rotations)
+	RotateRecoveryCodes(w http.ResponseWriter, r *http.Request, params RotateRecoveryCodesParams)
+
+	// (POST /v1/totp-enrollments)
+	CreateTOTPEnrollment(w http.ResponseWriter, r *http.Request, params CreateTOTPEnrollmentParams)
+
+	// (POST /v1/totp-revocations)
+	RevokeTOTP(w http.ResponseWriter, r *http.Request, params RevokeTOTPParams)
+
+	// (POST /v1/totp-verifications)
+	VerifyTOTPEnrollment(w http.ResponseWriter, r *http.Request, params VerifyTOTPEnrollmentParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -63,6 +1411,32 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetImmutableBundle operation middleware
+func (siw *ServerInterfaceWrapper) GetImmutableBundle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "bundle_locator" -------------
+	var bundleLocator BundleLocator
+
+	err = runtime.BindStyledParameterWithOptions("simple", "bundle_locator", r.PathValue("bundle_locator"), &bundleLocator, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "bundle_locator", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetImmutableBundle(w, r, bundleLocator)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // GetLiveness operation middleware
 func (siw *ServerInterfaceWrapper) GetLiveness(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +1457,1176 @@ func (siw *ServerInterfaceWrapper) GetReadiness(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetReadiness(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAccountAuthChallenge operation middleware
+func (siw *ServerInterfaceWrapper) CreateAccountAuthChallenge(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateAccountAuthChallengeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAccountAuthChallenge(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeAccountSessions operation middleware
+func (siw *ServerInterfaceWrapper) RevokeAccountSessions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeAccountSessionsParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeAccountSessions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAccountSession operation middleware
+func (siw *ServerInterfaceWrapper) CreateAccountSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateAccountSessionParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAccountSession(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RotateAccountToken operation middleware
+func (siw *ServerInterfaceWrapper) RotateAccountToken(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RotateAccountTokenParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RotateAccountToken(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAccount operation middleware
+func (siw *ServerInterfaceWrapper) CreateAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateAccountParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAccount(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcknowledgeConfigBundle operation middleware
+func (siw *ServerInterfaceWrapper) AcknowledgeConfigBundle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AcknowledgeConfigBundleParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcknowledgeConfigBundle(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResolveConfigBundle operation middleware
+func (siw *ServerInterfaceWrapper) ResolveConfigBundle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ResolveConfigBundleParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResolveConfigBundle(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDeviceAuthChallenge operation middleware
+func (siw *ServerInterfaceWrapper) CreateDeviceAuthChallenge(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateDeviceAuthChallengeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDeviceAuthChallenge(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDeviceEnrollmentGrant operation middleware
+func (siw *ServerInterfaceWrapper) CreateDeviceEnrollmentGrant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateDeviceEnrollmentGrantParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDeviceEnrollmentGrant(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeDevice operation middleware
+func (siw *ServerInterfaceWrapper) RevokeDevice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeDeviceParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeDevice(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RotateDeviceToken operation middleware
+func (siw *ServerInterfaceWrapper) RotateDeviceToken(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RotateDeviceTokenParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RotateDeviceToken(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RegisterDevice operation middleware
+func (siw *ServerInterfaceWrapper) RegisterDevice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RegisterDeviceParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RegisterDevice(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateEmailVerificationDelivery operation middleware
+func (siw *ServerInterfaceWrapper) CreateEmailVerificationDelivery(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateEmailVerificationDeliveryParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateEmailVerificationDelivery(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// VerifyEmail operation middleware
+func (siw *ServerInterfaceWrapper) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params VerifyEmailParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.VerifyEmail(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePasskeyAuthenticationOptions operation middleware
+func (siw *ServerInterfaceWrapper) CreatePasskeyAuthenticationOptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreatePasskeyAuthenticationOptionsParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePasskeyAuthenticationOptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePasskeyCredential operation middleware
+func (siw *ServerInterfaceWrapper) CreatePasskeyCredential(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreatePasskeyCredentialParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePasskeyCredential(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePasskeyRegistrationOptions operation middleware
+func (siw *ServerInterfaceWrapper) CreatePasskeyRegistrationOptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreatePasskeyRegistrationOptionsParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePasskeyRegistrationOptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokePasskey operation middleware
+func (siw *ServerInterfaceWrapper) RevokePasskey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokePasskeyParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokePasskey(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ChangePassword operation middleware
+func (siw *ServerInterfaceWrapper) ChangePassword(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ChangePasswordParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ChangePassword(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePasswordResetDelivery operation middleware
+func (siw *ServerInterfaceWrapper) CreatePasswordResetDelivery(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreatePasswordResetDeliveryParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePasswordResetDelivery(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResetPassword operation middleware
+func (siw *ServerInterfaceWrapper) ResetPassword(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ResetPasswordParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResetPassword(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ConsumeRecoveryCode operation middleware
+func (siw *ServerInterfaceWrapper) ConsumeRecoveryCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ConsumeRecoveryCodeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ConsumeRecoveryCode(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RotateRecoveryCodes operation middleware
+func (siw *ServerInterfaceWrapper) RotateRecoveryCodes(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RotateRecoveryCodesParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RotateRecoveryCodes(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTOTPEnrollment operation middleware
+func (siw *ServerInterfaceWrapper) CreateTOTPEnrollment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateTOTPEnrollmentParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTOTPEnrollment(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeTOTP operation middleware
+func (siw *ServerInterfaceWrapper) RevokeTOTP(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeTOTPParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeTOTP(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// VerifyTOTPEnrollment operation middleware
+func (siw *ServerInterfaceWrapper) VerifyTOTPEnrollment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params VerifyTOTPEnrollmentParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.VerifyTOTPEnrollment(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -214,6 +2758,33 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/livez", wrapper.GetLiveness)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/readyz", wrapper.GetReadiness)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/accounts", wrapper.CreateAccount)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/email-verification-deliveries", wrapper.CreateEmailVerificationDelivery)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/email-verifications", wrapper.VerifyEmail)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/password-reset-deliveries", wrapper.CreatePasswordResetDelivery)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/password-resets", wrapper.ResetPassword)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/password-changes", wrapper.ChangePassword)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/account-sessions", wrapper.CreateAccountSession)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/account-auth-challenges", wrapper.CreateAccountAuthChallenge)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/account-token-rotations", wrapper.RotateAccountToken)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/account-session-revocations", wrapper.RevokeAccountSessions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/passkey-registration-options", wrapper.CreatePasskeyRegistrationOptions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/passkey-credentials", wrapper.CreatePasskeyCredential)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/passkey-authentication-options", wrapper.CreatePasskeyAuthenticationOptions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/passkey-revocations", wrapper.RevokePasskey)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/totp-enrollments", wrapper.CreateTOTPEnrollment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/totp-verifications", wrapper.VerifyTOTPEnrollment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/totp-revocations", wrapper.RevokeTOTP)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/recovery-code-rotations", wrapper.RotateRecoveryCodes)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/recovery-code-consumptions", wrapper.ConsumeRecoveryCode)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/device-enrollment-grants", wrapper.CreateDeviceEnrollmentGrant)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/device-auth-challenges", wrapper.CreateDeviceAuthChallenge)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/devices", wrapper.RegisterDevice)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/device-token-rotations", wrapper.RotateDeviceToken)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/device-revocations", wrapper.RevokeDevice)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/config-bundle-resolutions", wrapper.ResolveConfigBundle)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/config-bundle-acknowledgements", wrapper.AcknowledgeConfigBundle)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/b/{bundle_locator}", wrapper.GetImmutableBundle)
 
 	return m
 }
@@ -223,13 +2794,71 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"xJIxjxMxEIX/ymqgtLILEc12JxpOoogiOnTFnP1y8Z0zNh4nUojy39GYRJyCoIQ0Gb31835v3p7I513J",
-	"AmlK84nUb7HjPn4Cp7ZdQ0sWhSkcQmwxC6dVzQW1RSjNG04KR+WVdCK/hX/RP5tO1I4FNJO2GuWJzu4q",
-	"5Mdn+GaCNm77fhay39H8lfILOdoLHzgmfkygB3d7z9lRxbd9rAjmuNzhrkAPv73HHFE2uTPFluzZF06Q",
-	"moePWVrNabhb3ZOjA6rGLDTTu8W0mAwxFwiXSDMtF9NiSY4Kt21nHlM84LtNT2j2Z+HZNnEfaDbxczxA",
-	"oEZXL1vuzvfT1FeYpUG6lUtJ0Xfz+KyGcG3KprcVG5rpzfiryvHS43hTYk8boL7G0n5mWdXsoTpEHdiQ",
-	"7czZ0VjB4fhX/jU4xP8fYH2pewgokADxETpwxdAjWE0fpuU/BLprQwJrG7IYwy3d0Vb9+iM+99+PAAAA",
-	"//8=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

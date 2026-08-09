@@ -29,8 +29,1152 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
+  /v1/accounts:
+    post:
+      operationId: createAccount
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequest"
+      responses:
+        "202":
+          $ref: "#/components/responses/GenericAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/email-verification-deliveries:
+    post:
+      operationId: createEmailVerificationDelivery
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmailVerificationDeliveryRequest"
+      responses:
+        "202":
+          $ref: "#/components/responses/GenericAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/email-verifications:
+    post:
+      operationId: verifyEmail
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailRequest"
+      responses:
+        "204":
+          description: Email verified
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/password-reset-deliveries:
+    post:
+      operationId: createPasswordResetDelivery
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePasswordResetDeliveryRequest"
+      responses:
+        "202":
+          $ref: "#/components/responses/GenericAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/password-resets:
+    post:
+      operationId: resetPassword
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/password-changes:
+    post:
+      operationId: changePassword
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/account-sessions:
+    post:
+      operationId: createAccountSession
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountSessionRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/account-auth-challenges:
+    post:
+      operationId: createAccountAuthChallenge
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountAuthChallengeRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/AuthChallenge"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/account-token-rotations:
+    post:
+      operationId: rotateAccountToken
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RotateAccountTokenRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/account-session-revocations:
+    post:
+      operationId: revokeAccountSessions
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevokeAccountSessionsRequest"
+      responses:
+        "204":
+          description: Account sessions revoked
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/passkey-registration-options:
+    post:
+      operationId: createPasskeyRegistrationOptions
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticationRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/WebAuthnOptions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/passkey-credentials:
+    post:
+      operationId: createPasskeyCredential
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePasskeyCredentialRequest"
+      responses:
+        "204":
+          description: Passkey credential created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/passkey-authentication-options:
+    post:
+      operationId: createPasskeyAuthenticationOptions
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmptyRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/WebAuthnOptions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/passkey-revocations:
+    post:
+      operationId: revokePasskey
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevokePasskeyRequest"
+      responses:
+        "204":
+          description: Passkey revoked
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/totp-enrollments:
+    post:
+      operationId: createTOTPEnrollment
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticationRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/TOTPEnrollment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/totp-verifications:
+    post:
+      operationId: verifyTOTPEnrollment
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTOTPEnrollmentRequest"
+      responses:
+        "204":
+          description: TOTP enrollment verified
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/totp-revocations:
+    post:
+      operationId: revokeTOTP
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticationRequest"
+      responses:
+        "204":
+          description: TOTP revoked
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/recovery-code-rotations:
+    post:
+      operationId: rotateRecoveryCodes
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticationRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/RecoveryCodes"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/recovery-code-consumptions:
+    post:
+      operationId: consumeRecoveryCode
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsumeRecoveryCodeRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/device-enrollment-grants:
+    post:
+      operationId: createDeviceEnrollmentGrant
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthenticationRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/DeviceEnrollmentGrant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/device-auth-challenges:
+    post:
+      operationId: createDeviceAuthChallenge
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeviceAuthChallengeRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/AuthChallenge"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/devices:
+    post:
+      operationId: registerDevice
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDeviceRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/DeviceTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/device-token-rotations:
+    post:
+      operationId: rotateDeviceToken
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RotateDeviceTokenRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeviceTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/device-revocations:
+    post:
+      operationId: revokeDevice
+      security:
+        - AccountOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevokeDeviceRequest"
+      responses:
+        "204":
+          description: Device revoked
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/config-bundle-resolutions:
+    post:
+      operationId: resolveConfigBundle
+      security:
+        - DeviceOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmptyRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/ConfigBundleResolution"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/config-bundle-acknowledgements:
+    post:
+      operationId: acknowledgeConfigBundle
+      security:
+        - DeviceOpaqueToken: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        x-talenro-max-bytes: 65536
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcknowledgeConfigBundleRequest"
+      responses:
+        "204":
+          description: Bundle acknowledged
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /b/{bundle_locator}:
+    get:
+      operationId: getImmutableBundle
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BundleLocator"
+      responses:
+        "200":
+          description: Immutable signed configuration bundle
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                maxLength: 128
+            ETag:
+              required: true
+              schema:
+                type: string
+                maxLength: 96
+          content:
+            application/vnd.talenro.bundle+json:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/AuthenticationFailed"
+        "403":
+          $ref: "#/components/responses/ActionNotAllowed"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedSchema"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
 components:
+  securitySchemes:
+    AccountOpaqueToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-account-token
+    DeviceOpaqueToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-device-token
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        $ref: "#/components/schemas/IdempotencyKey"
+    BundleLocator:
+      name: bundle_locator
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 22
+        maxLength: 86
+        pattern: '^[A-Za-z0-9_-]+$'
+  responses:
+    GenericAccepted:
+      description: Request accepted without disclosing account state
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GenericAccepted"
+    AccountTokens:
+      description: Account token pair issued
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccountTokens"
+    DeviceTokens:
+      description: Device token pair issued
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DeviceTokens"
+    AuthChallenge:
+      description: Proof-of-possession challenge issued
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AuthChallenge"
+    WebAuthnOptions:
+      description: Bounded WebAuthn ceremony options
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/WebAuthnOptions"
+    TOTPEnrollment:
+      description: One-time TOTP enrollment material
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TOTPEnrollment"
+    RecoveryCodes:
+      description: One-time recovery codes
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RecoveryCodes"
+    DeviceEnrollmentGrant:
+      description: One-time device enrollment grant
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DeviceEnrollmentGrant"
+    ConfigBundleResolution:
+      description: Current server-selected configuration bundle resolution
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ConfigBundleResolution"
+    BadRequest:
+      description: Request is malformed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    AuthenticationFailed:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    ActionNotAllowed:
+      description: Action is not allowed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    Conflict:
+      description: Idempotency, state, or version conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    RequestTooLarge:
+      description: Request exceeds the bounded size
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    UnsupportedSchema:
+      description: Request schema is unsupported
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    RateLimited:
+      description: Request rate is limited
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            maximum: 10
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
+    DependencyUnavailable:
+      description: Required dependency or signing service is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicError"
   schemas:
+    PublicError:
+      type: object
+      additionalProperties: false
+      required: [code, action, trace_id]
+      properties:
+        code:
+          type: string
+          enum: [malformed_request, authentication_failed, action_not_allowed, idempotency_conflict, state_conflict, version_rollback, request_too_large, unsupported_schema, rate_limited, dependency_unavailable, signing_unavailable]
+        action:
+          type: string
+          enum: [retry, reauthenticate, reenroll, upgrade_client, contact_support]
+        retry_after_ms:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 10000
+        trace_id:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{16,64}$'
+    OpaqueToken:
+      type: string
+      minLength: 43
+      maxLength: 86
+      pattern: '^[A-Za-z0-9_-]+$'
+    IdempotencyKey:
+      type: string
+      minLength: 22
+      maxLength: 86
+      pattern: '^[A-Za-z0-9_-]+$'
+    TimestampString:
+      type: string
+      format: date-time
+      maxLength: 35
+    UUID:
+      type: string
+      format: uuid
+      minLength: 36
+      maxLength: 36
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    Email:
+      type: string
+      format: email
+      minLength: 3
+      maxLength: 254
+    Password:
+      type: string
+      minLength: 12
+      maxLength: 1024
+    Locale:
+      type: string
+      minLength: 2
+      maxLength: 5
+      pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    Base64URL32:
+      type: string
+      minLength: 43
+      maxLength: 43
+      pattern: '^[A-Za-z0-9_-]{43}$'
+      description: Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+    Ed25519Signature:
+      type: string
+      minLength: 86
+      maxLength: 86
+      pattern: '^[A-Za-z0-9_-]{86}$'
+      description: Unpadded base64url; handlers validate an exact decoded length of 64 bytes.
+    WebAuthnCredentialID:
+      type: string
+      minLength: 22
+      maxLength: 1366
+      pattern: '^[A-Za-z0-9_-]+$'
+      description: Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+    WebAuthnResponse:
+      type: object
+      additionalProperties: false
+      required: [credential_id, client_data_json, authenticator_data, signature]
+      properties:
+        credential_id:
+          $ref: "#/components/schemas/WebAuthnCredentialID"
+        client_data_json:
+          type: string
+          minLength: 2
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        authenticator_data:
+          type: string
+          minLength: 1
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        signature:
+          type: string
+          minLength: 1
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        user_handle:
+          type: string
+          minLength: 1
+          maxLength: 86
+          pattern: '^[A-Za-z0-9_-]+$'
+        attestation_object:
+          type: string
+          minLength: 1
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+    RecoveryCode:
+      type: string
+      minLength: 39
+      maxLength: 39
+      pattern: '^[A-Z2-7]{4}(-[A-Z2-7]{4}){7}$'
+    TOTPCode:
+      type: string
+      minLength: 6
+      maxLength: 6
+      pattern: '^[0-9]{6}$'
+    BundleVersion:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[A-Za-z0-9._-]+$'
+    SHA256Hex:
+      type: string
+      minLength: 64
+      maxLength: 64
+      pattern: '^[0-9a-f]{64}$'
     HealthResponse:
       type: object
       additionalProperties: false
@@ -43,3 +1187,446 @@ components:
           type: object
           additionalProperties:
             type: string
+    EmptyRequest:
+      type: object
+      additionalProperties: false
+      maxProperties: 0
+    CreateAccountRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, locale]
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        password:
+          $ref: "#/components/schemas/Password"
+        locale:
+          $ref: "#/components/schemas/Locale"
+    CreateEmailVerificationDeliveryRequest:
+      type: object
+      additionalProperties: false
+      required: [email, locale]
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        locale:
+          $ref: "#/components/schemas/Locale"
+    VerifyEmailRequest:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token:
+          $ref: "#/components/schemas/OpaqueToken"
+    CreatePasswordResetDeliveryRequest:
+      type: object
+      additionalProperties: false
+      required: [email, locale]
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        locale:
+          $ref: "#/components/schemas/Locale"
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [email, token, new_password, client_signing_public_key]
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        token:
+          $ref: "#/components/schemas/OpaqueToken"
+        new_password:
+          $ref: "#/components/schemas/Password"
+        client_signing_public_key:
+          $ref: "#/components/schemas/Base64URL32"
+    Reauthentication:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [method, password]
+          properties:
+            method:
+              type: string
+              enum: [password]
+            password:
+              $ref: "#/components/schemas/Password"
+        - type: object
+          additionalProperties: false
+          required: [method, code]
+          properties:
+            method:
+              type: string
+              enum: [totp]
+            code:
+              $ref: "#/components/schemas/TOTPCode"
+        - type: object
+          additionalProperties: false
+          required: [method, ceremony_id, response]
+          properties:
+            method:
+              type: string
+              enum: [passkey]
+            ceremony_id:
+              $ref: "#/components/schemas/UUID"
+            response:
+              $ref: "#/components/schemas/WebAuthnResponse"
+        - type: object
+          additionalProperties: false
+          required: [method, code]
+          properties:
+            method:
+              type: string
+              enum: [recovery_code]
+            code:
+              $ref: "#/components/schemas/RecoveryCode"
+    ReauthenticationRequest:
+      type: object
+      additionalProperties: false
+      required: [reauthentication]
+      properties:
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+    ChangePasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [current_password, new_password, reauthentication, client_signing_public_key]
+      properties:
+        current_password:
+          $ref: "#/components/schemas/Password"
+        new_password:
+          $ref: "#/components/schemas/Password"
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+        client_signing_public_key:
+          $ref: "#/components/schemas/Base64URL32"
+    CreateAccountSessionRequest:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [method, email, password, client_signing_public_key]
+          properties:
+            method:
+              type: string
+              enum: [password]
+            email:
+              $ref: "#/components/schemas/Email"
+            password:
+              $ref: "#/components/schemas/Password"
+            client_signing_public_key:
+              $ref: "#/components/schemas/Base64URL32"
+        - type: object
+          additionalProperties: false
+          required: [method, ceremony_id, response, client_signing_public_key]
+          properties:
+            method:
+              type: string
+              enum: [passkey]
+            ceremony_id:
+              $ref: "#/components/schemas/UUID"
+            response:
+              $ref: "#/components/schemas/WebAuthnResponse"
+            client_signing_public_key:
+              $ref: "#/components/schemas/Base64URL32"
+    CreateAccountAuthChallengeRequest:
+      type: object
+      additionalProperties: false
+      required: [refresh_token, request_nonce]
+      properties:
+        refresh_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+    RotateAccountTokenRequest:
+      type: object
+      additionalProperties: false
+      required: [refresh_token, challenge_id, request_nonce, signature]
+      properties:
+        refresh_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        challenge_id:
+          $ref: "#/components/schemas/UUID"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        signature:
+          $ref: "#/components/schemas/Ed25519Signature"
+    RevokeAccountSessionsRequest:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [scope, reauthentication]
+          properties:
+            scope:
+              type: string
+              enum: [all, others]
+            reauthentication:
+              $ref: "#/components/schemas/Reauthentication"
+        - type: object
+          additionalProperties: false
+          required: [scope, session_id, reauthentication]
+          properties:
+            scope:
+              type: string
+              enum: [one]
+            session_id:
+              $ref: "#/components/schemas/UUID"
+            reauthentication:
+              $ref: "#/components/schemas/Reauthentication"
+    CreatePasskeyCredentialRequest:
+      type: object
+      additionalProperties: false
+      required: [ceremony_id, response, reauthentication]
+      properties:
+        ceremony_id:
+          $ref: "#/components/schemas/UUID"
+        response:
+          $ref: "#/components/schemas/WebAuthnResponse"
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+    RevokePasskeyRequest:
+      type: object
+      additionalProperties: false
+      required: [credential_id, reauthentication]
+      properties:
+        credential_id:
+          $ref: "#/components/schemas/WebAuthnCredentialID"
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+    VerifyTOTPEnrollmentRequest:
+      type: object
+      additionalProperties: false
+      required: [code, reauthentication]
+      properties:
+        code:
+          $ref: "#/components/schemas/TOTPCode"
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+    ConsumeRecoveryCodeRequest:
+      type: object
+      additionalProperties: false
+      required: [email, code, client_signing_public_key]
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        code:
+          $ref: "#/components/schemas/RecoveryCode"
+        client_signing_public_key:
+          $ref: "#/components/schemas/Base64URL32"
+    CreateDeviceAuthChallengeRequest:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [enrollment_grant, request_nonce, signing_public_key, hpke_public_key]
+          properties:
+            enrollment_grant:
+              $ref: "#/components/schemas/OpaqueToken"
+            request_nonce:
+              $ref: "#/components/schemas/Base64URL32"
+            signing_public_key:
+              $ref: "#/components/schemas/Base64URL32"
+            hpke_public_key:
+              $ref: "#/components/schemas/Base64URL32"
+        - type: object
+          additionalProperties: false
+          required: [refresh_token, request_nonce]
+          properties:
+            refresh_token:
+              $ref: "#/components/schemas/OpaqueToken"
+            request_nonce:
+              $ref: "#/components/schemas/Base64URL32"
+    RegisterDeviceRequest:
+      type: object
+      additionalProperties: false
+      required: [enrollment_grant, challenge_id, request_nonce, signing_public_key, hpke_public_key, display_name, signature]
+      properties:
+        enrollment_grant:
+          $ref: "#/components/schemas/OpaqueToken"
+        challenge_id:
+          $ref: "#/components/schemas/UUID"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        signing_public_key:
+          $ref: "#/components/schemas/Base64URL32"
+        hpke_public_key:
+          $ref: "#/components/schemas/Base64URL32"
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: At most 64 Unicode scalar values and 256 UTF-8 bytes, validated by handlers.
+        signature:
+          $ref: "#/components/schemas/Ed25519Signature"
+    RotateDeviceTokenRequest:
+      type: object
+      additionalProperties: false
+      required: [refresh_token, challenge_id, request_nonce, signature]
+      properties:
+        refresh_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        challenge_id:
+          $ref: "#/components/schemas/UUID"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        signature:
+          $ref: "#/components/schemas/Ed25519Signature"
+    RevokeDeviceRequest:
+      type: object
+      additionalProperties: false
+      required: [device_id, reauthentication]
+      properties:
+        device_id:
+          $ref: "#/components/schemas/UUID"
+        reauthentication:
+          $ref: "#/components/schemas/Reauthentication"
+    AcknowledgeConfigBundleRequest:
+      type: object
+      additionalProperties: false
+      required: [bundle_id, bundle_version]
+      properties:
+        bundle_id:
+          $ref: "#/components/schemas/UUID"
+        bundle_version:
+          $ref: "#/components/schemas/BundleVersion"
+    GenericAccepted:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted]
+    AccountTokens:
+      type: object
+      additionalProperties: false
+      required: [principal_id, session_id, access_token, refresh_token, expires_at]
+      properties:
+        principal_id:
+          $ref: "#/components/schemas/UUID"
+        session_id:
+          $ref: "#/components/schemas/UUID"
+        access_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        refresh_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        expires_at:
+          $ref: "#/components/schemas/TimestampString"
+    DeviceTokens:
+      type: object
+      additionalProperties: false
+      required: [device_id, authorization_id, access_token, refresh_token, expires_at]
+      properties:
+        device_id:
+          $ref: "#/components/schemas/UUID"
+        authorization_id:
+          $ref: "#/components/schemas/UUID"
+        access_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        refresh_token:
+          $ref: "#/components/schemas/OpaqueToken"
+        expires_at:
+          $ref: "#/components/schemas/TimestampString"
+    AuthChallenge:
+      type: object
+      additionalProperties: false
+      required: [challenge_id, challenge, expires_at]
+      properties:
+        challenge_id:
+          $ref: "#/components/schemas/UUID"
+        challenge:
+          $ref: "#/components/schemas/Base64URL32"
+        expires_at:
+          $ref: "#/components/schemas/TimestampString"
+    WebAuthnOptions:
+      type: object
+      additionalProperties: false
+      required: [ceremony_id, challenge, timeout_ms, rp_id]
+      properties:
+        ceremony_id:
+          $ref: "#/components/schemas/UUID"
+        challenge:
+          $ref: "#/components/schemas/Base64URL32"
+        timeout_ms:
+          type: integer
+          format: int64
+          minimum: 1000
+          maximum: 300000
+        rp_id:
+          type: string
+          minLength: 1
+          maxLength: 253
+        user_id:
+          $ref: "#/components/schemas/Base64URL32"
+        allowed_credential_ids:
+          type: array
+          maxItems: 64
+          items:
+            $ref: "#/components/schemas/WebAuthnCredentialID"
+        excluded_credential_ids:
+          type: array
+          maxItems: 64
+          items:
+            $ref: "#/components/schemas/WebAuthnCredentialID"
+    TOTPEnrollment:
+      type: object
+      additionalProperties: false
+      required: [secret, provisioning_uri, expires_at]
+      properties:
+        secret:
+          type: string
+          minLength: 16
+          maxLength: 128
+          pattern: '^[A-Z2-7]+$'
+        provisioning_uri:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+        expires_at:
+          $ref: "#/components/schemas/TimestampString"
+    RecoveryCodes:
+      type: object
+      additionalProperties: false
+      required: [codes]
+      properties:
+        codes:
+          type: array
+          minItems: 10
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/RecoveryCode"
+    DeviceEnrollmentGrant:
+      type: object
+      additionalProperties: false
+      required: [enrollment_grant, expires_at]
+      properties:
+        enrollment_grant:
+          $ref: "#/components/schemas/OpaqueToken"
+        expires_at:
+          $ref: "#/components/schemas/TimestampString"
+    ConfigBundleResolution:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [status, bundle_id, bundle_version, bundle_locator, envelope_sha256]
+          properties:
+            status:
+              type: string
+              enum: [available]
+            bundle_id:
+              $ref: "#/components/schemas/UUID"
+            bundle_version:
+              $ref: "#/components/schemas/BundleVersion"
+            bundle_locator:
+              type: string
+              minLength: 22
+              maxLength: 86
+              pattern: '^[A-Za-z0-9_-]+$'
+            envelope_sha256:
+              $ref: "#/components/schemas/SHA256Hex"
+        - type: object
+          additionalProperties: false
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [up_to_date]

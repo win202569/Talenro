@@ -4,10 +4,23 @@ import (
 	"testing"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	deviceauthv1 "talenro.local/platform/gen/go/talenro/deviceauth/v1"
 	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
+	identityv1 "talenro.local/platform/gen/go/talenro/identity/v1"
+	trustv1 "talenro.local/platform/gen/go/talenro/trust/v1"
 )
+
+type expectedField struct {
+	name        protoreflect.Name
+	number      protoreflect.FieldNumber
+	cardinality protoreflect.Cardinality
+	kind        protoreflect.Kind
+	messageType protoreflect.FullName
+}
 
 func TestValidateEnvelopeRejectsInvalidEnvelopes(t *testing.T) {
 	t.Parallel()
@@ -136,13 +149,6 @@ func TestEnvelopeRoundTrip(t *testing.T) {
 func TestEnvelopeSchemaMatchesApprovedPrivacySurface(t *testing.T) {
 	t.Parallel()
 
-	type expectedField struct {
-		name        protoreflect.Name
-		number      protoreflect.FieldNumber
-		cardinality protoreflect.Cardinality
-		kind        protoreflect.Kind
-		messageType protoreflect.FullName
-	}
 	expected := []expectedField{
 		{name: "event_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
 		{name: "event_type", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
@@ -156,7 +162,110 @@ func TestEnvelopeSchemaMatchesApprovedPrivacySurface(t *testing.T) {
 		{name: "payload", number: 10, cardinality: protoreflect.Optional, kind: protoreflect.BytesKind},
 	}
 
-	fields := (&eventsv1.EventEnvelope{}).ProtoReflect().Descriptor().Fields()
+	assertMessageFields(t, (&eventsv1.EventEnvelope{}).ProtoReflect().Descriptor(), expected)
+}
+
+func TestC11EventSchemasMatchApprovedPrivacySurface(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		message  proto.Message
+		expected []expectedField
+	}{
+		{
+			name:    "account state changed",
+			message: &identityv1.AccountStateChanged{},
+			expected: []expectedField{
+				{name: "principal_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "state", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "version", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.Uint64Kind},
+			},
+		},
+		{
+			name:    "email delivery requested",
+			message: &identityv1.EmailDeliveryRequested{},
+			expected: []expectedField{
+				{name: "delivery_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "principal_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "template_id", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "locale", number: 4, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+			},
+		},
+		{
+			name:    "device authorization changed",
+			message: &deviceauthv1.DeviceAuthorizationChanged{},
+			expected: []expectedField{
+				{name: "principal_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "device_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "authorization_id", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "state", number: 4, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "version", number: 5, cardinality: protoreflect.Optional, kind: protoreflect.Uint64Kind},
+			},
+		},
+		{
+			name:    "device token family compromised",
+			message: &deviceauthv1.DeviceTokenFamilyCompromised{},
+			expected: []expectedField{
+				{name: "authorization_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "family_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "version", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.Uint64Kind},
+			},
+		},
+		{
+			name:    "bundle issued",
+			message: &trustv1.BundleIssued{},
+			expected: []expectedField{
+				{name: "authorization_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "bundle_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "bundle_version", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "envelope_sha256", number: 4, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+			},
+		},
+		{
+			name:    "bundle acknowledged",
+			message: &trustv1.BundleAcknowledged{},
+			expected: []expectedField{
+				{name: "authorization_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "bundle_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+				{name: "bundle_version", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			descriptor := test.message.ProtoReflect().Descriptor()
+			assertMessageFields(t, descriptor, test.expected)
+			if err := ValidatePayloadDescriptor(descriptor); err != nil {
+				t.Fatalf("privacy validation: %v", err)
+			}
+		})
+	}
+}
+
+func TestValidatePayloadDescriptorRejectsSensitiveFields(t *testing.T) {
+	t.Parallel()
+
+	for _, fieldName := range []string{
+		"email", "refresh_token", "request_nonce", "public_key", "private_key", "bundle_locator",
+		"callback_url", "ciphertext", "provider_body", "raw_error",
+	} {
+		t.Run(fieldName, func(t *testing.T) {
+			t.Parallel()
+			descriptor := descriptorWithStringField(t, fieldName)
+			if err := ValidatePayloadDescriptor(descriptor); err == nil {
+				t.Fatalf("expected %q to be rejected", fieldName)
+			}
+		})
+	}
+}
+
+func assertMessageFields(t *testing.T, descriptor protoreflect.MessageDescriptor, expected []expectedField) {
+	t.Helper()
+
+	fields := descriptor.Fields()
 	if fields.Len() != len(expected) {
 		t.Fatalf("field count = %d, want %d approved fields", fields.Len(), len(expected))
 	}
@@ -189,6 +298,29 @@ func TestEnvelopeSchemaMatchesApprovedPrivacySurface(t *testing.T) {
 			)
 		}
 	}
+}
+
+func descriptorWithStringField(t *testing.T, fieldName string) protoreflect.MessageDescriptor {
+	t.Helper()
+
+	file, err := protodesc.NewFile(&descriptorpb.FileDescriptorProto{
+		Syntax:  proto.String("proto3"),
+		Name:    proto.String("privacy_test.proto"),
+		Package: proto.String("talenro.privacytest.v1"),
+		MessageType: []*descriptorpb.DescriptorProto{{
+			Name: proto.String("SensitivePayload"),
+			Field: []*descriptorpb.FieldDescriptorProto{{
+				Name:   proto.String(fieldName),
+				Number: proto.Int32(1),
+				Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+				Type:   descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+			}},
+		}},
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return file.Messages().Get(0)
 }
 
 func validEnvelope() *eventsv1.EventEnvelope {
