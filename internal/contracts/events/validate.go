@@ -61,10 +61,14 @@ func validatePayloadDescriptor(descriptor protoreflect.MessageDescriptor, seen m
 	fields := descriptor.Fields()
 	for index := range fields.Len() {
 		field := fields.Get(index)
-		for _, term := range strings.Split(strings.ToLower(string(field.Name())), "_") {
+		fieldName := strings.ToLower(string(field.Name()))
+		for _, term := range strings.Split(fieldName, "_") {
 			if isForbiddenPayloadFieldTerm(term) {
 				return fmt.Errorf("payload field %s contains forbidden term %s", field.FullName(), term)
 			}
+		}
+		if term := forbiddenCompoundPayloadFieldTerm(strings.ReplaceAll(fieldName, "_", "")); term != "" {
+			return fmt.Errorf("payload field %s contains forbidden compound term %s", field.FullName(), term)
 		}
 		if field.Message() != nil {
 			if err := validatePayloadDescriptor(field.Message(), seen); err != nil {
@@ -82,4 +86,34 @@ func isForbiddenPayloadFieldTerm(term string) bool {
 	default:
 		return false
 	}
+}
+
+func forbiddenCompoundPayloadFieldTerm(name string) string {
+	qualifiers := map[string][]string{
+		"email":    {"account", "contact", "destination", "primary", "recipient", "sender", "user", "verified"},
+		"error":    {"internal", "provider", "raw", "upstream"},
+		"key":      {"api", "config", "encryption", "hpke", "lookup", "private", "public", "root", "secret", "signing"},
+		"locator":  {"artifact", "bundle", "resource"},
+		"token":    {"access", "account", "bearer", "device", "enrollment", "opaque", "refresh", "session", "verification"},
+		"nonce":    {"challenge", "client", "request", "response"},
+		"provider": {"email", "error", "fieldprotector", "signer"},
+		"body":     {"provider", "raw", "request", "response"},
+		"uri":      {"callback", "download", "provisioning", "redirect", "source"},
+		"url":      {"callback", "download", "redirect", "source"},
+	}
+
+	if strings.HasPrefix(name, "email") {
+		return "email"
+	}
+	if strings.Contains(name, "ciphertext") {
+		return "ciphertext"
+	}
+	for term, allowedQualifiers := range qualifiers {
+		for _, qualifier := range allowedQualifiers {
+			if strings.Contains(name, qualifier+term) || strings.Contains(name, term+qualifier) {
+				return term
+			}
+		}
+	}
+	return ""
 }

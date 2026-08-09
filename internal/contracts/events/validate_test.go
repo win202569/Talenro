@@ -250,13 +250,27 @@ func TestValidatePayloadDescriptorRejectsSensitiveFields(t *testing.T) {
 
 	for _, fieldName := range []string{
 		"email", "refresh_token", "request_nonce", "public_key", "private_key", "bundle_locator",
-		"callback_url", "ciphertext", "provider_body", "raw_error",
+		"callback_url", "ciphertext", "provider_body", "raw_error", "emailaddress", "callbackuri", "rawerror",
 	} {
 		t.Run(fieldName, func(t *testing.T) {
 			t.Parallel()
 			descriptor := descriptorWithStringField(t, fieldName)
 			if err := ValidatePayloadDescriptor(descriptor); err == nil {
 				t.Fatalf("expected %q to be rejected", fieldName)
+			}
+		})
+	}
+}
+
+func TestValidatePayloadDescriptorAllowsUnrelatedCompoundNames(t *testing.T) {
+	t.Parallel()
+
+	for _, fieldName := range []string{"monkey", "allocator", "somebody", "security", "premailer"} {
+		t.Run(fieldName, func(t *testing.T) {
+			t.Parallel()
+			descriptor := descriptorWithStringField(t, fieldName)
+			if err := ValidatePayloadDescriptor(descriptor); err != nil {
+				t.Fatalf("expected unrelated field %q to be allowed: %v", fieldName, err)
 			}
 		})
 	}

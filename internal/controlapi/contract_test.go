@@ -184,6 +184,138 @@ func TestOpenAPIContract(t *testing.T) {
 	for name, schemaRef := range spec.Components.Schemas {
 		assertObjectsClosed(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
 	}
+
+	locale := spec.Components.Schemas["Locale"].Value
+	if locale.MinLength != 2 || locale.MaxLength == nil || *locale.MaxLength != 35 || locale.Pattern != `^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$` {
+		t.Errorf("Locale bounds = min %d max %v pattern %q, want 2..35 and approved language-tag pattern", locale.MinLength, locale.MaxLength, locale.Pattern)
+	}
+	password := spec.Components.Schemas["Password"].Value
+	if got := fmt.Sprint(password.Extensions["x-talenro-max-utf8-bytes"]); got != "1024" {
+		t.Errorf("Password x-talenro-max-utf8-bytes = %q, want 1024", got)
+	}
+}
+
+func TestWebAuthnRegistrationContractAcceptsGoWebAuthnFixtures(t *testing.T) {
+	t.Parallel()
+
+	spec, err := controlapiv1.GetSwagger() //nolint:staticcheck // Exercise the embedded generated contract.
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	options := map[string]any{
+		"ceremony_id": "018f8d68-3d4b-7f42-8c6a-4ec9370c7e45",
+		"publicKey": map[string]any{
+			"rp": map[string]any{
+				"id":   "example.com",
+				"name": "Talenro",
+			},
+			"user": map[string]any{
+				"id":          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+				"name":        "principal-018f8d68",
+				"displayName": "Device owner",
+			},
+			"challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+			"pubKeyCredParams": []any{
+				map[string]any{"type": "public-key", "alg": float64(-7)},
+			},
+			"timeout": float64(60000),
+			"authenticatorSelection": map[string]any{
+				"authenticatorAttachment": "platform",
+				"requireResidentKey":      true,
+				"residentKey":             "required",
+				"userVerification":        "required",
+			},
+			"attestation": "none",
+			"excludeCredentials": []any{
+				map[string]any{
+					"type":       "public-key",
+					"id":         "AQIDBAUGBwgJCgsMDQ4PEA",
+					"transports": []any{"internal"},
+				},
+			},
+		},
+	}
+	optionsSchema := spec.Paths.Find("/v1/passkey-registration-options").Post.Responses.Value("200").Value.Content["application/json"].Schema.Value
+	if err := optionsSchema.VisitJSON(options); err != nil {
+		t.Fatalf("registration options fixture rejected: %v", err)
+	}
+
+	credential := map[string]any{
+		"ceremony_id": "018f8d68-3d4b-7f42-8c6a-4ec9370c7e45",
+		"response": map[string]any{
+			"id":    "AQIDBAUGBwgJCgsMDQ4PEA",
+			"rawId": "AQIDBAUGBwgJCgsMDQ4PEA",
+			"type":  "public-key",
+			"response": map[string]any{
+				"clientDataJSON":     "AQID",
+				"attestationObject":  "BAUG",
+				"authenticatorData":  "BwgJ",
+				"publicKey":          "CgsM",
+				"publicKeyAlgorithm": float64(-7),
+				"transports":         []any{"internal"},
+			},
+		},
+		"reauthentication": map[string]any{
+			"method":   "password",
+			"password": "correct horse battery staple",
+		},
+	}
+	credentialSchema := spec.Paths.Find("/v1/passkey-credentials").Post.RequestBody.Value.Content["application/json"].Schema.Value
+	if err := credentialSchema.VisitJSON(credential); err != nil {
+		t.Fatalf("registration response fixture rejected: %v", err)
+	}
+}
+
+func TestWebAuthnAuthenticationContractAcceptsGoWebAuthnFixtures(t *testing.T) {
+	t.Parallel()
+
+	spec, err := controlapiv1.GetSwagger() //nolint:staticcheck // Exercise the embedded generated contract.
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	options := map[string]any{
+		"ceremony_id": "018f8d68-3d4b-7f42-8c6a-4ec9370c7e45",
+		"publicKey": map[string]any{
+			"challenge":        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+			"timeout":          float64(60000),
+			"rpId":             "example.com",
+			"userVerification": "required",
+			"allowCredentials": []any{
+				map[string]any{
+					"type":       "public-key",
+					"id":         "AQIDBAUGBwgJCgsMDQ4PEA",
+					"transports": []any{"internal"},
+				},
+			},
+		},
+	}
+	optionsSchema := spec.Paths.Find("/v1/passkey-authentication-options").Post.Responses.Value("200").Value.Content["application/json"].Schema.Value
+	if err := optionsSchema.VisitJSON(options); err != nil {
+		t.Fatalf("authentication options fixture rejected: %v", err)
+	}
+
+	session := map[string]any{
+		"method":                    "passkey",
+		"ceremony_id":               "018f8d68-3d4b-7f42-8c6a-4ec9370c7e45",
+		"client_signing_public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+		"response": map[string]any{
+			"id":    "AQIDBAUGBwgJCgsMDQ4PEA",
+			"rawId": "AQIDBAUGBwgJCgsMDQ4PEA",
+			"type":  "public-key",
+			"response": map[string]any{
+				"clientDataJSON":    "AQID",
+				"authenticatorData": "BAUG",
+				"signature":         "BwgJ",
+				"userHandle":        "CgsM",
+			},
+		},
+	}
+	sessionSchema := spec.Paths.Find("/v1/account-sessions").Post.RequestBody.Value.Content["application/json"].Schema.Value
+	if err := sessionSchema.VisitJSON(session); err != nil {
+		t.Fatalf("authentication response fixture rejected: %v", err)
+	}
 }
 
 func assertOperationSecurity(t *testing.T, route string, operation *openapi3.Operation, scheme string) {

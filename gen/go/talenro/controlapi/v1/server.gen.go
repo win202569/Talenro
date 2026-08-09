@@ -280,6 +280,240 @@ func (e RevokeAccountSessionsRequest1Scope) Valid() bool {
 	}
 }
 
+// Defines values for WebAuthnAuthenticationResponseAuthenticatorAttachment.
+const (
+	WebAuthnAuthenticationResponseAuthenticatorAttachmentCrossPlatform WebAuthnAuthenticationResponseAuthenticatorAttachment = "cross-platform"
+	WebAuthnAuthenticationResponseAuthenticatorAttachmentPlatform      WebAuthnAuthenticationResponseAuthenticatorAttachment = "platform"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnAuthenticationResponseAuthenticatorAttachment enum.
+func (e WebAuthnAuthenticationResponseAuthenticatorAttachment) Valid() bool {
+	switch e {
+	case WebAuthnAuthenticationResponseAuthenticatorAttachmentCrossPlatform:
+		return true
+	case WebAuthnAuthenticationResponseAuthenticatorAttachmentPlatform:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnAuthenticationResponseType.
+const (
+	WebAuthnAuthenticationResponseTypePublicKey WebAuthnAuthenticationResponseType = "public-key"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnAuthenticationResponseType enum.
+func (e WebAuthnAuthenticationResponseType) Valid() bool {
+	switch e {
+	case WebAuthnAuthenticationResponseTypePublicKey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnAuthenticatorSelectionAuthenticatorAttachment.
+const (
+	WebAuthnAuthenticatorSelectionAuthenticatorAttachmentCrossPlatform WebAuthnAuthenticatorSelectionAuthenticatorAttachment = "cross-platform"
+	WebAuthnAuthenticatorSelectionAuthenticatorAttachmentPlatform      WebAuthnAuthenticatorSelectionAuthenticatorAttachment = "platform"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnAuthenticatorSelectionAuthenticatorAttachment enum.
+func (e WebAuthnAuthenticatorSelectionAuthenticatorAttachment) Valid() bool {
+	switch e {
+	case WebAuthnAuthenticatorSelectionAuthenticatorAttachmentCrossPlatform:
+		return true
+	case WebAuthnAuthenticatorSelectionAuthenticatorAttachmentPlatform:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnAuthenticatorSelectionResidentKey.
+const (
+	WebAuthnAuthenticatorSelectionResidentKeyDiscouraged WebAuthnAuthenticatorSelectionResidentKey = "discouraged"
+	WebAuthnAuthenticatorSelectionResidentKeyPreferred   WebAuthnAuthenticatorSelectionResidentKey = "preferred"
+	WebAuthnAuthenticatorSelectionResidentKeyRequired    WebAuthnAuthenticatorSelectionResidentKey = "required"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnAuthenticatorSelectionResidentKey enum.
+func (e WebAuthnAuthenticatorSelectionResidentKey) Valid() bool {
+	switch e {
+	case WebAuthnAuthenticatorSelectionResidentKeyDiscouraged:
+		return true
+	case WebAuthnAuthenticatorSelectionResidentKeyPreferred:
+		return true
+	case WebAuthnAuthenticatorSelectionResidentKeyRequired:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnAuthenticatorSelectionUserVerification.
+const (
+	WebAuthnAuthenticatorSelectionUserVerificationDiscouraged WebAuthnAuthenticatorSelectionUserVerification = "discouraged"
+	WebAuthnAuthenticatorSelectionUserVerificationPreferred   WebAuthnAuthenticatorSelectionUserVerification = "preferred"
+	WebAuthnAuthenticatorSelectionUserVerificationRequired    WebAuthnAuthenticatorSelectionUserVerification = "required"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnAuthenticatorSelectionUserVerification enum.
+func (e WebAuthnAuthenticatorSelectionUserVerification) Valid() bool {
+	switch e {
+	case WebAuthnAuthenticatorSelectionUserVerificationDiscouraged:
+		return true
+	case WebAuthnAuthenticatorSelectionUserVerificationPreferred:
+		return true
+	case WebAuthnAuthenticatorSelectionUserVerificationRequired:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnCredentialDescriptorType.
+const (
+	WebAuthnCredentialDescriptorTypePublicKey WebAuthnCredentialDescriptorType = "public-key"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnCredentialDescriptorType enum.
+func (e WebAuthnCredentialDescriptorType) Valid() bool {
+	switch e {
+	case WebAuthnCredentialDescriptorTypePublicKey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnCredentialParameterType.
+const (
+	WebAuthnCredentialParameterTypePublicKey WebAuthnCredentialParameterType = "public-key"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnCredentialParameterType enum.
+func (e WebAuthnCredentialParameterType) Valid() bool {
+	switch e {
+	case WebAuthnCredentialParameterTypePublicKey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnPublicKeyCredentialCreationOptionsAttestation.
+const (
+	Direct     WebAuthnPublicKeyCredentialCreationOptionsAttestation = "direct"
+	Enterprise WebAuthnPublicKeyCredentialCreationOptionsAttestation = "enterprise"
+	Indirect   WebAuthnPublicKeyCredentialCreationOptionsAttestation = "indirect"
+	None       WebAuthnPublicKeyCredentialCreationOptionsAttestation = "none"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnPublicKeyCredentialCreationOptionsAttestation enum.
+func (e WebAuthnPublicKeyCredentialCreationOptionsAttestation) Valid() bool {
+	switch e {
+	case Direct:
+		return true
+	case Enterprise:
+		return true
+	case Indirect:
+		return true
+	case None:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnPublicKeyCredentialRequestOptionsUserVerification.
+const (
+	WebAuthnPublicKeyCredentialRequestOptionsUserVerificationDiscouraged WebAuthnPublicKeyCredentialRequestOptionsUserVerification = "discouraged"
+	WebAuthnPublicKeyCredentialRequestOptionsUserVerificationPreferred   WebAuthnPublicKeyCredentialRequestOptionsUserVerification = "preferred"
+	WebAuthnPublicKeyCredentialRequestOptionsUserVerificationRequired    WebAuthnPublicKeyCredentialRequestOptionsUserVerification = "required"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnPublicKeyCredentialRequestOptionsUserVerification enum.
+func (e WebAuthnPublicKeyCredentialRequestOptionsUserVerification) Valid() bool {
+	switch e {
+	case WebAuthnPublicKeyCredentialRequestOptionsUserVerificationDiscouraged:
+		return true
+	case WebAuthnPublicKeyCredentialRequestOptionsUserVerificationPreferred:
+		return true
+	case WebAuthnPublicKeyCredentialRequestOptionsUserVerificationRequired:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnRegistrationResponseAuthenticatorAttachment.
+const (
+	WebAuthnRegistrationResponseAuthenticatorAttachmentCrossPlatform WebAuthnRegistrationResponseAuthenticatorAttachment = "cross-platform"
+	WebAuthnRegistrationResponseAuthenticatorAttachmentPlatform      WebAuthnRegistrationResponseAuthenticatorAttachment = "platform"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnRegistrationResponseAuthenticatorAttachment enum.
+func (e WebAuthnRegistrationResponseAuthenticatorAttachment) Valid() bool {
+	switch e {
+	case WebAuthnRegistrationResponseAuthenticatorAttachmentCrossPlatform:
+		return true
+	case WebAuthnRegistrationResponseAuthenticatorAttachmentPlatform:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnRegistrationResponseType.
+const (
+	WebAuthnRegistrationResponseTypePublicKey WebAuthnRegistrationResponseType = "public-key"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnRegistrationResponseType enum.
+func (e WebAuthnRegistrationResponseType) Valid() bool {
+	switch e {
+	case WebAuthnRegistrationResponseTypePublicKey:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WebAuthnTransport.
+const (
+	Ble       WebAuthnTransport = "ble"
+	Cable     WebAuthnTransport = "cable"
+	Hybrid    WebAuthnTransport = "hybrid"
+	Internal  WebAuthnTransport = "internal"
+	Nfc       WebAuthnTransport = "nfc"
+	SmartCard WebAuthnTransport = "smart-card"
+	Usb       WebAuthnTransport = "usb"
+)
+
+// Valid indicates whether the value is a known member of the WebAuthnTransport enum.
+func (e WebAuthnTransport) Valid() bool {
+	switch e {
+	case Ble:
+		return true
+	case Cable:
+		return true
+	case Hybrid:
+		return true
+	case Internal:
+		return true
+	case Nfc:
+		return true
+	case SmartCard:
+		return true
+	case Usb:
+		return true
+	default:
+		return false
+	}
+}
+
 // AccountTokens defines model for AccountTokens.
 type AccountTokens struct {
 	AccessToken  OpaqueToken     `json:"access_token"`
@@ -312,10 +546,14 @@ type BundleVersion = string
 // ChangePasswordRequest defines model for ChangePasswordRequest.
 type ChangePasswordRequest struct {
 	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
-	ClientSigningPublicKey Base64URL32      `json:"client_signing_public_key"`
-	CurrentPassword        Password         `json:"current_password"`
-	NewPassword            Password         `json:"new_password"`
-	Reauthentication       Reauthentication `json:"reauthentication"`
+	ClientSigningPublicKey Base64URL32 `json:"client_signing_public_key"`
+
+	// CurrentPassword Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+	CurrentPassword Password `json:"current_password"`
+
+	// NewPassword Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+	NewPassword      Password         `json:"new_password"`
+	Reauthentication Reauthentication `json:"reauthentication"`
 }
 
 // ConfigBundleResolution defines model for ConfigBundleResolution.
@@ -361,8 +599,10 @@ type CreateAccountAuthChallengeRequest struct {
 
 // CreateAccountRequest defines model for CreateAccountRequest.
 type CreateAccountRequest struct {
-	Email    Email    `json:"email"`
-	Locale   Locale   `json:"locale"`
+	Email  Email  `json:"email"`
+	Locale Locale `json:"locale"`
+
+	// Password Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
 	Password Password `json:"password"`
 }
 
@@ -377,7 +617,9 @@ type CreateAccountSessionRequest0 struct {
 	ClientSigningPublicKey Base64URL32                        `json:"client_signing_public_key"`
 	Email                  Email                              `json:"email"`
 	Method                 CreateAccountSessionRequest0Method `json:"method"`
-	Password               Password                           `json:"password"`
+
+	// Password Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+	Password Password `json:"password"`
 }
 
 // CreateAccountSessionRequest0Method defines model for CreateAccountSessionRequest.0.Method.
@@ -390,7 +632,7 @@ type CreateAccountSessionRequest1 struct {
 	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
 	ClientSigningPublicKey Base64URL32                        `json:"client_signing_public_key"`
 	Method                 CreateAccountSessionRequest1Method `json:"method"`
-	Response               WebAuthnResponse                   `json:"response"`
+	Response               WebAuthnAuthenticationResponse     `json:"response"`
 }
 
 // CreateAccountSessionRequest1Method defines model for CreateAccountSessionRequest.1.Method.
@@ -431,9 +673,9 @@ type CreateEmailVerificationDeliveryRequest struct {
 
 // CreatePasskeyCredentialRequest defines model for CreatePasskeyCredentialRequest.
 type CreatePasskeyCredentialRequest struct {
-	CeremonyId       UUID             `json:"ceremony_id"`
-	Reauthentication Reauthentication `json:"reauthentication"`
-	Response         WebAuthnResponse `json:"response"`
+	CeremonyId       UUID                         `json:"ceremony_id"`
+	Reauthentication Reauthentication             `json:"reauthentication"`
+	Response         WebAuthnRegistrationResponse `json:"response"`
 }
 
 // CreatePasswordResetDeliveryRequest defines model for CreatePasswordResetDeliveryRequest.
@@ -492,7 +734,7 @@ type Locale = string
 // OpaqueToken defines model for OpaqueToken.
 type OpaqueToken = string
 
-// Password defines model for Password.
+// Password Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
 type Password = string
 
 // PublicError defines model for PublicError.
@@ -516,8 +758,10 @@ type Reauthentication struct {
 
 // Reauthentication0 defines model for Reauthentication.0.
 type Reauthentication0 struct {
-	Method   Reauthentication0Method `json:"method"`
-	Password Password                `json:"password"`
+	Method Reauthentication0Method `json:"method"`
+
+	// Password Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+	Password Password `json:"password"`
 }
 
 // Reauthentication0Method defines model for Reauthentication.0.Method.
@@ -534,9 +778,9 @@ type Reauthentication1Method string
 
 // Reauthentication2 defines model for Reauthentication.2.
 type Reauthentication2 struct {
-	CeremonyId UUID                    `json:"ceremony_id"`
-	Method     Reauthentication2Method `json:"method"`
-	Response   WebAuthnResponse        `json:"response"`
+	CeremonyId UUID                           `json:"ceremony_id"`
+	Method     Reauthentication2Method        `json:"method"`
+	Response   WebAuthnAuthenticationResponse `json:"response"`
 }
 
 // Reauthentication2Method defines model for Reauthentication.2.Method.
@@ -590,8 +834,10 @@ type ResetPasswordRequest struct {
 	// ClientSigningPublicKey Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
 	ClientSigningPublicKey Base64URL32 `json:"client_signing_public_key"`
 	Email                  Email       `json:"email"`
-	NewPassword            Password    `json:"new_password"`
-	Token                  OpaqueToken `json:"token"`
+
+	// NewPassword Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+	NewPassword Password    `json:"new_password"`
+	Token       OpaqueToken `json:"token"`
 }
 
 // RevokeAccountSessionsRequest defines model for RevokeAccountSessionsRequest.
@@ -685,35 +931,188 @@ type VerifyTOTPEnrollmentRequest struct {
 	Reauthentication Reauthentication `json:"reauthentication"`
 }
 
+// WebAuthnAssertionResponse defines model for WebAuthnAssertionResponse.
+type WebAuthnAssertionResponse struct {
+	// AuthenticatorData Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	AuthenticatorData WebAuthnData `json:"authenticatorData"`
+
+	// ClientDataJSON Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	ClientDataJSON WebAuthnData `json:"clientDataJSON"`
+
+	// Signature Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	Signature  WebAuthnData        `json:"signature"`
+	UserHandle *WebAuthnUserHandle `json:"userHandle,omitempty"`
+}
+
+// WebAuthnAttestationResponse defines model for WebAuthnAttestationResponse.
+type WebAuthnAttestationResponse struct {
+	// AttestationObject Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	AttestationObject WebAuthnData `json:"attestationObject"`
+
+	// AuthenticatorData Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	AuthenticatorData WebAuthnData `json:"authenticatorData"`
+
+	// ClientDataJSON Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	ClientDataJSON WebAuthnData `json:"clientDataJSON"`
+
+	// PublicKey Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+	PublicKey          WebAuthnData         `json:"publicKey"`
+	PublicKeyAlgorithm int64                `json:"publicKeyAlgorithm"`
+	Transports         *[]WebAuthnTransport `json:"transports,omitempty"`
+}
+
+// WebAuthnAuthenticationOptions defines model for WebAuthnAuthenticationOptions.
+type WebAuthnAuthenticationOptions struct {
+	CeremonyId UUID                                      `json:"ceremony_id"`
+	PublicKey  WebAuthnPublicKeyCredentialRequestOptions `json:"publicKey"`
+}
+
+// WebAuthnAuthenticationResponse defines model for WebAuthnAuthenticationResponse.
+type WebAuthnAuthenticationResponse struct {
+	AuthenticatorAttachment *WebAuthnAuthenticationResponseAuthenticatorAttachment `json:"authenticatorAttachment,omitempty"`
+	ClientExtensionResults  *WebAuthnClientExtensionResults                        `json:"clientExtensionResults,omitempty"`
+
+	// Id Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	Id WebAuthnCredentialID `json:"id"`
+
+	// RawId Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	RawId    WebAuthnCredentialID               `json:"rawId"`
+	Response WebAuthnAssertionResponse          `json:"response"`
+	Type     WebAuthnAuthenticationResponseType `json:"type"`
+}
+
+// WebAuthnAuthenticationResponseAuthenticatorAttachment defines model for WebAuthnAuthenticationResponse.AuthenticatorAttachment.
+type WebAuthnAuthenticationResponseAuthenticatorAttachment string
+
+// WebAuthnAuthenticationResponseType defines model for WebAuthnAuthenticationResponse.Type.
+type WebAuthnAuthenticationResponseType string
+
+// WebAuthnAuthenticatorSelection defines model for WebAuthnAuthenticatorSelection.
+type WebAuthnAuthenticatorSelection struct {
+	AuthenticatorAttachment *WebAuthnAuthenticatorSelectionAuthenticatorAttachment `json:"authenticatorAttachment,omitempty"`
+	RequireResidentKey      *bool                                                  `json:"requireResidentKey,omitempty"`
+	ResidentKey             WebAuthnAuthenticatorSelectionResidentKey              `json:"residentKey"`
+	UserVerification        WebAuthnAuthenticatorSelectionUserVerification         `json:"userVerification"`
+}
+
+// WebAuthnAuthenticatorSelectionAuthenticatorAttachment defines model for WebAuthnAuthenticatorSelection.AuthenticatorAttachment.
+type WebAuthnAuthenticatorSelectionAuthenticatorAttachment string
+
+// WebAuthnAuthenticatorSelectionResidentKey defines model for WebAuthnAuthenticatorSelection.ResidentKey.
+type WebAuthnAuthenticatorSelectionResidentKey string
+
+// WebAuthnAuthenticatorSelectionUserVerification defines model for WebAuthnAuthenticatorSelection.UserVerification.
+type WebAuthnAuthenticatorSelectionUserVerification string
+
+// WebAuthnClientExtensionResults defines model for WebAuthnClientExtensionResults.
+type WebAuthnClientExtensionResults struct {
+	Appid     *bool `json:"appid,omitempty"`
+	CredProps *struct {
+		Rk *bool `json:"rk,omitempty"`
+	} `json:"credProps,omitempty"`
+}
+
+// WebAuthnCredentialDescriptor defines model for WebAuthnCredentialDescriptor.
+type WebAuthnCredentialDescriptor struct {
+	// Id Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	Id         WebAuthnCredentialID             `json:"id"`
+	Transports *[]WebAuthnTransport             `json:"transports,omitempty"`
+	Type       WebAuthnCredentialDescriptorType `json:"type"`
+}
+
+// WebAuthnCredentialDescriptorType defines model for WebAuthnCredentialDescriptor.Type.
+type WebAuthnCredentialDescriptorType string
+
 // WebAuthnCredentialID Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
 type WebAuthnCredentialID = string
 
-// WebAuthnOptions defines model for WebAuthnOptions.
-type WebAuthnOptions struct {
-	AllowedCredentialIds *[]WebAuthnCredentialID `json:"allowed_credential_ids,omitempty"`
-	CeremonyId           UUID                    `json:"ceremony_id"`
+// WebAuthnCredentialParameter defines model for WebAuthnCredentialParameter.
+type WebAuthnCredentialParameter struct {
+	Alg  int32                           `json:"alg"`
+	Type WebAuthnCredentialParameterType `json:"type"`
+}
+
+// WebAuthnCredentialParameterType defines model for WebAuthnCredentialParameter.Type.
+type WebAuthnCredentialParameterType string
+
+// WebAuthnData Bounded unpadded base64url WebAuthn binary data; the 64 KiB request cap bounds the full response.
+type WebAuthnData = string
+
+// WebAuthnPublicKeyCredentialCreationOptions defines model for WebAuthnPublicKeyCredentialCreationOptions.
+type WebAuthnPublicKeyCredentialCreationOptions struct {
+	Attestation            WebAuthnPublicKeyCredentialCreationOptionsAttestation `json:"attestation"`
+	AuthenticatorSelection WebAuthnAuthenticatorSelection                        `json:"authenticatorSelection"`
 
 	// Challenge Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
-	Challenge             Base64URL32             `json:"challenge"`
-	ExcludedCredentialIds *[]WebAuthnCredentialID `json:"excluded_credential_ids,omitempty"`
-	RpId                  string                  `json:"rp_id"`
-	TimeoutMs             int64                   `json:"timeout_ms"`
-
-	// UserId Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
-	UserId *Base64URL32 `json:"user_id,omitempty"`
+	Challenge          Base64URL32                     `json:"challenge"`
+	ExcludeCredentials *[]WebAuthnCredentialDescriptor `json:"excludeCredentials,omitempty"`
+	PubKeyCredParams   []WebAuthnCredentialParameter   `json:"pubKeyCredParams"`
+	Rp                 WebAuthnRelyingParty            `json:"rp"`
+	Timeout            int64                           `json:"timeout"`
+	User               WebAuthnUser                    `json:"user"`
 }
 
-// WebAuthnResponse defines model for WebAuthnResponse.
-type WebAuthnResponse struct {
-	AttestationObject *string `json:"attestation_object,omitempty"`
-	AuthenticatorData string  `json:"authenticator_data"`
-	ClientDataJson    string  `json:"client_data_json"`
+// WebAuthnPublicKeyCredentialCreationOptionsAttestation defines model for WebAuthnPublicKeyCredentialCreationOptions.Attestation.
+type WebAuthnPublicKeyCredentialCreationOptionsAttestation string
 
-	// CredentialId Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
-	CredentialId WebAuthnCredentialID `json:"credential_id"`
-	Signature    string               `json:"signature"`
-	UserHandle   *string              `json:"user_handle,omitempty"`
+// WebAuthnPublicKeyCredentialRequestOptions defines model for WebAuthnPublicKeyCredentialRequestOptions.
+type WebAuthnPublicKeyCredentialRequestOptions struct {
+	AllowCredentials *[]WebAuthnCredentialDescriptor `json:"allowCredentials,omitempty"`
+
+	// Challenge Unpadded base64url; handlers validate an exact decoded length of 32 bytes.
+	Challenge        Base64URL32                                               `json:"challenge"`
+	RpId             string                                                    `json:"rpId"`
+	Timeout          int64                                                     `json:"timeout"`
+	UserVerification WebAuthnPublicKeyCredentialRequestOptionsUserVerification `json:"userVerification"`
 }
+
+// WebAuthnPublicKeyCredentialRequestOptionsUserVerification defines model for WebAuthnPublicKeyCredentialRequestOptions.UserVerification.
+type WebAuthnPublicKeyCredentialRequestOptionsUserVerification string
+
+// WebAuthnRegistrationOptions defines model for WebAuthnRegistrationOptions.
+type WebAuthnRegistrationOptions struct {
+	CeremonyId UUID                                       `json:"ceremony_id"`
+	PublicKey  WebAuthnPublicKeyCredentialCreationOptions `json:"publicKey"`
+}
+
+// WebAuthnRegistrationResponse defines model for WebAuthnRegistrationResponse.
+type WebAuthnRegistrationResponse struct {
+	AuthenticatorAttachment *WebAuthnRegistrationResponseAuthenticatorAttachment `json:"authenticatorAttachment,omitempty"`
+	ClientExtensionResults  *WebAuthnClientExtensionResults                      `json:"clientExtensionResults,omitempty"`
+
+	// Id Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	Id WebAuthnCredentialID `json:"id"`
+
+	// RawId Unpadded base64url; handlers validate a decoded length from 16 through 1024 bytes.
+	RawId    WebAuthnCredentialID             `json:"rawId"`
+	Response WebAuthnAttestationResponse      `json:"response"`
+	Type     WebAuthnRegistrationResponseType `json:"type"`
+}
+
+// WebAuthnRegistrationResponseAuthenticatorAttachment defines model for WebAuthnRegistrationResponse.AuthenticatorAttachment.
+type WebAuthnRegistrationResponseAuthenticatorAttachment string
+
+// WebAuthnRegistrationResponseType defines model for WebAuthnRegistrationResponse.Type.
+type WebAuthnRegistrationResponseType string
+
+// WebAuthnRelyingParty defines model for WebAuthnRelyingParty.
+type WebAuthnRelyingParty struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// WebAuthnTransport defines model for WebAuthnTransport.
+type WebAuthnTransport string
+
+// WebAuthnUser defines model for WebAuthnUser.
+type WebAuthnUser struct {
+	DisplayName string             `json:"displayName"`
+	Id          WebAuthnUserHandle `json:"id"`
+	Name        string             `json:"name"`
+}
+
+// WebAuthnUserHandle defines model for WebAuthnUserHandle.
+type WebAuthnUserHandle = string
 
 // BundleLocator defines model for BundleLocator.
 type BundleLocator = string
@@ -2794,71 +3193,83 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
