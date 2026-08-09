@@ -251,6 +251,7 @@ func TestValidatePayloadDescriptorRejectsSensitiveFields(t *testing.T) {
 	for _, fieldName := range []string{
 		"email", "refresh_token", "request_nonce", "public_key", "private_key", "bundle_locator",
 		"callback_url", "ciphertext", "provider_body", "raw_error", "emailaddress", "callbackuri", "rawerror",
+		"authtoken", "csrfnonce", "webhookurl", "providerpayload", "authkey", "customeremail",
 	} {
 		t.Run(fieldName, func(t *testing.T) {
 			t.Parallel()
@@ -265,7 +266,7 @@ func TestValidatePayloadDescriptorRejectsSensitiveFields(t *testing.T) {
 func TestValidatePayloadDescriptorAllowsUnrelatedCompoundNames(t *testing.T) {
 	t.Parallel()
 
-	for _, fieldName := range []string{"monkey", "allocator", "somebody", "security", "premailer"} {
+	for _, fieldName := range []string{"monkey", "hockey", "allocator", "somebody", "security", "premailer"} {
 		t.Run(fieldName, func(t *testing.T) {
 			t.Parallel()
 			descriptor := descriptorWithStringField(t, fieldName)

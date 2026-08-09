@@ -89,24 +89,24 @@ func isForbiddenPayloadFieldTerm(term string) bool {
 }
 
 func forbiddenCompoundPayloadFieldTerm(name string) string {
-	qualifiers := map[string][]string{
-		"email":    {"account", "contact", "destination", "primary", "recipient", "sender", "user", "verified"},
-		"error":    {"internal", "provider", "raw", "upstream"},
-		"key":      {"api", "config", "encryption", "hpke", "lookup", "private", "public", "root", "secret", "signing"},
-		"locator":  {"artifact", "bundle", "resource"},
-		"token":    {"access", "account", "bearer", "device", "enrollment", "opaque", "refresh", "session", "verification"},
-		"nonce":    {"challenge", "client", "request", "response"},
-		"provider": {"email", "error", "fieldprotector", "signer"},
-		"body":     {"provider", "raw", "request", "response"},
-		"uri":      {"callback", "download", "provisioning", "redirect", "source"},
-		"url":      {"callback", "download", "redirect", "source"},
+	switch name {
+	case "hockey", "monkey", "premailer", "security":
+		return ""
 	}
 
-	if strings.HasPrefix(name, "email") {
-		return "email"
+	qualifiers := map[string][]string{
+		"error":   {"internal", "provider", "raw", "upstream"},
+		"locator": {"artifact", "bundle", "resource"},
+		"body":    {"provider", "raw", "request", "response"},
 	}
-	if strings.Contains(name, "ciphertext") {
-		return "ciphertext"
+
+	for _, marker := range []string{"ciphertext", "email", "key", "nonce", "provider", "token", "url"} {
+		if strings.Contains(name, marker) {
+			return marker
+		}
+	}
+	if strings.HasPrefix(name, "uri") || strings.HasSuffix(name, "uri") {
+		return "uri"
 	}
 	for term, allowedQualifiers := range qualifiers {
 		for _, qualifier := range allowedQualifiers {

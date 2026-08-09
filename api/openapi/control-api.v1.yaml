@@ -1104,10 +1104,11 @@ components:
       maxLength: 254
     Password:
       type: string
-      minLength: 12
+      minLength: 1
       maxLength: 1024
+      x-talenro-min-utf8-bytes: 12
       x-talenro-max-utf8-bytes: 1024
-      description: Schema length is measured in characters; Task 17 handlers enforce the 1024 UTF-8 byte limit.
+      description: Schema character bounds only prevent an empty value and cap a byte-safe superset; Task 17 handlers enforce the 12 through 1024 UTF-8 byte contract.
     Locale:
       type: string
       minLength: 2
@@ -1176,7 +1177,7 @@ components:
     WebAuthnAttestationResponse:
       type: object
       additionalProperties: false
-      required: [clientDataJSON, authenticatorData, publicKey, publicKeyAlgorithm, attestationObject]
+      required: [clientDataJSON, attestationObject]
       properties:
         clientDataJSON:
           $ref: "#/components/schemas/WebAuthnData"

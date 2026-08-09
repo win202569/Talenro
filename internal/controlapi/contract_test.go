@@ -190,6 +190,12 @@ func TestOpenAPIContract(t *testing.T) {
 		t.Errorf("Locale bounds = min %d max %v pattern %q, want 2..35 and approved language-tag pattern", locale.MinLength, locale.MaxLength, locale.Pattern)
 	}
 	password := spec.Components.Schemas["Password"].Value
+	if password.MinLength != 1 || password.MaxLength == nil || *password.MaxLength != 1024 {
+		t.Errorf("Password character bounds = min %d max %v, want 1..1024 without narrowing the 12..1024 UTF-8 byte contract", password.MinLength, password.MaxLength)
+	}
+	if got := fmt.Sprint(password.Extensions["x-talenro-min-utf8-bytes"]); got != "12" {
+		t.Errorf("Password x-talenro-min-utf8-bytes = %q, want 12", got)
+	}
 	if got := fmt.Sprint(password.Extensions["x-talenro-max-utf8-bytes"]); got != "1024" {
 		t.Errorf("Password x-talenro-max-utf8-bytes = %q, want 1024", got)
 	}
@@ -248,12 +254,8 @@ func TestWebAuthnRegistrationContractAcceptsGoWebAuthnFixtures(t *testing.T) {
 			"rawId": "AQIDBAUGBwgJCgsMDQ4PEA",
 			"type":  "public-key",
 			"response": map[string]any{
-				"clientDataJSON":     "AQID",
-				"attestationObject":  "BAUG",
-				"authenticatorData":  "BwgJ",
-				"publicKey":          "CgsM",
-				"publicKeyAlgorithm": float64(-7),
-				"transports":         []any{"internal"},
+				"clientDataJSON":    "AQID",
+				"attestationObject": "BAUG",
 			},
 		},
 		"reauthentication": map[string]any{
