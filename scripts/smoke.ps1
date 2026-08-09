@@ -123,7 +123,34 @@ function Import-SmokeEnvironment {
     'TALENRO_DATABASE_URL',
     'TALENRO_REDIS_ADDRESS',
     'TALENRO_NATS_URL',
-    'TALENRO_ALLOW_PUBLIC_HTTP'
+    'TALENRO_ALLOW_PUBLIC_HTTP',
+    'TALENRO_PROFILE',
+    'TALENRO_PUBLIC_BASE_URL',
+    'TALENRO_PRIMARY_BUNDLE_BASE_URL',
+    'TALENRO_MIRROR_A_BASE_URL',
+    'TALENRO_MIRROR_B_BASE_URL',
+    'TALENRO_WEBAUTHN_RP_ID',
+    'TALENRO_WEBAUTHN_ORIGINS',
+    'TALENRO_EMAIL_VERIFICATION_MODE',
+    'TALENRO_SIGNER_PROVIDER',
+    'TALENRO_FIELD_PROTECTOR_PROVIDER',
+    'TALENRO_EMAIL_PROVIDER',
+    'TALENRO_ERROR_REPORTER_PROVIDER',
+    'TALENRO_REQUEST_DEADLINE',
+    'TALENRO_REDIS_TIMEOUT',
+    'TALENRO_SIGNER_TIMEOUT',
+    'TALENRO_ERROR_REPORT_TIMEOUT',
+    'TALENRO_CLOCK_SKEW',
+    'TALENRO_LOGIN_RATE_LIMIT',
+    'TALENRO_LOGIN_RATE_WINDOW',
+    'TALENRO_DELIVERY_RATE_LIMIT',
+    'TALENRO_DELIVERY_RATE_WINDOW',
+    'TALENRO_CHALLENGE_RATE_LIMIT',
+    'TALENRO_CHALLENGE_RATE_WINDOW',
+    'TALENRO_SENSITIVE_LOOKUP_KEY_B64',
+    'TALENRO_SENSITIVE_ENCRYPTION_KEY_B64',
+    'TALENRO_LOCAL_ROOT_SIGNING_SEED_B64',
+    'TALENRO_LOCAL_CONFIG_SIGNING_SEED_B64'
   )
   $allowed = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
   foreach ($name in $requiredNames) {
@@ -323,7 +350,34 @@ try {
     [string]$localEnvironment['TALENRO_NATS_URL'] -notmatch '^nats://127\.0\.0\.1:[1-9][0-9]{0,4}$' -or
     [string]$localEnvironment['TALENRO_DATABASE_URL'] -notmatch '^postgres://[^@/]+@127\.0\.0\.1:[1-9][0-9]{0,4}/[^?]+\?sslmode=disable$' -or
     [string]$localEnvironment['TALENRO_ALLOW_PUBLIC_METRICS'] -ne 'false' -or
-    [string]$localEnvironment['TALENRO_ALLOW_PUBLIC_HTTP'] -ne 'false'
+    [string]$localEnvironment['TALENRO_ALLOW_PUBLIC_HTTP'] -ne 'false' -or
+    [string]$localEnvironment['TALENRO_PROFILE'] -ne 'local' -or
+    [string]$localEnvironment['TALENRO_PUBLIC_BASE_URL'] -ne 'http://localhost:8080' -or
+    [string]$localEnvironment['TALENRO_PRIMARY_BUNDLE_BASE_URL'] -ne 'http://localhost:8080' -or
+    [string]$localEnvironment['TALENRO_MIRROR_A_BASE_URL'] -ne 'http://localhost:8081' -or
+    [string]$localEnvironment['TALENRO_MIRROR_B_BASE_URL'] -ne 'http://localhost:8082' -or
+    [string]$localEnvironment['TALENRO_WEBAUTHN_RP_ID'] -ne 'localhost' -or
+    [string]$localEnvironment['TALENRO_WEBAUTHN_ORIGINS'] -ne 'http://localhost:8080' -or
+    [string]$localEnvironment['TALENRO_EMAIL_VERIFICATION_MODE'] -ne 'disabled' -or
+    [string]$localEnvironment['TALENRO_SIGNER_PROVIDER'] -ne 'local' -or
+    [string]$localEnvironment['TALENRO_FIELD_PROTECTOR_PROVIDER'] -ne 'local' -or
+    [string]$localEnvironment['TALENRO_EMAIL_PROVIDER'] -ne 'local' -or
+    [string]$localEnvironment['TALENRO_ERROR_REPORTER_PROVIDER'] -ne 'discard' -or
+    [string]$localEnvironment['TALENRO_REQUEST_DEADLINE'] -ne '5s' -or
+    [string]$localEnvironment['TALENRO_REDIS_TIMEOUT'] -ne '250ms' -or
+    [string]$localEnvironment['TALENRO_SIGNER_TIMEOUT'] -ne '2s' -or
+    [string]$localEnvironment['TALENRO_ERROR_REPORT_TIMEOUT'] -ne '1s' -or
+    [string]$localEnvironment['TALENRO_CLOCK_SKEW'] -ne '120s' -or
+    [string]$localEnvironment['TALENRO_LOGIN_RATE_LIMIT'] -ne '10' -or
+    [string]$localEnvironment['TALENRO_LOGIN_RATE_WINDOW'] -ne '15m' -or
+    [string]$localEnvironment['TALENRO_DELIVERY_RATE_LIMIT'] -ne '5' -or
+    [string]$localEnvironment['TALENRO_DELIVERY_RATE_WINDOW'] -ne '1h' -or
+    [string]$localEnvironment['TALENRO_CHALLENGE_RATE_LIMIT'] -ne '20' -or
+    [string]$localEnvironment['TALENRO_CHALLENGE_RATE_WINDOW'] -ne '5m' -or
+    [string]$localEnvironment['TALENRO_SENSITIVE_LOOKUP_KEY_B64'] -notmatch '^[A-Za-z0-9_-]{43}$' -or
+    [string]$localEnvironment['TALENRO_SENSITIVE_ENCRYPTION_KEY_B64'] -notmatch '^[A-Za-z0-9_-]{43}$' -or
+    [string]$localEnvironment['TALENRO_LOCAL_ROOT_SIGNING_SEED_B64'] -notmatch '^[A-Za-z0-9_-]{43}$' -or
+    [string]$localEnvironment['TALENRO_LOCAL_CONFIG_SIGNING_SEED_B64'] -notmatch '^[A-Za-z0-9_-]{43}$'
   ) {
     Stop-Smoke -ExitCode 2 -Stage 'smoke: local environment'
   }

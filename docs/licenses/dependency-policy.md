@@ -24,6 +24,18 @@ Changes to either tunnel core, its packaging, IPC interface, privilege model, or
 
 ## Go modules and build tools
 
+### Identity and trust foundations
+
+The following reviewed direct modules are pinned for the C1.1 identity and trust foundation. Distribution artifacts must retain the applicable BSD-3-Clause or Apache-2.0 license notices and required attribution from the upstream distribution.
+
+| Dependency | Version | Upstream | License notice |
+| --- | --- | --- | --- |
+| `github.com/go-webauthn/webauthn` | `v0.17.4` | https://github.com/go-webauthn/webauthn | BSD-3-Clause |
+| `github.com/gowebpki/jcs` | `v1.0.1` | https://github.com/gowebpki/jcs | Apache-2.0 |
+| `github.com/google/uuid` | `v1.6.0` | https://github.com/google/uuid | BSD-3-Clause |
+| `github.com/pquerna/otp` | `v1.5.0` | https://github.com/pquerna/otp | Apache-2.0 |
+| `golang.org/x/crypto` | `v0.54.0` | https://go.googlesource.com/crypto | BSD-3-Clause |
+
 Go modules and code-generation, migration, formatting, lint, and test tools are pinned by `go.mod` and `go.sum`. Generated code retains any notices required by its source or generator. Before a production release, the dependency inventory must be regenerated from the locked module graph and reviewed for:
 
 - provenance and checksum integrity;
