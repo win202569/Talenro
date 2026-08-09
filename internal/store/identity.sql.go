@@ -985,7 +985,7 @@ UPDATE identity.account_sessions
 SET access_token_hash=$2, access_expires_at=$3, updated_at=$4,
     state_version=state_version+1
 WHERE id=$1 AND state='active' AND absolute_expires_at >= $4
-RETURNING id, principal_id, state, state_version, client_signing_public_key, access_token_hash, access_expires_at, absolute_expires_at, created_at, updated_at
+RETURNING id, principal_id, state, state_version, client_signing_public_key, access_token_hash, access_expires_at, absolute_expires_at, created_at, updated_at, device_authorization_id
 `
 
 type RotateAccountSessionAccessParams struct {
@@ -1014,6 +1014,7 @@ func (q *Queries) RotateAccountSessionAccess(ctx context.Context, arg RotateAcco
 		&i.AbsoluteExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeviceAuthorizationID,
 	)
 	return i, err
 }

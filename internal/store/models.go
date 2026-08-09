@@ -13,6 +13,74 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type DeviceauthDevice struct {
+	ID                    uuid.UUID   `json:"id"`
+	PrincipalID           uuid.UUID   `json:"principal_id"`
+	DisplayNameCiphertext []byte      `json:"display_name_ciphertext"`
+	DisplayNameKeyVersion pgtype.Int4 `json:"display_name_key_version"`
+	SigningPublicKey      []byte      `json:"signing_public_key"`
+	HpkePublicKey         []byte      `json:"hpke_public_key"`
+	KeyVersion            int32       `json:"key_version"`
+	State                 string      `json:"state"`
+	CreatedAt             time.Time   `json:"created_at"`
+	UpdatedAt             time.Time   `json:"updated_at"`
+}
+
+type DeviceauthDeviceAuthorization struct {
+	ID               uuid.UUID    `json:"id"`
+	PrincipalID      uuid.UUID    `json:"principal_id"`
+	DeviceID         uuid.UUID    `json:"device_id"`
+	State            string       `json:"state"`
+	StateVersion     int64        `json:"state_version"`
+	ProvisionalUntil sql.NullTime `json:"provisional_until"`
+	CreatedAt        time.Time    `json:"created_at"`
+	UpdatedAt        time.Time    `json:"updated_at"`
+}
+
+type DeviceauthDevicePolicySnapshot struct {
+	AuthorizationID uuid.UUID       `json:"authorization_id"`
+	SchemaVersion   string          `json:"schema_version"`
+	Policy          json.RawMessage `json:"policy"`
+	CreatedAt       time.Time       `json:"created_at"`
+}
+
+type DeviceauthDeviceRefreshToken struct {
+	TokenHash         []byte       `json:"token_hash"`
+	FamilyID          uuid.UUID    `json:"family_id"`
+	PreviousTokenHash []byte       `json:"previous_token_hash"`
+	State             string       `json:"state"`
+	IssuedAt          time.Time    `json:"issued_at"`
+	UsedAt            sql.NullTime `json:"used_at"`
+	RevokedAt         sql.NullTime `json:"revoked_at"`
+}
+
+type DeviceauthDeviceTokenFamily struct {
+	ID                uuid.UUID `json:"id"`
+	AuthorizationID   uuid.UUID `json:"authorization_id"`
+	State             string    `json:"state"`
+	StateVersion      int64     `json:"state_version"`
+	AccessTokenHash   []byte    `json:"access_token_hash"`
+	AccessExpiresAt   time.Time `json:"access_expires_at"`
+	IdleExpiresAt     time.Time `json:"idle_expires_at"`
+	AbsoluteExpiresAt time.Time `json:"absolute_expires_at"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+}
+
+type DeviceauthEnrollmentGrant struct {
+	ID               uuid.UUID     `json:"id"`
+	PrincipalID      uuid.UUID     `json:"principal_id"`
+	AccountSessionID uuid.UUID     `json:"account_session_id"`
+	TokenHash        []byte        `json:"token_hash"`
+	PolicyMarker     string        `json:"policy_marker"`
+	ProvisionalUntil sql.NullTime  `json:"provisional_until"`
+	State            string        `json:"state"`
+	ExpiresAt        time.Time     `json:"expires_at"`
+	CreatedAt        time.Time     `json:"created_at"`
+	ConsumedAt       sql.NullTime  `json:"consumed_at"`
+	ConsumedDeviceID uuid.NullUUID `json:"consumed_device_id"`
+}
+
 type IdentityAccount struct {
 	ID           uuid.UUID `json:"id"`
 	State        string    `json:"state"`
@@ -35,16 +103,17 @@ type IdentityAccountRefreshToken struct {
 }
 
 type IdentityAccountSession struct {
-	ID                     uuid.UUID `json:"id"`
-	PrincipalID            uuid.UUID `json:"principal_id"`
-	State                  string    `json:"state"`
-	StateVersion           int64     `json:"state_version"`
-	ClientSigningPublicKey []byte    `json:"client_signing_public_key"`
-	AccessTokenHash        []byte    `json:"access_token_hash"`
-	AccessExpiresAt        time.Time `json:"access_expires_at"`
-	AbsoluteExpiresAt      time.Time `json:"absolute_expires_at"`
-	CreatedAt              time.Time `json:"created_at"`
-	UpdatedAt              time.Time `json:"updated_at"`
+	ID                     uuid.UUID     `json:"id"`
+	PrincipalID            uuid.UUID     `json:"principal_id"`
+	State                  string        `json:"state"`
+	StateVersion           int64         `json:"state_version"`
+	ClientSigningPublicKey []byte        `json:"client_signing_public_key"`
+	AccessTokenHash        []byte        `json:"access_token_hash"`
+	AccessExpiresAt        time.Time     `json:"access_expires_at"`
+	AbsoluteExpiresAt      time.Time     `json:"absolute_expires_at"`
+	CreatedAt              time.Time     `json:"created_at"`
+	UpdatedAt              time.Time     `json:"updated_at"`
+	DeviceAuthorizationID  uuid.NullUUID `json:"device_authorization_id"`
 }
 
 type IdentityEmailIdentity struct {

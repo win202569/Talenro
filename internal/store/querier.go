@@ -13,23 +13,37 @@ import (
 
 type Querier interface {
 	AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) (int64, error)
+	ActivateProvisionalAuthorization(ctx context.Context, arg ActivateProvisionalAuthorizationParams) (int64, error)
 	ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error)
 	ActivateVerifiedAccount(ctx context.Context, arg ActivateVerifiedAccountParams) (IdentityAccount, error)
+	BindAccountSessionToAuthorization(ctx context.Context, arg BindAccountSessionToAuthorizationParams) (int64, error)
 	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
+	CompromiseDeviceTokenFamily(ctx context.Context, arg CompromiseDeviceTokenFamilyParams) (DeviceauthDeviceTokenFamily, error)
 	ConsumeEmailVerification(ctx context.Context, arg ConsumeEmailVerificationParams) (IdentityEmailIdentity, error)
+	ConsumeEnrollmentGrant(ctx context.Context, arg ConsumeEnrollmentGrantParams) (DeviceauthEnrollmentGrant, error)
 	ConsumePasswordReset(ctx context.Context, arg ConsumePasswordResetParams) (IdentityPasswordCredential, error)
 	ConsumeRecoveryCode(ctx context.Context, arg ConsumeRecoveryCodeParams) (IdentityRecoveryCodeSet, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) error
 	CreateAccountSession(ctx context.Context, arg CreateAccountSessionParams) error
+	CreateDevice(ctx context.Context, arg CreateDeviceParams) error
+	CreateDeviceAuthorization(ctx context.Context, arg CreateDeviceAuthorizationParams) error
+	CreateDevicePolicySnapshot(ctx context.Context, arg CreateDevicePolicySnapshotParams) error
+	CreateDeviceTokenFamily(ctx context.Context, arg CreateDeviceTokenFamilyParams) error
 	CreateEmailIdentity(ctx context.Context, arg CreateEmailIdentityParams) error
+	CreateEnrollmentGrant(ctx context.Context, arg CreateEnrollmentGrantParams) error
 	CreatePasskeyCredential(ctx context.Context, arg CreatePasskeyCredentialParams) error
 	CreatePasswordCredential(ctx context.Context, arg CreatePasswordCredentialParams) error
 	CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryCodeSetParams) error
 	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) error
 	FindAccountAccessToken(ctx context.Context, accessTokenHash []byte) (FindAccountAccessTokenRow, error)
+	FindDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (FindDeviceAccessTokenRow, error)
 	FindIdentityByLookupDigest(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error)
 	GetAccountForUpdate(ctx context.Context, id uuid.UUID) (IdentityAccount, error)
+	GetActiveBundleAuthority(ctx context.Context, arg GetActiveBundleAuthorityParams) (GetActiveBundleAuthorityRow, error)
 	GetActiveRecoveryCodeSetForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityRecoveryCodeSet, error)
+	GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceAuthorization, error)
+	GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byte) (GetDeviceRefreshForUpdateRow, error)
+	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
 	GetPendingEmailDelivery(ctx context.Context, verificationDeliveryID uuid.NullUUID) (GetPendingEmailDeliveryRow, error)
 	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
@@ -37,19 +51,26 @@ type Querier interface {
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
 	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
+	InsertDeviceRefreshToken(ctx context.Context, arg InsertDeviceRefreshTokenParams) error
 	InsertSecurityEvent(ctx context.Context, arg InsertSecurityEventParams) error
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
 	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
 	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
+	MarkDeviceRefreshUsed(ctx context.Context, arg MarkDeviceRefreshUsedParams) (DeviceauthDeviceRefreshToken, error)
 	MarkPrincipalSessionsReviewRequired(ctx context.Context, arg MarkPrincipalSessionsReviewRequiredParams) (int64, error)
 	PutSystemMetadata(ctx context.Context, arg PutSystemMetadataParams) error
 	ResetEmailVerification(ctx context.Context, arg ResetEmailVerificationParams) (IdentityEmailIdentity, error)
 	RevokeAccountRefreshTokens(ctx context.Context, arg RevokeAccountRefreshTokensParams) (int64, error)
 	RevokeAccountSession(ctx context.Context, arg RevokeAccountSessionParams) (int64, error)
+	RevokeDeviceAuthorization(ctx context.Context, arg RevokeDeviceAuthorizationParams) (int64, error)
+	RevokeDeviceBoundAccountSessions(ctx context.Context, arg RevokeDeviceBoundAccountSessionsParams) (int64, error)
+	RevokeDeviceRecord(ctx context.Context, arg RevokeDeviceRecordParams) (int64, error)
+	RevokeDeviceRefreshTokens(ctx context.Context, arg RevokeDeviceRefreshTokensParams) (int64, error)
 	RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (int64, error)
 	RevokeRecoveryCodeSets(ctx context.Context, arg RevokeRecoveryCodeSetsParams) (int64, error)
 	RevokeTOTP(ctx context.Context, arg RevokeTOTPParams) (int64, error)
 	RotateAccountSessionAccess(ctx context.Context, arg RotateAccountSessionAccessParams) (IdentityAccountSession, error)
+	RotateDeviceFamilyAccess(ctx context.Context, arg RotateDeviceFamilyAccessParams) (DeviceauthDeviceTokenFamily, error)
 	SetPasswordReset(ctx context.Context, arg SetPasswordResetParams) (IdentityPasswordCredential, error)
 	UpdatePasskeyCounter(ctx context.Context, arg UpdatePasskeyCounterParams) (int64, error)
 	UpdatePasswordCredential(ctx context.Context, arg UpdatePasswordCredentialParams) (int64, error)
