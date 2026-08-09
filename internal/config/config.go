@@ -201,7 +201,7 @@ func loadSecurity(lookup Lookup) (SecurityConfig, error) {
 	if security.SignerTimeout, err = parseDuration(lookup, "TALENRO_SIGNER_TIMEOUT", security.SignerTimeout, 500*time.Millisecond, 5*time.Second); err != nil {
 		return SecurityConfig{}, err
 	}
-	if security.ErrorReportTimeout, err = parseDuration(lookup, "TALENRO_ERROR_REPORT_TIMEOUT", security.ErrorReportTimeout, 100*time.Millisecond, 5*time.Second); err != nil {
+	if security.ErrorReportTimeout, err = parseDuration(lookup, "TALENRO_ERROR_REPORT_TIMEOUT", security.ErrorReportTimeout, 100*time.Millisecond, 2*time.Second); err != nil {
 		return SecurityConfig{}, err
 	}
 	if security.ClockSkew, err = parseDuration(lookup, "TALENRO_CLOCK_SKEW", security.ClockSkew, 30*time.Second, 300*time.Second); err != nil {

@@ -228,3 +228,13 @@ func TestLoadBuildsValidatedLocalSecurityProfile(t *testing.T) {
 		t.Fatal("local security keys were not decoded")
 	}
 }
+
+func TestLoadRejectsErrorReporterTimeoutOverTwoSeconds(t *testing.T) {
+	_, err := Load(lookup(map[string]string{
+		"TALENRO_DATABASE_URL":         "database-fixture",
+		"TALENRO_ERROR_REPORT_TIMEOUT": "3s",
+	}))
+	if err == nil || strings.Contains(err.Error(), "3s") {
+		t.Fatalf("expected sanitized timeout rejection, got %v", err)
+	}
+}
