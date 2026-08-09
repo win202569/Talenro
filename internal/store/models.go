@@ -5,13 +5,129 @@
 package store
 
 import (
+	"database/sql"
 	"encoding/json"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type IdentityAccount struct {
+	ID           uuid.UUID `json:"id"`
+	State        string    `json:"state"`
+	StateVersion int64     `json:"state_version"`
+	Locale       string    `json:"locale"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type IdentityAccountRefreshToken struct {
+	TokenHash         []byte       `json:"token_hash"`
+	SessionID         uuid.UUID    `json:"session_id"`
+	PreviousTokenHash []byte       `json:"previous_token_hash"`
+	State             string       `json:"state"`
+	IssuedAt          time.Time    `json:"issued_at"`
+	IdleExpiresAt     time.Time    `json:"idle_expires_at"`
+	AbsoluteExpiresAt time.Time    `json:"absolute_expires_at"`
+	UsedAt            sql.NullTime `json:"used_at"`
+	RevokedAt         sql.NullTime `json:"revoked_at"`
+}
+
+type IdentityAccountSession struct {
+	ID                     uuid.UUID `json:"id"`
+	PrincipalID            uuid.UUID `json:"principal_id"`
+	State                  string    `json:"state"`
+	StateVersion           int64     `json:"state_version"`
+	ClientSigningPublicKey []byte    `json:"client_signing_public_key"`
+	AccessTokenHash        []byte    `json:"access_token_hash"`
+	AccessExpiresAt        time.Time `json:"access_expires_at"`
+	AbsoluteExpiresAt      time.Time `json:"absolute_expires_at"`
+	CreatedAt              time.Time `json:"created_at"`
+	UpdatedAt              time.Time `json:"updated_at"`
+}
+
+type IdentityEmailIdentity struct {
+	ID                             uuid.UUID     `json:"id"`
+	PrincipalID                    uuid.UUID     `json:"principal_id"`
+	LookupKeyVersion               int32         `json:"lookup_key_version"`
+	LookupDigest                   []byte        `json:"lookup_digest"`
+	Ciphertext                     []byte        `json:"ciphertext"`
+	EncryptionKeyVersion           int32         `json:"encryption_key_version"`
+	VerificationTokenHash          []byte        `json:"verification_token_hash"`
+	VerificationExpiresAt          sql.NullTime  `json:"verification_expires_at"`
+	VerificationConsumedAt         sql.NullTime  `json:"verification_consumed_at"`
+	VerificationDeliveryID         uuid.NullUUID `json:"verification_delivery_id"`
+	VerificationDeliveryCiphertext []byte        `json:"verification_delivery_ciphertext"`
+	VerificationDeliveryKeyVersion pgtype.Int4   `json:"verification_delivery_key_version"`
+	VerifiedAt                     sql.NullTime  `json:"verified_at"`
+	CreatedAt                      time.Time     `json:"created_at"`
+	UpdatedAt                      time.Time     `json:"updated_at"`
+}
+
+type IdentityPasskeyCredential struct {
+	CredentialID      []byte       `json:"credential_id"`
+	PrincipalID       uuid.UUID    `json:"principal_id"`
+	PublicKey         []byte       `json:"public_key"`
+	AttestationFormat string       `json:"attestation_format"`
+	Transports        []string     `json:"transports"`
+	ProtocolFlags     int16        `json:"protocol_flags"`
+	SignCount         int64        `json:"sign_count"`
+	State             string       `json:"state"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
+	RevokedAt         sql.NullTime `json:"revoked_at"`
+}
+
+type IdentityPasswordCredential struct {
+	PrincipalID             uuid.UUID     `json:"principal_id"`
+	PolicyVersion           int32         `json:"policy_version"`
+	MemoryKib               int32         `json:"memory_kib"`
+	TimeCost                int32         `json:"time_cost"`
+	Parallelism             int32         `json:"parallelism"`
+	Salt                    []byte        `json:"salt"`
+	PasswordHash            []byte        `json:"password_hash"`
+	ResetTokenHash          []byte        `json:"reset_token_hash"`
+	ResetExpiresAt          sql.NullTime  `json:"reset_expires_at"`
+	ResetConsumedAt         sql.NullTime  `json:"reset_consumed_at"`
+	ResetDeliveryID         uuid.NullUUID `json:"reset_delivery_id"`
+	ResetDeliveryCiphertext []byte        `json:"reset_delivery_ciphertext"`
+	ResetDeliveryKeyVersion pgtype.Int4   `json:"reset_delivery_key_version"`
+	UpdatedAt               time.Time     `json:"updated_at"`
+}
+
+type IdentityRecoveryCodeSet struct {
+	ID          uuid.UUID `json:"id"`
+	PrincipalID uuid.UUID `json:"principal_id"`
+	Generation  int32     `json:"generation"`
+	CodeHashes  [][]byte  `json:"code_hashes"`
+	State       string    `json:"state"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type IdentitySecurityEvent struct {
+	ID               uuid.UUID     `json:"id"`
+	PrincipalID      uuid.NullUUID `json:"principal_id"`
+	Category         string        `json:"category"`
+	Fingerprint      string        `json:"fingerprint"`
+	AggregateVersion int64         `json:"aggregate_version"`
+	OccurredAt       time.Time     `json:"occurred_at"`
+}
+
+type IdentityTotpCredential struct {
+	PrincipalID          uuid.UUID    `json:"principal_id"`
+	Ciphertext           []byte       `json:"ciphertext"`
+	EncryptionKeyVersion int32        `json:"encryption_key_version"`
+	State                string       `json:"state"`
+	LastAcceptedStep     pgtype.Int8  `json:"last_accepted_step"`
+	CreatedAt            time.Time    `json:"created_at"`
+	VerifiedAt           sql.NullTime `json:"verified_at"`
+	RevokedAt            sql.NullTime `json:"revoked_at"`
+}
+
 type SystemMetadatum struct {
-	Key       string             `json:"key"`
-	Value     json.RawMessage    `json:"value"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	Key       string          `json:"key"`
+	Value     json.RawMessage `json:"value"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }

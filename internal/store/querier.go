@@ -7,11 +7,52 @@ package store
 import (
 	"context"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
+	AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) (int64, error)
+	ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error)
+	ActivateVerifiedAccount(ctx context.Context, arg ActivateVerifiedAccountParams) (IdentityAccount, error)
+	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
+	ConsumeEmailVerification(ctx context.Context, arg ConsumeEmailVerificationParams) (IdentityEmailIdentity, error)
+	ConsumePasswordReset(ctx context.Context, arg ConsumePasswordResetParams) (IdentityPasswordCredential, error)
+	ConsumeRecoveryCode(ctx context.Context, arg ConsumeRecoveryCodeParams) (IdentityRecoveryCodeSet, error)
+	CreateAccount(ctx context.Context, arg CreateAccountParams) error
+	CreateAccountSession(ctx context.Context, arg CreateAccountSessionParams) error
+	CreateEmailIdentity(ctx context.Context, arg CreateEmailIdentityParams) error
+	CreatePasskeyCredential(ctx context.Context, arg CreatePasskeyCredentialParams) error
+	CreatePasswordCredential(ctx context.Context, arg CreatePasswordCredentialParams) error
+	CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryCodeSetParams) error
+	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) error
+	FindAccountAccessToken(ctx context.Context, accessTokenHash []byte) (FindAccountAccessTokenRow, error)
+	FindIdentityByLookupDigest(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error)
+	GetAccountForUpdate(ctx context.Context, id uuid.UUID) (IdentityAccount, error)
+	GetActiveRecoveryCodeSetForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityRecoveryCodeSet, error)
+	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
+	GetPendingEmailDelivery(ctx context.Context, verificationDeliveryID uuid.NullUUID) (GetPendingEmailDeliveryRow, error)
+	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
+	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
+	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
+	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
+	InsertSecurityEvent(ctx context.Context, arg InsertSecurityEventParams) error
+	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
+	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
+	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
+	MarkPrincipalSessionsReviewRequired(ctx context.Context, arg MarkPrincipalSessionsReviewRequiredParams) (int64, error)
 	PutSystemMetadata(ctx context.Context, arg PutSystemMetadataParams) error
+	ResetEmailVerification(ctx context.Context, arg ResetEmailVerificationParams) (IdentityEmailIdentity, error)
+	RevokeAccountRefreshTokens(ctx context.Context, arg RevokeAccountRefreshTokensParams) (int64, error)
+	RevokeAccountSession(ctx context.Context, arg RevokeAccountSessionParams) (int64, error)
+	RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (int64, error)
+	RevokeRecoveryCodeSets(ctx context.Context, arg RevokeRecoveryCodeSetsParams) (int64, error)
+	RevokeTOTP(ctx context.Context, arg RevokeTOTPParams) (int64, error)
+	RotateAccountSessionAccess(ctx context.Context, arg RotateAccountSessionAccessParams) (IdentityAccountSession, error)
+	SetPasswordReset(ctx context.Context, arg SetPasswordResetParams) (IdentityPasswordCredential, error)
+	UpdatePasskeyCounter(ctx context.Context, arg UpdatePasskeyCounterParams) (int64, error)
+	UpdatePasswordCredential(ctx context.Context, arg UpdatePasswordCredentialParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)
