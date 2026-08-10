@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"sort"
 	"strings"
 	"testing"
@@ -45,6 +46,10 @@ type publicOutboxState struct {
 	claimedUntil sql.NullTime
 	attempts     int32
 	publishedAt  sql.NullTime
+}
+
+type testTxBeginner interface {
+	Begin(context.Context) (pgx.Tx, error)
 }
 
 func TestTrustBundleVersionsAreMonotonicUnderConcurrency(t *testing.T) {
@@ -276,7 +281,7 @@ func TestIdempotencyRaceLocksAndClassifiesCompletedRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal("begin idempotency completion transaction failed")
 	}
-	defer func() { _ = tx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, tx) //nolint:contextcheck // rollback must survive operation cancellation
 	txQueries := store.New(tx)
 	locked, err := txQueries.GetIdempotencyForUpdate(ctx, store.GetIdempotencyForUpdateParams{
 		PrincipalScope:     params.PrincipalScope,
@@ -310,7 +315,7 @@ func TestIdempotencyRaceLocksAndClassifiesCompletedRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal("begin idempotency replay transaction failed")
 	}
-	defer func() { _ = replayTx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, replayTx) //nolint:contextcheck // rollback must survive operation cancellation
 	stored, err := store.New(replayTx).GetIdempotencyForUpdate(ctx, store.GetIdempotencyForUpdateParams{
 		PrincipalScope:     params.PrincipalScope,
 		Operation:          params.Operation,
@@ -336,6 +341,83 @@ func TestIdempotencyRaceLocksAndClassifiesCompletedRecord(t *testing.T) {
 	}
 }
 
+func TestIsolatedGlobalTableCleanupSurvivesCanceledOperationContext(t *testing.T) {
+	pool := testinfra.OpenMigratedPostgres(t)
+	operationCtx, cancelOperation := context.WithCancel(context.Background())
+	defer cancelOperation()
+
+	schemaName := ""
+	t.Cleanup(func() {
+		if schemaName == "" {
+			return
+		}
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		identifier := pgx.Identifier{schemaName}.Sanitize()
+		if _, err := pool.Exec(cleanupCtx, "DROP SCHEMA IF EXISTS "+identifier+" CASCADE"); err != nil {
+			t.Fatal("emergency isolated schema cleanup failed")
+		}
+	})
+
+	t.Run("canceled operation", func(t *testing.T) {
+		schemaName = createIsolatedGlobalTables(operationCtx, t, pool)
+		cancelOperation()
+	})
+
+	verificationCtx, verificationCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer verificationCancel()
+	assertSchemaAbsent(verificationCtx, t, pool, schemaName)
+}
+
+func TestPublicOutboxSentinelIgnoresAmbientSearchPath(t *testing.T) {
+	pool := testinfra.OpenMigratedPostgres(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	shadowSchema := createIsolatedGlobalTables(ctx, t, pool)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		t.Fatal("acquire ambient search-path connection failed")
+	}
+	defer func() {
+		resetCtx, resetCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer resetCancel()
+		if _, resetErr := conn.Exec(resetCtx, `RESET search_path`); resetErr != nil {
+			t.Error("reset ambient search path failed")
+		}
+		conn.Release()
+	}()
+	searchPath := "SET search_path TO " +
+		pgx.Identifier{shadowSchema}.Sanitize() + ", " +
+		pgx.Identifier{"public"}.Sanitize()
+	if _, err := conn.Exec(ctx, searchPath); err != nil {
+		t.Fatal("set ambient shadow search path failed")
+	}
+
+	sentinelID := uuid.New()
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		if _, err := pool.Exec(cleanupCtx, `DELETE FROM public.transactional_outbox WHERE event_id=$1`, sentinelID); err != nil {
+			t.Fatal("delete ambient-search-path sentinel failed")
+		}
+	})
+	insertPublicOutboxSentinel(ctx, t, conn, sentinelID, time.Now().UTC().Add(-time.Hour))
+
+	shadowTable := pgx.Identifier{shadowSchema, "transactional_outbox"}.Sanitize()
+	var shadowCount int
+	if err := pool.QueryRow(ctx, "SELECT count(*) FROM "+shadowTable+" WHERE event_id=$1", sentinelID).Scan(&shadowCount); err != nil {
+		t.Fatal("count shadow outbox sentinel failed")
+	}
+	var publicCount int
+	if err := pool.QueryRow(ctx, `SELECT count(*) FROM public.transactional_outbox WHERE event_id=$1`, sentinelID).Scan(&publicCount); err != nil {
+		t.Fatal("count public outbox sentinel failed")
+	}
+	if shadowCount != 0 || publicCount != 1 {
+		t.Fatalf("sentinel placement: shadow=%d public=%d, want shadow=0 public=1", shadowCount, publicCount)
+	}
+}
+
 func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 	pool := testinfra.OpenMigratedPostgres(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -344,7 +426,7 @@ func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 	publicBaseline := snapshotPublicOutbox(ctx, t, pool)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	sentinelID := uuid.New()
-	insertPublicOutboxSentinel(ctx, t, store.New(pool), sentinelID, now.Add(-time.Hour))
+	insertPublicOutboxSentinel(ctx, t, pool, sentinelID, now.Add(-time.Hour))
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cleanupCancel()
@@ -375,7 +457,7 @@ func exerciseOutboxPersistence(
 ) {
 	t.Helper()
 	setupTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
-	defer func() { _ = setupTx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, setupTx) //nolint:contextcheck // rollback must survive operation cancellation
 	setupQueries := store.New(setupTx)
 	firstID := uuid.New()
 	secondID := uuid.New()
@@ -388,7 +470,7 @@ func exerciseOutboxPersistence(
 	}
 
 	firstTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
-	defer func() { _ = firstTx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, firstTx) //nolint:contextcheck // rollback must survive operation cancellation
 	firstClaimedUntil := now.Add(30 * time.Second)
 	firstBatch, err := store.New(firstTx).ClaimOutboxBatch(ctx, store.ClaimOutboxBatchParams{
 		AvailableAt:  now,
@@ -400,7 +482,7 @@ func exerciseOutboxPersistence(
 	}
 
 	secondTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
-	defer func() { _ = secondTx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, secondTx) //nolint:contextcheck // rollback must survive operation cancellation
 	secondClaimedUntil := now.Add(30 * time.Second)
 	secondBatch, err := store.New(secondTx).ClaimOutboxBatch(ctx, store.ClaimOutboxBatchParams{
 		AvailableAt:  now,
@@ -427,7 +509,7 @@ func exerciseOutboxPersistence(
 	}
 
 	workTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
-	defer func() { _ = workTx.Rollback(ctx) }()
+	defer requireRollbackTestTransaction(t, workTx) //nolint:contextcheck // rollback must survive operation cancellation
 	queries := store.New(workTx)
 	published, err := queries.MarkOutboxPublished(ctx, store.MarkOutboxPublishedParams{
 		EventID:     firstID,
@@ -510,7 +592,7 @@ func beginIdempotency(
 	if err != nil {
 		return idempotencyRaceResult{err: err}
 	}
-	defer func() { _ = tx.Rollback(ctx) }()
+	defer func() { _ = rollbackTestTransaction(tx) }() //nolint:contextcheck // rollback must survive operation cancellation
 	queries := store.New(tx)
 	rowsAffected, err := queries.TryBeginIdempotency(ctx, params)
 	if err != nil {
@@ -603,11 +685,20 @@ func insertOutboxFixture(
 func insertPublicOutboxSentinel(
 	ctx context.Context,
 	t *testing.T,
-	queries *store.Queries,
+	beginner testTxBeginner,
 	eventID uuid.UUID,
 	occurredAt time.Time,
 ) {
 	t.Helper()
+	tx, err := beginner.Begin(ctx)
+	if err != nil {
+		t.Fatal("begin public outbox sentinel transaction failed")
+	}
+	defer requireRollbackTestTransaction(t, tx) //nolint:contextcheck // rollback must survive operation cancellation
+	if _, err := tx.Exec(ctx, `SET LOCAL search_path TO public`); err != nil {
+		t.Fatal("bind public outbox sentinel transaction failed")
+	}
+	queries := store.New(tx)
 	if err := queries.InsertOutboxEvent(ctx, store.InsertOutboxEventParams{
 		EventID:          eventID,
 		EventType:        "talenro.review.sentinel.v1",
@@ -621,6 +712,9 @@ func insertPublicOutboxSentinel(
 	}); err != nil {
 		t.Fatal("insert public outbox sentinel failed")
 	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal("commit public outbox sentinel failed")
+	}
 }
 
 func createIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool.Pool) string {
@@ -630,11 +724,7 @@ func createIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool
 	if _, err := pool.Exec(ctx, "CREATE SCHEMA "+schemaIdentifier); err != nil {
 		t.Fatal("create isolated global-table schema failed")
 	}
-	t.Cleanup(func() {
-		cleanupCtx, cleanupCancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cleanupCancel()
-		dropIsolatedGlobalTables(cleanupCtx, t, pool, schemaName)
-	})
+	registerIsolatedGlobalTableCleanup(t, pool, schemaName) //nolint:contextcheck // cleanup must outlive operation context
 	for _, tableName := range []string{"idempotency_records", "transactional_outbox", "consumed_event_ids"} {
 		destination := pgx.Identifier{schemaName, tableName}.Sanitize()
 		source := pgx.Identifier{"public", tableName}.Sanitize()
@@ -643,6 +733,15 @@ func createIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool
 		}
 	}
 	return schemaName
+}
+
+func registerIsolatedGlobalTableCleanup(t *testing.T, pool *pgxpool.Pool, schemaName string) {
+	t.Helper()
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		dropIsolatedGlobalTables(cleanupCtx, t, pool, schemaName)
+	})
 }
 
 func dropIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool.Pool, schemaName string) {
@@ -668,7 +767,7 @@ func beginIsolatedGlobalTx(
 		pgx.Identifier{schemaName}.Sanitize() + ", " +
 		pgx.Identifier{"public"}.Sanitize()
 	if _, err := tx.Exec(ctx, searchPath); err != nil {
-		_ = tx.Rollback(ctx)
+		_ = rollbackTestTransaction(tx) //nolint:contextcheck // rollback must survive operation cancellation
 		t.Fatal("set isolated global-table search path failed")
 	}
 	return tx
@@ -773,6 +872,22 @@ func publicOutboxStatesEqual(a publicOutboxState, b publicOutboxState) bool {
 
 func nullTimesEqual(a sql.NullTime, b sql.NullTime) bool {
 	return a.Valid == b.Valid && (!a.Valid || a.Time.Equal(b.Time))
+}
+
+func requireRollbackTestTransaction(t *testing.T, tx pgx.Tx) {
+	t.Helper()
+	if err := rollbackTestTransaction(tx); err != nil {
+		t.Error("rollback test transaction failed")
+	}
+}
+
+func rollbackTestTransaction(tx pgx.Tx) error {
+	rollbackCtx, rollbackCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer rollbackCancel()
+	if err := tx.Rollback(rollbackCtx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+		return err
+	}
+	return nil
 }
 
 var _ pgx.Tx
