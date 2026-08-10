@@ -51,6 +51,10 @@ type Protector interface {
 
 // Local is a local/test-only AES-256-GCM and HMAC-SHA256 protector.
 type Local struct {
+	state *localState
+}
+
+type localState struct {
 	mu            sync.RWMutex
 	lookupKey     []byte
 	encryptionKey []byte
@@ -70,36 +74,40 @@ func NewLocal(lookupKey, encryptionKey secret.Bytes, keyVersion uint32) (*Local,
 		return nil, ErrInvalidArgument
 	}
 	return &Local{
-		lookupKey:     append([]byte(nil), lookupCopy...),
-		encryptionKey: append([]byte(nil), encryptionCopy...),
-		keyVersion:    keyVersion,
+		state: &localState{
+			lookupKey:     append([]byte(nil), lookupCopy...),
+			encryptionKey: append([]byte(nil), encryptionCopy...),
+			keyVersion:    keyVersion,
+		},
 	}, nil
 }
 
-// Format prevents fmt from reflecting locally held key bytes.
-func (*Local) Format(state fmt.State, _ rune) {
+// Format prevents fmt from reflecting locally held key bytes. Its value
+// receiver also protects copied Local values, which share the same state.
+func (Local) Format(state fmt.State, _ rune) {
 	_, _ = state.Write([]byte("sensitive.Local([REDACTED])"))
 }
 
 // LogValue prevents slog from reflecting locally held key bytes.
-func (*Local) LogValue() slog.Value {
+func (Local) LogValue() slog.Value {
 	return slog.StringValue("sensitive.Local([REDACTED])")
 }
 
 // LookupDigest computes HMAC-SHA256 over an unambiguous domain and value.
 // Invalid input and use after Close fail closed to the all-zero digest.
 func (local *Local) LookupDigest(domain string, canonical []byte) [32]byte {
-	if local == nil || !validDomain(domain) || len(canonical) == 0 || len(canonical) > maximumProtectedBytes {
+	localState := stateOf(local)
+	if localState == nil || !validDomain(domain) || len(canonical) == 0 || len(canonical) > maximumProtectedBytes {
 		return [32]byte{}
 	}
 	canonicalCopy := append([]byte(nil), canonical...)
 	defer clear(canonicalCopy)
-	local.mu.RLock()
-	defer local.mu.RUnlock()
-	if local.closed {
+	localState.mu.RLock()
+	defer localState.mu.RUnlock()
+	if localState.closed {
 		return [32]byte{}
 	}
-	mac := hmac.New(sha256.New, local.lookupKey)
+	mac := hmac.New(sha256.New, localState.lookupKey)
 	_, _ = mac.Write([]byte(lookupPrefix))
 	_, _ = mac.Write([]byte(domain))
 	_, _ = mac.Write([]byte{0})
@@ -113,17 +121,21 @@ func (local *Local) LookupDigest(domain string, canonical []byte) [32]byte {
 
 // Encrypt returns nonce || AES-256-GCM sealed plaintext with exact versioned AAD.
 func (local *Local) Encrypt(domain string, plaintext []byte) (EncryptedField, error) {
-	if local == nil || !validDomain(domain) || len(plaintext) == 0 || len(plaintext) > maximumProtectedBytes {
+	localState := stateOf(local)
+	if localState == nil {
+		return EncryptedField{}, ErrClosed
+	}
+	if !validDomain(domain) || len(plaintext) == 0 || len(plaintext) > maximumProtectedBytes {
 		return EncryptedField{}, ErrInvalidArgument
 	}
 	plaintextCopy := append([]byte(nil), plaintext...)
 	defer clear(plaintextCopy)
-	local.mu.RLock()
-	defer local.mu.RUnlock()
-	if local.closed {
+	localState.mu.RLock()
+	defer localState.mu.RUnlock()
+	if localState.closed {
 		return EncryptedField{}, ErrClosed
 	}
-	aead, err := newGCM(local.encryptionKey)
+	aead, err := newGCM(localState.encryptionKey)
 	if err != nil {
 		return EncryptedField{}, ErrProtectionFailed
 	}
@@ -133,32 +145,36 @@ func (local *Local) Encrypt(domain string, plaintext []byte) (EncryptedField, er
 		return EncryptedField{}, ErrProtectionFailed
 	}
 	defer clear(nonce)
-	aad := fieldAAD(domain, local.keyVersion)
+	aad := fieldAAD(domain, localState.keyVersion)
 	defer clear(aad)
 	ciphertext := make([]byte, len(nonce), len(nonce)+len(plaintextCopy)+aead.Overhead())
 	copy(ciphertext, nonce)
 	ciphertext = aead.Seal(ciphertext, nonce, plaintextCopy, aad)
-	return EncryptedField{KeyVersion: local.keyVersion, Ciphertext: ciphertext}, nil
+	return EncryptedField{KeyVersion: localState.keyVersion, Ciphertext: ciphertext}, nil
 }
 
 // Decrypt authenticates domain, fixed-width big-endian key version, and value.
 func (local *Local) Decrypt(domain string, value EncryptedField) ([]byte, error) {
-	if local == nil || !validDomain(domain) || value.KeyVersion == 0 ||
+	localState := stateOf(local)
+	if localState == nil {
+		return nil, ErrClosed
+	}
+	if !validDomain(domain) || value.KeyVersion == 0 ||
 		len(value.Ciphertext) <= aesGCMNonceBytes()+aesGCMOverheadBytes() ||
 		len(value.Ciphertext) > aesGCMNonceBytes()+aesGCMOverheadBytes()+maximumProtectedBytes {
 		return nil, ErrInvalidArgument
 	}
 	ciphertextCopy := append([]byte(nil), value.Ciphertext...)
 	defer clear(ciphertextCopy)
-	local.mu.RLock()
-	defer local.mu.RUnlock()
-	if local.closed {
+	localState.mu.RLock()
+	defer localState.mu.RUnlock()
+	if localState.closed {
 		return nil, ErrClosed
 	}
-	if value.KeyVersion != local.keyVersion {
+	if value.KeyVersion != localState.keyVersion {
 		return nil, ErrProtectionFailed
 	}
-	aead, err := newGCM(local.encryptionKey)
+	aead, err := newGCM(localState.encryptionKey)
 	if err != nil {
 		return nil, ErrProtectionFailed
 	}
@@ -178,21 +194,29 @@ func (local *Local) Decrypt(domain string, value EncryptedField) ([]byte, error)
 // Close atomically prevents new operations and erases locally held key bytes.
 // It is idempotent and is intentionally additional to the frozen Protector.
 func (local *Local) Close() error {
+	localState := stateOf(local)
+	if localState == nil {
+		return nil
+	}
+	localState.mu.Lock()
+	defer localState.mu.Unlock()
+	if localState.closed {
+		return nil
+	}
+	clear(localState.lookupKey)
+	clear(localState.encryptionKey)
+	localState.lookupKey = nil
+	localState.encryptionKey = nil
+	localState.keyVersion = 0
+	localState.closed = true
+	return nil
+}
+
+func stateOf(local *Local) *localState {
 	if local == nil {
 		return nil
 	}
-	local.mu.Lock()
-	defer local.mu.Unlock()
-	if local.closed {
-		return nil
-	}
-	clear(local.lookupKey)
-	clear(local.encryptionKey)
-	local.lookupKey = nil
-	local.encryptionKey = nil
-	local.keyVersion = 0
-	local.closed = true
-	return nil
+	return local.state
 }
 
 func newGCM(key []byte) (cipher.AEAD, error) {

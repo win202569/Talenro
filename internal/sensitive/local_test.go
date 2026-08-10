@@ -105,14 +105,112 @@ func TestLocalKeyVersionMatchesPostgresIntegerRange(t *testing.T) {
 }
 
 func TestLocalRedactsFormattingAndStructuredLogging(t *testing.T) {
+	lookupCanary := []byte("LOOKUP_SECRET_CANARY_0123456789A")
+	encryptionCanary := []byte("ENCRYPT_SECRET_CANARY_0123456789")
+	const domainCanary = "identity/domain-canary/v1"
+	const plaintextCanary = "PLAINTEXT_SECRET_CANARY"
+	local, err := NewLocal(secret.NewBytes(lookupCanary), secret.NewBytes(encryptionCanary), 1)
+	if err != nil {
+		t.Fatalf("NewLocal: %v", err)
+	}
+	t.Cleanup(func() { _ = local.Close() })
+	if _, err := local.Encrypt(domainCanary, []byte(plaintextCanary)); err != nil {
+		t.Fatalf("Encrypt canary: %v", err)
+	}
+
+	localValue := *local
+	var nilLocal *Local
+	subjects := []struct {
+		name  string
+		value any
+	}{
+		{name: "pointer", value: local},
+		{name: "value", value: localValue},
+		{name: "nil pointer", value: nilLocal},
+		{name: "zero value", value: Local{}},
+	}
+	formats := []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"}
+	forbidden := sensitiveRepresentations(lookupCanary, encryptionCanary)
+	forbidden = append(forbidden, domainCanary, plaintextCanary)
+	for _, subject := range subjects {
+		for _, format := range formats {
+			rendered := fmt.Sprintf(format, subject.value)
+			assertNoSensitiveRepresentation(t, subject.name+" "+format, rendered, forbidden)
+		}
+	}
+
+	handlers := []struct {
+		name string
+		new  func(*bytes.Buffer) slog.Handler
+	}{
+		{name: "text", new: func(buffer *bytes.Buffer) slog.Handler {
+			return slog.NewTextHandler(buffer, nil)
+		}},
+		{name: "json", new: func(buffer *bytes.Buffer) slog.Handler {
+			return slog.NewJSONHandler(buffer, nil)
+		}},
+	}
+	for _, handler := range handlers {
+		var output bytes.Buffer
+		logger := slog.New(handler.new(&output))
+		logger.Info("protector state",
+			"pointer", local,
+			"value", localValue,
+			"nil", nilLocal,
+			"zero", Local{},
+		)
+		assertNoSensitiveRepresentation(t, handler.name+" slog handler", output.String(), forbidden)
+	}
+}
+
+func TestLocalValueCopiesShareCloseStateAndZeroValueFailsClosed(t *testing.T) {
 	local := newTestLocal(t, 1)
-	for _, rendered := range []string{
-		fmt.Sprintf("%v", local),
-		fmt.Sprintf("%#v", local),
-		slog.AnyValue(local).String(),
-	} {
-		if strings.Contains(rendered, "17 17 17") || strings.Contains(rendered, "34 34 34") {
-			t.Fatalf("rendering exposed key material")
+	protected, err := local.Encrypt("identity/email/v1", []byte("before-close"))
+	if err != nil {
+		t.Fatalf("Encrypt before copy: %v", err)
+	}
+	localValue := *local
+	if err := localValue.Close(); err != nil {
+		t.Fatalf("Close copied value: %v", err)
+	}
+	if _, err := local.Encrypt("identity/email/v1", []byte("after-copy-close")); !errors.Is(err, ErrClosed) {
+		t.Fatalf("original Encrypt after copied Close error = %v, want ErrClosed", err)
+	}
+	if err := local.Close(); err != nil {
+		t.Fatalf("idempotent original Close: %v", err)
+	}
+
+	var zero Local
+	if digest := zero.LookupDigest("identity/email/v1", []byte("value")); digest != [32]byte{} {
+		t.Fatalf("zero-value digest = %x", digest)
+	}
+	if _, err := zero.Encrypt("identity/email/v1", []byte("value")); !errors.Is(err, ErrClosed) {
+		t.Fatalf("zero-value Encrypt error = %v, want ErrClosed", err)
+	}
+	if _, err := zero.Decrypt("identity/email/v1", protected); !errors.Is(err, ErrClosed) {
+		t.Fatalf("zero-value Decrypt error = %v, want ErrClosed", err)
+	}
+	if err := zero.Close(); err != nil {
+		t.Fatalf("zero-value Close: %v", err)
+	}
+}
+
+func sensitiveRepresentations(values ...[]byte) []string {
+	formats := []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"}
+	representations := make([]string, 0, len(values)*len(formats))
+	for _, value := range values {
+		for _, format := range formats {
+			representations = append(representations, fmt.Sprintf(format, value))
+		}
+	}
+	return representations
+}
+
+func assertNoSensitiveRepresentation(t *testing.T, name, rendered string, forbidden []string) {
+	t.Helper()
+	for _, representation := range forbidden {
+		if representation != "" && strings.Contains(rendered, representation) {
+			t.Fatalf("%s exposed sensitive representation", name)
 		}
 	}
 }
