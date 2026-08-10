@@ -3,13 +3,15 @@ package identity
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"strings"
 	"testing"
 
 	"golang.org/x/crypto/argon2"
+
+	"talenro.local/platform/internal/strictjson"
 )
 
 type fixedRandom struct {
@@ -160,6 +162,58 @@ func TestVerifyPasswordUsesExactlyOneSafeDerivation(t *testing.T) {
 	}
 }
 
+func TestVerifyPasswordInvalidInputsUseBoundedDummyWork(t *testing.T) {
+	credential := DummyCredential()
+	tests := []struct {
+		name     string
+		password []byte
+	}{
+		{name: "nil", password: nil},
+		{name: "short", password: []byte("short")},
+		{name: "invalid utf8", password: append(bytes.Repeat([]byte{'a'}, 12), 0xff)},
+		{name: "over maximum", password: bytes.Repeat([]byte{'p'}, 1025)},
+		{name: "attacker sized", password: bytes.Repeat([]byte{'p'}, 2<<20)},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			original := append([]byte(nil), test.password...)
+			calls := 0
+			derive := func(password, salt []byte, policy PasswordPolicy) []byte {
+				calls++
+				if string(password) != string(dummyPassword) {
+					t.Fatalf("work password length = %d, want fixed dummy", len(password))
+				}
+				if policy != CurrentPasswordPolicy() || len(salt) != 16 {
+					t.Fatalf("unsafe dummy work policy=%+v salt=%d", policy, len(salt))
+				}
+				return make([]byte, 32)
+			}
+			match, needsUpgrade := VerifyPasswordWithDeriver(test.password, credential, CurrentPasswordPolicy(), derive)
+			if calls != 1 || match || needsUpgrade {
+				t.Fatalf("verify = calls:%d match:%v upgrade:%v", calls, match, needsUpgrade)
+			}
+			if !bytes.Equal(test.password, original) {
+				t.Fatal("VerifyPassword modified caller input")
+			}
+		})
+	}
+}
+
+func TestVerifyPasswordRejectsAttackerSizedInputWithoutCopyingIt(t *testing.T) {
+	password := bytes.Repeat([]byte{'p'}, 2<<20)
+	credential := DummyCredential()
+	result := testing.Benchmark(func(benchmark *testing.B) {
+		derive := func(_, _ []byte, _ PasswordPolicy) []byte { return make([]byte, 32) }
+		for benchmark.Loop() {
+			VerifyPasswordWithDeriver(password, credential, CurrentPasswordPolicy(), derive)
+		}
+	})
+	const maximumVerificationAllocationBytes = 128 << 10
+	if allocated := result.AllocedBytesPerOp(); allocated > maximumVerificationAllocationBytes {
+		t.Fatalf("allocated bytes/op = %d, want <= %d", allocated, maximumVerificationAllocationBytes)
+	}
+}
+
 func TestPasswordCredentialOwnsReturnedSlices(t *testing.T) {
 	random := &fixedRandom{data: bytes.Repeat([]byte{0x33}, 16), step: 16}
 	credential, err := HashPassword(random, []byte("valid-password"), CurrentPasswordPolicy())
@@ -172,6 +226,27 @@ func TestPasswordCredentialOwnsReturnedSlices(t *testing.T) {
 	hash[0] ^= 0xff
 	if bytes.Equal(salt, credential.SaltCopy()) || bytes.Equal(hash, credential.HashCopy()) {
 		t.Fatal("credential returned mutable backing storage")
+	}
+}
+
+func TestVerifyPasswordSuccessfulCurrentV1NeverNeedsUpgrade(t *testing.T) {
+	credential, err := NewPasswordCredential(
+		CurrentPasswordPolicy(),
+		bytes.Repeat([]byte{0x11}, 16),
+		bytes.Repeat([]byte{0x22}, 32),
+	)
+	if err != nil {
+		t.Fatalf("NewPasswordCredential: %v", err)
+	}
+	derive := func(_, _ []byte, policy PasswordPolicy) []byte {
+		if policy != CurrentPasswordPolicy() {
+			t.Fatalf("derive policy = %+v", policy)
+		}
+		return bytes.Repeat([]byte{0x22}, 32)
+	}
+	match, needsUpgrade := VerifyPasswordWithDeriver([]byte("valid-password"), credential, CurrentPasswordPolicy(), derive)
+	if !match || needsUpgrade {
+		t.Fatalf("verify = (%v, %v), want (true, false)", match, needsUpgrade)
 	}
 }
 
@@ -205,32 +280,130 @@ type argon2Vector struct {
 	ExpectedHex string `json:"expected_hex"`
 }
 
+const (
+	maximumArgon2VectorBytes int64 = 4096
+	argon2VectorSource             = "P-H-C/phc-winner-argon2 reference C implementation commit f57e61e19229e23c4445b85494dbf7c07de721cb; argon2id_hash_raw(t=3,m=256,p=2,password=password,salt=somesalt,tag=32,v=19)"
+	// #nosec G101 -- public known-answer test input, not a credential.
+	argon2VectorPasswordHex = "70617373776f7264"
+	argon2VectorSaltHex     = "736f6d6573616c74"
+	argon2VectorExpectedHex = "a3161de99d0e7c0762364b2c4b3ea2b950005973f8879d54287fd8bd56921f36"
+)
+
+var errInvalidArgon2Vector = errors.New("identity test: invalid Argon2 vector")
+
+type checkedArgon2Vector struct {
+	password []byte
+	salt     []byte
+	expected []byte
+	params   argon2Vector
+}
+
+type argon2VectorDeriver func(password, salt []byte, time, memoryKiB uint32, parallelism uint8, tagBytes uint32) []byte
+
+func decodeArgon2Vector(reader io.Reader) (checkedArgon2Vector, error) {
+	var vector argon2Vector
+	if err := strictjson.Decode(reader, maximumArgon2VectorBytes, &vector); err != nil {
+		return checkedArgon2Vector{}, err
+	}
+	if vector.Source != argon2VectorSource || vector.Variant != "Argon2id" || vector.Version != argon2.Version ||
+		vector.PasswordHex != argon2VectorPasswordHex || vector.SaltHex != argon2VectorSaltHex ||
+		vector.Time != 3 || vector.MemoryKiB != 256 || vector.Parallelism != 2 || vector.TagBytes != 32 ||
+		vector.ExpectedHex != argon2VectorExpectedHex {
+		return checkedArgon2Vector{}, errInvalidArgon2Vector
+	}
+	password, passwordErr := hex.DecodeString(vector.PasswordHex)
+	salt, saltErr := hex.DecodeString(vector.SaltHex)
+	expected, expectedErr := hex.DecodeString(vector.ExpectedHex)
+	if passwordErr != nil || saltErr != nil || expectedErr != nil || len(password) != 8 || len(salt) != 8 || len(expected) != 32 {
+		clear(password)
+		clear(salt)
+		clear(expected)
+		return checkedArgon2Vector{}, errInvalidArgon2Vector
+	}
+	return checkedArgon2Vector{password: password, salt: salt, expected: expected, params: vector}, nil
+}
+
+func verifyArgon2Vector(reader io.Reader, derive argon2VectorDeriver) error {
+	vector, err := decodeArgon2Vector(reader)
+	if err != nil {
+		return err
+	}
+	defer clear(vector.password)
+	defer clear(vector.salt)
+	defer clear(vector.expected)
+	got := derive(
+		vector.password,
+		vector.salt,
+		vector.params.Time,
+		vector.params.MemoryKiB,
+		vector.params.Parallelism,
+		vector.params.TagBytes,
+	)
+	defer clear(got)
+	if !bytes.Equal(got, vector.expected) {
+		return errInvalidArgon2Vector
+	}
+	return nil
+}
+
 func TestPasswordArgon2idCheckedInKnownVector(t *testing.T) {
+	fixture, err := os.Open("../../testdata/crypto/rfc9106/argon2id-v1.json")
+	if err != nil {
+		t.Fatalf("open vector: %v", err)
+	}
+	t.Cleanup(func() { _ = fixture.Close() })
+	derive := func(password, salt []byte, time, memoryKiB uint32, parallelism uint8, tagBytes uint32) []byte {
+		return argon2.IDKey(password, salt, time, memoryKiB, parallelism, tagBytes)
+	}
+	if err := verifyArgon2Vector(fixture, derive); err != nil {
+		t.Fatalf("verify vector: %v", err)
+	}
+}
+
+func TestPasswordArgon2idRejectsMutatedFixtureBeforeDerivation(t *testing.T) {
 	encoded, err := os.ReadFile("../../testdata/crypto/rfc9106/argon2id-v1.json")
 	if err != nil {
 		t.Fatalf("read vector: %v", err)
 	}
-	var vector argon2Vector
-	if err := json.Unmarshal(encoded, &vector); err != nil {
-		t.Fatalf("decode vector: %v", err)
+	replace := func(old, replacement string) []byte {
+		t.Helper()
+		mutated := bytes.Replace(encoded, []byte(old), []byte(replacement), 1)
+		if bytes.Equal(mutated, encoded) {
+			t.Fatalf("mutation source not found: %q", old)
+		}
+		return mutated
 	}
-	if vector.Source == "" || vector.Variant != "Argon2id" || vector.Version != argon2.Version {
-		t.Fatalf("incomplete vector provenance: %+v", vector)
+	tests := []struct {
+		name string
+		body []byte
+	}{
+		{name: "unknown member", body: replace(`"variant": "Argon2id",`, `"variant": "Argon2id", "unknown": true,`)},
+		{name: "duplicate member", body: replace(`"time": 3,`, `"time": 3, "time": 3,`)},
+		{name: "wrong source", body: replace(argon2VectorSource, "untrusted source")},
+		{name: "wrong variant", body: replace(`"variant": "Argon2id"`, `"variant": "Argon2i"`)},
+		{name: "wrong version", body: replace(`"version": 19`, `"version": 16`)},
+		{name: "unsafe time", body: replace(`"time": 3`, `"time": 4294967295`)},
+		{name: "unsafe memory", body: replace(`"memory_kib": 256`, `"memory_kib": 4294967295`)},
+		{name: "unsafe parallelism", body: replace(`"parallelism": 2`, `"parallelism": 255`)},
+		{name: "wrong tag bytes", body: replace(`"tag_bytes": 32`, `"tag_bytes": 24`)},
+		{name: "wrong password", body: replace(argon2VectorPasswordHex, "70617373")},
+		{name: "wrong salt", body: replace(argon2VectorSaltHex, "73616c74")},
+		{name: "wrong expected", body: replace(argon2VectorExpectedHex, strings.Repeat("00", 32))},
+		{name: "over byte limit", body: bytes.Repeat([]byte{' '}, int(maximumArgon2VectorBytes)+1)},
 	}
-	password, err := hex.DecodeString(vector.PasswordHex)
-	if err != nil {
-		t.Fatalf("password hex: %v", err)
-	}
-	salt, err := hex.DecodeString(vector.SaltHex)
-	if err != nil {
-		t.Fatalf("salt hex: %v", err)
-	}
-	want, err := hex.DecodeString(vector.ExpectedHex)
-	if err != nil {
-		t.Fatalf("expected hex: %v", err)
-	}
-	got := argon2.IDKey(password, salt, vector.Time, vector.MemoryKiB, vector.Parallelism, vector.TagBytes)
-	if !bytes.Equal(got, want) {
-		t.Fatalf("Argon2id tag = %x, want %x", got, want)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			calls := 0
+			derive := func(_, _ []byte, _, _ uint32, _ uint8, _ uint32) []byte {
+				calls++
+				return make([]byte, 32)
+			}
+			if err := verifyArgon2Vector(bytes.NewReader(test.body), derive); err == nil {
+				t.Fatal("mutated vector verified")
+			}
+			if calls != 0 {
+				t.Fatalf("Argon2 calls = %d, want 0", calls)
+			}
+		})
 	}
 }

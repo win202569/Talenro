@@ -136,9 +136,10 @@ func VerifyPasswordWithDeriver(password []byte, credential PasswordCredential, c
 	}
 
 	passwordOK := validPassword(password)
-	passwordCopy := append([]byte(nil), password...)
-	if !passwordOK {
-		clear(passwordCopy)
+	var passwordCopy []byte
+	if passwordOK {
+		passwordCopy = append([]byte(nil), password...)
+	} else {
 		passwordCopy = append([]byte(nil), dummyPassword...)
 	}
 	defer clear(passwordCopy)
@@ -159,6 +160,10 @@ func VerifyPasswordWithDeriver(password []byte, credential PasswordCredential, c
 	defer clear(derived)
 	equal := subtle.ConstantTimeCompare(derived, expected) == 1
 	match = approvedCurrent && passwordOK && credentialOK && !workCredential.dummy && equal
+	// C1.1 approves only policy v1, so every successful match is current and
+	// needsUpgrade remains false. A future version must receive a separate
+	// security review: verify legacy hashes with their finite approved policy
+	// while retaining current-cost dummy work on every enumeration path.
 	needsUpgrade = match && credential.policy != current
 	return match, needsUpgrade
 }

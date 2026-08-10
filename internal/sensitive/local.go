@@ -9,7 +9,10 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
+	"math"
 	"sync"
 
 	"talenro.local/platform/internal/secret"
@@ -63,7 +66,7 @@ func NewLocal(lookupKey, encryptionKey secret.Bytes, keyVersion uint32) (*Local,
 	encryptionCopy := encryptionKey.Copy()
 	defer clear(lookupCopy)
 	defer clear(encryptionCopy)
-	if len(lookupCopy) != keyBytes || len(encryptionCopy) != keyBytes || keyVersion == 0 {
+	if len(lookupCopy) != keyBytes || len(encryptionCopy) != keyBytes || keyVersion == 0 || keyVersion > math.MaxInt32 {
 		return nil, ErrInvalidArgument
 	}
 	return &Local{
@@ -71,6 +74,16 @@ func NewLocal(lookupKey, encryptionKey secret.Bytes, keyVersion uint32) (*Local,
 		encryptionKey: append([]byte(nil), encryptionCopy...),
 		keyVersion:    keyVersion,
 	}, nil
+}
+
+// Format prevents fmt from reflecting locally held key bytes.
+func (*Local) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("sensitive.Local([REDACTED])"))
+}
+
+// LogValue prevents slog from reflecting locally held key bytes.
+func (*Local) LogValue() slog.Value {
+	return slog.StringValue("sensitive.Local([REDACTED])")
 }
 
 // LookupDigest computes HMAC-SHA256 over an unambiguous domain and value.
@@ -131,7 +144,7 @@ func (local *Local) Encrypt(domain string, plaintext []byte) (EncryptedField, er
 // Decrypt authenticates domain, fixed-width big-endian key version, and value.
 func (local *Local) Decrypt(domain string, value EncryptedField) ([]byte, error) {
 	if local == nil || !validDomain(domain) || value.KeyVersion == 0 ||
-		len(value.Ciphertext) < aesGCMNonceBytes()+aesGCMOverheadBytes() ||
+		len(value.Ciphertext) <= aesGCMNonceBytes()+aesGCMOverheadBytes() ||
 		len(value.Ciphertext) > aesGCMNonceBytes()+aesGCMOverheadBytes()+maximumProtectedBytes {
 		return nil, ErrInvalidArgument
 	}

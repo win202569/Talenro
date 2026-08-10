@@ -8,6 +8,10 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"log/slog"
+	"math"
+	"strings"
 	"sync"
 	"testing"
 
@@ -56,6 +60,60 @@ func TestLocalRejectsInvalidKeysAndVersion(t *testing.T) {
 				t.Fatalf("error = %v, want ErrInvalidArgument", err)
 			}
 		})
+	}
+}
+
+func TestLocalKeyVersionMatchesPostgresIntegerRange(t *testing.T) {
+	lookup := secret.NewBytes(bytes.Repeat([]byte{0x11}, 32))
+	encryption := secret.NewBytes(bytes.Repeat([]byte{0x22}, 32))
+	for _, version := range []uint32{1, math.MaxInt32} {
+		local, err := NewLocal(lookup, encryption, version)
+		if err != nil {
+			t.Fatalf("NewLocal version %d: %v", version, err)
+		}
+		value, err := local.Encrypt("identity/email/v1", []byte("value"))
+		if err != nil {
+			t.Fatalf("Encrypt version %d: %v", version, err)
+		}
+		opened, err := local.Decrypt("identity/email/v1", value)
+		if err != nil || string(opened) != "value" {
+			t.Fatalf("roundtrip version %d = %q, %v", version, opened, err)
+		}
+		if version == math.MaxInt32 {
+			block, cipherErr := aes.NewCipher(bytes.Repeat([]byte{0x22}, 32))
+			if cipherErr != nil {
+				t.Fatalf("aes.NewCipher: %v", cipherErr)
+			}
+			aead, gcmErr := cipher.NewGCM(block)
+			if gcmErr != nil {
+				t.Fatalf("cipher.NewGCM: %v", gcmErr)
+			}
+			aad := append([]byte("TALENRO-FIELD-V1\x00identity/email/v1\x00"), 0x7f, 0xff, 0xff, 0xff)
+			independent, openErr := aead.Open(nil, value.Ciphertext[:12], value.Ciphertext[12:], aad)
+			if openErr != nil || string(independent) != "value" {
+				t.Fatalf("independent max-version open = %q, %v", independent, openErr)
+			}
+		}
+		_ = local.Close()
+	}
+	for _, version := range []uint32{math.MaxInt32 + 1, math.MaxUint32} {
+		local, err := NewLocal(lookup, encryption, version)
+		if !errors.Is(err, ErrInvalidArgument) || local != nil {
+			t.Fatalf("NewLocal version %d returnedLocal=%v error=%v, want false ErrInvalidArgument", version, local != nil, err)
+		}
+	}
+}
+
+func TestLocalRedactsFormattingAndStructuredLogging(t *testing.T) {
+	local := newTestLocal(t, 1)
+	for _, rendered := range []string{
+		fmt.Sprintf("%v", local),
+		fmt.Sprintf("%#v", local),
+		slog.AnyValue(local).String(),
+	} {
+		if strings.Contains(rendered, "17 17 17") || strings.Contains(rendered, "34 34 34") {
+			t.Fatalf("rendering exposed key material")
+		}
 	}
 }
 
@@ -167,6 +225,28 @@ func TestLocalRejectsSubstitutionTamperAndBounds(t *testing.T) {
 	}
 }
 
+func TestLocalDecryptRejectsAuthenticatedEmptyPlaintext(t *testing.T) {
+	local := newTestLocal(t, 7)
+	block, err := aes.NewCipher(bytes.Repeat([]byte{0x22}, 32))
+	if err != nil {
+		t.Fatalf("aes.NewCipher: %v", err)
+	}
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		t.Fatalf("cipher.NewGCM: %v", err)
+	}
+	nonce := make([]byte, 12)
+	aad := append([]byte("TALENRO-FIELD-V1\x00identity/email/v1\x00"), 0, 0, 0, 7)
+	ciphertext := append(append([]byte(nil), nonce...), aead.Seal(nil, nonce, nil, aad)...)
+	if len(ciphertext) != 28 {
+		t.Fatalf("fixture ciphertext length = %d", len(ciphertext))
+	}
+	_, err = local.Decrypt("identity/email/v1", EncryptedField{KeyVersion: 7, Ciphertext: ciphertext})
+	if !errors.Is(err, ErrInvalidArgument) {
+		t.Fatalf("Decrypt authenticated empty plaintext error = %v, want ErrInvalidArgument", err)
+	}
+}
+
 func TestLocalUsesFreshNonce(t *testing.T) {
 	local := newTestLocal(t, 1)
 	first, err := local.Encrypt("identity/email/v1", []byte("same"))
@@ -184,23 +264,81 @@ func TestLocalUsesFreshNonce(t *testing.T) {
 
 func TestLocalCloseIsConcurrentAndFailsClosed(t *testing.T) {
 	local := newTestLocal(t, 1)
-	var wait sync.WaitGroup
-	for range 8 {
-		wait.Add(1)
+	protected, err := local.Encrypt("identity/email/v1", []byte("before-close"))
+	if err != nil {
+		t.Fatalf("Encrypt before close: %v", err)
+	}
+
+	const workerCount = 8
+	startWorkers := make(chan struct{})
+	firstSuccess := make(chan struct{})
+	workerErrors := make(chan error, workerCount)
+	var firstSuccessOnce sync.Once
+	var workersReady sync.WaitGroup
+	var workersDone sync.WaitGroup
+	workersReady.Add(workerCount)
+	workersDone.Add(workerCount)
+	largePlaintext := bytes.Repeat([]byte{'x'}, 1<<20)
+	for range workerCount {
 		go func() {
-			defer wait.Done()
-			for range 50 {
-				_, _ = local.Encrypt("identity/email/v1", []byte("concurrent"))
-				_ = local.LookupDigest("identity/email/v1", []byte("concurrent"))
+			defer workersDone.Done()
+			workersReady.Done()
+			<-startWorkers
+			for {
+				_, encryptErr := local.Encrypt("identity/email/v1", largePlaintext)
+				if errors.Is(encryptErr, ErrClosed) {
+					return
+				}
+				if encryptErr != nil {
+					workerErrors <- encryptErr
+					return
+				}
+				firstSuccessOnce.Do(func() { close(firstSuccess) })
+				_ = local.LookupDigest("identity/email/v1", largePlaintext)
 			}
 		}()
 	}
-	if err := local.Close(); err != nil {
-		t.Fatalf("Close: %v", err)
+	workersReady.Wait()
+	close(startWorkers)
+	<-firstSuccess
+
+	const closerCount = 8
+	startClosers := make(chan struct{})
+	closerErrors := make(chan error, closerCount)
+	var closersReady sync.WaitGroup
+	var closersDone sync.WaitGroup
+	closersReady.Add(closerCount)
+	closersDone.Add(closerCount)
+	for range closerCount {
+		go func() {
+			defer closersDone.Done()
+			closersReady.Done()
+			<-startClosers
+			if closeErr := local.Close(); closeErr != nil {
+				closerErrors <- closeErr
+			}
+		}()
 	}
-	wait.Wait()
+	closersReady.Wait()
+	close(startClosers)
+	closersDone.Wait()
+	workersDone.Wait()
+	close(closerErrors)
+	close(workerErrors)
+	for closeErr := range closerErrors {
+		t.Fatalf("concurrent Close: %v", closeErr)
+	}
+	for workerErr := range workerErrors {
+		t.Fatalf("concurrent operation: %v", workerErr)
+	}
+	if err := local.Close(); err != nil {
+		t.Fatalf("idempotent Close: %v", err)
+	}
 	if _, err := local.Encrypt("identity/email/v1", []byte("after-close")); !errors.Is(err, ErrClosed) {
 		t.Fatalf("Encrypt after close error = %v", err)
+	}
+	if _, err := local.Decrypt("identity/email/v1", protected); !errors.Is(err, ErrClosed) {
+		t.Fatalf("Decrypt after close error = %v", err)
 	}
 	if digest := local.LookupDigest("identity/email/v1", []byte("after-close")); digest != [32]byte{} {
 		t.Fatalf("digest after close = %x", digest)
