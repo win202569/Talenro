@@ -40,6 +40,13 @@ type idempotencyOutcome struct {
 	keyVersion  int32
 }
 
+type publicOutboxState struct {
+	availableAt  time.Time
+	claimedUntil sql.NullTime
+	attempts     int32
+	publishedAt  sql.NullTime
+}
+
 func TestTrustBundleVersionsAreMonotonicUnderConcurrency(t *testing.T) {
 	pool := testinfra.OpenMigratedPostgres(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -334,25 +341,53 @@ func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	queries := store.New(pool)
-	deleteTask5OutboxFixtures(ctx, t, pool)
+	publicBaseline := snapshotPublicOutbox(ctx, t, pool)
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	sentinelID := uuid.New()
+	insertPublicOutboxSentinel(ctx, t, store.New(pool), sentinelID, now.Add(-time.Hour))
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cleanupCancel()
-		deleteTask5OutboxFixtures(cleanupCtx, t, pool)
+		if _, err := pool.Exec(cleanupCtx, `DELETE FROM public.transactional_outbox WHERE event_id=$1`, sentinelID); err != nil {
+			t.Fatal("delete public outbox sentinel failed")
+		}
 	})
-	now := time.Now().UTC().Truncate(time.Microsecond)
+
+	schemaName := ""
+	t.Run("isolated global tables", func(t *testing.T) {
+		schemaName = createIsolatedGlobalTables(ctx, t, pool)
+		exerciseOutboxPersistence(ctx, t, pool, schemaName, now)
+	})
+
+	assertSchemaAbsent(ctx, t, pool, schemaName)
+	assertPublicOutboxSentinelUnchanged(ctx, t, pool, sentinelID)
+	after := snapshotPublicOutbox(ctx, t, pool)
+	delete(after, sentinelID)
+	assertPublicOutboxBaselineUnchanged(t, publicBaseline, after)
+}
+
+func exerciseOutboxPersistence(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+	schemaName string,
+	now time.Time,
+) {
+	t.Helper()
+	setupTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
+	defer func() { _ = setupTx.Rollback(ctx) }()
+	setupQueries := store.New(setupTx)
 	firstID := uuid.New()
 	secondID := uuid.New()
 	futureID := uuid.New()
-	insertOutboxFixture(ctx, t, queries, firstID, now.Add(-2*time.Second), now.Add(-time.Second))
-	insertOutboxFixture(ctx, t, queries, secondID, now.Add(-time.Second), now.Add(-time.Second))
-	insertOutboxFixture(ctx, t, queries, futureID, now, now.Add(time.Hour))
-
-	firstTx, err := pool.Begin(ctx)
-	if err != nil {
-		t.Fatal("begin first outbox claim transaction failed")
+	insertOutboxFixture(ctx, t, setupQueries, firstID, now.Add(-2*time.Second), now.Add(-time.Second))
+	insertOutboxFixture(ctx, t, setupQueries, secondID, now.Add(-time.Second), now.Add(-time.Second))
+	insertOutboxFixture(ctx, t, setupQueries, futureID, now, now.Add(time.Hour))
+	if err := setupTx.Commit(ctx); err != nil {
+		t.Fatal("commit isolated outbox fixtures failed")
 	}
+
+	firstTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
 	defer func() { _ = firstTx.Rollback(ctx) }()
 	firstClaimedUntil := now.Add(30 * time.Second)
 	firstBatch, err := store.New(firstTx).ClaimOutboxBatch(ctx, store.ClaimOutboxBatchParams{
@@ -364,10 +399,7 @@ func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 		t.Fatal("first outbox batch claim failed")
 	}
 
-	secondTx, err := pool.Begin(ctx)
-	if err != nil {
-		t.Fatal("begin second outbox claim transaction failed")
-	}
+	secondTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
 	defer func() { _ = secondTx.Rollback(ctx) }()
 	secondClaimedUntil := now.Add(30 * time.Second)
 	secondBatch, err := store.New(secondTx).ClaimOutboxBatch(ctx, store.ClaimOutboxBatchParams{
@@ -394,6 +426,9 @@ func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 		t.Fatal("commit second outbox claim failed")
 	}
 
+	workTx := beginIsolatedGlobalTx(ctx, t, pool, schemaName)
+	defer func() { _ = workTx.Rollback(ctx) }()
+	queries := store.New(workTx)
 	published, err := queries.MarkOutboxPublished(ctx, store.MarkOutboxPublishedParams{
 		EventID:     firstID,
 		PublishedAt: sql.NullTime{Time: now.Add(time.Second), Valid: true},
@@ -460,6 +495,9 @@ func TestOutboxClaimPublishReleaseAndConsumerDedupe(t *testing.T) {
 	prunedExpired, err := queries.PruneConsumedEvents(ctx, consumedExpiry.Add(time.Microsecond))
 	if err != nil || prunedExpired != 1 {
 		t.Fatal("expired consumer dedupe record was not pruned")
+	}
+	if err := workTx.Commit(ctx); err != nil {
+		t.Fatal("commit isolated outbox assertions failed")
 	}
 }
 
@@ -562,14 +600,179 @@ func insertOutboxFixture(
 	}
 }
 
-func deleteTask5OutboxFixtures(ctx context.Context, t *testing.T, pool *pgxpool.Pool) {
+func insertPublicOutboxSentinel(
+	ctx context.Context,
+	t *testing.T,
+	queries *store.Queries,
+	eventID uuid.UUID,
+	occurredAt time.Time,
+) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DELETE FROM consumed_event_ids WHERE consumer='task5.trust.publisher'`); err != nil {
-		t.Fatal("delete consumed event fixtures failed")
+	if err := queries.InsertOutboxEvent(ctx, store.InsertOutboxEventParams{
+		EventID:          eventID,
+		EventType:        "talenro.review.sentinel.v1",
+		AggregateType:    "review_sentinel",
+		AggregateID:      uuid.New(),
+		AggregateVersion: 1,
+		IdempotencyKey:   "review-sentinel:" + eventID.String(),
+		Payload:          []byte{1},
+		OccurredAt:       occurredAt,
+		AvailableAt:      occurredAt,
+	}); err != nil {
+		t.Fatal("insert public outbox sentinel failed")
 	}
-	if _, err := pool.Exec(ctx, `DELETE FROM transactional_outbox WHERE idempotency_key LIKE 'task5:%'`); err != nil {
-		t.Fatal("delete outbox fixtures failed")
+}
+
+func createIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool.Pool) string {
+	t.Helper()
+	schemaName := "task5_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	schemaIdentifier := pgx.Identifier{schemaName}.Sanitize()
+	if _, err := pool.Exec(ctx, "CREATE SCHEMA "+schemaIdentifier); err != nil {
+		t.Fatal("create isolated global-table schema failed")
 	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cleanupCancel()
+		dropIsolatedGlobalTables(cleanupCtx, t, pool, schemaName)
+	})
+	for _, tableName := range []string{"idempotency_records", "transactional_outbox", "consumed_event_ids"} {
+		destination := pgx.Identifier{schemaName, tableName}.Sanitize()
+		source := pgx.Identifier{"public", tableName}.Sanitize()
+		if _, err := pool.Exec(ctx, "CREATE TABLE "+destination+" (LIKE "+source+" INCLUDING ALL)"); err != nil {
+			t.Fatal("clone isolated global table failed")
+		}
+	}
+	return schemaName
+}
+
+func dropIsolatedGlobalTables(ctx context.Context, t *testing.T, pool *pgxpool.Pool, schemaName string) {
+	t.Helper()
+	identifier := pgx.Identifier{schemaName}.Sanitize()
+	if _, err := pool.Exec(ctx, "DROP SCHEMA "+identifier+" CASCADE"); err != nil {
+		t.Fatal("drop isolated global-table schema failed")
+	}
+}
+
+func beginIsolatedGlobalTx(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+	schemaName string,
+) pgx.Tx {
+	t.Helper()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal("begin isolated global-table transaction failed")
+	}
+	searchPath := "SET LOCAL search_path TO " +
+		pgx.Identifier{schemaName}.Sanitize() + ", " +
+		pgx.Identifier{"public"}.Sanitize()
+	if _, err := tx.Exec(ctx, searchPath); err != nil {
+		_ = tx.Rollback(ctx)
+		t.Fatal("set isolated global-table search path failed")
+	}
+	return tx
+}
+
+func snapshotPublicOutbox(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+) map[uuid.UUID]publicOutboxState {
+	t.Helper()
+	rows, err := pool.Query(ctx, `
+SELECT event_id, available_at, claimed_until, attempts, published_at
+FROM public.transactional_outbox
+ORDER BY event_id`)
+	if err != nil {
+		t.Fatal("snapshot public outbox failed")
+	}
+	defer rows.Close()
+
+	result := make(map[uuid.UUID]publicOutboxState)
+	for rows.Next() {
+		var eventID uuid.UUID
+		var state publicOutboxState
+		if err := rows.Scan(
+			&eventID,
+			&state.availableAt,
+			&state.claimedUntil,
+			&state.attempts,
+			&state.publishedAt,
+		); err != nil {
+			t.Fatal("scan public outbox snapshot failed")
+		}
+		result[eventID] = state
+	}
+	if rows.Err() != nil {
+		t.Fatal("read public outbox snapshot failed")
+	}
+	return result
+}
+
+func assertPublicOutboxSentinelUnchanged(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+	eventID uuid.UUID,
+) {
+	t.Helper()
+	var claimedUntil sql.NullTime
+	var attempts int32
+	var publishedAt sql.NullTime
+	if err := pool.QueryRow(ctx, `
+SELECT claimed_until, attempts, published_at
+FROM public.transactional_outbox
+WHERE event_id=$1`, eventID).Scan(&claimedUntil, &attempts, &publishedAt); err != nil {
+		t.Fatal("read public outbox sentinel failed")
+	}
+	if claimedUntil.Valid || attempts != 0 || publishedAt.Valid {
+		t.Fatal("isolated outbox test mutated the public sentinel")
+	}
+}
+
+func assertSchemaAbsent(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+	schemaName string,
+) {
+	t.Helper()
+	var absent bool
+	if err := pool.QueryRow(ctx, `SELECT to_regnamespace($1) IS NULL`, schemaName).Scan(&absent); err != nil {
+		t.Fatal("verify isolated schema cleanup failed")
+	}
+	if !absent {
+		t.Fatal("isolated global-table schema remained after cleanup")
+	}
+}
+
+func assertPublicOutboxBaselineUnchanged(
+	t *testing.T,
+	want map[uuid.UUID]publicOutboxState,
+	got map[uuid.UUID]publicOutboxState,
+) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Fatalf("public outbox row count changed: got=%d want=%d", len(got), len(want))
+	}
+	for eventID, wantState := range want {
+		gotState, ok := got[eventID]
+		if !ok || !publicOutboxStatesEqual(gotState, wantState) {
+			t.Fatal("pre-existing public outbox state changed")
+		}
+	}
+}
+
+func publicOutboxStatesEqual(a publicOutboxState, b publicOutboxState) bool {
+	return a.availableAt.Equal(b.availableAt) &&
+		nullTimesEqual(a.claimedUntil, b.claimedUntil) &&
+		a.attempts == b.attempts &&
+		nullTimesEqual(a.publishedAt, b.publishedAt)
+}
+
+func nullTimesEqual(a sql.NullTime, b sql.NullTime) bool {
+	return a.Valid == b.Valid && (!a.Valid || a.Time.Equal(b.Time))
 }
 
 var _ pgx.Tx
