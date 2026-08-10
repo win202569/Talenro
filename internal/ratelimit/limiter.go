@@ -5,7 +5,9 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/binary"
 	"errors"
+	"math"
 	"time"
 
 	"talenro.local/platform/internal/config"
@@ -46,11 +48,19 @@ func SubjectDigest(key secret.Bytes, operation Operation, at time.Time, policy c
 		return [32]byte{}, ErrInvalidInput
 	}
 
-	windowStart := at.UTC().Truncate(policy.Window).Format(time.RFC3339Nano)
-	material := make([]byte, 0, len(subjectDigestPrefix)+len(operation)+len(windowStart)+len(canonicalSubject))
+	windowStart, ok := floorWindowStart(at.UTC().UnixNano(), int64(policy.Window))
+	if !ok {
+		return [32]byte{}, ErrInvalidInput
+	}
+	windowBytes := [8]byte{}
+	// #nosec G115 -- the same-width conversion preserves the signed two's-complement bits.
+	binary.BigEndian.PutUint64(windowBytes[:], uint64(windowStart))
+	// The prefix ends in NUL, the finite operation names are not prefixes of one
+	// another, and the window is fixed-width, so the concatenation is unambiguous.
+	material := make([]byte, 0, len(subjectDigestPrefix)+len(operation)+len(windowBytes)+len(canonicalSubject))
 	material = append(material, subjectDigestPrefix...)
 	material = append(material, operation...)
-	material = append(material, windowStart...)
+	material = append(material, windowBytes[:]...)
 	material = append(material, canonicalSubject...)
 	defer clear(material)
 
@@ -61,6 +71,20 @@ func SubjectDigest(key secret.Bytes, operation Operation, at time.Time, policy c
 	var digest [32]byte
 	copy(digest[:], sum)
 	return digest, nil
+}
+
+func floorWindowStart(unixNanos, windowNanos int64) (int64, bool) {
+	if windowNanos <= 0 {
+		return 0, false
+	}
+	quotient := unixNanos / windowNanos
+	if unixNanos%windowNanos < 0 {
+		quotient--
+	}
+	if quotient < math.MinInt64/windowNanos || quotient > math.MaxInt64/windowNanos {
+		return 0, false
+	}
+	return quotient * windowNanos, true
 }
 
 // NewBackendError discards a backend cause and returns a fixed sentinel.

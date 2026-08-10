@@ -34,6 +34,28 @@ type partialFailureRandom struct {
 	buffer []byte
 }
 
+type typedNilRandom struct{}
+
+func (*typedNilRandom) Read([]byte) (int, error) { return 0, io.EOF }
+
+type eofRandom struct{}
+
+func (eofRandom) Read([]byte) (int, error) { return 0, io.EOF }
+
+type shortEOFRandom struct {
+	buffer []byte
+}
+
+func (random *shortEOFRandom) Read(target []byte) (int, error) {
+	random.buffer = target
+	copy(target, []byte{1, 2, 3})
+	return 3, io.EOF
+}
+
+type noProgressRandom struct{}
+
+func (noProgressRandom) Read([]byte) (int, error) { return 0, nil }
+
 func (random *partialFailureRandom) Read(target []byte) (int, error) {
 	random.buffer = target
 	copy(target, []byte("SECRET-CANARY"))
@@ -93,6 +115,69 @@ func TestNewOpaqueTokenSanitizesRandomFailureAndZeroizesPartialBytes(t *testing.
 	}
 }
 
+func TestNewOpaqueTokenRejectsTypedNilAndShortEOF(t *testing.T) {
+	t.Parallel()
+
+	var typedNil *typedNilRandom
+	tests := []struct {
+		name   string
+		random securitykit.RandomSource
+		want   error
+	}{
+		{name: "typed nil", random: typedNil, want: securitykit.ErrInvalidArgument},
+		{name: "immediate EOF", random: eofRandom{}, want: securitykit.ErrRandomSource},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			token, err := securitykit.NewOpaqueToken(test.random)
+			if !errors.Is(err, test.want) {
+				t.Fatalf("NewOpaqueToken() error = %v, want %v", err, test.want)
+			}
+			tokenCopy := token.Copy()
+			if len(tokenCopy) != 0 {
+				clear(tokenCopy)
+				t.Fatalf("NewOpaqueToken() returned %d bytes", len(tokenCopy))
+			}
+		})
+	}
+}
+
+func TestNewOpaqueTokenZeroizesShortEOFBytes(t *testing.T) {
+	t.Parallel()
+
+	random := &shortEOFRandom{}
+	token, err := securitykit.NewOpaqueToken(random)
+	if !errors.Is(err, securitykit.ErrRandomSource) {
+		t.Fatalf("NewOpaqueToken() error = %v, want ErrRandomSource", err)
+	}
+	if !bytes.Equal(random.buffer, make([]byte, len(random.buffer))) {
+		t.Fatal("NewOpaqueToken() retained bytes from short EOF")
+	}
+	tokenCopy := token.Copy()
+	if len(tokenCopy) != 0 {
+		clear(tokenCopy)
+		t.Fatalf("NewOpaqueToken() returned %d bytes", len(tokenCopy))
+	}
+}
+
+func TestNewOpaqueTokenBoundsNoProgressSource(t *testing.T) {
+	result := make(chan error, 1)
+	go func() {
+		_, err := securitykit.NewOpaqueToken(noProgressRandom{})
+		result <- err
+	}()
+
+	select {
+	case err := <-result:
+		if !errors.Is(err, securitykit.ErrRandomSource) {
+			t.Fatalf("NewOpaqueToken() error = %v, want ErrRandomSource", err)
+		}
+	case <-time.After(250 * time.Millisecond):
+		t.Fatal("NewOpaqueToken() did not bound a no-progress random source")
+	}
+}
+
 func TestDecodeOpaqueTokenRejectsNonCanonicalOrWrongLengthValues(t *testing.T) {
 	t.Parallel()
 
@@ -146,6 +231,20 @@ func TestDigestTokenSeparatesAllSevenDomains(t *testing.T) {
 	defer clear(rawCopy)
 	if !bytes.Equal(rawCopy, rawBytes) {
 		t.Fatal("DigestToken mutated caller-owned secret")
+	}
+}
+
+func TestDigestTokenFailsClosedForUnknownDomain(t *testing.T) {
+	t.Parallel()
+
+	raw := secret.NewBytes(bytes.Repeat([]byte{0x7a}, 32))
+	if digest := securitykit.DigestToken(securitykit.TokenDomain("unknown"), raw); digest != ([32]byte{}) {
+		t.Fatalf("DigestToken() unknown domain = %x, want all zero", digest)
+	}
+	rawCopy := raw.Copy()
+	defer clear(rawCopy)
+	if !bytes.Equal(rawCopy, bytes.Repeat([]byte{0x7a}, 32)) {
+		t.Fatal("DigestToken() mutated raw token for unknown domain")
 	}
 }
 

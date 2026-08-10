@@ -8,6 +8,7 @@ import (
 	"io"
 	"reflect"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -51,7 +52,7 @@ func Decode(reader io.Reader, maxBytes int64, target any) error {
 	if !utf8.Valid(body) {
 		return ErrInvalidUTF8
 	}
-	if err := validateStructure(body); err != nil {
+	if err := validateStructure(body, reflect.TypeOf(target).Elem()); err != nil {
 		return err
 	}
 
@@ -73,17 +74,43 @@ func Decode(reader io.Reader, maxBytes int64, target any) error {
 	return nil
 }
 
-func validateStructure(body []byte) error {
+type structureValidator struct {
+	decoder *json.Decoder
+	schemas map[reflect.Type]structSchema
+}
+
+type structSchema struct {
+	fields map[string]reflect.Type
+}
+
+type fieldCandidate struct {
+	typeOf reflect.Type
+	depth  int
+	tagged bool
+}
+
+type embeddedType struct {
+	typeOf reflect.Type
+	depth  int
+}
+
+var jsonUnmarshalerType = reflect.TypeFor[json.Unmarshaler]()
+
+func validateStructure(body []byte, targetType reflect.Type) error {
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.UseNumber()
-	first, err := decoder.Token()
+	validator := structureValidator{
+		decoder: decoder,
+		schemas: make(map[reflect.Type]structSchema),
+	}
+	first, err := validator.decoder.Token()
 	if err != nil {
 		return ErrInvalidJSON
 	}
-	if err := walkValue(decoder, first, 0); err != nil {
+	if err := validator.walkValue(first, 0, targetType); err != nil {
 		return err
 	}
-	_, err = decoder.Token()
+	_, err = validator.decoder.Token()
 	if err == io.EOF {
 		return nil
 	}
@@ -93,7 +120,7 @@ func validateStructure(body []byte) error {
 	return ErrTrailingData
 }
 
-func walkValue(decoder *json.Decoder, token json.Token, depth int) error {
+func (validator *structureValidator) walkValue(token json.Token, depth int, expectedType reflect.Type) error {
 	delimiter, isDelimiter := token.(json.Delim)
 	if !isDelimiter {
 		return nil
@@ -106,9 +133,11 @@ func walkValue(decoder *json.Decoder, token json.Token, depth int) error {
 	}
 
 	if delimiter == '{' {
+		schema, mapElementType, validatesMembers := validator.objectExpectation(expectedType)
 		members := make(map[string]struct{})
-		for decoder.More() {
-			memberToken, err := decoder.Token()
+		seenFields := make(map[string]struct{})
+		for validator.decoder.More() {
+			memberToken, err := validator.decoder.Token()
 			if err != nil {
 				return ErrInvalidJSON
 			}
@@ -120,27 +149,44 @@ func walkValue(decoder *json.Decoder, token json.Token, depth int) error {
 				return ErrDuplicateMember
 			}
 			members[member] = struct{}{}
-			valueToken, err := decoder.Token()
+
+			memberType := mapElementType
+			if validatesMembers {
+				acceptedType, exists := schema.fields[member]
+				if !exists {
+					if canonical, unique := schema.foldedMatch(member); unique {
+						if _, alreadySeen := seenFields[canonical]; alreadySeen {
+							return ErrDuplicateMember
+						}
+					}
+					return ErrUnknownMember
+				}
+				seenFields[member] = struct{}{}
+				memberType = acceptedType
+			}
+
+			valueToken, err := validator.decoder.Token()
 			if err != nil {
 				return ErrInvalidJSON
 			}
-			if err := walkValue(decoder, valueToken, depth+1); err != nil {
+			if err := validator.walkValue(valueToken, depth+1, memberType); err != nil {
 				return err
 			}
 		}
 	} else {
-		for decoder.More() {
-			valueToken, err := decoder.Token()
+		elementType := arrayElementType(expectedType)
+		for validator.decoder.More() {
+			valueToken, err := validator.decoder.Token()
 			if err != nil {
 				return ErrInvalidJSON
 			}
-			if err := walkValue(decoder, valueToken, depth+1); err != nil {
+			if err := validator.walkValue(valueToken, depth+1, elementType); err != nil {
 				return err
 			}
 		}
 	}
 
-	closing, err := decoder.Token()
+	closing, err := validator.decoder.Token()
 	if err != nil {
 		return ErrInvalidJSON
 	}
@@ -149,6 +195,173 @@ func walkValue(decoder *json.Decoder, token json.Token, depth int) error {
 		return ErrInvalidJSON
 	}
 	return nil
+}
+
+func (validator *structureValidator) objectExpectation(expectedType reflect.Type) (structSchema, reflect.Type, bool) {
+	typeOf, opaque := concreteJSONType(expectedType)
+	if opaque || typeOf == nil {
+		return structSchema{}, nil, false
+	}
+	if typeOf.Kind() == reflect.Struct {
+		schema, exists := validator.schemas[typeOf]
+		if !exists {
+			schema = buildStructSchema(typeOf)
+			validator.schemas[typeOf] = schema
+		}
+		return schema, nil, true
+	}
+	if typeOf.Kind() == reflect.Map {
+		return structSchema{}, typeOf.Elem(), false
+	}
+	return structSchema{}, nil, false
+}
+
+func arrayElementType(expectedType reflect.Type) reflect.Type {
+	typeOf, opaque := concreteJSONType(expectedType)
+	if opaque || typeOf == nil {
+		return nil
+	}
+	if typeOf.Kind() == reflect.Array || typeOf.Kind() == reflect.Slice {
+		return typeOf.Elem()
+	}
+	return nil
+}
+
+func concreteJSONType(typeOf reflect.Type) (reflect.Type, bool) {
+	for typeOf != nil {
+		if typeOf.Implements(jsonUnmarshalerType) {
+			return nil, true
+		}
+		if typeOf.Kind() != reflect.Pointer && reflect.PointerTo(typeOf).Implements(jsonUnmarshalerType) {
+			return nil, true
+		}
+		if typeOf.Kind() != reflect.Pointer {
+			return typeOf, false
+		}
+		typeOf = typeOf.Elem()
+	}
+	return nil, false
+}
+
+func buildStructSchema(root reflect.Type) structSchema {
+	candidates := make(map[string][]fieldCandidate)
+	queue := []embeddedType{{typeOf: root}}
+	visitedDepth := make(map[reflect.Type]int)
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if previousDepth, visited := visitedDepth[current.typeOf]; visited && previousDepth < current.depth {
+			continue
+		}
+		if previousDepth, visited := visitedDepth[current.typeOf]; !visited || current.depth < previousDepth {
+			visitedDepth[current.typeOf] = current.depth
+		}
+
+		for index := range current.typeOf.NumField() {
+			field := current.typeOf.Field(index)
+			fieldType := field.Type
+			embeddedBase := fieldType
+			if embeddedBase.Kind() == reflect.Pointer {
+				embeddedBase = embeddedBase.Elem()
+			}
+			if field.Anonymous {
+				if !field.IsExported() && embeddedBase.Kind() != reflect.Struct {
+					continue
+				}
+			} else if !field.IsExported() {
+				continue
+			}
+
+			tag := field.Tag.Get("json")
+			if tag == "-" {
+				continue
+			}
+			name, _, _ := strings.Cut(tag, ",")
+			if name != "" && !validJSONTag(name) {
+				name = ""
+			}
+			tagged := name != ""
+			if name == "" {
+				name = field.Name
+			}
+
+			if tagged || !field.Anonymous || embeddedBase.Kind() != reflect.Struct {
+				candidates[name] = append(candidates[name], fieldCandidate{
+					typeOf: fieldType,
+					depth:  current.depth,
+					tagged: tagged,
+				})
+				continue
+			}
+			queue = append(queue, embeddedType{typeOf: embeddedBase, depth: current.depth + 1})
+		}
+	}
+
+	fields := make(map[string]reflect.Type, len(candidates))
+	for name, namedCandidates := range candidates {
+		minimumDepth := namedCandidates[0].depth
+		for _, candidate := range namedCandidates[1:] {
+			if candidate.depth < minimumDepth {
+				minimumDepth = candidate.depth
+			}
+		}
+		atDepth := make([]fieldCandidate, 0, len(namedCandidates))
+		for _, candidate := range namedCandidates {
+			if candidate.depth == minimumDepth {
+				atDepth = append(atDepth, candidate)
+			}
+		}
+		selected, ok := dominantCandidate(atDepth)
+		if ok {
+			fields[name] = selected.typeOf
+		}
+	}
+	return structSchema{fields: fields}
+}
+
+func dominantCandidate(candidates []fieldCandidate) (fieldCandidate, bool) {
+	if len(candidates) == 1 {
+		return candidates[0], true
+	}
+	var tagged fieldCandidate
+	taggedCount := 0
+	for _, candidate := range candidates {
+		if candidate.tagged {
+			tagged = candidate
+			taggedCount++
+		}
+	}
+	if taggedCount == 1 {
+		return tagged, true
+	}
+	return fieldCandidate{}, false
+}
+
+func (schema structSchema) foldedMatch(member string) (string, bool) {
+	match := ""
+	for field := range schema.fields {
+		if strings.EqualFold(field, member) {
+			if match != "" {
+				return "", false
+			}
+			match = field
+		}
+	}
+	return match, match != ""
+}
+
+func validJSONTag(name string) bool {
+	if name == "" {
+		return false
+	}
+	for _, character := range name {
+		if unicode.IsLetter(character) || unicode.IsDigit(character) || strings.ContainsRune("!#$%&()*+-./:;<=>?@[]^_{|}~ ", character) {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func validTarget(target any) bool {

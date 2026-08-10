@@ -2,6 +2,7 @@ package strictjson_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"strings"
@@ -17,6 +18,49 @@ type request struct {
 	Nested struct {
 		Enabled bool `json:"enabled"`
 	} `json:"nested"`
+}
+
+type exactChild struct {
+	Value string `json:"value"`
+}
+
+type embeddedFields struct {
+	Promoted string `json:"promoted"`
+	Ignored  string `json:"-"`
+}
+
+type customObject struct {
+	Seen bool
+}
+
+func (object *customObject) UnmarshalJSON([]byte) error {
+	object.Seen = true
+	return nil
+}
+
+type reflectionRequest struct {
+	embeddedFields
+	Pointer *exactChild     `json:"pointer"`
+	Items   []exactChild    `json:"items"`
+	Raw     json.RawMessage `json:"raw"`
+	Custom  customObject    `json:"custom"`
+	Labels  map[string]int  `json:"labels"`
+	Any     any             `json:"any"`
+	Array   [1]exactChild   `json:"array"`
+	Hidden  string          `json:"-"`
+}
+
+type ambiguousLeft struct {
+	Shared string
+}
+
+type ambiguousRight struct {
+	Shared string
+}
+
+type ambiguousRequest struct {
+	ambiguousLeft
+	ambiguousRight
 }
 
 func TestDecodeRejectsInvalidBodiesWithFiniteErrors(t *testing.T) {
@@ -116,5 +160,67 @@ func TestDecodeSupportsTypedScalarWithExactEOF(t *testing.T) {
 	}
 	if err := strictjson.Decode(strings.NewReader(`"value" true`), maxBodyBytes, &target); !errors.Is(err, strictjson.ErrTrailingData) {
 		t.Fatalf("Decode() trailing error = %v, want ErrTrailingData", err)
+	}
+}
+
+func TestDecodeRejectsCaseFoldedAliasesInsteadOfLettingJSONOverwrite(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		body string
+		want error
+	}{
+		{name: "root case variant", body: `{"Name":"value"}`, want: strictjson.ErrUnknownMember},
+		{name: "root exact then folded alias", body: `{"name":"first","NAME":"second"}`, want: strictjson.ErrDuplicateMember},
+		{name: "nested case variant", body: `{"nested":{"Enabled":true}}`, want: strictjson.ErrUnknownMember},
+		{name: "nested exact then folded alias", body: `{"nested":{"enabled":true,"ENABLED":false}}`, want: strictjson.ErrDuplicateMember},
+		{name: "pointer nested case variant", body: `{"pointer":{"Value":"value"}}`, want: strictjson.ErrUnknownMember},
+		{name: "slice nested case variant", body: `{"items":[{"VALUE":"value"}]}`, want: strictjson.ErrUnknownMember},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			target := any(&request{})
+			if strings.Contains(test.body, "pointer") || strings.Contains(test.body, "items") {
+				target = &reflectionRequest{}
+			}
+			err := strictjson.Decode(strings.NewReader(test.body), maxBodyBytes, target)
+			if !errors.Is(err, test.want) {
+				t.Fatalf("Decode() error = %v, want %v", err, test.want)
+			}
+			if bytes.Contains([]byte(err.Error()), []byte("NAME")) || bytes.Contains([]byte(err.Error()), []byte("Enabled")) || bytes.Contains([]byte(err.Error()), []byte("VALUE")) {
+				t.Fatalf("Decode() error disclosed member input: %q", err)
+			}
+		})
+	}
+}
+
+func TestDecodeReflectsExactStructShapeWithoutRestrictingOpaqueOrMapValues(t *testing.T) {
+	t.Parallel()
+
+	body := `{"promoted":"ok","pointer":{"value":"p"},"items":[{"value":"s"}],"array":[{"value":"a"}],"raw":{"MiXeD":1},"custom":{"CuStOm":true},"labels":{"Key":1,"key":2},"any":{"FreeForm":true}}`
+	var target reflectionRequest
+	if err := strictjson.Decode(strings.NewReader(body), maxBodyBytes, &target); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if target.Promoted != "ok" || target.Pointer == nil || target.Pointer.Value != "p" || len(target.Items) != 1 || target.Items[0].Value != "s" || target.Array[0].Value != "a" || !target.Custom.Seen || len(target.Raw) == 0 || len(target.Labels) != 2 {
+		t.Fatalf("Decode() target = %#v", target)
+	}
+}
+
+func TestDecodeRejectsIgnoredAndAmbiguousEmbeddedMembers(t *testing.T) {
+	t.Parallel()
+
+	for _, body := range []string{`{"Hidden":"canary"}`, `{"Ignored":"canary"}`} {
+		var reflected reflectionRequest
+		if err := strictjson.Decode(strings.NewReader(body), maxBodyBytes, &reflected); !errors.Is(err, strictjson.ErrUnknownMember) {
+			t.Fatalf("Decode() ignored member error = %v, want ErrUnknownMember", err)
+		}
+	}
+	var ambiguous ambiguousRequest
+	if err := strictjson.Decode(strings.NewReader(`{"Shared":"canary"}`), maxBodyBytes, &ambiguous); !errors.Is(err, strictjson.ErrUnknownMember) {
+		t.Fatalf("Decode() ambiguous member error = %v, want ErrUnknownMember", err)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"math"
 	"testing"
 	"time"
 
@@ -37,7 +38,7 @@ func TestLimiterContractReturnsAllowedOrDenied(t *testing.T) {
 	}
 }
 
-func TestSubjectDigestUsesFiniteOperationAndRotatesAtUTCWindow(t *testing.T) {
+func TestSubjectDigestUsesEpochFlooredBinaryWindowGoldenVector(t *testing.T) {
 	t.Parallel()
 
 	keyBytes := make([]byte, 32)
@@ -45,13 +46,13 @@ func TestSubjectDigestUsesFiniteOperationAndRotatesAtUTCWindow(t *testing.T) {
 		keyBytes[index] = byte(index)
 	}
 	key := secret.NewBytes(keyBytes)
-	policy := config.RateLimitPolicy{Limit: 10, Window: 15 * time.Minute}
-	at := time.Date(2026, time.August, 9, 12, 34, 56, 0, time.UTC)
+	policy := config.RateLimitPolicy{Limit: 10, Window: 7 * time.Hour}
+	at := time.Date(2026, time.August, 9, 14, 0, 0, 0, time.UTC)
 	digest, err := ratelimit.SubjectDigest(key, ratelimit.Login, at, policy, "user@example.com")
 	if err != nil {
 		t.Fatalf("SubjectDigest() error = %v", err)
 	}
-	const wantHex = "f78e2d9046bfb1fc224d5709daa597b7eee641489749313c11eed92d77258503"
+	const wantHex = "a6a4c39e9d15687517654253f4f29e92e585a8e58635cab5a214debe466bfb3c"
 	if got := hex.EncodeToString(digest[:]); got != wantHex {
 		t.Fatalf("SubjectDigest() = %s, want %s", got, wantHex)
 	}
@@ -62,10 +63,6 @@ func TestSubjectDigestUsesFiniteOperationAndRotatesAtUTCWindow(t *testing.T) {
 		t.Fatalf("same instant digest = %x, %v; want %x", sameDigest, err, digest)
 	}
 
-	nextWindow, err := ratelimit.SubjectDigest(key, ratelimit.Login, at.Add(15*time.Minute), policy, "user@example.com")
-	if err != nil || nextWindow == digest {
-		t.Fatalf("next-window digest = %x, %v; want distinct", nextWindow, err)
-	}
 	otherOperation, err := ratelimit.SubjectDigest(key, ratelimit.Delivery, at, policy, "user@example.com")
 	if err != nil || otherOperation == digest {
 		t.Fatalf("other-operation digest = %x, %v; want distinct", otherOperation, err)
@@ -74,6 +71,53 @@ func TestSubjectDigestUsesFiniteOperationAndRotatesAtUTCWindow(t *testing.T) {
 	defer clear(keyCopy)
 	if !bytes.Equal(keyCopy, keyBytes) {
 		t.Fatal("SubjectDigest mutated caller-owned key")
+	}
+}
+
+func TestSubjectDigestEpochWindowBoundaries(t *testing.T) {
+	t.Parallel()
+
+	key := secret.NewBytes(bytes.Repeat([]byte{0x42}, 32))
+	policy := config.RateLimitPolicy{Limit: 10, Window: 7 * time.Hour}
+	start := time.Date(2026, time.August, 9, 12, 0, 0, 0, time.UTC)
+	digestAtStart, err := ratelimit.SubjectDigest(key, ratelimit.Login, start, policy, "boundary-subject")
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, err := ratelimit.SubjectDigest(key, ratelimit.Login, start.Add(-time.Nanosecond), policy, "boundary-subject")
+	if err != nil || before == digestAtStart {
+		t.Fatalf("start-1ns digest = %x, %v; want previous window", before, err)
+	}
+	inside, err := ratelimit.SubjectDigest(key, ratelimit.Login, start.Add(policy.Window-time.Nanosecond), policy, "boundary-subject")
+	if err != nil || inside != digestAtStart {
+		t.Fatalf("start+window-1ns digest = %x, %v; want %x", inside, err, digestAtStart)
+	}
+	next, err := ratelimit.SubjectDigest(key, ratelimit.Login, start.Add(policy.Window), policy, "boundary-subject")
+	if err != nil || next == digestAtStart {
+		t.Fatalf("next-window digest = %x, %v; want distinct", next, err)
+	}
+}
+
+func TestSubjectDigestFloorsNegativeUnixTimeAndRejectsUnrepresentableFloor(t *testing.T) {
+	t.Parallel()
+
+	keyBytes := make([]byte, 32)
+	for index := range keyBytes {
+		keyBytes[index] = byte(index)
+	}
+	key := secret.NewBytes(keyBytes)
+	digest, err := ratelimit.SubjectDigest(key, ratelimit.Login, time.Unix(-1, 999999999).UTC(), config.RateLimitPolicy{Limit: 1, Window: time.Second}, "negative@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const wantNegativeHex = "ef34b43f0949a7756c9f407d90d4230a7b7f4ac04c7aca4b6122eeb44c30bc84"
+	if got := hex.EncodeToString(digest[:]); got != wantNegativeHex {
+		t.Fatalf("negative SubjectDigest() = %s, want %s", got, wantNegativeHex)
+	}
+
+	_, err = ratelimit.SubjectDigest(key, ratelimit.Login, time.Unix(0, math.MinInt64).UTC(), config.RateLimitPolicy{Limit: 1, Window: 3 * time.Nanosecond}, "overflow-subject")
+	if !errors.Is(err, ratelimit.ErrInvalidInput) {
+		t.Fatalf("unrepresentable floor error = %v, want ErrInvalidInput", err)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 )
 
 func FuzzDecode(f *testing.F) {
+	oversized := bytes.Repeat([]byte{'x'}, int(maxBodyBytes)+1)
 	for _, seed := range [][]byte{
 		[]byte(`{"name":"ok"}`),
 		[]byte(`{"unknown":"SECRET-CANARY"}`),
@@ -17,6 +18,7 @@ func FuzzDecode(f *testing.F) {
 		{'{', '"', 'n', 'a', 'm', 'e', '"', ':', '"', 0xff, '"', '}'},
 		[]byte(`{"name":"a"}{"name":"b"}`),
 		[]byte(`[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]`),
+		oversized,
 	} {
 		f.Add(seed)
 	}

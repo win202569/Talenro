@@ -13,6 +13,7 @@ import (
 const (
 	opaqueTokenBytes      = 32
 	opaqueTokenCharacters = 43
+	maximumEmptyReads     = 8
 	// #nosec G101 -- this is a public domain-separation label, not a credential.
 	tokenDigestPrefix = "TALENRO-TOKEN-DIGEST-V1\x00"
 )
@@ -60,11 +61,33 @@ func NewOpaqueToken(random RandomSource) (secret.Bytes, error) {
 	}
 	buffer := make([]byte, opaqueTokenBytes)
 	defer clear(buffer)
-	count, err := io.ReadFull(random, buffer)
+	bounded := boundedRandomSource{source: random}
+	count, err := io.ReadFull(&bounded, buffer)
 	if err != nil || count != opaqueTokenBytes {
 		return secret.Bytes{}, ErrRandomSource
 	}
 	return secret.NewBytes(buffer), nil
+}
+
+type boundedRandomSource struct {
+	source     RandomSource
+	emptyReads int
+}
+
+func (random *boundedRandomSource) Read(target []byte) (int, error) {
+	count, err := random.source.Read(target)
+	if count < 0 || count > len(target) {
+		return 0, io.ErrNoProgress
+	}
+	if count == 0 && err == nil {
+		random.emptyReads++
+		if random.emptyReads >= maximumEmptyReads {
+			return 0, io.ErrNoProgress
+		}
+	} else {
+		random.emptyReads = 0
+	}
+	return count, err
 }
 
 // EncodeOpaqueToken returns the canonical unpadded base64url representation.
