@@ -136,9 +136,8 @@ func TestEmailDeliveryLocaleMatchesFrozenContract(t *testing.T) {
 	t.Parallel()
 
 	base := &identityv1.EmailDeliveryRequested{
-		DeliveryId:  "f4232063-70a4-4ef5-8627-5cd9f2a8ab9d",
-		PrincipalId: "4b4d278b-9e7a-4ce0-865d-1dc14fcf96da",
-		TemplateId:  "verify_email",
+		DeliveryId: "f4232063-70a4-4ef5-8627-5cd9f2a8ab9d",
+		TemplateId: "verify_email",
 	}
 	for _, locale := range []string{"en", "fa-IR", "zh-Hans-CN-variant8", "abc-12345678-12345678-12345678"} {
 		payload := proto.Clone(base).(*identityv1.EmailDeliveryRequested)

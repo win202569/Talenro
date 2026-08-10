@@ -466,7 +466,7 @@ func (q *Queries) FindAccountAccessToken(ctx context.Context, accessTokenHash []
 }
 
 const findIdentityByLookupDigest = `-- name: FindIdentityByLookupDigest :one
-SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encryption_key_version, verification_token_hash, verification_expires_at, verification_consumed_at, verification_delivery_id, verification_delivery_ciphertext, verification_delivery_key_version, verified_at, created_at, updated_at FROM identity.email_identities WHERE lookup_digest = $1
+SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encryption_key_version, verification_token_hash, verification_expires_at, verification_consumed_at, verification_delivery_id, verification_delivery_ciphertext, verification_delivery_key_version, verified_at, created_at, updated_at FROM identity.email_identities WHERE lookup_digest = $1 FOR UPDATE
 `
 
 func (q *Queries) FindIdentityByLookupDigest(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error) {
@@ -563,18 +563,11 @@ func (q *Queries) GetActiveRecoveryCodeSetForUpdate(ctx context.Context, princip
 const getEmailVerificationForUpdate = `-- name: GetEmailVerificationForUpdate :one
 SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encryption_key_version, verification_token_hash, verification_expires_at, verification_consumed_at, verification_delivery_id, verification_delivery_ciphertext, verification_delivery_key_version, verified_at, created_at, updated_at FROM identity.email_identities
 WHERE verification_token_hash = $1
-  AND verification_consumed_at IS NULL
-  AND verification_expires_at >= $2
 FOR UPDATE
 `
 
-type GetEmailVerificationForUpdateParams struct {
-	VerificationTokenHash []byte       `json:"verification_token_hash"`
-	VerificationExpiresAt sql.NullTime `json:"verification_expires_at"`
-}
-
-func (q *Queries) GetEmailVerificationForUpdate(ctx context.Context, arg GetEmailVerificationForUpdateParams) (IdentityEmailIdentity, error) {
-	row := q.db.QueryRow(ctx, getEmailVerificationForUpdate, arg.VerificationTokenHash, arg.VerificationExpiresAt)
+func (q *Queries) GetEmailVerificationForUpdate(ctx context.Context, verificationTokenHash []byte) (IdentityEmailIdentity, error) {
+	row := q.db.QueryRow(ctx, getEmailVerificationForUpdate, verificationTokenHash)
 	var i IdentityEmailIdentity
 	err := row.Scan(
 		&i.ID,
@@ -830,6 +823,17 @@ func (q *Queries) ListActivePasskeys(ctx context.Context, principalID uuid.UUID)
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockEmailLookupDigest = `-- name: LockEmailLookupDigest :exec
+SELECT pg_advisory_xact_lock(
+  hashtextextended(encode($1::bytea, 'hex'), 0)
+)
+`
+
+func (q *Queries) LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error {
+	_, err := q.db.Exec(ctx, lockEmailLookupDigest, lookupDigest)
+	return err
 }
 
 const markAccountRefreshUsed = `-- name: MarkAccountRefreshUsed :one

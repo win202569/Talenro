@@ -3,8 +3,11 @@ package identity
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,6 +35,131 @@ import (
 	"talenro.local/platform/internal/store"
 )
 
+func TestPrivateRequestBindingUsesServerKeyAndUnambiguousFrames(t *testing.T) {
+	t.Parallel()
+
+	lookupKeyA := bytes.Repeat([]byte{0x41}, 32)
+	lookupKeyB := bytes.Repeat([]byte{0x42}, 32)
+	protectorA, err := sensitive.NewLocal(secret.NewBytes(lookupKeyA), secret.NewBytes(bytes.Repeat([]byte{0x51}, 32)), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = protectorA.Close() })
+	protectorB, err := sensitive.NewLocal(secret.NewBytes(lookupKeyB), secret.NewBytes(bytes.Repeat([]byte{0x52}, 32)), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = protectorB.Close() })
+
+	operation := "register_account"
+	parts := [][]byte{[]byte("private@example.test"), []byte("correct horse battery staple"), []byte("en")}
+	bindingA, err := privateCanonicalRequest(protectorA, operation, parts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(bindingA)
+	bindingB, err := privateCanonicalRequest(protectorB, operation, parts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(bindingB)
+	if bytes.Equal(bindingA, bindingB) {
+		t.Fatal("private request binding did not change with the server lookup key")
+	}
+
+	want := task9PrivateRequestBinding(lookupKeyA, operation, parts...)
+	defer clear(want)
+	if !hmac.Equal(bindingA, want) {
+		t.Fatal("private request binding did not use the fixed keyed, length-framed contract")
+	}
+
+	oldCanonical := task9LegacyPrivateCanonical(operation, parts...)
+	defer clear(oldCanonical)
+	oldDatabaseDigest, err := idempotency.RequestDigest(operation, oldCanonical)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newDatabaseDigest, err := idempotency.RequestDigest(operation, bindingA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if oldDatabaseDigest == newDatabaseDigest {
+		t.Fatal("server-keyed binding still matches the legacy unkeyed database verifier")
+	}
+	rawFastDigest := sha256.Sum256(bytes.Join(parts, nil))
+	if bytes.Equal(bindingA, rawFastDigest[:]) || bytes.Equal(newDatabaseDigest[:], rawFastDigest[:]) {
+		t.Fatal("private request binding matches a fast raw-field SHA-256 verifier")
+	}
+
+	framedLeft, err := privateCanonicalRequest(protectorA, operation, []byte("ab"), []byte("c"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(framedLeft)
+	framedRight, err := privateCanonicalRequest(protectorA, operation, []byte("a"), []byte("bc"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(framedRight)
+	if bytes.Equal(framedLeft, framedRight) {
+		t.Fatal("private field framing is ambiguous")
+	}
+	otherOperation, err := privateCanonicalRequest(protectorA, "verify_email", parts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(otherOperation)
+	if bytes.Equal(bindingA, otherOperation) {
+		t.Fatal("private operation framing is ambiguous")
+	}
+	if _, err := privateCanonicalRequest(protectorA, "caller_defined_operation", parts...); err == nil {
+		t.Fatal("arbitrary private operation accepted")
+	}
+}
+
+func task9PrivateRequestBinding(lookupKey []byte, operation string, parts ...[]byte) []byte {
+	material := make([]byte, 0, len(operation)+len(parts)*4+8)
+	var frame [4]byte
+	// #nosec G115 -- this independent reference is called only with fixed, short test vectors.
+	binary.BigEndian.PutUint32(frame[:], uint32(len(operation)))
+	material = append(material, frame[:]...)
+	material = append(material, operation...)
+	// #nosec G115 -- this independent reference is called only with fixed, short test vectors.
+	binary.BigEndian.PutUint32(frame[:], uint32(len(parts)))
+	material = append(material, frame[:]...)
+	for _, part := range parts {
+		// #nosec G115 -- this independent reference is called only with fixed, short test vectors.
+		binary.BigEndian.PutUint32(frame[:], uint32(len(part)))
+		material = append(material, frame[:]...)
+		material = append(material, part...)
+	}
+	clear(frame[:])
+	defer clear(material)
+	mac := hmac.New(sha256.New, lookupKey)
+	_, _ = mac.Write([]byte("TALENRO-LOOKUP-V1\x00identity_private_request_v1\x00"))
+	_, _ = mac.Write(material)
+	return mac.Sum(nil)
+}
+
+func task9LegacyPrivateCanonical(operation string, parts ...[]byte) []byte {
+	hash := sha256.New()
+	_, _ = hash.Write([]byte("TALENRO-IDENTITY-PRIVATE-REQUEST-V1\x00"))
+	_, _ = hash.Write([]byte(operation))
+	var frame [4]byte
+	for _, part := range parts {
+		// #nosec G115 -- this legacy golden is called only with fixed, short test vectors.
+		binary.BigEndian.PutUint32(frame[:], uint32(len(part)))
+		_, _ = hash.Write(frame[:])
+		_, _ = hash.Write(part)
+	}
+	clear(frame[:])
+	digest := hash.Sum(nil)
+	defer clear(digest)
+	encoded := make([]byte, hex.EncodedLen(len(digest)))
+	hex.Encode(encoded, digest)
+	return append([]byte(`{"digest":"`), append(encoded, []byte(`"}`)...)...)
+}
+
 func TestRegisterNewAndDuplicateAreIndistinguishableAndOrdered(t *testing.T) {
 	t.Parallel()
 
@@ -49,7 +177,7 @@ func TestRegisterNewAndDuplicateAreIndistinguishableAndOrdered(t *testing.T) {
 		t.Fatalf("new registration derivations = %d, want 1", newDeriver.calls)
 	}
 	wantNewOrder := []string{
-		"begin_idempotency", "find_identity", "create_account", "create_email_identity", "create_password_credential",
+		"begin_idempotency", "lock_email_lookup", "find_identity", "create_account", "create_email_identity", "create_password_credential",
 		"insert_security_event", "append_event", "complete_idempotency", "commit",
 	}
 	assertTask9Order(t, newTx.operations, wantNewOrder)
@@ -61,6 +189,9 @@ func TestRegisterNewAndDuplicateAreIndistinguishableAndOrdered(t *testing.T) {
 	}
 	assertProtectedDelivery(t, newApplication.protector, emailVerificationDeliveryDomain, newTx.createdEmail.VerificationDeliveryCiphertext, newTx.createdEmail.VerificationDeliveryKeyVersion.Int32, "Member@example.test", string(VerifyEmailTemplate), "en")
 	assertPrivateEmailDeliveryEvent(t, newTx.events[0], newTx.createdEmail.VerificationDeliveryID.UUID, newTx.createdAccount.ID, VerifyEmailTemplate, "en", []byte("Member@example.test"), command.Password.Copy())
+	passwordCopy := command.Password.Copy()
+	defer clear(passwordCopy)
+	assertTask9PrivateBinding(t, newTx.idempotencyCanonical[0], "register_account", []byte("Member@example.test"), passwordCopy, []byte(command.Locale))
 
 	existingTx := &fakeIdentityTransaction{identityFound: true, identity: store.IdentityEmailIdentity{PrincipalID: uuid.New()}}
 	existingApplication, existingDeriver, _, _ := newTask9Application(t, config.EmailRequired, existingTx)
@@ -71,7 +202,7 @@ func TestRegisterNewAndDuplicateAreIndistinguishableAndOrdered(t *testing.T) {
 	if existingDeriver.calls != 1 {
 		t.Fatalf("duplicate registration derivations = %d, want 1", existingDeriver.calls)
 	}
-	assertTask9Order(t, existingTx.operations, []string{"begin_idempotency", "find_identity", "complete_idempotency", "commit"})
+	assertTask9Order(t, existingTx.operations, []string{"begin_idempotency", "lock_email_lookup", "find_identity", "complete_idempotency", "commit"})
 	if existingTx.mutationCount() != 0 {
 		t.Fatalf("duplicate registration mutations = %d", existingTx.mutationCount())
 	}
@@ -341,18 +472,19 @@ type fakeIdentityTransaction struct {
 	consumeEmailOK    bool
 	consumeResetOK    bool
 
-	createdAccount    store.CreateAccountParams
-	createdEmail      store.CreateEmailIdentityParams
-	createdCredential store.CreatePasswordCredentialParams
-	resetEmail        store.ResetEmailVerificationParams
-	passwordReset     store.SetPasswordResetParams
-	consumedReset     store.ConsumePasswordResetParams
-	createdSession    store.CreateAccountSessionParams
-	createdRefresh    store.InsertAccountRefreshTokenParams
-	createdGrant      store.CreateEnrollmentGrantParams
-	securityEvents    []store.InsertSecurityEventParams
-	events            []*eventsv1.EventEnvelope
-	dbtx              fakeTask9DBTX
+	createdAccount       store.CreateAccountParams
+	createdEmail         store.CreateEmailIdentityParams
+	createdCredential    store.CreatePasswordCredentialParams
+	resetEmail           store.ResetEmailVerificationParams
+	passwordReset        store.SetPasswordResetParams
+	consumedReset        store.ConsumePasswordResetParams
+	createdSession       store.CreateAccountSessionParams
+	createdRefresh       store.InsertAccountRefreshTokenParams
+	createdGrant         store.CreateEnrollmentGrantParams
+	securityEvents       []store.InsertSecurityEventParams
+	events               []*eventsv1.EventEnvelope
+	idempotencyCanonical [][]byte
+	dbtx                 fakeTask9DBTX
 }
 
 func (tx *fakeIdentityTransaction) record(operation string) error {
@@ -364,7 +496,8 @@ func (tx *fakeIdentityTransaction) record(operation string) error {
 }
 
 func (tx *fakeIdentityTransaction) DBTX() store.DBTX { return &tx.dbtx }
-func (tx *fakeIdentityTransaction) BeginIdempotency(_ context.Context, _ idempotency.Scope, _ string, _ []byte, _, _ time.Time) (idempotency.Record, idempotency.Outcome, error) {
+func (tx *fakeIdentityTransaction) BeginIdempotency(_ context.Context, _ idempotency.Scope, _ string, canonical []byte, _, _ time.Time) (idempotency.Record, idempotency.Outcome, error) {
+	tx.idempotencyCanonical = append(tx.idempotencyCanonical, bytes.Clone(canonical))
 	return idempotency.Record{}, idempotency.Started, tx.record("begin_idempotency")
 }
 func (tx *fakeIdentityTransaction) CompleteIdempotency(_ context.Context, _ idempotency.Record, _ int, _ []byte) error {
@@ -374,7 +507,10 @@ func (tx *fakeIdentityTransaction) FindIdentityByLookupDigest(context.Context, [
 	err := tx.record("find_identity")
 	return tx.identity, tx.identityFound, err
 }
-func (tx *fakeIdentityTransaction) GetEmailVerificationForUpdate(context.Context, store.GetEmailVerificationForUpdateParams) (store.IdentityEmailIdentity, bool, error) {
+func (tx *fakeIdentityTransaction) LockEmailLookupDigest(context.Context, []byte) error {
+	return tx.record("lock_email_lookup")
+}
+func (tx *fakeIdentityTransaction) GetEmailVerificationForUpdate(context.Context, []byte) (store.IdentityEmailIdentity, bool, error) {
 	err := tx.record("get_verification")
 	return tx.verification, tx.verificationFound, err
 }
@@ -538,6 +674,15 @@ func assertTask9Order(t *testing.T, got, want []string) {
 	}
 }
 
+func assertTask9PrivateBinding(t *testing.T, got []byte, operation string, parts ...[]byte) {
+	t.Helper()
+	want := task9PrivateRequestBinding(bytes.Repeat([]byte{0x11}, 32), operation, parts...)
+	defer clear(want)
+	if len(got) != sha256.Size || !hmac.Equal(got, want) {
+		t.Fatal("private call site did not pass the fixed server-keyed request binding")
+	}
+}
+
 func assertProtectedDelivery(t *testing.T, protector sensitive.Protector, domain string, ciphertext []byte, keyVersion int32, recipient, template, locale string) {
 	t.Helper()
 	if keyVersion < 1 {
@@ -566,8 +711,12 @@ func assertPrivateEmailDeliveryEvent(t *testing.T, envelope *eventsv1.EventEnvel
 	if envelope.GetEventType() != contractevents.EmailDeliveryRequestedType {
 		t.Fatalf("event type = %q", envelope.GetEventType())
 	}
+	if envelope.GetAggregateType() != "email_delivery" || envelope.GetAggregateId() != deliveryID.String() || envelope.GetAggregateVersion() != 1 {
+		t.Fatalf("delivery aggregate = %q/%q/%d", envelope.GetAggregateType(), envelope.GetAggregateId(), envelope.GetAggregateVersion())
+	}
+	forbidden = append(forbidden, []byte(principalID.String()), []byte("d64cc450-b7eb-4575-9d8a-8a304096e719"))
 	for _, value := range forbidden {
-		if bytes.Contains(envelope.GetPayload(), value) {
+		if bytes.Contains(envelope.GetPayload(), value) || bytes.Contains([]byte(envelope.GetAggregateId()), value) {
 			t.Fatal("delivery event exposed forbidden request material")
 		}
 	}
@@ -575,7 +724,7 @@ func assertPrivateEmailDeliveryEvent(t *testing.T, envelope *eventsv1.EventEnvel
 	if err := proto.Unmarshal(envelope.GetPayload(), payload); err != nil {
 		t.Fatal("decode delivery event")
 	}
-	if payload.GetDeliveryId() != deliveryID.String() || payload.GetPrincipalId() != principalID.String() || payload.GetTemplateId() != string(template) || payload.GetLocale() != locale {
+	if payload.GetDeliveryId() != deliveryID.String() || payload.GetTemplateId() != string(template) || payload.GetLocale() != locale {
 		t.Fatalf("delivery event = %#v", payload)
 	}
 }

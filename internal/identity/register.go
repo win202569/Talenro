@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"io"
 	"math"
@@ -33,7 +32,7 @@ const (
 	emailVerificationDeliveryDomain = "identity/email-verification-delivery/v1"
 	passwordResetDeliveryDomain     = "identity/password-reset-delivery/v1"
 	passwordResetDigestDomain       = "TALENRO-PASSWORD-RESET-TOKEN-V1\x00"
-	privateRequestDigestDomain      = "TALENRO-IDENTITY-PRIVATE-REQUEST-V1\x00"
+	privateRequestDigestDomain      = "identity_private_request_v1"
 	acceptedResponseBody            = `{"accepted":true}`
 	ordinaryIdempotencyRetention    = 24 * time.Hour
 	securityIdempotencyRetention    = 90 * 24 * time.Hour
@@ -86,9 +85,20 @@ func (service *Service) RegisterAccount(ctx context.Context, command RegisterAcc
 	if !validService(service) || nilIdentityValue(ctx) || !validIdentityLocale(command.Locale) || !validPasswordSecret(command.Password) || !validIdempotencyKeyForApplication(command.IdempotencyKey) {
 		return RegisterAccountResult{}, malformedRequest()
 	}
+	canonicalEmail, canonicalErr := CanonicalizeEmail(command.Email)
+	if canonicalErr != nil {
+		return RegisterAccountResult{}, malformedRequest()
+	}
+	canonicalEmailBytes := canonicalEmail.Bytes()
+	defer clear(canonicalEmailBytes)
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
-	canonicalRequest := privateCanonicalRequest("register_account", []byte(command.Email), command.Password.Copy(), []byte(command.Locale))
+	requestPassword := command.Password.Copy()
+	defer clear(requestPassword)
+	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, "register_account", canonicalEmailBytes, requestPassword, []byte(command.Locale))
+	if requestErr != nil {
+		return RegisterAccountResult{}, dependencyUnavailable()
+	}
 	defer clear(canonicalRequest)
 	accepted := RegisterAccountResult{Accepted: true}
 	err := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
@@ -106,11 +116,7 @@ func (service *Service) RegisterAccount(ctx context.Context, command RegisterAcc
 			return replayErr
 		}
 
-		canonicalEmail, canonicalErr := CanonicalizeEmail(command.Email)
-		if canonicalErr != nil {
-			return malformedRequest()
-		}
-		emailBytes := canonicalEmail.Bytes()
+		emailBytes := append([]byte(nil), canonicalEmailBytes...)
 		defer clear(emailBytes)
 		lookupDigest := service.protector.LookupDigest(emailFieldDomain, emailBytes)
 		if lookupDigest == [32]byte{} {
@@ -122,6 +128,9 @@ func (service *Service) RegisterAccount(ctx context.Context, command RegisterAcc
 			return dependencyUnavailable()
 		}
 		defer clear(protectedEmail.Ciphertext)
+		if lockErr := transaction.LockEmailLookupDigest(transactionContext, lookupDigest[:]); lockErr != nil {
+			return dependencyUnavailable()
+		}
 		_, exists, findErr := transaction.FindIdentityByLookupDigest(transactionContext, lookupDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
@@ -205,7 +214,7 @@ func (service *Service) RegisterAccount(ctx context.Context, command RegisterAcc
 			return dependencyUnavailable()
 		}
 		if deliveryID.Valid {
-			envelope, eventErr := service.emailDeliveryEvent(deliveryID.UUID, principalID, 1, VerifyEmailTemplate, command.Locale, command.IdempotencyKey, now)
+			envelope, eventErr := service.emailDeliveryEvent(deliveryID.UUID, VerifyEmailTemplate, command.Locale, command.IdempotencyKey, now)
 			if eventErr != nil || transaction.AppendEvent(transactionContext, envelope) != nil {
 				return dependencyUnavailable()
 			}
@@ -282,7 +291,6 @@ func (service *Service) performDummyPasswordWork() bool {
 
 type protectedDelivery struct {
 	id          uuid.UUID
-	token       secret.Bytes
 	tokenDigest []byte
 	protected   sensitive.EncryptedField
 }
@@ -291,8 +299,6 @@ func (delivery *protectedDelivery) clear() {
 	if delivery == nil {
 		return
 	}
-	token := delivery.token.Copy()
-	clear(token)
 	clear(delivery.tokenDigest)
 	clear(delivery.protected.Ciphertext)
 }
@@ -318,7 +324,9 @@ func (service *Service) newProtectedDelivery(recipient CanonicalEmail, template 
 	if digest == [32]byte{} {
 		return protectedDelivery{}, ErrRandomSource
 	}
-	plaintext := pendingDeliveryJSON(recipient.Bytes(), raw, template, locale)
+	recipientBytes := recipient.Bytes()
+	defer clear(recipientBytes)
+	plaintext := pendingDeliveryJSON(recipientBytes, raw, template, locale)
 	if len(plaintext) == 0 || len(plaintext) > maximumPendingDeliveryBytes {
 		clear(plaintext)
 		return protectedDelivery{}, ErrEmailDelivery
@@ -334,7 +342,7 @@ func (service *Service) newProtectedDelivery(recipient CanonicalEmail, template 
 		clear(protected.Ciphertext)
 		return protectedDelivery{}, ErrRandomSource
 	}
-	return protectedDelivery{id: id, token: token, tokenDigest: append([]byte(nil), digest[:]...), protected: protected}, nil
+	return protectedDelivery{id: id, tokenDigest: append([]byte(nil), digest[:]...), protected: protected}, nil
 }
 
 func pendingDeliveryJSON(recipient, rawToken []byte, template TemplateID, locale string) []byte {
@@ -354,20 +362,20 @@ func pendingDeliveryJSON(recipient, rawToken []byte, template TemplateID, locale
 	return result
 }
 
-func (service *Service) emailDeliveryEvent(deliveryID, principalID uuid.UUID, aggregateVersion int64, template TemplateID, locale, idempotencyKey string, now time.Time) (*eventsv1.EventEnvelope, error) {
+func (service *Service) emailDeliveryEvent(deliveryID uuid.UUID, template TemplateID, locale, idempotencyKey string, now time.Time) (*eventsv1.EventEnvelope, error) {
 	payload, err := contractevents.MarshalPayload(contractevents.EmailDeliveryRequestedType, &identityv1.EmailDeliveryRequested{
-		DeliveryId: deliveryID.String(), PrincipalId: principalID.String(), TemplateId: string(template), Locale: locale,
+		DeliveryId: deliveryID.String(), TemplateId: string(template), Locale: locale,
 	})
 	if err != nil {
 		return nil, ErrRepository
 	}
 	eventID := service.newUUID()
-	if eventID == uuid.Nil || aggregateVersion < 1 {
+	if eventID == uuid.Nil {
 		return nil, ErrRepository
 	}
 	return &eventsv1.EventEnvelope{
 		EventId: eventID.String(), EventType: contractevents.EmailDeliveryRequestedType, OccurredAt: timestamppb.New(now),
-		Producer: "identity", AggregateType: "account", AggregateId: principalID.String(), AggregateVersion: uint64(aggregateVersion),
+		Producer: "identity", AggregateType: "email_delivery", AggregateId: deliveryID.String(), AggregateVersion: 1,
 		IdempotencyKey: idempotencyKey, Payload: payload,
 	}, nil
 }
@@ -393,23 +401,51 @@ func (service *Service) accountStateEvent(principalID uuid.UUID, state string, v
 	}, nil
 }
 
-func privateCanonicalRequest(operation string, parts ...[]byte) []byte {
-	hash := sha256.New()
-	_, _ = hash.Write([]byte(privateRequestDigestDomain))
-	_, _ = hash.Write([]byte(operation))
-	for _, part := range parts {
-		var length [4]byte
-		// #nosec G115 -- application inputs are bounded well below MaxUint32 before reaching this helper.
-		binary.BigEndian.PutUint32(length[:], uint32(len(part)))
-		_, _ = hash.Write(length[:])
-		_, _ = hash.Write(part)
-		clear(length[:])
+func privateCanonicalRequest(protector sensitive.Protector, operation string, parts ...[]byte) ([]byte, error) {
+	if nilIdentityValue(protector) || !validPrivateRequestOperation(operation) || len(parts) == 0 || len(parts) > math.MaxUint32 || len(operation) > math.MaxUint32 {
+		return nil, ErrInvalidApplication
 	}
-	digest := hash.Sum(nil)
-	defer clear(digest)
-	encoded := make([]byte, hex.EncodedLen(len(digest)))
-	hex.Encode(encoded, digest)
-	return append([]byte(`{"digest":"`), append(encoded, []byte(`"}`)...)...)
+	materialLength := 8 + len(operation)
+	for _, part := range parts {
+		if len(part) > math.MaxUint32 || materialLength > math.MaxInt-4-len(part) {
+			return nil, ErrInvalidApplication
+		}
+		materialLength += 4 + len(part)
+	}
+	material := make([]byte, 0, materialLength)
+	var length [4]byte
+	// #nosec G115 -- operation and field lengths are explicitly bounded above.
+	binary.BigEndian.PutUint32(length[:], uint32(len(operation)))
+	material = append(material, length[:]...)
+	material = append(material, operation...)
+	// #nosec G115 -- the field count is explicitly bounded above.
+	binary.BigEndian.PutUint32(length[:], uint32(len(parts)))
+	material = append(material, length[:]...)
+	for _, part := range parts {
+		// #nosec G115 -- field lengths are explicitly bounded above.
+		binary.BigEndian.PutUint32(length[:], uint32(len(part)))
+		material = append(material, length[:]...)
+		material = append(material, part...)
+	}
+	clear(length[:])
+	defer clear(material)
+	digest := protector.LookupDigest(privateRequestDigestDomain, material)
+	if digest == [32]byte{} {
+		return nil, ErrInvalidApplication
+	}
+	canonical := append([]byte(nil), digest[:]...)
+	clear(digest[:])
+	return canonical, nil
+}
+
+func validPrivateRequestOperation(operation string) bool {
+	switch operation {
+	case "register_account", idempotency.CreateEmailVerificationDeliveryOperation, idempotency.CreatePasswordResetDeliveryOperation,
+		"verify_email", "reset_password", "create_enrollment_grant":
+		return true
+	default:
+		return false
+	}
 }
 
 func passwordResetTokenDigest(token secret.Bytes) [32]byte {
@@ -431,7 +467,9 @@ func registrationIdempotencyOutcome(outcome idempotency.Outcome, record idempote
 	case idempotency.Started:
 		return nil
 	case idempotency.Replay:
-		if record.ResponseStatus() == 202 && string(record.ResponseBody()) == acceptedResponseBody {
+		body, owned := record.TakeResponseBody()
+		defer clear(body)
+		if owned && record.ResponseStatus() == 202 && string(body) == acceptedResponseBody {
 			return nil
 		}
 		return dependencyUnavailable()

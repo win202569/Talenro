@@ -10,7 +10,8 @@ message AccountStateChanged {
 
 message EmailDeliveryRequested {
   string delivery_id = 1;
-  string principal_id = 2;
+  reserved 2;
+  reserved "principal_id";
   string template_id = 3;
   string locale = 4;
 }

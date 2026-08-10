@@ -114,7 +114,13 @@ func (transaction *postgresTransaction) CompleteIdempotency(ctx context.Context,
 	if transaction == nil || nilIdentityValue(transaction.idempotency) {
 		return ErrRepository
 	}
-	if _, err := transaction.idempotency.Complete(ctx, record, status, body); err != nil {
+	completed, err := transaction.idempotency.Complete(ctx, record, status, body)
+	if err != nil {
+		return ErrRepository
+	}
+	ownedBody, owned := completed.TakeResponseBody()
+	defer clear(ownedBody)
+	if !owned {
 		return ErrRepository
 	}
 	return nil
@@ -125,8 +131,12 @@ func (transaction *postgresTransaction) FindIdentityByLookupDigest(ctx context.C
 	return identityEmailResult(row, err)
 }
 
-func (transaction *postgresTransaction) GetEmailVerificationForUpdate(ctx context.Context, params store.GetEmailVerificationForUpdateParams) (store.IdentityEmailIdentity, bool, error) {
-	row, err := transaction.queries.GetEmailVerificationForUpdate(ctx, params)
+func (transaction *postgresTransaction) LockEmailLookupDigest(ctx context.Context, digest []byte) error {
+	return mapIdentityStoreError(transaction.queries.LockEmailLookupDigest(ctx, digest))
+}
+
+func (transaction *postgresTransaction) GetEmailVerificationForUpdate(ctx context.Context, digest []byte) (store.IdentityEmailIdentity, bool, error) {
+	row, err := transaction.queries.GetEmailVerificationForUpdate(ctx, digest)
 	return identityEmailResult(row, err)
 }
 

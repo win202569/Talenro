@@ -41,12 +41,30 @@ func TestIdentityTask9SupportMigrationAndQueriesAreExact(t *testing.T) {
 	verificationQuery := task9QueryBlock(t, queries, "GetEmailVerificationForUpdate")
 	for _, fragment := range []string{
 		"WHERE verification_token_hash = $1",
-		"AND verification_consumed_at IS NULL",
-		"AND verification_expires_at >= $2",
 		"FOR UPDATE;",
 	} {
 		if strings.Count(verificationQuery, fragment) != 1 {
 			t.Fatalf("verification query fragment %q count = %d, want 1", fragment, strings.Count(verificationQuery, fragment))
+		}
+	}
+	for _, forbidden := range []string{"verification_consumed_at IS NULL", "verification_expires_at >="} {
+		if strings.Contains(verificationQuery, forbidden) {
+			t.Fatalf("verification lock query still filters replay state with %q", forbidden)
+		}
+	}
+	lookupQuery := task9QueryBlock(t, queries, "FindIdentityByLookupDigest")
+	for _, fragment := range []string{"WHERE lookup_digest = $1", "FOR UPDATE;"} {
+		if strings.Count(lookupQuery, fragment) != 1 {
+			t.Fatalf("lookup query fragment %q count = %d, want 1", fragment, strings.Count(lookupQuery, fragment))
+		}
+	}
+	lookupLockQuery := task9QueryBlock(t, queries, "LockEmailLookupDigest")
+	for _, fragment := range []string{
+		"SELECT pg_advisory_xact_lock(",
+		"hashtextextended(encode(sqlc.arg(lookup_digest)::bytea, 'hex'), 0)",
+	} {
+		if strings.Count(lookupLockQuery, fragment) != 1 {
+			t.Fatalf("lookup lock query fragment %q count = %d, want 1", fragment, strings.Count(lookupLockQuery, fragment))
 		}
 	}
 	sessionQuery := task9QueryBlock(t, queries, "GetAccountSessionForUpdate")
@@ -72,7 +90,7 @@ func readTask9SupportFile(t *testing.T, path string) string {
 
 func task9QueryBlock(t *testing.T, queries, name string) string {
 	t.Helper()
-	marker := "-- name: " + name + " :one"
+	marker := "-- name: " + name + " "
 	start := strings.Index(queries, marker)
 	if start < 0 {
 		t.Fatalf("missing query %s", name)

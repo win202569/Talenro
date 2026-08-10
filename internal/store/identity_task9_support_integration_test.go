@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"talenro.local/platform/internal/store"
 	"talenro.local/platform/internal/testinfra"
@@ -38,20 +39,22 @@ func TestIdentityTask9SupportIndexesAndLockQueries(t *testing.T) {
 	if err = queries.CreateEmailIdentity(ctx, task9EmailIdentity(firstPrincipal, verificationHash, 0x41, now)); err != nil {
 		t.Fatal("create first Task 9 email identity")
 	}
-	locked, err := queries.GetEmailVerificationForUpdate(ctx, store.GetEmailVerificationForUpdateParams{
-		VerificationTokenHash: verificationHash,
-		VerificationExpiresAt: sql.NullTime{Time: now, Valid: true},
-	})
+	locked, err := queries.GetEmailVerificationForUpdate(ctx, verificationHash)
 	if err != nil || locked.PrincipalID != firstPrincipal {
 		t.Fatal("verification-token lock query did not return the owning principal")
 	}
-	if _, err = queries.GetEmailVerificationForUpdate(ctx, store.GetEmailVerificationForUpdateParams{
-		VerificationTokenHash: verificationHash,
-		VerificationExpiresAt: sql.NullTime{Time: now.Add(25 * time.Hour), Valid: true},
-	}); !errors.Is(err, pgx.ErrNoRows) {
-		t.Fatal("expired verification token remained eligible")
+	consumed, err := queries.ConsumeEmailVerification(ctx, store.ConsumeEmailVerificationParams{
+		PrincipalID: firstPrincipal, VerificationTokenHash: verificationHash,
+		VerificationConsumedAt: sql.NullTime{Time: now, Valid: true},
+	})
+	if err != nil || !consumed.VerificationConsumedAt.Valid {
+		t.Fatal("consume verification token")
 	}
-	requireTask9UniqueViolation(t, ctx, tx, "verification token hash", func(nested *store.Queries) error {
+	locked, err = queries.GetEmailVerificationForUpdate(ctx, verificationHash)
+	if err != nil || locked.PrincipalID != firstPrincipal || !locked.VerificationConsumedAt.Valid {
+		t.Fatal("verification lock query did not retain consumed token for idempotency replay")
+	}
+	requireTask9UniqueViolation(t, ctx, tx, "verification token hash", "identity_email_verification_token_hash_unique", func(nested *store.Queries) error {
 		return nested.CreateEmailIdentity(ctx, task9EmailIdentity(secondPrincipal, verificationHash, 0x42, now))
 	})
 
@@ -79,21 +82,23 @@ func TestIdentityTask9SupportIndexesAndLockQueries(t *testing.T) {
 	if _, err = queries.SetPasswordReset(ctx, task9PasswordReset(firstPrincipal, resetHash, 0x64, now)); err != nil {
 		t.Fatal("set first Task 9 password reset")
 	}
-	requireTask9UniqueViolation(t, ctx, tx, "password reset token hash", func(nested *store.Queries) error {
+	requireTask9UniqueViolation(t, ctx, tx, "password reset token hash", "identity_password_reset_token_hash_unique", func(nested *store.Queries) error {
 		_, setErr := nested.SetPasswordReset(ctx, task9PasswordReset(secondPrincipal, resetHash, 0x65, now))
 		return setErr
 	})
 }
 
-func requireTask9UniqueViolation(t *testing.T, ctx context.Context, parent pgx.Tx, field string, attempt func(*store.Queries) error) {
+func requireTask9UniqueViolation(t *testing.T, ctx context.Context, parent pgx.Tx, field, constraint string, attempt func(*store.Queries) error) {
 	t.Helper()
 	nested, err := parent.Begin(ctx)
 	if err != nil {
 		t.Fatalf("begin %s uniqueness savepoint", field)
 	}
-	if attempt(store.New(nested)) == nil {
+	attemptErr := attempt(store.New(nested))
+	var postgresError *pgconn.PgError
+	if !errors.As(attemptErr, &postgresError) || postgresError.Code != "23505" || postgresError.ConstraintName != constraint {
 		_ = nested.Rollback(ctx)
-		t.Fatalf("duplicate non-null %s was accepted", field)
+		t.Fatalf("duplicate non-null %s did not return the expected unique constraint", field)
 	}
 	if err = nested.Rollback(ctx); err != nil {
 		t.Fatalf("rollback %s uniqueness savepoint", field)

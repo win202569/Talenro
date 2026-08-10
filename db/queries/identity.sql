@@ -6,7 +6,12 @@ VALUES ($1, $2, $3, $4, $5, $6);
 SELECT * FROM identity.accounts WHERE id = $1 FOR UPDATE;
 
 -- name: FindIdentityByLookupDigest :one
-SELECT * FROM identity.email_identities WHERE lookup_digest = $1;
+SELECT * FROM identity.email_identities WHERE lookup_digest = $1 FOR UPDATE;
+
+-- name: LockEmailLookupDigest :exec
+SELECT pg_advisory_xact_lock(
+  hashtextextended(encode(sqlc.arg(lookup_digest)::bytea, 'hex'), 0)
+);
 
 -- name: ActivateVerifiedAccount :one
 UPDATE identity.accounts
@@ -26,8 +31,6 @@ RETURNING *;
 -- name: GetEmailVerificationForUpdate :one
 SELECT * FROM identity.email_identities
 WHERE verification_token_hash = $1
-  AND verification_consumed_at IS NULL
-  AND verification_expires_at >= $2
 FOR UPDATE;
 
 -- name: GetPasswordCredential :one

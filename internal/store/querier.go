@@ -49,7 +49,7 @@ type Querier interface {
 	GetBundleByLocatorHash(ctx context.Context, arg GetBundleByLocatorHashParams) (TrustBundleIssuance, error)
 	GetBundleIssuance(ctx context.Context, id uuid.UUID) (TrustBundleIssuance, error)
 	GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byte) (GetDeviceRefreshForUpdateRow, error)
-	GetEmailVerificationForUpdate(ctx context.Context, arg GetEmailVerificationForUpdateParams) (IdentityEmailIdentity, error)
+	GetEmailVerificationForUpdate(ctx context.Context, verificationTokenHash []byte) (IdentityEmailIdentity, error)
 	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
 	GetHighestBundleVersion(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
@@ -71,6 +71,7 @@ type Querier interface {
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
 	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)
 	ListTrustRootMetadata(ctx context.Context) ([]TrustTrustRootMetadatum, error)
+	LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error
 	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
 	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
 	MarkDeviceRefreshUsed(ctx context.Context, arg MarkDeviceRefreshUsedParams) (DeviceauthDeviceRefreshToken, error)

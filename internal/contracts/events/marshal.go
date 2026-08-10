@@ -197,15 +197,14 @@ func registeredPayload(eventType string) (payloadSpec, bool) {
 	case EmailDeliveryRequestedType:
 		return payloadSpec{
 			newMessage:  func() proto.Message { return new(identityv1.EmailDeliveryRequested) },
-			messageName: "talenro.identity.v1.EmailDeliveryRequested", aggregateType: "account",
+			messageName: "talenro.identity.v1.EmailDeliveryRequested", aggregateType: "email_delivery",
 			aggregateID: func(message proto.Message) string {
-				return message.(*identityv1.EmailDeliveryRequested).GetPrincipalId()
+				return message.(*identityv1.EmailDeliveryRequested).GetDeliveryId()
 			},
 			payloadVersion: func(proto.Message) (uint64, bool) { return 0, false },
 			validate: func(message proto.Message) bool {
 				payload := message.(*identityv1.EmailDeliveryRequested)
-				return canonicalUUID(payload.GetDeliveryId()) && canonicalUUID(payload.GetPrincipalId()) &&
-					safeName(payload.GetTemplateId(), 64, false) && validLocale(payload.GetLocale())
+				return canonicalUUID(payload.GetDeliveryId()) && safeName(payload.GetTemplateId(), 64, false) && validLocale(payload.GetLocale())
 			},
 		}, true
 	case DeviceAuthorizationChangedType:

@@ -187,7 +187,6 @@ func TestC11EventSchemasMatchApprovedPrivacySurface(t *testing.T) {
 			message: &identityv1.EmailDeliveryRequested{},
 			expected: []expectedField{
 				{name: "delivery_id", number: 1, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
-				{name: "principal_id", number: 2, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
 				{name: "template_id", number: 3, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
 				{name: "locale", number: 4, cardinality: protoreflect.Optional, kind: protoreflect.StringKind},
 			},
@@ -242,6 +241,20 @@ func TestC11EventSchemasMatchApprovedPrivacySurface(t *testing.T) {
 				t.Fatalf("privacy validation: %v", err)
 			}
 		})
+	}
+
+	delivery := (&identityv1.EmailDeliveryRequested{}).ProtoReflect().Descriptor()
+	if !delivery.ReservedRanges().Has(2) {
+		t.Fatal("EmailDeliveryRequested field number 2 is not reserved")
+	}
+	reservedPrincipal := false
+	for index := range delivery.ReservedNames().Len() {
+		if delivery.ReservedNames().Get(index) == protoreflect.Name("principal_id") {
+			reservedPrincipal = true
+		}
+	}
+	if !reservedPrincipal {
+		t.Fatal("EmailDeliveryRequested field name principal_id is not reserved")
 	}
 }
 

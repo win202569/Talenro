@@ -12,6 +12,7 @@ import (
 	"math"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -111,7 +112,8 @@ func AuthenticatedScope(principalID uuid.UUID, credentialDomain, operation strin
 	}, nil
 }
 
-// Record is an immutable, redacted idempotency handle. Byte accessors return copies.
+// Record is a redacted idempotency handle. Completed response ownership may be
+// transferred exactly once across every copy of the handle.
 type Record struct {
 	principalScope string
 	operation      string
@@ -119,10 +121,16 @@ type Record struct {
 	requestDigest  [sha256.Size]byte
 	state          string
 	responseStatus int
-	responseBody   []byte
+	response       *responseOwnership
 	createdAt      time.Time
 	expiresAt      time.Time
 	canComplete    bool
+}
+
+type responseOwnership struct {
+	mu        sync.Mutex
+	body      []byte
+	available bool
 }
 
 // RequestDigest returns the request digest by value.
@@ -131,8 +139,22 @@ func (record Record) RequestDigest() [sha256.Size]byte { return record.requestDi
 // ResponseStatus returns the completed HTTP status, or zero before completion.
 func (record Record) ResponseStatus() int { return record.responseStatus }
 
-// ResponseBody returns a defensive copy of replay or completion bytes.
-func (record Record) ResponseBody() []byte { return append([]byte(nil), record.responseBody...) }
+// TakeResponseBody transfers replay or completion bytes to the caller exactly
+// once. The caller owns the returned bytes and must clear them after use.
+func (record Record) TakeResponseBody() ([]byte, bool) {
+	if record.response == nil {
+		return nil, false
+	}
+	record.response.mu.Lock()
+	defer record.response.mu.Unlock()
+	if !record.response.available {
+		return nil, false
+	}
+	body := record.response.body
+	record.response.body = nil
+	record.response.available = false
+	return body, true
+}
 
 // Format prevents diagnostic formatting from exposing record digests or responses.
 func (Record) Format(state fmt.State, _ rune) {
@@ -258,7 +280,7 @@ func (service *repository) Begin(ctx context.Context, scope Scope, key string, c
 		return Record{}, "", ErrRecordUnavailable
 	}
 	if subtle.ConstantTimeCompare(record.requestDigest[:], requestDigest[:]) != 1 {
-		record.responseBody = nil
+		record.response = nil
 		record.responseStatus = 0
 		return record, Conflict, nil
 	}
@@ -280,7 +302,7 @@ func (service *repository) Begin(ctx context.Context, scope Scope, key string, c
 			return Record{}, "", ErrProtection
 		}
 		record.responseStatus = int(stored.ResponseStatus.Int32)
-		record.responseBody = append([]byte(nil), plaintext[1:]...)
+		record.response = ownResponse(plaintext[1:])
 		clear(plaintext)
 		return record, Replay, nil
 	case "failed":
@@ -341,8 +363,12 @@ func (service *repository) Complete(ctx context.Context, record Record, status i
 		return Record{}, ErrConflict
 	}
 	completed.responseStatus = status
-	completed.responseBody = append([]byte(nil), responseCopy...)
+	completed.response = ownResponse(responseCopy)
 	return completed, nil
+}
+
+func ownResponse(body []byte) *responseOwnership {
+	return &responseOwnership{body: append([]byte(nil), body...), available: true}
 }
 
 func recordFromStore(stored store.IdempotencyRecord, scope Scope, keyDigest [sha256.Size]byte) (Record, bool) {

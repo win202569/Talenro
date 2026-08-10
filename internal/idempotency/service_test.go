@@ -232,15 +232,14 @@ func TestBeginClassifiesExistingRecord(t *testing.T) {
 			if counting.decrypts != test.wantDecrypts {
 				t.Fatalf("decrypt calls = %d, want %d", counting.decrypts, test.wantDecrypts)
 			}
-			if !bytes.Equal(record.ResponseBody(), test.wantResponse) {
-				t.Fatalf("response = %q, want %q", record.ResponseBody(), test.wantResponse)
+			response, owned := record.TakeResponseBody()
+			wantOwned := test.wantOutcome == Replay
+			if owned != wantOwned || !bytes.Equal(response, test.wantResponse) {
+				t.Fatalf("response = %q/%v, want %q/%v", response, owned, test.wantResponse, wantOwned)
 			}
-			response := record.ResponseBody()
-			if len(response) > 0 {
-				response[0] ^= 1
-				if bytes.Equal(response, record.ResponseBody()) {
-					t.Fatal("response accessor returned aliased bytes")
-				}
+			clear(response)
+			if second, secondOwned := record.TakeResponseBody(); secondOwned || second != nil {
+				t.Fatalf("response transferred twice = %q/%v", second, secondOwned)
 			}
 			if storeFake.tryCalls != 1 || storeFake.getCalls != 1 {
 				t.Fatalf("calls try=%d get=%d", storeFake.tryCalls, storeFake.getCalls)
@@ -303,6 +302,54 @@ func TestOnlyNewlyStartedRecordCanComplete(t *testing.T) {
 	}
 }
 
+func TestReplayResponseOwnershipTransfersExactlyOnceAcrossRecordCopies(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	scope := AnonymousRegistrationScope()
+	key := "abcdefghijklmnopqrstuv"
+	canonical := []byte(`{"request":"fixed"}`)
+	digest, err := RequestDigest(scope.Operation, canonical)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyHash, err := KeyDigest(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	protector := newProtector(t)
+	want := []byte("SECRET_RESPONSE_CANARY")
+	protected, err := protector.Encrypt(responseProtectionDomain, append([]byte{responseFrameVersion}, want...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	repository := newWithStore(&fakeIdempotencyStore{getRecord: store.IdempotencyRecord{
+		PrincipalScope: scope.Principal, Operation: scope.Operation,
+		IdempotencyKeyHash: bytes.Clone(keyHash[:]), RequestDigest: bytes.Clone(digest[:]), State: "completed",
+		ResponseStatus: pgtype.Int4{Int32: 200, Valid: true}, ResponseCiphertext: bytes.Clone(protected.Ciphertext),
+		ResponseKeyVersion: pgtype.Int4{Int32: math.MaxInt32, Valid: true}, CreatedAt: now.Add(-time.Minute), ExpiresAt: now.Add(time.Hour),
+	}}, protector)
+	record, outcome, err := repository.Begin(context.Background(), scope, key, canonical, now, now.Add(time.Hour))
+	if err != nil || outcome != Replay {
+		t.Fatalf("Begin = %q, %v", outcome, err)
+	}
+	copyOfRecord := record
+	body, ok := record.TakeResponseBody()
+	if !ok || !bytes.Equal(body, want) {
+		t.Fatalf("first transfer = %q, %v", body, ok)
+	}
+	if second, secondOK := copyOfRecord.TakeResponseBody(); secondOK || second != nil {
+		t.Fatalf("second transfer through copied record = %q, %v", second, secondOK)
+	}
+	clear(body)
+	if third, thirdOK := record.TakeResponseBody(); thirdOK || third != nil {
+		t.Fatalf("third transfer after caller clear = %q, %v", third, thirdOK)
+	}
+	if rendered := fmt.Sprintf("%+v", copyOfRecord); rendered != "idempotency.Record([REDACTED])" || bytes.Contains([]byte(rendered), want) {
+		t.Fatalf("record formatting exposed response ownership: %q", rendered)
+	}
+}
+
 func TestBeginRejectsInvalidKeyAndScopeBeforeStore(t *testing.T) {
 	t.Parallel()
 
@@ -357,7 +404,9 @@ func TestCompleteEncryptsBoundedResponseAndHandlesLostRace(t *testing.T) {
 		t.Fatalf("Complete: %v", err)
 	}
 	body[0] = 'X'
-	if bytes.Equal(storeFake.completeParams.ResponseCiphertext, body) || !bytes.Equal(completed.ResponseBody(), []byte(`{"accepted":true}`)) {
+	completedBody, owned := completed.TakeResponseBody()
+	defer clear(completedBody)
+	if bytes.Equal(storeFake.completeParams.ResponseCiphertext, body) || !owned || !bytes.Equal(completedBody, []byte(`{"accepted":true}`)) {
 		t.Fatal("completion retained plaintext or aliased caller response")
 	}
 	if !storeFake.completeParams.ResponseKeyVersion.Valid || storeFake.completeParams.ResponseKeyVersion.Int32 <= 0 || len(storeFake.completeParams.ResponseCiphertext) > 1_048_608 {
@@ -410,8 +459,9 @@ func TestCompleteAndReplayPreserveEmpty204BodyWithVersionedFrame(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Complete empty 204: %v", err)
 	}
-	if completed.ResponseStatus() != 204 || len(completed.ResponseBody()) != 0 {
-		t.Fatalf("completion status/body = %d/%q", completed.ResponseStatus(), completed.ResponseBody())
+	completedBody, completedOwned := completed.TakeResponseBody()
+	if completed.ResponseStatus() != 204 || !completedOwned || len(completedBody) != 0 {
+		t.Fatalf("completion status/body = %d/%q/%v", completed.ResponseStatus(), completedBody, completedOwned)
 	}
 	opened, err := protector.Decrypt(responseProtectionDomain, sensitive.EncryptedField{
 		KeyVersion: uint32(math.MaxInt32),
@@ -432,8 +482,9 @@ func TestCompleteAndReplayPreserveEmpty204BodyWithVersionedFrame(t *testing.T) {
 		CreatedAt: now, ExpiresAt: now.Add(time.Hour),
 	}}
 	replayed, outcome, err := newWithStore(replayStore, protector).Begin(context.Background(), AnonymousRegistrationScope(), "abcdefghijklmnopqrstuv", []byte(`{}`), now.Add(time.Minute), now.Add(time.Hour))
-	if err != nil || outcome != Replay || replayed.ResponseStatus() != 204 || len(replayed.ResponseBody()) != 0 {
-		t.Fatalf("replay = outcome %q status %d body %q error %v", outcome, replayed.ResponseStatus(), replayed.ResponseBody(), err)
+	replayedBody, replayedOwned := replayed.TakeResponseBody()
+	if err != nil || outcome != Replay || replayed.ResponseStatus() != 204 || !replayedOwned || len(replayedBody) != 0 {
+		t.Fatalf("replay = outcome %q status %d body %q/%v error %v", outcome, replayed.ResponseStatus(), replayedBody, replayedOwned, err)
 	}
 }
 
@@ -457,8 +508,10 @@ func TestCompleteAcceptsExactOneMiBBodyWithinDatabaseCiphertextBound(t *testing.
 	if err != nil {
 		t.Fatalf("Complete exact 1 MiB: %v", err)
 	}
-	if len(completed.ResponseBody()) != len(body) || len(storeFake.completeParams.ResponseCiphertext) > 1_048_608 {
-		t.Fatalf("body/ciphertext lengths = %d/%d", len(completed.ResponseBody()), len(storeFake.completeParams.ResponseCiphertext))
+	completedBody, owned := completed.TakeResponseBody()
+	defer clear(completedBody)
+	if !owned || len(completedBody) != len(body) || len(storeFake.completeParams.ResponseCiphertext) > 1_048_608 {
+		t.Fatalf("body/ciphertext lengths = %d/%d", len(completedBody), len(storeFake.completeParams.ResponseCiphertext))
 	}
 }
 

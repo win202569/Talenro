@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"talenro.local/platform/internal/apierrors"
 	"talenro.local/platform/internal/config"
+	"talenro.local/platform/internal/idempotency"
 	"talenro.local/platform/internal/secret"
 	"talenro.local/platform/internal/securitykit"
 	"talenro.local/platform/internal/store"
@@ -70,6 +71,7 @@ func TestVerifyEmailConsumesOnceActivatesParticipantInSameTransaction(t *testing
 		verification: store.IdentityEmailIdentity{
 			PrincipalID: principalID, VerificationTokenHash: verificationDigest[:],
 			VerificationDeliveryID: uuid.NullUUID{UUID: deliveryID, Valid: true},
+			VerificationExpiresAt:  sql.NullTime{Time: fixedTask9Time.Add(emailVerificationTTL), Valid: true},
 		},
 		accountFound: true, account: store.IdentityAccount{ID: principalID, State: "pending_email", StateVersion: 1, Locale: "en"},
 	}
@@ -86,6 +88,35 @@ func TestVerifyEmailConsumesOnceActivatesParticipantInSameTransaction(t *testing
 	}
 	if len(tx.events) != 1 || bytes.Contains(tx.events[0].GetPayload(), token.Copy()) {
 		t.Fatal("account state event missing or exposed verification token")
+	}
+	assertTask9PrivateBinding(t, tx.idempotencyCanonical[0], "verify_email", verificationDigest[:])
+
+	for _, test := range []struct {
+		name      string
+		consumed  bool
+		expiresAt time.Time
+	}{
+		{name: "consumed", consumed: true, expiresAt: fixedTask9Time.Add(time.Hour)},
+		{name: "expired", expiresAt: fixedTask9Time.Add(-time.Nanosecond)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			locked := store.IdentityEmailIdentity{
+				PrincipalID: principalID, VerificationTokenHash: verificationDigest[:],
+				VerificationExpiresAt: sql.NullTime{Time: test.expiresAt, Valid: true},
+			}
+			if test.consumed {
+				locked.VerificationConsumedAt = sql.NullTime{Time: fixedTask9Time, Valid: true}
+			}
+			usedTx := &fakeIdentityTransaction{verificationFound: true, verification: locked}
+			usedApplication, _, _, usedParticipant := newTask9Application(t, config.EmailRequired, usedTx)
+			if verifyErr := usedApplication.VerifyEmail(context.Background(), VerifyEmailCommand{Token: token, IdempotencyKey: "abcdefghijklmnopqrstuv"}); publicTask9Code(verifyErr) != apierrors.AuthenticationFailed {
+				t.Fatalf("verification state error = %v", verifyErr)
+			}
+			assertTask9Order(t, usedTx.operations, []string{"get_verification", "begin_idempotency", "rollback"})
+			if usedParticipant.calls != 0 {
+				t.Fatal("invalid verification state reached participant")
+			}
+		})
 	}
 
 	tx = &fakeIdentityTransaction{}
@@ -121,6 +152,7 @@ func TestPasswordResetDeliveryIsGenericDistinctAndExpiresAtThirtyMinutes(t *test
 	if len(knownTx.events) != 1 {
 		t.Fatal("eligible password reset did not append one delivery event")
 	}
+	assertTask9PrivateBinding(t, knownTx.idempotencyCanonical[0], idempotency.CreatePasswordResetDeliveryOperation, []byte("member@example.test"), []byte("en"))
 	assertTask9Order(t, knownTx.operations, []string{
 		"begin_idempotency", "find_identity", "get_account", "get_credential", "set_password_reset", "append_event", "complete_idempotency", "commit",
 	})
@@ -153,6 +185,7 @@ func TestPasswordResetDeliveryIsGenericDistinctAndExpiresAtThirtyMinutes(t *test
 	if bytes.Equal(verificationTx.resetEmail.VerificationTokenHash, knownTx.passwordReset.ResetTokenHash) {
 		t.Fatal("verification and password-reset token domains collided")
 	}
+	assertTask9PrivateBinding(t, verificationTx.idempotencyCanonical[0], idempotency.CreateEmailVerificationDeliveryOperation, []byte("member@example.test"), []byte("en"))
 }
 
 func TestPasswordResetConsumesOnceMarksSessionsBeforeCreatingBoundSession(t *testing.T) {
@@ -167,8 +200,9 @@ func TestPasswordResetConsumesOnceMarksSessionsBeforeCreatingBoundSession(t *tes
 	application, deriver, _, _ := newTask9Application(t, config.EmailRequired, tx)
 	token := secret.NewBytes(bytes.Repeat([]byte{0x81}, 32))
 	clientKey := [32]byte{0x91}
+	newPassword := secret.NewBytes([]byte("a newer correct horse password"))
 	result, err := application.ResetPassword(context.Background(), ResetPasswordCommand{
-		Email: "member@example.test", Token: token, NewPassword: secret.NewBytes([]byte("a newer correct horse password")),
+		Email: "member@example.test", Token: token, NewPassword: newPassword,
 		ClientSigningPublicKey: clientKey, IdempotencyKey: "abcdefghijklmnopqrstuv",
 	})
 	if err != nil || deriver.calls != 1 {
@@ -187,6 +221,10 @@ func TestPasswordResetConsumesOnceMarksSessionsBeforeCreatingBoundSession(t *tes
 	if !bytes.Equal(tx.createdSession.ClientSigningPublicKey, clientKey[:]) {
 		t.Fatal("reset session did not bind the supplied client signing key")
 	}
+	newPasswordCopy := newPassword.Copy()
+	defer clear(newPasswordCopy)
+	resetDigest := passwordResetTokenDigest(token)
+	assertTask9PrivateBinding(t, tx.idempotencyCanonical[0], "reset_password", []byte("member@example.test"), resetDigest[:], newPasswordCopy, clientKey[:])
 
 	failedTx := &fakeIdentityTransaction{
 		identityFound: true, identity: store.IdentityEmailIdentity{PrincipalID: principalID},
@@ -247,6 +285,11 @@ func TestEnrollmentPolicyRequiredGraceAndDisabled(t *testing.T) {
 			}
 			if test.provisional && tx.createdGrant.ProvisionalUntil.Time.Sub(fixedTask9Time) != 24*time.Hour {
 				t.Fatalf("provisional boundary = %s", tx.createdGrant.ProvisionalUntil.Time.Sub(fixedTask9Time))
+			}
+			if len(tx.idempotencyCanonical) > 0 {
+				proofCopy := proof.Copy()
+				defer clear(proofCopy)
+				assertTask9PrivateBinding(t, tx.idempotencyCanonical[0], "create_enrollment_grant", principalID[:], sessionID[:], proofCopy)
 			}
 		})
 	}

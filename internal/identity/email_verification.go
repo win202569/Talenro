@@ -64,7 +64,10 @@ func (service *Service) createDelivery(ctx context.Context, email, locale, idemp
 		operation = idempotency.CreatePasswordResetDeliveryOperation
 		scope = idempotency.AnonymousPasswordResetDeliveryScope()
 	}
-	canonicalRequest := privateCanonicalRequest(operation, emailBytes, []byte(locale))
+	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, operation, emailBytes, []byte(locale))
+	if requestErr != nil {
+		return RegisterAccountResult{}, dependencyUnavailable()
+	}
 	defer clear(canonicalRequest)
 	accepted := RegisterAccountResult{Accepted: true}
 	err = service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
@@ -151,7 +154,7 @@ func (service *Service) createDelivery(ctx context.Context, email, locale, idemp
 					return dependencyUnavailable()
 				}
 			}
-			envelope, eventErr := service.emailDeliveryEvent(delivery.id, identity.PrincipalID, account.StateVersion, template, locale, idempotencyKey, now)
+			envelope, eventErr := service.emailDeliveryEvent(delivery.id, template, locale, idempotencyKey, now)
 			if eventErr != nil || transaction.AppendEvent(transactionContext, envelope) != nil {
 				return dependencyUnavailable()
 			}
@@ -178,16 +181,17 @@ func (service *Service) VerifyEmail(ctx context.Context, command VerifyEmailComm
 	}
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
-	canonicalRequest := privateCanonicalRequest("verify_email", digest[:])
+	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, "verify_email", digest[:])
+	if requestErr != nil {
+		return dependencyUnavailable()
+	}
 	defer clear(canonicalRequest)
 	err := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
 		now, ok := service.now()
 		if !ok {
 			return dependencyUnavailable()
 		}
-		identity, found, findErr := transaction.GetEmailVerificationForUpdate(transactionContext, store.GetEmailVerificationForUpdateParams{
-			VerificationTokenHash: digest[:], VerificationExpiresAt: sql.NullTime{Time: now, Valid: true},
-		})
+		identity, found, findErr := transaction.GetEmailVerificationForUpdate(transactionContext, digest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -205,6 +209,9 @@ func (service *Service) VerifyEmail(ctx context.Context, command VerifyEmailComm
 		replayed, outcomeErr := genericIdempotencyOutcome(outcome, record, 204)
 		if outcomeErr != nil || replayed {
 			return outcomeErr
+		}
+		if identity.VerificationConsumedAt.Valid || !identity.VerificationExpiresAt.Valid || identity.VerificationExpiresAt.Time.Before(now) {
+			return authenticationFailed()
 		}
 		consumed, consumedOK, consumeErr := transaction.ConsumeEmailVerification(transactionContext, store.ConsumeEmailVerificationParams{
 			PrincipalID: identity.PrincipalID, VerificationTokenHash: digest[:], VerificationConsumedAt: sql.NullTime{Time: now, Valid: true},
@@ -268,7 +275,10 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 	defer cancel()
 	newPassword := command.NewPassword.Copy()
 	defer clear(newPassword)
-	canonicalRequest := privateCanonicalRequest("reset_password", emailBytes, resetDigest[:], newPassword, command.ClientSigningPublicKey[:])
+	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, "reset_password", emailBytes, resetDigest[:], newPassword, command.ClientSigningPublicKey[:])
+	if requestErr != nil {
+		return SessionTokens{}, dependencyUnavailable()
+	}
 	defer clear(canonicalRequest)
 	var result SessionTokens
 	err := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
@@ -311,12 +321,13 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 			return dependencyUnavailable()
 		}
 		if outcome != idempotency.Started {
-			replayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
+			body, replayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
 			if replayErr != nil {
 				return replayErr
 			}
 			if replayed {
-				decoded, decodeErr := decodeSessionTokens(record.ResponseBody())
+				defer clear(body)
+				decoded, decodeErr := decodeSessionTokens(body)
 				if decodeErr != nil {
 					return dependencyUnavailable()
 				}
@@ -402,7 +413,10 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 	}
 	proof := command.Reauthentication.Proof.Copy()
 	defer clear(proof)
-	canonicalRequest := privateCanonicalRequest("create_enrollment_grant", principalID[:], sessionID[:], proof)
+	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, "create_enrollment_grant", principalID[:], sessionID[:], proof)
+	if requestErr != nil {
+		return EnrollmentGrant{}, dependencyUnavailable()
+	}
 	defer clear(canonicalRequest)
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
@@ -451,12 +465,13 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 			return dependencyUnavailable()
 		}
 		if outcome != idempotency.Started {
-			replayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
+			body, replayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
 			if replayErr != nil {
 				return replayErr
 			}
 			if replayed {
-				decoded, decodeErr := decodeEnrollmentGrant(record.ResponseBody())
+				defer clear(body)
+				decoded, decodeErr := decodeEnrollmentGrant(body)
 				if decodeErr != nil {
 					return dependencyUnavailable()
 				}
@@ -570,9 +585,9 @@ func genericIdempotencyOutcome(outcome idempotency.Outcome, record idempotency.R
 	case idempotency.Started:
 		return false, nil
 	case idempotency.Replay:
-		body := record.ResponseBody()
+		body, owned := record.TakeResponseBody()
 		defer clear(body)
-		if record.ResponseStatus() == status && ((status == 202 && string(body) == acceptedResponseBody) || (status == 204 && len(body) == 0)) {
+		if owned && record.ResponseStatus() == status && ((status == 202 && string(body) == acceptedResponseBody) || (status == 204 && len(body) == 0)) {
 			return true, nil
 		}
 		return false, dependencyUnavailable()
@@ -585,21 +600,23 @@ func genericIdempotencyOutcome(outcome idempotency.Outcome, record idempotency.R
 	}
 }
 
-func privateIdempotencyOutcome(outcome idempotency.Outcome, record idempotency.Record, status int) (bool, error) {
+func privateIdempotencyOutcome(outcome idempotency.Outcome, record idempotency.Record, status int) ([]byte, bool, error) {
 	switch outcome {
 	case idempotency.Started:
-		return false, dependencyUnavailable()
+		return nil, false, dependencyUnavailable()
 	case idempotency.Replay:
-		if record.ResponseStatus() == status && len(record.ResponseBody()) > 0 {
-			return true, nil
+		body, owned := record.TakeResponseBody()
+		if owned && record.ResponseStatus() == status && len(body) > 0 {
+			return body, true, nil
 		}
-		return false, dependencyUnavailable()
+		clear(body)
+		return nil, false, dependencyUnavailable()
 	case idempotency.Conflict:
-		return false, apierrors.New(apierrors.IdempotencyConflict, apierrors.ContactSupport)
+		return nil, false, apierrors.New(apierrors.IdempotencyConflict, apierrors.ContactSupport)
 	case idempotency.InProgress:
-		return false, apierrors.NewRetryAfter(apierrors.StateConflict, apierrors.Retry, time.Second)
+		return nil, false, apierrors.NewRetryAfter(apierrors.StateConflict, apierrors.Retry, time.Second)
 	default:
-		return false, dependencyUnavailable()
+		return nil, false, dependencyUnavailable()
 	}
 }
 

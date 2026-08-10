@@ -270,8 +270,9 @@ type Transaction interface {
 	DBTX() store.DBTX
 	BeginIdempotency(context.Context, idempotency.Scope, string, []byte, time.Time, time.Time) (idempotency.Record, idempotency.Outcome, error)
 	CompleteIdempotency(context.Context, idempotency.Record, int, []byte) error
+	LockEmailLookupDigest(context.Context, []byte) error
 	FindIdentityByLookupDigest(context.Context, []byte) (store.IdentityEmailIdentity, bool, error)
-	GetEmailVerificationForUpdate(context.Context, store.GetEmailVerificationForUpdateParams) (store.IdentityEmailIdentity, bool, error)
+	GetEmailVerificationForUpdate(context.Context, []byte) (store.IdentityEmailIdentity, bool, error)
 	GetAccountForUpdate(context.Context, uuid.UUID) (store.IdentityAccount, bool, error)
 	GetAccountSessionForUpdate(context.Context, store.GetAccountSessionForUpdateParams) (store.IdentityAccountSession, bool, error)
 	GetPasswordCredential(context.Context, uuid.UUID) (store.IdentityPasswordCredential, bool, error)

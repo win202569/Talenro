@@ -84,7 +84,6 @@ func (x *AccountStateChanged) GetVersion() uint64 {
 type EmailDeliveryRequested struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DeliveryId    string                 `protobuf:"bytes,1,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
-	PrincipalId   string                 `protobuf:"bytes,2,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
 	TemplateId    string                 `protobuf:"bytes,3,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`
 	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -128,13 +127,6 @@ func (x *EmailDeliveryRequested) GetDeliveryId() string {
 	return ""
 }
 
-func (x *EmailDeliveryRequested) GetPrincipalId() string {
-	if x != nil {
-		return x.PrincipalId
-	}
-	return ""
-}
-
 func (x *EmailDeliveryRequested) GetTemplateId() string {
 	if x != nil {
 		return x.TemplateId
@@ -157,14 +149,13 @@ const file_talenro_identity_v1_events_proto_rawDesc = "" +
 	"\x13AccountStateChanged\x12!\n" +
 	"\fprincipal_id\x18\x01 \x01(\tR\vprincipalId\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\x04R\aversion\"\x95\x01\n" +
+	"\aversion\x18\x03 \x01(\x04R\aversion\"\x86\x01\n" +
 	"\x16EmailDeliveryRequested\x12\x1f\n" +
 	"\vdelivery_id\x18\x01 \x01(\tR\n" +
-	"deliveryId\x12!\n" +
-	"\fprincipal_id\x18\x02 \x01(\tR\vprincipalId\x12\x1f\n" +
+	"deliveryId\x12\x1f\n" +
 	"\vtemplate_id\x18\x03 \x01(\tR\n" +
 	"templateId\x12\x16\n" +
-	"\x06locale\x18\x04 \x01(\tR\x06localeB>Z<talenro.local/platform/gen/go/talenro/identity/v1;identityv1b\x06proto3"
+	"\x06locale\x18\x04 \x01(\tR\x06localeJ\x04\b\x02\x10\x03R\fprincipal_idB>Z<talenro.local/platform/gen/go/talenro/identity/v1;identityv1b\x06proto3"
 
 var (
 	file_talenro_identity_v1_events_proto_rawDescOnce sync.Once
