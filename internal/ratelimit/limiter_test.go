@@ -121,6 +121,76 @@ func TestSubjectDigestFloorsNegativeUnixTimeAndRejectsUnrepresentableFloor(t *te
 	}
 }
 
+func TestSubjectDigestRejectsTimesOutsideUnixNanoRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	key := secret.NewBytes(bytes.Repeat([]byte{0x42}, 32))
+	policy := config.RateLimitPolicy{Limit: 1, Window: time.Nanosecond}
+	tests := []struct {
+		name string
+		at   time.Time
+	}{
+		{name: "zero time", at: time.Time{}},
+		{name: "year 1677", at: time.Date(1677, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{name: "year 2263", at: time.Date(2263, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{name: "year 2500", at: time.Date(2500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			digest, err := ratelimit.SubjectDigest(key, ratelimit.Login, test.at, policy, "time-range-canary")
+			if !errors.Is(err, ratelimit.ErrInvalidInput) {
+				t.Fatalf("SubjectDigest() error = %v, want ErrInvalidInput", err)
+			}
+			if digest != ([32]byte{}) {
+				t.Fatalf("SubjectDigest() = %x, want zero", digest)
+			}
+			if bytes.Contains([]byte(err.Error()), []byte("time-range-canary")) {
+				t.Fatalf("SubjectDigest() error disclosed subject: %q", err)
+			}
+		})
+	}
+}
+
+func TestSubjectDigestAcceptsUnixNanoEndpointsAndLocationRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	key := secret.NewBytes(bytes.Repeat([]byte{0x42}, 32))
+	endpointCases := []struct {
+		name   string
+		at     time.Time
+		window time.Duration
+	}{
+		{name: "minimum one nanosecond window", at: time.Unix(0, math.MinInt64), window: time.Nanosecond},
+		{name: "minimum safe two nanosecond window", at: time.Unix(0, math.MinInt64), window: 2 * time.Nanosecond},
+		{name: "maximum one nanosecond window", at: time.Unix(0, math.MaxInt64), window: time.Nanosecond},
+		{name: "maximum safe two nanosecond window", at: time.Unix(0, math.MaxInt64), window: 2 * time.Nanosecond},
+	}
+	for _, test := range endpointCases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			digest, err := ratelimit.SubjectDigest(key, ratelimit.Login, test.at, config.RateLimitPolicy{Limit: 1, Window: test.window}, "endpoint-subject")
+			if err != nil {
+				t.Fatalf("SubjectDigest() error = %v", err)
+			}
+			if digest == ([32]byte{}) {
+				t.Fatal("SubjectDigest() returned zero at representable endpoint")
+			}
+		})
+	}
+
+	endpoint := time.Unix(0, math.MaxInt64)
+	policy := config.RateLimitPolicy{Limit: 1, Window: 2 * time.Nanosecond}
+	utcDigest, err := ratelimit.SubjectDigest(key, ratelimit.Login, endpoint.UTC(), policy, "location-subject")
+	if err != nil {
+		t.Fatal(err)
+	}
+	nonUTCDigest, err := ratelimit.SubjectDigest(key, ratelimit.Login, endpoint.In(time.FixedZone("edge-offset", 14*60*60)), policy, "location-subject")
+	if err != nil || nonUTCDigest != utcDigest {
+		t.Fatalf("non-UTC endpoint digest = %x, %v; want %x", nonUTCDigest, err, utcDigest)
+	}
+}
+
 func TestSubjectDigestRejectsInvalidInputsWithoutDisclosure(t *testing.T) {
 	t.Parallel()
 

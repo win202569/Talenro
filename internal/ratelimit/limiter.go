@@ -48,7 +48,12 @@ func SubjectDigest(key secret.Bytes, operation Operation, at time.Time, policy c
 		return [32]byte{}, ErrInvalidInput
 	}
 
-	windowStart, ok := floorWindowStart(at.UTC().UnixNano(), int64(policy.Window))
+	utc := at.UTC()
+	unixNanos := utc.UnixNano()
+	if !time.Unix(0, unixNanos).Equal(utc) {
+		return [32]byte{}, ErrInvalidInput
+	}
+	windowStart, ok := floorWindowStart(unixNanos, int64(policy.Window))
 	if !ok {
 		return [32]byte{}, ErrInvalidInput
 	}
