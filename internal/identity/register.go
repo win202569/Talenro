@@ -53,6 +53,7 @@ type Service struct {
 	random       securitykit.RandomSource
 	clock        securitykit.Clock
 	rateLimiter  ratelimit.Limiter
+	challenges   ChallengeStore
 	rateLimitKey secret.Bytes
 	security     config.SecurityConfig
 	participant  DeviceAuthorizationParticipant
@@ -75,7 +76,7 @@ func newApplicationForTest(dependencies ApplicationDependencies, derive Password
 	}
 	return &Service{
 		repository: dependencies.Repository, protector: dependencies.Protector, random: dependencies.Random, clock: dependencies.Clock,
-		rateLimiter: dependencies.Limiter, rateLimitKey: secret.NewBytes(key), security: dependencies.Security,
+		rateLimiter: dependencies.Limiter, challenges: dependencies.ChallengeStore, rateLimitKey: secret.NewBytes(key), security: dependencies.Security,
 		participant: dependencies.DeviceAuthorizationParticipant, derive: derive, newUUID: newUUID,
 	}, nil
 }
@@ -441,7 +442,8 @@ func privateCanonicalRequest(protector sensitive.Protector, operation string, pa
 func validPrivateRequestOperation(operation string) bool {
 	switch operation {
 	case "register_account", idempotency.CreateEmailVerificationDeliveryOperation, idempotency.CreatePasswordResetDeliveryOperation,
-		"verify_email", "reset_password", "create_enrollment_grant":
+		"verify_email", "reset_password", "create_enrollment_grant", "create_account_session", "change_password",
+		"create_account_session_challenge", "rotate_account_token", "revoke_account_sessions":
 		return true
 	default:
 		return false

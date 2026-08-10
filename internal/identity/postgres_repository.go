@@ -244,6 +244,81 @@ func (transaction *postgresTransaction) InsertAccountRefreshToken(ctx context.Co
 	return mapIdentityStoreError(transaction.queries.InsertAccountRefreshToken(ctx, params))
 }
 
+func (transaction *postgresTransaction) FindAccountAccessToken(ctx context.Context, digest []byte) (store.FindAccountAccessTokenRow, bool, error) {
+	row, err := transaction.queries.FindAccountAccessToken(ctx, digest)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.FindAccountAccessTokenRow{}, false, nil
+	}
+	if err != nil {
+		return store.FindAccountAccessTokenRow{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetRefreshTokenForUpdate(ctx context.Context, digest []byte) (store.GetRefreshTokenForUpdateRow, bool, error) {
+	row, err := transaction.queries.GetRefreshTokenForUpdate(ctx, digest)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.GetRefreshTokenForUpdateRow{}, false, nil
+	}
+	if err != nil {
+		return store.GetRefreshTokenForUpdateRow{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) MarkAccountRefreshUsed(ctx context.Context, params store.MarkAccountRefreshUsedParams) (bool, error) {
+	_, err := transaction.queries.MarkAccountRefreshUsed(ctx, params)
+	return oneRowResult(err)
+}
+
+func (transaction *postgresTransaction) RotateAccountSessionAccess(ctx context.Context, params store.RotateAccountSessionAccessParams) (store.IdentityAccountSession, bool, error) {
+	row, err := transaction.queries.RotateAccountSessionAccess(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityAccountSession{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityAccountSession{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) RevokeAccountRefreshTokens(ctx context.Context, params store.RevokeAccountRefreshTokensParams) (int64, error) {
+	rows, err := transaction.queries.RevokeAccountRefreshTokens(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) MarkAccountSessionCompromised(ctx context.Context, params store.MarkAccountSessionCompromisedParams) (int64, error) {
+	rows, err := transaction.queries.MarkAccountSessionCompromised(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokePrincipalAccountSessions(ctx context.Context, params store.RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error) {
+	ids, err := transaction.queries.RevokePrincipalAccountSessions(ctx, params)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	for _, id := range ids {
+		if id == uuid.Nil {
+			return nil, ErrRepository
+		}
+	}
+	return ids, nil
+}
+
+func (transaction *postgresTransaction) UpdatePasswordCredential(ctx context.Context, params store.UpdatePasswordCredentialParams) (int64, error) {
+	rows, err := transaction.queries.UpdatePasswordCredential(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
 func (transaction *postgresTransaction) CreateEnrollmentGrant(ctx context.Context, params store.CreateEnrollmentGrantParams) error {
 	return mapIdentityStoreError(transaction.queries.CreateEnrollmentGrant(ctx, params))
 }

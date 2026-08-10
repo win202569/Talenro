@@ -667,13 +667,32 @@ func (q *Queries) GetPendingPasswordResetDelivery(ctx context.Context, resetDeli
 }
 
 const getRefreshTokenForUpdate = `-- name: GetRefreshTokenForUpdate :one
+WITH locked_refresh AS MATERIALIZED (
+  SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state,
+         r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
+  FROM identity.account_refresh_tokens r
+  WHERE r.token_hash=$1
+  FOR UPDATE OF r
+), locked_session AS MATERIALIZED (
+  SELECT s.id, s.state, s.state_version, s.client_signing_public_key, s.principal_id
+  FROM identity.account_sessions s
+  JOIN locked_refresh r ON r.session_id=s.id
+  WHERE (SELECT count(*) FROM locked_refresh) >= 0
+  FOR UPDATE OF s
+), locked_account AS MATERIALIZED (
+  SELECT a.id, a.state
+  FROM identity.accounts a
+  JOIN locked_session s ON s.principal_id=a.id
+  WHERE (SELECT count(*) FROM locked_session) >= 0
+  FOR UPDATE OF a
+)
 SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state AS refresh_state,
        r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at,
        s.state AS session_state, s.state_version AS session_state_version,
-       s.client_signing_public_key, s.principal_id
-FROM identity.account_refresh_tokens r
-JOIN identity.account_sessions s ON s.id=r.session_id
-WHERE r.token_hash = $1 FOR UPDATE OF r, s
+       s.client_signing_public_key, s.principal_id, a.state AS account_state
+FROM locked_refresh r
+JOIN locked_session s ON s.id=r.session_id
+JOIN locked_account a ON a.id=s.principal_id
 `
 
 type GetRefreshTokenForUpdateRow struct {
@@ -690,6 +709,7 @@ type GetRefreshTokenForUpdateRow struct {
 	SessionStateVersion    int64        `json:"session_state_version"`
 	ClientSigningPublicKey []byte       `json:"client_signing_public_key"`
 	PrincipalID            uuid.UUID    `json:"principal_id"`
+	AccountState           string       `json:"account_state"`
 }
 
 func (q *Queries) GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error) {
@@ -709,6 +729,7 @@ func (q *Queries) GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte
 		&i.SessionStateVersion,
 		&i.ClientSigningPublicKey,
 		&i.PrincipalID,
+		&i.AccountState,
 	)
 	return i, err
 }
@@ -1009,6 +1030,79 @@ func (q *Queries) RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (i
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const revokePrincipalAccountSessions = `-- name: RevokePrincipalAccountSessions :many
+WITH target_refresh AS MATERIALIZED (
+  SELECT r.token_hash, r.session_id
+  FROM identity.account_refresh_tokens r
+  JOIN identity.account_sessions s ON s.id=r.session_id
+  WHERE s.principal_id=$2
+    AND (
+      $3::text='all'
+      OR ($3::text='current' AND s.id=$4)
+      OR ($3::text='others' AND s.id<>$4)
+    )
+  ORDER BY r.token_hash
+  FOR UPDATE OF r
+), target_sessions AS MATERIALIZED (
+  SELECT s.id
+  FROM identity.account_sessions s
+  WHERE s.id IN (SELECT session_id FROM target_refresh)
+  ORDER BY s.id
+  FOR UPDATE OF s
+), locked_account AS MATERIALIZED (
+  SELECT a.id
+  FROM identity.accounts a
+  WHERE a.id=$2
+    AND EXISTS (SELECT 1 FROM target_sessions)
+  FOR UPDATE OF a
+), revoked_refresh AS (
+  UPDATE identity.account_refresh_tokens r
+  SET state='revoked', revoked_at=$1
+  WHERE r.token_hash IN (SELECT token_hash FROM target_refresh)
+    AND r.state='active'
+    AND EXISTS (SELECT 1 FROM locked_account)
+  RETURNING r.session_id
+)
+UPDATE identity.account_sessions s
+SET state='revoked', state_version=state_version+1, updated_at=$1
+WHERE s.id IN (SELECT id FROM target_sessions)
+  AND s.state IN ('active','review_required')
+  AND (SELECT count(*) FROM revoked_refresh) >= 0
+RETURNING s.id
+`
+
+type RevokePrincipalAccountSessionsParams struct {
+	RevokedAt   time.Time `json:"revoked_at"`
+	PrincipalID uuid.UUID `json:"principal_id"`
+	RevokeScope string    `json:"revoke_scope"`
+	SessionID   uuid.UUID `json:"session_id"`
+}
+
+func (q *Queries) RevokePrincipalAccountSessions(ctx context.Context, arg RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, revokePrincipalAccountSessions,
+		arg.RevokedAt,
+		arg.PrincipalID,
+		arg.RevokeScope,
+		arg.SessionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const revokeRecoveryCodeSets = `-- name: RevokeRecoveryCodeSets :execrows

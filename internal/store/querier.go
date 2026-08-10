@@ -91,6 +91,7 @@ type Querier interface {
 	RevokeDeviceRecord(ctx context.Context, arg RevokeDeviceRecordParams) (int64, error)
 	RevokeDeviceRefreshTokens(ctx context.Context, arg RevokeDeviceRefreshTokensParams) (int64, error)
 	RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (int64, error)
+	RevokePrincipalAccountSessions(ctx context.Context, arg RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error)
 	RevokeRecoveryCodeSets(ctx context.Context, arg RevokeRecoveryCodeSetsParams) (int64, error)
 	RevokeTOTP(ctx context.Context, arg RevokeTOTPParams) (int64, error)
 	RotateAccountSessionAccess(ctx context.Context, arg RotateAccountSessionAccessParams) (IdentityAccountSession, error)

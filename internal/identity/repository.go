@@ -255,6 +255,7 @@ type ApplicationDependencies struct {
 	Random                         securitykit.RandomSource
 	Clock                          securitykit.Clock
 	Limiter                        ratelimit.Limiter
+	ChallengeStore                 ChallengeStore
 	RateLimitKey                   secret.Bytes
 	Security                       config.SecurityConfig
 	DeviceAuthorizationParticipant DeviceAuthorizationParticipant
@@ -373,6 +374,96 @@ func (SessionTokens) LogValue() slog.Value {
 // MarshalJSON forbids direct session-token serialization.
 func (SessionTokens) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("identity: session token serialization forbidden")
+}
+
+// Format redacts every account-session login field.
+func (CreateSessionCommand) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.CreateSessionCommand([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting private login fields.
+func (CreateSessionCommand) LogValue() slog.Value {
+	return slog.StringValue("identity.CreateSessionCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct login-command serialization.
+func (CreateSessionCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: create session serialization forbidden")
+}
+
+// Format redacts every rotation field.
+func (RotateSessionCommand) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.RotateSessionCommand([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting rotation proof material.
+func (RotateSessionCommand) LogValue() slog.Value {
+	return slog.StringValue("identity.RotateSessionCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct rotation-command serialization.
+func (RotateSessionCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: rotate session serialization forbidden")
+}
+
+// Format redacts every challenge command field.
+func (CreateSessionChallengeCommand) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.CreateSessionChallengeCommand([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting challenge context.
+func (CreateSessionChallengeCommand) LogValue() slog.Value {
+	return slog.StringValue("identity.CreateSessionChallengeCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct challenge-command serialization.
+func (CreateSessionChallengeCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: session challenge command serialization forbidden")
+}
+
+// Format redacts every challenge response field.
+func (SessionChallenge) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.SessionChallenge([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting the nonce.
+func (SessionChallenge) LogValue() slog.Value {
+	return slog.StringValue("identity.SessionChallenge([REDACTED])")
+}
+
+// MarshalJSON forbids direct domain-response serialization.
+func (SessionChallenge) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: session challenge serialization forbidden")
+}
+
+// Format redacts every revocation field.
+func (RevokeSessionsCommand) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.RevokeSessionsCommand([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting identifiers.
+func (RevokeSessionsCommand) LogValue() slog.Value {
+	return slog.StringValue("identity.RevokeSessionsCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct revocation-command serialization.
+func (RevokeSessionsCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: revoke sessions serialization forbidden")
+}
+
+// Format redacts every password-change field.
+func (ChangePasswordCommand) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.ChangePasswordCommand([REDACTED])"))
+}
+
+// LogValue returns a fixed value rather than reflecting password proofs.
+func (ChangePasswordCommand) LogValue() slog.Value {
+	return slog.StringValue("identity.ChangePasswordCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct password-change serialization.
+func (ChangePasswordCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: change password serialization forbidden")
 }
 
 // Format redacts every registration command field.
