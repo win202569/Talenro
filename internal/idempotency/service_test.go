@@ -114,6 +114,61 @@ func TestBeginStartsWithDigestsOnlyAndDefensiveCopies(t *testing.T) {
 	}
 }
 
+func TestOnlyFixedAnonymousDeliveryScopesAreAccepted(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	tests := []struct {
+		name      string
+		scope     Scope
+		principal string
+		operation string
+	}{
+		{
+			name:      "email verification delivery",
+			scope:     AnonymousEmailVerificationDeliveryScope(),
+			principal: AnonymousEmailVerificationDeliveryPrincipal,
+			operation: CreateEmailVerificationDeliveryOperation,
+		},
+		{
+			name:      "password reset delivery",
+			scope:     AnonymousPasswordResetDeliveryScope(),
+			principal: AnonymousPasswordResetDeliveryPrincipal,
+			operation: CreatePasswordResetDeliveryOperation,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.scope != (Scope{Principal: test.principal, Operation: test.operation}) {
+				t.Fatalf("scope = %#v, want fixed principal and operation", test.scope)
+			}
+			storeFake := &fakeIdempotencyStore{tryRows: 1}
+			repository := newWithStore(storeFake, newProtector(t))
+			_, outcome, err := repository.Begin(
+				context.Background(), test.scope, "abcdefghijklmnopqrstuv", []byte(`{"email":"opaque"}`), now, now.Add(time.Hour),
+			)
+			if err != nil || outcome != Started || storeFake.tryCalls != 1 {
+				t.Fatalf("fixed scope begin = (%q, %v), store calls %d", outcome, err, storeFake.tryCalls)
+			}
+		})
+	}
+
+	for _, arbitrary := range []Scope{
+		{Principal: "anonymous_arbitrary", Operation: CreateEmailVerificationDeliveryOperation},
+		{Principal: AnonymousEmailVerificationDeliveryPrincipal, Operation: "arbitrary_operation"},
+		{Principal: AnonymousPasswordResetDeliveryPrincipal, Operation: CreateEmailVerificationDeliveryOperation},
+	} {
+		storeFake := &fakeIdempotencyStore{tryRows: 1}
+		repository := newWithStore(storeFake, newProtector(t))
+		if _, _, err := repository.Begin(context.Background(), arbitrary, "abcdefghijklmnopqrstuv", []byte(`{}`), now, now.Add(time.Hour)); !errors.Is(err, ErrInvalidArgument) {
+			t.Fatalf("arbitrary anonymous scope %#v error = %v", arbitrary, err)
+		}
+		if storeFake.tryCalls != 0 {
+			t.Fatalf("arbitrary anonymous scope reached store: %#v", arbitrary)
+		}
+	}
+}
+
 func TestBeginClassifiesExistingRecord(t *testing.T) {
 	t.Parallel()
 

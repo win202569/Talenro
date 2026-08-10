@@ -510,6 +510,36 @@ func (q *Queries) GetAccountForUpdate(ctx context.Context, id uuid.UUID) (Identi
 	return i, err
 }
 
+const getAccountSessionForUpdate = `-- name: GetAccountSessionForUpdate :one
+SELECT id, principal_id, state, state_version, client_signing_public_key, access_token_hash, access_expires_at, absolute_expires_at, created_at, updated_at, device_authorization_id FROM identity.account_sessions
+WHERE id = $1 AND principal_id = $2
+FOR UPDATE
+`
+
+type GetAccountSessionForUpdateParams struct {
+	ID          uuid.UUID `json:"id"`
+	PrincipalID uuid.UUID `json:"principal_id"`
+}
+
+func (q *Queries) GetAccountSessionForUpdate(ctx context.Context, arg GetAccountSessionForUpdateParams) (IdentityAccountSession, error) {
+	row := q.db.QueryRow(ctx, getAccountSessionForUpdate, arg.ID, arg.PrincipalID)
+	var i IdentityAccountSession
+	err := row.Scan(
+		&i.ID,
+		&i.PrincipalID,
+		&i.State,
+		&i.StateVersion,
+		&i.ClientSigningPublicKey,
+		&i.AccessTokenHash,
+		&i.AccessExpiresAt,
+		&i.AbsoluteExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeviceAuthorizationID,
+	)
+	return i, err
+}
+
 const getActiveRecoveryCodeSetForUpdate = `-- name: GetActiveRecoveryCodeSetForUpdate :one
 SELECT id, principal_id, generation, code_hashes, state, created_at, updated_at FROM identity.recovery_code_sets
 WHERE principal_id=$1 AND state='active' FOR UPDATE
@@ -524,6 +554,42 @@ func (q *Queries) GetActiveRecoveryCodeSetForUpdate(ctx context.Context, princip
 		&i.Generation,
 		&i.CodeHashes,
 		&i.State,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getEmailVerificationForUpdate = `-- name: GetEmailVerificationForUpdate :one
+SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encryption_key_version, verification_token_hash, verification_expires_at, verification_consumed_at, verification_delivery_id, verification_delivery_ciphertext, verification_delivery_key_version, verified_at, created_at, updated_at FROM identity.email_identities
+WHERE verification_token_hash = $1
+  AND verification_consumed_at IS NULL
+  AND verification_expires_at >= $2
+FOR UPDATE
+`
+
+type GetEmailVerificationForUpdateParams struct {
+	VerificationTokenHash []byte       `json:"verification_token_hash"`
+	VerificationExpiresAt sql.NullTime `json:"verification_expires_at"`
+}
+
+func (q *Queries) GetEmailVerificationForUpdate(ctx context.Context, arg GetEmailVerificationForUpdateParams) (IdentityEmailIdentity, error) {
+	row := q.db.QueryRow(ctx, getEmailVerificationForUpdate, arg.VerificationTokenHash, arg.VerificationExpiresAt)
+	var i IdentityEmailIdentity
+	err := row.Scan(
+		&i.ID,
+		&i.PrincipalID,
+		&i.LookupKeyVersion,
+		&i.LookupDigest,
+		&i.Ciphertext,
+		&i.EncryptionKeyVersion,
+		&i.VerificationTokenHash,
+		&i.VerificationExpiresAt,
+		&i.VerificationConsumedAt,
+		&i.VerificationDeliveryID,
+		&i.VerificationDeliveryCiphertext,
+		&i.VerificationDeliveryKeyVersion,
+		&i.VerifiedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

@@ -34,6 +34,14 @@ const (
 	AnonymousRegistrationPrincipal = "anonymous_registration"
 	// AnonymousRegistrationOperation is the only operation allowed for the anonymous scope.
 	AnonymousRegistrationOperation = "register_account"
+	// AnonymousEmailVerificationDeliveryPrincipal is the fixed unauthenticated verification-delivery scope.
+	AnonymousEmailVerificationDeliveryPrincipal = "anonymous_email_verification_delivery"
+	// CreateEmailVerificationDeliveryOperation is the fixed verification-delivery operation.
+	CreateEmailVerificationDeliveryOperation = "create_email_verification_delivery"
+	// AnonymousPasswordResetDeliveryPrincipal is the fixed unauthenticated password-reset scope.
+	AnonymousPasswordResetDeliveryPrincipal = "anonymous_password_reset_delivery"
+	// CreatePasswordResetDeliveryOperation is the fixed password-reset delivery operation.
+	CreatePasswordResetDeliveryOperation = "create_password_reset_delivery"
 )
 
 var (
@@ -74,6 +82,22 @@ type Scope struct {
 // AnonymousRegistrationScope returns the one permitted unauthenticated scope.
 func AnonymousRegistrationScope() Scope {
 	return Scope{Principal: AnonymousRegistrationPrincipal, Operation: AnonymousRegistrationOperation}
+}
+
+// AnonymousEmailVerificationDeliveryScope returns the fixed unauthenticated verification-delivery scope.
+func AnonymousEmailVerificationDeliveryScope() Scope {
+	return Scope{
+		Principal: AnonymousEmailVerificationDeliveryPrincipal,
+		Operation: CreateEmailVerificationDeliveryOperation,
+	}
+}
+
+// AnonymousPasswordResetDeliveryScope returns the fixed unauthenticated password-reset delivery scope.
+func AnonymousPasswordResetDeliveryScope() Scope {
+	return Scope{
+		Principal: AnonymousPasswordResetDeliveryPrincipal,
+		Operation: CreatePasswordResetDeliveryOperation,
+	}
 }
 
 // AuthenticatedScope binds an opaque principal UUID to a credential domain.
@@ -352,6 +376,12 @@ func validScope(scope Scope) bool {
 	}
 	if scope.Principal == AnonymousRegistrationPrincipal {
 		return scope.Operation == AnonymousRegistrationOperation
+	}
+	if scope.Principal == AnonymousEmailVerificationDeliveryPrincipal {
+		return scope.Operation == CreateEmailVerificationDeliveryOperation
+	}
+	if scope.Principal == AnonymousPasswordResetDeliveryPrincipal {
+		return scope.Operation == CreatePasswordResetDeliveryOperation
 	}
 	parts := strings.Split(scope.Principal, ":")
 	if len(parts) != 3 || parts[0] != "principal" || !validCredentialDomain(parts[2]) {

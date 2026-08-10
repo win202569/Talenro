@@ -1,0 +1,294 @@
+package identity
+
+import (
+	"context"
+	"errors"
+	"reflect"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
+	"talenro.local/platform/internal/idempotency"
+	"talenro.local/platform/internal/outbox"
+	"talenro.local/platform/internal/sensitive"
+	"talenro.local/platform/internal/store"
+)
+
+const identityRollbackTimeout = 2 * time.Second
+
+// PGXBeginner is the narrow production transaction source used by identity.
+type PGXBeginner interface {
+	Begin(context.Context) (pgx.Tx, error)
+}
+
+// PostgresRepository binds identity operations to generated sqlc methods.
+type PostgresRepository struct {
+	beginner  PGXBeginner
+	protector sensitive.Protector
+}
+
+var _ Repository = (*PostgresRepository)(nil)
+
+// NewPostgresRepository creates a generated-query-only identity repository.
+func NewPostgresRepository(beginner PGXBeginner, protector sensitive.Protector) (*PostgresRepository, error) {
+	if nilIdentityValue(beginner) || nilIdentityValue(protector) {
+		return nil, ErrInvalidRepository
+	}
+	return &PostgresRepository{beginner: beginner, protector: protector}, nil
+}
+
+// WithinTransaction runs one callback and owns commit/independent rollback.
+func (repository *PostgresRepository) WithinTransaction(ctx context.Context, operation func(context.Context, Transaction) error) (result error) {
+	if nilIdentityValue(ctx) || repository == nil || nilIdentityValue(repository.beginner) || nilIdentityValue(repository.protector) || operation == nil {
+		return ErrInvalidRepository
+	}
+	if ctx.Err() != nil {
+		return ErrRepository
+	}
+	var tx pgx.Tx
+	defer func() {
+		if recover() != nil {
+			result = ErrRepository
+		}
+		if !nilIdentityValue(tx) {
+			rollbackIdentityTransaction(ctx, tx)
+		}
+	}()
+	var err error
+	tx, err = repository.beginner.Begin(ctx)
+	if err != nil || nilIdentityValue(tx) {
+		return ErrRepository
+	}
+	bound, err := newPostgresTransaction(tx, repository.protector)
+	if err != nil {
+		return ErrRepository
+	}
+	if err = operation(ctx, bound); err != nil {
+		return err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
+type postgresTransaction struct {
+	tx          pgx.Tx
+	queries     *store.Queries
+	idempotency idempotency.Repository
+	outbox      outbox.Repository
+}
+
+var _ Transaction = (*postgresTransaction)(nil)
+
+func newPostgresTransaction(tx pgx.Tx, protector sensitive.Protector) (*postgresTransaction, error) {
+	if nilIdentityValue(tx) || nilIdentityValue(protector) {
+		return nil, ErrInvalidRepository
+	}
+	idempotencyRepository, err := idempotency.New(tx, protector)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	outboxRepository, err := outbox.NewRepository(tx)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return &postgresTransaction{tx: tx, queries: store.New(tx), idempotency: idempotencyRepository, outbox: outboxRepository}, nil
+}
+
+func (transaction *postgresTransaction) DBTX() store.DBTX { return transaction.tx }
+
+func (transaction *postgresTransaction) BeginIdempotency(ctx context.Context, scope idempotency.Scope, key string, canonical []byte, createdAt, expiresAt time.Time) (idempotency.Record, idempotency.Outcome, error) {
+	if transaction == nil || nilIdentityValue(transaction.idempotency) {
+		return idempotency.Record{}, "", ErrRepository
+	}
+	record, outcome, err := transaction.idempotency.Begin(ctx, scope, key, canonical, createdAt, expiresAt)
+	if err != nil {
+		return idempotency.Record{}, "", ErrRepository
+	}
+	return record, outcome, nil
+}
+
+func (transaction *postgresTransaction) CompleteIdempotency(ctx context.Context, record idempotency.Record, status int, body []byte) error {
+	if transaction == nil || nilIdentityValue(transaction.idempotency) {
+		return ErrRepository
+	}
+	if _, err := transaction.idempotency.Complete(ctx, record, status, body); err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
+func (transaction *postgresTransaction) FindIdentityByLookupDigest(ctx context.Context, digest []byte) (store.IdentityEmailIdentity, bool, error) {
+	row, err := transaction.queries.FindIdentityByLookupDigest(ctx, digest)
+	return identityEmailResult(row, err)
+}
+
+func (transaction *postgresTransaction) GetEmailVerificationForUpdate(ctx context.Context, params store.GetEmailVerificationForUpdateParams) (store.IdentityEmailIdentity, bool, error) {
+	row, err := transaction.queries.GetEmailVerificationForUpdate(ctx, params)
+	return identityEmailResult(row, err)
+}
+
+func (transaction *postgresTransaction) GetAccountForUpdate(ctx context.Context, principalID uuid.UUID) (store.IdentityAccount, bool, error) {
+	row, err := transaction.queries.GetAccountForUpdate(ctx, principalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityAccount{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityAccount{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetAccountSessionForUpdate(ctx context.Context, params store.GetAccountSessionForUpdateParams) (store.IdentityAccountSession, bool, error) {
+	row, err := transaction.queries.GetAccountSessionForUpdate(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityAccountSession{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityAccountSession{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (store.IdentityPasswordCredential, bool, error) {
+	row, err := transaction.queries.GetPasswordCredential(ctx, principalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityPasswordCredential{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityPasswordCredential{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) CreateAccount(ctx context.Context, params store.CreateAccountParams) error {
+	return mapIdentityStoreError(transaction.queries.CreateAccount(ctx, params))
+}
+
+func (transaction *postgresTransaction) CreateEmailIdentity(ctx context.Context, params store.CreateEmailIdentityParams) error {
+	return mapIdentityStoreError(transaction.queries.CreateEmailIdentity(ctx, params))
+}
+
+func (transaction *postgresTransaction) CreatePasswordCredential(ctx context.Context, params store.CreatePasswordCredentialParams) error {
+	return mapIdentityStoreError(transaction.queries.CreatePasswordCredential(ctx, params))
+}
+
+func (transaction *postgresTransaction) InsertSecurityEvent(ctx context.Context, params store.InsertSecurityEventParams) error {
+	return mapIdentityStoreError(transaction.queries.InsertSecurityEvent(ctx, params))
+}
+
+func (transaction *postgresTransaction) ResetEmailVerification(ctx context.Context, params store.ResetEmailVerificationParams) (bool, error) {
+	_, err := transaction.queries.ResetEmailVerification(ctx, params)
+	return oneRowResult(err)
+}
+
+func (transaction *postgresTransaction) SetPasswordReset(ctx context.Context, params store.SetPasswordResetParams) (bool, error) {
+	_, err := transaction.queries.SetPasswordReset(ctx, params)
+	return oneRowResult(err)
+}
+
+func (transaction *postgresTransaction) ConsumeEmailVerification(ctx context.Context, params store.ConsumeEmailVerificationParams) (store.IdentityEmailIdentity, bool, error) {
+	row, err := transaction.queries.ConsumeEmailVerification(ctx, params)
+	return identityEmailResult(row, err)
+}
+
+func (transaction *postgresTransaction) ClearPendingEmailDelivery(ctx context.Context, params store.ClearPendingEmailDeliveryParams) (int64, error) {
+	rows, err := transaction.queries.ClearPendingEmailDelivery(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ActivateVerifiedAccount(ctx context.Context, params store.ActivateVerifiedAccountParams) (store.IdentityAccount, bool, error) {
+	row, err := transaction.queries.ActivateVerifiedAccount(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityAccount{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityAccount{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) ConsumePasswordReset(ctx context.Context, params store.ConsumePasswordResetParams) (bool, error) {
+	_, err := transaction.queries.ConsumePasswordReset(ctx, params)
+	return oneRowResult(err)
+}
+
+func (transaction *postgresTransaction) MarkPrincipalSessionsReviewRequired(ctx context.Context, params store.MarkPrincipalSessionsReviewRequiredParams) (int64, error) {
+	rows, err := transaction.queries.MarkPrincipalSessionsReviewRequired(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) CreateAccountSession(ctx context.Context, params store.CreateAccountSessionParams) error {
+	return mapIdentityStoreError(transaction.queries.CreateAccountSession(ctx, params))
+}
+
+func (transaction *postgresTransaction) InsertAccountRefreshToken(ctx context.Context, params store.InsertAccountRefreshTokenParams) error {
+	return mapIdentityStoreError(transaction.queries.InsertAccountRefreshToken(ctx, params))
+}
+
+func (transaction *postgresTransaction) CreateEnrollmentGrant(ctx context.Context, params store.CreateEnrollmentGrantParams) error {
+	return mapIdentityStoreError(transaction.queries.CreateEnrollmentGrant(ctx, params))
+}
+
+func (transaction *postgresTransaction) AppendEvent(ctx context.Context, envelope *eventsv1.EventEnvelope) error {
+	if err := transaction.outbox.Append(ctx, envelope); err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
+func identityEmailResult(row store.IdentityEmailIdentity, err error) (store.IdentityEmailIdentity, bool, error) {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityEmailIdentity{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityEmailIdentity{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func oneRowResult(err error) (bool, error) {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, ErrRepository
+	}
+	return true, nil
+}
+
+func mapIdentityStoreError(err error) error {
+	if err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
+func rollbackIdentityTransaction(operationContext context.Context, tx pgx.Tx) {
+	defer func() { _ = recover() }()
+	base := context.WithoutCancel(operationContext)
+	ctx, cancel := context.WithTimeout(base, identityRollbackTimeout)
+	defer cancel()
+	_ = tx.Rollback(ctx)
+}
+
+func nilIdentityValue(value any) bool {
+	if value == nil {
+		return true
+	}
+	representation := reflect.ValueOf(value)
+	switch representation.Kind() { //nolint:exhaustive // Only nil-capable interface representations matter.
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return representation.IsNil()
+	default:
+		return false
+	}
+}

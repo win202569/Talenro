@@ -23,8 +23,20 @@ WHERE principal_id = $1
   AND verification_expires_at >= $3
 RETURNING *;
 
+-- name: GetEmailVerificationForUpdate :one
+SELECT * FROM identity.email_identities
+WHERE verification_token_hash = $1
+  AND verification_consumed_at IS NULL
+  AND verification_expires_at >= $2
+FOR UPDATE;
+
 -- name: GetPasswordCredential :one
 SELECT * FROM identity.password_credentials WHERE principal_id = $1;
+
+-- name: GetAccountSessionForUpdate :one
+SELECT * FROM identity.account_sessions
+WHERE id = $1 AND principal_id = $2
+FOR UPDATE;
 
 -- name: CreateAccountSession :exec
 INSERT INTO identity.account_sessions
