@@ -13,6 +13,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ConsumedEventID struct {
+	Consumer   string    `json:"consumer"`
+	EventID    uuid.UUID `json:"event_id"`
+	ConsumedAt time.Time `json:"consumed_at"`
+	ExpiresAt  time.Time `json:"expires_at"`
+}
+
 type DeviceauthDevice struct {
 	ID                    uuid.UUID   `json:"id"`
 	PrincipalID           uuid.UUID   `json:"principal_id"`
@@ -79,6 +86,19 @@ type DeviceauthEnrollmentGrant struct {
 	CreatedAt        time.Time     `json:"created_at"`
 	ConsumedAt       sql.NullTime  `json:"consumed_at"`
 	ConsumedDeviceID uuid.NullUUID `json:"consumed_device_id"`
+}
+
+type IdempotencyRecord struct {
+	PrincipalScope     string      `json:"principal_scope"`
+	Operation          string      `json:"operation"`
+	IdempotencyKeyHash []byte      `json:"idempotency_key_hash"`
+	RequestDigest      []byte      `json:"request_digest"`
+	State              string      `json:"state"`
+	ResponseStatus     pgtype.Int4 `json:"response_status"`
+	ResponseCiphertext []byte      `json:"response_ciphertext"`
+	ResponseKeyVersion pgtype.Int4 `json:"response_key_version"`
+	CreatedAt          time.Time   `json:"created_at"`
+	ExpiresAt          time.Time   `json:"expires_at"`
 }
 
 type IdentityAccount struct {
@@ -199,4 +219,66 @@ type SystemMetadatum struct {
 	Key       string          `json:"key"`
 	Value     json.RawMessage `json:"value"`
 	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+type TransactionalOutbox struct {
+	EventID          uuid.UUID    `json:"event_id"`
+	EventType        string       `json:"event_type"`
+	AggregateType    string       `json:"aggregate_type"`
+	AggregateID      uuid.UUID    `json:"aggregate_id"`
+	AggregateVersion int64        `json:"aggregate_version"`
+	IdempotencyKey   string       `json:"idempotency_key"`
+	Payload          []byte       `json:"payload"`
+	OccurredAt       time.Time    `json:"occurred_at"`
+	AvailableAt      time.Time    `json:"available_at"`
+	ClaimedUntil     sql.NullTime `json:"claimed_until"`
+	Attempts         int32        `json:"attempts"`
+	PublishedAt      sql.NullTime `json:"published_at"`
+}
+
+type TrustBundleAcknowledgement struct {
+	BundleID        uuid.UUID `json:"bundle_id"`
+	AuthorizationID uuid.UUID `json:"authorization_id"`
+	BundleVersion   int64     `json:"bundle_version"`
+	AcknowledgedAt  time.Time `json:"acknowledged_at"`
+}
+
+type TrustBundleIssuance struct {
+	ID                uuid.UUID `json:"id"`
+	AuthorizationID   uuid.UUID `json:"authorization_id"`
+	BundleVersion     int64     `json:"bundle_version"`
+	LocatorHash       []byte    `json:"locator_hash"`
+	LocatorCiphertext []byte    `json:"locator_ciphertext"`
+	LocatorKeyVersion int32     `json:"locator_key_version"`
+	Envelope          []byte    `json:"envelope"`
+	EnvelopeSha256    []byte    `json:"envelope_sha256"`
+	SignerKeyID       string    `json:"signer_key_id"`
+	IssuedAt          time.Time `json:"issued_at"`
+	NotBefore         time.Time `json:"not_before"`
+	ExpiresAt         time.Time `json:"expires_at"`
+}
+
+type TrustHighestBundleVersion struct {
+	AuthorizationID uuid.UUID `json:"authorization_id"`
+	HighestIssued   int64     `json:"highest_issued"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type TrustSigningKeyMetadatum struct {
+	KeyID               string    `json:"key_id"`
+	RootMetadataVersion int64     `json:"root_metadata_version"`
+	Algorithm           string    `json:"algorithm"`
+	PublicKey           []byte    `json:"public_key"`
+	State               string    `json:"state"`
+	NotBefore           time.Time `json:"not_before"`
+	NotAfter            time.Time `json:"not_after"`
+}
+
+type TrustTrustRootMetadatum struct {
+	Version          int64     `json:"version"`
+	CanonicalPayload []byte    `json:"canonical_payload"`
+	Signature        []byte    `json:"signature"`
+	ValidFrom        time.Time `json:"valid_from"`
+	ValidUntil       time.Time `json:"valid_until"`
+	CreatedAt        time.Time `json:"created_at"`
 }

@@ -7,6 +7,7 @@ package store
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,7 +18,9 @@ type Querier interface {
 	ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error)
 	ActivateVerifiedAccount(ctx context.Context, arg ActivateVerifiedAccountParams) (IdentityAccount, error)
 	BindAccountSessionToAuthorization(ctx context.Context, arg BindAccountSessionToAuthorizationParams) (int64, error)
+	ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]TransactionalOutbox, error)
 	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
+	CompleteIdempotency(ctx context.Context, arg CompleteIdempotencyParams) (IdempotencyRecord, error)
 	CompromiseDeviceTokenFamily(ctx context.Context, arg CompromiseDeviceTokenFamilyParams) (DeviceauthDeviceTokenFamily, error)
 	ConsumeEmailVerification(ctx context.Context, arg ConsumeEmailVerificationParams) (IdentityEmailIdentity, error)
 	ConsumeEnrollmentGrant(ctx context.Context, arg ConsumeEnrollmentGrantParams) (DeviceauthEnrollmentGrant, error)
@@ -42,8 +45,13 @@ type Querier interface {
 	GetActiveBundleAuthority(ctx context.Context, arg GetActiveBundleAuthorityParams) (GetActiveBundleAuthorityRow, error)
 	GetActiveRecoveryCodeSetForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityRecoveryCodeSet, error)
 	GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceAuthorization, error)
+	GetBundleByLocatorHash(ctx context.Context, arg GetBundleByLocatorHashParams) (TrustBundleIssuance, error)
+	GetBundleIssuance(ctx context.Context, id uuid.UUID) (TrustBundleIssuance, error)
 	GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byte) (GetDeviceRefreshForUpdateRow, error)
 	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
+	GetHighestBundleVersion(ctx context.Context, authorizationID uuid.UUID) (int64, error)
+	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
+	GetOutboxHealth(ctx context.Context, occurredAt time.Time) (GetOutboxHealthRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
 	GetPendingEmailDelivery(ctx context.Context, verificationDeliveryID uuid.NullUUID) (GetPendingEmailDeliveryRow, error)
 	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
@@ -51,14 +59,27 @@ type Querier interface {
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
 	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
+	InsertBundleAcknowledgement(ctx context.Context, arg InsertBundleAcknowledgementParams) error
+	InsertBundleIssuance(ctx context.Context, arg InsertBundleIssuanceParams) error
 	InsertDeviceRefreshToken(ctx context.Context, arg InsertDeviceRefreshTokenParams) error
+	InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventParams) error
 	InsertSecurityEvent(ctx context.Context, arg InsertSecurityEventParams) error
+	InsertSigningKeyMetadata(ctx context.Context, arg InsertSigningKeyMetadataParams) error
+	InsertTrustRootMetadata(ctx context.Context, arg InsertTrustRootMetadataParams) error
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
+	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)
+	ListTrustRootMetadata(ctx context.Context) ([]TrustTrustRootMetadatum, error)
 	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
 	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
 	MarkDeviceRefreshUsed(ctx context.Context, arg MarkDeviceRefreshUsedParams) (DeviceauthDeviceRefreshToken, error)
+	MarkOutboxPublished(ctx context.Context, arg MarkOutboxPublishedParams) (int64, error)
 	MarkPrincipalSessionsReviewRequired(ctx context.Context, arg MarkPrincipalSessionsReviewRequiredParams) (int64, error)
+	NextBundleVersion(ctx context.Context, arg NextBundleVersionParams) (int64, error)
+	PruneConsumedEvents(ctx context.Context, expiresAt time.Time) (int64, error)
+	PruneIdempotencyRecords(ctx context.Context, expiresAt time.Time) (int64, error)
 	PutSystemMetadata(ctx context.Context, arg PutSystemMetadataParams) error
+	RecordConsumedEvent(ctx context.Context, arg RecordConsumedEventParams) (int64, error)
+	ReleaseOutboxClaim(ctx context.Context, arg ReleaseOutboxClaimParams) (int64, error)
 	ResetEmailVerification(ctx context.Context, arg ResetEmailVerificationParams) (IdentityEmailIdentity, error)
 	RevokeAccountRefreshTokens(ctx context.Context, arg RevokeAccountRefreshTokensParams) (int64, error)
 	RevokeAccountSession(ctx context.Context, arg RevokeAccountSessionParams) (int64, error)
@@ -72,6 +93,7 @@ type Querier interface {
 	RotateAccountSessionAccess(ctx context.Context, arg RotateAccountSessionAccessParams) (IdentityAccountSession, error)
 	RotateDeviceFamilyAccess(ctx context.Context, arg RotateDeviceFamilyAccessParams) (DeviceauthDeviceTokenFamily, error)
 	SetPasswordReset(ctx context.Context, arg SetPasswordResetParams) (IdentityPasswordCredential, error)
+	TryBeginIdempotency(ctx context.Context, arg TryBeginIdempotencyParams) (int64, error)
 	UpdatePasskeyCounter(ctx context.Context, arg UpdatePasskeyCounterParams) (int64, error)
 	UpdatePasswordCredential(ctx context.Context, arg UpdatePasswordCredentialParams) (int64, error)
 }
