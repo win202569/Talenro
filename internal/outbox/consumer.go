@@ -14,6 +14,7 @@ import (
 
 const (
 	maximumConsumerRetention = 365 * 24 * time.Hour
+	consumedEventRetention   = 30 * 24 * time.Hour
 	rollbackTimeout          = 2 * time.Second
 )
 
@@ -82,22 +83,26 @@ func (adapter pgxBeginnerAdapter) Begin(ctx context.Context) (transaction, error
 // Consumer validates delivery bytes and commits deduplicated database side effects.
 type Consumer struct{ implementation *consumer }
 
-// NewConsumer creates a DB-only consumer over a pgx-compatible transaction source.
-func NewConsumer(beginner PGXBeginner, name string, retention time.Duration, handler Handler) (*Consumer, error) {
-	if beginner == nil {
+// NewConsumer creates a DB-only consumer with the fixed 30-day deduplication retention.
+func NewConsumer(beginner PGXBeginner, name string, handler Handler) (*Consumer, error) {
+	if nilValue(beginner) || nilValue(handler) {
 		return nil, ErrInvalidConfiguration
 	}
-	implementation, err := newConsumerWithBeginner(pgxBeginnerAdapter{beginner: beginner}, func(tx store.DBTX) consumerStore {
+	implementation, err := newProductionConsumer(pgxBeginnerAdapter{beginner: beginner}, func(tx store.DBTX) consumerStore {
 		return store.New(tx)
-	}, name, retention, handler)
+	}, name, handler)
 	if err != nil {
 		return nil, err
 	}
 	return &Consumer{implementation: implementation}, nil
 }
 
-func newConsumerWithBeginner(beginner transactionBeginner, storeFactory func(store.DBTX) consumerStore, name string, retention time.Duration, handler Handler) (*consumer, error) {
-	if beginner == nil || storeFactory == nil || handler == nil || !validConsumerName(name) || retention <= 0 || retention > maximumConsumerRetention {
+func newProductionConsumer(beginner transactionBeginner, storeFactory func(store.DBTX) consumerStore, name string, handler Handler) (*consumer, error) {
+	return newConsumerForTest(beginner, storeFactory, name, consumedEventRetention, handler)
+}
+
+func newConsumerForTest(beginner transactionBeginner, storeFactory func(store.DBTX) consumerStore, name string, retention time.Duration, handler Handler) (*consumer, error) {
+	if nilValue(beginner) || nilValue(storeFactory) || nilValue(handler) || !validConsumerName(name) || retention <= 0 || retention > maximumConsumerRetention {
 		return nil, ErrInvalidConfiguration
 	}
 	return &consumer{beginner: beginner, storeFactory: storeFactory, name: name, retention: retention, handler: handler}, nil
@@ -134,9 +139,12 @@ func (consumer *consumer) Consume(ctx context.Context, encoded []byte, consumedA
 	if err != nil {
 		return mapConsumerContextOrStore(ctx)
 	}
+	if nilValue(tx) {
+		return ErrStore
+	}
+	defer rollback(ctx, tx)
 	boundStore := consumer.storeFactory(tx)
-	if boundStore == nil {
-		rollback(ctx, tx)
+	if nilValue(boundStore) {
 		return ErrStore
 	}
 	rows, err := boundStore.RecordConsumedEvent(ctx, store.RecordConsumedEventParams{
@@ -146,16 +154,13 @@ func (consumer *consumer) Consume(ctx context.Context, encoded []byte, consumedA
 		ExpiresAt:  expiresAt,
 	})
 	if err != nil {
-		rollback(ctx, tx)
 		return mapConsumerContextOrStore(ctx)
 	}
 	if rows != 0 && rows != 1 {
-		rollback(ctx, tx)
 		return ErrStore
 	}
 	if rows == 1 {
-		if err := consumer.handler.HandleInTransaction(ctx, tx, envelope); err != nil {
-			rollback(ctx, tx)
+		if handlerFailed(ctx, consumer.handler, tx, envelope) {
 			if ctx.Err() != nil {
 				return ErrCanceled
 			}
@@ -169,6 +174,15 @@ func (consumer *consumer) Consume(ctx context.Context, encoded []byte, consumedA
 		return ErrCommit
 	}
 	return nil
+}
+
+func handlerFailed(ctx context.Context, handler Handler, tx store.DBTX, envelope *eventsv1.EventEnvelope) (failed bool) {
+	defer func() {
+		if recover() != nil {
+			failed = true
+		}
+	}()
+	return handler.HandleInTransaction(ctx, tx, envelope) != nil
 }
 
 func rollback(operationContext context.Context, tx transaction) {

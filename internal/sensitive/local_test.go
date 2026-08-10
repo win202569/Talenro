@@ -302,7 +302,7 @@ func TestLocalRejectsSubstitutionTamperAndBounds(t *testing.T) {
 		{name: "key version substitution", domain: "identity/email/v1", value: EncryptedField{KeyVersion: 8, Ciphertext: value.Ciphertext}},
 		{name: "tamper", domain: "identity/email/v1", value: tampered},
 		{name: "short ciphertext", domain: "identity/email/v1", value: EncryptedField{KeyVersion: 7, Ciphertext: make([]byte, 28)}},
-		{name: "oversize ciphertext", domain: "identity/email/v1", value: EncryptedField{KeyVersion: 7, Ciphertext: make([]byte, 12+16+1048577)}},
+		{name: "oversize ciphertext", domain: "identity/email/v1", value: EncryptedField{KeyVersion: 7, Ciphertext: make([]byte, 12+16+1048578)}},
 		{name: "empty domain", domain: "", value: value},
 		{name: "oversize domain", domain: string(bytes.Repeat([]byte{'a'}, 129)), value: value},
 	}
@@ -313,13 +313,34 @@ func TestLocalRejectsSubstitutionTamperAndBounds(t *testing.T) {
 			}
 		})
 	}
-	for _, plaintext := range [][]byte{nil, {}, make([]byte, 1048577)} {
+	for _, plaintext := range [][]byte{nil, {}, make([]byte, 1048578)} {
 		if _, err := local.Encrypt("identity/email/v1", plaintext); !errors.Is(err, ErrInvalidArgument) {
 			t.Fatalf("Encrypt length %d error = %v", len(plaintext), err)
 		}
 	}
 	if digest := local.LookupDigest("identity/email/v1", make([]byte, 1048577)); digest != [32]byte{} {
 		t.Fatalf("oversize canonical digest = %x", digest)
+	}
+}
+
+func TestLocalAllowsMaximumIdempotencyResponseFrameOnly(t *testing.T) {
+	t.Parallel()
+
+	local := newTestLocal(t, 7)
+	maximumFrame := bytes.Repeat([]byte{'x'}, (1<<20)+1)
+	protected, err := local.Encrypt("idempotency/response/v1", maximumFrame)
+	if err != nil {
+		t.Fatalf("Encrypt maximum idempotency frame: %v", err)
+	}
+	opened, err := local.Decrypt("idempotency/response/v1", protected)
+	if err != nil {
+		t.Fatalf("Decrypt maximum idempotency frame: %v", err)
+	}
+	if !bytes.Equal(opened, maximumFrame) {
+		t.Fatal("maximum idempotency frame did not round trip")
+	}
+	if _, err := local.Encrypt("idempotency/response/v1", make([]byte, (1<<20)+2)); !errors.Is(err, ErrInvalidArgument) {
+		t.Fatalf("Encrypt oversized frame error = %v, want ErrInvalidArgument", err)
 	}
 }
 

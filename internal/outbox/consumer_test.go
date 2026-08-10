@@ -33,7 +33,7 @@ func TestConsumerRunsSideEffectOnceForDuplicateEventID(t *testing.T) {
 		got.Payload[0] ^= 1
 		return nil
 	})
-	consumer, err := newConsumerWithBeginner(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+	consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
 		return &fakeConsumerStore{state: state, tx: tx}
 	}, "identity.projector", 30*24*time.Hour, handler)
 	if err != nil {
@@ -53,7 +53,7 @@ func TestConsumerRunsSideEffectOnceForDuplicateEventID(t *testing.T) {
 	if len(state.recordTxs) != 2 || state.transactions[0] != state.recordTxs[0] || state.transactions[1] != state.recordTxs[1] {
 		t.Fatal("RecordConsumedEvent was not bound to the handler transaction")
 	}
-	wantOrder := []string{"begin", "record", "handle", "commit", "begin", "record", "commit"}
+	wantOrder := []string{"begin", "record", "handle", "commit", "rollback", "begin", "record", "commit", "rollback"}
 	if !equalStrings(state.order, wantOrder) {
 		t.Fatalf("order = %v, want %v", state.order, wantOrder)
 	}
@@ -80,7 +80,7 @@ func TestConsumerRollsBackOnRecordAndHandlerErrorsAndReturnsFixedErrors(t *testi
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			state := &consumerFakeState{recordErr: test.recordErr}
-			consumer, err := newConsumerWithBeginner(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+			consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
 				return &fakeConsumerStore{state: state, tx: tx}
 			}, "identity.projector", time.Hour, HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error {
 				state.order = append(state.order, "handle")
@@ -104,7 +104,7 @@ func TestConsumerReturnsFixedCommitFailureWithoutSideEffectReplayWithinDelivery(
 	t.Parallel()
 
 	state := &consumerFakeState{commitErr: errors.New("SECRET_COMMIT_CANARY")}
-	consumer, err := newConsumerWithBeginner(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+	consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
 		return &fakeConsumerStore{state: state, tx: tx}
 	}, "identity.projector", time.Hour, HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error {
 		state.order = append(state.order, "handle")
@@ -117,9 +117,42 @@ func TestConsumerReturnsFixedCommitFailureWithoutSideEffectReplayWithinDelivery(
 	if !errors.Is(err, ErrCommit) || bytes.Contains([]byte(err.Error()), []byte("CANARY")) {
 		t.Fatalf("error = %v, want fixed ErrCommit", err)
 	}
-	if !equalStrings(state.order, []string{"begin", "record", "handle", "commit"}) {
+	if !equalStrings(state.order, []string{"begin", "record", "handle", "commit", "rollback"}) {
 		t.Fatalf("order = %v", state.order)
 	}
+}
+
+func TestConsumerRecoversHandlerPanicWithoutFormattingValueAndRollsBack(t *testing.T) {
+	t.Parallel()
+
+	state := &consumerFakeState{}
+	formatted := false
+	consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+		return &fakeConsumerStore{state: state, tx: tx}
+	}, "identity.projector", time.Hour, HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error {
+		state.order = append(state.order, "handle")
+		panic(panicCanary{formatted: &formatted})
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	consumeErr := consumer.Consume(context.Background(), mustMarshalEnvelope(t, accountStateEnvelope(t)), time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC))
+	if !errors.Is(consumeErr, ErrHandler) || bytes.Contains([]byte(consumeErr.Error()), []byte("SECRET_PANIC_CANARY")) {
+		t.Fatalf("error = %v, want fixed ErrHandler", consumeErr)
+	}
+	if !equalStrings(state.order, []string{"begin", "record", "handle", "rollback"}) {
+		t.Fatalf("order = %v", state.order)
+	}
+	if formatted {
+		t.Fatal("panic value was formatted")
+	}
+}
+
+type panicCanary struct{ formatted *bool }
+
+func (canary panicCanary) String() string {
+	*canary.formatted = true
+	return "SECRET_PANIC_CANARY"
 }
 
 func TestConsumerCancellationRollsBackWithIndependentBoundedContext(t *testing.T) {
@@ -127,7 +160,7 @@ func TestConsumerCancellationRollsBackWithIndependentBoundedContext(t *testing.T
 
 	operationContext, cancel := context.WithCancel(context.Background())
 	state := &consumerFakeState{recordErr: errors.New("SECRET_CANCELED_RECORD"), cancelOnRecord: cancel}
-	consumer, err := newConsumerWithBeginner(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+	consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
 		return &fakeConsumerStore{state: state, tx: tx}
 	}, "identity.projector", time.Hour, HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error {
 		return nil
@@ -144,6 +177,80 @@ func TestConsumerCancellationRollsBackWithIndependentBoundedContext(t *testing.T
 	}
 	if state.rollbackContextErr != nil {
 		t.Fatalf("rollback inherited operation cancellation: %v", state.rollbackContextErr)
+	}
+}
+
+func TestProductionConsumerUsesFixedThirtyDayRetention(t *testing.T) {
+	t.Parallel()
+
+	state := &consumerFakeState{}
+	consumer, err := newProductionConsumer(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+		return &fakeConsumerStore{state: state, tx: tx}
+	}, "identity.projector", HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error { return nil }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	consumedAt := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	if err := consumer.Consume(context.Background(), mustMarshalEnvelope(t, accountStateEnvelope(t)), consumedAt); err != nil {
+		t.Fatal(err)
+	}
+	if got := state.recordParams.ExpiresAt.Sub(state.recordParams.ConsumedAt); got != 30*24*time.Hour {
+		t.Fatalf("retention = %s, want 720h", got)
+	}
+}
+
+func TestConsumerRejectsTypedNilDependenciesAndTransactions(t *testing.T) {
+	t.Parallel()
+
+	handler := HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error { return nil })
+	if _, err := NewConsumer(nil, "identity.projector", nil); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("nil public dependencies error = %v", err)
+	}
+	factory := func(tx store.DBTX) consumerStore { return &fakeConsumerStore{state: &consumerFakeState{}, tx: tx} }
+	var nilBeginner *typedNilTransactionBeginner
+	if _, err := newConsumerForTest(nilBeginner, factory, "identity.projector", time.Hour, handler); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("typed-nil internal beginner error = %v", err)
+	}
+	var nilHandler *typedNilHandler
+	if _, err := newConsumerForTest(&fakeBeginner{state: &consumerFakeState{}}, factory, "identity.projector", time.Hour, nilHandler); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("typed-nil handler error = %v", err)
+	}
+	var nilPGXBeginner *typedNilPGXBeginner
+	if _, err := NewConsumer(nilPGXBeginner, "identity.projector", handler); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("typed-nil public beginner error = %v", err)
+	}
+	if _, err := NewConsumer(&typedNilPGXBeginner{}, "identity.projector", nilHandler); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("typed-nil public handler error = %v", err)
+	}
+	var zero Consumer
+	if err := zero.Consume(context.Background(), []byte{1}, time.Now()); !errors.Is(err, ErrInvalidConfiguration) {
+		t.Fatalf("zero consumer error = %v", err)
+	}
+
+	encoded := mustMarshalEnvelope(t, accountStateEnvelope(t))
+	consumedAt := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	for _, test := range []struct {
+		name     string
+		beginner transactionBeginner
+		factory  func(store.DBTX) consumerStore
+	}{
+		{name: "nil transaction", beginner: &returningBeginner{}},
+		{name: "typed nil transaction", beginner: &returningBeginner{tx: (*fakeTx)(nil)}},
+		{name: "typed nil store", beginner: &fakeBeginner{state: &consumerFakeState{}}, factory: func(store.DBTX) consumerStore { return (*typedNilConsumerStore)(nil) }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			selectedFactory := test.factory
+			if selectedFactory == nil {
+				selectedFactory = factory
+			}
+			consumer, err := newConsumerForTest(test.beginner, selectedFactory, "identity.projector", time.Hour, handler)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := consumer.Consume(context.Background(), encoded, consumedAt); !errors.Is(err, ErrStore) {
+				t.Fatalf("Consume error = %v, want ErrStore", err)
+			}
+		})
 	}
 }
 
@@ -169,7 +276,7 @@ func TestConsumerRejectsInvalidInputBeforeTransaction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			state := &consumerFakeState{}
-			consumer, err := newConsumerWithBeginner(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
+			consumer, err := newConsumerForTest(&fakeBeginner{state: state}, func(tx store.DBTX) consumerStore {
 				return &fakeConsumerStore{state: state, tx: tx}
 			}, test.consumer, test.retention, HandlerFunc(func(context.Context, store.DBTX, *eventsv1.EventEnvelope) error { return nil }))
 			if err == nil {
@@ -194,6 +301,7 @@ type consumerFakeState struct {
 	commitErr          error
 	cancelOnRecord     context.CancelFunc
 	rollbackContextErr error
+	recordParams       store.RecordConsumedEventParams
 }
 
 type fakeBeginner struct{ state *consumerFakeState }
@@ -203,6 +311,36 @@ func (beginner *fakeBeginner) Begin(context.Context) (transaction, error) {
 	beginner.state.transactions = append(beginner.state.transactions, tx)
 	beginner.state.order = append(beginner.state.order, "begin")
 	return tx, nil
+}
+
+type typedNilTransactionBeginner struct{}
+
+func (*typedNilTransactionBeginner) Begin(context.Context) (transaction, error) {
+	panic("typed nil beginner called")
+}
+
+type typedNilPGXBeginner struct{}
+
+func (*typedNilPGXBeginner) Begin(context.Context) (pgx.Tx, error) {
+	panic("typed nil pgx beginner called")
+}
+
+type typedNilHandler struct{}
+
+func (*typedNilHandler) HandleInTransaction(context.Context, store.DBTX, *eventsv1.EventEnvelope) error {
+	panic("typed nil handler called")
+}
+
+type returningBeginner struct{ tx transaction }
+
+func (beginner *returningBeginner) Begin(context.Context) (transaction, error) {
+	return beginner.tx, nil
+}
+
+type typedNilConsumerStore struct{}
+
+func (*typedNilConsumerStore) RecordConsumedEvent(context.Context, store.RecordConsumedEventParams) (int64, error) {
+	panic("typed nil consumer store called")
 }
 
 type fakeTx struct{ state *consumerFakeState }
@@ -232,9 +370,10 @@ type fakeConsumerStore struct {
 	tx    store.DBTX
 }
 
-func (fake *fakeConsumerStore) RecordConsumedEvent(_ context.Context, _ store.RecordConsumedEventParams) (int64, error) {
+func (fake *fakeConsumerStore) RecordConsumedEvent(_ context.Context, params store.RecordConsumedEventParams) (int64, error) {
 	fake.state.order = append(fake.state.order, "record")
 	fake.state.recordTxs = append(fake.state.recordTxs, fake.tx)
+	fake.state.recordParams = params
 	if fake.state.cancelOnRecord != nil {
 		fake.state.cancelOnRecord()
 	}

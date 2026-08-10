@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
@@ -52,7 +53,7 @@ type payloadSpec struct {
 
 // MarshalPayload validates a finite event type and deterministically marshals its exact message.
 func MarshalPayload(eventType string, payload proto.Message) ([]byte, error) {
-	if payload == nil || !payload.ProtoReflect().IsValid() {
+	if payload == nil || !payload.ProtoReflect().IsValid() || hasUnknownFields(payload.ProtoReflect()) {
 		return nil, ErrInvalidPayload
 	}
 	if err := ValidatePayloadDescriptor(payload.ProtoReflect().Descriptor()); err != nil {
@@ -71,6 +72,9 @@ func MarshalPayload(eventType string, payload proto.Message) ([]byte, error) {
 
 // MarshalEnvelope validates metadata and payload, then returns canonical protobuf bytes.
 func MarshalEnvelope(envelope *eventsv1.EventEnvelope) ([]byte, error) {
+	if envelope == nil || hasUnknownFields(envelope.ProtoReflect()) {
+		return nil, ErrInvalidEnvelope
+	}
 	if err := validateEnvelope(envelope); err != nil {
 		return nil, err
 	}
@@ -128,7 +132,7 @@ func decodePayload(eventType string, encoded []byte) (payloadSpec, proto.Message
 	}
 	message := spec.newMessage()
 	if err := (proto.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(encoded, message); err != nil ||
-		len(message.ProtoReflect().GetUnknown()) != 0 || ValidatePayloadDescriptor(message.ProtoReflect().Descriptor()) != nil || !spec.validate(message) {
+		hasUnknownFields(message.ProtoReflect()) || ValidatePayloadDescriptor(message.ProtoReflect().Descriptor()) != nil || !spec.validate(message) {
 		return payloadSpec{}, nil, ErrInvalidPayload
 	}
 	canonical, err := (proto.MarshalOptions{Deterministic: true}).Marshal(message)
@@ -136,6 +140,43 @@ func decodePayload(eventType string, encoded []byte) (payloadSpec, proto.Message
 		return payloadSpec{}, nil, ErrInvalidPayload
 	}
 	return spec, message, nil
+}
+
+func hasUnknownFields(message protoreflect.Message) bool {
+	if !message.IsValid() || len(message.GetUnknown()) != 0 {
+		return true
+	}
+	hasUnknown := false
+	message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+		if field.IsMap() {
+			if field.MapValue().Message() == nil {
+				return true
+			}
+			value.Map().Range(func(_ protoreflect.MapKey, entry protoreflect.Value) bool {
+				hasUnknown = hasUnknownFields(entry.Message())
+				return !hasUnknown
+			})
+			return !hasUnknown
+		}
+		if field.IsList() {
+			if field.Message() == nil {
+				return true
+			}
+			list := value.List()
+			for index := 0; index < list.Len(); index++ {
+				if hasUnknownFields(list.Get(index).Message()) {
+					hasUnknown = true
+					return false
+				}
+			}
+			return true
+		}
+		if field.Message() != nil {
+			hasUnknown = hasUnknownFields(value.Message())
+		}
+		return !hasUnknown
+	})
+	return hasUnknown
 }
 
 func registeredPayload(eventType string) (payloadSpec, bool) {
@@ -278,15 +319,36 @@ func safeIdempotencyKey(value string) bool {
 }
 
 func validLocale(value string) bool {
-	if len(value) < 2 || len(value) > 16 {
+	if len(value) < 2 || len(value) > 35 {
 		return false
 	}
+	parts := strings.Split(value, "-")
+	if len(parts[0]) < 2 || len(parts[0]) > 3 || !asciiLetters(parts[0]) {
+		return false
+	}
+	for _, part := range parts[1:] {
+		if len(part) < 2 || len(part) > 8 {
+			return false
+		}
+		for index := range len(part) {
+			character := part[index]
+			if character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z' || character >= '0' && character <= '9' {
+				continue
+			}
+			return false
+		}
+	}
+	return true
+}
+
+func asciiLetters(value string) bool {
 	for index := range len(value) {
 		character := value[index]
-		if character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z' || character >= '0' && character <= '9' || character == '-' {
-			continue
+		if character < 'a' || character > 'z' {
+			if character < 'A' || character > 'Z' {
+				return false
+			}
 		}
-		return false
 	}
 	return true
 }

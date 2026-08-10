@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"reflect"
 
 	"github.com/google/uuid"
 	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
@@ -34,7 +35,7 @@ var _ Repository = (*repository)(nil)
 
 // NewRepository binds all appends to the supplied caller-owned DBTX.
 func NewRepository(db store.DBTX) (Repository, error) {
-	if db == nil {
+	if nilValue(db) {
 		return nil, ErrInvalidEvent
 	}
 	return newRepositoryWithStore(store.New(db)), nil
@@ -45,8 +46,11 @@ func newRepositoryWithStore(boundStore outboxStore) *repository {
 }
 
 func (repository *repository) Append(ctx context.Context, envelope *eventsv1.EventEnvelope) error {
-	if ctx == nil || repository == nil || repository.store == nil {
+	if ctx == nil || repository == nil || nilValue(repository.store) {
 		return ErrInvalidEvent
+	}
+	if ctx.Err() != nil {
+		return ErrCanceled
 	}
 	encoded, err := contractevents.MarshalEnvelope(envelope)
 	if err != nil {
@@ -72,8 +76,25 @@ func (repository *repository) Append(ctx context.Context, envelope *eventsv1.Eve
 		OccurredAt:       occurredAt,
 		AvailableAt:      occurredAt,
 	}
+	if ctx.Err() != nil {
+		return ErrCanceled
+	}
 	if err := repository.store.InsertOutboxEvent(ctx, params); err != nil {
+		if ctx.Err() != nil {
+			return ErrCanceled
+		}
 		return ErrStore
 	}
 	return nil
+}
+
+func nilValue(value any) bool {
+	if value == nil {
+		return true
+	}
+	reflected := reflect.ValueOf(value)
+	kind := reflected.Kind()
+	nilCapable := kind == reflect.Chan || kind == reflect.Func || kind == reflect.Interface ||
+		kind == reflect.Map || kind == reflect.Pointer || kind == reflect.Slice
+	return nilCapable && reflected.IsNil()
 }

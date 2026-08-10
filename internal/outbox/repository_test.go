@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -86,6 +88,74 @@ func TestOutboxPayloadRejectsPIIFields(t *testing.T) {
 	}
 }
 
+func TestMarshalRejectsUnknownPayloadEnvelopeAndNestedFields(t *testing.T) {
+	t.Parallel()
+
+	unknown := protowire.AppendTag(nil, 99, protowire.VarintType)
+	unknown = protowire.AppendVarint(unknown, 1)
+	payload := &identityv1.AccountStateChanged{
+		PrincipalId: "4b4d278b-9e7a-4ce0-865d-1dc14fcf96da", State: "active", Version: 3,
+	}
+	payload.ProtoReflect().SetUnknown(bytes.Clone(unknown))
+	if _, err := contractevents.MarshalPayload(contractevents.AccountStateChangedType, payload); !errors.Is(err, contractevents.ErrInvalidPayload) {
+		t.Fatalf("payload unknown error = %v, want ErrInvalidPayload", err)
+	}
+
+	for _, mutate := range []func(*eventsv1.EventEnvelope){
+		func(envelope *eventsv1.EventEnvelope) { envelope.ProtoReflect().SetUnknown(bytes.Clone(unknown)) },
+		func(envelope *eventsv1.EventEnvelope) {
+			envelope.OccurredAt.ProtoReflect().SetUnknown(bytes.Clone(unknown))
+		},
+	} {
+		envelope := accountStateEnvelope(t)
+		mutate(envelope)
+		if _, err := contractevents.MarshalEnvelope(envelope); !errors.Is(err, contractevents.ErrInvalidEnvelope) {
+			t.Fatalf("envelope unknown error = %v, want ErrInvalidEnvelope", err)
+		}
+	}
+}
+
+func TestMarshalEnvelopeRoundTripsThroughStrictUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	envelope := accountStateEnvelope(t)
+	encoded, err := contractevents.MarshalEnvelope(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := contractevents.UnmarshalEnvelope(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proto.Equal(envelope, decoded) {
+		t.Fatal("marshal output did not close over strict unmarshal")
+	}
+}
+
+func TestEmailDeliveryLocaleMatchesFrozenContract(t *testing.T) {
+	t.Parallel()
+
+	base := &identityv1.EmailDeliveryRequested{
+		DeliveryId:  "f4232063-70a4-4ef5-8627-5cd9f2a8ab9d",
+		PrincipalId: "4b4d278b-9e7a-4ce0-865d-1dc14fcf96da",
+		TemplateId:  "verify_email",
+	}
+	for _, locale := range []string{"en", "fa-IR", "zh-Hans-CN-variant8", "abc-12345678-12345678-12345678"} {
+		payload := proto.Clone(base).(*identityv1.EmailDeliveryRequested)
+		payload.Locale = locale
+		if _, err := contractevents.MarshalPayload(contractevents.EmailDeliveryRequestedType, payload); err != nil {
+			t.Fatalf("valid locale %q: %v", locale, err)
+		}
+	}
+	for _, locale := range []string{"12", "en-", "en--US", "e", "en-123456789", "abc-12345678-12345678-12345678-12345678"} {
+		payload := proto.Clone(base).(*identityv1.EmailDeliveryRequested)
+		payload.Locale = locale
+		if _, err := contractevents.MarshalPayload(contractevents.EmailDeliveryRequestedType, payload); !errors.Is(err, contractevents.ErrInvalidPayload) {
+			t.Fatalf("invalid locale %q error = %v", locale, err)
+		}
+	}
+}
+
 func TestRepositoryRejectsUnknownMutationAndMismatchedPayloadBeforeInsert(t *testing.T) {
 	t.Parallel()
 
@@ -127,6 +197,42 @@ func TestRepositoryRejectsUnknownMutationAndMismatchedPayloadBeforeInsert(t *tes
 	}
 }
 
+func TestRepositoryRejectsTypedNilAndCanceledDependenciesFailClosed(t *testing.T) {
+	t.Parallel()
+
+	if _, err := NewRepository(nil); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("nil DBTX error = %v", err)
+	}
+	var nilDB *typedNilOutboxDBTX
+	if _, err := NewRepository(nilDB); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("typed-nil DBTX error = %v", err)
+	}
+	var nilStore *typedNilOutboxStore
+	if err := newRepositoryWithStore(nilStore).Append(context.Background(), accountStateEnvelope(t)); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("typed-nil store error = %v", err)
+	}
+	var zero repository
+	if err := zero.Append(context.Background(), accountStateEnvelope(t)); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("zero repository error = %v", err)
+	}
+
+	preCanceled, cancel := context.WithCancel(context.Background())
+	cancel()
+	storeFake := &fakeOutboxStore{}
+	if err := newRepositoryWithStore(storeFake).Append(preCanceled, accountStateEnvelope(t)); !errors.Is(err, ErrCanceled) {
+		t.Fatalf("pre-canceled error = %v, want ErrCanceled", err)
+	}
+	if storeFake.calls != 0 {
+		t.Fatal("pre-canceled append reached store")
+	}
+
+	operationContext, cancelDuringStore := context.WithCancel(context.Background())
+	storeFake = &fakeOutboxStore{err: errors.New("SECRET_STORE_CANARY"), cancelOnInsert: cancelDuringStore}
+	if err := newRepositoryWithStore(storeFake).Append(operationContext, accountStateEnvelope(t)); !errors.Is(err, ErrCanceled) {
+		t.Fatalf("store cancellation error = %v, want ErrCanceled", err)
+	}
+}
+
 func accountStateEnvelope(t *testing.T) *eventsv1.EventEnvelope {
 	t.Helper()
 	principalID := uuid.MustParse("4b4d278b-9e7a-4ce0-865d-1dc14fcf96da")
@@ -146,14 +252,36 @@ func accountStateEnvelope(t *testing.T) *eventsv1.EventEnvelope {
 }
 
 type fakeOutboxStore struct {
-	params store.InsertOutboxEventParams
-	calls  int
-	err    error
+	params         store.InsertOutboxEventParams
+	calls          int
+	err            error
+	cancelOnInsert context.CancelFunc
 }
 
 func (fake *fakeOutboxStore) InsertOutboxEvent(_ context.Context, params store.InsertOutboxEventParams) error {
 	fake.calls++
+	if fake.cancelOnInsert != nil {
+		fake.cancelOnInsert()
+	}
 	params.Payload = bytes.Clone(params.Payload)
 	fake.params = params
 	return fake.err
+}
+
+type typedNilOutboxDBTX struct{}
+
+func (*typedNilOutboxDBTX) Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error) {
+	panic("typed nil DBTX called")
+}
+func (*typedNilOutboxDBTX) Query(context.Context, string, ...interface{}) (pgx.Rows, error) {
+	panic("typed nil DBTX called")
+}
+func (*typedNilOutboxDBTX) QueryRow(context.Context, string, ...interface{}) pgx.Row {
+	panic("typed nil DBTX called")
+}
+
+type typedNilOutboxStore struct{}
+
+func (*typedNilOutboxStore) InsertOutboxEvent(context.Context, store.InsertOutboxEventParams) error {
+	panic("typed nil outbox store called")
 }

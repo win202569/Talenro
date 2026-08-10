@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"reflect"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ const (
 	maximumCanonicalRequestBytes = 64 * 1024
 	maximumResponseBytes         = 1 << 20
 	maximumStoredResponseBytes   = 1_048_608
+	responseFrameVersion         = byte(1)
 
 	// AnonymousRegistrationPrincipal is the only unauthenticated principal scope.
 	AnonymousRegistrationPrincipal = "anonymous_registration"
@@ -96,6 +98,7 @@ type Record struct {
 	responseBody   []byte
 	createdAt      time.Time
 	expiresAt      time.Time
+	canComplete    bool
 }
 
 // RequestDigest returns the request digest by value.
@@ -136,7 +139,7 @@ var _ Repository = (*repository)(nil)
 
 // New binds all idempotency operations to the supplied caller-owned DBTX.
 func New(db store.DBTX, protector sensitive.Protector) (Repository, error) {
-	if db == nil || protector == nil {
+	if nilDependency(db) || nilDependency(protector) {
 		return nil, ErrInvalidArgument
 	}
 	return newWithStore(store.New(db), protector), nil
@@ -179,6 +182,7 @@ func KeyDigest(key string) ([sha256.Size]byte, error) {
 
 func (service *repository) Begin(ctx context.Context, scope Scope, key string, canonical []byte, createdAt, expiresAt time.Time) (Record, Outcome, error) {
 	if ctx == nil || service == nil || service.store == nil || service.protector == nil ||
+		nilDependency(service.store) || nilDependency(service.protector) ||
 		!validScope(scope) || createdAt.IsZero() || !expiresAt.After(createdAt) {
 		return Record{}, "", ErrInvalidArgument
 	}
@@ -209,6 +213,7 @@ func (service *repository) Begin(ctx context.Context, scope Scope, key string, c
 		principalScope: scope.Principal, operation: scope.Operation,
 		keyDigest: keyDigest, requestDigest: requestDigest, state: "in_progress",
 		createdAt: createdAt, expiresAt: expiresAt,
+		canComplete: true,
 	}
 	if rows == 1 {
 		return started, Started, nil
@@ -246,12 +251,12 @@ func (service *repository) Begin(ctx context.Context, scope Scope, key string, c
 			KeyVersion: uint32(stored.ResponseKeyVersion.Int32),
 			Ciphertext: append([]byte(nil), stored.ResponseCiphertext...),
 		})
-		if decryptErr != nil || len(plaintext) == 0 || len(plaintext) > maximumResponseBytes {
+		if decryptErr != nil || len(plaintext) == 0 || len(plaintext) > maximumResponseBytes+1 || plaintext[0] != responseFrameVersion {
 			clear(plaintext)
 			return Record{}, "", ErrProtection
 		}
 		record.responseStatus = int(stored.ResponseStatus.Int32)
-		record.responseBody = append([]byte(nil), plaintext...)
+		record.responseBody = append([]byte(nil), plaintext[1:]...)
 		clear(plaintext)
 		return record, Replay, nil
 	case "failed":
@@ -263,19 +268,31 @@ func (service *repository) Begin(ctx context.Context, scope Scope, key string, c
 
 func (service *repository) Complete(ctx context.Context, record Record, status int, body []byte) (Record, error) {
 	if ctx == nil || service == nil || service.store == nil || service.protector == nil ||
-		!validInternalRecord(record) || status < 100 || status > 599 || len(body) == 0 || len(body) > maximumResponseBytes {
+		nilDependency(service.store) || nilDependency(service.protector) ||
+		!validInternalRecord(record) || status < 100 || status > 599 || len(body) > maximumResponseBytes {
 		return Record{}, ErrInvalidArgument
+	}
+	if !record.canComplete || record.state != "in_progress" {
+		return Record{}, ErrConflict
 	}
 	if ctx.Err() != nil {
 		return Record{}, ErrCanceled
 	}
-	plaintext := append([]byte(nil), body...)
-	defer clear(plaintext)
-	protected, err := service.protector.Encrypt(responseProtectionDomain, plaintext)
+	responseCopy := append([]byte(nil), body...)
+	defer clear(responseCopy)
+	frame := make([]byte, 1, len(responseCopy)+1)
+	frame[0] = responseFrameVersion
+	frame = append(frame, responseCopy...)
+	defer clear(frame)
+	protected, err := service.protector.Encrypt(responseProtectionDomain, frame)
 	if err != nil || protected.KeyVersion == 0 || protected.KeyVersion > math.MaxInt32 ||
 		len(protected.Ciphertext) == 0 || len(protected.Ciphertext) > maximumStoredResponseBytes {
 		clear(protected.Ciphertext)
 		return Record{}, ErrProtection
+	}
+	if ctx.Err() != nil {
+		clear(protected.Ciphertext)
+		return Record{}, ErrCanceled
 	}
 	ciphertext := append([]byte(nil), protected.Ciphertext...)
 	clear(protected.Ciphertext)
@@ -300,7 +317,7 @@ func (service *repository) Complete(ctx context.Context, record Record, status i
 		return Record{}, ErrConflict
 	}
 	completed.responseStatus = status
-	completed.responseBody = append([]byte(nil), plaintext...)
+	completed.responseBody = append([]byte(nil), responseCopy...)
 	return completed, nil
 }
 
@@ -325,7 +342,7 @@ func recordFromStore(stored store.IdempotencyRecord, scope Scope, keyDigest [sha
 
 func validInternalRecord(record Record) bool {
 	return validScope(Scope{Principal: record.principalScope, Operation: record.operation}) &&
-		record.state == "in_progress" && !record.createdAt.IsZero() && record.expiresAt.After(record.createdAt) &&
+		(record.state == "in_progress" || record.state == "completed") && !record.createdAt.IsZero() && record.expiresAt.After(record.createdAt) &&
 		record.keyDigest != [sha256.Size]byte{} && record.requestDigest != [sha256.Size]byte{}
 }
 
@@ -398,4 +415,15 @@ func mapContextOrStore(ctx context.Context) error {
 		return ErrCanceled
 	}
 	return ErrStore
+}
+
+func nilDependency(value any) bool {
+	if value == nil {
+		return true
+	}
+	reflected := reflect.ValueOf(value)
+	kind := reflected.Kind()
+	nilCapable := kind == reflect.Chan || kind == reflect.Func || kind == reflect.Interface ||
+		kind == reflect.Map || kind == reflect.Pointer || kind == reflect.Slice
+	return nilCapable && reflected.IsNil()
 }

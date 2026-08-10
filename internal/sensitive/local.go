@@ -19,9 +19,13 @@ import (
 )
 
 const (
-	keyBytes               = 32
-	maximumDomainBytes     = 128
-	maximumProtectedBytes  = 1 << 20
+	keyBytes           = 32
+	maximumDomainBytes = 128
+	maximumLookupBytes = 1 << 20
+	// maximumProtectedBytes admits the largest generic idempotency response
+	// frame (one version byte plus a 1 MiB body). Every field adapter remains
+	// responsible for enforcing its smaller domain-specific plaintext bound.
+	maximumProtectedBytes  = (1 << 20) + 1
 	lookupPrefix           = "TALENRO-LOOKUP-V1\x00"
 	fieldPrefix            = "TALENRO-FIELD-V1\x00"
 	encodedKeyVersionBytes = 4
@@ -97,7 +101,7 @@ func (Local) LogValue() slog.Value {
 // Invalid input and use after Close fail closed to the all-zero digest.
 func (local *Local) LookupDigest(domain string, canonical []byte) [32]byte {
 	localState := stateOf(local)
-	if localState == nil || !validDomain(domain) || len(canonical) == 0 || len(canonical) > maximumProtectedBytes {
+	if localState == nil || !validDomain(domain) || len(canonical) == 0 || len(canonical) > maximumLookupBytes {
 		return [32]byte{}
 	}
 	canonicalCopy := append([]byte(nil), canonical...)
