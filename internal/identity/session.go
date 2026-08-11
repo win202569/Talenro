@@ -143,8 +143,56 @@ func appendRotationString(target []byte, value string) []byte {
 var _ AccountAuthenticator = (*Service)(nil)
 var _ Application = (*Service)(nil)
 
-// CreateSession authenticates the Task 10 password proof and creates an isolated account session.
+func (service *Service) issueAccountSession(
+	ctx context.Context,
+	transaction Transaction,
+	principalID uuid.UUID,
+	clientSigningPublicKey [32]byte,
+	now time.Time,
+) (SessionTokens, error) {
+	if !validService(service) || nilIdentityValue(ctx) || nilIdentityValue(transaction) || principalID == uuid.Nil ||
+		clientSigningPublicKey == [32]byte{} || now.IsZero() {
+		return SessionTokens{}, ErrRepository
+	}
+	created, err := service.newSessionTokens(now)
+	if err != nil {
+		return SessionTokens{}, ErrRepository
+	}
+	defer clear(created.accessDigest[:])
+	defer clear(created.refreshDigest[:])
+	result := created.tokens
+	if err = transaction.CreateAccountSession(ctx, store.CreateAccountSessionParams{
+		ID: created.sessionID, PrincipalID: principalID, ClientSigningPublicKey: append([]byte(nil), clientSigningPublicKey[:]...),
+		AccessTokenHash: append([]byte(nil), created.accessDigest[:]...), AccessExpiresAt: result.AccessExpiresAt,
+		AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt, CreatedAt: now,
+	}); err != nil {
+		return SessionTokens{}, ErrRepository
+	}
+	if err = transaction.InsertAccountRefreshToken(ctx, store.InsertAccountRefreshTokenParams{
+		TokenHash: append([]byte(nil), created.refreshDigest[:]...), SessionID: created.sessionID, IssuedAt: now,
+		IdleExpiresAt: result.RefreshIdleExpiresAt, AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt,
+	}); err != nil {
+		return SessionTokens{}, ErrRepository
+	}
+	return result, nil
+}
+
+// CreateSession authenticates the password variant or delegates the passkey variant to Task 11 verification.
 func (service *Service) CreateSession(ctx context.Context, command CreateSessionCommand) (SessionTokens, error) {
+	if command.Method == SessionPasskey {
+		password := command.Password.Copy()
+		defer clear(password)
+		if !validTask10Service(service) || nilIdentityValue(ctx) || command.Email != "" || len(password) != 0 {
+			if validService(service) && nilIdentityValue(service.challenges) {
+				return SessionTokens{}, dependencyUnavailable()
+			}
+			return SessionTokens{}, malformedRequest()
+		}
+		return service.FinishPasskeyAuthentication(ctx, FinishPasskeyAuthenticationCommand{
+			CeremonyID: command.WebAuthnCeremonyID, Response: command.WebAuthnResponse,
+			ClientSigningPublicKey: command.ClientSigningPublicKey, IdempotencyKey: command.IdempotencyKey,
+		})
+	}
 	if !validTask10Service(service) || nilIdentityValue(ctx) || command.Method != SessionPassword || command.Email == "" ||
 		!validPasswordSecret(command.Password) || command.WebAuthnCeremonyID != "" || len(command.WebAuthnResponse) != 0 ||
 		command.ClientSigningPublicKey == [32]byte{} || !validIdempotencyKeyForApplication(command.IdempotencyKey) {
@@ -268,24 +316,11 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 				return dependencyUnavailable()
 			}
 		}
-		created, createErr := service.newSessionTokens(now)
+		issued, createErr := service.issueAccountSession(transactionContext, transaction, account.ID, command.ClientSigningPublicKey, now)
 		if createErr != nil {
 			return dependencyUnavailable()
 		}
-		result = created.tokens
-		if createErr = transaction.CreateAccountSession(transactionContext, store.CreateAccountSessionParams{
-			ID: created.sessionID, PrincipalID: account.ID, ClientSigningPublicKey: append([]byte(nil), command.ClientSigningPublicKey[:]...),
-			AccessTokenHash: append([]byte(nil), created.accessDigest[:]...), AccessExpiresAt: result.AccessExpiresAt,
-			AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt, CreatedAt: now,
-		}); createErr != nil {
-			return dependencyUnavailable()
-		}
-		if createErr = transaction.InsertAccountRefreshToken(transactionContext, store.InsertAccountRefreshTokenParams{
-			TokenHash: append([]byte(nil), created.refreshDigest[:]...), SessionID: created.sessionID, IssuedAt: now,
-			IdleExpiresAt: result.RefreshIdleExpiresAt, AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt,
-		}); createErr != nil {
-			return dependencyUnavailable()
-		}
+		result = issued
 		body, encodeErr := encodeSessionTokens(result)
 		if encodeErr != nil {
 			return dependencyUnavailable()
@@ -1054,24 +1089,11 @@ func (service *Service) ChangePassword(ctx context.Context, command ChangePasswo
 		if _, markErr := transaction.MarkPrincipalSessionsReviewRequired(transactionContext, store.MarkPrincipalSessionsReviewRequiredParams{SessionIds: lockedSessionIDs(lockedSessions), UpdatedAt: now}); markErr != nil {
 			return dependencyUnavailable()
 		}
-		created, createErr := service.newSessionTokens(now)
+		issued, createErr := service.issueAccountSession(transactionContext, transaction, principalID, command.ClientSigningPublicKey, now)
 		if createErr != nil {
 			return dependencyUnavailable()
 		}
-		result = created.tokens
-		if createErr = transaction.CreateAccountSession(transactionContext, store.CreateAccountSessionParams{
-			ID: created.sessionID, PrincipalID: principalID, ClientSigningPublicKey: append([]byte(nil), command.ClientSigningPublicKey[:]...),
-			AccessTokenHash: append([]byte(nil), created.accessDigest[:]...), AccessExpiresAt: result.AccessExpiresAt,
-			AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt, CreatedAt: now,
-		}); createErr != nil {
-			return dependencyUnavailable()
-		}
-		if createErr = transaction.InsertAccountRefreshToken(transactionContext, store.InsertAccountRefreshTokenParams{
-			TokenHash: append([]byte(nil), created.refreshDigest[:]...), SessionID: created.sessionID, IssuedAt: now,
-			IdleExpiresAt: result.RefreshIdleExpiresAt, AbsoluteExpiresAt: result.RefreshAbsoluteExpiresAt,
-		}); createErr != nil {
-			return dependencyUnavailable()
-		}
+		result = issued
 		eventID := service.newUUID()
 		if eventID == uuid.Nil || transaction.InsertSecurityEvent(transactionContext, store.InsertSecurityEventParams{
 			ID: eventID, PrincipalID: uuid.NullUUID{UUID: principalID, Valid: true}, Category: "password_changed",

@@ -12,6 +12,7 @@ import (
 const (
 	accountChallengeRedisPrefix  = "talenro:identity:account-challenge:"
 	accountChallengeGetDEL       = "return redis.call('GETDEL', KEYS[1])"
+	redisGetDeleteScript         = accountChallengeGetDEL
 	minimumChallengeRedisTimeout = 100 * time.Millisecond
 	maximumChallengeRedisTimeout = time.Second
 )
@@ -31,6 +32,38 @@ func (executor goRedisChallengeExecutor) Run(ctx context.Context, script string,
 	return goredis.NewScript(script).Run(ctx, executor.client, keys, arguments...).Result()
 }
 
+func safeRedisChallengeSetNX(
+	ctx context.Context,
+	executor redisChallengeExecutor,
+	key string,
+	value []byte,
+	ttl time.Duration,
+) (created bool, err error) {
+	defer func() {
+		if recover() != nil {
+			created = false
+			err = ErrChallengeUnavailable
+		}
+	}()
+	return executor.SetNX(ctx, key, value, ttl)
+}
+
+func safeRedisChallengeRun(
+	ctx context.Context,
+	executor redisChallengeExecutor,
+	script string,
+	keys []string,
+	arguments ...any,
+) (result any, err error) {
+	defer func() {
+		if recover() != nil {
+			result = nil
+			err = ErrChallengeUnavailable
+		}
+	}()
+	return executor.Run(ctx, script, keys, arguments...)
+}
+
 // RedisChallengeStore persists only bounded, single-use account challenge state.
 type RedisChallengeStore struct {
 	executor redisChallengeExecutor
@@ -38,6 +71,7 @@ type RedisChallengeStore struct {
 }
 
 var _ ChallengeStore = (*RedisChallengeStore)(nil)
+var _ WebAuthnCeremonyStore = (*RedisChallengeStore)(nil)
 
 // NewRedisChallengeStore binds a go-redis client to the fail-closed adapter.
 func NewRedisChallengeStore(client goredis.UniversalClient, timeout time.Duration) (*RedisChallengeStore, error) {
@@ -69,7 +103,9 @@ func (store *RedisChallengeStore) Create(ctx context.Context, record ChallengeRe
 	defer clear(wire)
 	operationContext, cancel := context.WithTimeout(ctx, store.timeout)
 	defer cancel()
-	created, err := store.executor.SetNX(operationContext, accountChallengeRedisPrefix+record.ChallengeID, wire, ttl)
+	created, err := safeRedisChallengeSetNX(
+		operationContext, store.executor, accountChallengeRedisPrefix+record.ChallengeID, wire, ttl,
+	)
 	if err != nil || operationContext.Err() != nil || !created {
 		return ErrChallengeUnavailable
 	}
@@ -86,7 +122,9 @@ func (store *RedisChallengeStore) Consume(ctx context.Context, challengeID strin
 	}
 	operationContext, cancel := context.WithTimeout(ctx, store.timeout)
 	defer cancel()
-	result, err := store.executor.Run(operationContext, accountChallengeGetDEL, []string{accountChallengeRedisPrefix + challengeID})
+	result, err := safeRedisChallengeRun(
+		operationContext, store.executor, accountChallengeGetDEL, []string{accountChallengeRedisPrefix + challengeID},
+	)
 	if operationContext.Err() != nil {
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
@@ -112,6 +150,85 @@ func (store *RedisChallengeStore) Consume(ctx context.Context, challengeID strin
 	}
 	if !challengeContextMatches(record.ContextDigest, contextDigest) {
 		return ChallengeRecord{}, ErrChallengeNotFound
+	}
+	return record, nil
+}
+
+// CreateWebAuthnCeremony creates one operation-isolated, bounded ceremony record.
+func (store *RedisChallengeStore) CreateWebAuthnCeremony(
+	ctx context.Context,
+	record WebAuthnCeremonyRecord,
+	ttl time.Duration,
+) error {
+	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) ||
+		ttl != webAuthnCeremonyTTL || !validWebAuthnCeremonyRecord(record) {
+		return ErrInvalidWebAuthnCeremony
+	}
+	if ctx.Err() != nil {
+		return ErrWebAuthnCeremonyUnavailable
+	}
+	wire, err := encodeWebAuthnCeremony(record)
+	if err != nil {
+		return ErrInvalidWebAuthnCeremony
+	}
+	defer clear(wire)
+	operationContext, cancel := context.WithTimeout(ctx, store.timeout)
+	defer cancel()
+	created, err := safeRedisChallengeSetNX(
+		operationContext,
+		store.executor,
+		webAuthnCeremonyRedisKey(record.Operation, record.CeremonyID),
+		wire,
+		ttl,
+	)
+	if err != nil || operationContext.Err() != nil || !created {
+		return ErrWebAuthnCeremonyUnavailable
+	}
+	return nil
+}
+
+// ConsumeWebAuthnCeremony atomically removes and decodes one ceremony record.
+func (store *RedisChallengeStore) ConsumeWebAuthnCeremony(
+	ctx context.Context,
+	operation WebAuthnCeremonyOperation,
+	ceremonyID string,
+) (WebAuthnCeremonyRecord, error) {
+	key := webAuthnCeremonyRedisKey(operation, ceremonyID)
+	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) ||
+		key == "" || !validChallengeID(ceremonyID) {
+		return WebAuthnCeremonyRecord{}, ErrInvalidWebAuthnCeremony
+	}
+	if ctx.Err() != nil {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyUnavailable
+	}
+	operationContext, cancel := context.WithTimeout(ctx, store.timeout)
+	defer cancel()
+	result, err := safeRedisChallengeRun(operationContext, store.executor, redisGetDeleteScript, []string{key})
+	if operationContext.Err() != nil {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyUnavailable
+	}
+	if errors.Is(err, goredis.Nil) || (err == nil && result == nil) {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyNotFound
+	}
+	if err != nil {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyUnavailable
+	}
+	var wire []byte
+	switch value := result.(type) {
+	case string:
+		wire = []byte(value)
+	case []byte:
+		wire = append([]byte(nil), value...)
+	default:
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyUnavailable
+	}
+	defer clear(wire)
+	record, decodeErr := decodeWebAuthnCeremony(ceremonyID, operation, wire)
+	if decodeErr != nil {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyUnavailable
+	}
+	if !record.ExpiresAt.After(time.Now().UTC()) {
+		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyNotFound
 	}
 	return record, nil
 }

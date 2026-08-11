@@ -37,7 +37,7 @@ type Querier interface {
 	CreatePasskeyCredential(ctx context.Context, arg CreatePasskeyCredentialParams) error
 	CreatePasswordCredential(ctx context.Context, arg CreatePasswordCredentialParams) error
 	CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryCodeSetParams) error
-	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) error
+	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) (int64, error)
 	DiscoverRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverRefreshTokenRow, error)
 	FindAccountAccessToken(ctx context.Context, accessTokenHash []byte) (FindAccountAccessTokenRow, error)
 	FindDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (FindDeviceAccessTokenRow, error)
@@ -55,6 +55,7 @@ type Querier interface {
 	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
 	GetHighestBundleVersion(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
+	GetNextRecoveryCodeGeneration(ctx context.Context, principalID uuid.UUID) (int32, error)
 	GetOutboxHealth(ctx context.Context, occurredAt time.Time) (GetOutboxHealthRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
 	GetPasswordResetForUpdate(ctx context.Context, resetTokenHash []byte) (IdentityPasswordCredential, error)

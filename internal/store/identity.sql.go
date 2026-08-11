@@ -36,18 +36,17 @@ func (q *Queries) AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) 
 
 const activateTOTP = `-- name: ActivateTOTP :execrows
 UPDATE identity.totp_credentials
-SET state='active', last_accepted_step=$2, verified_at=$3
-WHERE principal_id=$1 AND state='pending'
+SET state='active', verified_at=$1
+WHERE principal_id=$2 AND state='pending'
 `
 
 type ActivateTOTPParams struct {
-	PrincipalID      uuid.UUID    `json:"principal_id"`
-	LastAcceptedStep pgtype.Int8  `json:"last_accepted_step"`
-	VerifiedAt       sql.NullTime `json:"verified_at"`
+	VerifiedAt  sql.NullTime `json:"verified_at"`
+	PrincipalID uuid.UUID    `json:"principal_id"`
 }
 
 func (q *Queries) ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error) {
-	result, err := q.db.Exec(ctx, activateTOTP, arg.PrincipalID, arg.LastAcceptedStep, arg.VerifiedAt)
+	result, err := q.db.Exec(ctx, activateTOTP, arg.VerifiedAt, arg.PrincipalID)
 	if err != nil {
 		return 0, err
 	}
@@ -409,27 +408,45 @@ func (q *Queries) CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryC
 	return err
 }
 
-const createTOTPEnrollment = `-- name: CreateTOTPEnrollment :exec
-INSERT INTO identity.totp_credentials
+const createTOTPEnrollment = `-- name: CreateTOTPEnrollment :execrows
+INSERT INTO identity.totp_credentials AS totp_factors
   (principal_id, ciphertext, encryption_key_version, state, created_at)
-VALUES ($1,$2,$3,'pending',$4)
+VALUES (
+  $1,
+  $2,
+  $3,
+  'pending',
+  $4
+)
+ON CONFLICT (principal_id) DO UPDATE
+SET ciphertext = EXCLUDED.ciphertext,
+    encryption_key_version = EXCLUDED.encryption_key_version,
+    state = 'pending',
+    created_at = EXCLUDED.created_at,
+    verified_at = NULL,
+    last_accepted_step = NULL,
+    revoked_at = NULL
+WHERE totp_factors.state = 'revoked'
 `
 
 type CreateTOTPEnrollmentParams struct {
-	PrincipalID          uuid.UUID `json:"principal_id"`
-	Ciphertext           []byte    `json:"ciphertext"`
-	EncryptionKeyVersion int32     `json:"encryption_key_version"`
-	CreatedAt            time.Time `json:"created_at"`
+	PrincipalID     uuid.UUID `json:"principal_id"`
+	EncryptedSecret []byte    `json:"encrypted_secret"`
+	KeyVersion      int32     `json:"key_version"`
+	EnrolledAt      time.Time `json:"enrolled_at"`
 }
 
-func (q *Queries) CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) error {
-	_, err := q.db.Exec(ctx, createTOTPEnrollment,
+func (q *Queries) CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, createTOTPEnrollment,
 		arg.PrincipalID,
-		arg.Ciphertext,
-		arg.EncryptionKeyVersion,
-		arg.CreatedAt,
+		arg.EncryptedSecret,
+		arg.KeyVersion,
+		arg.EnrolledAt,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const discoverRefreshToken = `-- name: DiscoverRefreshToken :one
@@ -636,6 +653,19 @@ func (q *Queries) GetEmailVerificationForUpdate(ctx context.Context, verificatio
 	return i, err
 }
 
+const getNextRecoveryCodeGeneration = `-- name: GetNextRecoveryCodeGeneration :one
+SELECT (COALESCE(MAX(generation), 0) + 1)::integer
+FROM identity.recovery_code_sets
+WHERE principal_id=$1
+`
+
+func (q *Queries) GetNextRecoveryCodeGeneration(ctx context.Context, principalID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, getNextRecoveryCodeGeneration, principalID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getPasswordCredential = `-- name: GetPasswordCredential :one
 SELECT principal_id, policy_version, memory_kib, time_cost, parallelism, salt, password_hash, reset_token_hash, reset_expires_at, reset_consumed_at, reset_delivery_id, reset_delivery_ciphertext, reset_delivery_key_version, updated_at FROM identity.password_credentials WHERE principal_id = $1 FOR UPDATE
 `
@@ -816,7 +846,8 @@ func (q *Queries) InsertSecurityEvent(ctx context.Context, arg InsertSecurityEve
 const listActivePasskeys = `-- name: ListActivePasskeys :many
 SELECT credential_id, principal_id, public_key, attestation_format, transports, protocol_flags, sign_count, state, created_at, updated_at, revoked_at FROM identity.passkey_credentials
 WHERE principal_id=$1 AND state='active'
-ORDER BY created_at LIMIT 10
+ORDER BY created_at, credential_id LIMIT 10
+FOR UPDATE
 `
 
 func (q *Queries) ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error) {
@@ -1400,7 +1431,8 @@ func (q *Queries) SetPasswordReset(ctx context.Context, arg SetPasswordResetPara
 const updatePasskeyCounter = `-- name: UpdatePasskeyCounter :execrows
 UPDATE identity.passkey_credentials
 SET sign_count=$3, protocol_flags=$4, updated_at=$5
-WHERE credential_id=$1 AND principal_id=$2 AND state='active' AND sign_count <= $3
+WHERE credential_id=$1 AND principal_id=$2 AND state='active'
+  AND (sign_count < $3 OR (sign_count = 0 AND $3 = 0))
 `
 
 type UpdatePasskeyCounterParams struct {

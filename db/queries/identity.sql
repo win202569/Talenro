@@ -229,30 +229,47 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,'active',$8,$8);
 -- name: ListActivePasskeys :many
 SELECT * FROM identity.passkey_credentials
 WHERE principal_id=$1 AND state='active'
-ORDER BY created_at LIMIT 10;
+ORDER BY created_at, credential_id LIMIT 10
+FOR UPDATE;
 
 -- name: UpdatePasskeyCounter :execrows
 UPDATE identity.passkey_credentials
 SET sign_count=$3, protocol_flags=$4, updated_at=$5
-WHERE credential_id=$1 AND principal_id=$2 AND state='active' AND sign_count <= $3;
+WHERE credential_id=$1 AND principal_id=$2 AND state='active'
+  AND (sign_count < $3 OR (sign_count = 0 AND $3 = 0));
 
 -- name: RevokePasskey :execrows
 UPDATE identity.passkey_credentials
 SET state='revoked', revoked_at=$3, updated_at=$3
 WHERE credential_id=$1 AND principal_id=$2 AND state='active';
 
--- name: CreateTOTPEnrollment :exec
-INSERT INTO identity.totp_credentials
+-- name: CreateTOTPEnrollment :execrows
+INSERT INTO identity.totp_credentials AS totp_factors
   (principal_id, ciphertext, encryption_key_version, state, created_at)
-VALUES ($1,$2,$3,'pending',$4);
+VALUES (
+  sqlc.arg(principal_id),
+  sqlc.arg(encrypted_secret),
+  sqlc.arg(key_version),
+  'pending',
+  sqlc.arg(enrolled_at)
+)
+ON CONFLICT (principal_id) DO UPDATE
+SET ciphertext = EXCLUDED.ciphertext,
+    encryption_key_version = EXCLUDED.encryption_key_version,
+    state = 'pending',
+    created_at = EXCLUDED.created_at,
+    verified_at = NULL,
+    last_accepted_step = NULL,
+    revoked_at = NULL
+WHERE totp_factors.state = 'revoked';
 
 -- name: GetTOTPForUpdate :one
 SELECT * FROM identity.totp_credentials WHERE principal_id=$1 FOR UPDATE;
 
 -- name: ActivateTOTP :execrows
 UPDATE identity.totp_credentials
-SET state='active', last_accepted_step=$2, verified_at=$3
-WHERE principal_id=$1 AND state='pending';
+SET state='active', verified_at=sqlc.arg(verified_at)
+WHERE principal_id=sqlc.arg(principal_id) AND state='pending';
 
 -- name: RevokeTOTP :execrows
 UPDATE identity.totp_credentials
@@ -263,6 +280,11 @@ WHERE principal_id=$1 AND state IN ('pending','active');
 INSERT INTO identity.recovery_code_sets
   (id, principal_id, generation, code_hashes, state, created_at, updated_at)
 VALUES ($1,$2,$3,$4,'active',$5,$5);
+
+-- name: GetNextRecoveryCodeGeneration :one
+SELECT (COALESCE(MAX(generation), 0) + 1)::integer
+FROM identity.recovery_code_sets
+WHERE principal_id=$1;
 
 -- name: GetActiveRecoveryCodeSetForUpdate :one
 SELECT * FROM identity.recovery_code_sets

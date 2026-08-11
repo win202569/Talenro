@@ -37,6 +37,24 @@ The following reviewed direct modules are pinned for the C1.1 identity and trust
 | `github.com/pquerna/otp` | `v1.5.0` | https://github.com/pquerna/otp | Apache-2.0 |
 | `golang.org/x/crypto` | `v0.54.0` | https://go.googlesource.com/crypto | BSD-3-Clause |
 
+The following reviewed indirect modules are the exact transitive closure used by the pinned WebAuthn implementation. They must remain indirect; adding test-only dependencies from upstream modules is not permitted.
+
+| Dependency | Version | Upstream | License notice |
+| --- | --- | --- | --- |
+| `github.com/fxamacker/cbor/v2` | `v2.9.2` | https://github.com/fxamacker/cbor | MIT |
+| `github.com/go-webauthn/x` | `v0.2.6` | https://github.com/go-webauthn/x | BSD-3-Clause |
+| `github.com/golang-jwt/jwt/v5` | `v5.3.1` | https://github.com/golang-jwt/jwt | MIT |
+| `github.com/google/go-tpm` | `v0.9.8` | https://github.com/google/go-tpm | Apache-2.0 |
+| `github.com/philhofer/fwd` | `v1.2.0` | https://github.com/philhofer/fwd | MIT |
+| `github.com/tinylib/msgp` | `v1.6.4` | https://github.com/tinylib/msgp | MIT |
+| `github.com/x448/float16` | `v0.8.4` | https://github.com/x448/float16 | MIT |
+
+The pinned TOTP implementation also compiles with the following reviewed indirect module. It remains an implementation detail of `github.com/pquerna/otp`; its upstream test-only dependencies are excluded.
+
+| Dependency | Version | Upstream | License notice |
+| --- | --- | --- | --- |
+| `github.com/boombuler/barcode` | `v1.0.1-0.20190219062509-6c824513bacc` | https://github.com/boombuler/barcode | MIT |
+
 `github.com/oapi-codegen/runtime` is linked into the control API because the pinned generated server uses its required header and path parameter binders, JSON merge helpers for closed `oneOf` models, and OpenAPI email/UUID types. The reviewed `v1.6.0` module carries an Apache-2.0 license; distributions must preserve its license and notice obligations. Changing the generator/runtime version pairing or replacing these helpers requires renewed compatibility, provenance, security, and license review.
 
 Go modules and code-generation, migration, formatting, lint, and test tools are pinned by `go.mod` and `go.sum`. Generated code retains any notices required by its source or generator. Before a production release, the dependency inventory must be regenerated from the locked module graph and reviewed for:

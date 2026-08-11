@@ -379,6 +379,161 @@ func (transaction *postgresTransaction) CreateEnrollmentGrant(ctx context.Contex
 	return mapIdentityStoreError(transaction.queries.CreateEnrollmentGrant(ctx, params))
 }
 
+func (transaction *postgresTransaction) GetTOTPForUpdate(
+	ctx context.Context,
+	principalID uuid.UUID,
+) (store.IdentityTotpCredential, bool, error) {
+	row, err := transaction.queries.GetTOTPForUpdate(ctx, principalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityTotpCredential{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityTotpCredential{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) CreateTOTPEnrollment(
+	ctx context.Context,
+	params store.CreateTOTPEnrollmentParams,
+) (int64, error) {
+	rows, err := transaction.queries.CreateTOTPEnrollment(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ActivateTOTP(
+	ctx context.Context,
+	params store.ActivateTOTPParams,
+) (int64, error) {
+	rows, err := transaction.queries.ActivateTOTP(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) AcceptTOTPStep(
+	ctx context.Context,
+	params store.AcceptTOTPStepParams,
+) (int64, error) {
+	rows, err := transaction.queries.AcceptTOTPStep(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokeTOTP(
+	ctx context.Context,
+	params store.RevokeTOTPParams,
+) (int64, error) {
+	rows, err := transaction.queries.RevokeTOTP(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) GetActiveRecoveryCodeSetForUpdate(
+	ctx context.Context,
+	principalID uuid.UUID,
+) (store.IdentityRecoveryCodeSet, bool, error) {
+	row, err := transaction.queries.GetActiveRecoveryCodeSetForUpdate(ctx, principalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityRecoveryCodeSet{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityRecoveryCodeSet{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetNextRecoveryCodeGeneration(
+	ctx context.Context,
+	principalID uuid.UUID,
+) (int32, error) {
+	generation, err := transaction.queries.GetNextRecoveryCodeGeneration(ctx, principalID)
+	if err != nil || generation < 1 {
+		return 0, ErrRepository
+	}
+	return generation, nil
+}
+
+func (transaction *postgresTransaction) CreateRecoveryCodeSet(
+	ctx context.Context,
+	params store.CreateRecoveryCodeSetParams,
+) error {
+	return mapIdentityStoreError(transaction.queries.CreateRecoveryCodeSet(ctx, params))
+}
+
+func (transaction *postgresTransaction) ConsumeRecoveryCode(
+	ctx context.Context,
+	params store.ConsumeRecoveryCodeParams,
+) (store.IdentityRecoveryCodeSet, bool, error) {
+	row, err := transaction.queries.ConsumeRecoveryCode(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityRecoveryCodeSet{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityRecoveryCodeSet{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) RevokeRecoveryCodeSets(
+	ctx context.Context,
+	params store.RevokeRecoveryCodeSetsParams,
+) (int64, error) {
+	rows, err := transaction.queries.RevokeRecoveryCodeSets(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ListActivePasskeys(
+	ctx context.Context,
+	principalID uuid.UUID,
+) ([]store.IdentityPasskeyCredential, error) {
+	rows, err := transaction.queries.ListActivePasskeys(ctx, principalID)
+	if err != nil || len(rows) > maximumActivePasskeys {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) CreatePasskeyCredential(
+	ctx context.Context,
+	params store.CreatePasskeyCredentialParams,
+) error {
+	return mapIdentityStoreError(transaction.queries.CreatePasskeyCredential(ctx, params))
+}
+
+func (transaction *postgresTransaction) UpdatePasskeyCounter(
+	ctx context.Context,
+	params store.UpdatePasskeyCounterParams,
+) (int64, error) {
+	rows, err := transaction.queries.UpdatePasskeyCounter(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokePasskey(
+	ctx context.Context,
+	params store.RevokePasskeyParams,
+) (int64, error) {
+	rows, err := transaction.queries.RevokePasskey(ctx, params)
+	if err != nil || rows < 0 || rows > 1 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
 func (transaction *postgresTransaction) AppendEvent(ctx context.Context, envelope *eventsv1.EventEnvelope) error {
 	if err := transaction.outbox.Append(ctx, envelope); err != nil {
 		return ErrRepository
