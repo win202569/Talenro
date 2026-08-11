@@ -179,6 +179,8 @@ func (service *Service) CreateChallenge(ctx context.Context, command CreateChall
 func (service *Service) RegisterDevice(ctx context.Context, command RegisterDeviceCommand) (result DeviceTokens, resultErr error) {
 	defer func() {
 		if recover() != nil {
+			result.AccessToken.Clear()
+			result.RefreshToken.Clear()
 			result = DeviceTokens{}
 			resultErr = deviceDependencyUnavailable()
 		}
@@ -204,6 +206,9 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 	}
 	scope := idempotency.AnonymousDeviceRegistrationScope()
 	var preflightAuthority identity.DeviceEnrollmentAuthority
+	var replayTokens DeviceTokens
+	defer replayTokens.AccessToken.Clear()
+	defer replayTokens.RefreshToken.Clear()
 	var replayed bool
 	preflightErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
 		record, outcome, err := transaction.BeginIdempotency(
@@ -218,7 +223,7 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 			if err != nil {
 				return deviceDependencyUnavailable()
 			}
-			result = decoded
+			replayTokens = takeDeviceTokens(&decoded)
 			replayed = true
 			return nil
 		case idempotency.Conflict:
@@ -240,7 +245,7 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 		return errRegistrationPreflightRollback
 	})
 	if replayed && preflightErr == nil {
-		return result, nil
+		return takeDeviceTokens(&replayTokens), nil
 	}
 	if !errors.Is(preflightErr, errRegistrationPreflightRollback) {
 		if preflightErr != nil {
@@ -285,7 +290,6 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 		return DeviceTokens{}, err
 	}
 	defer created.clear()
-	result = created.tokens
 
 	finalErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
 		idempotencyRecord, outcome, err := transaction.BeginIdempotency(
@@ -300,7 +304,8 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 			if err != nil {
 				return deviceDependencyUnavailable()
 			}
-			result = decoded
+			replayTokens = takeDeviceTokens(&decoded)
+			replayed = true
 			return nil
 		case idempotency.Conflict:
 			return apierrors.New(apierrors.IdempotencyConflict, apierrors.ContactSupport)
@@ -356,7 +361,10 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 	if finalErr != nil {
 		return DeviceTokens{}, finalErr
 	}
-	return result, nil
+	if replayed {
+		return takeDeviceTokens(&replayTokens), nil
+	}
+	return created.takeTokens(), nil
 }
 
 type preparedRegistration struct {
@@ -401,10 +409,12 @@ func (service *Service) prepareRegistration(
 	if err != nil {
 		return preparedRegistration{}, deviceDependencyUnavailable()
 	}
+	defer access.Clear()
 	refresh, err := securitykit.NewOpaqueToken(service.random)
 	if err != nil {
 		return preparedRegistration{}, deviceDependencyUnavailable()
 	}
+	defer refresh.Clear()
 	accessDigest := securitykit.DigestToken(securitykit.DeviceAccessToken, access)
 	refreshDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, refresh)
 	if accessDigest == [32]byte{} || refreshDigest == [32]byte{} {
@@ -446,6 +456,8 @@ func (service *Service) prepareRegistration(
 		Producer: "deviceauth", AggregateType: "device_authorization", AggregateId: authorizationID.String(), AggregateVersion: 1,
 		IdempotencyKey: command.IdempotencyKey, Payload: payload,
 	}
+	tokens.AccessToken = access.Take()
+	tokens.RefreshToken = refresh.Take()
 	return preparedRegistration{
 		deviceID: deviceID, authorizationID: authorizationID, tokens: tokens,
 		deviceParams: store.CreateDeviceParams{
@@ -470,10 +482,19 @@ func (service *Service) prepareRegistration(
 	}, nil
 }
 
+func (created *preparedRegistration) takeTokens() DeviceTokens {
+	if created == nil {
+		return DeviceTokens{}
+	}
+	return takeDeviceTokens(&created.tokens)
+}
+
 func (created *preparedRegistration) clear() {
 	if created == nil {
 		return
 	}
+	created.tokens.AccessToken.Clear()
+	created.tokens.RefreshToken.Clear()
 	clear(created.deviceParams.DisplayNameCiphertext)
 	clear(created.deviceParams.SigningPublicKey)
 	clear(created.deviceParams.HpkePublicKey)
@@ -482,6 +503,21 @@ func (created *preparedRegistration) clear() {
 	clear(created.refreshParams.TokenHash)
 	clear(created.refreshParams.PreviousTokenHash)
 	clear(created.replayBody)
+}
+
+func takeDeviceTokens(source *DeviceTokens) DeviceTokens {
+	if source == nil {
+		return DeviceTokens{}
+	}
+	result := DeviceTokens{
+		DeviceID: source.DeviceID, AuthorizationID: source.AuthorizationID,
+		AccessExpiresAt: source.AccessExpiresAt, RefreshIdleExpiresAt: source.RefreshIdleExpiresAt,
+		RefreshAbsoluteExpiresAt: source.RefreshAbsoluteExpiresAt,
+	}
+	result.AccessToken = source.AccessToken.Take()
+	result.RefreshToken = source.RefreshToken.Take()
+	*source = DeviceTokens{}
+	return result
 }
 
 func registrationContextDigest(requestNonce, signingPublicKey, hpkePublicKey [32]byte, audience string) ([32]byte, error) {
@@ -511,28 +547,48 @@ func privateRegistrationBinding(
 	if nilDeviceauthValue(protector) || grantDigest == [32]byte{} || !validRegisterDeviceCommand(command) || !validPublicOrigin(audience) {
 		return nil, ErrInvalidApplication
 	}
-	contextDigest, err := registrationContextDigest(command.RequestNonce, command.SigningPublicKey, command.HPKEPublicKey, audience)
-	if err != nil {
+	return withOwnedDisplayName(command.DisplayName, func(displayBytes []byte) ([]byte, error) {
+		contextDigest, err := registrationContextDigest(command.RequestNonce, command.SigningPublicKey, command.HPKEPublicKey, audience)
+		if err != nil {
+			return nil, ErrInvalidApplication
+		}
+		defer clear(contextDigest[:])
+		challengeIDBytes := []byte(command.ChallengeID)
+		defer clear(challengeIDBytes)
+		kindBytes := []byte(ChallengeRegistration)
+		defer clear(kindBytes)
+		protocolBytes := []byte(deviceProofProtocolVersion)
+		defer clear(protocolBytes)
+		operationBytes := []byte(registerDeviceOperation)
+		defer clear(operationBytes)
+		audienceBytes := []byte(audience)
+		defer clear(audienceBytes)
+		parts := [][]byte{
+			grantDigest[:], challengeIDBytes, kindBytes, protocolBytes, operationBytes, audienceBytes, command.RequestNonce[:], command.SigningPublicKey[:],
+			command.HPKEPublicKey[:], displayBytes, command.Signature[:], contextDigest[:],
+		}
+		material := make([]byte, 0, 512+len(command.ChallengeID)+len(displayBytes)+len(audience))
+		for _, part := range parts {
+			material = appendRegistrationFrame(material, part)
+		}
+		defer clear(material)
+		digest := protector.LookupDigest(privateRegistrationBindingDomain, material)
+		if digest == [32]byte{} {
+			return nil, ErrInvalidApplication
+		}
+		result := append([]byte(nil), digest[:]...)
+		clear(digest[:])
+		return result, nil
+	})
+}
+
+func withOwnedDisplayName(value string, operation func([]byte) ([]byte, error)) ([]byte, error) {
+	if operation == nil {
 		return nil, ErrInvalidApplication
 	}
-	defer clear(contextDigest[:])
-	parts := [][]byte{
-		grantDigest[:], []byte(command.ChallengeID), []byte(ChallengeRegistration), []byte(deviceProofProtocolVersion),
-		[]byte(registerDeviceOperation), []byte(audience), command.RequestNonce[:], command.SigningPublicKey[:],
-		command.HPKEPublicKey[:], []byte(command.DisplayName), command.Signature[:], contextDigest[:],
-	}
-	material := make([]byte, 0, 512+len(command.ChallengeID)+len(command.DisplayName)+len(audience))
-	for _, part := range parts {
-		material = appendRegistrationFrame(material, part)
-	}
-	defer clear(material)
-	digest := protector.LookupDigest(privateRegistrationBindingDomain, material)
-	if digest == [32]byte{} {
-		return nil, ErrInvalidApplication
-	}
-	result := append([]byte(nil), digest[:]...)
-	clear(digest[:])
-	return result, nil
+	displayBytes := []byte(value)
+	defer clear(displayBytes)
+	return operation(displayBytes)
 }
 
 func appendRegistrationFrame(target, value []byte) []byte {
@@ -749,7 +805,8 @@ func encodeDeviceTokens(tokens DeviceTokens) ([]byte, error) {
 	if tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || payload.AccessToken == "" || payload.RefreshToken == "" {
 		return nil, ErrInvalidApplication
 	}
-	return json.Marshal(payload) // #nosec G117 -- the private replay payload is immediately encrypted by idempotency.
+	type trustedReplayWire deviceTokenReplay
+	return json.Marshal(trustedReplayWire(payload)) // #nosec G117 -- the private replay payload is immediately encrypted by idempotency.
 }
 
 func tokensFromReplayRecord(record idempotency.Record) (DeviceTokens, error) {
@@ -763,10 +820,12 @@ func tokensFromReplayRecord(record idempotency.Record) (DeviceTokens, error) {
 	defer clear(body)
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.DisallowUnknownFields()
-	var payload deviceTokenReplay
-	if err := decoder.Decode(&payload); err != nil || decoder.More() {
+	type trustedReplayWire deviceTokenReplay
+	var wire trustedReplayWire
+	if err := decoder.Decode(&wire); err != nil || decoder.More() {
 		return DeviceTokens{}, ErrRepository
 	}
+	payload := deviceTokenReplay(wire)
 	deviceID, err := canonicalDeviceauthUUID(payload.DeviceID)
 	if err != nil {
 		return DeviceTokens{}, ErrRepository
@@ -779,10 +838,12 @@ func tokensFromReplayRecord(record idempotency.Record) (DeviceTokens, error) {
 	if err != nil {
 		return DeviceTokens{}, ErrRepository
 	}
+	defer access.Clear()
 	refresh, err := securitykit.DecodeOpaqueToken(payload.RefreshToken)
 	if err != nil {
 		return DeviceTokens{}, ErrRepository
 	}
+	defer refresh.Clear()
 	accessAt, err := time.Parse(time.RFC3339Nano, payload.AccessExpiresAt)
 	if err != nil {
 		return DeviceTokens{}, ErrRepository
@@ -796,7 +857,7 @@ func tokensFromReplayRecord(record idempotency.Record) (DeviceTokens, error) {
 		return DeviceTokens{}, ErrRepository
 	}
 	return DeviceTokens{
-		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: access, RefreshToken: refresh,
+		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: access.Take(), RefreshToken: refresh.Take(),
 		AccessExpiresAt: accessAt, RefreshIdleExpiresAt: idleAt, RefreshAbsoluteExpiresAt: absoluteAt,
 	}, nil
 }

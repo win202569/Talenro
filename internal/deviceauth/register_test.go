@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -68,6 +69,38 @@ func TestRegisterValidProofCreatesExactStandardGraphAndReplaysBeforeRedis(t *tes
 	}
 	if !sameTask12Tokens(tokens, replayed) || fixture.database.deviceCount != 1 || fixture.database.authorizationCount != 1 || fixture.database.familyCount != 1 {
 		t.Fatal("completed replay did not return the original token response without mutation")
+	}
+}
+
+func TestRegisterFinalTransactionReplayTransfersIntactTokensAfterCommit(t *testing.T) {
+	fixture := newTask12Fixture(t, "standard", time.Time{})
+	expected := DeviceTokens{
+		DeviceID: uuid.MustParse("f8412733-a3c2-45fd-a48e-f09c61a8f569"), AuthorizationID: uuid.MustParse("5dff9970-d54f-4273-839f-f560de4371b8"),
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xe1}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xf2}, 32)),
+		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
+	}
+	defer expected.AccessToken.Clear()
+	defer expected.RefreshToken.Clear()
+	replayBody, err := encodeDeviceTokens(expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(replayBody)
+	fixture.database.finalReplayBody = replayBody
+	command := fixture.registrationCommand(t, "final-replay", "task12-register-final-replay")
+
+	result, err := fixture.application.RegisterDevice(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.AccessToken.Clear()
+	defer result.RefreshToken.Clear()
+	if !sameTask12Tokens(result, expected) {
+		t.Fatal("final-transaction replay token ownership was erased after commit")
+	}
+	if fixture.database.deviceCount != 0 || fixture.database.authorizationCount != 0 || fixture.database.familyCount != 0 || fixture.database.refreshCount != 0 {
+		t.Fatal("final-transaction replay created a second device graph")
 	}
 }
 
@@ -197,6 +230,24 @@ func TestRegisterPrivateBindingFramesEveryCallerControlledField(t *testing.T) {
 	}
 }
 
+func TestWithOwnedDisplayNameClearsCallbackBacking(t *testing.T) {
+	var retained []byte
+	result, err := withOwnedDisplayName("BINDING-DISPLAY-CANARY", func(displayBytes []byte) ([]byte, error) {
+		retained = displayBytes
+		return bytes.Clone(displayBytes), nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(result)
+	if string(result) != "BINDING-DISPLAY-CANARY" {
+		t.Fatalf("callback result = %q", result)
+	}
+	if len(retained) == 0 || !allTask12Zero(retained) {
+		t.Fatalf("owned display backing survived callback: %q", retained)
+	}
+}
+
 func TestRegisterPrivateKeyBytesNeverCrossApplicationBoundaries(t *testing.T) {
 	t.Parallel()
 
@@ -225,6 +276,117 @@ func TestRegisterPrivateKeyBytesNeverCrossApplicationBoundaries(t *testing.T) {
 	}
 }
 
+func TestDeviceauthSensitiveValuesRedactAcrossFmtSlogAndJSON(t *testing.T) {
+	const (
+		grantCanary       = "TOKEN-GRANT-PRIVATE-CANARY"
+		displayCanary     = "DISPLAY-NAME-PRIVATE-CANARY"
+		idempotencyCanary = "IDEMPOTENCY-PRIVATE-CANARY"
+		policyCanary      = `{"policy":"POLICY-PRIVATE-CANARY"}`
+		replayCanary      = "REPLAY-TOKEN-PRIVATE-CANARY"
+		providerCanary    = "REDIS-RAW-ERROR-CANARY"
+	)
+	principalID := uuid.MustParse("56975242-a514-457f-b329-6b0c94fefad6")
+	deviceID := uuid.MustParse("55f28bc1-efaf-4ee2-a8e6-421b4303a275")
+	authorizationID := uuid.MustParse("0e50bdfd-39ee-49b9-b103-9a9f3bb37463")
+	publicSigning := [32]byte{}
+	publicHPKE := [32]byte{}
+	copy(publicSigning[:], bytes.Repeat([]byte{'S'}, 32))
+	copy(publicHPKE[:], bytes.Repeat([]byte{'H'}, 32))
+	proofInput := ProofInput{
+		ProtocolVersion: deviceProofProtocolVersion, Challenge: [32]byte{1}, GrantDigest: [32]byte{2}, SigningPublicKey: publicSigning,
+		HPKEPublicKey: publicHPKE, Operation: registerDeviceOperation, Audience: "https://redaction.example.test", RequestNonce: [32]byte{3},
+	}
+	challengeCommand := CreateChallengeCommand{
+		Kind: ChallengeRegistration, EnrollmentGrant: secret.NewBytes([]byte(grantCanary)), RequestNonce: [32]byte{4},
+		SigningPublicKey: publicSigning, HPKEPublicKey: publicHPKE, IdempotencyKey: idempotencyCanary,
+	}
+	defer challengeCommand.EnrollmentGrant.Clear()
+	challenge := Challenge{ChallengeID: task12ChallengeID, Challenge: [32]byte{5}, ExpiresAt: fixedTask12Time.Add(time.Minute)}
+	registerCommand := RegisterDeviceCommand{
+		EnrollmentGrant: secret.NewBytes([]byte(grantCanary)), ChallengeID: task12ChallengeID, RequestNonce: [32]byte{6},
+		SigningPublicKey: publicSigning, HPKEPublicKey: publicHPKE, DisplayName: displayCanary, Signature: [64]byte{7},
+		IdempotencyKey: idempotencyCanary,
+	}
+	defer registerCommand.EnrollmentGrant.Clear()
+	deviceTokens := DeviceTokens{
+		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: secret.NewBytes([]byte(grantCanary)),
+		RefreshToken: secret.NewBytes([]byte(replayCanary)), AccessExpiresAt: fixedTask12Time.Add(time.Minute),
+		RefreshIdleExpiresAt: fixedTask12Time.Add(time.Hour), RefreshAbsoluteExpiresAt: fixedTask12Time.Add(2 * time.Hour),
+	}
+	defer deviceTokens.AccessToken.Clear()
+	defer deviceTokens.RefreshToken.Clear()
+	rotateCommand := RotateDeviceTokenCommand{
+		RefreshToken: secret.NewBytes([]byte(replayCanary)), ChallengeID: task12ChallengeID, RequestNonce: [32]byte{8},
+		Signature: [64]byte{9}, IdempotencyKey: idempotencyCanary,
+	}
+	defer rotateCommand.RefreshToken.Clear()
+	revokeCommand := RevokeDeviceCommand{
+		AccountPrincipal: identity.PrincipalID(principalID.String()), DeviceID: deviceID,
+		Reauthentication: identity.Reauthentication{
+			SessionID: identity.SessionID("a7841655-f6e0-436c-86d6-24349ebda8f2"), Method: identity.ReauthPassword,
+			Proof: secret.NewBytes([]byte(grantCanary)),
+		},
+		IdempotencyKey: idempotencyCanary,
+	}
+	defer revokeCommand.Reauthentication.Proof.Clear()
+	authorizeQuery := AuthorizeBundleQuery{AccessToken: secret.NewBytes([]byte(grantCanary))}
+	defer authorizeQuery.AccessToken.Clear()
+	bundleAuthority := BundleAuthority{
+		AuthorizationID: authorizationID, PrincipalID: principalID, DeviceID: deviceID, HPKEPublicKey: publicHPKE,
+		DeviceKeyVersion: 1, PolicySchema: "POLICY-SCHEMA-PRIVATE-CANARY", Policy: json.RawMessage(policyCanary),
+	}
+	dependencies := ApplicationDependencies{
+		RateLimitKey: secret.NewBytes([]byte(grantCanary)), Security: config.SecurityConfig{PublicBaseURL: "https://provider-private.example.test"},
+	}
+	defer dependencies.RateLimitKey.Clear()
+	service := Service{rateLimitKey: secret.NewBytes([]byte(grantCanary)), security: config.SecurityConfig{PublicBaseURL: "https://service-private.example.test"}}
+	defer service.rateLimitKey.Clear()
+	challengeRecord := task12ChallengeRecord()
+	redisStore := RedisChallengeStore{
+		executor: &fakeDeviceChallengeExecutor{setError: errors.New(providerCanary), setValue: []byte(grantCanary)}, timeout: 250 * time.Millisecond,
+	}
+	prepared := preparedRegistration{
+		deviceID: deviceID, authorizationID: authorizationID,
+		tokens: DeviceTokens{
+			DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: secret.NewBytes([]byte(grantCanary)), RefreshToken: secret.NewBytes([]byte(replayCanary)),
+		},
+		deviceParams: store.CreateDeviceParams{
+			DisplayNameCiphertext: []byte(displayCanary), SigningPublicKey: publicSigning[:], HpkePublicKey: publicHPKE[:],
+		},
+		policyParams: store.CreateDevicePolicySnapshotParams{Policy: []byte(policyCanary)}, replayBody: []byte(replayCanary),
+	}
+	defer prepared.clear()
+	replay := deviceTokenReplay{
+		DeviceID: deviceID.String(), AuthorizationID: authorizationID.String(), AccessToken: grantCanary, RefreshToken: replayCanary,
+		AccessExpiresAt: fixedTask12Time.String(), RefreshIdleExpiresAt: fixedTask12Time.Add(time.Hour).String(),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(2 * time.Hour).String(),
+	}
+
+	subjects := []task12RedactionSubject{
+		newTask12RedactionSubject("ProofInput", proofInput, ProofInput{}),
+		newTask12RedactionSubject("CreateChallengeCommand", challengeCommand, CreateChallengeCommand{}),
+		newTask12RedactionSubject("Challenge", challenge, Challenge{}),
+		newTask12RedactionSubject("RegisterDeviceCommand", registerCommand, RegisterDeviceCommand{}),
+		newTask12RedactionSubject("DeviceTokens", deviceTokens, DeviceTokens{}),
+		newTask12RedactionSubject("RotateDeviceTokenCommand", rotateCommand, RotateDeviceTokenCommand{}),
+		newTask12RedactionSubject("RevokeDeviceCommand", revokeCommand, RevokeDeviceCommand{}),
+		newTask12RedactionSubject("AuthorizeBundleQuery", authorizeQuery, AuthorizeBundleQuery{}),
+		newTask12RedactionSubject("BundleAuthority", bundleAuthority, BundleAuthority{}),
+		newTask12RedactionSubject("ApplicationDependencies", dependencies, ApplicationDependencies{}),
+		newTask12RedactionSubject("Service", service, Service{}),
+		newTask12RedactionSubject("ChallengeRecord", challengeRecord, ChallengeRecord{}),
+		newTask12RedactionSubject("RedisChallengeStore", redisStore, RedisChallengeStore{}),
+		newTask12RedactionSubject("preparedRegistration", prepared, preparedRegistration{}),
+		newTask12RedactionSubject("deviceTokenReplay", replay, deviceTokenReplay{}),
+	}
+	forbidden := []string{
+		grantCanary, displayCanary, idempotencyCanary, policyCanary, replayCanary, providerCanary,
+		principalID.String(), deviceID.String(), authorizationID.String(), strings.Repeat("S", 32), strings.Repeat("H", 32),
+		"provider-private.example.test", "service-private.example.test",
+	}
+	assertTask12RedactionSubjects(t, subjects, forbidden)
+}
+
 func TestRegisterClearsOwnedDisplayPlaintextAndCiphertextCopies(t *testing.T) {
 	t.Parallel()
 
@@ -240,6 +402,106 @@ func TestRegisterClearsOwnedDisplayPlaintextAndCiphertextCopies(t *testing.T) {
 	}
 	if len(tracker.displayCiphertext) == 0 || !allTask12Zero(tracker.displayCiphertext) {
 		t.Fatal("returned display-name ciphertext copy was not cleared after persistence")
+	}
+}
+
+func TestPreparedRegistrationClearZeroizesFailedCommitTokenOwners(t *testing.T) {
+	prepared := preparedRegistration{tokens: DeviceTokens{
+		AccessToken:  secret.NewBytes(bytes.Repeat([]byte{0xa7}, 32)),
+		RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xb8}, 32)),
+	}}
+	accessBackingCanary := prepared.tokens.AccessToken
+	refreshBackingCanary := prepared.tokens.RefreshToken
+	defer accessBackingCanary.Clear()
+	defer refreshBackingCanary.Clear()
+
+	prepared.clear()
+
+	accessOwner := prepared.tokens.AccessToken.Copy()
+	refreshOwner := prepared.tokens.RefreshToken.Copy()
+	defer clear(accessOwner)
+	defer clear(refreshOwner)
+	if len(accessOwner) != 0 || len(refreshOwner) != 0 {
+		t.Fatal("failed-commit cleanup retained a local token owner")
+	}
+	accessBacking := accessBackingCanary.Copy()
+	refreshBacking := refreshBackingCanary.Copy()
+	defer clear(accessBacking)
+	defer clear(refreshBacking)
+	if len(accessBacking) != 32 || !allTask12Zero(accessBacking) || len(refreshBacking) != 32 || !allTask12Zero(refreshBacking) {
+		t.Fatal("failed-commit cleanup did not zero token backing storage")
+	}
+}
+
+func TestPreparedRegistrationTakeTransfersSuccessfulTokenOwnershipPastDeferredClear(t *testing.T) {
+	prepared := preparedRegistration{tokens: DeviceTokens{
+		DeviceID: uuid.MustParse("35bb5d71-bb9b-4724-a20c-fae3280b84ae"), AuthorizationID: uuid.MustParse("b7d9a44c-4a7a-45eb-8d89-3c8da16258ec"),
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xc9}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xda}, 32)),
+		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
+	}}
+
+	result := prepared.takeTokens()
+	prepared.clear()
+	defer result.AccessToken.Clear()
+	defer result.RefreshToken.Clear()
+
+	if len(prepared.tokens.AccessToken.Copy()) != 0 || len(prepared.tokens.RefreshToken.Copy()) != 0 {
+		t.Fatal("successful transfer retained a prepared token owner")
+	}
+	access := result.AccessToken.Copy()
+	refresh := result.RefreshToken.Copy()
+	defer clear(access)
+	defer clear(refresh)
+	if !bytes.Equal(access, bytes.Repeat([]byte{0xc9}, 32)) || !bytes.Equal(refresh, bytes.Repeat([]byte{0xda}, 32)) {
+		t.Fatal("deferred prepared cleanup erased successfully transferred tokens")
+	}
+	if result.DeviceID != uuid.MustParse("35bb5d71-bb9b-4724-a20c-fae3280b84ae") ||
+		result.AuthorizationID != uuid.MustParse("b7d9a44c-4a7a-45eb-8d89-3c8da16258ec") ||
+		!result.AccessExpiresAt.Equal(fixedTask12Time.Add(10*time.Minute)) ||
+		!result.RefreshIdleExpiresAt.Equal(fixedTask12Time.Add(30*24*time.Hour)) ||
+		!result.RefreshAbsoluteExpiresAt.Equal(fixedTask12Time.Add(90*24*time.Hour)) {
+		t.Fatal("successful transfer changed public token metadata")
+	}
+}
+
+func TestRegisterFinalTransactionFailureRollsBackAndClearsOwnedMaterial(t *testing.T) {
+	tests := []struct {
+		name        string
+		panicCommit bool
+	}{
+		{name: "commit error"},
+		{name: "commit panic", panicCommit: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fixture := newTask12Fixture(t, "standard", time.Time{})
+			fixture.repository.failFinalCommit = true
+			fixture.repository.panicFinalCommit = test.panicCommit
+			command := fixture.registrationCommand(t, "rollback-owner", "task12-register-rollback-owner")
+
+			tokens, err := fixture.application.RegisterDevice(context.Background(), command)
+
+			if err == nil || len(tokens.AccessToken.Copy()) != 0 || len(tokens.RefreshToken.Copy()) != 0 {
+				t.Fatalf("failed final transaction returned tokens or no error: %#v / %v", tokens, err)
+			}
+			if fixture.database.deviceCount != 0 || fixture.database.authorizationCount != 0 || fixture.database.familyCount != 0 ||
+				fixture.database.refreshCount != 0 || fixture.database.grant.State != "unused" {
+				t.Fatal("failed final transaction did not restore the database snapshot")
+			}
+			for name, owned := range map[string][]byte{
+				"access digest":  fixture.database.accessDigestOwner,
+				"refresh digest": fixture.database.refreshDigestOwner,
+				"private replay": fixture.database.replayBodyOwner,
+			} {
+				if len(owned) == 0 || !allTask12Zero(owned) {
+					t.Fatalf("%s survived failed final transaction cleanup", name)
+				}
+			}
+			if fixture.database.operations[len(fixture.database.operations)-1] != "rollback" {
+				t.Fatalf("failed final transaction operations = %v", fixture.database.operations)
+			}
+		})
 	}
 }
 
@@ -455,6 +717,92 @@ func allTask12Zero(value []byte) bool {
 	return true
 }
 
+type task12RedactionSubject struct {
+	name       string
+	value      any
+	pointer    any
+	zero       any
+	nilPointer any
+}
+
+func newTask12RedactionSubject[T any](name string, value, zero T) task12RedactionSubject {
+	var nilPointer *T
+	return task12RedactionSubject{name: name, value: value, pointer: &value, zero: zero, nilPointer: nilPointer}
+}
+
+func assertTask12RedactionSubjects(t *testing.T, subjects []task12RedactionSubject, forbidden []string) {
+	t.Helper()
+	for _, subject := range subjects {
+		marker := "deviceauth." + subject.name + "([REDACTED])"
+		values := []struct {
+			name        string
+			value       any
+			requireMark bool
+		}{
+			{name: "value", value: subject.value, requireMark: true},
+			{name: "pointer", value: subject.pointer, requireMark: true},
+			{name: "zero", value: subject.zero, requireMark: true},
+			{name: "nil", value: subject.nilPointer},
+		}
+		for _, value := range values {
+			for _, format := range []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"} {
+				rendered := fmt.Sprintf(format, value.value)
+				assertTask12NoCanary(t, subject.name+" "+value.name+" "+format, rendered, forbidden)
+				if value.requireMark && !strings.Contains(rendered, marker) {
+					t.Fatalf("%s %s %s = %q, want fixed marker %q", subject.name, value.name, format, rendered, marker)
+				}
+			}
+			for _, handler := range []struct {
+				name string
+				new  func(*bytes.Buffer) slog.Handler
+			}{
+				{name: "text", new: func(buffer *bytes.Buffer) slog.Handler { return slog.NewTextHandler(buffer, nil) }},
+				{name: "json", new: func(buffer *bytes.Buffer) slog.Handler { return slog.NewJSONHandler(buffer, nil) }},
+			} {
+				var output bytes.Buffer
+				slog.New(handler.new(&output)).Info("sensitive state", "subject", value.value)
+				rendered := output.String()
+				assertTask12NoCanary(t, subject.name+" "+value.name+" slog "+handler.name, rendered, forbidden)
+				if strings.Contains(rendered, "!PANIC") || strings.Contains(rendered, "!ERROR") {
+					t.Fatalf("%s %s slog %s used an error fallback: %q", subject.name, value.name, handler.name, rendered)
+				}
+				if value.requireMark && !strings.Contains(rendered, marker) {
+					t.Fatalf("%s %s slog %s = %q, want fixed marker %q", subject.name, value.name, handler.name, rendered, marker)
+				}
+			}
+		}
+
+		for _, value := range []struct {
+			name       string
+			value      any
+			mustReject bool
+		}{
+			{name: "value", value: subject.value, mustReject: true},
+			{name: "pointer", value: subject.pointer, mustReject: true},
+			{name: "zero", value: subject.zero, mustReject: true},
+			{name: "nil", value: subject.nilPointer},
+		} {
+			encoded, err := json.Marshal(value.value)
+			assertTask12NoCanary(t, subject.name+" "+value.name+" json", string(encoded), forbidden)
+			if value.mustReject && err == nil {
+				t.Fatalf("json.Marshal(%s %s) succeeded: %q", subject.name, value.name, encoded)
+			}
+			if !value.mustReject && (err != nil || string(encoded) != "null") {
+				t.Fatalf("json.Marshal(%s nil) = %q, %v, want safe null", subject.name, encoded, err)
+			}
+		}
+	}
+}
+
+func assertTask12NoCanary(t *testing.T, context, rendered string, forbidden []string) {
+	t.Helper()
+	for _, canary := range forbidden {
+		if canary != "" && strings.Contains(rendered, canary) {
+			t.Fatalf("%s exposed %q in %q", context, canary, rendered)
+		}
+	}
+}
+
 type task12Limiter struct {
 	allowed                 bool
 	err                     error
@@ -553,9 +901,11 @@ func (*task12IdentityParticipant) RevokeAuthorizationSessions(context.Context, s
 }
 
 type task12Repository struct {
-	mu            sync.Mutex
-	database      *task12Database
-	inTransaction atomic.Bool
+	mu               sync.Mutex
+	database         *task12Database
+	inTransaction    atomic.Bool
+	failFinalCommit  bool
+	panicFinalCommit bool
 }
 
 func (repository *task12Repository) WithinTransaction(ctx context.Context, operation func(context.Context, Transaction) error) error {
@@ -571,6 +921,14 @@ func (repository *task12Repository) WithinTransaction(ctx context.Context, opera
 		repository.database.record("rollback")
 		return err
 	}
+	if repository.failFinalCommit {
+		repository.database.restore(snapshot)
+		repository.database.record("rollback")
+		if repository.panicFinalCommit {
+			panic("FINAL-COMMIT-PANIC-CANARY")
+		}
+		return ErrRepository
+	}
 	repository.database.record("commit")
 	return nil
 }
@@ -580,10 +938,25 @@ type task12Transaction struct{ database *task12Database }
 func (transaction *task12Transaction) DBTX() store.DBTX { return transaction.database }
 func (transaction *task12Transaction) BeginIdempotency(ctx context.Context, scope idempotency.Scope, key string, canonical []byte, createdAt, expiresAt time.Time) (idempotency.Record, idempotency.Outcome, error) {
 	transaction.database.record("begin_idempotency")
+	record, outcome, err := transaction.database.idempotency.Begin(ctx, scope, key, canonical, createdAt, expiresAt)
+	transaction.database.beginIdempotencyCalls++
+	if err != nil || transaction.database.finalReplayBody == nil || transaction.database.beginIdempotencyCalls != 2 || outcome != idempotency.Started {
+		return record, outcome, err
+	}
+	completed, err := transaction.database.idempotency.Complete(ctx, record, registrationResponseStatus, transaction.database.finalReplayBody)
+	if err != nil {
+		return idempotency.Record{}, idempotency.Outcome(""), err
+	}
+	owned, ok := completed.TakeResponseBody()
+	clear(owned)
+	if !ok {
+		return idempotency.Record{}, idempotency.Outcome(""), errors.New("final replay completion ownership unavailable")
+	}
 	return transaction.database.idempotency.Begin(ctx, scope, key, canonical, createdAt, expiresAt)
 }
 func (transaction *task12Transaction) CompleteIdempotency(ctx context.Context, record idempotency.Record, status int, body []byte) error {
 	transaction.database.record("complete_idempotency")
+	transaction.database.replayBodyOwner = body
 	completed, err := transaction.database.idempotency.Complete(ctx, record, status, body)
 	if err != nil {
 		return err
@@ -625,6 +998,7 @@ func (transaction *task12Transaction) CreateDevicePolicySnapshot(_ context.Conte
 }
 func (transaction *task12Transaction) CreateDeviceTokenFamily(_ context.Context, params store.CreateDeviceTokenFamilyParams) error {
 	transaction.database.record("create_family")
+	transaction.database.accessDigestOwner = params.AccessTokenHash
 	transaction.database.familyCount++
 	transaction.database.family = params
 	transaction.database.family.AccessTokenHash = bytes.Clone(params.AccessTokenHash)
@@ -632,6 +1006,7 @@ func (transaction *task12Transaction) CreateDeviceTokenFamily(_ context.Context,
 }
 func (transaction *task12Transaction) InsertDeviceRefreshToken(_ context.Context, params store.InsertDeviceRefreshTokenParams) error {
 	transaction.database.record("insert_refresh")
+	transaction.database.refreshDigestOwner = params.TokenHash
 	transaction.database.refreshCount++
 	transaction.database.refresh = params
 	transaction.database.refresh.TokenHash = bytes.Clone(params.TokenHash)
@@ -644,21 +1019,26 @@ func (transaction *task12Transaction) AppendEvent(_ context.Context, event *even
 }
 
 type task12Database struct {
-	repository         *task12Repository
-	idempotencyDB      *task12IdempotencyDB
-	idempotency        idempotency.Repository
-	grant              store.DeviceauthEnrollmentGrant
-	deviceCount        int
-	authorizationCount int
-	familyCount        int
-	refreshCount       int
-	device             store.CreateDeviceParams
-	authorization      store.CreateDeviceAuthorizationParams
-	policy             store.CreateDevicePolicySnapshotParams
-	family             store.CreateDeviceTokenFamilyParams
-	refresh            store.InsertDeviceRefreshTokenParams
-	lastEvent          *eventsv1.EventEnvelope
-	operations         []string
+	repository            *task12Repository
+	idempotencyDB         *task12IdempotencyDB
+	idempotency           idempotency.Repository
+	grant                 store.DeviceauthEnrollmentGrant
+	deviceCount           int
+	authorizationCount    int
+	familyCount           int
+	refreshCount          int
+	device                store.CreateDeviceParams
+	authorization         store.CreateDeviceAuthorizationParams
+	policy                store.CreateDevicePolicySnapshotParams
+	family                store.CreateDeviceTokenFamilyParams
+	refresh               store.InsertDeviceRefreshTokenParams
+	lastEvent             *eventsv1.EventEnvelope
+	operations            []string
+	accessDigestOwner     []byte
+	refreshDigestOwner    []byte
+	replayBodyOwner       []byte
+	finalReplayBody       []byte
+	beginIdempotencyCalls int
 }
 
 func newTask12Database(protector sensitive.Protector) *task12Database {

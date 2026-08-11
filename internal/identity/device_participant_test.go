@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -56,6 +57,36 @@ func TestPostgresRepositoryValidatesDeviceEnrollmentInsideCallerTransaction(t *t
 	}
 	if database.grantArgs[1] != now || !bytes.Equal(database.grantArgs[0].([]byte), digest[:]) {
 		t.Fatal("grant lookup did not receive the exact caller digest and transaction clock")
+	}
+}
+
+func TestPostgresRepositoryRejectsEnrollmentGrantAtOrBeforeExactExpiry(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	principalID := uuid.MustParse("c140a9b1-56f0-4625-9bb0-f7efb5781447")
+	sessionID := uuid.MustParse("0e1a37ac-c25e-407f-afbf-7e91180f76e3")
+	digest := [32]byte{5, 6, 7, 8}
+	for _, expiresAt := range []time.Time{now, now.Add(-time.Nanosecond)} {
+		database := &deviceParticipantDBTX{
+			grant: store.GetGrantForChallengeRow{
+				ID: uuid.MustParse("ee10e4e8-986e-4e25-ab90-8c68e0ca08aa"), PrincipalID: principalID,
+				AccountSessionID: sessionID, TokenHash: bytes.Clone(digest[:]), PolicyMarker: "standard", ExpiresAt: expiresAt,
+			},
+			sessions: []store.IdentityAccountSession{{
+				ID: sessionID, PrincipalID: principalID, State: "active", AccessExpiresAt: now.Add(time.Minute), AbsoluteExpiresAt: now.Add(time.Hour),
+			}},
+			account: store.IdentityAccount{ID: principalID, State: "active", StateVersion: 1},
+		}
+
+		_, found, err := (&PostgresRepository{}).ValidateDeviceEnrollment(context.Background(), database, digest, now)
+
+		if err != nil || found {
+			t.Fatalf("expiry %v validation = (found %v, error %v), want finite not-found", expiresAt, found, err)
+		}
+		if got := strings.Join(database.operations, ","); got != "grant" {
+			t.Fatalf("expiry %v operations = %q, want only grant", expiresAt, got)
+		}
 	}
 }
 
@@ -156,12 +187,73 @@ func TestDeviceEnrollmentAuthorityRedactsDiagnosticsAndRejectsJSON(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	rendered := fmt.Sprintf("%+v", authority)
-	if strings.Contains(rendered, string(principal)) || strings.Contains(rendered, string(session)) || strings.Contains(rendered, "standard") {
-		t.Fatalf("authority formatting leaked enrollment facts: %q", rendered)
+	marker := "identity.DeviceEnrollmentAuthority([REDACTED])"
+	forbidden := []string{string(principal), string(session), "standard"}
+	var nilAuthority *DeviceEnrollmentAuthority
+	values := []struct {
+		name        string
+		value       any
+		requireMark bool
+	}{
+		{name: "value", value: authority, requireMark: true},
+		{name: "pointer", value: &authority, requireMark: true},
+		{name: "zero", value: DeviceEnrollmentAuthority{}, requireMark: true},
+		{name: "nil", value: nilAuthority},
 	}
-	if _, err := json.Marshal(authority); err == nil {
-		t.Fatal("authority JSON serialization succeeded")
+	for _, value := range values {
+		for _, format := range []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"} {
+			rendered := fmt.Sprintf(format, value.value)
+			assertDeviceEnrollmentAuthorityRedacted(t, value.name+" "+format, rendered, forbidden)
+			if value.requireMark && !strings.Contains(rendered, marker) {
+				t.Fatalf("%s %s = %q, want fixed marker %q", value.name, format, rendered, marker)
+			}
+		}
+		for _, handler := range []struct {
+			name string
+			new  func(*bytes.Buffer) slog.Handler
+		}{
+			{name: "text", new: func(buffer *bytes.Buffer) slog.Handler { return slog.NewTextHandler(buffer, nil) }},
+			{name: "json", new: func(buffer *bytes.Buffer) slog.Handler { return slog.NewJSONHandler(buffer, nil) }},
+		} {
+			var output bytes.Buffer
+			slog.New(handler.new(&output)).Info("authority state", "authority", value.value)
+			rendered := output.String()
+			assertDeviceEnrollmentAuthorityRedacted(t, value.name+" slog "+handler.name, rendered, forbidden)
+			if strings.Contains(rendered, "!PANIC") || strings.Contains(rendered, "!ERROR") {
+				t.Fatalf("%s slog %s used an error fallback: %q", value.name, handler.name, rendered)
+			}
+			if value.requireMark && !strings.Contains(rendered, marker) {
+				t.Fatalf("%s slog %s = %q, want fixed marker %q", value.name, handler.name, rendered, marker)
+			}
+		}
+	}
+	for _, value := range []struct {
+		name       string
+		value      any
+		mustReject bool
+	}{
+		{name: "value", value: authority, mustReject: true},
+		{name: "pointer", value: &authority, mustReject: true},
+		{name: "zero", value: DeviceEnrollmentAuthority{}, mustReject: true},
+		{name: "nil", value: nilAuthority},
+	} {
+		encoded, err := json.Marshal(value.value)
+		assertDeviceEnrollmentAuthorityRedacted(t, value.name+" json", string(encoded), forbidden)
+		if value.mustReject && err == nil {
+			t.Fatalf("json.Marshal(%s) succeeded: %q", value.name, encoded)
+		}
+		if !value.mustReject && (err != nil || string(encoded) != "null") {
+			t.Fatalf("json.Marshal(nil) = %q, %v, want safe null", encoded, err)
+		}
+	}
+}
+
+func assertDeviceEnrollmentAuthorityRedacted(t *testing.T, context, rendered string, forbidden []string) {
+	t.Helper()
+	for _, canary := range forbidden {
+		if strings.Contains(rendered, canary) {
+			t.Fatalf("%s exposed %q in %q", context, canary, rendered)
+		}
 	}
 }
 

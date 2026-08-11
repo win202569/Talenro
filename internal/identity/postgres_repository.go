@@ -106,7 +106,7 @@ func (repository *PostgresRepository) ValidateDeviceEnrollment(
 	}
 	if grant.ID == uuid.Nil || grant.PrincipalID == uuid.Nil || grant.AccountSessionID == uuid.Nil ||
 		len(grant.TokenHash) != len(grantDigest) || subtle.ConstantTimeCompare(grant.TokenHash, grantDigest[:]) != 1 ||
-		grant.ExpiresAt.IsZero() || grant.ExpiresAt.Before(now) {
+		grant.ExpiresAt.IsZero() || !grant.ExpiresAt.After(now) {
 		return DeviceEnrollmentAuthority{}, false, nil
 	}
 

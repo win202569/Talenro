@@ -229,3 +229,128 @@ func (DeviceTokens) LogValue() slog.Value {
 func (DeviceTokens) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("deviceauth: device token serialization forbidden")
 }
+
+// Format redacts reserved rotation commands from diagnostic formatting.
+func (RotateDeviceTokenCommand) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "RotateDeviceTokenCommand")
+}
+
+// LogValue redacts reserved rotation commands from structured logs.
+func (RotateDeviceTokenCommand) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.RotateDeviceTokenCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct reserved rotation command serialization.
+func (RotateDeviceTokenCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: rotation command serialization forbidden")
+}
+
+// Format redacts reserved revocation commands from diagnostic formatting.
+func (RevokeDeviceCommand) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "RevokeDeviceCommand")
+}
+
+// LogValue redacts reserved revocation commands from structured logs.
+func (RevokeDeviceCommand) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.RevokeDeviceCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct reserved revocation command serialization.
+func (RevokeDeviceCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: revocation command serialization forbidden")
+}
+
+// Format redacts reserved authorization queries from diagnostic formatting.
+func (AuthorizeBundleQuery) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "AuthorizeBundleQuery")
+}
+
+// LogValue redacts reserved authorization queries from structured logs.
+func (AuthorizeBundleQuery) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.AuthorizeBundleQuery([REDACTED])")
+}
+
+// MarshalJSON forbids direct reserved authorization query serialization.
+func (AuthorizeBundleQuery) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: authorization query serialization forbidden")
+}
+
+// Format redacts bundle authority from diagnostic formatting.
+func (BundleAuthority) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "BundleAuthority")
+}
+
+// LogValue redacts bundle authority from structured logs.
+func (BundleAuthority) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.BundleAuthority([REDACTED])")
+}
+
+// MarshalJSON forbids direct bundle authority serialization.
+func (BundleAuthority) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: bundle authority serialization forbidden")
+}
+
+// Format redacts application dependencies from diagnostic formatting.
+func (ApplicationDependencies) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "ApplicationDependencies")
+}
+
+// LogValue redacts application dependencies from structured logs.
+func (ApplicationDependencies) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.ApplicationDependencies([REDACTED])")
+}
+
+// MarshalJSON forbids direct application dependency serialization.
+func (ApplicationDependencies) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: application dependencies serialization forbidden")
+}
+
+// Format redacts application state from diagnostic formatting.
+func (Service) Format(state fmt.State, _ rune) { redactDeviceauthValue(state, "Service") }
+
+// LogValue redacts application state from structured logs.
+func (Service) LogValue() slog.Value { return slog.StringValue("deviceauth.Service([REDACTED])") }
+
+// MarshalJSON forbids direct application state serialization.
+func (Service) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: service serialization forbidden")
+}
+
+// Format redacts Redis challenge store state from diagnostic formatting.
+func (RedisChallengeStore) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "RedisChallengeStore")
+}
+
+// LogValue redacts Redis challenge store state from structured logs.
+func (RedisChallengeStore) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.RedisChallengeStore([REDACTED])")
+}
+
+// MarshalJSON forbids direct Redis challenge store serialization.
+func (RedisChallengeStore) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: Redis challenge store serialization forbidden")
+}
+
+func (preparedRegistration) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "preparedRegistration")
+}
+
+func (preparedRegistration) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.preparedRegistration([REDACTED])")
+}
+
+func (preparedRegistration) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: prepared registration serialization forbidden")
+}
+
+func (deviceTokenReplay) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "deviceTokenReplay")
+}
+
+func (deviceTokenReplay) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.deviceTokenReplay([REDACTED])")
+}
+
+func (deviceTokenReplay) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: replay serialization forbidden")
+}
