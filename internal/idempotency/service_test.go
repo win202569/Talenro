@@ -169,6 +169,40 @@ func TestOnlyFixedAnonymousDeliveryScopesAreAccepted(t *testing.T) {
 	}
 }
 
+func TestOnlyFixedAnonymousDeviceRegistrationScopeIsAccepted(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	scope := AnonymousDeviceRegistrationScope()
+	if scope != (Scope{Principal: AnonymousDeviceRegistrationPrincipal, Operation: RegisterDeviceOperation}) {
+		t.Fatalf("scope = %#v, want fixed device-registration principal and operation", scope)
+	}
+
+	storeFake := &fakeIdempotencyStore{tryRows: 1}
+	repository := newWithStore(storeFake, newProtector(t))
+	_, outcome, err := repository.Begin(
+		context.Background(), scope, "abcdefghijklmnopqrstuv", []byte(`{"grant":"private-binding"}`), now, now.Add(time.Hour),
+	)
+	if err != nil || outcome != Started || storeFake.tryCalls != 1 {
+		t.Fatalf("fixed scope begin = (%q, %v), store calls %d", outcome, err, storeFake.tryCalls)
+	}
+
+	for _, arbitrary := range []Scope{
+		{Principal: AnonymousDeviceRegistrationPrincipal, Operation: "rotate_device"},
+		{Principal: "anonymous_device_rotation", Operation: RegisterDeviceOperation},
+		{Principal: AnonymousRegistrationPrincipal, Operation: RegisterDeviceOperation},
+	} {
+		storeFake := &fakeIdempotencyStore{tryRows: 1}
+		repository := newWithStore(storeFake, newProtector(t))
+		if _, _, err := repository.Begin(context.Background(), arbitrary, "abcdefghijklmnopqrstuv", []byte(`{}`), now, now.Add(time.Hour)); !errors.Is(err, ErrInvalidArgument) {
+			t.Fatalf("arbitrary device scope %#v error = %v", arbitrary, err)
+		}
+		if storeFake.tryCalls != 0 {
+			t.Fatalf("arbitrary device scope reached store: %#v", arbitrary)
+		}
+	}
+}
+
 func TestBeginClassifiesExistingRecord(t *testing.T) {
 	t.Parallel()
 

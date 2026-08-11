@@ -43,6 +43,10 @@ const (
 	AnonymousPasswordResetDeliveryPrincipal = "anonymous_password_reset_delivery"
 	// CreatePasswordResetDeliveryOperation is the fixed password-reset delivery operation.
 	CreatePasswordResetDeliveryOperation = "create_password_reset_delivery"
+	// AnonymousDeviceRegistrationPrincipal is the fixed unauthenticated device-registration scope.
+	AnonymousDeviceRegistrationPrincipal = "anonymous_device_registration"
+	// RegisterDeviceOperation is the fixed device-registration operation.
+	RegisterDeviceOperation = "register_device"
 )
 
 var (
@@ -98,6 +102,14 @@ func AnonymousPasswordResetDeliveryScope() Scope {
 	return Scope{
 		Principal: AnonymousPasswordResetDeliveryPrincipal,
 		Operation: CreatePasswordResetDeliveryOperation,
+	}
+}
+
+// AnonymousDeviceRegistrationScope returns the fixed unauthenticated device-registration scope.
+func AnonymousDeviceRegistrationScope() Scope {
+	return Scope{
+		Principal: AnonymousDeviceRegistrationPrincipal,
+		Operation: RegisterDeviceOperation,
 	}
 }
 
@@ -408,6 +420,9 @@ func validScope(scope Scope) bool {
 	}
 	if scope.Principal == AnonymousPasswordResetDeliveryPrincipal {
 		return scope.Operation == CreatePasswordResetDeliveryOperation
+	}
+	if scope.Principal == AnonymousDeviceRegistrationPrincipal {
+		return scope.Operation == RegisterDeviceOperation
 	}
 	parts := strings.Split(scope.Principal, ":")
 	if len(parts) != 3 || parts[0] != "principal" || !validCredentialDomain(parts[2]) {

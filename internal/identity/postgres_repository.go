@@ -1,7 +1,9 @@
 package identity
 
 import (
+	"bytes"
 	"context"
+	"crypto/subtle"
 	"errors"
 	"reflect"
 	"time"
@@ -29,6 +31,7 @@ type PostgresRepository struct {
 }
 
 var _ Repository = (*PostgresRepository)(nil)
+var _ DeviceTransactionParticipant = (*PostgresRepository)(nil)
 
 // NewPostgresRepository creates a generated-query-only identity repository.
 func NewPostgresRepository(beginner PGXBeginner, protector sensitive.Protector) (*PostgresRepository, error) {
@@ -71,6 +74,163 @@ func (repository *PostgresRepository) WithinTransaction(ctx context.Context, ope
 		return ErrRepository
 	}
 	return nil
+}
+
+// ValidateDeviceEnrollment resolves and locks identity-owned enrollment authority through the caller's DBTX.
+func (repository *PostgresRepository) ValidateDeviceEnrollment(
+	ctx context.Context,
+	dbtx store.DBTX,
+	grantDigest [32]byte,
+	now time.Time,
+) (authority DeviceEnrollmentAuthority, found bool, resultErr error) {
+	defer func() {
+		if recover() != nil {
+			authority = DeviceEnrollmentAuthority{}
+			found = false
+			resultErr = ErrRepository
+		}
+	}()
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || grantDigest == [32]byte{} || now.IsZero() || ctx.Err() != nil {
+		return DeviceEnrollmentAuthority{}, false, ErrRepository
+	}
+	queries := store.New(dbtx)
+	digestCopy := append([]byte(nil), grantDigest[:]...)
+	defer clear(digestCopy)
+	grant, err := queries.GetGrantForChallenge(ctx, store.GetGrantForChallengeParams{TokenHash: digestCopy, ExpiresAt: now})
+	defer clear(grant.TokenHash)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return DeviceEnrollmentAuthority{}, false, nil
+	}
+	if err != nil {
+		return DeviceEnrollmentAuthority{}, false, ErrRepository
+	}
+	if grant.ID == uuid.Nil || grant.PrincipalID == uuid.Nil || grant.AccountSessionID == uuid.Nil ||
+		len(grant.TokenHash) != len(grantDigest) || subtle.ConstantTimeCompare(grant.TokenHash, grantDigest[:]) != 1 ||
+		grant.ExpiresAt.IsZero() || grant.ExpiresAt.Before(now) {
+		return DeviceEnrollmentAuthority{}, false, nil
+	}
+
+	sessions, err := queries.LockPrincipalAccountSessions(ctx, grant.PrincipalID)
+	defer clearLockedEnrollmentSessions(sessions)
+	if err != nil {
+		return DeviceEnrollmentAuthority{}, false, ErrRepository
+	}
+	var bound store.IdentityAccountSession
+	var boundFound bool
+	var previous uuid.UUID
+	for index := range sessions {
+		session := sessions[index]
+		if session.ID == uuid.Nil || session.PrincipalID != grant.PrincipalID ||
+			(index > 0 && bytes.Compare(previous[:], session.ID[:]) >= 0) {
+			return DeviceEnrollmentAuthority{}, false, ErrRepository
+		}
+		previous = session.ID
+		if session.ID == grant.AccountSessionID {
+			if boundFound {
+				return DeviceEnrollmentAuthority{}, false, ErrRepository
+			}
+			bound = session
+			boundFound = true
+		}
+	}
+	account, err := queries.GetAccountForUpdate(ctx, grant.PrincipalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return DeviceEnrollmentAuthority{}, false, nil
+	}
+	if err != nil {
+		return DeviceEnrollmentAuthority{}, false, ErrRepository
+	}
+	if !boundFound || account.ID != grant.PrincipalID || account.ID == uuid.Nil || bound.PrincipalID != grant.PrincipalID ||
+		bound.State != "active" || !bound.AccessExpiresAt.After(now) || !bound.AbsoluteExpiresAt.After(now) || bound.DeviceAuthorizationID.Valid {
+		return DeviceEnrollmentAuthority{}, false, nil
+	}
+
+	var provisionalUntil time.Time
+	switch grant.PolicyMarker {
+	case "standard":
+		if account.State != "active" || grant.ProvisionalUntil.Valid {
+			return DeviceEnrollmentAuthority{}, false, nil
+		}
+	case "trial_restricted":
+		if account.State != "pending_email" || !grant.ProvisionalUntil.Valid || grant.ProvisionalUntil.Time.IsZero() ||
+			!grant.ProvisionalUntil.Time.After(now) {
+			return DeviceEnrollmentAuthority{}, false, nil
+		}
+		provisionalUntil = grant.ProvisionalUntil.Time
+	default:
+		return DeviceEnrollmentAuthority{}, false, nil
+	}
+	authority, err = NewDeviceEnrollmentAuthority(
+		PrincipalID(grant.PrincipalID.String()), SessionID(grant.AccountSessionID.String()), grant.PolicyMarker, provisionalUntil,
+	)
+	if err != nil {
+		return DeviceEnrollmentAuthority{}, false, ErrRepository
+	}
+	return authority, true, nil
+}
+
+// BindSessionToAuthorization binds exactly one active account session and records the fixed registration event.
+func (repository *PostgresRepository) BindSessionToAuthorization(
+	ctx context.Context,
+	dbtx store.DBTX,
+	sessionID SessionID,
+	authorizationID uuid.UUID,
+	now time.Time,
+) (resultErr error) {
+	defer func() {
+		if recover() != nil {
+			resultErr = ErrRepository
+		}
+	}()
+	parsedSessionID, err := canonicalIdentityUUID(string(sessionID))
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || err != nil || authorizationID == uuid.Nil || now.IsZero() || ctx.Err() != nil {
+		return ErrRepository
+	}
+	queries := store.New(dbtx)
+	rows, err := queries.BindAccountSessionToAuthorization(ctx, store.BindAccountSessionToAuthorizationParams{
+		ID: parsedSessionID, DeviceAuthorizationID: uuid.NullUUID{UUID: authorizationID, Valid: true}, UpdatedAt: now,
+	})
+	if err != nil || rows != 1 {
+		return ErrRepository
+	}
+	if err := queries.InsertSecurityEvent(ctx, store.InsertSecurityEventParams{
+		ID: authorizationID, PrincipalID: uuid.NullUUID{}, Category: "device_registered",
+		Fingerprint: "deviceauth.registration", AggregateVersion: 1, OccurredAt: now,
+	}); err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
+// RevokeAuthorizationSessions revokes identity sessions through the caller's DBTX.
+func (repository *PostgresRepository) RevokeAuthorizationSessions(
+	ctx context.Context,
+	dbtx store.DBTX,
+	authorizationID uuid.UUID,
+	now time.Time,
+) (resultErr error) {
+	defer func() {
+		if recover() != nil {
+			resultErr = ErrRepository
+		}
+	}()
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || authorizationID == uuid.Nil || now.IsZero() || ctx.Err() != nil {
+		return ErrRepository
+	}
+	rows, err := store.New(dbtx).RevokeDeviceBoundAccountSessions(ctx, store.RevokeDeviceBoundAccountSessionsParams{
+		DeviceAuthorizationID: uuid.NullUUID{UUID: authorizationID, Valid: true}, UpdatedAt: now,
+	})
+	if err != nil || rows < 0 {
+		return ErrRepository
+	}
+	return nil
+}
+
+func clearLockedEnrollmentSessions(sessions []store.IdentityAccountSession) {
+	for index := range sessions {
+		clear(sessions[index].ClientSigningPublicKey)
+		clear(sessions[index].AccessTokenHash)
+	}
 }
 
 type postgresTransaction struct {

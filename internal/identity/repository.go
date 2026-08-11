@@ -106,6 +106,54 @@ type EnrollmentGrant struct {
 	PolicyMarker string
 }
 
+// DeviceEnrollmentAuthority is the minimum redacted identity authority needed to enroll a device.
+type DeviceEnrollmentAuthority struct {
+	principalID      PrincipalID
+	sessionID        SessionID
+	policyMarker     string
+	provisionalUntil time.Time
+}
+
+// NewDeviceEnrollmentAuthority constructs one finite enrollment authority without exposing storage details.
+func NewDeviceEnrollmentAuthority(principalID PrincipalID, sessionID SessionID, policyMarker string, provisionalUntil time.Time) (DeviceEnrollmentAuthority, error) {
+	if _, err := canonicalIdentityUUID(string(principalID)); err != nil {
+		return DeviceEnrollmentAuthority{}, ErrRepository
+	}
+	if _, err := canonicalIdentityUUID(string(sessionID)); err != nil {
+		return DeviceEnrollmentAuthority{}, ErrRepository
+	}
+	switch policyMarker {
+	case "standard":
+		if !provisionalUntil.IsZero() {
+			return DeviceEnrollmentAuthority{}, ErrRepository
+		}
+	case "trial_restricted":
+		if provisionalUntil.IsZero() {
+			return DeviceEnrollmentAuthority{}, ErrRepository
+		}
+	default:
+		return DeviceEnrollmentAuthority{}, ErrRepository
+	}
+	return DeviceEnrollmentAuthority{
+		principalID: principalID, sessionID: sessionID, policyMarker: policyMarker,
+		provisionalUntil: provisionalUntil,
+	}, nil
+}
+
+// PrincipalID returns the redacted principal identifier by value.
+func (authority DeviceEnrollmentAuthority) PrincipalID() PrincipalID { return authority.principalID }
+
+// SessionID returns the redacted account-session identifier by value.
+func (authority DeviceEnrollmentAuthority) SessionID() SessionID { return authority.sessionID }
+
+// PolicyMarker returns the finite immutable enrollment policy marker.
+func (authority DeviceEnrollmentAuthority) PolicyMarker() string { return authority.policyMarker }
+
+// ProvisionalUntil returns the immutable trial boundary when the marker is trial_restricted.
+func (authority DeviceEnrollmentAuthority) ProvisionalUntil() (time.Time, bool) {
+	return authority.provisionalUntil, !authority.provisionalUntil.IsZero()
+}
+
 // CreateEnrollmentGrantCommand binds a grant to a principal, session, and recent proof.
 type CreateEnrollmentGrantCommand struct {
 	PrincipalID      PrincipalID
@@ -215,6 +263,7 @@ type Application interface {
 
 // DeviceTransactionParticipant is implemented by identity and used by deviceauth.
 type DeviceTransactionParticipant interface {
+	ValidateDeviceEnrollment(context.Context, store.DBTX, [32]byte, time.Time) (DeviceEnrollmentAuthority, bool, error)
 	BindSessionToAuthorization(context.Context, store.DBTX, SessionID, uuid.UUID, time.Time) error
 	RevokeAuthorizationSessions(context.Context, store.DBTX, uuid.UUID, time.Time) error
 }
@@ -364,6 +413,21 @@ func (EnrollmentGrant) LogValue() slog.Value {
 // MarshalJSON forbids direct enrollment-grant serialization.
 func (EnrollmentGrant) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("identity: grant serialization forbidden")
+}
+
+// Format prevents enrollment authority facts from entering diagnostic output.
+func (DeviceEnrollmentAuthority) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.DeviceEnrollmentAuthority([REDACTED])"))
+}
+
+// LogValue prevents structured logging from reflecting enrollment authority facts.
+func (DeviceEnrollmentAuthority) LogValue() slog.Value {
+	return slog.StringValue("identity.DeviceEnrollmentAuthority([REDACTED])")
+}
+
+// MarshalJSON forbids direct enrollment authority serialization.
+func (DeviceEnrollmentAuthority) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: device enrollment authority serialization forbidden")
 }
 
 // Format redacts every session-token field.
@@ -559,4 +623,12 @@ func (CreateEnrollmentGrantCommand) LogValue() slog.Value {
 // MarshalJSON forbids direct enrollment-grant command serialization.
 func (CreateEnrollmentGrantCommand) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("identity: enrollment command serialization forbidden")
+}
+
+func canonicalIdentityUUID(value string) (uuid.UUID, error) {
+	parsed, err := uuid.Parse(value)
+	if err != nil || parsed == uuid.Nil || parsed.String() != value {
+		return uuid.Nil, ErrRepository
+	}
+	return parsed, nil
 }

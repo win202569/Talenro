@@ -1,0 +1,231 @@
+// Package deviceauth implements proof-bound device enrollment and device authorization.
+package deviceauth
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
+	"talenro.local/platform/internal/config"
+	"talenro.local/platform/internal/idempotency"
+	"talenro.local/platform/internal/identity"
+	"talenro.local/platform/internal/ratelimit"
+	"talenro.local/platform/internal/secret"
+	"talenro.local/platform/internal/securitykit"
+	"talenro.local/platform/internal/sensitive"
+	"talenro.local/platform/internal/store"
+)
+
+// ChallengeKind is the closed device challenge purpose.
+type ChallengeKind string
+
+const (
+	// ChallengeRegistration creates a one-time enrollment proof challenge.
+	ChallengeRegistration ChallengeKind = "registration"
+	// ChallengeRotation is reserved for Task 13 and fails closed in Task 12.
+	ChallengeRotation ChallengeKind = "rotation"
+)
+
+// ProofInput is the fixed device proof-of-possession transcript input.
+type ProofInput struct {
+	ProtocolVersion  string
+	Challenge        [32]byte
+	GrantDigest      [32]byte
+	SigningPublicKey [32]byte
+	HPKEPublicKey    [32]byte
+	Operation        string
+	Audience         string
+	RequestNonce     [32]byte
+}
+
+// CreateChallengeCommand contains registration inputs or the reserved Task 13 rotation credential.
+type CreateChallengeCommand struct {
+	Kind             ChallengeKind
+	EnrollmentGrant  secret.Bytes
+	RefreshToken     secret.Bytes
+	RequestNonce     [32]byte
+	SigningPublicKey [32]byte
+	HPKEPublicKey    [32]byte
+	IdempotencyKey   string
+}
+
+// Challenge is the public one-time PoP challenge.
+type Challenge struct {
+	ChallengeID string
+	Challenge   [32]byte
+	ExpiresAt   time.Time
+}
+
+// RegisterDeviceCommand consumes one enrollment grant and one proof challenge.
+type RegisterDeviceCommand struct {
+	EnrollmentGrant  secret.Bytes
+	ChallengeID      string
+	RequestNonce     [32]byte
+	SigningPublicKey [32]byte
+	HPKEPublicKey    [32]byte
+	DisplayName      string
+	Signature        [64]byte
+	IdempotencyKey   string
+}
+
+// DeviceTokens contains isolated device-domain identifiers and bearer material.
+type DeviceTokens struct {
+	DeviceID                 uuid.UUID
+	AuthorizationID          uuid.UUID
+	AccessToken              secret.Bytes
+	RefreshToken             secret.Bytes
+	AccessExpiresAt          time.Time
+	RefreshIdleExpiresAt     time.Time
+	RefreshAbsoluteExpiresAt time.Time
+}
+
+// RotateDeviceTokenCommand is reserved for Task 13.
+type RotateDeviceTokenCommand struct {
+	RefreshToken   secret.Bytes
+	ChallengeID    string
+	RequestNonce   [32]byte
+	Signature      [64]byte
+	IdempotencyKey string
+}
+
+// RevokeDeviceCommand is reserved for Task 13.
+type RevokeDeviceCommand struct {
+	AccountPrincipal identity.PrincipalID
+	DeviceID         uuid.UUID
+	Reauthentication identity.Reauthentication
+	IdempotencyKey   string
+}
+
+// AuthorizeBundleQuery is reserved for Task 13.
+type AuthorizeBundleQuery struct{ AccessToken secret.Bytes }
+
+// BundleAuthority is the frozen device-owned trust authority returned by Task 13.
+type BundleAuthority struct {
+	AuthorizationID  uuid.UUID
+	PrincipalID      uuid.UUID
+	DeviceID         uuid.UUID
+	HPKEPublicKey    [32]byte
+	DeviceKeyVersion uint32
+	PolicySchema     string
+	Policy           json.RawMessage
+}
+
+// Application is the frozen device authorization application surface.
+type Application interface {
+	CreateChallenge(context.Context, CreateChallengeCommand) (Challenge, error)
+	RegisterDevice(context.Context, RegisterDeviceCommand) (DeviceTokens, error)
+	RotateDeviceToken(context.Context, RotateDeviceTokenCommand) (DeviceTokens, error)
+	RevokeDevice(context.Context, RevokeDeviceCommand) error
+	AuthorizeBundle(context.Context, AuthorizeBundleQuery) (BundleAuthority, error)
+}
+
+// TrustTransactionParticipant is the frozen Task 13 transaction participant surface.
+type TrustTransactionParticipant interface {
+	AuthorizeBundleInTransaction(context.Context, store.DBTX, AuthorizeBundleQuery) (BundleAuthority, error)
+}
+
+// ApplicationDependencies are the bounded collaborators needed for Task 12 enrollment.
+type ApplicationDependencies struct {
+	Repository          Repository
+	IdentityParticipant identity.DeviceTransactionParticipant
+	Protector           sensitive.Protector
+	Random              securitykit.RandomSource
+	Clock               securitykit.Clock
+	Limiter             ratelimit.Limiter
+	ChallengeStore      ChallengeStore
+	RateLimitKey        secret.Bytes
+	Security            config.SecurityConfig
+}
+
+// Repository owns PostgreSQL transaction lifecycle.
+type Repository interface {
+	WithinTransaction(context.Context, func(context.Context, Transaction) error) error
+}
+
+// Transaction is the exact generated-query-backed surface used by Task 12.
+type Transaction interface {
+	DBTX() store.DBTX
+	BeginIdempotency(context.Context, idempotency.Scope, string, []byte, time.Time, time.Time) (idempotency.Record, idempotency.Outcome, error)
+	CompleteIdempotency(context.Context, idempotency.Record, int, []byte) error
+	ConsumeEnrollmentGrant(context.Context, [32]byte, uuid.UUID, time.Time) (store.DeviceauthEnrollmentGrant, bool, error)
+	CreateDevice(context.Context, store.CreateDeviceParams) error
+	CreateDeviceAuthorization(context.Context, store.CreateDeviceAuthorizationParams) error
+	CreateDevicePolicySnapshot(context.Context, store.CreateDevicePolicySnapshotParams) error
+	CreateDeviceTokenFamily(context.Context, store.CreateDeviceTokenFamilyParams) error
+	InsertDeviceRefreshToken(context.Context, store.InsertDeviceRefreshTokenParams) error
+	AppendEvent(context.Context, *eventsv1.EventEnvelope) error
+}
+
+func redactDeviceauthValue(state fmt.State, name string) {
+	_, _ = state.Write([]byte("deviceauth." + name + "([REDACTED])"))
+}
+
+// Format redacts proof input from diagnostic formatting.
+func (ProofInput) Format(state fmt.State, _ rune) { redactDeviceauthValue(state, "ProofInput") }
+
+// LogValue redacts proof input from structured logs.
+func (ProofInput) LogValue() slog.Value { return slog.StringValue("deviceauth.ProofInput([REDACTED])") }
+
+// MarshalJSON forbids direct proof input serialization.
+func (ProofInput) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: proof serialization forbidden")
+}
+
+// Format redacts challenge commands from diagnostic formatting.
+func (CreateChallengeCommand) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "CreateChallengeCommand")
+}
+
+// LogValue redacts challenge commands from structured logs.
+func (CreateChallengeCommand) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.CreateChallengeCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct challenge command serialization.
+func (CreateChallengeCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: challenge command serialization forbidden")
+}
+
+// Format redacts challenges from diagnostic formatting.
+func (Challenge) Format(state fmt.State, _ rune) { redactDeviceauthValue(state, "Challenge") }
+
+// LogValue redacts challenges from structured logs.
+func (Challenge) LogValue() slog.Value { return slog.StringValue("deviceauth.Challenge([REDACTED])") }
+
+// MarshalJSON forbids direct challenge serialization.
+func (Challenge) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: challenge serialization forbidden")
+}
+
+// Format redacts registration commands from diagnostic formatting.
+func (RegisterDeviceCommand) Format(state fmt.State, _ rune) {
+	redactDeviceauthValue(state, "RegisterDeviceCommand")
+}
+
+// LogValue redacts registration commands from structured logs.
+func (RegisterDeviceCommand) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.RegisterDeviceCommand([REDACTED])")
+}
+
+// MarshalJSON forbids direct registration command serialization.
+func (RegisterDeviceCommand) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: registration command serialization forbidden")
+}
+
+// Format redacts device tokens from diagnostic formatting.
+func (DeviceTokens) Format(state fmt.State, _ rune) { redactDeviceauthValue(state, "DeviceTokens") }
+
+// LogValue redacts device tokens from structured logs.
+func (DeviceTokens) LogValue() slog.Value {
+	return slog.StringValue("deviceauth.DeviceTokens([REDACTED])")
+}
+
+// MarshalJSON forbids direct device token serialization.
+func (DeviceTokens) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("deviceauth: device token serialization forbidden")
+}
