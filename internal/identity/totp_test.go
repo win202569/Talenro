@@ -532,6 +532,8 @@ type task11TOTPTransaction struct {
 	consumeRecoveryFound   bool
 	consumedRecovery       store.ConsumeRecoveryCodeParams
 	passkeys               []store.IdentityPasskeyCredential
+	passkeySnapshots       [][]store.IdentityPasskeyCredential
+	passkeyListCalls       int
 	createdPasskey         store.CreatePasskeyCredentialParams
 	updatedPasskey         store.UpdatePasskeyCounterParams
 	revokedPasskey         store.RevokePasskeyParams

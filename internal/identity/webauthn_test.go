@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 
 	"talenro.local/platform/internal/apierrors"
 	"talenro.local/platform/internal/config"
+	"talenro.local/platform/internal/idempotency"
 	"talenro.local/platform/internal/secret"
 	"talenro.local/platform/internal/sensitive"
 	"talenro.local/platform/internal/store"
@@ -108,6 +110,114 @@ func TestPasskeyRegistrationOptionsUseOpaquePrincipalAndExactPolicy(t *testing.T
 	}
 }
 
+func TestConcurrentPasskeyRegistrationBeginDeletesOnlyLosingOwnedCeremony(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := newTask11OwnedCeremonyExecutor()
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	command := BeginPasskeyRegistrationCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), DisplayName: "Primary account",
+		Reauthentication: task11PasswordReauthentication(transaction.session.ID),
+		IdempotencyKey:   "task11-passkey-concurrent-begin",
+	}
+	type beginResult struct {
+		options json.RawMessage
+		err     error
+	}
+	results := make(chan beginResult, 2)
+	for range 2 {
+		go func() {
+			options, beginErr := application.BeginPasskeyRegistration(context.Background(), command)
+			results <- beginResult{options: options, err: beginErr}
+		}()
+	}
+	for range 2 {
+		select {
+		case <-executor.setArrived:
+		case <-time.After(5 * time.Second):
+			close(executor.releaseSets)
+			t.Fatal("concurrent ceremonies did not both reach Redis")
+		}
+	}
+	close(executor.releaseSets)
+	first := <-results
+	second := <-results
+	if first.err != nil || second.err != nil {
+		t.Fatalf("concurrent begin errors = %v / %v", first.err, second.err)
+	}
+	if !bytes.Equal(first.options, second.options) {
+		t.Fatalf("concurrent replay options differ: %s / %s", first.options, second.options)
+	}
+	var winner struct {
+		CeremonyID string `json:"ceremony_id"`
+	}
+	if err = json.Unmarshal(first.options, &winner); err != nil {
+		t.Fatal(err)
+	}
+	winnerKey := webAuthnCeremonyRedisKey(WebAuthnRegistrationCeremony, winner.CeremonyID)
+	values, deletedKeys := executor.snapshot()
+	if len(values) != 1 || values[winnerKey] == nil || len(deletedKeys) != 1 || deletedKeys[0] == winnerKey {
+		t.Fatalf("owned ceremony cleanup = values=%v deleted=%v winner=%s", mapsKeysTask11(values), deletedKeys, winnerKey)
+	}
+	if _, err = ceremonies.ConsumeWebAuthnCeremony(context.Background(), WebAuthnRegistrationCeremony, winner.CeremonyID); err != nil {
+		t.Fatalf("winner ceremony was not consumable: %v", err)
+	}
+	if _, err = ceremonies.ConsumeWebAuthnCeremony(context.Background(), WebAuthnRegistrationCeremony, winner.CeremonyID); !errors.Is(err, ErrWebAuthnCeremonyNotFound) {
+		t.Fatalf("winner ceremony was not single use: %v", err)
+	}
+}
+
+func TestPasskeyRegistrationBeginCleansOwnedCeremonyOnDatabaseFailure(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	transaction.failOperation = "complete_idempotency"
+	executor := newTask11OwnedCeremonyExecutor()
+	close(executor.releaseSets)
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	_, err = application.BeginPasskeyRegistration(context.Background(), BeginPasskeyRegistrationCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), DisplayName: "Primary account",
+		Reauthentication: task11PasswordReauthentication(transaction.session.ID),
+		IdempotencyKey:   "task11-passkey-failing-begin",
+	})
+	if publicTask9Code(err) != apierrors.DependencyUnavailable || strings.Contains(fmt.Sprint(err), "CANARY") {
+		t.Fatalf("failed registration begin = %v", err)
+	}
+	values, deletedKeys := executor.snapshot()
+	if len(values) != 0 || len(deletedKeys) != 1 {
+		t.Fatalf("failed registration orphaned ceremony: values=%v deleted=%v", mapsKeysTask11(values), deletedKeys)
+	}
+}
+
+func TestPasskeyRegistrationBeginCleansAmbiguousRedisCreate(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := newTask11OwnedCeremonyExecutor()
+	executor.setError = errors.New("TASK11_AMBIGUOUS_SET_CANARY")
+	close(executor.releaseSets)
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	_, err = application.BeginPasskeyRegistration(context.Background(), BeginPasskeyRegistrationCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), DisplayName: "Primary account",
+		Reauthentication: task11PasswordReauthentication(transaction.session.ID),
+		IdempotencyKey:   "task11-passkey-ambiguous-create",
+	})
+	if publicTask9Code(err) != apierrors.DependencyUnavailable || strings.Contains(fmt.Sprint(err), "CANARY") {
+		t.Fatalf("ambiguous Redis create = %v", err)
+	}
+	values, deletedKeys := executor.snapshot()
+	if len(values) != 0 || len(deletedKeys) != 1 {
+		t.Fatalf("ambiguous Redis create orphaned ceremony: values=%v deleted=%v", mapsKeysTask11(values), deletedKeys)
+	}
+}
+
 func TestPasskeyRegistrationRejectsEleventhActiveCredential(t *testing.T) {
 	t.Parallel()
 
@@ -163,6 +273,106 @@ func TestPasskeyAuthenticationOptionsUseDistinctRequiredUVCeremony(t *testing.T)
 	}
 	if executor.setKey != "talenro:identity:webauthn-authentication:"+payload.CeremonyID || executor.setTTL != 2*time.Minute {
 		t.Fatalf("authentication ceremony key/ttl = %q/%s", executor.setKey, executor.setTTL)
+	}
+}
+
+func TestPasskeyAuthenticationAuthorityDecoderRejectsAmbiguousJSON(t *testing.T) {
+	t.Parallel()
+
+	principalID := uuid.MustParse("28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac")
+	credentialID := bytes.Repeat([]byte{0xfb}, 16)
+	encodedCredential := base64.RawURLEncoding.EncodeToString(credentialID)
+	encodedHandle := base64.RawURLEncoding.EncodeToString(principalID[:])
+	valid := task11MinimalAssertionAuthorityJSON(encodedCredential, encodedCredential, encodedHandle)
+	decodedPrincipal, decodedCredential, err := decodePasskeyAuthenticationAuthority(valid)
+	if err != nil || decodedPrincipal != principalID || !bytes.Equal(decodedCredential, credentialID) {
+		t.Fatalf("valid minimal authority decode = %s/%x/%v", decodedPrincipal, decodedCredential, err)
+	}
+	clear(decodedCredential)
+	nonCanonical := encodedCredential[:len(encodedCredential)-1] + "x"
+	tests := []struct {
+		name string
+		body []byte
+	}{
+		{name: "missing fields", body: []byte(`{}`)},
+		{name: "duplicate member", body: []byte(strings.Replace(string(valid), `"rawId":`, `"id":"`+encodedCredential+`","rawId":`, 1))},
+		{name: "unknown top member", body: []byte(strings.Replace(string(valid), `"type":`, `"unknown":true,"type":`, 1))},
+		{name: "unknown response member", body: []byte(strings.Replace(string(valid), `"userHandle":`, `"unknown":true,"userHandle":`, 1))},
+		{name: "trailing value", body: append(bytes.Clone(valid), []byte(` {}`)...)},
+		{name: "invalid UTF-8", body: append(bytes.Clone(valid), 0xff)},
+		{name: "wrong type", body: []byte(strings.Replace(string(valid), `"public-key"`, `"substituted"`, 1))},
+		{name: "null type", body: []byte(strings.Replace(string(valid), `"public-key"`, `null`, 1))},
+		{name: "padded identifier", body: task11MinimalAssertionAuthorityJSON(encodedCredential+"=", encodedCredential+"=", encodedHandle)},
+		{name: "standard alphabet", body: task11MinimalAssertionAuthorityJSON(strings.ReplaceAll(encodedCredential, "-", "+"), strings.ReplaceAll(encodedCredential, "-", "+"), encodedHandle)},
+		{name: "identifier newline", body: task11MinimalAssertionAuthorityJSON(encodedCredential[:4]+"\n"+encodedCredential[4:], encodedCredential[:4]+"\n"+encodedCredential[4:], encodedHandle)},
+		{name: "noncanonical tail bits", body: task11MinimalAssertionAuthorityJSON(nonCanonical, nonCanonical, encodedHandle)},
+		{name: "id raw mismatch", body: task11MinimalAssertionAuthorityJSON(encodedCredential, base64.RawURLEncoding.EncodeToString(bytes.Repeat([]byte{0xfa}, 16)), encodedHandle)},
+		{name: "short credential", body: task11MinimalAssertionAuthorityJSON(base64.RawURLEncoding.EncodeToString(make([]byte, 15)), base64.RawURLEncoding.EncodeToString(make([]byte, 15)), encodedHandle)},
+		{name: "long credential", body: task11MinimalAssertionAuthorityJSON(base64.RawURLEncoding.EncodeToString(make([]byte, 1025)), base64.RawURLEncoding.EncodeToString(make([]byte, 1025)), encodedHandle)},
+		{name: "short handle", body: task11MinimalAssertionAuthorityJSON(encodedCredential, encodedCredential, base64.RawURLEncoding.EncodeToString(make([]byte, 15)))},
+		{name: "nil handle", body: task11MinimalAssertionAuthorityJSON(encodedCredential, encodedCredential, base64.RawURLEncoding.EncodeToString(make([]byte, 16)))},
+		{name: "missing signature", body: []byte(strings.Replace(string(valid), `"signature":"AA",`, "", 1))},
+		{name: "null extensions", body: []byte(strings.Replace(string(valid), `"clientExtensionResults":{}`, `"clientExtensionResults":null`, 1))},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			decodedPrincipal, decodedCredential, decodeErr := decodePasskeyAuthenticationAuthority(test.body)
+			clear(decodedCredential)
+			if decodeErr == nil || decodedPrincipal != uuid.Nil {
+				t.Fatalf("ambiguous authority decoded: principal=%s err=%v", decodedPrincipal, decodeErr)
+			}
+		})
+	}
+}
+
+func TestPasskeyAuthenticationRejectsMalformedAuthorityBeforeDependencies(t *testing.T) {
+	t.Parallel()
+
+	principalID := uuid.MustParse("28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac")
+	credentialID := base64.RawURLEncoding.EncodeToString(bytes.Repeat([]byte{0xab}, 16))
+	handle := base64.RawURLEncoding.EncodeToString(principalID[:])
+	valid := task11MinimalAssertionAuthorityJSON(credentialID, credentialID, handle)
+	tests := []struct {
+		name     string
+		response []byte
+		wantCode apierrors.Code
+	}{
+		{
+			name: "duplicate authority", response: []byte(strings.Replace(
+				string(valid), `"rawId":`, `"id":"`+credentialID+`","rawId":`, 1,
+			)), wantCode: apierrors.AuthenticationFailed,
+		},
+		{
+			name: "unknown authority", response: []byte(strings.Replace(
+				string(valid), `"type":`, `"privateAuthority":"TASK11_CANARY","type":`, 1,
+			)), wantCode: apierrors.AuthenticationFailed,
+		},
+		{name: "oversized authority", response: bytes.Repeat([]byte{' '}, maxWebAuthnCeremonyBytes+1), wantCode: apierrors.MalformedRequest},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			transaction := activeTask11TOTPTransaction()
+			executor := &fakeChallengeExecutor{runErrors: []error{errors.New("TASK11_REDIS_CANARY")}}
+			ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+			if err != nil {
+				t.Fatal(err)
+			}
+			application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+			_, err = application.FinishPasskeyAuthentication(context.Background(), FinishPasskeyAuthenticationCommand{
+				CeremonyID: "2dddc425-1bd2-4c33-9b0f-658082addbae", Response: test.response,
+				ClientSigningPublicKey: [32]byte{1}, IdempotencyKey: "task11-passkey-malformed-01",
+			})
+			if publicTask9Code(err) != test.wantCode || strings.Contains(fmt.Sprint(err), "CANARY") {
+				t.Fatalf("malformed authority error = %v", err)
+			}
+			if len(transaction.operations) != 0 || executor.runCalls != 0 {
+				t.Fatalf("malformed authority reached database or Redis: operations=%v redis=%d", transaction.operations, executor.runCalls)
+			}
+		})
 	}
 }
 
@@ -257,6 +467,63 @@ func TestPasskeyRegistrationPersistsOnlyAfterLibraryVerification(t *testing.T) {
 	}
 }
 
+func TestPasskeyRegistrationRejectsPostAccountAuthorityPhantom(t *testing.T) {
+	t.Parallel()
+
+	transaction := activeTask11TOTPTransaction()
+	executor := &fakeChallengeExecutor{setAllowed: true}
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	options, err := application.BeginPasskeyRegistration(context.Background(), BeginPasskeyRegistrationCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), DisplayName: "Primary account",
+		Reauthentication: task11PasswordReauthentication(transaction.session.ID),
+		IdempotencyKey:   "task11-passkey-phantom-begin",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var envelope struct {
+		CeremonyID string `json:"ceremony_id"`
+	}
+	if err = json.Unmarshal(options, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	record, err := decodeWebAuthnCeremony(envelope.CeremonyID, WebAuthnRegistrationCeremony, executor.setValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nine := task11Passkeys(transaction.account.ID, maximumActivePasskeys-1)
+	ten := task11Passkeys(transaction.account.ID, maximumActivePasskeys)
+	transaction.passkeySnapshots = [][]store.IdentityPasskeyCredential{nine, nine, ten}
+	transaction.passkeyListCalls = 0
+	transaction.operations = nil
+	executor.runValues = []any{bytes.Clone(executor.setValue)}
+	credentialID := bytes.Repeat([]byte{0x59}, 32)
+	err = application.FinishPasskeyRegistration(context.Background(), FinishPasskeyRegistrationCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), CeremonyID: envelope.CeremonyID,
+		Response: task11RegistrationResponse(
+			t, record.Session.Challenge, "https://login.example.test", credentialID,
+		),
+		Reauthentication: task11PasswordReauthentication(transaction.session.ID),
+		IdempotencyKey:   "task11-passkey-phantom-finish",
+	})
+	if publicTask9Code(err) != apierrors.StateConflict {
+		t.Fatalf("post-account passkey phantom error = %v", err)
+	}
+	if transaction.passkeyListCalls != 3 || transaction.createdPasskey.PrincipalID != uuid.Nil {
+		t.Fatalf("post-account authority was not refreshed before insert: lists=%d created=%+v operations=%v", transaction.passkeyListCalls, transaction.createdPasskey, transaction.operations)
+	}
+	operations := strings.Join(transaction.operations, ",")
+	finalAccount := strings.LastIndex(operations, "get_account")
+	finalList := strings.LastIndex(operations, "list_passkeys")
+	if finalAccount < 0 || finalList < finalAccount || strings.Contains(operations[finalList:], "create_passkey") {
+		t.Fatalf("post-account authority order = %s", operations)
+	}
+}
+
 func TestPasskeyRegistrationBoundsResponseBeforeDependency(t *testing.T) {
 	t.Parallel()
 
@@ -348,17 +615,145 @@ func TestPasskeyAuthenticationVerifiesAssertionAdvancesCounterAndCreatesSession(
 		strings.Index(operations, "complete_idempotency") < strings.Index(operations, "create_account_session") {
 		t.Fatalf("passkey authentication order = %s", operations)
 	}
+	runCallsBeforeReplay := executor.runCalls
+	transaction.operations = nil
+	transaction.passkeys = nil
+	transaction.account.State = "suspended"
+	executor.runErrors = []error{errors.New("TASK11_REPLAY_MUST_NOT_REACH_REDIS")}
 	replayed, err := application.CreateSession(context.Background(), command)
 	if err != nil {
-		t.Fatalf("replay passkey authentication: %v", err)
+		t.Fatalf("replay after credential removal: %v", err)
 	}
 	replayedAccess := replayed.AccessToken.Copy()
 	replayedRefresh := replayed.RefreshToken.Copy()
 	defer clear(replayedAccess)
 	defer clear(replayedRefresh)
-	if !bytes.Equal(replayedAccess, access) || !bytes.Equal(replayedRefresh, refresh) || executor.runCalls != 1 ||
-		strings.Count(strings.Join(transaction.operations, ","), "create_account_session") != 1 {
-		t.Fatalf("authentication replay consumed ceremony or created a second session: redis=%d operations=%v", executor.runCalls, transaction.operations)
+	if !bytes.Equal(replayedAccess, access) || !bytes.Equal(replayedRefresh, refresh) || executor.runCalls != runCallsBeforeReplay ||
+		strings.Join(transaction.operations, ",") != "begin_idempotency,commit" {
+		t.Fatalf("authentication replay consulted current authority, Redis, or created a second session: redis=%d operations=%v", executor.runCalls, transaction.operations)
+	}
+	conflictingReplay := command
+	conflictingReplay.WebAuthnResponse = append(bytes.Clone(command.WebAuthnResponse), ' ')
+	if _, err = application.CreateSession(context.Background(), conflictingReplay); publicTask9Code(err) != apierrors.IdempotencyConflict {
+		t.Fatalf("byte-different same-key replay = %v", err)
+	}
+	spoofedReplay := command
+	spoofedReplay.WebAuthnResponse = task11ReplaceAssertionUserHandle(
+		t, command.WebAuthnResponse, uuid.MustParse("2937fbde-6722-4c0d-ae5f-530685288446"),
+	)
+	if _, err = application.CreateSession(context.Background(), spoofedReplay); publicTask9Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("spoofed authority replay = %v", err)
+	}
+	if executor.runCalls != runCallsBeforeReplay {
+		t.Fatalf("conflicting or spoofed replay reached Redis: calls=%d", executor.runCalls)
+	}
+	conflicting := command
+	conflicting.IdempotencyKey = "task11-passkey-auth-0002"
+	if _, err = application.CreateSession(context.Background(), conflicting); publicTask9Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("new request after credential removal = %v", err)
+	}
+	if executor.runCalls != runCallsBeforeReplay || strings.Contains(strings.Join(transaction.operations, ","), "create_account_session") {
+		t.Fatalf("revoked credential request reached Redis or session mutation: redis=%d operations=%v", executor.runCalls, transaction.operations)
+	}
+}
+
+func TestPasskeyAuthenticationRedisMissReprobesConcurrentCompletedReplay(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	credentialID := bytes.Repeat([]byte{0x62}, 32)
+	privateKey, publicKey := task11PasskeyKey(t)
+	transaction.passkeys = []store.IdentityPasskeyCredential{{
+		CredentialID: credentialID, PrincipalID: transaction.account.ID, PublicKey: publicKey,
+		AttestationFormat: "none", ProtocolFlags: int16(protocol.FlagUserPresent | protocol.FlagUserVerified),
+		SignCount: 1, State: "active", CreatedAt: fixedTask10Time,
+	}}
+	executor := &fakeChallengeExecutor{setAllowed: true}
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var envelope struct {
+		CeremonyID string `json:"ceremony_id"`
+	}
+	if err = json.Unmarshal(options, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	record, err := decodeWebAuthnCeremony(envelope.CeremonyID, WebAuthnAuthenticationCeremony, executor.setValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := task11AuthenticationResponse(
+		t, record.Session.Challenge, "https://login.example.test", transaction.account.ID, credentialID, privateKey, 2,
+	)
+	command := FinishPasskeyAuthenticationCommand{
+		CeremonyID: envelope.CeremonyID, Response: response,
+		ClientSigningPublicKey: [32]byte{6, 5, 4, 3}, IdempotencyKey: "task11-passkey-auth-race-01",
+	}
+	canonical, err := strongAuthCanonicalRequest(
+		application.protector, "finish_passkey_authentication", transaction.account.ID[:],
+		[]byte(command.CeremonyID), response, command.ClientSigningPublicKey[:],
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(canonical)
+	winner := SessionTokens{
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xa1}, 32)), AccessExpiresAt: fixedTask10Time.Add(10 * time.Minute),
+		RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xb2}, 32)), RefreshIdleExpiresAt: fixedTask10Time.Add(24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask10Time.Add(48 * time.Hour),
+	}
+	executor.runValues = []any{nil}
+	executor.runHook = func() {
+		scope, scopeErr := idempotency.AuthenticatedScope(transaction.account.ID, "passkey", "finish_passkey_authentication")
+		if scopeErr != nil {
+			t.Error(scopeErr)
+			return
+		}
+		idemRecord, outcome, beginErr := transaction.idempotency.Begin(
+			context.Background(), scope, command.IdempotencyKey, canonical,
+			fixedTask10Time, fixedTask10Time.Add(securityIdempotencyRetention),
+		)
+		if beginErr != nil || outcome != idempotency.Started {
+			t.Errorf("concurrent winner begin = %s/%v", outcome, beginErr)
+			return
+		}
+		body, encodeErr := encodeSessionTokens(winner)
+		if encodeErr != nil {
+			t.Error(encodeErr)
+			return
+		}
+		defer clear(body)
+		completed, completeErr := transaction.idempotency.Complete(context.Background(), idemRecord, 200, body)
+		if completeErr != nil {
+			t.Error(completeErr)
+			return
+		}
+		owned, _ := completed.TakeResponseBody()
+		clear(owned)
+	}
+	transaction.operations = nil
+	result, err := application.FinishPasskeyAuthentication(context.Background(), command)
+	if err != nil {
+		t.Fatalf("Redis-miss concurrent replay = %v", err)
+	}
+	access := result.AccessToken.Copy()
+	refresh := result.RefreshToken.Copy()
+	wantAccess := winner.AccessToken.Copy()
+	wantRefresh := winner.RefreshToken.Copy()
+	defer clear(access)
+	defer clear(refresh)
+	defer clear(wantAccess)
+	defer clear(wantRefresh)
+	if !bytes.Equal(access, wantAccess) || !bytes.Equal(refresh, wantRefresh) || executor.runCalls != 1 ||
+		transaction.updatedPasskey.PrincipalID != uuid.Nil || transaction.createdSession.PrincipalID != uuid.Nil {
+		t.Fatalf("Redis-miss replay mutated state: redis=%d operations=%v", executor.runCalls, transaction.operations)
+	}
+	if got := strings.Join(transaction.operations, ","); got != "begin_idempotency,rollback,list_passkeys,get_account,begin_idempotency,rollback,begin_idempotency,commit" {
+		t.Fatalf("Redis-miss replay lock order = %s", got)
 	}
 }
 
@@ -639,6 +1034,61 @@ func TestWebAuthnCeremonyStorePreservesTask10AccountRotationWire(t *testing.T) {
 	}
 }
 
+func TestWebAuthnCeremonyStoreConditionallyDeletesOnlyOwnedWire(t *testing.T) {
+	t.Parallel()
+
+	record := WebAuthnCeremonyRecord{
+		CeremonyID: "2dddc425-1bd2-4c33-9b0f-658082addbae",
+		Operation:  WebAuthnRegistrationCeremony,
+		Session: wa.SessionData{
+			Challenge: "opaque-owned-ceremony", RelyingPartyID: "example.com",
+			UserID: []byte{1, 2, 3, 4}, Expires: time.Now().UTC().Add(webAuthnCeremonyTTL),
+			UserVerification: protocol.VerificationRequired,
+		},
+	}
+	record.ExpiresAt = record.Session.Expires
+	executor := &fakeChallengeExecutor{setAllowed: true, runValues: []any{int64(1), int64(0)}}
+	store, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = store.CreateWebAuthnCeremony(context.Background(), record, webAuthnCeremonyTTL); err != nil {
+		t.Fatal(err)
+	}
+	wire := bytes.Clone(executor.setValue)
+	defer clear(wire)
+	if err = store.DeleteWebAuthnCeremonyIfOwned(context.Background(), record); err != nil {
+		t.Fatalf("delete owned ceremony: %v", err)
+	}
+	if executor.runScript != webAuthnCeremonyCompareDelete || len(executor.runKeys) != 1 || executor.runKeys[0] != executor.setKey ||
+		len(executor.runArguments) != 1 {
+		t.Fatalf("conditional delete call = script %q keys=%v arguments=%v", executor.runScript, executor.runKeys, executor.runArguments)
+	}
+	argument, ok := executor.runArguments[0].([]byte)
+	if !ok || !bytes.Equal(argument, wire) || executor.runScript == accountChallengeGetDEL {
+		t.Fatal("conditional delete did not bind the exact owned ceremony wire")
+	}
+	if err = store.DeleteWebAuthnCeremonyIfOwned(context.Background(), record); err != nil {
+		t.Fatalf("missing or foreign ceremony must be a safe no-op: %v", err)
+	}
+	stateful := newTask11OwnedCeremonyExecutor()
+	close(stateful.releaseSets)
+	foreignWire := []byte("TASK11_FOREIGN_CEREMONY_CANARY")
+	key := webAuthnCeremonyRedisKey(record.Operation, record.CeremonyID)
+	stateful.values[key] = bytes.Clone(foreignWire)
+	statefulStore, err := newRedisChallengeStoreWithExecutor(stateful, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = statefulStore.DeleteWebAuthnCeremonyIfOwned(context.Background(), record); err != nil {
+		t.Fatalf("foreign ceremony compare-delete = %v", err)
+	}
+	values, deletedKeys := stateful.snapshot()
+	if !bytes.Equal(values[key], foreignWire) || len(deletedKeys) != 0 {
+		t.Fatal("conditional compensation deleted a foreign ceremony value")
+	}
+}
+
 func TestWebAuthnCeremonyStoreSanitizesBackendErrors(t *testing.T) {
 	t.Parallel()
 
@@ -657,6 +1107,42 @@ func TestWebAuthnCeremonyStoreSanitizesBackendErrors(t *testing.T) {
 	}
 	if bytes.Contains([]byte(err.Error()), []byte("CANARY")) {
 		t.Fatalf("backend detail leaked: %v", err)
+	}
+}
+
+func TestWebAuthnCeremonyConditionalDeleteSanitizesAmbiguity(t *testing.T) {
+	t.Parallel()
+
+	record := WebAuthnCeremonyRecord{
+		CeremonyID: "2dddc425-1bd2-4c33-9b0f-658082addbae", Operation: WebAuthnRegistrationCeremony,
+		Session: wa.SessionData{
+			Challenge: "opaque-cleanup-challenge", RelyingPartyID: "example.com", UserID: []byte{1, 2, 3, 4},
+			Expires: time.Now().UTC().Add(webAuthnCeremonyTTL), UserVerification: protocol.VerificationRequired,
+		},
+	}
+	record.ExpiresAt = record.Session.Expires
+	tests := []struct {
+		name     string
+		executor redisChallengeExecutor
+	}{
+		{name: "backend error", executor: &fakeChallengeExecutor{runErrors: []error{errors.New("TASK11_DELETE_CANARY")}}},
+		{name: "wrong result type", executor: &fakeChallengeExecutor{runValues: []any{"TASK11_DELETE_CANARY"}}},
+		{name: "out of range result", executor: &fakeChallengeExecutor{runValues: []any{int64(2)}}},
+		{name: "provider panic", executor: panickingTask11ChallengeExecutor{operation: "run"}},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			store, err := newRedisChallengeStoreWithExecutor(test.executor, 250*time.Millisecond)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = store.DeleteWebAuthnCeremonyIfOwned(context.Background(), record)
+			if !errors.Is(err, ErrWebAuthnCeremonyUnavailable) || strings.Contains(fmt.Sprint(err), "CANARY") {
+				t.Fatalf("conditional delete ambiguity = %v", err)
+			}
+		})
 	}
 }
 
@@ -786,6 +1272,12 @@ func (transaction *task11TOTPTransaction) ListActivePasskeys(
 	if err := transaction.record("list_passkeys"); err != nil {
 		return nil, err
 	}
+	if transaction.passkeyListCalls < len(transaction.passkeySnapshots) {
+		rows := transaction.passkeySnapshots[transaction.passkeyListCalls]
+		transaction.passkeyListCalls++
+		return append([]store.IdentityPasskeyCredential(nil), rows...), nil
+	}
+	transaction.passkeyListCalls++
 	return append([]store.IdentityPasskeyCredential(nil), transaction.passkeys...), nil
 }
 
@@ -1026,4 +1518,129 @@ func task11DifferentChallenge(value string) string {
 		replacement = 'B'
 	}
 	return string(replacement) + value[1:]
+}
+
+func task11MinimalAssertionAuthorityJSON(id, rawID, userHandle string) []byte {
+	return []byte(fmt.Sprintf(
+		`{"id":%q,"rawId":%q,"type":"public-key","response":{"clientDataJSON":"AA","authenticatorData":"AA","signature":"AA","userHandle":%q},"clientExtensionResults":{}}`,
+		id, rawID, userHandle,
+	))
+}
+
+func task11ReplaceAssertionUserHandle(t *testing.T, response []byte, principalID uuid.UUID) json.RawMessage {
+	t.Helper()
+	var envelope struct {
+		ID                      string                     `json:"id"`
+		RawID                   string                     `json:"rawId"`
+		Type                    string                     `json:"type"`
+		Response                map[string]json.RawMessage `json:"response"`
+		ClientExtensionResults  map[string]json.RawMessage `json:"clientExtensionResults"`
+		AuthenticatorAttachment string                     `json:"authenticatorAttachment,omitempty"`
+	}
+	if err := json.Unmarshal(response, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	handle, err := json.Marshal(base64.RawURLEncoding.EncodeToString(principalID[:]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	envelope.Response["userHandle"] = handle
+	replaced, err := json.Marshal(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return replaced
+}
+
+type task11OwnedCeremonyExecutor struct {
+	mu          sync.Mutex
+	values      map[string][]byte
+	deletedKeys []string
+	setArrived  chan struct{}
+	releaseSets chan struct{}
+	setError    error
+}
+
+func newTask11OwnedCeremonyExecutor() *task11OwnedCeremonyExecutor {
+	return &task11OwnedCeremonyExecutor{
+		values: make(map[string][]byte), setArrived: make(chan struct{}, 2), releaseSets: make(chan struct{}),
+	}
+}
+
+func (executor *task11OwnedCeremonyExecutor) SetNX(
+	ctx context.Context,
+	key string,
+	value []byte,
+	_ time.Duration,
+) (bool, error) {
+	executor.mu.Lock()
+	if _, exists := executor.values[key]; exists {
+		executor.mu.Unlock()
+		return false, nil
+	}
+	executor.values[key] = bytes.Clone(value)
+	executor.mu.Unlock()
+	executor.setArrived <- struct{}{}
+	select {
+	case <-executor.releaseSets:
+		return true, executor.setError
+	case <-ctx.Done():
+		return false, ctx.Err()
+	}
+}
+
+func (executor *task11OwnedCeremonyExecutor) Run(
+	_ context.Context,
+	script string,
+	keys []string,
+	arguments ...any,
+) (any, error) {
+	if len(keys) != 1 {
+		return nil, errors.New("unexpected ceremony key count")
+	}
+	executor.mu.Lock()
+	defer executor.mu.Unlock()
+	stored, exists := executor.values[keys[0]]
+	switch script {
+	case webAuthnCeremonyCompareDelete:
+		if len(arguments) != 1 {
+			return nil, errors.New("unexpected compare-delete arguments")
+		}
+		expected, ok := arguments[0].([]byte)
+		if !ok {
+			return nil, errors.New("unexpected compare-delete wire")
+		}
+		if !exists || !bytes.Equal(stored, expected) {
+			return int64(0), nil
+		}
+		delete(executor.values, keys[0])
+		executor.deletedKeys = append(executor.deletedKeys, keys[0])
+		return int64(1), nil
+	case redisGetDeleteScript:
+		if !exists {
+			return nil, nil
+		}
+		delete(executor.values, keys[0])
+		return bytes.Clone(stored), nil
+	default:
+		return nil, errors.New("unexpected ceremony script")
+	}
+}
+
+func (executor *task11OwnedCeremonyExecutor) snapshot() (map[string][]byte, []string) {
+	executor.mu.Lock()
+	defer executor.mu.Unlock()
+	values := make(map[string][]byte, len(executor.values))
+	for key, value := range executor.values {
+		values[key] = bytes.Clone(value)
+	}
+	return values, append([]string(nil), executor.deletedKeys...)
+}
+
+func mapsKeysTask11(values map[string][]byte) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	return keys
 }

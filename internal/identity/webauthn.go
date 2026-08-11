@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -19,6 +20,7 @@ import (
 
 	"talenro.local/platform/internal/idempotency"
 	"talenro.local/platform/internal/store"
+	"talenro.local/platform/internal/strictjson"
 )
 
 const (
@@ -89,6 +91,7 @@ type WebAuthnCeremonyRecord struct {
 type WebAuthnCeremonyStore interface {
 	CreateWebAuthnCeremony(context.Context, WebAuthnCeremonyRecord, time.Duration) error
 	ConsumeWebAuthnCeremony(context.Context, WebAuthnCeremonyOperation, string) (WebAuthnCeremonyRecord, error)
+	DeleteWebAuthnCeremonyIfOwned(context.Context, WebAuthnCeremonyRecord) error
 }
 
 // StrongAuthApplication is the exact account-factor surface consumed by the control API.
@@ -133,6 +136,73 @@ type FinishPasskeyAuthenticationCommand struct {
 	Response               json.RawMessage
 	ClientSigningPublicKey [32]byte
 	IdempotencyKey         string
+}
+
+type passkeyAuthenticationAuthorityEnvelope struct {
+	ID                      string                                 `json:"id"`
+	RawID                   string                                 `json:"rawId"`
+	Type                    string                                 `json:"type"`
+	Response                passkeyAuthenticationAuthorityResponse `json:"response"`
+	ClientExtensionResults  map[string]json.RawMessage             `json:"clientExtensionResults"`
+	AuthenticatorAttachment protocol.AuthenticatorAttachment       `json:"authenticatorAttachment,omitempty"`
+}
+
+type passkeyAuthenticationAuthorityResponse struct {
+	ClientDataJSON    string `json:"clientDataJSON"`
+	AuthenticatorData string `json:"authenticatorData"`
+	Signature         string `json:"signature"`
+	UserHandle        string `json:"userHandle"`
+}
+
+// decodePasskeyAuthenticationAuthority extracts only replay scope hints.
+// go-webauthn remains the sole assertion verifier.
+func decodePasskeyAuthenticationAuthority(response []byte) (uuid.UUID, []byte, error) {
+	if len(response) == 0 || len(response) > maxWebAuthnCeremonyBytes {
+		return uuid.Nil, nil, ErrInvalidWebAuthnCeremony
+	}
+	var envelope passkeyAuthenticationAuthorityEnvelope
+	if err := strictjson.Decode(bytes.NewReader(response), int64(maxWebAuthnCeremonyBytes), &envelope); err != nil ||
+		envelope.Type != string(protocol.PublicKeyCredentialType) || envelope.ID == "" || envelope.ID != envelope.RawID ||
+		envelope.Response.ClientDataJSON == "" || envelope.Response.AuthenticatorData == "" || envelope.Response.Signature == "" ||
+		envelope.Response.UserHandle == "" || envelope.ClientExtensionResults == nil {
+		return uuid.Nil, nil, ErrInvalidWebAuthnCeremony
+	}
+	credentialID, credentialOK := decodeCanonicalPasskeyBase64URL(envelope.RawID, 16, 1024)
+	if !credentialOK {
+		return uuid.Nil, nil, ErrInvalidWebAuthnCeremony
+	}
+	userHandle, handleOK := decodeCanonicalPasskeyBase64URL(envelope.Response.UserHandle, len(uuid.UUID{}), len(uuid.UUID{}))
+	if !handleOK {
+		clear(credentialID)
+		return uuid.Nil, nil, ErrInvalidWebAuthnCeremony
+	}
+	defer clear(userHandle)
+	principalID, err := uuid.FromBytes(userHandle)
+	if err != nil || principalID == uuid.Nil {
+		clear(credentialID)
+		return uuid.Nil, nil, ErrInvalidWebAuthnCeremony
+	}
+	return principalID, credentialID, nil
+}
+
+func decodeCanonicalPasskeyBase64URL(value string, minimumBytes, maximumBytes int) ([]byte, bool) {
+	if value == "" || minimumBytes < 0 || maximumBytes < minimumBytes {
+		return nil, false
+	}
+	for index := range len(value) {
+		character := value[index]
+		if (character < 'A' || character > 'Z') && (character < 'a' || character > 'z') &&
+			(character < '0' || character > '9') && character != '-' && character != '_' {
+			return nil, false
+		}
+	}
+	decoded, err := base64.RawURLEncoding.Strict().DecodeString(value)
+	if err != nil || len(decoded) < minimumBytes || len(decoded) > maximumBytes ||
+		base64.RawURLEncoding.EncodeToString(decoded) != value {
+		clear(decoded)
+		return nil, false
+	}
+	return decoded, true
 }
 
 // RevokePasskeyCommand independently revokes one credential.
@@ -228,17 +298,21 @@ func (service *Service) BeginPasskeyRegistration(
 		CeremonyID: ceremonyID.String(), Operation: WebAuthnRegistrationCeremony,
 		Session: *session, ExpiresAt: session.Expires,
 	}
-	if err = ceremonies.CreateWebAuthnCeremony(operationContext, record, webAuthnCeremonyTTL); err != nil {
-		return nil, dependencyUnavailable()
-	}
 	options, err := encodePasskeyRegistrationOptions(record.CeremonyID, creation)
 	if err != nil {
 		return nil, dependencyUnavailable()
 	}
-	result, err := service.completePasskeyRegistrationOptions(
+	defer clear(options)
+	if err = ceremonies.CreateWebAuthnCeremony(operationContext, record, webAuthnCeremonyTTL); err != nil {
+		service.deleteOwnedWebAuthnCeremony(operationContext, ceremonies, record)
+		return nil, dependencyUnavailable()
+	}
+	result, usedOwnOptions, err := service.completePasskeyRegistrationOptions(
 		operationContext, command, principalID, canonical, options,
 	)
-	clear(options)
+	if !usedOwnOptions {
+		service.deleteOwnedWebAuthnCeremony(operationContext, ceremonies, record)
+	}
 	if err != nil {
 		return nil, mapApplicationError(operationContext, err)
 	}
@@ -274,11 +348,13 @@ func (service *Service) BeginPasskeyAuthentication(
 		CeremonyID: ceremonyID.String(), Operation: WebAuthnAuthenticationCeremony,
 		Session: *session, ExpiresAt: session.Expires,
 	}
-	if err = ceremonies.CreateWebAuthnCeremony(operationContext, record, webAuthnCeremonyTTL); err != nil {
-		return nil, dependencyUnavailable()
-	}
 	options, err := encodePasskeyAuthenticationOptions(record.CeremonyID, assertion)
 	if err != nil {
+		return nil, dependencyUnavailable()
+	}
+	if err = ceremonies.CreateWebAuthnCeremony(operationContext, record, webAuthnCeremonyTTL); err != nil {
+		service.deleteOwnedWebAuthnCeremony(operationContext, ceremonies, record)
+		clear(options)
 		return nil, dependencyUnavailable()
 	}
 	return options, nil
@@ -377,17 +453,11 @@ func (service *Service) FinishPasskeyAuthentication(
 		command.ClientSigningPublicKey == [32]byte{} || !validIdempotencyKeyForApplication(command.IdempotencyKey) {
 		return SessionTokens{}, malformedRequest()
 	}
-	parsed, err := safeWebAuthnProviderCall(func() (*protocol.ParsedCredentialAssertionData, error) {
-		return protocol.ParseCredentialRequestResponseBytes(response)
-	})
-	if err != nil || parsed == nil || len(parsed.Response.UserHandle) != len(uuid.UUID{}) ||
-		len(parsed.RawID) < 16 || len(parsed.RawID) > 1024 {
+	principalID, credentialID, err := decodePasskeyAuthenticationAuthority(response)
+	if err != nil {
 		return SessionTokens{}, authenticationFailed()
 	}
-	principalID, err := uuid.FromBytes(parsed.Response.UserHandle)
-	if err != nil || principalID == uuid.Nil {
-		return SessionTokens{}, authenticationFailed()
-	}
+	defer clear(credentialID)
 	canonical, err := strongAuthCanonicalRequest(
 		service.protector, "finish_passkey_authentication", principalID[:], []byte(command.CeremonyID), response,
 		command.ClientSigningPublicKey[:],
@@ -398,8 +468,17 @@ func (service *Service) FinishPasskeyAuthentication(
 	defer clear(canonical)
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
+	replayedTokens, replayed, replayErr := service.probePasskeyAuthenticationReplay(
+		operationContext, command, principalID, canonical,
+	)
+	if replayErr != nil {
+		return SessionTokens{}, mapApplicationError(operationContext, replayErr)
+	}
+	if replayed {
+		return replayedTokens, nil
+	}
 	user, replayedTokens, replayed, preloadErr := service.preflightPasskeyAuthentication(
-		operationContext, command, principalID, parsed.RawID, canonical,
+		operationContext, command, principalID, credentialID, canonical,
 	)
 	if preloadErr != nil {
 		return SessionTokens{}, mapApplicationError(operationContext, preloadErr)
@@ -407,10 +486,26 @@ func (service *Service) FinishPasskeyAuthentication(
 	if replayed {
 		return replayedTokens, nil
 	}
+	parsed, err := safeWebAuthnProviderCall(func() (*protocol.ParsedCredentialAssertionData, error) {
+		return protocol.ParseCredentialRequestResponseBytes(response)
+	})
+	if err != nil || parsed == nil || !bytes.Equal(parsed.RawID, credentialID) ||
+		!bytes.Equal(parsed.Response.UserHandle, principalID[:]) {
+		return SessionTokens{}, authenticationFailed()
+	}
 	record, err := ceremonies.ConsumeWebAuthnCeremony(
 		operationContext, WebAuthnAuthenticationCeremony, command.CeremonyID,
 	)
 	if err != nil {
+		completedTokens, completed, probeErr := service.probePasskeyAuthenticationReplay(
+			operationContext, command, principalID, canonical,
+		)
+		if probeErr != nil {
+			return SessionTokens{}, mapApplicationError(operationContext, probeErr)
+		}
+		if completed {
+			return completedTokens, nil
+		}
 		if errors.Is(err, ErrWebAuthnCeremonyNotFound) {
 			return SessionTokens{}, authenticationFailed()
 		}
@@ -425,7 +520,7 @@ func (service *Service) FinishPasskeyAuthentication(
 		return SessionTokens{}, dependencyUnavailable()
 	}
 	handler := func(rawID, userHandle []byte) (wa.User, error) {
-		if !bytes.Equal(rawID, parsed.RawID) || !bytes.Equal(userHandle, principalID[:]) {
+		if !bytes.Equal(rawID, credentialID) || !bytes.Equal(userHandle, principalID[:]) {
 			return nil, errStrongAuthDependency
 		}
 		return user, nil
@@ -434,7 +529,7 @@ func (service *Service) FinishPasskeyAuthentication(
 		return webAuthn.ValidatePasskeyLogin(handler, record.Session, parsed)
 	})
 	if err != nil || verifiedUser == nil || verifiedCredential == nil || !bytes.Equal(verifiedUser.WebAuthnID(), principalID[:]) ||
-		!bytes.Equal(verifiedCredential.ID, parsed.RawID) || !validVerifiedPasskey(verifiedCredential) {
+		!bytes.Equal(verifiedCredential.ID, credentialID) || !validVerifiedPasskey(verifiedCredential) {
 		return SessionTokens{}, authenticationFailed()
 	}
 	result, err := service.completePasskeyAuthentication(
@@ -444,6 +539,60 @@ func (service *Service) FinishPasskeyAuthentication(
 		return SessionTokens{}, mapApplicationError(operationContext, err)
 	}
 	return result, nil
+}
+
+func (service *Service) probePasskeyAuthenticationReplay(
+	ctx context.Context,
+	command FinishPasskeyAuthenticationCommand,
+	principalID uuid.UUID,
+	canonical []byte,
+) (SessionTokens, bool, error) {
+	var result SessionTokens
+	var replayed bool
+	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, transaction Transaction) error {
+		if nilIdentityValue(transaction) {
+			return dependencyUnavailable()
+		}
+		now, timeOK := service.now()
+		if !timeOK {
+			return dependencyUnavailable()
+		}
+		scope, scopeErr := idempotency.AuthenticatedScope(principalID, "passkey", "finish_passkey_authentication")
+		if scopeErr != nil {
+			return dependencyUnavailable()
+		}
+		record, outcome, beginErr := transaction.BeginIdempotency(
+			transactionContext, scope, command.IdempotencyKey, canonical, now, now.Add(securityIdempotencyRetention),
+		)
+		if beginErr != nil {
+			return dependencyUnavailable()
+		}
+		if outcome == idempotency.Started {
+			return errSessionIdempotencyPreflight
+		}
+		body, wasReplayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
+		if replayErr != nil {
+			return replayErr
+		}
+		if !wasReplayed {
+			return dependencyUnavailable()
+		}
+		defer clear(body)
+		decoded, decodeErr := decodeSessionTokens(body)
+		if decodeErr != nil {
+			return dependencyUnavailable()
+		}
+		result = decoded
+		replayed = true
+		return nil
+	})
+	if errors.Is(err, errSessionIdempotencyPreflight) {
+		return SessionTokens{}, false, nil
+	}
+	if err != nil {
+		return SessionTokens{}, false, err
+	}
+	return result, replayed, nil
 }
 
 // RevokePasskey independently revokes one active credential after password reauthentication.
@@ -798,17 +947,13 @@ func (service *Service) persistPasskeyRegistration(
 		if reauthErr != nil {
 			return reauthErr
 		}
-		rows, listErr := transaction.ListActivePasskeys(transactionContext, principalID)
-		if listErr != nil {
+		if _, listErr := transaction.ListActivePasskeys(transactionContext, principalID); listErr != nil {
 			return dependencyUnavailable()
 		}
 		if _, reauthErr = service.verifyLockedPasswordReauthentication(
 			transactionContext, transaction, principalID, command.Reauthentication, passwordCredential, now,
 		); reauthErr != nil {
 			return reauthErr
-		}
-		if len(rows) >= maximumActivePasskeys || containsPasskeyCredential(rows, credential.ID) {
-			return strongAuthStateConflict()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(principalID, "passkey", "finish_passkey_registration")
 		if scopeErr != nil {
@@ -825,6 +970,13 @@ func (service *Service) persistPasskeyRegistration(
 			if replayErr != nil || replayed {
 				return replayErr
 			}
+		}
+		refreshedRows, refreshErr := transaction.ListActivePasskeys(transactionContext, principalID)
+		if refreshErr != nil {
+			return dependencyUnavailable()
+		}
+		if len(refreshedRows) >= maximumActivePasskeys || containsPasskeyCredential(refreshedRows, credential.ID) {
+			return strongAuthStateConflict()
 		}
 		transports := make([]string, len(credential.Transport))
 		for index, transport := range credential.Transport {
@@ -956,8 +1108,9 @@ func (service *Service) completePasskeyRegistrationOptions(
 	principalID uuid.UUID,
 	canonical []byte,
 	options []byte,
-) (json.RawMessage, error) {
+) (json.RawMessage, bool, error) {
 	var result json.RawMessage
+	var usedOwnOptions bool
 	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, base Transaction) error {
 		transaction, ok := base.(passkeyTransaction)
 		if !ok || nilIdentityValue(transaction) {
@@ -1014,9 +1167,24 @@ func (service *Service) completePasskeyRegistrationOptions(
 			return dependencyUnavailable()
 		}
 		result = append(json.RawMessage(nil), options...)
+		usedOwnOptions = true
 		return nil
 	})
-	return result, err
+	return result, usedOwnOptions, err
+}
+
+func (service *Service) deleteOwnedWebAuthnCeremony(
+	ctx context.Context,
+	ceremonies WebAuthnCeremonyStore,
+	record WebAuthnCeremonyRecord,
+) {
+	if service == nil || nilIdentityValue(ctx) || nilIdentityValue(ceremonies) ||
+		service.security.RedisTimeout < minimumChallengeRedisTimeout || service.security.RedisTimeout > maximumChallengeRedisTimeout {
+		return
+	}
+	cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), service.security.RedisTimeout)
+	defer cancel()
+	_ = ceremonies.DeleteWebAuthnCeremonyIfOwned(cleanupContext, record)
 }
 
 func (service *Service) newWebAuthn() (*wa.WebAuthn, error) {

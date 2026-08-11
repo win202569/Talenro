@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	accountChallengeRedisPrefix  = "talenro:identity:account-challenge:"
-	accountChallengeGetDEL       = "return redis.call('GETDEL', KEYS[1])"
-	redisGetDeleteScript         = accountChallengeGetDEL
-	minimumChallengeRedisTimeout = 100 * time.Millisecond
-	maximumChallengeRedisTimeout = time.Second
+	accountChallengeRedisPrefix   = "talenro:identity:account-challenge:"
+	accountChallengeGetDEL        = "return redis.call('GETDEL', KEYS[1])"
+	redisGetDeleteScript          = accountChallengeGetDEL
+	webAuthnCeremonyCompareDelete = "local value=redis.call('GET',KEYS[1]); if not value or value~=ARGV[1] then return 0 end; return redis.call('DEL',KEYS[1])"
+	minimumChallengeRedisTimeout  = 100 * time.Millisecond
+	maximumChallengeRedisTimeout  = time.Second
 )
 
 type redisChallengeExecutor interface {
@@ -231,6 +232,39 @@ func (store *RedisChallengeStore) ConsumeWebAuthnCeremony(
 		return WebAuthnCeremonyRecord{}, ErrWebAuthnCeremonyNotFound
 	}
 	return record, nil
+}
+
+// DeleteWebAuthnCeremonyIfOwned atomically removes only the exact ceremony wire created by this caller.
+func (store *RedisChallengeStore) DeleteWebAuthnCeremonyIfOwned(
+	ctx context.Context,
+	record WebAuthnCeremonyRecord,
+) error {
+	key := webAuthnCeremonyRedisKey(record.Operation, record.CeremonyID)
+	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) ||
+		key == "" || !validWebAuthnCeremonyRecord(record) {
+		return ErrInvalidWebAuthnCeremony
+	}
+	if ctx.Err() != nil {
+		return ErrWebAuthnCeremonyUnavailable
+	}
+	wire, err := encodeWebAuthnCeremony(record)
+	if err != nil {
+		return ErrInvalidWebAuthnCeremony
+	}
+	defer clear(wire)
+	operationContext, cancel := context.WithTimeout(ctx, store.timeout)
+	defer cancel()
+	result, err := safeRedisChallengeRun(
+		operationContext, store.executor, webAuthnCeremonyCompareDelete, []string{key}, wire,
+	)
+	if err != nil || operationContext.Err() != nil {
+		return ErrWebAuthnCeremonyUnavailable
+	}
+	deleted, ok := result.(int64)
+	if !ok || (deleted != 0 && deleted != 1) {
+		return ErrWebAuthnCeremonyUnavailable
+	}
+	return nil
 }
 
 func validChallengeID(value string) bool {

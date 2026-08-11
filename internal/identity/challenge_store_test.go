@@ -151,6 +151,9 @@ type fakeChallengeExecutor struct {
 	runErrors         []error
 	runCalls          int
 	runScript         string
+	runKeys           []string
+	runArguments      []any
+	runHook           func()
 	runWaitForContext bool
 }
 
@@ -163,10 +166,24 @@ func (executor *fakeChallengeExecutor) SetNX(_ context.Context, key string, valu
 	return executor.setAllowed, executor.setError
 }
 
-func (executor *fakeChallengeExecutor) Run(ctx context.Context, script string, _ []string, _ ...any) (any, error) {
+func (executor *fakeChallengeExecutor) Run(ctx context.Context, script string, keys []string, arguments ...any) (any, error) {
 	executor.runScript = script
+	executor.runKeys = append([]string(nil), keys...)
+	executor.runArguments = make([]any, len(arguments))
+	for index, argument := range arguments {
+		if value, ok := argument.([]byte); ok {
+			executor.runArguments[index] = bytes.Clone(value)
+			continue
+		}
+		executor.runArguments[index] = argument
+	}
 	index := executor.runCalls
 	executor.runCalls++
+	if executor.runHook != nil {
+		hook := executor.runHook
+		executor.runHook = nil
+		hook()
+	}
 	if executor.runWaitForContext {
 		<-ctx.Done()
 		return nil, goredis.Nil
