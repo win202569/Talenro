@@ -432,6 +432,26 @@ func (q *Queries) CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnroll
 	return err
 }
 
+const discoverRefreshToken = `-- name: DiscoverRefreshToken :one
+SELECT r.token_hash, r.session_id, s.principal_id
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE r.token_hash=$1
+`
+
+type DiscoverRefreshTokenRow struct {
+	TokenHash   []byte    `json:"token_hash"`
+	SessionID   uuid.UUID `json:"session_id"`
+	PrincipalID uuid.UUID `json:"principal_id"`
+}
+
+func (q *Queries) DiscoverRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverRefreshTokenRow, error) {
+	row := q.db.QueryRow(ctx, discoverRefreshToken, tokenHash)
+	var i DiscoverRefreshTokenRow
+	err := row.Scan(&i.TokenHash, &i.SessionID, &i.PrincipalID)
+	return i, err
+}
+
 const findAccountAccessToken = `-- name: FindAccountAccessToken :one
 SELECT s.id, s.principal_id, s.state, s.state_version, s.access_expires_at,
        s.absolute_expires_at, a.state AS account_state
@@ -471,6 +491,33 @@ SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encrypti
 
 func (q *Queries) FindIdentityByLookupDigest(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error) {
 	row := q.db.QueryRow(ctx, findIdentityByLookupDigest, lookupDigest)
+	var i IdentityEmailIdentity
+	err := row.Scan(
+		&i.ID,
+		&i.PrincipalID,
+		&i.LookupKeyVersion,
+		&i.LookupDigest,
+		&i.Ciphertext,
+		&i.EncryptionKeyVersion,
+		&i.VerificationTokenHash,
+		&i.VerificationExpiresAt,
+		&i.VerificationConsumedAt,
+		&i.VerificationDeliveryID,
+		&i.VerificationDeliveryCiphertext,
+		&i.VerificationDeliveryKeyVersion,
+		&i.VerifiedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const findIdentityByLookupDigestRead = `-- name: FindIdentityByLookupDigestRead :one
+SELECT id, principal_id, lookup_key_version, lookup_digest, ciphertext, encryption_key_version, verification_token_hash, verification_expires_at, verification_consumed_at, verification_delivery_id, verification_delivery_ciphertext, verification_delivery_key_version, verified_at, created_at, updated_at FROM identity.email_identities WHERE lookup_digest = $1
+`
+
+func (q *Queries) FindIdentityByLookupDigestRead(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error) {
+	row := q.db.QueryRow(ctx, findIdentityByLookupDigestRead, lookupDigest)
 	var i IdentityEmailIdentity
 	err := row.Scan(
 		&i.ID,
@@ -590,11 +637,37 @@ func (q *Queries) GetEmailVerificationForUpdate(ctx context.Context, verificatio
 }
 
 const getPasswordCredential = `-- name: GetPasswordCredential :one
-SELECT principal_id, policy_version, memory_kib, time_cost, parallelism, salt, password_hash, reset_token_hash, reset_expires_at, reset_consumed_at, reset_delivery_id, reset_delivery_ciphertext, reset_delivery_key_version, updated_at FROM identity.password_credentials WHERE principal_id = $1
+SELECT principal_id, policy_version, memory_kib, time_cost, parallelism, salt, password_hash, reset_token_hash, reset_expires_at, reset_consumed_at, reset_delivery_id, reset_delivery_ciphertext, reset_delivery_key_version, updated_at FROM identity.password_credentials WHERE principal_id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error) {
 	row := q.db.QueryRow(ctx, getPasswordCredential, principalID)
+	var i IdentityPasswordCredential
+	err := row.Scan(
+		&i.PrincipalID,
+		&i.PolicyVersion,
+		&i.MemoryKib,
+		&i.TimeCost,
+		&i.Parallelism,
+		&i.Salt,
+		&i.PasswordHash,
+		&i.ResetTokenHash,
+		&i.ResetExpiresAt,
+		&i.ResetConsumedAt,
+		&i.ResetDeliveryID,
+		&i.ResetDeliveryCiphertext,
+		&i.ResetDeliveryKeyVersion,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getPasswordResetForUpdate = `-- name: GetPasswordResetForUpdate :one
+SELECT principal_id, policy_version, memory_kib, time_cost, parallelism, salt, password_hash, reset_token_hash, reset_expires_at, reset_consumed_at, reset_delivery_id, reset_delivery_ciphertext, reset_delivery_key_version, updated_at FROM identity.password_credentials WHERE reset_token_hash = $1 FOR UPDATE
+`
+
+func (q *Queries) GetPasswordResetForUpdate(ctx context.Context, resetTokenHash []byte) (IdentityPasswordCredential, error) {
+	row := q.db.QueryRow(ctx, getPasswordResetForUpdate, resetTokenHash)
 	var i IdentityPasswordCredential
 	err := row.Scan(
 		&i.PrincipalID,
@@ -662,74 +735,6 @@ func (q *Queries) GetPendingPasswordResetDelivery(ctx context.Context, resetDeli
 		&i.ResetDeliveryCiphertext,
 		&i.ResetDeliveryKeyVersion,
 		&i.ResetExpiresAt,
-	)
-	return i, err
-}
-
-const getRefreshTokenForUpdate = `-- name: GetRefreshTokenForUpdate :one
-WITH locked_refresh AS MATERIALIZED (
-  SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state,
-         r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
-  FROM identity.account_refresh_tokens r
-  WHERE r.token_hash=$1
-  FOR UPDATE OF r
-), locked_session AS MATERIALIZED (
-  SELECT s.id, s.state, s.state_version, s.client_signing_public_key, s.principal_id
-  FROM identity.account_sessions s
-  JOIN locked_refresh r ON r.session_id=s.id
-  WHERE (SELECT count(*) FROM locked_refresh) >= 0
-  FOR UPDATE OF s
-), locked_account AS MATERIALIZED (
-  SELECT a.id, a.state
-  FROM identity.accounts a
-  JOIN locked_session s ON s.principal_id=a.id
-  WHERE (SELECT count(*) FROM locked_session) >= 0
-  FOR UPDATE OF a
-)
-SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state AS refresh_state,
-       r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at,
-       s.state AS session_state, s.state_version AS session_state_version,
-       s.client_signing_public_key, s.principal_id, a.state AS account_state
-FROM locked_refresh r
-JOIN locked_session s ON s.id=r.session_id
-JOIN locked_account a ON a.id=s.principal_id
-`
-
-type GetRefreshTokenForUpdateRow struct {
-	TokenHash              []byte       `json:"token_hash"`
-	SessionID              uuid.UUID    `json:"session_id"`
-	PreviousTokenHash      []byte       `json:"previous_token_hash"`
-	RefreshState           string       `json:"refresh_state"`
-	IssuedAt               time.Time    `json:"issued_at"`
-	IdleExpiresAt          time.Time    `json:"idle_expires_at"`
-	AbsoluteExpiresAt      time.Time    `json:"absolute_expires_at"`
-	UsedAt                 sql.NullTime `json:"used_at"`
-	RevokedAt              sql.NullTime `json:"revoked_at"`
-	SessionState           string       `json:"session_state"`
-	SessionStateVersion    int64        `json:"session_state_version"`
-	ClientSigningPublicKey []byte       `json:"client_signing_public_key"`
-	PrincipalID            uuid.UUID    `json:"principal_id"`
-	AccountState           string       `json:"account_state"`
-}
-
-func (q *Queries) GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error) {
-	row := q.db.QueryRow(ctx, getRefreshTokenForUpdate, tokenHash)
-	var i GetRefreshTokenForUpdateRow
-	err := row.Scan(
-		&i.TokenHash,
-		&i.SessionID,
-		&i.PreviousTokenHash,
-		&i.RefreshState,
-		&i.IssuedAt,
-		&i.IdleExpiresAt,
-		&i.AbsoluteExpiresAt,
-		&i.UsedAt,
-		&i.RevokedAt,
-		&i.SessionState,
-		&i.SessionStateVersion,
-		&i.ClientSigningPublicKey,
-		&i.PrincipalID,
-		&i.AccountState,
 	)
 	return i, err
 }
@@ -846,6 +851,81 @@ func (q *Queries) ListActivePasskeys(ctx context.Context, principalID uuid.UUID)
 	return items, nil
 }
 
+const listPrincipalRefreshTokens = `-- name: ListPrincipalRefreshTokens :many
+SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state, r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE s.principal_id=$1
+ORDER BY r.token_hash
+`
+
+func (q *Queries) ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error) {
+	rows, err := q.db.Query(ctx, listPrincipalRefreshTokens, principalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityAccountRefreshToken{}
+	for rows.Next() {
+		var i IdentityAccountRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.SessionID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.IdleExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSessionRefreshTokens = `-- name: ListSessionRefreshTokens :many
+SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state, r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
+FROM identity.account_refresh_tokens r
+WHERE r.session_id=$1
+ORDER BY r.token_hash
+`
+
+func (q *Queries) ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error) {
+	rows, err := q.db.Query(ctx, listSessionRefreshTokens, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityAccountRefreshToken{}
+	for rows.Next() {
+		var i IdentityAccountRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.SessionID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.IdleExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockEmailLookupDigest = `-- name: LockEmailLookupDigest :exec
 SELECT pg_advisory_xact_lock(
   hashtextextended(encode($1::bytea, 'hex'), 0)
@@ -855,6 +935,122 @@ SELECT pg_advisory_xact_lock(
 func (q *Queries) LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error {
 	_, err := q.db.Exec(ctx, lockEmailLookupDigest, lookupDigest)
 	return err
+}
+
+const lockPrincipalAccountSessions = `-- name: LockPrincipalAccountSessions :many
+SELECT id, principal_id, state, state_version, client_signing_public_key, access_token_hash, access_expires_at, absolute_expires_at, created_at, updated_at, device_authorization_id FROM identity.account_sessions
+WHERE principal_id = $1
+ORDER BY id
+FOR UPDATE
+`
+
+func (q *Queries) LockPrincipalAccountSessions(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountSession, error) {
+	rows, err := q.db.Query(ctx, lockPrincipalAccountSessions, principalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityAccountSession{}
+	for rows.Next() {
+		var i IdentityAccountSession
+		if err := rows.Scan(
+			&i.ID,
+			&i.PrincipalID,
+			&i.State,
+			&i.StateVersion,
+			&i.ClientSigningPublicKey,
+			&i.AccessTokenHash,
+			&i.AccessExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeviceAuthorizationID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockPrincipalRefreshTokens = `-- name: LockPrincipalRefreshTokens :many
+SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state, r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE s.principal_id=$1
+ORDER BY r.token_hash
+FOR UPDATE OF r
+`
+
+func (q *Queries) LockPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error) {
+	rows, err := q.db.Query(ctx, lockPrincipalRefreshTokens, principalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityAccountRefreshToken{}
+	for rows.Next() {
+		var i IdentityAccountRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.SessionID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.IdleExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockSessionRefreshTokens = `-- name: LockSessionRefreshTokens :many
+SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state, r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
+FROM identity.account_refresh_tokens r
+WHERE r.session_id=$1
+ORDER BY r.token_hash
+FOR UPDATE OF r
+`
+
+func (q *Queries) LockSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error) {
+	rows, err := q.db.Query(ctx, lockSessionRefreshTokens, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityAccountRefreshToken{}
+	for rows.Next() {
+		var i IdentityAccountRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.SessionID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.IdleExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markAccountRefreshUsed = `-- name: MarkAccountRefreshUsed :one
@@ -907,17 +1103,17 @@ func (q *Queries) MarkAccountSessionCompromised(ctx context.Context, arg MarkAcc
 
 const markPrincipalSessionsReviewRequired = `-- name: MarkPrincipalSessionsReviewRequired :execrows
 UPDATE identity.account_sessions
-SET state='review_required', state_version=state_version+1, updated_at=$2
-WHERE principal_id=$1 AND state='active'
+SET state='review_required', state_version=state_version+1, updated_at=$1
+WHERE id=ANY($2::uuid[]) AND state='active'
 `
 
 type MarkPrincipalSessionsReviewRequiredParams struct {
-	PrincipalID uuid.UUID `json:"principal_id"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	SessionIds []uuid.UUID `json:"session_ids"`
 }
 
 func (q *Queries) MarkPrincipalSessionsReviewRequired(ctx context.Context, arg MarkPrincipalSessionsReviewRequiredParams) (int64, error) {
-	result, err := q.db.Exec(ctx, markPrincipalSessionsReviewRequired, arg.PrincipalID, arg.UpdatedAt)
+	result, err := q.db.Exec(ctx, markPrincipalSessionsReviewRequired, arg.UpdatedAt, arg.SessionIds)
 	if err != nil {
 		return 0, err
 	}
@@ -976,17 +1172,17 @@ func (q *Queries) ResetEmailVerification(ctx context.Context, arg ResetEmailVeri
 
 const revokeAccountRefreshTokens = `-- name: RevokeAccountRefreshTokens :execrows
 UPDATE identity.account_refresh_tokens
-SET state='revoked', revoked_at=$2
-WHERE session_id=$1 AND state='active'
+SET state='revoked', revoked_at=$1
+WHERE token_hash=ANY($2::bytea[]) AND state='active'
 `
 
 type RevokeAccountRefreshTokensParams struct {
-	SessionID uuid.UUID    `json:"session_id"`
-	RevokedAt sql.NullTime `json:"revoked_at"`
+	RevokedAt   sql.NullTime `json:"revoked_at"`
+	TokenHashes [][]byte     `json:"token_hashes"`
 }
 
 func (q *Queries) RevokeAccountRefreshTokens(ctx context.Context, arg RevokeAccountRefreshTokensParams) (int64, error) {
-	result, err := q.db.Exec(ctx, revokeAccountRefreshTokens, arg.SessionID, arg.RevokedAt)
+	result, err := q.db.Exec(ctx, revokeAccountRefreshTokens, arg.RevokedAt, arg.TokenHashes)
 	if err != nil {
 		return 0, err
 	}
@@ -1033,60 +1229,29 @@ func (q *Queries) RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (i
 }
 
 const revokePrincipalAccountSessions = `-- name: RevokePrincipalAccountSessions :many
-WITH target_refresh AS MATERIALIZED (
-  SELECT r.token_hash, r.session_id
-  FROM identity.account_refresh_tokens r
-  JOIN identity.account_sessions s ON s.id=r.session_id
-  WHERE s.principal_id=$2
-    AND (
-      $3::text='all'
-      OR ($3::text='current' AND s.id=$4)
-      OR ($3::text='others' AND s.id<>$4)
-    )
-  ORDER BY r.token_hash
-  FOR UPDATE OF r
-), target_sessions AS MATERIALIZED (
-  SELECT s.id
-  FROM identity.account_sessions s
-  WHERE s.id IN (SELECT session_id FROM target_refresh)
-  ORDER BY s.id
-  FOR UPDATE OF s
-), locked_account AS MATERIALIZED (
-  SELECT a.id
-  FROM identity.accounts a
-  WHERE a.id=$2
-    AND EXISTS (SELECT 1 FROM target_sessions)
-  FOR UPDATE OF a
-), revoked_refresh AS (
+WITH revoked_refresh AS (
   UPDATE identity.account_refresh_tokens r
   SET state='revoked', revoked_at=$1
-  WHERE r.token_hash IN (SELECT token_hash FROM target_refresh)
+  WHERE r.token_hash=ANY($3::bytea[])
     AND r.state='active'
-    AND EXISTS (SELECT 1 FROM locked_account)
   RETURNING r.session_id
 )
 UPDATE identity.account_sessions s
 SET state='revoked', state_version=state_version+1, updated_at=$1
-WHERE s.id IN (SELECT id FROM target_sessions)
+WHERE s.id=ANY($2::uuid[])
   AND s.state IN ('active','review_required')
   AND (SELECT count(*) FROM revoked_refresh) >= 0
 RETURNING s.id
 `
 
 type RevokePrincipalAccountSessionsParams struct {
-	RevokedAt   time.Time `json:"revoked_at"`
-	PrincipalID uuid.UUID `json:"principal_id"`
-	RevokeScope string    `json:"revoke_scope"`
-	SessionID   uuid.UUID `json:"session_id"`
+	RevokedAt   time.Time   `json:"revoked_at"`
+	SessionIds  []uuid.UUID `json:"session_ids"`
+	TokenHashes [][]byte    `json:"token_hashes"`
 }
 
 func (q *Queries) RevokePrincipalAccountSessions(ctx context.Context, arg RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error) {
-	rows, err := q.db.Query(ctx, revokePrincipalAccountSessions,
-		arg.RevokedAt,
-		arg.PrincipalID,
-		arg.RevokeScope,
-		arg.SessionID,
-	)
+	rows, err := q.db.Query(ctx, revokePrincipalAccountSessions, arg.RevokedAt, arg.SessionIds, arg.TokenHashes)
 	if err != nil {
 		return nil, err
 	}

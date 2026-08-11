@@ -96,6 +96,17 @@ func (service *Service) createDelivery(ctx context.Context, email, locale, idemp
 		if found {
 			lookupPrincipalID = identity.PrincipalID
 		}
+		credentialFound := false
+		if template == ResetPasswordTemplate {
+			credential, foundCredential, credentialErr := transaction.GetPasswordCredential(transactionContext, lookupPrincipalID)
+			if credentialErr != nil {
+				return dependencyUnavailable()
+			}
+			credentialFound = foundCredential
+			if found && credentialFound && credential.PrincipalID != identity.PrincipalID {
+				return dependencyUnavailable()
+			}
+		}
 		account, accountFound, accountErr := transaction.GetAccountForUpdate(transactionContext, lookupPrincipalID)
 		if accountErr != nil {
 			return dependencyUnavailable()
@@ -107,13 +118,6 @@ func (service *Service) createDelivery(ctx context.Context, email, locale, idemp
 		if template == VerifyEmailTemplate {
 			eligible = found && service.security.EmailVerification != config.EmailDisabled && account.State == "pending_email" && !identity.VerifiedAt.Valid
 		} else {
-			credential, credentialFound, credentialErr := transaction.GetPasswordCredential(transactionContext, lookupPrincipalID)
-			if credentialErr != nil {
-				return dependencyUnavailable()
-			}
-			if found && credentialFound && credential.PrincipalID != identity.PrincipalID {
-				return dependencyUnavailable()
-			}
 			eligible = found && credentialFound && (account.State == "active" || account.State == "pending_email")
 		}
 
@@ -286,23 +290,23 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 		if !ok {
 			return dependencyUnavailable()
 		}
+		credential, credentialFound, findErr := transaction.GetPasswordResetForUpdate(transactionContext, resetDigest[:])
+		if findErr != nil {
+			return dependencyUnavailable()
+		}
+		authorityPrincipalID := uuid.Nil
+		if credentialFound {
+			authorityPrincipalID = credential.PrincipalID
+		}
 		lookupDigest := service.protector.LookupDigest(emailFieldDomain, emailBytes)
 		if lookupDigest == [32]byte{} {
 			return dependencyUnavailable()
 		}
-		identity, identityFound, findErr := transaction.FindIdentityByLookupDigest(transactionContext, lookupDigest[:])
+		identity, identityFound, findErr := transaction.FindIdentityByLookupDigestRead(transactionContext, lookupDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		lookupPrincipalID := uuid.Nil
-		if identityFound {
-			lookupPrincipalID = identity.PrincipalID
-		}
-		account, accountFound, findErr := transaction.GetAccountForUpdate(transactionContext, lookupPrincipalID)
-		if findErr != nil {
-			return dependencyUnavailable()
-		}
-		credential, credentialFound, findErr := transaction.GetPasswordCredential(transactionContext, lookupPrincipalID)
+		_, lockedSessions, account, accountFound, findErr := lockPrincipalRefreshAuthority(transactionContext, transaction, authorityPrincipalID)
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -363,7 +367,7 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 		}
 		result = created.tokens
 		defer created.clear()
-		if _, markErr := transaction.MarkPrincipalSessionsReviewRequired(transactionContext, store.MarkPrincipalSessionsReviewRequiredParams{PrincipalID: identity.PrincipalID, UpdatedAt: now}); markErr != nil {
+		if _, markErr := transaction.MarkPrincipalSessionsReviewRequired(transactionContext, store.MarkPrincipalSessionsReviewRequiredParams{SessionIds: lockedSessionIDs(lockedSessions), UpdatedAt: now}); markErr != nil {
 			return dependencyUnavailable()
 		}
 		if createErr = transaction.CreateAccountSession(transactionContext, store.CreateAccountSessionParams{
@@ -426,15 +430,16 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 		if !ok {
 			return dependencyUnavailable()
 		}
-		account, accountFound, findErr := transaction.GetAccountForUpdate(transactionContext, principalID)
-		if findErr != nil {
-			return dependencyUnavailable()
-		}
-		session, sessionFound, findErr := transaction.GetAccountSessionForUpdate(transactionContext, store.GetAccountSessionForUpdateParams{ID: sessionID, PrincipalID: principalID})
-		if findErr != nil {
-			return dependencyUnavailable()
-		}
 		storedCredential, credentialFound, findErr := transaction.GetPasswordCredential(transactionContext, principalID)
+		if findErr != nil {
+			return dependencyUnavailable()
+		}
+		lockedSessions, lockErr := transaction.LockPrincipalAccountSessions(transactionContext, principalID)
+		if lockErr != nil {
+			return dependencyUnavailable()
+		}
+		session, sessionFound := findLockedAccountSession(lockedSessions, sessionID, principalID)
+		account, accountFound, findErr := transaction.GetAccountForUpdate(transactionContext, principalID)
 		if findErr != nil {
 			return dependencyUnavailable()
 		}

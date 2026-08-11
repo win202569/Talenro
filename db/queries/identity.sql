@@ -8,6 +8,9 @@ SELECT * FROM identity.accounts WHERE id = $1 FOR UPDATE;
 -- name: FindIdentityByLookupDigest :one
 SELECT * FROM identity.email_identities WHERE lookup_digest = $1 FOR UPDATE;
 
+-- name: FindIdentityByLookupDigestRead :one
+SELECT * FROM identity.email_identities WHERE lookup_digest = $1;
+
 -- name: LockEmailLookupDigest :exec
 SELECT pg_advisory_xact_lock(
   hashtextextended(encode(sqlc.arg(lookup_digest)::bytea, 'hex'), 0)
@@ -34,11 +37,20 @@ WHERE verification_token_hash = $1
 FOR UPDATE;
 
 -- name: GetPasswordCredential :one
-SELECT * FROM identity.password_credentials WHERE principal_id = $1;
+SELECT * FROM identity.password_credentials WHERE principal_id = $1 FOR UPDATE;
+
+-- name: GetPasswordResetForUpdate :one
+SELECT * FROM identity.password_credentials WHERE reset_token_hash = $1 FOR UPDATE;
 
 -- name: GetAccountSessionForUpdate :one
 SELECT * FROM identity.account_sessions
 WHERE id = $1 AND principal_id = $2
+FOR UPDATE;
+
+-- name: LockPrincipalAccountSessions :many
+SELECT * FROM identity.account_sessions
+WHERE principal_id = $1
+ORDER BY id
 FOR UPDATE;
 
 -- name: CreateAccountSession :exec
@@ -47,33 +59,39 @@ INSERT INTO identity.account_sessions
    access_expires_at, absolute_expires_at, created_at, updated_at)
 VALUES ($1, $2, 'active', 1, $3, $4, $5, $6, $7, $7);
 
--- name: GetRefreshTokenForUpdate :one
-WITH locked_refresh AS MATERIALIZED (
-  SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state,
-         r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at
-  FROM identity.account_refresh_tokens r
-  WHERE r.token_hash=$1
-  FOR UPDATE OF r
-), locked_session AS MATERIALIZED (
-  SELECT s.id, s.state, s.state_version, s.client_signing_public_key, s.principal_id
-  FROM identity.account_sessions s
-  JOIN locked_refresh r ON r.session_id=s.id
-  WHERE (SELECT count(*) FROM locked_refresh) >= 0
-  FOR UPDATE OF s
-), locked_account AS MATERIALIZED (
-  SELECT a.id, a.state
-  FROM identity.accounts a
-  JOIN locked_session s ON s.principal_id=a.id
-  WHERE (SELECT count(*) FROM locked_session) >= 0
-  FOR UPDATE OF a
-)
-SELECT r.token_hash, r.session_id, r.previous_token_hash, r.state AS refresh_state,
-       r.issued_at, r.idle_expires_at, r.absolute_expires_at, r.used_at, r.revoked_at,
-       s.state AS session_state, s.state_version AS session_state_version,
-       s.client_signing_public_key, s.principal_id, a.state AS account_state
-FROM locked_refresh r
-JOIN locked_session s ON s.id=r.session_id
-JOIN locked_account a ON a.id=s.principal_id;
+-- name: DiscoverRefreshToken :one
+SELECT r.token_hash, r.session_id, s.principal_id
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE r.token_hash=$1;
+
+-- name: LockSessionRefreshTokens :many
+SELECT r.*
+FROM identity.account_refresh_tokens r
+WHERE r.session_id=$1
+ORDER BY r.token_hash
+FOR UPDATE OF r;
+
+-- name: LockPrincipalRefreshTokens :many
+SELECT r.*
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE s.principal_id=$1
+ORDER BY r.token_hash
+FOR UPDATE OF r;
+
+-- name: ListSessionRefreshTokens :many
+SELECT r.*
+FROM identity.account_refresh_tokens r
+WHERE r.session_id=$1
+ORDER BY r.token_hash;
+
+-- name: ListPrincipalRefreshTokens :many
+SELECT r.*
+FROM identity.account_refresh_tokens r
+JOIN identity.account_sessions s ON s.id=r.session_id
+WHERE s.principal_id=$1
+ORDER BY r.token_hash;
 
 -- name: MarkAccountRefreshUsed :one
 UPDATE identity.account_refresh_tokens
@@ -87,41 +105,16 @@ SET state = 'revoked', state_version = state_version + 1, updated_at = $2
 WHERE id = $1 AND state IN ('active','review_required');
 
 -- name: RevokePrincipalAccountSessions :many
-WITH target_refresh AS MATERIALIZED (
-  SELECT r.token_hash, r.session_id
-  FROM identity.account_refresh_tokens r
-  JOIN identity.account_sessions s ON s.id=r.session_id
-  WHERE s.principal_id=sqlc.arg(principal_id)
-    AND (
-      sqlc.arg(revoke_scope)::text='all'
-      OR (sqlc.arg(revoke_scope)::text='current' AND s.id=sqlc.arg(session_id))
-      OR (sqlc.arg(revoke_scope)::text='others' AND s.id<>sqlc.arg(session_id))
-    )
-  ORDER BY r.token_hash
-  FOR UPDATE OF r
-), target_sessions AS MATERIALIZED (
-  SELECT s.id
-  FROM identity.account_sessions s
-  WHERE s.id IN (SELECT session_id FROM target_refresh)
-  ORDER BY s.id
-  FOR UPDATE OF s
-), locked_account AS MATERIALIZED (
-  SELECT a.id
-  FROM identity.accounts a
-  WHERE a.id=sqlc.arg(principal_id)
-    AND EXISTS (SELECT 1 FROM target_sessions)
-  FOR UPDATE OF a
-), revoked_refresh AS (
+WITH revoked_refresh AS (
   UPDATE identity.account_refresh_tokens r
   SET state='revoked', revoked_at=sqlc.arg(revoked_at)
-  WHERE r.token_hash IN (SELECT token_hash FROM target_refresh)
+  WHERE r.token_hash=ANY(sqlc.arg(token_hashes)::bytea[])
     AND r.state='active'
-    AND EXISTS (SELECT 1 FROM locked_account)
   RETURNING r.session_id
 )
 UPDATE identity.account_sessions s
 SET state='revoked', state_version=state_version+1, updated_at=sqlc.arg(revoked_at)
-WHERE s.id IN (SELECT id FROM target_sessions)
+WHERE s.id=ANY(sqlc.arg(session_ids)::uuid[])
   AND s.state IN ('active','review_required')
   AND (SELECT count(*) FROM revoked_refresh) >= 0
 RETURNING s.id;
@@ -214,8 +207,8 @@ RETURNING *;
 
 -- name: RevokeAccountRefreshTokens :execrows
 UPDATE identity.account_refresh_tokens
-SET state='revoked', revoked_at=$2
-WHERE session_id=$1 AND state='active';
+SET state='revoked', revoked_at=sqlc.arg(revoked_at)
+WHERE token_hash=ANY(sqlc.arg(token_hashes)::bytea[]) AND state='active';
 
 -- name: MarkAccountSessionCompromised :execrows
 UPDATE identity.account_sessions
@@ -224,8 +217,8 @@ WHERE id=$1 AND state IN ('active','review_required');
 
 -- name: MarkPrincipalSessionsReviewRequired :execrows
 UPDATE identity.account_sessions
-SET state='review_required', state_version=state_version+1, updated_at=$2
-WHERE principal_id=$1 AND state='active';
+SET state='review_required', state_version=state_version+1, updated_at=sqlc.arg(updated_at)
+WHERE id=ANY(sqlc.arg(session_ids)::uuid[]) AND state='active';
 
 -- name: CreatePasskeyCredential :exec
 INSERT INTO identity.passkey_credentials

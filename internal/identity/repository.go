@@ -273,10 +273,15 @@ type Transaction interface {
 	CompleteIdempotency(context.Context, idempotency.Record, int, []byte) error
 	LockEmailLookupDigest(context.Context, []byte) error
 	FindIdentityByLookupDigest(context.Context, []byte) (store.IdentityEmailIdentity, bool, error)
+	FindIdentityByLookupDigestRead(context.Context, []byte) (store.IdentityEmailIdentity, bool, error)
 	GetEmailVerificationForUpdate(context.Context, []byte) (store.IdentityEmailIdentity, bool, error)
 	GetAccountForUpdate(context.Context, uuid.UUID) (store.IdentityAccount, bool, error)
 	GetAccountSessionForUpdate(context.Context, store.GetAccountSessionForUpdateParams) (store.IdentityAccountSession, bool, error)
 	GetPasswordCredential(context.Context, uuid.UUID) (store.IdentityPasswordCredential, bool, error)
+	GetPasswordResetForUpdate(context.Context, []byte) (store.IdentityPasswordCredential, bool, error)
+	LockPrincipalRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error)
+	ListPrincipalRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error)
+	LockPrincipalAccountSessions(context.Context, uuid.UUID) ([]store.IdentityAccountSession, error)
 	CreateAccount(context.Context, store.CreateAccountParams) error
 	CreateEmailIdentity(context.Context, store.CreateEmailIdentityParams) error
 	CreatePasswordCredential(context.Context, store.CreatePasswordCredentialParams) error

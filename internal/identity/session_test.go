@@ -16,6 +16,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"talenro.local/platform/internal/apierrors"
 	"talenro.local/platform/internal/config"
 	"talenro.local/platform/internal/idempotency"
@@ -59,7 +62,7 @@ func TestSessionPasswordLoginCreatesIsolatedBoundTokens(t *testing.T) {
 	if !bytes.Equal(transaction.createdRefresh.TokenHash, refreshDigest[:]) {
 		t.Fatal("account refresh token was not persisted in its isolated domain")
 	}
-	if got := transaction.operations; !containsTask10Order(got, []string{"find_identity", "get_account", "get_credential", "begin_idempotency", "create_account_session", "insert_account_refresh", "complete_idempotency", "commit"}) {
+	if got := transaction.operations; !containsTask10Order(got, []string{"find_identity", "get_credential", "lock_principal_refresh", "lock_sessions", "get_account", "begin_idempotency", "create_account_session", "insert_account_refresh", "complete_idempotency", "commit"}) {
 		t.Fatalf("login operation order = %v", got)
 	}
 	var authenticator AccountAuthenticator = application
@@ -197,7 +200,7 @@ func TestSessionChallengeAuthenticatesAuthorityBeforeRedis(t *testing.T) {
 	if limiter.calls != 1 || limiter.operation != ratelimit.Challenge || challenges.createCalls != 1 {
 		t.Fatal("authority challenge did not apply the bounded Redis dependencies")
 	}
-	if !containsTask10Order(transaction.operations, []string{"get_refresh", "begin_idempotency", "rollback", "get_refresh", "begin_idempotency", "complete_idempotency", "commit"}) || challenges.createdAtOperationCount < 3 {
+	if !containsTask10Order(transaction.operations, []string{"discover_refresh", "lock_session_refresh", "lock_sessions", "get_account", "begin_idempotency", "rollback", "discover_refresh", "lock_session_refresh", "lock_sessions", "get_account", "begin_idempotency", "complete_idempotency", "commit"}) || challenges.createdAtOperationCount < 3 {
 		t.Fatalf("authority/store order = %v / %d", transaction.operations, challenges.createdAtOperationCount)
 	}
 
@@ -256,8 +259,214 @@ func TestSessionRotationConsumesChallengeAndRefresh(t *testing.T) {
 	if challenges.consumeCalls != 1 || transaction.refresh.RefreshState != "used" || tokens.AccessExpiresAt != fixedTask10Time.Add(10*time.Minute) {
 		t.Fatal("rotation did not consume both one-time authorities")
 	}
-	if !containsTask10Order(transaction.operations, []string{"get_refresh", "commit", "get_refresh", "begin_idempotency", "rollback", "get_refresh", "begin_idempotency", "mark_refresh_used", "rotate_session_access", "insert_account_refresh", "complete_idempotency", "commit"}) {
+	if !containsTask10Order(transaction.operations, []string{"discover_refresh", "lock_session_refresh", "lock_sessions", "get_account", "commit", "discover_refresh", "lock_session_refresh", "lock_sessions", "get_account", "begin_idempotency", "rollback", "discover_refresh", "lock_session_refresh", "lock_sessions", "get_account", "begin_idempotency", "mark_refresh_used", "rotate_session_access", "insert_account_refresh", "complete_idempotency", "commit"}) {
 		t.Fatalf("rotation operation order = %v", transaction.operations)
+	}
+}
+
+func TestUsedRefreshSequenceReplaysExactRequestAndCompromisesDifferentKeyWithoutRedis(t *testing.T) {
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte)}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+
+	first, err := application.RotateSession(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if executor.runCalls != 1 || transaction.refresh.RefreshState != "used" || transaction.activeRefreshChildren != 1 {
+		t.Fatalf("first rotation sequence = GETDEL:%d state:%q children:%d", executor.runCalls, transaction.refresh.RefreshState, transaction.activeRefreshChildren)
+	}
+	firstAccess := securitykit.DigestToken(securitykit.AccountAccessToken, first.AccessToken)
+	firstRefresh := securitykit.DigestToken(securitykit.AccountRefreshToken, first.RefreshToken)
+
+	replayed, err := application.RotateSession(context.Background(), command)
+	if err != nil {
+		t.Fatalf("exact committed replay: %v", err)
+	}
+	if securitykit.DigestToken(securitykit.AccountAccessToken, replayed.AccessToken) != firstAccess ||
+		securitykit.DigestToken(securitykit.AccountRefreshToken, replayed.RefreshToken) != firstRefresh || executor.runCalls != 1 || transaction.sessionCompromised {
+		t.Fatal("exact replay changed tokens, re-consumed Redis, or compromised the session")
+	}
+
+	differentKey := command
+	differentKey.IdempotencyKey = "bcdefghijklmnopqrstuvw"
+	_, err = application.RotateSession(context.Background(), differentKey)
+	if publicTask10Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("different-key used refresh error = %v", err)
+	}
+	if executor.runCalls != 1 || !transaction.sessionCompromised || transaction.activeRefreshChildren != 0 ||
+		len(transaction.revokedTokenHashes) != 2 || len(transaction.securityEvents) != 1 || transaction.completed401 != 1 {
+		t.Fatalf("used replay did not commit compromise without Redis: GETDEL:%d compromised:%v children:%d events:%d tombstones:%d operations:%v",
+			executor.runCalls, transaction.sessionCompromised, transaction.activeRefreshChildren, len(transaction.securityEvents), transaction.completed401, transaction.operations)
+	}
+}
+
+func TestRotationRedisMissReclassifiesUsedAuthorityAndCompromisesFamily(t *testing.T) {
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte)}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	executor.discard(accountChallengeRedisPrefix + command.ChallengeID)
+	executor.beforeRun = func() {
+		transaction.refresh.RefreshState = "used"
+		transaction.activeRefreshChildren = 1
+	}
+
+	_, err = application.RotateSession(context.Background(), command)
+	if publicTask10Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("used authority after Redis miss error = %v", err)
+	}
+	if !transaction.sessionCompromised || transaction.activeRefreshChildren != 0 || len(transaction.securityEvents) != 1 || transaction.completed401 != 1 {
+		t.Fatalf("Redis miss bypassed authoritative compromise: compromised:%v children:%d events:%d tombstones:%d operations:%v",
+			transaction.sessionCompromised, transaction.activeRefreshChildren, len(transaction.securityEvents), transaction.completed401, transaction.operations)
+	}
+}
+
+func TestRotationRedisMissRequiresSecondAuthoritativeClassification(t *testing.T) {
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte)}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	executor.discard(accountChallengeRedisPrefix + command.ChallengeID)
+	transaction.getRefreshErrorAt = transaction.getRefreshCalls + 2
+
+	_, err = application.RotateSession(context.Background(), command)
+	if publicTask10Code(err) != apierrors.DependencyUnavailable {
+		t.Fatalf("second authority lookup failure = %v", err)
+	}
+}
+
+func TestRotationRedisAmbiguityReclassifiesProvablyUsedAuthority(t *testing.T) {
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte), runError: errors.New("REDIS-BACKEND-CANARY")}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	executor.beforeRun = func() {
+		transaction.refresh.RefreshState = "used"
+		transaction.activeRefreshChildren = 1
+	}
+
+	_, err = application.RotateSession(context.Background(), command)
+	if publicTask10Code(err) != apierrors.AuthenticationFailed || !transaction.sessionCompromised || transaction.completed401 != 1 {
+		t.Fatalf("Redis ambiguity failed to honor proved used authority: error:%v compromised:%v tombstones:%d", err, transaction.sessionCompromised, transaction.completed401)
+	}
+}
+
+func TestConcurrentIdenticalRotationBeforeWinnerCommitReturnsFiniteAuthenticationFailure(t *testing.T) {
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte)}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	hitSeen := make(chan struct{}, 1)
+	hitContext, releaseHit := context.WithCancel(context.Background())
+	t.Cleanup(releaseHit)
+	missSeen := make(chan struct{}, 1)
+	executor.hitSeen, executor.hitRelease, executor.missSeen = hitSeen, hitContext.Done(), missSeen
+
+	winnerDone := make(chan task10RotationResult, 1)
+	go func() {
+		tokens, rotateErr := application.RotateSession(context.Background(), command)
+		winnerDone <- task10RotationResult{tokens: tokens, err: rotateErr}
+	}()
+	waitTask10Signal(t, hitSeen, "winner Redis consume")
+	loserDone := make(chan task10RotationResult, 1)
+	go func() {
+		tokens, rotateErr := application.RotateSession(context.Background(), command)
+		loserDone <- task10RotationResult{tokens: tokens, err: rotateErr}
+	}()
+	waitTask10Signal(t, missSeen, "loser Redis miss")
+	loser := waitTask10Rotation(t, loserDone, "loser pre-commit result")
+	releaseHit()
+	winner := waitTask10Rotation(t, winnerDone, "winner result")
+	if winner.err != nil || publicTask10Code(loser.err) != apierrors.AuthenticationFailed || transaction.sessionCompromised {
+		t.Fatalf("pre-commit identical race = winner:%v loser:%v compromised:%v", winner.err, loser.err, transaction.sessionCompromised)
+	}
+}
+
+func TestConcurrentIdenticalRotationAfterWinnerCommitReplaysOriginalTokens(t *testing.T) {
+	transaction := activeTask10Transaction()
+	transaction.rotationCompleted = make(chan struct{})
+	t.Cleanup(func() {
+		transaction.rotationCompletedOnce.Do(func() { close(transaction.rotationCompleted) })
+	})
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	publicKey := task10PublicKey()
+	configureTask10Refresh(transaction, refresh, publicKey, "active")
+	executor := &task10StatefulRedisExecutor{values: make(map[string][]byte)}
+	challenges, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application, _, _ := newTask10Application(t, transaction, challenges)
+	executor.repository = application.repository.(*task10Repository)
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	hitSeen := make(chan struct{}, 1)
+	hitContext, releaseHit := context.WithCancel(context.Background())
+	t.Cleanup(releaseHit)
+	missSeen := make(chan struct{}, 1)
+	executor.hitSeen, executor.hitRelease = hitSeen, hitContext.Done()
+	executor.missSeen, executor.missRelease = missSeen, transaction.rotationCompleted
+
+	winnerDone := make(chan task10RotationResult, 1)
+	go func() {
+		tokens, rotateErr := application.RotateSession(context.Background(), command)
+		winnerDone <- task10RotationResult{tokens: tokens, err: rotateErr}
+	}()
+	waitTask10Signal(t, hitSeen, "winner Redis consume")
+	loserDone := make(chan task10RotationResult, 1)
+	go func() {
+		tokens, rotateErr := application.RotateSession(context.Background(), command)
+		loserDone <- task10RotationResult{tokens: tokens, err: rotateErr}
+	}()
+	waitTask10Signal(t, missSeen, "loser Redis miss")
+	releaseHit()
+	winner := waitTask10Rotation(t, winnerDone, "winner result")
+	loser := waitTask10Rotation(t, loserDone, "loser replay result")
+	if winner.err != nil || loser.err != nil || transaction.sessionCompromised ||
+		securitykit.DigestToken(securitykit.AccountAccessToken, winner.tokens.AccessToken) != securitykit.DigestToken(securitykit.AccountAccessToken, loser.tokens.AccessToken) ||
+		securitykit.DigestToken(securitykit.AccountRefreshToken, winner.tokens.RefreshToken) != securitykit.DigestToken(securitykit.AccountRefreshToken, loser.tokens.RefreshToken) {
+		t.Fatalf("post-commit identical race = winner:%v loser:%v compromised:%v", winner.err, loser.err, transaction.sessionCompromised)
 	}
 }
 
@@ -361,6 +570,8 @@ func TestConcurrentAccountRefreshHasExactlyOneSuccess(t *testing.T) {
 func TestRevokeSessionsUsesOneGeneratedPrincipalScopeTransition(t *testing.T) {
 	transaction := activeTask10Transaction()
 	currentSession := uuid.MustParse("d12dca8a-ced3-471d-a6ad-55b228221f10")
+	transaction.sessionFound = true
+	transaction.session = store.IdentityAccountSession{ID: currentSession, PrincipalID: transaction.account.ID, State: "active", AbsoluteExpiresAt: fixedTask10Time.Add(time.Hour)}
 	application, _, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
 	err := application.RevokeSessions(context.Background(), RevokeSessionsCommand{
 		PrincipalID: PrincipalID(transaction.account.ID.String()), Scope: RevokeOtherSessions,
@@ -369,10 +580,10 @@ func TestRevokeSessionsUsesOneGeneratedPrincipalScopeTransition(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if transaction.revokedParams.PrincipalID != transaction.account.ID || transaction.revokedParams.RevokeScope != "others" || transaction.revokedParams.SessionID != currentSession {
+	if len(transaction.revokedParams.SessionIds) != 0 || len(transaction.revokedParams.TokenHashes) != 0 {
 		t.Fatalf("generated revoke params = %#v", transaction.revokedParams)
 	}
-	if !containsTask10Order(transaction.operations, []string{"begin_idempotency", "revoke_sessions", "complete_idempotency", "commit"}) {
+	if !containsTask10Order(transaction.operations, []string{"begin_idempotency", "lock_principal_refresh", "lock_sessions", "get_account", "revoke_sessions", "complete_idempotency", "commit"}) {
 		t.Fatalf("revoke operation order = %v", transaction.operations)
 	}
 }
@@ -403,7 +614,7 @@ func TestChangePasswordVerifiesInlineReauthenticationAndReviewsOldSessions(t *te
 		t.Fatal("password change did not verify once and create one replacement session")
 	}
 	if !containsTask10Order(transaction.operations, []string{
-		"get_session", "get_account", "begin_idempotency", "get_credential", "update_password", "mark_sessions_review_required",
+		"get_credential", "lock_principal_refresh", "lock_sessions", "get_account", "begin_idempotency", "update_password", "mark_sessions_review_required",
 		"create_account_session", "insert_account_refresh", "insert_security_event", "complete_idempotency", "commit",
 	}) {
 		t.Fatalf("password change order = %v", transaction.operations)
@@ -500,15 +711,47 @@ func task10RotateCommand(t *testing.T, application *Service, refresh secret.Byte
 	}
 }
 
+type task10RotationResult struct {
+	tokens SessionTokens
+	err    error
+}
+
+func waitTask10Signal(t *testing.T, signal <-chan struct{}, label string) {
+	t.Helper()
+	select {
+	case <-signal:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("timed out waiting for %s", label)
+	}
+}
+
+func waitTask10Rotation(t *testing.T, result <-chan task10RotationResult, label string) task10RotationResult {
+	t.Helper()
+	select {
+	case received := <-result:
+		return received
+	case <-time.After(2 * time.Second):
+		t.Fatalf("timed out waiting for %s", label)
+		return task10RotationResult{}
+	}
+}
+
 func configureTask10Refresh(transaction *task10Transaction, token secret.Bytes, publicKey [32]byte, state string) {
 	digest := securitykit.DigestToken(securitykit.AccountRefreshToken, token)
 	transaction.refreshDigest = append([]byte(nil), digest[:]...)
 	transaction.refreshFound = true
-	transaction.refresh = store.GetRefreshTokenForUpdateRow{
+	transaction.refresh = accountRefreshAuthority{
 		TokenHash: append([]byte(nil), digest[:]...), SessionID: uuid.MustParse("d12dca8a-ced3-471d-a6ad-55b228221f10"),
 		RefreshState: state, IssuedAt: fixedTask10Time.Add(-time.Hour), IdleExpiresAt: fixedTask10Time.Add(time.Hour),
 		AbsoluteExpiresAt: fixedTask10Time.Add(24 * time.Hour), SessionState: "active", SessionStateVersion: 3,
 		ClientSigningPublicKey: append([]byte(nil), publicKey[:]...), PrincipalID: transaction.account.ID, AccountState: "active",
+		LockedFamilyTokenHashes: [][]byte{append([]byte(nil), digest[:]...)},
+	}
+	transaction.sessionFound = true
+	transaction.session = store.IdentityAccountSession{
+		ID: transaction.refresh.SessionID, PrincipalID: transaction.refresh.PrincipalID, State: transaction.refresh.SessionState,
+		StateVersion: transaction.refresh.SessionStateVersion, ClientSigningPublicKey: append([]byte(nil), publicKey[:]...),
+		AbsoluteExpiresAt: transaction.refresh.AbsoluteExpiresAt,
 	}
 }
 
@@ -534,6 +777,11 @@ func newTask10Application(t *testing.T, transaction *task10Transaction, challeng
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = protector.Close() })
+	transaction.idempotencyDB = newTask10IdempotencyDB()
+	transaction.idempotency, err = idempotency.New(transaction.idempotencyDB, protector)
+	if err != nil {
+		t.Fatal(err)
+	}
 	deriver := &task10Deriver{}
 	limiter := &task10Limiter{allowed: true}
 	repository := &task10Repository{tx: transaction}
@@ -605,6 +853,98 @@ type task10ChallengeStore struct {
 	consumeErr              error
 }
 
+type task10StatefulRedisExecutor struct {
+	mu          sync.Mutex
+	values      map[string][]byte
+	runCalls    int
+	repository  *task10Repository
+	beforeRun   func()
+	runError    error
+	hitSeen     chan<- struct{}
+	hitRelease  <-chan struct{}
+	missSeen    chan<- struct{}
+	missRelease <-chan struct{}
+}
+
+func (executor *task10StatefulRedisExecutor) SetNX(_ context.Context, key string, value []byte, _ time.Duration) (bool, error) {
+	executor.mu.Lock()
+	defer executor.mu.Unlock()
+	if executor.repository != nil && executor.repository.inTransaction.Load() {
+		return false, errors.New("Redis SETNX called inside database transaction")
+	}
+	if _, exists := executor.values[key]; exists {
+		return false, nil
+	}
+	executor.values[key] = bytes.Clone(value)
+	return true, nil
+}
+
+func (executor *task10StatefulRedisExecutor) Run(ctx context.Context, script string, keys []string, _ ...any) (any, error) {
+	executor.mu.Lock()
+	if executor.repository != nil && executor.repository.inTransaction.Load() {
+		executor.mu.Unlock()
+		return nil, errors.New("Redis GETDEL called inside database transaction")
+	}
+	if script != accountChallengeGetDEL || len(keys) != 1 {
+		executor.mu.Unlock()
+		return nil, errors.New("unexpected Redis challenge operation")
+	}
+	executor.runCalls++
+	if executor.beforeRun != nil {
+		executor.beforeRun()
+		executor.beforeRun = nil
+	}
+	if executor.runError != nil {
+		err := executor.runError
+		executor.mu.Unlock()
+		return nil, err
+	}
+	value, exists := executor.values[keys[0]]
+	if !exists {
+		missSeen, missRelease := executor.missSeen, executor.missRelease
+		executor.mu.Unlock()
+		if missSeen != nil {
+			select {
+			case missSeen <- struct{}{}:
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+		if missRelease != nil {
+			select {
+			case <-missRelease:
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+		return nil, nil
+	}
+	delete(executor.values, keys[0])
+	hitSeen, hitRelease := executor.hitSeen, executor.hitRelease
+	executor.mu.Unlock()
+	if hitSeen != nil {
+		select {
+		case hitSeen <- struct{}{}:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+	if hitRelease != nil {
+		select {
+		case <-hitRelease:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+	return bytes.Clone(value), nil
+}
+
+func (executor *task10StatefulRedisExecutor) discard(key string) {
+	executor.mu.Lock()
+	defer executor.mu.Unlock()
+	delete(executor.values, key)
+}
+
 func (store *task10ChallengeStore) Create(_ context.Context, record ChallengeRecord, _ time.Duration) error {
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -655,10 +995,17 @@ type task10Repository struct {
 func (repository *task10Repository) WithinTransaction(ctx context.Context, operation func(context.Context, Transaction) error) error {
 	repository.mu.Lock()
 	defer repository.mu.Unlock()
+	var idempotencySnapshot map[string]store.IdempotencyRecord
+	if repository.tx.idempotencyDB != nil {
+		idempotencySnapshot = repository.tx.idempotencyDB.snapshot()
+	}
 	repository.inTransaction.Store(true)
 	err := operation(ctx, repository.tx)
 	repository.inTransaction.Store(false)
 	if err != nil {
+		if repository.tx.idempotencyDB != nil {
+			repository.tx.idempotencyDB.restore(idempotencySnapshot)
+		}
 		repository.tx.operations = append(repository.tx.operations, "rollback")
 		return err
 	}
@@ -668,13 +1015,53 @@ func (repository *task10Repository) WithinTransaction(ctx context.Context, opera
 
 type task10Transaction struct {
 	*fakeIdentityTransaction
-	accessFound   bool
-	access        store.FindAccountAccessTokenRow
-	accessDigest  []byte
-	refreshFound  bool
-	refresh       store.GetRefreshTokenForUpdateRow
-	refreshDigest []byte
-	revokedParams store.RevokePrincipalAccountSessionsParams
+	accessFound           bool
+	access                store.FindAccountAccessTokenRow
+	accessDigest          []byte
+	refreshFound          bool
+	refresh               accountRefreshAuthority
+	refreshDigest         []byte
+	revokedParams         store.RevokePrincipalAccountSessionsParams
+	idempotency           idempotency.Repository
+	idempotencyDB         *task10IdempotencyDB
+	activeRefreshChildren int
+	revokedTokenHashes    [][]byte
+	sessionCompromised    bool
+	completed401          int
+	getRefreshCalls       int
+	getRefreshErrorAt     int
+	rotationCompleted     chan struct{}
+	rotationCompletedOnce sync.Once
+}
+
+func (transaction *task10Transaction) BeginIdempotency(ctx context.Context, scope idempotency.Scope, key string, canonical []byte, createdAt, expiresAt time.Time) (idempotency.Record, idempotency.Outcome, error) {
+	transaction.idempotencyCanonical = append(transaction.idempotencyCanonical, bytes.Clone(canonical))
+	if err := transaction.record("begin_idempotency"); err != nil {
+		return idempotency.Record{}, "", err
+	}
+	return transaction.idempotency.Begin(ctx, scope, key, canonical, createdAt, expiresAt)
+}
+
+func (transaction *task10Transaction) CompleteIdempotency(ctx context.Context, record idempotency.Record, status int, body []byte) error {
+	if err := transaction.record("complete_idempotency"); err != nil {
+		return err
+	}
+	completed, err := transaction.idempotency.Complete(ctx, record, status, body)
+	if err != nil {
+		return err
+	}
+	owned, available := completed.TakeResponseBody()
+	defer clear(owned)
+	if !available {
+		return errors.New("idempotency completion did not transfer response ownership")
+	}
+	if status == 401 {
+		transaction.completed401++
+	}
+	if status == 200 && transaction.rotationCompleted != nil {
+		transaction.rotationCompletedOnce.Do(func() { close(transaction.rotationCompleted) })
+	}
+	return nil
 }
 
 func (transaction *task10Transaction) CreateAccountSession(ctx context.Context, params store.CreateAccountSessionParams) error {
@@ -690,14 +1077,69 @@ func (transaction *task10Transaction) CreateAccountSession(ctx context.Context, 
 	return nil
 }
 
+func (transaction *task10Transaction) InsertAccountRefreshToken(ctx context.Context, params store.InsertAccountRefreshTokenParams) error {
+	if err := transaction.fakeIdentityTransaction.InsertAccountRefreshToken(ctx, params); err != nil {
+		return err
+	}
+	if len(params.PreviousTokenHash) == 32 {
+		transaction.activeRefreshChildren++
+	}
+	return nil
+}
+
 func (transaction *task10Transaction) FindAccountAccessToken(_ context.Context, digest []byte) (store.FindAccountAccessTokenRow, bool, error) {
 	err := transaction.record("find_access")
 	return transaction.access, transaction.accessFound && bytes.Equal(digest, transaction.accessDigest), err
 }
 
-func (transaction *task10Transaction) GetRefreshTokenForUpdate(_ context.Context, digest []byte) (store.GetRefreshTokenForUpdateRow, bool, error) {
-	err := transaction.record("get_refresh")
-	return transaction.refresh, transaction.refreshFound && bytes.Equal(digest, transaction.refreshDigest), err
+func (transaction *task10Transaction) DiscoverRefreshToken(_ context.Context, digest []byte) (store.DiscoverRefreshTokenRow, bool, error) {
+	transaction.getRefreshCalls++
+	err := transaction.record("discover_refresh")
+	if transaction.getRefreshErrorAt == transaction.getRefreshCalls {
+		return store.DiscoverRefreshTokenRow{}, false, errors.New("authority lookup unavailable")
+	}
+	return store.DiscoverRefreshTokenRow{
+		TokenHash: bytes.Clone(transaction.refresh.TokenHash), SessionID: transaction.refresh.SessionID, PrincipalID: transaction.refresh.PrincipalID,
+	}, transaction.refreshFound && bytes.Equal(digest, transaction.refreshDigest), err
+}
+
+func (transaction *task10Transaction) LockSessionRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	if err := transaction.record("lock_session_refresh"); err != nil {
+		return nil, err
+	}
+	if !transaction.refreshFound {
+		return nil, nil
+	}
+	return transaction.task10RefreshRows(), nil
+}
+
+func (transaction *task10Transaction) ListSessionRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	if err := transaction.record("list_session_refresh"); err != nil {
+		return nil, err
+	}
+	if !transaction.refreshFound {
+		return nil, nil
+	}
+	return transaction.task10RefreshRows(), nil
+}
+
+func (transaction *task10Transaction) task10RefreshRows() []store.IdentityAccountRefreshToken {
+	rows := []store.IdentityAccountRefreshToken{task10RefreshModel(transaction.refresh)}
+	for index := 0; index < transaction.activeRefreshChildren; index++ {
+		tokenHash := bytes.Repeat([]byte{byte(0xc0 + index)}, 32)
+		rows = append(rows, store.IdentityAccountRefreshToken{
+			TokenHash: tokenHash, SessionID: transaction.refresh.SessionID, PreviousTokenHash: bytes.Clone(transaction.refresh.TokenHash),
+			State: "active", IssuedAt: fixedTask10Time, IdleExpiresAt: fixedTask10Time.Add(time.Hour), AbsoluteExpiresAt: transaction.refresh.AbsoluteExpiresAt,
+		})
+	}
+	return rows
+}
+
+func task10RefreshModel(row accountRefreshAuthority) store.IdentityAccountRefreshToken {
+	return store.IdentityAccountRefreshToken{
+		TokenHash: bytes.Clone(row.TokenHash), SessionID: row.SessionID, PreviousTokenHash: bytes.Clone(row.PreviousTokenHash), State: row.RefreshState,
+		IssuedAt: row.IssuedAt, IdleExpiresAt: row.IdleExpiresAt, AbsoluteExpiresAt: row.AbsoluteExpiresAt, UsedAt: row.UsedAt, RevokedAt: row.RevokedAt,
+	}
 }
 
 func (transaction *task10Transaction) MarkAccountRefreshUsed(context.Context, store.MarkAccountRefreshUsedParams) (bool, error) {
@@ -716,12 +1158,23 @@ func (transaction *task10Transaction) RotateAccountSessionAccess(context.Context
 	return store.IdentityAccountSession{}, true, transaction.record("rotate_session_access")
 }
 
-func (transaction *task10Transaction) RevokeAccountRefreshTokens(context.Context, store.RevokeAccountRefreshTokensParams) (int64, error) {
-	return 1, transaction.record("revoke_refresh")
+func (transaction *task10Transaction) RevokeAccountRefreshTokens(_ context.Context, params store.RevokeAccountRefreshTokensParams) (int64, error) {
+	if err := transaction.record("revoke_refresh"); err != nil {
+		return 0, err
+	}
+	transaction.revokedTokenHashes = cloneTokenHashes(params.TokenHashes)
+	revoked := transaction.activeRefreshChildren
+	transaction.activeRefreshChildren = 0
+	return int64(revoked), nil
 }
 
 func (transaction *task10Transaction) MarkAccountSessionCompromised(context.Context, store.MarkAccountSessionCompromisedParams) (int64, error) {
-	return 1, transaction.record("mark_session_compromised")
+	if err := transaction.record("mark_session_compromised"); err != nil {
+		return 0, err
+	}
+	transaction.sessionCompromised = true
+	transaction.refresh.SessionState = "compromised"
+	return 1, nil
 }
 
 func (transaction *task10Transaction) RevokePrincipalAccountSessions(_ context.Context, params store.RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error) {
@@ -731,6 +1184,119 @@ func (transaction *task10Transaction) RevokePrincipalAccountSessions(_ context.C
 
 func (transaction *task10Transaction) UpdatePasswordCredential(context.Context, store.UpdatePasswordCredentialParams) (int64, error) {
 	return 1, transaction.record("update_password")
+}
+
+type task10IdempotencyDB struct {
+	mu      sync.Mutex
+	records map[string]store.IdempotencyRecord
+}
+
+func newTask10IdempotencyDB() *task10IdempotencyDB {
+	return &task10IdempotencyDB{records: make(map[string]store.IdempotencyRecord)}
+}
+
+func (database *task10IdempotencyDB) Exec(_ context.Context, query string, arguments ...interface{}) (pgconn.CommandTag, error) {
+	if !strings.Contains(query, "INSERT INTO idempotency_records") || len(arguments) != 6 {
+		return pgconn.CommandTag{}, errors.New("unexpected idempotency exec")
+	}
+	database.mu.Lock()
+	defer database.mu.Unlock()
+	key := task10IdempotencyKey(arguments[0].(string), arguments[1].(string), arguments[2].([]byte))
+	if _, exists := database.records[key]; exists {
+		return pgconn.NewCommandTag("INSERT 0 0"), nil
+	}
+	database.records[key] = store.IdempotencyRecord{
+		PrincipalScope: arguments[0].(string), Operation: arguments[1].(string),
+		IdempotencyKeyHash: bytes.Clone(arguments[2].([]byte)), RequestDigest: bytes.Clone(arguments[3].([]byte)),
+		State: "in_progress", CreatedAt: arguments[4].(time.Time), ExpiresAt: arguments[5].(time.Time),
+	}
+	return pgconn.NewCommandTag("INSERT 0 1"), nil
+}
+
+func (*task10IdempotencyDB) Query(context.Context, string, ...interface{}) (pgx.Rows, error) {
+	return nil, errors.New("unexpected idempotency query")
+}
+
+func (database *task10IdempotencyDB) QueryRow(_ context.Context, query string, arguments ...interface{}) pgx.Row {
+	database.mu.Lock()
+	defer database.mu.Unlock()
+	if strings.Contains(query, "UPDATE idempotency_records") && len(arguments) == 7 {
+		key := task10IdempotencyKey(arguments[0].(string), arguments[1].(string), arguments[2].([]byte))
+		record, exists := database.records[key]
+		if !exists || record.State != "in_progress" || !bytes.Equal(record.RequestDigest, arguments[3].([]byte)) {
+			return task10IdempotencyRow{err: pgx.ErrNoRows}
+		}
+		record.State = "completed"
+		record.ResponseStatus = arguments[4].(pgtype.Int4)
+		record.ResponseCiphertext = bytes.Clone(arguments[5].([]byte))
+		record.ResponseKeyVersion = arguments[6].(pgtype.Int4)
+		database.records[key] = task10CloneIdempotencyRecord(record)
+		return task10IdempotencyRow{record: record}
+	}
+	if strings.Contains(query, "FROM idempotency_records") && len(arguments) == 3 {
+		key := task10IdempotencyKey(arguments[0].(string), arguments[1].(string), arguments[2].([]byte))
+		record, exists := database.records[key]
+		if !exists {
+			return task10IdempotencyRow{err: pgx.ErrNoRows}
+		}
+		return task10IdempotencyRow{record: task10CloneIdempotencyRecord(record)}
+	}
+	return task10IdempotencyRow{err: errors.New("unexpected idempotency query row")}
+}
+
+func (database *task10IdempotencyDB) snapshot() map[string]store.IdempotencyRecord {
+	database.mu.Lock()
+	defer database.mu.Unlock()
+	result := make(map[string]store.IdempotencyRecord, len(database.records))
+	for key, record := range database.records {
+		result[key] = task10CloneIdempotencyRecord(record)
+	}
+	return result
+}
+
+func (database *task10IdempotencyDB) restore(snapshot map[string]store.IdempotencyRecord) {
+	database.mu.Lock()
+	defer database.mu.Unlock()
+	database.records = make(map[string]store.IdempotencyRecord, len(snapshot))
+	for key, record := range snapshot {
+		database.records[key] = task10CloneIdempotencyRecord(record)
+	}
+}
+
+func task10IdempotencyKey(principal, operation string, digest []byte) string {
+	return principal + "\x00" + operation + "\x00" + string(digest)
+}
+
+func task10CloneIdempotencyRecord(record store.IdempotencyRecord) store.IdempotencyRecord {
+	record.IdempotencyKeyHash = bytes.Clone(record.IdempotencyKeyHash)
+	record.RequestDigest = bytes.Clone(record.RequestDigest)
+	record.ResponseCiphertext = bytes.Clone(record.ResponseCiphertext)
+	return record
+}
+
+type task10IdempotencyRow struct {
+	record store.IdempotencyRecord
+	err    error
+}
+
+func (row task10IdempotencyRow) Scan(destinations ...interface{}) error {
+	if row.err != nil {
+		return row.err
+	}
+	if len(destinations) != 10 {
+		return errors.New("unexpected idempotency scan")
+	}
+	*destinations[0].(*string) = row.record.PrincipalScope
+	*destinations[1].(*string) = row.record.Operation
+	*destinations[2].(*[]byte) = bytes.Clone(row.record.IdempotencyKeyHash)
+	*destinations[3].(*[]byte) = bytes.Clone(row.record.RequestDigest)
+	*destinations[4].(*string) = row.record.State
+	*destinations[5].(*pgtype.Int4) = row.record.ResponseStatus
+	*destinations[6].(*[]byte) = bytes.Clone(row.record.ResponseCiphertext)
+	*destinations[7].(*pgtype.Int4) = row.record.ResponseKeyVersion
+	*destinations[8].(*time.Time) = row.record.CreatedAt
+	*destinations[9].(*time.Time) = row.record.ExpiresAt
+	return nil
 }
 
 func publicTask10Code(err error) apierrors.Code {

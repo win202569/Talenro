@@ -131,6 +131,11 @@ func (transaction *postgresTransaction) FindIdentityByLookupDigest(ctx context.C
 	return identityEmailResult(row, err)
 }
 
+func (transaction *postgresTransaction) FindIdentityByLookupDigestRead(ctx context.Context, digest []byte) (store.IdentityEmailIdentity, bool, error) {
+	row, err := transaction.queries.FindIdentityByLookupDigestRead(ctx, digest)
+	return identityEmailResult(row, err)
+}
+
 func (transaction *postgresTransaction) LockEmailLookupDigest(ctx context.Context, digest []byte) error {
 	return mapIdentityStoreError(transaction.queries.LockEmailLookupDigest(ctx, digest))
 }
@@ -171,6 +176,41 @@ func (transaction *postgresTransaction) GetPasswordCredential(ctx context.Contex
 		return store.IdentityPasswordCredential{}, false, ErrRepository
 	}
 	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetPasswordResetForUpdate(ctx context.Context, digest []byte) (store.IdentityPasswordCredential, bool, error) {
+	row, err := transaction.queries.GetPasswordResetForUpdate(ctx, digest)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.IdentityPasswordCredential{}, false, nil
+	}
+	if err != nil {
+		return store.IdentityPasswordCredential{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) LockPrincipalAccountSessions(ctx context.Context, principalID uuid.UUID) ([]store.IdentityAccountSession, error) {
+	rows, err := transaction.queries.LockPrincipalAccountSessions(ctx, principalID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) LockPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	rows, err := transaction.queries.LockPrincipalRefreshTokens(ctx, principalID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	rows, err := transaction.queries.ListPrincipalRefreshTokens(ctx, principalID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
 }
 
 func (transaction *postgresTransaction) CreateAccount(ctx context.Context, params store.CreateAccountParams) error {
@@ -255,15 +295,31 @@ func (transaction *postgresTransaction) FindAccountAccessToken(ctx context.Conte
 	return row, true, nil
 }
 
-func (transaction *postgresTransaction) GetRefreshTokenForUpdate(ctx context.Context, digest []byte) (store.GetRefreshTokenForUpdateRow, bool, error) {
-	row, err := transaction.queries.GetRefreshTokenForUpdate(ctx, digest)
+func (transaction *postgresTransaction) DiscoverRefreshToken(ctx context.Context, digest []byte) (store.DiscoverRefreshTokenRow, bool, error) {
+	row, err := transaction.queries.DiscoverRefreshToken(ctx, digest)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return store.GetRefreshTokenForUpdateRow{}, false, nil
+		return store.DiscoverRefreshTokenRow{}, false, nil
 	}
 	if err != nil {
-		return store.GetRefreshTokenForUpdateRow{}, false, ErrRepository
+		return store.DiscoverRefreshTokenRow{}, false, ErrRepository
 	}
 	return row, true, nil
+}
+
+func (transaction *postgresTransaction) LockSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	rows, err := transaction.queries.LockSessionRefreshTokens(ctx, sessionID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	rows, err := transaction.queries.ListSessionRefreshTokens(ctx, sessionID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
 }
 
 func (transaction *postgresTransaction) MarkAccountRefreshUsed(ctx context.Context, params store.MarkAccountRefreshUsedParams) (bool, error) {

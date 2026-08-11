@@ -38,9 +38,11 @@ type Querier interface {
 	CreatePasswordCredential(ctx context.Context, arg CreatePasswordCredentialParams) error
 	CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryCodeSetParams) error
 	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) error
+	DiscoverRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverRefreshTokenRow, error)
 	FindAccountAccessToken(ctx context.Context, accessTokenHash []byte) (FindAccountAccessTokenRow, error)
 	FindDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (FindDeviceAccessTokenRow, error)
 	FindIdentityByLookupDigest(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error)
+	FindIdentityByLookupDigestRead(ctx context.Context, lookupDigest []byte) (IdentityEmailIdentity, error)
 	GetAccountForUpdate(ctx context.Context, id uuid.UUID) (IdentityAccount, error)
 	GetAccountSessionForUpdate(ctx context.Context, arg GetAccountSessionForUpdateParams) (IdentityAccountSession, error)
 	GetActiveBundleAuthority(ctx context.Context, arg GetActiveBundleAuthorityParams) (GetActiveBundleAuthorityRow, error)
@@ -55,9 +57,9 @@ type Querier interface {
 	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
 	GetOutboxHealth(ctx context.Context, occurredAt time.Time) (GetOutboxHealthRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
+	GetPasswordResetForUpdate(ctx context.Context, resetTokenHash []byte) (IdentityPasswordCredential, error)
 	GetPendingEmailDelivery(ctx context.Context, verificationDeliveryID uuid.NullUUID) (GetPendingEmailDeliveryRow, error)
 	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
-	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
 	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
@@ -69,9 +71,14 @@ type Querier interface {
 	InsertSigningKeyMetadata(ctx context.Context, arg InsertSigningKeyMetadataParams) error
 	InsertTrustRootMetadata(ctx context.Context, arg InsertTrustRootMetadataParams) error
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
+	ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
+	ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)
 	ListTrustRootMetadata(ctx context.Context) ([]TrustTrustRootMetadatum, error)
 	LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error
+	LockPrincipalAccountSessions(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountSession, error)
+	LockPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
+	LockSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
 	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
 	MarkDeviceRefreshUsed(ctx context.Context, arg MarkDeviceRefreshUsedParams) (DeviceauthDeviceRefreshToken, error)

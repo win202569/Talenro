@@ -507,6 +507,10 @@ func (tx *fakeIdentityTransaction) FindIdentityByLookupDigest(context.Context, [
 	err := tx.record("find_identity")
 	return tx.identity, tx.identityFound, err
 }
+func (tx *fakeIdentityTransaction) FindIdentityByLookupDigestRead(context.Context, []byte) (store.IdentityEmailIdentity, bool, error) {
+	err := tx.record("find_identity")
+	return tx.identity, tx.identityFound, err
+}
 func (tx *fakeIdentityTransaction) LockEmailLookupDigest(context.Context, []byte) error {
 	return tx.record("lock_email_lookup")
 }
@@ -525,6 +529,31 @@ func (tx *fakeIdentityTransaction) GetAccountSessionForUpdate(context.Context, s
 func (tx *fakeIdentityTransaction) GetPasswordCredential(context.Context, uuid.UUID) (store.IdentityPasswordCredential, bool, error) {
 	err := tx.record("get_credential")
 	return tx.credential, tx.credentialFound, err
+}
+func (tx *fakeIdentityTransaction) GetPasswordResetForUpdate(context.Context, []byte) (store.IdentityPasswordCredential, bool, error) {
+	err := tx.record("get_reset_credential")
+	return tx.credential, tx.credentialFound, err
+}
+func (tx *fakeIdentityTransaction) LockPrincipalAccountSessions(context.Context, uuid.UUID) ([]store.IdentityAccountSession, error) {
+	if err := tx.record("lock_sessions"); err != nil {
+		return nil, err
+	}
+	if !tx.sessionFound {
+		return nil, nil
+	}
+	return []store.IdentityAccountSession{tx.session}, nil
+}
+func (tx *fakeIdentityTransaction) LockPrincipalRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	if err := tx.record("lock_principal_refresh"); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+func (tx *fakeIdentityTransaction) ListPrincipalRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error) {
+	if err := tx.record("list_principal_refresh"); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 func (tx *fakeIdentityTransaction) CreateAccount(_ context.Context, params store.CreateAccountParams) error {
 	tx.createdAccount = params

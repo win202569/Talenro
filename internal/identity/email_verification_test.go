@@ -154,7 +154,7 @@ func TestPasswordResetDeliveryIsGenericDistinctAndExpiresAtThirtyMinutes(t *test
 	}
 	assertTask9PrivateBinding(t, knownTx.idempotencyCanonical[0], idempotency.CreatePasswordResetDeliveryOperation, []byte("member@example.test"), []byte("en"))
 	assertTask9Order(t, knownTx.operations, []string{
-		"begin_idempotency", "find_identity", "get_account", "get_credential", "set_password_reset", "append_event", "complete_idempotency", "commit",
+		"begin_idempotency", "find_identity", "get_credential", "get_account", "set_password_reset", "append_event", "complete_idempotency", "commit",
 	})
 
 	unknownTx := &fakeIdentityTransaction{}
@@ -169,7 +169,7 @@ func TestPasswordResetDeliveryIsGenericDistinctAndExpiresAtThirtyMinutes(t *test
 		t.Fatal("unknown reset delivery mutated identity state")
 	}
 	assertTask9Order(t, unknownTx.operations, []string{
-		"begin_idempotency", "find_identity", "get_account", "get_credential", "complete_idempotency", "commit",
+		"begin_idempotency", "find_identity", "get_credential", "get_account", "complete_idempotency", "commit",
 	})
 
 	verificationTx := &fakeIdentityTransaction{
@@ -214,7 +214,7 @@ func TestPasswordResetConsumesOnceMarksSessionsBeforeCreatingBoundSession(t *tes
 		t.Fatalf("reset session token contract = %#v", result)
 	}
 	assertTask9Order(t, tx.operations, []string{
-		"find_identity", "get_account", "get_credential", "begin_idempotency", "consume_password_reset",
+		"get_reset_credential", "find_identity", "lock_principal_refresh", "lock_principal_refresh", "lock_sessions", "get_account", "list_principal_refresh", "begin_idempotency", "consume_password_reset",
 		"mark_sessions_review_required", "create_account_session", "insert_account_refresh", "insert_security_event",
 		"complete_idempotency", "commit",
 	})
@@ -280,6 +280,9 @@ func TestEnrollmentPolicyRequiredGraceAndDisabled(t *testing.T) {
 			if err != nil || grant.PolicyMarker != test.wantMarker || len(grant.Token.Copy()) != 32 || grant.ExpiresAt.Sub(fixedTask9Time) != 10*time.Minute || deriver.calls != 1 {
 				t.Fatalf("grant = %#v, %v; derivations=%d", grant, err, deriver.calls)
 			}
+			assertTask9Order(t, tx.operations, []string{
+				"get_credential", "lock_sessions", "get_account", "begin_idempotency", "create_enrollment_grant", "complete_idempotency", "commit",
+			})
 			if tx.createdGrant.PolicyMarker != test.wantMarker || tx.createdGrant.ProvisionalUntil.Valid != test.provisional {
 				t.Fatalf("stored grant policy = %#v", tx.createdGrant)
 			}

@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"crypto/sha256"
@@ -52,13 +53,33 @@ func (AccountAuthority) MarshalJSON() ([]byte, error) {
 type sessionTransaction interface {
 	Transaction
 	FindAccountAccessToken(context.Context, []byte) (store.FindAccountAccessTokenRow, bool, error)
-	GetRefreshTokenForUpdate(context.Context, []byte) (store.GetRefreshTokenForUpdateRow, bool, error)
+	DiscoverRefreshToken(context.Context, []byte) (store.DiscoverRefreshTokenRow, bool, error)
+	LockSessionRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error)
+	ListSessionRefreshTokens(context.Context, uuid.UUID) ([]store.IdentityAccountRefreshToken, error)
 	MarkAccountRefreshUsed(context.Context, store.MarkAccountRefreshUsedParams) (bool, error)
 	RotateAccountSessionAccess(context.Context, store.RotateAccountSessionAccessParams) (store.IdentityAccountSession, bool, error)
 	RevokeAccountRefreshTokens(context.Context, store.RevokeAccountRefreshTokensParams) (int64, error)
 	MarkAccountSessionCompromised(context.Context, store.MarkAccountSessionCompromisedParams) (int64, error)
 	RevokePrincipalAccountSessions(context.Context, store.RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error)
 	UpdatePasswordCredential(context.Context, store.UpdatePasswordCredentialParams) (int64, error)
+}
+
+type accountRefreshAuthority struct {
+	TokenHash               []byte
+	SessionID               uuid.UUID
+	PreviousTokenHash       []byte
+	RefreshState            string
+	IssuedAt                time.Time
+	IdleExpiresAt           time.Time
+	AbsoluteExpiresAt       time.Time
+	UsedAt                  sql.NullTime
+	RevokedAt               sql.NullTime
+	SessionState            string
+	SessionStateVersion     int64
+	ClientSigningPublicKey  []byte
+	PrincipalID             uuid.UUID
+	AccountState            string
+	LockedFamilyTokenHashes [][]byte
 }
 
 const (
@@ -172,7 +193,7 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 		if lookupDigest == [32]byte{} {
 			return dependencyUnavailable()
 		}
-		identity, identityFound, findErr := transaction.FindIdentityByLookupDigest(transactionContext, lookupDigest[:])
+		identity, identityFound, findErr := transaction.FindIdentityByLookupDigestRead(transactionContext, lookupDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -180,9 +201,12 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 		if identityFound {
 			principalID = identity.PrincipalID
 		}
-		account, accountFound, accountErr := transaction.GetAccountForUpdate(transactionContext, principalID)
 		credentialRow, credentialFound, credentialErr := transaction.GetPasswordCredential(transactionContext, principalID)
-		if accountErr != nil || credentialErr != nil {
+		if credentialErr != nil {
+			return dependencyUnavailable()
+		}
+		_, _, account, accountFound, accountErr := lockPrincipalRefreshAuthority(transactionContext, transaction, principalID)
+		if accountErr != nil {
 			return dependencyUnavailable()
 		}
 		credential := DummyCredential()
@@ -348,7 +372,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		if !typed || nilIdentityValue(transaction) {
 			return dependencyUnavailable()
 		}
-		row, found, findErr := transaction.GetRefreshTokenForUpdate(transactionContext, refreshDigest[:])
+		row, found, findErr := lockSessionRefreshAuthority(transactionContext, transaction, refreshDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -437,7 +461,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		if !typed || nilIdentityValue(transaction) {
 			return dependencyUnavailable()
 		}
-		row, found, findErr := transaction.GetRefreshTokenForUpdate(transactionContext, refreshDigest[:])
+		row, found, findErr := lockSessionRefreshAuthority(transactionContext, transaction, refreshDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -509,7 +533,7 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		return SessionTokens{}, dependencyUnavailable()
 	}
 	defer clear(canonicalRequest)
-	var authority store.GetRefreshTokenForUpdateRow
+	var authority accountRefreshAuthority
 	var result SessionTokens
 	postCommitAuthenticationFailure := false
 	preflightReplay := false
@@ -518,7 +542,7 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		if !typed || nilIdentityValue(transaction) {
 			return dependencyUnavailable()
 		}
-		row, found, findErr := transaction.GetRefreshTokenForUpdate(transactionContext, refreshDigest[:])
+		row, found, findErr := lockSessionRefreshAuthority(transactionContext, transaction, refreshDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -536,6 +560,14 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 			return dependencyUnavailable()
 		}
 		if outcome == idempotency.Started {
+			if row.RefreshState == "used" {
+				if compromiseErr := service.compromiseUsedRefresh(transactionContext, transaction, row, idempotencyRecord, now); compromiseErr != nil {
+					return compromiseErr
+				}
+				postCommitAuthenticationFailure = true
+				preflightReplay = true
+				return nil
+			}
 			authority = cloneRefreshAuthority(row)
 			return errSessionIdempotencyPreflight
 		}
@@ -578,8 +610,18 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 	contextDigest := accountChallengeContextDigest(refreshDigest, command.RequestNonce)
 	record, consumeErr := service.challenges.Consume(operationContext, command.ChallengeID, contextDigest)
 	if consumeErr != nil {
-		if errors.Is(consumeErr, ErrChallengeNotFound) || errors.Is(consumeErr, ErrInvalidChallenge) {
+		ambiguous := !errors.Is(consumeErr, ErrChallengeNotFound) && !errors.Is(consumeErr, ErrInvalidChallenge)
+		reclassified, resolved, authenticationFailure, reclassifyErr := service.reclassifyRotationAfterChallengeFailure(
+			operationContext, command, canonicalRequest, refreshDigest, now, ambiguous,
+		)
+		if reclassifyErr != nil {
+			return SessionTokens{}, reclassifyErr
+		}
+		if authenticationFailure {
 			return SessionTokens{}, authenticationFailed()
+		}
+		if resolved {
+			return reclassified, nil
 		}
 		return SessionTokens{}, dependencyUnavailable()
 	}
@@ -600,7 +642,7 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		if !typed || nilIdentityValue(transaction) {
 			return dependencyUnavailable()
 		}
-		row, found, findErr := transaction.GetRefreshTokenForUpdate(transactionContext, refreshDigest[:])
+		row, found, findErr := lockSessionRefreshAuthority(transactionContext, transaction, refreshDigest[:])
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
@@ -681,24 +723,8 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 			}
 			return nil
 		case "used":
-			changed, compromiseErr := transaction.MarkAccountSessionCompromised(transactionContext, store.MarkAccountSessionCompromisedParams{ID: row.SessionID, UpdatedAt: now})
-			if compromiseErr != nil || changed != 1 {
-				return dependencyUnavailable()
-			}
-			if _, revokeErr := transaction.RevokeAccountRefreshTokens(transactionContext, store.RevokeAccountRefreshTokensParams{
-				SessionID: row.SessionID, RevokedAt: sql.NullTime{Time: now, Valid: true},
-			}); revokeErr != nil {
-				return dependencyUnavailable()
-			}
-			eventID := service.newUUID()
-			if eventID == uuid.Nil || transaction.InsertSecurityEvent(transactionContext, store.InsertSecurityEventParams{
-				ID: eventID, PrincipalID: uuid.NullUUID{UUID: row.PrincipalID, Valid: true}, Category: "account_refresh_replay",
-				Fingerprint: "identity.account_refresh_replay", AggregateVersion: row.SessionStateVersion + 1, OccurredAt: now,
-			}) != nil {
-				return dependencyUnavailable()
-			}
-			if completeErr := transaction.CompleteIdempotency(transactionContext, idempotencyRecord, 401, []byte(accountRefreshReplayResponseBody)); completeErr != nil {
-				return dependencyUnavailable()
+			if compromiseErr := service.compromiseUsedRefresh(transactionContext, transaction, row, idempotencyRecord, now); compromiseErr != nil {
+				return compromiseErr
 			}
 			postCommitAuthenticationFailure = true
 			return nil
@@ -713,6 +739,114 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		return SessionTokens{}, authenticationFailed()
 	}
 	return result, nil
+}
+
+func (service *Service) compromiseUsedRefresh(ctx context.Context, transaction sessionTransaction, row accountRefreshAuthority, record idempotency.Record, now time.Time) error {
+	changed, compromiseErr := transaction.MarkAccountSessionCompromised(ctx, store.MarkAccountSessionCompromisedParams{ID: row.SessionID, UpdatedAt: now})
+	if compromiseErr != nil || changed != 1 {
+		return dependencyUnavailable()
+	}
+	if _, revokeErr := transaction.RevokeAccountRefreshTokens(ctx, store.RevokeAccountRefreshTokensParams{
+		TokenHashes: cloneTokenHashes(row.LockedFamilyTokenHashes), RevokedAt: sql.NullTime{Time: now, Valid: true},
+	}); revokeErr != nil {
+		return dependencyUnavailable()
+	}
+	eventID := service.newUUID()
+	if eventID == uuid.Nil || transaction.InsertSecurityEvent(ctx, store.InsertSecurityEventParams{
+		ID: eventID, PrincipalID: uuid.NullUUID{UUID: row.PrincipalID, Valid: true}, Category: "account_refresh_replay",
+		Fingerprint: "identity.account_refresh_replay", AggregateVersion: row.SessionStateVersion + 1, OccurredAt: now,
+	}) != nil {
+		return dependencyUnavailable()
+	}
+	if completeErr := transaction.CompleteIdempotency(ctx, record, 401, []byte(accountRefreshReplayResponseBody)); completeErr != nil {
+		return dependencyUnavailable()
+	}
+	return nil
+}
+
+func (service *Service) reclassifyRotationAfterChallengeFailure(
+	ctx context.Context,
+	command RotateSessionCommand,
+	canonicalRequest []byte,
+	refreshDigest [32]byte,
+	now time.Time,
+	ambiguous bool,
+) (result SessionTokens, resolved, authenticationFailure bool, resultErr error) {
+	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, base Transaction) error {
+		transaction, typed := base.(sessionTransaction)
+		if !typed || nilIdentityValue(transaction) {
+			return dependencyUnavailable()
+		}
+		row, found, findErr := lockSessionRefreshAuthority(transactionContext, transaction, refreshDigest[:])
+		if findErr != nil {
+			return dependencyUnavailable()
+		}
+		if !found || !validRefreshAuthority(row, now, true) {
+			if ambiguous {
+				return dependencyUnavailable()
+			}
+			return authenticationFailed()
+		}
+		scope, scopeErr := idempotency.AuthenticatedScope(row.PrincipalID, "account_refresh", "rotate_account_token")
+		if scopeErr != nil {
+			return dependencyUnavailable()
+		}
+		idempotencyRecord, outcome, beginErr := transaction.BeginIdempotency(
+			transactionContext, scope, command.IdempotencyKey, canonicalRequest, now, now.Add(securityIdempotencyRetention),
+		)
+		if beginErr != nil {
+			return dependencyUnavailable()
+		}
+		if outcome == idempotency.Started {
+			if row.RefreshState == "used" {
+				if compromiseErr := service.compromiseUsedRefresh(transactionContext, transaction, row, idempotencyRecord, now); compromiseErr != nil {
+					return compromiseErr
+				}
+				resolved = true
+				authenticationFailure = true
+				return nil
+			}
+			return errSessionIdempotencyPreflight
+		}
+		if ambiguous && outcome != idempotency.Replay {
+			return dependencyUnavailable()
+		}
+		if outcome == idempotency.Replay && idempotencyRecord.ResponseStatus() == 401 {
+			body, owned := idempotencyRecord.TakeResponseBody()
+			defer clear(body)
+			if !owned || string(body) != accountRefreshReplayResponseBody {
+				return dependencyUnavailable()
+			}
+			resolved = true
+			authenticationFailure = true
+			return nil
+		}
+		body, replayed, replayErr := privateIdempotencyOutcome(outcome, idempotencyRecord, 200)
+		if replayErr != nil {
+			return replayErr
+		}
+		if !replayed {
+			return dependencyUnavailable()
+		}
+		defer clear(body)
+		decoded, decodeErr := decodeSessionTokens(body)
+		if decodeErr != nil {
+			return dependencyUnavailable()
+		}
+		result = decoded
+		resolved = true
+		return nil
+	})
+	if errors.Is(err, errSessionIdempotencyPreflight) {
+		if ambiguous {
+			return SessionTokens{}, false, false, dependencyUnavailable()
+		}
+		return SessionTokens{}, false, true, nil
+	}
+	if err != nil {
+		return SessionTokens{}, false, false, mapApplicationError(ctx, err)
+	}
+	return result, resolved, authenticationFailure, nil
 }
 
 // RevokeSessions applies one generated principal/scope transition and its tombstone atomically.
@@ -775,8 +909,20 @@ func (service *Service) RevokeSessions(ctx context.Context, command RevokeSessio
 				return nil
 			}
 		}
+		lockedRefresh, lockedSessions, account, accountFound, lockErr := lockPrincipalRefreshAuthority(transactionContext, transaction, principalID)
+		if lockErr != nil {
+			return dependencyUnavailable()
+		}
+		if !accountFound || account.ID != principalID {
+			return authenticationFailed()
+		}
+		targetSessions, selectionOK := selectRevokedSessions(lockedSessions, principalID, command.Scope, sessionID)
+		if !selectionOK {
+			return authenticationFailed()
+		}
+		targetIDs := lockedSessionIDs(targetSessions)
 		_, revokeErr := transaction.RevokePrincipalAccountSessions(transactionContext, store.RevokePrincipalAccountSessionsParams{
-			RevokedAt: now, PrincipalID: principalID, RevokeScope: string(command.Scope), SessionID: sessionID,
+			RevokedAt: now, SessionIds: targetIDs, TokenHashes: refreshTokenHashesForSessions(lockedRefresh, targetIDs),
 		})
 		if revokeErr != nil {
 			return dependencyUnavailable()
@@ -839,14 +985,15 @@ func (service *Service) ChangePassword(ctx context.Context, command ChangePasswo
 		if !ok {
 			return dependencyUnavailable()
 		}
-		session, sessionFound, sessionErr := transaction.GetAccountSessionForUpdate(transactionContext, store.GetAccountSessionForUpdateParams{ID: sessionID, PrincipalID: principalID})
-		if sessionErr != nil {
+		credentialRow, credentialFound, credentialErr := transaction.GetPasswordCredential(transactionContext, principalID)
+		if credentialErr != nil {
 			return dependencyUnavailable()
 		}
-		account, accountFound, accountErr := transaction.GetAccountForUpdate(transactionContext, principalID)
-		if accountErr != nil {
+		_, lockedSessions, account, accountFound, lockErr := lockPrincipalRefreshAuthority(transactionContext, transaction, principalID)
+		if lockErr != nil {
 			return dependencyUnavailable()
 		}
+		session, sessionFound := findLockedAccountSession(lockedSessions, sessionID, principalID)
 		if !accountFound || !sessionFound || account.ID != principalID || session.PrincipalID != principalID || account.State != "active" ||
 			(session.State != "active" && session.State != "review_required") || !session.AbsoluteExpiresAt.After(now) {
 			return authenticationFailed()
@@ -873,10 +1020,6 @@ func (service *Service) ChangePassword(ctx context.Context, command ChangePasswo
 				result = decoded
 				return nil
 			}
-		}
-		credentialRow, credentialFound, credentialErr := transaction.GetPasswordCredential(transactionContext, principalID)
-		if credentialErr != nil {
-			return dependencyUnavailable()
 		}
 		if !credentialFound || credentialRow.PrincipalID != principalID {
 			return authenticationFailed()
@@ -908,7 +1051,7 @@ func (service *Service) ChangePassword(ctx context.Context, command ChangePasswo
 		if updateErr != nil || updated != 1 {
 			return dependencyUnavailable()
 		}
-		if _, markErr := transaction.MarkPrincipalSessionsReviewRequired(transactionContext, store.MarkPrincipalSessionsReviewRequiredParams{PrincipalID: principalID, UpdatedAt: now}); markErr != nil {
+		if _, markErr := transaction.MarkPrincipalSessionsReviewRequired(transactionContext, store.MarkPrincipalSessionsReviewRequiredParams{SessionIds: lockedSessionIDs(lockedSessions), UpdatedAt: now}); markErr != nil {
 			return dependencyUnavailable()
 		}
 		created, createErr := service.newSessionTokens(now)
@@ -1039,7 +1182,161 @@ func decodeSessionChallenge(body []byte) (SessionChallenge, error) {
 	}, nil
 }
 
-func validRefreshAuthority(row store.GetRefreshTokenForUpdateRow, now time.Time, allowUsed bool) bool {
+func lockSessionRefreshAuthority(ctx context.Context, transaction sessionTransaction, digest []byte) (accountRefreshAuthority, bool, error) {
+	discovered, found, err := transaction.DiscoverRefreshToken(ctx, digest)
+	if err != nil || !found {
+		return accountRefreshAuthority{}, false, err
+	}
+	if discovered.SessionID == uuid.Nil || discovered.PrincipalID == uuid.Nil || !bytes.Equal(discovered.TokenHash, digest) {
+		return accountRefreshAuthority{}, false, nil
+	}
+	if _, err = transaction.LockSessionRefreshTokens(ctx, discovered.SessionID); err != nil {
+		return accountRefreshAuthority{}, false, err
+	}
+	lockedRefresh, err := transaction.LockSessionRefreshTokens(ctx, discovered.SessionID)
+	if err != nil {
+		return accountRefreshAuthority{}, false, err
+	}
+	refresh, refreshFound := findLockedRefreshToken(lockedRefresh, digest, discovered.SessionID)
+	if !refreshFound {
+		return accountRefreshAuthority{}, false, nil
+	}
+	lockedSessions, err := transaction.LockPrincipalAccountSessions(ctx, discovered.PrincipalID)
+	if err != nil {
+		return accountRefreshAuthority{}, false, err
+	}
+	session, sessionFound := findLockedAccountSession(lockedSessions, discovered.SessionID, discovered.PrincipalID)
+	if !sessionFound {
+		return accountRefreshAuthority{}, false, nil
+	}
+	account, accountFound, err := transaction.GetAccountForUpdate(ctx, discovered.PrincipalID)
+	if err != nil {
+		return accountRefreshAuthority{}, false, err
+	}
+	if !accountFound || account.ID != discovered.PrincipalID {
+		return accountRefreshAuthority{}, false, nil
+	}
+	currentRefresh, err := transaction.ListSessionRefreshTokens(ctx, discovered.SessionID)
+	if err != nil {
+		return accountRefreshAuthority{}, false, err
+	}
+	if !sameRefreshCollection(lockedRefresh, currentRefresh) {
+		return accountRefreshAuthority{}, false, ErrRepository
+	}
+	return accountRefreshAuthority{
+		TokenHash: append([]byte(nil), refresh.TokenHash...), SessionID: refresh.SessionID,
+		PreviousTokenHash: append([]byte(nil), refresh.PreviousTokenHash...), RefreshState: refresh.State,
+		IssuedAt: refresh.IssuedAt, IdleExpiresAt: refresh.IdleExpiresAt, AbsoluteExpiresAt: refresh.AbsoluteExpiresAt,
+		UsedAt: refresh.UsedAt, RevokedAt: refresh.RevokedAt, SessionState: session.State,
+		SessionStateVersion: session.StateVersion, ClientSigningPublicKey: append([]byte(nil), session.ClientSigningPublicKey...),
+		PrincipalID: session.PrincipalID, AccountState: account.State, LockedFamilyTokenHashes: refreshTokenHashes(lockedRefresh),
+	}, true, nil
+}
+
+func lockPrincipalRefreshAuthority(ctx context.Context, transaction Transaction, principalID uuid.UUID) ([]store.IdentityAccountRefreshToken, []store.IdentityAccountSession, store.IdentityAccount, bool, error) {
+	if _, err := transaction.LockPrincipalRefreshTokens(ctx, principalID); err != nil {
+		return nil, nil, store.IdentityAccount{}, false, err
+	}
+	lockedRefresh, err := transaction.LockPrincipalRefreshTokens(ctx, principalID)
+	if err != nil {
+		return nil, nil, store.IdentityAccount{}, false, err
+	}
+	lockedSessions, err := transaction.LockPrincipalAccountSessions(ctx, principalID)
+	if err != nil {
+		return nil, nil, store.IdentityAccount{}, false, err
+	}
+	account, accountFound, err := transaction.GetAccountForUpdate(ctx, principalID)
+	if err != nil {
+		return nil, nil, store.IdentityAccount{}, false, err
+	}
+	currentRefresh, err := transaction.ListPrincipalRefreshTokens(ctx, principalID)
+	if err != nil {
+		return nil, nil, store.IdentityAccount{}, false, err
+	}
+	if !sameRefreshCollection(lockedRefresh, currentRefresh) {
+		return nil, nil, store.IdentityAccount{}, false, ErrRepository
+	}
+	return lockedRefresh, lockedSessions, account, accountFound, nil
+}
+
+func findLockedRefreshToken(rows []store.IdentityAccountRefreshToken, digest []byte, sessionID uuid.UUID) (store.IdentityAccountRefreshToken, bool) {
+	for _, row := range rows {
+		if row.SessionID == sessionID && bytes.Equal(row.TokenHash, digest) {
+			return row, true
+		}
+	}
+	return store.IdentityAccountRefreshToken{}, false
+}
+
+func sameRefreshCollection(left, right []store.IdentityAccountRefreshToken) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if left[index].SessionID != right[index].SessionID || !bytes.Equal(left[index].TokenHash, right[index].TokenHash) {
+			return false
+		}
+	}
+	return true
+}
+
+func refreshTokenHashes(rows []store.IdentityAccountRefreshToken) [][]byte {
+	result := make([][]byte, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, append([]byte(nil), row.TokenHash...))
+	}
+	return result
+}
+
+func lockedSessionIDs(rows []store.IdentityAccountSession) []uuid.UUID {
+	result := make([]uuid.UUID, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, row.ID)
+	}
+	return result
+}
+
+func selectRevokedSessions(rows []store.IdentityAccountSession, principalID uuid.UUID, scope SessionRevokeScope, current uuid.UUID) ([]store.IdentityAccountSession, bool) {
+	if scope != RevokeAllSessions {
+		if _, found := findLockedAccountSession(rows, current, principalID); !found {
+			return nil, false
+		}
+	}
+	result := make([]store.IdentityAccountSession, 0, len(rows))
+	for _, row := range rows {
+		switch scope {
+		case RevokeAllSessions:
+			result = append(result, row)
+		case RevokeCurrentSession:
+			if row.ID == current {
+				result = append(result, row)
+			}
+		case RevokeOtherSessions:
+			if row.ID != current {
+				result = append(result, row)
+			}
+		default:
+			return nil, false
+		}
+	}
+	return result, true
+}
+
+func refreshTokenHashesForSessions(rows []store.IdentityAccountRefreshToken, sessionIDs []uuid.UUID) [][]byte {
+	selected := make(map[uuid.UUID]struct{}, len(sessionIDs))
+	for _, sessionID := range sessionIDs {
+		selected[sessionID] = struct{}{}
+	}
+	result := make([][]byte, 0, len(rows))
+	for _, row := range rows {
+		if _, ok := selected[row.SessionID]; ok {
+			result = append(result, append([]byte(nil), row.TokenHash...))
+		}
+	}
+	return result
+}
+
+func validRefreshAuthority(row accountRefreshAuthority, now time.Time, allowUsed bool) bool {
 	if row.SessionID == uuid.Nil || row.PrincipalID == uuid.Nil || row.AccountState != "active" ||
 		(row.SessionState != "active" && (!allowUsed || row.SessionState != "review_required")) || len(row.ClientSigningPublicKey) != ed25519.PublicKeySize ||
 		!row.AbsoluteExpiresAt.After(now) || row.IdleExpiresAt.After(row.AbsoluteExpiresAt) {
@@ -1057,14 +1354,32 @@ func validRefreshAuthority(row store.GetRefreshTokenForUpdateRow, now time.Time,
 	}
 }
 
-func cloneRefreshAuthority(row store.GetRefreshTokenForUpdateRow) store.GetRefreshTokenForUpdateRow {
+func findLockedAccountSession(sessions []store.IdentityAccountSession, sessionID, principalID uuid.UUID) (store.IdentityAccountSession, bool) {
+	for _, session := range sessions {
+		if session.ID == sessionID && session.PrincipalID == principalID {
+			return session, true
+		}
+	}
+	return store.IdentityAccountSession{}, false
+}
+
+func cloneRefreshAuthority(row accountRefreshAuthority) accountRefreshAuthority {
 	row.TokenHash = append([]byte(nil), row.TokenHash...)
 	row.PreviousTokenHash = append([]byte(nil), row.PreviousTokenHash...)
 	row.ClientSigningPublicKey = append([]byte(nil), row.ClientSigningPublicKey...)
+	row.LockedFamilyTokenHashes = cloneTokenHashes(row.LockedFamilyTokenHashes)
 	return row
 }
 
-func sameRefreshAuthority(left, right store.GetRefreshTokenForUpdateRow) bool {
+func cloneTokenHashes(rows [][]byte) [][]byte {
+	result := make([][]byte, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, append([]byte(nil), row...))
+	}
+	return result
+}
+
+func sameRefreshAuthority(left, right accountRefreshAuthority) bool {
 	return left.SessionID == right.SessionID && left.PrincipalID == right.PrincipalID &&
 		len(left.ClientSigningPublicKey) == ed25519.PublicKeySize && len(right.ClientSigningPublicKey) == ed25519.PublicKeySize &&
 		subtle.ConstantTimeCompare(left.ClientSigningPublicKey, right.ClientSigningPublicKey) == 1
