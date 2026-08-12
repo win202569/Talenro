@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	deviceauthv1 "talenro.local/platform/gen/go/talenro/deviceauth/v1"
@@ -35,6 +36,7 @@ import (
 
 const (
 	registrationContextDomain        = "TALENRO-DEVICE-REGISTRATION-CONTEXT-V1\x00"
+	rotationContextDomain            = "TALENRO-DEVICE-ROTATION-CONTEXT-V1\x00"
 	privateRegistrationBindingDomain = "deviceauth/register-request/v1"
 	displayNameProtectionDomain      = "deviceauth/display-name/v1"
 	deviceAccessTTL                  = 10 * time.Minute
@@ -55,6 +57,7 @@ var (
 	ErrRepository                    = errors.New("deviceauth: repository unavailable")
 	errRegistrationPreflightRollback = errors.New("deviceauth: registration preflight rollback")
 	errChallengeValidationRollback   = errors.New("deviceauth: challenge validation rollback")
+	errRotationChallengeRollback     = errors.New("deviceauth: rotation challenge validation rollback")
 )
 
 // Service implements Task 12 registration while retaining the frozen Task 13 surface for later completion.
@@ -101,7 +104,7 @@ func (service *Service) CreateChallenge(ctx context.Context, command CreateChall
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	if command.Kind == ChallengeRotation {
-		return Challenge{}, apierrors.New(apierrors.ActionNotAllowed, apierrors.Reauthenticate)
+		return service.createRotationChallenge(ctx, command)
 	}
 	if !validRegistrationChallengeCommand(command) {
 		return Challenge{}, deviceAuthenticationFailed()
@@ -167,6 +170,127 @@ func (service *Service) CreateChallenge(ctx context.Context, command CreateChall
 	record := ChallengeRecord{
 		ChallengeID: challengeID.String(), Kind: ChallengeRegistration, ProtocolVersion: deviceProofProtocolVersion,
 		Operation: registerDeviceOperation, Challenge: challengeBytes, GrantDigest: grantDigest,
+		ContextDigest: contextDigest, ExpiresAt: expiresAt,
+	}
+	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record); err != nil {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	return Challenge{ChallengeID: challengeID.String(), Challenge: challengeBytes, ExpiresAt: expiresAt}, nil
+}
+
+func (service *Service) createRotationChallenge(ctx context.Context, command CreateChallengeCommand) (Challenge, error) {
+	if !validRotationChallengeCommand(command) {
+		return Challenge{}, deviceAuthenticationFailed()
+	}
+	refreshDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, command.RefreshToken)
+	if refreshDigest == [32]byte{} {
+		return Challenge{}, deviceAuthenticationFailed()
+	}
+	defer clear(refreshDigest[:])
+	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
+	defer cancel()
+	now, ok := service.now()
+	if !ok {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	var familyID uuid.UUID
+	validationErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
+		if nilDeviceauthValue(transaction) || nilDeviceauthValue(transaction.DBTX()) {
+			return deviceDependencyUnavailable()
+		}
+		queries := store.New(transaction.DBTX())
+		digestCopy := append([]byte(nil), refreshDigest[:]...)
+		defer clear(digestCopy)
+		discovered, err := queries.DiscoverDeviceRefreshToken(transactionContext, digestCopy)
+		defer clearDeviceRefreshDiscovery(&discovered)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return deviceAuthenticationFailed()
+		}
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		lockedRefresh, err := queries.LockDeviceFamilyRefreshTokens(transactionContext, discovered.FamilyID)
+		defer clearDeviceRefreshRows(lockedRefresh)
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		family, err := queries.GetDeviceTokenFamilyForUpdate(transactionContext, discovered.FamilyID)
+		defer clear(family.AccessTokenHash)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return deviceAuthenticationFailed()
+		}
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		authorization, err := queries.GetAuthorizationForUpdate(transactionContext, discovered.AuthorizationID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return deviceAuthenticationFailed()
+		}
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		device, err := queries.GetDeviceForUpdate(transactionContext, discovered.DeviceID)
+		defer clearDeviceRowSecrets(&device)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return deviceAuthenticationFailed()
+		}
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		accountActive, err := service.identity.ValidateDeviceAccountAuthority(
+			transactionContext, transaction.DBTX(), identity.PrincipalID(discovered.PrincipalID.String()), now,
+		)
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		freshRefresh, err := queries.ListDeviceFamilyRefreshTokens(transactionContext, discovered.FamilyID)
+		defer clearDeviceRefreshRows(freshRefresh)
+		if err != nil {
+			return deviceDependencyUnavailable()
+		}
+		if !accountActive || !validRotationChallengeAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, refreshDigest, now) {
+			return deviceAuthenticationFailed()
+		}
+		familyID = discovered.FamilyID
+		return errRotationChallengeRollback
+	})
+	if !errors.Is(validationErr, errRotationChallengeRollback) {
+		if validationErr != nil {
+			return Challenge{}, validationErr
+		}
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	subject, err := ratelimit.SubjectDigest(
+		service.rateLimitKey, ratelimit.Challenge, now, service.security.ChallengeRateLimit, familyID.String(),
+	)
+	if err != nil || subject == [32]byte{} {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	defer clear(subject[:])
+	allowed, err := safeDeviceLimiterAllow(operationContext, service.limiter, subject, service.security.ChallengeRateLimit)
+	if err != nil || operationContext.Err() != nil {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	if !allowed {
+		return Challenge{}, apierrors.NewRetryAfter(apierrors.RateLimited, apierrors.Retry, time.Second)
+	}
+	contextDigest, err := rotationContextDigest(familyID, command.RequestNonce, service.security.PublicBaseURL)
+	if err != nil {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	defer clear(contextDigest[:])
+	challengeID, err := service.randomUUID()
+	if err != nil {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	challengeBytes, err := service.randomNonzero32()
+	if err != nil {
+		return Challenge{}, deviceDependencyUnavailable()
+	}
+	expiresAt := now.Add(deviceChallengeTTL)
+	record := ChallengeRecord{
+		ChallengeID: challengeID.String(), Kind: ChallengeRotation, ProtocolVersion: deviceRotationProtocolVersion,
+		Operation: rotateDeviceTokenOperation, Challenge: challengeBytes, GrantDigest: refreshDigest,
 		ContextDigest: contextDigest, ExpiresAt: expiresAt,
 	}
 	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record); err != nil {
@@ -538,6 +662,106 @@ func registrationContextDigest(requestNonce, signingPublicKey, hpkePublicKey [32
 	return digest, nil
 }
 
+func rotationContextDigest(familyID uuid.UUID, requestNonce [32]byte, audience string) ([32]byte, error) {
+	if familyID == uuid.Nil || requestNonce == [32]byte{} || !validPublicOrigin(audience) {
+		return [32]byte{}, ErrInvalidApplication
+	}
+	material := make([]byte, 0, len(rotationContextDomain)+16+requestNonceSize+16+len(ChallengeRotation)+len(deviceRotationProtocolVersion)+len(rotateDeviceTokenOperation)+len(audience))
+	material = append(material, rotationContextDomain...)
+	material = appendRegistrationFrame(material, []byte(ChallengeRotation))
+	material = appendRegistrationFrame(material, []byte(deviceRotationProtocolVersion))
+	material = appendRegistrationFrame(material, []byte(rotateDeviceTokenOperation))
+	material = appendRegistrationFrame(material, []byte(audience))
+	material = append(material, familyID[:]...)
+	material = append(material, requestNonce[:]...)
+	digest := sha256.Sum256(material)
+	clear(material)
+	return digest, nil
+}
+
+const requestNonceSize = 32
+
+func validRotationChallengeAuthority(
+	discovered store.DiscoverDeviceRefreshTokenRow,
+	family store.DeviceauthDeviceTokenFamily,
+	authorization store.DeviceauthDeviceAuthorization,
+	device store.DeviceauthDevice,
+	lockedRefresh, freshRefresh []store.DeviceauthDeviceRefreshToken,
+	digest [32]byte,
+	now time.Time,
+) bool {
+	return len(discovered.TokenHash) == len(digest) && subtle.ConstantTimeCompare(discovered.TokenHash, digest[:]) == 1 &&
+		discovered.FamilyID != uuid.Nil && discovered.AuthorizationID != uuid.Nil && discovered.PrincipalID != uuid.Nil && discovered.DeviceID != uuid.Nil &&
+		discovered.RefreshState == "active" && discovered.FamilyState == "active" && discovered.AuthorizationState == "active" && discovered.DeviceState == "active" &&
+		discovered.IdleExpiresAt.After(now) && discovered.AbsoluteExpiresAt.After(now) && len(discovered.SigningPublicKey) == 32 && discovered.KeyVersion > 0 &&
+		family.ID == discovered.FamilyID && family.AuthorizationID == discovered.AuthorizationID && family.State == "active" &&
+		family.IdleExpiresAt.After(now) && family.AbsoluteExpiresAt.After(now) &&
+		authorization.ID == discovered.AuthorizationID && authorization.PrincipalID == discovered.PrincipalID &&
+		authorization.DeviceID == discovered.DeviceID && authorization.State == "active" &&
+		device.ID == discovered.DeviceID && device.PrincipalID == discovered.PrincipalID && device.State == "active" &&
+		len(device.SigningPublicKey) == 32 && device.KeyVersion == discovered.KeyVersion &&
+		subtle.ConstantTimeCompare(device.SigningPublicKey, discovered.SigningPublicKey) == 1 &&
+		validStableDeviceRefreshSet(lockedRefresh, discovered.FamilyID, digest) && sameDeviceRefreshSet(lockedRefresh, freshRefresh)
+}
+
+func validStableDeviceRefreshSet(rows []store.DeviceauthDeviceRefreshToken, familyID uuid.UUID, activeDigest [32]byte) bool {
+	if len(rows) == 0 || familyID == uuid.Nil || activeDigest == [32]byte{} {
+		return false
+	}
+	activeFound := false
+	for index := range rows {
+		if rows[index].FamilyID != familyID || len(rows[index].TokenHash) != sha256.Size ||
+			(index > 0 && bytes.Compare(rows[index-1].TokenHash, rows[index].TokenHash) >= 0) {
+			return false
+		}
+		if subtle.ConstantTimeCompare(rows[index].TokenHash, activeDigest[:]) == 1 {
+			if activeFound || rows[index].State != "active" {
+				return false
+			}
+			activeFound = true
+		}
+	}
+	return activeFound
+}
+
+func sameDeviceRefreshSet(left, right []store.DeviceauthDeviceRefreshToken) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if left[index].FamilyID != right[index].FamilyID || left[index].State != right[index].State ||
+			len(left[index].TokenHash) != len(right[index].TokenHash) || subtle.ConstantTimeCompare(left[index].TokenHash, right[index].TokenHash) != 1 {
+			return false
+		}
+	}
+	return true
+}
+
+func clearDeviceRefreshDiscovery(row *store.DiscoverDeviceRefreshTokenRow) {
+	if row == nil {
+		return
+	}
+	clear(row.TokenHash)
+	clear(row.PreviousTokenHash)
+	clear(row.SigningPublicKey)
+}
+
+func clearDeviceRefreshRows(rows []store.DeviceauthDeviceRefreshToken) {
+	for index := range rows {
+		clear(rows[index].TokenHash)
+		clear(rows[index].PreviousTokenHash)
+	}
+}
+
+func clearDeviceRowSecrets(row *store.DeviceauthDevice) {
+	if row == nil {
+		return
+	}
+	clear(row.DisplayNameCiphertext)
+	clear(row.SigningPublicKey)
+	clear(row.HpkePublicKey)
+}
+
 func privateRegistrationBinding(
 	protector sensitive.Protector,
 	grantDigest [32]byte,
@@ -647,6 +871,15 @@ func validRegistrationChallengeCommand(command CreateChallengeCommand) bool {
 	defer clear(grant)
 	return command.Kind == ChallengeRegistration && len(grant) == 32 && len(refresh) == 0 && command.RequestNonce != [32]byte{} &&
 		command.SigningPublicKey != [32]byte{} && command.HPKEPublicKey != [32]byte{} && validDeviceauthIdempotencyKey(command.IdempotencyKey)
+}
+
+func validRotationChallengeCommand(command CreateChallengeCommand) bool {
+	refresh := command.RefreshToken.Copy()
+	grant := command.EnrollmentGrant.Copy()
+	defer clear(refresh)
+	defer clear(grant)
+	return command.Kind == ChallengeRotation && len(refresh) == 32 && len(grant) == 0 && command.RequestNonce != [32]byte{} &&
+		command.SigningPublicKey == [32]byte{} && command.HPKEPublicKey == [32]byte{} && validDeviceauthIdempotencyKey(command.IdempotencyKey)
 }
 
 func validRegisterDeviceCommand(command RegisterDeviceCommand) bool {
@@ -810,7 +1043,11 @@ func encodeDeviceTokens(tokens DeviceTokens) ([]byte, error) {
 }
 
 func tokensFromReplayRecord(record idempotency.Record) (DeviceTokens, error) {
-	if record.ResponseStatus() != registrationResponseStatus {
+	return tokensFromReplayRecordWithStatus(record, registrationResponseStatus)
+}
+
+func tokensFromReplayRecordWithStatus(record idempotency.Record, expectedStatus int) (DeviceTokens, error) {
+	if record.ResponseStatus() != expectedStatus {
 		return DeviceTokens{}, ErrRepository
 	}
 	body, owned := record.TakeResponseBody()

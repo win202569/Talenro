@@ -16,9 +16,17 @@ import (
 )
 
 const activateProvisionalAuthorization = `-- name: ActivateProvisionalAuthorization :execrows
-UPDATE deviceauth.device_authorizations
-SET state='active', state_version=state_version+1, provisional_until=NULL, updated_at=$2
-WHERE principal_id=$1 AND state='provisional' AND provisional_until >= $2
+WITH locked AS (
+  SELECT source.id
+  FROM deviceauth.device_authorizations AS source
+  WHERE source.principal_id=$1 AND source.state='provisional' AND source.provisional_until >= $2
+  ORDER BY source.id
+  FOR UPDATE NOWAIT
+)
+UPDATE deviceauth.device_authorizations AS target
+SET state='active', state_version=target.state_version+1, provisional_until=NULL, updated_at=$2
+FROM locked
+WHERE target.id=locked.id
 `
 
 type ActivateProvisionalAuthorizationParams struct {
@@ -252,6 +260,150 @@ func (q *Queries) CreateEnrollmentGrant(ctx context.Context, arg CreateEnrollmen
 	return err
 }
 
+const discoverDeviceAccessToken = `-- name: DiscoverDeviceAccessToken :one
+SELECT f.id AS family_id, f.authorization_id, f.state AS family_state,
+       f.state_version AS family_state_version, f.access_expires_at,
+       f.idle_expires_at, f.absolute_expires_at,
+       a.principal_id, a.device_id, a.state AS authorization_state,
+       a.state_version AS authorization_state_version, a.provisional_until,
+       d.state AS device_state, d.hpke_public_key, d.key_version
+FROM deviceauth.device_token_families f
+JOIN deviceauth.device_authorizations a ON a.id = f.authorization_id
+JOIN deviceauth.devices d ON d.id = a.device_id
+WHERE f.access_token_hash = $1
+`
+
+type DiscoverDeviceAccessTokenRow struct {
+	FamilyID                  uuid.UUID    `json:"family_id"`
+	AuthorizationID           uuid.UUID    `json:"authorization_id"`
+	FamilyState               string       `json:"family_state"`
+	FamilyStateVersion        int64        `json:"family_state_version"`
+	AccessExpiresAt           time.Time    `json:"access_expires_at"`
+	IdleExpiresAt             time.Time    `json:"idle_expires_at"`
+	AbsoluteExpiresAt         time.Time    `json:"absolute_expires_at"`
+	PrincipalID               uuid.UUID    `json:"principal_id"`
+	DeviceID                  uuid.UUID    `json:"device_id"`
+	AuthorizationState        string       `json:"authorization_state"`
+	AuthorizationStateVersion int64        `json:"authorization_state_version"`
+	ProvisionalUntil          sql.NullTime `json:"provisional_until"`
+	DeviceState               string       `json:"device_state"`
+	HpkePublicKey             []byte       `json:"hpke_public_key"`
+	KeyVersion                int32        `json:"key_version"`
+}
+
+func (q *Queries) DiscoverDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (DiscoverDeviceAccessTokenRow, error) {
+	row := q.db.QueryRow(ctx, discoverDeviceAccessToken, accessTokenHash)
+	var i DiscoverDeviceAccessTokenRow
+	err := row.Scan(
+		&i.FamilyID,
+		&i.AuthorizationID,
+		&i.FamilyState,
+		&i.FamilyStateVersion,
+		&i.AccessExpiresAt,
+		&i.IdleExpiresAt,
+		&i.AbsoluteExpiresAt,
+		&i.PrincipalID,
+		&i.DeviceID,
+		&i.AuthorizationState,
+		&i.AuthorizationStateVersion,
+		&i.ProvisionalUntil,
+		&i.DeviceState,
+		&i.HpkePublicKey,
+		&i.KeyVersion,
+	)
+	return i, err
+}
+
+const discoverDeviceAuthorization = `-- name: DiscoverDeviceAuthorization :one
+SELECT id, principal_id, device_id, state, state_version, provisional_until, created_at, updated_at
+FROM deviceauth.device_authorizations
+WHERE device_id = $1
+`
+
+func (q *Queries) DiscoverDeviceAuthorization(ctx context.Context, deviceID uuid.UUID) (DeviceauthDeviceAuthorization, error) {
+	row := q.db.QueryRow(ctx, discoverDeviceAuthorization, deviceID)
+	var i DeviceauthDeviceAuthorization
+	err := row.Scan(
+		&i.ID,
+		&i.PrincipalID,
+		&i.DeviceID,
+		&i.State,
+		&i.StateVersion,
+		&i.ProvisionalUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const discoverDeviceRefreshToken = `-- name: DiscoverDeviceRefreshToken :one
+SELECT r.token_hash, r.family_id, r.previous_token_hash, r.state AS refresh_state,
+       r.issued_at, r.used_at, r.revoked_at,
+       f.authorization_id, f.state AS family_state, f.state_version AS family_state_version,
+       f.access_expires_at, f.idle_expires_at, f.absolute_expires_at,
+       a.principal_id, a.device_id, a.state AS authorization_state,
+       a.state_version AS authorization_state_version, a.provisional_until,
+       d.state AS device_state, d.signing_public_key, d.key_version
+FROM deviceauth.device_refresh_tokens r
+JOIN deviceauth.device_token_families f ON f.id = r.family_id
+JOIN deviceauth.device_authorizations a ON a.id = f.authorization_id
+JOIN deviceauth.devices d ON d.id = a.device_id
+WHERE r.token_hash = $1
+`
+
+type DiscoverDeviceRefreshTokenRow struct {
+	TokenHash                 []byte       `json:"token_hash"`
+	FamilyID                  uuid.UUID    `json:"family_id"`
+	PreviousTokenHash         []byte       `json:"previous_token_hash"`
+	RefreshState              string       `json:"refresh_state"`
+	IssuedAt                  time.Time    `json:"issued_at"`
+	UsedAt                    sql.NullTime `json:"used_at"`
+	RevokedAt                 sql.NullTime `json:"revoked_at"`
+	AuthorizationID           uuid.UUID    `json:"authorization_id"`
+	FamilyState               string       `json:"family_state"`
+	FamilyStateVersion        int64        `json:"family_state_version"`
+	AccessExpiresAt           time.Time    `json:"access_expires_at"`
+	IdleExpiresAt             time.Time    `json:"idle_expires_at"`
+	AbsoluteExpiresAt         time.Time    `json:"absolute_expires_at"`
+	PrincipalID               uuid.UUID    `json:"principal_id"`
+	DeviceID                  uuid.UUID    `json:"device_id"`
+	AuthorizationState        string       `json:"authorization_state"`
+	AuthorizationStateVersion int64        `json:"authorization_state_version"`
+	ProvisionalUntil          sql.NullTime `json:"provisional_until"`
+	DeviceState               string       `json:"device_state"`
+	SigningPublicKey          []byte       `json:"signing_public_key"`
+	KeyVersion                int32        `json:"key_version"`
+}
+
+func (q *Queries) DiscoverDeviceRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverDeviceRefreshTokenRow, error) {
+	row := q.db.QueryRow(ctx, discoverDeviceRefreshToken, tokenHash)
+	var i DiscoverDeviceRefreshTokenRow
+	err := row.Scan(
+		&i.TokenHash,
+		&i.FamilyID,
+		&i.PreviousTokenHash,
+		&i.RefreshState,
+		&i.IssuedAt,
+		&i.UsedAt,
+		&i.RevokedAt,
+		&i.AuthorizationID,
+		&i.FamilyState,
+		&i.FamilyStateVersion,
+		&i.AccessExpiresAt,
+		&i.IdleExpiresAt,
+		&i.AbsoluteExpiresAt,
+		&i.PrincipalID,
+		&i.DeviceID,
+		&i.AuthorizationState,
+		&i.AuthorizationStateVersion,
+		&i.ProvisionalUntil,
+		&i.DeviceState,
+		&i.SigningPublicKey,
+		&i.KeyVersion,
+	)
+	return i, err
+}
+
 const findDeviceAccessToken = `-- name: FindDeviceAccessToken :one
 SELECT f.id AS family_id, f.authorization_id, f.state AS family_state,
        f.state_version AS family_state_version, f.access_expires_at,
@@ -369,6 +521,50 @@ func (q *Queries) GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (
 	return i, err
 }
 
+const getDeviceForUpdate = `-- name: GetDeviceForUpdate :one
+SELECT id, principal_id, display_name_ciphertext, display_name_key_version,
+       signing_public_key, hpke_public_key, key_version, state, created_at, updated_at
+FROM deviceauth.devices
+WHERE id = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetDeviceForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDevice, error) {
+	row := q.db.QueryRow(ctx, getDeviceForUpdate, id)
+	var i DeviceauthDevice
+	err := row.Scan(
+		&i.ID,
+		&i.PrincipalID,
+		&i.DisplayNameCiphertext,
+		&i.DisplayNameKeyVersion,
+		&i.SigningPublicKey,
+		&i.HpkePublicKey,
+		&i.KeyVersion,
+		&i.State,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getDevicePolicySnapshot = `-- name: GetDevicePolicySnapshot :one
+SELECT authorization_id, schema_version, policy, created_at
+FROM deviceauth.device_policy_snapshots
+WHERE authorization_id = $1
+`
+
+func (q *Queries) GetDevicePolicySnapshot(ctx context.Context, authorizationID uuid.UUID) (DeviceauthDevicePolicySnapshot, error) {
+	row := q.db.QueryRow(ctx, getDevicePolicySnapshot, authorizationID)
+	var i DeviceauthDevicePolicySnapshot
+	err := row.Scan(
+		&i.AuthorizationID,
+		&i.SchemaVersion,
+		&i.Policy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getDeviceRefreshForUpdate = `-- name: GetDeviceRefreshForUpdate :one
 SELECT r.token_hash, r.family_id, r.previous_token_hash, r.state AS refresh_state,
        r.issued_at, r.used_at, r.revoked_at,
@@ -410,6 +606,32 @@ func (q *Queries) GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byt
 		&i.FamilyStateVersion,
 		&i.IdleExpiresAt,
 		&i.AbsoluteExpiresAt,
+	)
+	return i, err
+}
+
+const getDeviceTokenFamilyForUpdate = `-- name: GetDeviceTokenFamilyForUpdate :one
+SELECT id, authorization_id, state, state_version, access_token_hash, access_expires_at,
+       idle_expires_at, absolute_expires_at, created_at, updated_at
+FROM deviceauth.device_token_families
+WHERE id = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetDeviceTokenFamilyForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceTokenFamily, error) {
+	row := q.db.QueryRow(ctx, getDeviceTokenFamilyForUpdate, id)
+	var i DeviceauthDeviceTokenFamily
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorizationID,
+		&i.State,
+		&i.StateVersion,
+		&i.AccessTokenHash,
+		&i.AccessExpiresAt,
+		&i.IdleExpiresAt,
+		&i.AbsoluteExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -471,6 +693,116 @@ func (q *Queries) InsertDeviceRefreshToken(ctx context.Context, arg InsertDevice
 		arg.IssuedAt,
 	)
 	return err
+}
+
+const listDeviceAuthorizationFamilies = `-- name: ListDeviceAuthorizationFamilies :many
+SELECT id, authorization_id, state, state_version, access_token_hash, access_expires_at,
+       idle_expires_at, absolute_expires_at, created_at, updated_at
+FROM deviceauth.device_token_families
+WHERE authorization_id = $1
+ORDER BY id
+`
+
+func (q *Queries) ListDeviceAuthorizationFamilies(ctx context.Context, authorizationID uuid.UUID) ([]DeviceauthDeviceTokenFamily, error) {
+	rows, err := q.db.Query(ctx, listDeviceAuthorizationFamilies, authorizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DeviceauthDeviceTokenFamily{}
+	for rows.Next() {
+		var i DeviceauthDeviceTokenFamily
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorizationID,
+			&i.State,
+			&i.StateVersion,
+			&i.AccessTokenHash,
+			&i.AccessExpiresAt,
+			&i.IdleExpiresAt,
+			&i.AbsoluteExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDeviceFamilyRefreshTokens = `-- name: ListDeviceFamilyRefreshTokens :many
+SELECT token_hash, family_id, previous_token_hash, state, issued_at, used_at, revoked_at
+FROM deviceauth.device_refresh_tokens
+WHERE family_id = $1
+ORDER BY token_hash
+`
+
+func (q *Queries) ListDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error) {
+	rows, err := q.db.Query(ctx, listDeviceFamilyRefreshTokens, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DeviceauthDeviceRefreshToken{}
+	for rows.Next() {
+		var i DeviceauthDeviceRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.FamilyID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockDeviceFamilyRefreshTokens = `-- name: LockDeviceFamilyRefreshTokens :many
+SELECT token_hash, family_id, previous_token_hash, state, issued_at, used_at, revoked_at
+FROM deviceauth.device_refresh_tokens
+WHERE family_id = $1
+ORDER BY token_hash
+FOR UPDATE
+`
+
+func (q *Queries) LockDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error) {
+	rows, err := q.db.Query(ctx, lockDeviceFamilyRefreshTokens, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DeviceauthDeviceRefreshToken{}
+	for rows.Next() {
+		var i DeviceauthDeviceRefreshToken
+		if err := rows.Scan(
+			&i.TokenHash,
+			&i.FamilyID,
+			&i.PreviousTokenHash,
+			&i.State,
+			&i.IssuedAt,
+			&i.UsedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markDeviceRefreshUsed = `-- name: MarkDeviceRefreshUsed :one
@@ -570,6 +902,25 @@ type RevokeDeviceRefreshTokensParams struct {
 
 func (q *Queries) RevokeDeviceRefreshTokens(ctx context.Context, arg RevokeDeviceRefreshTokensParams) (int64, error) {
 	result, err := q.db.Exec(ctx, revokeDeviceRefreshTokens, arg.FamilyID, arg.RevokedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const revokeDeviceTokenFamily = `-- name: RevokeDeviceTokenFamily :execrows
+UPDATE deviceauth.device_token_families
+SET state='revoked', state_version=state_version+1, updated_at=$2
+WHERE id=$1 AND state IN ('active','compromised')
+`
+
+type RevokeDeviceTokenFamilyParams struct {
+	ID        uuid.UUID `json:"id"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (q *Queries) RevokeDeviceTokenFamily(ctx context.Context, arg RevokeDeviceTokenFamilyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, revokeDeviceTokenFamily, arg.ID, arg.UpdatedAt)
 	if err != nil {
 		return 0, err
 	}

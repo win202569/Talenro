@@ -110,6 +110,7 @@ type postgresTransaction struct {
 }
 
 var _ Transaction = (*postgresTransaction)(nil)
+var _ deviceTokenTransaction = (*postgresTransaction)(nil)
 
 func newPostgresTransaction(transaction pgx.Tx, protector sensitive.Protector) (*postgresTransaction, error) {
 	if nilDeviceauthValue(transaction) || nilDeviceauthValue(protector) {
@@ -227,6 +228,213 @@ func (transaction *postgresTransaction) AppendEvent(ctx context.Context, envelop
 		return ErrRepository
 	}
 	return nil
+}
+
+func (transaction *postgresTransaction) DiscoverDeviceRefreshToken(ctx context.Context, digest []byte) (store.DiscoverDeviceRefreshTokenRow, bool, error) {
+	if transaction == nil || transaction.queries == nil || len(digest) != 32 {
+		return store.DiscoverDeviceRefreshTokenRow{}, false, ErrRepository
+	}
+	owned := append([]byte(nil), digest...)
+	defer clear(owned)
+	row, err := transaction.queries.DiscoverDeviceRefreshToken(ctx, owned)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DiscoverDeviceRefreshTokenRow{}, false, nil
+	}
+	if err != nil {
+		return store.DiscoverDeviceRefreshTokenRow{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) LockDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]store.DeviceauthDeviceRefreshToken, error) {
+	if transaction == nil || transaction.queries == nil || familyID == uuid.Nil {
+		return nil, ErrRepository
+	}
+	rows, err := transaction.queries.LockDeviceFamilyRefreshTokens(ctx, familyID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ListDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]store.DeviceauthDeviceRefreshToken, error) {
+	if transaction == nil || transaction.queries == nil || familyID == uuid.Nil {
+		return nil, ErrRepository
+	}
+	rows, err := transaction.queries.ListDeviceFamilyRefreshTokens(ctx, familyID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) ListDeviceAuthorizationFamilies(ctx context.Context, authorizationID uuid.UUID) ([]store.DeviceauthDeviceTokenFamily, error) {
+	if transaction == nil || transaction.queries == nil || authorizationID == uuid.Nil {
+		return nil, ErrRepository
+	}
+	rows, err := transaction.queries.ListDeviceAuthorizationFamilies(ctx, authorizationID)
+	if err != nil {
+		return nil, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) GetDeviceTokenFamilyForUpdate(ctx context.Context, familyID uuid.UUID) (store.DeviceauthDeviceTokenFamily, bool, error) {
+	if transaction == nil || transaction.queries == nil || familyID == uuid.Nil {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	row, err := transaction.queries.GetDeviceTokenFamilyForUpdate(ctx, familyID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDeviceTokenFamily{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetDeviceAuthorizationForUpdate(ctx context.Context, authorizationID uuid.UUID) (store.DeviceauthDeviceAuthorization, bool, error) {
+	if transaction == nil || transaction.queries == nil || authorizationID == uuid.Nil {
+		return store.DeviceauthDeviceAuthorization{}, false, ErrRepository
+	}
+	row, err := transaction.queries.GetAuthorizationForUpdate(ctx, authorizationID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDeviceAuthorization{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDeviceAuthorization{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) DiscoverDeviceAuthorization(ctx context.Context, deviceID uuid.UUID) (store.DeviceauthDeviceAuthorization, bool, error) {
+	if transaction == nil || transaction.queries == nil || deviceID == uuid.Nil {
+		return store.DeviceauthDeviceAuthorization{}, false, ErrRepository
+	}
+	row, err := transaction.queries.DiscoverDeviceAuthorization(ctx, deviceID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDeviceAuthorization{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDeviceAuthorization{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetDeviceForUpdate(ctx context.Context, deviceID uuid.UUID) (store.DeviceauthDevice, bool, error) {
+	if transaction == nil || transaction.queries == nil || deviceID == uuid.Nil {
+		return store.DeviceauthDevice{}, false, ErrRepository
+	}
+	row, err := transaction.queries.GetDeviceForUpdate(ctx, deviceID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDevice{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDevice{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) GetDevicePolicySnapshot(ctx context.Context, authorizationID uuid.UUID) (store.DeviceauthDevicePolicySnapshot, bool, error) {
+	if transaction == nil || transaction.queries == nil || authorizationID == uuid.Nil {
+		return store.DeviceauthDevicePolicySnapshot{}, false, ErrRepository
+	}
+	row, err := transaction.queries.GetDevicePolicySnapshot(ctx, authorizationID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDevicePolicySnapshot{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDevicePolicySnapshot{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) MarkDeviceRefreshUsed(ctx context.Context, params store.MarkDeviceRefreshUsedParams) (bool, error) {
+	if transaction == nil || transaction.queries == nil || len(params.TokenHash) != 32 || !params.UsedAt.Valid {
+		return false, ErrRepository
+	}
+	row, err := transaction.queries.MarkDeviceRefreshUsed(ctx, params)
+	clear(row.TokenHash)
+	clear(row.PreviousTokenHash)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, ErrRepository
+	}
+	return true, nil
+}
+
+func (transaction *postgresTransaction) RotateDeviceFamilyAccess(ctx context.Context, params store.RotateDeviceFamilyAccessParams) (store.DeviceauthDeviceTokenFamily, bool, error) {
+	if transaction == nil || transaction.queries == nil || params.ID == uuid.Nil || len(params.AccessTokenHash) != 32 {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	row, err := transaction.queries.RotateDeviceFamilyAccess(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDeviceTokenFamily{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) CompromiseDeviceTokenFamily(ctx context.Context, params store.CompromiseDeviceTokenFamilyParams) (store.DeviceauthDeviceTokenFamily, bool, error) {
+	if transaction == nil || transaction.queries == nil || params.ID == uuid.Nil {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	row, err := transaction.queries.CompromiseDeviceTokenFamily(ctx, params)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return store.DeviceauthDeviceTokenFamily{}, false, nil
+	}
+	if err != nil {
+		return store.DeviceauthDeviceTokenFamily{}, false, ErrRepository
+	}
+	return row, true, nil
+}
+
+func (transaction *postgresTransaction) RevokeDeviceRefreshTokens(ctx context.Context, params store.RevokeDeviceRefreshTokensParams) (int64, error) {
+	if transaction == nil || transaction.queries == nil || params.FamilyID == uuid.Nil || !params.RevokedAt.Valid {
+		return 0, ErrRepository
+	}
+	rows, err := transaction.queries.RevokeDeviceRefreshTokens(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokeDeviceTokenFamily(ctx context.Context, params store.RevokeDeviceTokenFamilyParams) (int64, error) {
+	if transaction == nil || transaction.queries == nil || params.ID == uuid.Nil {
+		return 0, ErrRepository
+	}
+	rows, err := transaction.queries.RevokeDeviceTokenFamily(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokeDeviceAuthorization(ctx context.Context, params store.RevokeDeviceAuthorizationParams) (int64, error) {
+	if transaction == nil || transaction.queries == nil || params.ID == uuid.Nil {
+		return 0, ErrRepository
+	}
+	rows, err := transaction.queries.RevokeDeviceAuthorization(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
+}
+
+func (transaction *postgresTransaction) RevokeDeviceRecord(ctx context.Context, params store.RevokeDeviceRecordParams) (int64, error) {
+	if transaction == nil || transaction.queries == nil || params.ID == uuid.Nil {
+		return 0, ErrRepository
+	}
+	rows, err := transaction.queries.RevokeDeviceRecord(ctx, params)
+	if err != nil || rows < 0 {
+		return 0, ErrRepository
+	}
+	return rows, nil
 }
 
 func rollbackDeviceauthTransaction(operationContext context.Context, transaction pgx.Tx) {

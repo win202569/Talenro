@@ -28,6 +28,7 @@ type PGXBeginner interface {
 type PostgresRepository struct {
 	beginner  PGXBeginner
 	protector sensitive.Protector
+	derive    PasswordDeriver
 }
 
 var _ Repository = (*PostgresRepository)(nil)
@@ -38,7 +39,7 @@ func NewPostgresRepository(beginner PGXBeginner, protector sensitive.Protector) 
 	if nilIdentityValue(beginner) || nilIdentityValue(protector) {
 		return nil, ErrInvalidRepository
 	}
-	return &PostgresRepository{beginner: beginner, protector: protector}, nil
+	return &PostgresRepository{beginner: beginner, protector: protector, derive: deriveArgon2id}, nil
 }
 
 // WithinTransaction runs one callback and owns commit/independent rollback.
@@ -169,6 +170,123 @@ func (repository *PostgresRepository) ValidateDeviceEnrollment(
 	return authority, true, nil
 }
 
+// ValidateDeviceAccountAuthority locks and validates identity-owned account authority last.
+func (repository *PostgresRepository) ValidateDeviceAccountAuthority(
+	ctx context.Context,
+	dbtx store.DBTX,
+	principalID PrincipalID,
+	now time.Time,
+) (active bool, resultErr error) {
+	defer func() {
+		if recover() != nil {
+			active = false
+			resultErr = ErrRepository
+		}
+	}()
+	parsedPrincipalID, err := canonicalIdentityUUID(string(principalID))
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || err != nil || now.IsZero() || ctx.Err() != nil {
+		return false, ErrRepository
+	}
+	account, err := store.New(dbtx).GetAccountForUpdate(ctx, parsedPrincipalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, ErrRepository
+	}
+	return account.ID == parsedPrincipalID && (account.State == "active" || account.State == "pending_email"), nil
+}
+
+// ValidateDeviceRevocation verifies password reauthentication and account authority through the caller's DBTX.
+func (repository *PostgresRepository) ValidateDeviceRevocation(
+	ctx context.Context,
+	dbtx store.DBTX,
+	request DeviceRevocationRequest,
+	now time.Time,
+) (authority DeviceRevocationAuthority, found bool, resultErr error) {
+	defer func() {
+		if recover() != nil {
+			authority = DeviceRevocationAuthority{}
+			found = false
+			resultErr = ErrRepository
+		}
+	}()
+	principalID, principalErr := canonicalIdentityUUID(string(request.PrincipalID))
+	sessionID, sessionErr := canonicalIdentityUUID(string(request.Reauthentication.SessionID))
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || repository.derive == nil || principalErr != nil ||
+		sessionErr != nil || request.Reauthentication.Method != ReauthPassword || !validPasswordSecret(request.Reauthentication.Proof) ||
+		now.IsZero() || ctx.Err() != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	queries := store.New(dbtx)
+	credentialRow, err := queries.GetPasswordCredential(ctx, principalID)
+	defer clearDeviceRevocationCredential(&credentialRow)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return DeviceRevocationAuthority{}, false, nil
+	}
+	if err != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	sessions, err := queries.LockPrincipalAccountSessions(ctx, principalID)
+	defer clearLockedEnrollmentSessions(sessions)
+	if err != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	session, sessionFound := findLockedAccountSession(sessions, sessionID, principalID)
+	account, err := queries.GetAccountForUpdate(ctx, principalID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return DeviceRevocationAuthority{}, false, nil
+	}
+	if err != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	if !sessionFound || account.ID != principalID || account.State != "active" || session.State != "active" ||
+		!session.AccessExpiresAt.After(now) || !session.AbsoluteExpiresAt.After(now) {
+		return DeviceRevocationAuthority{}, false, nil
+	}
+	credential, err := passwordCredentialFromStore(credentialRow)
+	if err != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	defer clearPasswordCredential(&credential)
+	proof := request.Reauthentication.Proof.Copy()
+	defer clear(proof)
+	matched, _ := VerifyPasswordWithDeriver(proof, credential, CurrentPasswordPolicy(), repository.derive)
+	if !matched {
+		return DeviceRevocationAuthority{}, false, nil
+	}
+	authority, err = NewDeviceRevocationAuthority(request.PrincipalID, request.Reauthentication.SessionID)
+	if err != nil {
+		return DeviceRevocationAuthority{}, false, ErrRepository
+	}
+	return authority, true, nil
+}
+
+// RecordDeviceTokenReplay writes only the fixed identity security category through the caller's DBTX.
+func (repository *PostgresRepository) RecordDeviceTokenReplay(
+	ctx context.Context,
+	dbtx store.DBTX,
+	record DeviceTokenReplaySecurityRecord,
+	now time.Time,
+) (resultErr error) {
+	defer func() {
+		if recover() != nil {
+			resultErr = ErrRepository
+		}
+	}()
+	if repository == nil || nilIdentityValue(ctx) || nilIdentityValue(dbtx) || record.eventID == uuid.Nil ||
+		record.authorizationID == uuid.Nil || now.IsZero() || ctx.Err() != nil {
+		return ErrRepository
+	}
+	if err := store.New(dbtx).InsertSecurityEvent(ctx, store.InsertSecurityEventParams{
+		ID: record.eventID, PrincipalID: uuid.NullUUID{}, Category: "device_token_replay",
+		Fingerprint: "deviceauth.refresh_replay", AggregateVersion: 1, OccurredAt: now,
+	}); err != nil {
+		return ErrRepository
+	}
+	return nil
+}
+
 // BindSessionToAuthorization binds exactly one active account session and records the fixed registration event.
 func (repository *PostgresRepository) BindSessionToAuthorization(
 	ctx context.Context,
@@ -231,6 +349,25 @@ func clearLockedEnrollmentSessions(sessions []store.IdentityAccountSession) {
 		clear(sessions[index].ClientSigningPublicKey)
 		clear(sessions[index].AccessTokenHash)
 	}
+}
+
+func clearDeviceRevocationCredential(credential *store.IdentityPasswordCredential) {
+	if credential == nil {
+		return
+	}
+	clear(credential.Salt)
+	clear(credential.PasswordHash)
+	clear(credential.ResetTokenHash)
+	clear(credential.ResetDeliveryCiphertext)
+}
+
+func clearPasswordCredential(credential *PasswordCredential) {
+	if credential == nil {
+		return
+	}
+	clear(credential.salt)
+	clear(credential.hash)
+	*credential = PasswordCredential{}
 }
 
 type postgresTransaction struct {

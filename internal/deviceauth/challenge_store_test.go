@@ -74,6 +74,53 @@ func TestChallengeSingleUseConsumesWithOneAtomicGetDEL(t *testing.T) {
 	}
 }
 
+func TestChallengeRecordRoundTripsRotationWithoutChangingRegistrationWire(t *testing.T) {
+	t.Parallel()
+
+	registration := task12ChallengeRecord()
+	registrationWire, err := encodeChallengeRecord(registration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	registrationAgain, err := encodeChallengeRecord(registration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(registrationWire, registrationAgain) {
+		t.Fatal("registration challenge wire changed across identical encodes")
+	}
+
+	rotation := ChallengeRecord{
+		ChallengeID: "83f5c578-2bd3-4ce8-a135-10080af6304b", Kind: ChallengeRotation,
+		ProtocolVersion: "device-token-rotation-v1", Operation: "rotate_device_token",
+		Challenge: [32]byte{9, 8, 7}, GrantDigest: sha256.Sum256([]byte("opaque-device-refresh-digest")),
+		ContextDigest: sha256.Sum256([]byte("opaque-rotation-context")), ExpiresAt: registration.ExpiresAt,
+	}
+	wire, err := encodeChallengeRecord(rotation)
+	if err != nil {
+		t.Fatalf("encode rotation challenge: %v", err)
+	}
+	decoded, err := decodeChallengeRecord(rotation.ChallengeID, wire)
+	if err != nil {
+		t.Fatalf("decode rotation challenge: %v", err)
+	}
+	if decoded != rotation {
+		t.Fatal("rotation challenge codec did not preserve the exact bounded record")
+	}
+
+	for _, mutate := range []func(*ChallengeRecord){
+		func(record *ChallengeRecord) { record.ProtocolVersion = "device-pop-v1" },
+		func(record *ChallengeRecord) { record.Operation = "register_device" },
+		func(record *ChallengeRecord) { record.Kind = ChallengeRegistration },
+	} {
+		changed := rotation
+		mutate(&changed)
+		if _, err := encodeChallengeRecord(changed); !errors.Is(err, ErrInvalidChallenge) {
+			t.Fatalf("mismatched rotation record error = %v, want finite invalid challenge", err)
+		}
+	}
+}
+
 func TestChallengeConsumeFailsClosedOnDigestMismatchAndAmbiguity(t *testing.T) {
 	t.Parallel()
 

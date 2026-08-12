@@ -17,6 +17,76 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,'active',$8,$8);
 -- name: GetAuthorizationForUpdate :one
 SELECT * FROM deviceauth.device_authorizations WHERE id = $1 FOR UPDATE;
 
+-- name: DiscoverDeviceRefreshToken :one
+SELECT r.token_hash, r.family_id, r.previous_token_hash, r.state AS refresh_state,
+       r.issued_at, r.used_at, r.revoked_at,
+       f.authorization_id, f.state AS family_state, f.state_version AS family_state_version,
+       f.access_expires_at, f.idle_expires_at, f.absolute_expires_at,
+       a.principal_id, a.device_id, a.state AS authorization_state,
+       a.state_version AS authorization_state_version, a.provisional_until,
+       d.state AS device_state, d.signing_public_key, d.key_version
+FROM deviceauth.device_refresh_tokens r
+JOIN deviceauth.device_token_families f ON f.id = r.family_id
+JOIN deviceauth.device_authorizations a ON a.id = f.authorization_id
+JOIN deviceauth.devices d ON d.id = a.device_id
+WHERE r.token_hash = $1;
+
+-- name: DiscoverDeviceAccessToken :one
+SELECT f.id AS family_id, f.authorization_id, f.state AS family_state,
+       f.state_version AS family_state_version, f.access_expires_at,
+       f.idle_expires_at, f.absolute_expires_at,
+       a.principal_id, a.device_id, a.state AS authorization_state,
+       a.state_version AS authorization_state_version, a.provisional_until,
+       d.state AS device_state, d.hpke_public_key, d.key_version
+FROM deviceauth.device_token_families f
+JOIN deviceauth.device_authorizations a ON a.id = f.authorization_id
+JOIN deviceauth.devices d ON d.id = a.device_id
+WHERE f.access_token_hash = $1;
+
+-- name: DiscoverDeviceAuthorization :one
+SELECT id, principal_id, device_id, state, state_version, provisional_until, created_at, updated_at
+FROM deviceauth.device_authorizations
+WHERE device_id = $1;
+
+-- name: LockDeviceFamilyRefreshTokens :many
+SELECT token_hash, family_id, previous_token_hash, state, issued_at, used_at, revoked_at
+FROM deviceauth.device_refresh_tokens
+WHERE family_id = $1
+ORDER BY token_hash
+FOR UPDATE;
+
+-- name: ListDeviceFamilyRefreshTokens :many
+SELECT token_hash, family_id, previous_token_hash, state, issued_at, used_at, revoked_at
+FROM deviceauth.device_refresh_tokens
+WHERE family_id = $1
+ORDER BY token_hash;
+
+-- name: ListDeviceAuthorizationFamilies :many
+SELECT id, authorization_id, state, state_version, access_token_hash, access_expires_at,
+       idle_expires_at, absolute_expires_at, created_at, updated_at
+FROM deviceauth.device_token_families
+WHERE authorization_id = $1
+ORDER BY id;
+
+-- name: GetDeviceTokenFamilyForUpdate :one
+SELECT id, authorization_id, state, state_version, access_token_hash, access_expires_at,
+       idle_expires_at, absolute_expires_at, created_at, updated_at
+FROM deviceauth.device_token_families
+WHERE id = $1
+FOR UPDATE;
+
+-- name: GetDeviceForUpdate :one
+SELECT id, principal_id, display_name_ciphertext, display_name_key_version,
+       signing_public_key, hpke_public_key, key_version, state, created_at, updated_at
+FROM deviceauth.devices
+WHERE id = $1
+FOR UPDATE;
+
+-- name: GetDevicePolicySnapshot :one
+SELECT authorization_id, schema_version, policy, created_at
+FROM deviceauth.device_policy_snapshots
+WHERE authorization_id = $1;
+
 -- name: FindDeviceAccessToken :one
 SELECT f.id AS family_id, f.authorization_id, f.state AS family_state,
        f.state_version AS family_state_version, f.access_expires_at,
@@ -98,10 +168,23 @@ UPDATE deviceauth.device_refresh_tokens
 SET state='revoked', revoked_at=$2
 WHERE family_id=$1 AND state='active';
 
+-- name: RevokeDeviceTokenFamily :execrows
+UPDATE deviceauth.device_token_families
+SET state='revoked', state_version=state_version+1, updated_at=$2
+WHERE id=$1 AND state IN ('active','compromised');
+
 -- name: ActivateProvisionalAuthorization :execrows
-UPDATE deviceauth.device_authorizations
-SET state='active', state_version=state_version+1, provisional_until=NULL, updated_at=$2
-WHERE principal_id=$1 AND state='provisional' AND provisional_until >= $2;
+WITH locked AS (
+  SELECT source.id
+  FROM deviceauth.device_authorizations AS source
+  WHERE source.principal_id=$1 AND source.state='provisional' AND source.provisional_until >= $2
+  ORDER BY source.id
+  FOR UPDATE NOWAIT
+)
+UPDATE deviceauth.device_authorizations AS target
+SET state='active', state_version=target.state_version+1, provisional_until=NULL, updated_at=$2
+FROM locked
+WHERE target.id=locked.id;
 
 -- name: RevokeDeviceAuthorization :execrows
 UPDATE deviceauth.device_authorizations

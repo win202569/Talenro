@@ -16,8 +16,13 @@ import (
 )
 
 const (
-	challengeRecordPrefix = "TALENRO-DEVICE-CHALLENGE-V1\x00"
-	deviceChallengeTTL    = 2 * time.Minute
+	challengeRecordPrefix          = "TALENRO-DEVICE-CHALLENGE-V1\x00"
+	deviceChallengeTTL             = 2 * time.Minute
+	deviceRotationProtocolVersion  = "device-token-rotation-v1"
+	rotateDeviceTokenOperation     = "rotate_device_token"
+	maximumChallengeKindBytes      = len(ChallengeRegistration)
+	maximumChallengeProtocolBytes  = len(deviceRotationProtocolVersion)
+	maximumChallengeOperationBytes = len(rotateDeviceTokenOperation)
 )
 
 var (
@@ -90,17 +95,17 @@ func decodeChallengeRecord(challengeID string, wire []byte) (ChallengeRecord, er
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
 	offset := len(challengeRecordPrefix)
-	kind, next, ok := decodeChallengeRecordString(wire, offset, len(ChallengeRegistration))
+	kind, next, ok := decodeChallengeRecordString(wire, offset, maximumChallengeKindBytes)
 	if !ok {
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
 	offset = next
-	protocol, next, ok := decodeChallengeRecordString(wire, offset, len(deviceProofProtocolVersion))
+	protocol, next, ok := decodeChallengeRecordString(wire, offset, maximumChallengeProtocolBytes)
 	if !ok {
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
 	offset = next
-	operation, next, ok := decodeChallengeRecordString(wire, offset, len(registerDeviceOperation))
+	operation, next, ok := decodeChallengeRecordString(wire, offset, maximumChallengeOperationBytes)
 	if !ok || next+sha256.Size*3+8 != len(wire) {
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
@@ -127,13 +132,13 @@ func appendChallengeRecordString(target, value []byte) []byte {
 	return append(target, value...)
 }
 
-func decodeChallengeRecordString(wire []byte, offset, exactLength int) (string, int, bool) {
+func decodeChallengeRecordString(wire []byte, offset, maximumLength int) (string, int, bool) {
 	if offset+2 > len(wire) {
 		return "", 0, false
 	}
 	length := int(binary.BigEndian.Uint16(wire[offset : offset+2]))
 	offset += 2
-	if length != exactLength || offset+length > len(wire) {
+	if length == 0 || length > maximumLength || offset+length > len(wire) {
 		return "", 0, false
 	}
 	return string(wire[offset : offset+length]), offset + length, true
@@ -141,8 +146,9 @@ func decodeChallengeRecordString(wire []byte, offset, exactLength int) (string, 
 
 func validChallengeRecord(record ChallengeRecord) bool {
 	parsedID, err := uuid.Parse(record.ChallengeID)
-	return err == nil && parsedID != uuid.Nil && parsedID.String() == record.ChallengeID &&
-		record.Kind == ChallengeRegistration && record.ProtocolVersion == deviceProofProtocolVersion && record.Operation == registerDeviceOperation &&
+	validContract := (record.Kind == ChallengeRegistration && record.ProtocolVersion == deviceProofProtocolVersion && record.Operation == registerDeviceOperation) ||
+		(record.Kind == ChallengeRotation && record.ProtocolVersion == deviceRotationProtocolVersion && record.Operation == rotateDeviceTokenOperation)
+	return err == nil && parsedID != uuid.Nil && parsedID.String() == record.ChallengeID && validContract &&
 		record.Challenge != [sha256.Size]byte{} && record.GrantDigest != [sha256.Size]byte{} && record.ContextDigest != [sha256.Size]byte{} &&
 		!record.ExpiresAt.IsZero() && record.ExpiresAt.Year() >= 2020 && record.ExpiresAt.Year() <= 2100
 }

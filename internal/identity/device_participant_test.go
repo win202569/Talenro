@@ -15,8 +15,29 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
+	"talenro.local/platform/internal/apierrors"
+	"talenro.local/platform/internal/secret"
+	"talenro.local/platform/internal/securitykit"
 	"talenro.local/platform/internal/store"
 )
+
+func TestAccountAuthenticatorRejectsDeviceDomainAccessToken(t *testing.T) {
+	raw := secret.NewBytes(bytes.Repeat([]byte{0x7c}, 32))
+	defer raw.Clear()
+	transaction := activeTask10Transaction()
+	deviceDigest := securitykit.DigestToken(securitykit.DeviceAccessToken, raw)
+	transaction.accessFound = true
+	transaction.accessDigest = bytes.Clone(deviceDigest[:])
+	transaction.access = store.FindAccountAccessTokenRow{
+		ID: uuid.New(), PrincipalID: transaction.account.ID, State: "active", StateVersion: 1,
+		AccessExpiresAt: fixedTask10Time.Add(time.Minute), AbsoluteExpiresAt: fixedTask10Time.Add(time.Hour), AccountState: "active",
+	}
+	application, _, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
+	if _, err := application.Authenticate(context.Background(), raw); publicTask10Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("device-domain digest on account route = %v, want authentication failure", err)
+	}
+}
 
 func TestPostgresRepositoryValidatesDeviceEnrollmentInsideCallerTransaction(t *testing.T) {
 	t.Parallel()
@@ -290,6 +311,151 @@ func TestPostgresRepositoryBindsAndRevokesDeviceSessionsThroughCallerDBTX(t *tes
 	}
 }
 
+func TestPostgresRepositoryValidatesDeviceAccountAndRevocationAuthorityLast(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 11, 1, 2, 3, 0, time.UTC)
+	principalID := uuid.MustParse("bc2d2fd3-a51a-4d3f-9f36-d5df75bb79dc")
+	sessionID := uuid.MustParse("61ca9232-71e0-466e-9833-506f52b457e4")
+	password := []byte("TASK13-current-password")
+	passwordHash := bytes.Repeat([]byte{0x51}, 32)
+	database := &deviceParticipantDBTX{
+		credential: store.IdentityPasswordCredential{
+			PrincipalID: principalID, PolicyVersion: 1, MemoryKib: 65536, TimeCost: 3, Parallelism: 4,
+			Salt: bytes.Repeat([]byte{0x31}, 16), PasswordHash: bytes.Clone(passwordHash), UpdatedAt: now.Add(-time.Hour),
+		},
+		sessions: []store.IdentityAccountSession{{
+			ID: sessionID, PrincipalID: principalID, State: "active", AccessExpiresAt: now.Add(time.Minute), AbsoluteExpiresAt: now.Add(time.Hour),
+		}},
+		account: store.IdentityAccount{ID: principalID, State: "active", StateVersion: 9},
+	}
+	repository := &PostgresRepository{derive: func(candidate, _ []byte, _ PasswordPolicy) []byte {
+		if bytes.Equal(candidate, password) {
+			return bytes.Clone(passwordHash)
+		}
+		return bytes.Repeat([]byte{0xa7}, len(passwordHash))
+	}}
+	participant := DeviceTransactionParticipant(repository)
+
+	active, err := participant.ValidateDeviceAccountAuthority(context.Background(), database, PrincipalID(principalID.String()), now)
+	if err != nil || !active {
+		t.Fatalf("validate device account authority = (%v, %v), want active", active, err)
+	}
+	if got := strings.Join(database.operations, ","); got != "account" {
+		t.Fatalf("account authority order = %q, want account", got)
+	}
+	database.account.State = "pending_email"
+	if allowed, err := participant.ValidateDeviceAccountAuthority(context.Background(), database, PrincipalID(principalID.String()), now); err != nil || !allowed {
+		t.Fatalf("provisional device account authority = (%v, %v), want grace authority", allowed, err)
+	}
+	database.account.State = "suspended"
+	if allowed, err := participant.ValidateDeviceAccountAuthority(context.Background(), database, PrincipalID(principalID.String()), now); err != nil || allowed {
+		t.Fatalf("suspended device account authority = (%v, %v), want finite rejection", allowed, err)
+	}
+	database.account.State = "active"
+	database.operations = nil
+
+	request := DeviceRevocationRequest{
+		PrincipalID: PrincipalID(principalID.String()),
+		Reauthentication: Reauthentication{
+			SessionID: SessionID(sessionID.String()), Method: ReauthPassword, Proof: secret.NewBytes(password),
+		},
+	}
+	defer request.Reauthentication.Proof.Clear()
+	authority, found, err := participant.ValidateDeviceRevocation(context.Background(), database, request, now)
+	if err != nil || !found {
+		t.Fatalf("validate revocation = (found %v, error %v)", found, err)
+	}
+	if authority.PrincipalID() != request.PrincipalID || authority.SessionID() != request.Reauthentication.SessionID {
+		t.Fatal("revocation authority did not preserve the exact verified identity authority")
+	}
+	if got := strings.Join(database.operations, ","); got != "credential,sessions,account" {
+		t.Fatalf("revocation identity lock order = %q, want credential,sessions,account", got)
+	}
+
+	badProof := request
+	badProof.Reauthentication.Proof = secret.NewBytes([]byte("TASK13-wrong-password"))
+	defer badProof.Reauthentication.Proof.Clear()
+	database.operations = nil
+	if _, found, err := participant.ValidateDeviceRevocation(context.Background(), database, badProof, now); err != nil || found {
+		t.Fatalf("wrong reauthentication = (found %v, error %v), want finite rejection", found, err)
+	}
+}
+
+func TestPostgresRepositoryRecordsOnlyFixedDeviceReplaySecurityCategory(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 8, 11, 2, 3, 4, 0, time.UTC)
+	eventID := uuid.MustParse("73fb40c1-7c56-4f4a-8518-2c1529d134ac")
+	authorizationID := uuid.MustParse("7e2298b0-cb0c-4af1-a70a-704e3756f95f")
+	record, err := NewDeviceTokenReplaySecurityRecord(eventID, authorizationID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	database := &deviceParticipantDBTX{}
+	participant := DeviceTransactionParticipant(&PostgresRepository{})
+	if err := participant.RecordDeviceTokenReplay(context.Background(), database, record, now); err != nil {
+		t.Fatal(err)
+	}
+	if database.eventID != eventID || database.eventCategory != "device_token_replay" || database.eventFingerprint != "deviceauth.refresh_replay" {
+		t.Fatal("device replay participant did not write the fixed security classification")
+	}
+}
+
+func TestClearPasswordCredentialErasesOwnedSaltAndHash(t *testing.T) {
+	t.Parallel()
+	credential, err := NewPasswordCredential(CurrentPasswordPolicy(), bytes.Repeat([]byte{0x91}, 16), bytes.Repeat([]byte{0x92}, 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	saltOwner, hashOwner := credential.salt, credential.hash
+	clearPasswordCredential(&credential)
+	if credential.policy != (PasswordPolicy{}) || credential.salt != nil || credential.hash != nil || credential.dummy {
+		t.Fatal("cleared password credential retained policy or ownership")
+	}
+	for _, owner := range [][]byte{saltOwner, hashOwner} {
+		for _, value := range owner {
+			if value != 0 {
+				t.Fatal("password credential clear left owned bytes")
+			}
+		}
+	}
+}
+
+func TestDeviceParticipantTask13AuthoritiesRedactDiagnosticsAndRejectJSON(t *testing.T) {
+	t.Parallel()
+
+	principal := PrincipalID("bc2d2fd3-a51a-4d3f-9f36-d5df75bb79dc")
+	session := SessionID("61ca9232-71e0-466e-9833-506f52b457e4")
+	request := DeviceRevocationRequest{
+		PrincipalID:      principal,
+		Reauthentication: Reauthentication{SessionID: session, Method: ReauthPassword, Proof: secret.NewBytes([]byte("TASK13-secret-proof"))},
+	}
+	defer request.Reauthentication.Proof.Clear()
+	authority, err := NewDeviceRevocationAuthority(principal, session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err := NewDeviceTokenReplaySecurityRecord(
+		uuid.MustParse("73fb40c1-7c56-4f4a-8518-2c1529d134ac"),
+		uuid.MustParse("7e2298b0-cb0c-4af1-a70a-704e3756f95f"),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []any{request, authority, record} {
+		rendered := fmt.Sprintf("%+v", value)
+		for _, forbidden := range []string{string(principal), string(session), "TASK13-secret-proof", "73fb40c1", "7e2298b0"} {
+			if strings.Contains(rendered, forbidden) {
+				t.Fatalf("diagnostic formatting exposed %q in %q", forbidden, rendered)
+			}
+		}
+		if _, err := json.Marshal(value); err == nil {
+			t.Fatalf("generic JSON serialization succeeded for %T", value)
+		}
+	}
+}
+
 type deviceParticipantDBTX struct {
 	grant            store.GetGrantForChallengeRow
 	grantErr         error
@@ -297,6 +463,8 @@ type deviceParticipantDBTX struct {
 	sessionsErr      error
 	account          store.IdentityAccount
 	accountErr       error
+	credential       store.IdentityPasswordCredential
+	credentialErr    error
 	bindRows         int64
 	revokeRows       int64
 	operations       []string
@@ -351,6 +519,16 @@ func (database *deviceParticipantDBTX) QueryRow(_ context.Context, query string,
 			database.account.ID, database.account.State, database.account.StateVersion, database.account.Locale,
 			database.account.CreatedAt, database.account.UpdatedAt,
 		}, err: database.accountErr}
+	case strings.Contains(query, "identity.password_credentials"):
+		database.operations = append(database.operations, "credential")
+		return deviceParticipantRow{values: []any{
+			database.credential.PrincipalID, database.credential.PolicyVersion, database.credential.MemoryKib,
+			database.credential.TimeCost, database.credential.Parallelism, database.credential.Salt,
+			database.credential.PasswordHash, database.credential.ResetTokenHash, database.credential.ResetExpiresAt,
+			database.credential.ResetConsumedAt, database.credential.ResetDeliveryID,
+			database.credential.ResetDeliveryCiphertext, database.credential.ResetDeliveryKeyVersion,
+			database.credential.UpdatedAt,
+		}, err: database.credentialErr}
 	default:
 		return deviceParticipantRow{err: errors.New("unexpected QueryRow call")}
 	}
@@ -415,12 +593,16 @@ func assignDeviceParticipantValues(destinations, values []any) error {
 			*destination = values[index].(string)
 		case *int64:
 			*destination = values[index].(int64)
+		case *int32:
+			*destination = values[index].(int32)
 		case *time.Time:
 			*destination = values[index].(time.Time)
 		case *sql.NullTime:
 			*destination = values[index].(sql.NullTime)
 		case *uuid.NullUUID:
 			*destination = values[index].(uuid.NullUUID)
+		case *pgtype.Int4:
+			*destination = values[index].(pgtype.Int4)
 		default:
 			return fmt.Errorf("unexpected destination %T", destinations[index])
 		}

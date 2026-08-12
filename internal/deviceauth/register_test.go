@@ -6,7 +6,9 @@ import (
 	"crypto/ecdh"
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -169,13 +171,74 @@ func TestChallengeRegistrationBindsExactPublicContextAndRejectsRotationFields(t 
 		t.Fatal("challenge limiter did not receive the fixed operation and policy")
 	}
 
-	rotation := command
-	rotation.Kind = ChallengeRotation
-	rotation.RefreshToken = secret.NewBytes(bytes.Repeat([]byte{0x44}, 32))
-	rotation.EnrollmentGrant = secret.Bytes{}
-	if _, err := fixture.application.CreateChallenge(context.Background(), rotation); publicTask12Code(err) != apierrors.ActionNotAllowed {
-		t.Fatalf("Task13 rotation branch error = %v", err)
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x44}, 32))
+	defer refresh.Clear()
+	refreshDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, refresh)
+	familyID := uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07")
+	authorizationID := uuid.MustParse("fa01e838-cab9-414e-8f03-ed0418cd4f20")
+	deviceID := uuid.MustParse("f353613c-d08f-4141-b287-b37db9fb6f8e")
+	fixture.database.rotationRefresh = store.DiscoverDeviceRefreshTokenRow{
+		TokenHash: bytes.Clone(refreshDigest[:]), FamilyID: familyID, RefreshState: "active",
+		AuthorizationID: authorizationID, FamilyState: "active", AccessExpiresAt: fixedTask12Time.Add(time.Minute),
+		IdleExpiresAt: fixedTask12Time.Add(time.Hour), AbsoluteExpiresAt: fixedTask12Time.Add(24 * time.Hour),
+		PrincipalID: uuid.MustParse("a6493384-9407-4ad9-b220-7f3b49ef9054"), DeviceID: deviceID,
+		AuthorizationState: "active", DeviceState: "active", SigningPublicKey: bytes.Repeat([]byte{0x71}, 32), KeyVersion: 1,
 	}
+	fixture.database.rotationFamily = store.DeviceauthDeviceTokenFamily{
+		ID: familyID, AuthorizationID: authorizationID, State: "active", AccessExpiresAt: fixedTask12Time.Add(time.Minute),
+		IdleExpiresAt: fixedTask12Time.Add(time.Hour), AbsoluteExpiresAt: fixedTask12Time.Add(24 * time.Hour),
+	}
+	fixture.database.rotationAuthorization = store.DeviceauthDeviceAuthorization{
+		ID: authorizationID, PrincipalID: fixture.database.rotationRefresh.PrincipalID, DeviceID: deviceID, State: "active",
+	}
+	fixture.database.rotationDevice = store.DeviceauthDevice{
+		ID: deviceID, PrincipalID: fixture.database.rotationRefresh.PrincipalID, State: "active",
+		SigningPublicKey: bytes.Clone(fixture.database.rotationRefresh.SigningPublicKey), KeyVersion: 1,
+	}
+	fixture.database.rotationLockedRefresh = []store.DeviceauthDeviceRefreshToken{{
+		TokenHash: bytes.Clone(refreshDigest[:]), FamilyID: familyID, State: "active", IssuedAt: fixedTask12Time.Add(-time.Minute),
+	}}
+	rotation := CreateChallengeCommand{
+		Kind: ChallengeRotation, RefreshToken: refresh, RequestNonce: [32]byte{0x91}, IdempotencyKey: "task13-rotation-challenge-0001",
+	}
+	rotationChallenge, err := fixture.application.CreateChallenge(context.Background(), rotation)
+	if err != nil {
+		t.Fatalf("create rotation challenge: %v", err)
+	}
+	rotationRecord := fixture.challenges.records[rotationChallenge.ChallengeID]
+	wantRotationContext := task13RotationContextDigest(familyID, rotation.RequestNonce, "https://api.example.test")
+	if rotationRecord.Kind != ChallengeRotation || rotationRecord.ProtocolVersion != "device-token-rotation-v1" ||
+		rotationRecord.Operation != "rotate_device_token" || rotationRecord.GrantDigest != refreshDigest ||
+		rotationRecord.ContextDigest != wantRotationContext {
+		t.Fatal("rotation challenge did not bind the authoritative family and exact public request context")
+	}
+	if got := strings.Join(fixture.database.rotationOperations, ","); got != "discover_refresh,lock_refresh,family,authorization,device,account,list_refresh" {
+		t.Fatalf("rotation authority order = %q", got)
+	}
+	if fixture.limiter.remoteInsideTransaction.Load() || fixture.challenges.remoteInsideTransaction.Load() {
+		t.Fatal("rotation limiter or Redis ran inside the PostgreSQL transaction")
+	}
+
+	malformedRotation := rotation
+	malformedRotation.SigningPublicKey = [32]byte{1}
+	if _, err := fixture.application.CreateChallenge(context.Background(), malformedRotation); publicTask12Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("rotation with registration key error = %v", err)
+	}
+}
+
+func task13RotationContextDigest(familyID uuid.UUID, requestNonce [32]byte, audience string) [32]byte {
+	material := []byte("TALENRO-DEVICE-ROTATION-CONTEXT-V1\x00")
+	for _, part := range [][]byte{[]byte("rotation"), []byte("device-token-rotation-v1"), []byte("rotate_device_token"), []byte(audience)} {
+		var length [4]byte
+		binary.BigEndian.PutUint32(length[:], uint32(len(part))) // #nosec G115 -- literal test fixtures are bounded.
+		material = append(material, length[:]...)
+		material = append(material, part...)
+	}
+	material = append(material, familyID[:]...)
+	material = append(material, requestNonce[:]...)
+	digest := sha256.Sum256(material)
+	clear(material)
+	return digest
 }
 
 func TestConcurrentRegistrationUsingOneGrantCreatesOneGraph(t *testing.T) {
@@ -888,6 +951,22 @@ func (participant *task12IdentityParticipant) ValidateDeviceEnrollment(_ context
 	return participant.authority, participant.found, nil
 }
 
+func (participant *task12IdentityParticipant) ValidateDeviceAccountAuthority(_ context.Context, dbtx store.DBTX, _ identity.PrincipalID, _ time.Time) (bool, error) {
+	if dbtx != participant.database {
+		return false, errors.New("wrong caller DBTX")
+	}
+	participant.database.rotationOperations = append(participant.database.rotationOperations, "account")
+	return true, nil
+}
+
+func (*task12IdentityParticipant) ValidateDeviceRevocation(context.Context, store.DBTX, identity.DeviceRevocationRequest, time.Time) (identity.DeviceRevocationAuthority, bool, error) {
+	return identity.DeviceRevocationAuthority{}, false, errors.New("Task13 unavailable")
+}
+
+func (*task12IdentityParticipant) RecordDeviceTokenReplay(context.Context, store.DBTX, identity.DeviceTokenReplaySecurityRecord, time.Time) error {
+	return errors.New("Task13 unavailable")
+}
+
 func (participant *task12IdentityParticipant) BindSessionToAuthorization(_ context.Context, dbtx store.DBTX, _ identity.SessionID, _ uuid.UUID, _ time.Time) error {
 	if dbtx != participant.database {
 		return errors.New("wrong caller DBTX")
@@ -1039,6 +1118,12 @@ type task12Database struct {
 	replayBodyOwner       []byte
 	finalReplayBody       []byte
 	beginIdempotencyCalls int
+	rotationRefresh       store.DiscoverDeviceRefreshTokenRow
+	rotationFamily        store.DeviceauthDeviceTokenFamily
+	rotationAuthorization store.DeviceauthDeviceAuthorization
+	rotationDevice        store.DeviceauthDevice
+	rotationLockedRefresh []store.DeviceauthDeviceRefreshToken
+	rotationOperations    []string
 }
 
 func newTask12Database(protector sensitive.Protector) *task12Database {
@@ -1058,10 +1143,122 @@ func (database *task12Database) Exec(ctx context.Context, query string, argument
 	return database.idempotencyDB.Exec(ctx, query, arguments...)
 }
 func (database *task12Database) Query(ctx context.Context, query string, arguments ...any) (pgx.Rows, error) {
+	if strings.Contains(query, "FROM deviceauth.device_refresh_tokens") && strings.Contains(query, "ORDER BY token_hash") {
+		operation := "list_refresh"
+		if strings.Contains(query, "FOR UPDATE") {
+			operation = "lock_refresh"
+		}
+		database.rotationOperations = append(database.rotationOperations, operation)
+		return &task13RotationRows{refresh: database.rotationLockedRefresh}, nil
+	}
 	return database.idempotencyDB.Query(ctx, query, arguments...)
 }
 func (database *task12Database) QueryRow(ctx context.Context, query string, arguments ...any) pgx.Row {
+	switch {
+	case strings.Contains(query, "FROM deviceauth.device_refresh_tokens r") && !strings.Contains(query, "FOR UPDATE"):
+		database.rotationOperations = append(database.rotationOperations, "discover_refresh")
+		row := database.rotationRefresh
+		return task13RotationRow{values: []any{
+			row.TokenHash, row.FamilyID, row.PreviousTokenHash, row.RefreshState, row.IssuedAt, row.UsedAt, row.RevokedAt,
+			row.AuthorizationID, row.FamilyState, row.FamilyStateVersion, row.AccessExpiresAt, row.IdleExpiresAt, row.AbsoluteExpiresAt,
+			row.PrincipalID, row.DeviceID, row.AuthorizationState, row.AuthorizationStateVersion, row.ProvisionalUntil,
+			row.DeviceState, row.SigningPublicKey, row.KeyVersion,
+		}}
+	case strings.Contains(query, "FROM deviceauth.device_token_families") && strings.Contains(query, "FOR UPDATE"):
+		database.rotationOperations = append(database.rotationOperations, "family")
+		row := database.rotationFamily
+		return task13RotationRow{values: []any{
+			row.ID, row.AuthorizationID, row.State, row.StateVersion, row.AccessTokenHash, row.AccessExpiresAt,
+			row.IdleExpiresAt, row.AbsoluteExpiresAt, row.CreatedAt, row.UpdatedAt,
+		}}
+	case strings.Contains(query, "FROM deviceauth.device_authorizations") && strings.Contains(query, "FOR UPDATE"):
+		database.rotationOperations = append(database.rotationOperations, "authorization")
+		row := database.rotationAuthorization
+		return task13RotationRow{values: []any{
+			row.ID, row.PrincipalID, row.DeviceID, row.State, row.StateVersion, row.ProvisionalUntil, row.CreatedAt, row.UpdatedAt,
+		}}
+	case strings.Contains(query, "FROM deviceauth.devices") && strings.Contains(query, "FOR UPDATE"):
+		database.rotationOperations = append(database.rotationOperations, "device")
+		row := database.rotationDevice
+		return task13RotationRow{values: []any{
+			row.ID, row.PrincipalID, row.DisplayNameCiphertext, row.DisplayNameKeyVersion, row.SigningPublicKey,
+			row.HpkePublicKey, row.KeyVersion, row.State, row.CreatedAt, row.UpdatedAt,
+		}}
+	}
 	return database.idempotencyDB.QueryRow(ctx, query, arguments...)
+}
+
+type task13RotationRows struct {
+	refresh []store.DeviceauthDeviceRefreshToken
+	index   int
+}
+
+func (*task13RotationRows) Close()                                       {}
+func (*task13RotationRows) Err() error                                   { return nil }
+func (*task13RotationRows) CommandTag() pgconn.CommandTag                { return pgconn.CommandTag{} }
+func (*task13RotationRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
+func (rows *task13RotationRows) Next() bool {
+	if rows.index >= len(rows.refresh) {
+		return false
+	}
+	rows.index++
+	return true
+}
+func (rows *task13RotationRows) Scan(destinations ...any) error {
+	if rows.index == 0 || rows.index > len(rows.refresh) {
+		return errors.New("rotation Scan without current row")
+	}
+	row := rows.refresh[rows.index-1]
+	return task13AssignRotationValues(destinations, []any{
+		row.TokenHash, row.FamilyID, row.PreviousTokenHash, row.State, row.IssuedAt, row.UsedAt, row.RevokedAt,
+	})
+}
+func (*task13RotationRows) Values() ([]any, error) { return nil, errors.New("unused") }
+func (*task13RotationRows) RawValues() [][]byte    { return nil }
+func (*task13RotationRows) Conn() *pgx.Conn        { return nil }
+
+type task13RotationRow struct{ values []any }
+
+func (row task13RotationRow) Scan(destinations ...any) error {
+	return task13AssignRotationValues(destinations, row.values)
+}
+
+func task13AssignRotationValues(destinations, values []any) error {
+	if len(destinations) != len(values) {
+		return errors.New("unexpected rotation destination count")
+	}
+	for index := range destinations {
+		switch destination := destinations[index].(type) {
+		case *uuid.UUID:
+			*destination = values[index].(uuid.UUID)
+		case *[]byte:
+			*destination = bytes.Clone(values[index].([]byte))
+		case *json.RawMessage:
+			switch value := values[index].(type) {
+			case []byte:
+				*destination = bytes.Clone(value)
+			case json.RawMessage:
+				*destination = bytes.Clone(value)
+			default:
+				return fmt.Errorf("unexpected JSON rotation value %T", values[index])
+			}
+		case *string:
+			*destination = values[index].(string)
+		case *int64:
+			*destination = values[index].(int64)
+		case *int32:
+			*destination = values[index].(int32)
+		case *time.Time:
+			*destination = values[index].(time.Time)
+		case *sql.NullTime:
+			*destination = values[index].(sql.NullTime)
+		case *pgtype.Int4:
+			*destination = values[index].(pgtype.Int4)
+		default:
+			return fmt.Errorf("unexpected rotation destination %T", destinations[index])
+		}
+	}
+	return nil
 }
 
 type task12DatabaseSnapshot struct {

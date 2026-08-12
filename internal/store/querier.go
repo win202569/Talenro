@@ -38,6 +38,9 @@ type Querier interface {
 	CreatePasswordCredential(ctx context.Context, arg CreatePasswordCredentialParams) error
 	CreateRecoveryCodeSet(ctx context.Context, arg CreateRecoveryCodeSetParams) error
 	CreateTOTPEnrollment(ctx context.Context, arg CreateTOTPEnrollmentParams) (int64, error)
+	DiscoverDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (DiscoverDeviceAccessTokenRow, error)
+	DiscoverDeviceAuthorization(ctx context.Context, deviceID uuid.UUID) (DeviceauthDeviceAuthorization, error)
+	DiscoverDeviceRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverDeviceRefreshTokenRow, error)
 	DiscoverRefreshToken(ctx context.Context, tokenHash []byte) (DiscoverRefreshTokenRow, error)
 	FindAccountAccessToken(ctx context.Context, accessTokenHash []byte) (FindAccountAccessTokenRow, error)
 	FindDeviceAccessToken(ctx context.Context, accessTokenHash []byte) (FindDeviceAccessTokenRow, error)
@@ -50,7 +53,10 @@ type Querier interface {
 	GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceAuthorization, error)
 	GetBundleByLocatorHash(ctx context.Context, arg GetBundleByLocatorHashParams) (TrustBundleIssuance, error)
 	GetBundleIssuance(ctx context.Context, id uuid.UUID) (TrustBundleIssuance, error)
+	GetDeviceForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDevice, error)
+	GetDevicePolicySnapshot(ctx context.Context, authorizationID uuid.UUID) (DeviceauthDevicePolicySnapshot, error)
 	GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byte) (GetDeviceRefreshForUpdateRow, error)
+	GetDeviceTokenFamilyForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceTokenFamily, error)
 	GetEmailVerificationForUpdate(ctx context.Context, verificationTokenHash []byte) (IdentityEmailIdentity, error)
 	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
 	GetHighestBundleVersion(ctx context.Context, authorizationID uuid.UUID) (int64, error)
@@ -72,10 +78,13 @@ type Querier interface {
 	InsertSigningKeyMetadata(ctx context.Context, arg InsertSigningKeyMetadataParams) error
 	InsertTrustRootMetadata(ctx context.Context, arg InsertTrustRootMetadataParams) error
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
+	ListDeviceAuthorizationFamilies(ctx context.Context, authorizationID uuid.UUID) ([]DeviceauthDeviceTokenFamily, error)
+	ListDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error)
 	ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)
 	ListTrustRootMetadata(ctx context.Context) ([]TrustTrustRootMetadatum, error)
+	LockDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error)
 	LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error
 	LockPrincipalAccountSessions(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountSession, error)
 	LockPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
@@ -98,6 +107,7 @@ type Querier interface {
 	RevokeDeviceBoundAccountSessions(ctx context.Context, arg RevokeDeviceBoundAccountSessionsParams) (int64, error)
 	RevokeDeviceRecord(ctx context.Context, arg RevokeDeviceRecordParams) (int64, error)
 	RevokeDeviceRefreshTokens(ctx context.Context, arg RevokeDeviceRefreshTokensParams) (int64, error)
+	RevokeDeviceTokenFamily(ctx context.Context, arg RevokeDeviceTokenFamilyParams) (int64, error)
 	RevokePasskey(ctx context.Context, arg RevokePasskeyParams) (int64, error)
 	RevokePrincipalAccountSessions(ctx context.Context, arg RevokePrincipalAccountSessionsParams) ([]uuid.UUID, error)
 	RevokeRecoveryCodeSets(ctx context.Context, arg RevokeRecoveryCodeSetsParams) (int64, error)

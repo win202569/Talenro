@@ -114,6 +114,49 @@ type DeviceEnrollmentAuthority struct {
 	provisionalUntil time.Time
 }
 
+// DeviceRevocationRequest contains only the identity-owned authority proof used by deviceauth.
+type DeviceRevocationRequest struct {
+	PrincipalID      PrincipalID
+	Reauthentication Reauthentication
+}
+
+// DeviceRevocationAuthority is the finite verified identity authority returned inside a caller transaction.
+type DeviceRevocationAuthority struct {
+	principalID PrincipalID
+	sessionID   SessionID
+}
+
+// DeviceTokenReplaySecurityRecord is the bounded identity security classification for device refresh replay.
+type DeviceTokenReplaySecurityRecord struct {
+	eventID         uuid.UUID
+	authorizationID uuid.UUID
+}
+
+// NewDeviceRevocationAuthority constructs a verified identity authority without exposing storage state.
+func NewDeviceRevocationAuthority(principalID PrincipalID, sessionID SessionID) (DeviceRevocationAuthority, error) {
+	if _, err := canonicalIdentityUUID(string(principalID)); err != nil {
+		return DeviceRevocationAuthority{}, ErrRepository
+	}
+	if _, err := canonicalIdentityUUID(string(sessionID)); err != nil {
+		return DeviceRevocationAuthority{}, ErrRepository
+	}
+	return DeviceRevocationAuthority{principalID: principalID, sessionID: sessionID}, nil
+}
+
+// PrincipalID returns the verified account principal by value.
+func (authority DeviceRevocationAuthority) PrincipalID() PrincipalID { return authority.principalID }
+
+// SessionID returns the verified account session by value.
+func (authority DeviceRevocationAuthority) SessionID() SessionID { return authority.sessionID }
+
+// NewDeviceTokenReplaySecurityRecord constructs the fixed replay classification identifiers.
+func NewDeviceTokenReplaySecurityRecord(eventID, authorizationID uuid.UUID) (DeviceTokenReplaySecurityRecord, error) {
+	if eventID == uuid.Nil || authorizationID == uuid.Nil {
+		return DeviceTokenReplaySecurityRecord{}, ErrRepository
+	}
+	return DeviceTokenReplaySecurityRecord{eventID: eventID, authorizationID: authorizationID}, nil
+}
+
 // NewDeviceEnrollmentAuthority constructs one finite enrollment authority without exposing storage details.
 func NewDeviceEnrollmentAuthority(principalID PrincipalID, sessionID SessionID, policyMarker string, provisionalUntil time.Time) (DeviceEnrollmentAuthority, error) {
 	if _, err := canonicalIdentityUUID(string(principalID)); err != nil {
@@ -264,6 +307,9 @@ type Application interface {
 // DeviceTransactionParticipant is implemented by identity and used by deviceauth.
 type DeviceTransactionParticipant interface {
 	ValidateDeviceEnrollment(context.Context, store.DBTX, [32]byte, time.Time) (DeviceEnrollmentAuthority, bool, error)
+	ValidateDeviceAccountAuthority(context.Context, store.DBTX, PrincipalID, time.Time) (bool, error)
+	ValidateDeviceRevocation(context.Context, store.DBTX, DeviceRevocationRequest, time.Time) (DeviceRevocationAuthority, bool, error)
+	RecordDeviceTokenReplay(context.Context, store.DBTX, DeviceTokenReplaySecurityRecord, time.Time) error
 	BindSessionToAuthorization(context.Context, store.DBTX, SessionID, uuid.UUID, time.Time) error
 	RevokeAuthorizationSessions(context.Context, store.DBTX, uuid.UUID, time.Time) error
 }
@@ -428,6 +474,51 @@ func (DeviceEnrollmentAuthority) LogValue() slog.Value {
 // MarshalJSON forbids direct enrollment authority serialization.
 func (DeviceEnrollmentAuthority) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("identity: device enrollment authority serialization forbidden")
+}
+
+// Format redacts the device revocation request.
+func (DeviceRevocationRequest) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.DeviceRevocationRequest([REDACTED])"))
+}
+
+// LogValue redacts the device revocation request.
+func (DeviceRevocationRequest) LogValue() slog.Value {
+	return slog.StringValue("identity.DeviceRevocationRequest([REDACTED])")
+}
+
+// MarshalJSON forbids direct device revocation request serialization.
+func (DeviceRevocationRequest) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: device revocation request serialization forbidden")
+}
+
+// Format redacts verified device revocation authority.
+func (DeviceRevocationAuthority) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.DeviceRevocationAuthority([REDACTED])"))
+}
+
+// LogValue redacts verified device revocation authority.
+func (DeviceRevocationAuthority) LogValue() slog.Value {
+	return slog.StringValue("identity.DeviceRevocationAuthority([REDACTED])")
+}
+
+// MarshalJSON forbids direct device revocation authority serialization.
+func (DeviceRevocationAuthority) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: device revocation authority serialization forbidden")
+}
+
+// Format redacts the device replay security record.
+func (DeviceTokenReplaySecurityRecord) Format(state fmt.State, _ rune) {
+	_, _ = state.Write([]byte("identity.DeviceTokenReplaySecurityRecord([REDACTED])"))
+}
+
+// LogValue redacts the device replay security record.
+func (DeviceTokenReplaySecurityRecord) LogValue() slog.Value {
+	return slog.StringValue("identity.DeviceTokenReplaySecurityRecord([REDACTED])")
+}
+
+// MarshalJSON forbids direct device replay record serialization.
+func (DeviceTokenReplaySecurityRecord) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("identity: device replay record serialization forbidden")
 }
 
 // Format redacts every session-token field.
