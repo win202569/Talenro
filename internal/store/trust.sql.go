@@ -77,6 +77,33 @@ func (q *Queries) GetHighestBundleVersion(ctx context.Context, authorizationID u
 	return highest_issued, err
 }
 
+const getLatestBundleIssuance = `-- name: GetLatestBundleIssuance :one
+SELECT id, authorization_id, bundle_version, locator_hash, locator_ciphertext, locator_key_version, envelope, envelope_sha256, signer_key_id, issued_at, not_before, expires_at FROM trust.bundle_issuances
+WHERE authorization_id=$1
+ORDER BY bundle_version DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLatestBundleIssuance(ctx context.Context, authorizationID uuid.UUID) (TrustBundleIssuance, error) {
+	row := q.db.QueryRow(ctx, getLatestBundleIssuance, authorizationID)
+	var i TrustBundleIssuance
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorizationID,
+		&i.BundleVersion,
+		&i.LocatorHash,
+		&i.LocatorCiphertext,
+		&i.LocatorKeyVersion,
+		&i.Envelope,
+		&i.EnvelopeSha256,
+		&i.SignerKeyID,
+		&i.IssuedAt,
+		&i.NotBefore,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const insertBundleAcknowledgement = `-- name: InsertBundleAcknowledgement :exec
 INSERT INTO trust.bundle_acknowledgements
   (bundle_id, authorization_id, bundle_version, acknowledged_at)

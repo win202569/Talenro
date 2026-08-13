@@ -185,9 +185,38 @@ func TestTrustBundleStorageIsUniqueAndAcknowledgementIsIdempotent(t *testing.T) 
 		t.Fatal("immutable bundle bytes were not returned unchanged")
 	}
 
+	latest, err := queries.GetLatestBundleIssuance(ctx, authorizationID)
+	if err != nil {
+		t.Fatal("read latest bundle issuance failed")
+	}
+	if latest.ID != bundleID || latest.BundleVersion != 1 || !bytes.Equal(latest.Envelope, issuance.Envelope) {
+		t.Fatal("latest issuance did not return the immutable version-one row")
+	}
+
+	second := issuance
+	second.ID = uuid.New()
+	second.BundleVersion = 2
+	second.LocatorHash = bytes.Repeat([]byte{7}, 32)
+	second.LocatorCiphertext = bytes.Repeat([]byte{8}, 29)
+	second.Envelope = bytes.Repeat([]byte{9}, 64)
+	second.EnvelopeSha256 = bytes.Repeat([]byte{10}, 32)
+	second.IssuedAt = now.Add(time.Second)
+	second.NotBefore = now.Add(time.Second)
+	second.ExpiresAt = now.Add(24*time.Hour + time.Second)
+	if err := queries.InsertBundleIssuance(ctx, second); err != nil {
+		t.Fatal("insert second bundle issuance failed")
+	}
+	latest, err = queries.GetLatestBundleIssuance(ctx, authorizationID)
+	if err != nil {
+		t.Fatal("read second latest bundle issuance failed")
+	}
+	if latest.ID != second.ID || latest.BundleVersion != 2 || !bytes.Equal(latest.Envelope, second.Envelope) {
+		t.Fatal("latest issuance did not advance to the highest version")
+	}
+
 	duplicateLocator := issuance
 	duplicateLocator.ID = uuid.New()
-	duplicateLocator.BundleVersion = 2
+	duplicateLocator.BundleVersion = 3
 	if err := queries.InsertBundleIssuance(ctx, duplicateLocator); err == nil {
 		t.Fatal("duplicate locator hash was accepted")
 	}

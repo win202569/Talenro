@@ -61,6 +61,7 @@ type Querier interface {
 	GetGrantForChallenge(ctx context.Context, arg GetGrantForChallengeParams) (GetGrantForChallengeRow, error)
 	GetHighestBundleVersion(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
+	GetLatestBundleIssuance(ctx context.Context, authorizationID uuid.UUID) (TrustBundleIssuance, error)
 	GetNextRecoveryCodeGeneration(ctx context.Context, principalID uuid.UUID) (int32, error)
 	GetOutboxHealth(ctx context.Context, occurredAt time.Time) (GetOutboxHealthRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)

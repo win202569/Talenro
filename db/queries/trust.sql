@@ -45,3 +45,9 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12);
 
 -- name: GetBundleIssuance :one
 SELECT * FROM trust.bundle_issuances WHERE id=$1;
+
+-- name: GetLatestBundleIssuance :one
+SELECT * FROM trust.bundle_issuances
+WHERE authorization_id=$1
+ORDER BY bundle_version DESC
+LIMIT 1;
