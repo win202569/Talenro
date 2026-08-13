@@ -2,6 +2,7 @@ package controlapi
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"io"
 	"net/http"
@@ -27,7 +28,10 @@ func TestHealthRoutes(t *testing.T) {
 		testProbe{name: "postgres"},
 		testProbe{name: "redis", err: errors.New("redis://user:secret@example")},
 	)
-	router := controlapiv1.HandlerFromMux(NewHandler(checker), http.NewServeMux())
+	handler := NewHandler(checker, Applications{}, 5*time.Second, rand.Reader)
+	router := controlapiv1.HandlerWithOptions(handler, controlapiv1.StdHTTPServerOptions{
+		BaseRouter: http.NewServeMux(), ErrorHandlerFunc: handler.GeneratedParameterError,
+	})
 
 	tests := []struct {
 		path   string
@@ -50,5 +54,14 @@ func TestHealthRoutes(t *testing.T) {
 		if strings.Contains(string(body), "secret") || strings.Contains(string(body), "example") {
 			t.Fatalf("sensitive dependency error leaked: %s", body)
 		}
+	}
+}
+
+func TestNilReadinessCheckerFailsClosed(t *testing.T) {
+	handler := NewHandler(nil, Applications{}, time.Second, rand.Reader)
+	recorder := httptest.NewRecorder()
+	handler.GetReadiness(recorder, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/readyz", nil))
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 503; body=%s", recorder.Code, recorder.Body.String())
 	}
 }

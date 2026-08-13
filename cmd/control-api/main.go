@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -138,7 +139,10 @@ func openRuntime(ctx context.Context, cfg config.Config) (*openedRuntime, error)
 		natsprobe.Probe{Conn: deps.NATS},
 	)
 	mux := http.NewServeMux()
-	handler := controlapiv1.HandlerFromMux(controlapi.NewHandler(checker), mux)
+	apiHandler := controlapi.NewHandler(checker, controlapi.Applications{}, cfg.Security.RequestDeadline, rand.Reader)
+	handler := controlapiv1.HandlerWithOptions(apiHandler, controlapiv1.StdHTTPServerOptions{
+		BaseRouter: mux, ErrorHandlerFunc: apiHandler.GeneratedParameterError,
+	})
 
 	return &openedRuntime{
 		handler: handler,

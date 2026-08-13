@@ -571,20 +571,61 @@ func TestRevokeSessionsUsesOneGeneratedPrincipalScopeTransition(t *testing.T) {
 	transaction := activeTask10Transaction()
 	currentSession := uuid.MustParse("d12dca8a-ced3-471d-a6ad-55b228221f10")
 	transaction.sessionFound = true
-	transaction.session = store.IdentityAccountSession{ID: currentSession, PrincipalID: transaction.account.ID, State: "active", AbsoluteExpiresAt: fixedTask10Time.Add(time.Hour)}
-	application, _, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
+	transaction.session = store.IdentityAccountSession{
+		ID: currentSession, PrincipalID: transaction.account.ID, State: "active",
+		AccessExpiresAt: fixedTask10Time.Add(10 * time.Minute), AbsoluteExpiresAt: fixedTask10Time.Add(time.Hour),
+	}
+	application, deriver, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
+	proof := secret.NewBytes([]byte("correct horse battery staple"))
+	defer proof.Clear()
 	err := application.RevokeSessions(context.Background(), RevokeSessionsCommand{
 		PrincipalID: PrincipalID(transaction.account.ID.String()), Scope: RevokeOtherSessions,
-		SessionID: SessionID(currentSession.String()), IdempotencyKey: "abcdefghijklmnopqrstuv",
+		SessionID: SessionID(currentSession.String()),
+		Reauthentication: Reauthentication{
+			SessionID: SessionID(currentSession.String()), Method: ReauthPassword, Proof: proof,
+		},
+		IdempotencyKey: "abcdefghijklmnopqrstuv",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	if deriver.calls != 1 {
+		t.Fatalf("password reauthentication derivations = %d, want 1", deriver.calls)
+	}
 	if len(transaction.revokedParams.SessionIds) != 0 || len(transaction.revokedParams.TokenHashes) != 0 {
 		t.Fatalf("generated revoke params = %#v", transaction.revokedParams)
 	}
-	if !containsTask10Order(transaction.operations, []string{"begin_idempotency", "lock_principal_refresh", "lock_sessions", "get_account", "revoke_sessions", "complete_idempotency", "commit"}) {
+	if !containsTask10Order(transaction.operations, []string{
+		"get_credential", "get_session", "get_account", "begin_idempotency",
+		"lock_principal_refresh", "lock_sessions", "get_account", "revoke_sessions", "complete_idempotency", "commit",
+	}) {
 		t.Fatalf("revoke operation order = %v", transaction.operations)
+	}
+}
+
+func TestRevokeSessionsRejectsUnsupportedReauthenticationBeforeMutation(t *testing.T) {
+	transaction := activeTask10Transaction()
+	currentSession := uuid.MustParse("d12dca8a-ced3-471d-a6ad-55b228221f10")
+	transaction.sessionFound = true
+	transaction.session = store.IdentityAccountSession{
+		ID: currentSession, PrincipalID: transaction.account.ID, State: "active",
+		AccessExpiresAt: fixedTask10Time.Add(10 * time.Minute), AbsoluteExpiresAt: fixedTask10Time.Add(time.Hour),
+	}
+	application, deriver, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
+	proof := secret.NewBytes([]byte("123456"))
+	defer proof.Clear()
+	err := application.RevokeSessions(context.Background(), RevokeSessionsCommand{
+		PrincipalID: PrincipalID(transaction.account.ID.String()), Scope: RevokeAllSessions,
+		Reauthentication: Reauthentication{
+			SessionID: SessionID(currentSession.String()), Method: ReauthTOTP, Proof: proof,
+		},
+		IdempotencyKey: "abcdefghijklmnopqrstuv",
+	})
+	if publicTask10Code(err) != apierrors.ActionNotAllowed {
+		t.Fatalf("error = %v, want action_not_allowed", err)
+	}
+	if deriver.calls != 0 || len(transaction.operations) != 0 || transaction.revokedParams.SessionIds != nil {
+		t.Fatalf("unsupported reauthentication mutated state: deriver=%d operations=%v revoke=%#v", deriver.calls, transaction.operations, transaction.revokedParams)
 	}
 }
 

@@ -896,6 +896,16 @@ func (service *Service) RevokeSessions(ctx context.Context, command RevokeSessio
 	if !principalOK {
 		return malformedRequest()
 	}
+	reauthenticationSessionID, reauthenticationSessionOK := parseCanonicalIdentityUUID(string(command.Reauthentication.SessionID))
+	if !reauthenticationSessionOK {
+		return malformedRequest()
+	}
+	if command.Reauthentication.Method != ReauthPassword {
+		return actionNotAllowed()
+	}
+	if !validPasswordSecret(command.Reauthentication.Proof) {
+		return malformedRequest()
+	}
 	sessionID := uuid.Nil
 	switch command.Scope {
 	case RevokeAllSessions:
@@ -911,9 +921,19 @@ func (service *Service) RevokeSessions(ctx context.Context, command RevokeSessio
 	default:
 		return malformedRequest()
 	}
+	reauthenticationProof := command.Reauthentication.Proof.Copy()
+	defer clear(reauthenticationProof)
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
-	canonicalRequest, requestErr := privateCanonicalRequest(service.protector, "revoke_account_sessions", []byte(command.Scope), sessionID[:])
+	canonicalRequest, requestErr := privateCanonicalRequest(
+		service.protector,
+		"revoke_account_sessions",
+		[]byte(command.Scope),
+		sessionID[:],
+		reauthenticationSessionID[:],
+		[]byte(command.Reauthentication.Method),
+		reauthenticationProof,
+	)
 	if requestErr != nil {
 		return dependencyUnavailable()
 	}
@@ -926,6 +946,15 @@ func (service *Service) RevokeSessions(ctx context.Context, command RevokeSessio
 		now, ok := service.now()
 		if !ok {
 			return dependencyUnavailable()
+		}
+		credential, credentialErr := service.loadPasswordReauthenticationCredential(transactionContext, transaction, principalID)
+		if credentialErr != nil {
+			return credentialErr
+		}
+		if _, verificationErr := service.verifyLockedPasswordReauthentication(
+			transactionContext, transaction, principalID, command.Reauthentication, credential, now,
+		); verificationErr != nil {
+			return verificationErr
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(principalID, "account_session", "revoke_account_sessions")
 		if scopeErr != nil {

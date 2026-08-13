@@ -203,6 +203,29 @@ func TestOnlyFixedAnonymousDeviceRegistrationScopeIsAccepted(t *testing.T) {
 	}
 }
 
+func TestOnlyFixedAnonymousPasskeyAuthenticationScopeIsAccepted(t *testing.T) {
+	t.Parallel()
+
+	scope := AnonymousPasskeyAuthenticationScope()
+	if scope != (Scope{Principal: AnonymousPasskeyAuthenticationPrincipal, Operation: BeginPasskeyAuthenticationOperation}) {
+		t.Fatalf("scope = %#v, want fixed passkey-authentication principal and operation", scope)
+	}
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	storeFake := &fakeIdempotencyStore{tryRows: 1}
+	repository := newWithStore(storeFake, newProtector(t))
+	if _, outcome, err := repository.Begin(context.Background(), scope, "abcdefghijklmnopqrstuv", []byte(`{"request":"discoverable"}`), now, now.Add(time.Hour)); err != nil || outcome != Started {
+		t.Fatalf("fixed passkey-authentication begin = (%q, %v)", outcome, err)
+	}
+	for _, invalid := range []Scope{
+		{Principal: AnonymousPasskeyAuthenticationPrincipal, Operation: RegisterDeviceOperation},
+		{Principal: AnonymousDeviceRegistrationPrincipal, Operation: BeginPasskeyAuthenticationOperation},
+	} {
+		if _, _, err := repository.Begin(context.Background(), invalid, "bcdefghijklmnopqrstuvw", []byte(`{}`), now, now.Add(time.Hour)); !errors.Is(err, ErrInvalidArgument) {
+			t.Fatalf("cross-paired anonymous scope %#v error = %v", invalid, err)
+		}
+	}
+}
+
 func TestBeginClassifiesExistingRecord(t *testing.T) {
 	t.Parallel()
 

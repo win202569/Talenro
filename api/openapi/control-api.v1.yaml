@@ -1767,7 +1767,7 @@ components:
     TOTPEnrollment:
       type: object
       additionalProperties: false
-      required: [secret, provisioning_uri, expires_at]
+      required: [secret, provisioning_uri]
       properties:
         secret:
           type: string
@@ -1779,8 +1779,6 @@ components:
           format: uri
           minLength: 1
           maxLength: 2048
-        expires_at:
-          $ref: "#/components/schemas/TimestampString"
     RecoveryCodes:
       type: object
       additionalProperties: false
@@ -1805,15 +1803,11 @@ components:
       oneOf:
         - type: object
           additionalProperties: false
-          required: [status, bundle_id, bundle_version, bundle_locator, envelope_sha256]
+          required: [status, bundle_locator, envelope_sha256, locations, cache_control]
           properties:
             status:
               type: string
               enum: [available]
-            bundle_id:
-              $ref: "#/components/schemas/UUID"
-            bundle_version:
-              $ref: "#/components/schemas/BundleVersion"
             bundle_locator:
               type: string
               minLength: 22
@@ -1821,6 +1815,19 @@ components:
               pattern: '^[A-Za-z0-9_-]+$'
             envelope_sha256:
               $ref: "#/components/schemas/SHA256Hex"
+            locations:
+              type: array
+              minItems: 3
+              maxItems: 3
+              items:
+                type: string
+                format: uri
+                minLength: 1
+                maxLength: 2048
+            cache_control:
+              type: string
+              minLength: 1
+              maxLength: 128
         - type: object
           additionalProperties: false
           required: [status]

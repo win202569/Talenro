@@ -272,10 +272,11 @@ const (
 
 // RevokeSessionsCommand is implemented in Task 10.
 type RevokeSessionsCommand struct {
-	PrincipalID    PrincipalID
-	Scope          SessionRevokeScope
-	SessionID      SessionID
-	IdempotencyKey string
+	PrincipalID      PrincipalID
+	Scope            SessionRevokeScope
+	SessionID        SessionID
+	Reauthentication Reauthentication
+	IdempotencyKey   string
 }
 
 // ChangePasswordCommand is implemented in Task 10.

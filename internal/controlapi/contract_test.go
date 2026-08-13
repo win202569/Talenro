@@ -201,6 +201,75 @@ func TestOpenAPIContract(t *testing.T) {
 	}
 }
 
+func TestOpenAPIResolutionAndTOTPHTTPShapes(t *testing.T) {
+	t.Parallel()
+
+	spec, err := controlapiv1.GetSwagger() //nolint:staticcheck // Verify the checked-in generated contract.
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resolutionRef := spec.Components.Schemas["ConfigBundleResolution"]
+	if resolutionRef == nil || resolutionRef.Value == nil || len(resolutionRef.Value.OneOf) != 2 ||
+		resolutionRef.Value.OneOf[0] == nil || resolutionRef.Value.OneOf[0].Value == nil {
+		t.Fatal("ConfigBundleResolution must retain available/up_to_date variants")
+	}
+	available := resolutionRef.Value.OneOf[0].Value
+	assertExactStringSet(t, "ConfigBundleResolution.available required", available.Required,
+		[]string{"status", "bundle_locator", "envelope_sha256", "locations", "cache_control"})
+	assertExactSchemaProperties(t, "ConfigBundleResolution.available", available,
+		[]string{"status", "bundle_locator", "envelope_sha256", "locations", "cache_control"})
+	locations := available.Properties["locations"]
+	if locations == nil || locations.Value == nil || locations.Value.MinItems != 3 || locations.Value.MaxItems == nil ||
+		*locations.Value.MaxItems != 3 || locations.Value.Items == nil || locations.Value.Items.Value == nil ||
+		locations.Value.Items.Value.Format != "uri" {
+		t.Errorf("resolution locations must be exactly three URI values: %#v", locations)
+	}
+	cacheControl := available.Properties["cache_control"]
+	if cacheControl == nil || cacheControl.Value == nil || cacheControl.Value.MinLength != 1 ||
+		cacheControl.Value.MaxLength == nil || *cacheControl.Value.MaxLength != 128 {
+		t.Errorf("resolution cache_control bounds = %#v, want 1..128", cacheControl)
+	}
+
+	totpRef := spec.Components.Schemas["TOTPEnrollment"]
+	if totpRef == nil || totpRef.Value == nil {
+		t.Fatal("missing TOTPEnrollment schema")
+	}
+	assertExactStringSet(t, "TOTPEnrollment required", totpRef.Value.Required, []string{"secret", "provisioning_uri"})
+	assertExactSchemaProperties(t, "TOTPEnrollment", totpRef.Value, []string{"secret", "provisioning_uri"})
+}
+
+func assertExactSchemaProperties(t *testing.T, label string, schema *openapi3.Schema, want []string) {
+	t.Helper()
+	got := make([]string, 0, len(schema.Properties))
+	for name := range schema.Properties {
+		got = append(got, name)
+	}
+	assertExactStringSet(t, label+" properties", got, want)
+}
+
+func assertExactStringSet(t *testing.T, label string, got, want []string) {
+	t.Helper()
+	gotSet := make(map[string]struct{}, len(got))
+	for _, value := range got {
+		gotSet[value] = struct{}{}
+	}
+	wantSet := make(map[string]struct{}, len(want))
+	for _, value := range want {
+		wantSet[value] = struct{}{}
+	}
+	if len(gotSet) != len(wantSet) {
+		t.Errorf("%s = %v, want %v", label, got, want)
+		return
+	}
+	for value := range wantSet {
+		if _, exists := gotSet[value]; !exists {
+			t.Errorf("%s = %v, want %v", label, got, want)
+			return
+		}
+	}
+}
+
 func TestWebAuthnRegistrationContractAcceptsGoWebAuthnFixtures(t *testing.T) {
 	t.Parallel()
 
@@ -458,7 +527,7 @@ func TestGeneratedHandlerRoutesHealthResponses(t *testing.T) {
 	}
 }
 
-type contractServer struct{ C1Unavailable }
+type contractServer struct{ *Handler }
 
 var _ controlapiv1.ServerInterface = contractServer{}
 

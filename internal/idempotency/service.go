@@ -47,6 +47,10 @@ const (
 	AnonymousDeviceRegistrationPrincipal = "anonymous_device_registration"
 	// RegisterDeviceOperation is the fixed device-registration operation.
 	RegisterDeviceOperation = "register_device"
+	// AnonymousPasskeyAuthenticationPrincipal is the fixed discoverable-login initiation scope.
+	AnonymousPasskeyAuthenticationPrincipal = "anonymous_passkey_authentication"
+	// BeginPasskeyAuthenticationOperation is the fixed discoverable-login initiation operation.
+	BeginPasskeyAuthenticationOperation = "begin_passkey_authentication"
 )
 
 var (
@@ -110,6 +114,14 @@ func AnonymousDeviceRegistrationScope() Scope {
 	return Scope{
 		Principal: AnonymousDeviceRegistrationPrincipal,
 		Operation: RegisterDeviceOperation,
+	}
+}
+
+// AnonymousPasskeyAuthenticationScope returns the fixed discoverable-login initiation scope.
+func AnonymousPasskeyAuthenticationScope() Scope {
+	return Scope{
+		Principal: AnonymousPasskeyAuthenticationPrincipal,
+		Operation: BeginPasskeyAuthenticationOperation,
 	}
 }
 
@@ -423,6 +435,9 @@ func validScope(scope Scope) bool {
 	}
 	if scope.Principal == AnonymousDeviceRegistrationPrincipal {
 		return scope.Operation == RegisterDeviceOperation
+	}
+	if scope.Principal == AnonymousPasskeyAuthenticationPrincipal {
+		return scope.Operation == BeginPasskeyAuthenticationOperation
 	}
 	parts := strings.Split(scope.Principal, ":")
 	if len(parts) != 3 || parts[0] != "principal" || !validCredentialDomain(parts[2]) {

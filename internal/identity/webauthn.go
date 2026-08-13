@@ -127,8 +127,10 @@ type FinishPasskeyRegistrationCommand struct {
 	IdempotencyKey   string
 }
 
-// BeginPasskeyAuthenticationCommand has no caller-controlled fields.
-type BeginPasskeyAuthenticationCommand struct{}
+// BeginPasskeyAuthenticationCommand binds the public discoverable-login initiation retry.
+type BeginPasskeyAuthenticationCommand struct {
+	IdempotencyKey string
+}
 
 // FinishPasskeyAuthenticationCommand finishes a discoverable assertion and creates a bound session.
 type FinishPasskeyAuthenticationCommand struct {
@@ -322,14 +324,26 @@ func (service *Service) BeginPasskeyRegistration(
 // BeginPasskeyAuthentication creates a public discoverable-login ceremony in the authentication Redis domain.
 func (service *Service) BeginPasskeyAuthentication(
 	ctx context.Context,
-	_ BeginPasskeyAuthenticationCommand,
+	command BeginPasskeyAuthenticationCommand,
 ) (json.RawMessage, error) {
 	ceremonies, ceremonyOK := webAuthnCeremonies(service)
-	if !validService(service) || nilIdentityValue(ctx) || !ceremonyOK {
+	if !validService(service) || nilIdentityValue(ctx) || !ceremonyOK || !validIdempotencyKeyForApplication(command.IdempotencyKey) {
 		return nil, malformedRequest()
 	}
 	operationContext, cancel := context.WithTimeout(ctx, service.security.RequestDeadline)
 	defer cancel()
+	canonical, err := strongAuthCanonicalRequest(service.protector, "begin_passkey_authentication", []byte("discoverable"))
+	if err != nil {
+		return nil, dependencyUnavailable()
+	}
+	defer clear(canonical)
+	replayed, resolved, err := service.preflightPasskeyAuthenticationOptions(operationContext, command, canonical)
+	if err != nil {
+		return nil, mapApplicationError(operationContext, err)
+	}
+	if resolved {
+		return replayed, nil
+	}
 	webAuthn, err := service.newWebAuthn()
 	if err != nil {
 		return nil, dependencyUnavailable()
@@ -352,12 +366,112 @@ func (service *Service) BeginPasskeyAuthentication(
 	if err != nil {
 		return nil, dependencyUnavailable()
 	}
+	defer clear(options)
 	if err = ceremonies.CreateWebAuthnCeremony(operationContext, record, webAuthnCeremonyTTL); err != nil {
 		service.deleteOwnedWebAuthnCeremony(operationContext, ceremonies, record)
-		clear(options)
 		return nil, dependencyUnavailable()
 	}
-	return options, nil
+	result, usedOwnOptions, err := service.completePasskeyAuthenticationOptions(operationContext, command, canonical, options)
+	if !usedOwnOptions {
+		service.deleteOwnedWebAuthnCeremony(operationContext, ceremonies, record)
+	}
+	if err != nil {
+		return nil, mapApplicationError(operationContext, err)
+	}
+	return result, nil
+}
+
+func (service *Service) preflightPasskeyAuthenticationOptions(
+	ctx context.Context,
+	command BeginPasskeyAuthenticationCommand,
+	canonical []byte,
+) (json.RawMessage, bool, error) {
+	var result json.RawMessage
+	var replayed bool
+	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, transaction Transaction) error {
+		if nilIdentityValue(transaction) {
+			return dependencyUnavailable()
+		}
+		now, ok := service.now()
+		if !ok {
+			return dependencyUnavailable()
+		}
+		record, outcome, beginErr := transaction.BeginIdempotency(
+			transactionContext, idempotency.AnonymousPasskeyAuthenticationScope(), command.IdempotencyKey,
+			canonical, now, now.Add(securityIdempotencyRetention),
+		)
+		if beginErr != nil {
+			return dependencyUnavailable()
+		}
+		if outcome == idempotency.Started {
+			return errSessionIdempotencyPreflight
+		}
+		body, wasReplayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
+		if replayErr != nil {
+			return replayErr
+		}
+		if !wasReplayed || !validPasskeyOptions(body) {
+			clear(body)
+			return dependencyUnavailable()
+		}
+		defer clear(body)
+		result = append(json.RawMessage(nil), body...)
+		replayed = true
+		return nil
+	})
+	if errors.Is(err, errSessionIdempotencyPreflight) {
+		return nil, false, nil
+	}
+	return result, replayed, err
+}
+
+func (service *Service) completePasskeyAuthenticationOptions(
+	ctx context.Context,
+	command BeginPasskeyAuthenticationCommand,
+	canonical []byte,
+	options []byte,
+) (json.RawMessage, bool, error) {
+	var result json.RawMessage
+	var usedOwnOptions bool
+	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, transaction Transaction) error {
+		if nilIdentityValue(transaction) {
+			return dependencyUnavailable()
+		}
+		now, ok := service.now()
+		if !ok {
+			return dependencyUnavailable()
+		}
+		record, outcome, beginErr := transaction.BeginIdempotency(
+			transactionContext, idempotency.AnonymousPasskeyAuthenticationScope(), command.IdempotencyKey,
+			canonical, now, now.Add(securityIdempotencyRetention),
+		)
+		if beginErr != nil {
+			return dependencyUnavailable()
+		}
+		if outcome != idempotency.Started {
+			body, replayed, replayErr := privateIdempotencyOutcome(outcome, record, 200)
+			if replayErr != nil {
+				return replayErr
+			}
+			if !replayed || !validPasskeyOptions(body) {
+				clear(body)
+				return dependencyUnavailable()
+			}
+			defer clear(body)
+			result = append(json.RawMessage(nil), body...)
+			return nil
+		}
+		if !validPasskeyOptions(options) {
+			return dependencyUnavailable()
+		}
+		if completeErr := transaction.CompleteIdempotency(transactionContext, record, 200, options); completeErr != nil {
+			return dependencyUnavailable()
+		}
+		result = append(json.RawMessage(nil), options...)
+		usedOwnOptions = true
+		return nil
+	})
+	return result, usedOwnOptions && err == nil, err
 }
 
 // FinishPasskeyRegistration consumes one ceremony, verifies it outside PostgreSQL, then persists the credential.

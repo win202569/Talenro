@@ -123,7 +123,7 @@ func validStrongAuthOperation(operation string) bool {
 	switch operation {
 	case "begin_totp_enrollment", "verify_totp_enrollment", "revoke_totp",
 		"rotate_recovery_codes", "consume_recovery_code",
-		"begin_passkey_registration", "finish_passkey_registration", "finish_passkey_authentication", "revoke_passkey":
+		"begin_passkey_registration", "begin_passkey_authentication", "finish_passkey_registration", "finish_passkey_authentication", "revoke_passkey":
 		return true
 	default:
 		return false

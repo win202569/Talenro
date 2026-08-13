@@ -252,7 +252,7 @@ func TestPasskeyAuthenticationOptionsUseDistinctRequiredUVCeremony(t *testing.T)
 		t.Fatal(err)
 	}
 	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
-	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-options-01"})
 	if err != nil {
 		t.Fatalf("begin passkey authentication: %v", err)
 	}
@@ -273,6 +273,150 @@ func TestPasskeyAuthenticationOptionsUseDistinctRequiredUVCeremony(t *testing.T)
 	}
 	if executor.setKey != "talenro:identity:webauthn-authentication:"+payload.CeremonyID || executor.setTTL != 2*time.Minute {
 		t.Fatalf("authentication ceremony key/ttl = %q/%s", executor.setKey, executor.setTTL)
+	}
+}
+
+func TestPasskeyAuthenticationOptionsReplayByteIdenticallyWithoutSecondCeremony(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := newTask11OwnedCeremonyExecutor()
+	close(executor.releaseSets)
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	command := BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-replay-01"}
+	first, err := application.BeginPasskeyAuthentication(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := application.BeginPasskeyAuthentication(context.Background(), command)
+	if err != nil || !bytes.Equal(first, second) {
+		t.Fatalf("authentication options replay = %s/%s/%v", first, second, err)
+	}
+	values, deleted := executor.snapshot()
+	if len(values) != 1 || len(deleted) != 0 {
+		t.Fatalf("replay ceremonies = values %v deleted %v", mapsKeysTask11(values), deleted)
+	}
+}
+
+func TestConcurrentPasskeyAuthenticationBeginDeletesOnlyLosingOwnedCeremony(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := newTask11OwnedCeremonyExecutor()
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	command := BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-concurrent"}
+	type beginResult struct {
+		options json.RawMessage
+		err     error
+	}
+	results := make(chan beginResult, 2)
+	for range 2 {
+		go func() {
+			options, beginErr := application.BeginPasskeyAuthentication(context.Background(), command)
+			results <- beginResult{options: options, err: beginErr}
+		}()
+	}
+	for range 2 {
+		select {
+		case <-executor.setArrived:
+		case <-time.After(5 * time.Second):
+			close(executor.releaseSets)
+			t.Fatal("concurrent authentication ceremonies did not both reach Redis")
+		}
+	}
+	close(executor.releaseSets)
+	first := <-results
+	second := <-results
+	if first.err != nil || second.err != nil || !bytes.Equal(first.options, second.options) {
+		t.Fatalf("concurrent authentication options = %s/%v and %s/%v", first.options, first.err, second.options, second.err)
+	}
+	var winner struct {
+		CeremonyID string `json:"ceremony_id"`
+	}
+	if err = json.Unmarshal(first.options, &winner); err != nil {
+		t.Fatal(err)
+	}
+	winnerKey := webAuthnCeremonyRedisKey(WebAuthnAuthenticationCeremony, winner.CeremonyID)
+	values, deleted := executor.snapshot()
+	if len(values) != 1 || values[winnerKey] == nil || len(deleted) != 1 || deleted[0] == winnerKey {
+		t.Fatalf("authentication owned cleanup = values=%v deleted=%v winner=%s", mapsKeysTask11(values), deleted, winnerKey)
+	}
+}
+
+func TestPasskeyAuthenticationBeginCleansOwnedCeremonyOnDatabaseFailure(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	transaction.failOperation = "complete_idempotency"
+	executor := newTask11OwnedCeremonyExecutor()
+	close(executor.releaseSets)
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	_, err = application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-failure-01"})
+	if publicTask9Code(err) != apierrors.DependencyUnavailable || strings.Contains(fmt.Sprint(err), "CANARY") {
+		t.Fatalf("failed authentication begin = %v", err)
+	}
+	values, deleted := executor.snapshot()
+	if len(values) != 0 || len(deleted) != 1 {
+		t.Fatalf("failed authentication begin orphaned ceremony: values=%v deleted=%v", mapsKeysTask11(values), deleted)
+	}
+}
+
+func TestPasskeyAuthenticationBeginCleansOwnedCeremonyOnCommitFailure(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := newTask11OwnedCeremonyExecutor()
+	close(executor.releaseSets)
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	application.repository = &task11CommitFailureRepository{delegate: application.repository}
+	_, err = application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-commit-fail"})
+	if publicTask9Code(err) != apierrors.DependencyUnavailable || strings.Contains(fmt.Sprint(err), "CANARY") {
+		t.Fatalf("commit failure = %v", err)
+	}
+	values, deleted := executor.snapshot()
+	if len(values) != 0 || len(deleted) != 1 {
+		t.Fatalf("commit failure orphaned ceremony: values=%v deleted=%v", mapsKeysTask11(values), deleted)
+	}
+}
+
+type task11CommitFailureRepository struct {
+	delegate Repository
+	calls    int
+}
+
+func (repository *task11CommitFailureRepository) WithinTransaction(
+	ctx context.Context,
+	operation func(context.Context, Transaction) error,
+) error {
+	repository.calls++
+	err := repository.delegate.WithinTransaction(ctx, operation)
+	if repository.calls == 2 && err == nil {
+		return errors.New("CANARY commit failure")
+	}
+	return err
+}
+
+func TestPasskeyAuthenticationBeginRejectsInvalidKeyBeforeDependencies(t *testing.T) {
+	transaction := activeTask11TOTPTransaction()
+	executor := &fakeChallengeExecutor{setAllowed: true}
+	ceremonies, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
+	if _, err = application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "short"}); publicTask9Code(err) != apierrors.MalformedRequest {
+		t.Fatalf("invalid key error = %v", err)
+	}
+	if len(transaction.operations) != 0 || executor.setKey != "" {
+		t.Fatalf("invalid key reached dependencies: operations=%v redis=%q", transaction.operations, executor.setKey)
 	}
 }
 
@@ -568,7 +712,7 @@ func TestPasskeyAuthenticationVerifiesAssertionAdvancesCounterAndCreatesSession(
 		t.Fatal(err)
 	}
 	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
-	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-options-02"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -672,7 +816,7 @@ func TestPasskeyAuthenticationRedisMissReprobesConcurrentCompletedReplay(t *test
 		t.Fatal(err)
 	}
 	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
-	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-options-03"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -803,7 +947,7 @@ func TestPasskeyAuthenticationRejectsProtocolSubstitutionBeforeMutation(t *testi
 				t.Fatal(err)
 			}
 			application := newTask11WebAuthnApplication(t, transaction, ceremonies)
-			options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+			options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-options-04"})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -900,7 +1044,7 @@ func TestPasskeyAuthenticationRejectsCounterRollbackBeforeSession(t *testing.T) 
 		t.Fatal(err)
 	}
 	application := newTask11WebAuthnApplication(t, transaction, ceremonies)
-	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{})
+	options, err := application.BeginPasskeyAuthentication(context.Background(), BeginPasskeyAuthenticationCommand{IdempotencyKey: "task11-passkey-auth-options-05"})
 	if err != nil {
 		t.Fatal(err)
 	}
