@@ -20,6 +20,7 @@ type Querier interface {
 	BindAccountSessionToAuthorization(ctx context.Context, arg BindAccountSessionToAuthorizationParams) (int64, error)
 	ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]TransactionalOutbox, error)
 	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
+	ClearPendingPasswordResetDelivery(ctx context.Context, arg ClearPendingPasswordResetDeliveryParams) (int64, error)
 	CompleteIdempotency(ctx context.Context, arg CompleteIdempotencyParams) (IdempotencyRecord, error)
 	CompromiseDeviceTokenFamily(ctx context.Context, arg CompromiseDeviceTokenFamilyParams) (DeviceauthDeviceTokenFamily, error)
 	ConsumeEmailVerification(ctx context.Context, arg ConsumeEmailVerificationParams) (IdentityEmailIdentity, error)
@@ -70,6 +71,7 @@ type Querier interface {
 	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
+	HasConsumedEvent(ctx context.Context, arg HasConsumedEventParams) (bool, error)
 	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
 	InsertBundleAcknowledgement(ctx context.Context, arg InsertBundleAcknowledgementParams) error
 	InsertBundleIssuance(ctx context.Context, arg InsertBundleIssuanceParams) error

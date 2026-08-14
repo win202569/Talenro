@@ -10,7 +10,266 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"talenro.local/platform/internal/errorreport"
 )
+
+func TestTask18MetricsExposeOnlyExactFixedLabelSets(t *testing.T) {
+	registry := NewRegistry()
+	if !registry.RecordSecurity(SecurityOperationAccountAuth, MetricResultSuccess, SecurityReasonNone) {
+		t.Fatal("valid security metric was rejected")
+	}
+	if !registry.SetOutbox(1234, 61*time.Second) {
+		t.Fatal("valid outbox health was rejected")
+	}
+	registry.Record(errorreport.ComponentOutbox, errorreport.ResultSent)
+	if !registry.RecordCrypto(CryptoOperationBundleVerify, MetricResultFailure, CryptoReasonInvalid) {
+		t.Fatal("valid crypto metric was rejected")
+	}
+
+	wantLabels := map[string][]string{
+		"talenro_security_events_total":    {"operation", "reason", "result"},
+		"talenro_outbox_backlog":           {},
+		"talenro_outbox_oldest_seconds":    {},
+		"talenro_error_reports_total":      {"component", "result"},
+		"talenro_crypto_validations_total": {"operation", "reason", "result"},
+	}
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, family := range families {
+		want, tracked := wantLabels[family.GetName()]
+		if !tracked {
+			continue
+		}
+		if len(family.GetMetric()) != 1 {
+			t.Fatalf("%s series count = %d, want 1", family.GetName(), len(family.GetMetric()))
+		}
+		labels := family.GetMetric()[0].GetLabel()
+		if len(labels) != len(want) {
+			t.Fatalf("%s label count = %d, want %d", family.GetName(), len(labels), len(want))
+		}
+		for index, label := range labels {
+			if label.GetName() != want[index] {
+				t.Fatalf("%s label %d = %q, want %q", family.GetName(), index, label.GetName(), want[index])
+			}
+		}
+		delete(wantLabels, family.GetName())
+	}
+	if len(wantLabels) != 0 {
+		t.Fatalf("missing Task 18 metric families: %v", wantLabels)
+	}
+}
+
+func TestTask18MetricsRejectAttackerControlledLabelsWithoutCreatingSeries(t *testing.T) {
+	registry := NewRegistry()
+	if !registry.RecordSecurity(SecurityOperationAccountAuth, MetricResultSuccess, SecurityReasonNone) ||
+		!registry.RecordCrypto(CryptoOperationBundleVerify, MetricResultFailure, CryptoReasonInvalid) {
+		t.Fatal("valid baseline metric was rejected")
+	}
+	registry.Record(errorreport.ComponentOutbox, errorreport.ResultSent)
+	before := task18MetricSeriesCounts(t, registry)
+
+	const canary = "CANARY_user@example.invalid_device-123"
+	if registry.RecordSecurity(SecurityOperation(canary), MetricResult(canary), SecurityReason(canary)) {
+		t.Fatal("attacker-controlled security labels were accepted")
+	}
+	if registry.RecordCrypto(CryptoOperation(canary), MetricResult(canary), CryptoReason(canary)) {
+		t.Fatal("attacker-controlled crypto labels were accepted")
+	}
+	registry.Record(errorreport.Component(canary), errorreport.DeliveryResult(canary))
+	if registry.SetOutbox(-1, -time.Second) {
+		t.Fatal("invalid outbox health was accepted")
+	}
+
+	after := task18MetricSeriesCounts(t, registry)
+	for name, want := range before {
+		if got := after[name]; got != want {
+			t.Fatalf("%s series count = %d after invalid labels, want %d", name, got, want)
+		}
+	}
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, family := range families {
+		if strings.Contains(family.String(), canary) {
+			t.Fatalf("attacker canary reached metric descriptor or labels: %s", family.String())
+		}
+	}
+}
+
+func TestTask18MetricsAllowProductionBundleSigningOperation(t *testing.T) {
+	registry := NewRegistry()
+	if !registry.RecordCrypto(CryptoOperation("bundle_sign"), MetricResultSuccess, CryptoReasonNone) {
+		t.Fatal("production bundle signing operation was rejected")
+	}
+	series := task18MetricSeriesCounts(t, registry)
+	if got := series["talenro_crypto_validations_total"]; got != 1 {
+		t.Fatalf("bundle signing series = %d, want 1", got)
+	}
+}
+
+func TestMiddlewareRecordsSecurityOutcomesFromRealPublicRoutes(t *testing.T) {
+	registry := NewRegistry()
+	mux := http.NewServeMux()
+	tests := []struct {
+		pattern   string
+		status    int
+		operation SecurityOperation
+		result    MetricResult
+		reason    SecurityReason
+	}{
+		{"POST /v1/accounts", http.StatusAccepted, SecurityOperationAccountRegister, MetricResultSuccess, SecurityReasonNone},
+		{"POST /v1/account-sessions", http.StatusUnauthorized, SecurityOperationAccountAuth, MetricResultFailure, SecurityReasonInvalidCredential},
+		{"POST /v1/password-resets", http.StatusTooManyRequests, SecurityOperationAccountRecovery, MetricResultFailure, SecurityReasonRateLimited},
+		{"POST /v1/devices", http.StatusConflict, SecurityOperationDeviceEnroll, MetricResultFailure, SecurityReasonReplay},
+		{"POST /v1/device-token-rotations", http.StatusServiceUnavailable, SecurityOperationDeviceAuth, MetricResultFailure, SecurityReasonDependency},
+		{"POST /v1/device-revocations", http.StatusInternalServerError, SecurityOperationDeviceRevoke, MetricResultFailure, SecurityReasonInternal},
+		{"POST /v1/config-bundle-resolutions", http.StatusOK, SecurityOperationBundleResolve, MetricResultSuccess, SecurityReasonNone},
+		{"POST /v1/config-bundle-acknowledgements", http.StatusForbidden, SecurityOperationBundleAck, MetricResultFailure, SecurityReasonInvalidCredential},
+	}
+	for _, test := range tests {
+		mux.HandleFunc(test.pattern, func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(test.status)
+		})
+	}
+	handler := registry.Middleware("", mux)
+	for _, test := range tests {
+		parts := strings.SplitN(test.pattern, " ", 2)
+		request := httptest.NewRequestWithContext(t.Context(), parts[0], parts[1], nil)
+		handler.ServeHTTP(httptest.NewRecorder(), request)
+	}
+
+	const canary = "CANARY_user@example.invalid_device-123"
+	handler.ServeHTTP(
+		httptest.NewRecorder(),
+		httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/"+canary, nil),
+	)
+
+	want := make(map[string]float64, len(tests))
+	for _, test := range tests {
+		want[task18SecurityMetricKey(test.operation, test.result, test.reason)]++
+	}
+	got := task18GatheredSecuritySeries(t, registry)
+	if len(got) != len(want) {
+		t.Fatalf("security series = %v, want exactly %v", got, want)
+	}
+	for labels, count := range want {
+		if got[labels] != count {
+			t.Errorf("security series %q = %v, want %v", labels, got[labels], count)
+		}
+	}
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, family := range families {
+		if strings.Contains(family.String(), canary) {
+			t.Fatalf("attacker-controlled route reached a metric: %s", family.String())
+		}
+	}
+}
+
+func TestMiddlewareMapsExactPublicSecuritySurface(t *testing.T) {
+	tests := []struct {
+		pattern   string
+		target    string
+		operation SecurityOperation
+	}{
+		{"POST /v1/accounts", "/v1/accounts", SecurityOperationAccountRegister},
+		{"POST /v1/email-verification-deliveries", "/v1/email-verification-deliveries", SecurityOperationAccountRegister},
+		{"POST /v1/email-verifications", "/v1/email-verifications", SecurityOperationAccountRegister},
+		{"POST /v1/password-reset-deliveries", "/v1/password-reset-deliveries", SecurityOperationAccountRecovery},
+		{"POST /v1/password-resets", "/v1/password-resets", SecurityOperationAccountRecovery},
+		{"POST /v1/recovery-code-consumptions", "/v1/recovery-code-consumptions", SecurityOperationAccountRecovery},
+		{"POST /v1/password-changes", "/v1/password-changes", SecurityOperationAccountAuth},
+		{"POST /v1/account-sessions", "/v1/account-sessions", SecurityOperationAccountAuth},
+		{"POST /v1/account-auth-challenges", "/v1/account-auth-challenges", SecurityOperationAccountAuth},
+		{"POST /v1/account-token-rotations", "/v1/account-token-rotations", SecurityOperationAccountAuth},
+		{"POST /v1/account-session-revocations", "/v1/account-session-revocations", SecurityOperationAccountAuth},
+		{"POST /v1/passkey-registration-options", "/v1/passkey-registration-options", SecurityOperationAccountAuth},
+		{"POST /v1/passkey-credentials", "/v1/passkey-credentials", SecurityOperationAccountAuth},
+		{"POST /v1/passkey-authentication-options", "/v1/passkey-authentication-options", SecurityOperationAccountAuth},
+		{"POST /v1/passkey-revocations", "/v1/passkey-revocations", SecurityOperationAccountAuth},
+		{"POST /v1/totp-enrollments", "/v1/totp-enrollments", SecurityOperationAccountAuth},
+		{"POST /v1/totp-verifications", "/v1/totp-verifications", SecurityOperationAccountAuth},
+		{"POST /v1/totp-revocations", "/v1/totp-revocations", SecurityOperationAccountAuth},
+		{"POST /v1/recovery-code-rotations", "/v1/recovery-code-rotations", SecurityOperationAccountAuth},
+		{"POST /v1/device-enrollment-grants", "/v1/device-enrollment-grants", SecurityOperationDeviceEnroll},
+		{"POST /v1/device-auth-challenges", "/v1/device-auth-challenges", SecurityOperationDeviceEnroll},
+		{"POST /v1/devices", "/v1/devices", SecurityOperationDeviceEnroll},
+		{"POST /v1/device-token-rotations", "/v1/device-token-rotations", SecurityOperationDeviceAuth},
+		{"POST /v1/device-revocations", "/v1/device-revocations", SecurityOperationDeviceRevoke},
+		{"POST /v1/config-bundle-resolutions", "/v1/config-bundle-resolutions", SecurityOperationBundleResolve},
+		{"GET /b/{bundle_locator}", "/b/abcdefghijklmnopqrstuv", SecurityOperationBundleResolve},
+		{"POST /v1/config-bundle-acknowledgements", "/v1/config-bundle-acknowledgements", SecurityOperationBundleAck},
+	}
+	for _, test := range tests {
+		t.Run(test.pattern, func(t *testing.T) {
+			registry := NewRegistry()
+			mux := http.NewServeMux()
+			mux.HandleFunc(test.pattern, func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+			})
+			method := strings.SplitN(test.pattern, " ", 2)[0]
+			request := httptest.NewRequestWithContext(t.Context(), method, test.target, nil)
+			registry.Middleware("", mux).ServeHTTP(httptest.NewRecorder(), request)
+			want := map[string]float64{
+				task18SecurityMetricKey(test.operation, MetricResultSuccess, SecurityReasonNone): 1,
+			}
+			if got := task18GatheredSecuritySeries(t, registry); len(got) != 1 {
+				t.Fatalf("security series = %v, want %v", got, want)
+			} else if got[task18SecurityMetricKey(test.operation, MetricResultSuccess, SecurityReasonNone)] != 1 {
+				t.Fatalf("security series = %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+func task18GatheredSecuritySeries(t *testing.T, registry *Registry) map[string]float64 {
+	t.Helper()
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	series := make(map[string]float64)
+	for _, family := range families {
+		if family.GetName() != "talenro_security_events_total" {
+			continue
+		}
+		for _, metric := range family.GetMetric() {
+			labels := make(map[string]string)
+			for _, label := range metric.GetLabel() {
+				labels[label.GetName()] = label.GetValue()
+			}
+			key := strings.Join([]string{labels["operation"], labels["result"], labels["reason"]}, "\x00")
+			series[key] = metric.GetCounter().GetValue()
+		}
+	}
+	return series
+}
+
+func task18SecurityMetricKey(operation SecurityOperation, result MetricResult, reason SecurityReason) string {
+	return strings.Join([]string{string(operation), string(result), string(reason)}, "\x00")
+}
+
+func task18MetricSeriesCounts(t *testing.T, registry *Registry) map[string]int {
+	t.Helper()
+	families, err := registry.Gatherer.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	counts := make(map[string]int)
+	for _, family := range families {
+		switch family.GetName() {
+		case "talenro_security_events_total", "talenro_error_reports_total", "talenro_crypto_validations_total":
+			counts[family.GetName()] = len(family.GetMetric())
+		}
+	}
+	return counts
+}
 
 func TestMiddlewareUsesOnlyBoundedRouteLabel(t *testing.T) {
 	registry := NewRegistry()

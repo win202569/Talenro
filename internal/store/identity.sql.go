@@ -99,6 +99,26 @@ func (q *Queries) ClearPendingEmailDelivery(ctx context.Context, arg ClearPendin
 	return result.RowsAffected(), nil
 }
 
+const clearPendingPasswordResetDelivery = `-- name: ClearPendingPasswordResetDelivery :execrows
+UPDATE identity.password_credentials
+SET reset_delivery_id=NULL, reset_delivery_ciphertext=NULL,
+    reset_delivery_key_version=NULL, updated_at=$2
+WHERE reset_delivery_id=$1
+`
+
+type ClearPendingPasswordResetDeliveryParams struct {
+	ResetDeliveryID uuid.NullUUID `json:"reset_delivery_id"`
+	UpdatedAt       time.Time     `json:"updated_at"`
+}
+
+func (q *Queries) ClearPendingPasswordResetDelivery(ctx context.Context, arg ClearPendingPasswordResetDeliveryParams) (int64, error) {
+	result, err := q.db.Exec(ctx, clearPendingPasswordResetDelivery, arg.ResetDeliveryID, arg.UpdatedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const consumeEmailVerification = `-- name: ConsumeEmailVerification :one
 UPDATE identity.email_identities
 SET verification_consumed_at = $3, verified_at = $3, updated_at = $3

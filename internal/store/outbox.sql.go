@@ -86,6 +86,25 @@ func (q *Queries) GetOutboxHealth(ctx context.Context, occurredAt time.Time) (Ge
 	return i, err
 }
 
+const hasConsumedEvent = `-- name: HasConsumedEvent :one
+SELECT EXISTS (
+  SELECT 1 FROM consumed_event_ids
+  WHERE consumer=$1 AND event_id=$2
+)
+`
+
+type HasConsumedEventParams struct {
+	Consumer string    `json:"consumer"`
+	EventID  uuid.UUID `json:"event_id"`
+}
+
+func (q *Queries) HasConsumedEvent(ctx context.Context, arg HasConsumedEventParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasConsumedEvent, arg.Consumer, arg.EventID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const insertOutboxEvent = `-- name: InsertOutboxEvent :exec
 INSERT INTO transactional_outbox
   (event_id,event_type,aggregate_type,aggregate_id,aggregate_version,

@@ -4,7 +4,9 @@ import (
 	"crypto/ed25519"
 	"encoding/binary"
 	"errors"
+	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -76,11 +78,50 @@ func validPublicOrigin(value string) bool {
 	if !validProofString(value, maximumProofAudienceBytes) {
 		return false
 	}
-	parsed, err := url.Parse(value)
-	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.Hostname() == "" || parsed.User != nil ||
+	parsed, err := url.ParseRequestURI(value)
+	if err != nil || parsed.Host == "" || parsed.Hostname() == "" || parsed.User != nil ||
 		parsed.RawQuery != "" || parsed.Fragment != "" || parsed.Opaque != "" || parsed.ForceQuery || parsed.RawPath != "" ||
-		(parsed.Path != "" && parsed.Path != "/") || parsed.Host != strings.ToLower(parsed.Host) {
+		parsed.RawFragment != "" || (parsed.Path != "" && parsed.Path != "/") || !validPublicOriginPort(parsed.Host) ||
+		parsed.String() != value {
 		return false
 	}
-	return parsed.String() == value
+	if parsed.Scheme == "https" {
+		return parsed.Host == strings.ToLower(parsed.Host)
+	}
+	if parsed.Scheme != "http" {
+		return false
+	}
+	hostname := parsed.Hostname()
+	if strings.EqualFold(hostname, "localhost") {
+		return true
+	}
+	address := net.ParseIP(hostname)
+	return address != nil && address.IsLoopback()
+}
+
+func validPublicOriginPort(host string) bool {
+	port := ""
+	present := false
+	if strings.HasPrefix(host, "[") {
+		closing := strings.LastIndexByte(host, ']')
+		if closing < 0 {
+			return false
+		}
+		remainder := host[closing+1:]
+		if remainder != "" {
+			if !strings.HasPrefix(remainder, ":") {
+				return false
+			}
+			present = true
+			port = strings.TrimPrefix(remainder, ":")
+		}
+	} else if colon := strings.LastIndexByte(host, ':'); colon >= 0 {
+		present = true
+		port = host[colon+1:]
+	}
+	if !present {
+		return true
+	}
+	number, err := strconv.ParseUint(port, 10, 16)
+	return err == nil && number >= 1 && strconv.FormatUint(number, 10) == port
 }

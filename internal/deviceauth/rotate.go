@@ -259,12 +259,13 @@ func (service *Service) RotateDeviceToken(ctx context.Context, command RotateDev
 		ProtocolVersion: record.ProtocolVersion, Challenge: record.Challenge, FamilyID: authority.discovered.FamilyID,
 		Operation: record.Operation, Audience: service.security.PublicBaseURL, RequestNonce: command.RequestNonce,
 	})
-	if len(authority.device.SigningPublicKey) != ed25519.PublicKeySize || len(proof) == 0 ||
-		!ed25519.Verify(ed25519.PublicKey(authority.device.SigningPublicKey), proof, command.Signature[:]) {
-		clear(proof)
+	validProof := len(authority.device.SigningPublicKey) == ed25519.PublicKeySize && len(proof) != 0 &&
+		ed25519.Verify(ed25519.PublicKey(authority.device.SigningPublicKey), proof, command.Signature[:])
+	observeDeviceProofVerification(operationContext, validProof)
+	clear(proof)
+	if !validProof {
 		return DeviceTokens{}, deviceAuthenticationFailed()
 	}
-	clear(proof)
 	var prepared preparedDeviceRotation
 	defer prepared.clear()
 	finalResolved := false

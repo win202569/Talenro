@@ -238,3 +238,120 @@ func TestLoadRejectsErrorReporterTimeoutOverTwoSeconds(t *testing.T) {
 		t.Fatalf("expected sanitized timeout rejection, got %v", err)
 	}
 }
+
+func TestLoadAppliesTask18RuntimePolicyDefaults(t *testing.T) {
+	got, err := Load(lookup(map[string]string{
+		"TALENRO_DATABASE_URL": "database-fixture",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.RedisDownAfterFailures != 3 || got.RedisRecoverAfterSuccesses != 2 {
+		t.Fatalf("redis policy defaults = down %d recover %d, want 3 and 2", got.RedisDownAfterFailures, got.RedisRecoverAfterSuccesses)
+	}
+	if got.OutboxDegradedBacklog != 1000 || got.OutboxDownBacklog != 10000 {
+		t.Fatalf("outbox backlog defaults = degraded %d down %d, want 1000 and 10000", got.OutboxDegradedBacklog, got.OutboxDownBacklog)
+	}
+	if got.OutboxDegradedAge != time.Minute || got.OutboxDownAge != 5*time.Minute {
+		t.Fatalf("outbox age defaults = degraded %s down %s, want 1m and 5m", got.OutboxDegradedAge, got.OutboxDownAge)
+	}
+	if got.ErrorReportQueue != 100 || got.ErrorReportBatch != 20 {
+		t.Fatalf("reporter defaults = queue %d batch %d, want 100 and 20", got.ErrorReportQueue, got.ErrorReportBatch)
+	}
+}
+
+func TestLoadAcceptsInclusiveTask18RuntimePolicyBounds(t *testing.T) {
+	tests := []struct {
+		name   string
+		values map[string]string
+		want   [8]int64
+	}{
+		{
+			name: "minimums",
+			values: map[string]string{
+				"TALENRO_REDIS_DOWN_AFTER_FAILURES":     "1",
+				"TALENRO_REDIS_RECOVER_AFTER_SUCCESSES": "1",
+				"TALENRO_OUTBOX_DEGRADED_BACKLOG":       "100",
+				"TALENRO_OUTBOX_DOWN_BACKLOG":           "101",
+				"TALENRO_OUTBOX_DEGRADED_AGE":           "10s",
+				"TALENRO_OUTBOX_DOWN_AGE":               "11s",
+				"TALENRO_ERROR_REPORT_QUEUE":            "10",
+				"TALENRO_ERROR_REPORT_BATCH":            "10",
+			},
+			want: [8]int64{1, 1, 100, 101, int64(10 * time.Second), int64(11 * time.Second), 10, 10},
+		},
+		{
+			name: "maximums",
+			values: map[string]string{
+				"TALENRO_REDIS_DOWN_AFTER_FAILURES":     "10",
+				"TALENRO_REDIS_RECOVER_AFTER_SUCCESSES": "10",
+				"TALENRO_OUTBOX_DEGRADED_BACKLOG":       "10000",
+				"TALENRO_OUTBOX_DOWN_BACKLOG":           "100000",
+				"TALENRO_OUTBOX_DEGRADED_AGE":           "10m",
+				"TALENRO_OUTBOX_DOWN_AGE":               "1h",
+				"TALENRO_ERROR_REPORT_QUEUE":            "1000",
+				"TALENRO_ERROR_REPORT_BATCH":            "100",
+			},
+			want: [8]int64{10, 10, 10000, 100000, int64(10 * time.Minute), int64(time.Hour), 1000, 100},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			values := maps.Clone(test.values)
+			values["TALENRO_DATABASE_URL"] = "database-fixture"
+			got, err := Load(lookup(values))
+			if err != nil {
+				t.Fatal(err)
+			}
+			actual := [8]int64{
+				int64(got.RedisDownAfterFailures), int64(got.RedisRecoverAfterSuccesses),
+				got.OutboxDegradedBacklog, got.OutboxDownBacklog,
+				int64(got.OutboxDegradedAge), int64(got.OutboxDownAge),
+				int64(got.ErrorReportQueue), int64(got.ErrorReportBatch),
+			}
+			if actual != test.want {
+				t.Fatalf("runtime policy = %v, want %v", actual, test.want)
+			}
+		})
+	}
+}
+
+func TestLoadRejectsInvalidTask18RuntimePolicy(t *testing.T) {
+	tests := []struct {
+		name   string
+		values map[string]string
+		key    string
+	}{
+		{name: "redis down syntax", values: map[string]string{"TALENRO_REDIS_DOWN_AFTER_FAILURES": "three"}, key: "TALENRO_REDIS_DOWN_AFTER_FAILURES"},
+		{name: "redis down below", values: map[string]string{"TALENRO_REDIS_DOWN_AFTER_FAILURES": "0"}, key: "TALENRO_REDIS_DOWN_AFTER_FAILURES"},
+		{name: "redis recovery above", values: map[string]string{"TALENRO_REDIS_RECOVER_AFTER_SUCCESSES": "11"}, key: "TALENRO_REDIS_RECOVER_AFTER_SUCCESSES"},
+		{name: "degraded backlog below", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_BACKLOG": "99"}, key: "TALENRO_OUTBOX_DEGRADED_BACKLOG"},
+		{name: "degraded backlog above", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_BACKLOG": "10001"}, key: "TALENRO_OUTBOX_DEGRADED_BACKLOG"},
+		{name: "down backlog equal", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_BACKLOG": "1000", "TALENRO_OUTBOX_DOWN_BACKLOG": "1000"}, key: "TALENRO_OUTBOX_DOWN_BACKLOG"},
+		{name: "down backlog above", values: map[string]string{"TALENRO_OUTBOX_DOWN_BACKLOG": "100001"}, key: "TALENRO_OUTBOX_DOWN_BACKLOG"},
+		{name: "degraded age below", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_AGE": "9s"}, key: "TALENRO_OUTBOX_DEGRADED_AGE"},
+		{name: "degraded age above", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_AGE": "10m1s"}, key: "TALENRO_OUTBOX_DEGRADED_AGE"},
+		{name: "down age less than one second higher", values: map[string]string{"TALENRO_OUTBOX_DEGRADED_AGE": "60s", "TALENRO_OUTBOX_DOWN_AGE": "60.999s"}, key: "TALENRO_OUTBOX_DOWN_AGE"},
+		{name: "down age above", values: map[string]string{"TALENRO_OUTBOX_DOWN_AGE": "1h1s"}, key: "TALENRO_OUTBOX_DOWN_AGE"},
+		{name: "report queue below", values: map[string]string{"TALENRO_ERROR_REPORT_QUEUE": "9"}, key: "TALENRO_ERROR_REPORT_QUEUE"},
+		{name: "report queue above", values: map[string]string{"TALENRO_ERROR_REPORT_QUEUE": "1001"}, key: "TALENRO_ERROR_REPORT_QUEUE"},
+		{name: "report batch syntax", values: map[string]string{"TALENRO_ERROR_REPORT_BATCH": "many"}, key: "TALENRO_ERROR_REPORT_BATCH"},
+		{name: "report batch above", values: map[string]string{"TALENRO_ERROR_REPORT_BATCH": "101"}, key: "TALENRO_ERROR_REPORT_BATCH"},
+		{name: "report batch exceeds queue", values: map[string]string{"TALENRO_ERROR_REPORT_QUEUE": "10", "TALENRO_ERROR_REPORT_BATCH": "11"}, key: "TALENRO_ERROR_REPORT_BATCH"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			values := maps.Clone(test.values)
+			values["TALENRO_DATABASE_URL"] = "database-fixture"
+			_, err := Load(lookup(values))
+			if err == nil || !strings.Contains(err.Error(), test.key) {
+				t.Fatalf("expected sanitized %s rejection, got %v", test.key, err)
+			}
+			for _, private := range test.values {
+				if len(private) > 3 && strings.Contains(err.Error(), private) {
+					t.Fatalf("invalid value leaked in error: %v", err)
+				}
+			}
+		})
+	}
+}

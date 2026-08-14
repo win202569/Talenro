@@ -74,6 +74,7 @@ func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
 		if statusCode == 0 {
 			statusCode = http.StatusOK
 		}
+		r.recordSecurityOutcome(req.Pattern, int(statusCode))
 		statusClass := strconv.Itoa(int(statusCode)/100) + "xx"
 		requestRoute := route
 		if dynamicRoute {
@@ -83,6 +84,61 @@ func (r *Registry) Middleware(route string, next http.Handler) http.Handler {
 		r.Requests.WithLabelValues(labels...).Inc()
 		r.Duration.WithLabelValues(labels...).Observe(time.Since(started).Seconds())
 	})
+}
+
+func (r *Registry) recordSecurityOutcome(pattern string, status int) {
+	operation, ok := securityOperationForPattern(pattern)
+	if !ok {
+		return
+	}
+	result, reason := securityResultForStatus(status)
+	r.RecordSecurity(operation, result, reason)
+}
+
+func securityOperationForPattern(pattern string) (SecurityOperation, bool) {
+	switch pattern {
+	case "POST /v1/accounts", "POST /v1/email-verification-deliveries", "POST /v1/email-verifications":
+		return SecurityOperationAccountRegister, true
+	case "POST /v1/password-reset-deliveries", "POST /v1/password-resets", "POST /v1/recovery-code-consumptions":
+		return SecurityOperationAccountRecovery, true
+	case "POST /v1/password-changes", "POST /v1/account-sessions", "POST /v1/account-auth-challenges",
+		"POST /v1/account-token-rotations", "POST /v1/account-session-revocations",
+		"POST /v1/passkey-registration-options", "POST /v1/passkey-credentials",
+		"POST /v1/passkey-authentication-options", "POST /v1/passkey-revocations",
+		"POST /v1/totp-enrollments", "POST /v1/totp-verifications", "POST /v1/totp-revocations",
+		"POST /v1/recovery-code-rotations":
+		return SecurityOperationAccountAuth, true
+	case "POST /v1/device-enrollment-grants", "POST /v1/device-auth-challenges", "POST /v1/devices":
+		return SecurityOperationDeviceEnroll, true
+	case "POST /v1/device-token-rotations":
+		return SecurityOperationDeviceAuth, true
+	case "POST /v1/device-revocations":
+		return SecurityOperationDeviceRevoke, true
+	case "POST /v1/config-bundle-resolutions", "GET /b/{bundle_locator}":
+		return SecurityOperationBundleResolve, true
+	case "POST /v1/config-bundle-acknowledgements":
+		return SecurityOperationBundleAck, true
+	default:
+		return "", false
+	}
+}
+
+func securityResultForStatus(status int) (MetricResult, SecurityReason) {
+	if status >= http.StatusOK && status < http.StatusMultipleChoices {
+		return MetricResultSuccess, SecurityReasonNone
+	}
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return MetricResultFailure, SecurityReasonInvalidCredential
+	case http.StatusConflict:
+		return MetricResultFailure, SecurityReasonReplay
+	case http.StatusTooManyRequests:
+		return MetricResultFailure, SecurityReasonRateLimited
+	case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+		return MetricResultFailure, SecurityReasonDependency
+	default:
+		return MetricResultFailure, SecurityReasonInternal
+	}
 }
 
 func boundedMethod(method string) string {

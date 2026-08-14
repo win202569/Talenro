@@ -45,6 +45,36 @@ services:
       - ./nats.conf:/etc/nats/nats.conf:ro
       - nats-data:/data
 
+  mirror-a:
+    image: golang:1.26.5-alpine3.23
+    working_dir: /workspace
+    command: ["go", "run", "./cmd/bundle-mirror"]
+    environment:
+      TALENRO_DATABASE_URL: postgres://talenro:talenro_dev@postgres:5432/talenro?sslmode=disable
+      TALENRO_HTTP_ADDRESS: 0.0.0.0:8081
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../..:/workspace:ro
+
+  mirror-b:
+    image: golang:1.26.5-alpine3.23
+    working_dir: /workspace
+    command: ["go", "run", "./cmd/bundle-mirror"]
+    environment:
+      TALENRO_DATABASE_URL: postgres://talenro:talenro_dev@postgres:5432/talenro?sslmode=disable
+      TALENRO_HTTP_ADDRESS: 0.0.0.0:8082
+    ports:
+      - "127.0.0.1:8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../..:/workspace:ro
+
 volumes:
   postgres-data:
   redis-data:

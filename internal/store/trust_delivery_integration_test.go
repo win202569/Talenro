@@ -581,6 +581,13 @@ func exerciseOutboxPersistence(
 	}
 
 	consumedExpiry := now.Add(30 * 24 * time.Hour)
+	alreadyConsumed, err := queries.HasConsumedEvent(ctx, store.HasConsumedEventParams{
+		Consumer: "task5.trust.publisher",
+		EventID:  firstID,
+	})
+	if err != nil || alreadyConsumed {
+		t.Fatal("fresh consumer/event pair was not absent")
+	}
 	consumed, err := queries.RecordConsumedEvent(ctx, store.RecordConsumedEventParams{
 		Consumer:   "task5.trust.publisher",
 		EventID:    firstID,
@@ -598,6 +605,27 @@ func exerciseOutboxPersistence(
 	})
 	if err != nil || duplicate != 0 {
 		t.Fatal("duplicate consumed event was not ignored")
+	}
+	alreadyConsumed, err = queries.HasConsumedEvent(ctx, store.HasConsumedEventParams{
+		Consumer: "task5.trust.publisher",
+		EventID:  firstID,
+	})
+	if err != nil || !alreadyConsumed {
+		t.Fatal("recorded consumer/event pair was not present")
+	}
+	otherConsumer, err := queries.HasConsumedEvent(ctx, store.HasConsumedEventParams{
+		Consumer: "task18.identity.email",
+		EventID:  firstID,
+	})
+	if err != nil || otherConsumer {
+		t.Fatal("consumed-event presence ignored the consumer key")
+	}
+	otherEvent, err := queries.HasConsumedEvent(ctx, store.HasConsumedEventParams{
+		Consumer: "task5.trust.publisher",
+		EventID:  secondID,
+	})
+	if err != nil || otherEvent {
+		t.Fatal("consumed-event presence ignored the event key")
 	}
 	prunedEarly, err := queries.PruneConsumedEvents(ctx, consumedExpiry)
 	if err != nil || prunedEarly != 0 {

@@ -22,9 +22,13 @@ type EmailVerificationMode string
 // Provider identifies a configured adapter class.
 type Provider string
 
+//nolint:revive // These closed string registries are documented by their exported types and self-describing names.
 const (
-	ProfileLocal      Profile = "local"
-	ProfileTest       Profile = "test"
+	// ProfileLocal and the following constants are the supported runtime profiles.
+	ProfileLocal Profile = "local"
+	// ProfileTest selects deterministic integration fixtures.
+	ProfileTest Profile = "test"
+	// ProfileProduction selects external security adapters and HTTPS-only origins.
 	ProfileProduction Profile = "production"
 
 	EmailRequired EmailVerificationMode = "required"
@@ -77,15 +81,23 @@ type SecurityConfig struct {
 
 // Config contains validated control API process settings.
 type Config struct {
-	HTTPAddress        string
-	MetricsAddress     string
-	AllowPublicMetrics bool
-	DatabaseURL        string
-	RedisAddress       string
-	NATSURL            string
-	DependencyTimeout  time.Duration
-	ShutdownTimeout    time.Duration
-	Security           SecurityConfig
+	HTTPAddress                string
+	MetricsAddress             string
+	AllowPublicMetrics         bool
+	DatabaseURL                string
+	RedisAddress               string
+	NATSURL                    string
+	DependencyTimeout          time.Duration
+	ShutdownTimeout            time.Duration
+	RedisDownAfterFailures     int
+	RedisRecoverAfterSuccesses int
+	OutboxDegradedBacklog      int64
+	OutboxDownBacklog          int64
+	OutboxDegradedAge          time.Duration
+	OutboxDownAge              time.Duration
+	ErrorReportQueue           int
+	ErrorReportBatch           int
+	Security                   SecurityConfig
 }
 
 // Lookup retrieves a configuration value by environment-style key.
@@ -94,12 +106,20 @@ type Lookup func(string) (string, bool)
 // Load reads and validates control API configuration through lookup.
 func Load(lookup Lookup) (Config, error) {
 	cfg := Config{
-		HTTPAddress:       "127.0.0.1:8080",
-		MetricsAddress:    "127.0.0.1:9090",
-		RedisAddress:      "127.0.0.1:6379",
-		NATSURL:           "nats://127.0.0.1:4222",
-		DependencyTimeout: 2 * time.Second,
-		ShutdownTimeout:   10 * time.Second,
+		HTTPAddress:                "127.0.0.1:8080",
+		MetricsAddress:             "127.0.0.1:9090",
+		RedisAddress:               "127.0.0.1:6379",
+		NATSURL:                    "nats://127.0.0.1:4222",
+		DependencyTimeout:          2 * time.Second,
+		ShutdownTimeout:            10 * time.Second,
+		RedisDownAfterFailures:     3,
+		RedisRecoverAfterSuccesses: 2,
+		OutboxDegradedBacklog:      1000,
+		OutboxDownBacklog:          10000,
+		OutboxDegradedAge:          time.Minute,
+		OutboxDownAge:              5 * time.Minute,
+		ErrorReportQueue:           100,
+		ErrorReportBatch:           20,
 	}
 
 	var ok bool
@@ -144,6 +164,34 @@ func Load(lookup Lookup) (Config, error) {
 	}
 	if !cfg.AllowPublicMetrics && !isLoopbackHost(metricsHost) {
 		return Config{}, fmt.Errorf("non-loopback metrics bind requires TALENRO_ALLOW_PUBLIC_METRICS=true")
+	}
+
+	if cfg.RedisDownAfterFailures, err = parseBoundedInt(lookup, "TALENRO_REDIS_DOWN_AFTER_FAILURES", cfg.RedisDownAfterFailures, 1, 10); err != nil {
+		return Config{}, err
+	}
+	if cfg.RedisRecoverAfterSuccesses, err = parseBoundedInt(lookup, "TALENRO_REDIS_RECOVER_AFTER_SUCCESSES", cfg.RedisRecoverAfterSuccesses, 1, 10); err != nil {
+		return Config{}, err
+	}
+	if cfg.OutboxDegradedBacklog, err = parseBoundedInt64(lookup, "TALENRO_OUTBOX_DEGRADED_BACKLOG", cfg.OutboxDegradedBacklog, 100, 10000); err != nil {
+		return Config{}, err
+	}
+	if cfg.OutboxDownBacklog, err = parseBoundedInt64(lookup, "TALENRO_OUTBOX_DOWN_BACKLOG", cfg.OutboxDownBacklog, cfg.OutboxDegradedBacklog+1, 100000); err != nil {
+		return Config{}, err
+	}
+	if cfg.OutboxDegradedAge, err = parseDuration(lookup, "TALENRO_OUTBOX_DEGRADED_AGE", cfg.OutboxDegradedAge, 10*time.Second, 10*time.Minute); err != nil {
+		return Config{}, err
+	}
+	if cfg.OutboxDownAge, err = parseDuration(lookup, "TALENRO_OUTBOX_DOWN_AGE", cfg.OutboxDownAge, cfg.OutboxDegradedAge+time.Second, time.Hour); err != nil {
+		return Config{}, err
+	}
+	if cfg.ErrorReportQueue, err = parseBoundedInt(lookup, "TALENRO_ERROR_REPORT_QUEUE", cfg.ErrorReportQueue, 10, 1000); err != nil {
+		return Config{}, err
+	}
+	if cfg.ErrorReportBatch, err = parseBoundedInt(lookup, "TALENRO_ERROR_REPORT_BATCH", cfg.ErrorReportBatch, 1, 100); err != nil {
+		return Config{}, err
+	}
+	if cfg.ErrorReportBatch > cfg.ErrorReportQueue {
+		return Config{}, fmt.Errorf("parse TALENRO_ERROR_REPORT_BATCH: invalid batch size")
 	}
 
 	cfg.Security, err = loadSecurity(lookup)
@@ -278,6 +326,26 @@ func parseBool(lookup Lookup, key string, fallback bool) (bool, error) {
 	parsed, err := strconv.ParseBool(value)
 	if err != nil {
 		return false, fmt.Errorf("parse %s: invalid boolean", key)
+	}
+	return parsed, nil
+}
+
+func parseBoundedInt(lookup Lookup, key string, fallback, minimum, maximum int) (int, error) {
+	parsed, err := parseBoundedInt64(lookup, key, int64(fallback), int64(minimum), int64(maximum))
+	if err != nil {
+		return 0, err
+	}
+	return int(parsed), nil
+}
+
+func parseBoundedInt64(lookup Lookup, key string, fallback, minimum, maximum int64) (int64, error) {
+	value, exists := lookup(key)
+	if !exists || value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || parsed < minimum || parsed > maximum {
+		return 0, fmt.Errorf("parse %s: invalid integer", key)
 	}
 	return parsed, nil
 }

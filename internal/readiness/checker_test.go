@@ -39,10 +39,10 @@ func TestCheckReportsEveryProbeWithoutLeakingErrors(t *testing.T) {
 
 	ready, checks := checker.Check(context.Background())
 
-	if ready {
-		t.Fatal("expected unavailable")
+	if !ready {
+		t.Fatal("degraded Redis must remain ready")
 	}
-	want := map[string]string{"postgres": "ok", "redis": "unavailable"}
+	want := map[string]string{"postgres": "up", "redis": "degraded"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}
@@ -60,7 +60,7 @@ func TestCheckReturnsReadyWhenAllProbesSucceed(t *testing.T) {
 	if !ready {
 		t.Fatal("expected ready")
 	}
-	want := map[string]string{"postgres": "ok", "redis": "ok", "nats": "ok"}
+	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}
@@ -126,7 +126,7 @@ func TestCheckUsesOneOverallTimeoutAndReleasesWorkers(t *testing.T) {
 	if ready {
 		t.Fatal("expected unavailable")
 	}
-	want := map[string]string{"postgres": "unavailable", "redis": "unavailable"}
+	want := map[string]string{"postgres": "down", "redis": "degraded"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}
@@ -163,10 +163,10 @@ func TestCheckPreservesProbeAssociationsWhenCompletionOrderDiffers(t *testing.T)
 
 	ready, checks := checker.Check(context.Background())
 
-	if ready {
-		t.Fatal("expected unavailable")
+	if !ready {
+		t.Fatal("degraded Redis must remain ready")
 	}
-	want := map[string]string{"postgres": "ok", "redis": "unavailable"}
+	want := map[string]string{"postgres": "up", "redis": "degraded"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("completion order changed status association: got %#v, want %#v", checks, want)
 	}
@@ -183,7 +183,7 @@ func TestCheckHonorsEarlierCallerCancellation(t *testing.T) {
 	startedAt := time.Now()
 	ready, checks := checker.Check(ctx)
 
-	if ready || checks["nats"] != "unavailable" {
+	if ready || checks["nats"] != "degraded" {
 		t.Fatalf("unexpected canceled check result: ready=%v checks=%#v", ready, checks)
 	}
 	if elapsed := time.Since(startedAt); elapsed >= 100*time.Millisecond {
@@ -273,7 +273,7 @@ func TestNewAcceptsAllReviewedPublicComponentNames(t *testing.T) {
 	if !ready {
 		t.Fatal("expected ready")
 	}
-	want := map[string]string{"postgres": "ok", "redis": "ok", "nats": "ok"}
+	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}

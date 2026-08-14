@@ -140,6 +140,14 @@ function Import-SmokeEnvironment {
     'TALENRO_REDIS_TIMEOUT',
     'TALENRO_SIGNER_TIMEOUT',
     'TALENRO_ERROR_REPORT_TIMEOUT',
+    'TALENRO_REDIS_DOWN_AFTER_FAILURES',
+    'TALENRO_REDIS_RECOVER_AFTER_SUCCESSES',
+    'TALENRO_OUTBOX_DEGRADED_BACKLOG',
+    'TALENRO_OUTBOX_DOWN_BACKLOG',
+    'TALENRO_OUTBOX_DEGRADED_AGE',
+    'TALENRO_OUTBOX_DOWN_AGE',
+    'TALENRO_ERROR_REPORT_QUEUE',
+    'TALENRO_ERROR_REPORT_BATCH',
     'TALENRO_CLOCK_SKEW',
     'TALENRO_LOGIN_RATE_LIMIT',
     'TALENRO_LOGIN_RATE_WINDOW',
@@ -367,6 +375,14 @@ try {
     [string]$localEnvironment['TALENRO_REDIS_TIMEOUT'] -ne '250ms' -or
     [string]$localEnvironment['TALENRO_SIGNER_TIMEOUT'] -ne '2s' -or
     [string]$localEnvironment['TALENRO_ERROR_REPORT_TIMEOUT'] -ne '1s' -or
+    [string]$localEnvironment['TALENRO_REDIS_DOWN_AFTER_FAILURES'] -ne '3' -or
+    [string]$localEnvironment['TALENRO_REDIS_RECOVER_AFTER_SUCCESSES'] -ne '2' -or
+    [string]$localEnvironment['TALENRO_OUTBOX_DEGRADED_BACKLOG'] -ne '1000' -or
+    [string]$localEnvironment['TALENRO_OUTBOX_DOWN_BACKLOG'] -ne '10000' -or
+    [string]$localEnvironment['TALENRO_OUTBOX_DEGRADED_AGE'] -ne '60s' -or
+    [string]$localEnvironment['TALENRO_OUTBOX_DOWN_AGE'] -ne '300s' -or
+    [string]$localEnvironment['TALENRO_ERROR_REPORT_QUEUE'] -ne '100' -or
+    [string]$localEnvironment['TALENRO_ERROR_REPORT_BATCH'] -ne '20' -or
     [string]$localEnvironment['TALENRO_CLOCK_SKEW'] -ne '120s' -or
     [string]$localEnvironment['TALENRO_LOGIN_RATE_LIMIT'] -ne '10' -or
     [string]$localEnvironment['TALENRO_LOGIN_RATE_WINDOW'] -ne '15m' -or

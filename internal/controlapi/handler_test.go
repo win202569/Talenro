@@ -3,6 +3,7 @@ package controlapi
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -38,7 +39,7 @@ func TestHealthRoutes(t *testing.T) {
 		status int
 	}{
 		{path: "/livez", status: http.StatusOK},
-		{path: "/readyz", status: http.StatusServiceUnavailable},
+		{path: "/readyz", status: http.StatusOK},
 	}
 	for _, tt := range tests {
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.path, nil)
@@ -53,6 +54,15 @@ func TestHealthRoutes(t *testing.T) {
 		}
 		if strings.Contains(string(body), "secret") || strings.Contains(string(body), "example") {
 			t.Fatalf("sensitive dependency error leaked: %s", body)
+		}
+		if tt.path == "/readyz" {
+			var response controlapiv1.HealthResponse
+			if err := json.Unmarshal(body, &response); err != nil {
+				t.Fatal(err)
+			}
+			if response.Checks["redis"] != "degraded" {
+				t.Fatalf("Redis readiness state = %q, want degraded", response.Checks["redis"])
+			}
 		}
 	}
 }

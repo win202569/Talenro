@@ -393,11 +393,13 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 		record.Operation != registerDeviceOperation {
 		return DeviceTokens{}, deviceAuthenticationFailed()
 	}
-	if err := verifyProof(ProofInput{
+	proofErr := verifyProof(ProofInput{
 		ProtocolVersion: record.ProtocolVersion, Challenge: record.Challenge, GrantDigest: grantDigest,
 		SigningPublicKey: command.SigningPublicKey, HPKEPublicKey: command.HPKEPublicKey,
 		Operation: record.Operation, Audience: service.security.PublicBaseURL, RequestNonce: command.RequestNonce,
-	}, command.Signature, service.security.PublicBaseURL); err != nil {
+	}, command.Signature, service.security.PublicBaseURL)
+	observeDeviceProofVerification(operationContext, proofErr == nil)
+	if proofErr != nil {
 		return DeviceTokens{}, deviceAuthenticationFailed()
 	}
 	displayPlaintext := []byte(command.DisplayName)

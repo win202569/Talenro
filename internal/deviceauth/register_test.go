@@ -74,6 +74,101 @@ func TestRegisterValidProofCreatesExactStandardGraphAndReplaysBeforeRedis(t *tes
 	}
 }
 
+func TestRegisterProofObservationOccursOnlyAtEd25519Boundary(t *testing.T) {
+	t.Run("success once and completed replay zero", func(t *testing.T) {
+		fixture := newTask12Fixture(t, "standard", time.Time{})
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.registrationCommand(t, "observed-register", "task18-register-observed-success")
+		tokens, err := observed.RegisterDevice(context.Background(), command)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tokens.AccessToken.Clear()
+		tokens.RefreshToken.Clear()
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultSuccess,
+			Reason:    CryptoReasonNone,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("registration proof events = %#v, want %#v", observer.events, want)
+		}
+
+		replayed, err := observed.RegisterDevice(context.Background(), command)
+		if err != nil {
+			t.Fatal(err)
+		}
+		replayed.AccessToken.Clear()
+		replayed.RefreshToken.Clear()
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("completed replay changed proof events: %#v", observer.events)
+		}
+	})
+
+	t.Run("malformed request exits before verification", func(t *testing.T) {
+		fixture := newTask12Fixture(t, "standard", time.Time{})
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := observed.RegisterDevice(context.Background(), RegisterDeviceCommand{}); err == nil {
+			t.Fatal("malformed registration unexpectedly succeeded")
+		}
+		if len(observer.events) != 0 {
+			t.Fatalf("pre-verification registration events = %#v, want none", observer.events)
+		}
+	})
+
+	t.Run("fresh invalid signature records one failure", func(t *testing.T) {
+		fixture := newTask12Fixture(t, "standard", time.Time{})
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.registrationCommand(t, "observed-register-invalid", "task18-register-observed-invalid")
+		command.Signature[0] ^= 0xff
+		if _, err := observed.RegisterDevice(context.Background(), command); publicTask12Code(err) != apierrors.AuthenticationFailed {
+			t.Fatalf("invalid registration proof error = %v", err)
+		}
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultFailure,
+			Reason:    CryptoReasonInvalid,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("invalid registration proof events = %#v, want %#v", observer.events, want)
+		}
+	})
+
+	t.Run("post-verification transaction failure retains success", func(t *testing.T) {
+		fixture := newTask12Fixture(t, "standard", time.Time{})
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.registrationCommand(t, "observed-register-post", "task18-register-observed-post")
+		fixture.repository.failFinalCommit = true
+		if _, err := observed.RegisterDevice(context.Background(), command); err == nil {
+			t.Fatal("post-verification transaction failure unexpectedly succeeded")
+		}
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultSuccess,
+			Reason:    CryptoReasonNone,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("post-verification registration events = %#v, want %#v", observer.events, want)
+		}
+	})
+}
+
 func TestRegisterFinalTransactionReplayTransfersIntactTokensAfterCommit(t *testing.T) {
 	fixture := newTask12Fixture(t, "standard", time.Time{})
 	expected := DeviceTokens{

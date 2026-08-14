@@ -136,3 +136,49 @@ func TestPoPRejectsMalformedStringsAndNonCanonicalAudience(t *testing.T) {
 		}
 	}
 }
+
+func TestTask18PublicOriginAcceptsControlledLoopbackHTTP(t *testing.T) {
+	for _, origin := range []string{
+		"http://localhost:8080",
+		"http://LOCALHOST:1",
+		"http://127.0.0.1:443",
+		"http://127.255.255.254:65535",
+		"http://[::1]:8080",
+		"http://localhost:8080/",
+		"https://api.example.test",
+		"https://api.example.test/",
+	} {
+		t.Run(origin, func(t *testing.T) {
+			if !validPublicOrigin(origin) {
+				t.Fatalf("controlled public origin was rejected: %q", origin)
+			}
+		})
+	}
+}
+
+func TestTask18PublicOriginRejectsUnsafeHTTPAndURLComponents(t *testing.T) {
+	for _, origin := range []string{
+		"http://example.test:8080",
+		"http://localhost.:8080",
+		"http://localhost.example:8080",
+		"http://192.0.2.1:8080",
+		"http://[2001:db8::1]:8080",
+		"http://user@localhost:8080",
+		"http://localhost:8080/path",
+		"http://localhost:8080?source=CANARY",
+		"http://localhost:8080?",
+		"http://localhost:8080#CANARY",
+		"http:localhost:8080",
+		"http://localhost:",
+		"http://localhost:0",
+		"http://localhost:08080",
+		"http://localhost:65536",
+		"http://localhost:https",
+	} {
+		t.Run(origin, func(t *testing.T) {
+			if validPublicOrigin(origin) {
+				t.Fatalf("unsafe public origin was accepted: %q", origin)
+			}
+		})
+	}
+}

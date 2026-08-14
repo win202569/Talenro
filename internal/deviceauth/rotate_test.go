@@ -76,6 +76,121 @@ func TestRotateDeviceTokenUsesExactFixedTTLs(t *testing.T) {
 	}
 }
 
+func TestRotateProofObservationOccursOnlyAtEd25519Boundary(t *testing.T) {
+	t.Run("success once and replay or used token zero", func(t *testing.T) {
+		fixture := newTask13Fixture(t)
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.rotationCommand(t, "task18-rotate-observed-success", [32]byte{0x81})
+		tokens, err := observed.RotateDeviceToken(context.Background(), command)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tokens.AccessToken.Clear()
+		tokens.RefreshToken.Clear()
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultSuccess,
+			Reason:    CryptoReasonNone,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("rotation proof events = %#v, want %#v", observer.events, want)
+		}
+
+		replayed, err := observed.RotateDeviceToken(context.Background(), command)
+		if err != nil {
+			t.Fatal(err)
+		}
+		replayed.AccessToken.Clear()
+		replayed.RefreshToken.Clear()
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("completed rotation replay changed proof events: %#v", observer.events)
+		}
+
+		used := fixture.rotationCommand(t, "task18-rotate-observed-used", [32]byte{0x82})
+		if _, err := observed.RotateDeviceToken(context.Background(), used); publicTask12Code(err) != apierrors.AuthenticationFailed {
+			t.Fatalf("used refresh error = %v", err)
+		}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("used-token pre-verification path changed proof events: %#v", observer.events)
+		}
+	})
+
+	t.Run("malformed and challenge reclassification exit before verification", func(t *testing.T) {
+		fixture := newTask13Fixture(t)
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := observed.RotateDeviceToken(context.Background(), RotateDeviceTokenCommand{}); err == nil {
+			t.Fatal("malformed rotation unexpectedly succeeded")
+		}
+		command := fixture.rotationCommand(t, "task18-rotate-observed-reclassify", [32]byte{0x83})
+		delete(fixture.challenges.records, command.ChallengeID)
+		if _, err := observed.RotateDeviceToken(context.Background(), command); err == nil {
+			t.Fatal("missing-challenge rotation unexpectedly succeeded")
+		}
+		if len(observer.events) != 0 {
+			t.Fatalf("pre-verification rotation events = %#v, want none", observer.events)
+		}
+	})
+
+	t.Run("fresh invalid signature records one failure", func(t *testing.T) {
+		fixture := newTask13Fixture(t)
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.rotationCommand(t, "task18-rotate-observed-invalid", [32]byte{0x84})
+		command.Signature[0] ^= 0xff
+		if _, err := observed.RotateDeviceToken(context.Background(), command); publicTask12Code(err) != apierrors.AuthenticationFailed {
+			t.Fatalf("invalid rotation proof error = %v", err)
+		}
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultFailure,
+			Reason:    CryptoReasonInvalid,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("invalid rotation proof events = %#v, want %#v", observer.events, want)
+		}
+	})
+
+	t.Run("post-verification authority change retains success", func(t *testing.T) {
+		fixture := newTask13Fixture(t)
+		observer := &task18DeviceObserver{}
+		observed, err := NewObservedApplication(fixture.application, observer)
+		if err != nil {
+			t.Fatal(err)
+		}
+		command := fixture.rotationCommand(t, "task18-rotate-observed-post", [32]byte{0x85})
+		fixture.application.challenges = &task18PostVerifyRotationChallengeStore{
+			delegate: fixture.challenges,
+			afterConsume: func() {
+				device := fixture.state.devices[fixture.deviceID]
+				device.KeyVersion++
+				fixture.state.devices[fixture.deviceID] = device
+			},
+		}
+		if _, err := observed.RotateDeviceToken(context.Background(), command); err == nil {
+			t.Fatal("post-verification authority change unexpectedly succeeded")
+		}
+		want := []CryptoEvent{{
+			Operation: CryptoOperationProofVerify,
+			Result:    CryptoResultSuccess,
+			Reason:    CryptoReasonNone,
+		}}
+		if !sameTask18DeviceEvents(observer.events, want) {
+			t.Fatalf("post-verification rotation events = %#v, want %#v", observer.events, want)
+		}
+	})
+}
+
 func TestDeviceTokenInternalSecretDTOsRedactDiagnosticsAndRejectJSON(t *testing.T) {
 	t.Parallel()
 	canary := bytes.Repeat([]byte("S"), 32)
@@ -813,6 +928,31 @@ type task13ChallengeStore struct {
 	records      map[string]ChallengeRecord
 	repository   *task13Repository
 	consumeCalls int
+}
+
+type task18PostVerifyRotationChallengeStore struct {
+	delegate     ChallengeStore
+	afterConsume func()
+}
+
+func (store *task18PostVerifyRotationChallengeStore) Create(
+	ctx context.Context,
+	record ChallengeRecord,
+	ttl time.Duration,
+) error {
+	return store.delegate.Create(ctx, record, ttl)
+}
+
+func (store *task18PostVerifyRotationChallengeStore) Consume(
+	ctx context.Context,
+	id string,
+	grantDigest, contextDigest [32]byte,
+) (ChallengeRecord, error) {
+	record, err := store.delegate.Consume(ctx, id, grantDigest, contextDigest)
+	if err == nil && store.afterConsume != nil {
+		store.afterConsume()
+	}
+	return record, err
 }
 
 type task13WinnerThenAmbiguousChallengeStore struct {

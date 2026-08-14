@@ -36,8 +36,30 @@ func TestIdentityTask9SupportIndexesAndLockQueries(t *testing.T) {
 	createTask9SupportAccount(t, ctx, queries, secondPrincipal, now)
 
 	verificationHash := bytes.Repeat([]byte{0x31}, 32)
-	if err = queries.CreateEmailIdentity(ctx, task9EmailIdentity(firstPrincipal, verificationHash, 0x41, now)); err != nil {
+	firstEmail := task9EmailIdentity(firstPrincipal, verificationHash, 0x41, now)
+	if err = queries.CreateEmailIdentity(ctx, firstEmail); err != nil {
 		t.Fatal("create first Task 9 email identity")
+	}
+	pendingEmail, err := queries.GetPendingEmailDelivery(ctx, firstEmail.VerificationDeliveryID)
+	if err != nil || pendingEmail.VerificationDeliveryID != firstEmail.VerificationDeliveryID ||
+		!bytes.Equal(pendingEmail.VerificationDeliveryCiphertext, firstEmail.VerificationDeliveryCiphertext) ||
+		pendingEmail.VerificationDeliveryKeyVersion != firstEmail.VerificationDeliveryKeyVersion {
+		t.Fatal("pending email delivery did not preserve its protected fields")
+	}
+	wrongEmailRows, err := queries.ClearPendingEmailDelivery(ctx, store.ClearPendingEmailDeliveryParams{
+		VerificationDeliveryID: uuid.NullUUID{UUID: uuid.New(), Valid: true}, UpdatedAt: now,
+	})
+	if err != nil || wrongEmailRows != 0 {
+		t.Fatal("wrong email delivery ID cleared a pending delivery")
+	}
+	clearedEmailRows, err := queries.ClearPendingEmailDelivery(ctx, store.ClearPendingEmailDeliveryParams{
+		VerificationDeliveryID: firstEmail.VerificationDeliveryID, UpdatedAt: now,
+	})
+	if err != nil || clearedEmailRows != 1 {
+		t.Fatal("exact email delivery ID did not clear one pending delivery")
+	}
+	if _, err = queries.GetPendingEmailDelivery(ctx, firstEmail.VerificationDeliveryID); !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatal("cleared email delivery remained pending")
 	}
 	locked, err := queries.GetEmailVerificationForUpdate(ctx, verificationHash)
 	if err != nil || locked.PrincipalID != firstPrincipal {
@@ -79,8 +101,30 @@ func TestIdentityTask9SupportIndexesAndLockQueries(t *testing.T) {
 	createTask9PasswordCredential(t, ctx, queries, firstPrincipal, 0x61, now)
 	createTask9PasswordCredential(t, ctx, queries, secondPrincipal, 0x62, now)
 	resetHash := bytes.Repeat([]byte{0x63}, 32)
-	if _, err = queries.SetPasswordReset(ctx, task9PasswordReset(firstPrincipal, resetHash, 0x64, now)); err != nil {
+	firstReset := task9PasswordReset(firstPrincipal, resetHash, 0x64, now)
+	if _, err = queries.SetPasswordReset(ctx, firstReset); err != nil {
 		t.Fatal("set first Task 9 password reset")
+	}
+	pendingReset, err := queries.GetPendingPasswordResetDelivery(ctx, firstReset.ResetDeliveryID)
+	if err != nil || pendingReset.ResetDeliveryID != firstReset.ResetDeliveryID ||
+		!bytes.Equal(pendingReset.ResetDeliveryCiphertext, firstReset.ResetDeliveryCiphertext) ||
+		pendingReset.ResetDeliveryKeyVersion != firstReset.ResetDeliveryKeyVersion {
+		t.Fatal("pending password-reset delivery did not preserve its protected fields")
+	}
+	wrongResetRows, err := queries.ClearPendingPasswordResetDelivery(ctx, store.ClearPendingPasswordResetDeliveryParams{
+		ResetDeliveryID: uuid.NullUUID{UUID: uuid.New(), Valid: true}, UpdatedAt: now,
+	})
+	if err != nil || wrongResetRows != 0 {
+		t.Fatal("wrong password-reset delivery ID cleared a pending delivery")
+	}
+	clearedResetRows, err := queries.ClearPendingPasswordResetDelivery(ctx, store.ClearPendingPasswordResetDeliveryParams{
+		ResetDeliveryID: firstReset.ResetDeliveryID, UpdatedAt: now,
+	})
+	if err != nil || clearedResetRows != 1 {
+		t.Fatal("exact password-reset delivery ID did not clear one pending delivery")
+	}
+	if _, err = queries.GetPendingPasswordResetDelivery(ctx, firstReset.ResetDeliveryID); !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatal("cleared password-reset delivery remained pending")
 	}
 	requireTask9UniqueViolation(t, ctx, tx, "password reset token hash", "identity_password_reset_token_hash_unique", func(nested *store.Queries) error {
 		_, setErr := nested.SetPasswordReset(ctx, task9PasswordReset(secondPrincipal, resetHash, 0x65, now))

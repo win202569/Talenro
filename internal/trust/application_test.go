@@ -452,6 +452,74 @@ func (sequence *task16Sequence) Current(context.Context) (TestConfigV1, error) {
 	return sequence.current, nil
 }
 
+func TestTask18BundleBaseURLsAcceptControlledLoopbackHTTP(t *testing.T) {
+	tests := []struct {
+		name string
+		urls [3]string
+	}{
+		{
+			name: "validated local defaults",
+			urls: [3]string{"http://localhost:8080", "http://localhost:8081", "http://localhost:8082"},
+		},
+		{
+			name: "exact localhost is ASCII case insensitive",
+			urls: [3]string{"http://LOCALHOST:1", "http://localhost:443", "http://localhost:65535"},
+		},
+		{
+			name: "loopback IP literals",
+			urls: [3]string{"http://127.0.0.1:8080", "http://127.255.255.254:8081", "http://[::1]:8082"},
+		},
+		{
+			name: "existing HTTPS sources",
+			urls: [3]string{"https://primary.example", "https://mirror-a.example:8443", "https://mirror-b.example"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if !validBundleBaseURLs(test.urls) {
+				t.Fatalf("controlled bundle base URLs were rejected: %v", test.urls)
+			}
+		})
+	}
+}
+
+func TestTask18BundleBaseURLsRejectUnsafeHTTPAndURLComponents(t *testing.T) {
+	valid := [3]string{"https://primary.example", "https://mirror-a.example", "https://mirror-b.example"}
+	tests := map[string]string{
+		"public HTTP":                "http://example.com:8080",
+		"localhost trailing dot":     "http://localhost.:8080",
+		"localhost subdomain":        "http://localhost.example:8080",
+		"non-loopback IPv4":          "http://192.0.2.1:8080",
+		"non-loopback IPv6":          "http://[2001:db8::1]:8080",
+		"userinfo":                   "http://user@localhost:8080",
+		"root path":                  "http://localhost:8080/",
+		"non-root path":              "http://localhost:8080/bundle",
+		"query":                      "http://localhost:8080?source=CANARY",
+		"force query":                "http://localhost:8080?",
+		"fragment":                   "http://localhost:8080#CANARY",
+		"opaque":                     "http:localhost:8080",
+		"empty port":                 "http://localhost:",
+		"zero port":                  "http://localhost:0",
+		"non-canonical decimal port": "http://localhost:08080",
+		"out-of-range port":          "http://localhost:65536",
+		"named port":                 "http://localhost:https",
+	}
+	for name, unsafe := range tests {
+		t.Run(name, func(t *testing.T) {
+			values := valid
+			values[0] = unsafe
+			if validBundleBaseURLs(values) {
+				t.Fatalf("unsafe bundle base URL was accepted: %q", unsafe)
+			}
+		})
+	}
+
+	duplicates := [3]string{"http://localhost:8080", "http://localhost:8080", "https://mirror.example"}
+	if validBundleBaseURLs(duplicates) {
+		t.Fatal("duplicate bundle base URLs were accepted")
+	}
+}
+
 func (sequence *task16Sequence) set(value TestConfigV1) {
 	sequence.mu.Lock()
 	defer sequence.mu.Unlock()

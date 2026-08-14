@@ -22,6 +22,12 @@ INSERT INTO consumed_event_ids (consumer, event_id, consumed_at, expires_at)
 VALUES ($1,$2,$3,$4)
 ON CONFLICT DO NOTHING;
 
+-- name: HasConsumedEvent :one
+SELECT EXISTS (
+  SELECT 1 FROM consumed_event_ids
+  WHERE consumer=$1 AND event_id=$2
+);
+
 -- name: InsertOutboxEvent :exec
 INSERT INTO transactional_outbox
   (event_id,event_type,aggregate_type,aggregate_id,aggregate_version,

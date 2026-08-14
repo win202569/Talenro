@@ -176,6 +176,12 @@ SELECT reset_delivery_id, reset_delivery_ciphertext, reset_delivery_key_version,
 FROM identity.password_credentials
 WHERE reset_delivery_id=$1 AND reset_consumed_at IS NULL;
 
+-- name: ClearPendingPasswordResetDelivery :execrows
+UPDATE identity.password_credentials
+SET reset_delivery_id=NULL, reset_delivery_ciphertext=NULL,
+    reset_delivery_key_version=NULL, updated_at=$2
+WHERE reset_delivery_id=$1;
+
 -- name: ConsumePasswordReset :one
 UPDATE identity.password_credentials
 SET policy_version=$3, memory_kib=$4, time_cost=$5, parallelism=$6,
