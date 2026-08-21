@@ -559,10 +559,6 @@ func (generated *generatedSessionTokens) clear() {
 	clear(refresh)
 }
 
-func (service *Service) newSessionTokens(now time.Time) (generatedSessionTokens, error) {
-	return service.newSessionTokensUntil(now, time.Time{})
-}
-
 func (service *Service) newSessionTokensUntil(now, deadline time.Time) (generatedSessionTokens, error) {
 	accessExpiresAt := now.Add(accountAccessTTL)
 	refreshIdleExpiresAt := now.Add(accountRefreshIdleTTL)
