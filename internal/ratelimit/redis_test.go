@@ -22,7 +22,11 @@ func TestRedisUsesOnePrivateAtomicScriptAndStrictResult(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	allowed, err := adapter.Allow(context.Background(), Delivery, digest, policy)
+	if adapter.timeout != 250*time.Millisecond {
+		t.Fatalf("Redis timeout = %s", adapter.timeout)
+	}
+	probe := &timeoutProbeContext{Context: context.Background()}
+	allowed, err := adapter.Allow(probe, Delivery, digest, policy)
 	if err != nil || !allowed {
 		t.Fatalf("Allow = %v, %v", allowed, err)
 	}
@@ -40,8 +44,19 @@ func TestRedisUsesOnePrivateAtomicScriptAndStrictResult(t *testing.T) {
 	if got, ok := executor.arguments[0].(int64); !ok || got != int64(time.Hour/time.Millisecond) {
 		t.Fatalf("PEXPIRE argument = %#v", executor.arguments[0])
 	}
-	if executor.deadlineClass != 250*time.Millisecond {
-		t.Fatalf("Redis deadline class = %s", executor.deadlineClass)
+	if probe.beforeTimeout.IsZero() {
+		t.Fatal("timeout probe did not observe the pre-timeout Err call")
+	}
+	if probe.afterTimeout.IsZero() {
+		t.Fatal("timeout probe did not observe the parent Deadline call")
+	}
+	if !executor.hasDeadline {
+		t.Fatal("Redis context had no deadline")
+	}
+	minimumDeadline := probe.beforeTimeout.Add(250 * time.Millisecond)
+	maximumDeadline := probe.afterTimeout.Add(250 * time.Millisecond)
+	if executor.deadline.Before(minimumDeadline) || executor.deadline.After(maximumDeadline) {
+		t.Fatalf("Redis deadline = %s, want between %s and %s", executor.deadline, minimumDeadline, maximumDeadline)
 	}
 
 	executor.result = []any{int64(6), int64(3_599_999)}
@@ -168,13 +183,14 @@ func (*typedNilRedisContext) Err() error                  { panic("typed nil con
 func (*typedNilRedisContext) Value(any) any               { panic("typed nil context used") }
 
 type fakeRedisExecutor struct {
-	result        any
-	err           error
-	script        string
-	keys          []string
-	arguments     []any
-	calls         int
-	deadlineClass time.Duration
+	result      any
+	err         error
+	script      string
+	keys        []string
+	arguments   []any
+	calls       int
+	deadline    time.Time
+	hasDeadline bool
 }
 
 func (fake *fakeRedisExecutor) Run(ctx context.Context, script string, keys []string, arguments ...any) (any, error) {
@@ -183,10 +199,28 @@ func (fake *fakeRedisExecutor) Run(ctx context.Context, script string, keys []st
 	fake.keys = append([]string(nil), keys...)
 	fake.arguments = append([]any(nil), arguments...)
 	if deadline, ok := ctx.Deadline(); ok {
-		remaining := time.Until(deadline)
-		fake.deadlineClass = remaining.Round(time.Millisecond)
+		fake.deadline = deadline
+		fake.hasDeadline = true
 	}
 	return fake.result, fake.err
+}
+
+type timeoutProbeContext struct {
+	context.Context
+	beforeTimeout time.Time
+	afterTimeout  time.Time
+}
+
+func (probe *timeoutProbeContext) Err() error {
+	if probe.beforeTimeout.IsZero() {
+		probe.beforeTimeout = time.Now()
+	}
+	return probe.Context.Err()
+}
+
+func (probe *timeoutProbeContext) Deadline() (time.Time, bool) {
+	probe.afterTimeout = time.Now()
+	return time.Time{}, false
 }
 
 type atomicRedisExecutor struct {
