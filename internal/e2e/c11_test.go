@@ -2430,11 +2430,26 @@ func (fixture *c11Fixture) rotateCompromiseAndReenroll(
 	}
 	_, _ = client.post(device.baseURL, "/v1/config-bundle-resolutions", stringField(rotated, "access_token"), nextFixtureKey("compromised-successor"), map[string]any{}, http.StatusUnauthorized)
 	_, _ = client.post(device.baseURL, "/v1/config-bundle-resolutions", device.accessToken, nextFixtureKey("compromised-original"), map[string]any{}, http.StatusUnauthorized)
-	grantBody, _ := client.post(account.baseURL, "/v1/device-enrollment-grants", account.accessToken, nextFixtureKey("compromise-reenroll"), map[string]any{
+	_, _ = client.post(account.baseURL, "/v1/device-revocations", account.accessToken, nextFixtureKey("compromise-revoke"), map[string]any{
+		"device_id":        device.deviceID.String(),
 		"reauthentication": map[string]any{"method": "password", "password": account.password},
+	}, http.StatusNoContent)
+	_, _ = client.post(account.baseURL, "/v1/device-enrollment-grants", account.accessToken, nextFixtureKey("revoked-bound-grant"), map[string]any{
+		"reauthentication": map[string]any{"method": "password", "password": account.password},
+	}, http.StatusUnauthorized)
+	loginBody, _ := client.post(account.baseURL, "/v1/account-sessions", "", nextFixtureKey("compromise-login"), map[string]any{
+		"method": "password", "email": account.email, "password": account.password,
+		"client_signing_public_key": base64.RawURLEncoding.EncodeToString(account.signingPublic),
+	}, http.StatusOK)
+	freshAccount := decodeAccountTokens(t, account.baseURL, account.email, account.password, account.signingPublic, account.signingKey, loginBody)
+	if freshAccount.principalID != account.principalID || freshAccount.sessionID == uuid.Nil || freshAccount.sessionID == account.sessionID {
+		t.Fatal("c11 device recovery account authority invalid")
+	}
+	grantBody, _ := client.post(freshAccount.baseURL, "/v1/device-enrollment-grants", freshAccount.accessToken, nextFixtureKey("compromise-reenroll"), map[string]any{
+		"reauthentication": map[string]any{"method": "password", "password": freshAccount.password},
 	}, http.StatusCreated)
-	reenrolled := fixture.registerDevice(t, client, account.baseURL, stringField(decodeObject(t, grantBody), "enrollment_grant"))
-	if reenrolled.familyID == device.familyID || reenrolled.authorizationID == device.authorizationID {
+	reenrolled := fixture.registerDevice(t, client, freshAccount.baseURL, stringField(decodeObject(t, grantBody), "enrollment_grant"))
+	if reenrolled.deviceID == device.deviceID || reenrolled.authorizationID == device.authorizationID || reenrolled.familyID == device.familyID {
 		t.Fatal("c11 device reenrollment reused compromised authority")
 	}
 	return reenrolled
