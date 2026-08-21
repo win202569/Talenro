@@ -476,7 +476,7 @@ func loadExternalDependencyConfiguration(lookup func(string) (string, bool)) (ex
 func parseOwnedLoopbackURL(raw, scheme string) (*url.URL, error) {
 	parsed, err := url.ParseRequestURI(raw)
 	if err != nil || parsed.Scheme != scheme || parsed.Hostname() != "127.0.0.1" || parsed.User != nil || parsed.Port() == "" ||
-		parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || !validFixturePort(parsed.Port()) {
+		parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.ForceQuery || !validFixturePort(parsed.Port()) {
 		return nil, errors.New("owned loopback URL invalid")
 	}
 	return parsed, nil
@@ -3146,6 +3146,25 @@ func TestDeviceProofAudienceUsesConfiguredPublicOriginForOwnedProfiles(t *testin
 		t.Run("rejects_"+unowned.name, func(t *testing.T) {
 			if audience, err := fixture.deviceProofAudienceFor(unowned.endpoint); err == nil || audience != "" {
 				t.Fatalf("unowned endpoint proof audience = %q, %v; want rejection", audience, err)
+			}
+		})
+	}
+	for _, malformed := range []struct {
+		name string
+		raw  string
+	}{
+		{name: "bare_query_marker", raw: "http://127.0.0.1:18081?"},
+		{name: "localhost_transport_alias", raw: "http://localhost:18081"},
+		{name: "path", raw: "http://127.0.0.1:18081/path"},
+		{name: "non_empty_query", raw: "http://127.0.0.1:18081?mode=grace"},
+		{name: "userinfo", raw: "http://user@127.0.0.1:18081"},
+		{name: "fragment", raw: "http://127.0.0.1:18081#fragment"},
+	} {
+		t.Run("rejects_owned_"+malformed.name, func(t *testing.T) {
+			malformedFixture := *fixture
+			malformedFixture.ready.GraceURL = malformed.raw
+			if audience, err := malformedFixture.deviceProofAudienceFor(malformed.raw); err == nil || audience != "" {
+				t.Fatalf("malformed owned endpoint proof audience = %q, %v; want rejection", audience, err)
 			}
 		})
 	}
