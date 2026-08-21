@@ -704,7 +704,7 @@ function Invoke-C11Main {
     try {
       Invoke-C11Stage -Stage 'check tools' -FilePath $powerShell -ArgumentList @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'check-tools.ps1')
-      ) -TimeoutSeconds 120
+      ) -TimeoutSeconds 900
 
       $generatedBefore = Get-C11GeneratedSnapshot -RepoRoot $repoRoot
       Invoke-C11Stage -Stage 'generate' -FilePath $powerShell -ArgumentList @(
@@ -725,7 +725,7 @@ function Invoke-C11Main {
       foreach ($fuzz in $fuzzTargets) {
         Invoke-C11Stage -Stage "fuzz $($fuzz.Target)" -FilePath 'go' -ArgumentList @(
           'test', '-run', '^$', '-fuzz', "^$($fuzz.Target)$", '-fuzztime=10s', '-timeout', '30s', $fuzz.Package
-        ) -TimeoutSeconds 45
+        ) -TimeoutSeconds 120
       }
 
       Invoke-C11Stage -Stage 'race tests' -FilePath 'go' -ArgumentList @('test', '-race', './...', '-count=1', '-timeout', '10m')

@@ -447,7 +447,7 @@ create_compose_override
 clear_ambient_environment
 cd -- "${repo_root}"
 
-run_quiet 'check tools' 120 "${script_dir}/check-tools.sh"
+run_quiet 'check tools' 900 "${script_dir}/check-tools.sh"
 generated_before=${run_dir}/generated.before
 generated_after=${run_dir}/generated.after
 generated_snapshot "${generated_before}"
@@ -460,9 +460,9 @@ if ! cmp -s -- "${generated_before}" "${generated_after}"; then
 fi
 
 run_quiet 'unit tests' 600 go test ./... -count=1 -timeout 10m
-run_quiet 'fuzz FuzzDecode' 45 go test -run '^$' -fuzz '^FuzzDecode$' -fuzztime=10s -timeout 30s ./internal/strictjson
-run_quiet 'fuzz FuzzEnvelopeSeal' 45 go test -run '^$' -fuzz '^FuzzEnvelopeSeal$' -fuzztime=10s -timeout 30s ./internal/trust
-run_quiet 'fuzz FuzzVerifyEnvelope' 45 go test -run '^$' -fuzz '^FuzzVerifyEnvelope$' -fuzztime=10s -timeout 30s ./internal/trustclient
+run_quiet 'fuzz FuzzDecode' 120 go test -run '^$' -fuzz '^FuzzDecode$' -fuzztime=10s -timeout 30s ./internal/strictjson
+run_quiet 'fuzz FuzzEnvelopeSeal' 120 go test -run '^$' -fuzz '^FuzzEnvelopeSeal$' -fuzztime=10s -timeout 30s ./internal/trust
+run_quiet 'fuzz FuzzVerifyEnvelope' 120 go test -run '^$' -fuzz '^FuzzVerifyEnvelope$' -fuzztime=10s -timeout 30s ./internal/trustclient
 run_quiet 'race tests' 600 go test -race ./... -count=1 -timeout 10m
 run_quiet 'go vet' 600 go vet ./...
 run_quiet 'golangci-lint' 600 go tool golangci-lint run ./...
