@@ -83,6 +83,232 @@ func TestSessionPasswordLoginCreatesIsolatedBoundTokens(t *testing.T) {
 	}
 }
 
+func TestGracePasswordSessionUsesFixedAccountCreationDeadline(t *testing.T) {
+	// Mutation caught: deriving grace from login time, or leaving any account
+	// session lifetime at its ordinary TTL, extends unverified authority.
+	transaction := activeTask10Transaction()
+	transaction.account.State = "pending_email"
+	transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 55*time.Minute)
+	application, deriver, limiter := newTask10Application(t, transaction, &task10ChallengeStore{})
+	application.security.EmailVerification = config.EmailGrace
+
+	tokens, err := application.CreateSession(context.Background(), task10CreateSessionCommand())
+	if err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Date(2026, 8, 10, 12, 5, 0, 0, time.UTC)
+	if tokens.AccessExpiresAt != deadline || tokens.RefreshIdleExpiresAt != deadline ||
+		tokens.RefreshAbsoluteExpiresAt != deadline || transaction.createdSession.AbsoluteExpiresAt != deadline ||
+		transaction.createdSession.AccessExpiresAt != deadline || transaction.createdRefresh.IdleExpiresAt != deadline ||
+		transaction.createdRefresh.AbsoluteExpiresAt != deadline {
+		t.Fatalf("grace session deadlines = tokens:%#v session:%#v refresh:%#v, want %v", tokens, transaction.createdSession, transaction.createdRefresh, deadline)
+	}
+	if deriver.calls != 1 || limiter.calls != 1 {
+		t.Fatalf("grace login password/limiter calls = %d/%d, want 1/1", deriver.calls, limiter.calls)
+	}
+}
+
+func TestCompletedGracePasswordSessionReplaySurvivesDeadlineAndRequiredSwitchWithoutMinting(t *testing.T) {
+	// Mutations caught: gating a completed login replay on current EmailGrace
+	// eligibility, or allowing replay/new-key denial to mint another token pair,
+	// session, refresh row, UUID, random byte, or durable idempotency record.
+	for _, test := range []struct {
+		name       string
+		transition func(*Service, *task10MutableClock)
+	}{
+		{
+			name: "deadline equality",
+			transition: func(_ *Service, clock *task10MutableClock) {
+				clock.now = time.Date(2026, 8, 10, 12, 1, 0, 0, time.UTC)
+			},
+		},
+		{
+			name: "switched to required",
+			transition: func(application *Service, _ *task10MutableClock) {
+				application.security.EmailVerification = config.EmailRequired
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			transaction := activeTask10Transaction()
+			transaction.account.State = "pending_email"
+			transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 59*time.Minute)
+			application, deriver, limiter := newTask10Application(t, transaction, &task10ChallengeStore{})
+			application.security.EmailVerification = config.EmailGrace
+			clock := &task10MutableClock{now: fixedTask10Time}
+			application.clock = clock
+			uuidCalls := 0
+			application.newUUID = func() uuid.UUID {
+				uuidCalls++
+				return uuid.MustParse("1ed33f26-9ee5-44be-afb7-81d23d228851")
+			}
+			command := task10CreateSessionCommand()
+			created, err := application.CreateSession(context.Background(), command)
+			if err != nil {
+				t.Fatal(err)
+			}
+			createdAccess := created.AccessToken.Copy()
+			createdRefresh := created.RefreshToken.Copy()
+			defer clear(createdAccess)
+			defer clear(createdRefresh)
+			random := application.random.(*task9Random)
+			random.mu.Lock()
+			randomBytes := random.counter
+			random.mu.Unlock()
+			createdSessionID := transaction.createdSession.ID
+			createdRefreshHash := bytes.Clone(transaction.createdRefresh.TokenHash)
+			defer clear(createdRefreshHash)
+			createdSessionOps := countTask10Operation(transaction.operations, "create_account_session")
+			createdRefreshOps := countTask10Operation(transaction.operations, "insert_account_refresh")
+			if len(transaction.idempotencyDB.snapshot()) != 1 || deriver.calls != 1 || limiter.calls != 1 || uuidCalls != 1 {
+				t.Fatalf("initial login evidence = records:%d derive:%d limit:%d uuid:%d", len(transaction.idempotencyDB.snapshot()), deriver.calls, limiter.calls, uuidCalls)
+			}
+
+			test.transition(application, clock)
+			replayed, err := application.CreateSession(context.Background(), command)
+			if err != nil {
+				t.Fatalf("completed replay = %v", err)
+			}
+			replayedAccess := replayed.AccessToken.Copy()
+			replayedRefresh := replayed.RefreshToken.Copy()
+			defer clear(replayedAccess)
+			defer clear(replayedRefresh)
+			if !bytes.Equal(replayedAccess, createdAccess) || !bytes.Equal(replayedRefresh, createdRefresh) ||
+				replayed.AccessExpiresAt != created.AccessExpiresAt || replayed.RefreshIdleExpiresAt != created.RefreshIdleExpiresAt ||
+				replayed.RefreshAbsoluteExpiresAt != created.RefreshAbsoluteExpiresAt {
+				t.Fatalf("completed replay = %#v, want byte-identical %#v", replayed, created)
+			}
+			random.mu.Lock()
+			replayRandomBytes := random.counter
+			random.mu.Unlock()
+			if replayRandomBytes != randomBytes || uuidCalls != 1 || transaction.createdSession.ID != createdSessionID ||
+				!bytes.Equal(transaction.createdRefresh.TokenHash, createdRefreshHash) ||
+				countTask10Operation(transaction.operations, "create_account_session") != createdSessionOps ||
+				countTask10Operation(transaction.operations, "insert_account_refresh") != createdRefreshOps ||
+				len(transaction.idempotencyDB.snapshot()) != 1 || deriver.calls != 2 || limiter.calls != 2 {
+				t.Fatalf("replay side effects = random:%d/%d uuid:%d session:%d/%d refresh:%d/%d records:%d derive:%d limit:%d",
+					replayRandomBytes, randomBytes, uuidCalls,
+					countTask10Operation(transaction.operations, "create_account_session"), createdSessionOps,
+					countTask10Operation(transaction.operations, "insert_account_refresh"), createdRefreshOps,
+					len(transaction.idempotencyDB.snapshot()), deriver.calls, limiter.calls)
+			}
+
+			newCommand := task10CreateSessionCommand()
+			newCommand.IdempotencyKey = "bcdefghijklmnopqrstuvw"
+			if _, err = application.CreateSession(context.Background(), newCommand); publicTask10Code(err) != apierrors.AuthenticationFailed {
+				t.Fatalf("closed grace new-key error = %v", err)
+			}
+			random.mu.Lock()
+			denialRandomBytes := random.counter
+			random.mu.Unlock()
+			if denialRandomBytes != randomBytes || uuidCalls != 1 ||
+				countTask10Operation(transaction.operations, "create_account_session") != createdSessionOps ||
+				countTask10Operation(transaction.operations, "insert_account_refresh") != createdRefreshOps ||
+				len(transaction.idempotencyDB.snapshot()) != 1 || deriver.calls != 3 || limiter.calls != 3 ||
+				len(transaction.operations) == 0 || transaction.operations[len(transaction.operations)-1] != "rollback" {
+				t.Fatalf("closed grace new-key side effects = random:%d/%d uuid:%d session:%d refresh:%d records:%d derive:%d limit:%d operations:%v",
+					denialRandomBytes, randomBytes, uuidCalls,
+					countTask10Operation(transaction.operations, "create_account_session"),
+					countTask10Operation(transaction.operations, "insert_account_refresh"),
+					len(transaction.idempotencyDB.snapshot()), deriver.calls, limiter.calls, transaction.operations)
+			}
+		})
+	}
+}
+
+func TestPendingPasswordSessionRejectsNonGraceAndInvalidFixedDeadlineAfterConstantWork(t *testing.T) {
+	// Mutations caught: admitting pending accounts under required/disabled,
+	// accepting zero/future/equality/expired creation anchors, or bypassing the
+	// ordinary limiter/password work ordering for a privacy-sensitive denial.
+	tests := []struct {
+		name      string
+		mode      config.EmailVerificationMode
+		state     string
+		createdAt time.Time
+	}{
+		{name: "required", mode: config.EmailRequired, state: "pending_email", createdAt: fixedTask10Time.Add(-time.Hour)},
+		{name: "disabled", mode: config.EmailDisabled, state: "pending_email", createdAt: fixedTask10Time.Add(-time.Hour)},
+		{name: "zero anchor", mode: config.EmailGrace, state: "pending_email"},
+		{name: "future anchor", mode: config.EmailGrace, state: "pending_email", createdAt: fixedTask10Time.Add(time.Nanosecond)},
+		{name: "deadline equality", mode: config.EmailGrace, state: "pending_email", createdAt: fixedTask10Time.Add(-24 * time.Hour)},
+		{name: "expired", mode: config.EmailGrace, state: "pending_email", createdAt: fixedTask10Time.Add(-24*time.Hour - time.Nanosecond)},
+		{name: "suspended", mode: config.EmailGrace, state: "suspended", createdAt: fixedTask10Time.Add(-time.Hour)},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			transaction := activeTask10Transaction()
+			transaction.account.State = test.state
+			transaction.account.CreatedAt = test.createdAt
+			application, deriver, limiter := newTask10Application(t, transaction, &task10ChallengeStore{})
+			application.security.EmailVerification = test.mode
+			_, err := application.CreateSession(context.Background(), task10CreateSessionCommand())
+			if publicTask10Code(err) != apierrors.AuthenticationFailed {
+				t.Fatalf("pending login error = %v, want authentication_failed", err)
+			}
+			if deriver.calls != 1 || limiter.calls != 1 || transaction.createdSession.ID != uuid.Nil || transaction.createdRefresh.TokenHash != nil {
+				t.Fatalf("denial work/mutation = derive:%d limit:%d session:%v refresh:%x", deriver.calls, limiter.calls, transaction.createdSession.ID, transaction.createdRefresh.TokenHash)
+			}
+		})
+	}
+}
+
+func TestGraceAccountAccessAndRefreshUseCurrentPolicyAndFixedDeadline(t *testing.T) {
+	// Mutations caught: trusting the account state embedded in the access query,
+	// allowing policy changes to lag, or touching Redis after the fixed grace
+	// boundary closes.
+	transaction := activeTask10Transaction()
+	transaction.account.State = "pending_email"
+	transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 59*time.Minute)
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	defer refresh.Clear()
+	configureTask10Refresh(transaction, refresh, task10PublicKey(), "active")
+	transaction.refresh.AccountState = "pending_email"
+	transaction.session.AbsoluteExpiresAt = fixedTask10Time.Add(time.Minute)
+	transaction.refresh.AbsoluteExpiresAt = fixedTask10Time.Add(time.Minute)
+	transaction.refresh.IdleExpiresAt = fixedTask10Time.Add(time.Minute)
+	transaction.accessFound = true
+	transaction.accessDigest = bytes.Repeat([]byte{0x91}, 32)
+	transaction.access = store.FindAccountAccessTokenRow{
+		ID: transaction.session.ID, PrincipalID: transaction.account.ID, State: "active", StateVersion: 1,
+		AccessExpiresAt: fixedTask10Time.Add(time.Minute), AbsoluteExpiresAt: fixedTask10Time.Add(time.Minute), AccountState: "pending_email",
+	}
+	challenges := &task10ChallengeStore{}
+	application, _, limiter := newTask10Application(t, transaction, challenges)
+	application.security.EmailVerification = config.EmailGrace
+
+	access := secret.NewBytes(bytes.Repeat([]byte{0x92}, 32))
+	defer access.Clear()
+	accessDigest := securitykit.DigestToken(securitykit.AccountAccessToken, access)
+	transaction.accessDigest = bytes.Clone(accessDigest[:])
+	if _, err := application.Authenticate(context.Background(), access); err != nil {
+		t.Fatalf("deadline-minus-one access rejected: %v", err)
+	}
+	challenge, err := application.CreateSessionChallenge(context.Background(), CreateSessionChallengeCommand{
+		RefreshToken: refresh, RequestNonce: [32]byte{9}, IdempotencyKey: "abcdefghijklmnopqrstuv",
+	})
+	if err != nil {
+		t.Fatalf("deadline-minus-one refresh challenge rejected: %v", err)
+	}
+	deadline := time.Date(2026, 8, 10, 12, 1, 0, 0, time.UTC)
+	if challenge.ExpiresAt != deadline || challenges.createCalls != 1 || limiter.calls != 1 {
+		t.Fatalf("grace challenge = %#v calls:%d/%d, want exact deadline %v", challenge, challenges.createCalls, limiter.calls, deadline)
+	}
+
+	application.security.EmailVerification = config.EmailRequired
+	if _, err := application.Authenticate(context.Background(), access); publicTask10Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("required switch access error = %v", err)
+	}
+	beforeRedis := challenges.createCalls
+	if _, err := application.CreateSessionChallenge(context.Background(), CreateSessionChallengeCommand{
+		RefreshToken: refresh, RequestNonce: [32]byte{8}, IdempotencyKey: "bcdefghijklmnopqrstuvw",
+	}); publicTask10Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("required switch refresh error = %v", err)
+	}
+	if challenges.createCalls != beforeRedis {
+		t.Fatalf("closed grace refresh touched Redis: %d -> %d", beforeRedis, challenges.createCalls)
+	}
+}
+
 func TestSessionPasswordFailuresShareAuthenticationErrorAndConstantWork(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -213,6 +439,76 @@ func TestSessionChallengeAuthenticatesAuthorityBeforeRedis(t *testing.T) {
 	})
 	if publicTask10Code(err) != apierrors.AuthenticationFailed || challenges.createCalls != 0 {
 		t.Fatalf("unknown refresh challenge error/calls = %v/%d", err, challenges.createCalls)
+	}
+}
+
+func TestCompletedGraceSessionChallengeReplaySurvivesExpiryWithoutRedisMutation(t *testing.T) {
+	// Mutation caught: validating mutable grace authority before a completed
+	// idempotency replay makes the historical response disappear at expiry.
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	defer refresh.Clear()
+	configureTask10Refresh(transaction, refresh, task10PublicKey(), "active")
+	transaction.account.State = "pending_email"
+	transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 59*time.Minute)
+	transaction.refresh.AccountState = "pending_email"
+	transaction.refresh.AbsoluteExpiresAt = fixedTask10Time.Add(time.Minute)
+	transaction.refresh.IdleExpiresAt = fixedTask10Time.Add(time.Minute)
+	transaction.session.AbsoluteExpiresAt = fixedTask10Time.Add(time.Minute)
+	challenges := &task10ChallengeStore{}
+	application, _, limiter := newTask10Application(t, transaction, challenges)
+	application.security.EmailVerification = config.EmailGrace
+	clock := &task10MutableClock{now: fixedTask10Time}
+	application.clock = clock
+	command := CreateSessionChallengeCommand{RefreshToken: refresh, RequestNonce: [32]byte{9}, IdempotencyKey: "abcdefghijklmnopqrstuv"}
+	created, err := application.CreateSessionChallenge(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	clock.now = fixedTask10Time.Add(time.Minute)
+	replayed, err := application.CreateSessionChallenge(context.Background(), command)
+	if err != nil || replayed != created {
+		t.Fatalf("completed expired challenge replay = %#v, %v; want %#v", replayed, err, created)
+	}
+	if challenges.createCalls != 1 || limiter.calls != 1 {
+		t.Fatalf("historical replay mutated Redis/limiter: challenge=%d limiter=%d", challenges.createCalls, limiter.calls)
+	}
+}
+
+func TestGraceAccountRotationClampsEveryTokenDeadlineExactly(t *testing.T) {
+	// Mutation caught: subtracting nanoseconds or retaining ordinary access/idle
+	// lifetimes makes the rotated response disagree with the fixed session marker.
+	transaction := activeTask10Transaction()
+	refresh := secret.NewBytes(bytes.Repeat([]byte{0x51}, 32))
+	defer refresh.Clear()
+	configureTask10Refresh(transaction, refresh, task10PublicKey(), "active")
+	transaction.account.State = "pending_email"
+	transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 55*time.Minute)
+	deadline := time.Date(2026, 8, 10, 12, 5, 0, 0, time.UTC)
+	transaction.refresh.AccountState = "pending_email"
+	transaction.refresh.AbsoluteExpiresAt = deadline
+	transaction.refresh.IdleExpiresAt = deadline
+	transaction.session.AbsoluteExpiresAt = deadline
+	application, _, _ := newTask10Application(t, transaction, &task10ChallengeStore{})
+	application.security.EmailVerification = config.EmailGrace
+	clock := &task10MutableClock{now: fixedTask10Time}
+	application.clock = clock
+	command := task10RotateCommand(t, application, refresh, transaction.refresh.SessionID, "abcdefghijklmnopqrstuv")
+	tokens, err := application.RotateSession(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokens.AccessExpiresAt != deadline || tokens.RefreshIdleExpiresAt != deadline || tokens.RefreshAbsoluteExpiresAt != deadline {
+		t.Fatalf("grace rotation deadlines = %#v, want %v", tokens, deadline)
+	}
+	accessDigest := securitykit.DigestToken(securitykit.AccountAccessToken, tokens.AccessToken)
+	refreshDigest := securitykit.DigestToken(securitykit.AccountRefreshToken, tokens.RefreshToken)
+	clock.now = deadline
+	replayed, err := application.RotateSession(context.Background(), command)
+	if err != nil || securitykit.DigestToken(securitykit.AccountAccessToken, replayed.AccessToken) != accessDigest ||
+		securitykit.DigestToken(securitykit.AccountRefreshToken, replayed.RefreshToken) != refreshDigest ||
+		replayed.AccessExpiresAt != deadline || replayed.RefreshIdleExpiresAt != deadline || replayed.RefreshAbsoluteExpiresAt != deadline {
+		t.Fatalf("completed expired rotation replay = %#v, %v; operations=%v", replayed, err, transaction.operations)
 	}
 }
 
@@ -863,6 +1159,10 @@ type task10Clock struct{}
 
 func (task10Clock) Now() time.Time { return fixedTask10Time }
 
+type task10MutableClock struct{ now time.Time }
+
+func (clock *task10MutableClock) Now() time.Time { return clock.now }
+
 type task10Deriver struct{ calls int }
 
 func (deriver *task10Deriver) Derive(_ []byte, _ []byte, policy PasswordPolicy) []byte {
@@ -1356,6 +1656,16 @@ func containsTask10Order(got, want []string) bool {
 		}
 	}
 	return position == len(want)
+}
+
+func countTask10Operation(operations []string, want string) int {
+	count := 0
+	for _, operation := range operations {
+		if operation == want {
+			count++
+		}
+	}
+	return count
 }
 
 var _ securitykit.Clock = task10Clock{}

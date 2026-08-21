@@ -457,8 +457,32 @@ func (capture *deviceApplicationCapture) RegisterDevice(_ context.Context, _ dev
 	capture.registerCalls++
 	return deviceauth.DeviceTokens{
 		DeviceID: uuid.MustParse("1645ba9c-ad1d-4a06-b996-d9feb78ee88a"), AuthorizationID: uuid.MustParse("28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac"),
+		FamilyID:    uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"),
 		AccessToken: secret.NewBytes(bytes.Repeat([]byte{2}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{3}, 32)), AccessExpiresAt: time.Now().Add(time.Minute),
 	}, nil
+}
+
+func TestDeviceTokensBodyPublishesAndRequiresFamilyID(t *testing.T) {
+	t.Parallel()
+
+	tokens := testDeviceTokens()
+	defer tokens.AccessToken.Clear()
+	defer tokens.RefreshToken.Clear()
+	body, err := deviceTokensBody(tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if body.FamilyId != tokens.FamilyID {
+		t.Fatalf("family_id = %s, want %s", body.FamilyId, tokens.FamilyID)
+	}
+
+	missing := testDeviceTokens()
+	defer missing.AccessToken.Clear()
+	defer missing.RefreshToken.Clear()
+	missing.FamilyID = uuid.Nil
+	if _, err := deviceTokensBody(missing); err == nil {
+		t.Fatal("deviceTokensBody accepted a missing family ID")
+	}
 }
 
 func TestRegisterDeviceRejectsMoreThanSixtyFourUnicodeScalars(t *testing.T) {
@@ -646,7 +670,7 @@ func (application operationStrongAuthApplication) ConsumeRecoveryCode(_ context.
 type operationDeviceApplication struct{ capture *operationCapture }
 
 func testDeviceTokens() deviceauth.DeviceTokens {
-	return deviceauth.DeviceTokens{DeviceID: uuid.MustParse("1645ba9c-ad1d-4a06-b996-d9feb78ee88a"), AuthorizationID: uuid.MustParse("28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac"), AccessToken: secret.NewBytes(bytes.Repeat([]byte{0x74}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0x75}, 32)), AccessExpiresAt: time.Now().Add(time.Minute)}
+	return deviceauth.DeviceTokens{DeviceID: uuid.MustParse("1645ba9c-ad1d-4a06-b996-d9feb78ee88a"), AuthorizationID: uuid.MustParse("28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac"), FamilyID: uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"), AccessToken: secret.NewBytes(bytes.Repeat([]byte{0x74}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0x75}, 32)), AccessExpiresAt: time.Now().Add(time.Minute)}
 }
 func (application operationDeviceApplication) CreateChallenge(_ context.Context, command deviceauth.CreateChallengeCommand) (deviceauth.Challenge, error) {
 	application.capture.recordCommand("createDeviceAuthChallenge", command)

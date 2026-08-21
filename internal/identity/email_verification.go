@@ -310,7 +310,7 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !identityFound || !accountFound || !credentialFound || account.ID != identity.PrincipalID || credential.PrincipalID != identity.PrincipalID || (account.State != "active" && account.State != "pending_email") {
+		if !identityFound || !accountFound || !credentialFound || account.ID != identity.PrincipalID || credential.PrincipalID != identity.PrincipalID {
 			if !service.performDummyPasswordWork() {
 				return dependencyUnavailable()
 			}
@@ -339,6 +339,13 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 				return nil
 			}
 		}
+		deadline, eligible := service.accountAuthorityDeadline(account, now)
+		if !eligible {
+			if !service.performDummyPasswordWork() {
+				return dependencyUnavailable()
+			}
+			return authenticationFailed()
+		}
 		password := command.NewPassword.Copy()
 		defer clear(password)
 		material, hashErr := service.hashNewPassword(password)
@@ -361,7 +368,7 @@ func (service *Service) ResetPassword(ctx context.Context, command ResetPassword
 		if !consumed {
 			return authenticationFailed()
 		}
-		created, createErr := service.newSessionTokens(now)
+		created, createErr := service.newSessionTokensUntil(now, deadline)
 		if createErr != nil {
 			return dependencyUnavailable()
 		}
@@ -443,8 +450,7 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !accountFound || !sessionFound || !credentialFound || account.ID != principalID || session.ID != sessionID || session.PrincipalID != principalID ||
-			session.State != "active" || !session.AccessExpiresAt.After(now) || !session.AbsoluteExpiresAt.After(now) {
+		if !accountFound || !sessionFound || !credentialFound || account.ID != principalID || session.ID != sessionID || session.PrincipalID != principalID {
 			if !service.performDummyPasswordWork() {
 				return dependencyUnavailable()
 			}
@@ -484,21 +490,21 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 				return nil
 			}
 		}
+		deadline, eligible := service.accountAuthorityDeadline(account, now)
+		if session.State != "active" || !session.AccessExpiresAt.After(now) || !session.AbsoluteExpiresAt.After(now) {
+			return authenticationFailed()
+		}
+		if !eligible {
+			return actionNotAllowed()
+		}
+		if !deadline.IsZero() && (!session.AbsoluteExpiresAt.Equal(deadline) || session.AccessExpiresAt.After(deadline)) {
+			return authenticationFailed()
+		}
 		marker := "standard"
 		var provisionalUntil sql.NullTime
-		switch account.State {
-		case "active":
-		case "pending_email":
-			if service.security.EmailVerification == config.EmailRequired {
-				return actionNotAllowed()
-			}
-			if service.security.EmailVerification != config.EmailGrace {
-				return actionNotAllowed()
-			}
+		if !deadline.IsZero() {
 			marker = "trial_restricted"
-			provisionalUntil = sql.NullTime{Time: now.Add(provisionalAuthorizationTTL), Valid: true}
-		default:
-			return actionNotAllowed()
+			provisionalUntil = sql.NullTime{Time: deadline, Valid: true}
 		}
 		token, tokenErr := securitykit.NewOpaqueToken(service.random)
 		if tokenErr != nil {
@@ -509,7 +515,11 @@ func (service *Service) CreateEnrollmentGrant(ctx context.Context, command Creat
 		if digest == [32]byte{} || grantID == uuid.Nil {
 			return dependencyUnavailable()
 		}
-		result = EnrollmentGrant{Token: token, ExpiresAt: now.Add(enrollmentGrantTTL), PolicyMarker: marker}
+		expiresAt := now.Add(enrollmentGrantTTL)
+		if !deadline.IsZero() && expiresAt.After(deadline) {
+			expiresAt = deadline
+		}
+		result = EnrollmentGrant{Token: token, ExpiresAt: expiresAt, PolicyMarker: marker}
 		if createErr := transaction.CreateEnrollmentGrant(transactionContext, store.CreateEnrollmentGrantParams{
 			ID: grantID, PrincipalID: principalID, AccountSessionID: sessionID, TokenHash: digest[:], PolicyMarker: marker,
 			ProvisionalUntil: provisionalUntil, ExpiresAt: result.ExpiresAt, CreatedAt: now,
@@ -550,6 +560,27 @@ func (generated *generatedSessionTokens) clear() {
 }
 
 func (service *Service) newSessionTokens(now time.Time) (generatedSessionTokens, error) {
+	return service.newSessionTokensUntil(now, time.Time{})
+}
+
+func (service *Service) newSessionTokensUntil(now, deadline time.Time) (generatedSessionTokens, error) {
+	accessExpiresAt := now.Add(accountAccessTTL)
+	refreshIdleExpiresAt := now.Add(accountRefreshIdleTTL)
+	refreshAbsoluteExpiresAt := now.Add(accountRefreshAbsoluteTTL)
+	if !deadline.IsZero() {
+		if !deadline.After(now) {
+			return generatedSessionTokens{}, ErrRandomSource
+		}
+		if accessExpiresAt.After(deadline) {
+			accessExpiresAt = deadline
+		}
+		if refreshIdleExpiresAt.After(deadline) {
+			refreshIdleExpiresAt = deadline
+		}
+		if refreshAbsoluteExpiresAt.After(deadline) {
+			refreshAbsoluteExpiresAt = deadline
+		}
+	}
 	access, err := securitykit.NewOpaqueToken(service.random)
 	if err != nil {
 		return generatedSessionTokens{}, ErrRandomSource
@@ -566,11 +597,39 @@ func (service *Service) newSessionTokens(now time.Time) (generatedSessionTokens,
 	}
 	return generatedSessionTokens{
 		tokens: SessionTokens{
-			AccessToken: access, AccessExpiresAt: now.Add(accountAccessTTL), RefreshToken: refresh,
-			RefreshIdleExpiresAt: now.Add(accountRefreshIdleTTL), RefreshAbsoluteExpiresAt: now.Add(accountRefreshAbsoluteTTL),
+			AccessToken: access, AccessExpiresAt: accessExpiresAt, RefreshToken: refresh,
+			RefreshIdleExpiresAt: refreshIdleExpiresAt, RefreshAbsoluteExpiresAt: refreshAbsoluteExpiresAt,
 		},
 		sessionID: sessionID, accessDigest: accessDigest, refreshDigest: refreshDigest,
 	}, nil
+}
+
+func (service *Service) accountAuthorityDeadline(account store.IdentityAccount, now time.Time) (time.Time, bool) {
+	if account.ID == uuid.Nil || now.IsZero() {
+		return time.Time{}, false
+	}
+	switch account.State {
+	case "active":
+		return time.Time{}, true
+	case "pending_email":
+		if service == nil || service.security.EmailVerification != config.EmailGrace {
+			return time.Time{}, false
+		}
+		return accountFixedGraceDeadline(account, now)
+	default:
+		return time.Time{}, false
+	}
+}
+
+func accountFixedGraceDeadline(account store.IdentityAccount, now time.Time) (time.Time, bool) {
+	if account.ID == uuid.Nil || account.State != "pending_email" || now.IsZero() || account.CreatedAt.IsZero() || account.CreatedAt.After(now) {
+		return time.Time{}, false
+	}
+	deadline := account.CreatedAt.Add(provisionalAuthorizationTTL)
+	if !deadline.After(account.CreatedAt) || !deadline.After(now) {
+		return time.Time{}, false
+	}
+	return deadline, true
 }
 
 func passwordCredentialFromStore(stored store.IdentityPasswordCredential) (PasswordCredential, error) {
@@ -662,18 +721,26 @@ func decodeSessionTokens(body []byte) (SessionTokens, error) {
 	}
 	refresh, err := securitykit.DecodeOpaqueToken(payload.RefreshToken)
 	if err != nil {
+		access.Clear()
 		return SessionTokens{}, ErrRepository
 	}
 	accessExpiresAt, err := time.Parse(time.RFC3339Nano, payload.AccessExpiresAt)
 	if err != nil {
+		access.Clear()
+		refresh.Clear()
 		return SessionTokens{}, ErrRepository
 	}
 	refreshIdleExpiresAt, err := time.Parse(time.RFC3339Nano, payload.RefreshIdleExpiresAt)
 	if err != nil {
+		access.Clear()
+		refresh.Clear()
 		return SessionTokens{}, ErrRepository
 	}
 	refreshAbsoluteExpiresAt, err := time.Parse(time.RFC3339Nano, payload.RefreshAbsoluteExpiresAt)
-	if err != nil || !accessExpiresAt.Before(refreshIdleExpiresAt) || !refreshIdleExpiresAt.Before(refreshAbsoluteExpiresAt) {
+	if err != nil || accessExpiresAt.IsZero() || refreshIdleExpiresAt.IsZero() || refreshAbsoluteExpiresAt.IsZero() ||
+		accessExpiresAt.After(refreshIdleExpiresAt) || refreshIdleExpiresAt.After(refreshAbsoluteExpiresAt) {
+		access.Clear()
+		refresh.Clear()
 		return SessionTokens{}, ErrRepository
 	}
 	return SessionTokens{AccessToken: access, AccessExpiresAt: accessExpiresAt, RefreshToken: refresh, RefreshIdleExpiresAt: refreshIdleExpiresAt, RefreshAbsoluteExpiresAt: refreshAbsoluteExpiresAt}, nil

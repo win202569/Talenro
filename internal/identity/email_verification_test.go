@@ -239,6 +239,187 @@ func TestPasswordResetConsumesOnceMarksSessionsBeforeCreatingBoundSession(t *tes
 	}
 }
 
+func TestGracePasswordResetClampsReplacementSessionToFixedAccountDeadline(t *testing.T) {
+	// Mutation caught: allowing pending reset under a non-grace deployment, or
+	// deriving replacement-session authority from reset time instead of the
+	// immutable account creation timestamp.
+	principalID := uuid.MustParse("7e1a6a5a-b88e-41e9-9027-27d40cd8e66b")
+	tx := &fakeIdentityTransaction{
+		identityFound: true, identity: store.IdentityEmailIdentity{PrincipalID: principalID},
+		accountFound: true, account: store.IdentityAccount{
+			ID: principalID, State: "pending_email", StateVersion: 1, Locale: "en",
+			CreatedAt: fixedTask9Time.Add(-23*time.Hour - 55*time.Minute),
+		},
+		credentialFound: true, credential: task9StoredCredential(principalID), consumeResetOK: true,
+	}
+	application, _, _, _ := newTask9Application(t, config.EmailGrace, tx)
+	result, err := application.ResetPassword(context.Background(), ResetPasswordCommand{
+		Email: "member@example.test", Token: secret.NewBytes(bytes.Repeat([]byte{0x81}, 32)),
+		NewPassword: secret.NewBytes([]byte("a newer correct horse password")), ClientSigningPublicKey: [32]byte{0x91},
+		IdempotencyKey: "abcdefghijklmnopqrstuv",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Date(2026, 8, 10, 1, 7, 3, 0, time.UTC)
+	if result.AccessExpiresAt != deadline || result.RefreshIdleExpiresAt != deadline || result.RefreshAbsoluteExpiresAt != deadline ||
+		tx.createdSession.AccessExpiresAt != deadline || tx.createdSession.AbsoluteExpiresAt != deadline ||
+		tx.createdRefresh.IdleExpiresAt != deadline || tx.createdRefresh.AbsoluteExpiresAt != deadline {
+		t.Fatalf("grace reset deadlines = result:%#v session:%#v refresh:%#v, want %v", result, tx.createdSession, tx.createdRefresh, deadline)
+	}
+}
+
+func TestCompletedGracePasswordResetReplaySurvivesDeadlineAndRequiredSwitchWithoutMutation(t *testing.T) {
+	// Mutations caught: evaluating mutable EmailGrace eligibility before a
+	// completed reset replay, or re-consuming the reset credential and minting a
+	// new password/session/token/event/idempotency record on replay or denial.
+	for _, test := range []struct {
+		name       string
+		transition func(*Service, *task10MutableClock)
+	}{
+		{
+			name: "deadline equality",
+			transition: func(_ *Service, clock *task10MutableClock) {
+				clock.now = time.Date(2026, 8, 10, 12, 1, 0, 0, time.UTC)
+			},
+		},
+		{
+			name: "switched to required",
+			transition: func(application *Service, _ *task10MutableClock) {
+				application.security.EmailVerification = config.EmailRequired
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			transaction := activeTask10Transaction()
+			transaction.account.State = "pending_email"
+			transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 59*time.Minute)
+			transaction.consumeResetOK = true
+			application, deriver, limiter := newTask10Application(t, transaction, &task10ChallengeStore{})
+			application.security.EmailVerification = config.EmailGrace
+			clock := &task10MutableClock{now: fixedTask10Time}
+			application.clock = clock
+			ids := &task9UUIDs{}
+			uuidCalls := 0
+			application.newUUID = func() uuid.UUID {
+				uuidCalls++
+				return ids.Next()
+			}
+			command := ResetPasswordCommand{
+				Email: "member@example.test", Token: secret.NewBytes(bytes.Repeat([]byte{0x81}, 32)),
+				NewPassword: secret.NewBytes([]byte("a newer correct horse password")), ClientSigningPublicKey: [32]byte{0x91},
+				IdempotencyKey: "abcdefghijklmnopqrstuv",
+			}
+			created, err := application.ResetPassword(context.Background(), command)
+			if err != nil {
+				t.Fatal(err)
+			}
+			createdAccess := created.AccessToken.Copy()
+			createdRefresh := created.RefreshToken.Copy()
+			defer clear(createdAccess)
+			defer clear(createdRefresh)
+			random := application.random.(*task9Random)
+			random.mu.Lock()
+			randomBytes := random.counter
+			random.mu.Unlock()
+			createdSessionID := transaction.createdSession.ID
+			createdRefreshHash := bytes.Clone(transaction.createdRefresh.TokenHash)
+			defer clear(createdRefreshHash)
+			createdSessionOps := countTask10Operation(transaction.operations, "create_account_session")
+			createdRefreshOps := countTask10Operation(transaction.operations, "insert_account_refresh")
+			consumeOps := countTask10Operation(transaction.operations, "consume_password_reset")
+			reviewOps := countTask10Operation(transaction.operations, "mark_sessions_review_required")
+			eventCount := len(transaction.securityEvents)
+			if len(transaction.idempotencyDB.snapshot()) != 1 || deriver.calls != 1 || limiter.calls != 0 || uuidCalls != 2 {
+				t.Fatalf("initial reset evidence = records:%d derive:%d limit:%d uuid:%d", len(transaction.idempotencyDB.snapshot()), deriver.calls, limiter.calls, uuidCalls)
+			}
+
+			test.transition(application, clock)
+			replayed, err := application.ResetPassword(context.Background(), command)
+			if err != nil {
+				t.Fatalf("completed replay = %v", err)
+			}
+			replayedAccess := replayed.AccessToken.Copy()
+			replayedRefresh := replayed.RefreshToken.Copy()
+			defer clear(replayedAccess)
+			defer clear(replayedRefresh)
+			if !bytes.Equal(replayedAccess, createdAccess) || !bytes.Equal(replayedRefresh, createdRefresh) ||
+				replayed.AccessExpiresAt != created.AccessExpiresAt || replayed.RefreshIdleExpiresAt != created.RefreshIdleExpiresAt ||
+				replayed.RefreshAbsoluteExpiresAt != created.RefreshAbsoluteExpiresAt {
+				t.Fatalf("completed replay = %#v, want byte-identical %#v", replayed, created)
+			}
+			random.mu.Lock()
+			replayRandomBytes := random.counter
+			random.mu.Unlock()
+			if replayRandomBytes != randomBytes || uuidCalls != 2 || deriver.calls != 1 || limiter.calls != 0 ||
+				transaction.createdSession.ID != createdSessionID || !bytes.Equal(transaction.createdRefresh.TokenHash, createdRefreshHash) ||
+				countTask10Operation(transaction.operations, "consume_password_reset") != consumeOps ||
+				countTask10Operation(transaction.operations, "mark_sessions_review_required") != reviewOps ||
+				countTask10Operation(transaction.operations, "create_account_session") != createdSessionOps ||
+				countTask10Operation(transaction.operations, "insert_account_refresh") != createdRefreshOps ||
+				len(transaction.securityEvents) != eventCount || len(transaction.idempotencyDB.snapshot()) != 1 {
+				t.Fatalf("replay side effects = random:%d/%d uuid:%d derive:%d limit:%d consume:%d/%d review:%d/%d session:%d/%d refresh:%d/%d events:%d/%d records:%d",
+					replayRandomBytes, randomBytes, uuidCalls, deriver.calls, limiter.calls,
+					countTask10Operation(transaction.operations, "consume_password_reset"), consumeOps,
+					countTask10Operation(transaction.operations, "mark_sessions_review_required"), reviewOps,
+					countTask10Operation(transaction.operations, "create_account_session"), createdSessionOps,
+					countTask10Operation(transaction.operations, "insert_account_refresh"), createdRefreshOps,
+					len(transaction.securityEvents), eventCount, len(transaction.idempotencyDB.snapshot()))
+			}
+
+			newCommand := command
+			newCommand.IdempotencyKey = "bcdefghijklmnopqrstuvw"
+			if _, err = application.ResetPassword(context.Background(), newCommand); publicTask9Code(err) != apierrors.AuthenticationFailed {
+				t.Fatalf("closed grace new-key error = %v", err)
+			}
+			random.mu.Lock()
+			denialRandomBytes := random.counter
+			random.mu.Unlock()
+			if denialRandomBytes != randomBytes || uuidCalls != 2 || deriver.calls != 2 || limiter.calls != 0 ||
+				countTask10Operation(transaction.operations, "consume_password_reset") != consumeOps ||
+				countTask10Operation(transaction.operations, "mark_sessions_review_required") != reviewOps ||
+				countTask10Operation(transaction.operations, "create_account_session") != createdSessionOps ||
+				countTask10Operation(transaction.operations, "insert_account_refresh") != createdRefreshOps ||
+				len(transaction.securityEvents) != eventCount || len(transaction.idempotencyDB.snapshot()) != 1 ||
+				len(transaction.operations) == 0 || transaction.operations[len(transaction.operations)-1] != "rollback" {
+				t.Fatalf("closed grace new-key side effects = random:%d/%d uuid:%d derive:%d consume:%d review:%d session:%d refresh:%d events:%d records:%d operations:%v",
+					denialRandomBytes, randomBytes, uuidCalls, deriver.calls,
+					countTask10Operation(transaction.operations, "consume_password_reset"),
+					countTask10Operation(transaction.operations, "mark_sessions_review_required"),
+					countTask10Operation(transaction.operations, "create_account_session"),
+					countTask10Operation(transaction.operations, "insert_account_refresh"),
+					len(transaction.securityEvents), len(transaction.idempotencyDB.snapshot()), transaction.operations)
+			}
+		})
+	}
+}
+
+func TestPendingPasswordResetRequiresCurrentGraceAfterIdempotencyClassificationBeforeConsumption(t *testing.T) {
+	// Mutation caught: the former `(active || pending_email)` check admitted a
+	// pending account under required/disabled and consumed its reset token. A
+	// newly Started record must be rolled back after current eligibility fails.
+	for _, mode := range []config.EmailVerificationMode{config.EmailRequired, config.EmailDisabled} {
+		t.Run(string(mode), func(t *testing.T) {
+			principalID := uuid.MustParse("7e1a6a5a-b88e-41e9-9027-27d40cd8e66b")
+			tx := &fakeIdentityTransaction{
+				identityFound: true, identity: store.IdentityEmailIdentity{PrincipalID: principalID},
+				accountFound: true, account: store.IdentityAccount{ID: principalID, State: "pending_email", CreatedAt: fixedTask9Time.Add(-time.Hour)},
+				credentialFound: true, credential: task9StoredCredential(principalID), consumeResetOK: true,
+			}
+			application, deriver, _, _ := newTask9Application(t, mode, tx)
+			_, err := application.ResetPassword(context.Background(), ResetPasswordCommand{
+				Email: "member@example.test", Token: secret.NewBytes(bytes.Repeat([]byte{0x81}, 32)),
+				NewPassword: secret.NewBytes([]byte("a newer correct horse password")), ClientSigningPublicKey: [32]byte{0x91},
+				IdempotencyKey: "abcdefghijklmnopqrstuv",
+			})
+			if publicTask9Code(err) != apierrors.AuthenticationFailed || deriver.calls != 1 || tx.createdSession.ID != uuid.Nil ||
+				tx.consumedReset.PrincipalID != uuid.Nil || len(tx.idempotencyCanonical) != 1 || len(tx.operations) == 0 || tx.operations[len(tx.operations)-1] != "rollback" {
+				t.Fatalf("pending reset denial = err:%v derive:%d session:%v consume:%v idempotency:%d operations:%v", err, deriver.calls, tx.createdSession.ID, tx.consumedReset.PrincipalID, len(tx.idempotencyCanonical), tx.operations)
+			}
+		})
+	}
+}
+
 func TestEnrollmentPolicyRequiredGraceAndDisabled(t *testing.T) {
 	t.Parallel()
 
@@ -261,7 +442,7 @@ func TestEnrollmentPolicyRequiredGraceAndDisabled(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			tx := &fakeIdentityTransaction{
-				accountFound: true, account: store.IdentityAccount{ID: principalID, State: test.state, StateVersion: 2, Locale: "en"},
+				accountFound: true, account: store.IdentityAccount{ID: principalID, State: test.state, StateVersion: 2, Locale: "en", CreatedAt: fixedTask9Time.Add(-23 * time.Hour)},
 				sessionFound: true, session: store.IdentityAccountSession{ID: sessionID, PrincipalID: principalID, State: "active", AccessExpiresAt: fixedTask9Time.Add(30 * time.Minute), AbsoluteExpiresAt: fixedTask9Time.Add(time.Hour)},
 				credentialFound: true, credential: task9StoredCredential(principalID),
 			}
@@ -286,13 +467,155 @@ func TestEnrollmentPolicyRequiredGraceAndDisabled(t *testing.T) {
 			if tx.createdGrant.PolicyMarker != test.wantMarker || tx.createdGrant.ProvisionalUntil.Valid != test.provisional {
 				t.Fatalf("stored grant policy = %#v", tx.createdGrant)
 			}
-			if test.provisional && tx.createdGrant.ProvisionalUntil.Time.Sub(fixedTask9Time) != 24*time.Hour {
-				t.Fatalf("provisional boundary = %s", tx.createdGrant.ProvisionalUntil.Time.Sub(fixedTask9Time))
+			if test.provisional && tx.createdGrant.ProvisionalUntil.Time != time.Date(2026, 8, 10, 2, 2, 3, 0, time.UTC) {
+				t.Fatalf("provisional boundary = %s", tx.createdGrant.ProvisionalUntil.Time)
 			}
 			if len(tx.idempotencyCanonical) > 0 {
 				proofCopy := proof.Copy()
 				defer clear(proofCopy)
 				assertTask9PrivateBinding(t, tx.idempotencyCanonical[0], "create_enrollment_grant", principalID[:], sessionID[:], proofCopy)
+			}
+		})
+	}
+}
+
+func TestGraceEnrollmentGrantExpiryClampsToFixedDeadline(t *testing.T) {
+	// Mutation caught: a late grant using now+10m or now+24h extends the
+	// principal's provisional authority past account.created_at+24h.
+	principalID := uuid.MustParse("24ee2c85-b4b0-49f1-8b72-acde8cb0a934")
+	sessionID := uuid.MustParse("a8e0fb47-6631-46f5-91fc-38370d870e1e")
+	tx := &fakeIdentityTransaction{
+		accountFound: true, account: store.IdentityAccount{
+			ID: principalID, State: "pending_email", StateVersion: 1, Locale: "en",
+			CreatedAt: fixedTask9Time.Add(-23*time.Hour - 55*time.Minute),
+		},
+		sessionFound: true, session: store.IdentityAccountSession{
+			ID: sessionID, PrincipalID: principalID, State: "active",
+			AccessExpiresAt: fixedTask9Time.Add(5 * time.Minute), AbsoluteExpiresAt: fixedTask9Time.Add(5 * time.Minute),
+		},
+		credentialFound: true, credential: task9StoredCredential(principalID),
+	}
+	application, _, _, _ := newTask9Application(t, config.EmailGrace, tx)
+	grant, err := application.CreateEnrollmentGrant(context.Background(), CreateEnrollmentGrantCommand{
+		PrincipalID: PrincipalID(principalID.String()), SessionID: SessionID(sessionID.String()),
+		Reauthentication: Reauthentication{SessionID: SessionID(sessionID.String()), Method: ReauthPassword, Proof: secret.NewBytes([]byte("correct horse battery staple"))},
+		IdempotencyKey:   "abcdefghijklmnopqrstuv",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Date(2026, 8, 10, 1, 7, 3, 0, time.UTC)
+	if grant.PolicyMarker != "trial_restricted" || grant.ExpiresAt != deadline || !tx.createdGrant.ProvisionalUntil.Valid ||
+		tx.createdGrant.ProvisionalUntil.Time != deadline || tx.createdGrant.ExpiresAt != deadline {
+		t.Fatalf("late grace grant = %#v stored:%#v, want %v", grant, tx.createdGrant, deadline)
+	}
+}
+
+func TestCompletedGraceEnrollmentGrantReplaySurvivesDeadlineAndRequiredSwitchWithoutMutation(t *testing.T) {
+	// Mutations caught: current account/session grace authority before replay,
+	// or a replay/new-key denial generating another opaque token, UUID, grant,
+	// random byte, or durable idempotency record after password proof.
+	for _, test := range []struct {
+		name       string
+		wantNewKey apierrors.Code
+		transition func(*Service, *task10MutableClock)
+	}{
+		{
+			name:       "deadline equality",
+			wantNewKey: apierrors.AuthenticationFailed,
+			transition: func(_ *Service, clock *task10MutableClock) {
+				clock.now = time.Date(2026, 8, 10, 12, 1, 0, 0, time.UTC)
+			},
+		},
+		{
+			name:       "switched to required",
+			wantNewKey: apierrors.ActionNotAllowed,
+			transition: func(application *Service, _ *task10MutableClock) {
+				application.security.EmailVerification = config.EmailRequired
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			transaction := activeTask10Transaction()
+			transaction.account.State = "pending_email"
+			transaction.account.CreatedAt = fixedTask10Time.Add(-23*time.Hour - 59*time.Minute)
+			deadline := time.Date(2026, 8, 10, 12, 1, 0, 0, time.UTC)
+			transaction.sessionFound = true
+			transaction.session = store.IdentityAccountSession{
+				ID: uuid.MustParse("a8e0fb47-6631-46f5-91fc-38370d870e1e"), PrincipalID: transaction.account.ID, State: "active",
+				AccessExpiresAt: deadline, AbsoluteExpiresAt: deadline,
+			}
+			application, deriver, limiter := newTask10Application(t, transaction, &task10ChallengeStore{})
+			application.security.EmailVerification = config.EmailGrace
+			clock := &task10MutableClock{now: fixedTask10Time}
+			application.clock = clock
+			ids := &task9UUIDs{}
+			uuidCalls := 0
+			application.newUUID = func() uuid.UUID {
+				uuidCalls++
+				return ids.Next()
+			}
+			command := CreateEnrollmentGrantCommand{
+				PrincipalID: PrincipalID(transaction.account.ID.String()), SessionID: SessionID(transaction.session.ID.String()),
+				Reauthentication: Reauthentication{
+					SessionID: SessionID(transaction.session.ID.String()), Method: ReauthPassword,
+					Proof: secret.NewBytes([]byte("correct horse battery staple")),
+				},
+				IdempotencyKey: "abcdefghijklmnopqrstuv",
+			}
+			created, err := application.CreateEnrollmentGrant(context.Background(), command)
+			if err != nil {
+				t.Fatal(err)
+			}
+			createdToken := created.Token.Copy()
+			defer clear(createdToken)
+			random := application.random.(*task9Random)
+			random.mu.Lock()
+			randomBytes := random.counter
+			random.mu.Unlock()
+			createdGrantID := transaction.createdGrant.ID
+			createdTokenHash := bytes.Clone(transaction.createdGrant.TokenHash)
+			defer clear(createdTokenHash)
+			grantOps := countTask10Operation(transaction.operations, "create_enrollment_grant")
+			if len(transaction.idempotencyDB.snapshot()) != 1 || deriver.calls != 1 || limiter.calls != 0 || uuidCalls != 1 {
+				t.Fatalf("initial grant evidence = records:%d derive:%d limit:%d uuid:%d", len(transaction.idempotencyDB.snapshot()), deriver.calls, limiter.calls, uuidCalls)
+			}
+
+			test.transition(application, clock)
+			replayed, err := application.CreateEnrollmentGrant(context.Background(), command)
+			if err != nil {
+				t.Fatalf("completed replay = %v", err)
+			}
+			replayedToken := replayed.Token.Copy()
+			defer clear(replayedToken)
+			if !bytes.Equal(replayedToken, createdToken) || replayed.ExpiresAt != created.ExpiresAt || replayed.PolicyMarker != created.PolicyMarker {
+				t.Fatalf("completed replay = %#v, want byte-identical %#v", replayed, created)
+			}
+			random.mu.Lock()
+			replayRandomBytes := random.counter
+			random.mu.Unlock()
+			if replayRandomBytes != randomBytes || uuidCalls != 1 || deriver.calls != 2 || limiter.calls != 0 ||
+				transaction.createdGrant.ID != createdGrantID || !bytes.Equal(transaction.createdGrant.TokenHash, createdTokenHash) ||
+				countTask10Operation(transaction.operations, "create_enrollment_grant") != grantOps || len(transaction.idempotencyDB.snapshot()) != 1 {
+				t.Fatalf("replay side effects = random:%d/%d uuid:%d derive:%d limit:%d grant:%d/%d records:%d",
+					replayRandomBytes, randomBytes, uuidCalls, deriver.calls, limiter.calls,
+					countTask10Operation(transaction.operations, "create_enrollment_grant"), grantOps, len(transaction.idempotencyDB.snapshot()))
+			}
+
+			newCommand := command
+			newCommand.IdempotencyKey = "bcdefghijklmnopqrstuvw"
+			if _, err = application.CreateEnrollmentGrant(context.Background(), newCommand); publicTask9Code(err) != test.wantNewKey {
+				t.Fatalf("closed grace new-key error = %v, want %s", err, test.wantNewKey)
+			}
+			random.mu.Lock()
+			denialRandomBytes := random.counter
+			random.mu.Unlock()
+			if denialRandomBytes != randomBytes || uuidCalls != 1 || deriver.calls != 3 || limiter.calls != 0 ||
+				countTask10Operation(transaction.operations, "create_enrollment_grant") != grantOps || len(transaction.idempotencyDB.snapshot()) != 1 ||
+				len(transaction.operations) == 0 || transaction.operations[len(transaction.operations)-1] != "rollback" {
+				t.Fatalf("closed grace new-key side effects = random:%d/%d uuid:%d derive:%d limit:%d grant:%d records:%d operations:%v",
+					denialRandomBytes, randomBytes, uuidCalls, deriver.calls, limiter.calls,
+					countTask10Operation(transaction.operations, "create_enrollment_grant"), len(transaction.idempotencyDB.snapshot()), transaction.operations)
 			}
 		})
 	}

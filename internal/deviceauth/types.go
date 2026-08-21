@@ -77,6 +77,7 @@ type RegisterDeviceCommand struct {
 type DeviceTokens struct {
 	DeviceID                 uuid.UUID
 	AuthorizationID          uuid.UUID
+	FamilyID                 uuid.UUID
 	AccessToken              secret.Bytes
 	RefreshToken             secret.Bytes
 	AccessExpiresAt          time.Time

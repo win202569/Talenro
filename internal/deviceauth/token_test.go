@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"talenro.local/platform/internal/apierrors"
+	"talenro.local/platform/internal/config"
 	"talenro.local/platform/internal/secret"
 	"talenro.local/platform/internal/securitykit"
 	"talenro.local/platform/internal/store"
@@ -52,7 +53,7 @@ func TestAuthorizeBundleRequiresExactActiveAuthorityAndImmutablePolicy(t *testin
 	authority, ok := bundleAuthorityFromRows(row, snapshot, true, now)
 	if !ok || authority.AuthorizationID != authorizationID || authority.PrincipalID != principalID || authority.DeviceID != deviceID ||
 		authority.HPKEPublicKey != [32]byte{0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72} ||
-		authority.DeviceKeyVersion != 4 || authority.PolicySchema != "device-policy-v1" || string(authority.Policy) != `{"mode": "standard"}` {
+		authority.DeviceKeyVersion != 4 || authority.PolicySchema != "device-policy-v1" || string(authority.Policy) != `{"mode":"standard"}` {
 		t.Fatal("active device authority did not preserve the exact immutable bundle facts")
 	}
 
@@ -90,6 +91,84 @@ func TestAuthorizeBundleRequiresExactActiveAuthorityAndImmutablePolicy(t *testin
 		mutate(&changedRow, &changedSnapshot, &accountActive)
 		if _, ok := bundleAuthorityFromRows(changedRow, changedSnapshot, accountActive, now); ok {
 			t.Fatal("invalid authority state authorized bundle issuance")
+		}
+	}
+}
+
+func TestVerifiedAuthorizationReturnsEffectiveStandardForExactHistoricalTrialSnapshot(t *testing.T) {
+	// Mutation caught: requiring a standard snapshot after verification strands
+	// the immutable trial snapshot, while returning it leaks obsolete restricted
+	// policy instead of the effective verified policy.
+	now := time.Date(2026, 8, 12, 1, 2, 3, 0, time.UTC)
+	authorizationID := uuid.MustParse("17f2a72b-7fb9-44ba-b20a-b2a631b7ce2c")
+	row := store.DiscoverDeviceAccessTokenRow{
+		AuthorizationID: authorizationID, PrincipalID: uuid.MustParse("f592632b-e3c9-43dd-8e31-7cc89dc59cf7"), DeviceID: uuid.MustParse("32c657a5-6e21-4f24-870d-c796f1be3c40"),
+		FamilyID: uuid.MustParse("a2baf518-5a17-4e59-b53d-15d3fab33d85"), FamilyState: "active", AuthorizationState: "active", DeviceState: "active", KeyVersion: 1,
+		HpkePublicKey: bytes.Repeat([]byte{0x72}, 32), AccessExpiresAt: now.Add(time.Minute), IdleExpiresAt: now.Add(time.Hour), AbsoluteExpiresAt: now.Add(2 * time.Hour),
+	}
+	snapshot := store.DeviceauthDevicePolicySnapshot{
+		AuthorizationID: authorizationID, SchemaVersion: "device-policy-v1",
+		Policy: json.RawMessage(`{"expires_at":"2026-08-13T01:02:03Z","max_devices":"1","mode":"trial_restricted"}`),
+	}
+	authority, ok := bundleAuthorityFromRows(row, snapshot, true, now)
+	if !ok || string(authority.Policy) != `{"mode":"standard"}` {
+		t.Fatalf("verified historical trial policy = %s, valid=%v", authority.Policy, ok)
+	}
+	row.ProvisionalUntil = sql.NullTime{Time: now.Add(time.Hour), Valid: true}
+	if _, ok := bundleAuthorityFromRows(row, snapshot, true, now); ok {
+		t.Fatal("active authorization with a non-null provisional marker was accepted")
+	}
+}
+
+func TestAccessAuthorityRequiresMatchingProvisionalStateAndMarker(t *testing.T) {
+	// Mutations caught: trusting only the discovered or only the locked
+	// authorization lets hybrid state/version/marker rows authorize a bundle.
+	now := time.Date(2026, 8, 12, 1, 2, 3, 0, time.UTC)
+	digest := [32]byte{0x41}
+	familyID := uuid.MustParse("a2baf518-5a17-4e59-b53d-15d3fab33d85")
+	authorizationID := uuid.MustParse("17f2a72b-7fb9-44ba-b20a-b2a631b7ce2c")
+	principalID := uuid.MustParse("f592632b-e3c9-43dd-8e31-7cc89dc59cf7")
+	deviceID := uuid.MustParse("32c657a5-6e21-4f24-870d-c796f1be3c40")
+	deadline := now.Add(time.Hour)
+	discovered := store.DiscoverDeviceAccessTokenRow{
+		FamilyID: familyID, AuthorizationID: authorizationID, PrincipalID: principalID, DeviceID: deviceID,
+		FamilyState: "active", FamilyStateVersion: 1, AuthorizationState: "provisional", AuthorizationStateVersion: 2,
+		ProvisionalUntil: sql.NullTime{Time: deadline, Valid: true}, DeviceState: "active", KeyVersion: 1,
+		HpkePublicKey: bytes.Repeat([]byte{0x72}, 32), AccessExpiresAt: deadline, IdleExpiresAt: now.Add(30 * 24 * time.Hour), AbsoluteExpiresAt: now.Add(90 * 24 * time.Hour),
+	}
+	family := store.DeviceauthDeviceTokenFamily{
+		ID: familyID, AuthorizationID: authorizationID, State: "active", StateVersion: 1, AccessTokenHash: bytes.Clone(digest[:]),
+		AccessExpiresAt: discovered.AccessExpiresAt, IdleExpiresAt: discovered.IdleExpiresAt, AbsoluteExpiresAt: discovered.AbsoluteExpiresAt,
+	}
+	authorization := store.DeviceauthDeviceAuthorization{
+		ID: authorizationID, PrincipalID: principalID, DeviceID: deviceID, State: "provisional", StateVersion: 2,
+		ProvisionalUntil: sql.NullTime{Time: deadline, Valid: true},
+	}
+	device := store.DeviceauthDevice{ID: deviceID, PrincipalID: principalID, State: "active", KeyVersion: 1, HpkePublicKey: bytes.Repeat([]byte{0x72}, 32)}
+	refresh := []store.DeviceauthDeviceRefreshToken{{TokenHash: bytes.Repeat([]byte{0x22}, 32), FamilyID: familyID, State: "active"}}
+	if !validAccessAuthority(discovered, family, authorization, device, refresh, refresh, digest, now) {
+		t.Fatal("exact provisional access authority rejected")
+	}
+	for _, mutate := range []func(*store.DiscoverDeviceAccessTokenRow, *store.DeviceauthDeviceAuthorization){
+		func(row *store.DiscoverDeviceAccessTokenRow, _ *store.DeviceauthDeviceAuthorization) {
+			row.ProvisionalUntil.Time = deadline.Add(time.Nanosecond)
+		},
+		func(_ *store.DiscoverDeviceAccessTokenRow, row *store.DeviceauthDeviceAuthorization) {
+			row.ProvisionalUntil = sql.NullTime{}
+		},
+		func(row *store.DiscoverDeviceAccessTokenRow, _ *store.DeviceauthDeviceAuthorization) {
+			row.AuthorizationStateVersion++
+		},
+		func(row *store.DiscoverDeviceAccessTokenRow, locked *store.DeviceauthDeviceAuthorization) {
+			row.AuthorizationState = "active"
+			locked.State = "active"
+		},
+	} {
+		changedDiscovered := discovered
+		changedAuthorization := authorization
+		mutate(&changedDiscovered, &changedAuthorization)
+		if validAccessAuthority(changedDiscovered, family, changedAuthorization, device, refresh, refresh, digest, now) {
+			t.Fatal("hybrid provisional access authority accepted")
 		}
 	}
 }
@@ -216,6 +295,32 @@ func TestAuthorizeBundleUsesDeviceDigestAndRejectsMutableAuthorityStates(t *test
 			test.mutate(denied)
 			if _, err := denied.application.AuthorizeBundle(context.Background(), AuthorizeBundleQuery{AccessToken: denied.access}); publicTask12Code(err) != apierrors.AuthenticationFailed {
 				t.Fatalf("invalid mutable authority = %v, want authentication failure", err)
+			}
+		})
+	}
+}
+
+func TestProvisionalBundleAuthorityRequiresCurrentGraceProfile(t *testing.T) {
+	// Mutation caught: a structurally valid provisional graph must close
+	// immediately when the deployment switches from grace to required/disabled.
+	for _, mode := range []config.EmailVerificationMode{config.EmailRequired, config.EmailDisabled} {
+		t.Run(string(mode), func(t *testing.T) {
+			fixture := newTask13Fixture(t)
+			deadline := fixedTask12Time.Add(time.Hour)
+			authorization := fixture.state.authorizations[fixture.authorizationID]
+			authorization.State = "provisional"
+			authorization.ProvisionalUntil = sql.NullTime{Time: deadline, Valid: true}
+			fixture.state.authorizations[fixture.authorizationID] = authorization
+			family := fixture.state.families[fixture.familyID]
+			family.AccessExpiresAt = deadline
+			fixture.state.families[fixture.familyID] = family
+			fixture.state.policies[fixture.authorizationID] = store.DeviceauthDevicePolicySnapshot{
+				AuthorizationID: fixture.authorizationID, SchemaVersion: "device-policy-v1",
+				Policy: json.RawMessage(`{"expires_at":"2026-08-10T02:02:03Z","max_devices":"1","mode":"trial_restricted"}`),
+			}
+			fixture.application.security.EmailVerification = mode
+			if _, err := fixture.application.AuthorizeBundle(context.Background(), AuthorizeBundleQuery{AccessToken: fixture.access}); publicTask12Code(err) != apierrors.AuthenticationFailed {
+				t.Fatalf("closed provisional bundle error = %v", err)
 			}
 		})
 	}

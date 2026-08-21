@@ -32,6 +32,7 @@ import (
 	"talenro.local/platform/internal/securitykit"
 	"talenro.local/platform/internal/sensitive"
 	"talenro.local/platform/internal/store"
+	"talenro.local/platform/internal/strictjson"
 )
 
 const (
@@ -120,17 +121,19 @@ func (service *Service) CreateChallenge(ctx context.Context, command CreateChall
 	if !ok {
 		return Challenge{}, deviceDependencyUnavailable()
 	}
+	var enrollmentAuthority identity.DeviceEnrollmentAuthority
 	validationErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
 		if nilDeviceauthValue(transaction) || nilDeviceauthValue(transaction.DBTX()) {
 			return deviceDependencyUnavailable()
 		}
-		_, found, err := service.identity.ValidateDeviceEnrollment(transactionContext, transaction.DBTX(), grantDigest, now)
+		authority, found, err := service.identity.ValidateDeviceEnrollment(transactionContext, transaction.DBTX(), grantDigest, now)
 		if err != nil {
 			return deviceDependencyUnavailable()
 		}
-		if !found {
+		if !found || !service.validEnrollmentAuthorityMode(authority, now) {
 			return deviceAuthenticationFailed()
 		}
+		enrollmentAuthority = authority
 		return errChallengeValidationRollback
 	})
 	if !errors.Is(validationErr, errChallengeValidationRollback) {
@@ -167,12 +170,15 @@ func (service *Service) CreateChallenge(ctx context.Context, command CreateChall
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	expiresAt := now.Add(deviceChallengeTTL)
+	if provisionalUntil, valid := enrollmentAuthority.ProvisionalUntil(); valid && expiresAt.After(provisionalUntil) {
+		expiresAt = provisionalUntil
+	}
 	record := ChallengeRecord{
 		ChallengeID: challengeID.String(), Kind: ChallengeRegistration, ProtocolVersion: deviceProofProtocolVersion,
 		Operation: registerDeviceOperation, Challenge: challengeBytes, GrantDigest: grantDigest,
 		ContextDigest: contextDigest, ExpiresAt: expiresAt,
 	}
-	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record); err != nil {
+	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record, expiresAt.Sub(now)); err != nil {
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	return Challenge{ChallengeID: challengeID.String(), Challenge: challengeBytes, ExpiresAt: expiresAt}, nil
@@ -194,6 +200,7 @@ func (service *Service) createRotationChallenge(ctx context.Context, command Cre
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	var familyID uuid.UUID
+	var provisionalDeadline time.Time
 	validationErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, transaction Transaction) error {
 		if nilDeviceauthValue(transaction) || nilDeviceauthValue(transaction.DBTX()) {
 			return deviceDependencyUnavailable()
@@ -248,10 +255,14 @@ func (service *Service) createRotationChallenge(ctx context.Context, command Cre
 		if err != nil {
 			return deviceDependencyUnavailable()
 		}
-		if !accountActive || !validRotationChallengeAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, refreshDigest, now) {
+		if !accountActive || !validRotationChallengeAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, refreshDigest, now) ||
+			(authorization.State == "provisional" && service.security.EmailVerification != config.EmailGrace) {
 			return deviceAuthenticationFailed()
 		}
 		familyID = discovered.FamilyID
+		if authorization.ProvisionalUntil.Valid {
+			provisionalDeadline = authorization.ProvisionalUntil.Time
+		}
 		return errRotationChallengeRollback
 	})
 	if !errors.Is(validationErr, errRotationChallengeRollback) {
@@ -288,12 +299,15 @@ func (service *Service) createRotationChallenge(ctx context.Context, command Cre
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	expiresAt := now.Add(deviceChallengeTTL)
+	if !provisionalDeadline.IsZero() && expiresAt.After(provisionalDeadline) {
+		expiresAt = provisionalDeadline
+	}
 	record := ChallengeRecord{
 		ChallengeID: challengeID.String(), Kind: ChallengeRotation, ProtocolVersion: deviceRotationProtocolVersion,
 		Operation: rotateDeviceTokenOperation, Challenge: challengeBytes, GrantDigest: refreshDigest,
 		ContextDigest: contextDigest, ExpiresAt: expiresAt,
 	}
-	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record); err != nil {
+	if err := safeDeviceChallengeCreate(operationContext, service.challenges, record, expiresAt.Sub(now)); err != nil {
 		return Challenge{}, deviceDependencyUnavailable()
 	}
 	return Challenge{ChallengeID: challengeID.String(), Challenge: challengeBytes, ExpiresAt: expiresAt}, nil
@@ -362,7 +376,7 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 		if err != nil {
 			return deviceDependencyUnavailable()
 		}
-		if !found {
+		if !found || !service.validEnrollmentAuthorityMode(authority, now) {
 			return deviceAuthenticationFailed()
 		}
 		preflightAuthority = authority
@@ -445,7 +459,7 @@ func (service *Service) RegisterDevice(ctx context.Context, command RegisterDevi
 		if err != nil {
 			return deviceDependencyUnavailable()
 		}
-		if !found || !sameEnrollmentAuthority(authority, preflightAuthority) {
+		if !found || !service.validEnrollmentAuthorityMode(authority, now) || !sameEnrollmentAuthority(authority, preflightAuthority) {
 			return deviceAuthenticationFailed()
 		}
 		if err := transaction.CreateDevice(transactionContext, created.deviceParams); err != nil {
@@ -557,9 +571,12 @@ func (service *Service) prepareRegistration(
 	}
 	defer clear(policy)
 	tokens := DeviceTokens{
-		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: access, RefreshToken: refresh,
+		DeviceID: deviceID, AuthorizationID: authorizationID, FamilyID: familyID, AccessToken: access, RefreshToken: refresh,
 		AccessExpiresAt: now.Add(deviceAccessTTL), RefreshIdleExpiresAt: now.Add(deviceRefreshIdleTTL),
 		RefreshAbsoluteExpiresAt: now.Add(deviceRefreshAbsoluteTTL),
+	}
+	if provisional.Valid && tokens.AccessExpiresAt.After(provisional.Time) {
+		tokens.AccessExpiresAt = provisional.Time
 	}
 	replayBody, err := encodeDeviceTokens(tokens)
 	if err != nil {
@@ -608,6 +625,19 @@ func (service *Service) prepareRegistration(
 	}, nil
 }
 
+func (service *Service) validEnrollmentAuthorityMode(authority identity.DeviceEnrollmentAuthority, now time.Time) bool {
+	switch authority.PolicyMarker() {
+	case "standard":
+		_, provisional := authority.ProvisionalUntil()
+		return !provisional
+	case "trial_restricted":
+		deadline, provisional := authority.ProvisionalUntil()
+		return service != nil && service.security.EmailVerification == config.EmailGrace && provisional && deadline.After(now)
+	default:
+		return false
+	}
+}
+
 func (created *preparedRegistration) takeTokens() DeviceTokens {
 	if created == nil {
 		return DeviceTokens{}
@@ -636,7 +666,7 @@ func takeDeviceTokens(source *DeviceTokens) DeviceTokens {
 		return DeviceTokens{}
 	}
 	result := DeviceTokens{
-		DeviceID: source.DeviceID, AuthorizationID: source.AuthorizationID,
+		DeviceID: source.DeviceID, AuthorizationID: source.AuthorizationID, FamilyID: source.FamilyID,
 		AccessExpiresAt: source.AccessExpiresAt, RefreshIdleExpiresAt: source.RefreshIdleExpiresAt,
 		RefreshAbsoluteExpiresAt: source.RefreshAbsoluteExpiresAt,
 	}
@@ -694,12 +724,14 @@ func validRotationChallengeAuthority(
 ) bool {
 	return len(discovered.TokenHash) == len(digest) && subtle.ConstantTimeCompare(discovered.TokenHash, digest[:]) == 1 &&
 		discovered.FamilyID != uuid.Nil && discovered.AuthorizationID != uuid.Nil && discovered.PrincipalID != uuid.Nil && discovered.DeviceID != uuid.Nil &&
-		discovered.RefreshState == "active" && discovered.FamilyState == "active" && discovered.AuthorizationState == "active" && discovered.DeviceState == "active" &&
+		discovered.RefreshState == "active" && discovered.FamilyState == "active" && discovered.DeviceState == "active" &&
 		discovered.IdleExpiresAt.After(now) && discovered.AbsoluteExpiresAt.After(now) && len(discovered.SigningPublicKey) == 32 && discovered.KeyVersion > 0 &&
 		family.ID == discovered.FamilyID && family.AuthorizationID == discovered.AuthorizationID && family.State == "active" &&
 		family.IdleExpiresAt.After(now) && family.AbsoluteExpiresAt.After(now) &&
 		authorization.ID == discovered.AuthorizationID && authorization.PrincipalID == discovered.PrincipalID &&
-		authorization.DeviceID == discovered.DeviceID && authorization.State == "active" &&
+		authorization.DeviceID == discovered.DeviceID && authorization.State == discovered.AuthorizationState &&
+		authorization.StateVersion == discovered.AuthorizationStateVersion &&
+		validAuthorizationMarker(discovered.AuthorizationState, discovered.ProvisionalUntil, authorization.ProvisionalUntil, now) &&
 		device.ID == discovered.DeviceID && device.PrincipalID == discovered.PrincipalID && device.State == "active" &&
 		len(device.SigningPublicKey) == 32 && device.KeyVersion == discovered.KeyVersion &&
 		subtle.ConstantTimeCompare(device.SigningPublicKey, discovered.SigningPublicKey) == 1 &&
@@ -1000,13 +1032,13 @@ func safeDeviceLimiterAllow(ctx context.Context, limiter ratelimit.Limiter, subj
 	return limiter.Allow(ctx, ratelimit.Challenge, subject, policy)
 }
 
-func safeDeviceChallengeCreate(ctx context.Context, challengeStore ChallengeStore, record ChallengeRecord) (err error) {
+func safeDeviceChallengeCreate(ctx context.Context, challengeStore ChallengeStore, record ChallengeRecord, ttl time.Duration) (err error) {
 	defer func() {
 		if recover() != nil {
 			err = ErrChallengeUnavailable
 		}
 	}()
-	return challengeStore.Create(ctx, record, deviceChallengeTTL)
+	return challengeStore.Create(ctx, record, ttl)
 }
 
 func safeDeviceChallengeConsume(ctx context.Context, challengeStore ChallengeStore, challengeID string, grantDigest, contextDigest [32]byte) (record ChallengeRecord, err error) {
@@ -1022,6 +1054,7 @@ func safeDeviceChallengeConsume(ctx context.Context, challengeStore ChallengeSto
 type deviceTokenReplay struct {
 	DeviceID                 string `json:"device_id"`
 	AuthorizationID          string `json:"authorization_id"`
+	FamilyID                 string `json:"family_id"`
 	AccessToken              string `json:"access_token"`  // #nosec G117 -- immediately encrypted by idempotency.
 	RefreshToken             string `json:"refresh_token"` // #nosec G117 -- immediately encrypted by idempotency.
 	AccessExpiresAt          string `json:"access_expires_at"`
@@ -1031,13 +1064,13 @@ type deviceTokenReplay struct {
 
 func encodeDeviceTokens(tokens DeviceTokens) ([]byte, error) {
 	payload := deviceTokenReplay{
-		DeviceID: tokens.DeviceID.String(), AuthorizationID: tokens.AuthorizationID.String(),
+		DeviceID: tokens.DeviceID.String(), AuthorizationID: tokens.AuthorizationID.String(), FamilyID: tokens.FamilyID.String(),
 		AccessToken: securitykit.EncodeOpaqueToken(tokens.AccessToken), RefreshToken: securitykit.EncodeOpaqueToken(tokens.RefreshToken),
 		AccessExpiresAt:          tokens.AccessExpiresAt.UTC().Format(time.RFC3339Nano),
 		RefreshIdleExpiresAt:     tokens.RefreshIdleExpiresAt.UTC().Format(time.RFC3339Nano),
 		RefreshAbsoluteExpiresAt: tokens.RefreshAbsoluteExpiresAt.UTC().Format(time.RFC3339Nano),
 	}
-	if tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || payload.AccessToken == "" || payload.RefreshToken == "" {
+	if tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || tokens.FamilyID == uuid.Nil || payload.AccessToken == "" || payload.RefreshToken == "" {
 		return nil, ErrInvalidApplication
 	}
 	type trustedReplayWire deviceTokenReplay
@@ -1057,11 +1090,9 @@ func tokensFromReplayRecordWithStatus(record idempotency.Record, expectedStatus 
 		return DeviceTokens{}, ErrRepository
 	}
 	defer clear(body)
-	decoder := json.NewDecoder(bytes.NewReader(body))
-	decoder.DisallowUnknownFields()
 	type trustedReplayWire deviceTokenReplay
 	var wire trustedReplayWire
-	if err := decoder.Decode(&wire); err != nil || decoder.More() {
+	if err := strictjson.Decode(bytes.NewReader(body), 2048, &wire); err != nil {
 		return DeviceTokens{}, ErrRepository
 	}
 	payload := deviceTokenReplay(wire)
@@ -1070,6 +1101,10 @@ func tokensFromReplayRecordWithStatus(record idempotency.Record, expectedStatus 
 		return DeviceTokens{}, ErrRepository
 	}
 	authorizationID, err := canonicalDeviceauthUUID(payload.AuthorizationID)
+	if err != nil {
+		return DeviceTokens{}, ErrRepository
+	}
+	familyID, err := canonicalDeviceauthUUID(payload.FamilyID)
 	if err != nil {
 		return DeviceTokens{}, ErrRepository
 	}
@@ -1096,7 +1131,7 @@ func tokensFromReplayRecordWithStatus(record idempotency.Record, expectedStatus 
 		return DeviceTokens{}, ErrRepository
 	}
 	return DeviceTokens{
-		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: access.Take(), RefreshToken: refresh.Take(),
+		DeviceID: deviceID, AuthorizationID: authorizationID, FamilyID: familyID, AccessToken: access.Take(), RefreshToken: refresh.Take(),
 		AccessExpiresAt: accessAt, RefreshIdleExpiresAt: idleAt, RefreshAbsoluteExpiresAt: absoluteAt,
 	}, nil
 }

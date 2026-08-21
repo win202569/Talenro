@@ -390,11 +390,11 @@ func sessionTokensBody(ctx context.Context, authenticator identity.AccountAuthen
 func deviceTokensBody(tokens deviceauth.DeviceTokens) (controlapiv1.DeviceTokens, error) {
 	access := securitykit.EncodeOpaqueToken(tokens.AccessToken)
 	refresh := securitykit.EncodeOpaqueToken(tokens.RefreshToken)
-	if access == "" || refresh == "" || tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil {
+	if access == "" || refresh == "" || tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || tokens.FamilyID == uuid.Nil {
 		return controlapiv1.DeviceTokens{}, dependencyUnavailableError()
 	}
 	return controlapiv1.DeviceTokens{
-		DeviceId: tokens.DeviceID, AuthorizationId: tokens.AuthorizationID, AccessToken: access, RefreshToken: refresh, ExpiresAt: tokens.AccessExpiresAt,
+		DeviceId: tokens.DeviceID, AuthorizationId: tokens.AuthorizationID, FamilyId: tokens.FamilyID, AccessToken: access, RefreshToken: refresh, ExpiresAt: tokens.AccessExpiresAt,
 	}, nil
 }
 

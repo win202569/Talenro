@@ -1607,11 +1607,13 @@ components:
     DeviceTokens:
       type: object
       additionalProperties: false
-      required: [device_id, authorization_id, access_token, refresh_token, expires_at]
+      required: [device_id, authorization_id, family_id, access_token, refresh_token, expires_at]
       properties:
         device_id:
           $ref: "#/components/schemas/UUID"
         authorization_id:
+          $ref: "#/components/schemas/UUID"
+        family_id:
           $ref: "#/components/schemas/UUID"
         access_token:
           $ref: "#/components/schemas/OpaqueToken"

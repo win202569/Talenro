@@ -54,9 +54,14 @@ func newRedisChallengeStoreWithExecutor(executor redisChallengeExecutor, timeout
 	return &RedisChallengeStore{executor: executor, timeout: timeout}, nil
 }
 
-// Create stores a random challenge ID for exactly two minutes using SETNX.
+// Create stores a random challenge ID for its bounded remaining lifetime using SETNX.
 func (store *RedisChallengeStore) Create(ctx context.Context, record ChallengeRecord, ttl time.Duration) error {
-	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) || ttl != deviceChallengeTTL || !validChallengeRecord(record) {
+	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) ||
+		ttl <= 0 || ttl > deviceChallengeTTL || !validChallengeRecord(record) {
+		return ErrInvalidChallenge
+	}
+	ttl = ttl.Truncate(time.Millisecond)
+	if ttl <= 0 {
 		return ErrInvalidChallenge
 	}
 	if ctx.Err() != nil {

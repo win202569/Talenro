@@ -42,11 +42,17 @@ func TestRegisterValidProofCreatesExactStandardGraphAndReplaysBeforeRedis(t *tes
 
 	fixture := newTask12Fixture(t, "standard", time.Time{})
 	command := fixture.registrationCommand(t, "workstation", "task12-register-standard-01")
+	if got := fixture.challenges.lastCreateTTL(); got != 2*time.Minute {
+		t.Fatalf("active registration challenge TTL = %s, want exact two minutes", got)
+	}
 	tokens, err := fixture.application.RegisterDevice(context.Background(), command)
 	if err != nil {
 		t.Fatalf("register device: %v", err)
 	}
 	assertTask12Tokens(t, tokens)
+	if tokens.FamilyID != fixture.database.family.ID {
+		t.Fatalf("returned family ID = %s, want created family %s", tokens.FamilyID, fixture.database.family.ID)
+	}
 	if fixture.database.deviceCount != 1 || fixture.database.authorizationCount != 1 || fixture.database.familyCount != 1 || fixture.database.refreshCount != 1 {
 		t.Fatalf("created graph counts = device %d authorization %d family %d refresh %d", fixture.database.deviceCount, fixture.database.authorizationCount, fixture.database.familyCount, fixture.database.refreshCount)
 	}
@@ -173,6 +179,7 @@ func TestRegisterFinalTransactionReplayTransfersIntactTokensAfterCommit(t *testi
 	fixture := newTask12Fixture(t, "standard", time.Time{})
 	expected := DeviceTokens{
 		DeviceID: uuid.MustParse("f8412733-a3c2-45fd-a48e-f09c61a8f569"), AuthorizationID: uuid.MustParse("5dff9970-d54f-4273-839f-f560de4371b8"),
+		FamilyID:    uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"),
 		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xe1}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xf2}, 32)),
 		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
 		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
@@ -201,11 +208,238 @@ func TestRegisterFinalTransactionReplayTransfersIntactTokensAfterCommit(t *testi
 	}
 }
 
+func TestDeviceTokenReplayRejectsMissingOrNoncanonicalFamilyID(t *testing.T) {
+	t.Parallel()
+
+	fixture := newTask12Fixture(t, "standard", time.Time{})
+	tokens := DeviceTokens{
+		DeviceID: uuid.MustParse("f8412733-a3c2-45fd-a48e-f09c61a8f569"), AuthorizationID: uuid.MustParse("5dff9970-d54f-4273-839f-f560de4371b8"),
+		FamilyID:    uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"),
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xe1}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xf2}, 32)),
+		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
+	}
+	defer tokens.AccessToken.Clear()
+	defer tokens.RefreshToken.Clear()
+	encoded, err := encodeDeviceTokens(tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(encoded)
+	var valid map[string]any
+	if err := json.Unmarshal(encoded, &valid); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name   string
+		mutate func(map[string]any)
+	}{
+		{name: "legacy missing family", mutate: func(body map[string]any) { delete(body, "family_id") }},
+		{name: "noncanonical family", mutate: func(body map[string]any) { body["family_id"] = "0FF820A5-5022-48E6-8867-77761F8E2F07" }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			body := make(map[string]any, len(valid))
+			for key, value := range valid {
+				body[key] = value
+			}
+			test.mutate(body)
+			raw, err := json.Marshal(body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer clear(raw)
+			record := task19DeviceReplayRecord(t, fixture.database.idempotency, raw, test.name)
+			if _, err := tokensFromReplayRecord(record); !errors.Is(err, ErrRepository) {
+				t.Fatalf("replay decode error = %v, want ErrRepository", err)
+			}
+		})
+	}
+}
+
+func TestDeviceTokenReplayRejectsTrailingNonWhitespaceForRegistrationAndRotation(t *testing.T) {
+	t.Parallel()
+
+	fixture := newTask12Fixture(t, "standard", time.Time{})
+	tokens := DeviceTokens{
+		DeviceID: uuid.MustParse("f8412733-a3c2-45fd-a48e-f09c61a8f569"), AuthorizationID: uuid.MustParse("5dff9970-d54f-4273-839f-f560de4371b8"),
+		FamilyID:    uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"),
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xe1}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xf2}, 32)),
+		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
+	}
+	defer tokens.AccessToken.Clear()
+	defer tokens.RefreshToken.Clear()
+	encoded, err := encodeDeviceTokens(tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(encoded)
+
+	statuses := []struct {
+		name  string
+		value int
+	}{
+		{name: "registration", value: registrationResponseStatus},
+		{name: "rotation", value: deviceRotationResponseStatus},
+	}
+	suffixes := []struct {
+		name   string
+		value  string
+		accept bool
+	}{
+		{name: "closing array", value: "]"},
+		{name: "closing object", value: "}"},
+		{name: "trailing whitespace", value: " \n\t", accept: true},
+	}
+	for _, status := range statuses {
+		for _, suffix := range suffixes {
+			t.Run(status.name+"/"+suffix.name, func(t *testing.T) {
+				body := append(bytes.Clone(encoded), suffix.value...)
+				record := task19DeviceReplayRecordWithStatus(t, fixture.database.idempotency, body, status.name+"-"+suffix.name, status.value)
+				decoded, decodeErr := tokensFromReplayRecordWithStatus(record, status.value)
+				clear(body)
+				defer decoded.AccessToken.Clear()
+				defer decoded.RefreshToken.Clear()
+				if suffix.accept {
+					if decodeErr != nil || !sameTask12Tokens(decoded, tokens) {
+						t.Fatal("replay decoder rejected canonical JSON with trailing whitespace")
+					}
+					return
+				}
+				access, refresh := decoded.AccessToken.Copy(), decoded.RefreshToken.Copy()
+				defer clear(access)
+				defer clear(refresh)
+				if !errors.Is(decodeErr, ErrRepository) || decoded.DeviceID != uuid.Nil || decoded.AuthorizationID != uuid.Nil ||
+					decoded.FamilyID != uuid.Nil || len(access) != 0 || len(refresh) != 0 {
+					t.Fatal("replay decoder accepted trailing non-whitespace or returned owned tokens")
+				}
+			})
+		}
+	}
+}
+
+func TestDeviceTokenReplayRejectsDuplicateAliasAndOversizedJSONWithoutTokenOwnership(t *testing.T) {
+	// Mutations caught: encoding/json accepts duplicate and case-folded member
+	// aliases, and an unbounded decoder accepts oversized private replay state.
+	// Every rejection must return zero IDs and zero token ownership for both
+	// registration and rotation response statuses.
+	fixture := newTask12Fixture(t, "standard", time.Time{})
+	tokens := DeviceTokens{
+		DeviceID: uuid.MustParse("f8412733-a3c2-45fd-a48e-f09c61a8f569"), AuthorizationID: uuid.MustParse("5dff9970-d54f-4273-839f-f560de4371b8"),
+		FamilyID:    uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"),
+		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xe1}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xf2}, 32)),
+		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
+		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
+	}
+	defer tokens.AccessToken.Clear()
+	defer tokens.RefreshToken.Clear()
+	encoded, err := encodeDeviceTokens(tokens)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(encoded)
+
+	bodies := []struct {
+		name string
+		body []byte
+	}{
+		{name: "duplicate access token", body: duplicateTask19ReplayMember(t, encoded, "access_token")},
+		{name: "duplicate family id", body: duplicateTask19ReplayMember(t, encoded, "family_id")},
+		{name: "case folded access token alias", body: bytes.Replace(bytes.Clone(encoded), []byte(`"access_token"`), []byte(`"ACCESS_TOKEN"`), 1)},
+		{name: "oversized", body: append(bytes.Clone(encoded), bytes.Repeat([]byte{' '}, 2049-len(encoded))...)},
+	}
+	for index := range bodies {
+		defer clear(bodies[index].body)
+	}
+	for _, status := range []struct {
+		name  string
+		value int
+	}{
+		{name: "registration", value: registrationResponseStatus},
+		{name: "rotation", value: deviceRotationResponseStatus},
+	} {
+		for _, body := range bodies {
+			t.Run(status.name+"/"+body.name, func(t *testing.T) {
+				record := task19DeviceReplayRecordWithStatus(t, fixture.database.idempotency, body.body, status.name+"-"+strings.ReplaceAll(body.name, " ", "-"), status.value)
+				decoded, decodeErr := tokensFromReplayRecordWithStatus(record, status.value)
+				defer decoded.AccessToken.Clear()
+				defer decoded.RefreshToken.Clear()
+				access, refresh := decoded.AccessToken.Copy(), decoded.RefreshToken.Copy()
+				defer clear(access)
+				defer clear(refresh)
+				if !errors.Is(decodeErr, ErrRepository) || decoded.DeviceID != uuid.Nil || decoded.AuthorizationID != uuid.Nil ||
+					decoded.FamilyID != uuid.Nil || len(access) != 0 || len(refresh) != 0 {
+					t.Fatalf("strict replay rejection = %#v / %v, access:%d refresh:%d", decoded, decodeErr, len(access), len(refresh))
+				}
+			})
+		}
+	}
+}
+
+func duplicateTask19ReplayMember(t *testing.T, body []byte, name string) []byte {
+	t.Helper()
+	start := bytes.Index(body, []byte(`"`+name+`":`))
+	if start < 0 {
+		t.Fatalf("replay fixture omitted member %q", name)
+	}
+	end := bytes.IndexByte(body[start:], ',')
+	if end < 0 {
+		t.Fatalf("replay fixture member %q was unexpectedly final", name)
+	}
+	end += start
+	result := make([]byte, 0, len(body)+(end-start)+1)
+	result = append(result, body[:end]...)
+	result = append(result, ',')
+	result = append(result, body[start:end]...)
+	result = append(result, body[end:]...)
+	return result
+}
+
+func task19DeviceReplayRecord(t *testing.T, repository idempotency.Repository, body []byte, suffix string) idempotency.Record {
+	t.Helper()
+	return task19DeviceReplayRecordWithStatus(t, repository, body, suffix, registrationResponseStatus)
+}
+
+func task19DeviceReplayRecordWithStatus(
+	t *testing.T,
+	repository idempotency.Repository,
+	body []byte,
+	suffix string,
+	responseStatus int,
+) idempotency.Record {
+	t.Helper()
+	ctx := context.Background()
+	scope := idempotency.AnonymousDeviceRegistrationScope()
+	key := "task19-family-replay-" + strings.ReplaceAll(suffix, " ", "-")
+	canonical := []byte("task19-family-replay-request")
+	record, outcome, err := repository.Begin(ctx, scope, key, canonical, fixedTask12Time, fixedTask12Time.Add(time.Hour))
+	if err != nil || outcome != idempotency.Started {
+		t.Fatalf("begin replay fixture = %q, %v", outcome, err)
+	}
+	completed, err := repository.Complete(ctx, record, responseStatus, body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	owned, ok := completed.TakeResponseBody()
+	clear(owned)
+	if !ok {
+		t.Fatal("completed replay fixture did not transfer response ownership")
+	}
+	replayed, outcome, err := repository.Begin(ctx, scope, key, canonical, fixedTask12Time, fixedTask12Time.Add(time.Hour))
+	if err != nil || outcome != idempotency.Replay {
+		t.Fatalf("reopen replay fixture = %q, %v", outcome, err)
+	}
+	return replayed
+}
+
 func TestRegisterGraceCreatesExactImmutableTrialPolicy(t *testing.T) {
 	t.Parallel()
 
 	boundary := time.Date(2026, 8, 11, 1, 2, 3, 0, time.UTC)
 	fixture := newTask12Fixture(t, "trial_restricted", boundary)
+	fixture.application.security.EmailVerification = config.EmailGrace
 	command := fixture.registrationCommand(t, "tablet", "task12-register-grace-0001")
 	if _, err := fixture.application.RegisterDevice(context.Background(), command); err != nil {
 		t.Fatalf("register grace device: %v", err)
@@ -222,6 +456,122 @@ func TestRegisterGraceCreatesExactImmutableTrialPolicy(t *testing.T) {
 		if bytes.Contains(fixture.database.policy.Policy, []byte(forbidden)) {
 			t.Fatalf("trial policy contains forbidden field/value %q", forbidden)
 		}
+	}
+}
+
+func TestProvisionalRegistrationChallengeAndAccessClampToExactDeadline(t *testing.T) {
+	// Mutations caught: using the ordinary two-minute challenge or ten-minute
+	// access TTL lets a provisional device create new-key authority past its
+	// immutable principal deadline. Device refresh lifetimes intentionally stay
+	// ordinary so verification can upgrade the same device.
+	boundary := time.Date(2026, 8, 10, 1, 3, 3, 0, time.UTC)
+	fixture := newTask12Fixture(t, "trial_restricted", boundary)
+	fixture.application.security.EmailVerification = config.EmailGrace
+	command := fixture.challengeCommand("task19-grace-challenge-clamp")
+	challenge, err := fixture.application.CreateChallenge(context.Background(), command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if challenge.ExpiresAt != boundary {
+		t.Fatalf("provisional challenge expires = %v, want %v", challenge.ExpiresAt, boundary)
+	}
+	if got := fixture.challenges.lastCreateTTL(); got != time.Minute {
+		t.Fatalf("provisional registration challenge TTL = %s, want exact remaining minute", got)
+	}
+	registration := fixture.registrationCommand(t, "tablet", "task19-grace-register-clamp")
+	tokens, err := fixture.application.RegisterDevice(context.Background(), registration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokens.AccessExpiresAt != boundary || tokens.RefreshIdleExpiresAt != fixedTask12Time.Add(30*24*time.Hour) ||
+		tokens.RefreshAbsoluteExpiresAt != fixedTask12Time.Add(90*24*time.Hour) || fixture.database.family.AccessExpiresAt != boundary {
+		t.Fatalf("provisional registration deadlines = %#v family:%#v, want access %v", tokens, fixture.database.family, boundary)
+	}
+}
+
+func TestRotationChallengeStoreTTLMatchesClampedRecordExpiry(t *testing.T) {
+	// Mutation caught: passing the ordinary two-minute TTL after clamping the
+	// record lets Redis retain a provisional rotation challenge past its exact
+	// authority deadline. Active rotation must retain the ordinary TTL.
+	for _, test := range []struct {
+		name             string
+		authorization    string
+		provisionalUntil time.Time
+		wantTTL          time.Duration
+	}{
+		{name: "active", authorization: "active", wantTTL: 2 * time.Minute},
+		{
+			name:             "provisional exact shorter",
+			authorization:    "provisional",
+			provisionalUntil: time.Date(2026, 8, 10, 1, 2, 48, 678000000, time.UTC),
+			wantTTL:          45*time.Second + 678*time.Millisecond,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fixture := newTask12Fixture(t, "standard", time.Time{})
+			fixture.application.security.EmailVerification = config.EmailGrace
+			refresh := secret.NewBytes(bytes.Repeat([]byte{0x44}, 32))
+			defer refresh.Clear()
+			refreshDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, refresh)
+			familyID := uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07")
+			authorizationID := uuid.MustParse("fa01e838-cab9-414e-8f03-ed0418cd4f20")
+			deviceID := uuid.MustParse("f353613c-d08f-4141-b287-b37db9fb6f8e")
+			marker := sql.NullTime{}
+			if !test.provisionalUntil.IsZero() {
+				marker = sql.NullTime{Time: test.provisionalUntil, Valid: true}
+			}
+			fixture.database.rotationRefresh = store.DiscoverDeviceRefreshTokenRow{
+				TokenHash: bytes.Clone(refreshDigest[:]), FamilyID: familyID, RefreshState: "active",
+				AuthorizationID: authorizationID, FamilyState: "active", AccessExpiresAt: fixedTask12Time.Add(time.Minute),
+				IdleExpiresAt: fixedTask12Time.Add(time.Hour), AbsoluteExpiresAt: fixedTask12Time.Add(24 * time.Hour),
+				PrincipalID: uuid.MustParse("a6493384-9407-4ad9-b220-7f3b49ef9054"), DeviceID: deviceID,
+				AuthorizationState: test.authorization, AuthorizationStateVersion: 3, ProvisionalUntil: marker,
+				DeviceState: "active", SigningPublicKey: bytes.Repeat([]byte{0x71}, 32), KeyVersion: 1,
+			}
+			fixture.database.rotationFamily = store.DeviceauthDeviceTokenFamily{
+				ID: familyID, AuthorizationID: authorizationID, State: "active", AccessExpiresAt: fixedTask12Time.Add(time.Minute),
+				IdleExpiresAt: fixedTask12Time.Add(time.Hour), AbsoluteExpiresAt: fixedTask12Time.Add(24 * time.Hour),
+			}
+			fixture.database.rotationAuthorization = store.DeviceauthDeviceAuthorization{
+				ID: authorizationID, PrincipalID: fixture.database.rotationRefresh.PrincipalID, DeviceID: deviceID,
+				State: test.authorization, StateVersion: 3, ProvisionalUntil: marker,
+			}
+			fixture.database.rotationDevice = store.DeviceauthDevice{
+				ID: deviceID, PrincipalID: fixture.database.rotationRefresh.PrincipalID, State: "active",
+				SigningPublicKey: bytes.Clone(fixture.database.rotationRefresh.SigningPublicKey), KeyVersion: 1,
+			}
+			fixture.database.rotationLockedRefresh = []store.DeviceauthDeviceRefreshToken{{
+				TokenHash: bytes.Clone(refreshDigest[:]), FamilyID: familyID, State: "active", IssuedAt: fixedTask12Time.Add(-time.Minute),
+			}}
+			challenge, err := fixture.application.CreateChallenge(context.Background(), CreateChallengeCommand{
+				Kind: ChallengeRotation, RefreshToken: refresh, RequestNonce: [32]byte{0x91},
+				IdempotencyKey: "task19-round7-rotation-ttl-" + test.authorization,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			record := fixture.challenges.records[challenge.ChallengeID]
+			if got := fixture.challenges.lastCreateTTL(); got != test.wantTTL || challenge.ExpiresAt != record.ExpiresAt ||
+				got != record.ExpiresAt.Sub(fixedTask12Time) {
+				t.Fatalf("rotation challenge TTL/expiry = %s / %v / %v, want exact %s", got, challenge.ExpiresAt, record.ExpiresAt, test.wantTTL)
+			}
+		})
+	}
+}
+
+func TestPremintedTrialGrantClosesImmediatelyOutsideCurrentGraceBeforeRedis(t *testing.T) {
+	// Mutation caught: trusting a trial marker minted under an earlier profile
+	// lets required/disabled deployments create a challenge after the switch.
+	boundary := fixedTask12Time.Add(time.Hour)
+	for _, mode := range []config.EmailVerificationMode{config.EmailRequired, config.EmailDisabled} {
+		t.Run(string(mode), func(t *testing.T) {
+			fixture := newTask12Fixture(t, "trial_restricted", boundary)
+			fixture.application.security.EmailVerification = mode
+			_, err := fixture.application.CreateChallenge(context.Background(), fixture.challengeCommand("task19-closed-trial-"+string(mode)))
+			if publicTask12Code(err) != apierrors.AuthenticationFailed || fixture.limiter.calls != 0 || fixture.challenges.createCalls != 0 {
+				t.Fatalf("closed trial challenge = %v limiter:%d redis:%d", err, fixture.limiter.calls, fixture.challenges.createCalls)
+			}
+		})
 	}
 }
 
@@ -467,7 +817,7 @@ func TestDeviceauthSensitiveValuesRedactAcrossFmtSlogAndJSON(t *testing.T) {
 	}
 	defer registerCommand.EnrollmentGrant.Clear()
 	deviceTokens := DeviceTokens{
-		DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: secret.NewBytes([]byte(grantCanary)),
+		DeviceID: deviceID, AuthorizationID: authorizationID, FamilyID: uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"), AccessToken: secret.NewBytes([]byte(grantCanary)),
 		RefreshToken: secret.NewBytes([]byte(replayCanary)), AccessExpiresAt: fixedTask12Time.Add(time.Minute),
 		RefreshIdleExpiresAt: fixedTask12Time.Add(time.Hour), RefreshAbsoluteExpiresAt: fixedTask12Time.Add(2 * time.Hour),
 	}
@@ -506,7 +856,7 @@ func TestDeviceauthSensitiveValuesRedactAcrossFmtSlogAndJSON(t *testing.T) {
 	prepared := preparedRegistration{
 		deviceID: deviceID, authorizationID: authorizationID,
 		tokens: DeviceTokens{
-			DeviceID: deviceID, AuthorizationID: authorizationID, AccessToken: secret.NewBytes([]byte(grantCanary)), RefreshToken: secret.NewBytes([]byte(replayCanary)),
+			DeviceID: deviceID, AuthorizationID: authorizationID, FamilyID: uuid.MustParse("0ff820a5-5022-48e6-8867-77761f8e2f07"), AccessToken: secret.NewBytes([]byte(grantCanary)), RefreshToken: secret.NewBytes([]byte(replayCanary)),
 		},
 		deviceParams: store.CreateDeviceParams{
 			DisplayNameCiphertext: []byte(displayCanary), SigningPublicKey: publicSigning[:], HpkePublicKey: publicHPKE[:],
@@ -515,7 +865,7 @@ func TestDeviceauthSensitiveValuesRedactAcrossFmtSlogAndJSON(t *testing.T) {
 	}
 	defer prepared.clear()
 	replay := deviceTokenReplay{
-		DeviceID: deviceID.String(), AuthorizationID: authorizationID.String(), AccessToken: grantCanary, RefreshToken: replayCanary,
+		DeviceID: deviceID.String(), AuthorizationID: authorizationID.String(), FamilyID: "0ff820a5-5022-48e6-8867-77761f8e2f07", AccessToken: grantCanary, RefreshToken: replayCanary,
 		AccessExpiresAt: fixedTask12Time.String(), RefreshIdleExpiresAt: fixedTask12Time.Add(time.Hour).String(),
 		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(2 * time.Hour).String(),
 	}
@@ -594,6 +944,7 @@ func TestPreparedRegistrationClearZeroizesFailedCommitTokenOwners(t *testing.T) 
 func TestPreparedRegistrationTakeTransfersSuccessfulTokenOwnershipPastDeferredClear(t *testing.T) {
 	prepared := preparedRegistration{tokens: DeviceTokens{
 		DeviceID: uuid.MustParse("35bb5d71-bb9b-4724-a20c-fae3280b84ae"), AuthorizationID: uuid.MustParse("b7d9a44c-4a7a-45eb-8d89-3c8da16258ec"),
+		FamilyID:    uuid.MustParse("f96c511f-96b4-4ce6-aee5-6a30dfda2a44"),
 		AccessToken: secret.NewBytes(bytes.Repeat([]byte{0xc9}, 32)), RefreshToken: secret.NewBytes(bytes.Repeat([]byte{0xda}, 32)),
 		AccessExpiresAt: fixedTask12Time.Add(10 * time.Minute), RefreshIdleExpiresAt: fixedTask12Time.Add(30 * 24 * time.Hour),
 		RefreshAbsoluteExpiresAt: fixedTask12Time.Add(90 * 24 * time.Hour),
@@ -616,6 +967,7 @@ func TestPreparedRegistrationTakeTransfersSuccessfulTokenOwnershipPastDeferredCl
 	}
 	if result.DeviceID != uuid.MustParse("35bb5d71-bb9b-4724-a20c-fae3280b84ae") ||
 		result.AuthorizationID != uuid.MustParse("b7d9a44c-4a7a-45eb-8d89-3c8da16258ec") ||
+		result.FamilyID != uuid.MustParse("f96c511f-96b4-4ce6-aee5-6a30dfda2a44") ||
 		!result.AccessExpiresAt.Equal(fixedTask12Time.Add(10*time.Minute)) ||
 		!result.RefreshIdleExpiresAt.Equal(fixedTask12Time.Add(30*24*time.Hour)) ||
 		!result.RefreshAbsoluteExpiresAt.Equal(fixedTask12Time.Add(90*24*time.Hour)) {
@@ -986,6 +1338,7 @@ type task12ChallengeStore struct {
 	records                 map[string]ChallengeRecord
 	repository              *task12Repository
 	createCalls             int
+	createTTLs              []time.Duration
 	consumeCalls            int
 	remoteInsideTransaction atomic.Bool
 }
@@ -997,7 +1350,8 @@ func (challengeStore *task12ChallengeStore) Create(_ context.Context, record Cha
 		challengeStore.remoteInsideTransaction.Store(true)
 	}
 	challengeStore.createCalls++
-	if ttl != 2*time.Minute {
+	challengeStore.createTTLs = append(challengeStore.createTTLs, ttl)
+	if ttl <= 0 || ttl > 2*time.Minute {
 		return ErrInvalidChallenge
 	}
 	if _, exists := challengeStore.records[record.ChallengeID]; exists {
@@ -1005,6 +1359,15 @@ func (challengeStore *task12ChallengeStore) Create(_ context.Context, record Cha
 	}
 	challengeStore.records[record.ChallengeID] = record
 	return nil
+}
+
+func (challengeStore *task12ChallengeStore) lastCreateTTL() time.Duration {
+	challengeStore.mu.Lock()
+	defer challengeStore.mu.Unlock()
+	if len(challengeStore.createTTLs) == 0 {
+		return 0
+	}
+	return challengeStore.createTTLs[len(challengeStore.createTTLs)-1]
 }
 
 func (challengeStore *task12ChallengeStore) Consume(_ context.Context, challengeID string, grantDigest, contextDigest [32]byte) (ChallengeRecord, error) {
@@ -1523,7 +1886,7 @@ func (row task12IdempotencyRow) Scan(destinations ...any) error {
 
 func assertTask12Tokens(t *testing.T, tokens DeviceTokens) {
 	t.Helper()
-	if tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || len(tokens.AccessToken.Copy()) != 32 || len(tokens.RefreshToken.Copy()) != 32 ||
+	if tokens.DeviceID == uuid.Nil || tokens.AuthorizationID == uuid.Nil || tokens.FamilyID == uuid.Nil || len(tokens.AccessToken.Copy()) != 32 || len(tokens.RefreshToken.Copy()) != 32 ||
 		tokens.AccessExpiresAt != fixedTask12Time.Add(10*time.Minute) || tokens.RefreshIdleExpiresAt != fixedTask12Time.Add(30*24*time.Hour) ||
 		tokens.RefreshAbsoluteExpiresAt != fixedTask12Time.Add(90*24*time.Hour) {
 		t.Fatalf("device token contract mismatch: %+v", tokens)
@@ -1537,7 +1900,7 @@ func sameTask12Tokens(left, right DeviceTokens) bool {
 	defer clear(rightAccess)
 	defer clear(leftRefresh)
 	defer clear(rightRefresh)
-	return left.DeviceID == right.DeviceID && left.AuthorizationID == right.AuthorizationID && bytes.Equal(leftAccess, rightAccess) &&
+	return left.DeviceID == right.DeviceID && left.AuthorizationID == right.AuthorizationID && left.FamilyID == right.FamilyID && bytes.Equal(leftAccess, rightAccess) &&
 		bytes.Equal(leftRefresh, rightRefresh) && left.AccessExpiresAt.Equal(right.AccessExpiresAt) &&
 		left.RefreshIdleExpiresAt.Equal(right.RefreshIdleExpiresAt) && left.RefreshAbsoluteExpiresAt.Equal(right.RefreshAbsoluteExpiresAt)
 }

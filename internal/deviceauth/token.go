@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/subtle"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"talenro.local/platform/internal/config"
 	"talenro.local/platform/internal/identity"
 	"talenro.local/platform/internal/secret"
 	"talenro.local/platform/internal/securitykit"
@@ -139,6 +141,9 @@ func (service *Service) authorizeBundleInDBTX(ctx context.Context, dbtx store.DB
 	if !validAccessAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, digest, now) {
 		return BundleAuthority{}, deviceAuthenticationFailed()
 	}
+	if authorization.State == "provisional" && service.security.EmailVerification != config.EmailGrace {
+		return BundleAuthority{}, deviceAuthenticationFailed()
+	}
 	authority, valid := bundleAuthorityFromRows(discovered, snapshot, accountActive, now)
 	if !valid {
 		return BundleAuthority{}, deviceAuthenticationFailed()
@@ -160,15 +165,16 @@ func validAccessAuthority(
 		family.ID != discovered.FamilyID || family.AuthorizationID != discovered.AuthorizationID || family.State != discovered.FamilyState ||
 		family.AccessExpiresAt != discovered.AccessExpiresAt || family.IdleExpiresAt != discovered.IdleExpiresAt || family.AbsoluteExpiresAt != discovered.AbsoluteExpiresAt ||
 		authorization.ID != discovered.AuthorizationID || authorization.PrincipalID != discovered.PrincipalID || authorization.DeviceID != discovered.DeviceID ||
-		authorization.State != discovered.AuthorizationState || device.ID != discovered.DeviceID || device.PrincipalID != discovered.PrincipalID ||
+		authorization.State != discovered.AuthorizationState || authorization.StateVersion != discovered.AuthorizationStateVersion ||
+		!validAuthorizationMarker(discovered.AuthorizationState, discovered.ProvisionalUntil, authorization.ProvisionalUntil, now) ||
+		device.ID != discovered.DeviceID || device.PrincipalID != discovered.PrincipalID ||
 		device.State != discovered.DeviceState || device.KeyVersion != discovered.KeyVersion || len(device.HpkePublicKey) != 32 ||
 		len(discovered.HpkePublicKey) != 32 || subtle.ConstantTimeCompare(device.HpkePublicKey, discovered.HpkePublicKey) != 1 ||
 		!sameDeviceRefreshSet(lockedRefresh, freshRefresh) {
 		return false
 	}
 	return family.State == "active" && family.AccessExpiresAt.After(now) && family.IdleExpiresAt.After(now) && family.AbsoluteExpiresAt.After(now) &&
-		device.State == "active" && (authorization.State == "active" ||
-		(authorization.State == "provisional" && authorization.ProvisionalUntil.Valid && authorization.ProvisionalUntil.Time.After(now)))
+		device.State == "active"
 }
 
 func bundleAuthorityFromRows(
@@ -183,8 +189,7 @@ func bundleAuthorityFromRows(
 		snapshot.AuthorizationID != row.AuthorizationID || snapshot.SchemaVersion != "device-policy-v1" || !validDevicePolicy(row, snapshot.Policy, now) {
 		return BundleAuthority{}, false
 	}
-	if row.AuthorizationState != "active" &&
-		(row.AuthorizationState != "provisional" || !row.ProvisionalUntil.Valid || !row.ProvisionalUntil.Time.After(now)) {
+	if !validAuthorizationMarker(row.AuthorizationState, row.ProvisionalUntil, row.ProvisionalUntil, now) {
 		return BundleAuthority{}, false
 	}
 	var hpke [32]byte
@@ -192,8 +197,29 @@ func bundleAuthorityFromRows(
 	return BundleAuthority{
 		AuthorizationID: row.AuthorizationID, PrincipalID: row.PrincipalID, DeviceID: row.DeviceID,
 		HPKEPublicKey: hpke, DeviceKeyVersion: uint32(row.KeyVersion), PolicySchema: snapshot.SchemaVersion,
-		Policy: bytes.Clone(snapshot.Policy),
+		Policy: effectiveDevicePolicy(row, snapshot.Policy),
 	}, true
+}
+
+func validAuthorizationMarker(state string, discovered, locked sql.NullTime, now time.Time) bool {
+	if discovered.Valid != locked.Valid || (discovered.Valid && !discovered.Time.Equal(locked.Time)) {
+		return false
+	}
+	switch state {
+	case "active":
+		return !discovered.Valid
+	case "provisional":
+		return discovered.Valid && !discovered.Time.IsZero() && discovered.Time.After(now)
+	default:
+		return false
+	}
+}
+
+func effectiveDevicePolicy(row store.DiscoverDeviceAccessTokenRow, policy json.RawMessage) json.RawMessage {
+	if row.AuthorizationState == "active" {
+		return json.RawMessage(`{"mode":"standard"}`)
+	}
+	return bytes.Clone(policy)
 }
 
 func validDevicePolicy(row store.DiscoverDeviceAccessTokenRow, policy json.RawMessage, now time.Time) bool {
@@ -209,10 +235,10 @@ func validDevicePolicy(row store.DiscoverDeviceAccessTokenRow, policy json.RawMe
 	if err := strictjson.Decode(bytes.NewReader(policy), 4096, &decoded); err != nil {
 		return false
 	}
-	if row.AuthorizationState == "active" {
-		return decoded.Mode == "standard" && len(decoded.ExpiresAt) == 0 && len(decoded.MaxDevices) == 0
+	if row.AuthorizationState == "active" && decoded.Mode == "standard" {
+		return len(decoded.ExpiresAt) == 0 && len(decoded.MaxDevices) == 0
 	}
-	if row.AuthorizationState != "provisional" || !row.ProvisionalUntil.Valid || !row.ProvisionalUntil.Time.After(now) ||
+	if row.AuthorizationState != "provisional" && row.AuthorizationState != "active" ||
 		len(decoded.ExpiresAt) == 0 || len(decoded.MaxDevices) == 0 {
 		return false
 	}
@@ -221,6 +247,15 @@ func validDevicePolicy(row store.DiscoverDeviceAccessTokenRow, policy json.RawMe
 	if json.Unmarshal(decoded.ExpiresAt, &expiresAt) != nil || json.Unmarshal(decoded.MaxDevices, &maxDevices) != nil {
 		return false
 	}
-	return decoded.Mode == "trial_restricted" && maxDevices == "1" &&
-		expiresAt == row.ProvisionalUntil.Time.UTC().Format(time.RFC3339)
+	if decoded.Mode != "trial_restricted" || maxDevices != "1" {
+		return false
+	}
+	parsed, err := time.Parse(time.RFC3339, expiresAt)
+	if err != nil || parsed.IsZero() || expiresAt != parsed.UTC().Format(time.RFC3339) {
+		return false
+	}
+	if row.AuthorizationState == "active" {
+		return true
+	}
+	return row.ProvisionalUntil.Valid && row.ProvisionalUntil.Time.After(now) && expiresAt == row.ProvisionalUntil.Time.UTC().Format(time.RFC3339)
 }

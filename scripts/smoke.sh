@@ -11,25 +11,52 @@ if ! script_dir="$(cd -- "${script_parent}" 2>/dev/null && pwd -P)" ||
   printf '%s\n' 'smoke: repository resolution failed with exit code 2.' >&2
   exit 2
 fi
-compose=(docker compose -f "${repo_root}/deploy/dev/compose.yaml")
+declare -a compose=()
+compose_project=''
+compose_override=''
+nats_config=''
 compose_touched=0
 api_pid=''
+mirror_a_pid=''
+mirror_b_pid=''
 build_dir=''
 api_binary=''
+mirror_binary=''
+conformance_binary=''
+control_stdout=''
+control_stderr=''
+mirror_a_stdout=''
+mirror_a_stderr=''
+mirror_b_stdout=''
+mirror_b_stderr=''
 quiet_exit=0
 quiet_output=''
+run_counter=0
 
 invoke_quiet() {
-  set +e
-  quiet_output="$("$@" 2>&1)"
-  quiet_exit=$?
-  set -e
+  local seconds=$1
+  shift
+  local stdout_path stderr_path cleanup_exit=0
+  ((run_counter += 1))
+  printf -v stdout_path '%s/command-%03d.stdout' "${build_dir}" "${run_counter}"
+  printf -v stderr_path '%s/command-%03d.stderr' "${build_dir}" "${run_counter}"
+  if timeout --kill-after=5s "${seconds}s" "$@" >"${stdout_path}" 2>"${stderr_path}"; then
+    quiet_exit=0
+  else
+    quiet_exit=$?
+  fi
+  quiet_output=''
+  rm -f -- "${stdout_path}" "${stderr_path}" >/dev/null 2>&1 || cleanup_exit=1
+  if ((quiet_exit == 0 && cleanup_exit != 0)); then
+    quiet_exit=1
+  fi
 }
 
 run_quiet() {
   local stage=$1
-  shift
-  invoke_quiet "$@"
+  local seconds=$2
+  shift 2
+  invoke_quiet "${seconds}" "$@"
   if (( quiet_exit != 0 )); then
     printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
     return "${quiet_exit}"
@@ -39,14 +66,44 @@ run_quiet() {
 run_quiet_in_directory() {
   local stage=$1
   local directory=$2
-  shift 2
-  set +e
-  quiet_output="$(cd -- "${directory}" 2>/dev/null && "$@" 2>&1)"
-  quiet_exit=$?
-  set -e
+  local seconds=$3
+  shift 3
+  invoke_quiet "${seconds}" bash -c 'cd -- "$1" && shift && exec "$@"' bash "${directory}" "$@"
   if (( quiet_exit != 0 )); then
     printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
     return "${quiet_exit}"
+  fi
+}
+
+capture_quiet() {
+  local seconds=$1
+  shift
+  local stdout_path stderr_path size cleanup_exit=0
+  ((run_counter += 1))
+  printf -v stdout_path '%s/command-%03d.stdout' "${build_dir}" "${run_counter}"
+  printf -v stderr_path '%s/command-%03d.stderr' "${build_dir}" "${run_counter}"
+  if timeout --kill-after=5s "${seconds}s" "$@" >"${stdout_path}" 2>"${stderr_path}"; then
+    quiet_exit=0
+  else
+    quiet_exit=$?
+  fi
+  if ((quiet_exit == 0)); then
+    size=$(wc -c <"${stdout_path}")
+    if ((size > 4096)); then
+      quiet_exit=1
+      quiet_output=''
+    else
+      quiet_output=$(<"${stdout_path}")
+      while [[ "${quiet_output}" == *$'\n' || "${quiet_output}" == *$'\r' ]]; do
+        quiet_output=${quiet_output%?}
+      done
+    fi
+  else
+    quiet_output=''
+  fi
+  rm -f -- "${stdout_path}" "${stderr_path}" >/dev/null 2>&1 || cleanup_exit=1
+  if ((quiet_exit == 0 && cleanup_exit != 0)); then
+    quiet_exit=1
   fi
 }
 
@@ -59,7 +116,7 @@ create_build_directory() {
     return 1
   fi
   set +e
-  candidate="$(mktemp -d "${canonical_root}/talenro-smoke-control-api.XXXXXX" 2>/dev/null)"
+  candidate="$(mktemp -d "${canonical_root}/talenro-smoke-c11.XXXXXX" 2>/dev/null)"
   quiet_exit=$?
   set -e
   if (( quiet_exit != 0 )); then
@@ -67,33 +124,127 @@ create_build_directory() {
     return "${quiet_exit}"
   fi
   if ! build_dir="$(cd -- "${candidate}" 2>/dev/null && pwd -P)" ||
-     [[ "${build_dir}" != "${canonical_root}"/talenro-smoke-control-api.* ]]; then
+     [[ "${build_dir}" != "${canonical_root}"/talenro-smoke-c11.* ]]; then
     rmdir -- "${candidate}" >/dev/null 2>&1 || true
     build_dir=''
     printf '%s\n' 'smoke: build directory validation failed with exit code 1.' >&2
     return 1
   fi
   api_binary="${build_dir}/control-api"
+  mirror_binary="${build_dir}/bundle-mirror"
+  conformance_binary="${build_dir}/trust-conformance"
+  control_stdout="${build_dir}/control-api.stdout.sink"
+  control_stderr="${build_dir}/control-api.stderr.sink"
+  mirror_a_stdout="${build_dir}/mirror-a.stdout.sink"
+  mirror_a_stderr="${build_dir}/mirror-a.stderr.sink"
+  mirror_b_stdout="${build_dir}/mirror-b.stdout.sink"
+  mirror_b_stderr="${build_dir}/mirror-b.stderr.sink"
+  compose_override="${build_dir}/compose.ephemeral.yaml"
+  nats_config="${build_dir}/nats.conf"
+  compose_project="talenro-c11-smoke-$(printf '%08x%04x' "$$" "${RANDOM}")"
+  if [[ ! "${compose_project}" =~ ^talenro-c11-smoke-[0-9a-f]{12}$ ]]; then
+    printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
+    return 1
+  fi
+  printf '%s\n' \
+    'services:' \
+    '  postgres:' \
+    '    image: postgres:18.4-alpine3.23' \
+    '    environment:' \
+    '      POSTGRES_DB: talenro' \
+    '      POSTGRES_USER: talenro' \
+    '      POSTGRES_PASSWORD: talenro_dev' \
+    '    ports:' \
+    '      - target: 5432' \
+    '        published: "0"' \
+    '        host_ip: 127.0.0.1' \
+    '        protocol: tcp' \
+    '    healthcheck:' \
+    '      test: ["CMD-SHELL", "pg_isready -U talenro -d talenro"]' \
+    '      interval: 2s' \
+    '      timeout: 2s' \
+    '      retries: 20' \
+    '    volumes:' \
+    '      - type: tmpfs' \
+    '        target: /var/lib/postgresql/18/docker' \
+    '  redis:' \
+    '    image: redis:8.8.1-alpine3.23' \
+    '    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]' \
+    '    ports:' \
+    '      - target: 6379' \
+    '        published: "0"' \
+    '        host_ip: 127.0.0.1' \
+    '        protocol: tcp' \
+    '    healthcheck:' \
+    '      test: ["CMD", "redis-cli", "ping"]' \
+    '      interval: 2s' \
+    '      timeout: 2s' \
+    '      retries: 20' \
+    '    volumes:' \
+    '      - type: tmpfs' \
+    '        target: /data' \
+    '  nats:' \
+    '    image: nats:2.14.3-alpine3.22' \
+    '    command: ["-c", "/etc/nats/nats.conf"]' \
+    '    ports:' \
+    '      - target: 4222' \
+    '        published: "0"' \
+    '        host_ip: 127.0.0.1' \
+    '        protocol: tcp' \
+    '    healthcheck:' \
+    '      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8222/healthz?js-enabled-only=true"]' \
+    '      interval: 2s' \
+    '      timeout: 2s' \
+    '      retries: 20' \
+    '    volumes:' \
+    '      - type: bind' \
+    '        source: ./nats.conf' \
+    '        target: /etc/nats/nats.conf' \
+    '        read_only: true' \
+    '      - type: tmpfs' \
+    '        target: /data' >"${compose_override}"
+  printf '%s\n' \
+    'server_name: talenro-c11' \
+    'http: 8222' \
+    '' \
+    'jetstream {' \
+    '  store_dir: "/data/jetstream"' \
+    '  max_mem_store: 256MB' \
+    '  max_file_store: 1GB' \
+    '}' >"${nats_config}"
+  compose=(docker compose --project-name "${compose_project}" \
+    -f "${compose_override}")
 }
 
 remove_build_directory() {
-  local canonical_root expected_prefix
+  local canonical_root expected_prefix file
   [[ -n "${build_dir}" ]] || return 0
   if ! canonical_root="$(cd -- "${TMPDIR:-/tmp}" 2>/dev/null && pwd -P)"; then
     return 1
   fi
-  expected_prefix="${canonical_root}/talenro-smoke-control-api."
-  if [[ "${build_dir}" != "${expected_prefix}"* || "${api_binary}" != "${build_dir}/control-api" ]]; then
+  expected_prefix="${canonical_root}/talenro-smoke-c11."
+  if [[ "${build_dir}" != "${expected_prefix}"* || "${api_binary}" != "${build_dir}/control-api" ||
+        "${mirror_binary}" != "${build_dir}/bundle-mirror" || "${conformance_binary}" != "${build_dir}/trust-conformance" ||
+        "${compose_override}" != "${build_dir}/compose.ephemeral.yaml" || "${nats_config}" != "${build_dir}/nats.conf" ]]; then
     return 1
   fi
-  if [[ -e "${api_binary}" ]] && ! rm -f -- "${api_binary}" >/dev/null 2>&1; then
-    return 1
-  fi
+  for file in "${api_binary}" "${mirror_binary}" "${conformance_binary}" \
+    "${control_stdout}" "${control_stderr}" "${mirror_a_stdout}" "${mirror_a_stderr}" "${mirror_b_stdout}" "${mirror_b_stderr}" \
+    "${compose_override}" "${nats_config}"; do
+    [[ "${file}" == "${build_dir}/"* ]] || return 1
+    if [[ -e "${file}" ]] && ! rm -f -- "${file}" >/dev/null 2>&1; then
+      return 1
+    fi
+  done
   if ! rmdir -- "${build_dir}" >/dev/null 2>&1; then
     return 1
   fi
   build_dir=''
   api_binary=''
+  mirror_binary=''
+  conformance_binary=''
+  compose_override=''
+  nats_config=''
 }
 
 load_environment() {
@@ -156,6 +307,7 @@ load_environment() {
   fi
 
   while IFS= read -r line || [[ -n "${line}" ]]; do
+    line=${line%$'\r'}
     if [[ -z "${line}" || "${line}" == \#* ]]; then
       continue
     fi
@@ -180,12 +332,64 @@ load_environment() {
   done
 
   while IFS= read -r existing; do
-    unset "${existing}"
-  done < <(compgen -v TALENRO_ || true)
+    case "${existing}" in
+      TALENRO_*|C11_*|COMPOSE_*) unset "${existing}" ;;
+    esac
+  done < <(compgen -v || true)
   for name in "${required[@]}"; do
     printf -v "${name}" '%s' "${parsed[${name}]}"
     export "${name}"
   done
+}
+
+assert_compose_ownership() {
+  local service=$1
+  local container_id owner status
+  if capture_quiet 30 "${compose[@]}" ps -q "${service}"; then
+    container_id=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf 'smoke: dependency ownership failed with exit code %d.\n' "${status}" >&2
+    return "${status}"
+  fi
+  if [[ ! "${container_id}" =~ ^[0-9a-f]{12,64}$ ]]; then
+    printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
+    return 1
+  fi
+  if capture_quiet 30 docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "${container_id}"; then
+    owner=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf 'smoke: dependency ownership failed with exit code %d.\n' "${status}" >&2
+    return "${status}"
+  fi
+  if [[ "${owner}" != "${compose_project}" ]]; then
+    printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
+    return 1
+  fi
+}
+
+compose_port() {
+  local service=$1
+  local container_port=$2
+  local endpoint status port
+  if capture_quiet 30 "${compose[@]}" port "${service}" "${container_port}"; then
+    endpoint=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf 'smoke: dependency endpoints failed with exit code %d.\n' "${status}" >&2
+    return "${status}"
+  fi
+  if [[ ! "${endpoint}" =~ ^127\.0\.0\.1:([1-9][0-9]{0,4})$ ]]; then
+    printf '%s\n' 'smoke: dependency endpoints failed with exit code 1.' >&2
+    return 1
+  fi
+  port=${BASH_REMATCH[1]}
+  if ((10#${port} > 65535)); then
+    printf '%s\n' 'smoke: dependency endpoints failed with exit code 1.' >&2
+    return 1
+  fi
+  quiet_output=${port}
 }
 
 now_milliseconds() {
@@ -216,6 +420,8 @@ wait_status() {
   local expected=$2
   local seconds=$3
   local stage=$4
+  local process_pid=$5
+  local process_stage=$6
   local deadline remaining sleep_ms sleep_value process_exit
 
   if ! now_milliseconds; then
@@ -225,16 +431,15 @@ wait_status() {
   deadline=$((now_ms + seconds * 1000))
 
   while true; do
-    if [[ -n "${api_pid}" ]] && ! kill -0 "${api_pid}" 2>/dev/null; then
+    if [[ -n "${process_pid}" ]] && ! kill -0 "${process_pid}" 2>/dev/null; then
       set +e
-      wait "${api_pid}" >/dev/null 2>&1
+      wait "${process_pid}" >/dev/null 2>&1
       process_exit=$?
       set -e
-      api_pid=''
       if (( process_exit == 0 )); then
         process_exit=1
       fi
-      printf 'smoke: control API failed with exit code %d.\n' "${process_exit}" >&2
+      printf '%s failed with exit code %d.\n' "${process_stage}" "${process_exit}" >&2
       return "${process_exit}"
     fi
 
@@ -273,20 +478,20 @@ wait_status() {
   done
 }
 
-terminate_child() {
+terminate_pid() {
+  local child_pid=$1
   local attempt deadline remaining sleep_ms sleep_value
-  if [[ -z "${api_pid}" ]] || ! kill -0 "${api_pid}" 2>/dev/null; then
-    if [[ -n "${api_pid}" ]]; then
-      wait "${api_pid}" >/dev/null 2>&1 || true
+  if [[ -z "${child_pid}" ]] || ! kill -0 "${child_pid}" 2>/dev/null; then
+    if [[ -n "${child_pid}" ]]; then
+      wait "${child_pid}" >/dev/null 2>&1 || true
     fi
-    api_pid=''
     return 0
   fi
 
-  kill -TERM "${api_pid}" 2>/dev/null || true
+  kill -TERM "${child_pid}" 2>/dev/null || true
   if now_milliseconds; then
     deadline=$((now_ms + 4750))
-    while kill -0 "${api_pid}" 2>/dev/null; do
+    while kill -0 "${child_pid}" 2>/dev/null; do
       if ! now_milliseconds; then
         break
       fi
@@ -302,23 +507,35 @@ terminate_child() {
       printf -v sleep_value '%d.%03d' "$((sleep_ms / 1000))" "$((sleep_ms % 1000))"
       sleep "${sleep_value}"
     done
-    if ! kill -0 "${api_pid}" 2>/dev/null; then
-      wait "${api_pid}" >/dev/null 2>&1 || true
-      api_pid=''
+    if ! kill -0 "${child_pid}" 2>/dev/null; then
+      wait "${child_pid}" >/dev/null 2>&1 || true
       return 0
     fi
   fi
 
-  kill -KILL "${api_pid}" 2>/dev/null || true
+  kill -KILL "${child_pid}" 2>/dev/null || true
   for ((attempt = 0; attempt < 4; attempt++)); do
-    if ! kill -0 "${api_pid}" 2>/dev/null; then
-      wait "${api_pid}" >/dev/null 2>&1 || true
-      api_pid=''
+    if ! kill -0 "${child_pid}" 2>/dev/null; then
+      wait "${child_pid}" >/dev/null 2>&1 || true
       return 0
     fi
     sleep 0.25
   done
   return 1
+}
+
+scan_artifacts() {
+  local path line forbidden
+  for path in "${control_stdout}" "${control_stderr}" "${mirror_a_stdout}" "${mirror_a_stderr}" "${mirror_b_stdout}" "${mirror_b_stderr}"; do
+    [[ -f "${path}" ]] || return 1
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+      for forbidden in "${TALENRO_DATABASE_URL}" "${TALENRO_SENSITIVE_LOOKUP_KEY_B64}" \
+        "${TALENRO_SENSITIVE_ENCRYPTION_KEY_B64}" "${TALENRO_LOCAL_ROOT_SIGNING_SEED_B64}" \
+        "${TALENRO_LOCAL_CONFIG_SIGNING_SEED_B64}"; do
+        [[ -z "${forbidden}" || "${line}" != *"${forbidden}"* ]] || return 1
+      done
+    done < "${path}"
+  done
 }
 
 cleanup() {
@@ -328,13 +545,27 @@ cleanup() {
   trap - EXIT INT TERM
   set +e
 
-  terminate_child
-  if (( $? != 0 )); then
+  terminate_pid "${mirror_b_pid}"
+  if (( $? != 0 && cleanup_exit == 0 )); then
+    cleanup_exit=1
+    cleanup_stage='smoke: mirror B cleanup'
+  fi
+  terminate_pid "${mirror_a_pid}"
+  if (( $? != 0 && cleanup_exit == 0 )); then
+    cleanup_exit=1
+    cleanup_stage='smoke: mirror A cleanup'
+  fi
+  terminate_pid "${api_pid}"
+  if (( $? != 0 && cleanup_exit == 0 )); then
     cleanup_exit=1
     cleanup_stage='smoke: control API cleanup'
   fi
+  if [[ -n "${build_dir}" ]] && ! scan_artifacts && (( cleanup_exit == 0 )); then
+    cleanup_exit=1
+    cleanup_stage='smoke: artifact privacy'
+  fi
   if (( compose_touched )); then
-    invoke_quiet "${compose[@]}" down
+    invoke_quiet 60 "${compose[@]}" down --remove-orphans --timeout 20
     if (( quiet_exit != 0 )); then
       cleanup_exit=${quiet_exit}
       cleanup_stage='smoke: compose down'
@@ -355,13 +586,17 @@ cleanup() {
     printf '%s failed with exit code %d.\n' "${cleanup_stage}" "${cleanup_exit}" >&2
     exit "${cleanup_exit}"
   fi
-  printf '%s\n' 'smoke: foundation acceptance passed.'
+  printf '%s\n' 'smoke: C1.1 acceptance passed.'
   exit 0
 }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+command -v timeout >/dev/null 2>&1 || {
+  printf '%s\n' 'smoke: hard deadline tool failed with exit code 127.' >&2
+  exit 127
+}
 load_environment
 if [[ ! "${TALENRO_HTTP_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
       ! "${TALENRO_METRICS_ADDRESS}" =~ ^127\.0\.0\.1:[1-9][0-9]{0,4}$ ||
@@ -413,23 +648,68 @@ http_base="http://${TALENRO_HTTP_ADDRESS}"
 create_build_directory
 
 compose_touched=1
-run_quiet 'smoke: compose up' "${compose[@]}" up -d --wait
-run_quiet 'smoke: migrations' go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
-run_quiet_in_directory 'smoke: control API build' "${repo_root}" go build -o "${api_binary}" "${repo_root}/cmd/control-api"
+run_quiet 'smoke: compose up' 180 "${compose[@]}" up -d --wait --wait-timeout 120 postgres redis nats
+for service in postgres redis nats; do
+  assert_compose_ownership "${service}"
+done
+compose_port postgres 5432
+postgres_port=${quiet_output}
+compose_port redis 6379
+redis_port=${quiet_output}
+compose_port nats 4222
+nats_port=${quiet_output}
+export TALENRO_DATABASE_URL="postgres://talenro:talenro_dev@127.0.0.1:${postgres_port}/talenro?sslmode=disable"
+export TALENRO_REDIS_ADDRESS="127.0.0.1:${redis_port}"
+export TALENRO_NATS_URL="nats://127.0.0.1:${nats_port}"
+export C11_E2E_COMPOSE_PROJECT="${compose_project}"
+export C11_E2E_DATABASE_URL="${TALENRO_DATABASE_URL}"
+export C11_E2E_REDIS_ADDRESS="${TALENRO_REDIS_ADDRESS}"
+export C11_E2E_NATS_URL="${TALENRO_NATS_URL}"
+run_quiet 'smoke: migrations' 120 go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
+run_quiet_in_directory 'smoke: control API build' "${repo_root}" 600 go build -o "${api_binary}" "${repo_root}/cmd/control-api"
+run_quiet_in_directory 'smoke: mirror build' "${repo_root}" 600 go build -o "${mirror_binary}" "${repo_root}/cmd/bundle-mirror"
+run_quiet_in_directory 'smoke: conformance build' "${repo_root}" 600 go build -o "${conformance_binary}" "${repo_root}/cmd/trust-conformance"
 
 if ! pushd "${repo_root}" >/dev/null; then
-  printf '%s\n' 'smoke: control API start failed with exit code 1.' >&2
+  printf '%s\n' 'smoke: process start failed with exit code 1.' >&2
   exit 1
 fi
-"${api_binary}" >/dev/null 2>&1 &
+"${api_binary}" >"${control_stdout}" 2>"${control_stderr}" &
 api_pid=$!
+env -i TALENRO_DATABASE_URL="${TALENRO_DATABASE_URL}" TALENRO_HTTP_ADDRESS=127.0.0.1:8081 \
+  "${mirror_binary}" >"${mirror_a_stdout}" 2>"${mirror_a_stderr}" &
+mirror_a_pid=$!
+env -i TALENRO_DATABASE_URL="${TALENRO_DATABASE_URL}" TALENRO_HTTP_ADDRESS=127.0.0.1:8082 \
+  "${mirror_binary}" >"${mirror_b_stdout}" 2>"${mirror_b_stderr}" &
+mirror_b_pid=$!
 popd >/dev/null
-wait_status "${http_base}/livez" 200 10 'smoke: initial liveness'
-wait_status "${http_base}/readyz" 200 10 'smoke: initial readiness'
+wait_status "${http_base}/livez" 200 10 'smoke: initial liveness' "${api_pid}" 'smoke: control API'
+wait_status "${http_base}/readyz" 200 10 'smoke: initial readiness' "${api_pid}" 'smoke: control API'
+wait_status 'http://127.0.0.1:8081/' 404 10 'smoke: mirror A readiness' "${mirror_a_pid}" 'smoke: mirror A'
+wait_status 'http://127.0.0.1:8082/' 404 10 'smoke: mirror B readiness' "${mirror_b_pid}" 'smoke: mirror B'
 
-run_quiet 'smoke: postgres stop' "${compose[@]}" stop postgres
-wait_status "${http_base}/readyz" 503 5 'smoke: readiness failure'
-wait_status "${http_base}/livez" 200 2 'smoke: failure liveness'
+run_quiet_in_directory 'smoke: C1.1 happy path' "${repo_root}" 600 env \
+  C11_E2E_EXTERNAL_RUNTIME=1 \
+  C11_E2E_PRIMARY_URL=http://127.0.0.1:8080 C11_E2E_MIRROR_A_URL=http://127.0.0.1:8081 \
+  C11_E2E_MIRROR_B_URL=http://127.0.0.1:8082 C11_E2E_PRIMARY_ORIGIN=http://localhost:8080 \
+  C11_E2E_MIRROR_A_ORIGIN=http://localhost:8081 C11_E2E_MIRROR_B_ORIGIN=http://localhost:8082 \
+  C11_CONFORMANCE_BINARY="${conformance_binary}" \
+  go test -tags=e2e ./internal/e2e -run '^TestC11HappyPath$' -count=1 -timeout 10m
 
-run_quiet 'smoke: postgres start' "${compose[@]}" start postgres
-wait_status "${http_base}/readyz" 200 10 'smoke: readiness recovery'
+run_quiet 'smoke: postgres stop' 60 "${compose[@]}" stop postgres
+wait_status "${http_base}/readyz" 503 5 'smoke: postgres readiness failure' "${api_pid}" 'smoke: control API'
+wait_status "${http_base}/livez" 200 2 'smoke: postgres liveness' "${api_pid}" 'smoke: control API'
+
+run_quiet 'smoke: postgres start' 60 "${compose[@]}" start postgres
+wait_status "${http_base}/readyz" 200 10 'smoke: postgres recovery' "${api_pid}" 'smoke: control API'
+
+run_quiet 'smoke: redis stop' 60 "${compose[@]}" stop redis
+wait_status "${http_base}/readyz" 503 5 'smoke: redis readiness failure' "${api_pid}" 'smoke: control API'
+wait_status "${http_base}/livez" 200 2 'smoke: redis liveness' "${api_pid}" 'smoke: control API'
+run_quiet 'smoke: redis start' 60 "${compose[@]}" start redis
+wait_status "${http_base}/readyz" 200 10 'smoke: redis recovery' "${api_pid}" 'smoke: control API'
+
+run_quiet 'smoke: nats stop' 60 "${compose[@]}" stop nats
+wait_status "${http_base}/livez" 200 2 'smoke: nats liveness' "${api_pid}" 'smoke: control API'
+run_quiet 'smoke: nats start' 60 "${compose[@]}" start nats
+wait_status "${http_base}/readyz" 200 10 'smoke: nats recovery' "${api_pid}" 'smoke: control API'

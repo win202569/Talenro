@@ -153,11 +153,18 @@ func (repository *PostgresRepository) ValidateDeviceEnrollment(
 			return DeviceEnrollmentAuthority{}, false, nil
 		}
 	case "trial_restricted":
-		if account.State != "pending_email" || !grant.ProvisionalUntil.Valid || grant.ProvisionalUntil.Time.IsZero() ||
-			!grant.ProvisionalUntil.Time.After(now) {
+		deadline, eligible := accountFixedGraceDeadline(account, now)
+		if !eligible || !grant.ProvisionalUntil.Valid || !grant.ProvisionalUntil.Time.Equal(deadline) ||
+			!grant.ExpiresAt.After(now) || grant.ExpiresAt.After(deadline) || !bound.AbsoluteExpiresAt.Equal(deadline) ||
+			bound.AccessExpiresAt.After(deadline) {
 			return DeviceEnrollmentAuthority{}, false, nil
 		}
-		provisionalUntil = grant.ProvisionalUntil.Time
+		for index := range sessions {
+			if sessions[index].DeviceAuthorizationID.Valid {
+				return DeviceEnrollmentAuthority{}, false, nil
+			}
+		}
+		provisionalUntil = deadline
 	default:
 		return DeviceEnrollmentAuthority{}, false, nil
 	}
@@ -194,7 +201,14 @@ func (repository *PostgresRepository) ValidateDeviceAccountAuthority(
 	if err != nil {
 		return false, ErrRepository
 	}
-	return account.ID == parsedPrincipalID && (account.State == "active" || account.State == "pending_email"), nil
+	if account.ID != parsedPrincipalID {
+		return false, nil
+	}
+	if account.State == "active" {
+		return true, nil
+	}
+	_, eligible := accountFixedGraceDeadline(account, now)
+	return eligible, nil
 }
 
 // ValidateDeviceRevocation verifies password reauthentication and account authority through the caller's DBTX.

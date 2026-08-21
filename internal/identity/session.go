@@ -79,6 +79,7 @@ type accountRefreshAuthority struct {
 	ClientSigningPublicKey  []byte
 	PrincipalID             uuid.UUID
 	AccountState            string
+	AccountCreatedAt        time.Time
 	LockedFamilyTokenHashes [][]byte
 }
 
@@ -150,11 +151,22 @@ func (service *Service) issueAccountSession(
 	clientSigningPublicKey [32]byte,
 	now time.Time,
 ) (SessionTokens, error) {
+	return service.issueAccountSessionUntil(ctx, transaction, principalID, clientSigningPublicKey, now, time.Time{})
+}
+
+func (service *Service) issueAccountSessionUntil(
+	ctx context.Context,
+	transaction Transaction,
+	principalID uuid.UUID,
+	clientSigningPublicKey [32]byte,
+	now time.Time,
+	deadline time.Time,
+) (SessionTokens, error) {
 	if !validService(service) || nilIdentityValue(ctx) || nilIdentityValue(transaction) || principalID == uuid.Nil ||
 		clientSigningPublicKey == [32]byte{} || now.IsZero() {
 		return SessionTokens{}, ErrRepository
 	}
-	created, err := service.newSessionTokens(now)
+	created, err := service.newSessionTokensUntil(now, deadline)
 	if err != nil {
 		return SessionTokens{}, ErrRepository
 	}
@@ -271,7 +283,7 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 			storedCredentialValid = true
 		}
 		match, needsUpgrade := VerifyPasswordWithDeriver(password, credential, CurrentPasswordPolicy(), service.derive)
-		if !storedCredentialValid || account.State != "active" || !match {
+		if !storedCredentialValid || !match {
 			return authenticationFailed()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(account.ID, "account_session", "create_account_session")
@@ -297,6 +309,10 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 				return nil
 			}
 		}
+		deadline, eligible := service.accountAuthorityDeadline(account, now)
+		if !eligible {
+			return authenticationFailed()
+		}
 		if needsUpgrade {
 			material, hashErr := service.hashNewPassword(password)
 			if hashErr != nil {
@@ -316,7 +332,7 @@ func (service *Service) CreateSession(ctx context.Context, command CreateSession
 				return dependencyUnavailable()
 			}
 		}
-		issued, createErr := service.issueAccountSession(transactionContext, transaction, account.ID, command.ClientSigningPublicKey, now)
+		issued, createErr := service.issueAccountSessionUntil(transactionContext, transaction, account.ID, command.ClientSigningPublicKey, now, deadline)
 		if createErr != nil {
 			return dependencyUnavailable()
 		}
@@ -362,8 +378,16 @@ func (service *Service) Authenticate(ctx context.Context, accessToken secret.Byt
 		if !ok {
 			return dependencyUnavailable()
 		}
-		if !found || row.ID == uuid.Nil || row.PrincipalID == uuid.Nil || row.AccountState != "active" ||
+		account, accountFound, accountErr := transaction.GetAccountForUpdate(transactionContext, row.PrincipalID)
+		if accountErr != nil {
+			return dependencyUnavailable()
+		}
+		deadline, eligible := service.accountAuthorityDeadline(account, now)
+		if !found || !accountFound || row.ID == uuid.Nil || row.PrincipalID == uuid.Nil || row.PrincipalID != account.ID || row.AccountState != account.State || !eligible ||
 			(row.State != "active" && row.State != "review_required") || !row.AccessExpiresAt.After(now) || !row.AbsoluteExpiresAt.After(now) {
+			return authenticationFailed()
+		}
+		if !deadline.IsZero() && (!row.AbsoluteExpiresAt.Equal(deadline) || row.AccessExpiresAt.After(deadline)) {
 			return authenticationFailed()
 		}
 		authority = AccountAuthority{PrincipalID: PrincipalID(row.PrincipalID.String()), SessionID: SessionID(row.ID.String())}
@@ -401,6 +425,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 	}
 	defer clear(canonicalRequest)
 	var result SessionChallenge
+	var authorityDeadline time.Time
 	preflightReplay := false
 	err := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, base Transaction) error {
 		transaction, typed := base.(sessionTransaction)
@@ -411,7 +436,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !found || !validRefreshAuthority(row, now, false) {
+		if !found {
 			return authenticationFailed()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(row.PrincipalID, "account_refresh", "create_account_session_challenge")
@@ -425,6 +450,10 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 			return dependencyUnavailable()
 		}
 		if outcome == idempotency.Started {
+			if !service.validRefreshAuthority(row, now, false) {
+				return authenticationFailed()
+			}
+			authorityDeadline, _ = service.accountAuthorityDeadline(store.IdentityAccount{ID: row.PrincipalID, State: row.AccountState, CreatedAt: row.AccountCreatedAt}, now)
 			return errSessionIdempotencyPreflight
 		}
 		body, replayed, replayErr := privateIdempotencyOutcome(outcome, idempotencyRecord, 201)
@@ -471,6 +500,9 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		return SessionChallenge{}, dependencyUnavailable()
 	}
 	expiresAt := now.Add(accountChallengeTTL)
+	if !authorityDeadline.IsZero() && expiresAt.After(authorityDeadline) {
+		expiresAt = authorityDeadline
+	}
 	contextDigest := accountChallengeContextDigest(refreshDigest, command.RequestNonce)
 	if contextDigest == [32]byte{} {
 		clear(challenge[:])
@@ -480,7 +512,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		ChallengeID: challengeID.String(), ProtocolVersion: accountRotationProtocolVersion, Operation: accountRotationOperation,
 		Challenge: challenge, ContextDigest: contextDigest, ExpiresAt: expiresAt,
 	}
-	if createErr := service.challenges.Create(operationContext, record, accountChallengeTTL); createErr != nil {
+	if createErr := service.challenges.Create(operationContext, record, expiresAt.Sub(now)); createErr != nil {
 		clear(challenge[:])
 		return SessionChallenge{}, dependencyUnavailable()
 	}
@@ -500,7 +532,7 @@ func (service *Service) CreateSessionChallenge(ctx context.Context, command Crea
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !found || !validRefreshAuthority(row, now, false) {
+		if !found || !service.validRefreshAuthority(row, now, false) {
 			return authenticationFailed()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(row.PrincipalID, "account_refresh", "create_account_session_challenge")
@@ -581,7 +613,7 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !found || !validRefreshAuthority(row, now, true) {
+		if !found {
 			return authenticationFailed()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(row.PrincipalID, "account_refresh", "rotate_account_token")
@@ -595,6 +627,9 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 			return dependencyUnavailable()
 		}
 		if outcome == idempotency.Started {
+			if !service.validRefreshAuthority(row, now, true) {
+				return authenticationFailed()
+			}
 			if row.RefreshState == "used" {
 				if compromiseErr := service.compromiseUsedRefresh(transactionContext, transaction, row, idempotencyRecord, now); compromiseErr != nil {
 					return compromiseErr
@@ -681,7 +716,7 @@ func (service *Service) RotateSession(ctx context.Context, command RotateSession
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !found || !sameRefreshAuthority(authority, row) || !validRefreshAuthority(row, now, true) {
+		if !found || !sameRefreshAuthority(authority, row) || !service.validRefreshAuthority(row, now, true) {
 			return authenticationFailed()
 		}
 		scope, scopeErr := idempotency.AuthenticatedScope(row.PrincipalID, "account_refresh", "rotate_account_token")
@@ -816,7 +851,7 @@ func (service *Service) reclassifyRotationAfterChallengeFailure(
 		if findErr != nil {
 			return dependencyUnavailable()
 		}
-		if !found || !validRefreshAuthority(row, now, true) {
+		if !found || !service.validRefreshAuthority(row, now, true) {
 			if ambiguous {
 				return dependencyUnavailable()
 			}
@@ -1157,14 +1192,14 @@ func (service *Service) newRotatedSessionTokens(now, absoluteExpiresAt time.Time
 		return rotatedSessionTokens{}, ErrRandomSource
 	}
 	idleExpiresAt := now.Add(accountRefreshIdleTTL)
-	if !idleExpiresAt.Before(absoluteExpiresAt) {
-		idleExpiresAt = absoluteExpiresAt.Add(-time.Nanosecond)
+	if idleExpiresAt.After(absoluteExpiresAt) {
+		idleExpiresAt = absoluteExpiresAt
 	}
 	accessExpiresAt := now.Add(accountAccessTTL)
-	if !accessExpiresAt.Before(idleExpiresAt) {
-		accessExpiresAt = idleExpiresAt.Add(-time.Nanosecond)
+	if accessExpiresAt.After(absoluteExpiresAt) {
+		accessExpiresAt = absoluteExpiresAt
 	}
-	if !accessExpiresAt.After(now) || !idleExpiresAt.After(accessExpiresAt) {
+	if !accessExpiresAt.After(now) || !idleExpiresAt.After(now) {
 		return rotatedSessionTokens{}, ErrRandomSource
 	}
 	access, err := securitykit.NewOpaqueToken(service.random)
@@ -1281,6 +1316,7 @@ func lockSessionRefreshAuthority(ctx context.Context, transaction sessionTransac
 		UsedAt: refresh.UsedAt, RevokedAt: refresh.RevokedAt, SessionState: session.State,
 		SessionStateVersion: session.StateVersion, ClientSigningPublicKey: append([]byte(nil), session.ClientSigningPublicKey...),
 		PrincipalID: session.PrincipalID, AccountState: account.State, LockedFamilyTokenHashes: refreshTokenHashes(lockedRefresh),
+		AccountCreatedAt: account.CreatedAt,
 	}, true, nil
 }
 
@@ -1387,10 +1423,14 @@ func refreshTokenHashesForSessions(rows []store.IdentityAccountRefreshToken, ses
 	return result
 }
 
-func validRefreshAuthority(row accountRefreshAuthority, now time.Time, allowUsed bool) bool {
-	if row.SessionID == uuid.Nil || row.PrincipalID == uuid.Nil || row.AccountState != "active" ||
+func (service *Service) validRefreshAuthority(row accountRefreshAuthority, now time.Time, allowUsed bool) bool {
+	deadline, eligible := service.accountAuthorityDeadline(store.IdentityAccount{ID: row.PrincipalID, State: row.AccountState, CreatedAt: row.AccountCreatedAt}, now)
+	if row.SessionID == uuid.Nil || row.PrincipalID == uuid.Nil || !eligible ||
 		(row.SessionState != "active" && (!allowUsed || row.SessionState != "review_required")) || len(row.ClientSigningPublicKey) != ed25519.PublicKeySize ||
 		!row.AbsoluteExpiresAt.After(now) || row.IdleExpiresAt.After(row.AbsoluteExpiresAt) {
+		return false
+	}
+	if !deadline.IsZero() && !row.AbsoluteExpiresAt.Equal(deadline) {
 		return false
 	}
 	switch row.RefreshState {

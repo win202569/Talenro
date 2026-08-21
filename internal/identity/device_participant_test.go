@@ -118,7 +118,7 @@ func TestPostgresRepositoryValidatesTrialEnrollmentAndRejectsAuthorityMismatch(t
 	principalID := uuid.MustParse("79624f50-ce16-492f-9e7a-cdcf42335798")
 	sessionID := uuid.MustParse("293494a7-960b-44c7-b8ed-ed17a7fbce84")
 	digest := [32]byte{9, 8, 7, 6}
-	provisionalUntil := now.Add(24 * time.Hour)
+	provisionalUntil := time.Date(2026, 8, 11, 1, 2, 3, 0, time.UTC)
 	validDatabase := func() *deviceParticipantDBTX {
 		return &deviceParticipantDBTX{
 			grant: store.GetGrantForChallengeRow{
@@ -127,9 +127,9 @@ func TestPostgresRepositoryValidatesTrialEnrollmentAndRejectsAuthorityMismatch(t
 				ProvisionalUntil: sql.NullTime{Time: provisionalUntil, Valid: true}, ExpiresAt: now.Add(time.Minute),
 			},
 			sessions: []store.IdentityAccountSession{{
-				ID: sessionID, PrincipalID: principalID, State: "active", AccessExpiresAt: now.Add(time.Minute), AbsoluteExpiresAt: now.Add(time.Hour),
+				ID: sessionID, PrincipalID: principalID, State: "active", AccessExpiresAt: now.Add(time.Minute), AbsoluteExpiresAt: provisionalUntil,
 			}},
-			account: store.IdentityAccount{ID: principalID, State: "pending_email", StateVersion: 1},
+			account: store.IdentityAccount{ID: principalID, State: "pending_email", StateVersion: 1, CreatedAt: now},
 		}
 	}
 
@@ -153,6 +153,19 @@ func TestPostgresRepositoryValidatesTrialEnrollmentAndRejectsAuthorityMismatch(t
 			db.grant.ProvisionalUntil = sql.NullTime{}
 		}},
 		{name: "expired session access", mutate: func(db *deviceParticipantDBTX) { db.sessions[0].AccessExpiresAt = now }},
+		{name: "grant marker differs from account deadline", mutate: func(db *deviceParticipantDBTX) {
+			db.grant.ProvisionalUntil.Time = provisionalUntil.Add(time.Nanosecond)
+		}},
+		{name: "session deadline differs from account deadline", mutate: func(db *deviceParticipantDBTX) {
+			db.sessions[0].AbsoluteExpiresAt = provisionalUntil.Add(time.Nanosecond)
+		}},
+		{name: "another principal session already bound", mutate: func(db *deviceParticipantDBTX) {
+			db.sessions = append(db.sessions, store.IdentityAccountSession{
+				ID: uuid.MustParse("f93494a7-960b-44c7-b8ed-ed17a7fbce84"), PrincipalID: principalID, State: "active",
+				AccessExpiresAt: now.Add(time.Minute), AbsoluteExpiresAt: provisionalUntil,
+				DeviceAuthorizationID: uuid.NullUUID{UUID: uuid.MustParse("f06adf66-3a76-49ae-9732-b859cc42d508"), Valid: true},
+			})
+		}},
 		{name: "bound session", mutate: func(db *deviceParticipantDBTX) {
 			db.sessions[0].DeviceAuthorizationID = uuid.NullUUID{UUID: uuid.New(), Valid: true}
 		}},
@@ -165,6 +178,36 @@ func TestPostgresRepositoryValidatesTrialEnrollmentAndRejectsAuthorityMismatch(t
 			_, found, err := participant.ValidateDeviceEnrollment(context.Background(), database, digest, now)
 			if err != nil || found {
 				t.Fatalf("mismatched authority = (found %v, error %v), want finite not-found", found, err)
+			}
+		})
+	}
+}
+
+func TestPostgresRepositoryPendingDeviceAccountAuthorityUsesStrictFixedDeadline(t *testing.T) {
+	// Mutation caught: treating every pending_email account as active device
+	// authority without validating the immutable created_at+24h boundary.
+	now := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	principalID := uuid.MustParse("8c509522-3a89-43b3-9800-a811e6d9a6ad")
+	participant := &PostgresRepository{}
+	for _, test := range []struct {
+		name      string
+		state     string
+		createdAt time.Time
+		want      bool
+	}{
+		{name: "deadline minus one", state: "pending_email", createdAt: now.Add(-24*time.Hour + time.Nanosecond), want: true},
+		{name: "deadline equality", state: "pending_email", createdAt: now.Add(-24 * time.Hour)},
+		{name: "expired", state: "pending_email", createdAt: now.Add(-24*time.Hour - time.Nanosecond)},
+		{name: "zero", state: "pending_email"},
+		{name: "future", state: "pending_email", createdAt: now.Add(time.Nanosecond)},
+		{name: "active unchanged", state: "active", want: true},
+		{name: "suspended", state: "suspended", createdAt: now.Add(-time.Hour)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			database := &deviceParticipantDBTX{account: store.IdentityAccount{ID: principalID, State: test.state, CreatedAt: test.createdAt}}
+			active, err := participant.ValidateDeviceAccountAuthority(context.Background(), database, PrincipalID(principalID.String()), now)
+			if err != nil || active != test.want {
+				t.Fatalf("device account authority = %v, %v; want %v", active, err, test.want)
 			}
 		})
 	}
@@ -345,6 +388,7 @@ func TestPostgresRepositoryValidatesDeviceAccountAndRevocationAuthorityLast(t *t
 		t.Fatalf("account authority order = %q, want account", got)
 	}
 	database.account.State = "pending_email"
+	database.account.CreatedAt = now.Add(-time.Hour)
 	if allowed, err := participant.ValidateDeviceAccountAuthority(context.Background(), database, PrincipalID(principalID.String()), now); err != nil || !allowed {
 		t.Fatalf("provisional device account authority = (%v, %v), want grace authority", allowed, err)
 	}

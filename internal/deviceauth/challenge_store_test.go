@@ -46,6 +46,60 @@ func TestChallengeRedisStoreCreatesOnlyOpaqueBoundedState(t *testing.T) {
 	}
 }
 
+func TestChallengeRedisStoreAcceptsOnlyBoundedPositiveFlooredTTL(t *testing.T) {
+	// Mutations caught: requiring the ordinary TTL exactly rejects clamped
+	// provisional authority; rounding up extends authority; accepting zero,
+	// sub-millisecond, negative, or greater-than-ordinary TTLs creates invalid
+	// Redis state.
+	for _, test := range []struct {
+		name    string
+		ttl     time.Duration
+		wantTTL time.Duration
+	}{
+		{name: "ordinary", ttl: 2 * time.Minute, wantTTL: 2 * time.Minute},
+		{name: "short exact millisecond", ttl: 45*time.Second + 678*time.Millisecond, wantTTL: 45*time.Second + 678*time.Millisecond},
+		{name: "short floors sub-millisecond remainder", ttl: 1500 * time.Microsecond, wantTTL: time.Millisecond},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			executor := &fakeDeviceChallengeExecutor{setAllowed: true}
+			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := challengeStore.Create(context.Background(), task12ChallengeRecord(), test.ttl); err != nil {
+				t.Fatalf("Create(%s) = %v", test.ttl, err)
+			}
+			if executor.setTTL != test.wantTTL {
+				t.Fatalf("Redis TTL = %s, want non-extending floor %s", executor.setTTL, test.wantTTL)
+			}
+		})
+	}
+
+	for _, test := range []struct {
+		name string
+		ttl  time.Duration
+	}{
+		{name: "zero", ttl: 0},
+		{name: "negative", ttl: -time.Nanosecond},
+		{name: "below one Redis millisecond", ttl: 999 * time.Microsecond},
+		{name: "above ordinary", ttl: 2*time.Minute + time.Nanosecond},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			executor := &fakeDeviceChallengeExecutor{setAllowed: true}
+			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := challengeStore.Create(context.Background(), task12ChallengeRecord(), test.ttl); !errors.Is(err, ErrInvalidChallenge) {
+				t.Fatalf("Create(%s) error = %v, want invalid challenge", test.ttl, err)
+			}
+			if executor.setKey != "" || executor.setTTL != 0 {
+				t.Fatalf("invalid TTL reached Redis = key:%q ttl:%s", executor.setKey, executor.setTTL)
+			}
+		})
+	}
+}
+
 func TestChallengeSingleUseConsumesWithOneAtomicGetDEL(t *testing.T) {
 	t.Parallel()
 

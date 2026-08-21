@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"database/sql"
 	"encoding/binary"
 	"errors"
 	"sort"
@@ -73,6 +74,52 @@ func TestRotateDeviceTokenUsesExactFixedTTLs(t *testing.T) {
 
 	if deviceAccessTTL.String() != "10m0s" || deviceRefreshIdleTTL.Hours() != 30*24 || deviceRefreshAbsoluteTTL.Hours() != 90*24 {
 		t.Fatal("device token TTL contract changed")
+	}
+}
+
+func TestProvisionalDeviceCanRotateWhileAccessAndChallengeClampToDeadline(t *testing.T) {
+	// Mutations caught: active-only rotation authority strands the provisional
+	// device, while ordinary challenge/access TTLs create new-key authority past
+	// provisional_until. Refresh idle/absolute intentionally remain unchanged.
+	fixture := newTask13Fixture(t)
+	deadline := time.Date(2026, 8, 10, 1, 3, 3, 0, time.UTC)
+	authorization := fixture.state.authorizations[fixture.authorizationID]
+	authorization.State = "provisional"
+	authorization.ProvisionalUntil = sql.NullTime{Time: deadline, Valid: true}
+	fixture.state.authorizations[fixture.authorizationID] = authorization
+	family := fixture.state.families[fixture.familyID]
+	family.AccessExpiresAt = deadline
+	fixture.state.families[fixture.familyID] = family
+	fixture.application.security.EmailVerification = config.EmailGrace
+	nonce := [32]byte{0x91}
+	challenge, err := fixture.application.CreateChallenge(context.Background(), CreateChallengeCommand{
+		Kind: ChallengeRotation, RefreshToken: fixture.refresh, RequestNonce: nonce, IdempotencyKey: "task19-provisional-rotation-challenge",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if challenge.ExpiresAt != deadline {
+		t.Fatalf("provisional rotation challenge expires = %v, want %v", challenge.ExpiresAt, deadline)
+	}
+	proof := DeviceRotationProofBytes(DeviceRotationProofInput{
+		ProtocolVersion: deviceRotationProtocolVersion, Challenge: challenge.Challenge, FamilyID: fixture.familyID,
+		Operation: rotateDeviceTokenOperation, Audience: "https://api.example.test", RequestNonce: nonce,
+	})
+	signed := ed25519.Sign(fixture.signingPrivate, proof)
+	clear(proof)
+	var signature [64]byte
+	copy(signature[:], signed)
+	clear(signed)
+	tokens, err := fixture.application.RotateDeviceToken(context.Background(), RotateDeviceTokenCommand{
+		RefreshToken: fixture.refresh, ChallengeID: challenge.ChallengeID, RequestNonce: nonce,
+		Signature: signature, IdempotencyKey: "task19-provisional-rotation",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokens.AccessExpiresAt != deadline || tokens.RefreshIdleExpiresAt != fixedTask12Time.Add(deviceRefreshIdleTTL) ||
+		tokens.RefreshAbsoluteExpiresAt != fixedTask12Time.Add(deviceRefreshAbsoluteTTL) {
+		t.Fatalf("provisional rotation deadlines = %#v, want access %v", tokens, deadline)
 	}
 }
 
@@ -425,10 +472,10 @@ func TestRotateDeviceTokenReturnsExactTTLBoundariesAndRejectsSuspendedAuthority(
 	}
 	defer tokens.AccessToken.Clear()
 	defer tokens.RefreshToken.Clear()
-	if !tokens.AccessExpiresAt.Equal(fixedTask12Time.Add(deviceAccessTTL)) ||
+	if tokens.FamilyID != fixture.familyID || !tokens.AccessExpiresAt.Equal(fixedTask12Time.Add(deviceAccessTTL)) ||
 		!tokens.RefreshIdleExpiresAt.Equal(fixedTask12Time.Add(deviceRefreshIdleTTL)) ||
 		!tokens.RefreshAbsoluteExpiresAt.Equal(fixedTask12Time.Add(deviceRefreshAbsoluteTTL)) {
-		t.Fatalf("rotated TTLs = %v/%v/%v", tokens.AccessExpiresAt, tokens.RefreshIdleExpiresAt, tokens.RefreshAbsoluteExpiresAt)
+		t.Fatalf("rotated family/TTLs = %s/%v/%v/%v", tokens.FamilyID, tokens.AccessExpiresAt, tokens.RefreshIdleExpiresAt, tokens.RefreshAbsoluteExpiresAt)
 	}
 
 	for _, mutate := range []func(*task13Fixture){
@@ -621,6 +668,27 @@ func (state *task13State) Query(ctx context.Context, query string, arguments ...
 
 func (state *task13State) QueryRow(ctx context.Context, query string, arguments ...any) pgx.Row {
 	switch {
+	case strings.Contains(query, "FROM deviceauth.device_refresh_tokens r") && len(arguments) == 1:
+		digest, ok := arguments[0].([]byte)
+		if !ok {
+			return task13StateRow{err: errors.New("unexpected refresh digest")}
+		}
+		refresh, ok := state.refresh[string(digest)]
+		if !ok {
+			return task13StateRow{err: pgx.ErrNoRows}
+		}
+		family, familyFound := state.families[refresh.FamilyID]
+		authorization, authorizationFound := state.authorizations[family.AuthorizationID]
+		device, deviceFound := state.devices[authorization.DeviceID]
+		if !familyFound || !authorizationFound || !deviceFound {
+			return task13StateRow{err: pgx.ErrNoRows}
+		}
+		return task13StateRow{values: []any{
+			refresh.TokenHash, refresh.FamilyID, refresh.PreviousTokenHash, refresh.State, refresh.IssuedAt, refresh.UsedAt, refresh.RevokedAt,
+			family.AuthorizationID, family.State, family.StateVersion, family.AccessExpiresAt, family.IdleExpiresAt, family.AbsoluteExpiresAt,
+			authorization.PrincipalID, authorization.DeviceID, authorization.State, authorization.StateVersion, authorization.ProvisionalUntil,
+			device.State, device.SigningPublicKey, device.KeyVersion,
+		}}
 	case strings.Contains(query, "WHERE f.access_token_hash") && len(arguments) == 1:
 		digest, ok := arguments[0].([]byte)
 		if !ok {

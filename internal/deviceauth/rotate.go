@@ -17,6 +17,7 @@ import (
 	deviceauthv1 "talenro.local/platform/gen/go/talenro/deviceauth/v1"
 	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
 	"talenro.local/platform/internal/apierrors"
+	"talenro.local/platform/internal/config"
 	"talenro.local/platform/internal/contracts/events"
 	"talenro.local/platform/internal/idempotency"
 	"talenro.local/platform/internal/identity"
@@ -448,7 +449,8 @@ func (service *Service) lockDeviceRefreshAuthority(
 		clearDeviceRowSecrets(&device)
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
-	valid := accountActive && validDeviceRefreshAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, digest, now, allowUsed)
+	valid := accountActive && validDeviceRefreshAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, digest, now, allowUsed) &&
+		(authorization.State != "provisional" || service.security.EmailVerification == config.EmailGrace)
 	clearDeviceRefreshRows(freshRefresh)
 	result := deviceRefreshAuthority{discovered: discovered, family: family, authorization: authorization, device: device, refresh: lockedRefresh}
 	if !valid {
@@ -477,7 +479,8 @@ func validDeviceRefreshAuthority(
 		family.State != discovered.FamilyState || family.StateVersion != discovered.FamilyStateVersion || !family.IdleExpiresAt.Equal(discovered.IdleExpiresAt) ||
 		!family.AbsoluteExpiresAt.Equal(discovered.AbsoluteExpiresAt) || !expiryValid ||
 		authorization.ID != discovered.AuthorizationID || authorization.PrincipalID != discovered.PrincipalID || authorization.DeviceID != discovered.DeviceID ||
-		authorization.State != "active" || authorization.State != discovered.AuthorizationState || authorization.StateVersion != discovered.AuthorizationStateVersion ||
+		authorization.State != discovered.AuthorizationState || authorization.StateVersion != discovered.AuthorizationStateVersion ||
+		!validAuthorizationMarker(discovered.AuthorizationState, discovered.ProvisionalUntil, authorization.ProvisionalUntil, now) ||
 		device.ID != discovered.DeviceID || device.PrincipalID != discovered.PrincipalID || device.State != "active" || device.State != discovered.DeviceState ||
 		device.KeyVersion != discovered.KeyVersion || len(device.SigningPublicKey) != ed25519.PublicKeySize || len(discovered.SigningPublicKey) != ed25519.PublicKeySize ||
 		subtle.ConstantTimeCompare(device.SigningPublicKey, discovered.SigningPublicKey) != 1 || !sameDeviceRefreshSet(lockedRefresh, freshRefresh) {
@@ -510,6 +513,9 @@ func sameDeviceRefreshAuthority(left, right deviceRefreshAuthority) bool {
 func (service *Service) prepareDeviceRotation(authority deviceRefreshAuthority, now time.Time) (preparedDeviceRotation, error) {
 	absolute := authority.family.AbsoluteExpiresAt
 	accessExpiresAt := now.Add(deviceAccessTTL)
+	if authority.authorization.ProvisionalUntil.Valid && accessExpiresAt.After(authority.authorization.ProvisionalUntil.Time) {
+		accessExpiresAt = authority.authorization.ProvisionalUntil.Time
+	}
 	if !accessExpiresAt.Before(absolute) {
 		return preparedDeviceRotation{}, deviceAuthenticationFailed()
 	}
@@ -537,7 +543,7 @@ func (service *Service) prepareDeviceRotation(authority deviceRefreshAuthority, 
 		clear(refreshDigest[:])
 		return preparedDeviceRotation{}, deviceDependencyUnavailable()
 	}
-	return preparedDeviceRotation{tokens: DeviceTokens{DeviceID: authority.device.ID, AuthorizationID: authority.authorization.ID,
+	return preparedDeviceRotation{tokens: DeviceTokens{DeviceID: authority.device.ID, AuthorizationID: authority.authorization.ID, FamilyID: authority.family.ID,
 		AccessToken: access.Take(), RefreshToken: refresh.Take(), AccessExpiresAt: accessExpiresAt,
 		RefreshIdleExpiresAt: idleExpiresAt, RefreshAbsoluteExpiresAt: absolute}, accessDigest: accessDigest, refreshDigest: refreshDigest}, nil
 }

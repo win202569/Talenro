@@ -239,6 +239,35 @@ func TestOpenAPIResolutionAndTOTPHTTPShapes(t *testing.T) {
 	assertExactSchemaProperties(t, "TOTPEnrollment", totpRef.Value, []string{"secret", "provisioning_uri"})
 }
 
+func TestOpenAPIDeviceTokensRequiresFamilyID(t *testing.T) {
+	t.Parallel()
+
+	spec, err := controlapiv1.GetSwagger() //nolint:staticcheck // Verify the checked-in generated contract.
+	if err != nil {
+		t.Fatal(err)
+	}
+	deviceTokens := spec.Components.Schemas["DeviceTokens"]
+	if deviceTokens == nil || deviceTokens.Value == nil {
+		t.Fatal("missing DeviceTokens schema")
+	}
+	assertExactStringSet(t, "DeviceTokens required", deviceTokens.Value.Required,
+		[]string{"device_id", "authorization_id", "family_id", "access_token", "refresh_token", "expires_at"})
+	assertExactSchemaProperties(t, "DeviceTokens", deviceTokens.Value,
+		[]string{"device_id", "authorization_id", "family_id", "access_token", "refresh_token", "expires_at"})
+	fixture := map[string]any{
+		"device_id": "1645ba9c-ad1d-4a06-b996-d9feb78ee88a", "authorization_id": "28ceee8a-5f4f-4d3a-9e9f-d3ec23b815ac",
+		"family_id": "0ff820a5-5022-48e6-8867-77761f8e2f07", "access_token": strings.Repeat("A", 43),
+		"refresh_token": strings.Repeat("B", 43), "expires_at": "2026-08-20T12:00:00Z",
+	}
+	if err := deviceTokens.Value.VisitJSON(fixture); err != nil {
+		t.Fatalf("DeviceTokens family fixture rejected: %v", err)
+	}
+	delete(fixture, "family_id")
+	if err := deviceTokens.Value.VisitJSON(fixture); err == nil {
+		t.Fatal("DeviceTokens schema accepted a response without family_id")
+	}
+}
+
 func assertExactSchemaProperties(t *testing.T, label string, schema *openapi3.Schema, want []string) {
 	t.Helper()
 	got := make([]string, 0, len(schema.Properties))
