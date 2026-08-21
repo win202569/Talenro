@@ -122,10 +122,32 @@ const (
 	deviceReplayResponseBody           = `{"authenticated":false}`
 )
 
-var errDeviceRotationPreflight = errors.New("deviceauth: rotation preflight rollback")
+var (
+	errDeviceRotationPreflight   = errors.New("deviceauth: rotation preflight rollback")
+	errDeviceRefreshSnapshotSkew = errors.New("deviceauth: refresh snapshot skew")
+)
 
 func deviceRotationScope(principalID uuid.UUID) (idempotency.Scope, error) {
 	return idempotency.AuthenticatedScope(principalID, "device_refresh", rotateDeviceTokenOperation)
+}
+
+func (service *Service) withinDeviceRotationTransaction(
+	ctx context.Context,
+	operation func(context.Context, deviceTokenTransaction) error,
+) error {
+	for range 2 {
+		err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, base Transaction) error {
+			transaction, typed := base.(deviceTokenTransaction)
+			if !typed || nilDeviceauthValue(transaction) {
+				return deviceDependencyUnavailable()
+			}
+			return operation(transactionContext, transaction)
+		})
+		if !errors.Is(err, errDeviceRefreshSnapshotSkew) {
+			return err
+		}
+	}
+	return deviceDependencyUnavailable()
 }
 
 func usedAt(now time.Time) sql.NullTime { return sql.NullTime{Time: now, Valid: true} }
@@ -166,11 +188,7 @@ func (service *Service) RotateDeviceToken(ctx context.Context, command RotateDev
 	defer replay.RefreshToken.Clear()
 	preflightResolved := false
 	postCommitAuthenticationFailure := false
-	preflightErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, base Transaction) error {
-		transaction, typed := base.(deviceTokenTransaction)
-		if !typed || nilDeviceauthValue(transaction) {
-			return deviceDependencyUnavailable()
-		}
+	preflightErr := service.withinDeviceRotationTransaction(operationContext, func(transactionContext context.Context, transaction deviceTokenTransaction) error {
 		discovered, found, discoverErr := transaction.DiscoverDeviceRefreshToken(transactionContext, refreshDigest[:])
 		defer clearDeviceRefreshDiscovery(&discovered)
 		if discoverErr != nil {
@@ -271,11 +289,7 @@ func (service *Service) RotateDeviceToken(ctx context.Context, command RotateDev
 	defer prepared.clear()
 	finalResolved := false
 	postCommitAuthenticationFailure = false
-	finalErr := service.repository.WithinTransaction(operationContext, func(transactionContext context.Context, base Transaction) error {
-		transaction, typed := base.(deviceTokenTransaction)
-		if !typed || nilDeviceauthValue(transaction) {
-			return deviceDependencyUnavailable()
-		}
+	finalErr := service.withinDeviceRotationTransaction(operationContext, func(transactionContext context.Context, transaction deviceTokenTransaction) error {
 		discovered, found, discoverErr := transaction.DiscoverDeviceRefreshToken(transactionContext, refreshDigest[:])
 		defer clearDeviceRefreshDiscovery(&discovered)
 		if discoverErr != nil {
@@ -456,6 +470,11 @@ func (service *Service) lockDeviceRefreshAuthority(
 		result.clear()
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
+	if !sameDeviceRefreshSet(result.refresh, freshRefresh) {
+		clearDeviceRefreshRows(freshRefresh)
+		result.clear()
+		return deviceRefreshAuthority{}, false, errDeviceRefreshSnapshotSkew
+	}
 	valid := accountActive && validDeviceRefreshAuthority(result.discovered, result.family, result.authorization, result.device, result.refresh, freshRefresh, digest, now, allowUsed) &&
 		(result.authorization.State != "provisional" || service.security.EmailVerification == config.EmailGrace)
 	clearDeviceRefreshRows(freshRefresh)
@@ -609,11 +628,7 @@ func (service *Service) reclassifyDeviceRotationAfterChallengeFailure(
 	now time.Time,
 	ambiguous bool,
 ) (result DeviceTokens, resolved, authenticationFailure bool, resultErr error) {
-	err := service.repository.WithinTransaction(ctx, func(transactionContext context.Context, base Transaction) error {
-		transaction, typed := base.(deviceTokenTransaction)
-		if !typed || nilDeviceauthValue(transaction) {
-			return deviceDependencyUnavailable()
-		}
+	err := service.withinDeviceRotationTransaction(ctx, func(transactionContext context.Context, transaction deviceTokenTransaction) error {
 		discovered, found, discoverErr := transaction.DiscoverDeviceRefreshToken(transactionContext, digest[:])
 		defer clearDeviceRefreshDiscovery(&discovered)
 		if discoverErr != nil {

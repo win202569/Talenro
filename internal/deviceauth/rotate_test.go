@@ -406,6 +406,47 @@ func TestConcurrentDeviceRefreshHasOneSuccessAndCompromisesTheReplay(t *testing.
 	}
 }
 
+func TestRotateDeviceTokenRetriesBlockedLockSnapshotSkewBeforeCompromisingReplay(t *testing.T) {
+	fixture := newTask13Fixture(t)
+	targetDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, fixture.refresh)
+	repository := &task19SnapshotSkewRepository{
+		state:              fixture.state,
+		targetDigest:       targetDigest,
+		successorDigest:    [32]byte{0xa1},
+		winnerAccessDigest: [32]byte{0xa2},
+		familyID:           fixture.familyID,
+		winnerAt:           fixedTask12Time.Add(time.Minute),
+	}
+	fixture.application.repository = repository
+	command := fixture.rotationCommand(t, "task19-snapshot-skew-loser-0001", [32]byte{0xa3})
+
+	if _, err := fixture.application.RotateDeviceToken(context.Background(), command); publicTask12Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("blocked-lock snapshot loser = %v, want authentication failure", err)
+	}
+	activeRefresh := 0
+	for _, refresh := range fixture.state.refresh {
+		if refresh.FamilyID == fixture.familyID && refresh.State == "active" {
+			activeRefresh++
+		}
+	}
+	if repository.transactions != 3 || fixture.challenges.consumeCalls != 1 || fixture.state.families[fixture.familyID].State != "compromised" ||
+		activeRefresh != 0 || fixture.identity.replayRecords != 1 || fixture.state.compromiseEvents != 1 || len(fixture.state.events) != 1 {
+		t.Fatalf("blocked-lock replay outcome = transactions %d, Redis %d, family %q, active refresh %d, security/outbox/events %d/%d/%d; want 3/1/compromised/0/1/1/1",
+			repository.transactions, fixture.challenges.consumeCalls, fixture.state.families[fixture.familyID].State, activeRefresh,
+			fixture.identity.replayRecords, fixture.state.compromiseEvents, len(fixture.state.events))
+	}
+
+	transactions, consumes := repository.transactions, fixture.challenges.consumeCalls
+	if _, err := fixture.application.RotateDeviceToken(context.Background(), command); publicTask12Code(err) != apierrors.AuthenticationFailed {
+		t.Fatalf("blocked-lock replay tombstone = %v, want authentication failure", err)
+	}
+	if repository.transactions != transactions+1 || fixture.challenges.consumeCalls != consumes || fixture.identity.replayRecords != 1 ||
+		fixture.state.compromiseEvents != 1 || len(fixture.state.events) != 1 {
+		t.Fatalf("blocked-lock replay tombstone duplicated effects: transactions %d, Redis %d, security/outbox/events %d/%d/%d",
+			repository.transactions, fixture.challenges.consumeCalls, fixture.identity.replayRecords, fixture.state.compromiseEvents, len(fixture.state.events))
+	}
+}
+
 func TestLockDeviceRefreshAuthorityRefreshesDiscoveryAfterLocks(t *testing.T) {
 	fixture := newTask13Fixture(t)
 	targetDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, fixture.refresh)
@@ -470,6 +511,61 @@ func TestLockDeviceRefreshAuthorityRefreshesDiscoveryAfterLocks(t *testing.T) {
 	authority.clear()
 	if !task19ByteSlicesCleared(currentSecrets...) {
 		t.Fatal("returned current authority retained sensitive bytes after clear")
+	}
+}
+
+func TestLockDeviceRefreshAuthorityClassifiesSnapshotMismatchAndClearsSensitiveRows(t *testing.T) {
+	fixture := newTask13Fixture(t)
+	targetDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, fixture.refresh)
+	successorDigest := [32]byte{0xa4}
+	fixture.state.refresh[string(successorDigest[:])] = store.DeviceauthDeviceRefreshToken{
+		TokenHash:         bytes.Clone(successorDigest[:]),
+		FamilyID:          fixture.familyID,
+		PreviousTokenHash: bytes.Clone(targetDigest[:]),
+		State:             "active",
+		IssuedAt:          fixedTask12Time.Add(time.Minute),
+	}
+	transaction := &task19RefreshSetMismatchTransaction{
+		task13Transaction: &task13Transaction{
+			task12Transaction: &task12Transaction{database: fixture.state.base},
+			state:             fixture.state,
+		},
+		targetDigest: targetDigest,
+	}
+
+	authority, valid, err := fixture.application.lockDeviceRefreshAuthority(
+		context.Background(), transaction, targetDigest, fixedTask12Time, true,
+	)
+	defer authority.clear()
+	if !errors.Is(err, errDeviceRefreshSnapshotSkew) || valid || publicTask12Code(err) != "" || errors.Is(err, errDeviceRotationPreflight) {
+		t.Fatalf("refresh-set mismatch = valid %t, error %v, public code %q; want private retry classification", valid, err, publicTask12Code(err))
+	}
+	if len(transaction.lockedSecrets) == 0 || len(transaction.freshSecrets) == 0 ||
+		!task19ByteSlicesCleared(transaction.lockedSecrets...) || !task19ByteSlicesCleared(transaction.freshSecrets...) {
+		t.Fatal("refresh-set mismatch retained locked or fresh sensitive row bytes")
+	}
+}
+
+func TestRotateDeviceTokenReturnsDependencyUnavailableAfterTwoSnapshotMismatchAttempts(t *testing.T) {
+	fixture := newTask13Fixture(t)
+	targetDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, fixture.refresh)
+	successorDigest := [32]byte{0xa5}
+	fixture.state.refresh[string(successorDigest[:])] = store.DeviceauthDeviceRefreshToken{
+		TokenHash:         bytes.Clone(successorDigest[:]),
+		FamilyID:          fixture.familyID,
+		PreviousTokenHash: bytes.Clone(targetDigest[:]),
+		State:             "active",
+		IssuedAt:          fixedTask12Time.Add(time.Minute),
+	}
+	repository := &task19RefreshMismatchRepository{state: fixture.state, targetDigest: targetDigest}
+	fixture.application.repository = repository
+	command := fixture.rotationCommand(t, "task19-snapshot-skew-exhausted-0001", [32]byte{0xa6})
+
+	if _, err := fixture.application.RotateDeviceToken(context.Background(), command); publicTask12Code(err) != apierrors.DependencyUnavailable {
+		t.Fatalf("two snapshot mismatches = %v, want dependency unavailable", err)
+	}
+	if repository.transactions != 2 || fixture.challenges.consumeCalls != 0 {
+		t.Fatalf("snapshot mismatch exhaustion = transactions %d, Redis %d; want 2/0", repository.transactions, fixture.challenges.consumeCalls)
 	}
 }
 
@@ -842,6 +938,163 @@ type task13Transaction struct {
 	state *task13State
 }
 
+type task19SnapshotSkewRepository struct {
+	mu                 sync.Mutex
+	state              *task13State
+	targetDigest       [32]byte
+	successorDigest    [32]byte
+	winnerAccessDigest [32]byte
+	familyID           uuid.UUID
+	winnerAt           time.Time
+	transactions       int
+}
+
+func (repository *task19SnapshotSkewRepository) WithinTransaction(
+	ctx context.Context,
+	operation func(context.Context, Transaction) error,
+) error {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	repository.transactions++
+	snapshot := repository.state.snapshot()
+	base := &task13Transaction{task12Transaction: &task12Transaction{database: repository.state.base}, state: repository.state}
+	var transaction Transaction = base
+	var skewed *task19SnapshotSkewTransaction
+	if repository.transactions == 2 {
+		skewed = &task19SnapshotSkewTransaction{
+			task13Transaction:  base,
+			targetDigest:       repository.targetDigest,
+			successorDigest:    repository.successorDigest,
+			winnerAccessDigest: repository.winnerAccessDigest,
+			winnerAt:           repository.winnerAt,
+		}
+		transaction = skewed
+	}
+	err := operation(ctx, transaction)
+	if err == nil {
+		return nil
+	}
+	repository.state.restore(snapshot)
+	if skewed != nil && skewed.winnerApplied {
+		if winnerErr := task19ApplyExternallyCommittedWinnerState(
+			repository.state, repository.familyID, repository.targetDigest, repository.successorDigest,
+			repository.winnerAccessDigest, repository.winnerAt,
+		); winnerErr != nil {
+			return winnerErr
+		}
+	}
+	return err
+}
+
+type task19SnapshotSkewTransaction struct {
+	*task13Transaction
+	targetDigest       [32]byte
+	successorDigest    [32]byte
+	winnerAccessDigest [32]byte
+	winnerAt           time.Time
+	winnerApplied      bool
+}
+
+func (transaction *task19SnapshotSkewTransaction) LockDeviceFamilyRefreshTokens(
+	ctx context.Context,
+	familyID uuid.UUID,
+) ([]store.DeviceauthDeviceRefreshToken, error) {
+	statementRows, err := transaction.task13Transaction.LockDeviceFamilyRefreshTokens(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	if len(statementRows) != 1 || !bytes.Equal(statementRows[0].TokenHash, transaction.targetDigest[:]) || statementRows[0].State != "active" {
+		clearDeviceRefreshRows(statementRows)
+		return nil, errors.New("snapshot-skew lock did not capture only the active target")
+	}
+	if err := task19ApplyExternallyCommittedWinnerState(
+		transaction.state, familyID, transaction.targetDigest, transaction.successorDigest, transaction.winnerAccessDigest, transaction.winnerAt,
+	); err != nil {
+		clearDeviceRefreshRows(statementRows)
+		return nil, err
+	}
+	transaction.winnerApplied = true
+	current := transaction.state.refresh[string(transaction.targetDigest[:])]
+	statementRows[0].State = current.State
+	statementRows[0].UsedAt = current.UsedAt
+	statementRows[0].RevokedAt = current.RevokedAt
+	return statementRows, nil
+}
+
+type task19RefreshSetMismatchTransaction struct {
+	*task13Transaction
+	targetDigest  [32]byte
+	lockedSecrets [][]byte
+	freshSecrets  [][]byte
+}
+
+func (transaction *task19RefreshSetMismatchTransaction) LockDeviceFamilyRefreshTokens(
+	ctx context.Context,
+	familyID uuid.UUID,
+) ([]store.DeviceauthDeviceRefreshToken, error) {
+	rows, err := transaction.task13Transaction.LockDeviceFamilyRefreshTokens(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	locked := make([]store.DeviceauthDeviceRefreshToken, 0, 1)
+	for index := range rows {
+		if bytes.Equal(rows[index].TokenHash, transaction.targetDigest[:]) {
+			locked = append(locked, rows[index])
+			transaction.lockedSecrets = append(transaction.lockedSecrets, rows[index].TokenHash, rows[index].PreviousTokenHash)
+			continue
+		}
+		clearDeviceRefreshRows(rows[index : index+1])
+	}
+	if len(locked) != 1 {
+		clearDeviceRefreshRows(locked)
+		return nil, errors.New("refresh-set mismatch fixture did not retain exactly one target")
+	}
+	return locked, nil
+}
+
+func (transaction *task19RefreshSetMismatchTransaction) ListDeviceFamilyRefreshTokens(
+	ctx context.Context,
+	familyID uuid.UUID,
+) ([]store.DeviceauthDeviceRefreshToken, error) {
+	rows, err := transaction.task13Transaction.ListDeviceFamilyRefreshTokens(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	for index := range rows {
+		transaction.freshSecrets = append(transaction.freshSecrets, rows[index].TokenHash, rows[index].PreviousTokenHash)
+	}
+	return rows, nil
+}
+
+type task19RefreshMismatchRepository struct {
+	mu           sync.Mutex
+	state        *task13State
+	targetDigest [32]byte
+	transactions int
+}
+
+func (repository *task19RefreshMismatchRepository) WithinTransaction(
+	ctx context.Context,
+	operation func(context.Context, Transaction) error,
+) error {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	repository.transactions++
+	snapshot := repository.state.snapshot()
+	transaction := &task19RefreshSetMismatchTransaction{
+		task13Transaction: &task13Transaction{
+			task12Transaction: &task12Transaction{database: repository.state.base},
+			state:             repository.state,
+		},
+		targetDigest: repository.targetDigest,
+	}
+	err := operation(ctx, transaction)
+	if err != nil {
+		repository.state.restore(snapshot)
+	}
+	return err
+}
+
 type task19StaleDiscoveryTransaction struct {
 	*task13Transaction
 	targetDigest       [32]byte
@@ -906,28 +1159,43 @@ func (transaction *task19StaleDiscoveryTransaction) applyWinnerState(familyID uu
 	if transaction.winnerApplied {
 		return nil
 	}
-	refresh, refreshFound := transaction.state.refresh[string(transaction.targetDigest[:])]
-	family, familyFound := transaction.state.families[familyID]
-	if !refreshFound || !familyFound || refresh.FamilyID != familyID || refresh.State != "active" {
+	if err := task19ApplyExternallyCommittedWinnerState(
+		transaction.state, familyID, transaction.targetDigest, transaction.successorDigest, transaction.winnerAccessDigest, transaction.winnerAt,
+	); err != nil {
+		return err
+	}
+	transaction.winnerApplied = true
+	return nil
+}
+
+func task19ApplyExternallyCommittedWinnerState(
+	state *task13State,
+	familyID uuid.UUID,
+	targetDigest, successorDigest, winnerAccessDigest [32]byte,
+	winnerAt time.Time,
+) error {
+	refresh, refreshFound := state.refresh[string(targetDigest[:])]
+	family, familyFound := state.families[familyID]
+	_, successorExists := state.refresh[string(successorDigest[:])]
+	if !refreshFound || !familyFound || successorExists || refresh.FamilyID != familyID || refresh.State != "active" {
 		return errors.New("invalid pre-winner refresh fixture")
 	}
 	refresh.State = "used"
-	refresh.UsedAt = sql.NullTime{Time: transaction.winnerAt, Valid: true}
-	transaction.state.refresh[string(transaction.targetDigest[:])] = refresh
-	transaction.state.refresh[string(transaction.successorDigest[:])] = store.DeviceauthDeviceRefreshToken{
-		TokenHash:         bytes.Clone(transaction.successorDigest[:]),
+	refresh.UsedAt = sql.NullTime{Time: winnerAt, Valid: true}
+	state.refresh[string(targetDigest[:])] = refresh
+	state.refresh[string(successorDigest[:])] = store.DeviceauthDeviceRefreshToken{
+		TokenHash:         bytes.Clone(successorDigest[:]),
 		FamilyID:          familyID,
-		PreviousTokenHash: bytes.Clone(transaction.targetDigest[:]),
+		PreviousTokenHash: bytes.Clone(targetDigest[:]),
 		State:             "active",
-		IssuedAt:          transaction.winnerAt,
+		IssuedAt:          winnerAt,
 	}
-	family.AccessTokenHash = bytes.Clone(transaction.winnerAccessDigest[:])
-	family.AccessExpiresAt = transaction.winnerAt.Add(deviceAccessTTL)
-	family.IdleExpiresAt = transaction.winnerAt.Add(deviceRefreshIdleTTL)
+	family.AccessTokenHash = bytes.Clone(winnerAccessDigest[:])
+	family.AccessExpiresAt = winnerAt.Add(deviceAccessTTL)
+	family.IdleExpiresAt = winnerAt.Add(deviceRefreshIdleTTL)
 	family.StateVersion++
-	family.UpdatedAt = transaction.winnerAt
-	transaction.state.families[familyID] = family
-	transaction.winnerApplied = true
+	family.UpdatedAt = winnerAt
+	state.families[familyID] = family
 	return nil
 }
 
