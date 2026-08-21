@@ -386,73 +386,79 @@ func (service *Service) lockDeviceRefreshAuthority(
 ) (deviceRefreshAuthority, bool, error) {
 	discovered, found, err := transaction.DiscoverDeviceRefreshToken(ctx, digest[:])
 	if err != nil {
+		clearDeviceRefreshDiscovery(&discovered)
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
 	if !found {
+		clearDeviceRefreshDiscovery(&discovered)
 		return deviceRefreshAuthority{}, false, nil
 	}
-	lockedRefresh, err := transaction.LockDeviceFamilyRefreshTokens(ctx, discovered.FamilyID)
-	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
-	}
-	family, familyFound, err := transaction.GetDeviceTokenFamilyForUpdate(ctx, discovered.FamilyID)
-	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
-	}
-	if !familyFound {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
+	anchorFamilyID := discovered.FamilyID
+	anchorAuthorizationID := discovered.AuthorizationID
+	anchorPrincipalID := discovered.PrincipalID
+	anchorDeviceID := discovered.DeviceID
+	clearDeviceRefreshDiscovery(&discovered)
+	if anchorFamilyID == uuid.Nil || anchorAuthorizationID == uuid.Nil || anchorPrincipalID == uuid.Nil || anchorDeviceID == uuid.Nil {
 		return deviceRefreshAuthority{}, false, nil
 	}
-	authorization, authorizationFound, err := transaction.GetDeviceAuthorizationForUpdate(ctx, discovered.AuthorizationID)
+
+	var result deviceRefreshAuthority
+	result.refresh, err = transaction.LockDeviceFamilyRefreshTokens(ctx, anchorFamilyID)
 	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
+		result.clear()
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
-	if !authorizationFound {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
+	result.family, found, err = transaction.GetDeviceTokenFamilyForUpdate(ctx, anchorFamilyID)
+	if err != nil {
+		result.clear()
+		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
+	}
+	if !found {
+		result.clear()
 		return deviceRefreshAuthority{}, false, nil
 	}
-	device, deviceFound, err := transaction.GetDeviceForUpdate(ctx, discovered.DeviceID)
+	result.authorization, found, err = transaction.GetDeviceAuthorizationForUpdate(ctx, anchorAuthorizationID)
 	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
+		result.clear()
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
-	if !deviceFound {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
+	if !found {
+		result.clear()
 		return deviceRefreshAuthority{}, false, nil
 	}
-	accountActive, err := service.identity.ValidateDeviceAccountAuthority(ctx, transaction.DBTX(), identity.PrincipalID(discovered.PrincipalID.String()), now)
+	result.device, found, err = transaction.GetDeviceForUpdate(ctx, anchorDeviceID)
 	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
-		clearDeviceRowSecrets(&device)
+		result.clear()
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
-	freshRefresh, err := transaction.ListDeviceFamilyRefreshTokens(ctx, discovered.FamilyID)
+	if !found {
+		result.clear()
+		return deviceRefreshAuthority{}, false, nil
+	}
+	result.discovered, found, err = transaction.DiscoverDeviceRefreshToken(ctx, digest[:])
 	if err != nil {
-		clearDeviceRefreshDiscovery(&discovered)
-		clearDeviceRefreshRows(lockedRefresh)
-		clear(family.AccessTokenHash)
-		clearDeviceRowSecrets(&device)
+		result.clear()
 		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
 	}
-	valid := accountActive && validDeviceRefreshAuthority(discovered, family, authorization, device, lockedRefresh, freshRefresh, digest, now, allowUsed) &&
-		(authorization.State != "provisional" || service.security.EmailVerification == config.EmailGrace)
+	if !found || result.discovered.FamilyID != anchorFamilyID || result.discovered.AuthorizationID != anchorAuthorizationID ||
+		result.discovered.PrincipalID != anchorPrincipalID || result.discovered.DeviceID != anchorDeviceID {
+		result.clear()
+		return deviceRefreshAuthority{}, false, nil
+	}
+	accountActive, err := service.identity.ValidateDeviceAccountAuthority(ctx, transaction.DBTX(), identity.PrincipalID(result.discovered.PrincipalID.String()), now)
+	if err != nil {
+		result.clear()
+		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
+	}
+	freshRefresh, err := transaction.ListDeviceFamilyRefreshTokens(ctx, result.discovered.FamilyID)
+	if err != nil {
+		clearDeviceRefreshRows(freshRefresh)
+		result.clear()
+		return deviceRefreshAuthority{}, false, deviceDependencyUnavailable()
+	}
+	valid := accountActive && validDeviceRefreshAuthority(result.discovered, result.family, result.authorization, result.device, result.refresh, freshRefresh, digest, now, allowUsed) &&
+		(result.authorization.State != "provisional" || service.security.EmailVerification == config.EmailGrace)
 	clearDeviceRefreshRows(freshRefresh)
-	result := deviceRefreshAuthority{discovered: discovered, family: family, authorization: authorization, device: device, refresh: lockedRefresh}
 	if !valid {
 		result.clear()
 		return deviceRefreshAuthority{}, false, nil

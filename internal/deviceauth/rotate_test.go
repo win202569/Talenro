@@ -406,6 +406,73 @@ func TestConcurrentDeviceRefreshHasOneSuccessAndCompromisesTheReplay(t *testing.
 	}
 }
 
+func TestLockDeviceRefreshAuthorityRefreshesDiscoveryAfterLocks(t *testing.T) {
+	fixture := newTask13Fixture(t)
+	targetDigest := securitykit.DigestToken(securitykit.DeviceRefreshToken, fixture.refresh)
+	transaction := &task19StaleDiscoveryTransaction{
+		task13Transaction: &task13Transaction{
+			task12Transaction: &task12Transaction{database: fixture.state.base},
+			state:             fixture.state,
+		},
+		targetDigest:       targetDigest,
+		successorDigest:    [32]byte{0x91},
+		winnerAccessDigest: [32]byte{0x92},
+		winnerAt:           fixedTask12Time.Add(time.Minute),
+	}
+
+	authority, valid, err := fixture.application.lockDeviceRefreshAuthority(
+		context.Background(), transaction, targetDigest, fixedTask12Time, true,
+	)
+	defer authority.clear()
+	if err != nil || !valid {
+		t.Fatalf("locked authority valid=%t error=%v discoveries=%d operations=%v", valid, err, len(transaction.discoveries), transaction.operations)
+	}
+	if authority.discovered.RefreshState != "used" || authority.family.StateVersion != 2 ||
+		!bytes.Equal(authority.family.AccessTokenHash, transaction.winnerAccessDigest[:]) {
+		t.Fatalf("locked authority retained stale mutable state: refresh=%q family_version=%d", authority.discovered.RefreshState, authority.family.StateVersion)
+	}
+	targetUsed, successorActive := false, false
+	for _, refresh := range authority.refresh {
+		switch {
+		case bytes.Equal(refresh.TokenHash, targetDigest[:]):
+			targetUsed = refresh.State == "used"
+		case bytes.Equal(refresh.TokenHash, transaction.successorDigest[:]):
+			successorActive = refresh.State == "active" && bytes.Equal(refresh.PreviousTokenHash, targetDigest[:])
+		}
+	}
+	if len(authority.refresh) != 2 || !targetUsed || !successorActive {
+		t.Fatalf("locked refresh set = %#v, want used target and active successor", authority.refresh)
+	}
+	wantOperations := "discover:active,lock_refresh,lock_family,lock_authorization,lock_device,discover:used"
+	if got := strings.Join(transaction.operations, ","); got != wantOperations || len(transaction.discoveries) != 2 {
+		t.Fatalf("locked discovery order = %q with %d discoveries, want %q with 2", got, len(transaction.discoveries), wantOperations)
+	}
+	if !task19ByteSlicesCleared(
+		transaction.discoveries[0].TokenHash,
+		transaction.discoveries[0].PreviousTokenHash,
+		transaction.discoveries[0].SigningPublicKey,
+	) {
+		t.Fatal("pre-lock discovery retained sensitive bytes after current-state refresh")
+	}
+
+	currentSecrets := [][]byte{
+		authority.discovered.TokenHash,
+		authority.discovered.PreviousTokenHash,
+		authority.discovered.SigningPublicKey,
+		authority.family.AccessTokenHash,
+		authority.device.DisplayNameCiphertext,
+		authority.device.SigningPublicKey,
+		authority.device.HpkePublicKey,
+	}
+	for index := range authority.refresh {
+		currentSecrets = append(currentSecrets, authority.refresh[index].TokenHash, authority.refresh[index].PreviousTokenHash)
+	}
+	authority.clear()
+	if !task19ByteSlicesCleared(currentSecrets...) {
+		t.Fatal("returned current authority retained sensitive bytes after clear")
+	}
+}
+
 func TestAmbiguousChallengeAfterConcurrentWinnerCompromisesUsedRefresh(t *testing.T) {
 	fixture := newTask13Fixture(t)
 	loser := fixture.rotationCommand(t, "task13-ambiguous-loser-0001", [32]byte{0x57})
@@ -773,6 +840,106 @@ func (repository *task13Repository) WithinTransaction(ctx context.Context, opera
 type task13Transaction struct {
 	*task12Transaction
 	state *task13State
+}
+
+type task19StaleDiscoveryTransaction struct {
+	*task13Transaction
+	targetDigest       [32]byte
+	successorDigest    [32]byte
+	winnerAccessDigest [32]byte
+	winnerAt           time.Time
+	operations         []string
+	discoveries        []store.DiscoverDeviceRefreshTokenRow
+	winnerApplied      bool
+}
+
+func (transaction *task19StaleDiscoveryTransaction) DiscoverDeviceRefreshToken(
+	ctx context.Context,
+	digest []byte,
+) (store.DiscoverDeviceRefreshTokenRow, bool, error) {
+	row, found, err := transaction.task13Transaction.DiscoverDeviceRefreshToken(ctx, digest)
+	state := "missing"
+	if found {
+		state = row.RefreshState
+	}
+	transaction.operations = append(transaction.operations, "discover:"+state)
+	transaction.discoveries = append(transaction.discoveries, row)
+	return row, found, err
+}
+
+func (transaction *task19StaleDiscoveryTransaction) LockDeviceFamilyRefreshTokens(
+	ctx context.Context,
+	familyID uuid.UUID,
+) ([]store.DeviceauthDeviceRefreshToken, error) {
+	transaction.operations = append(transaction.operations, "lock_refresh")
+	if err := transaction.applyWinnerState(familyID); err != nil {
+		return nil, err
+	}
+	return transaction.task13Transaction.LockDeviceFamilyRefreshTokens(ctx, familyID)
+}
+
+func (transaction *task19StaleDiscoveryTransaction) GetDeviceTokenFamilyForUpdate(
+	ctx context.Context,
+	id uuid.UUID,
+) (store.DeviceauthDeviceTokenFamily, bool, error) {
+	transaction.operations = append(transaction.operations, "lock_family")
+	return transaction.task13Transaction.GetDeviceTokenFamilyForUpdate(ctx, id)
+}
+
+func (transaction *task19StaleDiscoveryTransaction) GetDeviceAuthorizationForUpdate(
+	ctx context.Context,
+	id uuid.UUID,
+) (store.DeviceauthDeviceAuthorization, bool, error) {
+	transaction.operations = append(transaction.operations, "lock_authorization")
+	return transaction.task13Transaction.GetDeviceAuthorizationForUpdate(ctx, id)
+}
+
+func (transaction *task19StaleDiscoveryTransaction) GetDeviceForUpdate(
+	ctx context.Context,
+	id uuid.UUID,
+) (store.DeviceauthDevice, bool, error) {
+	transaction.operations = append(transaction.operations, "lock_device")
+	return transaction.task13Transaction.GetDeviceForUpdate(ctx, id)
+}
+
+func (transaction *task19StaleDiscoveryTransaction) applyWinnerState(familyID uuid.UUID) error {
+	if transaction.winnerApplied {
+		return nil
+	}
+	refresh, refreshFound := transaction.state.refresh[string(transaction.targetDigest[:])]
+	family, familyFound := transaction.state.families[familyID]
+	if !refreshFound || !familyFound || refresh.FamilyID != familyID || refresh.State != "active" {
+		return errors.New("invalid pre-winner refresh fixture")
+	}
+	refresh.State = "used"
+	refresh.UsedAt = sql.NullTime{Time: transaction.winnerAt, Valid: true}
+	transaction.state.refresh[string(transaction.targetDigest[:])] = refresh
+	transaction.state.refresh[string(transaction.successorDigest[:])] = store.DeviceauthDeviceRefreshToken{
+		TokenHash:         bytes.Clone(transaction.successorDigest[:]),
+		FamilyID:          familyID,
+		PreviousTokenHash: bytes.Clone(transaction.targetDigest[:]),
+		State:             "active",
+		IssuedAt:          transaction.winnerAt,
+	}
+	family.AccessTokenHash = bytes.Clone(transaction.winnerAccessDigest[:])
+	family.AccessExpiresAt = transaction.winnerAt.Add(deviceAccessTTL)
+	family.IdleExpiresAt = transaction.winnerAt.Add(deviceRefreshIdleTTL)
+	family.StateVersion++
+	family.UpdatedAt = transaction.winnerAt
+	transaction.state.families[familyID] = family
+	transaction.winnerApplied = true
+	return nil
+}
+
+func task19ByteSlicesCleared(values ...[]byte) bool {
+	for _, value := range values {
+		for _, octet := range value {
+			if octet != 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (transaction *task13Transaction) DBTX() store.DBTX { return transaction.state }
