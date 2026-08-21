@@ -866,9 +866,10 @@ func policyForAuthority(authority identity.DeviceEnrollmentAuthority, now time.T
 		return "active", []byte(`{"mode":"standard"}`), sql.NullTime{}, nil
 	case "trial_restricted":
 		boundary, valid := authority.ProvisionalUntil()
-		if !valid || !boundary.After(now) || boundary.Location() != time.UTC || boundary.Nanosecond() != 0 {
+		if !valid || !boundary.After(now) || boundary.Nanosecond() != 0 {
 			return "", nil, sql.NullTime{}, deviceAuthenticationFailed()
 		}
+		boundary = boundary.UTC()
 		policy := []byte(`{"expires_at":"` + boundary.Format(time.RFC3339) + `","max_devices":"1","mode":"trial_restricted"}`)
 		return "provisional", policy, sql.NullTime{Time: boundary, Valid: true}, nil
 	default:

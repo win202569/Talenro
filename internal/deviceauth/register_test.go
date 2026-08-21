@@ -459,6 +459,68 @@ func TestRegisterGraceCreatesExactImmutableTrialPolicy(t *testing.T) {
 	}
 }
 
+func TestTrialPolicyCanonicalizesEquivalentDeadlineLocationWithoutExtendingAuthority(t *testing.T) {
+	t.Parallel()
+
+	createdAt := time.Date(2026, 8, 10, 1, 2, 3, 0, time.UTC)
+	now := createdAt.Add(time.Second)
+	deadlineUTC := createdAt.Add(24 * time.Hour)
+	nonUTCZone := time.FixedZone("fixture-local", 4*60*60)
+	nonUTCBoundary := deadlineUTC.In(nonUTCZone)
+	if !nonUTCBoundary.Equal(deadlineUTC) || nonUTCBoundary.Location() == time.UTC || nonUTCBoundary.Nanosecond() != 0 {
+		t.Fatal("non-UTC deadline fixture invalid")
+	}
+	authority, err := identity.NewDeviceEnrollmentAuthority(
+		identity.PrincipalID("a6493384-9407-4ad9-b220-7f3b49ef9054"),
+		identity.SessionID("41bd34e2-4954-48a8-a426-8d1752a57b27"),
+		"trial_restricted",
+		nonUTCBoundary,
+	)
+	if err != nil {
+		t.Fatal("trial authority fixture invalid")
+	}
+	state, policy, provisional, err := policyForAuthority(authority, now)
+	defer clear(policy)
+	if err != nil {
+		t.Fatalf("equivalent non-UTC deadline rejected: %v", err)
+	}
+	wantPolicy := `{"expires_at":"2026-08-11T01:02:03Z","max_devices":"1","mode":"trial_restricted"}`
+	if state != "provisional" || string(policy) != wantPolicy {
+		t.Fatal("trial policy was not projected from the fixed UTC deadline")
+	}
+	if !provisional.Valid || provisional.Time.Location() != time.UTC || !provisional.Time.Equal(deadlineUTC) {
+		t.Fatal("trial deadline was not preserved as canonical UTC")
+	}
+	if provisional.Time.Equal(now.Add(24 * time.Hour)) {
+		t.Fatal("trial deadline was extended from request time")
+	}
+
+	for _, test := range []struct {
+		name     string
+		boundary time.Time
+	}{
+		{name: "equality boundary", boundary: now.In(nonUTCZone)},
+		{name: "subsecond boundary", boundary: deadlineUTC.Add(time.Microsecond).In(nonUTCZone)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			invalidAuthority, authorityErr := identity.NewDeviceEnrollmentAuthority(
+				identity.PrincipalID("a6493384-9407-4ad9-b220-7f3b49ef9054"),
+				identity.SessionID("41bd34e2-4954-48a8-a426-8d1752a57b27"),
+				"trial_restricted",
+				test.boundary,
+			)
+			if authorityErr != nil {
+				t.Fatal("invalid-boundary authority fixture invalid")
+			}
+			invalidState, invalidPolicy, invalidProvisional, policyErr := policyForAuthority(invalidAuthority, now)
+			defer clear(invalidPolicy)
+			if publicTask12Code(policyErr) != apierrors.AuthenticationFailed || invalidState != "" || invalidPolicy != nil || invalidProvisional.Valid {
+				t.Fatal("invalid trial deadline was accepted")
+			}
+		})
+	}
+}
+
 func TestProvisionalRegistrationChallengeAndAccessClampToExactDeadline(t *testing.T) {
 	// Mutations caught: using the ordinary two-minute challenge or ten-minute
 	// access TTL lets a provisional device create new-key authority past its
