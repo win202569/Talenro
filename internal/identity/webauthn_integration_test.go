@@ -143,19 +143,24 @@ func TestConcurrentPasskeyRegistrationEnforcesMaximumAtFinalAuthorityBoundary(t 
 	close(start)
 	select {
 	case <-coordination.leaderListReturned:
-	case <-time.After(10 * time.Second):
+	case result := <-outcomes:
+		t.Fatalf("concurrent passkey request %d completed before the leader acquired the initial active-passkey locks: %v", result.index, result.err)
+	case <-time.After(12 * time.Second):
 		t.Fatal("leader did not acquire the initial active-passkey locks")
 	}
 	var followerPID int32
 	select {
 	case followerPID = <-coordination.followerPID:
-	case <-time.After(10 * time.Second):
+	case result := <-outcomes:
+		t.Fatalf("concurrent passkey request %d completed before the follower entered its final authority transaction: %v", result.index, result.err)
+	case <-time.After(12 * time.Second):
 		t.Fatal("follower did not enter its final authority transaction")
 	}
 	// The leader has returned the real production ListActivePasskeys result and
-	// still owns its row locks. The follower has now issued the same production
-	// query. Observing its own backend waiting on a PostgreSQL lock proves that
-	// query began before the leader is allowed to insert and commit.
+	// still owns its password and passkey row locks. The follower has entered the
+	// same production operation. Observing its own backend waiting on the earlier
+	// password-row lock proves that final-authority serialization is enforced
+	// before the follower can list active passkeys.
 	task11AwaitPasskeyIntegrationLock(t, pool, followerPID)
 	allowLeaderOnce.Do(func() { close(coordination.allowLeaderReturn) })
 
@@ -191,11 +196,19 @@ func TestConcurrentPasskeyRegistrationEnforcesMaximumAtFinalAuthorityBoundary(t 
 		}
 	}
 	firstListCounts := make(map[task11PasskeyBarrierRole]int, 2)
+	expectedFirstListCounts := map[task11PasskeyBarrierRole]int{
+		task11PasskeyLeader:   9,
+		task11PasskeyFollower: 10,
+	}
 	for range 2 {
 		select {
 		case firstList := <-coordination.firstLists:
-			if firstList.count != 9 {
-				t.Fatalf("%s initial final-authority passkey list length = %d, want 9", firstList.role, firstList.count)
+			expectedCount, ok := expectedFirstListCounts[firstList.role]
+			if !ok {
+				t.Fatalf("unexpected final-authority passkey list role %d", firstList.role)
+			}
+			if firstList.count != expectedCount {
+				t.Fatalf("%s initial final-authority passkey list length = %d, want %d", firstList.role, firstList.count, expectedCount)
 			}
 			firstListCounts[firstList.role]++
 		case <-time.After(time.Second):
@@ -249,6 +262,22 @@ func (repository *task11PasskeyFinalBarrierRepository) WithinTransaction(
 		if !ok || nilIdentityValue(passkeys) {
 			return ErrRepository
 		}
+		if repository.role == task11PasskeyFollower {
+			select {
+			case <-repository.coordination.leaderListReturned:
+			case <-transactionContext.Done():
+				return ErrRepository
+			}
+			var backendPID int32
+			if err := passkeys.DBTX().QueryRow(transactionContext, `SELECT pg_backend_pid()`).Scan(&backendPID); err != nil || backendPID <= 0 {
+				return ErrRepository
+			}
+			select {
+			case repository.coordination.followerPID <- backendPID:
+			case <-transactionContext.Done():
+				return ErrRepository
+			}
+		}
 		return operation(transactionContext, &task11PasskeyFinalBarrierTransaction{
 			passkeyTransaction: passkeys,
 			role:               repository.role,
@@ -287,32 +316,12 @@ type task11PasskeyFinalBarrierTransaction struct {
 	passkeyTransaction
 	role         task11PasskeyBarrierRole
 	coordination *task11PasskeyLockCoordination
-	blocked      bool
 }
 
 func (transaction *task11PasskeyFinalBarrierTransaction) ListActivePasskeys(
 	ctx context.Context,
 	principalID uuid.UUID,
 ) ([]store.IdentityPasskeyCredential, error) {
-	if !transaction.blocked {
-		transaction.blocked = true
-		if transaction.role == task11PasskeyFollower {
-			select {
-			case <-transaction.coordination.leaderListReturned:
-			case <-ctx.Done():
-				return nil, ErrRepository
-			}
-			var backendPID int32
-			if err := transaction.DBTX().QueryRow(ctx, `SELECT pg_backend_pid()`).Scan(&backendPID); err != nil || backendPID <= 0 {
-				return nil, ErrRepository
-			}
-			select {
-			case transaction.coordination.followerPID <- backendPID:
-			case <-ctx.Done():
-				return nil, ErrRepository
-			}
-		}
-	}
 	rows, err := transaction.passkeyTransaction.ListActivePasskeys(ctx, principalID)
 	if transaction.coordination != nil {
 		transaction.coordination.firstLists <- task11PasskeyFirstList{role: transaction.role, count: len(rows)}

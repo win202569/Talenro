@@ -26,13 +26,13 @@ func TestDependenciesAreReachable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rdb := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
+	rdb := redis.NewClient(&redis.Options{Addr: os.Getenv("TALENRO_REDIS_ADDRESS")})
 	defer rdb.Close()
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		t.Fatal(err)
 	}
 
-	nc, err := nats.Connect("nats://127.0.0.1:4222", nats.Timeout(2*time.Second))
+	nc, err := nats.Connect(os.Getenv("TALENRO_NATS_URL"), nats.Timeout(2*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}
