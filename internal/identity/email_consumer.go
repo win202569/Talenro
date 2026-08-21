@@ -288,7 +288,7 @@ func (repository *PostgresEmailDeliveryRepository) LoadPending(ctx context.Conte
 		return EmailPendingDelivery{
 			DeliveryID: row.VerificationDeliveryID.UUID, TemplateID: template,
 			Protected: sensitive.EncryptedField{KeyVersion: uint32(row.VerificationDeliveryKeyVersion.Int32), Ciphertext: bytes.Clone(row.VerificationDeliveryCiphertext)}, // #nosec G115 -- positive int32 is losslessly representable as uint32.
-			ExpiresAt: row.VerificationExpiresAt.Time,
+			ExpiresAt: row.VerificationExpiresAt.Time.UTC(),
 		}, true, nil
 	case ResetPasswordTemplate:
 		row, err := queries.GetPendingPasswordResetDelivery(ctx, uuid.NullUUID{UUID: deliveryID, Valid: true})
@@ -301,7 +301,7 @@ func (repository *PostgresEmailDeliveryRepository) LoadPending(ctx context.Conte
 		return EmailPendingDelivery{
 			DeliveryID: row.ResetDeliveryID.UUID, TemplateID: template,
 			Protected: sensitive.EncryptedField{KeyVersion: uint32(row.ResetDeliveryKeyVersion.Int32), Ciphertext: bytes.Clone(row.ResetDeliveryCiphertext)}, // #nosec G115 -- positive int32 is losslessly representable as uint32.
-			ExpiresAt: row.ResetExpiresAt.Time,
+			ExpiresAt: row.ResetExpiresAt.Time.UTC(),
 		}, true, nil
 	default:
 		return EmailPendingDelivery{}, false, ErrEmailConsumerEvent

@@ -3,6 +3,7 @@ package identity
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 	"sync"
@@ -10,6 +11,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	eventsv1 "talenro.local/platform/gen/go/talenro/events/v1"
 	identityv1 "talenro.local/platform/gen/go/talenro/identity/v1"
@@ -130,6 +134,90 @@ func TestEmailConsumerRejectsMalformedOrWrongEventBeforeDependencies(t *testing.
 	if fixture.repository.hasCalls != 0 || len(fixture.sender.deliveries) != 0 {
 		t.Fatal("invalid event reached repository or provider")
 	}
+}
+
+func TestPostgresEmailDeliveryRepositoryNormalizesPendingExpiryToUTC(t *testing.T) {
+	deliveryID := uuid.MustParse("33333333-3333-4333-8333-333333333333")
+	ciphertext := bytes.Repeat([]byte{0x55}, 48)
+	expiresAt := time.Date(2026, time.August, 14, 4, 30, 0, 0, time.FixedZone("UTC+04", 4*60*60))
+
+	for _, template := range []TemplateID{VerifyEmailTemplate, ResetPasswordTemplate} {
+		t.Run(string(template), func(t *testing.T) {
+			database := &task19PendingDeliveryDatabase{row: task19PendingDeliveryRow{
+				deliveryID: uuid.NullUUID{UUID: deliveryID, Valid: true},
+				ciphertext: bytes.Clone(ciphertext),
+				keyVersion: pgtype.Int4{Int32: 7, Valid: true},
+				expiresAt:  sql.NullTime{Time: expiresAt, Valid: true},
+			}}
+			repository, err := NewPostgresEmailDeliveryRepository(database)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			pending, found, err := repository.LoadPending(context.Background(), deliveryID, template)
+			if err != nil {
+				t.Fatalf("LoadPending: %v", err)
+			}
+			if !found {
+				t.Fatal("pending delivery was not found")
+			}
+			if pending.DeliveryID != deliveryID || pending.TemplateID != template {
+				t.Fatalf("pending identity = (%s, %q), want (%s, %q)", pending.DeliveryID, pending.TemplateID, deliveryID, template)
+			}
+			if pending.Protected.KeyVersion != 7 || !bytes.Equal(pending.Protected.Ciphertext, ciphertext) {
+				t.Fatal("pending protected field changed at the PostgreSQL boundary")
+			}
+			if !pending.ExpiresAt.Equal(expiresAt) {
+				t.Fatalf("pending expiry instant = %s, want %s", pending.ExpiresAt, expiresAt)
+			}
+			if pending.ExpiresAt.Location() != time.UTC {
+				t.Fatalf("pending expiry location = %s, want UTC", pending.ExpiresAt.Location())
+			}
+		})
+	}
+}
+
+type task19PendingDeliveryDatabase struct{ row pgx.Row }
+
+func (*task19PendingDeliveryDatabase) Begin(context.Context) (pgx.Tx, error) {
+	return nil, errors.New("unexpected Begin")
+}
+
+func (*task19PendingDeliveryDatabase) Exec(context.Context, string, ...any) (pgconn.CommandTag, error) {
+	return pgconn.CommandTag{}, errors.New("unexpected Exec")
+}
+
+func (*task19PendingDeliveryDatabase) Query(context.Context, string, ...any) (pgx.Rows, error) {
+	return nil, errors.New("unexpected Query")
+}
+
+func (database *task19PendingDeliveryDatabase) QueryRow(context.Context, string, ...any) pgx.Row {
+	return database.row
+}
+
+type task19PendingDeliveryRow struct {
+	deliveryID uuid.NullUUID
+	ciphertext []byte
+	keyVersion pgtype.Int4
+	expiresAt  sql.NullTime
+}
+
+func (row task19PendingDeliveryRow) Scan(destinations ...any) error {
+	if len(destinations) != 4 {
+		return errors.New("unexpected pending delivery scan")
+	}
+	deliveryID, deliveryOK := destinations[0].(*uuid.NullUUID)
+	ciphertext, ciphertextOK := destinations[1].(*[]byte)
+	keyVersion, keyVersionOK := destinations[2].(*pgtype.Int4)
+	expiresAt, expiryOK := destinations[3].(*sql.NullTime)
+	if !deliveryOK || !ciphertextOK || !keyVersionOK || !expiryOK {
+		return errors.New("unexpected pending delivery scan types")
+	}
+	*deliveryID = row.deliveryID
+	*ciphertext = bytes.Clone(row.ciphertext)
+	*keyVersion = row.keyVersion
+	*expiresAt = row.expiresAt
+	return nil
 }
 
 type task18EmailConsumerFixture struct {
