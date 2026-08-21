@@ -1628,18 +1628,18 @@ func (fixture *c11Fixture) deviceProofAudienceFor(networkEndpoint string) (strin
 	if fixture == nil || fixture.deviceProofAudience == "" {
 		return "", errors.New("device proof audience unavailable")
 	}
-	endpoint, err := parseOwnedLoopbackURL(networkEndpoint, "http")
-	if err != nil {
+	if _, err := parseOwnedLoopbackURL(networkEndpoint, "http"); err != nil {
 		return "", errors.New("device network endpoint invalid")
 	}
-	audience, err := url.ParseRequestURI(fixture.deviceProofAudience)
-	if err != nil || audience.Scheme != "http" || audience.User != nil || audience.Port() != endpoint.Port() ||
-		audience.Path != "" || audience.RawQuery != "" || audience.Fragment != "" ||
-		(audience.Hostname() != "127.0.0.1" && audience.Hostname() != "localhost") {
-		return "", errors.New("device proof audience invalid")
+	if networkEndpoint != fixture.ready.RequiredURL && networkEndpoint != fixture.ready.GraceURL && networkEndpoint != fixture.ready.DisabledURL {
+		return "", errors.New("device network endpoint ownership invalid")
 	}
-	if audience.Hostname() != "localhost" {
-		return "", errors.New("device proof audience ownership invalid")
+	required, err := parseOwnedLoopbackURL(fixture.ready.RequiredURL, "http")
+	if err != nil {
+		return "", errors.New("device proof audience unavailable")
+	}
+	if _, err = parseConfiguredBundleOrigin(fixture.deviceProofAudience, required.Port()); err != nil {
+		return "", errors.New("device proof audience invalid")
 	}
 	return fixture.deviceProofAudience, nil
 }
@@ -3102,6 +3102,57 @@ func TestExternalDeviceProofUsesCanonicalPublicOrigin(t *testing.T) {
 	audience, err := fixture.deviceProofAudienceFor(configuration.PrimaryURL)
 	if err != nil || audience != "http://localhost:8080" || audience == configuration.PrimaryURL {
 		t.Fatal("external device proof did not use the canonical public origin")
+	}
+}
+
+func TestDeviceProofAudienceUsesConfiguredPublicOriginForOwnedProfiles(t *testing.T) {
+	t.Parallel()
+	const publicAudience = "http://localhost:18080"
+	fixture := &c11Fixture{
+		ready: fixtureReady{
+			RequiredURL: "http://127.0.0.1:18080",
+			GraceURL:    "http://127.0.0.1:18081",
+			DisabledURL: "http://127.0.0.1:18082",
+			MirrorAURL:  "http://127.0.0.1:18083",
+			MirrorBURL:  "http://127.0.0.1:18084",
+			MetricsURL:  "http://127.0.0.1:19090",
+		},
+		deviceProofAudience: publicAudience,
+	}
+	for _, profile := range []struct {
+		name     string
+		endpoint string
+	}{
+		{name: "required", endpoint: fixture.ready.RequiredURL},
+		{name: "grace", endpoint: fixture.ready.GraceURL},
+		{name: "disabled", endpoint: fixture.ready.DisabledURL},
+	} {
+		t.Run(profile.name, func(t *testing.T) {
+			audience, err := fixture.deviceProofAudienceFor(profile.endpoint)
+			if err != nil || audience != publicAudience {
+				t.Fatalf("owned profile proof audience = %q, %v; want %q", audience, err, publicAudience)
+			}
+		})
+	}
+	for _, unowned := range []struct {
+		name     string
+		endpoint string
+	}{
+		{name: "mirror_a", endpoint: fixture.ready.MirrorAURL},
+		{name: "mirror_b", endpoint: fixture.ready.MirrorBURL},
+		{name: "metrics", endpoint: fixture.ready.MetricsURL},
+		{name: "arbitrary_loopback", endpoint: "http://127.0.0.1:18085"},
+	} {
+		t.Run("rejects_"+unowned.name, func(t *testing.T) {
+			if audience, err := fixture.deviceProofAudienceFor(unowned.endpoint); err == nil || audience != "" {
+				t.Fatalf("unowned endpoint proof audience = %q, %v; want rejection", audience, err)
+			}
+		})
+	}
+	gracePortAudience := *fixture
+	gracePortAudience.deviceProofAudience = "http://localhost:18081"
+	if audience, err := gracePortAudience.deviceProofAudienceFor(gracePortAudience.ready.GraceURL); err == nil || audience != "" {
+		t.Fatalf("grace-port proof audience = %q, %v; want rejection", audience, err)
 	}
 }
 
