@@ -285,7 +285,7 @@ func newExternalC11Fixture(
 	repository := &memoryMetadataRepository{}
 	metadataContext, metadataCancel := context.WithTimeout(context.Background(), fixtureRequestTimeout)
 	defer metadataCancel()
-	_, signedMetadata, err := fixtureMetadata(metadataContext, repository, rootSigner, configSigner)
+	_, signedMetadata, err := fixtureMetadata(metadataContext, repository, rootSigner, configSigner, time.Now().UTC())
 	if err != nil {
 		_ = configSigner.Close()
 		_ = rootSigner.Close()
@@ -1135,7 +1135,7 @@ func openFixtureRuntime(parent context.Context, cancel context.CancelFunc, captu
 		clear(rootPublic)
 		return nil, errors.New("fixture metadata repository failed")
 	}
-	metadata, signedMetadata, err := fixtureMetadata(parent, metadataRepository, fixtureRuntime.rootSigner, fixtureRuntime.configSigner)
+	metadata, signedMetadata, err := fixtureMetadata(parent, metadataRepository, fixtureRuntime.rootSigner, fixtureRuntime.configSigner, fixtureRuntime.clock.Now())
 	if err != nil {
 		clear(rootPublic)
 		return nil, err
@@ -1279,7 +1279,7 @@ func composeFixtureApplications(cfg config.Config, fixtureRuntime *fixtureRuntim
 	}, nil
 }
 
-func fixtureMetadata(ctx context.Context, repository trust.MetadataRepository, root *trust.LocalRootSigner, signer *trust.LocalConfigSigner) (trust.RootMetadataV1, trust.SignedRootMetadataV1, error) {
+func fixtureMetadata(ctx context.Context, repository trust.MetadataRepository, root *trust.LocalRootSigner, signer *trust.LocalConfigSigner, now time.Time) (trust.RootMetadataV1, trust.SignedRootMetadataV1, error) {
 	validFrom := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	validUntil := time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)
 	if err := trust.EnsureLocalMetadata(ctx, repository, root, signer, validFrom, validUntil); err != nil {
@@ -1291,7 +1291,7 @@ func fixtureMetadata(ctx context.Context, repository trust.MetadataRepository, r
 	}
 	rootPublic := root.PublicKey()
 	defer clear(rootPublic)
-	payload, err := trust.VerifyRootMetadataV1(records[0], map[string]ed25519.PublicKey{root.KeyID(): rootPublic}, 0, time.Now().UTC())
+	payload, err := trust.VerifyRootMetadataV1(records[0], map[string]ed25519.PublicKey{root.KeyID(): rootPublic}, 0, now)
 	if err != nil {
 		return trust.RootMetadataV1{}, trust.SignedRootMetadataV1{}, errors.New("fixture metadata verify failed")
 	}
@@ -2440,8 +2440,9 @@ func (fixture *c11Fixture) verifyBundle(t *testing.T, client *c11HTTPClient, dev
 	if err != nil {
 		t.Fatal("c11 trust expectation failed")
 	}
+	now := fixture.authorityTime(t)
 	store := trustclient.NewMemoryStore()
-	verified, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, store, time.Now().UTC())
+	verified, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, store, now)
 	if err != nil {
 		t.Fatal("c11 reference client verification failed")
 	}
@@ -2479,7 +2480,7 @@ func (fixture *c11Fixture) verifyBundle(t *testing.T, client *c11HTTPClient, dev
 	clear(ciphertext)
 	for _, row := range tamperRows {
 		changed := mutateFixtureEnvelope(t, bodies[0], row.field, row.value)
-		if _, err := verifyReferenceBundle(t.Context(), changed, device.hpkePrivate, metadata, expected, trustclient.NewMemoryStore(), time.Now().UTC()); err == nil {
+		if _, err := verifyReferenceBundle(t.Context(), changed, device.hpkePrivate, metadata, expected, trustclient.NewMemoryStore(), now); err == nil {
 			t.Fatalf("c11 reference client accepted %s tamper", row.name)
 		}
 	}
@@ -2487,14 +2488,14 @@ func (fixture *c11Fixture) verifyBundle(t *testing.T, client *c11HTTPClient, dev
 	if err != nil {
 		t.Fatal("c11 wrong-recipient fixture failed")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], wrongRecipient, metadata, expected, trustclient.NewMemoryStore(), time.Now().UTC()); err == nil {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], wrongRecipient, metadata, expected, trustclient.NewMemoryStore(), now); err == nil {
 		t.Fatal("c11 reference client accepted wrong recipient key")
 	}
 	wrongAudience, err := trustclient.NewExpected(uuid.NewString(), locator)
 	if err != nil {
 		t.Fatal("c11 wrong-audience fixture failed")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, wrongAudience, trustclient.NewMemoryStore(), time.Now().UTC()); err == nil {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, wrongAudience, trustclient.NewMemoryStore(), now); err == nil {
 		t.Fatal("c11 reference client accepted wrong audience")
 	}
 	wrongLocator := random32(t)
@@ -2502,7 +2503,7 @@ func (fixture *c11Fixture) verifyBundle(t *testing.T, client *c11HTTPClient, dev
 	if err != nil {
 		t.Fatal("c11 wrong-locator fixture failed")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, wrongLocatorExpectation, trustclient.NewMemoryStore(), time.Now().UTC()); err == nil {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, wrongLocatorExpectation, trustclient.NewMemoryStore(), now); err == nil {
 		t.Fatal("c11 reference client accepted wrong locator")
 	}
 	tamperedMetadataBytes := mutateFixtureSignedMetadata(t, metadataBytes)
@@ -2511,13 +2512,13 @@ func (fixture *c11Fixture) verifyBundle(t *testing.T, client *c11HTTPClient, dev
 	if err != nil {
 		t.Fatal("c11 metadata tamper fixture failed")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, tamperedMetadata, expected, trustclient.NewMemoryStore(), time.Now().UTC()); err == nil {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, tamperedMetadata, expected, trustclient.NewMemoryStore(), now); err == nil {
 		t.Fatal("c11 reference client accepted tampered root metadata")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, trustclient.NewMemoryStore(), time.Now().UTC().Add(48*time.Hour)); err == nil {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, trustclient.NewMemoryStore(), now.Add(48*time.Hour)); err == nil {
 		t.Fatal("c11 reference client accepted expired bundle")
 	}
-	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, store, time.Now().UTC()); !errors.Is(err, trustclient.ErrRollback) {
+	if _, err := verifyReferenceBundle(t.Context(), bodies[0], device.hpkePrivate, metadata, expected, store, now); !errors.Is(err, trustclient.ErrRollback) {
 		t.Fatal("c11 reference client accepted rollback")
 	}
 	fixture.verifyConformanceBinary(t, bodies[0], metadataBytes, rootPublic, locator, device)
@@ -3231,6 +3232,48 @@ func TestFixtureEmailLoopUsesSharedAdvancedClock(t *testing.T) {
 	fixtureEmailLoop(ctx, subscription, consumer, clock, &deliveries, &ackFailures)
 	if got != want || deliveries.Load() != 1 || ackFailures.Load() != 0 {
 		t.Fatalf("fixture email consumer time = %s, deliveries = %d, ack failures = %d; want %s, 1, 0", got.Format(time.RFC3339Nano), deliveries.Load(), ackFailures.Load(), want.Format(time.RFC3339Nano))
+	}
+}
+
+func TestFixtureTrustVerificationUsesSharedAdvancedClock(t *testing.T) {
+	t.Parallel()
+	advanced := time.Date(2045, time.January, 2, 3, 4, 5, 0, time.UTC)
+	validFrom := advanced.Add(-time.Hour)
+	validUntil := advanced.Add(time.Hour)
+	rootSigner, err := trust.NewLocalRootSigner(secret.NewBytes(bytes.Repeat([]byte{0x31}, ed25519.SeedSize)))
+	if err != nil {
+		t.Fatal("new trust root signer failed")
+	}
+	defer func() { _ = rootSigner.Close() }()
+	configSigner, err := trust.NewLocalConfigSigner(secret.NewBytes(bytes.Repeat([]byte{0x21}, ed25519.SeedSize)))
+	if err != nil {
+		t.Fatal("new trust config signer failed")
+	}
+	defer func() { _ = configSigner.Close() }()
+	boundedRoot, err := trust.NewTimeoutConfigSigner(rootSigner, 2*time.Second)
+	if err != nil {
+		t.Fatal("bound trust root signer failed")
+	}
+	defer func() { _ = boundedRoot.Close() }()
+	record, err := trust.SignRootMetadataV1(t.Context(), trust.RootMetadataV1{
+		SchemaVersion: trust.TrustMetadataSchemaV1, Version: "1", RootKeyID: rootSigner.KeyID(), RootAlgorithm: trust.SignatureAlgorithm,
+		ValidFrom: validFrom.Format(time.RFC3339), ValidUntil: validUntil.Format(time.RFC3339),
+		SigningKeys: []trust.SigningKeyMetadataV1{{
+			KeyID: configSigner.KeyID(), Algorithm: trust.SignatureAlgorithm,
+			PublicKey: base64.RawURLEncoding.EncodeToString(configSigner.PublicKey()), State: "active",
+			NotBefore: validFrom.Format(time.RFC3339), NotAfter: validUntil.Format(time.RFC3339),
+		}},
+	}, boundedRoot)
+	if err != nil {
+		t.Fatal("sign advanced trust metadata failed")
+	}
+	repository := &memoryMetadataRepository{records: []trust.SignedRootMetadataV1{record}}
+	metadata, _, err := fixtureMetadata(t.Context(), repository, rootSigner, configSigner, advanced)
+	if err != nil {
+		t.Fatalf("fixture metadata rejected shared advanced authority: %v", err)
+	}
+	if metadata.ValidFrom != validFrom.Format(time.RFC3339) || metadata.ValidUntil != validUntil.Format(time.RFC3339) {
+		t.Fatal("fixture metadata did not retain the advanced authority validity window")
 	}
 }
 
