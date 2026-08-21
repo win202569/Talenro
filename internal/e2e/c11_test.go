@@ -1880,7 +1880,7 @@ func (fixture *c11Fixture) runEmailGraceLifecycle(t *testing.T, client *c11HTTPC
 	_, _ = client.post(fixture.ready.GraceURL, "/v1/accounts", "", nextFixtureKey("grace-register"), map[string]any{
 		"email": email, "password": password, "locale": "en",
 	}, http.StatusAccepted)
-	first := fixture.createGraceSession(t, client, email, password, deadline)
+	first := fixture.createGraceSession(t, client, email, password, start.Add(10*time.Minute))
 	firstGrant, firstGrantExpiry := fixture.createGraceGrant(t, client, first)
 	if firstGrantExpiry != start.Add(10*time.Minute).Format(time.RFC3339) {
 		t.Fatal("c11 first grace grant did not use the literal ten-minute expiry")
@@ -1890,14 +1890,14 @@ func (fixture *c11Fixture) runEmailGraceLifecycle(t *testing.T, client *c11HTTPC
 	if response, setErr := fixture.child.call("clock-set", next.Format(time.RFC3339), "", ""); setErr != nil || response.Value != next.Format(time.RFC3339) {
 		t.Fatal("c11 grace clock advance failed")
 	}
-	second := fixture.createGraceSession(t, client, email, password, deadline)
+	second := fixture.createGraceSession(t, client, email, password, next.Add(10*time.Minute))
 	secondGrant, secondGrantExpiry := fixture.createGraceGrant(t, client, second)
 	if first.sessionID == second.sessionID || firstGrant == secondGrant || secondGrantExpiry != next.Add(10*time.Minute).Format(time.RFC3339) {
 		t.Fatal("c11 independent grace sessions or grants were not distinct and fixed")
 	}
 	device := fixture.registerDevice(t, client, fixture.ready.GraceURL, firstGrant)
-	if device.expiresAt != deadline.Format(time.RFC3339) {
-		t.Fatal("c11 provisional registration did not retain the fixed account deadline")
+	if device.expiresAt != next.Add(10*time.Minute).Format(time.RFC3339) {
+		t.Fatal("c11 provisional registration did not use the literal ten-minute access expiry")
 	}
 	fixture.requireGraceGrantDenied(t, client, secondGrant)
 	wantTrialPolicy := `{"expires_at":"` + deadline.Format(time.RFC3339) + `","max_devices":"1","mode":"trial_restricted"}`
@@ -1905,8 +1905,8 @@ func (fixture *c11Fixture) runEmailGraceLifecycle(t *testing.T, client *c11HTTPC
 		t.Fatalf("c11 provisional policy mismatch: got %s", got)
 	}
 	device = fixture.rotateDeviceOnce(t, client, device)
-	if device.expiresAt != deadline.Format(time.RFC3339) {
-		t.Fatal("c11 provisional rotation extended the fixed account deadline")
+	if device.expiresAt != next.Add(10*time.Minute).Format(time.RFC3339) {
+		t.Fatal("c11 provisional rotation did not use the literal ten-minute access expiry")
 	}
 
 	probeEmail := fmt.Sprintf("grace-expiry-%d@example.test", fixtureKeySequence.Add(1))
@@ -1914,7 +1914,7 @@ func (fixture *c11Fixture) runEmailGraceLifecycle(t *testing.T, client *c11HTTPC
 		"email": probeEmail, "password": password, "locale": "en",
 	}, http.StatusAccepted)
 	probeDeadline := next.Add(24 * time.Hour)
-	probeAccount := fixture.createGraceSession(t, client, probeEmail, password, probeDeadline)
+	probeAccount := fixture.createGraceSession(t, client, probeEmail, password, next.Add(10*time.Minute))
 	probeGrant, _ := fixture.createGraceGrant(t, client, probeAccount)
 	probeDevice := fixture.registerDevice(t, client, fixture.ready.GraceURL, probeGrant)
 
@@ -1943,7 +1943,7 @@ func (fixture *c11Fixture) createGraceSession(
 	t *testing.T,
 	client *c11HTTPClient,
 	email, password string,
-	deadline time.Time,
+	expectedAccessExpiry time.Time,
 ) c11Account {
 	t.Helper()
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
@@ -1956,8 +1956,8 @@ func (fixture *c11Fixture) createGraceSession(
 		"client_signing_public_key": base64.RawURLEncoding.EncodeToString(publicKey),
 	}, http.StatusOK)
 	object := decodeObject(t, body)
-	if stringField(object, "expires_at") != deadline.Format(time.RFC3339) {
-		t.Fatal("c11 grace session did not retain the fixed account deadline")
+	if stringField(object, "expires_at") != expectedAccessExpiry.Format(time.RFC3339) {
+		t.Fatal("c11 grace session did not use the expected access expiry")
 	}
 	return decodeAccountTokens(t, fixture.ready.GraceURL, email, password, publicKey, privateKey, body)
 }
