@@ -1312,7 +1312,7 @@ func fixtureConfig(primary, mirrorA, mirrorB string, dependencies externalDepend
 		"TALENRO_REDIS_DOWN_AFTER_FAILURES": "3", "TALENRO_REDIS_RECOVER_AFTER_SUCCESSES": "2",
 		"TALENRO_OUTBOX_DEGRADED_BACKLOG": "100", "TALENRO_OUTBOX_DOWN_BACKLOG": "101", "TALENRO_OUTBOX_DEGRADED_AGE": "10s", "TALENRO_OUTBOX_DOWN_AGE": "11s",
 		"TALENRO_ERROR_REPORT_QUEUE": "10", "TALENRO_ERROR_REPORT_BATCH": "1", "TALENRO_CLOCK_SKEW": "120s",
-		"TALENRO_LOGIN_RATE_LIMIT": "1000", "TALENRO_LOGIN_RATE_WINDOW": "15m", "TALENRO_DELIVERY_RATE_LIMIT": "20", "TALENRO_DELIVERY_RATE_WINDOW": "1h",
+		"TALENRO_LOGIN_RATE_LIMIT": "50", "TALENRO_LOGIN_RATE_WINDOW": "15m", "TALENRO_DELIVERY_RATE_LIMIT": "20", "TALENRO_DELIVERY_RATE_WINDOW": "1h",
 		"TALENRO_CHALLENGE_RATE_LIMIT": "100", "TALENRO_CHALLENGE_RATE_WINDOW": "5m",
 		"TALENRO_SENSITIVE_LOOKUP_KEY_B64":      "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU",
 		"TALENRO_SENSITIVE_ENCRYPTION_KEY_B64":  "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY",
@@ -1320,6 +1320,33 @@ func fixtureConfig(primary, mirrorA, mirrorB string, dependencies externalDepend
 		"TALENRO_LOCAL_CONFIG_SIGNING_SEED_B64": "Y29uZmlnLXNpZ25pbmctc2VlZC1sb2NhbC10ZXN0LTE",
 	}
 	return config.Load(func(key string) (string, bool) { value, ok := values[key]; return value, ok })
+}
+
+func TestC11FixtureConfigUsesValidatedRateLimits(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := fixtureConfig(
+		"http://localhost:8080",
+		"http://localhost:8081",
+		"http://localhost:8082",
+		externalDependencyConfiguration{
+			DatabaseURL:  "postgres://talenro:talenro_dev@127.0.0.1:5432/talenro?sslmode=disable",
+			RedisAddress: "127.0.0.1:6379",
+			NATSURL:      "nats://127.0.0.1:4222",
+		},
+	)
+	if err != nil {
+		t.Fatal("C1.1 fixture rate-limit configuration rejected")
+	}
+	if cfg.Security.LoginRateLimit != (config.RateLimitPolicy{Limit: 50, Window: 15 * time.Minute}) {
+		t.Fatal("C1.1 fixture login rate-limit policy changed")
+	}
+	if cfg.Security.DeliveryRateLimit != (config.RateLimitPolicy{Limit: 20, Window: time.Hour}) {
+		t.Fatal("C1.1 fixture delivery rate-limit policy changed")
+	}
+	if cfg.Security.ChallengeRateLimit != (config.RateLimitPolicy{Limit: 100, Window: 5 * time.Minute}) {
+		t.Fatal("C1.1 fixture challenge rate-limit policy changed")
+	}
 }
 
 func (fixtureRuntime *fixtureRuntime) startDelivery(ctx context.Context, cfg config.Config) error {
