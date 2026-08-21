@@ -40,6 +40,7 @@ import (
 	"talenro.local/platform/internal/controlapi"
 	"talenro.local/platform/internal/deviceauth"
 	"talenro.local/platform/internal/errorreport"
+	"talenro.local/platform/internal/idempotency"
 	"talenro.local/platform/internal/identity"
 	"talenro.local/platform/internal/observability"
 	"talenro.local/platform/internal/outbox"
@@ -1349,6 +1350,16 @@ func TestC11FixtureConfigUsesValidatedRateLimits(t *testing.T) {
 	}
 }
 
+func TestC11FixtureIdempotencyKeysMeetProductionContract(t *testing.T) {
+	t.Parallel()
+
+	for _, prefix := range []string{"pg-ack", "grace-expired-rotation"} {
+		if _, err := idempotency.KeyDigest(nextFixtureKey(prefix)); err != nil {
+			t.Fatalf("C1.1 fixture idempotency key for prefix %q rejected by production contract", prefix)
+		}
+	}
+}
+
 func (fixtureRuntime *fixtureRuntime) startDelivery(ctx context.Context, cfg config.Config) error {
 	jetStream, err := fixtureRuntime.dependencies.NATS.JetStream()
 	if err != nil {
@@ -1768,7 +1779,11 @@ func (client *c11HTTPClient) parentContext() context.Context {
 }
 
 func nextFixtureKey(prefix string) string {
-	return fmt.Sprintf("%-20s%012d", prefix, fixtureKeySequence.Add(1))
+	padding := 20 - len([]rune(prefix))
+	if padding < 0 {
+		padding = 0
+	}
+	return fmt.Sprintf("%s%s%012d", prefix, strings.Repeat("-", padding), fixtureKeySequence.Add(1))
 }
 
 func decodeObject(t *testing.T, body []byte) map[string]any {
