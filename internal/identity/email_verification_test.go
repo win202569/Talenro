@@ -129,6 +129,41 @@ func TestVerifyEmailConsumesOnceActivatesParticipantInSameTransaction(t *testing
 	}
 }
 
+func TestVerifyEmailAcceptsConsumerClearedDeliveryMetadata(t *testing.T) {
+	t.Parallel()
+
+	principalID := uuid.MustParse("75d3f431-8ab6-4c3a-9ce2-dd72c3555035")
+	token := secret.NewBytes(bytes.Repeat([]byte{0x72}, 32))
+	verificationDigest := securitykit.DigestToken(securitykit.EmailVerificationToken, token)
+	tx := &fakeIdentityTransaction{
+		failOperation:     "clear_delivery",
+		verificationFound: true,
+		consumeEmailOK:    true,
+		verification: store.IdentityEmailIdentity{
+			PrincipalID: principalID, VerificationTokenHash: verificationDigest[:],
+			VerificationDeliveryID: uuid.NullUUID{},
+			VerificationExpiresAt:  sql.NullTime{Time: fixedTask9Time.Add(emailVerificationTTL), Valid: true},
+		},
+		accountFound: true,
+		account:      store.IdentityAccount{ID: principalID, State: "pending_email", StateVersion: 1, Locale: "en"},
+	}
+	application, _, _, participant := newTask9Application(t, config.EmailRequired, tx)
+
+	if err := application.VerifyEmail(context.Background(), VerifyEmailCommand{Token: token, IdempotencyKey: "abcdefghijklmnopqrstuv"}); err != nil {
+		t.Fatalf("VerifyEmail with consumer-cleared delivery metadata: %v; operations=%v", err, tx.operations)
+	}
+	assertTask9Order(t, tx.operations, []string{
+		"get_verification", "begin_idempotency", "consume_email", "activate_account", "participant",
+		"append_event", "complete_idempotency", "commit",
+	})
+	if participant.calls != 1 || participant.tx != tx.DBTX() {
+		t.Fatal("consumer-cleared verification did not activate the participant in the identity transaction")
+	}
+	if len(tx.events) != 1 {
+		t.Fatal("consumer-cleared verification did not append the account activation event")
+	}
+}
+
 func TestPasswordResetDeliveryIsGenericDistinctAndExpiresAtThirtyMinutes(t *testing.T) {
 	t.Parallel()
 

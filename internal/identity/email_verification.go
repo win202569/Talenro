@@ -226,11 +226,13 @@ func (service *Service) VerifyEmail(ctx context.Context, command VerifyEmailComm
 		if !consumedOK || consumed.PrincipalID != identity.PrincipalID {
 			return authenticationFailed()
 		}
-		rows, clearErr := transaction.ClearPendingEmailDelivery(transactionContext, store.ClearPendingEmailDeliveryParams{
-			VerificationDeliveryID: identity.VerificationDeliveryID, UpdatedAt: now,
-		})
-		if clearErr != nil || rows != 1 {
-			return dependencyUnavailable()
+		if identity.VerificationDeliveryID.Valid {
+			rows, clearErr := transaction.ClearPendingEmailDelivery(transactionContext, store.ClearPendingEmailDeliveryParams{
+				VerificationDeliveryID: identity.VerificationDeliveryID, UpdatedAt: now,
+			})
+			if clearErr != nil || rows != 1 {
+				return dependencyUnavailable()
+			}
 		}
 		account, activated, activateErr := transaction.ActivateVerifiedAccount(transactionContext, store.ActivateVerifiedAccountParams{ID: identity.PrincipalID, UpdatedAt: now})
 		if activateErr != nil {
