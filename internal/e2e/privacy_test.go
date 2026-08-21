@@ -1201,7 +1201,7 @@ func fakeGoBatch(logPath string) string {
 	body := `@echo off
 setlocal EnableDelayedExpansion
 set "TASK19_FAKE_LOG=__LOG_PATH__"
-echo go %* >>"%TASK19_FAKE_LOG%"
+echo go %* CGO_ENABLED=%CGO_ENABLED% >>"%TASK19_FAKE_LOG%"
 if defined C11_UNOWNED_PRIVATE echo ambient-leak >>"%TASK19_FAKE_LOG%"
 if defined TALENRO_UNOWNED_PRIVATE echo ambient-leak >>"%TASK19_FAKE_LOG%"
 if defined COMPOSE_PROJECT_NAME echo ambient-leak >>"%TASK19_FAKE_LOG%"
@@ -1297,7 +1297,7 @@ func batchLiteralPath(path string) string {
 func fakeGoShell() string {
 	body := `#!/usr/bin/env bash
 set -eu
-printf 'go %s\n' "$*" >>"${TASK19_FAKE_LOG}"
+printf 'go %s CGO_ENABLED=%s\n' "$*" "${CGO_ENABLED:-missing}" >>"${TASK19_FAKE_LOG}"
 [[ -z "${C11_UNOWNED_PRIVATE:-}" && -z "${TALENRO_UNOWNED_PRIVATE:-}" && -z "${COMPOSE_PROJECT_NAME:-}" ]] || printf '%s\n' ambient-leak >>"${TASK19_FAKE_LOG}"
 case "$*" in
   'tool buf --version') printf '%s\n' '1.72.0'; exit 0 ;;
@@ -1414,7 +1414,7 @@ func contractEnvironment(values []string, fakeDirectory, logPath, projectPath st
 	for _, value := range values {
 		name, _, _ := strings.Cut(value, "=")
 		upper := strings.ToUpper(name)
-		if upper == "PATH" || strings.HasPrefix(upper, "TALENRO_") || strings.HasPrefix(upper, "C11_") ||
+		if upper == "PATH" || upper == "CGO_ENABLED" || strings.HasPrefix(upper, "TALENRO_") || strings.HasPrefix(upper, "C11_") ||
 			strings.HasPrefix(upper, "COMPOSE_") || strings.HasPrefix(upper, "TASK19_FAKE_") {
 			continue
 		}
@@ -1427,6 +1427,7 @@ func contractEnvironment(values []string, fakeDirectory, logPath, projectPath st
 		"C11_UNOWNED_PRIVATE=C11-AMBIENT-PRIVATE-19",
 		"TALENRO_UNOWNED_PRIVATE=TALENRO-AMBIENT-PRIVATE-19",
 		"COMPOSE_PROJECT_NAME=COMPOSE-AMBIENT-PRIVATE-19",
+		"CGO_ENABLED=invalid-ambient-19",
 	)
 }
 
@@ -1496,6 +1497,7 @@ func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath
 		t.Fatalf("verify-c11 %s fake-tool transcript missing", shell)
 	}
 	transcript := string(logBytes)
+	assertGoCGOModes(t, shell, transcript)
 	if strings.Contains(transcript, "ambient-leak") || strings.Contains(transcript, "legacy-marker") ||
 		strings.Contains(transcript, "exact4-missing") || strings.Contains(transcript, "conformance-env-leak") ||
 		strings.Contains(transcript, "conformance-build-invalid") || strings.Contains(transcript, "conformance-missing") ||
@@ -1517,6 +1519,39 @@ func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath
 		"go test -tags=e2e ./internal/e2e -count=1",
 		"docker compose --project-name",
 	})
+}
+
+func assertGoCGOModes(t *testing.T, shell, transcript string) {
+	t.Helper()
+	goInvocations := 0
+	raceInvocations := 0
+	for _, line := range strings.Split(transcript, "\n") {
+		line = strings.ReplaceAll(strings.TrimSpace(line), `"`, "")
+		if !strings.HasPrefix(line, "go ") {
+			continue
+		}
+		goInvocations++
+		command, marker, found := strings.Cut(line, " CGO_ENABLED=")
+		if !found || (marker != "0" && marker != "1") {
+			t.Fatalf("verify-c11 %s fake Go invocation had a missing or invalid CGO marker: %q", shell, line)
+		}
+		if strings.Contains(command, "go test -race ./... -count=1") {
+			raceInvocations++
+			if marker != "1" {
+				t.Fatalf("verify-c11 %s repository-wide race invocation used CGO_ENABLED=%s", shell, marker)
+			}
+			continue
+		}
+		if marker != "0" {
+			t.Fatalf("verify-c11 %s ordinary Go invocation used CGO_ENABLED=%s: %q", shell, marker, command)
+		}
+	}
+	if goInvocations == 0 {
+		t.Fatalf("verify-c11 %s transcript contained no fake Go invocation", shell)
+	}
+	if raceInvocations != 1 {
+		t.Fatalf("verify-c11 %s transcript contained %d repository-wide race invocations, want 1", shell, raceInvocations)
+	}
 }
 
 func observedContractMarkers(transcript string) []string {

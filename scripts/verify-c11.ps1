@@ -698,6 +698,7 @@ function Invoke-C11Main {
     $script:C11RunDirectory = New-C11RunDirectory
     $composeOverride = New-C11ComposeOverride -Directory $script:C11RunDirectory
     Clear-C11AmbientEnvironment
+    [System.Environment]::SetEnvironmentVariable('CGO_ENABLED', '0', 'Process')
     Push-Location -LiteralPath $repoRoot
     $locationPushed = $true
 
@@ -728,7 +729,12 @@ function Invoke-C11Main {
         ) -TimeoutSeconds 120
       }
 
-      Invoke-C11Stage -Stage 'race tests' -FilePath 'go' -ArgumentList @('test', '-race', './...', '-count=1', '-timeout', '10m')
+      [System.Environment]::SetEnvironmentVariable('CGO_ENABLED', '1', 'Process')
+      try {
+        Invoke-C11Stage -Stage 'race tests' -FilePath 'go' -ArgumentList @('test', '-race', './...', '-count=1', '-timeout', '10m')
+      } finally {
+        [System.Environment]::SetEnvironmentVariable('CGO_ENABLED', '0', 'Process')
+      }
       Invoke-C11Stage -Stage 'go vet' -FilePath 'go' -ArgumentList @('vet', './...')
       Invoke-C11Stage -Stage 'golangci-lint' -FilePath 'go' -ArgumentList @('tool', 'golangci-lint', 'run', './...')
 

@@ -445,6 +445,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 create_compose_override
 clear_ambient_environment
+export CGO_ENABLED=0
 cd -- "${repo_root}"
 
 run_quiet 'check tools' 900 "${script_dir}/check-tools.sh"
@@ -463,7 +464,7 @@ run_quiet 'unit tests' 600 go test ./... -count=1 -timeout 10m
 run_quiet 'fuzz FuzzDecode' 120 go test -run '^$' -fuzz '^FuzzDecode$' -fuzztime=10s -timeout 30s ./internal/strictjson
 run_quiet 'fuzz FuzzEnvelopeSeal' 120 go test -run '^$' -fuzz '^FuzzEnvelopeSeal$' -fuzztime=10s -timeout 30s ./internal/trust
 run_quiet 'fuzz FuzzVerifyEnvelope' 120 go test -run '^$' -fuzz '^FuzzVerifyEnvelope$' -fuzztime=10s -timeout 30s ./internal/trustclient
-run_quiet 'race tests' 600 go test -race ./... -count=1 -timeout 10m
+CGO_ENABLED=1 run_quiet 'race tests' 600 go test -race ./... -count=1 -timeout 10m
 run_quiet 'go vet' 600 go vet ./...
 run_quiet 'golangci-lint' 600 go tool golangci-lint run ./...
 
