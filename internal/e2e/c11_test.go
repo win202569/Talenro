@@ -1919,6 +1919,9 @@ func (fixture *c11Fixture) runEmailGraceLifecycle(t *testing.T, client *c11HTTPC
 	probeDevice := fixture.registerDevice(t, client, fixture.ready.GraceURL, probeGrant)
 
 	fixture.verifyEmail(t, client, fixture.ready.GraceURL, email)
+	if _, sequenceErr := fixture.child.call("config-sequence", "2", "", ""); sequenceErr != nil {
+		t.Fatal("c11 verified policy sequence advance failed")
+	}
 	if got := fixture.resolveBundlePolicy(t, client, device, next); got != `{"mode":"standard"}` {
 		t.Fatalf("c11 verified effective policy mismatch: got %s", got)
 	}
