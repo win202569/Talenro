@@ -7,6 +7,7 @@ import (
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
+	"talenro.local/platform/internal/securitykit"
 )
 
 const (
@@ -35,23 +36,29 @@ func (executor goRedisChallengeExecutor) Run(ctx context.Context, script string,
 type RedisChallengeStore struct {
 	executor redisChallengeExecutor
 	timeout  time.Duration
+	clock    securitykit.Clock
 }
 
 var _ ChallengeStore = (*RedisChallengeStore)(nil)
 
 // NewRedisChallengeStore binds a go-redis client to the fail-closed device challenge adapter.
-func NewRedisChallengeStore(client goredis.UniversalClient, timeout time.Duration) (*RedisChallengeStore, error) {
+func NewRedisChallengeStore(client goredis.UniversalClient, timeout time.Duration, clock securitykit.Clock) (*RedisChallengeStore, error) {
 	if nilChallengeDependency(client) {
 		return nil, ErrInvalidChallenge
 	}
-	return newRedisChallengeStoreWithExecutor(goRedisChallengeExecutor{client: client}, timeout)
+	return newRedisChallengeStoreWithExecutor(goRedisChallengeExecutor{client: client}, timeout, clock)
 }
 
-func newRedisChallengeStoreWithExecutor(executor redisChallengeExecutor, timeout time.Duration) (*RedisChallengeStore, error) {
-	if nilChallengeDependency(executor) || timeout < minimumChallengeRedisTimeout || timeout > maximumChallengeRedisTimeout {
+func newRedisChallengeStoreWithExecutor(
+	executor redisChallengeExecutor,
+	timeout time.Duration,
+	clock securitykit.Clock,
+) (*RedisChallengeStore, error) {
+	if nilChallengeDependency(executor) || nilChallengeDependency(clock) ||
+		timeout < minimumChallengeRedisTimeout || timeout > maximumChallengeRedisTimeout {
 		return nil, ErrInvalidChallenge
 	}
-	return &RedisChallengeStore{executor: executor, timeout: timeout}, nil
+	return &RedisChallengeStore{executor: executor, timeout: timeout, clock: clock}, nil
 }
 
 // Create stores a random challenge ID for its bounded remaining lifetime using SETNX.
@@ -88,8 +95,8 @@ func (store *RedisChallengeStore) Consume(
 	grantDigest [32]byte,
 	contextDigest [32]byte,
 ) (ChallengeRecord, error) {
-	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) || grantDigest == [32]byte{} ||
-		contextDigest == [32]byte{} || !validChallengeID(challengeID) {
+	if nilChallengeDependency(ctx) || store == nil || nilChallengeDependency(store.executor) || nilChallengeDependency(store.clock) ||
+		grantDigest == [32]byte{} || contextDigest == [32]byte{} || !validChallengeID(challengeID) {
 		return ChallengeRecord{}, ErrInvalidChallenge
 	}
 	if ctx.Err() != nil {
@@ -121,10 +128,25 @@ func (store *RedisChallengeStore) Consume(
 	if err != nil {
 		return ChallengeRecord{}, ErrChallengeUnavailable
 	}
-	if !record.ExpiresAt.After(time.Now().UTC()) || !challengeDigestsMatch(record, grantDigest, contextDigest) {
+	now, validClock := safeChallengeClockNow(store.clock)
+	if !validClock {
+		return ChallengeRecord{}, ErrChallengeUnavailable
+	}
+	if !record.ExpiresAt.After(now) || !challengeDigestsMatch(record, grantDigest, contextDigest) {
 		return ChallengeRecord{}, ErrChallengeNotFound
 	}
 	return record, nil
+}
+
+func safeChallengeClockNow(clock securitykit.Clock) (now time.Time, valid bool) {
+	defer func() {
+		if recover() != nil {
+			now = time.Time{}
+			valid = false
+		}
+	}()
+	now = clock.Now().UTC()
+	return now, !now.IsZero()
 }
 
 func safeRedisChallengeSetNX(ctx context.Context, executor redisChallengeExecutor, key string, wire []byte, ttl time.Duration) (created bool, err error) {

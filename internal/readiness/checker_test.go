@@ -107,8 +107,8 @@ func TestCheckRunsProbesConcurrently(t *testing.T) {
 	}
 }
 
-func TestCheckUsesOneOverallTimeoutAndReleasesWorkers(t *testing.T) {
-	const timeout = 30 * time.Millisecond
+func TestCheckUsesShortProbeBudgetAndReleasesDeadlineOnlyWorkers(t *testing.T) {
+	const timeout = 500 * time.Millisecond
 	done := make(chan string, 2)
 	blocked := func(name string) fakeProbe {
 		return fakeProbe{name: name, ping: func(ctx context.Context) error {
@@ -130,11 +130,11 @@ func TestCheckUsesOneOverallTimeoutAndReleasesWorkers(t *testing.T) {
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}
-	if elapsed < timeout {
-		t.Fatalf("check returned before timeout: elapsed %v, timeout %v", elapsed, timeout)
+	if elapsed < timeout/2 {
+		t.Fatalf("check returned before the probe budget elapsed: elapsed %v, timeout %v", elapsed, timeout)
 	}
-	if elapsed >= 10*timeout {
-		t.Fatalf("checks appear to have timed out serially: elapsed %v", elapsed)
+	if elapsed >= 3*timeout/4 {
+		t.Fatalf("check did not preserve aggregation margin: elapsed %v, timeout %v", elapsed, timeout)
 	}
 	for range 2 {
 		select {

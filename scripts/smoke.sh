@@ -32,6 +32,9 @@ mirror_b_stderr=''
 quiet_exit=0
 quiet_output=''
 run_counter=0
+fault_service=''
+fault_container_id=''
+fault_network_id=''
 
 invoke_quiet() {
   local seconds=$1
@@ -344,19 +347,26 @@ load_environment() {
 
 assert_compose_ownership() {
   local service=$1
-  local container_id owner status
-  if capture_quiet 30 "${compose[@]}" ps -q "${service}"; then
+  local container_id owner owned_service status
+  case "${service}" in
+    postgres|redis|nats) ;;
+    *)
+      printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
+      return 1
+      ;;
+  esac
+  if capture_quiet 30 "${compose[@]}" ps --quiet --no-trunc "${service}"; then
     container_id=${quiet_output}
   else
     status=${quiet_exit}
     printf 'smoke: dependency ownership failed with exit code %d.\n' "${status}" >&2
     return "${status}"
   fi
-  if [[ ! "${container_id}" =~ ^[0-9a-f]{12,64}$ ]]; then
+  if [[ ! "${container_id}" =~ ^[0-9a-f]{64}$ ]]; then
     printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
     return 1
   fi
-  if capture_quiet 30 docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "${container_id}"; then
+  if capture_quiet 30 docker inspect --type container --format '{{ index .Config.Labels "com.docker.compose.project" }}' "${container_id}"; then
     owner=${quiet_output}
   else
     status=${quiet_exit}
@@ -367,6 +377,135 @@ assert_compose_ownership() {
     printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
     return 1
   fi
+  if capture_quiet 30 docker inspect --type container --format '{{ index .Config.Labels "com.docker.compose.service" }}' "${container_id}"; then
+    owned_service=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf 'smoke: dependency ownership failed with exit code %d.\n' "${status}" >&2
+    return "${status}"
+  fi
+  if [[ "${owned_service}" != "${service}" ]]; then
+    printf '%s\n' 'smoke: dependency ownership failed with exit code 1.' >&2
+    return 1
+  fi
+}
+
+resolve_network_fault_target() {
+  local service=$1
+  local stage container_id project_label service_label network_id network_project_label network_name_label status
+  case "${service}" in
+    postgres) stage='smoke: postgres network ownership' ;;
+    redis) stage='smoke: redis network ownership' ;;
+    nats) stage='smoke: nats network ownership' ;;
+    *)
+      printf '%s\n' 'smoke: network ownership failed with exit code 1.' >&2
+      return 1
+      ;;
+  esac
+  if [[ ! "${compose_project}" =~ ^talenro-c11-smoke-[0-9a-f]{12}$ ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  if capture_quiet 30 "${compose[@]}" ps --quiet --no-trunc "${service}"; then
+    container_id=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if [[ ! "${container_id}" =~ ^[0-9a-f]{64}$ ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  if capture_quiet 30 docker inspect --type container --format '{{ index .Config.Labels "com.docker.compose.project" }}' "${container_id}"; then
+    project_label=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if capture_quiet 30 docker inspect --type container --format '{{ index .Config.Labels "com.docker.compose.service" }}' "${container_id}"; then
+    service_label=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if [[ "${project_label}" != "${compose_project}" || "${service_label}" != "${service}" ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  if capture_quiet 30 docker network ls --quiet --no-trunc \
+      --filter "label=com.docker.compose.project=${compose_project}"; then
+    network_id=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if [[ ! "${network_id}" =~ ^[0-9a-f]{64}$ ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  if capture_quiet 30 docker network inspect --format '{{ index .Labels "com.docker.compose.project" }}' "${network_id}"; then
+    network_project_label=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if capture_quiet 30 docker network inspect --format '{{ index .Labels "com.docker.compose.network" }}' "${network_id}"; then
+    network_name_label=${quiet_output}
+  else
+    status=${quiet_exit}
+    printf '%s failed with exit code %d.\n' "${stage}" "${status}" >&2
+    return "${status}"
+  fi
+  if [[ "${network_project_label}" != "${compose_project}" || "${network_name_label}" != default ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  fault_service=${service}
+  fault_container_id=${container_id}
+  fault_network_id=${network_id}
+}
+
+disconnect_compose_network() {
+  local service=$1
+  local stage
+  resolve_network_fault_target "${service}"
+  case "${service}" in
+    postgres) stage='smoke: postgres network disconnect' ;;
+    redis) stage='smoke: redis network disconnect' ;;
+    nats) stage='smoke: nats network disconnect' ;;
+    *)
+      printf '%s\n' 'smoke: network disconnect failed with exit code 1.' >&2
+      return 1
+      ;;
+  esac
+  run_quiet "${stage}" 60 docker network disconnect "${fault_network_id}" "${fault_container_id}"
+}
+
+connect_compose_network() {
+  local service=$1
+  local stage
+  case "${service}" in
+    postgres) stage='smoke: postgres network connect' ;;
+    redis) stage='smoke: redis network connect' ;;
+    nats) stage='smoke: nats network connect' ;;
+    *)
+      printf '%s\n' 'smoke: network connect failed with exit code 1.' >&2
+      return 1
+      ;;
+  esac
+  if [[ "${fault_service}" != "${service}" || ! "${fault_container_id}" =~ ^[0-9a-f]{64}$ || ! "${fault_network_id}" =~ ^[0-9a-f]{64}$ ]]; then
+    printf '%s failed with exit code 1.\n' "${stage}" >&2
+    return 1
+  fi
+  run_quiet "${stage}" 60 docker network connect "${fault_network_id}" "${fault_container_id}"
+  fault_service=''
+  fault_container_id=''
+  fault_network_id=''
 }
 
 compose_port() {
@@ -449,8 +588,8 @@ wait_status() {
       printf '%s failed with exit code 1.\n' "${stage}" >&2
       return 1
     fi
-    if (( remaining > 1000 )); then
-      request_timeout=1000
+    if (( remaining > 3000 )); then
+      request_timeout=3000
     else
       request_timeout=${remaining}
     fi
@@ -696,20 +835,20 @@ run_quiet_in_directory 'smoke: C1.1 happy path' "${repo_root}" 600 env \
   C11_CONFORMANCE_BINARY="${conformance_binary}" \
   go test -tags=e2e ./internal/e2e -run '^TestC11HappyPath$' -count=1 -timeout 10m
 
-run_quiet 'smoke: postgres stop' 60 "${compose[@]}" stop postgres
+disconnect_compose_network postgres
 wait_status "${http_base}/readyz" 503 5 'smoke: postgres readiness failure' "${api_pid}" 'smoke: control API'
 wait_status "${http_base}/livez" 200 2 'smoke: postgres liveness' "${api_pid}" 'smoke: control API'
 
-run_quiet 'smoke: postgres start' 60 "${compose[@]}" start postgres
+connect_compose_network postgres
 wait_status "${http_base}/readyz" 200 10 'smoke: postgres recovery' "${api_pid}" 'smoke: control API'
 
-run_quiet 'smoke: redis stop' 60 "${compose[@]}" stop redis
+disconnect_compose_network redis
 wait_status "${http_base}/readyz" 503 5 'smoke: redis readiness failure' "${api_pid}" 'smoke: control API'
 wait_status "${http_base}/livez" 200 2 'smoke: redis liveness' "${api_pid}" 'smoke: control API'
-run_quiet 'smoke: redis start' 60 "${compose[@]}" start redis
+connect_compose_network redis
 wait_status "${http_base}/readyz" 200 10 'smoke: redis recovery' "${api_pid}" 'smoke: control API'
 
-run_quiet 'smoke: nats stop' 60 "${compose[@]}" stop nats
+disconnect_compose_network nats
 wait_status "${http_base}/livez" 200 2 'smoke: nats liveness' "${api_pid}" 'smoke: control API'
-run_quiet 'smoke: nats start' 60 "${compose[@]}" start nats
+connect_compose_network nats
 wait_status "${http_base}/readyz" 200 10 'smoke: nats recovery' "${api_pid}" 'smoke: control API'

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -29,6 +30,43 @@ import (
 func TestC11DependencyAndProviderFaultMatrix(t *testing.T) {
 	fixture := requireC11Fixture(t)
 	fixture.runFaultMatrix(t)
+}
+
+func TestBoundedFaultAttemptTimeout(t *testing.T) {
+	t.Parallel()
+	for _, invalid := range []struct {
+		remaining time.Duration
+		maximum   time.Duration
+	}{
+		{remaining: 0, maximum: 3 * time.Second},
+		{remaining: -time.Nanosecond, maximum: 3 * time.Second},
+		{remaining: time.Second, maximum: 0},
+		{remaining: time.Second, maximum: -time.Nanosecond},
+	} {
+		if _, ok := boundedFaultAttemptTimeout(invalid.remaining, invalid.maximum); ok {
+			t.Fatal("fault attempt timeout accepted a nonpositive bound")
+		}
+	}
+
+	for _, test := range []struct {
+		remaining time.Duration
+		maximum   time.Duration
+		want      time.Duration
+	}{
+		{remaining: 50 * time.Millisecond, maximum: 100 * time.Millisecond, want: 50 * time.Millisecond},
+		{remaining: 100 * time.Millisecond, maximum: 100 * time.Millisecond, want: 100 * time.Millisecond},
+		{remaining: 500 * time.Millisecond, maximum: 3 * time.Second, want: 500 * time.Millisecond},
+		{remaining: 5 * time.Second, maximum: 3 * time.Second, want: 3 * time.Second},
+		{remaining: 2 * time.Second, maximum: 2 * time.Second, want: 2 * time.Second},
+	} {
+		got, ok := boundedFaultAttemptTimeout(test.remaining, test.maximum)
+		if !ok || got != test.want {
+			t.Fatalf("fault attempt timeout = %v/%v, want %v/true", got, ok, test.want)
+		}
+		if got > test.remaining || got > test.maximum {
+			t.Fatal("fault attempt timeout exceeded an input bound")
+		}
+	}
 }
 
 func TestControlledFaultProvidersCountAttemptedModes(t *testing.T) {
@@ -138,6 +176,60 @@ func TestNATSRecoveryOracleRejectsEarlyAndBrokerRedeliveryFalsePasses(t *testing
 	}
 }
 
+func TestFixtureOutboxWorkersShareControlledAuthority(t *testing.T) {
+	t.Parallel()
+	authorityStart := time.Date(2037, time.March, 4, 5, 6, 7, 0, time.UTC)
+	authority := &fixtureClock{now: authorityStart, maximum: authorityStart.Add(48 * time.Hour)}
+	runtime := &fixtureRuntime{clock: authority}
+	worker := runtime.outboxClock()
+	if worker != authority {
+		t.Fatal("fixture outbox workers do not share the controlled authority")
+	}
+	before := worker.Now()
+	time.Sleep(10 * time.Millisecond)
+	if got := worker.Now(); !got.Equal(before) {
+		t.Fatal("fixture outbox clock advanced with wall time")
+	}
+	authorityJump := authorityStart.Add(10 * time.Second)
+	if !authority.set(authorityJump.Format(time.RFC3339)) {
+		t.Fatal("fixture outbox clock authority jump setup failed")
+	}
+	if got := worker.Now(); !got.Equal(authorityJump) || got.Location() != time.UTC {
+		t.Fatal("fixture outbox clock did not follow the exact authority jump")
+	}
+	var invalid *fixtureRuntime
+	if invalid.outboxClock() != nil {
+		t.Fatal("fixture outbox clock accepted an invalid runtime")
+	}
+}
+
+func TestNATSFaultClockPlanIsMonotonicAndWithinAccessTTL(t *testing.T) {
+	t.Parallel()
+	start := time.Date(2037, time.March, 4, 5, 6, 7, 0, time.UTC)
+	plan, ok := newNATSFaultClockPlan(start)
+	if !ok {
+		t.Fatal("NATS fault clock plan rejected a valid UTC start")
+	}
+	if !plan.degraded.Equal(start.Add(10*time.Second)) || plan.degraded.Location() != time.UTC ||
+		!plan.down.Equal(start.Add(11*time.Second)) || plan.down.Location() != time.UTC ||
+		!plan.recovery.Equal(start.Add(60*time.Second)) || plan.recovery.Location() != time.UTC {
+		t.Fatal("NATS fault clock plan changed its exact UTC offsets")
+	}
+	if !plan.degraded.Before(plan.down) || !plan.down.Before(plan.recovery) ||
+		plan.recovery.Sub(start) <= 30*time.Second || plan.recovery.Sub(start) >= 10*time.Minute {
+		t.Fatal("NATS fault clock plan is not monotonic within the access TTL")
+	}
+	for _, invalid := range []time.Time{
+		{},
+		time.Date(2037, time.March, 4, 5, 6, 7, 0, time.FixedZone("not-utc", 0)),
+		time.Date(9999, time.December, 31, 23, 59, 30, 0, time.UTC),
+	} {
+		if _, accepted := newNATSFaultClockPlan(invalid); accepted {
+			t.Fatal("NATS fault clock plan accepted an invalid start")
+		}
+	}
+}
+
 type failingFixtureAcker struct {
 	calls int
 }
@@ -179,6 +271,143 @@ func TestRaceOutcomeRequiresExactlyOneWinnerAndOneReplay(t *testing.T) {
 	} {
 		if validRaceOutcome(invalid, http.StatusCreated) {
 			t.Fatal("invalid concurrent winner/replay outcome was accepted")
+		}
+	}
+}
+
+func TestC11RaceResponseValidationClearsBodiesOnlyOnTransportError(t *testing.T) {
+	t.Parallel()
+	for _, testCase := range []struct {
+		name      string
+		responses [2]c11HTTPResult
+	}{
+		{
+			name: "left",
+			responses: [2]c11HTTPResult{
+				{body: []byte{0x11, 0x12}, err: errors.New("left transport failed")},
+				{body: []byte{0x21, 0x22}},
+			},
+		},
+		{
+			name: "right",
+			responses: [2]c11HTTPResult{
+				{body: []byte{0x31, 0x32}},
+				{body: []byte{0x41, 0x42}, err: errors.New("right transport failed")},
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			if validateC11RaceResponses(&testCase.responses) {
+				t.Fatal("race response validation accepted a transport failure")
+			}
+			if !bytes.Equal(testCase.responses[0].body, []byte{0, 0}) || !bytes.Equal(testCase.responses[1].body, []byte{0, 0}) {
+				t.Fatal("race response validation did not clear every collected body")
+			}
+		})
+	}
+
+	success := [2]c11HTTPResult{
+		{body: []byte("left-body"), status: http.StatusCreated},
+		{body: []byte("right-body"), status: http.StatusUnauthorized},
+	}
+	if !validateC11RaceResponses(&success) {
+		t.Fatal("race response validation rejected successful transports")
+	}
+	if !bytes.Equal(success[0].body, []byte("left-body")) || !bytes.Equal(success[1].body, []byte("right-body")) {
+		t.Fatal("race response validation cleared successful response bodies")
+	}
+}
+
+func TestCredentialedRaceSubjectSelectionStaysWithinFixtureLoginPolicy(t *testing.T) {
+	t.Parallel()
+	accounts := []c11Account{
+		{email: "race-subject-a@example.test"},
+		{email: "race-subject-b@example.test"},
+		{email: "race-subject-c@example.test"},
+	}
+	selectionCounts := [3]int{}
+	loginCounts := [3]int{1, 1, 1}
+	for iteration := range 100 {
+		selected, ok := selectRaceAccountSubject(accounts, iteration)
+		if !ok {
+			t.Fatal("credentialed race subject selection rejected a valid iteration")
+		}
+		matched := false
+		for index := range accounts {
+			if selected.email == accounts[index].email {
+				selectionCounts[index]++
+				loginCounts[index]++
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			t.Fatal("credentialed race subject selection returned an unknown subject")
+		}
+	}
+
+	wantSelections := [3]int{34, 33, 33}
+	wantLogins := [3]int{35, 34, 34}
+	for index := range accounts {
+		if selectionCounts[index] != wantSelections[index] || loginCounts[index] != wantLogins[index] {
+			t.Fatal("credentialed race subject distribution changed")
+		}
+		if loginCounts[index] > 50 {
+			t.Fatal("credentialed race subject exceeded the fixture login policy")
+		}
+	}
+	if _, ok := selectRaceAccountSubject(nil, 0); ok {
+		t.Fatal("credentialed race subject selection accepted no subjects")
+	}
+	if _, ok := selectRaceAccountSubject(accounts, -1); ok {
+		t.Fatal("credentialed race subject selection accepted an invalid iteration")
+	}
+}
+
+func TestFaultFixtureForTestClonesClientAndRebindsCurrentT(t *testing.T) {
+	originalContext, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	transport := &http.Client{Timeout: time.Second}
+	state := faultFixture{
+		account: c11Account{email: "clone-account@example.test", accessToken: "account-token"},
+		device:  c11Device{deviceID: uuid.New(), accessToken: "device-token"},
+		client:  &c11HTTPClient{t: t, client: transport, context: originalContext},
+		context: originalContext,
+	}
+	if passed := t.Run("current-subtest", func(current *testing.T) {
+		currentContext := current.Context()
+		clone, ok := state.forTest(current, currentContext)
+		if !ok {
+			current.Fatal("fault fixture rejected a valid current subtest")
+		}
+		if clone.client == state.client || clone.client.t != current || clone.client.context != currentContext || clone.context != currentContext {
+			current.Fatal("fault fixture did not clone and rebind the current subtest client")
+		}
+		if clone.client.client != transport || clone.account.email != state.account.email || clone.account.accessToken != state.account.accessToken ||
+			clone.device.deviceID != state.device.deviceID || clone.device.accessToken != state.device.accessToken {
+			current.Fatal("fault fixture clone did not retain account, device, and transport state")
+		}
+	}); !passed {
+		t.Fatal("fault fixture current-subtest clone failed")
+	}
+	if state.client.t != t || state.client.client != transport || state.client.context != originalContext || state.context != originalContext {
+		t.Fatal("fault fixture clone mutated the original state")
+	}
+
+	var nilT *testing.T
+	var nilContext context.Context
+	for _, invalid := range []struct {
+		state faultFixture
+		test  *testing.T
+		ctx   context.Context
+	}{
+		{state: faultFixture{}, test: t, ctx: t.Context()},
+		{state: faultFixture{client: &c11HTTPClient{}}, test: t, ctx: t.Context()},
+		{state: state, test: nilT, ctx: t.Context()},
+		{state: state, test: t, ctx: nilContext},
+	} {
+		if _, ok := invalid.state.forTest(invalid.test, invalid.ctx); ok {
+			t.Fatal("fault fixture accepted invalid clone input")
 		}
 	}
 }
@@ -498,6 +727,39 @@ type faultFixture struct {
 	context context.Context
 }
 
+func (state faultFixture) forTest(t *testing.T, ctx context.Context) (faultFixture, bool) {
+	if t == nil || ctx == nil || state.client == nil || state.client.client == nil {
+		return faultFixture{}, false
+	}
+	client := *state.client
+	client.t = t
+	client.context = ctx
+	state.client = &client
+	state.context = ctx
+	return state, true
+}
+
+type natsFaultClockPlan struct {
+	degraded time.Time
+	down     time.Time
+	recovery time.Time
+}
+
+func newNATSFaultClockPlan(start time.Time) (natsFaultClockPlan, bool) {
+	if start.IsZero() || start.Location() != time.UTC || start.Year() < 0 || start.Year() > 9999 {
+		return natsFaultClockPlan{}, false
+	}
+	plan := natsFaultClockPlan{
+		degraded: start.Add(10 * time.Second),
+		down:     start.Add(11 * time.Second),
+		recovery: start.Add(60 * time.Second),
+	}
+	if plan.recovery.Year() > 9999 || !plan.degraded.After(start) || !plan.down.After(plan.degraded) || !plan.recovery.After(plan.down) {
+		return natsFaultClockPlan{}, false
+	}
+	return plan, true
+}
+
 type natsRecoverySnapshot struct {
 	brokerDeliveries int
 	providerAttempts int
@@ -540,6 +802,7 @@ func (fixture *c11Fixture) runFaultMatrix(t *testing.T) {
 	client := &c11HTTPClient{t: t, client: fixture.client}
 	account := fixture.runAccountSecurity(t, client)
 	device := fixture.runDeviceAndTrust(t, client, account)
+	account = freshRaceAccountSession(t, client, account)
 	state := faultFixture{account: account, device: device, client: client}
 	rows := []struct {
 		name  string
@@ -555,33 +818,36 @@ func (fixture *c11Fixture) runFaultMatrix(t *testing.T) {
 		{"sources", 30 * time.Second, fixture.sourceFaults},
 	}
 	for _, row := range rows {
-		t.Run(row.name, func(t *testing.T) {
+		passed := t.Run(row.name, func(t *testing.T) {
 			rowContext, cancel := context.WithTimeout(t.Context(), row.bound)
 			defer cancel()
-			rowState := state
-			rowState.context = rowContext
-			rowClient := *state.client
-			rowClient.context = rowContext
-			rowState.client = &rowClient
+			rowState, ok := state.forTest(t, rowContext)
+			if !ok {
+				t.Fatal("c11 fault row state unavailable")
+			}
 			row.run(t, rowState)
 			if errors.Is(rowContext.Err(), context.DeadlineExceeded) {
 				t.Fatal("c11 fault row exceeded its active deadline")
 			}
 		})
+		if !passed {
+			return
+		}
 	}
 	fixture.runRaceMatrix(t, state)
 }
 
 func (fixture *c11Fixture) postgresFault(t *testing.T, state faultFixture) {
 	rotation := fixture.prepareDeviceRotation(t, state.client, state.device)
-	if err := fixture.compose.run(state.context, "stop", "postgres"); err != nil {
-		t.Fatal("c11 postgres fault injection failed")
+	target, err := fixture.compose.disconnectNetwork(state.context, "postgres")
+	if err != nil {
+		t.Fatal("c11 postgres network disconnect failed")
 	}
-	restored := false
+	reconnected := false
 	defer func() {
-		if !restored {
+		if !reconnected {
 			cleanupContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			_ = fixture.compose.run(cleanupContext, "start", "postgres")
+			_ = fixture.compose.reconnectNetwork(cleanupContext, target)
 			cancel()
 		}
 	}()
@@ -599,23 +865,24 @@ func (fixture *c11Fixture) postgresFault(t *testing.T, state faultFixture) {
 	_, _ = state.client.post(state.device.baseURL, "/v1/config-bundle-acknowledgements", state.device.accessToken, nextFixtureKey("pg-ack"), map[string]any{
 		"bundle_id": uuid.NewString(), "bundle_version": "1",
 	}, http.StatusServiceUnavailable)
-	if err := fixture.compose.run(state.context, "start", "postgres"); err != nil {
-		t.Fatal("c11 postgres recovery failed")
+	if err := fixture.compose.reconnectNetwork(state.context, target); err != nil {
+		t.Fatal("c11 postgres network connect failed")
 	}
-	restored = true
+	reconnected = true
 	waitReadinessCheck(state.context, t, fixture.client, fixture.ready.RequiredURL+"/readyz", http.StatusOK, "postgres", "up", 15*time.Second)
 }
 
 func (fixture *c11Fixture) redisFault(t *testing.T, state faultFixture) {
 	rotation := fixture.prepareDeviceRotation(t, state.client, state.device)
-	if err := fixture.compose.run(state.context, "stop", "redis"); err != nil {
-		t.Fatal("c11 redis fault injection failed")
+	target, err := fixture.compose.disconnectNetwork(state.context, "redis")
+	if err != nil {
+		t.Fatal("c11 redis network disconnect failed")
 	}
-	restored := false
+	reconnected := false
 	defer func() {
-		if !restored {
+		if !reconnected {
 			cleanupContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			_ = fixture.compose.run(cleanupContext, "start", "redis")
+			_ = fixture.compose.reconnectNetwork(cleanupContext, target)
 			cancel()
 		}
 	}()
@@ -630,22 +897,29 @@ func (fixture *c11Fixture) redisFault(t *testing.T, state faultFixture) {
 		"refresh_token": state.device.refreshToken, "request_nonce": encode32(random32(t)),
 	}, http.StatusServiceUnavailable)
 	_, _ = state.client.post(state.device.baseURL, "/v1/device-token-rotations", "", nextFixtureKey("redis-rotation"), rotation, http.StatusServiceUnavailable)
-	if err := fixture.compose.run(state.context, "start", "redis"); err != nil {
-		t.Fatal("c11 redis recovery failed")
+	if err := fixture.compose.reconnectNetwork(state.context, target); err != nil {
+		t.Fatal("c11 redis network connect failed")
 	}
-	restored = true
+	reconnected = true
 	waitReadinessCheck(state.context, t, fixture.client, fixture.ready.RequiredURL+"/readyz", http.StatusOK, "redis", "up", 15*time.Second)
 }
 
 func (fixture *c11Fixture) natsFault(t *testing.T, state faultFixture) {
-	if err := fixture.compose.run(state.context, "stop", "nats"); err != nil {
-		t.Fatal("c11 nats fault injection failed")
+	clockResponse, err := fixture.child.callContext(state.context, "clock-now", "", "", "")
+	clockStart, parseErr := time.Parse(time.RFC3339, clockResponse.Value)
+	clockPlan, planOK := newNATSFaultClockPlan(clockStart)
+	if err != nil || parseErr != nil || !planOK {
+		t.Fatal("c11 NATS fault clock plan unavailable")
 	}
-	restored := false
+	target, err := fixture.compose.disconnectNetwork(state.context, "nats")
+	if err != nil {
+		t.Fatal("c11 nats network disconnect failed")
+	}
+	reconnected := false
 	defer func() {
-		if !restored {
+		if !reconnected {
 			cleanupContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			_ = fixture.compose.run(cleanupContext, "start", "nats")
+			_ = fixture.compose.reconnectNetwork(cleanupContext, target)
 			cancel()
 		}
 	}()
@@ -654,16 +928,27 @@ func (fixture *c11Fixture) natsFault(t *testing.T, state faultFixture) {
 	_, _ = state.client.post(fixture.ready.RequiredURL, "/v1/accounts", "", nextFixtureKey("nats-register"), map[string]any{
 		"email": email, "password": "Task19-NATS-Password!51", "locale": "en",
 	}, http.StatusAccepted)
+	setClock := func(next time.Time) {
+		raw := next.Format(time.RFC3339)
+		response, setErr := fixture.child.callContext(state.context, "clock-set", raw, "", "")
+		if setErr != nil || response.Value != raw {
+			t.Fatal("c11 NATS fault clock advance failed")
+		}
+	}
+	setClock(clockPlan.degraded)
 	waitReadinessCheck(state.context, t, fixture.client, fixture.ready.RequiredURL+"/readyz", http.StatusOK, "outbox", "degraded", 15*time.Second)
+	setClock(clockPlan.down)
 	waitReadinessCheck(state.context, t, fixture.client, fixture.ready.RequiredURL+"/readyz", http.StatusServiceUnavailable, "outbox", "down", 5*time.Second)
 	before := snapshotNATSRecovery(state.context, t, fixture.child, email)
 	if before.providerAttempts != 0 || before.providerEffects != 0 {
 		t.Fatal("c11 nats outage delivered before broker recovery")
 	}
-	if err := fixture.compose.run(state.context, "start", "nats"); err != nil {
-		t.Fatal("c11 nats recovery failed")
+	if err := fixture.compose.reconnectNetwork(state.context, target); err != nil {
+		t.Fatal("c11 nats network connect failed")
 	}
-	restored = true
+	reconnected = true
+	waitFixtureNATSConnected(state.context, t, fixture.child, 15*time.Second)
+	setClock(clockPlan.recovery)
 	waitHTTPStatus(state.context, t, fixture.client, fixture.ready.RequiredURL+"/readyz", http.StatusOK, 20*time.Second)
 	delivery, err := fixture.child.callContext(state.context, "delivery", "", email, string(identity.VerifyEmailTemplate))
 	if err != nil || delivery.Count != 1 {
@@ -683,12 +968,48 @@ func (fixture *c11Fixture) natsFault(t *testing.T, state faultFixture) {
 	}
 }
 
+func waitFixtureNATSConnected(parent context.Context, t *testing.T, child *fixtureChild, bound time.Duration) {
+	t.Helper()
+	if parent == nil || child == nil || bound <= 0 {
+		t.Fatal("c11 NATS connection status unavailable")
+	}
+	timer := time.NewTimer(bound)
+	defer timer.Stop()
+	ticker := time.NewTicker(25 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		response, err := child.callContext(parent, "nats-status", "", "", "")
+		if err == nil && response.OK {
+			return
+		}
+		select {
+		case <-parent.Done():
+			t.Fatal("c11 NATS connection recovery deadline exceeded")
+		case <-timer.C:
+			t.Fatal("c11 NATS connection recovery deadline exceeded")
+		case <-ticker.C:
+		}
+	}
+}
+
+func restoreFixtureModeOnCleanup(t *testing.T, child *fixtureChild, operation string) {
+	t.Helper()
+	t.Cleanup(func() {
+		cleanupContext, cancel := context.WithTimeout(context.Background(), fixtureRequestTimeout)
+		defer cancel()
+		if _, err := child.callContext(cleanupContext, operation, fixtureModeSuccess, "", ""); err != nil {
+			t.Error("c11 provider recovery cleanup failed")
+		}
+	})
+}
+
 func (fixture *c11Fixture) emailFault(t *testing.T, state faultFixture) {
 	for _, mode := range []string{fixtureModeReject, fixtureModePanic} {
 		before := fixtureOperationCount(t, fixture.child, "email-attempts", mode, state.context)
 		if _, err := fixture.child.callContext(state.context, "email-mode", mode, "", ""); err != nil {
 			t.Fatal("c11 email fault injection failed")
 		}
+		restoreFixtureModeOnCleanup(t, fixture.child, "email-mode")
 		email := fmt.Sprintf("email-%s-%d@example.test", mode, time.Now().UnixNano())
 		//nolint:gosec // Synthetic E2E account credential.
 		accepted, _ := state.client.post(fixture.ready.RequiredURL, "/v1/accounts", "", nextFixtureKey("email-register"), map[string]any{
@@ -718,6 +1039,7 @@ func (fixture *c11Fixture) signerFault(t *testing.T, state faultFixture) {
 	if _, err := fixture.child.callContext(state.context, "signer-mode", fixtureModeTimeout, "", ""); err != nil {
 		t.Fatal("c11 signer fault injection failed")
 	}
+	restoreFixtureModeOnCleanup(t, fixture.child, "signer-mode")
 	if _, err := fixture.child.callContext(state.context, "config-sequence", "2", "", ""); err != nil {
 		t.Fatal("c11 signer sequence injection failed")
 	}
@@ -740,6 +1062,7 @@ func (fixture *c11Fixture) reporterFault(t *testing.T, state faultFixture) {
 		if _, err := fixture.child.callContext(state.context, "reporter-mode", mode, "", ""); err != nil {
 			t.Fatal("c11 reporter fault injection failed")
 		}
+		restoreFixtureModeOnCleanup(t, fixture.child, "reporter-mode")
 		attempts := 4
 		if mode == fixtureModeBlock {
 			attempts = 32
@@ -916,44 +1239,74 @@ func requireHTTPTransportFailure(t *testing.T, client *http.Client, rawURL strin
 func (fixture *c11Fixture) runRaceMatrix(t *testing.T, state faultFixture) {
 	t.Helper()
 	const iterations = 100
-	t.Run("generic-idempotency", func(t *testing.T) {
+	if passed := t.Run("generic-idempotency", func(t *testing.T) {
+		raceState, ok := state.forTest(t, t.Context())
+		if !ok {
+			t.Fatal("c11 generic idempotency race state unavailable")
+		}
 		for iteration := range iterations {
 			key := nextFixtureKey("race-idempotency")
-			body := map[string]any{"reauthentication": map[string]any{"method": "password", "password": state.account.password}}
-			attempt := c11RacePOST{baseURL: state.account.baseURL, path: "/v1/device-enrollment-grants", bearer: state.account.accessToken, key: key, body: body}
-			results := concurrentC11Posts(t, fixture.client, [2]c11RacePOST{attempt, attempt})
-			if results[0].status != http.StatusCreated || results[1].status != http.StatusCreated || !bytes.Equal(results[0].body, results[1].body) {
+			body := map[string]any{"reauthentication": map[string]any{"method": "password", "password": raceState.account.password}}
+			attempt := c11RacePOST{baseURL: raceState.account.baseURL, path: "/v1/device-enrollment-grants", bearer: raceState.account.accessToken, key: key, body: body}
+			results := concurrentC11Posts(t, raceState.client.client, [2]c11RacePOST{attempt, attempt})
+			valid := results[0].status == http.StatusCreated && results[1].status == http.StatusCreated && bytes.Equal(results[0].body, results[1].body)
+			clear(results[0].body)
+			clear(results[1].body)
+			if !valid {
 				t.Fatalf("c11 generic idempotency race %d failed", iteration)
 			}
-			clear(results[0].body)
-			clear(results[1].body)
 		}
-	})
-	t.Run("grant-consume", func(t *testing.T) {
+	}); !passed {
+		return
+	}
+	if passed := t.Run("grant-consume", func(t *testing.T) {
+		raceState, ok := state.forTest(t, t.Context())
+		if !ok {
+			t.Fatal("c11 grant consume race state unavailable")
+		}
+		accounts := fixture.newRaceAccountSubjects(t, raceState.client)
 		for iteration := range iterations {
-			grant := createRaceEnrollmentGrant(t, state.client, state.account)
-			left := fixture.prepareDeviceRegistration(t, state.client, state.account.baseURL, grant)
-			right := fixture.prepareDeviceRegistration(t, state.client, state.account.baseURL, grant)
-			results := concurrentC11Posts(t, fixture.client, [2]c11RacePOST{
-				{baseURL: state.account.baseURL, path: "/v1/devices", key: nextFixtureKey("grant-race-left"), body: left.request},
-				{baseURL: state.account.baseURL, path: "/v1/devices", key: nextFixtureKey("grant-race-right"), body: right.request},
-			})
-			clear(left.signingKey)
-			clear(right.signingKey)
-			statuses := []int{results[0].status, results[1].status}
-			clear(results[0].body)
-			clear(results[1].body)
-			if !validRaceOutcome(statuses, http.StatusCreated) {
-				t.Fatalf("c11 grant-consume race %d failed", iteration)
+			func(iteration int) {
+				subject, ok := selectRaceAccountSubject(accounts[:], iteration)
+				if !ok {
+					t.Fatal("c11 grant consume race subject unavailable")
+				}
+				account := freshRaceAccountSession(t, raceState.client, subject)
+				grant := createRaceEnrollmentGrant(t, raceState.client, account)
+				left := fixture.prepareDeviceRegistration(t, raceState.client, account.baseURL, grant)
+				defer clear(left.signingKey)
+				right := fixture.prepareDeviceRegistration(t, raceState.client, account.baseURL, grant)
+				defer clear(right.signingKey)
+				results := concurrentC11Posts(t, raceState.client.client, [2]c11RacePOST{
+					{baseURL: account.baseURL, path: "/v1/devices", key: nextFixtureKey("grant-race-left"), body: left.request},
+					{baseURL: account.baseURL, path: "/v1/devices", key: nextFixtureKey("grant-race-right"), body: right.request},
+				})
+				statuses := []int{results[0].status, results[1].status}
+				clear(results[0].body)
+				clear(results[1].body)
+				if !validRaceOutcome(statuses, http.StatusCreated) {
+					t.Fatalf("c11 grant-consume race %d failed", iteration)
+				}
+			}(iteration)
+		}
+	}); !passed {
+		return
+	}
+	if passed := t.Run("account-refresh", func(t *testing.T) {
+		raceState, ok := state.forTest(t, t.Context())
+		if !ok {
+			t.Fatal("c11 account refresh race state unavailable")
+		}
+		accounts := fixture.newRaceAccountSubjects(t, raceState.client)
+		for iteration := range iterations {
+			subject, ok := selectRaceAccountSubject(accounts[:], iteration)
+			if !ok {
+				t.Fatal("c11 account refresh race subject unavailable")
 			}
-		}
-	})
-	t.Run("account-refresh", func(t *testing.T) {
-		for iteration := range iterations {
-			account := freshRaceAccountSession(t, state.client, state.account)
-			left := prepareAccountRotation(t, state.client, account)
-			right := prepareAccountRotation(t, state.client, account)
-			results := concurrentC11Posts(t, fixture.client, [2]c11RacePOST{
+			account := freshRaceAccountSession(t, raceState.client, subject)
+			left := fixture.prepareAccountRotation(t, raceState.client, account)
+			right := fixture.prepareAccountRotation(t, raceState.client, account)
+			results := concurrentC11Posts(t, raceState.client.client, [2]c11RacePOST{
 				{baseURL: account.baseURL, path: "/v1/account-token-rotations", key: nextFixtureKey("account-race-left"), body: left},
 				{baseURL: account.baseURL, path: "/v1/account-token-rotations", key: nextFixtureKey("account-race-right"), body: right},
 			})
@@ -964,27 +1317,49 @@ func (fixture *c11Fixture) runRaceMatrix(t *testing.T, state faultFixture) {
 				t.Fatalf("c11 account refresh race %d failed", iteration)
 			}
 		}
-	})
-	t.Run("device-refresh", func(t *testing.T) {
-		for iteration := range iterations {
-			grant := createRaceEnrollmentGrant(t, state.client, state.account)
-			prepared := fixture.prepareDeviceRegistration(t, state.client, state.account.baseURL, grant)
-			device := completeRaceDeviceRegistration(t, state.client, state.account.baseURL, prepared)
-			left := fixture.prepareDeviceRotation(t, state.client, device)
-			right := fixture.prepareDeviceRotation(t, state.client, device)
-			results := concurrentC11Posts(t, fixture.client, [2]c11RacePOST{
-				{baseURL: device.baseURL, path: "/v1/device-token-rotations", key: nextFixtureKey("device-race-left"), body: left},
-				{baseURL: device.baseURL, path: "/v1/device-token-rotations", key: nextFixtureKey("device-race-right"), body: right},
-			})
-			clear(device.signingKey)
-			statuses := []int{results[0].status, results[1].status}
-			clear(results[0].body)
-			clear(results[1].body)
-			if !validRaceOutcome(statuses, http.StatusOK) {
-				t.Fatalf("c11 device refresh race %d failed", iteration)
-			}
+	}); !passed {
+		return
+	}
+	if passed := t.Run("device-refresh", func(t *testing.T) {
+		raceState, ok := state.forTest(t, t.Context())
+		if !ok {
+			t.Fatal("c11 device refresh race state unavailable")
 		}
-	})
+		accounts := fixture.newRaceAccountSubjects(t, raceState.client)
+		for iteration := range iterations {
+			func(iteration int) {
+				defer func() {
+					if t.Failed() {
+						t.Logf("c11 device refresh race iteration %d", iteration)
+					}
+				}()
+				subject, ok := selectRaceAccountSubject(accounts[:], iteration)
+				if !ok {
+					t.Fatal("c11 device refresh race subject unavailable")
+				}
+				account := freshRaceAccountSession(t, raceState.client, subject)
+				grant := createRaceEnrollmentGrant(t, raceState.client, account)
+				prepared := fixture.prepareDeviceRegistration(t, raceState.client, account.baseURL, grant)
+				defer clear(prepared.signingKey)
+				device := completeRaceDeviceRegistration(t, raceState.client, account.baseURL, prepared)
+				defer clear(device.signingKey)
+				left := fixture.prepareDeviceRotation(t, raceState.client, device)
+				right := fixture.prepareDeviceRotation(t, raceState.client, device)
+				results := concurrentC11Posts(t, raceState.client.client, [2]c11RacePOST{
+					{baseURL: device.baseURL, path: "/v1/device-token-rotations", key: nextFixtureKey("device-race-left"), body: left},
+					{baseURL: device.baseURL, path: "/v1/device-token-rotations", key: nextFixtureKey("device-race-right"), body: right},
+				})
+				statuses := []int{results[0].status, results[1].status}
+				clear(results[0].body)
+				clear(results[1].body)
+				if !validRaceOutcome(statuses, http.StatusOK) {
+					t.Fatalf("c11 device refresh race %d failed", iteration)
+				}
+			}(iteration)
+		}
+	}); !passed {
+		return
+	}
 }
 
 type c11RacePOST struct {
@@ -1011,12 +1386,26 @@ func concurrentC11Posts(t *testing.T, client *http.Client, attempts [2]c11RacePO
 	}
 	close(started)
 	responses := [2]c11HTTPResult{<-results, <-results}
-	for index := range responses {
-		if responses[index].err != nil {
-			t.Fatal("c11 concurrent HTTP transport failed")
-		}
+	if !validateC11RaceResponses(&responses) {
+		t.Fatal("c11 concurrent HTTP transport failed")
 	}
 	return responses
+}
+
+func validateC11RaceResponses(responses *[2]c11HTTPResult) bool {
+	if responses == nil {
+		return false
+	}
+	for index := range responses {
+		if responses[index].err == nil {
+			continue
+		}
+		for clearIndex := range responses {
+			clear(responses[clearIndex].body)
+		}
+		return false
+	}
+	return true
 }
 
 func validRaceOutcome(statuses []int, winner int) bool {
@@ -1038,6 +1427,13 @@ func validRaceOutcome(statuses []int, winner int) bool {
 	return winners == 1 && replays == 1
 }
 
+func selectRaceAccountSubject(accounts []c11Account, iteration int) (c11Account, bool) {
+	if len(accounts) == 0 || iteration < 0 {
+		return c11Account{}, false
+	}
+	return accounts[iteration%len(accounts)], true
+}
+
 func createRaceEnrollmentGrant(t *testing.T, client *c11HTTPClient, account c11Account) string {
 	t.Helper()
 	body, _ := client.post(account.baseURL, "/v1/device-enrollment-grants", account.accessToken, nextFixtureKey("race-grant"), map[string]any{
@@ -1050,6 +1446,35 @@ func createRaceEnrollmentGrant(t *testing.T, client *c11HTTPClient, account c11A
 	return grant
 }
 
+func (fixture *c11Fixture) newRaceAccountSubject(t *testing.T, client *c11HTTPClient) c11Account {
+	t.Helper()
+	email := nextFixtureKey("race-subject") + "@example.test"
+	password := "Task19-Race-Subject-Password!78" //nolint:gosec // Synthetic E2E account credential.
+	_, _ = client.post(fixture.ready.RequiredURL, "/v1/accounts", "", nextFixtureKey("race-subject-register"), map[string]any{
+		"email": email, "password": password, "locale": "en",
+	}, http.StatusAccepted)
+	fixture.verifyEmail(t, client, fixture.ready.RequiredURL, email)
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal("c11 credentialed race signing key generation failed")
+	}
+	t.Cleanup(func() { clear(privateKey) })
+	loginBody, _ := client.post(fixture.ready.RequiredURL, "/v1/account-sessions", "", nextFixtureKey("race-subject-login"), map[string]any{
+		"method": "password", "email": email, "password": password,
+		"client_signing_public_key": base64.RawURLEncoding.EncodeToString(publicKey),
+	}, http.StatusOK)
+	return decodeAccountTokens(t, fixture.ready.RequiredURL, email, password, publicKey, privateKey, loginBody)
+}
+
+func (fixture *c11Fixture) newRaceAccountSubjects(t *testing.T, client *c11HTTPClient) [3]c11Account {
+	t.Helper()
+	var accounts [3]c11Account
+	for index := range accounts {
+		accounts[index] = fixture.newRaceAccountSubject(t, client)
+	}
+	return accounts
+}
+
 func freshRaceAccountSession(t *testing.T, client *c11HTTPClient, account c11Account) c11Account {
 	t.Helper()
 	body, _ := client.post(account.baseURL, "/v1/account-sessions", "", nextFixtureKey("race-login"), map[string]any{
@@ -1059,8 +1484,12 @@ func freshRaceAccountSession(t *testing.T, client *c11HTTPClient, account c11Acc
 	return decodeAccountTokens(t, account.baseURL, account.email, account.password, account.signingPublic, account.signingKey, body)
 }
 
-func prepareAccountRotation(t *testing.T, client *c11HTTPClient, account c11Account) map[string]any {
+func (fixture *c11Fixture) prepareAccountRotation(t *testing.T, client *c11HTTPClient, account c11Account) map[string]any {
 	t.Helper()
+	audience, err := fixture.deviceProofAudienceFor(account.baseURL)
+	if err != nil {
+		t.Fatal("c11 account rotation proof audience invalid")
+	}
 	nonce := random32(t)
 	challengeBody, _ := client.post(account.baseURL, "/v1/account-auth-challenges", "", nextFixtureKey("account-race-challenge"), map[string]any{
 		"refresh_token": account.refreshToken, "request_nonce": encode32(nonce),
@@ -1068,7 +1497,7 @@ func prepareAccountRotation(t *testing.T, client *c11HTTPClient, account c11Acco
 	challenge := decodeObject(t, challengeBody)
 	proof := identity.AccountRotationProofBytes(identity.AccountRotationProofInput{
 		ProtocolVersion: "account-rotation-v1", Challenge: decode32(t, stringField(challenge, "challenge")), SessionID: account.sessionID,
-		Operation: "rotate_account_token", Audience: account.baseURL, RequestNonce: nonce,
+		Operation: "rotate_account_token", Audience: audience, RequestNonce: nonce,
 	})
 	if len(proof) == 0 {
 		t.Fatal("c11 account race proof failed")
@@ -1105,6 +1534,16 @@ func completeRaceDeviceRegistration(
 	}
 }
 
+func boundedFaultAttemptTimeout(remaining, maximum time.Duration) (time.Duration, bool) {
+	if remaining <= 0 || maximum <= 0 {
+		return 0, false
+	}
+	if remaining < maximum {
+		return remaining, true
+	}
+	return maximum, true
+}
+
 func waitReadinessCheck(
 	parent context.Context,
 	t *testing.T,
@@ -1120,7 +1559,11 @@ func waitReadinessCheck(
 	}
 	deadline := time.Now().Add(bound)
 	for {
-		ctx, cancel := context.WithTimeout(parent, 2*time.Second)
+		attemptTimeout, ok := boundedFaultAttemptTimeout(time.Until(deadline), 3*time.Second)
+		if !ok {
+			t.Fatalf("c11 readiness check %q did not reach %d/%q", check, expectedStatus, expectedState)
+		}
+		ctx, cancel := context.WithTimeout(parent, attemptTimeout)
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			cancel()
@@ -1141,11 +1584,15 @@ func waitReadinessCheck(
 		if parent.Err() != nil {
 			t.Fatal("c11 readiness row deadline exceeded")
 		}
-		if !time.Now().Before(deadline) {
+		sleepDuration, ok := boundedFaultAttemptTimeout(time.Until(deadline), 100*time.Millisecond)
+		if !ok {
+			if parent.Err() != nil {
+				t.Fatal("c11 readiness row deadline exceeded")
+			}
 			t.Fatalf("c11 readiness check %q did not reach %d/%q", check, expectedStatus, expectedState)
 		}
 		select {
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(sleepDuration):
 		case <-parent.Done():
 			t.Fatal("c11 readiness row deadline exceeded")
 		}
@@ -1159,7 +1606,11 @@ func waitHTTPStatus(parent context.Context, t *testing.T, client *http.Client, u
 	}
 	deadline := time.Now().Add(bound)
 	for {
-		ctx, cancel := context.WithTimeout(parent, 2*time.Second)
+		attemptTimeout, ok := boundedFaultAttemptTimeout(time.Until(deadline), 2*time.Second)
+		if !ok {
+			t.Fatalf("c11 health status did not reach %d", expected)
+		}
+		ctx, cancel := context.WithTimeout(parent, attemptTimeout)
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			cancel()
@@ -1177,11 +1628,15 @@ func waitHTTPStatus(parent context.Context, t *testing.T, client *http.Client, u
 		if parent.Err() != nil {
 			t.Fatal("c11 health row deadline exceeded")
 		}
-		if !time.Now().Before(deadline) {
+		sleepDuration, ok := boundedFaultAttemptTimeout(time.Until(deadline), 100*time.Millisecond)
+		if !ok {
+			if parent.Err() != nil {
+				t.Fatal("c11 health row deadline exceeded")
+			}
 			t.Fatalf("c11 health status did not reach %d", expected)
 		}
 		select {
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(sleepDuration):
 		case <-parent.Done():
 			t.Fatal("c11 health row deadline exceeded")
 		}

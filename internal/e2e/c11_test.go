@@ -92,6 +92,7 @@ const (
 var fixtureKeySequence atomic.Uint64
 
 var fixtureProjectPattern = regexp.MustCompile(`^talenro-c11-(?:verify|smoke)-[0-9a-f]{12,32}$`)
+var fixtureDockerObjectPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 // TestMain turns the tagged test binary into a dependency-owning fixture only
 // for an explicitly spawned child. Controls use inherited anonymous pipes; no
@@ -522,6 +523,106 @@ func (fixture *composeFixture) run(ctx context.Context, arguments ...string) err
 	return runBoundedCommand(ctx, fixture.repoRoot, "docker", append(base, arguments...)...)
 }
 
+type fixtureNetworkFaultTarget struct {
+	containerID string
+	networkID   string
+}
+
+func (fixture *composeFixture) disconnectNetwork(ctx context.Context, service string) (fixtureNetworkFaultTarget, error) {
+	if fixture == nil {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	if !fixtureProjectPattern.MatchString(fixture.project) || !validFixtureFaultService(service) {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+
+	base := []string{"compose", "-p", fixture.project, "-f", filepath.Join(fixture.repoRoot, "deploy", "dev", "compose.yaml")}
+	containerID, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", append(base, "ps", "--quiet", "--no-trunc", service)...)
+	if err != nil || !fixtureDockerObjectPattern.MatchString(containerID) {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+	projectLabel, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", "inspect", "--type", "container", "--format",
+		`{{ index .Config.Labels "com.docker.compose.project" }}`, containerID)
+	if err != nil || projectLabel != fixture.project {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+	serviceLabel, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", "inspect", "--type", "container", "--format",
+		`{{ index .Config.Labels "com.docker.compose.service" }}`, containerID)
+	if err != nil || serviceLabel != service {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+
+	networkID, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", "network", "ls", "--quiet", "--no-trunc",
+		"--filter", "label=com.docker.compose.project="+fixture.project)
+	if err != nil || !fixtureDockerObjectPattern.MatchString(networkID) {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+	networkProjectLabel, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", "network", "inspect", "--format",
+		`{{ index .Labels "com.docker.compose.project" }}`, networkID)
+	if err != nil || networkProjectLabel != fixture.project {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+	networkNameLabel, err := captureBoundedCommand(ctx, fixture.repoRoot, "docker", "network", "inspect", "--format",
+		`{{ index .Labels "com.docker.compose.network" }}`, networkID)
+	if err != nil || networkNameLabel != "default" {
+		return fixtureNetworkFaultTarget{}, errors.New("c11 e2e external stage failed")
+	}
+
+	target := fixtureNetworkFaultTarget{containerID: containerID, networkID: networkID}
+	if err := runBoundedCommand(ctx, fixture.repoRoot, "docker", "network", "disconnect", target.networkID, target.containerID); err != nil {
+		return fixtureNetworkFaultTarget{}, err
+	}
+	return target, nil
+}
+
+func (fixture *composeFixture) reconnectNetwork(ctx context.Context, target fixtureNetworkFaultTarget) error {
+	if fixture == nil || !fixtureDockerObjectPattern.MatchString(target.containerID) || !fixtureDockerObjectPattern.MatchString(target.networkID) {
+		return errors.New("c11 e2e external stage failed")
+	}
+	fixture.mu.Lock()
+	defer fixture.mu.Unlock()
+	return runBoundedCommand(ctx, fixture.repoRoot, "docker", "network", "connect", target.networkID, target.containerID)
+}
+
+func validFixtureFaultService(service string) bool {
+	switch service {
+	case "postgres", "redis", "nats":
+		return true
+	default:
+		return false
+	}
+}
+
+type boundedFixtureCommandOutput struct {
+	buffer   bytes.Buffer
+	overflow bool
+}
+
+func (output *boundedFixtureCommandOutput) Write(value []byte) (int, error) {
+	if output.overflow || len(value) > fixtureCommandLimit-output.buffer.Len() {
+		output.overflow = true
+		return len(value), nil
+	}
+	_, _ = output.buffer.Write(value)
+	return len(value), nil
+}
+
+func captureBoundedCommand(parent context.Context, directory, name string, arguments ...string) (string, error) {
+	ctx, cancel := context.WithTimeout(parent, fixtureStageTimeout)
+	defer cancel()
+	output := new(boundedFixtureCommandOutput)
+	command := exec.CommandContext(ctx, name, arguments...) //nolint:gosec // Fixed local tools and validated fixture arguments only.
+	command.Dir = directory
+	command.Stdout = output
+	command.Stderr = io.Discard
+	if err := command.Run(); err != nil || output.overflow {
+		return "", errors.New("c11 e2e external stage failed")
+	}
+	return strings.TrimSpace(output.buffer.String()), nil
+}
+
 func runBoundedCommand(parent context.Context, directory, name string, arguments ...string) error {
 	ctx, cancel := context.WithTimeout(parent, fixtureStageTimeout)
 	defer cancel()
@@ -833,6 +934,13 @@ func (clock *fixtureClock) set(raw string) bool {
 	return true
 }
 
+func (fixtureRuntime *fixtureRuntime) outboxClock() securitykit.Clock {
+	if fixtureRuntime == nil || fixtureRuntime.clock == nil {
+		return nil
+	}
+	return fixtureRuntime.clock
+}
+
 type controlledTestConfig struct {
 	mu       sync.RWMutex
 	sequence string
@@ -1021,6 +1129,8 @@ func (fixtureRuntime *fixtureRuntime) handle(request fixtureRequest) fixtureResp
 	case "clock-set":
 		response.OK = fixtureRuntime.clock.set(request.Value)
 		response.Value = fixtureRuntime.clock.Now().Format(time.RFC3339)
+	case "nats-status":
+		response.OK = fixtureRuntime.dependencies != nil && fixtureRuntime.dependencies.NATS != nil && fixtureRuntime.dependencies.NATS.IsConnected()
 	case "source-mode":
 		source, exists := fixtureRuntime.sources[request.Value]
 		response.OK = exists && (request.Template == "up" || request.Template == "down")
@@ -1075,10 +1185,11 @@ func openFixtureRuntime(parent context.Context, cancel context.CancelFunc, captu
 	if err != nil {
 		return nil, errors.New("fixture dependencies failed")
 	}
+	authorityClock := newFixtureClock()
 	fixtureRuntime := &fixtureRuntime{
 		cancel: cancel, listeners: listeners, dependencies: dependencies,
 		testConfig: &controlledTestConfig{sequence: "1"}, sources: make(map[string]*restartableSource, 3),
-		privacy: capture, clock: newFixtureClock(),
+		privacy: capture, clock: authorityClock,
 	}
 	defer func() { //nolint:contextcheck // Failure cleanup deliberately derives its own bounded shutdown context.
 		if resultErr != nil {
@@ -1151,12 +1262,12 @@ func openFixtureRuntime(parent context.Context, cancel context.CancelFunc, captu
 		clear(rootPublic)
 		return nil, errors.New("fixture identity challenge store failed")
 	}
-	deviceChallenges, err := deviceauth.NewRedisChallengeStore(dependencies.Redis, cfg.Security.RedisTimeout)
+	deviceChallenges, err := deviceauth.NewRedisChallengeStore(dependencies.Redis, cfg.Security.RedisTimeout, fixtureRuntime.clock)
 	if err != nil {
 		clear(rootPublic)
 		return nil, errors.New("fixture device challenge store failed")
 	}
-	outboxHealth, err := readiness.NewPostgresOutboxHealthProbe(dependencies.Postgres, fixtureRuntime.clock)
+	outboxHealth, err := readiness.NewPostgresOutboxHealthProbe(dependencies.Postgres, fixtureRuntime.outboxClock())
 	if err != nil {
 		clear(rootPublic)
 		return nil, errors.New("fixture outbox health failed")
@@ -1399,7 +1510,7 @@ func (fixtureRuntime *fixtureRuntime) startDelivery(ctx context.Context, cfg con
 	if err != nil {
 		return errors.New("fixture broker failed")
 	}
-	fixtureRuntime.publisher, err = outbox.NewPublisher(publisherStore, broker, fixtureRuntime.clock, rand.Reader, 100*time.Millisecond, fixtureRuntime.reporter)
+	fixtureRuntime.publisher, err = outbox.NewPublisher(publisherStore, broker, fixtureRuntime.outboxClock(), rand.Reader, 100*time.Millisecond, fixtureRuntime.reporter)
 	if err != nil || !fixtureRuntime.publisher.Start(ctx) {
 		return errors.New("fixture publisher failed")
 	}
@@ -2171,11 +2282,51 @@ func (fixture *c11Fixture) runDeviceAndTrust(t *testing.T, client *c11HTTPClient
 	return device
 }
 
+func TestClearFixtureSigningKeyUnlessTransferredIsFailClosed(t *testing.T) {
+	t.Parallel()
+	t.Run("not-transferred", func(t *testing.T) {
+		key := ed25519.PrivateKey{0x11, 0x12}
+		func() {
+			transferred := false
+			defer clearFixtureSigningKeyUnlessTransferred(key, &transferred)
+		}()
+		if !bytes.Equal(key, []byte{0, 0}) {
+			t.Fatal("fixture signing key guard retained untransferred ownership")
+		}
+	})
+	t.Run("missing-flag", func(t *testing.T) {
+		key := ed25519.PrivateKey{0x21, 0x22}
+		func() {
+			defer clearFixtureSigningKeyUnlessTransferred(key, nil)
+		}()
+		if !bytes.Equal(key, []byte{0, 0}) {
+			t.Fatal("fixture signing key guard accepted missing ownership state")
+		}
+	})
+	t.Run("transferred", func(t *testing.T) {
+		key := ed25519.PrivateKey{0x31, 0x32}
+		func() {
+			transferred := false
+			defer clearFixtureSigningKeyUnlessTransferred(key, &transferred)
+			transferred = true
+		}()
+		if !bytes.Equal(key, []byte{0x31, 0x32}) {
+			t.Fatal("fixture signing key guard cleared transferred ownership")
+		}
+	})
+}
+
 type preparedDeviceRegistration struct {
 	request       map[string]any
 	signingPublic ed25519.PublicKey
 	signingKey    ed25519.PrivateKey
 	hpkePrivate   *ecdh.PrivateKey
+}
+
+func clearFixtureSigningKeyUnlessTransferred(key ed25519.PrivateKey, transferred *bool) {
+	if transferred == nil || !*transferred {
+		clear(key)
+	}
 }
 
 func (fixture *c11Fixture) prepareDeviceRegistration(t *testing.T, client *c11HTTPClient, baseURL, grant string) preparedDeviceRegistration {
@@ -2188,6 +2339,8 @@ func (fixture *c11Fixture) prepareDeviceRegistration(t *testing.T, client *c11HT
 	if err != nil {
 		t.Fatal("c11 device signing key generation failed")
 	}
+	transferred := false
+	defer clearFixtureSigningKeyUnlessTransferred(signingPrivate, &transferred)
 	hpkePrivate, err := ecdh.X25519().GenerateKey(rand.Reader)
 	if err != nil {
 		clear(signingPrivate)
@@ -2222,7 +2375,9 @@ func (fixture *c11Fixture) prepareDeviceRegistration(t *testing.T, client *c11HT
 		"display_name": "C1.1 E2E device", "signature": base64.RawURLEncoding.EncodeToString(signature),
 	}
 	clear(signature)
-	return preparedDeviceRegistration{request: request, signingPublic: signingPublic, signingKey: signingPrivate, hpkePrivate: hpkePrivate}
+	prepared := preparedDeviceRegistration{request: request, signingPublic: signingPublic, signingKey: signingPrivate, hpkePrivate: hpkePrivate}
+	transferred = true
+	return prepared
 }
 
 func cloneFixtureObject(source map[string]any) map[string]any {

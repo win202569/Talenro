@@ -76,10 +76,11 @@ func openWithOperations(
 	}
 
 	deps.Redis = operations.newRedis(&redis.Options{
-		Addr:         cfg.RedisAddress,
-		DialTimeout:  2 * time.Second,
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 2 * time.Second,
+		Addr:                  cfg.RedisAddress,
+		ContextTimeoutEnabled: true,
+		DialTimeout:           2 * time.Second,
+		ReadTimeout:           2 * time.Second,
+		WriteTimeout:          2 * time.Second,
 	})
 	deps.closeRedis = func() { _ = operations.closeRedis(deps.Redis) }
 	if err = operations.pingRedis(checkCtx, deps.Redis); err != nil {
@@ -90,7 +91,7 @@ func openWithOperations(
 		nats.Name("talenro-control-api"),
 		nats.Timeout(2*time.Second),
 		nats.ReconnectWait(500*time.Millisecond),
-		nats.MaxReconnects(10),
+		nats.MaxReconnects(-1),
 		nats.DrainTimeout(5*time.Second),
 	)
 	if err != nil {

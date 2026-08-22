@@ -188,7 +188,7 @@ func openRuntime(ctx context.Context, cfg config.Config, metrics *observability.
 	if err != nil {
 		return fail(errRuntimeConfiguration)
 	}
-	deviceChallenges, err := deviceauth.NewRedisChallengeStore(deps.Redis, cfg.Security.RedisTimeout)
+	deviceChallenges, err := deviceauth.NewRedisChallengeStore(deps.Redis, cfg.Security.RedisTimeout, clock)
 	if err != nil {
 		return fail(errRuntimeConfiguration)
 	}

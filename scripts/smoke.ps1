@@ -701,21 +701,123 @@ function Assert-SmokeComposeOwnership {
   param(
     [Parameter(Mandatory)][string[]]$ComposeArguments,
     [Parameter(Mandatory)][string]$Project,
-    [Parameter(Mandatory)][string]$Service
+    [Parameter(Mandatory)][ValidateSet('postgres', 'redis', 'nats')][string]$Service
   )
 
   $containerID = Invoke-QuietExternal -Stage 'smoke: dependency ownership' -FilePath 'docker' -ArgumentList (
-    $ComposeArguments + @('ps', '-q', $Service)
+    $ComposeArguments + @('ps', '--quiet', '--no-trunc', $Service)
   ) -TimeoutSeconds 30 -CaptureOutput
-  if ($containerID -notmatch '^[0-9a-f]{12,64}$') {
+  if ($containerID -notmatch '^[0-9a-f]{64}$') {
     Stop-Smoke -ExitCode 1 -Stage 'smoke: dependency ownership'
   }
   $owner = Invoke-QuietExternal -Stage 'smoke: dependency ownership' -FilePath 'docker' -ArgumentList @(
-    'inspect', '--format', '{{ index .Config.Labels `com.docker.compose.project` }}', $containerID
+    'inspect', '--type', 'container', '--format', '{{ index .Config.Labels `com.docker.compose.project` }}', $containerID
   ) -TimeoutSeconds 30 -CaptureOutput
   if (-not [string]::Equals($owner, $Project, [System.StringComparison]::Ordinal)) {
     Stop-Smoke -ExitCode 1 -Stage 'smoke: dependency ownership'
   }
+  $ownedService = Invoke-QuietExternal -Stage 'smoke: dependency ownership' -FilePath 'docker' -ArgumentList @(
+    'inspect', '--type', 'container', '--format', '{{ index .Config.Labels `com.docker.compose.service` }}', $containerID
+  ) -TimeoutSeconds 30 -CaptureOutput
+  if (-not [string]::Equals($ownedService, $Service, [System.StringComparison]::Ordinal)) {
+    Stop-Smoke -ExitCode 1 -Stage 'smoke: dependency ownership'
+  }
+}
+
+function Resolve-SmokeNetworkFaultTarget {
+  param(
+    [Parameter(Mandatory)][string[]]$ComposeArguments,
+    [Parameter(Mandatory)][string]$Project,
+    [Parameter(Mandatory)][ValidateSet('postgres', 'redis', 'nats')][string]$Service
+  )
+
+  $stage = switch ($Service) {
+    'postgres' { 'smoke: postgres network ownership' }
+    'redis' { 'smoke: redis network ownership' }
+    'nats' { 'smoke: nats network ownership' }
+  }
+  if ($Project -notmatch '^talenro-c11-smoke-[0-9a-f]{12}$') {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+  $containerID = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList (
+    $ComposeArguments + @('ps', '--quiet', '--no-trunc', $Service)
+  ) -TimeoutSeconds 30 -CaptureOutput
+  if ($containerID -notmatch '^[0-9a-f]{64}$') {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+  $projectLabel = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'inspect', '--type', 'container', '--format', '{{ index .Config.Labels `com.docker.compose.project` }}', $containerID
+  ) -TimeoutSeconds 30 -CaptureOutput
+  $serviceLabel = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'inspect', '--type', 'container', '--format', '{{ index .Config.Labels `com.docker.compose.service` }}', $containerID
+  ) -TimeoutSeconds 30 -CaptureOutput
+  if (
+    -not [string]::Equals($projectLabel, $Project, [System.StringComparison]::Ordinal) -or
+    -not [string]::Equals($serviceLabel, $Service, [System.StringComparison]::Ordinal)
+  ) {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+
+  $networkID = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'network', 'ls', '--quiet', '--no-trunc',
+    '--filter', ('label=com.docker.compose.project=' + $Project)
+  ) -TimeoutSeconds 30 -CaptureOutput
+  if ($networkID -notmatch '^[0-9a-f]{64}$') {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+  $networkProjectLabel = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'network', 'inspect', '--format', '{{ index .Labels `com.docker.compose.project` }}', $networkID
+  ) -TimeoutSeconds 30 -CaptureOutput
+  $networkNameLabel = Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'network', 'inspect', '--format', '{{ index .Labels `com.docker.compose.network` }}', $networkID
+  ) -TimeoutSeconds 30 -CaptureOutput
+  if (
+    -not [string]::Equals($networkProjectLabel, $Project, [System.StringComparison]::Ordinal) -or
+    -not [string]::Equals($networkNameLabel, 'default', [System.StringComparison]::Ordinal)
+  ) {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+
+  return [pscustomobject]@{ Service = $Service; ContainerID = $containerID; NetworkID = $networkID }
+}
+
+function Disconnect-SmokeComposeNetwork {
+  param(
+    [Parameter(Mandatory)][string[]]$ComposeArguments,
+    [Parameter(Mandatory)][string]$Project,
+    [Parameter(Mandatory)][ValidateSet('postgres', 'redis', 'nats')][string]$Service
+  )
+
+  $stage = switch ($Service) {
+    'postgres' { 'smoke: postgres network disconnect' }
+    'redis' { 'smoke: redis network disconnect' }
+    'nats' { 'smoke: nats network disconnect' }
+  }
+  $target = Resolve-SmokeNetworkFaultTarget -ComposeArguments $ComposeArguments -Project $Project -Service $Service
+  Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'network', 'disconnect', [string]$target.NetworkID, [string]$target.ContainerID
+  ) -TimeoutSeconds 60
+  return $target
+}
+
+function Connect-SmokeComposeNetwork {
+  param([Parameter(Mandatory)]$Target)
+
+  $service = [string]$Target.Service
+  $stage = switch ($service) {
+    'postgres' { 'smoke: postgres network connect' }
+    'redis' { 'smoke: redis network connect' }
+    'nats' { 'smoke: nats network connect' }
+    default { Stop-Smoke -ExitCode 1 -Stage 'smoke: network connect ownership' }
+  }
+  $containerID = [string]$Target.ContainerID
+  $networkID = [string]$Target.NetworkID
+  if ($containerID -notmatch '^[0-9a-f]{64}$' -or $networkID -notmatch '^[0-9a-f]{64}$') {
+    Stop-Smoke -ExitCode 1 -Stage $stage
+  }
+  Invoke-QuietExternal -Stage $stage -FilePath 'docker' -ArgumentList @(
+    'network', 'connect', $networkID, $containerID
+  ) -TimeoutSeconds 60
 }
 
 function Get-SmokeComposePort {
@@ -825,7 +927,7 @@ function Wait-HTTPStatus {
     }
 
     $remaining = $limitMilliseconds - [int]$timer.ElapsedMilliseconds
-    $requestTimeout = [Math]::Max(1, [Math]::Min(1000, $remaining))
+    $requestTimeout = [Math]::Max(1, [Math]::Min(3000, $remaining))
     try {
       if ((Get-HTTPStatus -Client $Client -URL $URL -TimeoutMilliseconds $requestTimeout) -eq $Expected) {
         return
@@ -1060,34 +1162,25 @@ try {
     Stop-Smoke -ExitCode 1 -Stage 'smoke: e2e environment cleanup'
   }
 
-  Invoke-QuietExternal -Stage 'smoke: postgres stop' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('stop', 'postgres')
-  ) -TimeoutSeconds 60
+  $postgresFaultTarget = Disconnect-SmokeComposeNetwork -ComposeArguments $composeArguments -Project $composeProject -Service 'postgres'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 503 -Seconds 5 -Stage 'smoke: postgres readiness failure' -ProcessStage 'smoke: control API'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/livez') -Expected 200 -Seconds 2 -Stage 'smoke: postgres liveness' -ProcessStage 'smoke: control API'
 
-  Invoke-QuietExternal -Stage 'smoke: postgres start' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('start', 'postgres')
-  ) -TimeoutSeconds 60
+  Connect-SmokeComposeNetwork -Target $postgresFaultTarget
+  $postgresFaultTarget = $null
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 200 -Seconds 10 -Stage 'smoke: postgres recovery' -ProcessStage 'smoke: control API'
 
-  Invoke-QuietExternal -Stage 'smoke: redis stop' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('stop', 'redis')
-  ) -TimeoutSeconds 60
+  $redisFaultTarget = Disconnect-SmokeComposeNetwork -ComposeArguments $composeArguments -Project $composeProject -Service 'redis'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 503 -Seconds 5 -Stage 'smoke: redis readiness failure' -ProcessStage 'smoke: control API'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/livez') -Expected 200 -Seconds 2 -Stage 'smoke: redis liveness' -ProcessStage 'smoke: control API'
-  Invoke-QuietExternal -Stage 'smoke: redis start' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('start', 'redis')
-  ) -TimeoutSeconds 60
+  Connect-SmokeComposeNetwork -Target $redisFaultTarget
+  $redisFaultTarget = $null
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 200 -Seconds 10 -Stage 'smoke: redis recovery' -ProcessStage 'smoke: control API'
 
-  Invoke-QuietExternal -Stage 'smoke: nats stop' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('stop', 'nats')
-  ) -TimeoutSeconds 60
+  $natsFaultTarget = Disconnect-SmokeComposeNetwork -ComposeArguments $composeArguments -Project $composeProject -Service 'nats'
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/livez') -Expected 200 -Seconds 2 -Stage 'smoke: nats liveness' -ProcessStage 'smoke: control API'
-  Invoke-QuietExternal -Stage 'smoke: nats start' -FilePath 'docker' -ArgumentList (
-    $composeArguments + @('start', 'nats')
-  ) -TimeoutSeconds 60
+  Connect-SmokeComposeNetwork -Target $natsFaultTarget
+  $natsFaultTarget = $null
   Wait-HTTPStatus -Client $client -Process $controlAPI -URL ($httpBase + '/readyz') -Expected 200 -Seconds 10 -Stage 'smoke: nats recovery' -ProcessStage 'smoke: control API'
 
 } catch {

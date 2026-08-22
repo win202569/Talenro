@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"talenro.local/platform/internal/store"
@@ -22,6 +23,27 @@ func TestPolicyPostgresFailureIsImmediatelyDown(t *testing.T) {
 	}
 }
 
+func TestPolicyDeadlineOnlyPostgresIsDownBeforeOverallDeadline(t *testing.T) {
+	const timeout = 500 * time.Millisecond
+	postgres := fakeProbe{name: "postgres", ping: func(ctx context.Context) error {
+		<-ctx.Done()
+		return ctx.Err()
+	}}
+	checker, err := NewWithPolicy(timeout, DefaultPolicy(), postgres, fakeProbe{name: "redis"}, task18OutboxProbe{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	startedAt := time.Now()
+	ready, checks := checker.Check(context.Background())
+	if ready || checks["postgres"] != "down" {
+		t.Fatalf("deadline-only postgres failure: ready=%v checks=%v", ready, checks)
+	}
+	if elapsed := time.Since(startedAt); elapsed >= 3*timeout/4 {
+		t.Fatalf("deadline-only postgres consumed aggregation margin: elapsed %v, timeout %v", elapsed, timeout)
+	}
+}
+
 func TestPolicyRedisFailsDegradedThenDownAndNeedsTwoSuccessesToRecover(t *testing.T) {
 	postgres := &task18ScriptedProbe{name: "postgres"}
 	redis := &task18ScriptedProbe{name: "redis", failures: []bool{true, true, true, false, false}}
@@ -34,6 +56,123 @@ func TestPolicyRedisFailsDegradedThenDownAndNeedsTwoSuccessesToRecover(t *testin
 			t.Fatalf("check %d: ready=%v redis=%q, want %v/%q", index+1, ready, checks["redis"], wantReady[index], wantStatus[index])
 		}
 	}
+}
+
+func TestPolicyDeadlineOnlyRedisRemainsDegradedTwiceThenDown(t *testing.T) {
+	const timeout = 500 * time.Millisecond
+	redis := fakeProbe{name: "redis", ping: func(ctx context.Context) error {
+		<-ctx.Done()
+		return ctx.Err()
+	}}
+	checker, err := NewWithPolicy(timeout, DefaultPolicy(), fakeProbe{name: "postgres"}, redis, task18OutboxProbe{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wantStatus := []string{"degraded", "degraded", "down"}
+	wantReady := []bool{true, true, false}
+	for index := range wantStatus {
+		ready, checks := checker.Check(context.Background())
+		if ready != wantReady[index] || checks["redis"] != wantStatus[index] {
+			t.Fatalf("check %d: ready=%v redis=%q, want %v/%q", index+1, ready, checks["redis"], wantReady[index], wantStatus[index])
+		}
+	}
+}
+
+func TestPolicyCanceledDeadlineOnlyRedisResultDoesNotAdvanceState(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		steps := make(chan func(context.Context) error, 5)
+		steps <- func(context.Context) error { return nil }
+		steps <- func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}
+		failure := func(context.Context) error { return errors.New("CANARY") }
+		steps <- failure
+		steps <- failure
+		steps <- failure
+		redis := fakeProbe{name: "redis", ping: func(ctx context.Context) error {
+			return (<-steps)(ctx)
+		}}
+		checker, err := NewWithPolicy(500*time.Millisecond, DefaultPolicy(), fakeProbe{name: "postgres"}, redis, task18OutboxProbe{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ready, checks := checker.Check(context.Background())
+		if !ready || checks["redis"] != "up" {
+			t.Fatalf("initial Redis success: ready=%v checks=%v", ready, checks)
+		}
+		requireTask19RedisState(t, checker, "up", 0, 0)
+
+		canceled, cancel := context.WithCancel(context.Background())
+		cancel()
+		ready, _ = checker.Check(canceled)
+		if ready {
+			t.Fatal("canceled readiness check returned ready")
+		}
+		synctest.Wait()
+		requireTask19RedisState(t, checker, "up", 0, 0)
+
+		wantStatus := []string{"degraded", "degraded", "down"}
+		wantReady := []bool{true, true, false}
+		for index := range wantStatus {
+			ready, checks = checker.Check(context.Background())
+			if ready != wantReady[index] || checks["redis"] != wantStatus[index] {
+				t.Fatalf("failure %d: ready=%v redis=%q, want %v/%q", index+1, ready, checks["redis"], wantReady[index], wantStatus[index])
+			}
+		}
+	})
+}
+
+func TestPolicyLateRedisSuccessAfterOverallTimeoutDoesNotAdvanceState(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		steps := make(chan func(context.Context) error, 6)
+		failure := func(context.Context) error { return errors.New("CANARY") }
+		steps <- failure
+		steps <- failure
+		steps <- failure
+		releaseLateSuccess := make(chan struct{})
+		steps <- func(context.Context) error {
+			<-releaseLateSuccess
+			return nil
+		}
+		steps <- func(context.Context) error { return nil }
+		steps <- func(context.Context) error { return nil }
+		redis := fakeProbe{name: "redis", ping: func(ctx context.Context) error {
+			return (<-steps)(ctx)
+		}}
+		checker, err := NewWithPolicy(500*time.Millisecond, DefaultPolicy(), fakeProbe{name: "postgres"}, redis, task18OutboxProbe{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		wantFailureStatus := []string{"degraded", "degraded", "down"}
+		wantFailureReady := []bool{true, true, false}
+		for index := range wantFailureStatus {
+			ready, checks := checker.Check(context.Background())
+			if ready != wantFailureReady[index] || checks["redis"] != wantFailureStatus[index] {
+				t.Fatalf("failure %d: ready=%v redis=%q, want %v/%q", index+1, ready, checks["redis"], wantFailureReady[index], wantFailureStatus[index])
+			}
+		}
+		requireTask19RedisState(t, checker, "down", 3, 0)
+
+		ready, _ := checker.Check(context.Background())
+		if ready {
+			t.Fatal("timed-out readiness check returned ready")
+		}
+		close(releaseLateSuccess)
+		synctest.Wait()
+		requireTask19RedisState(t, checker, "down", 3, 0)
+
+		wantRecoveryStatus := []string{"degraded", "up"}
+		for index := range wantRecoveryStatus {
+			ready, checks := checker.Check(context.Background())
+			if !ready || checks["redis"] != wantRecoveryStatus[index] {
+				t.Fatalf("recovery %d: ready=%v redis=%q, want true/%q", index+1, ready, checks["redis"], wantRecoveryStatus[index])
+			}
+		}
+	})
 }
 
 func TestPolicyNATSSocketStateAloneNeverDeterminesReadiness(t *testing.T) {
@@ -198,3 +337,16 @@ func (source *task18OutboxSource) GetOutboxHealth(_ context.Context, now time.Ti
 type task18ReadinessClock struct{ now time.Time }
 
 func (clock task18ReadinessClock) Now() time.Time { return clock.now }
+
+func requireTask19RedisState(t *testing.T, checker *Checker, status string, failures, successes int) {
+	t.Helper()
+	checker.redis.mu.Lock()
+	defer checker.redis.mu.Unlock()
+	if checker.redis.status != status || checker.redis.failures != failures || checker.redis.successes != successes {
+		t.Fatalf(
+			"Redis state = %q/%d/%d, want %q/%d/%d",
+			checker.redis.status, checker.redis.failures, checker.redis.successes,
+			status, failures, successes,
+		)
+	}
+}

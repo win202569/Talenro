@@ -55,12 +55,15 @@ func New(timeout time.Duration, probes ...Probe) *Checker {
 
 // Check runs all probes and returns only bounded public states.
 func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
-	checkCtx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
+	overallContext, cancelOverall := context.WithTimeout(ctx, c.timeout)
+	defer cancelOverall()
+	probeContext, cancelProbes := context.WithTimeout(overallContext, c.timeout/2)
+	defer cancelProbes()
 
 	type result struct {
-		name   string
-		status string
+		name    string
+		kind    probeKind
+		outcome probeOutcome
 	}
 
 	checks := make(map[string]string, len(c.probes))
@@ -69,25 +72,25 @@ func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
 		checks[probe.name] = initialStatus(probe.kind)
 
 		go func(probe checkedProbe) {
-			status := c.evaluate(checkCtx, probe)
-			select {
-			case results <- result{name: probe.name, status: status}:
-			case <-checkCtx.Done():
-			}
+			results <- result{name: probe.name, kind: probe.kind, outcome: c.evaluate(probeContext, probe)}
 		}(probe)
 	}
 
 	ready := true
 	for range c.probes {
 		select {
-		case <-checkCtx.Done():
+		case <-overallContext.Done():
 			return false, checks
 		case probeResult := <-results:
-			if checkCtx.Err() != nil {
+			if overallContext.Err() != nil {
 				return false, checks
 			}
-			checks[probeResult.name] = probeResult.status
-			if probeResult.status == statusDown {
+			status := probeResult.outcome.status
+			if probeResult.kind == probeRedis {
+				status = c.redis.record(probeResult.outcome.success, c.policy)
+			}
+			checks[probeResult.name] = status
+			if status == statusDown {
 				ready = false
 			}
 		}
@@ -96,34 +99,39 @@ func (c *Checker) Check(ctx context.Context) (bool, map[string]string) {
 	return ready, checks
 }
 
-func (c *Checker) evaluate(ctx context.Context, checked checkedProbe) string {
+type probeOutcome struct {
+	status  string
+	success bool
+}
+
+func (c *Checker) evaluate(ctx context.Context, checked checkedProbe) probeOutcome {
 	switch checked.kind {
 	case probePostgres:
 		if checked.probe.Ping(ctx) != nil {
-			return statusDown
+			return probeOutcome{status: statusDown}
 		}
-		return statusUp
+		return probeOutcome{status: statusUp}
 	case probeRedis:
-		return c.redis.record(checked.probe.Ping(ctx) == nil, c.policy)
+		return probeOutcome{success: checked.probe.Ping(ctx) == nil}
 	case probeNATS:
 		if checked.probe.Ping(ctx) != nil {
-			return statusDegraded
+			return probeOutcome{status: statusDegraded}
 		}
-		return statusUp
+		return probeOutcome{status: statusUp}
 	case probeOutbox:
 		backlog, oldest, err := checked.outbox.Snapshot(ctx)
 		if err != nil || backlog < 0 || oldest < 0 {
-			return statusDown
+			return probeOutcome{status: statusDown}
 		}
 		if backlog >= c.policy.OutboxDownBacklog || oldest >= c.policy.OutboxDownAge {
-			return statusDown
+			return probeOutcome{status: statusDown}
 		}
 		if backlog >= c.policy.OutboxDegradedBacklog || oldest >= c.policy.OutboxDegradedAge {
-			return statusDegraded
+			return probeOutcome{status: statusDegraded}
 		}
-		return statusUp
+		return probeOutcome{status: statusUp}
 	default:
-		return statusDown
+		return probeOutcome{status: statusDown}
 	}
 }
 

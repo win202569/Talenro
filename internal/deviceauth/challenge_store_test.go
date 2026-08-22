@@ -16,11 +16,13 @@ import (
 
 const task12ChallengeID = "d6df0ff2-b723-4b62-bc43-f63cc1bf012a"
 
+var task19ChallengeStoreTime = time.Date(2020, time.January, 1, 3, 4, 5, 0, time.UTC)
+
 func TestChallengeRedisStoreCreatesOnlyOpaqueBoundedState(t *testing.T) {
 	t.Parallel()
 
 	executor := &fakeDeviceChallengeExecutor{setAllowed: true}
-	challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +64,7 @@ func TestChallengeRedisStoreAcceptsOnlyBoundedPositiveFlooredTTL(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			executor := &fakeDeviceChallengeExecutor{setAllowed: true}
-			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -86,7 +88,7 @@ func TestChallengeRedisStoreAcceptsOnlyBoundedPositiveFlooredTTL(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			executor := &fakeDeviceChallengeExecutor{setAllowed: true}
-			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -109,7 +111,7 @@ func TestChallengeSingleUseConsumesWithOneAtomicGetDEL(t *testing.T) {
 		t.Fatal(err)
 	}
 	executor := &fakeDeviceChallengeExecutor{runValues: []any{wire, nil}}
-	challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond)
+	challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,6 +127,43 @@ func TestChallengeSingleUseConsumesWithOneAtomicGetDEL(t *testing.T) {
 	}
 	if _, err := challengeStore.Consume(context.Background(), record.ChallengeID, record.GrantDigest, record.ContextDigest); !errors.Is(err, ErrChallengeNotFound) {
 		t.Fatalf("second consume error = %v, want finite not-found", err)
+	}
+}
+
+func TestChallengeConsumeUsesInjectedClockInsteadOfAmbientWallClock(t *testing.T) {
+	t.Parallel()
+
+	record := task12ChallengeRecord()
+	record.ExpiresAt = time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
+	wire, err := encodeChallengeRecord(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name  string
+		clock task19ChallengeClock
+		want  error
+	}{
+		{name: "before injected expiry despite later ambient time", clock: task19ChallengeClock{now: record.ExpiresAt.Add(-time.Second)}},
+		{name: "at injected expiry", clock: task19ChallengeClock{now: record.ExpiresAt}, want: ErrChallengeNotFound},
+		{name: "zero injected time", clock: task19ChallengeClock{}, want: ErrChallengeUnavailable},
+		{name: "panicking injected clock", clock: task19ChallengeClock{panicOnNow: true}, want: ErrChallengeUnavailable},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			executor := &fakeDeviceChallengeExecutor{runValues: []any{wire}}
+			challengeStore, err := newRedisChallengeStoreWithExecutor(executor, 250*time.Millisecond, test.clock)
+			if err != nil {
+				t.Fatal(err)
+			}
+			consumed, err := challengeStore.Consume(context.Background(), record.ChallengeID, record.GrantDigest, record.ContextDigest)
+			if !errors.Is(err, test.want) || (err != nil && strings.Contains(err.Error(), "CANARY")) {
+				t.Fatalf("consume error = %v, want sanitized %v", err, test.want)
+			}
+			if test.want == nil && consumed != record {
+				t.Fatal("consume changed the Redis-retained challenge record")
+			}
+		})
 	}
 }
 
@@ -198,7 +237,7 @@ func TestChallengeConsumeFailsClosedOnDigestMismatchAndAmbiguity(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			challengeStore, err := newRedisChallengeStoreWithExecutor(test.executor, 250*time.Millisecond)
+			challengeStore, err := newRedisChallengeStoreWithExecutor(test.executor, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -222,8 +261,12 @@ func TestChallengeRecordRedactsFormattingAndRejectsJSON(t *testing.T) {
 		t.Fatal("challenge record JSON serialization succeeded")
 	}
 	var client *goredis.Client
-	if challengeStore, err := NewRedisChallengeStore(client, 250*time.Millisecond); challengeStore != nil || !errors.Is(err, ErrInvalidChallenge) {
+	if challengeStore, err := NewRedisChallengeStore(client, 250*time.Millisecond, task19ChallengeClock{now: task19ChallengeStoreTime}); challengeStore != nil || !errors.Is(err, ErrInvalidChallenge) {
 		t.Fatalf("typed-nil Redis constructor = %#v / %v", challengeStore, err)
+	}
+	var clock *task19ChallengeClock
+	if challengeStore, err := newRedisChallengeStoreWithExecutor(&fakeDeviceChallengeExecutor{}, 250*time.Millisecond, clock); challengeStore != nil || !errors.Is(err, ErrInvalidChallenge) {
+		t.Fatalf("typed-nil clock constructor = %#v / %v", challengeStore, err)
 	}
 }
 
@@ -233,6 +276,18 @@ func task12ChallengeRecord() ChallengeRecord {
 		Challenge: [32]byte{1, 2, 3}, GrantDigest: sha256.Sum256([]byte("opaque-grant-digest")),
 		ContextDigest: sha256.Sum256([]byte("opaque-public-context")), ExpiresAt: time.Now().UTC().Add(time.Minute),
 	}
+}
+
+type task19ChallengeClock struct {
+	now        time.Time
+	panicOnNow bool
+}
+
+func (clock task19ChallengeClock) Now() time.Time {
+	if clock.panicOnNow {
+		panic("CLOCK-CANARY")
+	}
+	return clock.now
 }
 
 type fakeDeviceChallengeExecutor struct {

@@ -96,6 +96,53 @@ func successfulDependencyOperations() dependencyOperations {
 	}
 }
 
+func TestOpenConfiguresRedisContextWithSocketBounds(t *testing.T) {
+	operations := successfulDependencyOperations()
+	var captured redis.Options
+	operations.newRedis = func(options *redis.Options) *redis.Client {
+		if options == nil {
+			t.Fatal("Redis client options missing")
+		}
+		captured = *options
+		return nil
+	}
+
+	dependencies, err := openWithOperations(context.Background(), config.Config{DependencyTimeout: time.Second}, operations)
+	if err != nil {
+		t.Fatal("dependency fixture rejected Redis client options")
+	}
+	defer dependencies.Close()
+	if !captured.ContextTimeoutEnabled {
+		t.Fatal("Redis client does not honor caller contexts")
+	}
+	if captured.DialTimeout != 2*time.Second || captured.ReadTimeout != 2*time.Second || captured.WriteTimeout != 2*time.Second {
+		t.Fatal("Redis socket timeout bounds changed")
+	}
+}
+
+func TestOpenConfiguresNATSForContinuousReconnect(t *testing.T) {
+	operations := successfulDependencyOperations()
+	captured := nats.GetDefaultOptions()
+	operations.connectNATS = func(_ string, options ...nats.Option) (*nats.Conn, error) {
+		for _, option := range options {
+			if err := option(&captured); err != nil {
+				t.Fatal("NATS connection option rejected")
+			}
+		}
+		return nil, nil
+	}
+
+	dependencies, err := openWithOperations(context.Background(), config.Config{DependencyTimeout: time.Second}, operations)
+	if err != nil {
+		t.Fatal("dependency fixture rejected NATS connection options")
+	}
+	defer dependencies.Close()
+	if captured.Timeout != 2*time.Second || captured.ReconnectWait != 500*time.Millisecond ||
+		captured.MaxReconnect != -1 || captured.DrainTimeout != 5*time.Second {
+		t.Fatal("NATS connection recovery bounds changed")
+	}
+}
+
 func TestDependenciesCloseUsesReverseOrderOnce(t *testing.T) {
 	var closed []string
 	deps := &Dependencies{
