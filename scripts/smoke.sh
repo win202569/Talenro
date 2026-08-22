@@ -26,6 +26,7 @@ build_dir=''
 api_binary=''
 mirror_binary=''
 conformance_binary=''
+c11_conformance_binary=''
 control_stdout=''
 control_stderr=''
 mirror_a_stdout=''
@@ -79,6 +80,24 @@ run_quiet_in_directory() {
     printf '%s failed with exit code %d.\n' "${stage}" "${quiet_exit}" >&2
     return "${quiet_exit}"
   fi
+}
+
+derive_c11_conformance_binary() {
+  c11_conformance_binary=${conformance_binary}
+  case "${OSTYPE,,}" in
+    msys*|cygwin*)
+      capture_quiet 10 cygpath -w -- "${conformance_binary}"
+      if (( quiet_exit != 0 )); then
+        printf '%s\n' 'smoke: conformance path conversion failed with exit code 1.' >&2
+        return 1
+      fi
+      if [[ ! "${quiet_output}" =~ ^[A-Za-z]:\\[^[:cntrl:]]+$ ]]; then
+        printf '%s\n' 'smoke: conformance path conversion failed with exit code 1.' >&2
+        return 1
+      fi
+      c11_conformance_binary=${quiet_output}
+      ;;
+  esac
 }
 
 capture_quiet() {
@@ -811,6 +830,7 @@ run_quiet 'smoke: migrations' 120 go tool goose -dir "${repo_root}/db/migrations
 run_quiet_in_directory 'smoke: control API build' "${repo_root}" 600 go build -o "${api_binary}" "${repo_root}/cmd/control-api"
 run_quiet_in_directory 'smoke: mirror build' "${repo_root}" 600 go build -o "${mirror_binary}" "${repo_root}/cmd/bundle-mirror"
 run_quiet_in_directory 'smoke: conformance build' "${repo_root}" 600 go build -o "${conformance_binary}" "${repo_root}/cmd/trust-conformance"
+derive_c11_conformance_binary
 
 if ! pushd "${repo_root}" >/dev/null; then
   printf '%s\n' 'smoke: process start failed with exit code 1.' >&2
@@ -835,7 +855,7 @@ run_quiet_in_directory 'smoke: C1.1 happy path' "${repo_root}" 600 env \
   C11_E2E_PRIMARY_URL=http://127.0.0.1:8080 C11_E2E_MIRROR_A_URL=http://127.0.0.1:8081 \
   C11_E2E_MIRROR_B_URL=http://127.0.0.1:8082 C11_E2E_PRIMARY_ORIGIN=http://localhost:8080 \
   C11_E2E_MIRROR_A_ORIGIN=http://localhost:8081 C11_E2E_MIRROR_B_ORIGIN=http://localhost:8082 \
-  C11_CONFORMANCE_BINARY="${conformance_binary}" \
+  C11_CONFORMANCE_BINARY="${c11_conformance_binary}" \
   go test -tags=e2e ./internal/e2e -run '^TestC11HappyPath$' -count=1 -timeout 10m
 
 disconnect_compose_network postgres

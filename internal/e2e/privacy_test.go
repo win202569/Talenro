@@ -39,11 +39,12 @@ import (
 )
 
 const (
-	fixturePrivacyCaptureLimit    = 64 << 10
-	fixturePrivacyLogBaseline     = "c11 privacy log sink exercised"
-	fixturePrivacyProviderSurface = "provider-error"
-	fixturePrivacyPanicSurface    = "provider-panic"
-	fixturePrivacyLogEvidence     = 1 << iota
+	fixturePrivacyCaptureLimit        = 64 << 10
+	fixturePrivacyLogBaseline         = "c11 privacy log sink exercised"
+	fixturePrivacyProviderSurface     = "provider-error"
+	fixturePrivacyPanicSurface        = "provider-panic"
+	fixtureSmokeNativeValidatorMarker = "task19-native-validator-pass"
+	fixturePrivacyLogEvidence         = 1 << iota
 	fixturePrivacyReportEvidence
 	fixturePrivacyProviderEvidence
 	fixturePrivacyPanicEvidence
@@ -190,6 +191,79 @@ func TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment(t *testing.T) {
 	if !bytes.Contains(trace, []byte("repo_root="+gitBashPath(repoRoot))) {
 		t.Fatalf("smoke Bash Windows script-path regression resolved the wrong repository: trace=%q", trace)
 	}
+}
+
+func TestSmokeBashWindowsConformancePathReachesNativeGo(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("smoke Bash native conformance-path regression is isolated to Windows")
+	}
+	repoRoot := e2eRepositoryRoot(t)
+	script := filepath.Join(repoRoot, "scripts", "smoke.sh")
+	if info, err := os.Stat(script); err != nil || info.IsDir() {
+		t.Fatal("smoke Bash entrypoint is missing")
+	}
+	bash := findContractBash()
+	if bash == "" {
+		t.Fatal("smoke Bash executable is missing")
+	}
+	nativeTestBinary, err := os.Executable()
+	if err != nil {
+		t.Fatal("native e2e test executable is missing")
+	}
+	fakeDirectory := t.TempDir()
+	temporaryDirectory := filepath.Join(fakeDirectory, "tmp")
+	if err := os.Mkdir(temporaryDirectory, 0o700); err != nil {
+		t.Fatal("smoke Bash conformance temporary directory creation failed")
+	}
+	writeFakeTool(t, filepath.Join(fakeDirectory, "go"), fakeSmokeConformanceGoShell())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "docker"), fakeSmokeConformanceDockerShell())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "curl"), fakeSmokeConformanceCurlShell())
+	pathValue := gitBashPath(fakeDirectory) + ":/usr/bin:/bin"
+	nativeTestPath := gitBashPath(nativeTestBinary)
+	projectPath := gitBashPath(filepath.Join(fakeDirectory, "project"))
+	curlLogPath := gitBashPath(filepath.Join(fakeDirectory, "curl.log"))
+	childLogPath := gitBashPath(filepath.Join(fakeDirectory, "native-child.log"))
+
+	commandContext, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+	command := exec.CommandContext(commandContext, bash, "-c", `PATH="$1"; export PATH; exec "$2"`,
+		"task19-smoke", pathValue, gitBashPath(script)) //nolint:gosec // Fixed reviewed Bash script and test-owned PATH.
+	command.Dir = repoRoot
+	command.Env = smokeConformanceEnvironment(os.Environ(), gitBashPath(temporaryDirectory), nativeTestPath, projectPath, curlLogPath, childLogPath)
+	command.WaitDelay = 5 * time.Second
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("smoke Bash native conformance-path regression exceeded its hard bound")
+	}
+	curlLog, _ := os.ReadFile(filepath.Join(fakeDirectory, "curl.log"))
+	if actual := commandExitStatus(runErr); actual != 73 {
+		t.Fatalf("smoke Bash native conformance-path regression exit code: got %d, want 73; output=%q curl=%q", actual, outputCapture.bytes(), curlLog)
+	}
+	if output := string(outputCapture.bytes()); output != "smoke: C1.1 happy path failed with exit code 73.\n" {
+		t.Fatalf("smoke Bash native conformance-path regression output: got %q", output)
+	}
+	wantCurlLog := "http://127.0.0.1:8080/livez\nhttp://127.0.0.1:8080/readyz\nhttp://127.0.0.1:8081/\nhttp://127.0.0.1:8082/\n"
+	if string(curlLog) != wantCurlLog {
+		t.Fatalf("smoke Bash native conformance-path regression probes: got %q", curlLog)
+	}
+	childLog, _ := os.ReadFile(filepath.Join(fakeDirectory, "native-child.log"))
+	if strings.Count(string(childLog), fixtureSmokeNativeValidatorMarker+"\n") != 1 ||
+		!strings.Contains(string(childLog), "--- PASS: TestSmokeBashNativeConformancePathChild") {
+		t.Fatalf("smoke Bash native conformance-path child did not prove validator success: output=%q", childLog)
+	}
+}
+
+func TestSmokeBashNativeConformancePathChild(t *testing.T) {
+	if os.Getenv("TASK19_SMOKE_NATIVE_CONFORMANCE_CHILD") != "1" {
+		t.Skip("only exercised by the smoke Bash native-path regression")
+	}
+	if _, err := validatedConformanceBinaryPath(os.Getenv(fixtureConformancePath)); err != nil {
+		t.Fatalf("native Go rejected smoke conformance binary path: %v", err)
+	}
+	fmt.Println(fixtureSmokeNativeValidatorMarker)
 }
 
 func TestScriptCleanupExitStatusContracts(t *testing.T) {
@@ -1404,6 +1478,107 @@ fi
 exit 0
 `
 	return strings.ReplaceAll(body, "__PRIVACY_OUTPUT__", privacyFakeOutputShell())
+}
+
+func fakeSmokeConformanceGoShell() string {
+	body := `#!/usr/bin/env bash
+set -eu
+case "${1:-}" in
+  tool) exit 0 ;;
+  build)
+    printf '%s\n' '#!/bin/bash' 'trap "exit 0" TERM INT' 'while :; do sleep 1; done' >"${3}"
+    chmod 700 "${3}"
+    exit 0
+    ;;
+  test)
+    env -u TMPDIR "${TASK19_NATIVE_TEST_BINARY}" -test.v -test.run='^TestSmokeBashNativeConformancePathChild$' -test.timeout=20s >"${TASK19_SMOKE_CHILD_LOG}" 2>&1
+    grep -Fqx -- '__NATIVE_VALIDATOR_MARKER__' "${TASK19_SMOKE_CHILD_LOG}"
+    exit 73
+    ;;
+esac
+exit 0
+`
+	return strings.ReplaceAll(body, "__NATIVE_VALIDATOR_MARKER__", fixtureSmokeNativeValidatorMarker)
+}
+
+func fakeSmokeConformanceDockerShell() string {
+	return `#!/usr/bin/env bash
+set -eu
+container_postgres=1111111111111111111111111111111111111111111111111111111111111111
+container_redis=2222222222222222222222222222222222222222222222222222222222222222
+container_nats=3333333333333333333333333333333333333333333333333333333333333333
+if [[ "${1:-}" == compose && "${2:-}" == --project-name ]]; then
+  project=${3}
+  operation=${6:-}
+  case "${operation}" in
+    up) printf '%s\n' "${project}" >"${TASK19_SMOKE_PROJECT}" ;;
+    ps)
+      case "${9:-}" in
+        postgres) printf '%s\n' "${container_postgres}" ;;
+        redis) printf '%s\n' "${container_redis}" ;;
+        nats) printf '%s\n' "${container_nats}" ;;
+      esac
+      ;;
+    port)
+      case "${7:-}" in
+        postgres) printf '%s\n' 127.0.0.1:15432 ;;
+        redis) printf '%s\n' 127.0.0.1:16379 ;;
+        nats) printf '%s\n' 127.0.0.1:14222 ;;
+      esac
+      ;;
+  esac
+  exit 0
+fi
+if [[ "${1:-}" == inspect ]]; then
+  project=$(<"${TASK19_SMOKE_PROJECT}")
+  case "${5:-}" in
+    *com.docker.compose.project*) printf '%s\n' "${project}" ;;
+    *com.docker.compose.service*)
+      case "${6:-}" in
+        "${container_postgres}") printf '%s\n' postgres ;;
+        "${container_redis}") printf '%s\n' redis ;;
+        "${container_nats}") printf '%s\n' nats ;;
+      esac
+      ;;
+  esac
+fi
+exit 0
+`
+}
+
+func fakeSmokeConformanceCurlShell() string {
+	return `#!/usr/bin/env bash
+set -eu
+url=${!#}
+printf '%s\n' "${url}" >>"${TASK19_SMOKE_CURL_LOG}"
+  case "${url}" in
+    http://127.0.0.1:8080/livez|http://127.0.0.1:8080/readyz) printf '%s' 200 ;;
+    http://127.0.0.1:8081/|http://127.0.0.1:8082/) printf '%s' 404 ;;
+    *) printf '%s' 500 ;;
+  esac
+`
+}
+
+func smokeConformanceEnvironment(values []string, temporaryDirectory, nativeTestBinary, projectPath, curlLogPath, childLogPath string) []string {
+	result := make([]string, 0, len(values)+6)
+	for _, value := range values {
+		name, _, _ := strings.Cut(value, "=")
+		upper := strings.ToUpper(name)
+		if upper == "PATH" || upper == "BASH_ENV" || upper == "TMPDIR" || upper == "CGO_ENABLED" ||
+			strings.HasPrefix(upper, "TALENRO_") || strings.HasPrefix(upper, "C11_") ||
+			strings.HasPrefix(upper, "COMPOSE_") || strings.HasPrefix(upper, "TASK19_") {
+			continue
+		}
+		result = append(result, value)
+	}
+	return append(result,
+		"TMPDIR="+temporaryDirectory,
+		"TASK19_NATIVE_TEST_BINARY="+nativeTestBinary,
+		"TASK19_SMOKE_PROJECT="+projectPath,
+		"TASK19_SMOKE_CURL_LOG="+curlLogPath,
+		"TASK19_SMOKE_CHILD_LOG="+childLogPath,
+		"TASK19_SMOKE_NATIVE_CONFORMANCE_CHILD=1",
+	)
 }
 
 func privacyFakeOutputBatch() string {
