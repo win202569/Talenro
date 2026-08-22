@@ -3,6 +3,9 @@ set -euo pipefail
 
 script_source=${BASH_SOURCE[0]}
 case "${script_source}" in
+  [A-Za-z]:\\*) script_source=${script_source//\\//} ;;
+esac
+case "${script_source}" in
   */*) script_parent=${script_source%/*} ;;
   *) script_parent=. ;;
 esac

@@ -149,6 +149,49 @@ func TestVerifyC11BashContract(t *testing.T) {
 	requireBashContract(t)
 }
 
+func TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("smoke Bash Windows script-path regression is isolated to Windows")
+	}
+	repoRoot := e2eRepositoryRoot(t)
+	script := filepath.Join(repoRoot, "scripts", "smoke.sh")
+	if info, err := os.Stat(script); err != nil || info.IsDir() {
+		t.Fatal("smoke Bash entrypoint is missing")
+	}
+	bash := findContractBash()
+	if bash == "" {
+		t.Fatal("smoke Bash executable is missing")
+	}
+	outsideRepository := t.TempDir()
+	tracePath := filepath.Join(outsideRepository, "smoke-path.trace")
+	commandContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	bashSource := fmt.Sprintf(`exec 3>%s; BASH_XTRACEFD=3; PS4='TRACE '; set -x; PATH=/task19-missing-timeout; export PATH; . %s`, strconv.Quote(tracePath), strconv.Quote(script))
+	command := exec.CommandContext(commandContext, bash, "-c", bashSource) //nolint:gosec // Fixed reviewed Bash and script paths.
+	command.Dir = outsideRepository
+	command.WaitDelay = 2 * time.Second
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("smoke Bash Windows script-path regression exceeded its hard bound")
+	}
+	if actual := commandExitStatus(runErr); actual != 127 {
+		t.Fatalf("smoke Bash Windows script-path regression exit code: got %d, want 127; output=%q", actual, outputCapture.bytes())
+	}
+	if output := string(outputCapture.bytes()); output != "smoke: hard deadline tool failed with exit code 127.\n" {
+		t.Fatalf("smoke Bash Windows script-path regression output: got %q", output)
+	}
+	trace, err := os.ReadFile(tracePath) //nolint:gosec // Exact test-owned bounded trace path.
+	if err != nil || len(trace) == 0 || len(trace) > fixtureCommandCaptureLimit {
+		t.Fatal("smoke Bash Windows script-path regression trace bound failed")
+	}
+	if !bytes.Contains(trace, []byte("repo_root="+gitBashPath(repoRoot))) {
+		t.Fatalf("smoke Bash Windows script-path regression resolved the wrong repository: trace=%q", trace)
+	}
+}
+
 func TestScriptCleanupExitStatusContracts(t *testing.T) {
 	repoRoot := e2eRepositoryRoot(t)
 	harnessDirectory := t.TempDir()
