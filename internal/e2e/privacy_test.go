@@ -39,13 +39,15 @@ import (
 )
 
 const (
-	fixturePrivacyCaptureLimit         = 64 << 10
-	fixturePrivacyLogBaseline          = "c11 privacy log sink exercised"
-	fixturePrivacyProviderSurface      = "provider-error"
-	fixturePrivacyPanicSurface         = "provider-panic"
-	fixtureSmokeNativeValidatorMarker  = "task19-native-validator-pass"
-	fixtureSmokeNativeExecutableMarker = "task19-native-executable-pass"
-	fixturePrivacyLogEvidence          = 1 << iota
+	fixturePrivacyCaptureLimit          = 64 << 10
+	fixturePrivacyLogBaseline           = "c11 privacy log sink exercised"
+	fixturePrivacyProviderSurface       = "provider-error"
+	fixturePrivacyPanicSurface          = "provider-panic"
+	fixtureSmokeNativeValidatorMarker   = "task19-native-validator-pass"
+	fixtureSmokeNativeExecutableMarker  = "task19-native-executable-pass"
+	fixtureVerifyNativeValidatorMarker  = "task19-verify-native-validator-pass"
+	fixtureVerifyNativeExecutableMarker = "task19-verify-native-executable-pass"
+	fixturePrivacyLogEvidence           = 1 << iota
 	fixturePrivacyReportEvidence
 	fixturePrivacyProviderEvidence
 	fixturePrivacyPanicEvidence
@@ -204,6 +206,140 @@ func TestVerifyC11BashContract(t *testing.T) {
 	requireBashContract(t)
 }
 
+func TestVerifyC11BashWindowsConformancePathReachesNativeGo(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("verify-c11 Bash native conformance-path regression is isolated to Windows")
+	}
+	repoRoot := e2eRepositoryRoot(t)
+	script := filepath.Join(repoRoot, "scripts", "verify-c11.sh")
+	if info, err := os.Stat(script); err != nil || info.IsDir() {
+		t.Fatal("verify-c11 Bash entrypoint is missing")
+	}
+	bash := findGitForWindowsBash()
+	if bash == "" {
+		t.Fatal("Git for Windows Bash executable is missing")
+	}
+	nativeTestBinary, err := os.Executable()
+	if err != nil {
+		t.Fatal("native e2e test executable is missing")
+	}
+
+	fakeDirectory := t.TempDir()
+	temporaryDirectory := filepath.Join(fakeDirectory, "tmp")
+	if err := os.Mkdir(temporaryDirectory, 0o700); err != nil {
+		t.Fatal("verify-c11 Bash conformance temporary directory creation failed")
+	}
+	logPath := filepath.Join(fakeDirectory, "calls.log")
+	projectPath := filepath.Join(fakeDirectory, "project.txt")
+	childLogPath := filepath.Join(fakeDirectory, "native-child.log")
+	writeFakeTool(t, filepath.Join(fakeDirectory, "go"), fakeVerifyNativeConformanceGoShell())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "git"), fakeGitShell())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "docker"), fakeDockerShell())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "gofmt"), fakeGofmtShell())
+	pathValue := gitBashPath(fakeDirectory) + ":/usr/bin:/bin"
+
+	commandContext, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+	command := exec.CommandContext(commandContext, bash, "-c", `PATH="$1"; export PATH; exec "$2"`,
+		"task19-verify-native", pathValue, gitBashPath(script)) //nolint:gosec // Fixed reviewed Bash script and test-owned PATH.
+	command.Dir = repoRoot
+	command.Env = verifyNativeConformanceEnvironment(os.Environ(),
+		gitBashPath(temporaryDirectory), gitBashPath(nativeTestBinary), gitBashPath(logPath),
+		gitBashPath(projectPath), gitBashPath(childLogPath))
+	command.WaitDelay = 5 * time.Second
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("verify-c11 Bash native conformance-path regression exceeded its hard bound")
+	}
+	childLog, _ := os.ReadFile(childLogPath) //nolint:gosec // Exact test-owned bounded diagnostic path.
+	if actual := commandExitStatus(runErr); actual != 73 {
+		t.Fatalf("verify-c11 Bash native conformance-path regression exit code: got %d, want 73; output=%q child=%q", actual, outputCapture.bytes(), childLog)
+	}
+	if bytes.Count(outputCapture.bytes(), []byte("verify-c11: e2e tests failed with exit code 73.\n")) != 1 {
+		t.Fatalf("verify-c11 Bash native conformance-path regression output: got %q", outputCapture.bytes())
+	}
+	if strings.Count(string(childLog), fixtureVerifyNativeValidatorMarker+"\n") != 1 ||
+		strings.Count(string(childLog), fixtureVerifyNativeExecutableMarker+"\n") != 1 ||
+		!strings.Contains(string(childLog), "--- PASS: TestVerifyC11BashNativeConformanceExecutableChild") ||
+		!strings.Contains(string(childLog), "--- PASS: TestVerifyC11BashNativeConformancePathChild") {
+		t.Fatalf("verify-c11 Bash native conformance-path child did not prove validator and execution success: output=%q", childLog)
+	}
+	remaining, err := os.ReadDir(temporaryDirectory)
+	if err != nil || len(remaining) != 0 {
+		t.Fatalf("verify-c11 Bash native conformance-path cleanup left test-owned artifacts: entries=%v err=%v", remaining, err)
+	}
+	assertVerifyScriptResult(t, "Bash native conformance-path", outputCapture.bytes(), logPath)
+}
+
+func TestVerifyC11BashWindowsConformancePathRejectsMalformedConversion(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("verify-c11 Bash conformance conversion rejection contract is isolated to Windows")
+	}
+	repoRoot := e2eRepositoryRoot(t)
+	script := filepath.Join(repoRoot, "scripts", "verify-c11.sh")
+	if info, err := os.Stat(script); err != nil || info.IsDir() {
+		t.Fatal("verify-c11 Bash entrypoint is missing")
+	}
+	bash := findGitForWindowsBash()
+	if bash == "" {
+		t.Fatal("Git for Windows Bash executable is missing")
+	}
+
+	testDirectory := t.TempDir()
+	harness := filepath.Join(testDirectory, "conformance-conversion-contract.sh")
+	fakeDirectory := filepath.Join(testDirectory, "fake-bin")
+	if err := os.Mkdir(fakeDirectory, 0o700); err != nil {
+		t.Fatal("verify-c11 Bash conversion fake-tool directory creation failed")
+	}
+	writeFakeTool(t, harness, bashConformanceConversionRejectionContract())
+	writeFakeTool(t, filepath.Join(fakeDirectory, "cygpath"), fakeVerifierCygpathShell())
+
+	for _, mode := range []string{"nonzero", "empty", "oversize_trailing_lf", "nul", "multiline", "control", "non_drive", "no_lf"} {
+		t.Run(mode, func(t *testing.T) {
+			caseDirectory := filepath.Join(testDirectory, "case-"+mode)
+			runDirectory := filepath.Join(caseDirectory, "run")
+			if err := os.MkdirAll(runDirectory, 0o700); err != nil {
+				t.Fatal("verify-c11 Bash conversion run directory creation failed")
+			}
+			stdoutPath := filepath.Join(caseDirectory, "derive.stdout")
+			stderrPath := filepath.Join(caseDirectory, "derive.stderr")
+			callLogPath := filepath.Join(caseDirectory, "cygpath.log")
+			commandContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			command := exec.CommandContext(commandContext, bash, gitBashPath(harness),
+				gitBashPath(script), mode, gitBashPath(runDirectory), gitBashPath(fakeDirectory),
+				gitBashPath(stdoutPath), gitBashPath(stderrPath), gitBashPath(callLogPath)) //nolint:gosec // Fixed Git for Windows Bash, reviewed harness, and test-owned paths.
+			command.Dir = repoRoot
+			command.WaitDelay = 2 * time.Second
+			outputCapture := newBoundedCommandCapture()
+			command.Stdout = outputCapture
+			command.Stderr = outputCapture
+			runErr := command.Run()
+			if commandContext.Err() != nil || outputCapture.overflowed() {
+				t.Fatal("verify-c11 Bash conversion rejection contract exceeded its hard bound")
+			}
+			if runErr != nil {
+				t.Fatalf("verify-c11 Bash conversion rejection contract failed with exit code %d: output=%q", commandExitStatus(runErr), outputCapture.bytes())
+			}
+			if output := string(outputCapture.bytes()); output != "rejection:"+mode+"\n" {
+				t.Fatalf("verify-c11 Bash conversion rejection contract returned unexpected output: %q", output)
+			}
+			callLog, err := os.ReadFile(callLogPath) //nolint:gosec // Exact test-owned bounded call log.
+			wantCall := mode + "|-w|--|/tmp/talenro-verify-c11-owned/trust-conformance.exe\n"
+			if err != nil || string(callLog) != wantCall {
+				t.Fatalf("verify-c11 Bash conversion invoked the wrong cygpath command: got %q err=%v", callLog, err)
+			}
+			remaining, err := os.ReadDir(runDirectory)
+			if err != nil || len(remaining) != 0 {
+				t.Fatalf("verify-c11 Bash conversion rejection left owned capture artifacts: entries=%v err=%v", remaining, err)
+			}
+		})
+	}
+}
+
 func TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("smoke Bash Windows script-path regression is isolated to Windows")
@@ -353,6 +489,45 @@ func TestSmokeBashNativeConformanceExecutableChild(t *testing.T) {
 		t.Skip("only exercised by the smoke Bash native-executable regression")
 	}
 	fmt.Println(fixtureSmokeNativeExecutableMarker)
+}
+
+func TestVerifyC11BashNativeConformancePathChild(t *testing.T) {
+	if os.Getenv("TASK19_VERIFY_NATIVE_CONFORMANCE_CHILD") != "1" {
+		t.Skip("only exercised by the verify-c11 Bash native-path regression")
+	}
+	binary, err := validatedConformanceBinaryPath(os.Getenv(fixtureConformancePath))
+	if err != nil {
+		t.Fatalf("native Go rejected verify-c11 conformance binary path: %v", err)
+	}
+	commandContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	command := exec.CommandContext(commandContext, binary, "-test.v", "-test.run=^TestVerifyC11BashNativeConformanceExecutableChild$", "-test.timeout=5s") //nolint:gosec // Exact validator-approved test-owned native executable.
+	command.Env = append(os.Environ(), "TASK19_VERIFY_NATIVE_CONFORMANCE_EXECUTABLE_CHILD=1")
+	command.WaitDelay = 2 * time.Second
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("native Go verify-c11 conformance executable child exceeded its hard bound")
+	}
+	if runErr != nil {
+		t.Fatalf("native Go could not execute verify-c11 conformance binary: %v; output=%q", runErr, outputCapture.bytes())
+	}
+	childOutput := string(outputCapture.bytes())
+	if strings.Count(childOutput, fixtureVerifyNativeExecutableMarker+"\n") != 1 ||
+		!strings.Contains(childOutput, "--- PASS: TestVerifyC11BashNativeConformanceExecutableChild") {
+		t.Fatalf("native Go verify-c11 conformance executable child did not prove execution: output=%q", outputCapture.bytes())
+	}
+	fmt.Print(childOutput)
+	fmt.Println(fixtureVerifyNativeValidatorMarker)
+}
+
+func TestVerifyC11BashNativeConformanceExecutableChild(t *testing.T) {
+	if os.Getenv("TASK19_VERIFY_NATIVE_CONFORMANCE_EXECUTABLE_CHILD") != "1" {
+		t.Skip("only exercised by the verify-c11 Bash native-executable regression")
+	}
+	fmt.Println(fixtureVerifyNativeExecutableMarker)
 }
 
 func TestScriptCleanupExitStatusContracts(t *testing.T) {
@@ -1444,6 +1619,63 @@ cleanup
 `
 }
 
+func bashConformanceConversionRejectionContract() string {
+	return `#!/usr/bin/env bash
+set -euo pipefail
+script_path=$1
+mode=$2
+run_dir=$3
+fake_directory=$4
+result_stdout=$5
+result_stderr=$6
+call_log=$7
+PATH="${fake_directory}:/usr/bin:/bin"
+export PATH
+export TASK19_CYGPATH_MODE=${mode}
+export TASK19_CYGPATH_CALL_LOG=${call_log}
+
+extract_function() {
+  local name=$1
+  awk -v signature="${name}() {" '
+    $0 == signature { printing = 1 }
+    printing { print }
+    printing && $0 == "}" { exit }
+  ' "${script_path}"
+}
+
+for name in capture_quiet capture_conformance_environment_binary derive_conformance_environment_binary; do
+  definition=$(extract_function "${name}")
+  [[ -z "${definition}" ]] || eval "${definition}"
+done
+
+run_counter=0
+captured_output=''
+conformance_binary=/tmp/talenro-verify-c11-owned/trust-conformance.exe
+conformance_environment_binary=''
+set +e
+derive_conformance_environment_binary >"${result_stdout}" 2>"${result_stderr}"
+status=$?
+set -e
+if ((status != 1)); then
+  printf 'unexpected-status:%d\n' "${status}" >&2
+  exit 71
+fi
+if [[ -s "${result_stdout}" ]]; then
+  printf '%s\n' 'unexpected-stdout' >&2
+  exit 72
+fi
+if ! printf '%s\n' 'verify-c11: conformance binary path conversion failed with exit code 1.' | cmp -s - "${result_stderr}"; then
+  printf '%s\n' 'unexpected-stderr' >&2
+  exit 73
+fi
+if find "${run_dir}" -mindepth 1 -print -quit | grep -q .; then
+  printf '%s\n' 'capture-artifact-leak' >&2
+  exit 74
+fi
+printf 'rejection:%s\n' "${mode}"
+`
+}
+
 func writeFakeTool(t *testing.T, path, body string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(body), 0o700); err != nil { //nolint:gosec // Executable fake lives only below t.TempDir.
@@ -1617,6 +1849,95 @@ exit 0
 	return strings.ReplaceAll(body, "__PRIVACY_OUTPUT__", privacyFakeOutputShell())
 }
 
+func fakeVerifyNativeConformanceGoShell() string {
+	body := `#!/usr/bin/env bash
+set -eu
+printf 'go %s CGO_ENABLED=%s\n' "$*" "${CGO_ENABLED:-missing}" >>"${TASK19_FAKE_LOG}"
+[[ -z "${C11_UNOWNED_PRIVATE:-}" && -z "${TALENRO_UNOWNED_PRIVATE:-}" && -z "${COMPOSE_PROJECT_NAME:-}" ]] || printf '%s\n' ambient-leak >>"${TASK19_FAKE_LOG}"
+case "$*" in
+  'tool buf --version') printf '%s\n' '1.72.0'; exit 0 ;;
+  'tool protoc-gen-go --version') printf '%s\n' 'protoc-gen-go v1.36.11'; exit 0 ;;
+  'tool oapi-codegen --version') printf '%s\n' 'v2.8.0'; exit 0 ;;
+  'tool sqlc version') printf '%s\n' 'v1.31.1'; exit 0 ;;
+  'tool goose -version') printf '%s\n' 'goose version: v3.27.1'; exit 0 ;;
+  'tool golangci-lint version') printf '%s\n' 'golangci-lint has version 2.12.2 built with go1.26.5'; exit 0 ;;
+esac
+if [[ -n "${C11_CONFORMANCE_BINARY:-}" ]]; then
+  if [[ "${1:-}" != test || " $* " != *' -tags=e2e '* ]]; then
+    printf '%s\n' conformance-env-leak >>"${TASK19_FAKE_LOG}"
+  fi
+fi
+if [[ "${1:-}" == build ]]; then
+  if [[ "${2:-}" != -o || "${4:-}" != ./cmd/trust-conformance ]]; then
+    printf '%s\n' conformance-build-invalid >>"${TASK19_FAKE_LOG}"
+    exit 72
+  fi
+  cp -- "${TASK19_NATIVE_TEST_BINARY}" "${3}"
+  chmod 700 "${3}"
+  printf '%s\n' conformance-build-ok >>"${TASK19_FAKE_LOG}"
+  exit 0
+fi
+if [[ "${1:-}" == test && " $* " == *' -tags=e2e '* ]]; then
+  if [[ -n "${C11_E2E_COMPOSE_PROJECT:-}" && -n "${C11_E2E_DATABASE_URL:-}" &&
+        -n "${C11_E2E_REDIS_ADDRESS:-}" && -n "${C11_E2E_NATS_URL:-}" ]]; then
+    printf '%s\n' exact4-ok >>"${TASK19_FAKE_LOG}"
+  else
+    printf '%s\n' exact4-missing >>"${TASK19_FAKE_LOG}"
+  fi
+  printf 'e2e-visible project=%s database=%s redis=%s nats=%s\n' "${C11_E2E_COMPOSE_PROJECT:-}" "${C11_E2E_DATABASE_URL:-}" "${C11_E2E_REDIS_ADDRESS:-}" "${C11_E2E_NATS_URL:-}" >>"${TASK19_FAKE_LOG}"
+  [[ -z "${C11_E2E_EXTERNAL_DEPENDENCIES:-}" ]] || printf '%s\n' legacy-marker >>"${TASK19_FAKE_LOG}"
+  if env -u TMPDIR "${TASK19_NATIVE_TEST_BINARY}" -test.v -test.run='^TestVerifyC11BashNativeConformancePathChild$' -test.timeout=20s >"${TASK19_VERIFY_NATIVE_CHILD_LOG}" 2>&1; then
+    :
+  else
+    exit $?
+  fi
+  grep -Fqx -- '__NATIVE_VALIDATOR_MARKER__' "${TASK19_VERIFY_NATIVE_CHILD_LOG}"
+  grep -Fqx -- '__NATIVE_EXECUTABLE_MARKER__' "${TASK19_VERIFY_NATIVE_CHILD_LOG}"
+  grep -Fq -- '--- PASS: TestVerifyC11BashNativeConformanceExecutableChild' "${TASK19_VERIFY_NATIVE_CHILD_LOG}"
+  grep -Fq -- '--- PASS: TestVerifyC11BashNativeConformancePathChild' "${TASK19_VERIFY_NATIVE_CHILD_LOG}"
+  printf '%s\n' conformance-ok >>"${TASK19_FAKE_LOG}"
+__PRIVACY_OUTPUT__
+  exit 73
+fi
+exit 0
+`
+	body = strings.ReplaceAll(body, "__NATIVE_VALIDATOR_MARKER__", fixtureVerifyNativeValidatorMarker)
+	body = strings.ReplaceAll(body, "__NATIVE_EXECUTABLE_MARKER__", fixtureVerifyNativeExecutableMarker)
+	return strings.ReplaceAll(body, "__PRIVACY_OUTPUT__", privacyFakeOutputShell())
+}
+
+func fakeVerifierCygpathShell() string {
+	return `#!/usr/bin/env bash
+set -eu
+printf '%s|%s|%s|%s\n' "${TASK19_CYGPATH_MODE}" "${1:-}" "${2:-}" "${3:-}" >>"${TASK19_CYGPATH_CALL_LOG}"
+if [[ "$#" != 3 || "${1:-}" != -w || "${2:-}" != -- || "${3:-}" != /tmp/talenro-verify-c11-owned/trust-conformance.exe ]]; then
+  exit 79
+fi
+case "${TASK19_CYGPATH_MODE}" in
+  nonzero)
+    printf '%s\n' 'C:\valid'
+    printf '%s\n' 'TASK19-CYGPATH-PRIVATE' >&2
+    exit 74
+    ;;
+  empty) : ;;
+  oversize_trailing_lf)
+    printf '%s' 'C:\valid'
+    index=0
+    while ((index < 4090)); do
+      printf '\n'
+      ((index += 1))
+    done
+    ;;
+  nul) printf 'C:\\valid\0\n' ;;
+  multiline) printf 'C:\\valid\nnoise\n' ;;
+  control) printf 'C:\\val\tid\n' ;;
+  non_drive) printf '%s\n' '/tmp/valid' ;;
+  no_lf) printf '%s' 'C:\valid' ;;
+  *) exit 78 ;;
+esac
+`
+}
+
 func fakeSmokeConformanceGoShell() string {
 	body := `#!/usr/bin/env bash
 set -eu
@@ -1723,6 +2044,32 @@ func smokeConformanceEnvironment(values []string, temporaryDirectory, nativeTest
 		"TASK19_SMOKE_CURL_LOG="+curlLogPath,
 		"TASK19_SMOKE_CHILD_LOG="+childLogPath,
 		"TASK19_SMOKE_NATIVE_CONFORMANCE_CHILD=1",
+	)
+}
+
+func verifyNativeConformanceEnvironment(values []string, temporaryDirectory, nativeTestBinary, logPath, projectPath, childLogPath string) []string {
+	result := make([]string, 0, len(values)+10)
+	for _, value := range values {
+		name, _, _ := strings.Cut(value, "=")
+		upper := strings.ToUpper(name)
+		if upper == "PATH" || upper == "BASH_ENV" || upper == "TMPDIR" || upper == "CGO_ENABLED" ||
+			strings.HasPrefix(upper, "TALENRO_") || strings.HasPrefix(upper, "C11_") ||
+			strings.HasPrefix(upper, "COMPOSE_") || strings.HasPrefix(upper, "TASK19_") {
+			continue
+		}
+		result = append(result, value)
+	}
+	return append(result,
+		"TMPDIR="+temporaryDirectory,
+		"TASK19_NATIVE_TEST_BINARY="+nativeTestBinary,
+		"TASK19_FAKE_LOG="+logPath,
+		"TASK19_FAKE_PROJECT="+projectPath,
+		"TASK19_VERIFY_NATIVE_CHILD_LOG="+childLogPath,
+		"TASK19_VERIFY_NATIVE_CONFORMANCE_CHILD=1",
+		"C11_UNOWNED_PRIVATE=C11-AMBIENT-PRIVATE-19",
+		"TALENRO_UNOWNED_PRIVATE=TALENRO-AMBIENT-PRIVATE-19",
+		"COMPOSE_PROJECT_NAME=COMPOSE-AMBIENT-PRIVATE-19",
+		"CGO_ENABLED=invalid-ambient-19",
 	)
 }
 
@@ -2051,6 +2398,18 @@ func findContractBash() string {
 	}
 	path, _ := exec.LookPath("bash")
 	return path
+}
+
+func findGitForWindowsBash() string {
+	if runtime.GOOS != "windows" {
+		return ""
+	}
+	for _, candidate := range []string{`C:\Program Files\Git\bin\bash.exe`, `C:\Program Files\Git\usr\bin\bash.exe`} {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate
+		}
+	}
+	return ""
 }
 
 func gitBashPath(path string) string {

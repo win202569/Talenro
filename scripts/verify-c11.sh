@@ -18,6 +18,7 @@ compose_touched=0
 compose_project=''
 compose_override=''
 conformance_binary=''
+conformance_environment_binary=''
 declare -a compose=()
 captured_output=''
 
@@ -372,6 +373,59 @@ validate_conformance_binary() {
   fi
 }
 
+capture_conformance_environment_binary() {
+  local LC_ALL=C
+  local stdout_path stderr_path size='' candidate='' status=0 cleanup_status=0
+  ((run_counter += 1))
+  printf -v stdout_path '%s/command-%03d.stdout' "${run_dir}" "${run_counter}"
+  printf -v stderr_path '%s/command-%03d.stderr' "${run_dir}" "${run_counter}"
+  if timeout --kill-after=5s 10s cygpath -w -- "${conformance_binary}" >"${stdout_path}" 2>"${stderr_path}"; then
+    :
+  else
+    status=$?
+  fi
+  if ((status == 0)); then
+    if size=$(wc -c <"${stdout_path}" 2>/dev/null) &&
+       [[ "${size}" =~ ^[0-9]+$ ]] && ((10#${size} >= 1 && 10#${size} <= 4096)); then
+      :
+    else
+      status=1
+    fi
+  fi
+  if ((status == 0)); then
+    if IFS= read -r candidate <"${stdout_path}"; then
+      :
+    else
+      status=1
+    fi
+  fi
+  if ((status == 0)); then
+    if printf '%s\n' "${candidate}" | cmp -s - "${stdout_path}"; then
+      :
+    else
+      status=1
+    fi
+  fi
+  if ((status == 0)) &&
+     { [[ -z "${candidate}" || "${candidate}" =~ [[:cntrl:]] ]] ||
+       [[ ! "${candidate}" =~ ^[[:alpha:]]:[\\/].* ]]; }; then
+    status=1
+  fi
+  rm -f -- "${stdout_path}" "${stderr_path}" >/dev/null 2>&1 || cleanup_status=1
+  if ((status != 0 || cleanup_status != 0)); then
+    printf '%s\n' 'verify-c11: conformance binary path conversion failed with exit code 1.' >&2
+    return 1
+  fi
+  conformance_environment_binary=${candidate}
+}
+
+derive_conformance_environment_binary() {
+  conformance_environment_binary=${conformance_binary}
+  case "${OSTYPE:-}" in
+    msys*|cygwin*) capture_conformance_environment_binary ;;
+  esac
+}
+
 run_e2e_tests() {
   local name previous='' previous_set=0 status
   for name in C11_E2E_COMPOSE_PROJECT C11_E2E_DATABASE_URL C11_E2E_REDIS_ADDRESS C11_E2E_NATS_URL; do
@@ -380,11 +434,12 @@ run_e2e_tests() {
       return 1
     fi
   done
+  derive_conformance_environment_binary
   if [[ ${C11_CONFORMANCE_BINARY+x} ]]; then
     previous=${C11_CONFORMANCE_BINARY}
     previous_set=1
   fi
-  export C11_CONFORMANCE_BINARY=${conformance_binary}
+  export C11_CONFORMANCE_BINARY=${conformance_environment_binary}
   if run_quiet 'e2e tests' 600 go test -tags=e2e ./internal/e2e -count=1 -timeout 10m; then
     status=0
   else
