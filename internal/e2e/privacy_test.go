@@ -39,12 +39,13 @@ import (
 )
 
 const (
-	fixturePrivacyCaptureLimit        = 64 << 10
-	fixturePrivacyLogBaseline         = "c11 privacy log sink exercised"
-	fixturePrivacyProviderSurface     = "provider-error"
-	fixturePrivacyPanicSurface        = "provider-panic"
-	fixtureSmokeNativeValidatorMarker = "task19-native-validator-pass"
-	fixturePrivacyLogEvidence         = 1 << iota
+	fixturePrivacyCaptureLimit         = 64 << 10
+	fixturePrivacyLogBaseline          = "c11 privacy log sink exercised"
+	fixturePrivacyProviderSurface      = "provider-error"
+	fixturePrivacyPanicSurface         = "provider-panic"
+	fixtureSmokeNativeValidatorMarker  = "task19-native-validator-pass"
+	fixtureSmokeNativeExecutableMarker = "task19-native-executable-pass"
+	fixturePrivacyLogEvidence          = 1 << iota
 	fixturePrivacyReportEvidence
 	fixturePrivacyProviderEvidence
 	fixturePrivacyPanicEvidence
@@ -239,8 +240,9 @@ func TestSmokeBashWindowsConformancePathReachesNativeGo(t *testing.T) {
 		t.Fatal("smoke Bash native conformance-path regression exceeded its hard bound")
 	}
 	curlLog, _ := os.ReadFile(filepath.Join(fakeDirectory, "curl.log"))
+	childLog, _ := os.ReadFile(filepath.Join(fakeDirectory, "native-child.log"))
 	if actual := commandExitStatus(runErr); actual != 73 {
-		t.Fatalf("smoke Bash native conformance-path regression exit code: got %d, want 73; output=%q curl=%q", actual, outputCapture.bytes(), curlLog)
+		t.Fatalf("smoke Bash native conformance-path regression exit code: got %d, want 73; output=%q curl=%q child=%q", actual, outputCapture.bytes(), curlLog, childLog)
 	}
 	if output := string(outputCapture.bytes()); output != "smoke: C1.1 happy path failed with exit code 73.\n" {
 		t.Fatalf("smoke Bash native conformance-path regression output: got %q", output)
@@ -249,10 +251,15 @@ func TestSmokeBashWindowsConformancePathReachesNativeGo(t *testing.T) {
 	if string(curlLog) != wantCurlLog {
 		t.Fatalf("smoke Bash native conformance-path regression probes: got %q", curlLog)
 	}
-	childLog, _ := os.ReadFile(filepath.Join(fakeDirectory, "native-child.log"))
 	if strings.Count(string(childLog), fixtureSmokeNativeValidatorMarker+"\n") != 1 ||
+		strings.Count(string(childLog), fixtureSmokeNativeExecutableMarker+"\n") != 1 ||
+		!strings.Contains(string(childLog), "--- PASS: TestSmokeBashNativeConformanceExecutableChild") ||
 		!strings.Contains(string(childLog), "--- PASS: TestSmokeBashNativeConformancePathChild") {
 		t.Fatalf("smoke Bash native conformance-path child did not prove validator success: output=%q", childLog)
+	}
+	remaining, err := os.ReadDir(temporaryDirectory)
+	if err != nil || len(remaining) != 0 {
+		t.Fatalf("smoke Bash native conformance-path cleanup left test-owned artifacts: entries=%v err=%v", remaining, err)
 	}
 }
 
@@ -260,10 +267,39 @@ func TestSmokeBashNativeConformancePathChild(t *testing.T) {
 	if os.Getenv("TASK19_SMOKE_NATIVE_CONFORMANCE_CHILD") != "1" {
 		t.Skip("only exercised by the smoke Bash native-path regression")
 	}
-	if _, err := validatedConformanceBinaryPath(os.Getenv(fixtureConformancePath)); err != nil {
+	binary, err := validatedConformanceBinaryPath(os.Getenv(fixtureConformancePath))
+	if err != nil {
 		t.Fatalf("native Go rejected smoke conformance binary path: %v", err)
 	}
+	commandContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	command := exec.CommandContext(commandContext, binary, "-test.v", "-test.run=^TestSmokeBashNativeConformanceExecutableChild$", "-test.timeout=5s") //nolint:gosec // Exact validator-approved test-owned native executable.
+	command.Env = append(os.Environ(), "TASK19_SMOKE_NATIVE_CONFORMANCE_EXECUTABLE_CHILD=1")
+	command.WaitDelay = 2 * time.Second
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("native Go conformance executable child exceeded its hard bound")
+	}
+	if runErr != nil {
+		t.Fatalf("native Go could not execute smoke conformance binary: %v; output=%q", runErr, outputCapture.bytes())
+	}
+	childOutput := string(outputCapture.bytes())
+	if strings.Count(childOutput, fixtureSmokeNativeExecutableMarker+"\n") != 1 ||
+		!strings.Contains(childOutput, "--- PASS: TestSmokeBashNativeConformanceExecutableChild") {
+		t.Fatalf("native Go conformance executable child did not prove execution: output=%q", outputCapture.bytes())
+	}
+	fmt.Print(childOutput)
 	fmt.Println(fixtureSmokeNativeValidatorMarker)
+}
+
+func TestSmokeBashNativeConformanceExecutableChild(t *testing.T) {
+	if os.Getenv("TASK19_SMOKE_NATIVE_CONFORMANCE_EXECUTABLE_CHILD") != "1" {
+		t.Skip("only exercised by the smoke Bash native-executable regression")
+	}
+	fmt.Println(fixtureSmokeNativeExecutableMarker)
 }
 
 func TestScriptCleanupExitStatusContracts(t *testing.T) {
@@ -1486,19 +1522,27 @@ set -eu
 case "${1:-}" in
   tool) exit 0 ;;
   build)
-    printf '%s\n' '#!/bin/bash' 'trap "exit 0" TERM INT' 'while :; do sleep 1; done' >"${3}"
+    target=${4//\\//}
+    case "${target}" in
+      */cmd/trust-conformance) cp -- "${TASK19_NATIVE_TEST_BINARY}" "${3}" ;;
+      *) printf '%s\n' '#!/bin/bash' 'trap "exit 0" TERM INT' 'while :; do sleep 1; done' >"${3}" ;;
+    esac
     chmod 700 "${3}"
     exit 0
     ;;
   test)
     env -u TMPDIR "${TASK19_NATIVE_TEST_BINARY}" -test.v -test.run='^TestSmokeBashNativeConformancePathChild$' -test.timeout=20s >"${TASK19_SMOKE_CHILD_LOG}" 2>&1
     grep -Fqx -- '__NATIVE_VALIDATOR_MARKER__' "${TASK19_SMOKE_CHILD_LOG}"
+    grep -Fqx -- '__NATIVE_EXECUTABLE_MARKER__' "${TASK19_SMOKE_CHILD_LOG}"
+    grep -Fq -- '--- PASS: TestSmokeBashNativeConformanceExecutableChild' "${TASK19_SMOKE_CHILD_LOG}"
+    grep -Fq -- '--- PASS: TestSmokeBashNativeConformancePathChild' "${TASK19_SMOKE_CHILD_LOG}"
     exit 73
     ;;
 esac
 exit 0
 `
-	return strings.ReplaceAll(body, "__NATIVE_VALIDATOR_MARKER__", fixtureSmokeNativeValidatorMarker)
+	body = strings.ReplaceAll(body, "__NATIVE_VALIDATOR_MARKER__", fixtureSmokeNativeValidatorMarker)
+	return strings.ReplaceAll(body, "__NATIVE_EXECUTABLE_MARKER__", fixtureSmokeNativeExecutableMarker)
 }
 
 func fakeSmokeConformanceDockerShell() string {

@@ -157,7 +157,10 @@ create_build_directory() {
   fi
   api_binary="${build_dir}/control-api"
   mirror_binary="${build_dir}/bundle-mirror"
-  conformance_binary="${build_dir}/trust-conformance"
+  case "${OSTYPE,,}" in
+    msys*|cygwin*) conformance_binary="${build_dir}/trust-conformance.exe" ;;
+    *) conformance_binary="${build_dir}/trust-conformance" ;;
+  esac
   control_stdout="${build_dir}/control-api.stdout.sink"
   control_stderr="${build_dir}/control-api.stderr.sink"
   mirror_a_stdout="${build_dir}/mirror-a.stdout.sink"
@@ -242,14 +245,18 @@ create_build_directory() {
 }
 
 remove_build_directory() {
-  local canonical_root expected_prefix file
+  local canonical_root expected_prefix expected_conformance_binary file
   [[ -n "${build_dir}" ]] || return 0
   if ! canonical_root="$(cd -- "${TMPDIR:-/tmp}" 2>/dev/null && pwd -P)"; then
     return 1
   fi
   expected_prefix="${canonical_root}/talenro-smoke-c11."
+  case "${OSTYPE,,}" in
+    msys*|cygwin*) expected_conformance_binary="${build_dir}/trust-conformance.exe" ;;
+    *) expected_conformance_binary="${build_dir}/trust-conformance" ;;
+  esac
   if [[ "${build_dir}" != "${expected_prefix}"* || "${api_binary}" != "${build_dir}/control-api" ||
-        "${mirror_binary}" != "${build_dir}/bundle-mirror" || "${conformance_binary}" != "${build_dir}/trust-conformance" ||
+        "${mirror_binary}" != "${build_dir}/bundle-mirror" || "${conformance_binary}" != "${expected_conformance_binary}" ||
         "${compose_override}" != "${build_dir}/compose.ephemeral.yaml" || "${nats_config}" != "${build_dir}/nats.conf" ]]; then
     return 1
   fi
