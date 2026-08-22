@@ -375,6 +375,18 @@ function Clear-C11AmbientEnvironment {
   }
 }
 
+function Set-C11RuntimeEnvironment {
+  param([Parameter(Mandatory)]$Runtime)
+
+  [System.Environment]::SetEnvironmentVariable('TALENRO_DATABASE_URL', $Runtime.DatabaseURL, 'Process')
+  [System.Environment]::SetEnvironmentVariable('TALENRO_REDIS_ADDRESS', $Runtime.RedisAddress, 'Process')
+  [System.Environment]::SetEnvironmentVariable('TALENRO_NATS_URL', $Runtime.NATSURL, 'Process')
+  [System.Environment]::SetEnvironmentVariable('C11_E2E_COMPOSE_PROJECT', $Runtime.Project, 'Process')
+  [System.Environment]::SetEnvironmentVariable('C11_E2E_DATABASE_URL', $Runtime.DatabaseURL, 'Process')
+  [System.Environment]::SetEnvironmentVariable('C11_E2E_REDIS_ADDRESS', $Runtime.RedisAddress, 'Process')
+  [System.Environment]::SetEnvironmentVariable('C11_E2E_NATS_URL', $Runtime.NATSURL, 'Process')
+}
+
 function Get-C11FileSHA256 {
   param([Parameter(Mandatory)][string]$Path)
 
@@ -739,13 +751,7 @@ function Invoke-C11Main {
       Invoke-C11Stage -Stage 'golangci-lint' -FilePath 'go' -ArgumentList @('tool', 'golangci-lint', 'run', './...')
 
       $runtime = Initialize-C11Dependencies -ComposeOverride $composeOverride
-      [System.Environment]::SetEnvironmentVariable('TALENRO_DATABASE_URL', $runtime.DatabaseURL, 'Process')
-      [System.Environment]::SetEnvironmentVariable('TALENRO_REDIS_ADDRESS', $runtime.RedisAddress, 'Process')
-      [System.Environment]::SetEnvironmentVariable('TALENRO_NATS_URL', $runtime.NATSURL, 'Process')
-      [System.Environment]::SetEnvironmentVariable('C11_E2E_COMPOSE_PROJECT', $runtime.Project, 'Process')
-      [System.Environment]::SetEnvironmentVariable('C11_E2E_DATABASE_URL', $runtime.DatabaseURL, 'Process')
-      [System.Environment]::SetEnvironmentVariable('C11_E2E_REDIS_ADDRESS', $runtime.RedisAddress, 'Process')
-      [System.Environment]::SetEnvironmentVariable('C11_E2E_NATS_URL', $runtime.NATSURL, 'Process')
+      Set-C11RuntimeEnvironment -Runtime $runtime
 
       Invoke-C11Stage -Stage 'migrations up' -FilePath 'go' -ArgumentList @(
         'tool', 'goose', '-dir', $migrationDirectory, 'postgres', $runtime.DatabaseURL, 'up'
@@ -759,6 +765,14 @@ function Invoke-C11Main {
       Invoke-C11Stage -Stage 'integration tests' -FilePath 'go' -ArgumentList @(
         'test', '-tags=integration', './...', '-count=1', '-timeout', '10m'
       )
+
+      Close-C11Dependencies
+      Clear-C11AmbientEnvironment
+      $runtime = Initialize-C11Dependencies -ComposeOverride $composeOverride
+      Set-C11RuntimeEnvironment -Runtime $runtime
+      Invoke-C11Stage -Stage 'e2e migrations up' -FilePath 'go' -ArgumentList @(
+        'tool', 'goose', '-dir', $migrationDirectory, 'postgres', $runtime.DatabaseURL, 'up'
+      ) -TimeoutSeconds 120
 
       $conformanceBinary = Join-Path $script:C11RunDirectory 'trust-conformance.exe'
       Invoke-C11Stage -Stage 'conformance build' -FilePath 'go' -WorkingDirectory $repoRoot -ArgumentList @(

@@ -474,6 +474,11 @@ run_quiet 'migrations down-to 1' 120 go tool goose -dir "${repo_root}/db/migrati
 run_quiet 'migrations restore' 120 go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
 run_quiet 'integration tests' 600 go test -tags=integration ./... -count=1 -timeout 10m
 
+stop_dependencies
+clear_ambient_environment
+start_dependencies
+run_quiet 'e2e migrations up' 120 go tool goose -dir "${repo_root}/db/migrations" postgres "${TALENRO_DATABASE_URL}" up
+
 conformance_binary=${run_dir}/trust-conformance
 case "${OSTYPE:-}" in
   msys*|cygwin*) conformance_binary=${conformance_binary}.exe ;;

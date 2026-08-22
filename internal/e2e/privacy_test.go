@@ -1230,6 +1230,7 @@ if not errorlevel 1 (
     if not defined C11_E2E_REDIS_ADDRESS set "exact=exact4-missing"
     if not defined C11_E2E_NATS_URL set "exact=exact4-missing"
     echo !exact! >>"%TASK19_FAKE_LOG%"
+    echo e2e-visible project=!C11_E2E_COMPOSE_PROJECT! database=!C11_E2E_DATABASE_URL! redis=!C11_E2E_REDIS_ADDRESS! nats=!C11_E2E_NATS_URL! >>"%TASK19_FAKE_LOG%"
     if defined C11_E2E_EXTERNAL_DEPENDENCIES echo legacy-marker >>"%TASK19_FAKE_LOG%"
     set "conformance=conformance-ok"
     if not defined C11_CONFORMANCE_BINARY set "conformance=conformance-missing"
@@ -1265,19 +1266,34 @@ set "TASK19_FAKE_PROJECT=__PROJECT_PATH__"
 echo docker %* >>"%TASK19_FAKE_LOG%"
 if "%1"=="compose" (
   if "%2"=="--project-name" (
-    >"%TASK19_FAKE_PROJECT%" echo %3
+    if "%6"=="up" (
+      set "lifecycle=first"
+      if exist "%TASK19_FAKE_PROJECT%" set "lifecycle=second"
+      >"%TASK19_FAKE_PROJECT%" echo !lifecycle!^|%3
+      if "!lifecycle!"=="first" echo task19-lifecycle first project=%3 database=postgres://talenro:talenro_dev@127.0.0.1:15432/talenro?sslmode=disable redis=127.0.0.1:16379 nats=nats://127.0.0.1:14222 >>"%TASK19_FAKE_LOG%"
+      if "!lifecycle!"=="second" echo task19-lifecycle second project=%3 database=postgres://talenro:talenro_dev@127.0.0.1:15433/talenro?sslmode=disable redis=127.0.0.1:16380 nats=nats://127.0.0.1:14223 >>"%TASK19_FAKE_LOG%"
+    )
     if "%6"=="ps" (echo 0123456789abcdef0123456789abcdef& exit /b 0)
     if "%6"=="port" (
-      if "%7"=="postgres" (echo 127.0.0.1:15432& exit /b 0)
-      if "%7"=="redis" (echo 127.0.0.1:16379& exit /b 0)
-      if "%7"=="nats" (echo 127.0.0.1:14222& exit /b 0)
+      set /p state=<"%TASK19_FAKE_PROJECT%"
+      for /f "tokens=1 delims=|" %%A in ("!state!") do set "lifecycle=%%A"
+      if "!lifecycle!"=="first" (
+        if "%7"=="postgres" (echo 127.0.0.1:15432& exit /b 0)
+        if "%7"=="redis" (echo 127.0.0.1:16379& exit /b 0)
+        if "%7"=="nats" (echo 127.0.0.1:14222& exit /b 0)
+      )
+      if "!lifecycle!"=="second" (
+        if "%7"=="postgres" (echo 127.0.0.1:15433& exit /b 0)
+        if "%7"=="redis" (echo 127.0.0.1:16380& exit /b 0)
+        if "%7"=="nats" (echo 127.0.0.1:14223& exit /b 0)
+      )
     )
   )
   exit /b 0
 )
 if "%1"=="inspect" (
-  set /p project=<"%TASK19_FAKE_PROJECT%"
-  echo !project!
+  set /p state=<"%TASK19_FAKE_PROJECT%"
+  for /f "tokens=1,2 delims=|" %%A in ("!state!") do echo %%B
   exit /b 0
 )
 exit /b 0
@@ -1329,6 +1345,7 @@ if [[ "${1:-}" == test && " $* " == *' -tags=e2e '* ]]; then
   else
     printf '%s\n' exact4-missing >>"${TASK19_FAKE_LOG}"
   fi
+  printf 'e2e-visible project=%s database=%s redis=%s nats=%s\n' "${C11_E2E_COMPOSE_PROJECT:-}" "${C11_E2E_DATABASE_URL:-}" "${C11_E2E_REDIS_ADDRESS:-}" "${C11_E2E_NATS_URL:-}" >>"${TASK19_FAKE_LOG}"
   [[ -z "${C11_E2E_EXTERNAL_DEPENDENCIES:-}" ]] || printf '%s\n' legacy-marker >>"${TASK19_FAKE_LOG}"
   if [[ -n "${C11_CONFORMANCE_BINARY:-}" && -x "${C11_CONFORMANCE_BINARY}" ]]; then
     case "${C11_CONFORMANCE_BINARY}" in
@@ -1381,21 +1398,34 @@ func fakeDockerShell() string {
 set -eu
 printf 'docker %s\n' "$*" >>"${TASK19_FAKE_LOG}"
 if [[ "${1:-}" == compose && "${2:-}" == --project-name ]]; then
-  printf '%s\n' "${3}" >"${TASK19_FAKE_PROJECT}"
+  if [[ "${6:-}" == up ]]; then
+    lifecycle=first
+    [[ -f "${TASK19_FAKE_PROJECT}" ]] && lifecycle=second
+    printf '%s|%s\n' "${lifecycle}" "${3}" >"${TASK19_FAKE_PROJECT}"
+    case "${lifecycle}" in
+      first) printf 'task19-lifecycle first project=%s database=postgres://talenro:talenro_dev@127.0.0.1:15432/talenro?sslmode=disable redis=127.0.0.1:16379 nats=nats://127.0.0.1:14222\n' "${3}" >>"${TASK19_FAKE_LOG}" ;;
+      second) printf 'task19-lifecycle second project=%s database=postgres://talenro:talenro_dev@127.0.0.1:15433/talenro?sslmode=disable redis=127.0.0.1:16380 nats=nats://127.0.0.1:14223\n' "${3}" >>"${TASK19_FAKE_LOG}" ;;
+    esac
+  fi
+  IFS='|' read -r lifecycle project <"${TASK19_FAKE_PROJECT}"
   case "${6:-}" in
     ps) printf '%s\n' 0123456789abcdef0123456789abcdef ;;
     port)
-      case "${7:-}" in
-        postgres) printf '%s\n' 127.0.0.1:15432 ;;
-        redis) printf '%s\n' 127.0.0.1:16379 ;;
-        nats) printf '%s\n' 127.0.0.1:14222 ;;
+      case "${lifecycle}:${7:-}" in
+        first:postgres) printf '%s\n' 127.0.0.1:15432 ;;
+        first:redis) printf '%s\n' 127.0.0.1:16379 ;;
+        first:nats) printf '%s\n' 127.0.0.1:14222 ;;
+        second:postgres) printf '%s\n' 127.0.0.1:15433 ;;
+        second:redis) printf '%s\n' 127.0.0.1:16380 ;;
+        second:nats) printf '%s\n' 127.0.0.1:14223 ;;
       esac
       ;;
   esac
   exit 0
 fi
 if [[ "${1:-}" == inspect ]]; then
-  cat -- "${TASK19_FAKE_PROJECT}"
+  IFS='|' read -r lifecycle project <"${TASK19_FAKE_PROJECT}"
+  printf '%s\n' "${project}"
 fi
 exit 0
 `
@@ -1506,6 +1536,7 @@ func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath
 		t.Fatalf("verify-c11 %s environment isolation contract failed; markers=%q, commands=%q", shell,
 			observedContractMarkers(transcript), observedCommandClasses(transcript))
 	}
+	assertE2ELifecycleRebinding(t, shell, transcript)
 	if !regexp.MustCompile(`talenro-c11-verify-[0-9a-f]{12}`).MatchString(transcript) {
 		t.Fatalf("verify-c11 %s did not use an owned compose project", shell)
 	}
@@ -1515,10 +1546,78 @@ func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath
 		"go test ./... -count=1", "go test -run ^$ -fuzz ^FuzzDecode$", "go test -race ./... -count=1",
 		"go vet ./...", "go tool golangci-lint run ./...", "docker compose --project-name",
 		"docker inspect", "go tool goose -dir", "go test -tags=integration ./... -count=1",
+		"down --remove-orphans --timeout 20", "up -d --wait --wait-timeout 120 postgres redis nats",
+		"docker inspect", "go tool goose -dir",
 		"go build -o", "docker compose --project-name", "docker compose -f deploy/dev/compose.yaml config --quiet",
 		"go test -tags=e2e ./internal/e2e -count=1",
 		"docker compose --project-name",
 	})
+}
+
+type e2eLifecycleTuple struct {
+	project  string
+	database string
+	redis    string
+	nats     string
+}
+
+func assertE2ELifecycleRebinding(t *testing.T, shell, transcript string) {
+	t.Helper()
+	first := parseE2ELifecycleTuple(t, shell, transcript, "task19-lifecycle first")
+	second := parseE2ELifecycleTuple(t, shell, transcript, "task19-lifecycle second")
+	visible := parseE2ELifecycleTuple(t, shell, transcript, "e2e-visible")
+	if visible.project != second.project {
+		t.Fatalf("verify-c11 %s E2E binding did not rebind project to the second lifecycle", shell)
+	}
+	bindings := []struct {
+		name    string
+		first   string
+		second  string
+		visible string
+	}{
+		{name: "database", first: first.database, second: second.database, visible: visible.database},
+		{name: "redis", first: first.redis, second: second.redis, visible: visible.redis},
+		{name: "nats", first: first.nats, second: second.nats, visible: visible.nats},
+	}
+	for _, binding := range bindings {
+		if binding.first == binding.second {
+			t.Fatalf("verify-c11 %s fake dependency lifecycles did not differ for %s", shell, binding.name)
+		}
+		if binding.visible != binding.second || binding.visible == binding.first {
+			t.Fatalf("verify-c11 %s E2E binding did not rebind %s to the second lifecycle", shell, binding.name)
+		}
+	}
+}
+
+func parseE2ELifecycleTuple(t *testing.T, shell, transcript, prefix string) e2eLifecycleTuple {
+	t.Helper()
+	var tuple e2eLifecycleTuple
+	matches := 0
+	for _, line := range strings.Split(transcript, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 5 || strings.Join(fields[:len(strings.Fields(prefix))], " ") != prefix {
+			continue
+		}
+		matches++
+		values := make(map[string]string, 4)
+		for _, field := range fields[len(strings.Fields(prefix)):] {
+			name, value, found := strings.Cut(field, "=")
+			if !found || values[name] != "" || (name != "project" && name != "database" && name != "redis" && name != "nats") {
+				t.Fatalf("verify-c11 %s recorded malformed %s lifecycle tuple", shell, prefix)
+			}
+			values[name] = value
+		}
+		tuple = e2eLifecycleTuple{
+			project: values["project"], database: values["database"], redis: values["redis"], nats: values["nats"],
+		}
+		if len(values) != 4 {
+			t.Fatalf("verify-c11 %s recorded an incomplete %s lifecycle tuple", shell, prefix)
+		}
+	}
+	if matches != 1 || tuple.project == "" || tuple.database == "" || tuple.redis == "" || tuple.nats == "" {
+		t.Fatalf("verify-c11 %s recorded an incomplete %s lifecycle tuple", shell, prefix)
+	}
+	return tuple
 }
 
 func assertGoCGOModes(t *testing.T, shell, transcript string) {
