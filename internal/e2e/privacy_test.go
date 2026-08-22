@@ -147,6 +147,59 @@ func TestVerifyC11PowerShellContract(t *testing.T) {
 	requirePowerShellContract(t)
 }
 
+func TestVerifyC11PowerShellGitBashSelectionContract(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("verify-c11 PowerShell Git Bash selection contract is isolated to Windows")
+	}
+	repoRoot := e2eRepositoryRoot(t)
+	script := filepath.Join(repoRoot, "scripts", "verify-c11.ps1")
+	if info, err := os.Stat(script); err != nil || info.IsDir() {
+		t.Fatal("verify-c11 PowerShell entrypoint is missing")
+	}
+	powerShell, err := exec.LookPath("powershell")
+	if err != nil {
+		t.Fatal("verify-c11 PowerShell executable is missing")
+	}
+
+	testDirectory := t.TempDir()
+	harness := filepath.Join(testDirectory, "bash-selection-contract.ps1")
+	pathAlias := filepath.Join(testDirectory, "bash.exe")
+	missingFirst := filepath.Join(testDirectory, "approved-first-missing.exe")
+	existingSecond := filepath.Join(testDirectory, "approved-second-existing.exe")
+	missingOnlyFirst := filepath.Join(testDirectory, "approved-none-first.exe")
+	missingOnlySecond := filepath.Join(testDirectory, "approved-none-second.exe")
+	writeFakeTool(t, harness, powerShellBashSelectionContract())
+	writeFakeTool(t, pathAlias, "test-owned PATH alias")
+	writeFakeTool(t, existingSecond, "test-owned approved candidate")
+
+	commandContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	command := exec.CommandContext(commandContext, powerShell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-ScriptPath", script,
+		"-PathAlias", pathAlias,
+		"-MissingFirst", missingFirst,
+		"-ExistingSecond", existingSecond,
+		"-MissingOnlyFirst", missingOnlyFirst,
+		"-MissingOnlySecond", missingOnlySecond,
+	) //nolint:gosec // Fixed reviewed PowerShell and test-owned paths.
+	command.WaitDelay = 2 * time.Second
+	command.Dir = repoRoot
+	command.Env = environmentWithPath(os.Environ(), testDirectory)
+	outputCapture := newBoundedCommandCapture()
+	command.Stdout = outputCapture
+	command.Stderr = outputCapture
+	runErr := command.Run()
+	if commandContext.Err() != nil || outputCapture.overflowed() {
+		t.Fatal("verify-c11 PowerShell Git Bash selection contract exceeded its hard bound")
+	}
+	if runErr != nil {
+		t.Fatalf("verify-c11 PowerShell Git Bash selection contract failed with exit code %d: output=%q", commandExitStatus(runErr), outputCapture.bytes())
+	}
+	if output := strings.TrimSpace(string(outputCapture.bytes())); output != "selection:approved-later-and-null" {
+		t.Fatalf("verify-c11 PowerShell Git Bash selection contract returned unexpected output: %q", output)
+	}
+}
+
 func TestVerifyC11BashContract(t *testing.T) {
 	requireBashContract(t)
 }
@@ -1177,6 +1230,54 @@ func commandExitStatus(runErr error) int {
 	return -1
 }
 
+func powerShellBashSelectionContract() string {
+	return `param(
+  [Parameter(Mandatory)][string]$ScriptPath,
+  [Parameter(Mandatory)][string]$PathAlias,
+  [Parameter(Mandatory)][string]$MissingFirst,
+  [Parameter(Mandatory)][string]$ExistingSecond,
+  [Parameter(Mandatory)][string]$MissingOnlyFirst,
+  [Parameter(Mandatory)][string]$MissingOnlySecond
+)
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+$tokens = $null
+$errors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($ScriptPath, [ref]$tokens, [ref]$errors)
+if ($errors.Count -ne 0) { throw 'source parse failed' }
+$definitions = @($ast.FindAll({
+  param($node)
+  $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $node.Name -eq 'Get-C11BashExecutable'
+}, $true))
+if ($definitions.Count -ne 1) { throw 'function resolution failed' }
+Invoke-Expression $definitions[0].Extent.Text
+
+$selected = Get-C11BashExecutable -Candidates @($MissingFirst, $ExistingSecond)
+if ($selected -ne $ExistingSecond) {
+  if ($selected -eq $PathAlias) {
+    [Console]::Error.WriteLine('selection:path-alias')
+    exit 71
+  }
+  [Console]::Error.WriteLine('selection:unexpected')
+  exit 72
+}
+
+$missingSelection = Get-C11BashExecutable -Candidates @($MissingOnlyFirst, $MissingOnlySecond)
+if ($null -ne $missingSelection) {
+  if ($missingSelection -eq $PathAlias) {
+    [Console]::Error.WriteLine('none-selection:path-alias')
+    exit 73
+  }
+  [Console]::Error.WriteLine('none-selection:unexpected')
+  exit 74
+}
+
+[Console]::Out.WriteLine('selection:approved-later-and-null')
+`
+}
+
 func cleanupContractPowerShell() string {
 	return `param(
   [Parameter(Mandatory)][string]$ScriptPath,
@@ -1699,6 +1800,18 @@ set -eu
 printf 'gofmt %s\n' "$*" >>"${TASK19_FAKE_LOG}"
 exit 0
 `
+}
+
+func environmentWithPath(values []string, path string) []string {
+	result := make([]string, 0, len(values)+1)
+	for _, value := range values {
+		name, _, _ := strings.Cut(value, "=")
+		if strings.EqualFold(name, "PATH") {
+			continue
+		}
+		result = append(result, value)
+	}
+	return append(result, "PATH="+path)
 }
 
 func contractEnvironment(values []string, fakeDirectory, logPath, projectPath string) []string {

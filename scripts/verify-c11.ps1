@@ -614,15 +614,14 @@ function Close-C11Dependencies {
 }
 
 function Get-C11BashExecutable {
-  $commands = @(Get-Command -Name 'bash' -CommandType Application -ErrorAction SilentlyContinue)
-  if ($commands.Count -gt 0) {
-    return $commands[0].Source
-  }
+  param(
+    [string[]]$Candidates = @(
+      'C:\Program Files\Git\bin\bash.exe',
+      'C:\Program Files\Git\usr\bin\bash.exe'
+    )
+  )
 
-  foreach ($candidate in @(
-    'C:\Program Files\Git\bin\bash.exe',
-    'C:\Program Files\Git\usr\bin\bash.exe'
-  )) {
+  foreach ($candidate in $Candidates) {
     if ([System.IO.File]::Exists($candidate)) {
       return $candidate
     }
