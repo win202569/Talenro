@@ -1,6 +1,6 @@
 # Talenro C1 规格 2：节点与 POP 控制面设计
 
-- 状态：设计决策已确认，待正式文档复核
+- 状态：已批准
 - 日期：2026-08-23
 - 上位架构：[强网络限制环境 VPN 产品架构设计规格](./2026-08-04-resilient-vpn-architecture-design.md)
 - 前置规格：[C1.1 账号主体、设备身份与配置可信根设计](./2026-08-09-account-device-trust-design.md)
