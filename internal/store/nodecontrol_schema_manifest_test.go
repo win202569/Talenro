@@ -39,7 +39,7 @@ var expectedNodeControlConstraintNameSets = map[string]nodeControlNameSetFingerp
 	"node_recovery_states":                   {count: 60, sha256: "5d03711cd741a3308592746de07956cbd9ff0ea800ae1fc6549929db9735f24f"},
 	"node_resource_envelopes":                {count: 57, sha256: "d66f83b7b1cd02e0e60083cd2960cbcc174c7288db0e21c9b47d6c1259b6ff38"},
 	"node_restore_reauthorization_approvals": {count: 43, sha256: "50198b35fdffa7647c661dcde8a1d07af48964cd6a6f8e8e28410088afaff970"},
-	"node_root_metadata_publish_intents":     {count: 47, sha256: "86b11cbd60ab0f9df5cd5fc869f08e798991dd8969509d74ec5b5e7d1b264364"},
+	"node_root_metadata_publish_intents":     {count: 48, sha256: "51d794b1114a4a3e29afec231d4bba58d552c3f86596d4cd8c3b8dd5f8635d17"},
 	"node_root_metadata_signature_shares":    {count: 15, sha256: "2cdbdf1c161aaebac8149244246b955645551b8125f2ee99aab0bbfdda921b44"},
 	"node_security_fault_receipts":           {count: 41, sha256: "e83e8d7ebcf2907731a4501b6e4e82c29efe9f72fd8697bdfca4e24d5a84cf7e"},
 	"node_security_incidents":                {count: 37, sha256: "7ff7bd31ab94733ffcf9de1bc2e9dfeeae300788055c4356e3da843c29c6ee17"},
@@ -408,9 +408,29 @@ func TestNodeControlManifestIsLiteralAndExact(t *testing.T) {
 	}
 	assertTerminalIssuanceRetention(t, manifest)
 	assertTerminalWorkflowsStartPending(t, manifest)
+	assertTrustPublishVersionUniqueness(t, manifest)
 	if compactManifestToken.Match(raw) {
 		t.Fatalf("manifest contains a compact or qualitative semantic token: %q", compactManifestToken.Find(raw))
 	}
+}
+
+func assertTrustPublishVersionUniqueness(t *testing.T, manifest nodeControlManifest) {
+	t.Helper()
+	for _, table := range manifest.Tables {
+		if table.Name != "node_root_metadata_publish_intents" {
+			continue
+		}
+		for _, constraint := range table.Constraints {
+			if constraint.Name != "node_root_metadata_publish_intents_kind_version_key" {
+				continue
+			}
+			if constraint.Kind != "unique" || constraint.DefinitionSQL != "UNIQUE (publish_kind, reserved_version)" || !equalStrings(constraint.Columns, []string{"publish_kind", "reserved_version"}) {
+				t.Fatalf("trust publish version uniqueness constraint is not exact: %+v", constraint)
+			}
+			return
+		}
+	}
+	t.Fatal("manifest lacks immutable per-kind trust publish version uniqueness")
 }
 
 func assertTerminalWorkflowsStartPending(t *testing.T, manifest nodeControlManifest) {
@@ -487,6 +507,30 @@ func TestNodeControlManifestDecoderRejectsAliasesMergesAndUnknownFields(t *testi
 
 func TestNodeControlIndependentAllowlistsRejectMirroredMutations(t *testing.T) {
 	manifest, _ := loadNodeControlManifest(t)
+	versionMutation := cloneNodeControlManifest(manifest)
+	versionConstraintRemoved := false
+	for tableIndex := range versionMutation.Tables {
+		if versionMutation.Tables[tableIndex].Name != "node_root_metadata_publish_intents" {
+			continue
+		}
+		for constraintIndex, constraint := range versionMutation.Tables[tableIndex].Constraints {
+			if constraint.Name != "node_root_metadata_publish_intents_kind_version_key" {
+				continue
+			}
+			versionMutation.Tables[tableIndex].Constraints = append(
+				versionMutation.Tables[tableIndex].Constraints[:constraintIndex],
+				versionMutation.Tables[tableIndex].Constraints[constraintIndex+1:]...,
+			)
+			versionConstraintRemoved = true
+			break
+		}
+	}
+	if !versionConstraintRemoved {
+		t.Fatal("test setup could not remove the trust publish version uniqueness constraint")
+	}
+	if err := validateIndependentNodeControlObjectNames(versionMutation); err == nil {
+		t.Fatal("independent constraint fingerprint accepted removal of trust publish version uniqueness")
+	}
 
 	constraintMutation := cloneNodeControlManifest(manifest)
 	constraintMutation.Tables[0].Constraints = append(constraintMutation.Tables[0].Constraints, nodeControlConstraintSpec{

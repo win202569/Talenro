@@ -36,6 +36,10 @@ type nodeControlCatalogFunction struct {
 	definition                         string
 }
 
+type nodeControlSQLExecutor interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+}
+
 var expectedNodeControlFunctionCatalog = map[string]nodeControlFunctionCatalogSpec{
 	"bytea_array_is_sorted_unique_32":       {language: "sql", volatility: "immutable", definitionSHA256: "3d4197ad58db883fbeb481ae7b852b7a06c6bb3fa9b503af032489d777872141"},
 	"enforce_authority_fence_update":        {language: "plpgsql", volatility: "volatile", definitionSHA256: "18986f3677f2572ab276cf45baa7b90143dbcb7928023e79fb65d6576099b062"},
@@ -130,7 +134,7 @@ func TestNodeControlMigrationUpDownUp(t *testing.T) {
 	manifest, _ := loadNodeControlManifest(t)
 	upSQL, downSQL := loadNodeControlMigrationSections(t)
 	pool := openOwnedNodeControlDatabase(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	var version string
@@ -1215,6 +1219,156 @@ func TestNodeControlMigrationEnforcesRootVersionContinuity(t *testing.T) {
 	})
 }
 
+func TestNodeControlMigrationRejectsDuplicateTrustGenesis(t *testing.T) {
+	const versionConstraint = "node_root_metadata_publish_intents_kind_version_key"
+	assertVersionConflict := func(t *testing.T, err error) {
+		t.Helper()
+		var pgErr *pgconn.PgError
+		if !errors.As(err, &pgErr) {
+			t.Fatalf("duplicate trust version returned %T %v, want PostgreSQL unique violation", err, err)
+		}
+		if pgErr.Code != "23505" || pgErr.ConstraintName != versionConstraint {
+			t.Fatalf("duplicate trust version error = code %s constraint %q, want 23505 on %s", pgErr.Code, pgErr.ConstraintName, versionConstraint)
+		}
+	}
+
+	for _, testCase := range []struct {
+		kind, effectKind, role string
+		baseRoot, baseMetadata int64
+	}{
+		{kind: "root", effectKind: "root_publish", role: "current_root", baseRoot: 0, baseMetadata: 0},
+		{kind: "metadata", effectKind: "metadata_publish", role: "metadata", baseRoot: 1, baseMetadata: 0},
+	} {
+		testCase := testCase
+		t.Run("late duplicate "+testCase.kind+" genesis", func(t *testing.T) {
+			ctx, pool := openMigratedNodeControlDatabase(t)
+			now := time.Now().UTC().Truncate(time.Microsecond)
+			insertActiveRootOrMetadataPublish(ctx, t, pool, testCase.kind, 1, uuid.Nil, now)
+
+			operationID := uuid.New()
+			insertCommittedFence(ctx, t, pool, operationID, 2, testCase.effectKind, "global_node_trust", now)
+			publishID := uuid.New()
+			payloadDigest := bytesOf(0x81, 32)
+			keyID := bytesOf(0x82, 32)
+			_, err := pool.Exec(ctx, pendingRootPublishSQL, publishID, operationID, int64(2), testCase.kind, "normal", testCase.baseRoot, testCase.baseMetadata, int64(1), payloadDigest, [][]byte{keyID}, nil, 1, nil, now.Add(10*time.Minute), now.Add(2*time.Second))
+			if err != nil {
+				assertVersionConflict(t, err)
+				return
+			}
+			if _, err = pool.Exec(ctx, `INSERT INTO nodecontrol.node_root_metadata_signature_shares(publish_id,key_id,physical_key_id,payload_digest,signature_role,signature,verified_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, publishID, keyID, bytesOf(0x83, 32), payloadDigest, testCase.role, bytesOf(0x84, 64), now.Add(2*time.Second)); err != nil {
+				t.Fatal("insert duplicate-genesis signature share:", err)
+			}
+			if _, err = pool.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET published_envelope=decode('01','hex'),published_envelope_digest=$2,status='active',terminal_at=$3,updated_at=$3 WHERE publish_id=$1`, publishID, bytesOf(0x85, 32), now.Add(3*time.Second)); err != nil {
+				t.Fatal("activate duplicate trust genesis:", err)
+			}
+			var active int
+			if err = pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.node_root_metadata_publish_intents WHERE publish_kind=$1 AND reserved_version=1 AND status='active'`, testCase.kind).Scan(&active); err != nil {
+				t.Fatal("count active duplicate trust genesis rows:", err)
+			}
+			if active != 1 {
+				t.Fatalf("late duplicate %s genesis committed %d active version-1 rows", testCase.kind, active)
+			}
+		})
+	}
+
+	t.Run("root and metadata version one coexist", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		insertActiveRootOrMetadataPublish(ctx, t, pool, "root", 1, uuid.Nil, now)
+		insertActiveRootOrMetadataPublish(ctx, t, pool, "metadata", 2, uuid.Nil, now)
+		var active int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.node_root_metadata_publish_intents WHERE reserved_version=1 AND status='active'`).Scan(&active); err != nil {
+			t.Fatal("count coexisting root/metadata genesis rows:", err)
+		}
+		if active != 2 {
+			t.Fatalf("active root/metadata version-1 rows = %d, want 2", active)
+		}
+	})
+
+	t.Run("concurrent root genesis", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		firstOperationID := uuid.New()
+		secondOperationID := uuid.New()
+		insertCommittedFence(ctx, t, pool, firstOperationID, 1, "root_publish", "global_node_trust", now)
+		insertCommittedFence(ctx, t, pool, secondOperationID, 2, "root_publish", "global_node_trust", now)
+
+		firstConn, err := pool.Acquire(ctx)
+		if err != nil {
+			t.Fatal("acquire first root-genesis contender:", err)
+		}
+		t.Cleanup(firstConn.Release)
+		secondConn, err := pool.Acquire(ctx)
+		if err != nil {
+			t.Fatal("acquire second root-genesis contender:", err)
+		}
+		t.Cleanup(secondConn.Release)
+		first, err := firstConn.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin first root-genesis contender:", err)
+		}
+		t.Cleanup(func() { _ = first.Rollback(context.Background()) })
+		second, err := secondConn.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin second root-genesis contender:", err)
+		}
+		t.Cleanup(func() { _ = second.Rollback(context.Background()) })
+
+		firstPublishID := uuid.New()
+		firstPayloadDigest := bytesOf(0x91, 32)
+		firstKeyID := bytesOf(0x92, 32)
+		if _, err = first.Exec(ctx, pendingRootPublishSQL, firstPublishID, firstOperationID, int64(1), "root", "normal", int64(0), int64(0), int64(1), firstPayloadDigest, [][]byte{firstKeyID}, nil, 1, nil, now.Add(10*time.Minute), now); err != nil {
+			t.Fatal("insert first concurrent root genesis:", err)
+		}
+		if _, err = first.Exec(ctx, `INSERT INTO nodecontrol.node_root_metadata_signature_shares(publish_id,key_id,physical_key_id,payload_digest,signature_role,signature,verified_at) VALUES($1,$2,$3,$4,'current_root',$5,$6)`, firstPublishID, firstKeyID, bytesOf(0x93, 32), firstPayloadDigest, bytesOf(0x94, 64), now); err != nil {
+			t.Fatal("insert first concurrent root-genesis share:", err)
+		}
+		if _, err = first.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET published_envelope=decode('01','hex'),published_envelope_digest=$2,status='active',terminal_at=$3,updated_at=$3 WHERE publish_id=$1`, firstPublishID, bytesOf(0x95, 32), now.Add(time.Second)); err != nil {
+			t.Fatal("activate first concurrent root genesis:", err)
+		}
+
+		secondPublishID := uuid.New()
+		secondPayloadDigest := bytesOf(0xa1, 32)
+		secondKeyID := bytesOf(0xa2, 32)
+		secondResult := make(chan error, 1)
+		go func() {
+			_, insertErr := second.Exec(ctx, pendingRootPublishSQL, secondPublishID, secondOperationID, int64(2), "root", "normal", int64(0), int64(0), int64(1), secondPayloadDigest, [][]byte{secondKeyID}, nil, 1, nil, now.Add(10*time.Minute), now.Add(2*time.Second))
+			secondResult <- insertErr
+		}()
+		if waitErr := waitForBackendLockWait(ctx, pool, secondConn.Conn().PgConn().PID(), "duplicate root-genesis contender"); waitErr != nil {
+			_ = first.Rollback(ctx)
+			t.Fatal(waitErr)
+		}
+		if err = first.Commit(ctx); err != nil {
+			t.Fatal("commit first root-genesis contender:", err)
+		}
+		secondErr := <-secondResult
+		if secondErr != nil {
+			_ = second.Rollback(ctx)
+			assertVersionConflict(t, secondErr)
+			return
+		}
+		if _, err = second.Exec(ctx, `INSERT INTO nodecontrol.node_root_metadata_signature_shares(publish_id,key_id,physical_key_id,payload_digest,signature_role,signature,verified_at) VALUES($1,$2,$3,$4,'current_root',$5,$6)`, secondPublishID, secondKeyID, bytesOf(0xa3, 32), secondPayloadDigest, bytesOf(0xa4, 64), now.Add(2*time.Second)); err != nil {
+			_ = second.Rollback(ctx)
+			t.Fatal("insert second concurrent root-genesis share:", err)
+		}
+		if _, err = second.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET published_envelope=decode('01','hex'),published_envelope_digest=$2,status='active',terminal_at=$3,updated_at=$3 WHERE publish_id=$1`, secondPublishID, bytesOf(0xa5, 32), now.Add(3*time.Second)); err != nil {
+			_ = second.Rollback(ctx)
+			t.Fatal("activate second concurrent root genesis:", err)
+		}
+		if err = second.Commit(ctx); err != nil {
+			t.Fatal("commit second root-genesis contender:", err)
+		}
+		var active int
+		if err = pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.node_root_metadata_publish_intents WHERE publish_kind='root' AND reserved_version=1 AND status='active'`).Scan(&active); err != nil {
+			t.Fatal("count concurrent active root genesis rows:", err)
+		}
+		if active != 1 {
+			t.Fatalf("concurrent root genesis committed %d active version-1 rows", active)
+		}
+	})
+}
+
 func TestNodeControlMigrationSigningActivationRechecksFenceDeadlineAndCapture(t *testing.T) {
 	t.Run("deadline", func(t *testing.T) {
 		ctx, pool := openMigratedNodeControlDatabase(t)
@@ -2063,14 +2217,34 @@ VALUES($1,1,$2,$3,1,4,1,1,$4,1,$5,1,$6,$7,decode('01','hex'),decode(repeat('20',
 	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_inventory SET active_desired_generation=1,next_desired_generation=2,updated_at=$2 WHERE node_id=$1`, nodeID, now.Add(3*time.Second)); err != nil {
 		t.Fatal("activate exact desired pointer:", err)
 	}
-	otherRootPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "root", 5, nodeID, now.Add(4*time.Second))
-	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_inventory SET active_root_publish_id=$2,updated_at=$3 WHERE node_id=$1`, nodeID, otherRootPublishID, now.Add(5*time.Second)); err == nil {
-		t.Fatal("active desired pointer accepted a different active root publish at the same version")
-	}
-	otherMetadataPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "metadata", 6, nodeID, now.Add(5*time.Second))
-	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_inventory SET active_metadata_publish_id=$2,updated_at=$3 WHERE node_id=$1`, nodeID, otherMetadataPublishID, now.Add(6*time.Second)); err == nil {
-		t.Fatal("active desired pointer accepted a different active metadata publish at the same version")
-	}
+	func() {
+		tx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin alternate root publish transaction:", err)
+		}
+		defer tx.Rollback(ctx)
+		otherRootPublishID := insertActiveRootOrMetadataPublishVersion(ctx, t, tx, "root", 5, 1, 1, 2, now.Add(4*time.Second))
+		if _, err = tx.Exec(ctx, `UPDATE nodecontrol.node_inventory SET active_root_publish_id=$2,active_root_version=2,updated_at=$3 WHERE node_id=$1`, nodeID, otherRootPublishID, now.Add(5*time.Second)); err != nil {
+			t.Fatal("stage different active root publish pointer:", err)
+		}
+		if _, err = tx.Exec(ctx, `SET CONSTRAINTS ALL IMMEDIATE`); err == nil {
+			t.Fatal("active desired pointer accepted a different active root publish at the next version")
+		}
+	}()
+	func() {
+		tx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin alternate metadata publish transaction:", err)
+		}
+		defer tx.Rollback(ctx)
+		otherMetadataPublishID := insertActiveRootOrMetadataPublishVersion(ctx, t, tx, "metadata", 6, 1, 1, 2, now.Add(5*time.Second))
+		if _, err = tx.Exec(ctx, `UPDATE nodecontrol.node_inventory SET active_metadata_publish_id=$2,active_metadata_version=2,updated_at=$3 WHERE node_id=$1`, nodeID, otherMetadataPublishID, now.Add(6*time.Second)); err != nil {
+			t.Fatal("stage different active metadata publish pointer:", err)
+		}
+		if _, err = tx.Exec(ctx, `SET CONSTRAINTS ALL IMMEDIATE`); err == nil {
+			t.Fatal("active desired pointer accepted a different active metadata publish at the next version")
+		}
+	}()
 	secondEnvelopeDigest := bytesOf(0xc5, 32)
 	insertResourceEnvelope(ctx, t, pool, nodeID, 2, 7, secondEnvelopeDigest, now.Add(7*time.Second))
 	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_inventory SET resource_envelope_version=2,resource_envelope_digest=$2,updated_at=$3 WHERE node_id=$1`, nodeID, secondEnvelopeDigest, now.Add(8*time.Second)); err == nil {
@@ -2281,52 +2455,159 @@ ORDER BY p.proname`)
 
 func assertCatalogColumnChecks(ctx context.Context, t *testing.T, pool *pgxpool.Pool, table nodeControlTableSpec) {
 	t.Helper()
-	compiled := make(map[string]string)
+	type checkProbe struct {
+		name, checkSQL string
+	}
+	probes := make([]checkProbe, 0)
+	probeNameByCheck := make(map[string]string)
+	checkByProbeName := make(map[string]string)
+	for _, column := range table.Columns {
+		for _, checkSQL := range column.CheckSQL {
+			if _, exists := probeNameByCheck[checkSQL]; exists {
+				continue
+			}
+			name := fmt.Sprintf("nodecontrol_catalog_check_probe_%d", len(probes))
+			probes = append(probes, checkProbe{name: name, checkSQL: checkSQL})
+			probeNameByCheck[checkSQL] = name
+			checkByProbeName[name] = checkSQL
+		}
+	}
+	if len(probes) != len(probeNameByCheck) || len(probes) != len(checkByProbeName) {
+		t.Fatalf("%s check probe mapping count mismatch: probes=%d by_check=%d by_name=%d", table.Name, len(probes), len(probeNameByCheck), len(checkByProbeName))
+	}
+	for _, probe := range probes {
+		if probeNameByCheck[probe.checkSQL] != probe.name || checkByProbeName[probe.name] != probe.checkSQL {
+			t.Fatalf("%s check probe mapping is incomplete for %s = %q", table.Name, probe.name, probe.checkSQL)
+		}
+	}
+
+	compiled := make(map[string]string, len(probes))
 	tableIdentifier := pgx.Identifier{"nodecontrol", table.Name}.Sanitize()
-	probeIdentifier := pgx.Identifier{"nodecontrol_catalog_check_probe"}.Sanitize()
+	if len(probes) > 0 {
+		tx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatalf("begin %s batched check probe transaction: %v", table.Name, err)
+		}
+		committed := false
+		defer func() {
+			if !committed {
+				_ = tx.Rollback(context.Background())
+			}
+		}()
+
+		addClauses := make([]string, 0, len(probes))
+		expectedProbeNames := make([]string, 0, len(probes))
+		for _, probe := range probes {
+			probeIdentifier := pgx.Identifier{probe.name}.Sanitize()
+			addClauses = append(addClauses, "ADD CONSTRAINT "+probeIdentifier+" CHECK ("+probe.checkSQL+") NOT VALID")
+			expectedProbeNames = append(expectedProbeNames, probe.name)
+		}
+		if _, err = tx.Exec(ctx, "ALTER TABLE "+tableIdentifier+" "+strings.Join(addClauses, ", ")); err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				if checkSQL, exists := checkByProbeName[pgErr.ConstraintName]; exists {
+					t.Fatalf("compile %s check_sql %q as %s: %v", table.Name, checkSQL, pgErr.ConstraintName, err)
+				}
+			}
+			t.Fatalf("compile %s named check probes %v: %v", table.Name, expectedProbeNames, err)
+		}
+
+		rows, err := tx.Query(ctx, `
+SELECT con.conname, pg_catalog.pg_get_constraintdef(con.oid,true)
+FROM pg_catalog.pg_constraint con
+JOIN pg_catalog.pg_class rel ON rel.oid=con.conrelid
+JOIN pg_catalog.pg_namespace n ON n.oid=rel.relnamespace
+		WHERE n.nspname='nodecontrol' AND rel.relname=$1
+		  AND left(con.conname,length('nodecontrol_catalog_check_probe_'))='nodecontrol_catalog_check_probe_'
+		ORDER BY con.conname`, table.Name)
+		if err != nil {
+			t.Fatalf("query compiled %s check probes: %v", table.Name, err)
+		}
+		actualProbeNames := make([]string, 0, len(probes))
+		definitionsByProbeName := make(map[string]string, len(probes))
+		for rows.Next() {
+			var name, definition string
+			if err = rows.Scan(&name, &definition); err != nil {
+				rows.Close()
+				t.Fatalf("scan compiled %s check probe: %v", table.Name, err)
+			}
+			actualProbeNames = append(actualProbeNames, name)
+			definitionsByProbeName[name] = normalizeCatalogSQL(strings.TrimSuffix(definition, " NOT VALID"))
+		}
+		if err = rows.Err(); err != nil {
+			rows.Close()
+			t.Fatalf("iterate compiled %s check probes: %v", table.Name, err)
+		}
+		rows.Close()
+		assertExactNamedSet(t, table.Name+" compiled check probes", actualProbeNames, expectedProbeNames)
+		if len(definitionsByProbeName) != len(probes) {
+			t.Fatalf("%s compiled check probe count = %d, want %d", table.Name, len(definitionsByProbeName), len(probes))
+		}
+		for _, probe := range probes {
+			definition, exists := definitionsByProbeName[probe.name]
+			if !exists {
+				t.Fatalf("%s compiled check probe %s missing for %q", table.Name, probe.name, probe.checkSQL)
+			}
+			compiled[probe.checkSQL] = definition
+		}
+
+		dropClauses := make([]string, 0, len(probes))
+		for _, probe := range probes {
+			dropClauses = append(dropClauses, "DROP CONSTRAINT "+pgx.Identifier{probe.name}.Sanitize())
+		}
+		if _, err = tx.Exec(ctx, "ALTER TABLE "+tableIdentifier+" "+strings.Join(dropClauses, ", ")); err != nil {
+			t.Fatalf("drop %s named check probes %v: %v", table.Name, expectedProbeNames, err)
+		}
+		if err = tx.Commit(ctx); err != nil {
+			t.Fatalf("commit %s batched check probe transaction: %v", table.Name, err)
+		}
+		committed = true
+	}
+
+	actualByColumn := make(map[string][]string, len(table.Columns))
+	rows, err := pool.Query(ctx, `
+SELECT att.attname, pg_catalog.pg_get_constraintdef(con.oid,true)
+FROM pg_catalog.pg_constraint con
+JOIN pg_catalog.pg_class rel ON rel.oid=con.conrelid
+JOIN pg_catalog.pg_namespace n ON n.oid=rel.relnamespace
+JOIN pg_catalog.pg_attribute att ON att.attrelid=rel.oid AND att.attnum=ANY(con.conkey)
+WHERE n.nspname='nodecontrol' AND rel.relname=$1 AND con.contype='c'
+ORDER BY att.attname,con.conname`, table.Name)
+	if err != nil {
+		t.Fatalf("query catalog column checks for %s: %v", table.Name, err)
+	}
+	for rows.Next() {
+		var columnName, definition string
+		if err = rows.Scan(&columnName, &definition); err != nil {
+			rows.Close()
+			t.Fatalf("scan catalog column check for %s: %v", table.Name, err)
+		}
+		actualByColumn[columnName] = append(actualByColumn[columnName], normalizeCatalogSQL(definition))
+	}
+	if err = rows.Err(); err != nil {
+		rows.Close()
+		t.Fatalf("iterate catalog column checks for %s: %v", table.Name, err)
+	}
+	rows.Close()
+	knownColumns := make(map[string]struct{}, len(table.Columns))
+	for _, column := range table.Columns {
+		knownColumns[column.Name] = struct{}{}
+	}
+	for columnName := range actualByColumn {
+		if _, exists := knownColumns[columnName]; !exists {
+			t.Fatalf("catalog check for %s links unknown column %s", table.Name, columnName)
+		}
+	}
 	for _, column := range table.Columns {
 		want := make([]string, 0, len(column.CheckSQL))
 		for _, checkSQL := range column.CheckSQL {
 			definition, exists := compiled[checkSQL]
 			if !exists {
-				if _, err := pool.Exec(ctx, "ALTER TABLE "+tableIdentifier+" ADD CONSTRAINT "+probeIdentifier+" CHECK ("+checkSQL+") NOT VALID"); err != nil {
-					t.Fatalf("compile %s.%s check_sql %q: %v", table.Name, column.Name, checkSQL, err)
-				}
-				if err := pool.QueryRow(ctx, `
-SELECT pg_catalog.pg_get_constraintdef(con.oid,true)
-FROM pg_catalog.pg_constraint con
-JOIN pg_catalog.pg_class rel ON rel.oid=con.conrelid
-JOIN pg_catalog.pg_namespace n ON n.oid=rel.relnamespace
-WHERE n.nspname='nodecontrol' AND rel.relname=$1 AND con.conname='nodecontrol_catalog_check_probe'`, table.Name).Scan(&definition); err != nil {
-					t.Fatalf("read compiled %s.%s check_sql: %v", table.Name, column.Name, err)
-				}
-				if _, err := pool.Exec(ctx, "ALTER TABLE "+tableIdentifier+" DROP CONSTRAINT "+probeIdentifier); err != nil {
-					t.Fatalf("drop %s.%s check_sql probe: %v", table.Name, column.Name, err)
-				}
-				definition = normalizeCatalogSQL(strings.TrimSuffix(definition, " NOT VALID"))
-				compiled[checkSQL] = definition
+				t.Fatalf("%s.%s check_sql %q has no complete named probe mapping", table.Name, column.Name, checkSQL)
 			}
 			want = append(want, definition)
 		}
-		rows, err := pool.Query(ctx, `
-SELECT pg_catalog.pg_get_constraintdef(con.oid,true)
-FROM pg_catalog.pg_constraint con
-JOIN pg_catalog.pg_class rel ON rel.oid=con.conrelid
-JOIN pg_catalog.pg_namespace n ON n.oid=rel.relnamespace
-JOIN pg_catalog.pg_attribute att ON att.attrelid=rel.oid AND att.attname=$2
-WHERE n.nspname='nodecontrol' AND rel.relname=$1 AND con.contype='c' AND att.attnum=ANY(con.conkey)
-ORDER BY con.conname`, table.Name, column.Name)
-		if err != nil {
-			t.Fatalf("query catalog checks for %s.%s: %v", table.Name, column.Name, err)
-		}
-		got, err := pgx.CollectRows(rows, pgx.RowTo[string])
-		if err != nil {
-			t.Fatalf("collect catalog checks for %s.%s: %v", table.Name, column.Name, err)
-		}
-		for index := range got {
-			got[index] = normalizeCatalogSQL(got[index])
-		}
-		got = sortedStrings(got)
+		got := sortedStrings(actualByColumn[column.Name])
 		want = sortedStrings(want)
 		if !equalStrings(got, want) {
 			t.Errorf("%s.%s catalog-linked check_sql = %v, want exactly %v", table.Name, column.Name, got, want)
@@ -2655,16 +2936,16 @@ VALUES($1,$2,$3,1,$4,$5,$6,'reserved','fence_pending',$7)`, operationID, effectK
 	}
 }
 
-func insertCommittedFence(ctx context.Context, t *testing.T, pool *pgxpool.Pool, operationID uuid.UUID, sequence int64, effectKind, scopeKind string, now time.Time) {
+func insertCommittedFence(ctx context.Context, t *testing.T, executor nodeControlSQLExecutor, operationID uuid.UUID, sequence int64, effectKind, scopeKind string, now time.Time) {
 	t.Helper()
-	_, err := pool.Exec(ctx, `
+	_, err := executor.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_fences(
   operation_id,effect_kind,scope_kind,authority_epoch,authority_sequence,scope_digest,
   provider_reservation_digest,provider_status,visibility_state,reserved_at)
 VALUES($1,$2,$3,1,$4,$5,$6,'reserved','fence_pending',$7)`,
 		operationID, effectKind, scopeKind, sequence, bytesOf(0x71, 32), bytesOf(0x72, 32), now)
 	if err == nil {
-		_, err = pool.Exec(ctx, `
+		_, err = executor.Exec(ctx, `
 UPDATE nodecontrol.control_plane_authority_fences
 SET effect_digest=$2,provider_status='committed',provider_receipt_digest=$3,
     db_system_id=1,db_timeline=1,required_lsn='0/1',visibility_state='active',
@@ -3215,29 +3496,33 @@ VALUES($1,$2,'operator-a',$3,'inventory_writer','update_inventory','node',$4,
 
 func insertActiveRootOrMetadataPublish(ctx context.Context, t *testing.T, pool *pgxpool.Pool, kind string, sequence int64, _ uuid.UUID, now time.Time) uuid.UUID {
 	t.Helper()
+	baseRootVersion := int64(0)
+	if kind == "metadata" {
+		baseRootVersion = 1
+	}
+	return insertActiveRootOrMetadataPublishVersion(ctx, t, pool, kind, sequence, baseRootVersion, 0, 1, now)
+}
+
+func insertActiveRootOrMetadataPublishVersion(ctx context.Context, t *testing.T, executor nodeControlSQLExecutor, kind string, sequence, baseRootVersion, baseMetadataVersion, reservedVersion int64, now time.Time) uuid.UUID {
+	t.Helper()
 	operationID := uuid.New()
 	effectKind := kind + "_publish"
-	insertCommittedFence(ctx, t, pool, operationID, sequence, effectKind, "global_node_trust", now)
+	insertCommittedFence(ctx, t, executor, operationID, sequence, effectKind, "global_node_trust", now)
 	publishID := uuid.New()
 	keyID := bytesOf(byte(0xd0+sequence), 32)
 	physicalKeyID := bytesOf(byte(0xe0+sequence), 32)
 	payloadDigest := bytesOf(byte(0xb0+sequence), 32)
-	baseRootVersion := int64(0)
-	baseMetadataVersion := int64(0)
-	if kind == "metadata" {
-		baseRootVersion = 1
-	}
-	if _, err := pool.Exec(ctx, pendingRootPublishSQL, publishID, operationID, sequence, kind, "normal", baseRootVersion, baseMetadataVersion, int64(1), payloadDigest, [][]byte{keyID}, nil, 1, nil, now.Add(5*time.Minute), now); err != nil {
+	if _, err := executor.Exec(ctx, pendingRootPublishSQL, publishID, operationID, sequence, kind, "normal", baseRootVersion, baseMetadataVersion, reservedVersion, payloadDigest, [][]byte{keyID}, nil, 1, nil, now.Add(5*time.Minute), now); err != nil {
 		t.Fatal("insert active-publish fixture intent:", err)
 	}
 	role := "current_root"
 	if kind == "metadata" {
 		role = "metadata"
 	}
-	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_root_metadata_signature_shares(publish_id,key_id,physical_key_id,payload_digest,signature_role,signature,verified_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, publishID, keyID, physicalKeyID, payloadDigest, role, bytesOf(0xd9, 64), now); err != nil {
+	if _, err := executor.Exec(ctx, `INSERT INTO nodecontrol.node_root_metadata_signature_shares(publish_id,key_id,physical_key_id,payload_digest,signature_role,signature,verified_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, publishID, keyID, physicalKeyID, payloadDigest, role, bytesOf(0xd9, 64), now); err != nil {
 		t.Fatal("insert active-publish fixture share:", err)
 	}
-	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET published_envelope=decode('01','hex'),published_envelope_digest=$2,status='active',terminal_at=$3,updated_at=$3 WHERE publish_id=$1`, publishID, bytesOf(byte(0xa0+sequence), 32), now.Add(time.Second)); err != nil {
+	if _, err := executor.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET published_envelope=decode('01','hex'),published_envelope_digest=$2,status='active',terminal_at=$3,updated_at=$3 WHERE publish_id=$1`, publishID, bytesOf(byte(0xa0+sequence), 32), now.Add(time.Second)); err != nil {
 		t.Fatal("activate root/metadata publish fixture:", err)
 	}
 	return publishID

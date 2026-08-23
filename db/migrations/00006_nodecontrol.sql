@@ -774,6 +774,7 @@ CREATE TABLE nodecontrol.node_root_metadata_publish_intents (
   CONSTRAINT node_root_metadata_publish_intents_authority_sequence_range CHECK (authority_sequence BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_root_metadata_publish_intents_authority_fence_fk FOREIGN KEY (authority_operation_id, authority_epoch, authority_sequence) REFERENCES nodecontrol.control_plane_authority_fences(operation_id, authority_epoch, authority_sequence) ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT node_root_metadata_publish_intents_incident_fk FOREIGN KEY (incident_id) REFERENCES nodecontrol.node_security_incidents(incident_id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT node_root_metadata_publish_intents_kind_version_key UNIQUE (publish_kind, reserved_version),
   CONSTRAINT node_root_metadata_publish_intents_publish_kind_enum CHECK (publish_kind IN ('root','metadata')),
   CONSTRAINT node_root_metadata_publish_intents_reason_enum CHECK (reason IN ('normal','root_rotation','emergency_revoke')),
   CONSTRAINT node_root_metadata_publish_intents_incident_reason_pair CHECK ((reason = 'emergency_revoke') = (incident_id IS NOT NULL)),
