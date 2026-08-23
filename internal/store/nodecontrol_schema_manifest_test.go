@@ -2,6 +2,8 @@ package store_test
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"regexp"
@@ -11,6 +13,81 @@ import (
 
 	"go.yaml.in/yaml/v3"
 )
+
+type nodeControlNameSetFingerprint struct {
+	count  int
+	sha256 string
+}
+
+var expectedNodeControlConstraintNameSets = map[string]nodeControlNameSetFingerprint{
+	"control_plane_authority_fences":         {count: 36, sha256: "dc47f11499a8452f141f25c05ce68f61735b7ed915f275d545ed4b1528e69a4b"},
+	"control_plane_trust_bundle_high_waters": {count: 23, sha256: "da0c361a820f0b0afbe4961a116d8a817c6763e354214d0aca4b2d08f74d8e96"},
+	"node_capacity_profiles":                 {count: 29, sha256: "e1826af7d3d3ec133bbdbd10cd4ef86e72bf06ac42e36928af720e885f998aa0"},
+	"node_certificate_issuances":             {count: 43, sha256: "f6e34068645381905814149ce9f626ae8db12a81c08e229acfc7d24747da763f"},
+	"node_certificates":                      {count: 44, sha256: "f7be9d9f58c10142a48383612c94c0f23b66ad729a52ce2ab664a2cb2bd17787"},
+	"node_desired_states":                    {count: 46, sha256: "0e97c1714760df996d652c98571684ac015780ffe9c296fef8091d94312a6ed3"},
+	"node_endpoints":                         {count: 19, sha256: "04d8a170e8a8947d4aa6a5d7fbf02be05431d81693543e9ffd506eabdbf5067f"},
+	"node_enrollment_grants":                 {count: 33, sha256: "79236039dedbc2d81cbdb6455c42d5b56c353d3e322a9acd627a8d5769cd91a9"},
+	"node_failure_domain_membership":         {count: 11, sha256: "bfeb800b21ff571cfcaeb4a01a638fded7ec2a56435ed8a44a67ec2b3c11cdfd"},
+	"node_failure_domains":                   {count: 13, sha256: "ff187c035ab94c5f85b09b397b67f03db63989bb73b359c48d4c2b9ddedae4e2"},
+	"node_inventory":                         {count: 42, sha256: "5153b4f75be44585b248dd8f8590f559b078d607895ec0b9dad28067d4d83f08"},
+	"node_observed_states":                   {count: 46, sha256: "1bbc2a51912b218eebf19540ea20164e6b70da27404f9bd9d148e9b97e74a265"},
+	"node_operator_audit":                    {count: 30, sha256: "987ed09b042cc2ee02322f2fc2a506aae742b273112e4cd920fb4636e486decb"},
+	"node_pops":                              {count: 15, sha256: "629a7b7c7ceb23d14fc879a52f2b035ed207de6418b9dd88a81cdcd94d337bb9"},
+	"node_process_slots":                     {count: 19, sha256: "b2f2f8fccf05c9166f1cf70dd2d59ed918b05aebef11b2faa7c61e570893f94c"},
+	"node_recovery_sessions":                 {count: 31, sha256: "437de06a455db7e425e7d52ef000056e036feb751bef7b6885f7cec678f0b2bb"},
+	"node_recovery_states":                   {count: 60, sha256: "5d03711cd741a3308592746de07956cbd9ff0ea800ae1fc6549929db9735f24f"},
+	"node_resource_envelopes":                {count: 57, sha256: "d66f83b7b1cd02e0e60083cd2960cbcc174c7288db0e21c9b47d6c1259b6ff38"},
+	"node_restore_reauthorization_approvals": {count: 43, sha256: "50198b35fdffa7647c661dcde8a1d07af48964cd6a6f8e8e28410088afaff970"},
+	"node_root_metadata_publish_intents":     {count: 46, sha256: "286183f842a0229cdfa08db61cb712b126968a663562aa2a4f3e490160ec851f"},
+	"node_root_metadata_signature_shares":    {count: 15, sha256: "2cdbdf1c161aaebac8149244246b955645551b8125f2ee99aab0bbfdda921b44"},
+	"node_security_fault_receipts":           {count: 41, sha256: "e83e8d7ebcf2907731a4501b6e4e82c29efe9f72fd8697bdfca4e24d5a84cf7e"},
+	"node_security_incidents":                {count: 37, sha256: "7ff7bd31ab94733ffcf9de1bc2e9dfeeae300788055c4356e3da843c29c6ee17"},
+	"node_state_signing_intents":             {count: 60, sha256: "bf20a5e8c361ab4dbef67b977b94fc08bcef542e61dbe17e710f64b1a0e72171"},
+	"node_state_transitions":                 {count: 27, sha256: "e4a5049e0322dc58b623774129b6bc7adce6ad81c61551cb85502f914d13d298"},
+}
+
+var expectedNodeControlIndexNames = strings.Fields(`
+authority_checkpoint_node
+authority_checkpoint_global_node_trust
+node_one_unconsumed_grant_per_epoch
+node_certificate_issuer_serial_unique
+node_certificate_leaf_digest_unique
+node_certificate_active_authorization
+node_open_incident_per_subtype
+node_open_incident_per_slot
+node_security_fault_receipts_supervisor_fault_unique
+node_security_fault_receipts_local_slot_unique
+node_security_fault_receipts_supervisor_slot_unique
+node_one_pending_recovery_session
+node_restore_approval_operator_unique
+node_restore_approval_role_unique
+node_one_nonterminal_signing_intent_per_kind
+node_root_publish_one_per_base_pointer`)
+
+var expectedNodeControlTriggerNames = strings.Fields(`
+control_plane_authority_fences_enforce_update
+node_capacity_profiles_immutable_after_reference
+node_inventory_validate_pointers
+node_process_slots_enforce_cap
+node_resource_envelopes_immutable
+node_certificate_issuances_workflow
+node_enrollment_grants_workflow
+node_certificates_workflow
+node_security_incidents_workflow
+node_security_fault_receipts_enforce
+node_recovery_sessions_workflow
+node_restore_approvals_workflow
+node_restore_approvals_pair
+node_state_signing_intents_workflow
+node_root_metadata_publish_intents_workflow
+node_root_metadata_signature_shares_binding
+node_desired_states_immutable
+node_recovery_states_immutable
+node_observed_states_monotonic
+node_operator_audit_immutable
+node_state_transitions_immutable
+control_plane_trust_bundle_high_waters_monotonic`)
 
 type nodeControlManifest struct {
 	Version int                    `yaml:"version"`
@@ -230,7 +307,7 @@ var expectedNodeControlEnums = map[string]map[string][]string{
 		"node_process_slots_operator_state_enum": {"provisioning", "enabled", "draining", "disabled"},
 	},
 	"node_capacity_profiles": {"node_capacity_profiles_adapter_enum": {"fixture", "xray", "sing_box"}},
-	"node_enrollment_grants": {"node_enrollment_grants_terminal_reason_enum": {"expired", "identity_epoch_advanced", "operator_disabled", "security_quarantine", "superseded"}},
+	"node_enrollment_grants": {"node_enrollment_grants_terminal_reason_enum": {"consumed", "expired", "identity_epoch_advanced", "operator_disabled", "security_quarantine", "superseded"}},
 	"node_certificate_issuances": {
 		"node_certificate_issuances_issuance_kind_enum":  {"initial", "rotation", "recovery"},
 		"node_certificate_issuances_status_enum":         {"pending", "active", "rejected", "superseded", "failed"},
@@ -318,6 +395,12 @@ func TestNodeControlManifestIsLiteralAndExact(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertExactNamedSet(t, "manifest tables", tableNames(manifest.Tables), nodeControlAuthorityTables)
+	if err := validateIndependentNodeControlObjectNames(manifest); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateIndependentNodeControlEnums(manifest); err != nil {
+		t.Fatal(err)
+	}
 	for _, table := range manifest.Tables {
 		assertExactNamedSet(t, table.Name+" columns", columnNames(table.Columns), expectedNodeControlColumns[table.Name])
 		assertExactEnums(t, table)
@@ -333,11 +416,11 @@ func TestNodeControlManifestIsLiteralAndExact(t *testing.T) {
 func assertTerminalWorkflowsStartPending(t *testing.T, manifest nodeControlManifest) {
 	t.Helper()
 	want := map[string]string{
-		"node_certificate_issuances":              "node_certificate_issuances_workflow",
+		"node_certificate_issuances":             "node_certificate_issuances_workflow",
 		"node_recovery_sessions":                 "node_recovery_sessions_workflow",
 		"node_restore_reauthorization_approvals": "node_restore_approvals_workflow",
-		"node_state_signing_intents":              "node_state_signing_intents_workflow",
-		"node_root_metadata_publish_intents":      "node_root_metadata_publish_intents_workflow",
+		"node_state_signing_intents":             "node_state_signing_intents_workflow",
+		"node_root_metadata_publish_intents":     "node_root_metadata_publish_intents_workflow",
 	}
 	for _, table := range manifest.Tables {
 		triggerName, required := want[table.Name]
@@ -400,6 +483,166 @@ func TestNodeControlManifestDecoderRejectsAliasesMergesAndUnknownFields(t *testi
 	if _, err := decodeNodeControlManifest(merged); err == nil {
 		t.Fatal("manifest decoder accepted a YAML merge key")
 	}
+}
+
+func TestNodeControlIndependentAllowlistsRejectMirroredMutations(t *testing.T) {
+	manifest, _ := loadNodeControlManifest(t)
+
+	constraintMutation := cloneNodeControlManifest(manifest)
+	constraintMutation.Tables[0].Constraints = append(constraintMutation.Tables[0].Constraints, nodeControlConstraintSpec{
+		Name:          "mirrored_extra_constraint",
+		Kind:          "check",
+		DefinitionSQL: "CHECK (true)",
+		Columns:       []string{},
+	})
+	mirroredMigration := []byte("ALTER TABLE nodecontrol." + constraintMutation.Tables[0].Name + " ADD CONSTRAINT mirrored_extra_constraint CHECK (true);")
+	if !bytes.Contains(mirroredMigration, []byte("CONSTRAINT mirrored_extra_constraint")) {
+		t.Fatal("test setup did not mirror the extra constraint into SQL")
+	}
+	if err := validateIndependentNodeControlObjectNames(constraintMutation); err == nil {
+		t.Fatal("independent constraint allowlist accepted an extra object mirrored in SQL and YAML")
+	}
+
+	indexMutation := cloneNodeControlManifest(manifest)
+	indexMutation.Tables[0].Indexes = append(indexMutation.Tables[0].Indexes, nodeControlIndexSpec{
+		Name:   "mirrored_extra_index",
+		Method: "btree",
+		Keys:   []string{"authority_epoch"},
+	})
+	if err := validateIndependentNodeControlObjectNames(indexMutation); err == nil {
+		t.Fatal("independent index allowlist accepted an extra object")
+	}
+
+	triggerMutation := cloneNodeControlManifest(manifest)
+	triggerMutation.Tables[0].Triggers = append(triggerMutation.Tables[0].Triggers, nodeControlTriggerSpec{
+		Name:     "mirrored_extra_trigger",
+		Timing:   "BEFORE",
+		Events:   []string{"UPDATE"},
+		Function: "reject_row_mutation()",
+	})
+	if err := validateIndependentNodeControlObjectNames(triggerMutation); err == nil {
+		t.Fatal("independent trigger allowlist accepted an extra object")
+	}
+
+	enumMutation := cloneNodeControlManifest(manifest)
+	for tableIndex := range enumMutation.Tables {
+		if len(enumMutation.Tables[tableIndex].Enums) == 0 {
+			continue
+		}
+		enumMutation.Tables[tableIndex].Enums[0].Values = append(enumMutation.Tables[tableIndex].Enums[0].Values, "mirrored_extra")
+		enumName := enumMutation.Tables[tableIndex].Enums[0].Name
+		for constraintIndex := range enumMutation.Tables[tableIndex].Constraints {
+			if enumMutation.Tables[tableIndex].Constraints[constraintIndex].Name == enumName {
+				enumMutation.Tables[tableIndex].Constraints[constraintIndex].DefinitionSQL += " /* mirrored_extra */"
+				break
+			}
+		}
+		break
+	}
+	if err := validateIndependentNodeControlEnums(enumMutation); err == nil {
+		t.Fatal("independent enum allowlist accepted an extra value mirrored in its check definition")
+	}
+}
+
+func cloneNodeControlManifest(manifest nodeControlManifest) nodeControlManifest {
+	clone := manifest
+	clone.Tables = make([]nodeControlTableSpec, len(manifest.Tables))
+	for tableIndex, source := range manifest.Tables {
+		table := source
+		table.Columns = append([]nodeControlColumnSpec(nil), source.Columns...)
+		table.PrimaryKey.Columns = append([]string(nil), source.PrimaryKey.Columns...)
+		table.Enums = append([]nodeControlEnumSpec(nil), source.Enums...)
+		for enumIndex := range table.Enums {
+			table.Enums[enumIndex].Values = append([]string(nil), source.Enums[enumIndex].Values...)
+		}
+		table.Constraints = append([]nodeControlConstraintSpec(nil), source.Constraints...)
+		table.Indexes = append([]nodeControlIndexSpec(nil), source.Indexes...)
+		table.Triggers = append([]nodeControlTriggerSpec(nil), source.Triggers...)
+		clone.Tables[tableIndex] = table
+	}
+	return clone
+}
+
+func validateIndependentNodeControlObjectNames(manifest nodeControlManifest) error {
+	if len(manifest.Tables) != len(expectedNodeControlConstraintNameSets) {
+		return fmt.Errorf("independent table allowlist count = %d, manifest = %d", len(expectedNodeControlConstraintNameSets), len(manifest.Tables))
+	}
+	seenTables := make(map[string]struct{}, len(manifest.Tables))
+	var indexes, triggers []string
+	for _, table := range manifest.Tables {
+		if _, duplicate := seenTables[table.Name]; duplicate {
+			return fmt.Errorf("independent object allowlist found duplicate table %s", table.Name)
+		}
+		seenTables[table.Name] = struct{}{}
+		want, exists := expectedNodeControlConstraintNameSets[table.Name]
+		if !exists {
+			return fmt.Errorf("independent constraint allowlist has no table %s", table.Name)
+		}
+		names := append([]string{table.PrimaryKey.Name}, constraintNames(table.Constraints)...)
+		if len(names) != want.count || nodeControlNameSetDigest(names) != want.sha256 {
+			return fmt.Errorf("independent constraint allowlist rejected %s: count=%d digest=%s, want count=%d digest=%s", table.Name, len(names), nodeControlNameSetDigest(names), want.count, want.sha256)
+		}
+		indexes = append(indexes, indexNames(table.Indexes)...)
+		triggers = append(triggers, triggerNames(table.Triggers)...)
+	}
+	if err := requireExactIndependentNameSet("indexes", indexes, expectedNodeControlIndexNames); err != nil {
+		return err
+	}
+	if err := requireExactIndependentNameSet("triggers", triggers, expectedNodeControlTriggerNames); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateIndependentNodeControlEnums(manifest nodeControlManifest) error {
+	for _, table := range manifest.Tables {
+		want, exists := expectedNodeControlEnums[table.Name]
+		if !exists {
+			if len(table.Enums) != 0 {
+				return fmt.Errorf("independent enum allowlist rejects enums on %s", table.Name)
+			}
+			continue
+		}
+		got := make(map[string][]string, len(table.Enums))
+		for _, enum := range table.Enums {
+			if _, duplicate := got[enum.Name]; duplicate {
+				return fmt.Errorf("independent enum allowlist found duplicate %s.%s", table.Name, enum.Name)
+			}
+			got[enum.Name] = enum.Values
+		}
+		if len(got) != len(want) {
+			return fmt.Errorf("independent enum allowlist rejected %s count %d, want %d", table.Name, len(got), len(want))
+		}
+		for name, values := range want {
+			if !equalStrings(got[name], values) {
+				return fmt.Errorf("independent enum allowlist rejected %s.%s values %v, want %v", table.Name, name, got[name], values)
+			}
+		}
+	}
+	return nil
+}
+
+func nodeControlNameSetDigest(names []string) string {
+	sorted := append([]string(nil), names...)
+	sort.Strings(sorted)
+	digest := sha256.Sum256([]byte(strings.Join(sorted, "\x00")))
+	return hex.EncodeToString(digest[:])
+}
+
+func requireExactIndependentNameSet(label string, got, want []string) error {
+	gotCopy := append([]string(nil), got...)
+	wantCopy := append([]string(nil), want...)
+	sort.Strings(gotCopy)
+	sort.Strings(wantCopy)
+	if !equalStrings(gotCopy, wantCopy) {
+		return fmt.Errorf("independent %s allowlist rejected %v, want exactly %v", label, gotCopy, wantCopy)
+	}
+	for index := 1; index < len(gotCopy); index++ {
+		if gotCopy[index] == gotCopy[index-1] {
+			return fmt.Errorf("independent %s allowlist found duplicate %s", label, gotCopy[index])
+		}
+	}
+	return nil
 }
 
 func loadNodeControlManifest(t *testing.T) (nodeControlManifest, []byte) {

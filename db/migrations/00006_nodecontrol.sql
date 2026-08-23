@@ -20,7 +20,7 @@ LANGUAGE sql
 IMMUTABLE
 STRICT
 AS $$
-  SELECT cardinality(items) BETWEEN 1 AND 64
+  SELECT cardinality(items) BETWEEN 1 AND 5
      AND array_position(items, NULL) IS NULL
      AND NOT EXISTS (
        SELECT 1 FROM unnest(items) AS item WHERE octet_length(item) <> 32
@@ -421,9 +421,14 @@ CREATE TABLE nodecontrol.node_enrollment_grants (
   CONSTRAINT node_enrollment_grants_claim_authority_epoch_range CHECK (claim_authority_epoch IS NULL OR claim_authority_epoch BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_enrollment_grants_claim_authority_sequence_range CHECK (claim_authority_sequence IS NULL OR claim_authority_sequence BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_enrollment_grants_exclusive_terminal_kind CHECK (num_nonnulls(consumed_at,expired_at,invalidated_at) <= 1),
-  CONSTRAINT node_enrollment_grants_terminal_reason_enum CHECK (terminal_reason IS NULL OR terminal_reason IN ('expired','identity_epoch_advanced','operator_disabled','security_quarantine','superseded')),
-  CONSTRAINT node_enrollment_grants_terminal_group CHECK ((terminal_at IS NULL AND terminal_reason IS NULL AND retention_until IS NULL) OR (terminal_at IS NOT NULL AND terminal_reason IS NOT NULL AND retention_until IS NOT NULL)),
-  CONSTRAINT node_enrollment_grants_terminal_timestamp CHECK (terminal_at IS NULL OR terminal_at = COALESCE(consumed_at,expired_at,invalidated_at)),
+  CONSTRAINT node_enrollment_grants_terminal_reason_enum CHECK (terminal_reason IS NULL OR terminal_reason IN ('consumed','expired','identity_epoch_advanced','operator_disabled','security_quarantine','superseded')),
+  CONSTRAINT node_enrollment_grants_terminal_group CHECK (
+    (consumed_at IS NULL AND expired_at IS NULL AND invalidated_at IS NULL AND terminal_reason IS NULL AND terminal_at IS NULL AND retention_until IS NULL)
+    OR (consumed_at IS NOT NULL AND expired_at IS NULL AND invalidated_at IS NULL AND terminal_reason = 'consumed' AND terminal_at = consumed_at AND retention_until IS NOT NULL)
+    OR (consumed_at IS NULL AND expired_at IS NOT NULL AND invalidated_at IS NULL AND terminal_reason = 'expired' AND terminal_at = expired_at AND retention_until IS NOT NULL)
+    OR (consumed_at IS NULL AND expired_at IS NULL AND invalidated_at IS NOT NULL AND terminal_reason IN ('identity_epoch_advanced','operator_disabled','security_quarantine','superseded') AND terminal_at = invalidated_at AND retention_until IS NOT NULL)
+  ),
+  CONSTRAINT node_enrollment_grants_terminal_timestamp CHECK (terminal_at IS NULL OR terminal_at >= created_at),
   CONSTRAINT node_enrollment_grants_retention_window CHECK (retention_until IS NULL OR retention_until >= terminal_at + interval '30 days')
 );
 
@@ -780,10 +785,10 @@ CREATE TABLE nodecontrol.node_root_metadata_publish_intents (
   CONSTRAINT node_root_metadata_publish_intents_key_set_digest_length CHECK (octet_length(key_set_digest) = 32),
   CONSTRAINT node_root_metadata_publish_intents_current_key_ids_valid CHECK (nodecontrol.bytea_array_is_sorted_unique_32(current_key_ids)),
   CONSTRAINT node_root_metadata_publish_intents_new_key_ids_valid CHECK (new_key_ids IS NULL OR nodecontrol.bytea_array_is_sorted_unique_32(new_key_ids)),
-  CONSTRAINT node_root_metadata_publish_intents_current_threshold_range CHECK (current_threshold BETWEEN 1 AND 64),
-  CONSTRAINT node_root_metadata_publish_intents_new_threshold_range CHECK (new_threshold IS NULL OR new_threshold BETWEEN 1 AND 64),
+  CONSTRAINT node_root_metadata_publish_intents_current_threshold_range CHECK (current_threshold BETWEEN 1 AND 5),
+  CONSTRAINT node_root_metadata_publish_intents_new_threshold_range CHECK (new_threshold IS NULL OR new_threshold BETWEEN 1 AND 5),
   CONSTRAINT node_root_metadata_publish_intents_threshold_key_coverage CHECK (current_threshold <= cardinality(current_key_ids) AND (new_threshold IS NULL OR new_threshold <= cardinality(new_key_ids))),
-  CONSTRAINT node_root_metadata_publish_intents_root_threshold_pair CHECK ((reason = 'root_rotation') = (new_threshold IS NOT NULL AND new_key_ids IS NOT NULL)),
+  CONSTRAINT node_root_metadata_publish_intents_root_threshold_pair CHECK ((reason = 'root_rotation') = (publish_kind = 'root' AND new_threshold IS NOT NULL AND new_key_ids IS NOT NULL)),
   CONSTRAINT node_root_metadata_publish_intents_activation_deadline_order CHECK (activation_deadline > created_at),
   CONSTRAINT node_root_metadata_publish_intents_published_envelope_length CHECK (published_envelope IS NULL OR octet_length(published_envelope) BETWEEN 1 AND 262144),
   CONSTRAINT node_root_metadata_publish_intents_published_envelope__81c85f22 CHECK (published_envelope_digest IS NULL OR octet_length(published_envelope_digest) = 32),
@@ -1094,7 +1099,46 @@ CREATE FUNCTION nodecontrol.reject_row_mutation()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  outbox_reference boolean := false;
 BEGIN
+  IF TG_OP = 'DELETE' AND TG_TABLE_NAME = 'node_desired_states' THEN
+    IF OLD.retention_until > transaction_timestamp()
+       OR EXISTS (
+         SELECT 1 FROM nodecontrol.node_inventory inventory
+         WHERE inventory.node_id = OLD.node_id
+           AND inventory.active_desired_generation = OLD.generation
+       ) THEN
+      RAISE EXCEPTION 'desired state is retained or actively referenced' USING ERRCODE = '23514';
+    END IF;
+    IF to_regclass('public.transactional_outbox') IS NOT NULL THEN
+      EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2 AND aggregate_version = $3)'
+      INTO outbox_reference
+      USING 'node_desired_state', OLD.signing_id, OLD.generation;
+    END IF;
+    IF outbox_reference THEN
+      RAISE EXCEPTION 'desired state is referenced by the transactional outbox' USING ERRCODE = '23514';
+    END IF;
+    RETURN OLD;
+  END IF;
+  IF TG_OP = 'DELETE' AND TG_TABLE_NAME = 'node_operator_audit' THEN
+    IF OLD.retention_until > transaction_timestamp()
+       OR EXISTS (
+         SELECT 1 FROM nodecontrol.node_state_transitions transition
+         WHERE transition.audit_id = OLD.audit_id
+       ) THEN
+      RAISE EXCEPTION 'operator audit is retained or referenced' USING ERRCODE = '23514';
+    END IF;
+    IF to_regclass('public.transactional_outbox') IS NOT NULL THEN
+      EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2)'
+      INTO outbox_reference
+      USING 'node_operator_audit', OLD.audit_id;
+    END IF;
+    IF outbox_reference THEN
+      RAISE EXCEPTION 'operator audit is referenced by the transactional outbox' USING ERRCODE = '23514';
+    END IF;
+    RETURN OLD;
+  END IF;
   RAISE EXCEPTION '% rows are immutable', TG_TABLE_NAME USING ERRCODE = '23514';
 END
 $$;
@@ -1104,6 +1148,26 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.provider_status <> 'reserved'
+       OR NEW.visibility_state <> 'fence_pending'
+       OR NEW.effect_digest IS NOT NULL
+       OR NEW.provider_receipt_digest IS NOT NULL
+       OR NEW.db_system_id IS NOT NULL
+       OR NEW.db_timeline IS NOT NULL
+       OR NEW.required_lsn IS NOT NULL
+       OR NEW.abort_reason IS NOT NULL
+       OR NEW.effect_bound_at IS NOT NULL
+       OR NEW.terminal_at IS NOT NULL THEN
+      RAISE EXCEPTION 'authority fences must begin as unbound reservations' USING ERRCODE = '23514';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'authority fence rows are append-only' USING ERRCODE = '23514';
+  END IF;
+
   IF NEW.operation_id IS DISTINCT FROM OLD.operation_id
      OR NEW.effect_kind IS DISTINCT FROM OLD.effect_kind
      OR NEW.scope_kind IS DISTINCT FROM OLD.scope_kind
@@ -1171,7 +1235,8 @@ BEGIN
   SELECT adapter INTO profile_adapter
   FROM nodecontrol.node_capacity_profiles
   WHERE profile_id = NEW.capacity_profile_id
-    AND version = NEW.capacity_profile_version;
+    AND version = NEW.capacity_profile_version
+  FOR SHARE;
   IF profile_adapter IS NULL OR profile_adapter <> NEW.adapter THEN
     RAISE EXCEPTION 'slot adapter does not match capacity profile' USING ERRCODE = '23514';
   END IF;
@@ -1234,6 +1299,12 @@ BEGIN
        AND intent.captured_inventory_version = NEW.inventory_version
        AND intent.captured_identity_epoch = NEW.identity_epoch
        AND intent.captured_security_version = NEW.security_version
+       AND state.resource_envelope_version = NEW.resource_envelope_version
+       AND state.resource_envelope_digest = NEW.resource_envelope_digest
+       AND state.root_publish_id = NEW.active_root_publish_id
+       AND state.root_version = NEW.active_root_version
+       AND state.metadata_publish_id = NEW.active_metadata_publish_id
+       AND state.metadata_version = NEW.active_metadata_version
        AND fence.provider_status = 'committed'
        AND fence.visibility_state = 'active'
        AND fence.effect_kind = 'desired_activate'
@@ -1267,6 +1338,8 @@ BEGIN
        AND intent.captured_identity_epoch = state.identity_epoch
        AND intent.captured_identity_epoch = NEW.identity_epoch
        AND intent.captured_security_version = NEW.security_version
+       AND state.root_version = NEW.active_root_version
+       AND state.metadata_version = NEW.active_metadata_version
        AND intent.recovery_id = state.recovery_id
        AND intent.recovery_reason = state.recovery_reason
        AND intent.recovery_session_version = state.recovery_session_version
@@ -1382,6 +1455,15 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF num_nonnulls(NEW.consumed_at,NEW.consumption_attempt_id,NEW.consumption_request_digest,
+                    NEW.claim_authority_operation_id,NEW.claim_authority_epoch,NEW.claim_authority_sequence,
+                    NEW.result_issuance_id,NEW.expired_at,NEW.invalidated_at,NEW.terminal_reason,
+                    NEW.terminal_at,NEW.retention_until) <> 0 THEN
+      RAISE EXCEPTION 'enrollment grants must start live and unterminated' USING ERRCODE = '23514';
+    END IF;
+    RETURN NEW;
+  END IF;
   IF TG_OP = 'DELETE' THEN
     IF OLD.retention_until IS NULL OR OLD.retention_until > transaction_timestamp() THEN
       RAISE EXCEPTION 'enrollment grant retention has not elapsed' USING ERRCODE = '23514';
@@ -1406,7 +1488,40 @@ CREATE FUNCTION nodecontrol.enforce_certificate_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  issuance nodecontrol.node_certificate_issuances%ROWTYPE;
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    SELECT * INTO issuance
+    FROM nodecontrol.node_certificate_issuances
+    WHERE issuance_id = NEW.issuance_id
+    FOR SHARE;
+    IF NOT FOUND
+       OR issuance.status <> 'active'
+       OR (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,
+           NEW.node_id,NEW.identity_epoch,NEW.lineage_id,NEW.issuer_id,NEW.serial_bytes,NEW.leaf_der,
+           NEW.leaf_der_sha256,NEW.public_key_sha256,NEW.chain_der_sha256,NEW.valid_from,NEW.valid_until)
+          IS DISTINCT FROM
+          (issuance.authority_operation_id,issuance.authority_epoch,issuance.authority_sequence,
+           issuance.node_id,issuance.identity_epoch,issuance.lineage_id,issuance.issuer_id,issuance.serial_bytes,
+           issuance.leaf_der,issuance.leaf_der_sha256,issuance.public_key_sha256,issuance.chain_der_sha256,
+           issuance.not_before,issuance.not_after)
+       OR (issuance.issuance_kind = 'recovery' AND NEW.status <> 'recovery_pending')
+       OR (issuance.issuance_kind <> 'recovery' AND NEW.status <> 'active')
+       OR NOT EXISTS (
+         SELECT 1
+         FROM nodecontrol.control_plane_authority_fences fence
+         WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+               (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+           AND fence.provider_status = 'committed'
+           AND fence.visibility_state = 'active'
+           AND fence.effect_kind = 'certificate_activate'
+           AND fence.scope_kind = 'node'
+       ) THEN
+      RAISE EXCEPTION 'certificate must exactly activate its finalized issuance result' USING ERRCODE = '23514';
+    END IF;
+    RETURN NEW;
+  END IF;
   IF TG_OP = 'DELETE' THEN
     IF OLD.retention_until > transaction_timestamp() THEN
       RAISE EXCEPTION 'certificate retention has not elapsed' USING ERRCODE = '23514';
@@ -1452,8 +1567,20 @@ BEGIN
     IF open_count >= 16 THEN
       RAISE EXCEPTION 'node security incident cap reached' USING ERRCODE = '23514';
     END IF;
-    IF NEW.fault_subtype = 'incident_overflow' AND NEW.status <> 'overflow' THEN
-      RAISE EXCEPTION 'overflow incident must start in overflow status' USING ERRCODE = '23514';
+    IF (NEW.fault_subtype = 'incident_overflow' AND NEW.status <> 'overflow')
+       OR (NEW.fault_subtype <> 'incident_overflow' AND NEW.status <> 'open') THEN
+      RAISE EXCEPTION 'security incident must start in its nonterminal opening status' USING ERRCODE = '23514';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM nodecontrol.control_plane_authority_fences fence
+      WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+        AND fence.provider_status = 'committed'
+        AND fence.visibility_state = 'active'
+        AND fence.effect_kind = 'security_incident_open'
+        AND fence.scope_kind = 'node'
+    ) THEN
+      RAISE EXCEPTION 'security incident opening requires its committed node fence' USING ERRCODE = '23514';
     END IF;
     RETURN NEW;
   END IF;
@@ -1478,7 +1605,26 @@ BEGIN
   IF NEW.occurrence_count < OLD.occurrence_count OR NEW.last_occurred_at < OLD.last_occurred_at THEN
     RAISE EXCEPTION 'security incident evidence cannot move backward' USING ERRCODE = '23514';
   END IF;
-  IF NEW.status = 'resolved' AND OLD.status IN ('open','overflow')
+  IF OLD.resolution_at IS NOT NULL
+     AND (NEW.resolution_authority_operation_id,NEW.resolution_authority_epoch,
+          NEW.resolution_authority_sequence,NEW.remediation_digest,NEW.resolution_at)
+         IS DISTINCT FROM
+         (OLD.resolution_authority_operation_id,OLD.resolution_authority_epoch,
+          OLD.resolution_authority_sequence,OLD.remediation_digest,OLD.resolution_at) THEN
+    RAISE EXCEPTION 'security incident resolution binding is immutable' USING ERRCODE = '23514';
+  END IF;
+  IF NEW.resolution_at IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM nodecontrol.control_plane_authority_fences fence
+    WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+          (NEW.resolution_authority_operation_id,NEW.resolution_authority_epoch,NEW.resolution_authority_sequence)
+      AND fence.provider_status = 'committed'
+      AND fence.visibility_state = 'active'
+      AND fence.effect_kind = 'security_incident_resolve'
+      AND fence.scope_kind = 'node'
+  ) THEN
+    RAISE EXCEPTION 'security incident resolution requires its committed node fence' USING ERRCODE = '23514';
+  END IF;
+  IF NEW.status = 'resolved'
      AND EXISTS (
        SELECT 1 FROM nodecontrol.node_security_fault_receipts
        WHERE incident_id = OLD.incident_id AND binding_status = 'active'
@@ -1522,6 +1668,11 @@ BEGIN
         RAISE EXCEPTION 'supervisor security-fault binding cap reached' USING ERRCODE = '23514';
       END IF;
     END IF;
+    IF NEW.delivery_status <> 'pending' OR NEW.binding_status <> 'active'
+       OR NEW.delivered_at IS NOT NULL OR NEW.cleared_at IS NOT NULL
+       OR NEW.clear_attestation_digest IS NOT NULL THEN
+      RAISE EXCEPTION 'security fault receipts must start pending and actively bound' USING ERRCODE = '23514';
+    END IF;
   ELSE
     IF (NEW.receipt_id,NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,NEW.node_id,
         NEW.identity_epoch,NEW.local_fault_id,NEW.request_digest,NEW.fault_subtype,NEW.evidence_digest,
@@ -1542,15 +1693,35 @@ BEGIN
        AND NOT (OLD.binding_status = 'active' AND NEW.binding_status = 'cleared') THEN
       RAISE EXCEPTION 'illegal receipt binding transition' USING ERRCODE = '23514';
     END IF;
+    IF OLD.binding_status = 'cleared' THEN
+      RAISE EXCEPTION 'cleared security fault receipt is immutable' USING ERRCODE = '23514';
+    END IF;
+    IF OLD.delivered_at IS NOT NULL AND NEW.delivered_at IS DISTINCT FROM OLD.delivered_at THEN
+      RAISE EXCEPTION 'receipt delivery metadata is immutable' USING ERRCODE = '23514';
+    END IF;
+    IF OLD.cleared_at IS NOT NULL
+       AND (NEW.cleared_at,NEW.clear_attestation_digest) IS DISTINCT FROM
+           (OLD.cleared_at,OLD.clear_attestation_digest) THEN
+      RAISE EXCEPTION 'receipt clear metadata is immutable' USING ERRCODE = '23514';
+    END IF;
   END IF;
-  IF NEW.delivery_status = 'deliverable' AND NOT EXISTS (
-    SELECT 1 FROM nodecontrol.control_plane_authority_fences fence
-    WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
-          (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+  IF NOT EXISTS (
+    SELECT 1
+    FROM nodecontrol.node_security_incidents incident
+    JOIN nodecontrol.control_plane_authority_fences fence
+      ON (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+         (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+    WHERE incident.incident_id = NEW.incident_id
+      AND (incident.node_id,incident.identity_epoch,incident.fault_subtype,
+           incident.authority_operation_id,incident.authority_epoch,incident.authority_sequence) =
+          (NEW.node_id,NEW.identity_epoch,NEW.fault_subtype,
+           NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
       AND fence.provider_status = 'committed'
       AND fence.visibility_state = 'active'
+      AND fence.effect_kind = 'security_incident_open'
+      AND fence.scope_kind = 'node'
   ) THEN
-    RAISE EXCEPTION 'deliverable receipt requires committed active fence' USING ERRCODE = '23514';
+    RAISE EXCEPTION 'security fault receipt must bind its exact finalized incident' USING ERRCODE = '23514';
   END IF;
   RETURN NEW;
 END
@@ -1596,10 +1767,83 @@ CREATE FUNCTION nodecontrol.enforce_restore_approval_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  pair_count integer;
 BEGIN
+  IF TG_WHEN = 'AFTER' THEN
+    IF NEW.status = 'consumed' THEN
+      SELECT count(*) INTO pair_count
+      FROM nodecontrol.node_restore_reauthorization_approvals pair
+      WHERE (pair.authority_operation_id,pair.authority_epoch,pair.authority_sequence,
+             pair.node_id,pair.recovery_id,pair.effect_digest,pair.scope_digest,
+             pair.operator_authority_epoch,pair.operator_authority_sequence,pair.authorizer_version,
+             pair.security_admin_binding_digest,pair.pop_scope,pair.evidence_completed_at) =
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,
+             NEW.node_id,NEW.recovery_id,NEW.effect_digest,NEW.scope_digest,
+             NEW.operator_authority_epoch,NEW.operator_authority_sequence,NEW.authorizer_version,
+             NEW.security_admin_binding_digest,NEW.pop_scope,NEW.evidence_completed_at)
+        AND pair.status = 'consumed'
+        AND pair.role IN ('proposal','approval')
+        AND pair.expires_at >= transaction_timestamp()
+        AND pair.credential_expires_at >= transaction_timestamp()
+        AND pair.evidence_completed_at + interval '15 minutes' >= transaction_timestamp();
+      IF pair_count <> 2 THEN
+        RAISE EXCEPTION 'restore activation must atomically consume its exact proposal and approval pair' USING ERRCODE = '23514';
+      END IF;
+    END IF;
+    RETURN NULL;
+  END IF;
+
   IF TG_OP = 'INSERT' THEN
     IF NEW.status <> 'pending' THEN
       RAISE EXCEPTION 'restore approvals must start pending' USING ERRCODE = '23514';
+    END IF;
+    IF NEW.expires_at <= transaction_timestamp()
+       OR NEW.credential_expires_at <= transaction_timestamp()
+       OR NEW.evidence_completed_at + interval '15 minutes' <= transaction_timestamp() THEN
+      RAISE EXCEPTION 'restore approval evidence is expired' USING ERRCODE = '23514';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_recovery_sessions recovery
+      WHERE recovery.recovery_id = NEW.recovery_id
+        AND recovery.node_id = NEW.node_id
+        AND recovery.status = 'completed'
+    ) THEN
+      RAISE EXCEPTION 'restore approval must bind a completed recovery for the same node' USING ERRCODE = '23514';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM nodecontrol.control_plane_authority_fences fence
+      WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+        AND fence.effect_digest = NEW.effect_digest
+        AND fence.scope_digest = NEW.scope_digest
+        AND fence.effect_kind = 'operator_transition'
+        AND fence.scope_kind = 'node'
+        AND fence.provider_status = 'committed'
+        AND fence.visibility_state = 'active'
+    ) THEN
+      RAISE EXCEPTION 'restore approval must bind its exact committed operator-transition fence' USING ERRCODE = '23514';
+    END IF;
+    IF EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_restore_reauthorization_approvals counterpart
+      WHERE counterpart.node_id = NEW.node_id
+        AND counterpart.recovery_id = NEW.recovery_id
+        AND counterpart.role <> NEW.role
+        AND counterpart.status = 'pending'
+        AND (counterpart.authority_operation_id,counterpart.authority_epoch,counterpart.authority_sequence,
+             counterpart.effect_digest,counterpart.scope_digest,counterpart.operator_authority_epoch,
+             counterpart.operator_authority_sequence,counterpart.authorizer_version,
+             counterpart.security_admin_binding_digest,counterpart.pop_scope,counterpart.evidence_completed_at)
+            IS DISTINCT FROM
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,
+             NEW.effect_digest,NEW.scope_digest,NEW.operator_authority_epoch,
+             NEW.operator_authority_sequence,NEW.authorizer_version,
+             NEW.security_admin_binding_digest,NEW.pop_scope,NEW.evidence_completed_at)
+    ) THEN
+      RAISE EXCEPTION 'restore proposal and approval evidence must match exactly' USING ERRCODE = '23514';
     END IF;
     RETURN NEW;
   END IF;
@@ -1628,6 +1872,12 @@ BEGIN
   IF NEW.status IS DISTINCT FROM OLD.status AND NEW.status NOT IN ('consumed','superseded') THEN
     RAISE EXCEPTION 'illegal restore approval status transition' USING ERRCODE = '23514';
   END IF;
+  IF NEW.status = 'consumed'
+     AND (OLD.expires_at <= transaction_timestamp()
+       OR OLD.credential_expires_at <= transaction_timestamp()
+       OR OLD.evidence_completed_at + interval '15 minutes' <= transaction_timestamp()) THEN
+    RAISE EXCEPTION 'expired restore approval cannot be consumed' USING ERRCODE = '23514';
+  END IF;
   RETURN NEW;
 END
 $$;
@@ -1638,6 +1888,20 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
+    PERFORM pg_catalog.pg_advisory_xact_lock(lock_key)
+    FROM (
+      SELECT DISTINCT pg_catalog.hashtextextended(encode(identity_value,'hex'),0) AS lock_key
+      FROM unnest(ARRAY[NEW.expected_key_id,NEW.expected_public_key_digest]) AS identity_value
+      ORDER BY lock_key
+    ) locks;
+    IF EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_root_metadata_signature_shares share
+      WHERE share.key_id IN (NEW.expected_key_id,NEW.expected_public_key_digest)
+         OR share.physical_key_id IN (NEW.expected_key_id,NEW.expected_public_key_digest)
+    ) THEN
+      RAISE EXCEPTION 'root-share identity cannot be used by an online state signer' USING ERRCODE = '23514';
+    END IF;
     IF NEW.status <> 'pending' THEN
       RAISE EXCEPTION 'state signing intents must start pending' USING ERRCODE = '23514';
     END IF;
@@ -1674,6 +1938,80 @@ BEGIN
   END IF;
   IF NEW.status IS DISTINCT FROM OLD.status AND NEW.status NOT IN ('active','failed','superseded') THEN
     RAISE EXCEPTION 'illegal state signing intent transition' USING ERRCODE = '23514';
+  END IF;
+  IF NEW.status = 'active' AND OLD.status = 'pending' THEN
+    IF transaction_timestamp() > NEW.activation_deadline THEN
+      RAISE EXCEPTION 'state signing activation deadline expired' USING ERRCODE = '23514';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM nodecontrol.control_plane_authority_fences fence
+      WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+        AND fence.provider_status = 'committed'
+        AND fence.visibility_state = 'active'
+        AND fence.scope_kind = 'node'
+        AND fence.effect_kind = CASE NEW.signing_kind
+              WHEN 'desired' THEN 'desired_activate'
+              ELSE 'recovery_activate'
+            END
+    ) THEN
+      RAISE EXCEPTION 'state signing activation requires its committed exact fence' USING ERRCODE = '23514';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_inventory inventory
+      JOIN nodecontrol.node_root_metadata_publish_intents root_intent
+        ON root_intent.publish_id = inventory.active_root_publish_id
+       AND root_intent.publish_kind = 'root'
+       AND root_intent.reserved_version = inventory.active_root_version
+       AND root_intent.status = 'active'
+      JOIN nodecontrol.control_plane_authority_fences root_fence
+        ON (root_fence.operation_id,root_fence.authority_epoch,root_fence.authority_sequence) =
+           (root_intent.authority_operation_id,root_intent.authority_epoch,root_intent.authority_sequence)
+       AND root_fence.provider_status = 'committed'
+       AND root_fence.visibility_state = 'active'
+       AND root_fence.effect_kind = 'root_publish'
+       AND root_fence.scope_kind = 'global_node_trust'
+      JOIN nodecontrol.node_root_metadata_publish_intents metadata_intent
+        ON metadata_intent.publish_id = inventory.active_metadata_publish_id
+       AND metadata_intent.publish_kind = 'metadata'
+       AND metadata_intent.reserved_version = inventory.active_metadata_version
+       AND metadata_intent.base_root_version = inventory.active_root_version
+       AND metadata_intent.status = 'active'
+      JOIN nodecontrol.control_plane_authority_fences metadata_fence
+        ON (metadata_fence.operation_id,metadata_fence.authority_epoch,metadata_fence.authority_sequence) =
+           (metadata_intent.authority_operation_id,metadata_intent.authority_epoch,metadata_intent.authority_sequence)
+       AND metadata_fence.provider_status = 'committed'
+       AND metadata_fence.visibility_state = 'active'
+       AND metadata_fence.effect_kind = 'metadata_publish'
+       AND metadata_fence.scope_kind = 'global_node_trust'
+      WHERE inventory.node_id = NEW.node_id
+        AND inventory.inventory_version = NEW.captured_inventory_version
+        AND inventory.identity_epoch = NEW.captured_identity_epoch
+        AND inventory.security_version = NEW.captured_security_version
+        AND inventory.active_root_version = NEW.root_version
+        AND inventory.active_metadata_version = NEW.metadata_version
+        AND NEW.base_generation = CASE NEW.signing_kind
+              WHEN 'desired' THEN COALESCE(inventory.active_desired_generation,0)
+              ELSE COALESCE(inventory.active_recovery_generation,0)
+            END
+      FOR SHARE OF inventory,root_intent,metadata_intent
+    ) THEN
+      RAISE EXCEPTION 'state signing activation captured node or trust values are stale' USING ERRCODE = '23514';
+    END IF;
+    IF NEW.signing_kind = 'recovery' AND NOT EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_recovery_sessions recovery
+      WHERE recovery.recovery_id = NEW.recovery_id
+        AND recovery.node_id = NEW.node_id
+        AND recovery.identity_epoch = NEW.captured_identity_epoch
+        AND recovery.reason = NEW.recovery_reason
+        AND recovery.version = NEW.recovery_session_version
+        AND recovery.status = NEW.recovery_session_status
+        AND recovery.incident_set_digest = NEW.recovery_incident_set_digest
+    ) THEN
+      RAISE EXCEPTION 'state signing activation captured recovery session is stale' USING ERRCODE = '23514';
+    END IF;
   END IF;
   RETURN NEW;
 END
@@ -1774,6 +2112,7 @@ BEGIN
         OR (OLD.publish_kind = 'metadata' AND next_intent.base_metadata_version = OLD.reserved_version))
       AND fence.provider_status = 'committed'
       AND fence.visibility_state = 'active'
+      AND (next_intent.xmin::text)::bigint = (pg_current_xact_id()::text)::bigint
   ) THEN
     RETURN NEW;
   END IF;
@@ -1791,6 +2130,12 @@ BEGIN
   IF TG_OP <> 'INSERT' THEN
     RAISE EXCEPTION 'root/metadata signature shares are immutable' USING ERRCODE = '23514';
   END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(lock_key)
+  FROM (
+    SELECT DISTINCT pg_catalog.hashtextextended(encode(identity_value,'hex'),0) AS lock_key
+    FROM unnest(ARRAY[NEW.key_id,NEW.physical_key_id]) AS identity_value
+    ORDER BY lock_key
+  ) locks;
   SELECT * INTO intent
   FROM nodecontrol.node_root_metadata_publish_intents
   WHERE publish_id = NEW.publish_id
@@ -1810,8 +2155,8 @@ BEGIN
   IF EXISTS (
     SELECT 1
     FROM nodecontrol.node_state_signing_intents signing_intent
-    WHERE signing_intent.expected_key_id = NEW.key_id
-       OR signing_intent.expected_public_key_digest = NEW.physical_key_id
+    WHERE signing_intent.expected_key_id IN (NEW.key_id,NEW.physical_key_id)
+       OR signing_intent.expected_public_key_digest IN (NEW.key_id,NEW.physical_key_id)
   ) THEN
     RAISE EXCEPTION 'online state signer identity cannot provide threshold shares' USING ERRCODE = '23514';
   END IF;
@@ -1827,6 +2172,9 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'observed state high-water rows are append-only' USING ERRCODE = '23514';
+  END IF;
   IF NEW.final_accepting AND NOT NEW.agent_accepting THEN
     RAISE EXCEPTION 'final accepting requires agent accepting' USING ERRCODE = '23514';
   END IF;
@@ -1858,6 +2206,9 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'trust bundle high-water rows are append-only' USING ERRCODE = '23514';
+  END IF;
   IF NOT EXISTS (
     SELECT 1 FROM nodecontrol.control_plane_authority_fences fence
     WHERE (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
@@ -1876,15 +2227,18 @@ BEGIN
      IS DISTINCT FROM (OLD.purpose,OLD.listener_kind,OLD.trust_domain) THEN
     RAISE EXCEPTION 'trust bundle high-water identity is immutable' USING ERRCODE = '23514';
   END IF;
-  IF (NEW.authority_epoch,NEW.authority_sequence,NEW.bundle_version) =
-     (OLD.authority_epoch,OLD.authority_sequence,OLD.bundle_version) THEN
+  IF (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,NEW.bundle_version) =
+     (OLD.authority_operation_id,OLD.authority_epoch,OLD.authority_sequence,OLD.bundle_version) THEN
     IF NEW IS DISTINCT FROM OLD THEN
       RAISE EXCEPTION 'same trust bundle high-water value forked' USING ERRCODE = '23514';
     END IF;
     RETURN NEW;
   END IF;
-  IF (NEW.authority_epoch,NEW.authority_sequence,NEW.bundle_version) <=
-     (OLD.authority_epoch,OLD.authority_sequence,OLD.bundle_version)
+  IF (NEW.authority_epoch,NEW.authority_sequence) <=
+     (OLD.authority_epoch,OLD.authority_sequence)
+     OR NEW.bundle_version <= OLD.bundle_version
+     OR NEW.bundle_digest = OLD.bundle_digest
+     OR NEW.updated_at <= OLD.updated_at
      OR NEW.cumulative_set_count < OLD.cumulative_set_count
      OR (NEW.cumulative_set_count = OLD.cumulative_set_count
          AND NEW.cumulative_set_digest <> OLD.cumulative_set_digest)
@@ -1957,7 +2311,7 @@ ON nodecontrol.node_root_metadata_publish_intents USING btree (base_root_version
 WHERE status = 'pending';
 
 CREATE TRIGGER control_plane_authority_fences_enforce_update
-BEFORE UPDATE ON nodecontrol.control_plane_authority_fences
+BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.control_plane_authority_fences
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_authority_fence_update();
 
 CREATE TRIGGER node_capacity_profiles_immutable_after_reference
@@ -1982,11 +2336,11 @@ BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.node_certificate_issuances
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_certificate_issuance_workflow();
 
 CREATE TRIGGER node_enrollment_grants_workflow
-BEFORE UPDATE OR DELETE ON nodecontrol.node_enrollment_grants
+BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.node_enrollment_grants
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_enrollment_grant_workflow();
 
 CREATE TRIGGER node_certificates_workflow
-BEFORE UPDATE OR DELETE ON nodecontrol.node_certificates
+BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.node_certificates
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_certificate_workflow();
 
 CREATE TRIGGER node_security_incidents_workflow
@@ -2003,6 +2357,11 @@ FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_recovery_session_workflow();
 
 CREATE TRIGGER node_restore_approvals_workflow
 BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.node_restore_reauthorization_approvals
+FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_restore_approval_workflow();
+
+CREATE CONSTRAINT TRIGGER node_restore_approvals_pair
+AFTER UPDATE ON nodecontrol.node_restore_reauthorization_approvals
+DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_restore_approval_workflow();
 
 CREATE TRIGGER node_state_signing_intents_workflow
@@ -2026,7 +2385,7 @@ BEFORE UPDATE OR DELETE ON nodecontrol.node_recovery_states
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.reject_row_mutation();
 
 CREATE TRIGGER node_observed_states_monotonic
-BEFORE INSERT OR UPDATE ON nodecontrol.node_observed_states
+BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.node_observed_states
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_observed_state();
 
 CREATE TRIGGER node_operator_audit_immutable
@@ -2038,7 +2397,7 @@ BEFORE UPDATE OR DELETE ON nodecontrol.node_state_transitions
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.reject_row_mutation();
 
 CREATE TRIGGER control_plane_trust_bundle_high_waters_monotonic
-BEFORE INSERT OR UPDATE ON nodecontrol.control_plane_trust_bundle_high_waters
+BEFORE INSERT OR UPDATE OR DELETE ON nodecontrol.control_plane_trust_bundle_high_waters
 FOR EACH ROW EXECUTE FUNCTION nodecontrol.enforce_trust_bundle_high_water();
 
 -- +goose Down
