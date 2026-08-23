@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package talenro.nodecontrol.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "talenro.local/platform/gen/go/talenro/nodecontrol/v1;nodecontrolv1";
+
+message NodeControlEventV1 {
+  string event_id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  string aggregate_type = 3;
+  string aggregate_id = 4;
+  uint64 aggregate_version = 5;
+  string event_type = 6;
+
+  oneof payload {
+    NodeInventoryChangedV1 node_inventory_changed = 10;
+    NodeDesiredStatePublishedV1 node_desired_state_published = 11;
+    NodeAvailabilityChangedV1 node_availability_changed = 12;
+    NodeSecurityStateChangedV1 node_security_state_changed = 13;
+    NodeCertificateStatusChangedV1 node_certificate_status_changed = 14;
+    NodeOperatorActionRecordedV1 node_operator_action_recorded = 15;
+  }
+}
+
+message NodeInventoryChangedV1 {
+  string node_id = 1;
+  uint64 inventory_version = 2;
+  string pop_code = 3;
+  string operator_state = 4;
+}
+
+message NodeDesiredStatePublishedV1 {
+  string node_id = 1;
+  uint64 generation = 2;
+  bytes content_digest = 3;
+  google.protobuf.Timestamp valid_until = 4;
+  string reason = 5;
+}
+
+message NodeAvailabilityChangedV1 {
+  string node_id = 1;
+  string boot_id = 2;
+  uint64 sequence = 3;
+  string health = 4;
+  optional bool accepting_new = 5;
+  string reason = 6;
+}
+
+message NodeSecurityStateChangedV1 {
+  string node_id = 1;
+  string incident_id = 2;
+  string fault_subtype = 3;
+  string security_state = 4;
+  string reason = 5;
+}
+
+message NodeCertificateStatusChangedV1 {
+  string node_id = 1;
+  string certificate_record_id = 2;
+  string status = 3;
+}
+
+message NodeOperatorActionRecordedV1 {
+  string audit_id = 1;
+  string operator_id = 2;
+  string action = 3;
+  string target = 4;
+  string result = 5;
+  string reason = 6;
+}
