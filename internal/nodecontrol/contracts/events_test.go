@@ -173,6 +173,65 @@ func TestMarshalNodeControlEventRejectsInvalidInput(t *testing.T) {
 	}
 }
 
+func TestMarshalNodeControlEventRejectsSemanticCovertChannels(t *testing.T) {
+	valid := validNodeControlEvents()
+	cases := []struct {
+		name       string
+		eventIndex int
+		mutate     func(*nodecontrolv1.NodeControlEventV1)
+	}{
+		{name: "inventory pop code violates canonical grammar", eventIndex: 0, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeInventoryChanged().PopCode = "endpoint-canary-"
+		}},
+		{name: "inventory operator state is unregistered", eventIndex: 0, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeInventoryChanged().OperatorState = "serial-canary"
+		}},
+		{name: "desired reason is unregistered", eventIndex: 1, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeDesiredStatePublished().Reason = "csr-canary"
+		}},
+		{name: "availability health is unregistered", eventIndex: 2, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeAvailabilityChanged().Health = "endpoint-canary"
+		}},
+		{name: "availability reason is unregistered", eventIndex: 2, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeAvailabilityChanged().Reason = "serial-canary"
+		}},
+		{name: "security fault subtype is unregistered", eventIndex: 3, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeSecurityStateChanged().FaultSubtype = "csr-canary"
+		}},
+		{name: "security state is unregistered", eventIndex: 3, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeSecurityStateChanged().SecurityState = "endpoint-canary"
+		}},
+		{name: "security reason is unregistered", eventIndex: 3, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeSecurityStateChanged().Reason = "serial-canary"
+		}},
+		{name: "certificate status is unregistered", eventIndex: 4, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeCertificateStatusChanged().Status = "csr-canary"
+		}},
+		{name: "operator action is unregistered", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeOperatorActionRecorded().Action = "endpoint-canary"
+		}},
+		{name: "operator target is unregistered", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeOperatorActionRecorded().Target = "serial-canary"
+		}},
+		{name: "operator result is unregistered", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeOperatorActionRecorded().Result = "csr-canary"
+		}},
+		{name: "operator reason is unregistered", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeOperatorActionRecorded().Reason = "endpoint-canary"
+		}},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			event := clonedNodeControlEvent(valid[test.eventIndex])
+			test.mutate(event)
+			if encoded, err := MarshalNodeControlEvent(event); err == nil || encoded != nil {
+				t.Fatal("MarshalNodeControlEvent accepted a semantic covert channel")
+			}
+		})
+	}
+}
+
 func TestUnmarshalNodeControlEventRejectsUnknownAndNoncanonicalBytes(t *testing.T) {
 	encoded, err := MarshalNodeControlEvent(validNodeControlEvents()[0])
 	if err != nil {
@@ -283,15 +342,15 @@ func validNodeControlEvents() []*nodecontrolv1.NodeControlEventV1 {
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111112", OccurredAt: occurredAt, AggregateType: "node", AggregateId: nodeID, AggregateVersion: 8, EventType: "node_desired_state_published.v1",
-			Payload: &nodecontrolv1.NodeControlEventV1_NodeDesiredStatePublished{NodeDesiredStatePublished: &nodecontrolv1.NodeDesiredStatePublishedV1{NodeId: nodeID, Generation: 8, ContentDigest: bytes.Repeat([]byte{0x01}, 32), ValidUntil: validUntil, Reason: "operator_request"}},
+			Payload: &nodecontrolv1.NodeControlEventV1_NodeDesiredStatePublished{NodeDesiredStatePublished: &nodecontrolv1.NodeDesiredStatePublishedV1{NodeId: nodeID, Generation: 8, ContentDigest: bytes.Repeat([]byte{0x01}, 32), ValidUntil: validUntil, Reason: "operator_update"}},
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111113", OccurredAt: occurredAt, AggregateType: "node", AggregateId: nodeID, AggregateVersion: 9, EventType: "node_availability_changed.v1",
-			Payload: &nodecontrolv1.NodeControlEventV1_NodeAvailabilityChanged{NodeAvailabilityChanged: &nodecontrolv1.NodeAvailabilityChangedV1{NodeId: nodeID, BootId: "33333333-3333-4333-8333-333333333333", Sequence: 9, Health: "healthy", AcceptingNew: boolPointer(false), Reason: "observed"}},
+			Payload: &nodecontrolv1.NodeControlEventV1_NodeAvailabilityChanged{NodeAvailabilityChanged: &nodecontrolv1.NodeAvailabilityChangedV1{NodeId: nodeID, BootId: "33333333-3333-4333-8333-333333333333", Sequence: 9, Health: "healthy", AcceptingNew: boolPointer(false), Reason: "observation"}},
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111114", OccurredAt: occurredAt, AggregateType: "node", AggregateId: nodeID, AggregateVersion: 10, EventType: "node_security_state_changed.v1",
-			Payload: &nodecontrolv1.NodeControlEventV1_NodeSecurityStateChanged{NodeSecurityStateChanged: &nodecontrolv1.NodeSecurityStateChangedV1{NodeId: nodeID, IncidentId: "44444444-4444-4444-8444-444444444444", FaultSubtype: "attestation_failed", SecurityState: "stopped", Reason: "fault_confirmed"}},
+			Payload: &nodecontrolv1.NodeControlEventV1_NodeSecurityStateChanged{NodeSecurityStateChanged: &nodecontrolv1.NodeSecurityStateChangedV1{NodeId: nodeID, IncidentId: "44444444-4444-4444-8444-444444444444", FaultSubtype: "identity_compromise", SecurityState: "quarantined", Reason: "fault_confirmed"}},
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111115", OccurredAt: occurredAt, AggregateType: "node", AggregateId: nodeID, AggregateVersion: 11, EventType: "node_certificate_status_changed.v1",
@@ -299,7 +358,7 @@ func validNodeControlEvents() []*nodecontrolv1.NodeControlEventV1 {
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111116", OccurredAt: occurredAt, AggregateType: "operator_action", AggregateId: "66666666-6666-4666-8666-666666666666", AggregateVersion: 12, EventType: "node_operator_action_recorded.v1",
-			Payload: &nodecontrolv1.NodeControlEventV1_NodeOperatorActionRecorded{NodeOperatorActionRecorded: &nodecontrolv1.NodeOperatorActionRecordedV1{AuditId: "66666666-6666-4666-8666-666666666666", OperatorId: "77777777-7777-4777-8777-777777777777", Action: "publish_desired_state", Target: "node", Result: "accepted", Reason: "operator_request"}},
+			Payload: &nodecontrolv1.NodeControlEventV1_NodeOperatorActionRecorded{NodeOperatorActionRecorded: &nodecontrolv1.NodeOperatorActionRecordedV1{AuditId: "66666666-6666-4666-8666-666666666666", OperatorId: "77777777-7777-4777-8777-777777777777", Action: "put_node_desired_state", Target: "node", Result: "accepted", Reason: "operator_update"}},
 		},
 	}
 }
