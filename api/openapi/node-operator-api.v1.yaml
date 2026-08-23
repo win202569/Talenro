@@ -1,0 +1,1615 @@
+openapi: 3.0.3
+info:
+  title: Talenro Node Operator API
+  version: 1.0.0
+paths:
+  /v1/operator/pops:
+    post:
+      operationId: createNodePOP
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNodePOPV1"
+      responses:
+        "201": {$ref: "#/components/responses/NodePOPCreated"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    get:
+      operationId: listNodePOPs
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      parameters:
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/POPIsoCountryFilter"
+        - $ref: "#/components/parameters/POPRegionFilter"
+        - $ref: "#/components/parameters/OperatorStateFilter"
+      responses:
+        "200": {$ref: "#/components/responses/NodePOPList"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/pops/{pop_code}:
+    parameters:
+      - $ref: "#/components/parameters/POPCodePath"
+    get:
+      operationId: getNodePOP
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      responses:
+        "200": {$ref: "#/components/responses/NodePOP"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    put:
+      operationId: updateNodePOP
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNodePOPV1"
+      responses:
+        "200": {$ref: "#/components/responses/NodePOP"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/failure-domains:
+    post:
+      operationId: createNodeFailureDomain
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFailureDomainV1"
+      responses:
+        "201": {$ref: "#/components/responses/FailureDomainCreated"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    get:
+      operationId: listNodeFailureDomains
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      parameters:
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/FailureDomainTypeFilter"
+        - $ref: "#/components/parameters/FailureDomainStableIDFilter"
+      responses:
+        "200": {$ref: "#/components/responses/FailureDomainList"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/failure-domains/{failure_domain_id}:
+    parameters:
+      - $ref: "#/components/parameters/FailureDomainIDPath"
+    get:
+      operationId: getNodeFailureDomain
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      responses:
+        "200": {$ref: "#/components/responses/FailureDomain"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    put:
+      operationId: updateNodeFailureDomain
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFailureDomainV1"
+      responses:
+        "200": {$ref: "#/components/responses/FailureDomain"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes:
+    post:
+      operationId: createNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNodeV1"
+      responses:
+        "201": {$ref: "#/components/responses/NodeCreated"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    get:
+      operationId: listNodes
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      parameters:
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/NodePOPFilter"
+        - $ref: "#/components/parameters/OperatorStateFilter"
+        - $ref: "#/components/parameters/SecurityStateFilter"
+        - $ref: "#/components/parameters/IdentityStateFilter"
+      responses:
+        "200": {$ref: "#/components/responses/NodeList"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    get:
+      operationId: getNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      responses:
+        "200": {$ref: "#/components/responses/Node"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    put:
+      operationId: updateNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNodeV1"
+      responses:
+        "200": {$ref: "#/components/responses/Node"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/endpoints:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: createNodeEndpoint
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNodeEndpointV1"
+      responses:
+        "201": {$ref: "#/components/responses/NodeEndpointCreated"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    get:
+      operationId: listNodeEndpoints
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      parameters:
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/TransportFilter"
+        - $ref: "#/components/parameters/ProtocolCapabilityFilter"
+        - $ref: "#/components/parameters/OperatorStateFilter"
+      responses:
+        "200": {$ref: "#/components/responses/NodeEndpointList"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/endpoints/{endpoint_id}:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+      - $ref: "#/components/parameters/EndpointIDPath"
+    get:
+      operationId: getNodeEndpoint
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      responses:
+        "200": {$ref: "#/components/responses/NodeEndpoint"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    put:
+      operationId: updateNodeEndpoint
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNodeEndpointV1"
+      responses:
+        "200": {$ref: "#/components/responses/NodeEndpoint"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/process-slots:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: createNodeProcessSlot
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNodeProcessSlotV1"
+      responses:
+        "201": {$ref: "#/components/responses/NodeProcessSlotCreated"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    get:
+      operationId: listNodeProcessSlots
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      parameters:
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/AdapterFilter"
+        - $ref: "#/components/parameters/RequiredFilter"
+        - $ref: "#/components/parameters/OperatorStateFilter"
+      responses:
+        "200": {$ref: "#/components/responses/NodeProcessSlotList"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/process-slots/{slot_id}:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+      - $ref: "#/components/parameters/SlotIDPath"
+    get:
+      operationId: getNodeProcessSlot
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      responses:
+        "200": {$ref: "#/components/responses/NodeProcessSlot"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+    put:
+      operationId: updateNodeProcessSlot
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNodeProcessSlotV1"
+      responses:
+        "200": {$ref: "#/components/responses/NodeProcessSlot"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/enrollment-grants:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: createNodeEnrollmentGrant
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEnrollmentGrantV1"
+      responses:
+        "201": {$ref: "#/components/responses/EnrollmentGrant"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/desired-state:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    put:
+      operationId: putNodeDesiredState
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutNodeDesiredStateV1"
+      responses:
+        "202": {$ref: "#/components/responses/SigningOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/drain:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: drainNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DrainNodeV1"
+      responses:
+        "202": {$ref: "#/components/responses/SigningOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/disable:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: disableNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisableNodeV1"
+      responses:
+        "202": {$ref: "#/components/responses/RecoveryOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/reenroll:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: reenrollNode
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReenrollNodeV1"
+      responses:
+        "201": {$ref: "#/components/responses/RecoveryEnrollmentGrant"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/complete-reenrollment:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: completeNodeReenrollment
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteReenrollmentV1"
+      responses:
+        "202": {$ref: "#/components/responses/RecoveryOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/register-host-security-incident:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: registerNodeHostSecurityIncident
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterHostSecurityIncidentV1"
+      responses:
+        "202": {$ref: "#/components/responses/RecoveryOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/register-resource-envelope:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: registerNodeResourceEnvelope
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterResourceEnvelopeV1"
+      responses:
+        "200": {$ref: "#/components/responses/ResourceEnvelopeActivation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/clear-security-quarantine:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: clearNodeSecurityQuarantine
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClearSecurityQuarantineV1"
+      responses:
+        "202": {$ref: "#/components/responses/RecoveryOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/resume-after-security:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: resumeNodeAfterSecurity
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeAfterSecurityV1"
+      responses:
+        "202": {$ref: "#/components/responses/SigningOperation"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+  /v1/operator/nodes/{node_id}/actions/reauthorize-after-restore:
+    parameters:
+      - $ref: "#/components/parameters/NodeIDPath"
+    post:
+      operationId: reauthorizeNodeAfterRestore
+      security: []
+      x-talenro-listener-auth: operator_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReauthorizeAfterRestoreV1"
+      responses:
+        "202": {$ref: "#/components/responses/RestoreReauthorization"}
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "401": {$ref: "#/components/responses/Unauthenticated"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/DependencyUnavailable"}
+components:
+  schemas:
+    CanonicalUUID:
+      type: string
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    DigestHex32:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+    Base64URL32:
+      type: string
+      minLength: 43
+      maxLength: 43
+      pattern: '^[A-Za-z0-9_-]{43}$'
+    PositiveInt64:
+      type: integer
+      format: int64
+      minimum: 1
+      maximum: 9223372036854775807
+    NonNegativeInt64:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+    POPCodeV1:
+      type: string
+      minLength: 2
+      maxLength: 32
+      pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+    RegionV1:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+    StableIDV1:
+      type: string
+      minLength: 1
+      maxLength: 128
+      pattern: '^[A-Za-z0-9][A-Za-z0-9._:/-]*$'
+    SlotIDV1:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+    CapacityProfileIDV1:
+      type: string
+      minLength: 1
+      maxLength: 128
+      pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+    OperatorReasonCodeV1:
+      type: string
+      enum: [provision, inventory_update, capacity_change, drain_maintenance, administrative_disable, retire, identity_compromise, host_remediation, security_recovery, authority_restore, release_update]
+    DesiredReasonV1:
+      type: string
+      enum: [initial, operator_update, drain, resume, lease_refresh, clear_slot_quarantine, restore_reauthorize]
+    FaultSubtypeV1:
+      type: string
+      enum: [identity_compromise, online_signer_equivocation, metadata_rollback, root_rollback, root_equivocation, unverified_client_highwater_conflict, client_highwater_ahead, server_trust_bundle_conflict, trusted_time_rollback_or_unavailable, local_state_corruption_or_rollback, release_or_process_integrity, profile_binding_mismatch, incident_overflow]
+    ProtocolCapabilityV1:
+      type: string
+      enum: [fixture_loopback, xray_loopback, sing_box_loopback]
+    AdapterV1:
+      type: string
+      enum: [fixture, xray, sing_box]
+    OperatorStateV1:
+      type: string
+      enum: [provisioning, enabled, draining, disabled]
+    SecurityStateV1:
+      type: string
+      enum: [normal, quarantined]
+    IdentityStateV1:
+      type: string
+      enum: [never_enrolled, active, recovery_pending, recovery_limited, revoked]
+    RecoveryReasonV1:
+      type: string
+      enum: [identity_compromise, administrative_disable, retire, authority_restore, security_incident]
+    RecoveryActionV1:
+      type: string
+      enum: [hold_stopped, submit_recovery_attestation, clear_security_latches]
+    RestorePhaseV1:
+      type: string
+      enum: [proposal, approval]
+    OperationResultV1:
+      type: string
+      enum: [pending, active, accepted, completed, superseded, rejected]
+    FailureDomainTypeV1:
+      type: string
+      enum: [availability_zone, rack, power_domain, network_domain]
+    TransportV1:
+      type: string
+      enum: [tcp, udp]
+    ProcessLifecycleV1:
+      type: string
+      enum: [running, stopped, draining]
+    DisableReasonV1:
+      allOf:
+        - $ref: "#/components/schemas/OperatorReasonCodeV1"
+        - type: string
+          enum: [administrative_disable, retire]
+    ResumeOperatorStateV1:
+      allOf:
+        - $ref: "#/components/schemas/OperatorStateV1"
+        - type: string
+          enum: [enabled, draining, disabled]
+    RestoreTargetOperatorStateV1:
+      allOf:
+        - $ref: "#/components/schemas/OperatorStateV1"
+        - type: string
+          enum: [enabled, draining]
+    PublicErrorV1:
+      type: object
+      additionalProperties: false
+      required: [code, request_id]
+      properties:
+        code:
+          type: string
+          enum: [invalid_request, unauthenticated, forbidden, not_found, conflict, rate_limited, dependency_unavailable, internal]
+        request_id:
+          type: string
+          minLength: 16
+          maxLength: 64
+          pattern: '^[A-Za-z0-9_-]+$'
+        reason:
+          type: string
+          enum: [malformed, precondition_failed, stale_version, reenroll_required, incident_capacity_exceeded, authority_unavailable, credential_invalid, scope_changed, operation_in_progress, deadline_expired, unsupported_capability]
+        retry_after_ms:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 10000
+    NodePOPV1:
+      type: object
+      additionalProperties: false
+      required: [pop_code, iso_country, region, operator_state, version, created_at, updated_at]
+      properties:
+        pop_code: {$ref: "#/components/schemas/POPCodeV1"}
+        iso_country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: '^[A-Z]{2}$'
+        region: {$ref: "#/components/schemas/RegionV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        version: {$ref: "#/components/schemas/PositiveInt64"}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    FailureDomainV1:
+      type: object
+      additionalProperties: false
+      required: [failure_domain_id, domain_type, stable_id, version, created_at, updated_at]
+      properties:
+        failure_domain_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        domain_type: {$ref: "#/components/schemas/FailureDomainTypeV1"}
+        stable_id: {$ref: "#/components/schemas/StableIDV1"}
+        version: {$ref: "#/components/schemas/PositiveInt64"}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    NodeV1:
+      type: object
+      additionalProperties: false
+      required: [node_id, pop_code, operator_state, security_state, identity_state, identity_epoch, inventory_version, security_version, created_at, updated_at]
+      properties:
+        node_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        pop_code: {$ref: "#/components/schemas/POPCodeV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        security_state: {$ref: "#/components/schemas/SecurityStateV1"}
+        identity_state: {$ref: "#/components/schemas/IdentityStateV1"}
+        identity_epoch: {$ref: "#/components/schemas/NonNegativeInt64"}
+        inventory_version: {$ref: "#/components/schemas/PositiveInt64"}
+        security_version: {$ref: "#/components/schemas/PositiveInt64"}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        resume_operator_state:
+          allOf: [{$ref: "#/components/schemas/OperatorStateV1"}]
+          nullable: true
+        pending_operator_transition:
+          type: string
+          enum: [draining, resume]
+          nullable: true
+        pending_transition_signing_id:
+          allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
+          nullable: true
+        lineage_id:
+          allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
+          nullable: true
+        resource_envelope_version:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        resource_envelope_digest:
+          allOf: [{$ref: "#/components/schemas/DigestHex32"}]
+          nullable: true
+        active_desired_generation:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        next_desired_generation:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        active_recovery_generation:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        next_recovery_generation:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        active_root_publish_id:
+          allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
+          nullable: true
+        active_root_version:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        active_metadata_publish_id:
+          allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
+          nullable: true
+        active_metadata_version:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        last_authority_operation_id:
+          allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
+          nullable: true
+        last_authority_epoch:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+        last_authority_sequence:
+          allOf: [{$ref: "#/components/schemas/PositiveInt64"}]
+          nullable: true
+      allOf:
+        - oneOf:
+            - required: [pending_operator_transition, pending_transition_signing_id]
+            - not:
+                anyOf:
+                  - required: [pending_operator_transition]
+                  - required: [pending_transition_signing_id]
+        - oneOf:
+            - required: [resource_envelope_version, resource_envelope_digest]
+            - not:
+                anyOf:
+                  - required: [resource_envelope_version]
+                  - required: [resource_envelope_digest]
+        - oneOf:
+            - required: [active_root_publish_id, active_root_version]
+            - not:
+                anyOf:
+                  - required: [active_root_publish_id]
+                  - required: [active_root_version]
+        - oneOf:
+            - required: [active_metadata_publish_id, active_metadata_version]
+            - not:
+                anyOf:
+                  - required: [active_metadata_publish_id]
+                  - required: [active_metadata_version]
+        - oneOf:
+            - required: [last_authority_operation_id, last_authority_epoch, last_authority_sequence]
+            - not:
+                anyOf:
+                  - required: [last_authority_operation_id]
+                  - required: [last_authority_epoch]
+                  - required: [last_authority_sequence]
+    NodeEndpointV1:
+      type: object
+      additionalProperties: false
+      required: [endpoint_id, node_id, address, port, transport, protocol_capability, operator_state, inventory_version, created_at, updated_at]
+      properties:
+        endpoint_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        node_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        address:
+          type: string
+          minLength: 1
+          maxLength: 253
+          pattern: '^[A-Za-z0-9][A-Za-z0-9.:-]*$'
+        port: {type: integer, minimum: 1, maximum: 65535}
+        transport: {$ref: "#/components/schemas/TransportV1"}
+        protocol_capability: {$ref: "#/components/schemas/ProtocolCapabilityV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        inventory_version: {$ref: "#/components/schemas/PositiveInt64"}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    NodeProcessSlotV1:
+      type: object
+      additionalProperties: false
+      required: [node_id, slot_id, adapter, capacity_profile_id, capacity_profile_version, required, operator_state, inventory_version, created_at, updated_at]
+      properties:
+        node_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        slot_id: {$ref: "#/components/schemas/SlotIDV1"}
+        adapter: {$ref: "#/components/schemas/AdapterV1"}
+        capacity_profile_id: {$ref: "#/components/schemas/CapacityProfileIDV1"}
+        capacity_profile_version: {$ref: "#/components/schemas/PositiveInt64"}
+        required: {type: boolean}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        inventory_version: {$ref: "#/components/schemas/PositiveInt64"}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    OperatorListCursorV1:
+      type: string
+      minLength: 16
+      maxLength: 2048
+      pattern: '^[A-Za-z0-9_-]+$'
+    NodePOPListV1:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items: {$ref: "#/components/schemas/NodePOPV1"}
+        next_cursor: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    FailureDomainListV1:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items: {$ref: "#/components/schemas/FailureDomainV1"}
+        next_cursor: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    NodeListV1:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items: {$ref: "#/components/schemas/NodeV1"}
+        next_cursor: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    NodeEndpointListV1:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items: {$ref: "#/components/schemas/NodeEndpointV1"}
+        next_cursor: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    NodeProcessSlotListV1:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items: {$ref: "#/components/schemas/NodeProcessSlotV1"}
+        next_cursor: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    CreateNodePOPV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, pop_code, iso_country, region, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        pop_code: {$ref: "#/components/schemas/POPCodeV1"}
+        iso_country: {type: string, minLength: 2, maxLength: 2, pattern: '^[A-Z]{2}$'}
+        region: {$ref: "#/components/schemas/RegionV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    UpdateNodePOPV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, iso_country, region, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        iso_country: {type: string, minLength: 2, maxLength: 2, pattern: '^[A-Z]{2}$'}
+        region: {$ref: "#/components/schemas/RegionV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    CreateFailureDomainV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, failure_domain_id, domain_type, stable_id, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        failure_domain_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        domain_type: {$ref: "#/components/schemas/FailureDomainTypeV1"}
+        stable_id: {$ref: "#/components/schemas/StableIDV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    UpdateFailureDomainV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, domain_type, stable_id, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        domain_type: {$ref: "#/components/schemas/FailureDomainTypeV1"}
+        stable_id: {$ref: "#/components/schemas/StableIDV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    CreateNodeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, node_id, pop_code, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        node_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        pop_code: {$ref: "#/components/schemas/POPCodeV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    UpdateNodeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, pop_code, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        pop_code: {$ref: "#/components/schemas/POPCodeV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    CreateNodeEndpointV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, endpoint_id, address, port, transport, protocol_capability, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        endpoint_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        address: {type: string, minLength: 1, maxLength: 253, pattern: '^[A-Za-z0-9][A-Za-z0-9.:-]*$'}
+        port: {type: integer, minimum: 1, maximum: 65535}
+        transport: {$ref: "#/components/schemas/TransportV1"}
+        protocol_capability: {$ref: "#/components/schemas/ProtocolCapabilityV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    UpdateNodeEndpointV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, address, port, transport, protocol_capability, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        address: {type: string, minLength: 1, maxLength: 253, pattern: '^[A-Za-z0-9][A-Za-z0-9.:-]*$'}
+        port: {type: integer, minimum: 1, maximum: 65535}
+        transport: {$ref: "#/components/schemas/TransportV1"}
+        protocol_capability: {$ref: "#/components/schemas/ProtocolCapabilityV1"}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    CreateNodeProcessSlotV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, slot_id, adapter, capacity_profile_id, capacity_profile_version, required, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        slot_id: {$ref: "#/components/schemas/SlotIDV1"}
+        adapter: {$ref: "#/components/schemas/AdapterV1"}
+        capacity_profile_id: {$ref: "#/components/schemas/CapacityProfileIDV1"}
+        capacity_profile_version: {$ref: "#/components/schemas/PositiveInt64"}
+        required: {type: boolean}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    UpdateNodeProcessSlotV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, adapter, capacity_profile_id, capacity_profile_version, required, operator_state, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        adapter: {$ref: "#/components/schemas/AdapterV1"}
+        capacity_profile_id: {$ref: "#/components/schemas/CapacityProfileIDV1"}
+        capacity_profile_version: {$ref: "#/components/schemas/PositiveInt64"}
+        required: {type: boolean}
+        operator_state: {$ref: "#/components/schemas/OperatorStateV1"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    CreateEnrollmentGrantV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, csr_der_sha256, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        csr_der_sha256: {$ref: "#/components/schemas/DigestHex32"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    EnrollmentGrantV1:
+      type: object
+      additionalProperties: false
+      required: [grant_id, node_id, csr_der_sha256, expires_at, result]
+      properties:
+        grant_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        node_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        csr_der_sha256: {$ref: "#/components/schemas/DigestHex32"}
+        expires_at: {type: string, format: date-time}
+        result: {$ref: "#/components/schemas/OperationResultV1"}
+        enrollment_grant: {$ref: "#/components/schemas/Base64URL32"}
+    DesiredProcessV1:
+      type: object
+      additionalProperties: false
+      required: [slot_id, adapter, release_id, required, lifecycle, test_profile, capacity_profile_id, capacity_profile_version, required_metrics, probe_profile, restart_profile]
+      properties:
+        slot_id: {$ref: "#/components/schemas/SlotIDV1"}
+        adapter: {$ref: "#/components/schemas/AdapterV1"}
+        release_id: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'}
+        required: {type: boolean}
+        lifecycle: {$ref: "#/components/schemas/ProcessLifecycleV1"}
+        test_profile: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'}
+        capacity_profile_id: {$ref: "#/components/schemas/CapacityProfileIDV1"}
+        capacity_profile_version: {$ref: "#/components/schemas/PositiveInt64"}
+        required_metrics:
+          type: array
+          minItems: 1
+          maxItems: 16
+          uniqueItems: true
+          items:
+            type: string
+            enum: [cpu_basis_points, egress_bps, memory_bytes, open_file_descriptors, task_count]
+        probe_profile: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'}
+        restart_profile: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'}
+    PutNodeDesiredStateV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, reason_code, requested_valid_until, inventory_version, resource_envelope_version, resource_envelope_digest, sorted_processes]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        reason_code: {$ref: "#/components/schemas/DesiredReasonV1"}
+        requested_valid_until: {type: string, format: date-time}
+        inventory_version: {$ref: "#/components/schemas/PositiveInt64"}
+        resource_envelope_version: {$ref: "#/components/schemas/PositiveInt64"}
+        resource_envelope_digest: {$ref: "#/components/schemas/DigestHex32"}
+        sorted_processes:
+          type: array
+          minItems: 0
+          maxItems: 8
+          uniqueItems: true
+          x-talenro-order: slot_id_bytewise_ascending
+          items: {$ref: "#/components/schemas/DesiredProcessV1"}
+    SigningOperationV1:
+      type: object
+      additionalProperties: false
+      required: [signing_id, status, reserved_generation]
+      properties:
+        signing_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        status: {$ref: "#/components/schemas/OperationResultV1"}
+        reserved_generation: {$ref: "#/components/schemas/PositiveInt64"}
+    RecoveryOperationV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_id, status]
+      properties:
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        status: {$ref: "#/components/schemas/OperationResultV1"}
+    DrainNodeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    DisableNodeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        reason_code: {$ref: "#/components/schemas/DisableReasonV1"}
+    ReenrollNodeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, recovery_id, csr_der_sha256, reason_code]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        csr_der_sha256: {$ref: "#/components/schemas/DigestHex32"}
+        reason_code: {$ref: "#/components/schemas/OperatorReasonCodeV1"}
+    HostRemediationEvidenceV1:
+      type: object
+      additionalProperties: false
+      required: [evidence_id, completed_at, canonical_bytes, digest]
+      properties:
+        evidence_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        completed_at: {type: string, format: date-time}
+        canonical_bytes: {type: string, minLength: 2, maxLength: 32768, pattern: '^[A-Za-z0-9_-]+$'}
+        digest: {$ref: "#/components/schemas/DigestHex32"}
+    CompleteReenrollmentV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, recovery_id, certificate_id, recovery_attestation_digest, host_remediation_evidence]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        certificate_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        recovery_attestation_digest: {$ref: "#/components/schemas/DigestHex32"}
+        host_remediation_evidence: {$ref: "#/components/schemas/HostRemediationEvidenceV1"}
+    RegisterHostSecurityIncidentV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, subtype, host_remediation_evidence]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        subtype: {$ref: "#/components/schemas/FaultSubtypeV1"}
+        host_remediation_evidence: {$ref: "#/components/schemas/HostRemediationEvidenceV1"}
+    ResourceEnvelopePackageV1:
+      type: object
+      additionalProperties: false
+      required: [canonical_bytes, digest]
+      properties:
+        canonical_bytes: {type: string, minLength: 2, maxLength: 32768, pattern: '^[A-Za-z0-9_-]+$'}
+        digest: {$ref: "#/components/schemas/DigestHex32"}
+    RegisterResourceEnvelopeV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, envelope_package, host_remediation_evidence]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        envelope_package: {$ref: "#/components/schemas/ResourceEnvelopePackageV1"}
+        host_remediation_evidence: {$ref: "#/components/schemas/HostRemediationEvidenceV1"}
+    ResourceEnvelopeActivationV1:
+      type: object
+      additionalProperties: false
+      required: [version, authority_sequence, digest]
+      properties:
+        version: {$ref: "#/components/schemas/PositiveInt64"}
+        authority_sequence: {$ref: "#/components/schemas/PositiveInt64"}
+        digest: {$ref: "#/components/schemas/DigestHex32"}
+    ClearSecurityQuarantineV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, incident_id, host_remediation_evidence, recovery_snapshot_digest, recovery_attestation_digest]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        incident_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        host_remediation_evidence: {$ref: "#/components/schemas/HostRemediationEvidenceV1"}
+        recovery_snapshot_digest: {$ref: "#/components/schemas/DigestHex32"}
+        recovery_attestation_digest: {$ref: "#/components/schemas/DigestHex32"}
+    ResumeAfterSecurityV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, recovery_id, target_operator_state, recovery_attestation_digest]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        target_operator_state: {$ref: "#/components/schemas/ResumeOperatorStateV1"}
+        recovery_attestation_digest: {$ref: "#/components/schemas/DigestHex32"}
+    ReauthorizeAfterRestoreV1:
+      type: object
+      additionalProperties: false
+      required: [command_id, recovery_id, phase, target_operator_state, effect_digest, host_remediation_evidence]
+      properties:
+        command_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        phase: {$ref: "#/components/schemas/RestorePhaseV1"}
+        proposal_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        target_operator_state: {$ref: "#/components/schemas/RestoreTargetOperatorStateV1"}
+        effect_digest: {$ref: "#/components/schemas/DigestHex32"}
+        host_remediation_evidence: {$ref: "#/components/schemas/HostRemediationEvidenceV1"}
+      oneOf:
+        - properties:
+            phase: {type: string, enum: [proposal]}
+          not:
+            required: [proposal_id]
+        - required: [proposal_id]
+          properties:
+            phase: {type: string, enum: [approval]}
+    RecoveryEnrollmentGrantV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_id, grant_id, csr_der_sha256, expires_at, status]
+      properties:
+        recovery_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        grant_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        csr_der_sha256: {$ref: "#/components/schemas/DigestHex32"}
+        expires_at: {type: string, format: date-time}
+        status: {$ref: "#/components/schemas/OperationResultV1"}
+        enrollment_grant: {$ref: "#/components/schemas/Base64URL32"}
+    RestoreReauthorizationV1:
+      type: object
+      additionalProperties: false
+      required: [proposal_id, status, expires_at]
+      properties:
+        proposal_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        approval_id: {$ref: "#/components/schemas/CanonicalUUID"}
+        status: {$ref: "#/components/schemas/OperationResultV1"}
+        expires_at: {type: string, format: date-time}
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 22
+        maxLength: 86
+        pattern: '^[A-Za-z0-9_-]+$'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^"[1-9][0-9]{0,18}"$'
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, maximum: 200, default: 50}
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/OperatorListCursorV1"}
+    POPCodePath:
+      name: pop_code
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/POPCodeV1"}
+    FailureDomainIDPath:
+      name: failure_domain_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/CanonicalUUID"}
+    NodeIDPath:
+      name: node_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/CanonicalUUID"}
+    EndpointIDPath:
+      name: endpoint_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/CanonicalUUID"}
+    SlotIDPath:
+      name: slot_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/SlotIDV1"}
+    POPIsoCountryFilter:
+      name: iso_country
+      in: query
+      required: false
+      schema: {type: string, minLength: 2, maxLength: 2, pattern: '^[A-Z]{2}$'}
+    POPRegionFilter:
+      name: region
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/RegionV1"}
+    NodePOPFilter:
+      name: pop_code
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/POPCodeV1"}
+    OperatorStateFilter:
+      name: operator_state
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/OperatorStateV1"}
+    SecurityStateFilter:
+      name: security_state
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/SecurityStateV1"}
+    IdentityStateFilter:
+      name: identity_state
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/IdentityStateV1"}
+    FailureDomainTypeFilter:
+      name: domain_type
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/FailureDomainTypeV1"}
+    FailureDomainStableIDFilter:
+      name: stable_id
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/StableIDV1"}
+    TransportFilter:
+      name: transport
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/TransportV1"}
+    ProtocolCapabilityFilter:
+      name: protocol_capability
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/ProtocolCapabilityV1"}
+    AdapterFilter:
+      name: adapter
+      in: query
+      required: false
+      schema: {$ref: "#/components/schemas/AdapterV1"}
+    RequiredFilter:
+      name: required
+      in: query
+      required: false
+      schema: {type: boolean}
+  headers:
+    StrongETag:
+      description: Strong resource generation validator
+      required: true
+      schema:
+        type: string
+        pattern: '^"[1-9][0-9]{0,18}"$'
+  responses:
+    NodePOPCreated:
+      description: Node POP created
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodePOPV1"}}}
+    NodePOP:
+      description: Node POP
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodePOPV1"}}}
+    NodePOPList:
+      description: Node POP page
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodePOPListV1"}}}
+    FailureDomainCreated:
+      description: Failure domain created
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/FailureDomainV1"}}}
+    FailureDomain:
+      description: Failure domain
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/FailureDomainV1"}}}
+    FailureDomainList:
+      description: Failure domain page
+      content: {application/json: {schema: {$ref: "#/components/schemas/FailureDomainListV1"}}}
+    NodeCreated:
+      description: Node created
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeV1"}}}
+    Node:
+      description: Node
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeV1"}}}
+    NodeList:
+      description: Node page
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeListV1"}}}
+    NodeEndpointCreated:
+      description: Node endpoint created
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeEndpointV1"}}}
+    NodeEndpoint:
+      description: Node endpoint
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeEndpointV1"}}}
+    NodeEndpointList:
+      description: Node endpoint page
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeEndpointListV1"}}}
+    NodeProcessSlotCreated:
+      description: Node process slot created
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeProcessSlotV1"}}}
+    NodeProcessSlot:
+      description: Node process slot
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeProcessSlotV1"}}}
+    NodeProcessSlotList:
+      description: Node process slot page
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/NodeProcessSlotListV1"}}}
+    EnrollmentGrant:
+      description: Enrollment grant metadata and first-response secret
+      headers: {ETag: {$ref: "#/components/headers/StrongETag"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/EnrollmentGrantV1"}}}
+    SigningOperation:
+      description: Durable node state signing operation
+      content: {application/json: {schema: {$ref: "#/components/schemas/SigningOperationV1"}}}
+    RecoveryOperation:
+      description: Durable node recovery operation
+      content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryOperationV1"}}}
+    RecoveryEnrollmentGrant:
+      description: Recovery-bound enrollment grant
+      content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryEnrollmentGrantV1"}}}
+    ResourceEnvelopeActivation:
+      description: Resource envelope activation
+      content: {application/json: {schema: {$ref: "#/components/schemas/ResourceEnvelopeActivationV1"}}}
+    RestoreReauthorization:
+      description: Restore reauthorization proposal or approval
+      content: {application/json: {schema: {$ref: "#/components/schemas/RestoreReauthorizationV1"}}}
+    InvalidRequest:
+      description: Request is invalid
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    Unauthenticated:
+      description: Operator credential is invalid
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    Forbidden:
+      description: Operator role or POP scope does not permit the request
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    NotFound:
+      description: Resource was not found
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    Conflict:
+      description: Request precondition conflicts with authoritative state
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    RateLimited:
+      description: Request was rate limited
+      headers:
+        Retry-After:
+          schema: {type: integer, minimum: 1, maximum: 60}
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}
+    DependencyUnavailable:
+      description: A required dependency is unavailable
+      content: {application/json: {schema: {$ref: "#/components/schemas/PublicErrorV1"}}}

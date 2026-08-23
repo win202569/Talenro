@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: Talenro Node Bootstrap API
+  version: 1.0.0
+paths:
+  /v1/node-enrollments/claim:
+    post:
+      operationId: claimNodeEnrollment
+      security: []
+      x-talenro-listener-auth: bootstrap_server_tls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimNodeEnrollmentRequestV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/CertificateAuthorization"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+components:
+  schemas:
+    CanonicalUUID:
+      type: string
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    DigestHex32:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+    Base64URL32:
+      type: string
+      minLength: 43
+      maxLength: 43
+      pattern: '^[A-Za-z0-9_-]{43}$'
+    Base64URL64:
+      type: string
+      minLength: 86
+      maxLength: 86
+      pattern: '^[A-Za-z0-9_-]{86}$'
+    Base64URLDER:
+      type: string
+      minLength: 2
+      maxLength: 21846
+      pattern: '^[A-Za-z0-9_-]+$'
+      x-talenro-base64url-padding: forbidden
+      x-talenro-min-decoded-bytes: 1
+      x-talenro-max-decoded-bytes: 16384
+    CSRDER:
+      type: string
+      minLength: 2
+      maxLength: 21846
+      x-talenro-base64url-padding: forbidden
+      x-talenro-min-decoded-bytes: 1
+      x-talenro-max-decoded-bytes: 16384
+      oneOf:
+        - pattern: '^(?:[A-Za-z0-9_-]{4})+$'
+        - pattern: '^(?:[A-Za-z0-9_-]{4})*[A-Za-z0-9_-]{2}$'
+        - pattern: '^(?:[A-Za-z0-9_-]{4})*[A-Za-z0-9_-]{3}$'
+    PositiveInt64:
+      type: integer
+      format: int64
+      minimum: 1
+      maximum: 9223372036854775807
+    PublicErrorV1:
+      type: object
+      additionalProperties: false
+      required: [code, request_id]
+      properties:
+        code:
+          type: string
+          enum: [invalid_request, unauthenticated, forbidden, not_found, conflict, rate_limited, dependency_unavailable, internal]
+        request_id:
+          type: string
+          minLength: 16
+          maxLength: 64
+          pattern: '^[A-Za-z0-9_-]+$'
+        reason:
+          type: string
+          enum: [malformed, precondition_failed, stale_version, reenroll_required, incident_capacity_exceeded, authority_unavailable, credential_invalid, scope_changed, operation_in_progress, deadline_expired, unsupported_capability]
+        retry_after_ms:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 10000
+    ClaimNodeEnrollmentRequestV1:
+      type: object
+      additionalProperties: false
+      required: [attempt_id, node_id, enrollment_grant, csr_der, time_nonce]
+      properties:
+        attempt_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        enrollment_grant:
+          $ref: "#/components/schemas/Base64URL32"
+        csr_der:
+          $ref: "#/components/schemas/CSRDER"
+        time_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+    CertificateAuthorizationV1:
+      type: object
+      additionalProperties: false
+      required: [leaf_der, issuer_chain, receipt, node_state_trust_metadata, time_attestation]
+      properties:
+        leaf_der:
+          $ref: "#/components/schemas/Base64URLDER"
+        issuer_chain:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: "#/components/schemas/Base64URLDER"
+        receipt:
+          $ref: "#/components/schemas/CertificateAuthorizationReceiptV1"
+        node_state_trust_metadata:
+          $ref: "#/components/schemas/SignedNodeStateTrustMetadataV1"
+        time_attestation:
+          $ref: "#/components/schemas/NodeTimeAttestationV1"
+    CertificateAuthorizationReceiptV1:
+      type: object
+      additionalProperties: false
+      required: [schema_version, issuance_id, attempt_id, node_id, identity_epoch, lineage_id, issuer_id, csr_der_sha256, leaf_der_sha256, public_key_sha256, control_plane_authority_epoch, authority_sequence, status]
+      properties:
+        schema_version:
+          type: string
+          enum: [certificate-authorization-receipt.v1]
+        issuance_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        attempt_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        identity_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        lineage_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        issuer_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        csr_der_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        leaf_der_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        public_key_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        control_plane_authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        authority_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        status:
+          type: string
+          enum: [active]
+    SignedNodeStateTrustMetadataV1:
+      type: object
+      additionalProperties: false
+      required: [canonical_bytes, digest]
+      properties:
+        canonical_bytes:
+          type: string
+          minLength: 2
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        digest:
+          $ref: "#/components/schemas/DigestHex32"
+    NodeTimeAttestationV1:
+      type: object
+      additionalProperties: false
+      required: [schema_version, control_plane_authority_epoch, node_authority_checkpoint_sequence, node_id, request_nonce, issued_at, valid_until, key_id, signature]
+      properties:
+        schema_version:
+          type: string
+          enum: [node-time-attestation.v1]
+        control_plane_authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        node_authority_checkpoint_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        issued_at:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        key_id:
+          $ref: "#/components/schemas/DigestHex32"
+        signature:
+          $ref: "#/components/schemas/Base64URL64"
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 22
+        maxLength: 86
+        pattern: '^[A-Za-z0-9_-]+$'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^"[1-9][0-9]{0,18}"$'
+  responses:
+    CertificateAuthorization:
+      description: Certificate authorization completed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificateAuthorizationV1"
+    InvalidRequest:
+      description: Request is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    Conflict:
+      description: Request conflicts with authoritative state
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    RateLimited:
+      description: Request was rate limited
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    DependencyUnavailable:
+      description: A required dependency is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"

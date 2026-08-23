@@ -29,6 +29,9 @@ printf '%s\n' 'generate: protobuf'
 run_quiet 'generate: protobuf' go tool buf generate
 printf '%s\n' 'generate: OpenAPI'
 run_quiet 'generate: OpenAPI' go tool oapi-codegen --config api/openapi/oapi-codegen.yaml api/openapi/control-api.v1.yaml
+run_quiet 'generate: node bootstrap OpenAPI' go tool oapi-codegen --config api/openapi/node-bootstrap-oapi-codegen.yaml api/openapi/node-bootstrap-api.v1.yaml
+run_quiet 'generate: node agent OpenAPI' go tool oapi-codegen --config api/openapi/node-agent-oapi-codegen.yaml api/openapi/node-agent-api.v1.yaml
+run_quiet 'generate: node operator OpenAPI' go tool oapi-codegen --config api/openapi/node-operator-oapi-codegen.yaml api/openapi/node-operator-api.v1.yaml
 printf '%s\n' 'generate: SQL'
 run_quiet 'generate: SQL' go tool sqlc generate
 printf '%s\n' 'generate: gofmt'

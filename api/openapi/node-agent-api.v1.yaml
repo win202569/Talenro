@@ -1,0 +1,838 @@
+openapi: 3.0.3
+info:
+  title: Talenro Node Agent API
+  version: 1.0.0
+paths:
+  /v1/node-agent/certificates/rotate:
+    post:
+      operationId: rotateNodeCertificate
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RotateNodeCertificateRequestV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/CertificateAuthorization"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/desired-state:poll:
+    post:
+      operationId: pollNodeDesiredState
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      x-talenro-long-poll-seconds: 25
+      x-talenro-full-snapshots-only: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DesiredPollRequestV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/NodeStatePoll"
+        "204":
+          description: No authoritative stream has changed
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/recovery-state:poll:
+    post:
+      operationId: pollNodeRecoveryState
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      x-talenro-long-poll-seconds: 25
+      x-talenro-full-snapshots-only: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryPollRequestV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/NodeRecoveryPoll"
+        "204":
+          description: Recovery state has not changed
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/observations:
+    post:
+      operationId: createNodeObservation
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NodeObservationV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/ObservationAck"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/security-faults:
+    post:
+      operationId: createNodeSecurityFault
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      x-talenro-self-invalidating-receipt: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecurityFaultReportV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/SecurityFaultReceipt"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/trust-conflict-evidence:
+    post:
+      operationId: createNodeTrustConflictEvidence
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 1048576
+      x-talenro-max-decoded-bytes: 1048576
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrustConflictEvidenceRequestV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/TrustConflictEvidenceAck"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+  /v1/node-agent/recovery-attestations:
+    post:
+      operationId: createNodeRecoveryAttestation
+      security: []
+      x-talenro-listener-auth: node_mtls
+      x-talenro-content-encoding: identity
+      x-talenro-max-wire-bytes: 65536
+      x-talenro-max-decoded-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryAttestationV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/RecoveryAttestationAck"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/DependencyUnavailable"
+components:
+  schemas:
+    CanonicalUUID:
+      type: string
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    DigestHex32:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+    Base64URL32:
+      type: string
+      minLength: 43
+      maxLength: 43
+      pattern: '^[A-Za-z0-9_-]{43}$'
+    Base64URL64:
+      type: string
+      minLength: 86
+      maxLength: 86
+      pattern: '^[A-Za-z0-9_-]{86}$'
+    Base64URLDER:
+      type: string
+      minLength: 2
+      maxLength: 21846
+      pattern: '^[A-Za-z0-9_-]+$'
+      x-talenro-base64url-padding: forbidden
+      x-talenro-min-decoded-bytes: 1
+      x-talenro-max-decoded-bytes: 16384
+    CSRDER:
+      type: string
+      minLength: 2
+      maxLength: 21846
+      x-talenro-base64url-padding: forbidden
+      x-talenro-min-decoded-bytes: 1
+      x-talenro-max-decoded-bytes: 16384
+      oneOf:
+        - pattern: '^(?:[A-Za-z0-9_-]{4})+$'
+        - pattern: '^(?:[A-Za-z0-9_-]{4})*[A-Za-z0-9_-]{2}$'
+        - pattern: '^(?:[A-Za-z0-9_-]{4})*[A-Za-z0-9_-]{3}$'
+    PositiveInt64:
+      type: integer
+      format: int64
+      minimum: 1
+      maximum: 9223372036854775807
+    NonNegativeInt64:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+    OperationResultV1:
+      type: string
+      enum: [pending, active, accepted, completed, superseded, rejected]
+    FaultSubtypeV1:
+      type: string
+      enum: [identity_compromise, online_signer_equivocation, metadata_rollback, root_rollback, root_equivocation, unverified_client_highwater_conflict, client_highwater_ahead, server_trust_bundle_conflict, trusted_time_rollback_or_unavailable, local_state_corruption_or_rollback, release_or_process_integrity, profile_binding_mismatch, incident_overflow]
+    AdapterV1:
+      type: string
+      enum: [fixture, xray, sing_box]
+    RecoveryReasonV1:
+      type: string
+      enum: [identity_compromise, administrative_disable, retire, authority_restore, security_incident]
+    RecoveryActionV1:
+      type: string
+      enum: [hold_stopped, submit_recovery_attestation, clear_security_latches]
+    PublicErrorV1:
+      type: object
+      additionalProperties: false
+      required: [code, request_id]
+      properties:
+        code:
+          type: string
+          enum: [invalid_request, unauthenticated, forbidden, not_found, conflict, rate_limited, dependency_unavailable, internal]
+        request_id:
+          type: string
+          minLength: 16
+          maxLength: 64
+          pattern: '^[A-Za-z0-9_-]+$'
+        reason:
+          type: string
+          enum: [malformed, precondition_failed, stale_version, reenroll_required, incident_capacity_exceeded, authority_unavailable, credential_invalid, scope_changed, operation_in_progress, deadline_expired, unsupported_capability]
+        retry_after_ms:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 10000
+    NodeHighWaterV1:
+      type: object
+      additionalProperties: false
+      required: [version_or_generation, authority_sequence, digest]
+      properties:
+        version_or_generation:
+          $ref: "#/components/schemas/PositiveInt64"
+        authority_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        digest:
+          $ref: "#/components/schemas/DigestHex32"
+    NodeActorHighWaterV1:
+      type: object
+      additionalProperties: false
+      required: [control_plane_authority_epoch, node_authority_checkpoint, server_ca_bundle, root, metadata]
+      properties:
+        control_plane_authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        node_authority_checkpoint:
+          $ref: "#/components/schemas/NonNegativeInt64"
+        server_ca_bundle:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+        root:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+        metadata:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+        desired_seen:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+        desired_applied:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+        recovery_seen:
+          $ref: "#/components/schemas/NodeHighWaterV1"
+    RotateNodeCertificateRequestV1:
+      type: object
+      additionalProperties: false
+      required: [attempt_id, csr_der, time_nonce]
+      properties:
+        attempt_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        csr_der:
+          $ref: "#/components/schemas/CSRDER"
+        time_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+    DesiredPollRequestV1:
+      type: object
+      additionalProperties: false
+      required: [boot_id, agent_build_digest, capability_schema_digest, high_water]
+      properties:
+        boot_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        agent_build_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        capability_schema_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        high_water:
+          $ref: "#/components/schemas/NodeActorHighWaterV1"
+        time_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+    RecoveryPollRequestV1:
+      type: object
+      additionalProperties: false
+      required: [boot_id, recovery_id, sorted_known_incident_ids, high_water, time_nonce]
+      properties:
+        boot_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        recovery_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        sorted_known_incident_ids:
+          type: array
+          minItems: 0
+          maxItems: 64
+          uniqueItems: true
+          x-talenro-order: bytewise_ascending
+          items:
+            $ref: "#/components/schemas/CanonicalUUID"
+        high_water:
+          $ref: "#/components/schemas/NodeActorHighWaterV1"
+        time_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+    NodeStatePollResponseV1:
+      type: object
+      additionalProperties: false
+      properties:
+        root_chain:
+          type: array
+          minItems: 1
+          maxItems: 32
+          items:
+            $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        metadata:
+          $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        desired_state:
+          $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        time_attestation:
+          $ref: "#/components/schemas/NodeTimeAttestationV1"
+    NodeRecoveryPollResponseV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_state, time_attestation]
+      properties:
+        root_chain:
+          type: array
+          minItems: 1
+          maxItems: 32
+          items:
+            $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        metadata:
+          $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        recovery_state:
+          $ref: "#/components/schemas/SignedRecoveryStateV1"
+        time_attestation:
+          $ref: "#/components/schemas/NodeTimeAttestationV1"
+    SignedCanonicalArtifactV1:
+      type: object
+      additionalProperties: false
+      required: [canonical_bytes, digest]
+      properties:
+        canonical_bytes:
+          type: string
+          minLength: 2
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        digest:
+          $ref: "#/components/schemas/DigestHex32"
+    SignedRecoveryStateV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_id, recovery_reason, required_action, canonical_bytes, digest]
+      properties:
+        recovery_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        recovery_reason:
+          $ref: "#/components/schemas/RecoveryReasonV1"
+        required_action:
+          $ref: "#/components/schemas/RecoveryActionV1"
+        canonical_bytes:
+          type: string
+          minLength: 2
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9_-]+$'
+        digest:
+          $ref: "#/components/schemas/DigestHex32"
+    NodeSlotFactV1:
+      type: object
+      additionalProperties: false
+      required: [slot_id, adapter, capacity_profile_id, capacity_profile_version, state, metrics_digest]
+      properties:
+        slot_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+        adapter:
+          $ref: "#/components/schemas/AdapterV1"
+        capacity_profile_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+        capacity_profile_version:
+          $ref: "#/components/schemas/PositiveInt64"
+        state:
+          type: string
+          enum: [stopped, starting, running, draining, failed, quarantined]
+        metrics_digest:
+          $ref: "#/components/schemas/DigestHex32"
+    NodeObservationV1:
+      type: object
+      additionalProperties: false
+      required: [node_id, identity_epoch, boot_id, sequence, observed_at, agent_build_digest, capability_schema_digest, seen_generation, seen_authority_sequence, seen_digest, applied_generation, applied_authority_sequence, applied_digest, sorted_slot_facts, reducer_version, reducer_digest, reducer_output]
+      properties:
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        identity_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        boot_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        observed_at:
+          type: string
+          format: date-time
+        agent_build_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        capability_schema_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        seen_generation:
+          $ref: "#/components/schemas/NonNegativeInt64"
+        seen_authority_sequence:
+          $ref: "#/components/schemas/NonNegativeInt64"
+        seen_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        applied_generation:
+          $ref: "#/components/schemas/NonNegativeInt64"
+        applied_authority_sequence:
+          $ref: "#/components/schemas/NonNegativeInt64"
+        applied_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        sorted_slot_facts:
+          type: array
+          minItems: 0
+          maxItems: 8
+          uniqueItems: true
+          x-talenro-order: slot_id_bytewise_ascending
+          items:
+            $ref: "#/components/schemas/NodeSlotFactV1"
+        reducer_version:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+        reducer_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        reducer_output:
+          type: string
+          minLength: 2
+          maxLength: 16384
+          pattern: '^[A-Za-z0-9_-]+$'
+    ObservationAckV1:
+      type: object
+      additionalProperties: false
+      required: [boot_id, sequence, report_digest, result]
+      properties:
+        boot_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        report_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        result:
+          $ref: "#/components/schemas/OperationResultV1"
+    SupervisorFaultV1:
+      type: object
+      additionalProperties: false
+      required: [supervisor_fault_id, evidence_digest]
+      properties:
+        supervisor_fault_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        evidence_digest:
+          $ref: "#/components/schemas/DigestHex32"
+    SecurityFaultReportV1:
+      type: object
+      additionalProperties: false
+      required: [operation_id, local_fault_id, subtype, evidence_digest, identity_epoch, boot_id, request_digest]
+      properties:
+        operation_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        local_fault_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        subtype:
+          $ref: "#/components/schemas/FaultSubtypeV1"
+        evidence_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        identity_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        boot_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        request_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        supervisor_fault:
+          $ref: "#/components/schemas/SupervisorFaultV1"
+    SecurityFaultReceiptV1:
+      type: object
+      additionalProperties: false
+      required: [local_fault_id, incident_id, request_digest, authority_epoch, authority_sequence, result]
+      properties:
+        local_fault_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        incident_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        request_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        authority_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        result:
+          type: string
+          enum: [accepted]
+    ConflictArtifactKindV1:
+      type: string
+      enum: [server_ca_bundle, node_state_root, node_state_metadata, node_desired_state, node_recovery_state]
+    SignedConflictArtifactV1:
+      type: object
+      additionalProperties: false
+      required: [kind, canonical_bytes]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ConflictArtifactKindV1"
+        canonical_bytes:
+          type: string
+          minLength: 2
+          maxLength: 1048000
+          pattern: '^[A-Za-z0-9_-]+$'
+    TrustConflictEvidenceRequestV1:
+      type: object
+      additionalProperties: false
+      required: [incident_id, artifacts]
+      properties:
+        incident_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        artifacts:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SignedConflictArtifactV1"
+    TrustConflictEvidenceAckV1:
+      type: object
+      additionalProperties: false
+      required: [incident_id, result]
+      properties:
+        incident_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        result:
+          $ref: "#/components/schemas/OperationResultV1"
+    RecoveryAttestationV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_id, nonce, recovery_snapshot_digest, recovery_generation, certificate_id, proof_of_possession, agent_build_digest, supervisor_build_digest, agent_guard_digest, supervisor_guard_digest, latch_guard_digest, trusted_time_evidence_digest, all_slots_stopped]
+      properties:
+        recovery_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        recovery_snapshot_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        recovery_generation:
+          $ref: "#/components/schemas/PositiveInt64"
+        certificate_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        proof_of_possession:
+          $ref: "#/components/schemas/Base64URL64"
+        agent_build_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        supervisor_build_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        agent_guard_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        supervisor_guard_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        latch_guard_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        trusted_time_evidence_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        all_slots_stopped:
+          type: boolean
+    RecoveryAttestationAckV1:
+      type: object
+      additionalProperties: false
+      required: [recovery_id, attestation_digest, result]
+      properties:
+        recovery_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        attestation_digest:
+          $ref: "#/components/schemas/DigestHex32"
+        result:
+          $ref: "#/components/schemas/OperationResultV1"
+    CertificateAuthorizationV1:
+      type: object
+      additionalProperties: false
+      required: [leaf_der, issuer_chain, receipt, node_state_trust_metadata, time_attestation]
+      properties:
+        leaf_der:
+          $ref: "#/components/schemas/Base64URLDER"
+        issuer_chain:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: "#/components/schemas/Base64URLDER"
+        receipt:
+          $ref: "#/components/schemas/CertificateAuthorizationReceiptV1"
+        node_state_trust_metadata:
+          $ref: "#/components/schemas/SignedCanonicalArtifactV1"
+        time_attestation:
+          $ref: "#/components/schemas/NodeTimeAttestationV1"
+    CertificateAuthorizationReceiptV1:
+      type: object
+      additionalProperties: false
+      required: [schema_version, issuance_id, attempt_id, node_id, identity_epoch, lineage_id, issuer_id, csr_der_sha256, leaf_der_sha256, public_key_sha256, control_plane_authority_epoch, authority_sequence, status]
+      properties:
+        schema_version:
+          type: string
+          enum: [certificate-authorization-receipt.v1]
+        issuance_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        attempt_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        identity_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        lineage_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        issuer_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        csr_der_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        leaf_der_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        public_key_sha256:
+          $ref: "#/components/schemas/DigestHex32"
+        control_plane_authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        authority_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        status:
+          type: string
+          enum: [active]
+    NodeTimeAttestationV1:
+      type: object
+      additionalProperties: false
+      required: [schema_version, control_plane_authority_epoch, node_authority_checkpoint_sequence, node_id, request_nonce, issued_at, valid_until, key_id, signature]
+      properties:
+        schema_version:
+          type: string
+          enum: [node-time-attestation.v1]
+        control_plane_authority_epoch:
+          $ref: "#/components/schemas/PositiveInt64"
+        node_authority_checkpoint_sequence:
+          $ref: "#/components/schemas/PositiveInt64"
+        node_id:
+          $ref: "#/components/schemas/CanonicalUUID"
+        request_nonce:
+          $ref: "#/components/schemas/Base64URL32"
+        issued_at:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        key_id:
+          $ref: "#/components/schemas/DigestHex32"
+        signature:
+          $ref: "#/components/schemas/Base64URL64"
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 22
+        maxLength: 86
+        pattern: '^[A-Za-z0-9_-]+$'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^"[1-9][0-9]{0,18}"$'
+  responses:
+    CertificateAuthorization:
+      description: Certificate rotation completed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificateAuthorizationV1"
+    NodeStatePoll:
+      description: One or more complete authoritative streams are available
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NodeStatePollResponseV1"
+    NodeRecoveryPoll:
+      description: A complete recovery state is available
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NodeRecoveryPollResponseV1"
+    ObservationAck:
+      description: Observation accepted or replayed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ObservationAckV1"
+    SecurityFaultReceipt:
+      description: Fence-finalized self-invalidating receipt
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SecurityFaultReceiptV1"
+    TrustConflictEvidenceAck:
+      description: Evidence accepted for independent verification
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TrustConflictEvidenceAckV1"
+    RecoveryAttestationAck:
+      description: Recovery attestation accepted
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RecoveryAttestationAckV1"
+    InvalidRequest:
+      description: Request is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    Unauthenticated:
+      description: Node credential is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    Forbidden:
+      description: Node state does not authorize this endpoint
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    Conflict:
+      description: Request conflicts with authoritative state
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    RateLimited:
+      description: Request was rate limited
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"
+    DependencyUnavailable:
+      description: A required dependency is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PublicErrorV1"

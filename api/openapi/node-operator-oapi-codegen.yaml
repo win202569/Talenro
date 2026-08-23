@@ -1,0 +1,11 @@
+package: nodeoperatorv1
+output: gen/go/talenro/nodeoperator/v1/server.gen.go
+generate:
+  models: true
+  client: true
+  std-http-server: true
+  embedded-spec: true
+output-options:
+  skip-prune: false
+compatibility:
+  preserve-original-operation-id-casing-in-embedded-spec: true

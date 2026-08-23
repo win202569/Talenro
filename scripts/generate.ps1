@@ -64,6 +64,27 @@ function Invoke-Main {
       'api/openapi/oapi-codegen.yaml',
       'api/openapi/control-api.v1.yaml'
     )
+    Invoke-External -Stage 'generate: node bootstrap OpenAPI' -FilePath 'go' -ArgumentList @(
+      'tool',
+      'oapi-codegen',
+      '--config',
+      'api/openapi/node-bootstrap-oapi-codegen.yaml',
+      'api/openapi/node-bootstrap-api.v1.yaml'
+    )
+    Invoke-External -Stage 'generate: node agent OpenAPI' -FilePath 'go' -ArgumentList @(
+      'tool',
+      'oapi-codegen',
+      '--config',
+      'api/openapi/node-agent-oapi-codegen.yaml',
+      'api/openapi/node-agent-api.v1.yaml'
+    )
+    Invoke-External -Stage 'generate: node operator OpenAPI' -FilePath 'go' -ArgumentList @(
+      'tool',
+      'oapi-codegen',
+      '--config',
+      'api/openapi/node-operator-oapi-codegen.yaml',
+      'api/openapi/node-operator-api.v1.yaml'
+    )
     Write-Output 'generate: SQL'
     Invoke-External -Stage 'generate: SQL' -FilePath 'go' -ArgumentList @('tool', 'sqlc', 'generate')
     Write-Output 'generate: gofmt'
