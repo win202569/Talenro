@@ -114,7 +114,7 @@ func TestNodeOpenAPIOperationMatrix(t *testing.T) {
 					t.Errorf("operation ID %q appears more than once", operation.OperationID)
 				}
 				seenOperationIDs[operation.OperationID] = true
-				assertRuntimeTLSContract(t, test.auth, operationTest, operation)
+				assertRuntimeTLSContract(t, test.auth, operationTest, item, operation)
 				assertRequestContract(t, operationTest, operation)
 				assertSuccessContract(t, operationTest, operation)
 			}
@@ -157,6 +157,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 			assertObjectShape(t, spec, "PublicErrorV1", []string{"code", "request_id"}, []string{"code", "request_id", "reason", "retry_after_ms"})
 			assertEnum(t, spec, "PublicErrorV1", "code", []string{"invalid_request", "unauthenticated", "forbidden", "not_found", "conflict", "rate_limited", "dependency_unavailable", "internal"})
 			assertEnum(t, spec, "PublicErrorV1", "reason", []string{"malformed", "precondition_failed", "stale_version", "reenroll_required", "incident_capacity_exceeded", "authority_unavailable", "credential_invalid", "scope_changed", "operation_in_progress", "deadline_expired", "unsupported_capability"})
+			assertPublicErrorBounds(t, spec)
 		})
 	}
 
@@ -222,6 +223,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	assertEnumRegistry(t, operator, "IdentityStateV1", []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked"})
 	assertEnumRegistry(t, operator, "RestorePhaseV1", []string{"proposal", "approval"})
 	assertEnumRegistry(t, operator, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
+	assertNodeOpenAPIRegistryBindings(t, bootstrap, agent, operator)
 
 	operatorItemShapes := map[string][]string{
 		"NodePOPV1":         {"pop_code", "iso_country", "region", "operator_state", "version", "created_at", "updated_at"},
@@ -246,6 +248,16 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	}
 
 	operatorRequestShapes := map[string][]string{
+		"CreateNodePOPV1":                {"command_id", "pop_code", "iso_country", "region", "operator_state", "reason_code"},
+		"UpdateNodePOPV1":                {"command_id", "iso_country", "region", "operator_state", "reason_code"},
+		"CreateFailureDomainV1":          {"command_id", "failure_domain_id", "domain_type", "stable_id", "reason_code"},
+		"UpdateFailureDomainV1":          {"command_id", "domain_type", "stable_id", "reason_code"},
+		"CreateNodeV1":                   {"command_id", "node_id", "pop_code", "operator_state", "reason_code"},
+		"UpdateNodeV1":                   {"command_id", "pop_code", "operator_state", "reason_code"},
+		"CreateNodeEndpointV1":           {"command_id", "endpoint_id", "address", "port", "transport", "protocol_capability", "operator_state", "reason_code"},
+		"UpdateNodeEndpointV1":           {"command_id", "address", "port", "transport", "protocol_capability", "operator_state", "reason_code"},
+		"CreateNodeProcessSlotV1":        {"command_id", "slot_id", "adapter", "capacity_profile_id", "capacity_profile_version", "required", "operator_state", "reason_code"},
+		"UpdateNodeProcessSlotV1":        {"command_id", "adapter", "capacity_profile_id", "capacity_profile_version", "required", "operator_state", "reason_code"},
 		"CreateEnrollmentGrantV1":        {"command_id", "csr_der_sha256", "reason_code"},
 		"PutNodeDesiredStateV1":          {"command_id", "reason_code", "requested_valid_until", "inventory_version", "resource_envelope_version", "resource_envelope_digest", "sorted_processes"},
 		"DrainNodeV1":                    {"command_id", "reason_code"},
@@ -305,6 +317,22 @@ func TestNodeOpenAPIGeneratedClientAndServerSurfaces(t *testing.T) {
 	_ = nodebootstrapv1.ClaimNodeEnrollmentResponse{}
 	_ = nodeagentv1.PollNodeDesiredStateResponse{}
 	_ = nodeoperatorv1.CreateNodeResponse{}
+}
+
+func TestNodeOpenAPIEffectiveParameterAllowlistsIncludePathDefinitions(t *testing.T) {
+	spec := loadAndValidateNodeSpec(t, nodeoperatorv1.GetSwagger)
+	item := spec.Paths.Find("/v1/operator/nodes/{node_id}/endpoints")
+	item.Parameters = append(item.Parameters,
+		&openapi3.ParameterRef{Value: &openapi3.Parameter{Name: "X-Forbidden", In: "header"}},
+		&openapi3.ParameterRef{Value: &openapi3.Parameter{Name: "include", In: "query"}},
+	)
+
+	if got := effectiveParameterNames(item, item.Get, "header"); !sameStringSet(got, []string{"X-Forbidden"}) {
+		t.Errorf("effective headers = %v, want path-level X-Forbidden", got)
+	}
+	if got := effectiveParameterNames(item, item.Get, "query"); !sameStringSet(got, []string{"page_size", "cursor", "transport", "protocol_capability", "operator_state", "include"}) {
+		t.Errorf("effective query parameters = %v, want operation filters plus path-level include", got)
+	}
 }
 
 func nodeSpecExpectations() []nodeSpecExpectation {
@@ -375,7 +403,7 @@ func operatorExpectation() nodeSpecExpectation {
 	}
 }
 
-func assertRuntimeTLSContract(t *testing.T, auth string, expectation operationExpectation, operation *openapi3.Operation) {
+func assertRuntimeTLSContract(t *testing.T, auth string, expectation operationExpectation, item *openapi3.PathItem, operation *openapi3.Operation) {
 	t.Helper()
 	if got := fmt.Sprint(operation.Extensions["x-talenro-listener-auth"]); got != auth {
 		t.Errorf("%s auth extension = %q, want %q", expectation.operationID, got, auth)
@@ -383,7 +411,7 @@ func assertRuntimeTLSContract(t *testing.T, auth string, expectation operationEx
 	if operation.Security == nil || len(*operation.Security) != 0 {
 		t.Errorf("%s security = %#v, want explicit empty requirements", expectation.operationID, operation.Security)
 	}
-	if got := headerParameterNames(operation); !sameStringSet(got, expectation.requestHeaders) {
+	if got := effectiveParameterNames(item, operation, "header"); !sameStringSet(got, expectation.requestHeaders) {
 		t.Errorf("%s request headers = %v, want %v", expectation.operationID, got, expectation.requestHeaders)
 	}
 }
@@ -474,7 +502,8 @@ func assertOperatorLists(t *testing.T, spec *openapi3.T) {
 		{operationID: "listNodeProcessSlots", path: "/v1/operator/nodes/{node_id}/process-slots", listSchema: "NodeProcessSlotListV1", itemSchema: "NodeProcessSlotV1", queryNames: []string{"page_size", "cursor", "adapter", "required", "operator_state"}},
 	}
 	for _, test := range tests {
-		op := spec.Paths.Find(test.path).Get
+		item := spec.Paths.Find(test.path)
+		op := item.Get
 		if op.OperationID != test.operationID {
 			t.Fatalf("%s operation ID = %q", test.path, op.OperationID)
 		}
@@ -487,10 +516,10 @@ func assertOperatorLists(t *testing.T, spec *openapi3.T) {
 		if items == nil || items.Value == nil || items.Value.Items == nil || items.Value.Items.Ref != "#/components/schemas/"+test.itemSchema || items.Value.MinItems != 0 || items.Value.MaxItems == nil || *items.Value.MaxItems != 200 {
 			t.Errorf("%s items = %#v, want exact %s ref with 0..200", test.listSchema, items, test.itemSchema)
 		}
-		if got := queryParameterNames(op); !sameStringSet(got, test.queryNames) {
+		if got := effectiveParameterNames(item, op, "query"); !sameStringSet(got, test.queryNames) {
 			t.Errorf("%s query parameters = %v, want %v", test.operationID, got, test.queryNames)
 		}
-		pageSize := findParameter(op, "query", "page_size")
+		pageSize := findEffectiveParameter(item, op, "query", "page_size")
 		if pageSize == nil || pageSize.Schema == nil || pageSize.Schema.Value == nil || pageSize.Schema.Value.Min == nil || *pageSize.Schema.Value.Min != 1 || pageSize.Schema.Value.Max == nil || *pageSize.Schema.Value.Max != 200 || fmt.Sprint(pageSize.Schema.Value.Default) != "50" {
 			t.Errorf("%s page_size bounds/default = %#v, want 1..200 default 50", test.operationID, pageSize)
 		}
@@ -559,31 +588,33 @@ func pathItemOperationCount(item *openapi3.PathItem) int {
 	return count
 }
 
-func headerParameterNames(operation *openapi3.Operation) []string {
-	return parameterNames(operation, "header")
-}
-
-func queryParameterNames(operation *openapi3.Operation) []string {
-	return parameterNames(operation, "query")
-}
-
-func parameterNames(operation *openapi3.Operation, location string) []string {
+func effectiveParameterNames(item *openapi3.PathItem, operation *openapi3.Operation, location string) []string {
 	names := make([]string, 0)
-	for _, parameter := range operation.Parameters {
-		if parameter.Value != nil && parameter.Value.In == location {
-			names = append(names, parameter.Value.Name)
+	for _, parameter := range effectiveParameters(item, operation) {
+		if parameter.In == location {
+			names = append(names, parameter.Name)
 		}
 	}
 	return names
 }
 
-func findParameter(operation *openapi3.Operation, location, name string) *openapi3.Parameter {
-	for _, parameter := range operation.Parameters {
-		if parameter.Value != nil && parameter.Value.In == location && parameter.Value.Name == name {
-			return parameter.Value
+func findEffectiveParameter(item *openapi3.PathItem, operation *openapi3.Operation, location, name string) *openapi3.Parameter {
+	return effectiveParameters(item, operation)[location+"\x00"+name]
+}
+
+func effectiveParameters(item *openapi3.PathItem, operation *openapi3.Operation) map[string]*openapi3.Parameter {
+	parameters := make(map[string]*openapi3.Parameter, len(item.Parameters)+len(operation.Parameters))
+	add := func(refs openapi3.Parameters) {
+		for _, ref := range refs {
+			if ref.Value == nil {
+				continue
+			}
+			parameters[ref.Value.In+"\x00"+ref.Value.Name] = ref.Value
 		}
 	}
-	return nil
+	add(item.Parameters)
+	add(operation.Parameters)
+	return parameters
 }
 
 func schemaNames(spec *openapi3.T) []string {
@@ -618,6 +649,192 @@ func assertObjectShape(t *testing.T, spec *openapi3.T, name string, required, pr
 		gotProperties = append(gotProperties, property)
 	}
 	assertExactStringSet(t, name+" properties", gotProperties, properties)
+}
+
+func assertPublicErrorBounds(t *testing.T, spec *openapi3.T) {
+	t.Helper()
+	publicError := mustSchema(t, spec, "PublicErrorV1")
+	requestID := publicError.Properties["request_id"].Value
+	if requestID.MinLength != 16 || requestID.MaxLength == nil || *requestID.MaxLength != 64 || requestID.Pattern != `^[A-Za-z0-9_-]+$` {
+		t.Errorf("PublicErrorV1.request_id bounds/pattern = %#v, want length 16..64 and base64url characters", requestID)
+	}
+	retryAfter := publicError.Properties["retry_after_ms"].Value
+	if retryAfter.Min == nil || *retryAfter.Min != 1 || retryAfter.Max == nil || *retryAfter.Max != 10000 {
+		t.Errorf("PublicErrorV1.retry_after_ms bounds = %#v, want 1..10000", retryAfter)
+	}
+}
+
+func assertNodeOpenAPIRegistryBindings(t *testing.T, bootstrap, agent, operator *openapi3.T) {
+	t.Helper()
+	assertPropertiesReference(t, "bootstrap UUID", bootstrap, "CanonicalUUID", map[string][]string{
+		"ClaimNodeEnrollmentRequestV1":      {"attempt_id", "node_id"},
+		"CertificateAuthorizationReceiptV1": {"issuance_id", "attempt_id", "node_id", "lineage_id", "issuer_id"},
+		"NodeTimeAttestationV1":             {"node_id"},
+	})
+	assertPropertiesReference(t, "bootstrap digest", bootstrap, "DigestHex32", map[string][]string{
+		"CertificateAuthorizationReceiptV1": {"csr_der_sha256", "leaf_der_sha256", "public_key_sha256"},
+		"SignedNodeStateTrustMetadataV1":    {"digest"},
+		"NodeTimeAttestationV1":             {"key_id"},
+	})
+
+	assertPropertiesReference(t, "agent UUID", agent, "CanonicalUUID", map[string][]string{
+		"RotateNodeCertificateRequestV1":    {"attempt_id"},
+		"DesiredPollRequestV1":              {"boot_id"},
+		"RecoveryPollRequestV1":             {"boot_id", "recovery_id"},
+		"SignedRecoveryStateV1":             {"recovery_id"},
+		"NodeObservationV1":                 {"node_id", "boot_id"},
+		"ObservationAckV1":                  {"boot_id"},
+		"SupervisorFaultV1":                 {"supervisor_fault_id"},
+		"SecurityFaultReportV1":             {"operation_id", "local_fault_id", "boot_id"},
+		"SecurityFaultReceiptV1":            {"local_fault_id", "incident_id"},
+		"TrustConflictEvidenceRequestV1":    {"incident_id"},
+		"TrustConflictEvidenceAckV1":        {"incident_id"},
+		"RecoveryAttestationV1":             {"recovery_id", "certificate_id"},
+		"RecoveryAttestationAckV1":          {"recovery_id"},
+		"CertificateAuthorizationReceiptV1": {"issuance_id", "attempt_id", "node_id", "lineage_id", "issuer_id"},
+		"NodeTimeAttestationV1":             {"node_id"},
+	})
+	assertArrayItemsReference(t, "agent UUID array", agent, "CanonicalUUID", map[string][]string{
+		"RecoveryPollRequestV1": {"sorted_known_incident_ids"},
+	})
+	assertPropertiesReference(t, "agent digest", agent, "DigestHex32", map[string][]string{
+		"NodeHighWaterV1":                   {"digest"},
+		"DesiredPollRequestV1":              {"agent_build_digest", "capability_schema_digest"},
+		"SignedCanonicalArtifactV1":         {"digest"},
+		"SignedRecoveryStateV1":             {"digest"},
+		"NodeSlotFactV1":                    {"metrics_digest"},
+		"NodeObservationV1":                 {"agent_build_digest", "capability_schema_digest", "seen_digest", "applied_digest", "reducer_digest"},
+		"ObservationAckV1":                  {"report_digest"},
+		"SupervisorFaultV1":                 {"evidence_digest"},
+		"SecurityFaultReportV1":             {"evidence_digest", "request_digest"},
+		"SecurityFaultReceiptV1":            {"request_digest"},
+		"RecoveryAttestationV1":             {"recovery_snapshot_digest", "agent_build_digest", "supervisor_build_digest", "agent_guard_digest", "supervisor_guard_digest", "latch_guard_digest", "trusted_time_evidence_digest"},
+		"RecoveryAttestationAckV1":          {"attestation_digest"},
+		"CertificateAuthorizationReceiptV1": {"csr_der_sha256", "leaf_der_sha256", "public_key_sha256"},
+		"NodeTimeAttestationV1":             {"key_id"},
+	})
+	assertPropertiesReference(t, "agent recovery reason", agent, "RecoveryReasonV1", map[string][]string{
+		"SignedRecoveryStateV1": {"recovery_reason"},
+	})
+
+	assertPropertiesReference(t, "operator UUID", operator, "CanonicalUUID", map[string][]string{
+		"FailureDomainV1":                {"failure_domain_id"},
+		"NodeV1":                         {"node_id", "pending_transition_signing_id", "lineage_id", "active_root_publish_id", "active_metadata_publish_id", "last_authority_operation_id"},
+		"NodeEndpointV1":                 {"endpoint_id", "node_id"},
+		"NodeProcessSlotV1":              {"node_id"},
+		"CreateNodePOPV1":                {"command_id"},
+		"UpdateNodePOPV1":                {"command_id"},
+		"CreateFailureDomainV1":          {"command_id", "failure_domain_id"},
+		"UpdateFailureDomainV1":          {"command_id"},
+		"CreateNodeV1":                   {"command_id", "node_id"},
+		"UpdateNodeV1":                   {"command_id"},
+		"CreateNodeEndpointV1":           {"command_id", "endpoint_id"},
+		"UpdateNodeEndpointV1":           {"command_id"},
+		"CreateNodeProcessSlotV1":        {"command_id"},
+		"UpdateNodeProcessSlotV1":        {"command_id"},
+		"CreateEnrollmentGrantV1":        {"command_id"},
+		"EnrollmentGrantV1":              {"grant_id", "node_id"},
+		"PutNodeDesiredStateV1":          {"command_id"},
+		"SigningOperationV1":             {"signing_id"},
+		"RecoveryOperationV1":            {"recovery_id"},
+		"DrainNodeV1":                    {"command_id"},
+		"DisableNodeV1":                  {"command_id"},
+		"ReenrollNodeV1":                 {"command_id", "recovery_id"},
+		"HostRemediationEvidenceV1":      {"evidence_id"},
+		"CompleteReenrollmentV1":         {"command_id", "recovery_id", "certificate_id"},
+		"RegisterHostSecurityIncidentV1": {"command_id"},
+		"RegisterResourceEnvelopeV1":     {"command_id"},
+		"ClearSecurityQuarantineV1":      {"command_id", "incident_id"},
+		"ResumeAfterSecurityV1":          {"command_id", "recovery_id"},
+		"ReauthorizeAfterRestoreV1":      {"command_id", "recovery_id", "proposal_id"},
+		"RecoveryEnrollmentGrantV1":      {"recovery_id", "grant_id"},
+		"RestoreReauthorizationV1":       {"proposal_id", "approval_id"},
+	})
+	assertPropertiesReference(t, "operator digest", operator, "DigestHex32", map[string][]string{
+		"NodeV1":                       {"resource_envelope_digest"},
+		"CreateEnrollmentGrantV1":      {"csr_der_sha256"},
+		"EnrollmentGrantV1":            {"csr_der_sha256"},
+		"PutNodeDesiredStateV1":        {"resource_envelope_digest"},
+		"ReenrollNodeV1":               {"csr_der_sha256"},
+		"HostRemediationEvidenceV1":    {"digest"},
+		"CompleteReenrollmentV1":       {"recovery_attestation_digest"},
+		"ResourceEnvelopePackageV1":    {"digest"},
+		"ResourceEnvelopeActivationV1": {"digest"},
+		"ClearSecurityQuarantineV1":    {"recovery_snapshot_digest", "recovery_attestation_digest"},
+		"ResumeAfterSecurityV1":        {"recovery_attestation_digest"},
+		"ReauthorizeAfterRestoreV1":    {"effect_digest"},
+		"RecoveryEnrollmentGrantV1":    {"csr_der_sha256"},
+	})
+	assertPropertiesReference(t, "operator reason", operator, "OperatorReasonCodeV1", map[string][]string{
+		"CreateNodePOPV1":         {"reason_code"},
+		"UpdateNodePOPV1":         {"reason_code"},
+		"CreateFailureDomainV1":   {"reason_code"},
+		"UpdateFailureDomainV1":   {"reason_code"},
+		"CreateNodeV1":            {"reason_code"},
+		"UpdateNodeV1":            {"reason_code"},
+		"CreateNodeEndpointV1":    {"reason_code"},
+		"UpdateNodeEndpointV1":    {"reason_code"},
+		"CreateNodeProcessSlotV1": {"reason_code"},
+		"UpdateNodeProcessSlotV1": {"reason_code"},
+		"CreateEnrollmentGrantV1": {"reason_code"},
+		"DrainNodeV1":             {"reason_code"},
+		"ReenrollNodeV1":          {"reason_code"},
+	})
+	assertPropertiesReference(t, "operator desired reason", operator, "DesiredReasonV1", map[string][]string{
+		"PutNodeDesiredStateV1": {"reason_code"},
+	})
+	assertPropertiesReference(t, "operator disable reason", operator, "DisableReasonV1", map[string][]string{
+		"DisableNodeV1": {"reason_code"},
+	})
+}
+
+func assertPropertiesReference(t *testing.T, label string, spec *openapi3.T, registry string, expected map[string][]string) {
+	t.Helper()
+	want := "#/components/schemas/" + registry
+	for schemaName, properties := range expected {
+		schema := mustSchema(t, spec, schemaName)
+		for _, propertyName := range properties {
+			property, ok := schema.Properties[propertyName]
+			if !ok {
+				t.Errorf("%s: %s.%s is missing", label, schemaName, propertyName)
+				continue
+			}
+			if got := schemaReference(property); got != want {
+				t.Errorf("%s: %s.%s reference = %q, want %q", label, schemaName, propertyName, got, want)
+			}
+		}
+	}
+}
+
+func assertArrayItemsReference(t *testing.T, label string, spec *openapi3.T, registry string, expected map[string][]string) {
+	t.Helper()
+	want := "#/components/schemas/" + registry
+	for schemaName, properties := range expected {
+		schema := mustSchema(t, spec, schemaName)
+		for _, propertyName := range properties {
+			property, ok := schema.Properties[propertyName]
+			if !ok || property.Value == nil || property.Value.Items == nil {
+				t.Errorf("%s: %s.%s array items are missing", label, schemaName, propertyName)
+				continue
+			}
+			if got := schemaReference(property.Value.Items); got != want {
+				t.Errorf("%s: %s.%s item reference = %q, want %q", label, schemaName, propertyName, got, want)
+			}
+		}
+	}
+}
+
+func schemaReference(ref *openapi3.SchemaRef) string {
+	if ref == nil {
+		return ""
+	}
+	if ref.Ref != "" {
+		return ref.Ref
+	}
+	if ref.Value != nil && len(ref.Value.AllOf) == 1 {
+		return ref.Value.AllOf[0].Ref
+	}
+	return ""
 }
 
 func assertCSRDER(t *testing.T, spec *openapi3.T) {
