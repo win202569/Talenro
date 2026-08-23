@@ -780,6 +780,7 @@ CREATE TABLE nodecontrol.node_root_metadata_publish_intents (
   CONSTRAINT node_root_metadata_publish_intents_base_root_version_range CHECK (base_root_version BETWEEN 0 AND 9223372036854775807),
   CONSTRAINT node_root_metadata_publish_intents_base_metadata_version_range CHECK (base_metadata_version BETWEEN 0 AND 9223372036854775807),
   CONSTRAINT node_root_metadata_publish_intents_reserved_version_range CHECK (reserved_version BETWEEN 1 AND 9223372036854775807),
+  CONSTRAINT node_root_metadata_publish_intents_version_continuity CHECK ((publish_kind = 'root' AND base_root_version = reserved_version - 1) OR (publish_kind = 'metadata' AND base_metadata_version = reserved_version - 1)),
   CONSTRAINT node_root_metadata_publish_intents_canonical_payload_length CHECK (octet_length(canonical_payload) BETWEEN 1 AND 65536),
   CONSTRAINT node_root_metadata_publish_intents_payload_digest_length CHECK (octet_length(payload_digest) = 32),
   CONSTRAINT node_root_metadata_publish_intents_key_set_digest_length CHECK (octet_length(key_set_digest) = 32),
@@ -1122,7 +1123,7 @@ BEGIN
       EXECUTE 'LOCK TABLE public.transactional_outbox IN SHARE ROW EXCLUSIVE MODE';
       EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2 AND aggregate_version = $3)'
       INTO outbox_reference
-      USING 'node_desired_state', OLD.signing_id, OLD.generation;
+      USING 'node', OLD.node_id, OLD.generation;
     END IF;
     IF outbox_reference THEN
       RAISE EXCEPTION 'desired state is referenced by the transactional outbox' USING ERRCODE = '23514';
@@ -1141,7 +1142,7 @@ BEGIN
       EXECUTE 'LOCK TABLE public.transactional_outbox IN SHARE ROW EXCLUSIVE MODE';
       EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2)'
       INTO outbox_reference
-      USING 'node_operator_audit', OLD.audit_id;
+      USING 'operator_action', OLD.audit_id;
     END IF;
     IF outbox_reference THEN
       RAISE EXCEPTION 'operator audit is referenced by the transactional outbox' USING ERRCODE = '23514';
@@ -1392,9 +1393,9 @@ BEGIN
     SELECT
       pg_catalog.sha256(COALESCE(
         pg_catalog.string_agg(
-          pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
+          pg_catalog.uuid_send(receipt.supervisor_boot_id) || pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
           pg_catalog.uuid_send(receipt.incident_id),
-          ''::bytea ORDER BY receipt.supervisor_fault_id
+          ''::bytea ORDER BY receipt.supervisor_boot_id,receipt.supervisor_fault_id
         ),
         ''::bytea
       )),
@@ -1453,8 +1454,6 @@ BEGIN
        AND recovery.reason = state.recovery_reason
        AND recovery.version = state.recovery_session_version
        AND recovery.status = 'pending'
-       AND (recovery.authority_operation_id,recovery.authority_epoch,recovery.authority_sequence) =
-           (state.authority_operation_id,state.authority_epoch,state.authority_sequence)
        AND recovery.incident_set_digest = pointer_incident_digest
        AND state.incident_set_digest = pointer_incident_digest
        AND state.incident_count = pointer_incident_count
@@ -1686,6 +1685,9 @@ AS $$
 DECLARE
   open_count integer;
 BEGIN
+  IF TG_OP <> 'DELETE' AND pg_catalog.current_setting('transaction_isolation') <> 'read committed' THEN
+    RAISE EXCEPTION 'nodecontrol security incident mutation requires read committed isolation' USING ERRCODE = '25001';
+  END IF;
   IF TG_OP = 'INSERT' THEN
     PERFORM 1 FROM nodecontrol.node_inventory WHERE node_id = NEW.node_id FOR UPDATE;
     SELECT count(*) INTO open_count
@@ -1781,6 +1783,9 @@ DECLARE
   local_count integer;
   supervisor_count integer;
 BEGIN
+  IF TG_OP <> 'DELETE' AND pg_catalog.current_setting('transaction_isolation') <> 'read committed' THEN
+    RAISE EXCEPTION 'nodecontrol security fault receipt mutation requires read committed isolation' USING ERRCODE = '25001';
+  END IF;
   IF TG_OP = 'DELETE' THEN
     RAISE EXCEPTION 'security fault receipts are immutable' USING ERRCODE = '23514';
   END IF;
@@ -2157,10 +2162,7 @@ BEGIN
          OR recovery_session.reason IS DISTINCT FROM NEW.recovery_reason
          OR recovery_session.version IS DISTINCT FROM NEW.recovery_session_version
          OR recovery_session.status IS DISTINCT FROM 'pending'
-         OR NEW.recovery_session_status IS DISTINCT FROM 'pending'
-         OR (recovery_session.authority_operation_id,recovery_session.authority_epoch,recovery_session.authority_sequence)
-            IS DISTINCT FROM
-            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence) THEN
+         OR NEW.recovery_session_status IS DISTINCT FROM 'pending' THEN
         RAISE EXCEPTION 'state signing activation captured recovery session is stale' USING ERRCODE = '23514';
       END IF;
 
@@ -2207,9 +2209,9 @@ BEGIN
 
       SELECT pg_catalog.sha256(COALESCE(
         pg_catalog.string_agg(
-          pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
+          pg_catalog.uuid_send(receipt.supervisor_boot_id) || pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
           pg_catalog.uuid_send(receipt.incident_id),
-          ''::bytea ORDER BY receipt.supervisor_fault_id
+          ''::bytea ORDER BY receipt.supervisor_boot_id,receipt.supervisor_fault_id
         ),
         ''::bytea
       ))
@@ -2255,6 +2257,9 @@ DECLARE
   superseded_count integer;
 BEGIN
   IF TG_OP = 'INSERT' THEN
+    IF pg_catalog.current_setting('transaction_isolation') <> 'read committed' THEN
+      RAISE EXCEPTION 'nodecontrol root/metadata publish mutation requires read committed isolation' USING ERRCODE = '25001';
+    END IF;
     IF NEW.status <> 'pending' THEN
       RAISE EXCEPTION 'root/metadata publish intents must start pending' USING ERRCODE = '23514';
     END IF;
