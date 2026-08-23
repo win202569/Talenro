@@ -424,12 +424,12 @@ CREATE TABLE nodecontrol.node_enrollment_grants (
   CONSTRAINT node_enrollment_grants_terminal_reason_enum CHECK (terminal_reason IS NULL OR terminal_reason IN ('consumed','expired','identity_epoch_advanced','operator_disabled','security_quarantine','superseded')),
   CONSTRAINT node_enrollment_grants_terminal_group CHECK (
     (consumed_at IS NULL AND expired_at IS NULL AND invalidated_at IS NULL AND terminal_reason IS NULL AND terminal_at IS NULL AND retention_until IS NULL)
-    OR (consumed_at IS NOT NULL AND expired_at IS NULL AND invalidated_at IS NULL AND terminal_reason = 'consumed' AND terminal_at = consumed_at AND retention_until IS NOT NULL)
-    OR (consumed_at IS NULL AND expired_at IS NOT NULL AND invalidated_at IS NULL AND terminal_reason = 'expired' AND terminal_at = expired_at AND retention_until IS NOT NULL)
-    OR (consumed_at IS NULL AND expired_at IS NULL AND invalidated_at IS NOT NULL AND terminal_reason IN ('identity_epoch_advanced','operator_disabled','security_quarantine','superseded') AND terminal_at = invalidated_at AND retention_until IS NOT NULL)
+    OR (consumed_at IS NOT NULL AND expired_at IS NULL AND invalidated_at IS NULL AND terminal_reason IS NOT NULL AND terminal_reason = 'consumed' AND terminal_at IS NOT NULL AND terminal_at = consumed_at AND retention_until IS NOT NULL)
+    OR (consumed_at IS NULL AND expired_at IS NOT NULL AND invalidated_at IS NULL AND terminal_reason IS NOT NULL AND terminal_reason = 'expired' AND terminal_at IS NOT NULL AND terminal_at = expired_at AND retention_until IS NOT NULL)
+    OR (consumed_at IS NULL AND expired_at IS NULL AND invalidated_at IS NOT NULL AND terminal_reason IS NOT NULL AND terminal_reason IN ('identity_epoch_advanced','operator_disabled','security_quarantine','superseded') AND terminal_at IS NOT NULL AND terminal_at = invalidated_at AND retention_until IS NOT NULL)
   ),
   CONSTRAINT node_enrollment_grants_terminal_timestamp CHECK (terminal_at IS NULL OR terminal_at >= created_at),
-  CONSTRAINT node_enrollment_grants_retention_window CHECK (retention_until IS NULL OR retention_until >= terminal_at + interval '30 days')
+  CONSTRAINT node_enrollment_grants_retention_window CHECK ((retention_until IS NULL AND terminal_at IS NULL) OR (retention_until IS NOT NULL AND terminal_at IS NOT NULL AND retention_until >= terminal_at + interval '30 days'))
 );
 
 CREATE TABLE nodecontrol.node_certificates (
@@ -1103,6 +1103,13 @@ DECLARE
   outbox_reference boolean := false;
 BEGIN
   IF TG_OP = 'DELETE' AND TG_TABLE_NAME = 'node_desired_states' THEN
+    PERFORM 1
+    FROM nodecontrol.node_inventory inventory
+    WHERE inventory.node_id = OLD.node_id
+    FOR UPDATE;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'desired state node does not exist' USING ERRCODE = '23503';
+    END IF;
     IF OLD.retention_until > transaction_timestamp()
        OR EXISTS (
          SELECT 1 FROM nodecontrol.node_inventory inventory
@@ -1112,6 +1119,7 @@ BEGIN
       RAISE EXCEPTION 'desired state is retained or actively referenced' USING ERRCODE = '23514';
     END IF;
     IF to_regclass('public.transactional_outbox') IS NOT NULL THEN
+      EXECUTE 'LOCK TABLE public.transactional_outbox IN SHARE ROW EXCLUSIVE MODE';
       EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2 AND aggregate_version = $3)'
       INTO outbox_reference
       USING 'node_desired_state', OLD.signing_id, OLD.generation;
@@ -1130,6 +1138,7 @@ BEGIN
       RAISE EXCEPTION 'operator audit is retained or referenced' USING ERRCODE = '23514';
     END IF;
     IF to_regclass('public.transactional_outbox') IS NOT NULL THEN
+      EXECUTE 'LOCK TABLE public.transactional_outbox IN SHARE ROW EXCLUSIVE MODE';
       EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.transactional_outbox WHERE aggregate_type = $1 AND aggregate_id = $2)'
       INTO outbox_reference
       USING 'node_operator_audit', OLD.audit_id;
@@ -1256,6 +1265,18 @@ CREATE FUNCTION nodecontrol.enforce_inventory_pointers()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  pointer_recovery_session nodecontrol.node_recovery_sessions%ROWTYPE;
+  pointer_incident_digest bytea;
+  pointer_incident_count integer;
+  pointer_local_digest bytea;
+  pointer_local_count integer;
+  pointer_supervisor_digest bytea;
+  pointer_supervisor_count integer;
+  pointer_remediation_digest bytea;
+  pointer_required_action text;
+  pointer_pending_resolution_count integer;
+  pointer_distinct_remediation_count integer;
 BEGIN
   IF NEW.resource_envelope_version IS NOT NULL AND NOT EXISTS (
     SELECT 1
@@ -1313,10 +1334,93 @@ BEGIN
     RAISE EXCEPTION 'desired pointer is not fence-finalized' USING ERRCODE = '23514';
   END IF;
 
+  IF NEW.active_recovery_generation IS NOT NULL THEN
+    SELECT recovery.* INTO pointer_recovery_session
+    FROM nodecontrol.node_recovery_states state
+    JOIN nodecontrol.node_recovery_sessions recovery ON recovery.recovery_id = state.recovery_id
+    WHERE state.node_id = NEW.node_id
+      AND state.recovery_generation = NEW.active_recovery_generation
+    FOR SHARE OF state,recovery;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'recovery pointer is not fence-finalized' USING ERRCODE = '23514';
+    END IF;
+
+    SELECT
+      pg_catalog.sha256(COALESCE(
+        pg_catalog.string_agg(pg_catalog.uuid_send(incident.incident_id),''::bytea ORDER BY incident.incident_id),
+        ''::bytea
+      )),
+      count(*)::integer,
+      count(*) FILTER (WHERE incident.status = 'resolution_pending_agent_ack')::integer,
+      count(DISTINCT pg_catalog.encode(incident.remediation_digest,'hex'))
+        FILTER (WHERE incident.status = 'resolution_pending_agent_ack')::integer,
+      CASE
+        WHEN count(*) FILTER (WHERE incident.status = 'resolution_pending_agent_ack') > 0
+             AND count(DISTINCT pg_catalog.encode(incident.remediation_digest,'hex'))
+                 FILTER (WHERE incident.status = 'resolution_pending_agent_ack') = 1
+        THEN pg_catalog.decode(
+          min(pg_catalog.encode(incident.remediation_digest,'hex'))
+            FILTER (WHERE incident.status = 'resolution_pending_agent_ack'),
+          'hex'
+        )
+        ELSE NULL
+      END
+    INTO pointer_incident_digest,pointer_incident_count,pointer_pending_resolution_count,
+         pointer_distinct_remediation_count,pointer_remediation_digest
+    FROM nodecontrol.node_security_incidents incident
+    WHERE incident.node_id = NEW.node_id
+      AND incident.identity_epoch = NEW.identity_epoch
+      AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+    SELECT
+      pg_catalog.sha256(COALESCE(
+        pg_catalog.string_agg(
+          pg_catalog.uuid_send(receipt.local_fault_id) || pg_catalog.uuid_send(receipt.incident_id),
+          ''::bytea ORDER BY receipt.local_fault_id
+        ),
+        ''::bytea
+      )),
+      count(*)::integer
+    INTO pointer_local_digest,pointer_local_count
+    FROM nodecontrol.node_security_fault_receipts receipt
+    JOIN nodecontrol.node_security_incidents incident ON incident.incident_id = receipt.incident_id
+    WHERE receipt.node_id = NEW.node_id
+      AND receipt.identity_epoch = NEW.identity_epoch
+      AND receipt.binding_status = 'active'
+      AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+    SELECT
+      pg_catalog.sha256(COALESCE(
+        pg_catalog.string_agg(
+          pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
+          pg_catalog.uuid_send(receipt.incident_id),
+          ''::bytea ORDER BY receipt.supervisor_fault_id
+        ),
+        ''::bytea
+      )),
+      count(*)::integer
+    INTO pointer_supervisor_digest,pointer_supervisor_count
+    FROM nodecontrol.node_security_fault_receipts receipt
+    JOIN nodecontrol.node_security_incidents incident ON incident.incident_id = receipt.incident_id
+    WHERE receipt.node_id = NEW.node_id
+      AND receipt.identity_epoch = NEW.identity_epoch
+      AND receipt.binding_status = 'active'
+      AND receipt.supervisor_fault_id IS NOT NULL
+      AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+    pointer_required_action := CASE
+      WHEN pointer_pending_resolution_count > 0 THEN 'clear_security_latches'
+      WHEN pointer_recovery_session.recovery_certificate_id IS NOT NULL
+           AND pointer_recovery_session.attestation_digest IS NULL THEN 'submit_recovery_attestation'
+      ELSE 'hold_stopped'
+    END;
+  END IF;
+
   IF NEW.active_recovery_generation IS NOT NULL AND NOT EXISTS (
     SELECT 1
     FROM nodecontrol.node_recovery_states state
     JOIN nodecontrol.node_state_signing_intents intent ON intent.signing_id = state.signing_id
+    JOIN nodecontrol.node_recovery_sessions recovery ON recovery.recovery_id = state.recovery_id
     JOIN nodecontrol.control_plane_authority_fences fence
       ON (fence.operation_id, fence.authority_epoch, fence.authority_sequence) =
          (state.authority_operation_id, state.authority_epoch, state.authority_sequence)
@@ -1343,11 +1447,32 @@ BEGIN
        AND intent.recovery_id = state.recovery_id
        AND intent.recovery_reason = state.recovery_reason
        AND intent.recovery_session_version = state.recovery_session_version
-       AND intent.recovery_incident_set_digest = state.incident_set_digest
-       AND intent.recovery_local_bindings_digest = state.local_fault_bindings_digest
-       AND intent.recovery_supervisor_bindings_digest = state.supervisor_fault_bindings_digest
-       AND intent.recovery_remediation_digest IS NOT DISTINCT FROM state.remediation_digest
-       AND intent.recovery_required_action = state.recovery_action
+       AND intent.recovery_session_status = 'pending'
+       AND recovery.node_id = state.node_id
+       AND recovery.identity_epoch = state.identity_epoch
+       AND recovery.reason = state.recovery_reason
+       AND recovery.version = state.recovery_session_version
+       AND recovery.status = 'pending'
+       AND (recovery.authority_operation_id,recovery.authority_epoch,recovery.authority_sequence) =
+           (state.authority_operation_id,state.authority_epoch,state.authority_sequence)
+       AND recovery.incident_set_digest = pointer_incident_digest
+       AND state.incident_set_digest = pointer_incident_digest
+       AND state.incident_count = pointer_incident_count
+       AND intent.recovery_incident_set_digest = pointer_incident_digest
+       AND state.local_fault_bindings_digest = pointer_local_digest
+       AND state.local_fault_binding_count = pointer_local_count
+       AND intent.recovery_local_bindings_digest = pointer_local_digest
+       AND state.supervisor_fault_bindings_digest = pointer_supervisor_digest
+       AND state.supervisor_fault_binding_count = pointer_supervisor_count
+       AND intent.recovery_supervisor_bindings_digest = pointer_supervisor_digest
+       AND pointer_distinct_remediation_count <= 1
+       AND state.remediation_digest IS NOT DISTINCT FROM pointer_remediation_digest
+       AND intent.recovery_remediation_digest IS NOT DISTINCT FROM pointer_remediation_digest
+       AND state.recovery_action = pointer_required_action
+       AND intent.recovery_required_action = pointer_required_action
+       AND NEW.operator_state = 'disabled'
+       AND NEW.security_state = 'quarantined'
+       AND NEW.identity_state IN ('recovery_pending','recovery_limited')
        AND fence.provider_status = 'committed'
        AND fence.visibility_state = 'active'
        AND fence.effect_kind = 'recovery_activate'
@@ -1470,7 +1595,10 @@ BEGIN
     END IF;
     RETURN OLD;
   END IF;
-  IF OLD.terminal_at IS NOT NULL THEN
+  IF num_nonnulls(OLD.consumed_at,OLD.consumption_attempt_id,OLD.consumption_request_digest,
+                  OLD.claim_authority_operation_id,OLD.claim_authority_epoch,OLD.claim_authority_sequence,
+                  OLD.result_issuance_id,OLD.expired_at,OLD.invalidated_at,OLD.terminal_reason,
+                  OLD.terminal_at,OLD.retention_until) > 0 THEN
     RAISE EXCEPTION 'terminal enrollment grant is immutable' USING ERRCODE = '23514';
   END IF;
   IF (NEW.grant_id,NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence,NEW.node_id,
@@ -1589,6 +1717,10 @@ BEGIN
       RAISE EXCEPTION 'security incident retention has not elapsed' USING ERRCODE = '23514';
     END IF;
     RETURN OLD;
+  END IF;
+  PERFORM 1 FROM nodecontrol.node_inventory WHERE node_id = NEW.node_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'unknown node for security incident' USING ERRCODE = '23503';
   END IF;
   IF OLD.status = 'resolved' THEN
     RAISE EXCEPTION 'resolved security incident is immutable' USING ERRCODE = '23514';
@@ -1716,6 +1848,7 @@ BEGIN
            incident.authority_operation_id,incident.authority_epoch,incident.authority_sequence) =
           (NEW.node_id,NEW.identity_epoch,NEW.fault_subtype,
            NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence)
+      AND incident.status IN ('open','resolution_pending_agent_ack','overflow')
       AND fence.provider_status = 'committed'
       AND fence.visibility_state = 'active'
       AND fence.effect_kind = 'security_incident_open'
@@ -1886,6 +2019,15 @@ CREATE FUNCTION nodecontrol.enforce_signing_intent_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  recovery_session nodecontrol.node_recovery_sessions%ROWTYPE;
+  authoritative_incident_digest bytea;
+  authoritative_local_digest bytea;
+  authoritative_supervisor_digest bytea;
+  authoritative_remediation_digest bytea;
+  authoritative_required_action text;
+  pending_resolution_count integer;
+  distinct_remediation_count integer;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     PERFORM pg_catalog.pg_advisory_xact_lock(lock_key)
@@ -1991,26 +2133,110 @@ BEGIN
         AND inventory.security_version = NEW.captured_security_version
         AND inventory.active_root_version = NEW.root_version
         AND inventory.active_metadata_version = NEW.metadata_version
-        AND NEW.base_generation = CASE NEW.signing_kind
+       AND NEW.base_generation = CASE NEW.signing_kind
               WHEN 'desired' THEN COALESCE(inventory.active_desired_generation,0)
               ELSE COALESCE(inventory.active_recovery_generation,0)
             END
+        AND (NEW.signing_kind <> 'recovery' OR (
+          inventory.operator_state = 'disabled'
+          AND inventory.security_state = 'quarantined'
+          AND inventory.identity_state IN ('recovery_pending','recovery_limited')
+        ))
       FOR SHARE OF inventory,root_intent,metadata_intent
     ) THEN
       RAISE EXCEPTION 'state signing activation captured node or trust values are stale' USING ERRCODE = '23514';
     END IF;
-    IF NEW.signing_kind = 'recovery' AND NOT EXISTS (
-      SELECT 1
+    IF NEW.signing_kind = 'recovery' THEN
+      SELECT recovery.* INTO recovery_session
       FROM nodecontrol.node_recovery_sessions recovery
       WHERE recovery.recovery_id = NEW.recovery_id
-        AND recovery.node_id = NEW.node_id
-        AND recovery.identity_epoch = NEW.captured_identity_epoch
-        AND recovery.reason = NEW.recovery_reason
-        AND recovery.version = NEW.recovery_session_version
-        AND recovery.status = NEW.recovery_session_status
-        AND recovery.incident_set_digest = NEW.recovery_incident_set_digest
-    ) THEN
-      RAISE EXCEPTION 'state signing activation captured recovery session is stale' USING ERRCODE = '23514';
+      FOR SHARE;
+      IF NOT FOUND
+         OR recovery_session.node_id IS DISTINCT FROM NEW.node_id
+         OR recovery_session.identity_epoch IS DISTINCT FROM NEW.captured_identity_epoch
+         OR recovery_session.reason IS DISTINCT FROM NEW.recovery_reason
+         OR recovery_session.version IS DISTINCT FROM NEW.recovery_session_version
+         OR recovery_session.status IS DISTINCT FROM 'pending'
+         OR NEW.recovery_session_status IS DISTINCT FROM 'pending'
+         OR (recovery_session.authority_operation_id,recovery_session.authority_epoch,recovery_session.authority_sequence)
+            IS DISTINCT FROM
+            (NEW.authority_operation_id,NEW.authority_epoch,NEW.authority_sequence) THEN
+        RAISE EXCEPTION 'state signing activation captured recovery session is stale' USING ERRCODE = '23514';
+      END IF;
+
+      SELECT
+        pg_catalog.sha256(COALESCE(
+          pg_catalog.string_agg(pg_catalog.uuid_send(incident.incident_id),''::bytea ORDER BY incident.incident_id),
+          ''::bytea
+        )),
+        count(*) FILTER (WHERE incident.status = 'resolution_pending_agent_ack'),
+        count(DISTINCT pg_catalog.encode(incident.remediation_digest,'hex'))
+          FILTER (WHERE incident.status = 'resolution_pending_agent_ack'),
+        CASE
+          WHEN count(*) FILTER (WHERE incident.status = 'resolution_pending_agent_ack') > 0
+               AND count(DISTINCT pg_catalog.encode(incident.remediation_digest,'hex'))
+                   FILTER (WHERE incident.status = 'resolution_pending_agent_ack') = 1
+          THEN pg_catalog.decode(
+            min(pg_catalog.encode(incident.remediation_digest,'hex'))
+              FILTER (WHERE incident.status = 'resolution_pending_agent_ack'),
+            'hex'
+          )
+          ELSE NULL
+        END
+      INTO authoritative_incident_digest,pending_resolution_count,distinct_remediation_count,
+           authoritative_remediation_digest
+      FROM nodecontrol.node_security_incidents incident
+      WHERE incident.node_id = NEW.node_id
+        AND incident.identity_epoch = NEW.captured_identity_epoch
+        AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+      SELECT pg_catalog.sha256(COALESCE(
+        pg_catalog.string_agg(
+          pg_catalog.uuid_send(receipt.local_fault_id) || pg_catalog.uuid_send(receipt.incident_id),
+          ''::bytea ORDER BY receipt.local_fault_id
+        ),
+        ''::bytea
+      ))
+      INTO authoritative_local_digest
+      FROM nodecontrol.node_security_fault_receipts receipt
+      JOIN nodecontrol.node_security_incidents incident ON incident.incident_id = receipt.incident_id
+      WHERE receipt.node_id = NEW.node_id
+        AND receipt.identity_epoch = NEW.captured_identity_epoch
+        AND receipt.binding_status = 'active'
+        AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+      SELECT pg_catalog.sha256(COALESCE(
+        pg_catalog.string_agg(
+          pg_catalog.uuid_send(receipt.supervisor_fault_id) || receipt.supervisor_evidence_digest ||
+          pg_catalog.uuid_send(receipt.incident_id),
+          ''::bytea ORDER BY receipt.supervisor_fault_id
+        ),
+        ''::bytea
+      ))
+      INTO authoritative_supervisor_digest
+      FROM nodecontrol.node_security_fault_receipts receipt
+      JOIN nodecontrol.node_security_incidents incident ON incident.incident_id = receipt.incident_id
+      WHERE receipt.node_id = NEW.node_id
+        AND receipt.identity_epoch = NEW.captured_identity_epoch
+        AND receipt.binding_status = 'active'
+        AND receipt.supervisor_fault_id IS NOT NULL
+        AND incident.status IN ('open','resolution_pending_agent_ack','overflow');
+
+      authoritative_required_action := CASE
+        WHEN pending_resolution_count > 0 THEN 'clear_security_latches'
+        WHEN recovery_session.recovery_certificate_id IS NOT NULL
+             AND recovery_session.attestation_digest IS NULL THEN 'submit_recovery_attestation'
+        ELSE 'hold_stopped'
+      END;
+      IF recovery_session.incident_set_digest IS DISTINCT FROM authoritative_incident_digest
+         OR NEW.recovery_incident_set_digest IS DISTINCT FROM authoritative_incident_digest
+         OR NEW.recovery_local_bindings_digest IS DISTINCT FROM authoritative_local_digest
+         OR NEW.recovery_supervisor_bindings_digest IS DISTINCT FROM authoritative_supervisor_digest
+         OR distinct_remediation_count > 1
+         OR NEW.recovery_remediation_digest IS DISTINCT FROM authoritative_remediation_digest
+         OR NEW.recovery_required_action IS DISTINCT FROM authoritative_required_action THEN
+        RAISE EXCEPTION 'state signing activation captured recovery bindings are stale' USING ERRCODE = '23514';
+      END IF;
     END IF;
   END IF;
   RETURN NEW;
@@ -2025,12 +2251,16 @@ DECLARE
   pending_count integer;
   current_share_count integer;
   new_share_count integer;
+  prior_version bigint;
+  superseded_count integer;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     IF NEW.status <> 'pending' THEN
       RAISE EXCEPTION 'root/metadata publish intents must start pending' USING ERRCODE = '23514';
     END IF;
-    LOCK TABLE nodecontrol.node_root_metadata_publish_intents IN SHARE ROW EXCLUSIVE MODE;
+    PERFORM pg_catalog.pg_advisory_xact_lock(
+      pg_catalog.hashtextextended('nodecontrol:root-metadata-pending-cap',0)
+    );
     SELECT count(*) INTO pending_count
     FROM nodecontrol.node_root_metadata_publish_intents
     WHERE status = 'pending';
@@ -2095,26 +2325,48 @@ BEGIN
            OR (NEW.reason = 'root_rotation' AND new_share_count < NEW.new_threshold) THEN
           RAISE EXCEPTION 'root/metadata publish lacks its captured signature threshold' USING ERRCODE = '23514';
         END IF;
+        prior_version := CASE NEW.publish_kind
+          WHEN 'root' THEN NEW.base_root_version
+          ELSE NEW.base_metadata_version
+        END;
+        IF prior_version > 0 THEN
+          UPDATE nodecontrol.node_root_metadata_publish_intents prior_intent
+          SET status = 'superseded',
+              failure_reason = 'superseded',
+              terminal_at = NEW.terminal_at,
+              updated_at = NEW.updated_at
+          WHERE prior_intent.publish_kind = NEW.publish_kind
+            AND prior_intent.reserved_version = prior_version
+            AND prior_intent.status = 'active';
+          GET DIAGNOSTICS superseded_count = ROW_COUNT;
+          IF superseded_count <> 1 THEN
+            RAISE EXCEPTION 'next root/metadata activation must atomically supersede exactly one active predecessor' USING ERRCODE = '23514';
+          END IF;
+        END IF;
       END IF;
     END IF;
     RETURN NEW;
   END IF;
-  IF OLD.status = 'active' AND NEW.status = 'superseded' AND EXISTS (
-    SELECT 1
-    FROM nodecontrol.node_root_metadata_publish_intents next_intent
-    JOIN nodecontrol.control_plane_authority_fences fence
-      ON (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
-         (next_intent.authority_operation_id,next_intent.authority_epoch,next_intent.authority_sequence)
-    WHERE next_intent.publish_kind = OLD.publish_kind
-      AND next_intent.status = 'active'
-      AND next_intent.reserved_version = OLD.reserved_version + 1
-      AND ((OLD.publish_kind = 'root' AND next_intent.base_root_version = OLD.reserved_version)
-        OR (OLD.publish_kind = 'metadata' AND next_intent.base_metadata_version = OLD.reserved_version))
-      AND fence.provider_status = 'committed'
-      AND fence.visibility_state = 'active'
-      AND (next_intent.xmin::text)::bigint = (pg_current_xact_id()::text)::bigint
-  ) THEN
-    RETURN NEW;
+  IF OLD.status = 'active' AND NEW.status = 'superseded' THEN
+    IF pg_catalog.pg_trigger_depth() = 2 AND EXISTS (
+      SELECT 1
+      FROM nodecontrol.node_root_metadata_publish_intents next_intent
+      JOIN nodecontrol.control_plane_authority_fences fence
+        ON (fence.operation_id,fence.authority_epoch,fence.authority_sequence) =
+           (next_intent.authority_operation_id,next_intent.authority_epoch,next_intent.authority_sequence)
+      WHERE next_intent.publish_kind = OLD.publish_kind
+        AND next_intent.status = 'pending'
+        AND next_intent.reserved_version = OLD.reserved_version + 1
+        AND ((OLD.publish_kind = 'root' AND next_intent.base_root_version = OLD.reserved_version)
+          OR (OLD.publish_kind = 'metadata' AND next_intent.base_metadata_version = OLD.reserved_version))
+        AND fence.provider_status = 'committed'
+        AND fence.visibility_state = 'active'
+        AND fence.effect_kind = CASE OLD.publish_kind WHEN 'root' THEN 'root_publish' ELSE 'metadata_publish' END
+        AND fence.scope_kind = 'global_node_trust'
+    ) THEN
+      RETURN NEW;
+    END IF;
+    RAISE EXCEPTION 'active root/metadata publish may be superseded only by its nested next activation' USING ERRCODE = '23514';
   END IF;
   RAISE EXCEPTION 'terminal root/metadata publish intent is immutable' USING ERRCODE = '23514';
 END

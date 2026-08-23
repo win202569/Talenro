@@ -41,19 +41,19 @@ var expectedNodeControlFunctionCatalog = map[string]nodeControlFunctionCatalogSp
 	"enforce_capacity_profile_immutability": {language: "plpgsql", volatility: "volatile", definitionSHA256: "36f60643b0ce6fafa626b51cd0fae56457b609f97c1d29944c8975568e5b543e"},
 	"enforce_certificate_issuance_workflow": {language: "plpgsql", volatility: "volatile", definitionSHA256: "fb08394e3a8a1ca54e78f9db3ba8844ec4f11a514b3e2ce339958e5fcb35b651"},
 	"enforce_certificate_workflow":          {language: "plpgsql", volatility: "volatile", definitionSHA256: "f0f49c05e4d929826170a5e99b8037ad67b6a96389f54e4966daa4ce006678c4"},
-	"enforce_enrollment_grant_workflow":     {language: "plpgsql", volatility: "volatile", definitionSHA256: "6ea9f598f6446c511e08fb9f23835212b4552bdbc0e498e8064b1f4cef1c3e4e"},
-	"enforce_inventory_pointers":            {language: "plpgsql", volatility: "volatile", definitionSHA256: "13c741d7128b314847d3b1ae32d31b0e3adb650d5cdd3069549b9b476f8af6de"},
+	"enforce_enrollment_grant_workflow":     {language: "plpgsql", volatility: "volatile", definitionSHA256: "a7ca7ae65377276cad7bfa1081df5b74b15dfa92a52ad43383da5eed1d557f7d"},
+	"enforce_inventory_pointers":            {language: "plpgsql", volatility: "volatile", definitionSHA256: "0f73cba360220f3fdfcf7fbaf14573a87ec825e60985d0b0525535242b6fd25d"},
 	"enforce_observed_state":                {language: "plpgsql", volatility: "volatile", definitionSHA256: "88283c5dc528bf6e3c31442f12c7395eb186e992870797e242c0e1b54a40060f"},
 	"enforce_process_slot_cap":              {language: "plpgsql", volatility: "volatile", definitionSHA256: "dcdd2407b4cf55f7dfb130a99d03db70b08bc146f52f48422f8945924aa000bb"},
 	"enforce_recovery_session_workflow":     {language: "plpgsql", volatility: "volatile", definitionSHA256: "6801dcb8c07d6068e80db0de9ab545b3715bce964fa283b27a5cefb533d99481"},
 	"enforce_restore_approval_workflow":     {language: "plpgsql", volatility: "volatile", definitionSHA256: "67b092d4385f2c3d52b75f2de317040cb1cc4160fe0708ab128dc85ef4b2feaf"},
-	"enforce_root_publish_workflow":         {language: "plpgsql", volatility: "volatile", definitionSHA256: "a00da4a797bf9136e3a79d2a445b35e839ca58421218ef1400f6c5973d927236"},
+	"enforce_root_publish_workflow":         {language: "plpgsql", volatility: "volatile", definitionSHA256: "5d2362134c152c06eee21532d5527df52bb0e3a216b0b834ff2c78e85cc578a4"},
 	"enforce_root_share_binding":            {language: "plpgsql", volatility: "volatile", definitionSHA256: "71fac98750a6db71d9b720f36eec4201ad68c676d34dd0a217b19bd571d91424"},
-	"enforce_security_fault_receipt":        {language: "plpgsql", volatility: "volatile", definitionSHA256: "16aff4851ce74b4c584ca54f675ceeec1367d35413a44ab38001938626b73fd7"},
-	"enforce_security_incident_workflow":    {language: "plpgsql", volatility: "volatile", definitionSHA256: "af9d4045ac07d521bad979d2d4153046c006c22e5f67f710bb86533b3ceaec5a"},
-	"enforce_signing_intent_workflow":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "9f06029ea7ae28b653e530a9680805c40d6b8c787fff966f8e18c79c8ebe0921"},
+	"enforce_security_fault_receipt":        {language: "plpgsql", volatility: "volatile", definitionSHA256: "7312167bf4dc94feae6729ac3c2cdf0c021de8c670cb6c15022b79eeb18d9c4d"},
+	"enforce_security_incident_workflow":    {language: "plpgsql", volatility: "volatile", definitionSHA256: "441efd3115bcdb749a1691065e9971cabf46fa8f792daf2759401cee73c4c337"},
+	"enforce_signing_intent_workflow":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "1af224e25dc5314a18ed7ed0ad691903d43164d505af0d4560f856755b42b4a2"},
 	"enforce_trust_bundle_high_water":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "0e65dc0a808e05608715962115d8424e8cf1b2fe6aaa23cdc85ce6944d7192bf"},
-	"reject_row_mutation":                   {language: "plpgsql", volatility: "volatile", definitionSHA256: "400c44dcb2d5693e961289c31c69ec1bbbf091a1b295abb55e329b1eea12ae42"},
+	"reject_row_mutation":                   {language: "plpgsql", volatility: "volatile", definitionSHA256: "2b681f9360f60d4f9abaf7124e4ff11e11426fa41166a07e6ba9cf2a2529c078"},
 	"text_array_is_sorted_unique":           {language: "sql", volatility: "immutable", definitionSHA256: "d7c18d427a459231fac6ca49bc39cc8dd1d1101f1d09819fcc2a857ca78ff9de"},
 }
 
@@ -407,6 +407,113 @@ VALUES($1,$2,1,1,$3,1,$4,$5,$6,$7,$8)`, uuid.New(), createOperationID, liveNodeI
 	}
 }
 
+func TestNodeControlMigrationRejectsEnrollmentGrantCheckUnknownBypasses(t *testing.T) {
+	ctx, pool := openMigratedNodeControlDatabase(t)
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	createOperationID := uuid.New()
+	claimOperationID := uuid.New()
+	insertCommittedFence(ctx, t, pool, createOperationID, 1, "grant_create", "node", now)
+	insertCommittedFence(ctx, t, pool, claimOperationID, 2, "grant_claim", "node", now)
+
+	t.Run("every consumption member is required", func(t *testing.T) {
+		for index, missing := range []string{
+			"consumed_at", "consumption_attempt_id", "consumption_request_digest",
+			"claim_authority_operation_id", "claim_authority_epoch", "claim_authority_sequence",
+			"result_issuance_id", "terminal_reason", "terminal_at", "retention_until",
+		} {
+			t.Run(missing, func(t *testing.T) {
+				nodeID := insertNodeControlFixtureNode(ctx, t, pool, fmt.Sprintf("grant-consume-%02d", index), now)
+				grantID := uuid.New()
+				insertLiveEnrollmentGrant(ctx, t, pool, grantID, createOperationID, nodeID, byte(0x10+index), now)
+				issuanceOperationID := uuid.New()
+				issuanceSequence := int64(10 + index)
+				insertCommittedFence(ctx, t, pool, issuanceOperationID, issuanceSequence, "certificate_activate", "node", now)
+				issuanceID := insertPendingCertificateIssuance(ctx, t, pool, issuanceOperationID, issuanceSequence, nodeID, byte(0x30+index), now)
+				terminalAt := now.Add(time.Minute)
+				if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_enrollment_grants
+SET consumed_at=CASE WHEN $8::text='consumed_at' THEN NULL::timestamptz ELSE $2::timestamptz END,
+    consumption_attempt_id=CASE WHEN $8::text='consumption_attempt_id' THEN NULL::uuid ELSE $3::uuid END,
+    consumption_request_digest=CASE WHEN $8::text='consumption_request_digest' THEN NULL::bytea ELSE $4::bytea END,
+    claim_authority_operation_id=CASE WHEN $8::text='claim_authority_operation_id' THEN NULL::uuid ELSE $5::uuid END,
+    claim_authority_epoch=CASE WHEN $8::text='claim_authority_epoch' THEN NULL::bigint ELSE 1 END,
+    claim_authority_sequence=CASE WHEN $8::text='claim_authority_sequence' THEN NULL::bigint ELSE 2 END,
+    result_issuance_id=CASE WHEN $8::text='result_issuance_id' THEN NULL::uuid ELSE $6::uuid END,
+    terminal_reason=CASE WHEN $8::text='terminal_reason' THEN NULL::text ELSE 'consumed' END,
+    terminal_at=CASE WHEN $8::text='terminal_at' THEN NULL::timestamptz ELSE $2::timestamptz END,
+    retention_until=CASE WHEN $8::text='retention_until' THEN NULL::timestamptz ELSE $7::timestamptz END
+WHERE grant_id=$1`, grantID, terminalAt, uuid.New(), bytesOf(0x51, 32), claimOperationID,
+					issuanceID, terminalAt.Add(31*24*time.Hour), missing); err == nil {
+					t.Fatalf("consumption terminal group accepted NULL %s", missing)
+				}
+			})
+		}
+	})
+
+	for _, terminalKind := range []struct {
+		name      string
+		timestamp string
+		reason    string
+		tokenBase byte
+	}{
+		{name: "expiry", timestamp: "expired_at", reason: "expired", tokenBase: 0x70},
+		{name: "invalidation", timestamp: "invalidated_at", reason: "operator_disabled", tokenBase: 0x78},
+	} {
+		terminalKind := terminalKind
+		t.Run("every "+terminalKind.name+" member is required", func(t *testing.T) {
+			for index, missing := range []string{terminalKind.timestamp, "terminal_reason", "terminal_at", "retention_until"} {
+				t.Run(missing, func(t *testing.T) {
+					nodeID := insertNodeControlFixtureNode(ctx, t, pool, fmt.Sprintf("grant-%s-%02d", terminalKind.name, index), now)
+					grantID := uuid.New()
+					insertLiveEnrollmentGrant(ctx, t, pool, grantID, createOperationID, nodeID, terminalKind.tokenBase+byte(index), now)
+					terminalAt := now.Add(time.Minute)
+					query := fmt.Sprintf(`
+UPDATE nodecontrol.node_enrollment_grants
+SET %s=CASE WHEN $4::text=$5::text THEN NULL::timestamptz ELSE $2::timestamptz END,
+    terminal_reason=CASE WHEN $4::text='terminal_reason' THEN NULL::text ELSE $6::text END,
+    terminal_at=CASE WHEN $4::text='terminal_at' THEN NULL::timestamptz ELSE $2::timestamptz END,
+    retention_until=CASE WHEN $4::text='retention_until' THEN NULL::timestamptz ELSE $3::timestamptz END
+WHERE grant_id=$1`, terminalKind.timestamp)
+					if _, err := pool.Exec(ctx, query, grantID, terminalAt, terminalAt.Add(31*24*time.Hour), missing, terminalKind.timestamp, terminalKind.reason); err == nil {
+						t.Fatalf("%s terminal group accepted NULL %s", terminalKind.name, missing)
+					}
+				})
+			}
+		})
+	}
+
+	t.Run("terminal cause combinations are mutually exclusive", func(t *testing.T) {
+		for index, update := range []string{
+			"expired_at=$2,invalidated_at=$2,terminal_reason='expired'",
+			"consumed_at=$2,expired_at=$2,terminal_reason='consumed'",
+			"consumed_at=$2,invalidated_at=$2,terminal_reason='consumed'",
+			"expired_at=$2,terminal_reason='operator_disabled'",
+			"invalidated_at=$2,terminal_reason='expired'",
+		} {
+			nodeID := insertNodeControlFixtureNode(ctx, t, pool, fmt.Sprintf("grant-causes-%02d", index), now)
+			grantID := uuid.New()
+			insertLiveEnrollmentGrant(ctx, t, pool, grantID, createOperationID, nodeID, byte(0x90+index), now)
+			query := "UPDATE nodecontrol.node_enrollment_grants SET " + update + ",terminal_at=$2,retention_until=$3 WHERE grant_id=$1"
+			if _, err := pool.Exec(ctx, query, grantID, now.Add(time.Minute), now.Add(31*24*time.Hour)); err == nil {
+				t.Fatalf("terminal cause combination %d was accepted", index)
+			}
+		}
+	})
+
+	t.Run("one live grant cannot be bypassed by an incomplete terminal row", func(t *testing.T) {
+		nodeID := insertNodeControlFixtureNode(ctx, t, pool, "grant-one-live-unknown", now)
+		grantID := uuid.New()
+		insertLiveEnrollmentGrant(ctx, t, pool, grantID, createOperationID, nodeID, 0xb1, now)
+		terminalAt := now.Add(time.Minute)
+		if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_enrollment_grants
+SET expired_at=$2,terminal_reason=NULL,terminal_at=$2,retention_until=$3
+WHERE grant_id=$1`, grantID, terminalAt, terminalAt.Add(31*24*time.Hour)); err == nil {
+			t.Fatal("incomplete terminal row escaped the one-live partial index")
+		}
+	})
+}
+
 func TestNodeControlMigrationRejectsAuthorityFenceTerminalInsertAndDelete(t *testing.T) {
 	upSQL, _ := loadNodeControlMigrationSections(t)
 	pool := openOwnedNodeControlDatabase(t)
@@ -552,6 +659,96 @@ WHERE incident_id=$1`, boundIncidentID, resolveOperationID, bytesOf(0x61, 32), n
 	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_security_fault_receipts SET clear_attestation_digest=$2,updated_at=$3 WHERE receipt_id=$1`, boundReceiptID, bytesOf(0x63, 32), now.Add(5*time.Minute)); err == nil {
 		t.Fatal("cleared receipt accepted mutable clear metadata")
 	}
+}
+
+func TestNodeControlMigrationSerializesReceiptBindingWithIncidentResolution(t *testing.T) {
+	t.Run("resolved incident rejects a later active receipt", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		nodeID := insertNodeControlFixtureNode(ctx, t, pool, "receipt-after-resolve", now)
+		openOperationID := uuid.New()
+		resolveOperationID := uuid.New()
+		insertCommittedFence(ctx, t, pool, openOperationID, 1, "security_incident_open", "node", now)
+		insertCommittedFence(ctx, t, pool, resolveOperationID, 2, "security_incident_resolve", "node", now)
+		incidentID := uuid.New()
+		insertOpenIncident(ctx, t, pool, incidentID, openOperationID, 1, nodeID, "identity_compromise", 1, now)
+		if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_security_incidents
+SET status='resolved',resolution_authority_operation_id=$2,resolution_authority_epoch=1,
+    resolution_authority_sequence=2,remediation_digest=$3,resolution_at=$4,retention_until=$5
+WHERE incident_id=$1`, incidentID, resolveOperationID, bytesOf(0xc1, 32), now.Add(time.Minute), now.Add(181*24*time.Hour)); err != nil {
+			t.Fatal("resolve unbound incident:", err)
+		}
+		if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_security_fault_receipts(
+  receipt_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  local_fault_id,request_digest,fault_subtype,evidence_digest,agent_boot_id,incident_id,
+  local_binding_slot,result,delivery_status,binding_status,created_at,updated_at)
+VALUES($1,$2,1,1,$3,1,$4,$5,'identity_compromise',$6,$7,$8,1,'accepted','pending','active',$9,$9)`,
+			uuid.New(), openOperationID, nodeID, uuid.New(), bytesOf(0xc2, 32), bytesOf(0xc3, 32), uuid.New(), incidentID, now.Add(2*time.Minute)); err == nil {
+			t.Fatal("resolved incident accepted a later active receipt binding")
+		}
+	})
+
+	t.Run("concurrent resolution and receipt cannot commit a resolved active binding", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		nodeID := insertNodeControlFixtureNode(ctx, t, pool, "receipt-resolve-race", now)
+		openOperationID := uuid.New()
+		resolveOperationID := uuid.New()
+		insertCommittedFence(ctx, t, pool, openOperationID, 1, "security_incident_open", "node", now)
+		insertCommittedFence(ctx, t, pool, resolveOperationID, 2, "security_incident_resolve", "node", now)
+		incidentID := uuid.New()
+		insertOpenIncident(ctx, t, pool, incidentID, openOperationID, 1, nodeID, "identity_compromise", 1, now)
+
+		resolveTx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin incident resolution:", err)
+		}
+		if _, err = resolveTx.Exec(ctx, `
+UPDATE nodecontrol.node_security_incidents
+SET status='resolved',resolution_authority_operation_id=$2,resolution_authority_epoch=1,
+    resolution_authority_sequence=2,remediation_digest=$3,resolution_at=$4,retention_until=$5
+WHERE incident_id=$1`, incidentID, resolveOperationID, bytesOf(0xd1, 32), now.Add(time.Minute), now.Add(181*24*time.Hour)); err != nil {
+			resolveTx.Rollback(ctx)
+			t.Fatal("stage incident resolution:", err)
+		}
+
+		receiptResult := make(chan error, 1)
+		go func() {
+			_, insertErr := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_security_fault_receipts(
+  receipt_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  local_fault_id,request_digest,fault_subtype,evidence_digest,agent_boot_id,incident_id,
+  local_binding_slot,result,delivery_status,binding_status,created_at,updated_at)
+VALUES($1,$2,1,1,$3,1,$4,$5,'identity_compromise',$6,$7,$8,1,'accepted','pending','active',$9,$9)`,
+				uuid.New(), openOperationID, nodeID, uuid.New(), bytesOf(0xd2, 32), bytesOf(0xd3, 32), uuid.New(), incidentID, now.Add(2*time.Minute))
+			receiptResult <- insertErr
+		}()
+
+		select {
+		case insertErr := <-receiptResult:
+			resolveTx.Rollback(ctx)
+			if insertErr != nil {
+				t.Fatalf("concurrent receipt failed before observing the staged resolution: %v", insertErr)
+			}
+			t.Fatal("concurrent receipt did not serialize with incident resolution")
+		case <-time.After(250 * time.Millisecond):
+		}
+		if err = resolveTx.Commit(ctx); err != nil {
+			t.Fatal("commit incident resolution:", err)
+		}
+		if insertErr := <-receiptResult; insertErr == nil {
+			t.Fatal("concurrent resolution left a resolved incident with an active receipt")
+		}
+		var activeBindings int
+		if err = pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.node_security_fault_receipts WHERE incident_id=$1 AND binding_status='active'`, incidentID).Scan(&activeBindings); err != nil {
+			t.Fatal("count active bindings after resolution race:", err)
+		}
+		if activeBindings != 0 {
+			t.Fatalf("resolved incident retained %d active bindings", activeBindings)
+		}
+	})
 }
 
 func TestNodeControlMigrationEnforcesTrustHighWaterAppendOnly(t *testing.T) {
@@ -790,10 +987,6 @@ WHERE node_id=$1`, nodeID, rootPublishID, metadataPublishID, now.Add(2*time.Seco
 			tx.Rollback(ctx)
 			t.Fatal("activate next metadata intent:", err)
 		}
-		if _, err = tx.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET status='superseded',failure_reason='superseded',terminal_at=$2,updated_at=$2 WHERE publish_id=$1`, metadataPublishID, now.Add(4*time.Second)); err != nil {
-			tx.Rollback(ctx)
-			t.Fatal("supersede prior metadata intent:", err)
-		}
 		if err = tx.Commit(ctx); err != nil {
 			t.Fatal("commit metadata supersession:", err)
 		}
@@ -846,6 +1039,105 @@ VALUES($1,$2,1,3,$3,'recovery',$4,0,1,decode('01','hex'),$5,1,1,$6,$7,1,1,1,
 			t.Fatal("advance captured recovery session:", err)
 		}
 		assertSQLFailureContains(ctx, t, pool, activateSigningSQL, "recovery session", signingID, bytesOf(0x79, 64), now.Add(3*time.Second))
+	})
+}
+
+func TestNodeControlMigrationRecoveryActivationRecomputesAuthoritativeBindings(t *testing.T) {
+	emptyDigest := sha256.Sum256(nil)
+
+	for index, mismatch := range []struct {
+		name              string
+		localDigest       []byte
+		supervisorDigest  []byte
+		remediationDigest []byte
+		requiredAction    string
+	}{
+		{name: "local binding digest", localDigest: bytesOf(0x81, 32), supervisorDigest: emptyDigest[:], requiredAction: "hold_stopped"},
+		{name: "supervisor binding digest", localDigest: emptyDigest[:], supervisorDigest: bytesOf(0x82, 32), requiredAction: "hold_stopped"},
+		{name: "required action", localDigest: emptyDigest[:], supervisorDigest: emptyDigest[:], requiredAction: "submit_recovery_attestation"},
+		{name: "remediation digest", localDigest: emptyDigest[:], supervisorDigest: emptyDigest[:], remediationDigest: bytesOf(0x83, 32), requiredAction: "clear_security_latches"},
+	} {
+		mismatch := mismatch
+		t.Run("reject arbitrary "+mismatch.name, func(t *testing.T) {
+			ctx, pool := openMigratedNodeControlDatabase(t)
+			now := time.Now().UTC().Truncate(time.Microsecond)
+			fixture := insertPendingRecoverySigningFixture(ctx, t, pool, fmt.Sprintf("rec-mismatch-%d", index), now,
+				emptyDigest[:], mismatch.localDigest, mismatch.supervisorDigest, mismatch.remediationDigest, mismatch.requiredAction)
+			if _, err := pool.Exec(ctx, activateSigningSQL, fixture.signingID, fixture.signature, now.Add(3*time.Second)); err == nil {
+				t.Fatalf("recovery activation trusted an arbitrary %s", mismatch.name)
+			}
+		})
+	}
+
+	t.Run("pointer rejoins current incidents and bindings", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		fixture := insertPendingRecoverySigningFixture(ctx, t, pool, "recovery-pointer-rejoin", now,
+			emptyDigest[:], emptyDigest[:], emptyDigest[:], nil, "hold_stopped")
+		if _, err := pool.Exec(ctx, activateSigningSQL, fixture.signingID, fixture.signature, now.Add(3*time.Second)); err != nil {
+			t.Fatal("activate valid empty-binding recovery intent:", err)
+		}
+		if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_recovery_states(
+  node_id,recovery_generation,signing_id,authority_operation_id,authority_epoch,authority_sequence,
+  identity_epoch,recovery_id,recovery_reason,recovery_session_version,incident_set_digest,incident_count,
+  local_fault_bindings_digest,local_fault_binding_count,supervisor_fault_bindings_digest,
+  supervisor_fault_binding_count,root_version,metadata_version,recovery_action,all_slots_stopped,
+  canonical_payload,payload_digest,signing_key_id,signature,issued_at,valid_until,created_at,retention_until)
+VALUES($1,1,$2,$3,1,3,1,$4,'authority_restore',1,$5,0,$5,0,$5,0,1,1,'hold_stopped',true,
+       decode('01','hex'),$6,$7,$8,$9,$10,$9,$11)`, fixture.nodeID, fixture.signingID,
+			fixture.operationID, fixture.recoveryID, emptyDigest[:], fixture.payloadDigest,
+			fixture.keyID, fixture.signature, now.Add(3*time.Second), now.Add(13*time.Minute), now.Add(181*24*time.Hour)); err != nil {
+			t.Fatal("insert recovery state with current empty binding sets:", err)
+		}
+		incidentOperationID := uuid.New()
+		insertCommittedFence(ctx, t, pool, incidentOperationID, 4, "security_incident_open", "node", now)
+		insertOpenIncident(ctx, t, pool, uuid.New(), incidentOperationID, 4, fixture.nodeID, "identity_compromise", 1, now.Add(4*time.Second))
+		if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_inventory
+SET active_recovery_generation=1,next_recovery_generation=2,updated_at=$2
+WHERE node_id=$1`, fixture.nodeID, now.Add(5*time.Second)); err == nil {
+			t.Fatal("recovery pointer trusted stale intent/state digests after the authoritative incident set changed")
+		}
+	})
+
+	t.Run("session transition serializes before activation recheck", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		fixture := insertPendingRecoverySigningFixture(ctx, t, pool, "recovery-session-race", now,
+			emptyDigest[:], emptyDigest[:], emptyDigest[:], nil, "hold_stopped")
+		sessionTx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin recovery-session transition:", err)
+		}
+		if _, err = sessionTx.Exec(ctx, `
+UPDATE nodecontrol.node_recovery_sessions
+SET status='completed',terminal_at=$2,retention_until=$3,updated_at=$2
+WHERE recovery_id=$1`, fixture.recoveryID, now.Add(2*time.Second), now.Add(181*24*time.Hour)); err != nil {
+			sessionTx.Rollback(ctx)
+			t.Fatal("stage recovery-session completion:", err)
+		}
+
+		activationResult := make(chan error, 1)
+		go func() {
+			_, activationErr := pool.Exec(ctx, activateSigningSQL, fixture.signingID, fixture.signature, now.Add(3*time.Second))
+			activationResult <- activationErr
+		}()
+		select {
+		case activationErr := <-activationResult:
+			sessionTx.Rollback(ctx)
+			if activationErr != nil {
+				t.Fatalf("activation failed without waiting for the uncommitted session transition: %v", activationErr)
+			}
+			t.Fatal("recovery activation did not lock the captured session")
+		case <-time.After(250 * time.Millisecond):
+		}
+		if err = sessionTx.Commit(ctx); err != nil {
+			t.Fatal("commit recovery-session completion:", err)
+		}
+		if activationErr := <-activationResult; activationErr == nil {
+			t.Fatal("recovery activation succeeded after its captured session became terminal")
+		}
 	})
 }
 
@@ -1021,49 +1313,84 @@ func TestNodeControlMigrationSerializesCapacityReferences(t *testing.T) {
 			operationIDs[index] = uuid.New()
 			insertCommittedFence(ctx, t, pool, operationIDs[index], int64(index+1), "root_publish", "global_node_trust", now)
 		}
-		insertPendingRoot := func(executor interface {
+		insertPendingRoot := func(execCtx context.Context, executor interface {
 			Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 		}, index int) error {
-			_, err := executor.Exec(ctx, pendingRootPublishSQL, uuid.New(), operationIDs[index], int64(index+1), "root", "normal", int64(index), int64(0), int64(index+1), bytesOf(byte(0x80+index), 32), [][]byte{bytesOf(byte(0x90+index), 32)}, nil, 1, nil, now.Add(10*time.Minute), now)
+			_, err := executor.Exec(execCtx, pendingRootPublishSQL, uuid.New(), operationIDs[index], int64(index+1), "root", "normal", int64(index), int64(0), int64(index+1), bytesOf(byte(0x80+index), 32), [][]byte{bytesOf(byte(0x90+index), 32)}, nil, 1, nil, now.Add(10*time.Minute), now)
 			return err
 		}
 		for index := 0; index < 7; index++ {
-			if err := insertPendingRoot(pool, index); err != nil {
+			if err := insertPendingRoot(ctx, pool, index); err != nil {
 				t.Fatalf("seed pending root publish %d: %v", index+1, err)
 			}
 		}
-		first, err := pool.Begin(ctx)
-		if err != nil {
-			t.Fatal("begin eighth-root transaction:", err)
+
+		contenders := make([]pgx.Tx, 2)
+		for index := range contenders {
+			tx, err := pool.Begin(ctx)
+			if err != nil {
+				t.Fatal("begin simultaneous root contender:", err)
+			}
+			contenders[index] = tx
+			if _, err = tx.Exec(ctx, `LOCK TABLE nodecontrol.node_root_metadata_publish_intents IN ROW EXCLUSIVE MODE`); err != nil {
+				tx.Rollback(ctx)
+				t.Fatal("pre-acquire root contender row-exclusive lock:", err)
+			}
 		}
-		if err = insertPendingRoot(first, 7); err != nil {
-			first.Rollback(ctx)
-			t.Fatal("stage eighth pending root publish:", err)
+		ready := make(chan struct{}, 2)
+		start := make(chan struct{})
+		results := make(chan error, 2)
+		for contenderIndex, index := range []int{7, 8} {
+			contenderIndex := contenderIndex
+			index := index
+			go func() {
+				ready <- struct{}{}
+				<-start
+				execCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+				defer cancel()
+				insertErr := insertPendingRoot(execCtx, contenders[contenderIndex], index)
+				if insertErr == nil {
+					insertErr = contenders[contenderIndex].Commit(execCtx)
+				} else {
+					_ = contenders[contenderIndex].Rollback(execCtx)
+				}
+				results <- insertErr
+			}()
 		}
-		second, err := pool.Begin(ctx)
-		if err != nil {
-			first.Rollback(ctx)
-			t.Fatal("begin ninth-root transaction:", err)
+		<-ready
+		<-ready
+		close(start)
+
+		successes := 0
+		capFailures := 0
+		for range 2 {
+			select {
+			case insertErr := <-results:
+				if insertErr == nil {
+					successes++
+					continue
+				}
+				message := strings.ToLower(insertErr.Error())
+				if strings.Contains(message, "deadlock") || strings.Contains(message, "timeout") || strings.Contains(message, "context deadline") {
+					t.Fatalf("root pending-cap serialization failed with lock error: %v", insertErr)
+				}
+				if !strings.Contains(message, "at most eight") {
+					t.Fatalf("root pending-cap contender failed for the wrong reason: %v", insertErr)
+				}
+				capFailures++
+			case <-time.After(12 * time.Second):
+				t.Fatal("simultaneous root pending-cap contenders timed out")
+			}
 		}
-		secondResult := make(chan error, 1)
-		go func() { secondResult <- insertPendingRoot(second, 8) }()
-		select {
-		case insertErr := <-secondResult:
-			first.Rollback(ctx)
-			second.Rollback(ctx)
-			t.Fatalf("ninth-root contender did not serialize: %v", insertErr)
-		case <-time.After(250 * time.Millisecond):
+		if successes != 1 || capFailures != 1 {
+			t.Fatalf("simultaneous root contenders: successes=%d cap_failures=%d, want 1/1", successes, capFailures)
 		}
-		if err = first.Commit(ctx); err != nil {
-			second.Rollback(ctx)
-			t.Fatal("commit eighth pending root publish:", err)
+		var pendingCount int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.node_root_metadata_publish_intents WHERE status='pending'`).Scan(&pendingCount); err != nil {
+			t.Fatal("count pending root publishes after race:", err)
 		}
-		if insertErr := <-secondResult; insertErr == nil {
-			second.Rollback(ctx)
-			t.Fatal("concurrent root-publish contenders committed both pending rows eight and nine")
-		}
-		if err = second.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
-			t.Fatal("rollback rejected ninth-root transaction:", err)
+		if pendingCount != 8 {
+			t.Fatalf("pending root count after race = %d, want 8", pendingCount)
 		}
 	})
 	t.Run("concurrent final local fault binding slot", func(t *testing.T) {
@@ -1166,6 +1493,111 @@ func TestNodeControlMigrationAllowsOnlySafeRetentionDeletes(t *testing.T) {
 			t.Fatalf("unreferenced operator audit remained permanently undeletable after retention: %v", err)
 		}
 	})
+	t.Run("operator audit with state transition reference", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		oldAt := now.Add(-181 * 24 * time.Hour)
+		auditID := insertOperatorAuditFixture(ctx, t, pool, oldAt, oldAt.Add(180*24*time.Hour))
+		nodeID := insertNodeControlFixtureNode(ctx, t, pool, "audit-transition-reference", oldAt)
+		if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_state_transitions(
+  transition_id,node_id,dimension,from_state,to_state,reason,audit_id,aggregate_version,occurred_at,retention_until)
+VALUES($1,$2,'operator','enabled','draining','drain_maintenance',$3,1,$4,$5)`,
+			uuid.New(), nodeID, auditID, oldAt, oldAt.Add(180*24*time.Hour)); err != nil {
+			t.Fatal("insert audit-referencing state transition:", err)
+		}
+		if _, err := pool.Exec(ctx, `DELETE FROM nodecontrol.node_operator_audit WHERE audit_id=$1`, auditID); err == nil {
+			t.Fatal("operator audit deleted while a state transition referenced it")
+		}
+	})
+	t.Run("operator audit with outbox reference", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		oldAt := now.Add(-181 * 24 * time.Hour)
+		auditID := insertOperatorAuditFixture(ctx, t, pool, oldAt, oldAt.Add(180*24*time.Hour))
+		createOutboxReference(ctx, t, pool, "node_operator_audit", auditID, 1)
+		if _, err := pool.Exec(ctx, `DELETE FROM nodecontrol.node_operator_audit WHERE audit_id=$1`, auditID); err == nil {
+			t.Fatal("operator audit deleted while an outbox row referenced it")
+		}
+	})
+}
+
+func TestNodeControlMigrationSerializesRetentionDeletesWithNewReferences(t *testing.T) {
+	t.Run("desired pointer wins before delete reference check", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		nodeID, _ := insertDeletableDesiredStateFixture(ctx, t, pool, "desired-pointer-delete-race", now)
+		deleteTx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin desired-state delete transaction:", err)
+		}
+		if _, err = deleteTx.Exec(ctx, `DELETE FROM nodecontrol.node_desired_states WHERE node_id=$1 AND generation=1`, nodeID); err != nil {
+			deleteTx.Rollback(ctx)
+			t.Fatal("stage desired-state deletion:", err)
+		}
+		pointerResult := make(chan error, 1)
+		go func() {
+			_, pointerErr := pool.Exec(ctx, `
+UPDATE nodecontrol.node_inventory
+SET active_desired_generation=1,next_desired_generation=2,updated_at=$2
+WHERE node_id=$1`, nodeID, now.Add(time.Second))
+			pointerResult <- pointerErr
+		}()
+		select {
+		case pointerErr := <-pointerResult:
+			if commitErr := deleteTx.Commit(ctx); commitErr != nil {
+				t.Fatal("commit desired-state delete after racing pointer:", commitErr)
+			}
+			if pointerErr != nil {
+				t.Fatalf("pointer returned before delete commit for an unrelated reason: %v", pointerErr)
+			}
+			t.Fatal("desired pointer did not serialize with the deleting state row's inventory lock")
+		case <-time.After(250 * time.Millisecond):
+		}
+		if err = deleteTx.Commit(ctx); err != nil {
+			t.Fatal("commit desired-state deletion:", err)
+		}
+		if pointerErr := <-pointerResult; pointerErr == nil {
+			t.Fatal("desired pointer activated after its state was concurrently deleted")
+		}
+	})
+
+	t.Run("outbox insert wins before delete reference check", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		nodeID, signingID := insertDeletableDesiredStateFixture(ctx, t, pool, "desired-outbox-delete-race", now)
+		ensureTransactionalOutboxFixture(ctx, t, pool)
+		outboxTx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal("begin outbox-reference transaction:", err)
+		}
+		if err = insertOutboxReference(ctx, outboxTx, "node_desired_state", signingID, 1, now); err != nil {
+			outboxTx.Rollback(ctx)
+			t.Fatal("stage desired-state outbox reference:", err)
+		}
+		deleteResult := make(chan error, 1)
+		go func() {
+			_, deleteErr := pool.Exec(ctx, `DELETE FROM nodecontrol.node_desired_states WHERE node_id=$1 AND generation=1`, nodeID)
+			deleteResult <- deleteErr
+		}()
+		select {
+		case deleteErr := <-deleteResult:
+			if commitErr := outboxTx.Commit(ctx); commitErr != nil {
+				t.Fatal("commit outbox reference after racing delete:", commitErr)
+			}
+			if deleteErr != nil {
+				t.Fatalf("delete returned before outbox commit for an unrelated reason: %v", deleteErr)
+			}
+			t.Fatal("desired-state delete did not serialize with the transactional outbox")
+		case <-time.After(250 * time.Millisecond):
+		}
+		if err = outboxTx.Commit(ctx); err != nil {
+			t.Fatal("commit desired-state outbox reference:", err)
+		}
+		if deleteErr := <-deleteResult; deleteErr == nil {
+			t.Fatal("desired state deleted after a concurrent outbox reference committed")
+		}
+	})
 }
 
 func TestNodeControlMigrationDesiredPointerBindsExactResourceEnvelope(t *testing.T) {
@@ -1229,7 +1661,6 @@ func TestNodeControlMigrationRejectsLateRootSupersession(t *testing.T) {
 		ctx, pool := openMigratedNodeControlDatabase(t)
 		now := time.Now().UTC().Truncate(time.Microsecond)
 		firstPublishID := insertActiveRootPublishVersion(ctx, t, pool, 1, 0, 1, now)
-		_ = insertActiveRootPublishVersion(ctx, t, pool, 2, 1, 2, now.Add(2*time.Second))
 		if _, err := pool.Exec(ctx, `
 UPDATE nodecontrol.node_root_metadata_publish_intents
 SET status='superseded',failure_reason='superseded',terminal_at=$2,updated_at=$2
@@ -1262,12 +1693,32 @@ WHERE publish_id=$1`, firstPublishID, now.Add(4*time.Second)); err == nil {
 			tx.Rollback(ctx)
 			t.Fatal("activate atomic next root:", err)
 		}
-		if _, err = tx.Exec(ctx, `UPDATE nodecontrol.node_root_metadata_publish_intents SET status='superseded',failure_reason='superseded',terminal_at=$2,updated_at=$2 WHERE publish_id=$1`, firstPublishID, now.Add(3*time.Second)); err != nil {
-			tx.Rollback(ctx)
-			t.Fatal("supersede prior root in next activation transaction:", err)
-		}
 		if err = tx.Commit(ctx); err != nil {
 			t.Fatal("commit atomic root activation and supersession:", err)
+		}
+		var priorStatus string
+		if err = pool.QueryRow(ctx, `SELECT status FROM nodecontrol.node_root_metadata_publish_intents WHERE publish_id=$1`, firstPublishID).Scan(&priorStatus); err != nil {
+			t.Fatal("read prior root status after next activation:", err)
+		}
+		if priorStatus != "superseded" {
+			t.Fatalf("prior root status after next activation = %q, want superseded", priorStatus)
+		}
+	})
+	t.Run("catalog function avoids transaction-id width assumptions", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		var definition string
+		if err := pool.QueryRow(ctx, `
+SELECT pg_catalog.pg_get_functiondef(p.oid)
+FROM pg_catalog.pg_proc p
+JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+WHERE n.nspname='nodecontrol' AND p.proname='enforce_root_publish_workflow'`).Scan(&definition); err != nil {
+			t.Fatal("read root publish workflow definition:", err)
+		}
+		lower := strings.ToLower(definition)
+		for _, forbidden := range []string{"xmin", "pg_current_xact_id"} {
+			if strings.Contains(lower, forbidden) {
+				t.Fatalf("root supersession still depends on epoch-unsafe transaction identity %q", forbidden)
+			}
 		}
 	})
 }
@@ -1844,6 +2295,34 @@ func insertNodeControlFixtureNode(ctx context.Context, t *testing.T, pool *pgxpo
 	return nodeID
 }
 
+func insertLiveEnrollmentGrant(ctx context.Context, t *testing.T, pool *pgxpool.Pool, grantID, operationID, nodeID uuid.UUID, discriminator byte, now time.Time) {
+	t.Helper()
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_enrollment_grants(
+  grant_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  token_digest,csr_digest,idempotency_digest,created_at,expires_at)
+VALUES($1,$2,1,1,$3,1,$4,$5,$6,$7,$8)`, grantID, operationID, nodeID,
+		bytesOf(discriminator, 32), bytesOf(discriminator+1, 32), bytesOf(discriminator+2, 32), now, now.Add(10*time.Minute)); err != nil {
+		t.Fatal("insert live enrollment grant fixture:", err)
+	}
+}
+
+func insertPendingCertificateIssuance(ctx context.Context, t *testing.T, pool *pgxpool.Pool, operationID uuid.UUID, sequence int64, nodeID uuid.UUID, discriminator byte, now time.Time) uuid.UUID {
+	t.Helper()
+	issuanceID := uuid.New()
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_certificate_issuances(
+  issuance_id,authority_operation_id,authority_epoch,authority_sequence,node_id,attempt_id,
+  issuance_kind,identity_epoch,lineage_id,issuer_id,csr_sha256,public_key_sha256,
+  template_sha256,request_digest,status,created_at,updated_at)
+VALUES($1,$2,1,$3,$4,$5,'initial',1,$6,'fixture-ca',$7,$8,$9,$10,'pending',$11,$11)`,
+		issuanceID, operationID, sequence, nodeID, uuid.New(), uuid.New(), bytesOf(discriminator, 32),
+		bytesOf(discriminator+1, 32), bytesOf(discriminator+2, 32), bytesOf(discriminator+3, 32), now); err != nil {
+		t.Fatal("insert pending certificate issuance fixture:", err)
+	}
+	return issuanceID
+}
+
 func insertCapacityFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool, popCode string, now time.Time) (uuid.UUID, uuid.UUID) {
 	t.Helper()
 	nodeID := insertNodeControlFixtureNode(ctx, t, pool, popCode, now)
@@ -1883,6 +2362,69 @@ VALUES($1,$2,1,$3,$4,1,$5,$6,$7,$8,$9,$10,$11,'accepted','pending','active',$12,
 		receiptID, operationID, sequence, nodeID, uuid.New(), bytesOf(byte(0x20+slot), 32), subtype,
 		bytesOf(byte(0x30+slot), 32), uuid.New(), incidentID, slot, now); err != nil {
 		t.Fatal("insert active security-fault receipt:", err)
+	}
+}
+
+type pendingRecoverySigningFixture struct {
+	nodeID, recoveryID, signingID, operationID uuid.UUID
+	payloadDigest, keyID, signature            []byte
+}
+
+func insertPendingRecoverySigningFixture(
+	ctx context.Context,
+	t *testing.T,
+	pool *pgxpool.Pool,
+	popCode string,
+	now time.Time,
+	incidentDigest, localDigest, supervisorDigest, remediationDigest []byte,
+	requiredAction string,
+) pendingRecoverySigningFixture {
+	t.Helper()
+	nodeID := insertNodeControlFixtureNode(ctx, t, pool, popCode, now)
+	rootPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "root", 1, nodeID, now)
+	metadataPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "metadata", 2, nodeID, now)
+	if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_inventory
+SET operator_state='disabled',security_state='quarantined',identity_state='recovery_pending',
+    resume_operator_state='enabled',identity_epoch=1,lineage_id=$2,
+    active_root_publish_id=$3,active_root_version=1,
+    active_metadata_publish_id=$4,active_metadata_version=1,updated_at=$5
+WHERE node_id=$1`, nodeID, uuid.New(), rootPublishID, metadataPublishID, now.Add(time.Second)); err != nil {
+		t.Fatal("prepare recovery signing inventory fixture:", err)
+	}
+	operationID := uuid.New()
+	insertCommittedFence(ctx, t, pool, operationID, 3, "recovery_activate", "node", now)
+	recoveryID := uuid.New()
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_recovery_sessions(
+  recovery_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  reason,version,status,incident_set_digest,resume_operator_state,created_at,updated_at)
+VALUES($1,$2,1,3,$3,1,'authority_restore',1,'pending',$4,'disabled',$5,$5)`,
+		recoveryID, operationID, nodeID, incidentDigest, now.Add(time.Second)); err != nil {
+		t.Fatal("insert pending recovery session fixture:", err)
+	}
+	signingID := uuid.New()
+	payloadDigest := bytesOf(0x20, 32)
+	keyID := bytesOf(0x75, 32)
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_state_signing_intents(
+  signing_id,authority_operation_id,authority_epoch,authority_sequence,node_id,signing_kind,
+  idempotency_key_digest,base_generation,reserved_generation,canonical_payload,payload_digest,
+  root_version,metadata_version,expected_key_id,expected_public_key_digest,captured_inventory_version,
+  captured_identity_epoch,captured_security_version,recovery_id,recovery_reason,recovery_session_version,
+  recovery_session_status,recovery_incident_set_digest,recovery_local_bindings_digest,
+  recovery_supervisor_bindings_digest,recovery_remediation_digest,recovery_required_action,
+  activation_deadline,status,created_at,updated_at)
+VALUES($1,$2,1,3,$3,'recovery',$4,0,1,decode('01','hex'),$5,1,1,$6,$7,1,1,1,
+       $8,'authority_restore',1,'pending',$9,$10,$11,$12,$13,$14,'pending',$15,$15)`,
+		signingID, operationID, nodeID, bytesOf(0x73, 32), payloadDigest, keyID, bytesOf(0x76, 32),
+		recoveryID, incidentDigest, localDigest, supervisorDigest, remediationDigest, requiredAction,
+		now.Add(10*time.Minute), now.Add(time.Second)); err != nil {
+		t.Fatal("insert pending recovery signing fixture:", err)
+	}
+	return pendingRecoverySigningFixture{
+		nodeID: nodeID, recoveryID: recoveryID, signingID: signingID, operationID: operationID,
+		payloadDigest: payloadDigest, keyID: keyID, signature: bytesOf(0x79, 64),
 	}
 }
 
@@ -1965,14 +2507,87 @@ VALUES($1,1,$2,$3,1,3,1,1,$4,1,$5,1,$6,$7,decode('01','hex'),$8,$9,$10,$11,$12,
 	return nodeID, signingID
 }
 
+func insertDeletableDesiredStateFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool, popCode string, now time.Time) (uuid.UUID, uuid.UUID) {
+	t.Helper()
+	createdAt := now.Add(-181 * 24 * time.Hour)
+	nodeID := insertNodeControlFixtureNode(ctx, t, pool, popCode, createdAt)
+	rootPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "root", 1, nodeID, now)
+	metadataPublishID := insertActiveRootOrMetadataPublish(ctx, t, pool, "metadata", 2, nodeID, now)
+	envelopeDigest := bytesOf(0xb1, 32)
+	insertResourceEnvelope(ctx, t, pool, nodeID, 1, 3, envelopeDigest, now)
+	if _, err := pool.Exec(ctx, `
+UPDATE nodecontrol.node_inventory
+SET resource_envelope_version=1,resource_envelope_digest=$2,
+    active_root_publish_id=$3,active_root_version=1,
+    active_metadata_publish_id=$4,active_metadata_version=1,updated_at=$5
+WHERE node_id=$1`, nodeID, envelopeDigest, rootPublishID, metadataPublishID, now); err != nil {
+		t.Fatal("set deletable desired-state fixture pointers:", err)
+	}
+	desiredOperationID := uuid.New()
+	insertCommittedFence(ctx, t, pool, desiredOperationID, 4, "desired_activate", "node", now)
+	signingID := uuid.New()
+	signingKeyID := bytesOf(0xb2, 32)
+	signature := bytesOf(0xb3, 64)
+	if _, err := pool.Exec(ctx, pendingDesiredSigningSQL, signingID, desiredOperationID, int64(4), nodeID, signingKeyID, bytesOf(0xb4, 32), now, now.Add(5*time.Minute)); err != nil {
+		t.Fatal("insert deletable desired-state signing intent:", err)
+	}
+	if _, err := pool.Exec(ctx, activateSigningSQL, signingID, signature, now.Add(time.Second)); err != nil {
+		t.Fatal("activate deletable desired-state signing intent:", err)
+	}
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_desired_states(
+  node_id,generation,signing_id,authority_operation_id,authority_epoch,authority_sequence,
+  inventory_version,resource_envelope_version,resource_envelope_digest,root_version,root_publish_id,
+  metadata_version,metadata_publish_id,signing_key_id,canonical_payload,payload_digest,signature,
+  issued_at,effective_deadline,valid_until,reason,created_at,retention_until)
+VALUES($1,1,$2,$3,1,4,1,1,$4,1,$5,1,$6,$7,decode('01','hex'),decode(repeat('20',32),'hex'),
+       $8,$9,$10,$11,'provision',$9,$12)`, nodeID, signingID, desiredOperationID, envelopeDigest,
+		rootPublishID, metadataPublishID, signingKeyID, signature, createdAt, createdAt.Add(time.Hour),
+		createdAt.Add(2*time.Hour), createdAt.Add(180*24*time.Hour)); err != nil {
+		t.Fatal("insert deletable desired state fixture:", err)
+	}
+	return nodeID, signingID
+}
+
 func createOutboxReference(ctx context.Context, t *testing.T, pool *pgxpool.Pool, aggregateType string, aggregateID uuid.UUID, aggregateVersion int64) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS public.transactional_outbox(aggregate_type text NOT NULL,aggregate_id uuid NOT NULL,aggregate_version bigint NOT NULL)`); err != nil {
-		t.Fatal("create outbox fixture:", err)
-	}
-	if _, err := pool.Exec(ctx, `INSERT INTO public.transactional_outbox(aggregate_type,aggregate_id,aggregate_version) VALUES($1,$2,$3)`, aggregateType, aggregateID, aggregateVersion); err != nil {
+	ensureTransactionalOutboxFixture(ctx, t, pool)
+	if err := insertOutboxReference(ctx, pool, aggregateType, aggregateID, aggregateVersion, time.Now().UTC().Truncate(time.Microsecond)); err != nil {
 		t.Fatal("insert outbox fixture:", err)
 	}
+}
+
+func ensureTransactionalOutboxFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	if _, err := pool.Exec(ctx, `
+CREATE TABLE IF NOT EXISTS public.transactional_outbox (
+  event_id uuid PRIMARY KEY,
+  event_type text NOT NULL CHECK (event_type ~ '^talenro[.][a-z0-9_.-]{1,127}$'),
+  aggregate_type text NOT NULL CHECK (aggregate_type ~ '^[a-z][a-z0-9_]{0,63}$'),
+  aggregate_id uuid NOT NULL,
+  aggregate_version bigint NOT NULL CHECK (aggregate_version > 0),
+  idempotency_key text NOT NULL CHECK (idempotency_key ~ '^[A-Za-z0-9:_-]{1,128}$'),
+  payload bytea NOT NULL CHECK (octet_length(payload) BETWEEN 1 AND 262144),
+  occurred_at timestamptz NOT NULL,
+  available_at timestamptz NOT NULL,
+  claimed_until timestamptz,
+  attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  published_at timestamptz
+)`); err != nil {
+		t.Fatal("create repository-shaped outbox fixture:", err)
+	}
+}
+
+func insertOutboxReference(ctx context.Context, executor interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+}, aggregateType string, aggregateID uuid.UUID, aggregateVersion int64, now time.Time) error {
+	_, err := executor.Exec(ctx, `
+INSERT INTO public.transactional_outbox(
+  event_id,event_type,aggregate_type,aggregate_id,aggregate_version,idempotency_key,
+  payload,occurred_at,available_at)
+VALUES($1,'talenro.nodecontrol.reference',$2,$3,$4,$5,decode('01','hex'),$6,$6)`,
+		uuid.New(), aggregateType, aggregateID, aggregateVersion, uuid.NewString(), now)
+	return err
 }
 
 func insertOperatorAuditFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool, occurredAt, retentionUntil time.Time) uuid.UUID {
