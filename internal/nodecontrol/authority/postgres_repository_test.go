@@ -338,6 +338,23 @@ func TestPostgresRepositoryPendingAndTerminalRetriesAreExact(t *testing.T) {
 		if err := repository.ActivateCommitted(t.Context(), committedDB, receipt, terminalAt.Add(time.Second)); !errors.Is(err, ErrConflict) {
 			t.Fatalf("changed terminal time error = %v, want ErrConflict", err)
 		}
+		abortReason := AbortSuperseded
+		abortedForCommitted := Receipt{
+			Reservation: receipt.Reservation,
+			Status:      StatusAborted,
+			AbortReason: &abortReason,
+		}
+		abortedForCommitted.ReceiptDigest, err = receiptDigest(abortedForCommitted)
+		if err != nil || abortedForCommitted.Validate() != nil {
+			t.Fatalf("construct same-operation aborted receipt: %v", err)
+		}
+		callsBeforeOppositeTerminal := committedDB.calls
+		if terminalErr := repository.RecordAborted(t.Context(), committedDB, abortedForCommitted, terminalAt); terminalErr != ErrTerminalConflict {
+			t.Fatalf("abort after commit error = %v, want exact ErrTerminalConflict", terminalErr)
+		}
+		if committedDB.calls != callsBeforeOppositeTerminal+1 {
+			t.Fatalf("abort after commit database calls = %d, want one locked-row read", committedDB.calls-callsBeforeOppositeTerminal)
+		}
 
 		abortProvider, err := NewDeterministicProvider(23)
 		if err != nil {
@@ -366,8 +383,195 @@ func TestPostgresRepositoryPendingAndTerminalRetriesAreExact(t *testing.T) {
 		if err := abortedRepository.RecordAborted(t.Context(), abortedDB, abortReceipt, terminalAt); err != nil {
 			t.Fatal(err)
 		}
-		if err := abortedRepository.ActivateCommitted(t.Context(), abortedDB, receipt, terminalAt); !errors.Is(err, ErrTerminalConflict) && !errors.Is(err, ErrConflict) {
-			t.Fatalf("opposite terminal error = %v, want terminal/conflict", err)
+		oppositeEffect := contracts.Digest(sha256.Sum256([]byte("repository-opposite-terminal-effect")))
+		oppositePoint := DatabasePoint{SystemID: 17, Timeline: 19, RequiredLSN: "A/B"}
+		committedForAborted := Receipt{
+			Reservation:   abortReservation,
+			EffectDigest:  &oppositeEffect,
+			DatabasePoint: &oppositePoint,
+			Status:        StatusCommitted,
+		}
+		committedForAborted.ReceiptDigest, err = receiptDigest(committedForAborted)
+		if err != nil || committedForAborted.Validate() != nil {
+			t.Fatalf("construct same-operation committed receipt: %v", err)
+		}
+		callsBeforeOppositeTerminal = abortedDB.calls
+		if terminalErr := abortedRepository.ActivateCommitted(t.Context(), abortedDB, committedForAborted, terminalAt); terminalErr != ErrTerminalConflict {
+			t.Fatalf("commit after abort error = %v, want exact ErrTerminalConflict", terminalErr)
+		}
+		if abortedDB.calls != callsBeforeOppositeTerminal+1 {
+			t.Fatalf("commit after abort database calls = %d, want one locked-row read", abortedDB.calls-callsBeforeOppositeTerminal)
+		}
+	})
+}
+
+func TestPostgresRepositoryCancellationWinsNoRowRaces(t *testing.T) {
+	provider, err := NewDeterministicProvider(27)
+	if err != nil {
+		t.Fatal(err)
+	}
+	scopeDigest := contracts.Digest(sha256.Sum256([]byte("repository-cancellation-node")))
+	committedReservation, err := provider.Reserve(t.Context(), ReserveRequest{
+		OperationID: uuid.MustParse("56565656-5656-4656-8656-565656565656"),
+		Kind:        EffectDesiredActivate,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: scopeDigest,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	effectDigest := contracts.Digest(sha256.Sum256([]byte("repository-cancellation-effect")))
+	point := DatabasePoint{SystemID: 23, Timeline: 29, RequiredLSN: "C/D"}
+	committedReceipt, err := provider.Finalize(t.Context(), FinalizeRequest{
+		OperationID: committedReservation.OperationID, EffectDigest: effectDigest,
+		DBSystemID: point.SystemID, DBTimeline: point.Timeline, RequiredLSN: point.RequiredLSN,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	abortedReservation, err := provider.Reserve(t.Context(), ReserveRequest{
+		OperationID: uuid.MustParse("57575757-5757-4757-8757-575757575757"),
+		Kind:        EffectRecoveryActivate,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: scopeDigest,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	abortedReceipt, err := provider.Abort(t.Context(), AbortRequest{
+		OperationID: abortedReservation.OperationID,
+		Reason:      AbortProviderDependencyFailed,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, time.August, 24, 15, 0, 0, 0, time.UTC)
+
+	t.Run("pending insert no-row race", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		database := &repositoryRecordingDBTX{execRowsSet: true, rowErr: pgx.ErrNoRows, execHook: cancel}
+		repository, constructErr := NewPostgresRepository(database)
+		if constructErr != nil {
+			t.Fatal(constructErr)
+		}
+		if recordErr := repository.RecordPending(ctx, database, committedReservation, now); recordErr != ErrCanceled {
+			t.Fatalf("pending cancellation race error = %v, want exact ErrCanceled", recordErr)
+		}
+		if database.calls != 1 {
+			t.Fatalf("pending cancellation race calls = %d, want insert only", database.calls)
+		}
+	})
+
+	t.Run("pending lookup no-row race", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		database := &repositoryRecordingDBTX{execRowsSet: true, rowErr: pgx.ErrNoRows, rowScanHook: cancel}
+		repository, constructErr := NewPostgresRepository(database)
+		if constructErr != nil {
+			t.Fatal(constructErr)
+		}
+		if recordErr := repository.RecordPending(ctx, database, committedReservation, now); recordErr != ErrCanceled {
+			t.Fatalf("pending lookup cancellation race error = %v, want exact ErrCanceled", recordErr)
+		}
+		if database.calls != 2 {
+			t.Fatalf("pending lookup cancellation race calls = %d, want insert and locked-row read", database.calls)
+		}
+	})
+
+	lookupCalls := []struct {
+		name string
+		call func(context.Context, *PostgresRepository, *repositoryRecordingDBTX) error
+	}{
+		{name: "bind", call: func(ctx context.Context, repository *PostgresRepository, database *repositoryRecordingDBTX) error {
+			return repository.BindEffect(ctx, database, committedReservation.OperationID, effectDigest, point, now)
+		}},
+		{name: "activate", call: func(ctx context.Context, repository *PostgresRepository, database *repositoryRecordingDBTX) error {
+			return repository.ActivateCommitted(ctx, database, committedReceipt, now)
+		}},
+		{name: "abort", call: func(ctx context.Context, repository *PostgresRepository, database *repositoryRecordingDBTX) error {
+			return repository.RecordAborted(ctx, database, abortedReceipt, now)
+		}},
+		{name: "get", call: func(ctx context.Context, repository *PostgresRepository, _ *repositoryRecordingDBTX) error {
+			_, getErr := repository.Get(ctx, committedReservation.OperationID)
+			return getErr
+		}},
+	}
+	for _, test := range lookupCalls {
+		t.Run(test.name+" lookup race", func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			database := &repositoryRecordingDBTX{rowErr: pgx.ErrNoRows, rowScanHook: cancel}
+			repository, constructErr := NewPostgresRepository(database)
+			if constructErr != nil {
+				t.Fatal(constructErr)
+			}
+			if lookupErr := test.call(ctx, repository, database); lookupErr != ErrCanceled {
+				t.Fatalf("lookup cancellation race error = %v, want exact ErrCanceled", lookupErr)
+			}
+			if database.calls != 1 {
+				t.Fatalf("lookup cancellation race calls = %d, want locked-row read only", database.calls)
+			}
+		})
+	}
+
+	t.Run("checkpoint lookup race", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		database := &repositoryRecordingDBTX{rowErr: pgx.ErrNoRows, rowScanHook: cancel}
+		repository, constructErr := NewPostgresRepository(database)
+		if constructErr != nil {
+			t.Fatal(constructErr)
+		}
+		checkpoint, checkpointErr := repository.CommittedNodeCheckpoint(ctx, 27, scopeDigest)
+		if checkpointErr != ErrCanceled || checkpoint != (NodeCheckpoint{}) {
+			t.Fatalf("checkpoint cancellation race = %#v, %v; want zero and exact ErrCanceled", checkpoint, checkpointErr)
+		}
+		if database.calls != 1 {
+			t.Fatalf("checkpoint cancellation race calls = %d, want one", database.calls)
+		}
+	})
+
+	t.Run("deadline exceeded lookup race", func(t *testing.T) {
+		ctx := &repositoryMutableErrorContext{Context: t.Context()}
+		database := &repositoryRecordingDBTX{
+			rowErr: pgx.ErrNoRows,
+			rowScanHook: func() {
+				ctx.err = context.DeadlineExceeded
+			},
+		}
+		repository, constructErr := NewPostgresRepository(database)
+		if constructErr != nil {
+			t.Fatal(constructErr)
+		}
+		if _, getErr := repository.Get(ctx, committedReservation.OperationID); getErr != ErrCanceled {
+			t.Fatalf("deadline race error = %v, want exact ErrCanceled", getErr)
+		}
+	})
+
+	t.Run("live no-row classifications remain stable", func(t *testing.T) {
+		pendingDB := &repositoryRecordingDBTX{execRowsSet: true, rowErr: pgx.ErrNoRows}
+		pendingRepository, constructErr := NewPostgresRepository(pendingDB)
+		if constructErr != nil {
+			t.Fatal(constructErr)
+		}
+		if pendingErr := pendingRepository.RecordPending(t.Context(), pendingDB, committedReservation, now); pendingErr != ErrConflict {
+			t.Fatalf("live pending no-row error = %v, want exact ErrConflict", pendingErr)
+		}
+		for _, test := range lookupCalls {
+			database := &repositoryRecordingDBTX{rowErr: pgx.ErrNoRows}
+			repository, repositoryErr := NewPostgresRepository(database)
+			if repositoryErr != nil {
+				t.Fatal(repositoryErr)
+			}
+			if lookupErr := test.call(t.Context(), repository, database); lookupErr != ErrNotFound {
+				t.Fatalf("live %s no-row error = %v, want exact ErrNotFound", test.name, lookupErr)
+			}
+		}
+		checkpointDB := &repositoryRecordingDBTX{rowErr: pgx.ErrNoRows}
+		checkpointRepository, repositoryErr := NewPostgresRepository(checkpointDB)
+		if repositoryErr != nil {
+			t.Fatal(repositoryErr)
+		}
+		checkpoint, checkpointErr := checkpointRepository.CommittedNodeCheckpoint(t.Context(), 27, scopeDigest)
+		if checkpointErr != nil || checkpoint != (NodeCheckpoint{AuthorityEpoch: 27}) {
+			t.Fatalf("live empty checkpoint = %#v, %v", checkpoint, checkpointErr)
 		}
 	})
 }
@@ -860,10 +1064,15 @@ type repositoryRecordingDBTX struct {
 	execRows      int64
 	execRowsSet   bool
 	execErr       error
+	execHook      func()
+	rowScanHook   func()
 }
 
 func (db *repositoryRecordingDBTX) Exec(_ context.Context, _ string, arguments ...any) (pgconn.CommandTag, error) {
 	db.calls++
+	if db.execHook != nil {
+		db.execHook()
+	}
 	if db.forbidUse {
 		return pgconn.CommandTag{}, errors.New("constructor DBTX used")
 	}
@@ -891,7 +1100,7 @@ func (db *repositoryRecordingDBTX) Query(context.Context, string, ...any) (pgx.R
 func (db *repositoryRecordingDBTX) QueryRow(context.Context, string, ...any) pgx.Row {
 	db.calls++
 	if db.rowErr != nil {
-		return repositoryErrorRow{err: db.rowErr}
+		return repositoryErrorRow{err: db.rowErr, beforeScan: db.rowScanHook}
 	}
 	if db.rowValues != nil {
 		return repositoryValuesRow{values: db.rowValues}
@@ -966,11 +1175,24 @@ func (db *repositoryRecordingDBTX) Rollback(context.Context) error {
 }
 
 type repositoryErrorRow struct {
-	err error
+	err        error
+	beforeScan func()
 }
 
 func (row repositoryErrorRow) Scan(...any) error {
+	if row.beforeScan != nil {
+		row.beforeScan()
+	}
 	return row.err
+}
+
+type repositoryMutableErrorContext struct {
+	context.Context
+	err error
+}
+
+func (ctx *repositoryMutableErrorContext) Err() error {
+	return ctx.err
 }
 
 type repositoryValuesRow struct {

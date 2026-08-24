@@ -52,22 +52,31 @@ func (repository *PostgresRepository) RecordPending(
 		ReservedAt:                requiredTimestamp(reservedAt),
 	})
 	if err != nil {
+		if cancellationErr := repositoryCancellationError(ctx, err); cancellationErr != nil {
+			return cancellationErr
+		}
 		var postgresError *pgconn.PgError
-		if (ctx == nil || ctx.Err() == nil) && errors.As(err, &postgresError) && postgresError.Code == "23505" {
+		if errors.As(err, &postgresError) && postgresError.Code == "23505" {
 			return ErrConflict
 		}
-		return repositoryDependencyError(ctx, err)
+		return ErrInjectedFailure
 	}
 	switch rows {
 	case 1:
 		return nil
 	case 0:
+		if cancellationErr := repositoryCancellationError(ctx, nil); cancellationErr != nil {
+			return cancellationErr
+		}
 		current, getErr := queries.GetAuthorityFenceForUpdate(ctx, reservation.OperationID)
 		if getErr != nil {
+			if cancellationErr := repositoryCancellationError(ctx, getErr); cancellationErr != nil {
+				return cancellationErr
+			}
 			if errors.Is(getErr, pgx.ErrNoRows) {
 				return ErrConflict
 			}
-			return repositoryDependencyError(ctx, getErr)
+			return ErrInjectedFailure
 		}
 		if _, conversionErr := authorityRecordFromRow(current); conversionErr != nil {
 			return conversionErr
@@ -312,10 +321,13 @@ func (repository *PostgresRepository) CommittedNodeCheckpoint(
 		NodeScopeDigest: digestBytes(nodeScopeDigest),
 	})
 	if err != nil {
+		if cancellationErr := repositoryCancellationError(ctx, err); cancellationErr != nil {
+			return NodeCheckpoint{}, cancellationErr
+		}
 		if errors.Is(err, pgx.ErrNoRows) {
 			return NodeCheckpoint{AuthorityEpoch: epoch}, nil
 		}
-		return NodeCheckpoint{}, repositoryDependencyError(ctx, err)
+		return NodeCheckpoint{}, ErrInjectedFailure
 	}
 	if row.AuthorityEpoch != int64(epoch) || row.AuthoritySequence <= 0 {
 		return NodeCheckpoint{}, ErrInjectedFailure
@@ -738,28 +750,41 @@ func repositoryCallError(ctx context.Context, repository *PostgresRepository) er
 }
 
 func repositoryInputError(ctx context.Context) error {
-	if ctx != nil && ctx.Err() != nil {
-		return ErrCanceled
+	if cancellationErr := repositoryCancellationError(ctx, nil); cancellationErr != nil {
+		return cancellationErr
 	}
 	return ErrInvalidArgument
 }
 
 func repositoryLookupError(ctx context.Context, err error) error {
+	if cancellationErr := repositoryCancellationError(ctx, err); cancellationErr != nil {
+		return cancellationErr
+	}
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
 	}
-	return repositoryDependencyError(ctx, err)
-}
-
-func repositoryDependencyError(ctx context.Context, err error) error {
 	if err == nil {
 		return nil
 	}
+	return ErrInjectedFailure
+}
+
+func repositoryDependencyError(ctx context.Context, err error) error {
+	if cancellationErr := repositoryCancellationError(ctx, err); cancellationErr != nil {
+		return cancellationErr
+	}
+	if err == nil {
+		return nil
+	}
+	return ErrInjectedFailure
+}
+
+func repositoryCancellationError(ctx context.Context, err error) error {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) ||
 		(ctx != nil && ctx.Err() != nil) {
 		return ErrCanceled
 	}
-	return ErrInjectedFailure
+	return nil
 }
 
 func nilAuthorityRepositoryValue(value any) bool {

@@ -83,7 +83,13 @@ ORDER BY authority_sequence DESC
 LIMIT 1;
 
 -- name: GetNodeControlDatabaseIdentity :one
-SELECT system_identifier::numeric(20,0) AS system_id,
-       timeline_id::bigint AS timeline,
+SELECT (CASE WHEN system_identifier < 0
+               THEN system_identifier::numeric + 18446744073709551616::numeric
+               ELSE system_identifier::numeric
+        END)::numeric(20,0) AS system_id,
+       (CASE WHEN timeline_id < 0
+               THEN timeline_id::bigint + 4294967296::bigint
+               ELSE timeline_id::bigint
+        END)::bigint AS timeline,
        pg_current_wal_insert_lsn()::text AS required_lsn
 FROM pg_control_system(), pg_control_checkpoint();

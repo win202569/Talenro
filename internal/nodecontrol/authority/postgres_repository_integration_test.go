@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"errors"
+	"math"
 	"net/url"
 	"os"
 	"strings"
@@ -114,6 +115,50 @@ func TestPostgresRepositoryRecordsExactFenceState(t *testing.T) {
 	abortedAt := baseTime.Add(7 * time.Second)
 	abortAuthorityIntegration(t, ctx, pool, repository, abortedReceipt, abortedAt)
 	abortAuthorityIntegration(t, ctx, pool, repository, abortedReceipt, abortedAt)
+
+	abortReason := AbortProviderDependencyFailed
+	abortedForCommitted := Receipt{
+		Reservation: committed,
+		Status:      StatusAborted,
+		AbortReason: &abortReason,
+	}
+	abortedForCommitted.ReceiptDigest, err = receiptDigest(abortedForCommitted)
+	if err != nil || abortedForCommitted.Validate() != nil {
+		t.Fatalf("construct abort-after-commit receipt: %v", err)
+	}
+	abortAfterCommitErr := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+		return repository.RecordAborted(ctx, tx, abortedForCommitted, abortedAt.Add(time.Second))
+	})
+	if abortAfterCommitErr != ErrTerminalConflict {
+		t.Fatalf("abort after commit error = %v, want exact ErrTerminalConflict", abortAfterCommitErr)
+	}
+	committedAfterConflict, err := repository.Get(ctx, committed.OperationID)
+	if err != nil || committedAfterConflict.TerminalReceipt == nil ||
+		!receiptsEqual(*committedAfterConflict.TerminalReceipt, committedReceipt) {
+		t.Fatalf("committed row after opposite terminal = %#v, %v", committedAfterConflict, err)
+	}
+
+	committedForAborted := Receipt{
+		Reservation:   aborted,
+		EffectDigest:  &committedEffect,
+		DatabasePoint: &committedPoint,
+		Status:        StatusCommitted,
+	}
+	committedForAborted.ReceiptDigest, err = receiptDigest(committedForAborted)
+	if err != nil || committedForAborted.Validate() != nil {
+		t.Fatalf("construct commit-after-abort receipt: %v", err)
+	}
+	commitAfterAbortErr := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+		return repository.ActivateCommitted(ctx, tx, committedForAborted, abortedAt.Add(time.Second))
+	})
+	if commitAfterAbortErr != ErrTerminalConflict {
+		t.Fatalf("commit after abort error = %v, want exact ErrTerminalConflict", commitAfterAbortErr)
+	}
+	abortedAfterConflict, err := repository.Get(ctx, aborted.OperationID)
+	if err != nil || abortedAfterConflict.TerminalReceipt == nil ||
+		!receiptsEqual(*abortedAfterConflict.TerminalReceipt, abortedReceipt) {
+		t.Fatalf("aborted row after opposite terminal = %#v, %v", abortedAfterConflict, err)
+	}
 
 	head, err := repository.Head(ctx)
 	if err != nil {
@@ -312,6 +357,59 @@ func TestPostgresRepositoryCanonicalizesPostgresTimestampRetries(t *testing.T) {
 	committedTerminalAt := terminalAt.Add(2 * time.Hour)
 	activateAuthorityIntegration(t, ctx, pool, repository, committedReceipt, committedTerminalAt)
 	activateAuthorityIntegration(t, ctx, pool, repository, committedReceipt, committedTerminalAt)
+}
+
+func TestPostgresRepositoryNormalizesUnsignedControlFileIdentity(t *testing.T) {
+	ctx, pool := openMigratedAuthorityDatabase(t)
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = tx.Rollback(context.Background())
+	})
+
+	schemaName := "task6_unsigned_identity_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	schemaIdentifier := pgx.Identifier{schemaName}.Sanitize()
+	statements := []string{
+		"CREATE SCHEMA " + schemaIdentifier,
+		"CREATE FUNCTION " + schemaIdentifier + ".pg_control_system() RETURNS TABLE(system_identifier bigint) LANGUAGE sql AS $$ SELECT -1::bigint $$",
+		"CREATE FUNCTION " + schemaIdentifier + ".pg_control_checkpoint() RETURNS TABLE(timeline_id integer) LANGUAGE sql AS $$ SELECT -1::integer $$",
+		"SET LOCAL search_path TO " + schemaIdentifier + ", pg_catalog",
+	}
+	for _, statement := range statements {
+		if _, err := tx.Exec(ctx, statement); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	var systemIdentifier int64
+	var timelineID int32
+	var systemType string
+	var timelineType string
+	if err := tx.QueryRow(ctx, `
+		SELECT system_identifier, timeline_id,
+		       pg_typeof(system_identifier)::text, pg_typeof(timeline_id)::text
+		FROM pg_control_system(), pg_control_checkpoint()
+	`).Scan(&systemIdentifier, &timelineID, &systemType, &timelineType); err != nil {
+		t.Fatal(err)
+	}
+	if systemIdentifier != -1 || timelineID != -1 || systemType != "bigint" || timelineType != "integer" {
+		t.Fatalf("shadow control identity = system:%d (%s) timeline:%d (%s)", systemIdentifier, systemType, timelineID, timelineType)
+	}
+
+	repository, err := NewPostgresRepository(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	point, err := repository.CaptureDatabasePoint(ctx)
+	if err != nil {
+		t.Fatalf("capture unsigned control identity: %v", err)
+	}
+	canonicalLSN, canonicalErr := canonicalWALPosition(point.RequiredLSN)
+	if point.SystemID != math.MaxUint64 || point.Timeline != math.MaxUint32 || canonicalErr != nil || canonicalLSN != point.RequiredLSN {
+		t.Fatalf("unsigned control identity point = %#v, canonical LSN error = %v", point, canonicalErr)
+	}
 }
 
 func assertConcurrentAuthoritySequenceForkRejected(
