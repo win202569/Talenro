@@ -13,11 +13,14 @@ import (
 )
 
 type Querier interface {
+	AbortAuthorityFence(ctx context.Context, arg AbortAuthorityFenceParams) (int64, error)
 	AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) (int64, error)
+	ActivateCommittedAuthorityFence(ctx context.Context, arg ActivateCommittedAuthorityFenceParams) (int64, error)
 	ActivateProvisionalAuthorization(ctx context.Context, arg ActivateProvisionalAuthorizationParams) (int64, error)
 	ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error)
 	ActivateVerifiedAccount(ctx context.Context, arg ActivateVerifiedAccountParams) (IdentityAccount, error)
 	BindAccountSessionToAuthorization(ctx context.Context, arg BindAccountSessionToAuthorizationParams) (int64, error)
+	BindAuthorityFenceEffect(ctx context.Context, arg BindAuthorityFenceEffectParams) (int64, error)
 	ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]TransactionalOutbox, error)
 	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
 	ClearPendingPasswordResetDelivery(ctx context.Context, arg ClearPendingPasswordResetDeliveryParams) (int64, error)
@@ -51,9 +54,13 @@ type Querier interface {
 	GetAccountSessionForUpdate(ctx context.Context, arg GetAccountSessionForUpdateParams) (IdentityAccountSession, error)
 	GetActiveBundleAuthority(ctx context.Context, arg GetActiveBundleAuthorityParams) (GetActiveBundleAuthorityRow, error)
 	GetActiveRecoveryCodeSetForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityRecoveryCodeSet, error)
+	GetAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
+	GetAuthorityFenceForUpdate(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
+	GetAuthorityFenceHead(ctx context.Context) (GetAuthorityFenceHeadRow, error)
 	GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceAuthorization, error)
 	GetBundleByLocatorHash(ctx context.Context, arg GetBundleByLocatorHashParams) (TrustBundleIssuance, error)
 	GetBundleIssuance(ctx context.Context, id uuid.UUID) (TrustBundleIssuance, error)
+	GetCommittedNodeCheckpoint(ctx context.Context, arg GetCommittedNodeCheckpointParams) (GetCommittedNodeCheckpointRow, error)
 	GetDeviceForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDevice, error)
 	GetDevicePolicySnapshot(ctx context.Context, authorizationID uuid.UUID) (DeviceauthDevicePolicySnapshot, error)
 	GetDeviceRefreshForUpdate(ctx context.Context, tokenHash []byte) (GetDeviceRefreshForUpdateRow, error)
@@ -64,6 +71,7 @@ type Querier interface {
 	GetIdempotencyForUpdate(ctx context.Context, arg GetIdempotencyForUpdateParams) (IdempotencyRecord, error)
 	GetLatestBundleIssuance(ctx context.Context, authorizationID uuid.UUID) (TrustBundleIssuance, error)
 	GetNextRecoveryCodeGeneration(ctx context.Context, principalID uuid.UUID) (int32, error)
+	GetNodeControlDatabaseIdentity(ctx context.Context) (GetNodeControlDatabaseIdentityRow, error)
 	GetOutboxHealth(ctx context.Context, occurredAt time.Time) (GetOutboxHealthRow, error)
 	GetPasswordCredential(ctx context.Context, principalID uuid.UUID) (IdentityPasswordCredential, error)
 	GetPasswordResetForUpdate(ctx context.Context, resetTokenHash []byte) (IdentityPasswordCredential, error)
@@ -73,6 +81,7 @@ type Querier interface {
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
 	HasConsumedEvent(ctx context.Context, arg HasConsumedEventParams) (bool, error)
 	InsertAccountRefreshToken(ctx context.Context, arg InsertAccountRefreshTokenParams) error
+	InsertAuthorityFencePending(ctx context.Context, arg InsertAuthorityFencePendingParams) (int64, error)
 	InsertBundleAcknowledgement(ctx context.Context, arg InsertBundleAcknowledgementParams) error
 	InsertBundleIssuance(ctx context.Context, arg InsertBundleIssuanceParams) error
 	InsertDeviceRefreshToken(ctx context.Context, arg InsertDeviceRefreshTokenParams) error
@@ -83,6 +92,7 @@ type Querier interface {
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
 	ListDeviceAuthorizationFamilies(ctx context.Context, authorizationID uuid.UUID) ([]DeviceauthDeviceTokenFamily, error)
 	ListDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error)
+	ListPendingAuthorityFences(ctx context.Context, authorityEpoch int64) ([]ListPendingAuthorityFencesRow, error)
 	ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)

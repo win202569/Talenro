@@ -7,6 +7,7 @@ package store
 import (
 	"database/sql"
 	"encoding/json"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -213,6 +214,570 @@ type IdentityTotpCredential struct {
 	CreatedAt            time.Time    `json:"created_at"`
 	VerifiedAt           sql.NullTime `json:"verified_at"`
 	RevokedAt            sql.NullTime `json:"revoked_at"`
+}
+
+type NodecontrolControlPlaneAuthorityFence struct {
+	OperationID               uuid.UUID          `json:"operation_id"`
+	EffectKind                string             `json:"effect_kind"`
+	ScopeKind                 string             `json:"scope_kind"`
+	AuthorityEpoch            int64              `json:"authority_epoch"`
+	AuthoritySequence         int64              `json:"authority_sequence"`
+	ScopeDigest               []byte             `json:"scope_digest"`
+	ProviderReservationDigest []byte             `json:"provider_reservation_digest"`
+	EffectDigest              []byte             `json:"effect_digest"`
+	ProviderStatus            string             `json:"provider_status"`
+	ProviderReceiptDigest     []byte             `json:"provider_receipt_digest"`
+	DbSystemID                pgtype.Numeric     `json:"db_system_id"`
+	DbTimeline                pgtype.Int8        `json:"db_timeline"`
+	RequiredLsn               interface{}        `json:"required_lsn"`
+	AbortReason               pgtype.Text        `json:"abort_reason"`
+	VisibilityState           string             `json:"visibility_state"`
+	ReservedAt                pgtype.Timestamptz `json:"reserved_at"`
+	EffectBoundAt             pgtype.Timestamptz `json:"effect_bound_at"`
+	TerminalAt                pgtype.Timestamptz `json:"terminal_at"`
+}
+
+type NodecontrolControlPlaneTrustBundleHighWater struct {
+	Purpose              string             `json:"purpose"`
+	ListenerKind         string             `json:"listener_kind"`
+	TrustDomain          string             `json:"trust_domain"`
+	AuthorityOperationID uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch       int64              `json:"authority_epoch"`
+	AuthoritySequence    int64              `json:"authority_sequence"`
+	BundleVersion        int64              `json:"bundle_version"`
+	BundleDigest         []byte             `json:"bundle_digest"`
+	CumulativeSetDigest  []byte             `json:"cumulative_set_digest"`
+	CumulativeSetCount   int32              `json:"cumulative_set_count"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeCapacityProfile struct {
+	ProfileID                  uuid.UUID          `json:"profile_id"`
+	Version                    int64              `json:"version"`
+	Adapter                    string             `json:"adapter"`
+	EgressLimitBps             int64              `json:"egress_limit_bps"`
+	ConnectionLimit            int32              `json:"connection_limit"`
+	HandshakeLimitPerSecond    int32              `json:"handshake_limit_per_second"`
+	CpuQuotaMillicores         int32              `json:"cpu_quota_millicores"`
+	CpuLimitBasisPoints        int32              `json:"cpu_limit_basis_points"`
+	MemoryLimitBytes           int64              `json:"memory_limit_bytes"`
+	TaskLimit                  int32              `json:"task_limit"`
+	FileDescriptorLimit        int32              `json:"file_descriptor_limit"`
+	QueueLimit                 int32              `json:"queue_limit"`
+	PacketLossLimitBasisPoints int32              `json:"packet_loss_limit_basis_points"`
+	RequiredMetrics            []string           `json:"required_metrics"`
+	CreatedAt                  pgtype.Timestamptz `json:"created_at"`
+}
+
+type NodecontrolNodeCertificate struct {
+	CertificateID              uuid.UUID          `json:"certificate_id"`
+	IssuanceID                 uuid.UUID          `json:"issuance_id"`
+	AuthorityOperationID       uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch             int64              `json:"authority_epoch"`
+	AuthoritySequence          int64              `json:"authority_sequence"`
+	NodeID                     uuid.UUID          `json:"node_id"`
+	IdentityEpoch              int64              `json:"identity_epoch"`
+	LineageID                  uuid.UUID          `json:"lineage_id"`
+	IssuerID                   string             `json:"issuer_id"`
+	SerialBytes                []byte             `json:"serial_bytes"`
+	LeafDer                    []byte             `json:"leaf_der"`
+	LeafDerSha256              []byte             `json:"leaf_der_sha256"`
+	PublicKeySha256            []byte             `json:"public_key_sha256"`
+	ChainDerSha256             []byte             `json:"chain_der_sha256"`
+	ValidFrom                  pgtype.Timestamptz `json:"valid_from"`
+	ValidUntil                 pgtype.Timestamptz `json:"valid_until"`
+	Status                     string             `json:"status"`
+	RevokeAuthorityOperationID uuid.NullUUID      `json:"revoke_authority_operation_id"`
+	RevokeAuthorityEpoch       pgtype.Int8        `json:"revoke_authority_epoch"`
+	RevokeAuthoritySequence    pgtype.Int8        `json:"revoke_authority_sequence"`
+	RevokedAt                  pgtype.Timestamptz `json:"revoked_at"`
+	RevokeReason               pgtype.Text        `json:"revoke_reason"`
+	CreatedAt                  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                  pgtype.Timestamptz `json:"updated_at"`
+	RetentionUntil             pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeCertificateIssuance struct {
+	IssuanceID           uuid.UUID          `json:"issuance_id"`
+	AuthorityOperationID uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch       int64              `json:"authority_epoch"`
+	AuthoritySequence    int64              `json:"authority_sequence"`
+	NodeID               uuid.UUID          `json:"node_id"`
+	AttemptID            uuid.UUID          `json:"attempt_id"`
+	IssuanceKind         string             `json:"issuance_kind"`
+	IdentityEpoch        int64              `json:"identity_epoch"`
+	LineageID            uuid.UUID          `json:"lineage_id"`
+	IssuerID             string             `json:"issuer_id"`
+	CsrSha256            []byte             `json:"csr_sha256"`
+	PublicKeySha256      []byte             `json:"public_key_sha256"`
+	TemplateSha256       []byte             `json:"template_sha256"`
+	RequestDigest        []byte             `json:"request_digest"`
+	Status               string             `json:"status"`
+	SerialBytes          []byte             `json:"serial_bytes"`
+	LeafDer              []byte             `json:"leaf_der"`
+	LeafDerSha256        []byte             `json:"leaf_der_sha256"`
+	ChainDer             []byte             `json:"chain_der"`
+	ChainDerSha256       []byte             `json:"chain_der_sha256"`
+	NotBefore            pgtype.Timestamptz `json:"not_before"`
+	NotAfter             pgtype.Timestamptz `json:"not_after"`
+	FailureReason        pgtype.Text        `json:"failure_reason"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+	TerminalAt           pgtype.Timestamptz `json:"terminal_at"`
+	RetentionUntil       pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeDesiredState struct {
+	NodeID                  uuid.UUID          `json:"node_id"`
+	Generation              int64              `json:"generation"`
+	SigningID               uuid.UUID          `json:"signing_id"`
+	AuthorityOperationID    uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch          int64              `json:"authority_epoch"`
+	AuthoritySequence       int64              `json:"authority_sequence"`
+	InventoryVersion        int64              `json:"inventory_version"`
+	ResourceEnvelopeVersion int64              `json:"resource_envelope_version"`
+	ResourceEnvelopeDigest  []byte             `json:"resource_envelope_digest"`
+	RootVersion             int64              `json:"root_version"`
+	RootPublishID           uuid.UUID          `json:"root_publish_id"`
+	MetadataVersion         int64              `json:"metadata_version"`
+	MetadataPublishID       uuid.UUID          `json:"metadata_publish_id"`
+	SigningKeyID            []byte             `json:"signing_key_id"`
+	CanonicalPayload        []byte             `json:"canonical_payload"`
+	PayloadDigest           []byte             `json:"payload_digest"`
+	Signature               []byte             `json:"signature"`
+	IssuedAt                pgtype.Timestamptz `json:"issued_at"`
+	EffectiveDeadline       pgtype.Timestamptz `json:"effective_deadline"`
+	ValidUntil              pgtype.Timestamptz `json:"valid_until"`
+	Reason                  string             `json:"reason"`
+	CreatedAt               pgtype.Timestamptz `json:"created_at"`
+	RetentionUntil          pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeEndpoint struct {
+	EndpointID         uuid.UUID          `json:"endpoint_id"`
+	NodeID             uuid.UUID          `json:"node_id"`
+	Address            netip.Addr         `json:"address"`
+	Port               int32              `json:"port"`
+	Transport          string             `json:"transport"`
+	ProtocolCapability string             `json:"protocol_capability"`
+	OperatorState      string             `json:"operator_state"`
+	InventoryVersion   int64              `json:"inventory_version"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeEnrollmentGrant struct {
+	GrantID                   uuid.UUID          `json:"grant_id"`
+	AuthorityOperationID      uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch            int64              `json:"authority_epoch"`
+	AuthoritySequence         int64              `json:"authority_sequence"`
+	NodeID                    uuid.UUID          `json:"node_id"`
+	IdentityEpoch             int64              `json:"identity_epoch"`
+	TokenDigest               []byte             `json:"token_digest"`
+	CsrDigest                 []byte             `json:"csr_digest"`
+	IdempotencyDigest         []byte             `json:"idempotency_digest"`
+	CreatedAt                 pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt                 pgtype.Timestamptz `json:"expires_at"`
+	ConsumedAt                pgtype.Timestamptz `json:"consumed_at"`
+	ConsumptionAttemptID      uuid.NullUUID      `json:"consumption_attempt_id"`
+	ConsumptionRequestDigest  []byte             `json:"consumption_request_digest"`
+	ClaimAuthorityOperationID uuid.NullUUID      `json:"claim_authority_operation_id"`
+	ClaimAuthorityEpoch       pgtype.Int8        `json:"claim_authority_epoch"`
+	ClaimAuthoritySequence    pgtype.Int8        `json:"claim_authority_sequence"`
+	ResultIssuanceID          uuid.NullUUID      `json:"result_issuance_id"`
+	ExpiredAt                 pgtype.Timestamptz `json:"expired_at"`
+	InvalidatedAt             pgtype.Timestamptz `json:"invalidated_at"`
+	TerminalReason            pgtype.Text        `json:"terminal_reason"`
+	TerminalAt                pgtype.Timestamptz `json:"terminal_at"`
+	RetentionUntil            pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeFailureDomain struct {
+	FailureDomainID uuid.UUID          `json:"failure_domain_id"`
+	DomainType      string             `json:"domain_type"`
+	StableID        string             `json:"stable_id"`
+	Version         int64              `json:"version"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeFailureDomainMembership struct {
+	NodeID           uuid.UUID          `json:"node_id"`
+	FailureDomainID  uuid.UUID          `json:"failure_domain_id"`
+	DomainType       string             `json:"domain_type"`
+	InventoryVersion int64              `json:"inventory_version"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+}
+
+type NodecontrolNodeInventory struct {
+	NodeID                     uuid.UUID          `json:"node_id"`
+	PopCode                    string             `json:"pop_code"`
+	OperatorState              string             `json:"operator_state"`
+	SecurityState              string             `json:"security_state"`
+	IdentityState              string             `json:"identity_state"`
+	ResumeOperatorState        pgtype.Text        `json:"resume_operator_state"`
+	PendingOperatorTransition  pgtype.Text        `json:"pending_operator_transition"`
+	PendingTransitionSigningID uuid.NullUUID      `json:"pending_transition_signing_id"`
+	IdentityEpoch              int64              `json:"identity_epoch"`
+	LineageID                  uuid.NullUUID      `json:"lineage_id"`
+	InventoryVersion           int64              `json:"inventory_version"`
+	SecurityVersion            int64              `json:"security_version"`
+	ResourceEnvelopeVersion    pgtype.Int8        `json:"resource_envelope_version"`
+	ResourceEnvelopeDigest     []byte             `json:"resource_envelope_digest"`
+	ActiveDesiredGeneration    pgtype.Int8        `json:"active_desired_generation"`
+	NextDesiredGeneration      int64              `json:"next_desired_generation"`
+	ActiveRecoveryGeneration   pgtype.Int8        `json:"active_recovery_generation"`
+	NextRecoveryGeneration     int64              `json:"next_recovery_generation"`
+	ActiveRootPublishID        uuid.NullUUID      `json:"active_root_publish_id"`
+	ActiveRootVersion          pgtype.Int8        `json:"active_root_version"`
+	ActiveMetadataPublishID    uuid.NullUUID      `json:"active_metadata_publish_id"`
+	ActiveMetadataVersion      pgtype.Int8        `json:"active_metadata_version"`
+	LastAuthorityOperationID   uuid.NullUUID      `json:"last_authority_operation_id"`
+	LastAuthorityEpoch         pgtype.Int8        `json:"last_authority_epoch"`
+	LastAuthoritySequence      pgtype.Int8        `json:"last_authority_sequence"`
+	CreatedAt                  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                  pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeObservedState struct {
+	NodeID                           uuid.UUID          `json:"node_id"`
+	BootID                           uuid.UUID          `json:"boot_id"`
+	Sequence                         int64              `json:"sequence"`
+	RequestDigest                    []byte             `json:"request_digest"`
+	ObservationDigest                []byte             `json:"observation_digest"`
+	CanonicalObservation             []byte             `json:"canonical_observation"`
+	SampleEndedAt                    pgtype.Timestamptz `json:"sample_ended_at"`
+	ArrivedAt                        pgtype.Timestamptz `json:"arrived_at"`
+	SeenDesiredGeneration            int64              `json:"seen_desired_generation"`
+	SeenDesiredAuthorityEpoch        pgtype.Int8        `json:"seen_desired_authority_epoch"`
+	SeenDesiredAuthoritySequence     pgtype.Int8        `json:"seen_desired_authority_sequence"`
+	SeenDesiredDigest                []byte             `json:"seen_desired_digest"`
+	AppliedDesiredGeneration         int64              `json:"applied_desired_generation"`
+	AppliedDesiredAuthorityEpoch     pgtype.Int8        `json:"applied_desired_authority_epoch"`
+	AppliedDesiredAuthoritySequence  pgtype.Int8        `json:"applied_desired_authority_sequence"`
+	AppliedDesiredDigest             []byte             `json:"applied_desired_digest"`
+	SeenRecoveryGeneration           int64              `json:"seen_recovery_generation"`
+	SeenRecoveryAuthorityEpoch       pgtype.Int8        `json:"seen_recovery_authority_epoch"`
+	SeenRecoveryAuthoritySequence    pgtype.Int8        `json:"seen_recovery_authority_sequence"`
+	SeenRecoveryDigest               []byte             `json:"seen_recovery_digest"`
+	AppliedRecoveryGeneration        int64              `json:"applied_recovery_generation"`
+	AppliedRecoveryAuthorityEpoch    pgtype.Int8        `json:"applied_recovery_authority_epoch"`
+	AppliedRecoveryAuthoritySequence pgtype.Int8        `json:"applied_recovery_authority_sequence"`
+	AppliedRecoveryDigest            []byte             `json:"applied_recovery_digest"`
+	InventoryVersion                 int64              `json:"inventory_version"`
+	ReducerVersion                   int64              `json:"reducer_version"`
+	ReducerInputDigest               []byte             `json:"reducer_input_digest"`
+	ReducerStateDigest               []byte             `json:"reducer_state_digest"`
+	HealthState                      string             `json:"health_state"`
+	HealthReason                     string             `json:"health_reason"`
+	CapacityAccepting                bool               `json:"capacity_accepting"`
+	AgentAccepting                   bool               `json:"agent_accepting"`
+	FinalAccepting                   bool               `json:"final_accepting"`
+	LastCapacityChangeAt             pgtype.Timestamptz `json:"last_capacity_change_at"`
+	LastAgentChangeAt                pgtype.Timestamptz `json:"last_agent_change_at"`
+	LastFinalChangeAt                pgtype.Timestamptz `json:"last_final_change_at"`
+	CreatedAt                        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeOperatorAudit struct {
+	AuditID              uuid.UUID          `json:"audit_id"`
+	CommandID            uuid.UUID          `json:"command_id"`
+	AuthorityOperationID uuid.NullUUID      `json:"authority_operation_id"`
+	AuthorityEpoch       pgtype.Int8        `json:"authority_epoch"`
+	AuthoritySequence    pgtype.Int8        `json:"authority_sequence"`
+	OperatorID           string             `json:"operator_id"`
+	CredentialDigest     []byte             `json:"credential_digest"`
+	Role                 string             `json:"role"`
+	Action               string             `json:"action"`
+	TargetKind           string             `json:"target_kind"`
+	TargetID             string             `json:"target_id"`
+	Reason               string             `json:"reason"`
+	Result               string             `json:"result"`
+	BeforeVersion        pgtype.Int8        `json:"before_version"`
+	AfterVersion         pgtype.Int8        `json:"after_version"`
+	OccurredAt           pgtype.Timestamptz `json:"occurred_at"`
+	RetentionUntil       pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodePop struct {
+	PopCode       string             `json:"pop_code"`
+	IsoCountry    string             `json:"iso_country"`
+	Region        string             `json:"region"`
+	OperatorState string             `json:"operator_state"`
+	Version       int64              `json:"version"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeProcessSlot struct {
+	NodeID                 uuid.UUID          `json:"node_id"`
+	SlotID                 int32              `json:"slot_id"`
+	Adapter                string             `json:"adapter"`
+	CapacityProfileID      uuid.UUID          `json:"capacity_profile_id"`
+	CapacityProfileVersion int64              `json:"capacity_profile_version"`
+	Required               bool               `json:"required"`
+	OperatorState          string             `json:"operator_state"`
+	InventoryVersion       int64              `json:"inventory_version"`
+	CreatedAt              pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeRecoverySession struct {
+	RecoveryID            uuid.UUID          `json:"recovery_id"`
+	AuthorityOperationID  uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch        int64              `json:"authority_epoch"`
+	AuthoritySequence     int64              `json:"authority_sequence"`
+	NodeID                uuid.UUID          `json:"node_id"`
+	IdentityEpoch         int64              `json:"identity_epoch"`
+	Reason                string             `json:"reason"`
+	Version               int64              `json:"version"`
+	Status                string             `json:"status"`
+	IncidentSetDigest     []byte             `json:"incident_set_digest"`
+	ResumeOperatorState   string             `json:"resume_operator_state"`
+	RecoveryCertificateID uuid.NullUUID      `json:"recovery_certificate_id"`
+	AttestationDigest     []byte             `json:"attestation_digest"`
+	TerminalAt            pgtype.Timestamptz `json:"terminal_at"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+	RetentionUntil        pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeRecoveryState struct {
+	NodeID                        uuid.UUID          `json:"node_id"`
+	RecoveryGeneration            int64              `json:"recovery_generation"`
+	SigningID                     uuid.UUID          `json:"signing_id"`
+	AuthorityOperationID          uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch                int64              `json:"authority_epoch"`
+	AuthoritySequence             int64              `json:"authority_sequence"`
+	IdentityEpoch                 int64              `json:"identity_epoch"`
+	RecoveryID                    uuid.UUID          `json:"recovery_id"`
+	RecoveryReason                string             `json:"recovery_reason"`
+	RecoverySessionVersion        int64              `json:"recovery_session_version"`
+	IncidentSetDigest             []byte             `json:"incident_set_digest"`
+	IncidentCount                 int32              `json:"incident_count"`
+	LocalFaultBindingsDigest      []byte             `json:"local_fault_bindings_digest"`
+	LocalFaultBindingCount        int32              `json:"local_fault_binding_count"`
+	SupervisorFaultBindingsDigest []byte             `json:"supervisor_fault_bindings_digest"`
+	SupervisorFaultBindingCount   int32              `json:"supervisor_fault_binding_count"`
+	RemediationDigest             []byte             `json:"remediation_digest"`
+	RootVersion                   int64              `json:"root_version"`
+	MetadataVersion               int64              `json:"metadata_version"`
+	RecoveryAction                string             `json:"recovery_action"`
+	AllSlotsStopped               bool               `json:"all_slots_stopped"`
+	CanonicalPayload              []byte             `json:"canonical_payload"`
+	PayloadDigest                 []byte             `json:"payload_digest"`
+	SigningKeyID                  []byte             `json:"signing_key_id"`
+	Signature                     []byte             `json:"signature"`
+	IssuedAt                      pgtype.Timestamptz `json:"issued_at"`
+	ValidUntil                    pgtype.Timestamptz `json:"valid_until"`
+	CreatedAt                     pgtype.Timestamptz `json:"created_at"`
+	RetentionUntil                pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeResourceEnvelope struct {
+	NodeID                           uuid.UUID          `json:"node_id"`
+	EnvelopeVersion                  int64              `json:"envelope_version"`
+	AuthorityOperationID             uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch                   int64              `json:"authority_epoch"`
+	AuthoritySequence                int64              `json:"authority_sequence"`
+	EnvelopeDigest                   []byte             `json:"envelope_digest"`
+	CanonicalPackage                 []byte             `json:"canonical_package"`
+	DeploymentKeyID                  []byte             `json:"deployment_key_id"`
+	Signature                        []byte             `json:"signature"`
+	MaxSlots                         int32              `json:"max_slots"`
+	AgentCpuMillicores               int32              `json:"agent_cpu_millicores"`
+	AgentMemoryBytes                 int64              `json:"agent_memory_bytes"`
+	AgentTaskLimit                   int32              `json:"agent_task_limit"`
+	AgentFileDescriptorLimit         int32              `json:"agent_file_descriptor_limit"`
+	SupervisorCpuMillicores          int32              `json:"supervisor_cpu_millicores"`
+	SupervisorMemoryBytes            int64              `json:"supervisor_memory_bytes"`
+	SupervisorTaskLimit              int32              `json:"supervisor_task_limit"`
+	SupervisorFileDescriptorLimit    int32              `json:"supervisor_file_descriptor_limit"`
+	CoreParentCpuMillicores          int32              `json:"core_parent_cpu_millicores"`
+	CoreParentMemoryBytes            int64              `json:"core_parent_memory_bytes"`
+	CoreParentTaskLimit              int32              `json:"core_parent_task_limit"`
+	CoreParentFileDescriptorLimit    int32              `json:"core_parent_file_descriptor_limit"`
+	AggregateSlotFileDescriptorLimit int32              `json:"aggregate_slot_file_descriptor_limit"`
+	AggregateSlotTmpfsBytes          int64              `json:"aggregate_slot_tmpfs_bytes"`
+	AggregateSlotTmpfsInodes         int64              `json:"aggregate_slot_tmpfs_inodes"`
+	DetectedHostCapacityDigest       []byte             `json:"detected_host_capacity_digest"`
+	IssuedAt                         pgtype.Timestamptz `json:"issued_at"`
+	CreatedAt                        pgtype.Timestamptz `json:"created_at"`
+}
+
+type NodecontrolNodeRestoreReauthorizationApproval struct {
+	ApprovalID                 uuid.UUID          `json:"approval_id"`
+	AuthorityOperationID       uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch             int64              `json:"authority_epoch"`
+	AuthoritySequence          int64              `json:"authority_sequence"`
+	NodeID                     uuid.UUID          `json:"node_id"`
+	RecoveryID                 uuid.UUID          `json:"recovery_id"`
+	EffectDigest               []byte             `json:"effect_digest"`
+	ScopeDigest                []byte             `json:"scope_digest"`
+	Role                       string             `json:"role"`
+	OperatorID                 string             `json:"operator_id"`
+	CredentialDigest           []byte             `json:"credential_digest"`
+	LeafDerSha256              []byte             `json:"leaf_der_sha256"`
+	OperatorAuthorityEpoch     int64              `json:"operator_authority_epoch"`
+	OperatorAuthoritySequence  int64              `json:"operator_authority_sequence"`
+	AuthorizerVersion          int64              `json:"authorizer_version"`
+	SecurityAdminBindingDigest []byte             `json:"security_admin_binding_digest"`
+	PopScope                   string             `json:"pop_scope"`
+	EvidenceCompletedAt        pgtype.Timestamptz `json:"evidence_completed_at"`
+	CredentialExpiresAt        pgtype.Timestamptz `json:"credential_expires_at"`
+	CreatedAt                  pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt                  pgtype.Timestamptz `json:"expires_at"`
+	Status                     string             `json:"status"`
+	TerminalAt                 pgtype.Timestamptz `json:"terminal_at"`
+	RetentionUntil             pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeRootMetadataPublishIntent struct {
+	PublishID               uuid.UUID          `json:"publish_id"`
+	AuthorityOperationID    uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch          int64              `json:"authority_epoch"`
+	AuthoritySequence       int64              `json:"authority_sequence"`
+	PublishKind             string             `json:"publish_kind"`
+	Reason                  string             `json:"reason"`
+	IncidentID              uuid.NullUUID      `json:"incident_id"`
+	BaseRootVersion         int64              `json:"base_root_version"`
+	BaseMetadataVersion     int64              `json:"base_metadata_version"`
+	ReservedVersion         int64              `json:"reserved_version"`
+	CanonicalPayload        []byte             `json:"canonical_payload"`
+	PayloadDigest           []byte             `json:"payload_digest"`
+	KeySetDigest            []byte             `json:"key_set_digest"`
+	CurrentKeyIds           [][]byte           `json:"current_key_ids"`
+	NewKeyIds               [][]byte           `json:"new_key_ids"`
+	CurrentThreshold        int32              `json:"current_threshold"`
+	NewThreshold            pgtype.Int4        `json:"new_threshold"`
+	ActivationDeadline      pgtype.Timestamptz `json:"activation_deadline"`
+	PublishedEnvelope       []byte             `json:"published_envelope"`
+	PublishedEnvelopeDigest []byte             `json:"published_envelope_digest"`
+	Status                  string             `json:"status"`
+	FailureReason           pgtype.Text        `json:"failure_reason"`
+	CreatedAt               pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt               pgtype.Timestamptz `json:"updated_at"`
+	TerminalAt              pgtype.Timestamptz `json:"terminal_at"`
+}
+
+type NodecontrolNodeRootMetadataSignatureShare struct {
+	PublishID     uuid.UUID          `json:"publish_id"`
+	KeyID         []byte             `json:"key_id"`
+	PhysicalKeyID []byte             `json:"physical_key_id"`
+	PayloadDigest []byte             `json:"payload_digest"`
+	SignatureRole string             `json:"signature_role"`
+	Signature     []byte             `json:"signature"`
+	VerifiedAt    pgtype.Timestamptz `json:"verified_at"`
+}
+
+type NodecontrolNodeSecurityFaultReceipt struct {
+	ReceiptID                uuid.UUID          `json:"receipt_id"`
+	AuthorityOperationID     uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch           int64              `json:"authority_epoch"`
+	AuthoritySequence        int64              `json:"authority_sequence"`
+	NodeID                   uuid.UUID          `json:"node_id"`
+	IdentityEpoch            int64              `json:"identity_epoch"`
+	LocalFaultID             uuid.UUID          `json:"local_fault_id"`
+	RequestDigest            []byte             `json:"request_digest"`
+	FaultSubtype             string             `json:"fault_subtype"`
+	EvidenceDigest           []byte             `json:"evidence_digest"`
+	AgentBootID              uuid.UUID          `json:"agent_boot_id"`
+	IncidentID               uuid.UUID          `json:"incident_id"`
+	SupervisorBootID         uuid.NullUUID      `json:"supervisor_boot_id"`
+	SupervisorFaultID        uuid.NullUUID      `json:"supervisor_fault_id"`
+	SupervisorEvidenceDigest []byte             `json:"supervisor_evidence_digest"`
+	LocalBindingSlot         int32              `json:"local_binding_slot"`
+	SupervisorBindingSlot    pgtype.Int4        `json:"supervisor_binding_slot"`
+	Result                   string             `json:"result"`
+	DeliveryStatus           string             `json:"delivery_status"`
+	BindingStatus            string             `json:"binding_status"`
+	DeliveredAt              pgtype.Timestamptz `json:"delivered_at"`
+	ClearedAt                pgtype.Timestamptz `json:"cleared_at"`
+	ClearAttestationDigest   []byte             `json:"clear_attestation_digest"`
+	CreatedAt                pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NodecontrolNodeSecurityIncident struct {
+	IncidentID                     uuid.UUID          `json:"incident_id"`
+	AuthorityOperationID           uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch                 int64              `json:"authority_epoch"`
+	AuthoritySequence              int64              `json:"authority_sequence"`
+	NodeID                         uuid.UUID          `json:"node_id"`
+	IdentityEpoch                  int64              `json:"identity_epoch"`
+	FaultSubtype                   string             `json:"fault_subtype"`
+	SubtypeSlot                    int32              `json:"subtype_slot"`
+	Status                         string             `json:"status"`
+	FirstEvidenceDigest            []byte             `json:"first_evidence_digest"`
+	LastEvidenceDigest             []byte             `json:"last_evidence_digest"`
+	OccurrenceCount                int64              `json:"occurrence_count"`
+	TrustContextDigest             []byte             `json:"trust_context_digest"`
+	FirstOccurredAt                pgtype.Timestamptz `json:"first_occurred_at"`
+	LastOccurredAt                 pgtype.Timestamptz `json:"last_occurred_at"`
+	ResolutionAuthorityOperationID uuid.NullUUID      `json:"resolution_authority_operation_id"`
+	ResolutionAuthorityEpoch       pgtype.Int8        `json:"resolution_authority_epoch"`
+	ResolutionAuthoritySequence    pgtype.Int8        `json:"resolution_authority_sequence"`
+	RemediationDigest              []byte             `json:"remediation_digest"`
+	ResolutionAt                   pgtype.Timestamptz `json:"resolution_at"`
+	RetentionUntil                 pgtype.Timestamptz `json:"retention_until"`
+}
+
+type NodecontrolNodeStateSigningIntent struct {
+	SigningID                        uuid.UUID          `json:"signing_id"`
+	AuthorityOperationID             uuid.UUID          `json:"authority_operation_id"`
+	AuthorityEpoch                   int64              `json:"authority_epoch"`
+	AuthoritySequence                int64              `json:"authority_sequence"`
+	NodeID                           uuid.UUID          `json:"node_id"`
+	SigningKind                      string             `json:"signing_kind"`
+	IdempotencyKeyDigest             []byte             `json:"idempotency_key_digest"`
+	BaseGeneration                   int64              `json:"base_generation"`
+	ReservedGeneration               int64              `json:"reserved_generation"`
+	CanonicalPayload                 []byte             `json:"canonical_payload"`
+	PayloadDigest                    []byte             `json:"payload_digest"`
+	RootVersion                      int64              `json:"root_version"`
+	MetadataVersion                  int64              `json:"metadata_version"`
+	ExpectedKeyID                    []byte             `json:"expected_key_id"`
+	ExpectedPublicKeyDigest          []byte             `json:"expected_public_key_digest"`
+	CapturedInventoryVersion         int64              `json:"captured_inventory_version"`
+	CapturedIdentityEpoch            int64              `json:"captured_identity_epoch"`
+	CapturedSecurityVersion          int64              `json:"captured_security_version"`
+	RecoveryID                       uuid.NullUUID      `json:"recovery_id"`
+	RecoveryReason                   pgtype.Text        `json:"recovery_reason"`
+	RecoverySessionVersion           pgtype.Int8        `json:"recovery_session_version"`
+	RecoverySessionStatus            pgtype.Text        `json:"recovery_session_status"`
+	RecoveryIncidentSetDigest        []byte             `json:"recovery_incident_set_digest"`
+	RecoveryLocalBindingsDigest      []byte             `json:"recovery_local_bindings_digest"`
+	RecoverySupervisorBindingsDigest []byte             `json:"recovery_supervisor_bindings_digest"`
+	RecoveryRemediationDigest        []byte             `json:"recovery_remediation_digest"`
+	RecoveryRequiredAction           pgtype.Text        `json:"recovery_required_action"`
+	Signature                        []byte             `json:"signature"`
+	SignatureVerifiedAt              pgtype.Timestamptz `json:"signature_verified_at"`
+	ActivationDeadline               pgtype.Timestamptz `json:"activation_deadline"`
+	Status                           string             `json:"status"`
+	FailureReason                    pgtype.Text        `json:"failure_reason"`
+	CreatedAt                        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                        pgtype.Timestamptz `json:"updated_at"`
+	TerminalAt                       pgtype.Timestamptz `json:"terminal_at"`
+}
+
+type NodecontrolNodeStateTransition struct {
+	TransitionID         uuid.UUID          `json:"transition_id"`
+	NodeID               uuid.UUID          `json:"node_id"`
+	AuthorityOperationID uuid.NullUUID      `json:"authority_operation_id"`
+	AuthorityEpoch       pgtype.Int8        `json:"authority_epoch"`
+	AuthoritySequence    pgtype.Int8        `json:"authority_sequence"`
+	Dimension            string             `json:"dimension"`
+	FromState            string             `json:"from_state"`
+	ToState              string             `json:"to_state"`
+	Reason               string             `json:"reason"`
+	ObservationBootID    uuid.NullUUID      `json:"observation_boot_id"`
+	ObservationSequence  pgtype.Int8        `json:"observation_sequence"`
+	IncidentID           uuid.NullUUID      `json:"incident_id"`
+	AuditID              uuid.NullUUID      `json:"audit_id"`
+	AggregateVersion     int64              `json:"aggregate_version"`
+	OccurredAt           pgtype.Timestamptz `json:"occurred_at"`
+	RetentionUntil       pgtype.Timestamptz `json:"retention_until"`
 }
 
 type SystemMetadatum struct {
