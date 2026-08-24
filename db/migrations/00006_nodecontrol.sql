@@ -76,7 +76,7 @@ CREATE TABLE nodecontrol.control_plane_authority_fences (
   CONSTRAINT control_plane_authority_fences_abort_reason_pair CHECK ((provider_status = 'aborted') = (abort_reason IS NOT NULL)),
   CONSTRAINT control_plane_authority_fences_terminal_order CHECK (terminal_at IS NULL OR terminal_at >= reserved_at),
   CONSTRAINT control_plane_authority_fences_effect_bound_order CHECK (effect_bound_at IS NULL OR effect_bound_at >= reserved_at),
-  CONSTRAINT control_plane_authority_fences_effect_scope_matrix CHECK ((scope_kind = 'global_node_trust' AND effect_kind IN ('trust_bundle_publish','root_publish','metadata_publish')) OR (scope_kind = 'global_operator_trust' AND effect_kind = 'operator_authorizer_change') OR (scope_kind = 'node' AND effect_kind IN ('grant_create','grant_claim','certificate_activate','certificate_revoke','identity_epoch_advance','security_incident_open','security_incident_resolve','resource_envelope_activate','desired_activate','recovery_activate','operator_transition')))
+  CONSTRAINT control_plane_authority_fences_effect_scope_matrix CHECK ((scope_kind = 'global_node_trust' AND effect_kind IN ('trust_bundle_publish','root_publish','metadata_publish')) OR (scope_kind = 'global_operator_trust' AND effect_kind IN ('trust_bundle_publish','operator_authorizer_change')) OR (scope_kind = 'node' AND effect_kind IN ('grant_create','grant_claim','certificate_activate','certificate_revoke','identity_epoch_advance','security_incident_open','security_incident_resolve','resource_envelope_activate','desired_activate','recovery_activate','operator_transition')))
 );
 
 CREATE TABLE nodecontrol.node_pops (
@@ -2474,9 +2474,14 @@ BEGIN
       AND fence.provider_status = 'committed'
       AND fence.visibility_state = 'active'
       AND fence.effect_kind = 'trust_bundle_publish'
-      AND fence.scope_kind = 'global_node_trust'
+      AND (
+        (NEW.purpose IN ('bootstrap_server','agent_server','node_client')
+          AND fence.scope_kind = 'global_node_trust')
+        OR (NEW.purpose IN ('operator_server','operator_client')
+          AND fence.scope_kind = 'global_operator_trust')
+      )
   ) THEN
-    RAISE EXCEPTION 'trust bundle activation requires a committed global-node-trust fence' USING ERRCODE = '23514';
+    RAISE EXCEPTION 'trust bundle activation requires a committed purpose-matched global scope fence' USING ERRCODE = '23514';
   END IF;
   IF TG_OP = 'INSERT' THEN
     RETURN NEW;

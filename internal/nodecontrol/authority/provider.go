@@ -362,7 +362,9 @@ func (value NodeCheckpoint) Validate() error {
 
 func validEffectScope(kind EffectKind, scope ScopeKind) bool {
 	switch kind {
-	case EffectTrustBundlePublish, EffectRootPublish, EffectMetadataPublish:
+	case EffectTrustBundlePublish:
+		return scope == ScopeGlobalNodeTrust || scope == ScopeGlobalOperatorTrust
+	case EffectRootPublish, EffectMetadataPublish:
 		return scope == ScopeGlobalNodeTrust
 	case EffectOperatorAuthorizerChange:
 		return scope == ScopeGlobalOperatorTrust

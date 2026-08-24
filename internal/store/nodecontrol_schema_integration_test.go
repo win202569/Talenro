@@ -57,7 +57,7 @@ var expectedNodeControlFunctionCatalog = map[string]nodeControlFunctionCatalogSp
 	"enforce_security_fault_receipt":        {language: "plpgsql", volatility: "volatile", definitionSHA256: "e77332df90e9e1a9ba16fa936fa12776eaf2be3d2d55b2c1b7e6cbb3c15843ae"},
 	"enforce_security_incident_workflow":    {language: "plpgsql", volatility: "volatile", definitionSHA256: "b98df7fcf4f30f736c4f2585673ec91b0f1c07137364c97ae320ac579d49fb60"},
 	"enforce_signing_intent_workflow":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "344e25b1b02efe54942dd3c48b03a5bbe44ee791d39d6477c709c3cdd6350a4d"},
-	"enforce_trust_bundle_high_water":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "0e65dc0a808e05608715962115d8424e8cf1b2fe6aaa23cdc85ce6944d7192bf"},
+	"enforce_trust_bundle_high_water":       {language: "plpgsql", volatility: "volatile", definitionSHA256: "7e58004cdaa410697db433f6947a921a0480f9e8b7545d4584ac908c97b9f6ad"},
 	"reject_row_mutation":                   {language: "plpgsql", volatility: "volatile", definitionSHA256: "b160eae3635252a7594f7cac586a129485c03c2e93674d3233941f2155bf5d66"},
 	"text_array_is_sorted_unique":           {language: "sql", volatility: "immutable", definitionSHA256: "d7c18d427a459231fac6ca49bc39cc8dd1d1101f1d09819fcc2a857ca78ff9de"},
 }
@@ -903,6 +903,44 @@ WHERE incident.incident_id=$1 AND incident.status='resolved' AND receipt.binding
 }
 
 func TestNodeControlMigrationEnforcesTrustHighWaterAppendOnly(t *testing.T) {
+	t.Run("purpose selects authority fence scope", func(t *testing.T) {
+		ctx, pool := openMigratedNodeControlDatabase(t)
+		now := time.Now().UTC().Truncate(time.Microsecond)
+		tests := []struct {
+			name, purpose, listener, domain, requiredScope, crossScope string
+		}{
+			{name: "bootstrap server", purpose: "bootstrap_server", listener: "bootstrap", domain: "bootstrap.example.com", requiredScope: "global_node_trust", crossScope: "global_operator_trust"},
+			{name: "agent server", purpose: "agent_server", listener: "agent", domain: "agent.example.com", requiredScope: "global_node_trust", crossScope: "global_operator_trust"},
+			{name: "node client", purpose: "node_client", listener: "outbound_node", domain: "node-client.example.com", requiredScope: "global_node_trust", crossScope: "global_operator_trust"},
+			{name: "operator server", purpose: "operator_server", listener: "operator", domain: "operator-server.example.com", requiredScope: "global_operator_trust", crossScope: "global_node_trust"},
+			{name: "operator client", purpose: "operator_client", listener: "outbound_operator", domain: "operator-client.example.com", requiredScope: "global_operator_trust", crossScope: "global_node_trust"},
+		}
+		for index, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				correctOperationID := uuid.New()
+				correctSequence := int64(index*2 + 1)
+				insertCommittedFence(ctx, t, pool, correctOperationID, correctSequence, "trust_bundle_publish", test.requiredScope, now)
+				if err := insertTrustHighWaterForPurpose(
+					ctx, pool, test.purpose, test.listener, test.domain, correctOperationID, correctSequence,
+					1, 1, byte(0x31+index), byte(0x41+index), now,
+				); err != nil {
+					t.Fatalf("purpose-matched trust bundle fence rejected: %v", err)
+				}
+
+				crossOperationID := uuid.New()
+				crossSequence := int64(index*2 + 2)
+				insertCommittedFence(ctx, t, pool, crossOperationID, crossSequence, "trust_bundle_publish", test.crossScope, now)
+				err := insertTrustHighWaterForPurpose(
+					ctx, pool, test.purpose, test.listener, "cross-"+test.domain, crossOperationID, crossSequence,
+					2, 1, byte(0x51+index), byte(0x61+index), now,
+				)
+				var pgErr *pgconn.PgError
+				if !errors.As(err, &pgErr) || pgErr.Code != "23514" || !strings.Contains(pgErr.Message, "purpose-matched global scope") {
+					t.Fatalf("cross-purpose scope substitution error = %v, want SQLSTATE 23514 purpose-matched scope rejection", err)
+				}
+			})
+		}
+	})
 	t.Run("delete", func(t *testing.T) {
 		ctx, pool := openMigratedNodeControlDatabase(t)
 		now := time.Now().UTC().Truncate(time.Microsecond)
@@ -2959,14 +2997,23 @@ WHERE operation_id=$1`, operationID, bytesOf(0x73, 32), bytesOf(0x74, 32), now)
 
 func insertTrustHighWater(ctx context.Context, t *testing.T, pool *pgxpool.Pool, operationID uuid.UUID, sequence, bundleVersion int64, cumulativeCount int, bundleByte, cumulativeByte byte, now time.Time) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `
+	if err := insertTrustHighWaterForPurpose(
+		ctx, pool, "bootstrap_server", "bootstrap", "example.com", operationID, sequence,
+		bundleVersion, cumulativeCount, bundleByte, cumulativeByte, now,
+	); err != nil {
+		t.Fatal("insert trust bundle high-water:", err)
+	}
+}
+
+func insertTrustHighWaterForPurpose(ctx context.Context, pool *pgxpool.Pool, purpose, listener, trustDomain string, operationID uuid.UUID, sequence, bundleVersion int64, cumulativeCount int, bundleByte, cumulativeByte byte, now time.Time) error {
+	_, err := pool.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_trust_bundle_high_waters(
   purpose,listener_kind,trust_domain,authority_operation_id,authority_epoch,authority_sequence,
   bundle_version,bundle_digest,cumulative_set_digest,cumulative_set_count,updated_at)
-VALUES('bootstrap_server','bootstrap','example.com',$1,1,$2,$3,$4,$5,$6,$7)`,
-		operationID, sequence, bundleVersion, bytesOf(bundleByte, 32), bytesOf(cumulativeByte, 32), cumulativeCount, now); err != nil {
-		t.Fatal("insert trust bundle high-water:", err)
-	}
+VALUES($1,$2,$3,$4,1,$5,$6,$7,$8,$9,$10)`,
+		purpose, listener, trustDomain, operationID, sequence, bundleVersion,
+		bytesOf(bundleByte, 32), bytesOf(cumulativeByte, 32), cumulativeCount, now)
+	return err
 }
 
 func assertSQLFailureContains(ctx context.Context, t *testing.T, pool *pgxpool.Pool, statement, want string, args ...any) {

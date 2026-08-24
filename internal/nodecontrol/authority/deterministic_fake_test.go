@@ -138,6 +138,57 @@ func TestDeterministicProviderCommittedNodeCheckpointIsScoped(t *testing.T) {
 	}
 }
 
+func TestDeterministicProviderOutOfOrderFinalizationRetainsHighestReservationAnchors(t *testing.T) {
+	provider, err := NewDeterministicProvider(27)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodeScope := validNodeScopeDigest(t, uuid.MustParse("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))
+	lower := mustReserve(t, provider, "17000000-0000-4000-8000-000000000001", EffectDesiredActivate, ScopeNode, nodeScope)
+	higher := mustReserve(t, provider, "17000000-0000-4000-8000-000000000002", EffectRecoveryActivate, ScopeNode, nodeScope)
+
+	higherReceipt, err := provider.Finalize(t.Context(), FinalizeRequest{
+		OperationID: higher.OperationID, EffectDigest: contracts.Digest{2}, DBSystemID: 22,
+		DBTimeline: 2, RequiredLSN: "0/2",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	lowerReceipt, err := provider.Finalize(t.Context(), FinalizeRequest{
+		OperationID: lower.OperationID, EffectDigest: contracts.Digest{1}, DBSystemID: 11,
+		DBTimeline: 1, RequiredLSN: "0/1",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lowerReceipt.Sequence >= higherReceipt.Sequence {
+		t.Fatalf("test setup did not finalize a lower reservation last: lower=%#v higher=%#v", lowerReceipt, higherReceipt)
+	}
+
+	t.Run("head", func(t *testing.T) {
+		head, err := provider.Head(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if head.LatestReservedSequence != higherReceipt.Sequence ||
+			head.LatestReservationDigest != higherReceipt.ReservationDigest ||
+			head.LatestCommittedSequence != higherReceipt.Sequence ||
+			head.LatestCommittedOperationID != higherReceipt.OperationID ||
+			head.LatestCommittedReceiptDigest != higherReceipt.ReceiptDigest ||
+			head.LatestCommittedDatabasePoint == nil || higherReceipt.DatabasePoint == nil ||
+			*head.LatestCommittedDatabasePoint != *higherReceipt.DatabasePoint {
+			t.Fatalf("late lower finalization replaced maximum committed reservation anchors: head=%#v higher=%#v", head, higherReceipt)
+		}
+	})
+	t.Run("node checkpoint", func(t *testing.T) {
+		checkpoint := mustCheckpoint(t, provider, nodeScope)
+		if checkpoint.AuthorityEpoch != higherReceipt.Epoch || checkpoint.Sequence != higherReceipt.Sequence ||
+			checkpoint.ReceiptDigest != higherReceipt.ReceiptDigest {
+			t.Fatalf("late lower finalization replaced maximum node checkpoint: %#v, want anchors from %#v", checkpoint, higherReceipt)
+		}
+	})
+}
+
 func TestDeterministicProviderCancellationNeverMutates(t *testing.T) {
 	provider, err := NewDeterministicProvider(29)
 	if err != nil {

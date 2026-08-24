@@ -119,6 +119,7 @@ func TestProviderValueEmptyHeadGlobalVectorsAndClosedScopeMatrix(t *testing.T) {
 		digest contracts.Digest
 	}{
 		{EffectTrustBundlePublish, ScopeGlobalNodeTrust, globalNode},
+		{EffectTrustBundlePublish, ScopeGlobalOperatorTrust, globalOperator},
 		{EffectRootPublish, ScopeGlobalNodeTrust, globalNode},
 		{EffectMetadataPublish, ScopeGlobalNodeTrust, globalNode},
 		{EffectGrantCreate, ScopeNode, validNodeScopeDigest(t, uuid.MustParse("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))},
@@ -158,6 +159,62 @@ func TestProviderValueEmptyHeadGlobalVectorsAndClosedScopeMatrix(t *testing.T) {
 		if _, err := provider.Reserve(t.Context(), request); !errors.Is(err, ErrInvalidArgument) {
 			t.Fatalf("invalid matrix row %d error = %v", index, err)
 		}
+	}
+}
+
+func TestProviderValueTrustBundlePublishAcceptsExactlyBothGlobalScopes(t *testing.T) {
+	provider, err := NewDeterministicProvider(12)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodeScope := validNodeScopeDigest(t, uuid.MustParse("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))
+
+	valid := []struct {
+		name   string
+		scope  ScopeKind
+		digest contracts.Digest
+	}{
+		{name: "node-purpose global scope", scope: ScopeGlobalNodeTrust, digest: globalNodeScopeDigest},
+		{name: "operator-purpose global scope", scope: ScopeGlobalOperatorTrust, digest: globalOperatorScopeDigest},
+	}
+	for index, test := range valid {
+		t.Run(test.name, func(t *testing.T) {
+			request := ReserveRequest{
+				OperationID: uuid.UUID{0x12, byte(index + 1), 0, 0, 0, 0, 0x40, 0, 0x80, 0, 0, 0, 0, 0, 0, byte(index + 1)},
+				Kind:        EffectTrustBundlePublish, ScopeKind: test.scope, ScopeDigest: test.digest,
+			}
+			if err := request.Validate(); err != nil {
+				t.Fatalf("valid trust-bundle scope rejected by value validation: %v", err)
+			}
+			if _, err := provider.Reserve(t.Context(), request); err != nil {
+				t.Fatalf("valid trust-bundle scope rejected by provider: %v", err)
+			}
+		})
+	}
+
+	invalid := []struct {
+		name   string
+		scope  ScopeKind
+		digest contracts.Digest
+	}{
+		{name: "node scope", scope: ScopeNode, digest: nodeScope},
+		{name: "node global with operator digest", scope: ScopeGlobalNodeTrust, digest: globalOperatorScopeDigest},
+		{name: "operator global with node digest", scope: ScopeGlobalOperatorTrust, digest: globalNodeScopeDigest},
+		{name: "unknown scope", scope: ScopeKind("global_other_trust"), digest: contracts.Digest{1}},
+	}
+	for index, test := range invalid {
+		t.Run(test.name, func(t *testing.T) {
+			request := ReserveRequest{
+				OperationID: uuid.UUID{0x13, byte(index + 1), 0, 0, 0, 0, 0x40, 0, 0x80, 0, 0, 0, 0, 0, 0, byte(index + 1)},
+				Kind:        EffectTrustBundlePublish, ScopeKind: test.scope, ScopeDigest: test.digest,
+			}
+			if err := request.Validate(); !errors.Is(err, ErrInvalidArgument) {
+				t.Fatalf("invalid trust-bundle scope validation error = %v", err)
+			}
+			if _, err := provider.Reserve(t.Context(), request); !errors.Is(err, ErrInvalidArgument) {
+				t.Fatalf("invalid trust-bundle scope provider error = %v", err)
+			}
+		})
 	}
 }
 
@@ -219,6 +276,74 @@ func TestProviderValueCanonicalReservationAndReceiptDigests(t *testing.T) {
 	})
 	if err != nil || !reflect.DeepEqual(retry, firstCopy) {
 		t.Fatalf("provider state escaped through receipt pointers: %#v, %v; want %#v", retry, err, firstCopy)
+	}
+}
+
+func TestProviderValueAbortedReceiptInteroperabilityGoldens(t *testing.T) {
+	const (
+		scopeDigestHex       = "78e35ee017c068429af3d13922e99686dc26b3e4282c7c679e4ec045c1cf6d21"
+		reservationDigestHex = "3feddebf8af0692e26481c0a7c9de75fc8b33ea8b3caac4020064716e586a9d8"
+		unboundJCS           = `{"abort_reason":"superseded","authority_epoch":"9223372036854775807","authority_sequence":"1","database_point":null,"effect_digest":null,"effect_kind":"desired_activate","operation_id":"11111111-1111-4111-8111-111111111111","reservation_digest":"3feddebf8af0692e26481c0a7c9de75fc8b33ea8b3caac4020064716e586a9d8","scope_digest":"78e35ee017c068429af3d13922e99686dc26b3e4282c7c679e4ec045c1cf6d21","scope_kind":"node","status":"aborted"}`
+		unboundDigestHex     = "8caee31658c50c1291ae20344b1d3a6c6fbccb0017db2ac77087e0eeccb1f918"
+		boundJCS             = `{"abort_reason":"provider_dependency_failed","authority_epoch":"9223372036854775807","authority_sequence":"1","database_point":{"db_system_id":"72057594037927937","db_timeline":"4294967295","required_lsn":"0/16B6C50"},"effect_digest":"0300000000000000000000000000000000000000000000000000000000000000","effect_kind":"desired_activate","operation_id":"11111111-1111-4111-8111-111111111111","reservation_digest":"3feddebf8af0692e26481c0a7c9de75fc8b33ea8b3caac4020064716e586a9d8","scope_digest":"78e35ee017c068429af3d13922e99686dc26b3e4282c7c679e4ec045c1cf6d21","scope_kind":"node","status":"aborted"}`
+		boundDigestHex       = "00081b2995c7e375becb40ecb82befce233bac24aa9847f0d1feda6eb2a299cd"
+	)
+	reservation := Reservation{
+		OperationID:       uuid.MustParse("11111111-1111-4111-8111-111111111111"),
+		Kind:              EffectDesiredActivate,
+		ScopeKind:         ScopeNode,
+		ScopeDigest:       mustDigestHexForTest(t, scopeDigestHex),
+		Epoch:             math.MaxInt64,
+		Sequence:          1,
+		ReservationDigest: mustDigestHexForTest(t, reservationDigestHex),
+	}
+	if err := reservation.Validate(); err != nil {
+		t.Fatalf("frozen reservation vector is invalid: %v", err)
+	}
+
+	tests := []struct {
+		name       string
+		reason     AbortReason
+		effect     *contracts.Digest
+		database   *DatabasePoint
+		wantJCS    string
+		wantDigest string
+	}{
+		{
+			name: "unbound aborted", reason: AbortSuperseded,
+			wantJCS: unboundJCS, wantDigest: unboundDigestHex,
+		},
+		{
+			name: "bound aborted", reason: AbortProviderDependencyFailed,
+			effect:     &contracts.Digest{3},
+			database:   &DatabasePoint{SystemID: 72057594037927937, Timeline: math.MaxUint32, RequiredLSN: "0/16B6C50"},
+			wantJCS:    boundJCS,
+			wantDigest: boundDigestHex,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			reason := test.reason
+			receipt := Receipt{
+				Reservation: reservation, EffectDigest: test.effect, DatabasePoint: test.database,
+				Status: StatusAborted, AbortReason: &reason,
+			}
+			if got := independentAbortedReceiptJCSForTest(receipt); got != test.wantJCS {
+				t.Fatalf("aborted receipt JCS = %s\nwant %s", got, test.wantJCS)
+			}
+			digest, err := receiptDigest(receipt)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantDigest := mustDigestHexForTest(t, test.wantDigest)
+			if digest != wantDigest {
+				t.Fatalf("aborted receipt digest = %x, want independently frozen %s for JCS %s", digest, test.wantDigest, test.wantJCS)
+			}
+			receipt.ReceiptDigest = digest
+			if err := receipt.Validate(); err != nil {
+				t.Fatalf("aborted receipt validation: %v", err)
+			}
+		})
 	}
 }
 
@@ -299,4 +424,38 @@ func cloneReceiptForTest(value Receipt) Receipt {
 		clone.AbortReason = &reason
 	}
 	return clone
+}
+
+func mustDigestHexForTest(t *testing.T, value string) contracts.Digest {
+	t.Helper()
+	decoded, err := hex.DecodeString(value)
+	if err != nil || len(decoded) != sha256.Size {
+		t.Fatalf("invalid frozen digest %q: %v", value, err)
+	}
+	var digest contracts.Digest
+	copy(digest[:], decoded)
+	return digest
+}
+
+func independentAbortedReceiptJCSForTest(value Receipt) string {
+	abortReason := "null"
+	if value.AbortReason != nil {
+		abortReason = fmt.Sprintf("%q", string(*value.AbortReason))
+	}
+	databasePoint := "null"
+	if value.DatabasePoint != nil {
+		databasePoint = fmt.Sprintf(
+			`{"db_system_id":"%d","db_timeline":"%d","required_lsn":"%s"}`,
+			value.DatabasePoint.SystemID, value.DatabasePoint.Timeline, value.DatabasePoint.RequiredLSN,
+		)
+	}
+	effectDigest := "null"
+	if value.EffectDigest != nil {
+		effectDigest = fmt.Sprintf("%q", hex.EncodeToString(value.EffectDigest[:]))
+	}
+	return fmt.Sprintf(
+		`{"abort_reason":%s,"authority_epoch":"%d","authority_sequence":"%d","database_point":%s,"effect_digest":%s,"effect_kind":"%s","operation_id":"%s","reservation_digest":"%s","scope_digest":"%s","scope_kind":"%s","status":"%s"}`,
+		abortReason, value.Epoch, value.Sequence, databasePoint, effectDigest, value.Kind, value.OperationID,
+		hex.EncodeToString(value.ReservationDigest[:]), hex.EncodeToString(value.ScopeDigest[:]), value.ScopeKind, value.Status,
+	)
 }

@@ -409,9 +409,31 @@ func TestNodeControlManifestIsLiteralAndExact(t *testing.T) {
 	assertTerminalIssuanceRetention(t, manifest)
 	assertTerminalWorkflowsStartPending(t, manifest)
 	assertTrustPublishVersionUniqueness(t, manifest)
+	assertAuthorityTrustBundleScopeMatrix(t, manifest)
 	if compactManifestToken.Match(raw) {
 		t.Fatalf("manifest contains a compact or qualitative semantic token: %q", compactManifestToken.Find(raw))
 	}
+}
+
+func assertAuthorityTrustBundleScopeMatrix(t *testing.T, manifest nodeControlManifest) {
+	t.Helper()
+	const wantDefinition = "CHECK (scope_kind = 'global_node_trust'::text AND (effect_kind = ANY (ARRAY['trust_bundle_publish'::text, 'root_publish'::text, 'metadata_publish'::text])) OR scope_kind = 'global_operator_trust'::text AND (effect_kind = ANY (ARRAY['trust_bundle_publish'::text, 'operator_authorizer_change'::text])) OR scope_kind = 'node'::text AND (effect_kind = ANY (ARRAY['grant_create'::text, 'grant_claim'::text, 'certificate_activate'::text, 'certificate_revoke'::text, 'identity_epoch_advance'::text, 'security_incident_open'::text, 'security_incident_resolve'::text, 'resource_envelope_activate'::text, 'desired_activate'::text, 'recovery_activate'::text, 'operator_transition'::text])))"
+	for _, table := range manifest.Tables {
+		if table.Name != "control_plane_authority_fences" {
+			continue
+		}
+		for _, constraint := range table.Constraints {
+			if constraint.Name != "control_plane_authority_fences_effect_scope_matrix" {
+				continue
+			}
+			if constraint.Kind != "check" || constraint.DefinitionSQL != wantDefinition ||
+				!equalStrings(constraint.Columns, []string{"scope_kind", "effect_kind"}) {
+				t.Fatalf("authority trust-bundle scope matrix is not exact: %+v", constraint)
+			}
+			return
+		}
+	}
+	t.Fatal("manifest lacks the closed authority effect/scope matrix")
 }
 
 func assertTrustPublishVersionUniqueness(t *testing.T, manifest nodeControlManifest) {
