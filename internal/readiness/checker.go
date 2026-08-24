@@ -3,9 +3,12 @@ package readiness
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"sync"
 	"time"
+
+	nodeauthority "talenro.local/platform/internal/nodecontrol/authority"
 )
 
 const (
@@ -18,6 +21,36 @@ const (
 type Probe interface {
 	Name() string
 	Ping(context.Context) error
+}
+
+var errInvalidAuthorityProbe = errors.New("readiness: invalid authority probe")
+
+type authorityReadinessChecker interface {
+	CheckReady(context.Context) (nodeauthority.Readiness, error)
+}
+
+type authorityProbe struct {
+	checker authorityReadinessChecker
+}
+
+func newAuthorityProbe(checker authorityReadinessChecker) (*authorityProbe, error) {
+	if isNilValue(checker) {
+		return nil, errInvalidAuthorityProbe
+	}
+	return &authorityProbe{checker: checker}, nil
+}
+
+func (*authorityProbe) Name() string { return "authority" }
+
+func (probe *authorityProbe) Ping(ctx context.Context) error {
+	if probe == nil || isNilValue(probe.checker) || ctx == nil || ctx.Err() != nil {
+		return nodeauthority.ErrAuthorityUnavailable
+	}
+	readiness, err := probe.checker.CheckReady(ctx)
+	if err != nil || !readiness.Ready {
+		return nodeauthority.ErrAuthorityUnavailable
+	}
+	return nil
 }
 
 // Checker runs validated probes within a shared timeout.
@@ -106,7 +139,7 @@ type probeOutcome struct {
 
 func (c *Checker) evaluate(ctx context.Context, checked checkedProbe) probeOutcome {
 	switch checked.kind {
-	case probePostgres:
+	case probePostgres, probeAuthority:
 		if checked.probe.Ping(ctx) != nil {
 			return probeOutcome{status: statusDown}
 		}
@@ -149,6 +182,7 @@ const (
 	probeRedis
 	probeNATS
 	probeOutbox
+	probeAuthority
 )
 
 func kindForName(name string) probeKind {
@@ -159,6 +193,8 @@ func kindForName(name string) probeKind {
 		return probeRedis
 	case "nats":
 		return probeNATS
+	case "authority":
+		return probeAuthority
 	default:
 		return 0
 	}
@@ -229,7 +265,7 @@ func isNilValue(value any) bool {
 
 func isPublicProbeName(name string) bool {
 	switch name {
-	case "postgres", "redis", "nats":
+	case "postgres", "redis", "nats", "authority":
 		return true
 	default:
 		return false

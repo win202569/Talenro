@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	nodeauthority "talenro.local/platform/internal/nodecontrol/authority"
 )
 
 type fakeProbe struct {
@@ -14,6 +16,15 @@ type fakeProbe struct {
 }
 
 type typedNilProbe struct{}
+
+type fakeAuthorityReadinessChecker struct {
+	readiness nodeauthority.Readiness
+	err       error
+}
+
+func (checker *fakeAuthorityReadinessChecker) CheckReady(context.Context) (nodeauthority.Readiness, error) {
+	return checker.readiness, checker.err
+}
 
 func (*typedNilProbe) Name() string { panic("typed nil probe name called") }
 
@@ -53,6 +64,7 @@ func TestCheckReturnsReadyWhenAllProbesSucceed(t *testing.T) {
 		fakeProbe{name: "postgres"},
 		fakeProbe{name: "redis"},
 		fakeProbe{name: "nats"},
+		fakeProbe{name: "authority"},
 	)
 
 	ready, checks := checker.Check(context.Background())
@@ -60,9 +72,36 @@ func TestCheckReturnsReadyWhenAllProbesSucceed(t *testing.T) {
 	if !ready {
 		t.Fatal("expected ready")
 	}
-	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up"}
+	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up", "authority": "up"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
+	}
+}
+
+func TestAuthorityProbeHasFixedNameAndValueFreeFailure(t *testing.T) {
+	checker := &fakeAuthorityReadinessChecker{readiness: nodeauthority.Readiness{Ready: true, Reason: nodeauthority.ReadinessReady}}
+	probe, err := newAuthorityProbe(checker)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if probe.Name() != "authority" {
+		t.Fatalf("Name = %q, want authority", probe.Name())
+	}
+	if err := probe.Ping(t.Context()); err != nil {
+		t.Fatalf("ready Ping error = %v", err)
+	}
+
+	checker.readiness = nodeauthority.Readiness{
+		ProviderHead: nodeauthority.Head{Epoch: 9223372036854775807},
+		DatabaseHead: nodeauthority.DatabaseHead{Epoch: 123456789},
+		Reason:       nodeauthority.ReadinessDatabaseBehindProvider,
+	}
+	if err := probe.Ping(t.Context()); err != nodeauthority.ErrAuthorityUnavailable {
+		t.Fatalf("unready Ping error = %v, want fixed ErrAuthorityUnavailable", err)
+	}
+	checker.err = errors.New("postgres://private-host/account/device/secret")
+	if err := probe.Ping(t.Context()); err != nodeauthority.ErrAuthorityUnavailable {
+		t.Fatalf("dependency Ping error = %v, want fixed ErrAuthorityUnavailable", err)
 	}
 }
 
@@ -266,6 +305,7 @@ func TestNewAcceptsAllReviewedPublicComponentNames(t *testing.T) {
 		fakeProbe{name: "postgres"},
 		fakeProbe{name: "redis"},
 		fakeProbe{name: "nats"},
+		fakeProbe{name: "authority"},
 	)
 
 	ready, checks := checker.Check(context.Background())
@@ -273,7 +313,7 @@ func TestNewAcceptsAllReviewedPublicComponentNames(t *testing.T) {
 	if !ready {
 		t.Fatal("expected ready")
 	}
-	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up"}
+	want := map[string]string{"postgres": "up", "redis": "up", "nats": "up", "authority": "up"}
 	if !reflect.DeepEqual(checks, want) {
 		t.Fatalf("unexpected checks: got %#v, want %#v", checks, want)
 	}
