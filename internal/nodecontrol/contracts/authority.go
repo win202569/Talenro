@@ -18,6 +18,11 @@ type VersionedDigest struct {
 	Digest            Digest
 }
 
+type LocalVersionedDigestV1 struct {
+	Version uint64
+	Digest  Digest
+}
+
 type Comparison string
 
 const (
@@ -56,6 +61,23 @@ func CompareVersionedDigest(current, candidate VersionedDigest) (Comparison, err
 	}
 	if candidate.Version > current.Version && candidate.AuthoritySequence > current.AuthoritySequence {
 		return ComparisonAdvance, nil
+	}
+	return ComparisonFork, nil
+}
+
+func CompareLocalVersionedDigest(current, candidate LocalVersionedDigestV1) (Comparison, error) {
+	if current.Version == 0 || current.Version > math.MaxInt64 || current.Digest == (Digest{}) ||
+		candidate.Version == 0 || candidate.Version > math.MaxInt64 || candidate.Digest == (Digest{}) {
+		return "", ErrInvalidAuthorityValue
+	}
+	if candidate.Version < current.Version {
+		return ComparisonRollback, nil
+	}
+	if candidate.Version > current.Version {
+		return ComparisonAdvance, nil
+	}
+	if candidate.Digest == current.Digest {
+		return ComparisonSame, nil
 	}
 	return ComparisonFork, nil
 }
