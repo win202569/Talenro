@@ -20,6 +20,7 @@ const (
 	nodeCertificateStatusChangedType = "node_certificate_status_changed.v1"
 	nodeOperatorActionRecordedType   = "node_operator_action_recorded.v1"
 	nodeControlSubjectPrefix         = "talenro.nodecontrol.v1."
+	maxNodeControlEventWireBytes     = 264 * 1024
 )
 
 var (
@@ -66,11 +67,11 @@ var (
 
 // MarshalNodeControlEvent validates a registered node-control event and returns canonical protobuf bytes.
 func MarshalNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) ([]byte, error) {
-	if event == nil || nodeControlHasUnknownFields(event.ProtoReflect()) || validateNodeControlEvent(event) != nil {
+	if event == nil || validateNodeControlEvent(event) != nil || nodeControlHasUnknownFields(event.ProtoReflect()) {
 		return nil, errInvalidNodeControlEvent
 	}
 	encoded, err := (proto.MarshalOptions{Deterministic: true}).Marshal(event)
-	if err != nil || len(encoded) == 0 {
+	if err != nil || len(encoded) == 0 || len(encoded) > maxNodeControlEventWireBytes {
 		return nil, errInvalidNodeControlEvent
 	}
 	return append([]byte(nil), encoded...), nil
@@ -78,7 +79,7 @@ func MarshalNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) ([]byte, e
 
 // UnmarshalNodeControlEvent rejects unknown and noncanonical protobuf bytes before returning an independent event.
 func UnmarshalNodeControlEvent(encoded []byte) (*nodecontrolv1.NodeControlEventV1, error) {
-	if len(encoded) == 0 {
+	if len(encoded) == 0 || len(encoded) > maxNodeControlEventWireBytes {
 		return nil, errInvalidNodeControlEvent
 	}
 	copyOfEncoded := append([]byte(nil), encoded...)
@@ -114,7 +115,7 @@ func validateNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) error {
 	switch event.GetEventType() {
 	case nodeInventoryChangedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeInventoryChanged)
-		if !ok || !validNodeInventoryChanged(payload.NodeInventoryChanged) ||
+		if !ok || payload == nil || !validNodeInventoryChanged(payload.NodeInventoryChanged) ||
 			event.GetAggregateType() != "node" || event.GetAggregateId() != payload.NodeInventoryChanged.GetNodeId() ||
 			event.GetAggregateVersion() != payload.NodeInventoryChanged.GetInventoryVersion() {
 			return errInvalidNodeControlEvent
@@ -122,7 +123,7 @@ func validateNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) error {
 		return validateNodeControlPayloadDescriptor(payload.NodeInventoryChanged)
 	case nodeDesiredStatePublishedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeDesiredStatePublished)
-		if !ok || !validNodeDesiredStatePublished(payload.NodeDesiredStatePublished) ||
+		if !ok || payload == nil || !validNodeDesiredStatePublished(payload.NodeDesiredStatePublished) ||
 			event.GetAggregateType() != "node" || event.GetAggregateId() != payload.NodeDesiredStatePublished.GetNodeId() ||
 			event.GetAggregateVersion() != payload.NodeDesiredStatePublished.GetGeneration() {
 			return errInvalidNodeControlEvent
@@ -130,7 +131,7 @@ func validateNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) error {
 		return validateNodeControlPayloadDescriptor(payload.NodeDesiredStatePublished)
 	case nodeAvailabilityChangedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeAvailabilityChanged)
-		if !ok || !validNodeAvailabilityChanged(payload.NodeAvailabilityChanged) ||
+		if !ok || payload == nil || !validNodeAvailabilityChanged(payload.NodeAvailabilityChanged) ||
 			event.GetAggregateType() != "node" || event.GetAggregateId() != payload.NodeAvailabilityChanged.GetNodeId() ||
 			event.GetAggregateVersion() != payload.NodeAvailabilityChanged.GetSequence() {
 			return errInvalidNodeControlEvent
@@ -138,21 +139,21 @@ func validateNodeControlEvent(event *nodecontrolv1.NodeControlEventV1) error {
 		return validateNodeControlPayloadDescriptor(payload.NodeAvailabilityChanged)
 	case nodeSecurityStateChangedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeSecurityStateChanged)
-		if !ok || !validNodeSecurityStateChanged(payload.NodeSecurityStateChanged) ||
+		if !ok || payload == nil || !validNodeSecurityStateChanged(payload.NodeSecurityStateChanged) ||
 			event.GetAggregateType() != "node" || event.GetAggregateId() != payload.NodeSecurityStateChanged.GetNodeId() {
 			return errInvalidNodeControlEvent
 		}
 		return validateNodeControlPayloadDescriptor(payload.NodeSecurityStateChanged)
 	case nodeCertificateStatusChangedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeCertificateStatusChanged)
-		if !ok || !validNodeCertificateStatusChanged(payload.NodeCertificateStatusChanged) ||
+		if !ok || payload == nil || !validNodeCertificateStatusChanged(payload.NodeCertificateStatusChanged) ||
 			event.GetAggregateType() != "node" || event.GetAggregateId() != payload.NodeCertificateStatusChanged.GetNodeId() {
 			return errInvalidNodeControlEvent
 		}
 		return validateNodeControlPayloadDescriptor(payload.NodeCertificateStatusChanged)
 	case nodeOperatorActionRecordedType:
 		payload, ok := event.GetPayload().(*nodecontrolv1.NodeControlEventV1_NodeOperatorActionRecorded)
-		if !ok || !validNodeOperatorActionRecorded(payload.NodeOperatorActionRecorded) ||
+		if !ok || payload == nil || !validNodeOperatorActionRecorded(payload.NodeOperatorActionRecorded) ||
 			event.GetAggregateType() != "operator_action" || event.GetAggregateId() != payload.NodeOperatorActionRecorded.GetAuditId() {
 			return errInvalidNodeControlEvent
 		}
@@ -216,7 +217,11 @@ func registeredNodeControlEventType(eventType string) bool {
 
 func canonicalNodeControlUUID(value string) bool {
 	parsed, err := uuid.Parse(value)
-	return err == nil && parsed != uuid.Nil && parsed.String() == value
+	if err != nil || parsed == uuid.Nil || parsed.String() != value || parsed.Variant() != uuid.RFC4122 {
+		return false
+	}
+	version := parsed.Version()
+	return version >= 1 && version <= 5
 }
 
 type nodeControlValueRegistry map[string]struct{}
