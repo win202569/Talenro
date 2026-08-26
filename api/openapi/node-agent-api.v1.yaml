@@ -60,7 +60,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "409":
-          $ref: "#/components/responses/Conflict"
+          $ref: "#/components/responses/NodePollConflict"
         "429":
           $ref: "#/components/responses/RateLimited"
         "503":
@@ -93,7 +93,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "409":
-          $ref: "#/components/responses/Conflict"
+          $ref: "#/components/responses/NodePollConflict"
         "429":
           $ref: "#/components/responses/RateLimited"
         "503":
@@ -579,7 +579,10 @@ components:
           enum: [accepted]
     ConflictArtifactKindV1:
       type: string
-      enum: [server_ca_bundle, node_state_root, node_state_metadata, node_desired_state, node_recovery_state]
+      enum: [desired_state, recovery_state, node_state_trust_metadata, node_state_root_set, server_ca_trust_bundle]
+    TrustConflictEvidenceResultV1:
+      type: string
+      enum: [accepted, escalated]
     SignedConflictArtifactV1:
       type: object
       additionalProperties: false
@@ -613,7 +616,7 @@ components:
         incident_id:
           $ref: "#/components/schemas/CanonicalUUID"
         result:
-          $ref: "#/components/schemas/OperationResultV1"
+          $ref: "#/components/schemas/TrustConflictEvidenceResultV1"
     RecoveryAttestationV1:
       type: object
       additionalProperties: false
@@ -770,6 +773,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/NodeRecoveryPollResponseV1"
+    NodePollConflict:
+      description: Poll request conflicts with authoritative state
+      headers:
+        Talenro-Trust-Conflict-Incident-ID:
+          required: false
+          schema:
+            $ref: "#/components/schemas/CanonicalUUID"
     ObservationAck:
       description: Observation accepted or replayed
       content:

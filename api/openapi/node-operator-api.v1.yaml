@@ -800,12 +800,6 @@ components:
     IdentityStateV1:
       type: string
       enum: [never_enrolled, active, recovery_pending, recovery_limited, revoked]
-    RecoveryReasonV1:
-      type: string
-      enum: [identity_compromise, administrative_disable, retire, authority_restore, security_incident]
-    RecoveryActionV1:
-      type: string
-      enum: [hold_stopped, submit_recovery_attestation, clear_security_latches]
     RestorePhaseV1:
       type: string
       enum: [proposal, approval]

@@ -76,25 +76,25 @@ func (e CertificateAuthorizationReceiptV1Status) Valid() bool {
 
 // Defines values for ConflictArtifactKindV1.
 const (
-	NodeDesiredState  ConflictArtifactKindV1 = "node_desired_state"
-	NodeRecoveryState ConflictArtifactKindV1 = "node_recovery_state"
-	NodeStateMetadata ConflictArtifactKindV1 = "node_state_metadata"
-	NodeStateRoot     ConflictArtifactKindV1 = "node_state_root"
-	ServerCaBundle    ConflictArtifactKindV1 = "server_ca_bundle"
+	DesiredState           ConflictArtifactKindV1 = "desired_state"
+	NodeStateRootSet       ConflictArtifactKindV1 = "node_state_root_set"
+	NodeStateTrustMetadata ConflictArtifactKindV1 = "node_state_trust_metadata"
+	RecoveryState          ConflictArtifactKindV1 = "recovery_state"
+	ServerCaTrustBundle    ConflictArtifactKindV1 = "server_ca_trust_bundle"
 )
 
 // Valid indicates whether the value is a known member of the ConflictArtifactKindV1 enum.
 func (e ConflictArtifactKindV1) Valid() bool {
 	switch e {
-	case NodeDesiredState:
+	case DesiredState:
 		return true
-	case NodeRecoveryState:
+	case NodeStateRootSet:
 		return true
-	case NodeStateMetadata:
+	case NodeStateTrustMetadata:
 		return true
-	case NodeStateRoot:
+	case RecoveryState:
 		return true
-	case ServerCaBundle:
+	case ServerCaTrustBundle:
 		return true
 	default:
 		return false
@@ -365,6 +365,24 @@ const (
 func (e SecurityFaultReceiptV1Result) Valid() bool {
 	switch e {
 	case SecurityFaultReceiptV1ResultAccepted:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TrustConflictEvidenceResultV1.
+const (
+	TrustConflictEvidenceResultV1Accepted  TrustConflictEvidenceResultV1 = "accepted"
+	TrustConflictEvidenceResultV1Escalated TrustConflictEvidenceResultV1 = "escalated"
+)
+
+// Valid indicates whether the value is a known member of the TrustConflictEvidenceResultV1 enum.
+func (e TrustConflictEvidenceResultV1) Valid() bool {
+	switch e {
+	case TrustConflictEvidenceResultV1Accepted:
+		return true
+	case TrustConflictEvidenceResultV1Escalated:
 		return true
 	default:
 		return false
@@ -655,8 +673,8 @@ type SupervisorFaultV1 struct {
 
 // TrustConflictEvidenceAckV1 defines model for TrustConflictEvidenceAckV1.
 type TrustConflictEvidenceAckV1 struct {
-	IncidentId CanonicalUUID     `json:"incident_id"`
-	Result     OperationResultV1 `json:"result"`
+	IncidentId CanonicalUUID                 `json:"incident_id"`
+	Result     TrustConflictEvidenceResultV1 `json:"result"`
 }
 
 // TrustConflictEvidenceRequestV1 defines model for TrustConflictEvidenceRequestV1.
@@ -664,6 +682,9 @@ type TrustConflictEvidenceRequestV1 struct {
 	Artifacts  []SignedConflictArtifactV1 `json:"artifacts"`
 	IncidentId CanonicalUUID              `json:"incident_id"`
 }
+
+// TrustConflictEvidenceResultV1 defines model for TrustConflictEvidenceResultV1.
+type TrustConflictEvidenceResultV1 string
 
 // CertificateAuthorization defines model for CertificateAuthorization.
 type CertificateAuthorization = CertificateAuthorizationV1
@@ -1537,6 +1558,11 @@ func (r RotateNodeCertificateResponse) ContentType() string {
 	return ""
 }
 
+// PollNodeDesiredStateResponse409Headers the declared response headers of an HTTP 409 response for PollNodeDesiredState
+type PollNodeDesiredStateResponse409Headers struct {
+	TalenroTrustConflictIncidentID *CanonicalUUID
+}
+
 // PollNodeDesiredStateResponse429Headers the declared response headers of an HTTP 429 response for PollNodeDesiredState
 type PollNodeDesiredStateResponse429Headers struct {
 	RetryAfter *int
@@ -1553,12 +1579,12 @@ type PollNodeDesiredStateResponse struct {
 	JSON401 *Unauthenticated
 	// JSON403 the response for an HTTP 403 `application/json` response
 	JSON403 *Forbidden
-	// JSON409 the response for an HTTP 409 `application/json` response
-	JSON409 *Conflict
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *RateLimited
 	// JSON503 the response for an HTTP 503 `application/json` response
 	JSON503 *DependencyUnavailable
+	// Headers409 the parsed response headers for an HTTP 409 response
+	Headers409 *PollNodeDesiredStateResponse409Headers
 	// Headers429 the parsed response headers for an HTTP 429 response
 	Headers429 *PollNodeDesiredStateResponse429Headers
 }
@@ -1581,11 +1607,6 @@ func (r PollNodeDesiredStateResponse) GetJSON401() *Unauthenticated {
 // GetJSON403 returns the response for an HTTP 403 `application/json` response
 func (r PollNodeDesiredStateResponse) GetJSON403() *Forbidden {
 	return r.JSON403
-}
-
-// GetJSON409 returns the response for an HTTP 409 `application/json` response
-func (r PollNodeDesiredStateResponse) GetJSON409() *Conflict {
-	return r.JSON409
 }
 
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
@@ -1807,6 +1828,11 @@ func (r CreateNodeRecoveryAttestationResponse) ContentType() string {
 	return ""
 }
 
+// PollNodeRecoveryStateResponse409Headers the declared response headers of an HTTP 409 response for PollNodeRecoveryState
+type PollNodeRecoveryStateResponse409Headers struct {
+	TalenroTrustConflictIncidentID *CanonicalUUID
+}
+
 // PollNodeRecoveryStateResponse429Headers the declared response headers of an HTTP 429 response for PollNodeRecoveryState
 type PollNodeRecoveryStateResponse429Headers struct {
 	RetryAfter *int
@@ -1823,12 +1849,12 @@ type PollNodeRecoveryStateResponse struct {
 	JSON401 *Unauthenticated
 	// JSON403 the response for an HTTP 403 `application/json` response
 	JSON403 *Forbidden
-	// JSON409 the response for an HTTP 409 `application/json` response
-	JSON409 *Conflict
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *RateLimited
 	// JSON503 the response for an HTTP 503 `application/json` response
 	JSON503 *DependencyUnavailable
+	// Headers409 the parsed response headers for an HTTP 409 response
+	Headers409 *PollNodeRecoveryStateResponse409Headers
 	// Headers429 the parsed response headers for an HTTP 429 response
 	Headers429 *PollNodeRecoveryStateResponse429Headers
 }
@@ -1851,11 +1877,6 @@ func (r PollNodeRecoveryStateResponse) GetJSON401() *Unauthenticated {
 // GetJSON403 returns the response for an HTTP 403 `application/json` response
 func (r PollNodeRecoveryStateResponse) GetJSON403() *Forbidden {
 	return r.JSON403
-}
-
-// GetJSON409 returns the response for an HTTP 409 `application/json` response
-func (r PollNodeRecoveryStateResponse) GetJSON409() *Conflict {
-	return r.JSON409
 }
 
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
@@ -2357,12 +2378,8 @@ func ParsePollNodeDesiredStateResponse(rsp *http.Response) (*PollNodeDesiredStat
 		}
 		response.JSON403 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest Conflict
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
+	case rsp.StatusCode == 409:
+		break // No content-type
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
 		var dest RateLimited
@@ -2381,6 +2398,16 @@ func ParsePollNodeDesiredStateResponse(rsp *http.Response) (*PollNodeDesiredStat
 	}
 
 	switch {
+	case rsp.StatusCode == 409:
+		var headers PollNodeDesiredStateResponse409Headers
+		if values := rsp.Header.Values("Talenro-Trust-Conflict-Incident-ID"); len(values) > 0 {
+			var value CanonicalUUID
+			if err := runtime.BindStyledParameterWithOptions("simple", "Talenro-Trust-Conflict-Incident-ID", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.TalenroTrustConflictIncidentID = &value
+		}
+		response.Headers409 = &headers
 	case rsp.StatusCode == 429:
 		var headers PollNodeDesiredStateResponse429Headers
 		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
@@ -2603,12 +2630,8 @@ func ParsePollNodeRecoveryStateResponse(rsp *http.Response) (*PollNodeRecoverySt
 		}
 		response.JSON403 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest Conflict
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
+	case rsp.StatusCode == 409:
+		break // No content-type
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
 		var dest RateLimited
@@ -2627,6 +2650,16 @@ func ParsePollNodeRecoveryStateResponse(rsp *http.Response) (*PollNodeRecoverySt
 	}
 
 	switch {
+	case rsp.StatusCode == 409:
+		var headers PollNodeRecoveryStateResponse409Headers
+		if values := rsp.Header.Values("Talenro-Trust-Conflict-Incident-ID"); len(values) > 0 {
+			var value CanonicalUUID
+			if err := runtime.BindStyledParameterWithOptions("simple", "Talenro-Trust-Conflict-Incident-ID", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.TalenroTrustConflictIncidentID = &value
+		}
+		response.Headers409 = &headers
 	case rsp.StatusCode == 429:
 		var headers PollNodeRecoveryStateResponse429Headers
 		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
@@ -3072,66 +3105,66 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"//8=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

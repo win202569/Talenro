@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,6 +30,10 @@ var (
 	_ nodebootstrapv1.ServerInterface
 	_ nodeagentv1.ServerInterface
 	_ nodeoperatorv1.ServerInterface
+	_ nodeagentv1.ConflictArtifactKindV1        = (nodeagentv1.SignedConflictArtifactV1{}).Kind
+	_ nodeagentv1.TrustConflictEvidenceResultV1 = (nodeagentv1.TrustConflictEvidenceAckV1{}).Result
+	_ *nodeagentv1.CanonicalUUID                = (nodeagentv1.PollNodeDesiredStateResponse409Headers{}).TalenroTrustConflictIncidentID
+	_ *nodeagentv1.CanonicalUUID                = (nodeagentv1.PollNodeRecoveryStateResponse409Headers{}).TalenroTrustConflictIncidentID
 )
 
 type operationExpectation struct {
@@ -213,6 +219,9 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	}
 
 	assertEnumRegistry(t, agent, "FaultSubtypeV1", []string{"identity_compromise", "online_signer_equivocation", "metadata_rollback", "root_rollback", "root_equivocation", "unverified_client_highwater_conflict", "client_highwater_ahead", "server_trust_bundle_conflict", "trusted_time_rollback_or_unavailable", "local_state_corruption_or_rollback", "release_or_process_integrity", "profile_binding_mismatch", "incident_overflow"})
+	assertEnumRegistry(t, agent, "AdapterV1", []string{"fixture", "xray", "sing_box"})
+	assertEnumRegistry(t, agent, "RecoveryReasonV1", []string{"identity_compromise", "administrative_disable", "retire", "authority_restore", "security_incident"})
+	assertEnumRegistry(t, agent, "RecoveryActionV1", []string{"hold_stopped", "submit_recovery_attestation", "clear_security_latches"})
 	assertEnumRegistry(t, agent, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
 	assertEnumRegistry(t, operator, "OperatorReasonCodeV1", []string{"provision", "inventory_update", "capacity_change", "drain_maintenance", "administrative_disable", "retire", "identity_compromise", "host_remediation", "security_recovery", "authority_restore", "release_update"})
 	assertEnumRegistry(t, operator, "DesiredReasonV1", []string{"initial", "operator_update", "drain", "resume", "lease_refresh", "clear_slot_quarantine", "restore_reauthorize"})
@@ -221,6 +230,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	assertEnumRegistry(t, operator, "OperatorStateV1", []string{"provisioning", "enabled", "draining", "disabled"})
 	assertEnumRegistry(t, operator, "SecurityStateV1", []string{"normal", "quarantined"})
 	assertEnumRegistry(t, operator, "IdentityStateV1", []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked"})
+	assertEnumRegistry(t, operator, "FaultSubtypeV1", []string{"identity_compromise", "online_signer_equivocation", "metadata_rollback", "root_rollback", "root_equivocation", "unverified_client_highwater_conflict", "client_highwater_ahead", "server_trust_bundle_conflict", "trusted_time_rollback_or_unavailable", "local_state_corruption_or_rollback", "release_or_process_integrity", "profile_binding_mismatch", "incident_overflow"})
 	assertEnumRegistry(t, operator, "RestorePhaseV1", []string{"proposal", "approval"})
 	assertEnumRegistry(t, operator, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
 	assertNodeOpenAPIRegistryBindings(t, bootstrap, agent, operator)
@@ -298,6 +308,157 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	}
 }
 
+func TestNodeOpenAPITrustConflictEnums(t *testing.T) {
+	agent := loadAndValidateNodeSpec(t, nodeagentv1.GetSwagger)
+	assertEnumRegistryInOrder(t, agent, "ConflictArtifactKindV1", []string{
+		"desired_state",
+		"recovery_state",
+		"node_state_trust_metadata",
+		"node_state_root_set",
+		"server_ca_trust_bundle",
+	})
+	assertEnumRegistryInOrder(t, agent, "TrustConflictEvidenceResultV1", []string{"accepted", "escalated"})
+
+	kind := mustSchema(t, agent, "SignedConflictArtifactV1").Properties["kind"]
+	if got := schemaReference(kind); got != "#/components/schemas/ConflictArtifactKindV1" {
+		t.Errorf("SignedConflictArtifactV1.kind reference = %q", got)
+	}
+	result := mustSchema(t, agent, "TrustConflictEvidenceAckV1").Properties["result"]
+	if got := schemaReference(result); got != "#/components/schemas/TrustConflictEvidenceResultV1" {
+		t.Errorf("TrustConflictEvidenceAckV1.result reference = %q", got)
+	}
+}
+
+func TestNodeOpenAPIGeneratedTrustConflictTypes(t *testing.T) {
+	artifactKinds := []struct {
+		value nodeagentv1.ConflictArtifactKindV1
+		want  string
+	}{
+		{value: nodeagentv1.DesiredState, want: "desired_state"},
+		{value: nodeagentv1.RecoveryState, want: "recovery_state"},
+		{value: nodeagentv1.NodeStateTrustMetadata, want: "node_state_trust_metadata"},
+		{value: nodeagentv1.NodeStateRootSet, want: "node_state_root_set"},
+		{value: nodeagentv1.ServerCaTrustBundle, want: "server_ca_trust_bundle"},
+	}
+	for _, test := range artifactKinds {
+		if !test.value.Valid() || string(test.value) != test.want {
+			t.Errorf("generated conflict artifact kind = %q, valid=%t; want %q", test.value, test.value.Valid(), test.want)
+		}
+	}
+	for _, invalid := range []nodeagentv1.ConflictArtifactKindV1{
+		"server_ca_bundle",
+		"node_state_root",
+		"node_state_metadata",
+		"node_desired_state",
+		"node_recovery_state",
+		"Desired_State",
+	} {
+		if invalid.Valid() {
+			t.Errorf("obsolete or case-variant conflict artifact kind %q is valid", invalid)
+		}
+	}
+
+	results := []struct {
+		value nodeagentv1.TrustConflictEvidenceResultV1
+		want  string
+	}{
+		{value: nodeagentv1.TrustConflictEvidenceResultV1Accepted, want: "accepted"},
+		{value: nodeagentv1.TrustConflictEvidenceResultV1Escalated, want: "escalated"},
+	}
+	for _, test := range results {
+		if !test.value.Valid() || string(test.value) != test.want {
+			t.Errorf("generated trust-conflict result = %q, valid=%t; want %q", test.value, test.value.Valid(), test.want)
+		}
+	}
+	for _, invalid := range []nodeagentv1.TrustConflictEvidenceResultV1{
+		"pending", "active", "completed", "superseded", "rejected", "Accepted",
+	} {
+		if invalid.Valid() {
+			t.Errorf("non-route trust-conflict result %q is valid", invalid)
+		}
+	}
+
+	responses := []struct {
+		name  string
+		value any
+	}{
+		{name: "desired", value: nodeagentv1.PollNodeDesiredStateResponse{}},
+		{name: "recovery", value: nodeagentv1.PollNodeRecoveryStateResponse{}},
+	}
+	for _, response := range responses {
+		typeOfResponse := reflect.TypeOf(response.value)
+		if _, ok := typeOfResponse.FieldByName("JSON409"); ok {
+			t.Errorf("%s poll generated response exposes JSON409", response.name)
+		}
+		if _, ok := typeOfResponse.FieldByName("Headers409"); !ok {
+			t.Errorf("%s poll generated response lacks typed Headers409", response.name)
+		}
+	}
+}
+
+func TestNodeOpenAPIPollConflictContract(t *testing.T) {
+	agent := loadAndValidateNodeSpec(t, nodeagentv1.GetSwagger)
+	const headerName = "Talenro-Trust-Conflict-Incident-ID"
+
+	component := agent.Components.Responses["NodePollConflict"]
+	if component == nil || component.Value == nil {
+		t.Fatal("missing shared NodePollConflict response")
+	}
+	assertNodePollConflictResponse(t, component.Value, headerName)
+
+	for _, path := range []string{"/v1/node-agent/desired-state:poll", "/v1/node-agent/recovery-state:poll"} {
+		operation := agent.Paths.Find(path).Post
+		conflict := operation.Responses.Value("409")
+		if conflict == nil || conflict.Ref != "#/components/responses/NodePollConflict" {
+			t.Fatalf("%s 409 response = %#v, want shared NodePollConflict", path, conflict)
+		}
+		assertNodePollConflictResponse(t, conflict.Value, headerName)
+		if got := effectiveParameterNames(agent.Paths.Find(path), operation, "header"); len(got) != 0 {
+			t.Errorf("%s accepts request headers %v, want none", path, got)
+		}
+		for _, status := range []string{"200", "204"} {
+			response := operation.Responses.Value(status)
+			if response != nil && response.Value != nil && response.Value.Headers[headerName] != nil {
+				t.Errorf("%s %s unexpectedly exposes %s", path, status, headerName)
+			}
+		}
+	}
+
+	for _, expectation := range nodeSpecExpectations()[1].operations {
+		if expectation.operationID == "pollNodeDesiredState" || expectation.operationID == "pollNodeRecoveryState" {
+			continue
+		}
+		item := agent.Paths.Find(expectation.path)
+		operation := operationForMethod(item, expectation.method)
+		conflict := operation.Responses.Value("409")
+		if conflict != nil && conflict.Value != nil && conflict.Value.Headers[headerName] != nil {
+			t.Errorf("%s 409 unexpectedly exposes %s", expectation.operationID, headerName)
+		}
+	}
+}
+
+func TestNodeOpenAPISourceAndEmbeddedInventoriesMatch(t *testing.T) {
+	tests := []struct {
+		name string
+		file string
+		get  func() (*openapi3.T, error)
+	}{
+		{name: "bootstrap", file: "node-bootstrap-api.v1.yaml", get: nodebootstrapv1.GetSwagger},
+		{name: "agent", file: "node-agent-api.v1.yaml", get: nodeagentv1.GetSwagger},
+		{name: "operator", file: "node-operator-api.v1.yaml", get: nodeoperatorv1.GetSwagger},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			source := loadNodeOpenAPISource(t, test.file)
+			embedded := loadAndValidateNodeSpec(t, test.get)
+			assertExactStringSet(t, "source/embedded schemas", schemaNames(source), schemaNames(embedded))
+			assertExactStringSet(t, "source/embedded responses", mapKeys(source.Components.Responses), mapKeys(embedded.Components.Responses))
+			assertExactStringSet(t, "source/embedded paths", mapKeys(source.Paths.Map()), mapKeys(embedded.Paths.Map()))
+			assertExactStringSet(t, "source/embedded operations", operationInventory(source), operationInventory(embedded))
+		})
+	}
+}
+
 func TestNodeOpenAPIGeneratedClientAndServerSurfaces(t *testing.T) {
 	clients := []struct {
 		name string
@@ -355,7 +516,7 @@ func nodeSpecExpectations() []nodeSpecExpectation {
 				{method: http.MethodPost, path: "/v1/node-agent/trust-conflict-evidence", operationID: "createNodeTrustConflictEvidence", requestSchema: "TrustConflictEvidenceRequestV1", successSchemas: map[string]string{"200": "TrustConflictEvidenceAckV1"}, wireBytes: 1048576, decodedBytes: 1048576},
 				{method: http.MethodPost, path: "/v1/node-agent/recovery-attestations", operationID: "createNodeRecoveryAttestation", requestSchema: "RecoveryAttestationV1", successSchemas: map[string]string{"200": "RecoveryAttestationAckV1"}, wireBytes: 65536, decodedBytes: 65536},
 			},
-			schemaNames: []string{"AdapterV1", "Base64URL32", "Base64URL64", "Base64URLDER", "CSRDER", "CanonicalUUID", "CertificateAuthorizationReceiptV1", "CertificateAuthorizationV1", "ConflictArtifactKindV1", "DesiredPollRequestV1", "DigestHex32", "FaultSubtypeV1", "NodeActorHighWaterV1", "NodeHighWaterV1", "NodeObservationV1", "NodeRecoveryPollResponseV1", "NodeSlotFactV1", "NodeStatePollResponseV1", "NodeTimeAttestationV1", "NonNegativeInt64", "ObservationAckV1", "OperationResultV1", "PositiveInt64", "PublicErrorV1", "RecoveryActionV1", "RecoveryAttestationAckV1", "RecoveryAttestationV1", "RecoveryPollRequestV1", "RecoveryReasonV1", "RotateNodeCertificateRequestV1", "SecurityFaultReceiptV1", "SecurityFaultReportV1", "SignedCanonicalArtifactV1", "SignedConflictArtifactV1", "SignedRecoveryStateV1", "SupervisorFaultV1", "TrustConflictEvidenceAckV1", "TrustConflictEvidenceRequestV1"},
+			schemaNames: []string{"AdapterV1", "Base64URL32", "Base64URL64", "Base64URLDER", "CSRDER", "CanonicalUUID", "CertificateAuthorizationReceiptV1", "CertificateAuthorizationV1", "ConflictArtifactKindV1", "DesiredPollRequestV1", "DigestHex32", "FaultSubtypeV1", "NodeActorHighWaterV1", "NodeHighWaterV1", "NodeObservationV1", "NodeRecoveryPollResponseV1", "NodeSlotFactV1", "NodeStatePollResponseV1", "NodeTimeAttestationV1", "NonNegativeInt64", "ObservationAckV1", "OperationResultV1", "PositiveInt64", "PublicErrorV1", "RecoveryActionV1", "RecoveryAttestationAckV1", "RecoveryAttestationV1", "RecoveryPollRequestV1", "RecoveryReasonV1", "RotateNodeCertificateRequestV1", "SecurityFaultReceiptV1", "SecurityFaultReportV1", "SignedCanonicalArtifactV1", "SignedConflictArtifactV1", "SignedRecoveryStateV1", "SupervisorFaultV1", "TrustConflictEvidenceAckV1", "TrustConflictEvidenceRequestV1", "TrustConflictEvidenceResultV1"},
 		},
 		operatorExpectation(),
 	}
@@ -563,6 +724,64 @@ func loadAndValidateNodeSpec(t *testing.T, get func() (*openapi3.T, error)) *ope
 		t.Fatal(err)
 	}
 	return spec
+}
+
+func loadNodeOpenAPISource(t *testing.T, file string) *openapi3.T {
+	t.Helper()
+	path := filepath.Join("..", "..", "..", "api", "openapi", file)
+	spec, err := openapi3.NewLoader().LoadFromFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := spec.Validate(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	return spec
+}
+
+func assertNodePollConflictResponse(t *testing.T, response *openapi3.Response, headerName string) {
+	t.Helper()
+	if response == nil {
+		t.Fatal("missing NodePollConflict response value")
+	}
+	if len(response.Content) != 0 {
+		t.Errorf("NodePollConflict content = %v, want no body", mapKeys(response.Content))
+	}
+	assertExactStringSet(t, "NodePollConflict headers", mapKeys(response.Headers), []string{headerName})
+	header := response.Headers[headerName]
+	if header == nil || header.Value == nil || header.Value.Schema == nil ||
+		schemaReference(header.Value.Schema) != "#/components/schemas/CanonicalUUID" {
+		t.Errorf("NodePollConflict %s = %#v, want optional CanonicalUUID", headerName, header)
+		return
+	}
+	if header.Value.Required {
+		t.Errorf("NodePollConflict %s must remain optional", headerName)
+	}
+}
+
+func operationInventory(spec *openapi3.T) []string {
+	operations := make([]string, 0)
+	for path, item := range spec.Paths.Map() {
+		for _, candidate := range []struct {
+			method    string
+			operation *openapi3.Operation
+		}{
+			{method: http.MethodConnect, operation: item.Connect},
+			{method: http.MethodDelete, operation: item.Delete},
+			{method: http.MethodGet, operation: item.Get},
+			{method: http.MethodHead, operation: item.Head},
+			{method: http.MethodOptions, operation: item.Options},
+			{method: http.MethodPatch, operation: item.Patch},
+			{method: http.MethodPost, operation: item.Post},
+			{method: http.MethodPut, operation: item.Put},
+			{method: http.MethodTrace, operation: item.Trace},
+		} {
+			if candidate.operation != nil {
+				operations = append(operations, candidate.method+" "+path+" "+candidate.operation.OperationID)
+			}
+		}
+	}
+	return operations
 }
 
 func operationForMethod(item *openapi3.PathItem, method string) *openapi3.Operation {
@@ -868,6 +1087,18 @@ func assertEnum(t *testing.T, spec *openapi3.T, schemaName, propertyName string,
 func assertEnumRegistry(t *testing.T, spec *openapi3.T, schemaName string, want []string) {
 	t.Helper()
 	assertEnumValues(t, schemaName, mustSchema(t, spec, schemaName), want)
+}
+
+func assertEnumRegistryInOrder(t *testing.T, spec *openapi3.T, schemaName string, want []string) {
+	t.Helper()
+	schema := mustSchema(t, spec, schemaName)
+	got := make([]string, 0, len(schema.Enum))
+	for _, value := range schema.Enum {
+		got = append(got, fmt.Sprint(value))
+	}
+	if strings.Join(got, "\x00") != strings.Join(want, "\x00") {
+		t.Errorf("%s enum order = %v, want %v", schemaName, got, want)
+	}
 }
 
 func assertEnumValues(t *testing.T, label string, schema *openapi3.Schema, want []string) {
