@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 交付 CSR-bound enrollment/rotation、外部 issuer 与 fence-finalized certificate authorization receipt、host-deployed trust-bundle package、rollback-resistant operator trust guard，以及彼此隔离且有界的 bootstrap/agent/operator TLS 1.3 listeners。
+**Goal:** 交付 CSR-bound enrollment/rotation、外部 issuer 与 fence-finalized certificate authorization receipt、host-deployed trust-bundle package、rollback-resistant operator trust guard、彼此隔离且有界的 bootstrap/agent/operator TLS 1.3 listeners，以及 authority v7 所需的 production ClaimV1 provider、runtime/timeline attestors、rollback-resistant commit archive/Fence、staging revocation provider 与 source/Down retirement enforcement。
 
-**Architecture:** PostgreSQL 只保存 grant digest、issuance intent、certificate identity 与 trust high-water，永不保存私钥或 grant plaintext。Identity workflow 先 reserve authority sequence并在短事务消费 grant/建立 immutable intent，锁外调用外部 issuer，独立验证 exact X.509 profile，再经 fence receipt 激活。Listener 的 TLS chain validation 只建立 transport；每次 request 入场和 response commit 都按 exact leaf row、authority/identity epoch、certificate/node state 重授权。Trust package 与 operator guard 从 host deployment 的独立 role keys/rollback-resistant provider取得信任，不能从当前 TLS 连接自举。
+**Architecture:** PostgreSQL 只保存 grant digest、issuance intent、certificate identity 与 trust high-water，永不保存私钥或 grant plaintext。Identity workflow 先 reserve authority sequence并在短事务消费 grant/建立 immutable intent，锁外调用外部 issuer，独立验证 exact X.509 profile，再经 fence receipt 激活。Listener 的 TLS chain validation 只建立 transport；每次 request 入场和 response commit 都按 exact leaf row、authority/identity epoch、certificate/node state 重授权。Trust package 与 operator guard 从 host deployment 的独立 role keys/rollback-resistant provider取得信任，不能从当前 TLS 连接自举。Authority provider/attestors 只消费 B01 的 canonical contracts/table functions；trusted read observation、primary commit stream、semantic-ID journal、prefix subject-slot reservation、stable once-row 与 Fence/Inspect evidence 存在 PostgreSQL 之外的 rollback-resistant provider failure domain，且在 DB transaction 外完成。
 
-**Tech Stack:** Go 1.26.5、PostgreSQL 18.4、pgx 5.10.0、sqlc 1.31.1、ECDSA P-256、Ed25519、X.509、SHA-256、RFC 8785 JCS、TLS 1.3、HTTP/2、Batch 01 authority fence、Batch 02 inventory/operator/state services。
+**Tech Stack:** Go 1.26.5、PostgreSQL 18.4、pgx 5.10.0、sqlc 1.31.1、PostgreSQL trusted read/WAL decoding（含 COMMIT/COMMIT PREPARED end LSN）、rollback-resistant append-only archive、ECDSA P-256、Ed25519、X.509、SHA-256、RFC 8785 JCS、TLS 1.3、HTTP/2、Batch 01 authority contracts/schema/functions、Batch 02 inventory/operator/state services。
 
-**Spec:** [Approved C1.2 node and POP control-plane design](../specs/2026-08-23-node-pop-control-plane-design.md), approved working-tree SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`.
+**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`, especially §10 B03 and §11; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json).
 
 ## Global Constraints
 
@@ -23,6 +23,11 @@
 - 只有 committed authority receipt加最终 activation transaction的 exact certificate可授权；pending/rejected/failed/superseded issuance和迟到 issuer result永不授权。
 - Trust package只能由 host-deployed `DeploymentAuthorityKeySetV1` 的 exact role签名；bootstrap/poll/current TLS connection均不能更新 server CA 或 deployment keys。
 - 每个 request 入场和 mutation/response commit前重查 exact leaf DER/public key/issuer/serial/status、identity epoch、authority epoch、node/operator state和 trusted time。
+- B03 只消费 B01 冻结的 contracts、canonical schema/table/function 与 shared generated model foundations；本册不得创建或修改 migration、schema、wire/JCS/digest domain，也不得拥有 B10 `SpecDigest`。唯一 query/API 例外是本册 Frozen list 中三份 B03 query source、对应三份 sqlc file，以及 pinned generator 对 shared `models.go`/`querier.go` 的机械输出；这些 task 必须串行执行 exact-stage/second-generation drift gate，不能手写或改动其他 batch query API。
+- B03 提供 production ClaimV1 provider、runtime/timeline attestors、WAL/archive/Fence/Inspect、staging revocation与 source/Down retirement enforcement，并只按B01固定role/schema签署自身provider/attestor response；不得拥有 B11 的 orchestration、authorization decision、operator-signed capability/intent/evidence、bundle选择或 Release/Abort policy selection。
+- rollback-resistant archive/provider 必须独立于 PostgreSQL restore failure domain；所有 provider/attestor/archive/Fence 外部调用都在 DB transaction 外，DB 锁序与 provider append 顺序必须显式且可崩溃恢复。
+- Fence once-key 只由稳定的六项 holder tuple 派生，mutable lease digest 不得进入 key；同一 holder lease rollover 必须复用原 key，只有 higher-generation holder 才能取得新 key。每次 signed Inspect freshness 仍逐项核对完整七项 candidate tuple。
+- `FreshRestoreImportApplicationV1` 对所有 Fence reason 永久拒绝；lost/unarchived fresh import 不得靠 Fence 或 re-import 恢复，只允许由 recovery revocation application 导向 B11 Abort。
 - 本计划中每个 checkbox 是一个可独立执行的 2–5 分钟动作；每个 task 必须 RED、GREEN、REFACTOR 后独立 commit。
 - 只 stage task 的精确路径；不得 stage、删除或读取用户未跟踪目录 `.cache/`、`.superpowers/`、`.task19-go/`。
 
@@ -33,8 +38,12 @@
 ```text
 db/queries/nodecontrol_identity.sql
 db/queries/nodecontrol_recovery.sql
+db/queries/nodecontrol_resource_envelope.sql
 internal/store/nodecontrol_identity.sql.go
 internal/store/nodecontrol_recovery.sql.go
+internal/store/nodecontrol_resource_envelope.sql.go
+internal/store/models.go                           # shared sqlc output; generator-only, task-scoped collision ownership
+internal/store/querier.go                          # shared sqlc output; generator-only, task-scoped collision ownership
 internal/nodecontrol/identity/provider.go
 internal/nodecontrol/identity/types.go
 internal/nodecontrol/identity/csr.go
@@ -43,15 +52,36 @@ internal/nodecontrol/identity/receipt.go
 internal/nodecontrol/identity/repository.go
 internal/nodecontrol/identity/postgres_repository.go
 internal/nodecontrol/identity/service.go
+internal/nodecontrol/identity/security_fault_binding.go
+internal/nodecontrol/identity/trust_conflict_binding.go
 internal/nodecontrol/hostevidence/deployment_keys.go
 internal/nodecontrol/hostevidence/trust_bundle.go
 internal/nodecontrol/hostevidence/operator_guard.go
 internal/nodecontrol/hostevidence/remediation.go
+internal/nodecontrol/hostevidence/resource_envelope.go
+internal/nodecontrol/hostevidence/resource_envelope_service.go
 internal/nodecontrol/recovery/types.go
 internal/nodecontrol/recovery/repository.go
 internal/nodecontrol/recovery/postgres_repository.go
 internal/nodecontrol/recovery/security_fault.go
+internal/nodecontrol/recovery/trust_conflict.go
 internal/nodecontrol/recovery/operator_actions.go
+internal/nodecontrol/claimv1/provider.go
+internal/nodecontrol/claimv1/head.go
+internal/nodecontrol/claimv1/epoch.go
+internal/nodecontrol/claimv1/consumption.go
+internal/nodecontrol/claimv1/staging.go
+internal/nodecontrol/claimv1/retirement.go
+internal/nodecontrol/incarnation/runtime_attestor.go
+internal/nodecontrol/incarnation/timeline_attestor.go
+internal/nodecontrol/incarnation/rebind.go
+internal/nodecontrol/commitarchive/archive.go
+internal/nodecontrol/commitarchive/wal_decoder.go
+internal/nodecontrol/commitarchive/postgres_wal_decoder.go
+internal/nodecontrol/commitarchive/inspect.go
+internal/nodecontrol/commitarchive/fence.go
+internal/nodecontrol/commitarchive/journal.go
+internal/nodecontrol/authorityadapter/provider.go
 internal/nodebootstrapapi/handler.go
 internal/nodebootstrapapi/server.go
 internal/nodeagentapi/handler.go
@@ -64,9 +94,10 @@ internal/nodeoperatorapi/server.go
 internal/platform/tlsserver.go
 internal/config/nodecontrol.go
 cmd/control-api/main.go
+testdata/c12/integration-node-identity-mtls.v1.json
 ```
 
-Batch 04 consumes `CertificateAuthorizationReceiptV1`, trust-package verification, endpoint authorization and signed-state handlers; it owns candidate keystore installation and outbound client transport. B03 does not write node private keys or agent rollback state.
+Batch 01 owns every canonical authority/staging table, function, migration and digest/wire contract plus the query APIs listed in B01；B03 consumes them without redefining them and owns only its three listed query sources/sqlc files. Because sqlc regenerates shared `internal/store/models.go`/`querier.go`, those two files are serialized generator outputs under the currently executing query task, not a hand-edited or permanent exclusive API ownership transfer. Batch 10 alone owns `SpecDigest`. Batch 11 owns orchestration, decision authorization, challenge construction, operator-signed capability/intent/evidence bundles and Release/Abort selection；B03 production provider/attestors只以B01封闭role签署其自身response/attestation，并独立重验B11提供的完整preimage，绝不代签operator或接受opaque digest。Batch 04 consumes `CertificateAuthorizationReceiptV1`, trust-package verification, endpoint authorization and signed-state handlers; it owns candidate keystore installation and outbound client transport. B03 does not write node private keys or agent rollback state.
 
 ### Task 1: Freeze issuer contracts, CSR parsing, and exact X.509 profiles
 
@@ -151,7 +182,11 @@ Expected: PASS; each single-bit profile mutation is rejected by a finite sentine
 
 Use one OID-indexed validator that counts each extension and checks criticality/value; no `x509.Verify` success may bypass it. Fuzz CSR/leaf parsers and assert no panic, large allocation, or partial identity result on error.
 
-Run: `go test ./internal/nodecontrol/identity -run 'Test|Fuzz' -count=1`
+Run: `go test ./internal/nodecontrol/identity -count=1`
+
+Run: `go test ./internal/nodecontrol/identity -run '^$' -fuzz '^FuzzCSRDER$' -fuzztime=10s -timeout 30s`
+
+Run: `go test ./internal/nodecontrol/identity -run '^$' -fuzz '^FuzzLeafDER$' -fuzztime=10s -timeout 30s`
 
 Expected: PASS.
 
@@ -172,11 +207,11 @@ git commit -m "feat(nodecontrol): freeze node certificate profiles"
 - Modify generated: `internal/store/models.go`
 - Modify generated: `internal/store/querier.go`
 - Test: `internal/nodecontrol/identity/postgres_repository_test.go`
-- Test: `internal/nodecontrol/identity/postgres_repository_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/identity/postgres_repository_integration_test.go`
 
 **Interfaces:**
-- Consumes: Batch 01 identity tables/authority repository, Batch 02 inventory node lock, task 1 identities.
-- Produces: immutable grant/issuance/certificate records, closed statuses, exact certificate lookup and transaction-bound repository.
+- Consumes: Batch 01 identity tables/authority repository、`authority.TransactionalEffectResolver`/`TransactionalEffectActivator` and `store.DBTX`, Batch 02 inventory node lock, task 1 identities.
+- Produces: immutable grant/issuance/certificate records, closed statuses, an activation-only exact certificate lookup bound to the caller's DBTX, and one identity effect handler registered in the Batch 01 dispatcher. It exposes no independent production serving reader.
 
 ```go
 type CertificateStatus string
@@ -204,10 +239,11 @@ type Repository interface {
 	ConsumeGrantAndInsertIssuance(context.Context, store.DBTX, EnrollmentGrant, IssuanceIntent) error
 	LoadIssuance(context.Context, uuid.UUID) (IssuanceIntent, error)
 	StoreValidatedResult(context.Context, store.DBTX, uuid.UUID, ValidatedIssueResult) error
-	ActivateCertificate(context.Context, store.DBTX, CertificateRecord) error
-	LookupExactCertificate(context.Context, CertificateLookup) (CertificateAuthorization, error)
+	LookupExactCertificateForActivation(context.Context, store.DBTX, CertificateLookup) (CertificateAuthorization, error)
 	RevokeIdentityEpoch(context.Context, store.DBTX, uuid.UUID, uint64, RevokeReason) error
-	ResolveAuthorityEffect(context.Context, uuid.UUID) (authority.ResolvedEffect, error)
+	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, uuid.UUID) (authority.ResolvedEffect, error)
+	CaptureActivationDecisionEvidence(context.Context, authority.Receipt) (authority.ActivationDecisionEvidence, error)
+	ActivateAuthorityEffect(context.Context, store.DBTX, authority.Receipt, authority.ActivationDecisionEvidence) error
 }
 
 type RecoveryIdentityRepository interface {
@@ -222,11 +258,11 @@ type RecoveryIdentityRepository interface {
 
 - [ ] **Step 1 (5 min): Write RED constraints and exact-lookup integration tests**
 
-Cover one unconsumed grant per node/epoch, 10-minute expiry, atomic claim, changed request digest, one issuance ID binding, terminal immutability, unique issuer/serial and leaf digest, exact public-key digest, max 4 unexpired active leaves per lineage, late old-epoch result, and a serial/SAN copy with changed DER/key.
+Cover one unconsumed grant per node/epoch, 10-minute expiry, atomic claim, changed request digest, one issuance ID binding, terminal immutability, unique issuer/serial and leaf digest, exact public-key digest, max 4 unexpired active leaves per lineage, late old-epoch result, and a serial/SAN copy with changed DER/key. Assert grant claim and certificate activation resolve from distinct operation columns/groups, and every inserted/served certificate joins an exact committed-active fence whose effect kind is `certificate_activate`；a committed `grant_claim` fence with otherwise copied authority fields must not activate or authorize a certificate.
 
 - [ ] **Step 2 (2 min): Run the focused RED integration test**
 
-Run: `go test -tags=integration ./internal/nodecontrol/identity -run TestPostgresIdentityRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/identity' -Run '^TestPostgresIdentityRepository$' -Timeout 3m`
 
 Expected: FAIL because identity SQL and repository do not exist.
 
@@ -257,29 +293,37 @@ WHERE issuance_id = sqlc.arg(issuance_id)
 FOR UPDATE;
 ```
 
-- [ ] **Step 4 (4 min): Add exact active certificate lookup**
+- [ ] **Step 4 (4 min): Add activation-only exact certificate lookup**
 
-Lookup uses issuer ID, unsigned serial bytes, exact leaf DER SHA-256, public-key SHA-256, node ID, identity epoch and authority epoch in one query; join inventory current identity epoch and a committed active fence. It returns one row only when certificate status is one of the caller-provided finite allowed statuses and `not_before <= trusted_now < not_after`.
+The query uses issuer ID, unsigned serial bytes, exact leaf DER SHA-256, public-key SHA-256, node ID, identity epoch and authority epoch in one query; join inventory current identity epoch and the exact fence row. It accepts the Coordinator-owned caller `store.DBTX`, is callable only by the identity transaction-bound activator, and returns one row only when certificate status is one of the finite activation statuses and `not_before <= trusted_now < not_after`. Do not expose this query or repository as the request-serving authorization path；Task 6 must use the bound B01 `serving.Reader`.
 
 - [ ] **Step 5 (3 min): Generate sqlc artifacts**
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS; generated params retain all digest fields as fixed byte slices validated at the repository boundary.
+Run: `git add db/queries/nodecontrol_identity.sql internal/store/nodecontrol_identity.sql.go internal/store/models.go internal/store/querier.go`
 
-- [ ] **Step 6 (5 min): Implement row conversion and transaction guards**
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Use constant-time digest comparison for grant claims, require exactly one consumed row, expire elapsed grants, mark all old-epoch pending issuance superseded inside the identity lock, and count active unexpired lineage leaves before activation. Implement `ResolveAuthorityEffect` as a read-only lookup for only grant-create/claim, certificate activate/revoke, and identity-epoch-advance operations; return the immutable kind/node scope/effect digest and finite prepared/committed/terminal state, and reject all other kinds. Implement the recovery primitives above only against the caller-owned transaction; they never authorize an operator or start their own transaction. Never expose token digest or certificate DER in errors.
+Run: `git diff --exit-code -- db/queries/nodecontrol_identity.sql internal/store/nodecontrol_identity.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_identity.sql internal/store`
+
+Expected: PASS; generated params retain all digest fields as fixed byte slices validated at the repository boundary, and exact second-generation drift/untracked output is empty.
+
+- [ ] **Step 6 (5 min): Implement row conversion and the transaction-bound identity handler**
+
+Use constant-time digest comparison for grant claims, require exactly one consumed row, expire elapsed grants, mark all old-epoch pending issuance superseded inside the identity lock, and count active unexpired lineage leaves before activation. `ResolveAuthorityEffectForUpdate` uses only the caller's `store.DBTX`, locks the exact operation/grant/issuance/certificate/node rows in B01 order, recognizes only grant-create/claim、certificate activate/revoke and identity-epoch-advance operations, and returns their immutable kind/node scope/effect digest plus finite `absent|prepared|committed|terminal` state. `CaptureActivationDecisionEvidence` performs all external decision capture before the activation transaction. `ActivateAuthorityEffect` re-resolves and rechecks the exact receipt/evidence under those locks, applies grant/certificate/epoch visibility and effect resolution/audit/outbox atomically, but never consumes the opaque admission token；only the Coordinator consumes it after all writes immediately before its one Commit attempt. Unknown/multiple/mismatched kinds fail closed. Implement the recovery primitives above only against the caller-owned transaction；they never authorize an operator or start their own transaction. Never expose token digest or certificate DER in errors.
 
 - [ ] **Step 7 (3 min): Run GREEN repository tests**
 
-Run: `go test -tags=integration ./internal/nodecontrol/identity -run TestPostgresIdentityRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/identity' -Run '^TestPostgresIdentityRepository$' -Timeout 3m`
 
 Expected: PASS with a copied serial/SAN certificate rejected unless every exact lookup component matches.
 
-- [ ] **Step 8 (4 min): REFACTOR corrupt-row handling and retention predicates**
+- [ ] **Step 8 (4 min): REFACTOR corrupt-row, handler-surface and retention predicates**
 
-Reject invalid digest length, zero epoch, unknown status, oversized serial and inconsistent revoked timestamps. Add queries that delete only terminal grant/issuance/certificate metadata older than 30 days and not referenced by active/recovery state.
+Reject invalid digest length, zero epoch, unknown status, oversized serial and inconsistent revoked timestamps. Add compile/static tests proving there is no public `LookupExactCertificate` or independent readiness/serving query in `internal/nodecontrol/identity`, and that only the identity handler calls `LookupExactCertificateForActivation` with the Coordinator-owned DBTX. Add queries that delete only terminal grant/issuance/certificate metadata older than 30 days and not referenced by active/recovery state.
 
 Run: `go test ./internal/nodecontrol/identity ./internal/store -count=1`
 
@@ -299,12 +343,12 @@ git commit -m "feat(nodecontrol): persist exact node identities"
 - Create: `internal/nodecontrol/identity/service.go`
 - Test: `internal/nodecontrol/identity/receipt_test.go`
 - Test: `internal/nodecontrol/identity/service_test.go`
-- Test: `internal/nodecontrol/identity/service_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/identity/service_integration_test.go`
 - Test: `internal/nodecontrol/identity/service_crash_test.go`
 
 **Interfaces:**
-- Consumes: Batch 01 `authority.Coordinator`, task 1 `NodeCertificateIssuer`, task 2 repository/identity effect resolver, Batch 02 inventory/operator audit/outbox, cryptographic random reader and trusted time.
-- Produces: one-time grant creation, claim/rotate/recover saga, `CertificateAuthorizationReceiptV1`, and pure response verifier consumed by B04.
+- Consumes: Batch 01 `authority.Coordinator`, task 1 `NodeCertificateIssuer`, task 2 repository/transaction-bound identity effect handler, Batch 02 inventory/operator audit/outbox, cryptographic random reader and trusted time.
+- Produces: one-time grant creation, claim/rotate/recover saga, `CertificateAuthorizationReceiptV1`, and pure response verifier consumed by B04. The service prepares effects and calls Finalize；it never owns a post-Finalize activation transaction.
 
 ```go
 type CertificateAuthorizationReceiptV1 struct {
@@ -335,7 +379,7 @@ func VerifyAuthorizationReceipt(ReceiptVerificationRequest) (CertificateIdentity
 
 - [ ] **Step 1 (5 min): Write RED grant secrecy and retry tests**
 
-Use a deterministic random reader to assert exactly 32 bytes are generated, only SHA-256 reaches repository arguments, plaintext appears only in the first successful result, the same idempotency retry returns resource metadata without plaintext, replacement requires a new If-Match and same CSR digest, and claimed/issuance-started grants cannot be replaced.
+Use a deterministic random reader to assert exactly 32 bytes are generated, only SHA-256 reaches repository arguments, plaintext appears only in the first successful result, the same idempotency retry returns resource metadata without plaintext, replacement requires a new If-Match and same CSR digest, and claimed/issuance-started grants cannot be replaced. For initial/recovery issuance, assert two distinct immutable authority operations: `grant_claim` finalizes only the one-time claim/issuance intent, while the certificate row and serving authorization always bind a separate committed-active `certificate_activate` fence. Rotation uses only `certificate_activate`. Reject any certificate activation using a grant-claim operation/receipt. After an issuance intent exists, issuer malformed/mismatch、determined dependency failure、deadline expiry or supersession must create a distinct B01-canonical immutable final-not-applied commitment and follow `EffectCommitted → Coordinator.Finalize/Recover`; a recording provider fails the test on Abort. Abort is permitted only before any intent/domain fact exists and the transaction-bound resolver proves `EffectAbsent`.
 
 - [ ] **Step 2 (2 min): Run the focused RED service test**
 
@@ -345,19 +389,19 @@ Expected: FAIL because identity service and receipt verifier do not exist.
 
 - [ ] **Step 3 (5 min): Implement first-enrollment and security-admin grant creation**
 
-Writer creation requires provisioning, identity epoch 0 and never-issued. Reenroll creation requires security-admin, increments epoch and creates a new lineage under the identity lock after revoking old epoch state. In both cases call `authority.Coordinator.Reserve(EffectGrantCreate)` before the transaction, persist the exact immutable pending grant effect with expiry at trusted now plus 10 minutes, then call `Coordinator.Finalize(operation_id,effect_digest)` outside locks and mark the grant active in a final transaction only with that committed receipt. Return the one-time secret wrapper only after activation; its `String`/JSON/log methods redact, and response-loss retry returns metadata without redisclosing plaintext.
+Writer creation requires provisioning, identity epoch 0 and never-issued. Reenroll creation requires security-admin, increments epoch and creates a new lineage under the identity lock after revoking old epoch state. Derive the grant ID and `EffectGrantCreate` operation ID with distinct fixed namespace UUIDs over the immutable `{node_id,idempotency_key,grant_kind,request_digest}` before any reservation；restart therefore reconstructs the same IDs. Generate secret bytes only when no digest is durably bound, call `authority.Coordinator.Reserve(EffectGrantCreate)` with the derived operation ID before the transaction, persist the exact immutable pending grant effect with expiry at trusted now plus 10 minutes, then call `Coordinator.Finalize(operation_id,effect_digest)` outside locks. A crash after Reserve but before the row retries the same ID and can prove absence；a crash after the digest row never regenerates or rediscloses the secret and follows the explicit replacement path. The registered identity handler alone promotes the grant and commits its exact fence visibility、effect resolution、audit/outbox in the Coordinator's one activation transaction. Return the one-time secret wrapper only after Finalize reports that exact atomic activation committed；its `String`/JSON/log methods redact, and response-loss retry returns metadata without redisclosing plaintext.
 
 - [ ] **Step 4 (5 min): Implement claim/rotation prepare transactions**
 
-Validate IDs, nonce, CSR and request digest; call `authority.Coordinator.Reserve` for `EffectGrantClaim` on initial/recovery claim or `EffectCertificateActivate` on rotation, then lock node/grant. Atomically record the exact reservation, consume the grant when present and insert immutable issuance with authority binding, exact issuer, CSR/public key/template digests and pending status. Rotation skips grant but requires exact active peer certificate, current epoch/lineage, no more than 4 active leaves, remaining lineage at least 36 hours, and new CSR key.
+Validate IDs, nonce, CSR and request digest. Before any reservation or durable write, derive `issuance_id`, `claim_operation_id` and `certificate_operation_id` through three distinct fixed namespace UUID derivations over the canonical immutable tuple `{node_id,attempt_id,issuance_kind}` plus the literal role label；changed request fields under the same attempt conflict, and no random process-memory ID participates. Initial/recovery calls `Coordinator.Reserve(EffectGrantClaim)` and `Coordinator.Reserve(EffectCertificateActivate)` outside locks with those exact durable-reconstructible IDs, then locks node/grant. Atomically bind the grant consumption group to the claim operation and insert the immutable issuance bound to the separate certificate-activation operation、exact issuer、CSR/public-key/template digests and pending status. Commit that prepare transaction, then call `Coordinator.Finalize(claim_operation_id,claim_effect_digest)`；the identity handler resolves/audits only the exact one-time claim and never inserts or authorizes a certificate. Only after that exact claim result is committed may issuer work proceed. Rotation skips the claim operation/grant and derives/reserves only `EffectCertificateActivate`, while requiring exact active peer certificate、current epoch/lineage、no more than 4 active leaves、remaining lineage at least 36 hours and a new CSR key. Any partial two-reservation failure retries the same derived IDs, Inspect/Recover classifies both, and aborts only a reservation whose exact immutable effect absence is proven；process death before the prepare transaction therefore cannot strand an undiscoverable reservation.
 
 - [ ] **Step 5 (5 min): Call issuer outside locks and validate independently**
 
-Invoke exact `IssueRequest` by issuance ID; verify result echoes, parse single DER, verify chain/profile/template/SPKI/digests and reject any provider deviation. Persist validated bytes/digests in a short transaction. Issuer timeout keeps the same pending operation recoverable; known malformed output marks rejected.
+Invoke exact `IssueRequest` by issuance ID; verify result echoes, parse single DER, verify chain/profile/template/SPKI/digests and reject any provider deviation. Persist validated bytes/digests in a short transaction. A retryable issuer timeout before the deadline keeps the exact pending operation recoverable. Once malformed/mismatched output、dependency failure、deadline expiry or supersession is determined after the issuance intent exists, a short fence-first transaction calls B01 `NewAuthorityEffectCommitment` and persists one immutable distinct `final_not_applied` commitment with finite reason and no certificate bytes/pointer. The resolver then returns `EffectCommitted`; the service must Finalize, never Abort. A late issuer result cannot replace the tombstone.
 
 - [ ] **Step 6 (5 min): Finalize fence and activate certificate**
 
-After the validated immutable issuance effect commits, call `authority.Coordinator.Finalize(operation_id,effect_digest)` outside locks. The registered identity resolver returns the exact grant/issuance effect; only the coordinator captures/binds the same-primary database point and finalizes/activates the provider receipt. Then re-lock node/issuance, require that exact committed receipt, and recheck epoch, lineage, issuer, template, public key, node state, active-leaf cap and expiry before inserting the exact certificate row, marking issuance active and writing audit/outbox. Ordinary initial/rotation activation sets certificate status `active`; an issuance explicitly prepared by the recovery application sets `recovery_pending` and cannot use the ordinary path. Late results become superseded.
+After either the validated immutable issuance commitment or Step 5's immutable final-not-applied commitment commits, call `authority.Coordinator.Finalize(certificate_operation_id,exact_commitment_digest)` outside locks. The registered identity handler resolves that exact issuance effect for update and requires kind=`certificate_activate`；a grant-claim operation/receipt is never accepted. Only the Coordinator captures/binds the same-primary database point、finalizes the provider receipt、captures activation evidence and opens the activation transaction. For a success candidate, that transaction re-locks node/issuance and rechecks epoch、lineage、issuer、template、public key、node state、active-leaf cap、expiry and exact receipt/evidence before inserting the exact certificate row, marking issuance active and writing effect resolution/audit/outbox atomically with fence visibility. For the tombstone, it verifies the exact reason/preimage and atomically terminalizes only issuance disposition、fence、resolution/audit/outbox, inserting no certificate and moving no pointer. The certificate row's operation/authority tuple and B01 serving query therefore always join the committed-active `certificate_activate` fence. There is no second service-owned activation transaction. Ordinary initial/rotation activation sets certificate status `active`；an issuance explicitly prepared by the recovery application sets `recovery_pending` and cannot use the ordinary path. Late results converge to the existing terminal-not-applied/superseded outcome.
 
 - [ ] **Step 7 (4 min): Implement exact receipt and retry response**
 
@@ -371,9 +415,11 @@ Expected: PASS; no database fake observes plaintext grant and no provider call o
 
 - [ ] **Step 9 (5 min): Add crash recovery and rotation-overlap tests**
 
-Crash after authority reserve, grant consume/intent, issuer response, validated result, fence visibility, provider finalize and activation. Prove retry uses one issuance ID/certificate. Rotate at 50% with bounded jitter input, keep old and new exact rows active, reject fifth overlap, revoke all epoch rows together, and supersede late issuer results.
+Crash after ID derivation, either initial/recovery reservation、grant consume/issuance intent、claim Finalize/activation、issuer response、final-not-applied commitment、validated result、either certificate provider Finalize、each certificate/tombstone activation write before Commit、Commit invocation before response loss and committed fence/domain visibility. Restart with only the caller's exact attempt tuple and prove it reconstructs byte-identical issuance/claim/certificate IDs, Inspect/Recover reaches every reservation, and the provider ends with zero orphan pending fence. Restore PostgreSQL at every prepared/tombstone/provider/activation cut while retaining provider Head and require the same terminal outcome. Prove no crash exposes only one side of each claim or certificate fence/domain/audit/outbox outcome, the two operation IDs never alias, and retry uses one issuance ID and at most one certificate. Rotate at 50% with bounded jitter input, keep old and new exact rows active, reject fifth overlap, revoke all epoch rows together, and reject late issuer results against an existing tombstone.
 
-Run: `go test -tags=integration ./internal/nodecontrol/identity -run 'TestIdentityCrashRecovery|TestRotationOverlap' -count=1 -timeout 5m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/identity' -Run '^(TestIdentityCrashRecovery|TestRotationOverlap)$' -Timeout 5m`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/nodecontrol/identity' -Run '^TestIdentityFinalNotAppliedPITR$' -Timeout 5m`
 
 Expected: PASS.
 
@@ -392,7 +438,7 @@ git add internal/nodecontrol/identity/receipt.go internal/nodecontrol/identity/s
 git commit -m "feat(nodecontrol): issue fenced node identities"
 ```
 
-### Task 4: Verify and activate host-deployed trust-bundle packages
+### Task 4: Verify host-deployed trust-bundle packages against finalized active high-water
 
 **Files:**
 - Create: `internal/nodecontrol/hostevidence/deployment_keys.go`
@@ -402,12 +448,12 @@ git commit -m "feat(nodecontrol): issue fenced node identities"
 - Modify generated: `internal/store/querier.go`
 - Test: `internal/nodecontrol/hostevidence/deployment_keys_test.go`
 - Test: `internal/nodecontrol/hostevidence/trust_bundle_test.go`
-- Test: `internal/nodecontrol/hostevidence/trust_bundle_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/hostevidence/trust_bundle_integration_test.go`
 - Create: `testdata/c12/trust-bundle-vectors.json`
 
 **Interfaces:**
-- Consumes: host-installed Ed25519 public keys, Batch 01 authority/fence repository and trust high-water table, task 1 CA profile validator, strict JCS.
-- Produces: frozen deployment role registry, `TrustBundleManifestV1`, `TrustBundlePackageV1`, `VerifiedTrustBundle`, pure verifier and finalized activation repository.
+- Consumes: host-installed Ed25519 public keys, Batch 01 finalized active-only trust high-water table, task 1 CA profile validator, strict JCS.
+- Produces: frozen deployment role registry, `TrustBundleManifestV1`, `TrustBundlePackageV1`, `VerifiedTrustBundle`, pure verifier and a read-only startup/readiness comparator. Per the approved amendments it produces no pending effect、publisher、resolver or activator；`trust_bundle_publish` remains fixed unsupported.
 
 ```go
 type DeploymentRole string
@@ -456,9 +502,9 @@ type TrustBundleVerifier interface {
 
 `CAEntryV1.Status` contains only `active`, `retiring`, `compromised`. `DeploymentAuthorityKeySetV1` requires at least four distinct Ed25519 keys, lowercase SHA-256 key IDs, exactly one role per key, and all four roles present.
 
-- [ ] **Step 1 (5 min): Write RED deployment-key and package vector tests**
+- [ ] **Step 1 (5 min): Write RED deployment-key, package and active-high-water tests**
 
-Test missing/duplicate roles, one key in two roles, wrong key ID, wrong signature role, cross-purpose/domain reuse, unsorted/duplicate entries, manifest/DER mismatch, non-CA DER, low version/sequence, same-value fork, illegal status transition, cumulative removal/reorder/re-authorization, 129th cumulative digest and trailing package bytes.
+Test missing/duplicate roles, one key in two roles, wrong key ID, wrong signature role, cross-purpose/domain reuse, unsorted/duplicate entries, manifest/DER mismatch, non-CA DER, low version/sequence, same-value fork, illegal status transition, cumulative removal/reorder/re-authorization, 129th cumulative digest and trailing package bytes. Against pre-provisioned finalized fixtures, also test exact active match、active ahead、database rollback/fork、wrong listener mapping、missing committed fence and unavailable high-water. Add a static test proving this package has no Reserve/Finalize/pending/promotion API and cannot register `trust_bundle_publish` as supported.
 
 - [ ] **Step 2 (2 min): Run the focused RED verifier tests**
 
@@ -478,47 +524,50 @@ Require schema `trust-bundle-manifest.v1`, a closed purpose, canonical trust dom
 
 Validate each CA independently for CA constraints and purpose; allow normal `active→retiring→omitted`, emergency `active|retiring→compromised`, append compromised/removed digest in the same version, forbid current entries in cumulative set and all later reauthorization. Compare version/sequence/digest with `contracts.CompareVersionedDigest` and reject rollback/fork.
 
-- [ ] **Step 6 (4 min): Add high-water locking and finalized activation SQL**
+- [ ] **Step 6 (4 min): Add the read-only finalized active-high-water query**
 
 ```sql
--- name: LockTrustBundleHighWater :one
-SELECT purpose, trust_domain, authority_epoch, authority_sequence,
-       bundle_version, bundle_digest, cumulative_set_digest
-FROM nodecontrol.control_plane_trust_bundle_high_waters
-WHERE purpose = sqlc.arg(purpose) AND trust_domain = sqlc.arg(trust_domain)
-FOR UPDATE;
-
--- name: ActivateTrustBundleHighWater :execrows
-UPDATE nodecontrol.control_plane_trust_bundle_high_waters AS high_water
-SET authority_epoch = sqlc.arg(authority_epoch),
-    authority_sequence = sqlc.arg(authority_sequence),
-    bundle_version = sqlc.arg(bundle_version),
-    bundle_digest = sqlc.arg(bundle_digest),
-    cumulative_set_digest = sqlc.arg(cumulative_set_digest),
-    updated_at = transaction_timestamp()
-FROM nodecontrol.control_plane_authority_fences AS fence
+-- name: GetFinalizedTrustBundleHighWater :one
+SELECT high_water.purpose, high_water.listener_kind, high_water.trust_domain,
+       high_water.operation_id, high_water.authority_epoch,
+       high_water.authority_sequence, high_water.bundle_version,
+       high_water.bundle_digest, high_water.cumulative_set_digest,
+       high_water.cumulative_count, high_water.updated_at
+FROM nodecontrol.control_plane_trust_bundle_high_waters AS high_water
+JOIN nodecontrol.control_plane_authority_fences AS fence
+  ON fence.operation_id = high_water.operation_id
 WHERE high_water.purpose = sqlc.arg(purpose)
+  AND listener_kind = sqlc.arg(listener_kind)
   AND high_water.trust_domain = sqlc.arg(trust_domain)
-  AND fence.operation_id = sqlc.arg(operation_id)
   AND fence.provider_status = 'committed'
   AND fence.visibility_state = 'active';
 ```
+
+Map each closed purpose to exactly one listener kind before the read. The repository exposes no INSERT/UPDATE/lock-for-publish method, and the comparator returns unavailable for absent、partial、uncommitted or fence-mismatched rows. Test fixtures may seed approved finalized rows through test-only migration SQL；that is not a production publisher or evidence for a future OOB protocol.
 
 - [ ] **Step 7 (3 min): Generate store artifacts and run GREEN tests**
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS.
+Run: `git add db/queries/nodecontrol_identity.sql internal/store/nodecontrol_identity.sql.go internal/store/querier.go`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_identity.sql internal/store/nodecontrol_identity.sql.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_identity.sql internal/store`
+
+Expected: PASS with exact second-generation drift and untracked output empty.
 
 Run: `go test ./internal/nodecontrol/hostevidence -run 'TestDeploymentAuthorityKeySet|TestTrustBundleVectors' -count=1`
 
 Expected: PASS and checked-in vector digests match lowercase hex exactly.
 
-- [ ] **Step 8 (5 min): Test finalized high-water activation and restart**
+- [ ] **Step 8 (5 min): Test finalized active-high-water comparison and restart**
 
-Activate old, old+new, then new after the 48-hour overlap fixture; separately mark an old CA compromised. Replay the old package and restore an older database snapshot; startup comparison must fail closed rather than reauthorize it.
+Using test-only pre-provisioned finalized snapshots, compare old、old+new and new 48-hour-overlap packages and a separately compromised old CA. Exact current package succeeds；lower/forked package、higher package not represented by the active row、old database snapshot、missing committed fence and wrong purpose/listener/domain all fail closed and keep listener readiness false. Restart re-reads the same finalized active row and never treats a locally supplied package as authority to advance it. Assert `NewEffectDispatcher` still receives the fixed unsupported registration for `trust_bundle_publish` and no hostevidence production code calls Reserve、Finalize or a trust high-water write.
 
-Run: `go test -tags=integration ./internal/nodecontrol/hostevidence -run TestTrustBundleHighWater -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/hostevidence' -Run '^TestTrustBundleHighWater$' -Timeout 3m`
 
 Expected: PASS.
 
@@ -543,7 +592,7 @@ git commit -m "feat(nodecontrol): verify host trust packages"
 - Create: `internal/nodecontrol/hostevidence/operator_guard.go`
 - Test: `internal/nodecontrol/hostevidence/operator_guard_test.go`
 - Test: `internal/nodecontrol/hostevidence/operator_guard_race_test.go`
-- Test: `internal/nodecontrol/hostevidence/operator_guard_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/hostevidence/operator_guard_integration_test.go`
 
 **Interfaces:**
 - Consumes: task 4 verified purpose `operator_server` package and deployment role `operator_trust_guard`, external rollback-resistant provider, crypto-random nonce source, trusted platform time, transport close callback.
@@ -555,7 +604,7 @@ type OperatorTrustGuardProvider interface {
 }
 
 type OperatorTrustGuardRequest struct {
-	RequestNonce contracts.Digest
+	RequestNonce contracts.Nonce32
 }
 
 type OperatorTrustGuardAttestationV1 struct {
@@ -567,7 +616,7 @@ type OperatorTrustGuardAttestationV1 struct {
 	BundleVersion              uint64
 	BundleDigest               contracts.Digest
 	CumulativeSetDigest        contracts.Digest
-	RequestNonce               contracts.Digest
+	RequestNonce               contracts.Nonce32
 	IssuedAt                   time.Time
 	ValidUntil                 time.Time
 	DeploymentKeyID            string
@@ -583,7 +632,7 @@ type OperatorClientTrustGuard interface {
 
 - [ ] **Step 1 (5 min): Write RED nonce, rollback, and close tests**
 
-Test 32-byte fresh nonce, echoed nonce, replay, provider unavailable/restart, wrong purpose/domain/key role, lower epoch/sequence/version, same-value fork, 5-minute expiry, future issuance, local package rollback, emergency removal and existing transport closure.
+Test a generated `contracts.Nonce32` fresh nonce, echoed nonce, replay, provider unavailable/restart, wrong purpose/domain/key role, lower epoch/sequence/version, same-value fork, 5-minute expiry, future issuance, local package rollback, emergency removal and existing transport closure. Add a cross-package compile/consumer test proving request and attestation use the closed nonce type rather than a semantically interchangeable digest.
 
 - [ ] **Step 2 (2 min): Run the focused RED guard tests**
 
@@ -617,7 +666,7 @@ Expected: PASS with no deadlock, race or leaked lease.
 
 Use a process-isolated deterministic provider to persist its own high-water across restart; replay lower package, same-value fork and nonce after restart, then publish normal overlap/emergency removal. The fake test is an interface gate only and must not be labeled production evidence.
 
-Run: `go test -tags=integration ./internal/nodecontrol/hostevidence -run TestOperatorTrustGuardProviderContract -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/hostevidence' -Run '^TestOperatorTrustGuardProviderContract$' -Timeout 3m`
 
 Expected: PASS.
 
@@ -631,17 +680,18 @@ git commit -m "feat(nodecontrol): guard operator client trust"
 ### Task 6: Authorize exact node and operator peers at request and response boundaries
 
 **Files:**
-- Create: `internal/nodecontrol/contracts/security_fault.go`
+- Create: `internal/nodecontrol/identity/security_fault_binding.go`
+- Create: `internal/nodecontrol/identity/trust_conflict_binding.go`
 - Create: `internal/nodeagentapi/authorizer.go`
 - Create: `internal/nodeagentapi/waiters.go`
 - Create: `internal/nodeoperatorapi/authorizer.go`
 - Test: `internal/nodeagentapi/authorizer_test.go`
 - Test: `internal/nodeagentapi/waiters_test.go`
 - Test: `internal/nodeoperatorapi/authorizer_test.go`
-- Test: `internal/nodeagentapi/authorizer_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodeagentapi/authorizer_integration_test.go`
 
 **Interfaces:**
-- Consumes: task 1 strict leaf identities, task 2 exact certificate lookup, Batch 02 `operator.OperatorAuthorizer`, trusted time, inventory/recovery/session state and trust-bundle high-water.
+- Consumes: task 1 strict leaf identities, Batch 01 bound `serving.Reader` constructed from the same Coordinator/PostgresRepository as production authority, Batch 02 `operator.OperatorAuthorizer`, trusted time, inventory/recovery/session state and trust-bundle high-water. It does not consume the task 2 identity repository.
 - Produces: closed endpoint authorization matrix, immutable authorization snapshots, ordinary response-commit recheck, specialized self-invalidating security-fault receipt commit gate, operator credential extraction and targeted waiter cancellation.
 
 ```go
@@ -660,7 +710,9 @@ const (
 type NodeRequestAuthorizer interface {
 	AuthorizeRequest(context.Context, *x509.Certificate, EndpointClass) (NodeAuthorization, error)
 	ReauthorizeResponse(context.Context, NodeAuthorization, EndpointClass) error
-	AuthorizeSecurityFaultReceiptCommit(context.Context, NodeAuthorization, contracts.SecurityFaultCommitBinding) error
+	AuthorizeSecurityFaultReceiptCommit(context.Context, NodeAuthorization, identity.SecurityFaultCommitBinding) error
+	AuthorizeHighWaterConflictCommit(context.Context, NodeAuthorization, identity.HighWaterConflictCommitBinding) error
+	AuthorizeTrustConflictAckCommit(context.Context, NodeAuthorization, identity.TrustConflictAckCommitBinding) error
 }
 
 type NodeAuthorization struct {
@@ -675,6 +727,11 @@ type NodeAuthorization struct {
 	InventoryVersion       uint64
 	AuthorizationVersion   uint64
 	CertificateNotAfter    time.Time
+	ServerCABundleHighWater contracts.VersionedDigest
+}
+
+type NodeCheckpointReader interface {
+	CommittedNodeCheckpoint(context.Context, contracts.Digest) (authority.NodeCheckpoint, error)
 }
 
 type OperatorPeerAuthenticator interface {
@@ -682,11 +739,11 @@ type OperatorPeerAuthenticator interface {
 }
 ```
 
-`contracts.SecurityFaultCommitBinding` contains operation ID, original exact certificate ID/DER/key/issuer/serial/identity epoch, local fault ID, request/effect digests, incident ID, authority epoch/sequence and committed receipt digest. Its validator permits serialization of only the fixed receipt and cannot authorize root, metadata, desired, recovery, time or another endpoint payload.
+`identity.SecurityFaultCommitBinding` contains operation ID, original exact certificate ID/DER/key/issuer/serial/identity epoch, local fault ID, request/effect digests, incident ID, authority epoch/sequence and committed receipt digest. `identity.HighWaterConflictCommitBinding` binds that same immutable credential snapshot to the exact desired/recovery-poll request/high-water tuple, fence-finalized unverified incident ID, the B01-helper-derived trust-conflict local fault ID, operation/effect/terminal receipt and the one fixed bodyless public `conflict` response plus exact `Talenro-Trust-Conflict-Incident-ID` header value. `identity.TrustConflictAckCommitBinding` binds the exact generated evidence request digest、incident、submitted artifact-set digest、credential snapshot、finite validation/escalation result and the generated `TrustConflictEvidenceAckV1` digest. All three are B03-owned acyclic boundary types；their validators permit serialization of only their respective fixed receipt/error-header/ACK and cannot authorize root、metadata、desired、recovery、time or another endpoint payload. B03 does not add these DTOs to the B01 `contracts` package or schema registry.
 
 - [ ] **Step 1 (5 min): Write the RED endpoint authorization matrix**
 
-Test every certificate status against every endpoint class and node state. Ordinary rotate/desired/observation require active, current epoch, operator enabled/draining and security normal. Recovery poll/attestation require active/recovery-pending/recovery-limited, operator disabled and exact nonterminal recovery session or incident. Security fault accepts those same three current-epoch statuses only as a tightening mutation. Conflict evidence additionally requires its exact open unverified incident. Unknown classes and revoked/expired/mismatched rows always deny. Separately prove ordinary `ReauthorizeResponse` rejects the now-revoked fault credential while `AuthorizeSecurityFaultReceiptCommit` accepts only its exact fence-finalized immutable receipt binding.
+Test every certificate status against every endpoint class and node state. Ordinary rotate/desired/observation require active, current epoch, operator enabled/draining and security normal. Recovery poll/attestation require active/recovery-pending/recovery-limited, operator disabled and exact nonterminal recovery session or incident. Security fault accepts those same three current-epoch statuses only as a tightening mutation. For an exact open trust-conflict incident, the exact current-epoch credential that triggered it remains usable while the node is disabled/quarantined for one closed incident-bound endpoint set only: `trust_conflict_evidence`, `recovery_poll`, and `recovery_attestation`. Recovery poll/attestation additionally require that incident's exact nonterminal recovery aggregate、nonce/snapshot predicates；for this trust-conflict row the generated poll/attestation `recovery_id` and the aggregate's recovery locator are byte-for-byte the retained incident UUID, never an independently minted session UUID or caller-provided scalar. The exception grants no rotate、desired、observation、ordinary report、LKG or unrelated recovery access. Unknown classes and revoked/expired/mismatched rows always deny. Separately prove ordinary `ReauthorizeResponse` rejects each self-invalidated desired-poll/security-fault/evidence snapshot while the three specialized commit gates accept only their exact fence-finalized immutable binding and fixed output. Mutate certificate/incident/header UUID/request/artifact-set/operation/effect/receipt/ACK digest, omit/duplicate the specialized header, attach it to an ordinary conflict or swap either commit-binding type and require rejection with zero response bytes. Add a matrix row proving the same certificate can poll the signed clear snapshot and submit its exact stopped attestation after the conflict response, including after transport reconnect, but cannot use any fourth route.
 
 - [ ] **Step 2 (2 min): Run the focused RED tests**
 
@@ -694,9 +751,9 @@ Run: `go test ./internal/nodeagentapi ./internal/nodeoperatorapi -run 'TestNodeA
 
 Expected: FAIL because API authorizers do not exist.
 
-- [ ] **Step 3 (5 min): Implement exact node peer extraction and lookup**
+- [ ] **Step 3 (5 min): Implement exact node peer extraction through the bound reader**
 
-Require one verified leaf, strict node profile and canonical URI SAN; derive unsigned serial bytes, exact DER/SPKI digests and node ID. Query one current committed certificate row with trusted time and allowed statuses. Compare every returned field to the peer and inventory; no lookup by serial, SAN or CA alone.
+Require one verified leaf, strict node profile and canonical URI SAN；derive unsigned serial bytes, exact DER/SPKI digests and node ID. Build the exact `serving.CertificateLookup` with the constructor-fixed `agent_server` purpose/listener/configured trust-domain selector and call `Reader.GetAuthorizedNodeCertificate`, which performs readiness→one certificate+server-CA-high-water callback→readiness on one physical connection and returns no facts unless the same authority Head remains ready. Compare every returned certificate/inventory/trust field to the peer, configured listener, trusted time and endpoint's finite allowed statuses, then defensively copy the nonzero server-CA `VersionedDigest` into `NodeAuthorization`；no lookup by serial、SAN、CA or caller-selected trust selector alone. The authorizer cannot import task 2 repository/query code or open its own certificate/trust read transaction.
 
 - [ ] **Step 4 (4 min): Implement operator credential extraction**
 
@@ -704,7 +761,7 @@ Require strict operator profile and canonical operator URI; produce `operator.Cr
 
 - [ ] **Step 5 (4 min): Implement final response reauthorization**
 
-`ReauthorizeResponse` opens a new short read transaction and rechecks exact certificate row/status, identity/authority epoch, node state, endpoint-specific recovery predicate, trust high-water and trusted time. It compares the returned authorization version to the entry snapshot. Any change returns only unauthenticated/forbidden and the handler must discard prepared payload before writing headers.
+`ReauthorizeResponse` calls the same bound `Reader.GetAuthorizedNodeCertificate` again and rechecks the exact certificate row/status、identity/authority epoch、node state、endpoint-specific recovery predicate、trust high-water and trusted time against the entry snapshot. It never opens an independent certificate/readiness transaction and never accepts a repository fallback when the Reader reports authority unavailable. Any change returns only unauthenticated/forbidden and the handler must discard prepared payload before writing headers. The specialized high-water-conflict gate may commit only the fixed no-payload public `conflict` after verifying the exact fence-finalized unverified incident binding；the trust-conflict ACK gate may commit only the exact generated ACK after rechecking the submission/escalation binding. Neither gate reauthorizes the credential for poll、rotate、observation or recovery, and response loss exact-retries the same binding.
 
 - [ ] **Step 6 (3 min): Run GREEN matrix tests**
 
@@ -722,16 +779,16 @@ Expected: PASS with no missed cancel, double callback or leak.
 
 - [ ] **Step 8 (5 min): Prove keep-alive reauthorization against PostgreSQL**
 
-Authorize once, revoke or increment identity epoch in a second transaction, then reuse the same authorization snapshot for commit. Repeat for certificate expiry and CA compromise.
+Construct the Reader from the exact Coordinator/PostgresRepository pair, authorize once, revoke or increment identity epoch in a second transaction, then reuse the same authorization snapshot for commit. Repeat for certificate expiry、CA compromise、forced source/repository mismatch and an authority Head change between the Reader's two readiness checks. Add a compile/static assertion that `internal/nodeagentapi` has no identity-repository or raw certificate SQL dependency.
 
-Run: `go test -tags=integration ./internal/nodeagentapi -run TestKeepAliveAuthorizationRecheck -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodeagentapi' -Run '^TestKeepAliveAuthorizationRecheck$' -Timeout 3m`
 
 Expected: PASS; every stale snapshot is rejected and contains no prepared state payload.
 
 - [ ] **Step 9 (2 min): Commit request authorization**
 
 ```bash
-git add internal/nodecontrol/contracts/security_fault.go internal/nodeagentapi/authorizer.go internal/nodeagentapi/waiters.go internal/nodeoperatorapi/authorizer.go internal/nodeagentapi/authorizer_test.go internal/nodeagentapi/waiters_test.go internal/nodeoperatorapi/authorizer_test.go internal/nodeagentapi/authorizer_integration_test.go
+git add internal/nodecontrol/identity/security_fault_binding.go internal/nodecontrol/identity/trust_conflict_binding.go internal/nodeagentapi/authorizer.go internal/nodeagentapi/waiters.go internal/nodeoperatorapi/authorizer.go internal/nodeagentapi/authorizer_test.go internal/nodeagentapi/waiters_test.go internal/nodeoperatorapi/authorizer_test.go internal/nodeagentapi/authorizer_integration_test.go
 git commit -m "feat(nodecontrol): reauthorize exact mTLS peers"
 ```
 
@@ -747,23 +804,25 @@ git commit -m "feat(nodecontrol): reauthorize exact mTLS peers"
 - Create: `internal/nodecontrol/recovery/repository.go`
 - Create: `internal/nodecontrol/recovery/postgres_repository.go`
 - Create: `internal/nodecontrol/recovery/security_fault.go`
+- Create: `internal/nodecontrol/recovery/trust_conflict.go`
 - Create: `internal/nodecontrol/recovery/operator_actions.go`
 - Modify: `internal/nodecontrol/identity/repository.go`
 - Modify: `internal/nodecontrol/identity/postgres_repository.go`
 - Modify: `internal/nodecontrol/identity/service.go`
 - Test: `internal/nodecontrol/hostevidence/remediation_test.go`
-- Test: `internal/nodecontrol/recovery/postgres_repository_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/recovery/postgres_repository_integration_test.go`
 - Test: `internal/nodecontrol/recovery/security_fault_test.go`
+- Test: `internal/nodecontrol/recovery/trust_conflict_test.go`
 - Test: `internal/nodecontrol/recovery/operator_actions_test.go`
 - Test: `internal/nodecontrol/recovery/service_crash_test.go`
 - Create: `testdata/c12/host-remediation-vectors.json`
 
 **Interfaces:**
-- Consumes: task 4 `DeploymentAuthorityKeySetV1` and exact `RoleHostRemediation`; task 2 transaction-bound `RecoveryIdentityRepository`; task 3 recovery issuance/receipt activation and identity effect resolver; task 6 node/operator authorization bindings; Batch 01 `authority.Coordinator` and recovery schema; Batch 02 inventory locks, recovery signer saga, `RecoveryTransitionGuard`, atomic audit/outbox, and uncached `operator.OperatorAuthorizer`; trusted time.
-- Produces: canonical `HostRemediationEvidenceV1`/`HostRemediationVerifier`; `SecurityFaultReceiptV1`; `RecoveryAttestationV1`; bounded incident/session/evidence/approval repository; a read-only recovery `ResolveAuthorityEffect` registered in the Batch 01 dispatcher; `recovery.Service`; and the B02 transaction-bound recovery transition guard implementation.
+- Consumes: task 4 `DeploymentAuthorityKeySetV1` and exact `RoleHostRemediation`; task 2 transaction-bound identity handler/`RecoveryIdentityRepository`; task 3 recovery issuance preparation; task 6 node/operator authorization bindings; Batch 01 `authority.Coordinator`、transaction-bound effect contracts、recovery schema and `contracts.DeriveTrustConflictLocalFaultIDV1`; Batch 02 inventory locks、registered state handler/recovery signer saga、`RecoveryTransitionGuard`、atomic audit/outbox and uncached `operator.OperatorAuthorizer`; trusted time.
+- Produces: canonical `HostRemediationAction`/`HostRemediationEvidenceV1`/`HostRemediationVerifier`; internal `VerifiedRecoveryAttestation`; field-by-field generated node-agent/operator response construction including exact recovery-poll 200/204；bounded incident/session/evidence/approval repository；`TrustConflictService` with a separate bounded low-priority verifier queue；one transaction-bound `RecoveryEffectHandler` registered only for security-incident open/resolve and standalone operator-transition；`recovery.Service`; and the B02 transaction-bound recovery transition guard implementation.
 
 ```go
-type SecurityFaultReceiptV1 struct {
+type DeliverableSecurityFaultReceipt struct {
 	SchemaVersion     string
 	LocalFaultID      uuid.UUID
 	IncidentID        uuid.UUID
@@ -773,7 +832,7 @@ type SecurityFaultReceiptV1 struct {
 	Result            string // exactly "accepted"
 }
 
-type RecoveryAttestationV1 struct {
+type VerifiedRecoveryAttestation struct {
 	RecoveryID               uuid.UUID
 	Nonce                    contracts.Nonce32
 	RecoverySnapshotDigest   contracts.Digest
@@ -787,12 +846,7 @@ type RecoveryAttestationV1 struct {
 	LatchGuardDigest         contracts.Digest
 	TrustedTimeEvidenceDigest contracts.Digest
 	AllSlotsStopped          bool
-}
-
-type RecoveryAttestationAckV1 struct {
-	RecoveryID       uuid.UUID
-	AttestationDigest contracts.Digest
-	Result           string // exactly "accepted"
+	AttestationDigest        contracts.Digest
 }
 
 type GuardCounterEvidenceV1 struct {
@@ -800,6 +854,16 @@ type GuardCounterEvidenceV1 struct {
 	CounterValue    uint64
 	StateDigest     contracts.Digest
 }
+
+type HostRemediationAction string
+
+const (
+	HostRemediationRegisterIncident         HostRemediationAction = "register_host_security_incident"
+	HostRemediationCompleteReenrollment     HostRemediationAction = "complete_reenrollment"
+	HostRemediationClearSecurityLatches     HostRemediationAction = "clear_security_latches"
+	HostRemediationReauthorizeAfterRestore  HostRemediationAction = "reauthorize_after_restore"
+	HostRemediationRegisterResourceEnvelope HostRemediationAction = "register_resource_envelope"
+)
 
 type HostRemediationEvidenceV1 struct {
 	SchemaVersion           string
@@ -827,28 +891,65 @@ type HostRemediationVerifier interface {
 }
 
 type Service interface {
-	ReportSecurityFault(context.Context, NodeCredentialBinding, SecurityFaultReportV1) (SecurityFaultReceiptV1, error)
-	PollRecovery(context.Context, NodeCredentialBinding, RecoveryPollRequestV1) (RecoveryPollResult, error)
-	SubmitRecoveryAttestation(context.Context, NodeCredentialBinding, RecoveryAttestationV1) (RecoveryAttestationAckV1, error)
-	Disable(context.Context, OperatorCommandBinding, DisableNodeV1) (RecoveryOperationV1, error)
-	Reenroll(context.Context, OperatorCommandBinding, ReenrollNodeV1) (RecoveryEnrollmentGrantV1, error)
-	CompleteReenrollment(context.Context, OperatorCommandBinding, CompleteReenrollmentV1) (RecoveryOperationV1, error)
-	RegisterHostSecurityIncident(context.Context, OperatorCommandBinding, RegisterHostSecurityIncidentV1) (RecoveryOperationV1, error)
-	ClearSecurityQuarantine(context.Context, OperatorCommandBinding, ClearSecurityQuarantineV1) (RecoveryOperationV1, error)
-	ResumeAfterSecurity(context.Context, OperatorCommandBinding, ResumeAfterSecurityV1) (state.SigningOperationV1, error)
-	ReauthorizeAfterRestore(context.Context, OperatorCommandBinding, ReauthorizeAfterRestoreV1) (RestoreReauthorizationV1, error)
+	ReportSecurityFault(context.Context, NodeCredentialBinding, nodeagentv1.SecurityFaultReportV1) (nodeagentv1.SecurityFaultReceiptV1, error)
+	PollRecovery(context.Context, NodeCredentialBinding, nodeagentv1.RecoveryPollRequestV1) (nodeagentv1.NodeRecoveryPollResponseV1, bool, error)
+	SubmitRecoveryAttestation(context.Context, NodeCredentialBinding, nodeagentv1.RecoveryAttestationV1) (nodeagentv1.RecoveryAttestationAckV1, error)
+	Disable(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.DisableNodeV1) (nodeoperatorv1.RecoveryOperationV1, error)
+	Reenroll(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.ReenrollNodeV1) (nodeoperatorv1.RecoveryEnrollmentGrantV1, error)
+	CompleteReenrollment(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.CompleteReenrollmentV1) (nodeoperatorv1.RecoveryOperationV1, error)
+	RegisterHostSecurityIncident(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.RegisterHostSecurityIncidentV1) (nodeoperatorv1.RecoveryOperationV1, error)
+	ClearSecurityQuarantine(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.ClearSecurityQuarantineV1) (nodeoperatorv1.RecoveryOperationV1, error)
+	ResumeAfterSecurity(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.ResumeAfterSecurityV1) (nodeoperatorv1.SigningOperationV1, error)
+	ReauthorizeAfterRestore(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.ReauthorizeAfterRestoreV1) (nodeoperatorv1.RestoreReauthorizationV1, error)
 }
 
-type AuthorityEffectResolver interface {
-	ResolveAuthorityEffect(context.Context, uuid.UUID) (authority.ResolvedEffect, error)
+type HighWaterConflictKind string
+
+const (
+	HighWaterFork  HighWaterConflictKind = "unverified_client_highwater_conflict"
+	HighWaterAhead HighWaterConflictKind = "client_highwater_ahead"
+)
+
+type HighWaterStreamKind string
+
+const (
+	HighWaterStreamServerCA       HighWaterStreamKind = "server_ca_bundle"
+	HighWaterStreamRoot           HighWaterStreamKind = "node_state_root_set"
+	HighWaterStreamMetadata       HighWaterStreamKind = "node_state_trust_metadata"
+	HighWaterStreamDesired        HighWaterStreamKind = "desired_state"
+	HighWaterStreamRecovery       HighWaterStreamKind = "recovery_state"
+)
+
+type HighWaterConflictInput struct {
+	Kind                  HighWaterConflictKind
+	Stream                HighWaterStreamKind
+	RequestDigest         contracts.Digest
+	ClientVersion         uint64
+	ClientAuthoritySequence uint64
+	ClientDigest          contracts.Digest
+	ServerVersion         uint64
+	ServerAuthoritySequence uint64
+	ServerDigest          contracts.Digest
+}
+
+type TrustConflictService interface {
+	MaterializeHighWaterConflict(context.Context, NodeCredentialBinding, HighWaterConflictInput) (identity.HighWaterConflictCommitBinding, error)
+	SubmitEvidence(context.Context, NodeCredentialBinding, nodeagentv1.TrustConflictEvidenceRequestV1) (nodeagentv1.TrustConflictEvidenceAckV1, identity.TrustConflictAckCommitBinding, error)
+}
+
+type RecoveryEffectHandler interface {
+	authority.TransactionalEffectResolver
+	authority.TransactionalEffectActivator
 }
 ```
 
-`NodeCredentialBinding` contains the task 6 exact certificate ID/DER/key/issuer/serial, node/identity/authority epochs and authorization version. `OperatorCommandBinding` contains the exact uncached B02 credential/authorization, command/idempotency/If-Match digests, target scope and trusted authorization time. Every request DTO above is the Plan 01 generated schema with no recovery-local duplicate. `VerifiedHostRemediation` owns defensive copies of the unsigned evidence, its RFC 8785 JCS digest and verified key/role; only the repository can consume that digest once for its exact node/incident/action. The recovery resolver recognizes only security-incident open/resolve, identity-epoch-advance, recovery activate and operator-transition effects stored by this task; it returns immutable exact bindings and never calls a provider.
+`HighWaterStreamKind` is exactly the five artifact-backed streams above. `node_authority_checkpoint` is deliberately not a member: the node request carries only its scalar checkpoint sequence, not the provider receipt preimage/digest needed by `HighWaterConflictInput`, and no checkpoint artifact may be invented. Each materialized incident freezes one stream and accepts evidence only of that stream's one-to-one generated `ConflictArtifactKind` (`server_ca_bundle`、`node_state_root_set`、`node_state_trust_metadata`、`desired_state` or `recovery_state`)；a different valid artifact kind cannot satisfy or escalate it. A client checkpoint ahead of the DB/provider-consistent checkpoint is a headerless global authority/readiness conflict handled through Coordinator checkpoint/Head/Inspect recovery；it never calls `MaterializeHighWaterConflict`, creates a per-node incident/notice/local latch or asks the node for unavailable checkpoint evidence.
+
+`NodeCredentialBinding` contains the task 6 exact certificate ID/DER/key/issuer/serial, node/identity/authority epochs and authorization version. `operator.AuthorizedMutationBinding` contains the exact uncached B02 credential/authorization、command/idempotency/If-Match digests、target scope and trusted authorization time；recovery defines no wire-compatible shadow. Every request/response DTO in `Service` and `TrustConflictService` is explicitly from the Plan 01 generated package. `PollRecovery` returns `changed=true` only with the complete generated `nodeagentv1.NodeRecoveryPollResponseV1` for HTTP 200；`changed=false` requires its zero value and maps only to bodyless 204. Conflict/error returns no response. The service strict-converts a generated attestation into non-wire-compatible `VerifiedRecoveryAttestation`; after fence finalization it maps `DeliverableSecurityFaultReceipt` field-by-field into `nodeagentv1.SecurityFaultReceiptV1`, never by alias/cast/reflection. An external-package compile test imports both generated packages, assigns every method expression—including the exact three-result poll and two trust-conflict methods—to its signature and statically rejects recovery-local declarations named like generated request/response DTOs. `VerifiedHostRemediation` owns defensive copies of the unsigned evidence, its RFC 8785 JCS digest and verified key/role；only the repository can consume that digest once for its exact node/incident/action. The five action literals are closed and map one-to-one, in declaration order, to `RegisterHostSecurityIncident`、`CompleteReenrollment`、`ClearSecurityQuarantine`、`ReauthorizeAfterRestore` and Task 7B `ResourceEnvelopeService.Register`; empty/unknown/alias/case and every cross-action pairing reject. The recovery handler recognizes only `security_incident_open`、`security_incident_resolve` and `operator_transition` effects stored by this task and returns immutable exact bindings under the caller-owned DBTX. Identity-epoch effects belong exclusively to task 2's identity handler；desired/recovery activation belongs exclusively to the B02 state handler, so dispatcher registration never overlaps.
 
 - [ ] **Step 1 (5 min): Write RED host-remediation transcript and freshness vectors**
 
-Generate `testdata/c12/host-remediation-vectors.json` for transcript `TALENRO-HOST-REMEDIATION-EVIDENCE-V1\x00 || JCS(unsigned_evidence)`. Cover every field above, canonical UUID/time/digest encoding, wrong role/key/algorithm, signature mutation, reordered/duplicate input, node/incident/action mismatch, future completion, exactly 15 minutes, one nanosecond beyond 15 minutes, trusted-time provider/floor rollback and evidence-ID replay.
+Generate `testdata/c12/host-remediation-vectors.json` for transcript `TALENRO-HOST-REMEDIATION-EVIDENCE-V1\x00 || JCS(unsigned_evidence)`. Cover every field above, all five literal actions, canonical UUID/time/digest encoding, wrong role/key/algorithm, signature mutation, reordered/duplicate input, node/incident/action mismatch, future completion, exactly 15 minutes, one nanosecond beyond 15 minutes, trusted-time provider/floor rollback and evidence-ID replay. Add the complete 5×5 consumer/action matrix: only the declaration-order diagonal succeeds；empty、case-folded、alias and unknown actions fail before repository/provider use.
 
 Run: `go test ./internal/nodecontrol/hostevidence -run TestHostRemediationEvidenceVectors -count=1`
 
@@ -856,7 +957,7 @@ Expected: FAIL because the verifier and vectors do not exist.
 
 - [ ] **Step 2 (5 min): Implement the pure role-separated verifier**
 
-Strict-decode one schema version, require nonzero IDs/counters/map version, exact 32-byte digests, nonempty bounded provider/counter identities, `Algorithm=Ed25519`, and the configured exact `host_remediation` deployment key. Reconstruct JCS from typed fields, verify the domain-separated signature, return defensive copies plus the evidence digest, and never consult PostgreSQL or accept a `trust_bundle`, `operator_trust_guard`, or `node_resource_envelope` role key.
+Strict-decode one schema version and one of the five exact action literals, require nonzero IDs/counters/map version, exact 32-byte digests, nonempty bounded provider/counter identities, `Algorithm=Ed25519`, and the configured exact `host_remediation` deployment key. Reconstruct JCS from typed fields, verify the domain-separated signature, return defensive copies plus the evidence digest/action, and never consult PostgreSQL or accept a `trust_bundle`, `operator_trust_guard`, or `node_resource_envelope` role key.
 
 Run: `go test ./internal/nodecontrol/hostevidence -run TestHostRemediationEvidenceVectors -count=1`
 
@@ -864,21 +965,29 @@ Expected: PASS; every one-field mutation and cross-role signature is rejected.
 
 - [ ] **Step 3 (5 min): Write RED repository bound and immutability tests**
 
-Cover fault subtype slots 1–12, rejection of reserved slots 13–15, saturating overflow slot 16, 16/17 simultaneous incident rows, 64/65 local-fault bindings, 16/17 supervisor-fault bindings, occurrence saturation, immutable finalized security receipt, one nonterminal recovery session per node, one accepted attestation digest per session version/nonce, one-time remediation evidence, and proposal/approval uniqueness by exact operator credential and role. Prove `open -> resolution_pending_agent_ack -> resolved` and `overflow -> resolution_pending_agent_ack|resolved` are the only forward incident transitions.
+Cover fault subtype slots 1–12, rejection of reserved slots 13–15, saturating overflow slot 16, 16/17 simultaneous incident rows, 64/65 local-fault bindings, 16/17 supervisor-fault bindings, occurrence saturation, bounded aggregation of `unverified_client_highwater_conflict`/`client_highwater_ahead`, immutable finalized security receipt, one nonterminal recovery session per node, one accepted attestation digest per session version/nonce, one-time remediation evidence/action, and proposal/approval uniqueness by exact operator credential and role. Prove `open -> resolution_pending_agent_ack -> resolved` and `overflow -> resolution_pending_agent_ack|resolved` are the only forward incident transitions；typed trust escalation atomically resolves the exact unverified incident and opens/reconciles exactly one mapped typed incident without mutating its immutable subtype.
 
-Run: `go test -tags=integration ./internal/nodecontrol/recovery -run TestPostgresRecoveryBounds -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/recovery' -Run '^TestPostgresRecoveryBounds$' -Timeout 3m`
 
 Expected: FAIL because recovery queries and repository do not exist.
 
-- [ ] **Step 4 (5 min): Implement exact recovery SQL and repository conversions**
+- [ ] **Step 4 (5 min): Implement exact recovery SQL, conversions and transaction-bound handler**
 
-Add lock/upsert queries for the node recovery aggregate, typed/overflow incident, local/supervisor binding, security receipt intent, recovery session, attestation, consumed remediation evidence, restore proposal and restore approval. Every write receives caller-owned `store.DBTX`; conversions reject zero/range-invalid versions, unknown enums, wrong digest lengths, partial authority groups, expired evidence and corrupt terminal rows. Use the database uniqueness/check constraints from Batch 01 rather than preflight-only counting.
+Add lock/upsert queries for the node recovery aggregate, typed/overflow/unverified incident, local/supervisor binding, security receipt intent, recovery session, attestation, consumed remediation evidence, restore proposal and restore approval. Every write receives caller-owned `store.DBTX`；conversions reject zero/range-invalid versions, unknown enums, wrong digest lengths, partial authority groups, expired evidence and corrupt terminal rows. Implement `ResolveAuthorityEffectForUpdate` and `ActivateAuthorityEffect` only for exact security-incident open/resolve and standalone operator-transition rows, using B01 lock order and the Coordinator-owned DBTX；implement evidence capture outside the transaction. The activator validates the opaque evidence but never consumes its token, and atomically writes receipt deliverability、unverified or typed incident materialization/escalation/resolution、exact operator transition when applicable、effect resolution、audit/outbox with fence visibility. It never registers `desired_activate`/`recovery_activate` or identity kinds. Use the database uniqueness/check constraints from Batch 01 rather than preflight-only counting；trust-conflict processing adds no table/effect kind and stores no unbounded raw artifact.
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Run: `go test -tags=integration ./internal/nodecontrol/recovery -run TestPostgresRecoveryBounds -count=1 -timeout 3m`
+Run: `git add db/queries/nodecontrol_recovery.sql internal/store/nodecontrol_recovery.sql.go internal/store/models.go internal/store/querier.go`
 
-Expected: PASS; generated recovery sqlc parameters preserve every UUID, authority version, digest and nullable transition group without lossy strings.
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_recovery.sql internal/store/nodecontrol_recovery.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_recovery.sql internal/store`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/recovery' -Run '^TestPostgresRecoveryBounds$' -Timeout 3m`
+
+Expected: PASS; generated recovery sqlc parameters preserve every UUID, authority version, digest and nullable transition group without lossy strings, with exact second-generation drift/untracked output empty.
 
 - [ ] **Step 5 (5 min): Write the RED self-invalidating security-fault saga**
 
@@ -890,31 +999,39 @@ Expected: FAIL because the saga is absent.
 
 - [ ] **Step 6 (5 min): Implement reserve, fail-closed commit, finalize, and receipt activation**
 
-Call `authority.Coordinator.Reserve` for the Batch 01 security-fault effect before opening the transaction. In the first short transaction re-lock the exact credential/node, record the reservation, idempotently materialize the binding and all fail-closed mutations, write audit/outbox, and persist the immutable nondeliverable receipt intent/effect. After commit call `authority.Coordinator.Finalize(operation_id,effect_digest)` outside all locks; the recovery resolver supplies the exact immutable incident/receipt effect and only the coordinator captures/binds database coordinates and activates the provider receipt. In a final transaction require the unchanged operation/credential/effect/incident/request binding and that exact committed receipt, then mark only that receipt deliverable. Timeout or uncertainty leaves the node quarantined and recovers through `Coordinator.Recover(operation_id)`; it never returns a guessed ACK.
+Call `authority.Coordinator.Reserve` for the Batch 01 security-fault effect before opening the transaction. In the first short transaction re-lock the exact credential/node, record the reservation, idempotently materialize the binding and all intentionally fail-closed mutations, write their audit/outbox, and persist the immutable nondeliverable receipt intent/effect. After commit call `authority.Coordinator.Finalize(operation_id,effect_digest)` outside all locks；the recovery handler supplies the exact immutable incident/receipt effect for update, and only the Coordinator captures/binds database coordinates、finalizes the provider、captures decision evidence and opens the activation transaction. In that same transaction the handler requires the unchanged operation/credential/effect/incident/request binding and exact receipt/evidence, then atomically marks only that receipt deliverable with fence visibility/resolution/audit/outbox. After the handler returns, only the Coordinator consumes the admission token and immediately attempts Commit. There is no recovery-service final transaction. Timeout or uncertainty leaves the node quarantined and recovers through `Coordinator.Recover(operation_id)`；it never returns a guessed ACK.
 
 Run: `go test ./internal/nodecontrol/recovery -run TestSecurityFaultSelfInvalidatingSaga -count=1`
 
-Expected: PASS; the returned object is only `SecurityFaultReceiptV1{result:"accepted"}` and contains no state/root/time payload.
+Expected: PASS; the returned object is only the exact generated `nodeagentv1.SecurityFaultReceiptV1{result:"accepted"}` assembled from a deliverable domain receipt and contains no state/root/time payload.
 
-- [ ] **Step 7 (5 min): Write RED stopped-recovery, attestation, and identity/admin flow tests**
+- [ ] **Step 7 (5 min): Write RED stopped-recovery, generated poll, trust-conflict, and identity/admin flow tests**
 
-Test recovery poll with exact recovery ID, sorted unique known incident IDs, high-water and 32-byte nonce: a strict subset returns the complete newer set, an unknown extra ID or same generation/sequence with another digest conflicts, and administrative-disable/authority-restore may have an empty incident set. Test proof-of-possession over the fresh server nonce and exact recovery certificate, all-slots-stopped, guard/build/time digests, attestation retry, disable/retire resume normalization, reenroll epoch/lineage/grant creation, `recovery_pending` activation, no-old-pending-issuance, and completion that remains operator-disabled.
+Test recovery poll with exact recovery ID, sorted unique known incident IDs, high-water and 32-byte nonce: a strict subset returns the complete newer set, an unknown extra ID or same generation/sequence with another digest conflicts, and administrative-disable/authority-restore may have an empty incident set. For a trust-conflict recovery, assert the request、signed snapshot、attestation and repository aggregate all use the retained incident UUID as that exact recovery ID；a fresh recovery/session UUID, caller-selected scalar or another incident UUID fails before snapshot/attestation use. Assert field-by-field construction of `nodeagentv1.NodeRecoveryPollResponseV1`, `changed=true` only for 200, and zero response plus `changed=false` only for 204. Test proof-of-possession over the fresh server nonce and exact recovery certificate, all-slots-stopped, guard/build/time digests, attestation retry, disable/retire resume normalization, reenroll epoch/lineage/grant creation, `recovery_pending` activation, no-old-pending-issuance, and completion that remains operator-disabled.
 
-Run: `go test ./internal/nodecontrol/recovery -run 'TestStoppedRecovery|TestRecoveryAttestation|TestRecoveryIdentityFlow' -count=1`
+Add high-water fork/ahead tests for desired/root/metadata/server-CA and optional recovery streams. Same version/authority-sequence plus another digest or an unexplained client-ahead tuple must derive one immutable operation ID, use the recovery handler's `security_incident_open` path, disable/quarantine only that node while preserving its exact current-epoch credential solely for the incident-bound closed set `trust_conflict_evidence|recovery_poll|recovery_attestation`, and return only the specialized fixed conflict binding；999 other nodes remain serviceable and no client claim mutates a global high-water or readiness. Require the submitted evidence kind to equal the incident's original stream and reject every cross-stream substitution. Independently exercise the provider/DB check and scalar node-checkpoint-ahead case: only a real mismatch signals the existing listener readiness failure path, returns no incident header and creates no notice/local-fault binding.
+
+For generated `TrustConflictEvidenceRequestV1`, cover the declaration-order closed artifact kinds `desired_state`、`recovery_state`、`node_state_trust_metadata`、`node_state_root_set`、`server_ca_trust_bundle`, plus zero/one/two/three artifacts, 1 MiB aggregate boundary, compression rejection at the handler, canonical byte truncation, unknown/empty/alias/case kind, unknown key/schema/role, signature/digest/epoch/sequence/version mutation, cross-kind pairs, one valid artifact without a second independent artifact, one submitted artifact plus the exact server fence-finalized counterpart, and two submitted valid conflicting artifacts. Freeze the only escalation map: `desired_state|recovery_state` → `online_signer_equivocation`; `node_state_trust_metadata|node_state_root_set` → `root_equivocation`; `server_ca_trust_bundle` → `server_trust_bundle_conflict`. Require same kind、authority identity and version/sequence but different digests；a cross-kind pair never escalates. The generated ACK result is closed to `accepted|escalated`: every valid but insufficient set returns `accepted`, and only the atomic typed-incident escalation returns `escalated`; invalid input returns no ACK. Test per node/exact credential four-per-hour limiting and a separate queue of exactly 16 one-MiB jobs with two workers；the 17th fails before copying bytes or calling a verifier/provider. Queue timeout/crash/retry cannot double-escalate, and every insufficient/invalid set leaves the unverified incident open.
+
+Run: `go test ./internal/nodecontrol/recovery -run 'TestStoppedRecovery|TestRecoveryPollGeneratedMapping|TestRecoveryAttestation|TestRecoveryIdentityFlow|TestTrustConflictHighWaterIsolation|TestTrustConflictIncidentRecoveryEndpointsRemainReachable|TestTrustConflictEvidenceEscalation|TestTrustConflictQueueBounds' -count=1`
 
 Expected: FAIL because recovery actions and the B02 guard are absent.
 
-- [ ] **Step 8 (5 min): Implement the stopped recovery state machine**
+- [ ] **Step 8 (5 min): Implement the stopped recovery and trust-conflict state machines**
 
-Implement identity-compromise, administrative-disable, retire, authority-restore and security-incident sessions. `Disable` performs the fail-closed identity transaction and creates a nonterminal session; retire and authority restore force saved resume state to disabled. `Reenroll` creates a new epoch/lineage CSR-bound one-time grant while disabled. `PollRecovery` signs only bounded `RecoveryStateSnapshotV1`; `SubmitRecoveryAttestation` verifies exact nonce/snapshot/certificate proof and stores one digest. `CompleteReenrollment` requires fresh accepted remediation evidence, the exact recovery-pending certificate and no old pending issuance, activates it as active or recovery-limited according to the remaining incident set, completes only the exact session, and never resumes ordinary operator state.
+Implement identity-compromise, administrative-disable, retire, authority-restore and security-incident sessions. `Disable` performs the fail-closed identity transaction and creates a nonterminal session; retire and authority restore force saved resume state to disabled. `Reenroll` creates a new epoch/lineage CSR-bound one-time grant while disabled. `PollRecovery` signs only bounded `RecoveryStateSnapshotV1`, maps it field-by-field into the generated response and returns the exact 200/204 boolean contract；`SubmitRecoveryAttestation` verifies exact nonce/snapshot/certificate proof and stores one digest. `CompleteReenrollment` requires fresh accepted remediation evidence with action=`complete_reenrollment`, the exact recovery-pending certificate and no old pending issuance, activates it as active or recovery-limited according to the remaining incident set, completes only the exact session, and never resumes ordinary operator state.
 
-Run: `go test ./internal/nodecontrol/recovery -run 'TestStoppedRecovery|TestRecoveryAttestation|TestRecoveryIdentityFlow' -count=1`
+`TrustConflictService.MaterializeHighWaterConflict` strict-validates the handler-computed client/server tuple, derives the operation ID from the immutable node/certificate/request/stream/high-water digest, calls `Coordinator.Reserve` before its short transaction, then creates/aggregates the exact unverified subtype and quarantines/disables only that node while leaving the exact current-epoch certificate usable only for the incident-bound closed set `trust_conflict_evidence|recovery_poll|recovery_attestation`. In the same activation transaction, after the incident ID is fixed, it recomputes `TrustConflictLocalFaultBindingV1` from the exact node、incident、poll-request digest、certificate DER digest and identity epoch, calls the B01 helper, and stores that exact `{LocalFaultID,IncidentID}` in the recovery aggregate used by `RecoveryStateSnapshotV1.SortedAcknowledgedLocalFaultBindings`. That aggregate's trust-conflict recovery locator is the same retained incident UUID；the recovery authorizer、poll builder and attestation verifier compare exact equality and have no alternate recovery/session-ID constructor. It commits a B01 canonical effect and calls `Coordinator.Finalize` outside locks；the specialized binding containing that local-fault ID and the exact incident ID/header value is returned only after incident/fault-binding/fence/audit/outbox terminalize together. Response loss uses Inspect/Recover, recomputes the same ID and returns the same incident/header without creating another incident/fence or fault binding. The recovery aggregate remains pollable after reconnect/restart and accepts only the exact stopped attestation needed for the signed clear transition；ordinary service access remains disabled throughout.
+
+`SubmitEvidence` rate-limits before copying/verification and submits one bounded deep copy to the independent cap-16/two-worker low-priority queue, waiting only within the endpoint deadline. Workers strict-parse the complete canonical bytes by generated kind, independently verify root/deployment-authority/online-key signatures、schema/validity、authority identity/epoch/sequence、version/generation and digest, and independently query the B01 provider plus bound server artifact view outside DB locks. Client-reported digests never count as evidence. A single valid unpaired artifact returns the exact generated accepted ACK but makes no escalation. One submitted artifact plus one distinct exact server fence-finalized artifact, or two submitted artifacts, may escalate only when both are independently valid and match the frozen pair predicate/map. That escalation uses a separately derived `security_incident_open` Coordinator operation and one activation transaction to resolve the exact unverified row、open/reconcile the one typed incident、retain quarantine and write resolution/audit/outbox；it never edits an incident subtype or a global high-water. Provider/DB mismatch invokes only the existing readiness recovery path. The result returns a `TrustConflictAckCommitBinding` so the handler can commit only the exact generated ACK even if escalation self-invalidated the entry predicate.
+
+Run: `go test ./internal/nodecontrol/recovery -run 'TestStoppedRecovery|TestRecoveryPollGeneratedMapping|TestRecoveryAttestation|TestRecoveryIdentityFlow|TestTrustConflictHighWaterIsolation|TestTrustConflictIncidentRecoveryEndpointsRemainReachable|TestTrustConflictEvidenceEscalation|TestTrustConflictQueueBounds' -count=1`
 
 Expected: PASS; every success still leaves operator state disabled and every failed prerequisite remains fail closed.
 
 - [ ] **Step 9 (5 min): Write RED host-incident registration and per-incident clear tests**
 
-Verify `RegisterHostSecurityIncident` consumes fresh exact node/incident/action evidence once and materializes or reconciles the typed server incident rather than treating absence as cleared. For `ClearSecurityQuarantine`, cover subtype-specific prerequisites, exact stopped snapshot/attestation/evidence digests, wrong incident, evidence reuse, another concurrent open incident, no local latch binding, local and supervisor bindings, response loss, and clearing one incident without broadening another.
+Verify `RegisterHostSecurityIncident` consumes fresh exact node/incident evidence with action=`register_host_security_incident` once and materializes or reconciles the typed server incident rather than treating absence as cleared. For `ClearSecurityQuarantine`, require action=`clear_security_latches` and cover subtype-specific prerequisites, exact stopped snapshot/attestation/evidence digests, wrong incident, evidence reuse, every other valid action, another concurrent open incident, no local latch binding, local and supervisor bindings, response loss, and clearing one incident without broadening another.
 
 Run: `go test ./internal/nodecontrol/recovery -run 'TestRegisterHostSecurityIncident|TestClearSecurityQuarantine' -count=1`
 
@@ -922,7 +1039,7 @@ Expected: FAIL because per-incident recovery actions are absent.
 
 - [ ] **Step 10 (5 min): Implement two-phase latch clear and explicit resume**
 
-Without a local/supervisor binding, finalize only the exact incident after machine-verifying its subtype evidence. With bindings, first move it to `resolution_pending_agent_ack` and publish a strictly higher recovery generation with `required_action=clear_security_latches`, exact fault sets and remediation digest; only a later attestation of both new guard counters/digests finalizes resolution. The last resolution may set security normal and the certificate active but keeps operator disabled. `ResumeAfterSecurity` requires no open incident, fresh accepted attestation, exact active certificate and a target no broader than saved intent, then uses the B02 guard/signer/fence saga; only its activation transaction restores the explicit target.
+Without a local/supervisor binding, finalize only the exact incident after machine-verifying its subtype evidence and exact `clear_security_latches` remediation action. With bindings—including the deterministic trust-conflict local binding materialized before the 409—first move it to `resolution_pending_agent_ack` and publish a strictly higher recovery generation with `required_action=clear_security_latches`, exact fault sets and remediation digest; only a later attestation of both new guard counters/digests finalizes resolution. The signed snapshot and agent independently derive the same trust-conflict local-fault ID; any mismatch rejects rather than creating an alias. The last resolution may set security normal and the certificate active but keeps operator disabled. `ResumeAfterSecurity` requires no open incident, fresh accepted attestation, exact active certificate and a target no broader than saved intent, then uses the B02 guard/signer/fence saga; only its activation transaction restores the explicit target.
 
 Run: `go test ./internal/nodecontrol/recovery -run 'TestRegisterHostSecurityIncident|TestClearSecurityQuarantine|TestResumeAfterSecurity' -count=1`
 
@@ -930,7 +1047,7 @@ Expected: PASS; signer failure or a concurrent security mutation leaves the node
 
 - [ ] **Step 11 (5 min): Write RED two-person authority-restore reauthorization tests**
 
-Start from a completed authority-restore session with the node disabled and old resume/desired discarded. Require proposal then approval from different operator IDs and exact credentials, equal authority epoch/scope/effect/target/evidence/If-Match, fresh uncached authorization at each phase, and deadline `min(proposal.created_at+15m, evidence.completed_at+15m)`. Expire/revoke either credential, shrink POP/role scope, change inventory/profile/session/evidence/effect or attempt one credential in both roles; require atomic supersede of proposal, approval and signing intent.
+Start from a completed authority-restore session with the node disabled and old resume/desired discarded. Require proposal then approval from different operator IDs and exact credentials, equal authority epoch/scope/effect/target/evidence/If-Match, host evidence action exactly `reauthorize_after_restore`, fresh uncached authorization at each phase, and deadline `min(proposal.created_at+15m, evidence.completed_at+15m)`. Expire/revoke either credential, use any of the other four valid actions, shrink POP/role scope, change inventory/profile/session/evidence/effect or attempt one credential in both roles; require atomic supersede of proposal, approval and signing intent.
 
 Run: `go test ./internal/nodecontrol/recovery -run TestReauthorizeAfterRestoreTwoPerson -count=1`
 
@@ -938,7 +1055,7 @@ Expected: FAIL because restore proposal/approval activation is absent.
 
 - [ ] **Step 12 (5 min): Implement proposal, approval, and finalized restore activation**
 
-Persist one-time proposal/approval rows containing both exact credential snapshots and a shared effect digest; the approver cannot change proposal fields. Only after approval create the B02 `restore_reauthorize` transition/signing intent. At activation, re-lock session/inventory/POP/profile/evidence/approval rows, call the external authorizer uncached for each captured credential outside database locks, re-enter the final transaction, require unchanged captures and a committed authority receipt, publish a new higher desired generation selecting only enabled or draining, then complete the session. Never reuse backup desired or resume intent.
+Persist one-time proposal/approval rows containing both exact credential snapshots and a shared effect digest；the approver cannot change proposal fields. Only after approval create the B02 `restore_reauthorize` transition/signing intent, whose B02 `RecoveryTransitionCapture` includes the immutable approval IDs and credential snapshot/version/scope digests. During the registered state handler's lock-free capture phase, call this task's `RecoveryTransitionGuard.CaptureActivationDecisionEvidence`; it loads those exact IDs without a caller DBTX, calls the external authorizer uncached for each credential, and returns only `state.NewRecoveryTransitionDecisionCapture` sealed over both exact authorization results、credential versions/scopes、operation/effect and deadline. The state handler binds that capture to the exact B01 evidence and keeps it only in its private one-use registry. The Coordinator then opens its sole activation transaction；the B02 state activator passes the same sealed capture plus typed B01 evidence to this task's guard, which re-locks session/inventory/POP/profile/evidence/approval rows, compares every captured immutable fact, publishes the new higher desired generation selecting only enabled or draining, consumes both approvals and completes the session atomically with fence visibility/resolution/audit/outbox. No external authorization occurs under DBTX and there is no re-entered/post-Finalize transaction. Never reuse backup desired or resume intent.
 
 Run: `go test ./internal/nodecontrol/recovery -run TestReauthorizeAfterRestoreTwoPerson -count=1`
 
@@ -946,15 +1063,15 @@ Expected: PASS; missing, stale, same-operator or scope-mismatched approval never
 
 - [ ] **Step 13 (5 min): Exercise crash and concurrency recovery at every boundary**
 
-Crash before/after reserve, fail-closed transaction, provider finalize, receipt activation, recovery-sign prepare/sign/fence/activation, `resolution_pending_agent_ack`, latch-clear attestation, server resolution, restore proposal, approval and final activation. Race duplicate fault IDs, two reenrolls, incident overflow, clear versus new incident, resume versus disable and restore approval versus credential revocation. Retry exact operation IDs and prove one terminal audit outcome, no reopened authority and no duplicate generation/grant/receipt.
+Crash before/after reserve, fail-closed transaction, provider finalize, every receipt/fence/resolution/audit/outbox activation write, token consumption, Commit invocation/response loss, recovery-sign prepare/sign/fence/activation, high-water unverified incident, evidence queue acceptance/worker validation/escalation/ACK commit, `resolution_pending_agent_ack`, latch-clear attestation, server resolution, restore proposal, approval and final activation. Race duplicate fault IDs, duplicate evidence requests, queue saturation, evidence escalation versus new high-water conflict/host clear, two reenrolls, incident overflow, clear versus new incident, resume versus disable and restore approval versus credential revocation. Retry exact operation IDs and prove no partial fence/domain visibility, one terminal audit outcome, no reopened authority and no duplicate generation/grant/receipt/typed incident.
 
-Run: `go test -tags=integration ./internal/nodecontrol/recovery -run 'TestRecoveryCrashMatrix|TestRecoveryConcurrency' -count=1 -timeout 6m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/recovery' -Run '^(TestRecoveryCrashMatrix|TestRecoveryConcurrency)$' -Timeout 6m`
 
 Expected: PASS with no provider/authorizer/signer call under a PostgreSQL lock.
 
 - [ ] **Step 14 (4 min): REFACTOR finite errors, retention, and secret-free telemetry**
 
-Map only invalid request, unauthenticated, forbidden, not found, conflict, rate limited, dependency unavailable and internal. Logs/audit/metrics may contain finite subtype/status and opaque IDs, never grant, CSR, certificate DER, proof, remediation signature, guard digest, provider/SQL text or free-form reason. Retain unresolved/session/evidence/approval rows while referenced; delete only terminal unreferenced rows after the Batch 01 windows.
+Map only invalid request, unauthenticated, forbidden, not found, conflict, rate limited, dependency unavailable and internal. Logs/audit/metrics may contain finite subtype/status/artifact kind/queue result and opaque IDs, never canonical conflict bytes、client-reported digest、grant、CSR、certificate DER、proof、remediation signature、guard digest、provider/SQL text or free-form reason. Retain unresolved/session/evidence/approval rows while referenced; delete only terminal unreferenced rows after the Batch 01 windows.
 
 Run: `go test -race ./internal/nodecontrol/recovery ./internal/nodecontrol/hostevidence -count=1`
 
@@ -963,8 +1080,81 @@ Expected: PASS with privacy canaries, stable finite reason cardinality and no da
 - [ ] **Step 15 (2 min): Commit recovery and security workflows**
 
 ```bash
-git add db/queries/nodecontrol_recovery.sql internal/store/nodecontrol_recovery.sql.go internal/store/models.go internal/store/querier.go internal/nodecontrol/hostevidence/remediation.go internal/nodecontrol/recovery/types.go internal/nodecontrol/recovery/repository.go internal/nodecontrol/recovery/postgres_repository.go internal/nodecontrol/recovery/security_fault.go internal/nodecontrol/recovery/operator_actions.go internal/nodecontrol/identity/repository.go internal/nodecontrol/identity/postgres_repository.go internal/nodecontrol/identity/service.go internal/nodecontrol/hostevidence/remediation_test.go internal/nodecontrol/recovery/postgres_repository_integration_test.go internal/nodecontrol/recovery/security_fault_test.go internal/nodecontrol/recovery/operator_actions_test.go internal/nodecontrol/recovery/service_crash_test.go testdata/c12/host-remediation-vectors.json
+git add db/queries/nodecontrol_recovery.sql internal/store/nodecontrol_recovery.sql.go internal/store/models.go internal/store/querier.go internal/nodecontrol/hostevidence/remediation.go internal/nodecontrol/recovery/types.go internal/nodecontrol/recovery/repository.go internal/nodecontrol/recovery/postgres_repository.go internal/nodecontrol/recovery/security_fault.go internal/nodecontrol/recovery/trust_conflict.go internal/nodecontrol/recovery/operator_actions.go internal/nodecontrol/identity/repository.go internal/nodecontrol/identity/postgres_repository.go internal/nodecontrol/identity/service.go internal/nodecontrol/hostevidence/remediation_test.go internal/nodecontrol/recovery/postgres_repository_integration_test.go internal/nodecontrol/recovery/security_fault_test.go internal/nodecontrol/recovery/trust_conflict_test.go internal/nodecontrol/recovery/operator_actions_test.go internal/nodecontrol/recovery/service_crash_test.go testdata/c12/host-remediation-vectors.json
 git commit -m "feat(nodecontrol): recover quarantined node identities"
+```
+
+### Task 7B: Register signed node resource envelopes through the closed authority dispatcher
+
+**Files:**
+- Create: `db/queries/nodecontrol_resource_envelope.sql`
+- Create generated: `internal/store/nodecontrol_resource_envelope.sql.go`
+- Modify generated: `internal/store/models.go`
+- Modify generated: `internal/store/querier.go`
+- Create: `internal/nodecontrol/hostevidence/resource_envelope.go`
+- Create: `internal/nodecontrol/hostevidence/resource_envelope_service.go`
+- Test: `internal/nodecontrol/hostevidence/resource_envelope_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/hostevidence/resource_envelope_integration_test.go`
+- Test: `internal/nodecontrol/hostevidence/resource_envelope_crash_test.go`
+
+**Interfaces:**
+- Consumes: the sole B02 `contracts.NodeResourceEnvelopeV1`/package canonicalizer, task 4 exact deployment key role `node_resource_envelope`, task 7 `HostRemediationVerifier`, B02 `operator.AuthorizedMutationBinding` and inventory DBTX locks, Batch 01 `authority.Coordinator`/transaction-bound effect contracts and immutable resource-envelope table.
+- Produces: `VerifiedResourceEnvelope`, a `ResourceEnvelopeService` for the generated operator route, and the unique `ResourceEnvelopeEffectHandler` registration for `resource_envelope_activate`. It does not define another envelope schema or let generic inventory mutation advance the pointer.
+
+```go
+type ResourceEnvelopeService interface {
+	Register(context.Context, operator.AuthorizedMutationBinding, nodeoperatorv1.RegisterResourceEnvelopeV1) (nodeoperatorv1.ResourceEnvelopeActivationV1, error)
+}
+
+type ResourceEnvelopeEffectHandler interface {
+	authority.TransactionalEffectResolver
+	authority.TransactionalEffectActivator
+}
+```
+
+- [ ] **Step 1 (5 min): Write RED role, host-evidence and monotonicity tests**
+
+Require exact package JCS/transcript、role=`node_resource_envelope`、deployment key ID/signature、node audience、fresh task-7 host-remediation evidence with action exactly `register_resource_envelope`、matching detected-host-capacity digest、security-admin binding、If-Match and idempotency. Cover lower authority/version、same-value fork、package/body limit override、capacity/headroom overflow、wrong node/action/key role、all four other valid host-remediation actions、stale/replayed evidence、ordinary writer and concurrent envelope N/N+1. Require package authority epoch/sequence to equal the Coordinator reservation；a predicted sequence lost to concurrency returns conflict and requires a newly signed package rather than relabeling bytes.
+
+Run: `go test ./internal/nodecontrol/hostevidence -run 'TestResourceEnvelopeVerification|TestResourceEnvelopeService' -count=1`
+
+Expected: FAIL because the verifier/service/handler do not exist.
+
+- [ ] **Step 2 (5 min): Implement pure verification before any database lock**
+
+Use only B02 canonical package bytes/transcript and task 4's exact role key. Verify host-remediation evidence independently, require its closed action exactly equals `HostRemediationRegisterResourceEnvelope`, bind its node/action/capacity/package digests and freshness, perform checked agent+supervisor+core+OS-headroom arithmetic, and return defensive opaque facts. Neither verifier can reserve authority、write PostgreSQL or accept caller-supplied limits outside the signed package.
+
+- [ ] **Step 3 (5 min): Add immutable prepare and caller-DBTX activation queries**
+
+In one prepare transaction lock inventory and current pointer in B01 order, recheck the mutation binding/If-Match/current version/capacity evidence, and insert one immutable `node_resource_envelopes` package row bound by its exact operation/authority group to the separately persisted effect commitment and operator audit inputs. The B01 row has no deadline or lifecycle-status column and remains permanently immutable；before activation it is unreachable because inventory still points to the prior envelope. Reservation/evidence carries the finite activation deadline. `ResolveAuthorityEffectForUpdate` locks the exact row/inventory pointer and recognizes only `resource_envelope_activate`. `ActivateAuthorityEffect` re-resolves under the Coordinator-owned DBTX, validates but never consumes activation admission evidence, rechecks every package/key/evidence/capacity/inventory/operator capture, advances only the exact version/digest pointer and atomically records terminal resolution/audit/outbox with fence visibility；it never updates or “marks active” on the envelope row. Generated pointer-update SQL is private to this handler；ordinary `operator.Service.Execute` cannot call it.
+
+- [ ] **Step 4 (4 min): Drive Reserve→prepare→Finalize without a second activation transaction**
+
+Call `Coordinator.Reserve` before prepare, require its exact authority tuple equals the already signed package, commit the immutable prepared row, then call `Coordinator.Finalize` outside all locks. A tuple mismatch、definite prepare failure or any pre-commit partial path must first prove the immutable effect absent through the transaction-bound resolver, then call `Coordinator.Abort` with its fixed reason；commit-uncertain paths call Recover/Inspect before any Abort or retry. After a terminal mismatch, the caller obtains a new operation/reservation and newly signed package；it never relabels existing bytes. Only the Coordinator captures external decision evidence、opens the activation transaction、invokes the handler、consumes its single-use token after all writes and immediately attempts Commit. Response retry loads the exact operation/package/result and never creates a second row, edits signed bytes or advances the pointer directly.
+
+- [ ] **Step 5 (5 min): Run generation, integration and crash matrices**
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git add db/queries/nodecontrol_resource_envelope.sql internal/store/nodecontrol_resource_envelope.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_resource_envelope.sql internal/store/nodecontrol_resource_envelope.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_resource_envelope.sql internal/store`
+
+Run: `go test ./internal/nodecontrol/hostevidence -run 'TestResourceEnvelopeVerification|TestResourceEnvelopeService' -count=1`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/hostevidence|./internal/store' -Run '^(TestResourceEnvelopeActivation|TestResourceEnvelopeCrashMatrix)$' -Timeout 5m`
+
+Crash after Reserve、tuple mismatch/prepare failure、immutable insert、provider Finalize、each pointer/resolution/audit/outbox write、token consumption、Commit invocation and response loss. Prove mismatch/definite-failure paths leave no unresolved reservation or pending fence, uncertain paths never Abort before Inspect, no partial fence/pointer visibility exists, stale desired preparation cannot observe the new pointer, and one exact retry result survives. Expected: PASS.
+
+- [ ] **Step 6 (3 min): Commit the unique resource-envelope workflow**
+
+```bash
+git add db/queries/nodecontrol_resource_envelope.sql internal/store/nodecontrol_resource_envelope.sql.go internal/store/models.go internal/store/querier.go internal/nodecontrol/hostevidence/resource_envelope.go internal/nodecontrol/hostevidence/resource_envelope_service.go internal/nodecontrol/hostevidence/resource_envelope_test.go internal/nodecontrol/hostevidence/resource_envelope_integration_test.go internal/nodecontrol/hostevidence/resource_envelope_crash_test.go
+git commit -m "feat(nodecontrol): activate signed resource envelopes"
 ```
 
 ### Task 8: Adapt generated bootstrap, agent, and operator APIs
@@ -982,8 +1172,8 @@ git commit -m "feat(nodecontrol): recover quarantined node identities"
 - Test: `internal/nodeagentapi/response_commit_test.go`
 
 **Interfaces:**
-- Consumes: generated `nodebootstrapv1`, `nodeagentv1`, `nodeoperatorv1` strict server interfaces; task 3 identity service; task 6 authorizers/waiters; task 7 recovery service; Batch 02 inventory/operator/state services. B07-T03 replaces the exact fail-closed observation implementation defined below.
-- Produces: generated-interface-complete handlers, bounded decoder/encoder, finite public error mapper, ordinary response-commit gate and the security-fault specialized receipt-commit path.
+- Consumes: generated `nodebootstrapv1`, `nodeagentv1`, `nodeoperatorv1` strict server interfaces; the same Batch 01 bound `serving.Reader` used by task 6；task 3 identity service; task 6 authorizers/waiters and specialized conflict commit gates；task 7 recovery and `TrustConflictService`; task 7B resource-envelope service; Batch 02 inventory/operator/state response builders. B07-T03 replaces the exact fail-closed observation implementation defined below.
+- Produces: generated-interface-complete handlers, bounded decoder/encoder, finite public error mapper, ordinary response-commit gate, security-fault specialized receipt-commit path, desired high-water fixed-conflict commit path and trust-evidence generated-ACK commit path.
 
 ```go
 type BootstrapService interface {
@@ -996,8 +1186,8 @@ type ObservationService interface {
 	Accept(context.Context, NodeAuthorization, nodeagentv1.NodeObservationV1) (nodeagentv1.ObservationAckV1, error)
 }
 
-type AgentStateService interface {
-	PollDesired(context.Context, NodeAuthorization, nodeagentv1.DesiredPollRequestV1) (nodeagentv1.NodeStatePollResponseV1, bool, error)
+type DesiredResponseBuilder interface {
+	BuildDesiredPollResponse(context.Context, NodeAuthorization, serving.DesiredStateFacts, nodeagentv1.DesiredPollRequestV1) (nodeagentv1.NodeStatePollResponseV1, bool, error)
 }
 
 type UnavailableObservationService struct{}
@@ -1008,8 +1198,11 @@ func (UnavailableObservationService) Accept(_ context.Context, _ NodeAuthorizati
 
 type AgentServices struct {
 	Identity      identity.IdentityService
-	State         AgentStateService
+	AuthorityReader *serving.Reader
+	AuthorityCheckpoints NodeCheckpointReader
+	Desired       DesiredResponseBuilder
 	Recovery      recovery.Service
+	TrustConflicts recovery.TrustConflictService
 	Observation   ObservationService
 	Authorizer    NodeRequestAuthorizer
 	Waiters       *WaiterRegistry
@@ -1021,16 +1214,17 @@ type OperatorServices struct {
 	State         state.StateService
 	Identity      identity.IdentityService
 	Recovery      recovery.Service
+	ResourceEnvelopes hostevidence.ResourceEnvelopeService
 	Authorizer    operator.OperatorAuthorizer
 	Authenticator OperatorPeerAuthenticator
 }
 ```
 
-`AgentStateService.PollDesired` returns `changed=true` only for a `200` payload assembled from finalized active pointers in root-chain → metadata → desired → optional time-attestation order; `changed=false` means an empty `204`. It never returns pending signer bytes, and it obtains any nonce-bound time attestation through B02 without reserving a new authority sequence.
+The desired route first obtains `serving.DesiredStateFacts` from `AuthorityReader.GetActiveDesiredState` and the exact server-CA high-water already captured in `NodeAuthorization`, then calls the injected same-Coordinator `AuthorityCheckpoints.CommittedNodeCheckpoint(SHA256(node_id))` outside every DB transaction. `DesiredResponseBuilder.BuildDesiredPollResponse` is only a bounded response/time-attestation builder and cannot query or select a desired row. It returns `changed=true` only for a `200` payload assembled from the reader-selected finalized desired facts plus root-chain → metadata → optional time-attestation order；`changed=false` means an empty `204`. It never returns pending signer bytes, and it obtains any nonce-bound time attestation through B02 without reserving a new authority sequence. The concrete `nodeagentapi.Handler` owns this call order；construction fails for a nil/mismatched Reader、checkpoint reader or builder.
 
 - [ ] **Step 1 (5 min): Write RED generated-interface and body-limit tests**
 
-Add compile-time assertions against `nodebootstrapv1.ServerInterface`, `nodeagentv1.ServerInterface` and `nodeoperatorv1.ServerInterface`. Test ordinary 64 KiB bodies, conflict-evidence 1 MiB/two-artifact exception, oversized Content-Length, unknown-length streamed overflow, truncated/chunked body, duplicate/unknown JSON, invalid UTF-8, trailing JSON and non-identity Content-Encoding. Assert `UnavailableObservationService` returns the fixed `dependency_unavailable` public result without reading or persisting observation data; B07-T03 must replace this injected value before observation readiness can become true.
+Add compile-time assertions against `nodebootstrapv1.ServerInterface`, `nodeagentv1.ServerInterface` and `nodeoperatorv1.ServerInterface`. Test ordinary 64 KiB bodies, conflict-evidence aggregate 1 MiB/two-artifact exception, oversized Content-Length, unknown-length streamed overflow, truncated/chunked body, duplicate/unknown JSON, invalid UTF-8, trailing JSON and non-identity Content-Encoding. Assert construction fails without `TrustConflicts`; the generated trust-conflict request/ACK are mapped field-by-field and no local look-alike DTO exists. Assert `UnavailableObservationService` returns the fixed `dependency_unavailable` public result without reading or persisting observation data; B07-T03 must replace this injected value before observation readiness can become true.
 
 - [ ] **Step 2 (2 min): Run the focused RED handler tests**
 
@@ -1044,11 +1238,13 @@ Apply source rate limit before body read, bound wire and decoded size to 64 KiB,
 
 - [ ] **Step 4 (5 min): Implement agent route adapters and endpoint classes**
 
-Map rotate, desired poll, recovery poll, observation, security fault, trust-conflict evidence and recovery attestation to the exact class from task 6. Authorize before full body/heavy dependency, use per-node finite rate limits, register poll waiters, and invoke injected domain service only after strict validation. Recovery poll/attestation call `recovery.Service`; observation calls the injected service and therefore fails closed until B07-T03; security fault calls `ReportSecurityFault`, discards every non-receipt value, then uses only `AuthorizeSecurityFaultReceiptCommit` with the task 7 immutable binding. It must not call ordinary `ReauthorizeResponse` after the first transaction revoked the presenting credential. No class may fall through to ordinary authorization.
+Map rotate, desired poll, recovery poll, observation, security fault, trust-conflict evidence and recovery attestation to the exact class from task 6. Authorize before full body/heavy dependency, use per-node finite rate limits, register poll waiters, and invoke injected domain service only after strict validation. The desired branch must call the injected `AuthorityReader.GetActiveDesiredState(nodeID)` and `AuthorityCheckpoints.CommittedNodeCheckpoint(SHA256(node_id))`, and use the authorizer-captured server-CA high-water；it cannot call a B02 `LoadActive`/repository query, raw provider or choose the highest generation. Before returning either 200 or 204, require current authority epoch consistency and compare every supplied server-CA/root/metadata/desired/recovery triple against its exact continuous defensive fact. Idempotent equal tuples proceed；a lower explainable stream selects the continuous response, never rewrites authority. A same version/sequence different digest or unexplained ahead tuple for one of those five artifact-backed streams constructs the closed five-value Task 7 `HighWaterConflictInput`, calls `TrustConflicts.MaterializeHighWaterConflict`, discards all prepared root/metadata/desired/time bytes and uses only `AuthorizeHighWaterConflictCommit` to emit the fixed bodyless `409` plus its exact finalized `Talenro-Trust-Conflict-Incident-ID` header. A client scalar node checkpoint ahead of the DB/provider-consistent checkpoint instead returns the same bodyless 409 with no incident header, invokes only the Coordinator checkpoint/Head/Inspect readiness path and creates no per-node incident/notice/latch. Other conflicts likewise emit the bodyless headerless 409. It never closes a global listener or advances a high-water from client input.
+
+Recovery poll first compares its request high-water against the exact Task 7 authoritative recovery/root/metadata facts using the same triple/fork/ahead rules；a high-water conflict takes the same fenced materialization and specialized bodyless-409/header path, while wrong recovery ID or unknown incident remains a headerless conflict. Only after that check does it map Task 7's generated response plus bool exactly to 200/204；recovery attestation calls `recovery.Service`. Trust-conflict evidence requires the exact incident-bound authorizer, enforces four-per-hour before bounded body copy, rejects compression, strict-decodes the generated request, and calls only `TrustConflicts.SubmitEvidence`; after return it discards every non-generated value and uses `AuthorizeTrustConflictAckCommit` to emit exactly the generated ACK. Observation calls the injected service and therefore fails closed until B07-T03；security fault calls `ReportSecurityFault`, discards every non-receipt value, then uses only `AuthorizeSecurityFaultReceiptCommit` with the task 7 immutable binding. None of the three self-invalidating paths calls ordinary `ReauthorizeResponse`; no class may fall through to ordinary authorization.
 
 - [ ] **Step 5 (5 min): Implement operator route adapters**
 
-Authenticate exact operator leaf, call external authorization with exact OpenAPI action/target, require `Idempotency-Key` and finite reason on mutations plus `If-Match` on updates. Bind list cursor reopening to new authorization, 2-second database timeout, item/page byte budget and at most 200 items. Map all nine action operations without a default branch: `drainNode -> State`; `disableNode -> Recovery.Disable`; `reenrollNode -> Recovery.Reenroll`; `completeNodeReenrollment -> Recovery.CompleteReenrollment`; `registerNodeHostSecurityIncident -> Recovery.RegisterHostSecurityIncident`; `registerNodeResourceEnvelope -> Mutations.Execute` with exact `ActionRegisterResourceEnvelope`; `clearNodeSecurityQuarantine -> Recovery.ClearSecurityQuarantine`; `resumeNodeAfterSecurity -> Recovery.ResumeAfterSecurity`; `reauthorizeNodeAfterRestore -> Recovery.ReauthorizeAfterRestore`. The latter eight require fresh uncached security-admin authorization; `drainNode` alone permits the writer role. Proposal and approval phases each reauthenticate and reauthorize the exact credential.
+Authenticate exact operator leaf, call external authorization with exact OpenAPI action/target, require `Idempotency-Key` and finite reason on mutations plus `If-Match` on updates. Bind list cursor reopening to new authorization, 2-second database timeout, item/page byte budget and at most 200 items. Map all nine action operations without a default branch: `drainNode -> State`; `disableNode -> Recovery.Disable`; `reenrollNode -> Recovery.Reenroll`; `completeNodeReenrollment -> Recovery.CompleteReenrollment`; `registerNodeHostSecurityIncident -> Recovery.RegisterHostSecurityIncident`; `registerNodeResourceEnvelope -> ResourceEnvelopes.Register`; `clearNodeSecurityQuarantine -> Recovery.ClearSecurityQuarantine`; `resumeNodeAfterSecurity -> Recovery.ResumeAfterSecurity`; `reauthorizeNodeAfterRestore -> Recovery.ReauthorizeAfterRestore`. The latter eight require a freshly constructed uncached `operator.AuthorizedMutationBinding` with security-admin role；`drainNode` alone permits the writer role. Proposal and approval phases each reauthenticate and reauthorize the exact credential. Generic `Mutations.Execute` has no resource-envelope pointer capability.
 
 - [ ] **Step 6 (4 min): Implement finite public error mapping**
 
@@ -1056,13 +1252,13 @@ Emit only `invalid_request`, `unauthenticated`, `forbidden`, `not_found`, `confl
 
 - [ ] **Step 7 (4 min): Add response-commit authorization for 200 and 204**
 
-Prepare payload in bounded memory, reauthorize immediately before headers, then use `http.NewResponseController` to set a response-phase write deadline of trusted/monotonic now plus 10 seconds. For long poll, the listener has no global write timeout; cancellation or stale auth discards root/metadata/state/time bytes. The only exception is the task 7 self-invalidating security-fault route, which invokes the specialized exact receipt gate and can commit only its fence-finalized `SecurityFaultReceiptV1`.
+Prepare payload in bounded memory, reauthorize immediately before headers through task 6's same bound Reader, then use `http.NewResponseController` to set a response-phase write deadline of trusted/monotonic now plus 10 seconds. For long poll, the listener has no global write timeout；cancellation、authority-unavailable or stale auth discards root/metadata/state/time bytes. The only exceptions are the three exact self-invalidating commit bindings: security-fault may emit only its fence-finalized generated receipt, desired high-water isolation may emit only fixed `conflict` with no ordinary payload, and trust evidence may emit only its exact generated ACK. Add static/recording tests proving desired 200/204 cannot be produced unless `GetActiveDesiredState` completed first, every client high-water triple was compared, and no state repository serving method is reachable；a conflict path must materialize the fenced unverified incident before any response and expose zero prepared state bytes.
 
 - [ ] **Step 8 (3 min): Run GREEN handler tests**
 
 Run: `go test ./internal/nodebootstrapapi ./internal/nodeagentapi ./internal/nodeoperatorapi -count=1`
 
-Expected: PASS with all generated methods implemented and every malformed/oversized request bounded.
+Expected: PASS with all generated methods implemented, exact recovery 200/204 mapping, trust-conflict service injection and every malformed/oversized request bounded；single-node conflict/evidence tests leave unrelated nodes and global readiness unchanged unless the independent provider/DB probe itself proves mismatch.
 
 - [ ] **Step 9 (4 min): REFACTOR common bounded HTTP helpers without merging auth domains**
 
@@ -1085,7 +1281,7 @@ git commit -m "feat(nodecontrol): adapt isolated node APIs"
 - Create: `internal/platform/tlsserver.go`
 - Test: `internal/platform/tlsserver_test.go`
 - Test: `internal/platform/tlsserver_race_test.go`
-- Test: `internal/platform/tlsserver_integration_test.go`
+- Test (first line `//go:build integration`): `internal/platform/tlsserver_integration_test.go`
 
 **Interfaces:**
 - Consumes: exact server certificate/profile, verified purpose-specific client CA pools, task 6 peer identity callbacks, existing platform shutdown conventions.
@@ -1160,7 +1356,7 @@ Expected: PASS; bootstrap does not request or expose a client certificate, agent
 
 Hold sockets at TLS, header and idle phases; prove each deadline releases permits. Run a 25-second poll returning 204 and a changed-state poll returning 200; then use a slow reader and prove response phase stops within 10 seconds.
 
-Run: `go test -tags=integration ./internal/platform -run 'TestNodeListenerSlowClients|TestAgentLongPollDeadline' -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/platform' -Run '^(TestNodeListenerSlowClients|TestAgentLongPollDeadline)$' -Timeout 3m`
 
 Expected: PASS with permits returning to initial counts.
 
@@ -1179,7 +1375,7 @@ git add internal/platform/tlsserver.go internal/platform/tlsserver_test.go inter
 git commit -m "feat(platform): add bounded node tls listeners"
 ```
 
-### Task 10: Wire production configuration, readiness, and the Batch 03 mTLS gate
+### Task 10: Wire production configuration, readiness, and the Batch 03 mTLS sub-gate
 
 **Files:**
 - Create: `internal/config/nodecontrol.go`
@@ -1189,10 +1385,10 @@ git commit -m "feat(platform): add bounded node tls listeners"
 - Modify: `cmd/control-api/main_test.go`
 - Modify: `internal/readiness/checker.go`
 - Modify: `internal/readiness/checker_test.go`
-- Create: `internal/e2e/nodecontrol_mtls_test.go`
+- Create (first line `//go:build integration`): `internal/e2e/nodecontrol_mtls_test.go`
 
 **Interfaces:**
-- Consumes: task 3 identity service, task 4 trust packages/deployment role keys, task 7 recovery repository/service/host-remediation verifier, task 8 handlers, task 9 listeners, Batch 02 services/providers, Batch 01 authority readiness, existing public/metrics runtime.
+- Consumes: task 3 identity service, task 4 trust-package verifier/deployment role keys, task 7 recovery repository/service/host-remediation verifier, task 7B resource-envelope service/handler, task 8 handlers, task 9 listeners, Batch 02 services/providers, Batch 01 authority readiness/bound Reader, existing public/metrics runtime.
 - Produces: strict `NodeControlConfig`, validated provider separation, fail-closed lifecycle for all three node listeners and an end-to-end local mTLS gate.
 
 ```go
@@ -1231,7 +1427,7 @@ func (c NodeControlConfig) Validate(production bool) error
 
 - [ ] **Step 1 (5 min): Write RED configuration separation and startup tests**
 
-Reject duplicate listener addresses/DNS names/certificate refs, bootstrap client CA, missing agent/operator client package, reused node/operator CA, reused trust domains, missing deployment-authority key-set provider, provider ID reuse across incompatible roles, missing production provider, `LocalTest`/`Deterministic` production provider, C1.1 config signer/trust path, test private key and enabled listener with authority not ready. Assert the key-set provider returns four distinct role-bound Ed25519 keys and cannot alias the fence, issuer, signer, authorizer, trust-guard or trusted-time provider identity.
+Reject duplicate listener addresses/DNS names/certificate refs, bootstrap client CA, missing agent/operator client package, reused node/operator CA, reused trust domains, missing deployment-authority key-set provider, provider ID reuse across incompatible roles, missing production provider, `LocalTest`/`Deterministic` production provider, C1.1 config signer/trust path, test private key and enabled listener with authority not ready. Assert the key-set provider returns four distinct role-bound Ed25519 keys and cannot alias the fence, issuer, signer, authorizer, trust-guard or trusted-time provider identity. Freeze the exact 15-kind dispatcher ownership table and reject a missing、duplicate or cross-owner registration；`trust_bundle_publish` and `operator_authorizer_change` are the only fixed unsupported entries.
 
 - [ ] **Step 2 (2 min): Run the focused RED config tests**
 
@@ -1245,7 +1441,9 @@ Require three explicit non-wildcard listener addresses distinct from public/metr
 
 - [ ] **Step 4 (5 min): Construct domain services before listeners**
 
-Resolve the configured deployment-authority key-set provider and validate its exact four role identities before constructing the trust-package and `HostRemediationVerifier` consumers. Resolve authority provider/repository, issuer, signer/root providers, operator authorizer/guard and trusted time; construct the Batch 01 effect dispatcher from identity/state/recovery read-only resolvers and then one shared `authority.Coordinator`. Construct `recovery.NewPostgresRepository`, inject task 2 `RecoveryIdentityRepository`, build `recovery.Service`/B02 recovery guard, then inject that same service and coordinator into both domain composition roots. Build identity/inventory/state services and all three handlers. Do not call `Listen` until every constructor and authority/trust/recovery readiness comparison passes; production may not substitute `UnavailableObservationService` once B07 observation readiness is declared.
+Resolve the configured deployment-authority key-set provider and validate its exact four role identities before constructing the trust-package、resource-envelope and `HostRemediationVerifier` consumers. Resolve authority provider/repository, issuer, signer/root providers, operator authorizer/guard and trusted time. Before any dispatcher/Coordinator/service, construct the identity repository/handler, the B03 recovery repository plus `RecoveryTransitionGuard` (which has no state-service/Coordinator dependency), then inject that guard into the B02 state repository/handler, and finally construct the standalone recovery and resource-envelope handlers. Validate this exact unique registration partition: identity = `grant_create|grant_claim|certificate_activate|certificate_revoke|identity_epoch_advance`; state = `root_publish|metadata_publish|desired_activate|recovery_activate`; recovery = `security_incident_open|security_incident_resolve|operator_transition`; resource-envelope = `resource_envelope_activate`; fixed unsupported = `trust_bundle_publish|operator_authorizer_change`. Then build one dispatcher and one shared `authority.Coordinator`；the unsupported trust entry is not replaced by task 4's read-only verifier.
+
+Create the `BoundAuthorityReadSource` and one `serving.Reader` only from that Coordinator and its exact `PostgresRepository`. Inject the same Reader into the node request authorizer, `AgentServices.AuthorityReader` desired path and Task 7 trust-conflict server-counterpart verifier；inject the same Coordinator only through the narrow `NodeCheckpointReader` into `AgentServices.AuthorityCheckpoints`. Only after the Coordinator exists construct the B02 state service around the already-built state handler, then construct identity/recovery/trust-conflict/resource-envelope services；the recovery service may depend on that state service, but its previously built guard never does, so there is no service↔Coordinator construction cycle. Require the trust-conflict cap-16/two-worker queue and independent provider/DB probe before building `AgentServices`; shutdown stops admission, drains/cancels bounded jobs and zeroes retained artifact buffers. Then construct all three API handlers and listeners. Do not call `Listen` until every constructor and authority/trust/recovery readiness comparison passes. Missing finalized active trust high-water remains fail closed and cannot be repaired through an invented publisher；production may not substitute `UnavailableObservationService` once B07 observation readiness is declared.
 
 - [ ] **Step 5 (4 min): Add one shared fail-closed lifecycle**
 
@@ -1259,9 +1457,11 @@ Expected: PASS; no listener starts in every invalid case and shutdown completes 
 
 - [ ] **Step 7 (5 min): Add a live three-listener mTLS integration test**
 
-Use reserved local-test trust domains, three server certificates and distinct node/operator client CAs. Assert bootstrap claim works without a client cert and its handler sees no peer identity; agent rotate reaches handler only with an exact active node row; operator list reaches handler only with strict operator leaf plus external authorization. Exercise the recovery-pending poll/attestation path and the specialized self-invalidating security-fault receipt gate. Route all nine operator actions to their exact task 8 dependency and prove the eight security-admin actions use uncached authorization. Node cert on operator, operator cert on agent, no cert on either mTLS listener, wrong DNS and TLS 1.2 all fail.
+Create this composed E2E test with `//go:build integration` as the first line；it must be absent from every untagged package gate.
 
-Run: `go test -tags=integration ./internal/e2e -run TestNodeControlThreeListenerMTLS -count=1 -timeout 5m`
+Use reserved local-test trust domains, three server certificates and distinct node/operator client CAs. Assert bootstrap claim works without a client cert and its handler sees no peer identity；agent rotate reaches handler only with an exact bound-Reader active node row；desired 200/204 first traverses the same Reader and compares every high-water triple；operator list reaches handler only with strict operator leaf plus external authorization. Exercise the recovery-pending poll/attestation path and the specialized self-invalidating security-fault receipt gate. Add `TestNodeControlTrustConflictIsolationAndEscalation`: one legal malicious node submits a same-version false digest through both the would-be 204 and 200 paths, receives only bodyless 409 after its fenced unverified incident, captures the exact generated-client `Talenro-Trust-Conflict-Incident-ID` header, then uses that ID to submit invalid/one-valid/two-valid generated artifact requests through the same exact incident-bound credential. The header is absent on generic conflicts and cannot be replayed with another credential. Only the valid independent pair escalates to the mapped typed incident and exact generated ACK；999 other nodes continue desired poll/observation, and provider-consistent global readiness stays true. Route all nine operator actions to their exact task 8 dependency, including a role-verified/fence-atomic resource-envelope activation with action=`register_resource_envelope`, and prove the eight security-admin actions use uncached authorization. Node cert on operator、operator cert on agent、no cert on either mTLS listener、wrong DNS and TLS 1.2 all fail.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/e2e' -Run '^(TestNodeControlThreeListenerMTLS|TestNodeControlTrustConflictIsolationAndEscalation)$' -Timeout 7m`
 
 Expected: PASS.
 
@@ -1269,7 +1469,7 @@ Expected: PASS.
 
 Reuse live HTTP/2 connections, then revoke certificate, increment identity epoch, expire trusted time, compromise/remove issuer CA and restore a pre-revocation database while keeping provider head. Assert the next request/response commit fails, existing transports close, and all node listeners stay unavailable on PITR mismatch. Materialize authority-restore sessions, prove stopped reenrollment remains disabled, and require two distinct fresh uncached security-admin credentials plus fresh host-remediation evidence before a new fenced desired generation can reauthorize a node.
 
-Run: `go test -tags=integration ./internal/e2e -run 'TestNodeControlKeepAliveRevocation|TestNodeControlPITRFailsClosed' -count=1 -timeout 5m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/e2e' -Run '^(TestNodeControlKeepAliveRevocation|TestNodeControlPITRFailsClosed)$' -Timeout 5m`
 
 Expected: PASS; no root/metadata/desired/receipt bytes are emitted after invalidation.
 
@@ -1285,23 +1485,362 @@ Expected: PASS.
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS followed by `git diff --exit-code -- api gen internal/store` exiting 0.
+Run: `git diff --exit-code HEAD -- api gen internal/store`
+
+Run: `powershell -NoProfile -Command "if (git ls-files --others --exclude-standard -- api gen internal/store) { throw 'untracked generated artifact' }"`
+
+Expected: PASS with both drift and untracked-generated outputs empty.
 
 Run: `go test ./internal/nodecontrol/identity ./internal/nodecontrol/hostevidence ./internal/nodecontrol/recovery ./internal/nodebootstrapapi ./internal/nodeagentapi ./internal/nodeoperatorapi ./internal/platform ./internal/config ./cmd/control-api -count=1 -timeout 8m`
 
 Expected: PASS.
 
-- [ ] **Step 11 (5 min): Run the Batch 03 integration exit gate**
+- [ ] **Step 11 (5 min): Run the mTLS integration sub-gate**
 
-Run: `go test -tags=integration ./internal/nodecontrol/identity ./internal/nodecontrol/hostevidence ./internal/nodecontrol/recovery ./internal/nodeagentapi ./internal/nodeoperatorapi ./internal/platform ./internal/e2e -count=1 -timeout 10m`
+Run in the current PowerShell process:
 
-Expected: PASS with issuance/recovery crash recovery, specialized security receipt validation, host-remediation role/freshness/replay checks, administrative-disable and identity-compromise stopped reenrollment, two-phase latch clear, two-person authority-restore reauthorization, trust-package rollback/fork, operator guard failure, exact peer authorization, slow-client caps, live three-listener mTLS and authority PITR coverage.
+```powershell
+$expectedBatch03SubgateTags = [ordered]@{
+    'internal/nodecontrol/identity/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/identity/service_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/trust_bundle_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/operator_guard_integration_test.go' = '//go:build integration'
+    'internal/nodeagentapi/authorizer_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/recovery/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/resource_envelope_integration_test.go' = '//go:build integration'
+    'internal/platform/tlsserver_integration_test.go' = '//go:build integration'
+    'internal/e2e/nodecontrol_mtls_test.go' = '//go:build integration'
+}
+$badBatch03SubgateTags = @($expectedBatch03SubgateTags.GetEnumerator() | Where-Object {
+    -not (Test-Path -LiteralPath $_.Key -PathType Leaf) -or
+    (Get-Content -LiteralPath $_.Key -TotalCount 1) -cne $_.Value
+} | ForEach-Object Key)
+if ($badBatch03SubgateTags.Count -ne 0) {
+    $badBatch03SubgateTags
+    throw 'B03 Tasks 1-10 integration test missing exact first-line tag'
+}
+```
 
-- [ ] **Step 12 (2 min): Commit runtime wiring and Batch 03 gate**
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/identity|./internal/nodecontrol/hostevidence|./internal/nodecontrol/recovery|./internal/nodeagentapi|./internal/nodeoperatorapi|./internal/platform' -Timeout 10m`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/e2e' -Timeout 10m`
+
+Expected: PASS with issuance/recovery/resource-envelope crash recovery, specialized security receipt validation, host-remediation role/freshness/replay checks, administrative-disable and identity-compromise stopped reenrollment, two-phase latch clear, two-person authority-restore reauthorization, active-high-water trust-package rollback/fork、fixed unsupported publish checks, operator guard failure, bound exact peer/desired authorization, slow-client caps, live three-listener mTLS and authority PITR coverage.
+
+- [ ] **Step 12 (2 min): Commit runtime wiring while keeping Batch 03 open**
 
 ```bash
 git add internal/config/nodecontrol.go internal/config/config.go internal/config/config_test.go cmd/control-api/main.go cmd/control-api/main_test.go internal/readiness/checker.go internal/readiness/checker_test.go internal/e2e/nodecontrol_mtls_test.go
 git commit -m "feat(control-api): start isolated node mtls listeners"
+```
+
+This sub-gate closes only Tasks 1–10. It cannot close B03 because the production ClaimV1 provider、runtime/timeline attestors、rollback-resistant commit archive、staging/source retirement and permanent Down enforcement are still absent；only Task 14 Step 8 is the complete B03 exit.
+
+### Task 11: Implement the production ClaimV1 provider and epoch history
+
+**Files:**
+- Create: `internal/nodecontrol/claimv1/provider.go`
+- Create: `internal/nodecontrol/claimv1/head.go`
+- Create: `internal/nodecontrol/claimv1/credential_policy.go`
+- Create: `internal/nodecontrol/claimv1/epoch.go`
+- Create: `internal/nodecontrol/claimv1/consumption.go`
+- Create: `internal/nodecontrol/claimv1/provider_test.go`
+- Create (first line `//go:build integration`): `internal/nodecontrol/claimv1/provider_crash_integration_test.go`
+
+**Interfaces:**
+- Consumes: B01 canonical genesis/credential/epoch/lease/recovery request, response and evidence types plus pure verifiers; no B03 file defines a schema, digest transcript or DB table.
+- Produces: production rollback-resistant `ClaimV1Provider`, exact signed Head/Inspect responses, atomic terminal/recovery/prefix-decision consumers, application-proof first-consumer/history-tail CAS and catchup state. B11 decides call order and supplies complete preimages outside DB transactions.
+
+- [ ] **Step 1 (5 min): Write RED genesis and Head state-machine tests**
+
+Cover absence proof consumption, one-time genesis, credential-policy publication, exact Head projection, request-ID/body exact retry, stale Head, wrong activation/deployment and retired-provider mutation. Assert every response schema uses the unique B01 provider-owned role/key/policy mapping，包括 `claim_v1_security_policy`、`claim_v1_incarnation_registry`、`claim_v1_inventory_anchor`、`claim_v1_provider_history_auditor` 与适用对象的 `claim_v1_provider`；no caller-selected signer metadata is accepted.
+
+- [ ] **Step 2 (2 min): Run the focused provider RED tests**
+
+Run: `go test ./internal/nodecontrol/claimv1 -run 'TestProviderGenesis|TestProviderHead|TestCredentialPolicy' -count=1`
+
+Expected: FAIL because the production provider and rollback-resistant Head store are absent.
+
+- [ ] **Step 3 (5 min): Implement the minimal rollback-resistant Head core**
+
+Persist genesis/effective/terminal/ordinary/policy/runtime/epoch/staging/source/retirement tuples and control sequence outside PostgreSQL restore scope. Validate every B01 envelope before CAS, mechanically select the one provider-owned signer role/key/policy registered for that response schema, return byte-identical exact retries and reject caller-selected/cross-schema roles, same ID/different body, rollback, fork or mutation after permanent retirement.
+
+- [ ] **Step 4 (5 min): Write RED epoch terminal-arbitration and exact-recovery tests**
+
+Cover Prepare, Resolve-vs-Cancel terminal CAS, Inspect after response loss, terminal cancellation rebind, deterministic recovery transcript, same-prefix apply-vs-replacement decision, deferred suffix checkpoints and exact transcript replacement. Add negatives for two terminal winners, same prefix second decision ID, wrong prefix/ordinal, opaque DB proof, history gap and application after replacement.
+
+- [ ] **Step 5 (5 min): Implement epoch, recovery and consumption ledgers**
+
+Store complete immutable request/bundle/response/Head preimages. Require B01-verified commit proof and prefix decision closure, atomically consume the unique winner, maintain deferred suffix/history, and expose first-consumer/history-tail CAS for recovery application, applied rebind, catchup and marker-cleared resume. Provider responses never reference their own digest.
+
+- [ ] **Step 6 (4 min): Add pre/post-catchup and result-reconcile state tests**
+
+Exercise direct catchup, pre-catchup applied rebind, immediate DB result, fresh history-bound proof, unique terminal catchup, post-catchup marker-cleared rebind and pending-result reconcile. Reject a second catchup, wrong first-consumer witness, missing result with later mutation, stale proof, historical Head selection and ordinary mutation during recovery.
+
+- [ ] **Step 7 (5 min): Inject every provider CAS crash seam**
+
+Use deterministic barriers at request journal, pre-Head validation, terminal winner, recovery transcript, prefix-decision consumption, first-consumer append, history tail and response persistence. Restart after each seam and require either zero mutation or one complete immutable transition; exact retry must not increment sequence twice.
+
+- [ ] **Step 8 (4 min): Run provider package, integration and race gates**
+
+Run: `go test ./internal/nodecontrol/claimv1 -count=1`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/claimv1' -Run '^(TestProviderCrash|TestEpochRecovery)$' -Timeout 5m`
+
+Run: `go test -race ./internal/nodecontrol/claimv1 -count=1`
+
+Expected: PASS with one terminal winner, direct Head/history continuity and no duplicate consumer.
+
+- [ ] **Step 9 (2 min): Commit only the production provider core**
+
+```bash
+git add internal/nodecontrol/claimv1/provider.go internal/nodecontrol/claimv1/head.go internal/nodecontrol/claimv1/credential_policy.go internal/nodecontrol/claimv1/epoch.go internal/nodecontrol/claimv1/consumption.go internal/nodecontrol/claimv1/provider_test.go internal/nodecontrol/claimv1/provider_crash_integration_test.go
+git commit -m "feat(nodecontrol): add claim v1 provider history"
+```
+
+### Task 12: Implement runtime, timeline, rebind, and recovery attestors
+
+**Files:**
+- Create: `internal/nodecontrol/incarnation/runtime_attestor.go`
+- Create: `internal/nodecontrol/incarnation/timeline_attestor.go`
+- Create: `internal/nodecontrol/incarnation/rebind.go`
+- Create: `internal/nodecontrol/incarnation/runtime_attestor_test.go`
+- Create: `internal/nodecontrol/incarnation/timeline_attestor_test.go`
+- Create (first line `//go:build integration`): `internal/nodecontrol/incarnation/rebind_integration_test.go`
+
+**Interfaces:**
+- Consumes: live postmaster/data-directory measurements, B01 incarnation/runtime/lineage/rebind/Head/Gap/PostRecovery contracts and Task 11 current Provider Head/history.
+- Produces: fixed-role incarnation/runtime/timeline/Head/Gap/PostRecovery attestations, holder lease/termination, rebind registration/response inputs and deterministic result-reconcile observations. It never decides whether B11 should rebind or recover.
+
+- [ ] **Step 1 (5 min): Write RED single-holder and lease-chain tests**
+
+Require non-exportable incarnation keys outside backup scope, one live binding per incarnation, strictly increasing holder generation, exact process/mount/workload measurements, lease sequence `1..n`, descendant renewal and permanent termination. Reject concurrent postmasters, copied data directory, sibling mount, old lease, sequence gap, lease after termination and caller-provided liveness.
+
+- [ ] **Step 2 (2 min): Run runtime-attestor RED tests**
+
+Run: `go test ./internal/nodecontrol/incarnation -run 'TestRuntimeBinding|TestRuntimeLease|TestRuntimeTermination' -count=1`
+
+Expected: FAIL because attestor state is absent.
+
+- [ ] **Step 3 (5 min): Implement rollback-resistant runtime and timeline history**
+
+Persist binding generation, lease chain, termination and signed timeline history outside PostgreSQL/VM backup scope. Verify parent/child system/timeline/OID/name/incarnation identity, exact fork cut and 1..64-link continuity; reject sibling, gap, rollback, unverifiable history ledger and point comparison ambiguity.
+
+- [ ] **Step 4 (5 min): Write RED rebind, Gap and PostRecovery tests**
+
+Cover ordinary, epoch-recovery-gap, epoch-recovery-applied, staging-held-preserve and staging-exclusion-recovery scopes. Verify authorization ordinal, old-holder termination, new candidate tuple, provider Head, DB Head attestation, deferred suffix, prefix decision, application proof/history and staging evidence set. Add pre/post-catchup and marker-cleared winners plus missing-result first-consumer/reconcile negatives.
+
+- [ ] **Step 5 (5 min): Implement attested rebind and exact result reconciliation**
+
+Trusted-read the DB Head/result on the same bound candidate, construct fixed B01 attestation bodies, and let Task 11 atomically CAS registration/lease/Head. Preserve effective/terminal/ordinary/policy/staging tuples by scope. A successful provider rebind with absent DB result exposes one dedicated reconcile input; it cannot authorize the next mutation until B01 repository records the exact result.
+
+- [ ] **Step 6 (4 min): Add holder death, PITR and response-loss integration tests**
+
+Terminate the holder before/after attestation and provider CAS, restore ancestor timelines, lose rebind response and lose DB result. Require exact Inspect/retry, fresh candidate attestations, strictly later fork-cut witness and one result; reject reuse of a Gap/PostRecovery proof on another candidate or descendant lease as a new holder generation.
+
+- [ ] **Step 7 (4 min): Run attestor package, integration and race gates**
+
+Run: `go test ./internal/nodecontrol/incarnation -count=1`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/nodecontrol/incarnation' -Run '^(TestRebind|TestTimelinePITR|TestResultReconcile)$' -Timeout 5m`
+
+Run: `go test -race ./internal/nodecontrol/incarnation -count=1`
+
+Expected: PASS with one holder, continuous lineage and no mutation while a result is unreconciled.
+
+- [ ] **Step 8 (2 min): Commit the production attestors**
+
+```bash
+git add internal/nodecontrol/incarnation/runtime_attestor.go internal/nodecontrol/incarnation/timeline_attestor.go internal/nodecontrol/incarnation/rebind.go internal/nodecontrol/incarnation/runtime_attestor_test.go internal/nodecontrol/incarnation/timeline_attestor_test.go internal/nodecontrol/incarnation/rebind_integration_test.go
+git commit -m "feat(nodecontrol): attest runtime and timeline recovery"
+```
+
+### Task 13: Build the rollback-resistant commit archive, Fence, and Inspect runtime
+
+**Files:**
+- Create: `internal/nodecontrol/commitarchive/archive.go`
+- Create: `internal/nodecontrol/commitarchive/wal_decoder.go`
+- Create: `internal/nodecontrol/commitarchive/postgres_wal_decoder.go`
+- Create: `internal/nodecontrol/commitarchive/inspect.go`
+- Create: `internal/nodecontrol/commitarchive/fence.go`
+- Create: `internal/nodecontrol/commitarchive/journal.go`
+- Create: `internal/nodecontrol/commitarchive/archive_test.go`
+- Create: `internal/nodecontrol/commitarchive/fence_test.go`
+- Create: `internal/nodecontrol/commitarchive/inspect_test.go`
+- Create (first line `//go:build integration`): `internal/nodecontrol/commitarchive/archive_crash_integration_test.go`
+
+**Interfaces:**
+- Consumes: B01 row-kind/related-set/purpose/generation/Fence/Inspect registries, Task 12 live candidate/lease/lineage and a mutually authenticated read-only PostgreSQL connection.
+- Produces: database-incarnation commit attestations, rollback-resistant global latches/edges/streams, semantic-ID reservation responses, Fence responses and signed Inspect/history observations. B11 constructs requests; B03 independently trusted-reads, verifies and signs only fixed attestor roles.
+
+- [ ] **Step 1 (5 min): Write RED trusted-read and exact WAL-location tests**
+
+Map the immutable row's inserting top-level xid to the exact same-system/original-timeline `COMMIT` or `COMMIT PREPARED` end LSN. Reject caller body/LSN, later flush/replay/current WAL positions, missing/ambiguous xid, wrong timeline, uncommitted/multiple row and read connection not bound to the attested runtime.
+
+- [ ] **Step 2 (2 min): Run WAL RED tests**
+
+Run: `go test ./internal/nodecontrol/commitarchive -run 'TestTrustedRead|TestWALCommitPosition' -count=1`
+
+Expected: FAIL because the decoder/archive runtime is absent.
+
+- [ ] **Step 3 (5 min): Implement latches, related ownership and primary streams**
+
+Lock sorted global semantic keys, insert/reuse the canonical body latch, CAS the application forward edge and decision reverse owner, then append the primary stream/head and exact-challenge response. Enforce `global latches -> edge/reverse owner -> primary stream -> exact retry`; apply decisions are related-only and replacement decisions primary-only. Commit latch/edge/envelope/entry/head atomically.
+
+- [ ] **Step 4 (5 min): Write RED semantic journal and stable-once tests**
+
+Cover reason-specific reservation, digest-only trusted lookup, rollback floor, context replay, pair/replacement shared prefix subject-slot, `decision_id -> slot` reverse uniqueness and stable Fence once-row. Renew the same binding/ID/generation lease and assert the once-key is unchanged; only a strictly higher holder generation may obtain a new key. Mutate every journal/context/key/six-holder field and reject duplicate records or alias decision IDs.
+
+- [ ] **Step 5 (5 min): Implement atomic multi-key Fence**
+
+Call only B01's exported typed derivation/verifier APIs to obtain every canonical digest, reason-specific semantic key and evidence cardinality；B03 must not copy a schema domain string, JCS formula or parallel canonicalizer. Verify fresh signed zero-row Inspect preconditions and lock `sorted global latches -> stable once-row -> response exact retry`. Advance all generations, successful once-row and response in one archive transaction. Exact retry returns the original response; same holder/different request, partial advance, orphan once-row and FreshRestoreImportApplicationV1 under any reason fail closed. Add a static ownership test plus B01 golden parity vectors proving `internal/nodecontrol/commitarchive` contains no copied domain/JCS formula and every derived value is byte-identical to the B01 helper result.
+
+- [ ] **Step 6 (5 min): Implement signed Inspect and mechanical history selectors**
+
+Echo the complete seven-field candidate tuple, observe live row count 0/1, distinguish absent/primary/related-only, return full archive chain and select current-parent, unconsumed-candidate or recovery-continuity entry mechanically from Provider history. Reject caller-selected history, partial edges, multiple locked bodies, stale generation, wrong Head/candidate and staging related-only evidence.
+
+- [ ] **Step 7 (5 min): Add append-vs-Fence and commit-seam barriers**
+
+Race an already trusted-read/signed append against one- and two-key Fence without sleeps. Inject failure at latch, edge, reverse owner, stream, exact retry, generation, once-row and response seams. Require append-wins exact restore or Fence-wins stale old generation, and storage observes only all-or-none state with no deadlock or reverse lock acquisition.
+
+- [ ] **Step 8 (5 min): Run archive package, integration and race gates**
+
+Run: `go test ./internal/nodecontrol/commitarchive -count=1`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/nodecontrol/commitarchive' -Run '^(TestArchiveCrash|TestFenceRace|TestInspectPITR)$' -Timeout 8m`
+
+Run: `go test -race ./internal/nodecontrol/commitarchive -count=1`
+
+Expected: PASS with exact COMMIT positions, atomic two-key closure, stable lease-independent once rows and complete signed history.
+
+- [ ] **Step 9 (3 min): Verify B01/B10/B11 ownership remains external**
+
+Run: `git diff --exit-code HEAD -- db/migrations db/schema db/queries internal/store internal/c12evidence docs/superpowers/specs`
+
+Run: `git diff --cached --name-only -- db/migrations db/schema db/queries internal/store internal/c12evidence docs/superpowers/specs`
+
+Run: `git ls-files --others --exclude-standard -- db/migrations db/schema db/queries internal/store internal/c12evidence docs/superpowers/specs`
+
+Expected: all three outputs are empty for this task；B03 created no schema, generated store/query, SpecDigest builder or orchestration artifact, including staged/untracked paths.
+
+- [ ] **Step 10 (2 min): Commit the archive runtime**
+
+```bash
+git add internal/nodecontrol/commitarchive/archive.go internal/nodecontrol/commitarchive/wal_decoder.go internal/nodecontrol/commitarchive/postgres_wal_decoder.go internal/nodecontrol/commitarchive/inspect.go internal/nodecontrol/commitarchive/fence.go internal/nodecontrol/commitarchive/journal.go internal/nodecontrol/commitarchive/archive_test.go internal/nodecontrol/commitarchive/fence_test.go internal/nodecontrol/commitarchive/inspect_test.go internal/nodecontrol/commitarchive/archive_crash_integration_test.go
+git commit -m "feat(nodecontrol): add rollback resistant commit archive"
+```
+
+### Task 14: Wire staging, source retirement, Down enforcement, and the B03 v7 gate
+
+**Files:**
+- Create: `internal/nodecontrol/claimv1/staging.go`
+- Create: `internal/nodecontrol/claimv1/retirement.go`
+- Create: `internal/nodecontrol/claimv1/staging_test.go`
+- Create: `internal/nodecontrol/claimv1/retirement_test.go`
+- Create: `internal/nodecontrol/authorityadapter/provider.go`
+- Create: `internal/nodecontrol/authorityadapter/provider_test.go`
+- Modify: `internal/config/nodecontrol.go`
+- Modify: `internal/config/config_test.go`
+- Modify: `cmd/control-api/main.go`
+- Modify: `cmd/control-api/main_test.go`
+- Modify: `internal/readiness/checker.go`
+- Modify: `internal/readiness/checker_test.go`
+- Create (first line `//go:build integration`): `internal/e2e/nodecontrol_authority_v7_test.go`
+- Create: `testdata/c12/integration-node-identity-mtls.v1.json`
+
+**Interfaces:**
+- Consumes: Tasks 11–13, B01's exact six-method `authority.Provider`, and B01 exact staging/source/Down contracts/verifiers/store functions plus B01-typed authorization/request inputs later authored by B11 in production or by fixed tests here；B03 has no package or build dependency on B11.
+- Produces: `authorityadapter.OrdinaryProvider`, the narrow production `claim_v1` view over Task 11's rollback-resistant `claimv1.ClaimV1Provider`, plus separate typed v7 adapters for hold/required/abort-only staging, challenge/Release/Abort provider CAS, source membership/retirement/permanent downgrade tombstones and fail-closed readiness. The ordinary view implements only B01's six methods and cannot expose or select a v7 operation. The typed v7 adapters verify policy decisions but do not choose or orchestrate them.
+
+- [ ] **Step 1 (5 min): Write RED ordinary-Provider, staging-state and terminal-barrier tests**
+
+In `authorityadapter/provider_test.go`, first require the compile-time assertion `var _ authority.Provider = (*OrdinaryProvider)(nil)`. Exercise the `claim_v1` profile through all six exact B01 methods: Reserve/Finalize/Abort/Inspect/Head/CommittedNodeCheckpoint, byte-identical same-request retry, changed tuple conflict, Finalize-vs-Abort mutual exclusion, response-loss Inspect, monotonic Head and checkpoint inclusion of only the requested node plus committed global-node-trust effects. Prove no v7 genesis/epoch/staging/source/Down method is present on or dynamically selectable through this view. Also cover acquire only after real capability registration proof, held-preserving rebind, held→required→abort-only recovery, exact request/response retry, import-vs-revocation terminal race, Release with real application proof and normal/recovery Abort with real revocation-application proof. Reject serving/ordinary mutation while held, required direct Abort and any external call under a DB transaction.
+
+- [ ] **Step 2 (5 min): Implement durable staging provider state**
+
+Persist acquisition anchor, capability, recovery request/response, state and terminal consumer in Task 11 Head. Independently verify Task 13 challenge/attestation and Task 12 current holder/lineage before CAS. Release/Abort transitions are exact-ID/body single-use and clear the staging tuple only at the terminal provider transition.
+
+- [ ] **Step 3 (5 min): Test revocation-ID closure and lost fresh import**
+
+Mutate trusted journal key, signed revocation.`revocation_application_id`, recovery intent/request value, application row ID and challenge/attestation outcome ID one at a time. Assert normal and recovery branches cannot splice. Restore after an unarchived import application is lost and prove every Fence reason rejects `FreshRestoreImportApplicationV1`; only intent-backed recovery application proof→signed recovery revocation→revocation application→Abort succeeds, with no reimport.
+
+- [ ] **Step 4 (5 min): Implement and test the staging evidence universe**
+
+Derive the complete candidate-key universe independently from provider request/response and phase. Require a signed Inspect observation for every key, including absent keys; locked items equal the exact primary subset and all seven candidate fields match. Exercise `exact_existing_candidate` and `archived_missing_suffix`, reject null for a nonempty universe, missing/extra/related-only/cross-candidate observations and lease/binding splice.
+
+- [ ] **Step 5 (5 min): Implement source and permanent Down retirement enforcement**
+
+Verify source membership, destructive-action plan, shutdown and permanent tombstones; require all-provider exact coverage before downgrade. After retirement reject genesis/policy/Prepare/rebind/recovery/staging/catchup/history mutation regardless fake-clock expiry. Expose fixed zero-projection counters to the B01 Down guard without generating the B11 evidence.
+
+- [ ] **Step 6 (4 min): Wire production profiles and readiness**
+
+Implement `authorityadapter.OrdinaryProvider` by delegating the exact ordinary reservation/terminal/history tuple to Task 11's rollback-resistant store; it must neither translate an opaque v7 digest into an ordinary request nor accept a caller-selected profile. Keep the compile-time assertion `var _ authority.Provider = (*OrdinaryProvider)(nil)` beside the implementation and run its exact idempotency/conflict/checkpoint tests under the `claim_v1` profile. Resolve distinct rollback-resistant provider, runtime/timeline attestor, WAL archive and signer identities in `NodeControlConfig`; reject deterministic/local implementations in production. Construct them before listeners. `cmd/control-api` constructs exactly one ordinary adapter, passes it to exactly one production `authority.Coordinator`, and injects that Coordinator into every B02/B03 ordinary writer; v7 genesis/epoch/staging/source/Down consumers receive separate narrow typed adapters. Keep listeners closed on Head/DB epoch mismatch, archive corruption, unreconciled result, staging recovery requirement or retirement inconsistency.
+
+- [ ] **Step 7 (5 min): Add the composed authority-v7 integration matrix**
+
+Create the composed test with `//go:build integration` as its first line. First exercise the production ordinary adapter and sole Coordinator with `claim_v1` Reserve→Finalize and Reserve→Abort, response-loss Inspect, Head and scoped checkpoint retries; then run genesis→epoch resolve/cancel races, exact recovery with pair/replacement prefix decisions, holder death before/after proof, pre/post-catchup, repeated PITR, staging normal Release/Abort and recovery Abort, source retirement and permanent Down refusal through the separate v7 interfaces. Assert B11-style calls occur outside SQL transactions and response loss uses exact Inspect/retry. No test may treat `fresh_v7_staging_closed` as completion.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/e2e' -Run '^TestNodeControlAuthorityV7$' -Timeout 12m`
+
+Expected: PASS with all failure points closed and no duplicate terminal/consumer/generation transition.
+
+- [ ] **Step 8 (8 min): Run the sole complete B03 generation, package, integration and race exit**
+
+Create the sorted Batch 03 integration manifest with one explicit package per group, exact top-level test names, required `base`、`authority-v7` or `authority-v7-pitr` profile and bounded timeout. B01's parser gate must prove all three manifests exact-cover every tracked first-line integration test inside their closed package union once. Real WAL/backup/restore/promotion groups select only `authority-v7-pitr`; they consume B01's closed test harness and a test-only external archive/provider adapter, so this B03 gate proves mechanics but does not emit production authority evidence or replace P09's authoritative production PITR scope.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code HEAD -- api gen internal/store`
+
+Run: `powershell -NoProfile -Command "if (git ls-files --others --exclude-standard -- api gen internal/store) { throw 'untracked generated artifact' }"`
+
+Expected: PASS with both drift and untracked-generated outputs empty.
+
+Run: `go test ./internal/nodecontrol/identity ./internal/nodecontrol/hostevidence ./internal/nodecontrol/recovery ./internal/nodecontrol/claimv1 ./internal/nodecontrol/incarnation ./internal/nodecontrol/commitarchive ./internal/nodecontrol/authorityadapter ./internal/nodebootstrapapi ./internal/nodeagentapi ./internal/nodeoperatorapi ./internal/platform ./internal/config ./internal/readiness ./cmd/control-api -count=1 -timeout 15m`
+
+Run in the current PowerShell process:
+
+```powershell
+$expectedBatch03Tags = [ordered]@{
+    'internal/nodecontrol/identity/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/identity/service_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/trust_bundle_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/operator_guard_integration_test.go' = '//go:build integration'
+    'internal/nodeagentapi/authorizer_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/recovery/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/hostevidence/resource_envelope_integration_test.go' = '//go:build integration'
+    'internal/platform/tlsserver_integration_test.go' = '//go:build integration'
+    'internal/e2e/nodecontrol_mtls_test.go' = '//go:build integration'
+    'internal/nodecontrol/claimv1/provider_crash_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/incarnation/rebind_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/commitarchive/archive_crash_integration_test.go' = '//go:build integration'
+    'internal/e2e/nodecontrol_authority_v7_test.go' = '//go:build integration'
+}
+$badBatch03Tags = @($expectedBatch03Tags.GetEnumerator() | Where-Object {
+    -not (Test-Path -LiteralPath $_.Key -PathType Leaf) -or
+    (Get-Content -LiteralPath $_.Key -TotalCount 1) -cne $_.Value
+} | ForEach-Object Key)
+if ($badBatch03Tags.Count -ne 0) {
+    $badBatch03Tags
+    throw 'B03 integration test missing exact first-line tag'
+}
+```
+
+Run: `git add internal/e2e/nodecontrol_authority_v7_test.go testdata/c12/integration-node-identity-mtls.v1.json`
+
+Expected: the new v7 E2E and manifest are tracked in the index before the tracked-file parser runs；no broader path is staged.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Suite batch03 -Timeout 240m`
+
+Run: `go test -race ./internal/nodecontrol/identity ./internal/nodecontrol/hostevidence ./internal/nodecontrol/recovery ./internal/nodecontrol/claimv1 ./internal/nodecontrol/incarnation ./internal/nodecontrol/commitarchive ./internal/nodecontrol/authorityadapter ./internal/nodebootstrapapi ./internal/nodeagentapi ./internal/nodeoperatorapi ./internal/platform ./internal/config ./internal/readiness ./cmd/control-api -count=1 -timeout 18m`
+
+Expected: PASS；the original `nodecontrol_mtls_test` integration set and the composed `TestNodeControlAuthorityV7` path both pass against the same final wiring, production provider/attestors are race-free, and no B01/B10/B11-owned artifact is emitted. This is the only B03 exit；no Task 10 result or focused Task 14 test may be promoted to Batch 03 completion.
+
+- [ ] **Step 9 (2 min): Commit the v7 production composition**
+
+```bash
+git add internal/nodecontrol/claimv1/staging.go internal/nodecontrol/claimv1/retirement.go internal/nodecontrol/claimv1/staging_test.go internal/nodecontrol/claimv1/retirement_test.go internal/nodecontrol/authorityadapter/provider.go internal/nodecontrol/authorityadapter/provider_test.go internal/config/nodecontrol.go internal/config/config_test.go cmd/control-api/main.go cmd/control-api/main_test.go internal/readiness/checker.go internal/readiness/checker_test.go internal/e2e/nodecontrol_authority_v7_test.go testdata/c12/integration-node-identity-mtls.v1.json
+git commit -m "feat(nodecontrol): wire authority v7 providers"
 ```
 
 ## Batch 03 completion check
@@ -1312,12 +1851,18 @@ git commit -m "feat(control-api): start isolated node mtls listeners"
 - Node lineages last at most 30 days, rotate before `NotAfter-4h`, require reenroll below 36 hours and cap overlap at 4 active unexpired leaves.
 - Deployment key roles are four distinct Ed25519 identities; trust packages enforce purpose/domain/version/sequence/digest/cumulative deauthorization and same-value fork rejection.
 - Operator guard requires a fresh nonce-bound, at-most-5-minute rollback-resistant attestation and closes existing transport on failure or package invalidation.
-- Host remediation accepts only the configured deployment-authority `host_remediation` role, exact transcript, 15-minute freshness and one-time node/incident/action binding; the deployment key-set provider identity is distinct from every fence/issuer/signer/authorizer/time provider.
-- Security-fault reporting applies quarantine/revocation before provider finalization and can return only the exact fence-finalized `SecurityFaultReceiptV1` through the specialized commit gate; response loss never reauthorizes the old credential.
+- Host remediation accepts only the configured deployment-authority `host_remediation` role, exact transcript, five-literal consumer/action matrix, 15-minute freshness and one-time node/incident/action binding; the deployment key-set provider identity is distinct from every fence/issuer/signer/authorizer/time provider.
+- Security-fault reporting applies quarantine/revocation before provider finalization and can return only the exact fence-finalized generated `nodeagentv1.SecurityFaultReceiptV1` through the specialized commit gate; response loss never reauthorizes the old credential.
 - Identity compromise, administrative disable, retire and authority restore follow disabled -> new epoch/lineage -> recovery-pending certificate -> stopped snapshot/attestation -> complete while operator state remains disabled; per-incident clear and explicit resume are separate transitions.
 - Authority-restore reauthorization requires fresh host evidence and two distinct fresh uncached security-admin exact credentials bound to one epoch/scope/effect within 15 minutes, then publishes a new fenced desired generation without backup desired/resume reuse.
 - Every agent/operator request and response commit matches exact leaf DER/key/issuer/serial/status, authority/identity epoch, trusted time and endpoint-specific node state.
 - All nine operator action operations have explicit service/action mappings; no unknown action falls through, and observation returns `dependency_unavailable` until B07-T03 replaces the injected fail-closed service.
 - Bootstrap, agent and operator are distinct TLS 1.3 h2 listeners with exact client-auth modes, finite connections/streams/timeouts and working long-poll response deadlines.
+- Desired 200/204 compares every client high-water triple；fork/ahead materializes only a bounded fenced unverified incident and fixed conflict for that node. The incident-bound evidence endpoint independently verifies at most two complete generated artifacts on its cap-16/two-worker queue and atomically escalates only a valid independent pair to the exact typed incident；single client claims never affect another node or global readiness.
 - Authority/trust mismatch or PITR keeps all node-control listeners fail closed; no C1.1 trust/config signer is accepted as C1.2 authority.
+- ClaimV1 provider has one genesis, one terminal winner, exact recovery/prefix arbitration, immutable first-consumer/history and pre/post-catchup result reconciliation；its narrow ordinary adapter implements the exact B01 `authority.Provider`, backs the sole production Coordinator with idempotent Inspect/Head/scoped-checkpoint behavior, and exposes no v7 method.
+- Runtime/timeline attestors enforce one live holder, strictly increasing generation, descendant lease continuity, trusted lineage/fork cut and candidate-bound Gap/PostRecovery evidence.
+- Commit archive trusted-reads exact rows and COMMIT end LSN, atomically closes global latches/related owner/primary stream, persists prefix subject slots and lease-independent stable once rows, and exposes mechanical signed Inspect history.
+- Staging has one import-or-revocation DB winner and one Release-or-Abort provider terminal; `revocation_application_id` is closed end to end, and a lost unarchived fresh import can only recover by revocation→Abort, never Fence/reimport.
+- Source membership/retirement and permanent downgrade tombstones block every later provider mutation; B03 emits no SpecDigest or B11 authorization/orchestration evidence.
 - No Batch 04 keystore, RollbackGuard persistence, outbound agent loop or local reconciliation production behavior has entered this batch.

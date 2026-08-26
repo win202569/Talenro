@@ -37,6 +37,7 @@
 ```text
 cmd/c12-fixture/                         # independent deterministic child
 cmd/c12-load/                            # 1,000-agent generator and report
+cmd/c12-load-runner/                     # Linux run-owned authoritative load substrate
 internal/nodeagent/adapter/fixture/       # preview/profile/probe client
 internal/nodesupervisor/adapter/fixture/  # supervisor-owned compiler
 internal/nodeagent/observation/           # cgroup/adapter metric collection
@@ -98,12 +99,14 @@ type ConfigV1 struct {
 	StartupDelayMS      uint32 `json:"startup_delay_ms"`
 	DrainDelayMS        uint32 `json:"drain_delay_ms"`
 	ManagementPort      uint16 `json:"management_port"`
+	EchoPort            uint16 `json:"echo_port"`
 	ExpectedProbeNonce  string `json:"expected_probe_nonce"`
+	ExpectedEchoChallenge string `json:"expected_echo_challenge"`
 	ConnectionBaseline uint32 `json:"connection_baseline"`
 }
 ```
 
-Require schema `c12-fixture-config.v1`, one closed mode, delays 0–30,000 ms, loopback port 1024–65535, a 43-character unpadded base64url 32-byte nonce and no unknown/duplicate/trailing JSON.
+Require schema `c12-fixture-config.v1`, one closed mode, delays 0–30,000 ms, distinct loopback management/echo ports 1024–65535, two 43-character unpadded base64url 32-byte nonce/challenge values and no unknown/duplicate/trailing JSON.
 
 - [ ] **Step 4: Implement explicit check and run entry modes**
 
@@ -111,7 +114,7 @@ Fixed argv permits only `check --config-fd=3` or `run --config-fd=3`; the config
 
 - [ ] **Step 5: Implement loopback management and deterministic counters**
 
-Expose only a length-prefixed loopback management socket inside the slot namespace. Operations are `health`, `probe`, `snapshot`, `begin_drain`, `stop`; replies contain finite enum/integer fields. Healthy probe returns the exact nonce; handshake-failure mode returns `probe_failed` without text.
+Expose only a length-prefixed loopback management socket and one fixed challenge-echo endpoint inside the slot namespace. Management operations are `health`, `probe`, `snapshot`, `begin_drain`, `stop`; replies contain finite enum/integer fields. Healthy probe returns the exact nonce; handshake-failure mode returns `probe_failed` without text. The echo endpoint accepts exactly one bounded frame containing `ExpectedEchoChallenge` and returns that same frame once；wrong/duplicate/oversized data closes without output. Both `check --config-fd=3` and `run --config-fd=3` validate the echo fields, but only `run` listens. This is the sole B08/B09 echo capability；later plans cannot add another argv、mode or executable path.
 
 - [ ] **Step 6: Implement fault modes without host-wide effects**
 
@@ -133,7 +136,9 @@ git commit -m "test: add deterministic core fixture"
 ### Task B06-T02: Add typed fixture preview, compiler, manifest and probe
 
 **Files:**
+- Create: `internal/nodeagent/adapter/types.go`
 - Create: `internal/nodeagent/adapter/registry.go`
+- Test: `internal/nodeagent/adapter/registry_external_test.go`
 - Create: `internal/nodeagent/adapter/fixture/profile.go`
 - Create: `internal/nodeagent/adapter/fixture/preview.go`
 - Create: `internal/nodeagent/adapter/fixture/probe.go`
@@ -147,8 +152,36 @@ git commit -m "test: add deterministic core fixture"
 - Create: `testdata/c12/fixture/memory-policy-fake-package.v1.json`
 
 **Interfaces:**
-- Consumes: B04 `PreviewAdapter`, B05 `AdapterCompilerV1`, signed fixture process spec and build/test manifest pins.
-- Produces: the closed `adapter.Register(ProfileV1)` / `adapter.Preview(contracts.ProcessSpecV1)` registry consumed by B08/B09, fixture adapter kind/profile `fixture-controlled-process-v1`, secret-free preview digest, supervisor canonical config bytes and finite probe/snapshot values.
+- Consumes: B04 `PreviewAdapter` narrow verified wrapper, B05-owned exact `adapter.CompileRequestV1`/`CompiledConfigV1`/`CompileFunc`/`RegisterCompiler`, signed fixture process spec and build/test manifest pins.
+- Produces and uniquely owns in `internal/nodeagent/adapter`: the closed `ProfileV1`/`PreviewV1` types, `Register(ProfileV1) error`, `Preview(contracts.ProcessSpecV1) (PreviewV1,error)`, and a `RegistryPreviewAdapter` that satisfies the B04 verified wrapper without exposing compiled bytes；plus fixture profile `fixture-controlled-process-v1`, secret-free preview digest, supervisor canonical config bytes and finite probe/snapshot values. B08/B09 only consume these two owner packages.
+
+Freeze the agent registry surface here, before any real adapter plan executes:
+
+```go
+type ProfileV1 struct {
+	Adapter             contracts.Adapter
+	ProfileID           string
+	ServerListen        netip.AddrPort
+	ClientListen        netip.AddrPort
+	EchoTarget          netip.AddrPort
+	NativeCheckDeadline time.Duration
+	StartupDeadline     time.Duration
+	HandshakeDeadline   time.Duration
+}
+
+type PreviewV1 struct {
+	Adapter        contracts.Adapter
+	ProfileID      string
+	ReleaseID      string
+	SemanticDigest contracts.Digest
+	EndpointSet    []netip.AddrPort
+}
+
+func Register(ProfileV1) error
+func Preview(contracts.ProcessSpecV1) (PreviewV1, error)
+```
+
+Registration is pre-start only and one canonical profile ID exactly once；nil/zero endpoints、duplicate、alias、case-folding、replacement and registration after freeze fail without mutating the registry. `RegistryPreviewAdapter.PreviewVerified(trust.VerifiedProcessSpec)` obtains one defensive canonical process-spec copy from the opaque verified value, calls this registry, and returns only the B04 preview digest/result；raw `ProcessSpecV1` never authorizes reconcile or supervisor execution. `registry_external_test.go` compile-assigns every P06 and P05 symbol, duplicate-registration behavior and the B04 interface, and rejects any fixture/P07 shadow declaration.
 
 - [ ] **Step 1: Write the failing cross-compiler digest test**
 
@@ -209,7 +242,7 @@ Expected: PASS; agent cannot inject compiled bytes, manifest/map cannot override
 - [ ] **Step 8: Commit typed fixture adapters**
 
 ```bash
-git add internal/nodeagent/adapter/registry.go internal/nodeagent/adapter/fixture/profile.go internal/nodeagent/adapter/fixture/preview.go internal/nodeagent/adapter/fixture/probe.go internal/nodeagent/adapter/fixture/preview_test.go internal/nodeagent/adapter/fixture/probe_test.go internal/nodesupervisor/adapter/fixture/compiler.go internal/nodesupervisor/adapter/fixture/compiler_test.go testdata/c12/fixture/approved-release-manifest.v1.json testdata/c12/fixture/installed-release-map.v1.json testdata/c12/fixture/resource-envelope.v1.json testdata/c12/fixture/memory-policy-fake-package.v1.json
+git add internal/nodeagent/adapter/types.go internal/nodeagent/adapter/registry.go internal/nodeagent/adapter/registry_external_test.go internal/nodeagent/adapter/fixture/profile.go internal/nodeagent/adapter/fixture/preview.go internal/nodeagent/adapter/fixture/probe.go internal/nodeagent/adapter/fixture/preview_test.go internal/nodeagent/adapter/fixture/probe_test.go internal/nodesupervisor/adapter/fixture/compiler.go internal/nodesupervisor/adapter/fixture/compiler_test.go testdata/c12/fixture/approved-release-manifest.v1.json testdata/c12/fixture/installed-release-map.v1.json testdata/c12/fixture/resource-envelope.v1.json testdata/c12/fixture/memory-policy-fake-package.v1.json
 git commit -m "test: add typed fixture adapter"
 ```
 
@@ -219,13 +252,19 @@ git commit -m "test: add typed fixture adapter"
 - Create: `internal/c12test/process_harness.go`
 - Create: `internal/c12test/process_harness_linux.go`
 - Create: `internal/c12test/process_harness_windows.go`
+- Create: `internal/c12test/core_smoke_credentials.go`
+- Create (first line `//go:build linux`): `internal/c12test/core_smoke_credentials_linux.go`
+- Create (first line `//go:build !linux`): `internal/c12test/core_smoke_credentials_stub.go`
 - Test: `internal/c12test/process_harness_test.go`
-- Create: `internal/e2e/c12_controlled_process_test.go`
-- Create: `internal/e2e/c12_lkg_expiry_test.go`
+- Test: `internal/c12test/core_smoke_credentials_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_controlled_process_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_lkg_expiry_test.go`
 
 **Interfaces:**
 - Consumes: B02/B03 in-process control-plane applications, B04 agent, B05 supervisor, B06-T01/T02 fixture and deterministic providers.
-- Produces: tagged `c12fixture` happy-path/expiry acceptance and an exact-process harness that B10 later wraps with ownership WAL.
+- Produces: tagged `c12fixture` happy-path/expiry acceptance；an exact-process harness that B10 later wraps with ownership WAL；and the sole test-only `c12test.CoreSmokeCredentialProvider`/opaque role-bound credential session consumed by B08/B09.
+
+Freeze the credential producer as `New(context.Context, contracts.Adapter, uuid.UUID, string) (CoreSmokeCredentialSession, error)`. The nonzero run ID、exact adapter and canonical profile bind two opaque one-use `ServerCredentialHandle`/`ClientCredentialHandle`; on Linux they are distinct anonymous read-only fully sealed memfds containing only a bounded typed role/run/profile header plus generated test key material. No method exposes bytes or a path. Handles are accepted only by the B05 test-profile prepare/probe FD matrix. `Cleanup` zeroizes all retained buffers, closes both exact descriptors, verifies `/proc/self/fd` absence by descriptor identity, and returns one canonical `CoreCredentialCleanupReceiptV1` bound to run/adapter/profile/handle digests and completion time. The `!linux` constructor returns `ErrUnsupportedPlatform`. Tests cover role swap、cross-run/profile/adapter replay、double consume、close interruption、restart non-persistence and cleanup receipt mutation.
 
 - [ ] **Step 1: Write the failing end-to-end scenario**
 
@@ -268,27 +307,29 @@ Stop control-plane poll/report, keep a still-valid LKG, then advance determinist
 
 - [ ] **Step 7: Run happy-path, refresh and expiry tests**
 
-Run: `go test -tags=c12fixture ./internal/e2e -run 'TestC12(ControlledProcess|LeaseRefresh|LKGExpiry)' -count=1 -timeout 5m`
+Run: `go test -tags=c12fixture ./internal/e2e -run '^(TestC12ControlledProcessConvergesAndRollsBack|TestC12LeaseRefreshPreservesProcessIdentity|TestC12LKGExpiryStopsAtDeadline)$' -count=1 -timeout 5m`
 
 Expected: PASS; post-run exact processes/groups/cgroups/Job Objects and temp credentials are absent.
 
 - [ ] **Step 8: Commit controlled-process acceptance**
 
 ```bash
-git add internal/c12test/process_harness.go internal/c12test/process_harness_linux.go internal/c12test/process_harness_windows.go internal/c12test/process_harness_test.go internal/e2e/c12_controlled_process_test.go internal/e2e/c12_lkg_expiry_test.go
+git add internal/c12test/process_harness.go internal/c12test/process_harness_linux.go internal/c12test/process_harness_windows.go internal/c12test/core_smoke_credentials.go internal/c12test/core_smoke_credentials_linux.go internal/c12test/core_smoke_credentials_stub.go internal/c12test/process_harness_test.go internal/c12test/core_smoke_credentials_test.go internal/e2e/c12_controlled_process_test.go internal/e2e/c12_lkg_expiry_test.go
 git commit -m "test: prove controlled node process convergence"
 ```
 
 ### Task B06-T04: Exercise crash, dual-latch, sandbox and aggregate resource faults
 
 **Files:**
-- Create: `internal/e2e/c12_crash_recovery_test.go`
-- Create: `internal/e2e/c12_security_latch_test.go`
-- Create: `internal/e2e/c12_resource_faults_test.go`
-- Create: `internal/e2e/c12_sandbox_faults_test.go`
-- Create: `internal/e2e/c12_cleanup_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_crash_recovery_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_security_latch_test.go`
+- Create (first line `//go:build c12fixture && linux`): `internal/e2e/c12_resource_faults_test.go`
+- Create (first line `//go:build c12fixture && linux`): `internal/e2e/c12_sandbox_faults_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_cleanup_test.go`
 - Modify: `internal/c12test/process_harness.go`
 - Modify: `internal/c12test/process_harness_linux.go`
+- Create: `scripts/run-c12-fixture-linux.sh`
+- Test: `scripts/tests/run-c12-fixture-linux.Tests.ps1`
 
 **Interfaces:**
 - Consumes: B06-T03 harness and deterministic provider crash hooks from B04/B05.
@@ -341,14 +382,16 @@ Interrupt before create, after create/before owned record, after owned record an
 
 - [ ] **Step 8: Run the complete B06 fault suite**
 
-Run: `go test -tags=c12fixture ./internal/e2e -run 'TestC12(Crash|SecurityLatch|Resource|Sandbox|Cleanup)' -count=1 -timeout 10m`
+Run on every supported development host: `go test -tags=c12fixture ./internal/e2e -run '^(TestC12CrashPointsRemainFailClosed|TestC12SecurityLatchRequiresDualClear|TestC12CleanupInterruptedResources)$' -count=1 -timeout 10m`.
+
+Run the resource/sandbox positive gate only on an approved Linux test host: `bash scripts/run-c12-fixture-linux.sh --suite faults --timeout 10m`. The fixed wrapper invokes `go test -json -tags=c12fixture ./internal/e2e -run '^(TestC12ResourceFaultsStaySlotScoped|TestC12SandboxFaultsCannotEscape)$'`, validates that exact top-level set from Go AST and requires one terminal pass per name, no skip/missing/extra event. It rejects non-Linux、caller packages/regexes/flags and unsupported kernel preflight instead of converting them to a pass. Windows/local execution is diagnostic for these two files and cannot close them.
 
 Expected: PASS; no child/cgroup/Job Object/temp credential remains and no result carries a real-platform scope.
 
 - [ ] **Step 9: Commit B06 fault acceptance**
 
 ```bash
-git add internal/c12test/process_harness.go internal/c12test/process_harness_linux.go internal/e2e/c12_crash_recovery_test.go internal/e2e/c12_security_latch_test.go internal/e2e/c12_resource_faults_test.go internal/e2e/c12_sandbox_faults_test.go internal/e2e/c12_cleanup_test.go
+git add internal/c12test/process_harness.go internal/c12test/process_harness_linux.go internal/e2e/c12_crash_recovery_test.go internal/e2e/c12_security_latch_test.go internal/e2e/c12_resource_faults_test.go internal/e2e/c12_sandbox_faults_test.go internal/e2e/c12_cleanup_test.go scripts/run-c12-fixture-linux.sh scripts/tests/run-c12-fixture-linux.Tests.ps1
 git commit -m "test: close controlled process fault matrix"
 ```
 
@@ -358,7 +401,9 @@ Run:
 
 ```powershell
 go test ./cmd/c12-fixture ./internal/c12test/... ./internal/nodeagent/adapter/fixture ./internal/nodesupervisor/adapter/fixture -count=1
-go test -tags=c12fixture ./internal/e2e -run 'TestC12(ControlledProcess|LeaseRefresh|LKGExpiry|Crash|SecurityLatch|Resource|Sandbox|Cleanup)' -count=1 -timeout 10m
+go test -tags=c12fixture ./internal/e2e -run '^(TestC12ControlledProcessConvergesAndRollsBack|TestC12LeaseRefreshPreservesProcessIdentity|TestC12LKGExpiryStopsAtDeadline|TestC12CrashPointsRemainFailClosed|TestC12SecurityLatchRequiresDualClear|TestC12CleanupInterruptedResources)$' -count=1 -timeout 10m
+# Approved Linux test-host gate, exact AST/test2json pass accounting, no skip/empty run:
+bash scripts/run-c12-fixture-linux.sh --suite faults --timeout 10m
 go test -race ./internal/c12test/... ./internal/nodeagent/adapter/fixture ./internal/nodesupervisor/adapter/fixture -count=1
 git diff --check
 ```
@@ -532,12 +577,14 @@ git commit -m "feat: collect bounded node observations"
 - Create: `internal/nodecontrol/observation/repository.go`
 - Create: `internal/nodecontrol/observation/service.go`
 - Test: `internal/nodecontrol/observation/service_test.go`
-- Test: `internal/nodecontrol/observation/postgres_integration_test.go`
+- Test (first line `//go:build integration`): `internal/nodecontrol/observation/postgres_integration_test.go`
 - Create: `internal/nodeagentapi/observations.go`
 - Test: `internal/nodeagentapi/observations_test.go`
 - Modify: `internal/nodeagentapi/handler.go`
 - Create: `db/queries/nodecontrol_observation.sql`
 - Create generated: `internal/store/nodecontrol_observation.sql.go`
+- Modify generated: `internal/store/models.go`
+- Modify generated: `internal/store/querier.go`
 
 **Interfaces:**
 - Consumes: B03 exact active-certificate request authority, B01 observation queries/schema, B07-T01 reducer and B07-T02 strict observation DTO.
@@ -590,24 +637,35 @@ Require exact active current-epoch credential and normal allowed node state at a
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Run: `go test -tags=integration ./internal/nodecontrol/observation ./internal/nodeagentapi -run 'TestObservation(Postgres|HTTP)' -count=1 -timeout 2m`
+Stage only the query and its exact generated closure, regenerate, and require no worktree or untracked generated delta:
 
-Expected: PASS against a run-owned migrated database; latest snapshot and transitions are atomic and raw five-second history is not appended.
+```powershell
+git add db/queries/nodecontrol_observation.sql internal/store/nodecontrol_observation.sql.go internal/store/models.go internal/store/querier.go
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
+git diff --exit-code -- db/queries/nodecontrol_observation.sql internal/store/nodecontrol_observation.sql.go internal/store/models.go internal/store/querier.go
+if (git ls-files --others --exclude-standard -- db/queries/nodecontrol_observation.sql internal/store/nodecontrol_observation.sql.go internal/store/models.go internal/store/querier.go) { throw 'untracked observation generated artifact' }
+```
+
+`sqlc.yaml` has `emit_interface: true`, so `querier.go` is mandatory generated output. Include `models.go` in the exact generated closure even when the unchanged schema leaves it byte-identical；any first-generation model delta must be reviewed within this task rather than silently left dirty.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile base -Packages './internal/nodecontrol/observation|./internal/nodeagentapi' -Run '^(TestObservationPostgres|TestObservationHTTP)$' -Timeout 2m`
+
+Expected: both exact top-level tests have one terminal pass and zero skip/missing/extra events against a fresh run-owned migrated database；latest snapshot and transitions are atomic and raw five-second history is not appended. No raw `go test -tags=integration` command or ambient database is an owning gate.
 
 - [ ] **Step 8: Run package tests and commit**
 
 Run: `go test ./internal/nodecontrol/observation ./internal/nodeagentapi -count=1`
 
 ```bash
-git add internal/nodecontrol/observation/repository.go internal/nodecontrol/observation/service.go internal/nodecontrol/observation/service_test.go internal/nodecontrol/observation/postgres_integration_test.go internal/nodeagentapi/observations.go internal/nodeagentapi/observations_test.go internal/nodeagentapi/handler.go db/queries/nodecontrol_observation.sql internal/store/nodecontrol_observation.sql.go
+git add internal/nodecontrol/observation/repository.go internal/nodecontrol/observation/service.go internal/nodecontrol/observation/service_test.go internal/nodecontrol/observation/postgres_integration_test.go internal/nodeagentapi/observations.go internal/nodeagentapi/observations_test.go internal/nodeagentapi/handler.go db/queries/nodecontrol_observation.sql internal/store/nodecontrol_observation.sql.go internal/store/models.go internal/store/querier.go
 git commit -m "feat: reduce authoritative node observations"
 ```
 
 ### Task B07-T04: Enforce privacy, bounded metrics and API cardinality
 
 **Files:**
-- Create: `internal/e2e/c12_privacy_test.go`
-- Create: `internal/e2e/c12_api_bounds_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_privacy_test.go`
+- Create (first line `//go:build c12fixture`): `internal/e2e/c12_api_bounds_test.go`
 - Create: `internal/nodecontrol/observation/privacy_test.go`
 - Modify: `internal/observability/metrics.go`
 - Modify: `internal/observability/metrics_test.go`
@@ -636,7 +694,7 @@ func TestC12OutputsContainNoNodeCanaries(t *testing.T) {
 
 - [ ] **Step 2: Run privacy tests and verify RED**
 
-Run: `go test -tags=c12fixture ./internal/e2e -run 'TestC12OutputsContainNoNodeCanaries|TestC12MetricSeriesBounded' -count=1 -timeout 2m`
+Run: `go test -tags=c12fixture ./internal/e2e -run '^(TestC12OutputsContainNoNodeCanaries|TestC12MetricSeriesBounded)$' -count=1 -timeout 2m`
 
 Expected: FAIL because C1.2 capture and finite metric registry are incomplete.
 
@@ -658,7 +716,7 @@ Gather after 1, 10, 100 and1,000 synthetic node reports; exact descriptor/series
 
 - [ ] **Step 7: Run privacy and race suites**
 
-Run: `go test -tags=c12fixture ./internal/e2e -run 'TestC12(Outputs|API|Metric)' -count=1 -timeout 5m`
+Run: `go test -tags=c12fixture ./internal/e2e -run '^(TestC12OutputsContainNoNodeCanaries|TestC12APIBounds|TestC12MetricSeriesBounded)$' -count=1 -timeout 5m`
 
 Run: `go test -race ./internal/nodecontrol/observation ./internal/observability ./internal/errorreport -count=1`
 
@@ -675,20 +733,29 @@ git commit -m "test: bound node control observability"
 
 **Files:**
 - Create: `cmd/c12-load/main.go`
+- Create: `cmd/c12-load-runner/main.go`
+- Create: `deploy/c12-load-control-api/Dockerfile`
+- Create: `deploy/c12-load-control-api/.dockerignore`
+- Create: `deploy/c12-load-generator/Dockerfile`
+- Create: `deploy/c12-load-generator/.dockerignore`
 - Create: `internal/c12test/load/config.go`
 - Create: `internal/c12test/load/generator.go`
 - Create: `internal/c12test/load/statistics.go`
 - Create: `internal/c12test/load/report.go`
+- Create: `internal/c12test/load/runner.go`
+- Create (first line `//go:build linux`): `internal/c12test/load/runner_linux.go`
+- Create (first line `//go:build !linux`): `internal/c12test/load/runner_stub.go`
 - Test: `cmd/c12-load/main_test.go`
 - Test: `internal/c12test/load/generator_test.go`
 - Test: `internal/c12test/load/statistics_test.go`
 - Test: `internal/c12test/load/adversarial_test.go`
+- Test: `internal/c12test/load/runner_test.go`
 - Create: `testdata/c12/load/reference-runner.v1.json`
 - Create: `testdata/c12/load/report-schema.v1.json`
 
 **Interfaces:**
-- Consumes: real B03 agent mTLS endpoints, B02 desired publish, B07 observation handler/reducer and a digest-locked reference runner.
-- Produces: `c12-load`, canonical `C12LoadReportV1`, nearest-rank latency/resource results and B07 authoritative/diagnostic classification used by B10.
+- Consumes: real B03 agent mTLS endpoints, B02 desired publish, B07 observation handler/reducer, repository-owned migration/config inputs and a digest-locked Linux reference-runner profile. It never consumes caller dependency addresses or an ambient control-api/database.
+- Produces: `c12-load`, `c12-load-runner`, canonical `C12LoadReportV1`, nearest-rank latency/resource results and B07 authoritative/diagnostic classification used by B10.
 
 - [ ] **Step 1: Write failing schedule/statistics tests**
 
@@ -736,23 +803,40 @@ Run: `go test -race ./internal/c12test/load -count=1`
 
 Expected: PASS with deterministic schedule/report bytes and exact authoritative/diagnostic classification.
 
-- [ ] **Step 8: Run the reference acceptance on an eligible runner**
+- [ ] **Step 8: Compose a run-owned authoritative Linux substrate**
+
+`c12-load-runner` accepts only the tracked profile path, a finite 15-minute global timeout and closed `--phase candidate|authoritative`. Candidate permits the current exact task worktree only for precommit functional proof, always emits diagnostic/candidate classification and can never create authoritative evidence. Authoritative first requires an exact clean committed tree containing all T05 paths, captures its commit/tree digest itself, rejects staged/worktree/untracked changes in those paths and binds that digest into the report. It then validates Linux/amd64, dedicated 8-vCPU/16-GiB eligibility, Docker engine/buildkit identity, exact Go/toolchain and every image/config digest. The two dedicated Docker contexts use digest-pinned builder/runtime bases, copy only the exact committed tree inputs needed for `control-api` or `c12-load`, build with `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 -trimpath`, run as fixed nonroot identities on read-only roots, and carry no source/core binary/credential in the runtime layer；the runner verifies their image/config/rootfs digests against the tracked profile before create. It generates a crypto-random run UUID and a uniquely created `0700` OS-temp run root, then writes a canonical fsynced `C12LoadRunLedgerV1` before each resource creation. Under an exact run-ID prefix it creates only the pinned PostgreSQL、Redis、NATS、control-api and load-generator containers plus one private network；all ports are Docker-assigned loopback ports. The frozen authoritative allocation is control-api `4 vCPU/4 GiB`、PostgreSQL `2 vCPU/4 GiB`、load generator `2 vCPU/2 GiB`, with profile-fixed pids and profile-fixed smaller Redis/NATS limits. Before any agent connection, and again after warmup, the runner exact-inspects each actual container ID and requires NanoCPU/cpuset、memory/swap、pids、read-only/tmpfs/network values byte-for-byte equal the profile；unlimited/rounded/inherited/mismatch aborts as diagnostic. It probes exact container IDs/health/protocol, applies ordinary Goose migrations, starts the tracked control-api image with run-local bootstrap/agent/operator PKI, and provisions all 1,000 identities through the real B03 grant/claim endpoints. No host process substitutes for the control-api or load generator, and no URL、port、container name、credential、migration path or output filename comes from the caller.
+
+The runner launches the load-generator container with one read-only run-owned config file/secret mount containing only runner-derived endpoints and public run facts；private keys remain in per-agent sealed handles and are zeroized after use. It samples resources by exact container IDs and writes only a provisional non-authoritative report to a UUID-named file under the private run root. A fixed temp filename is forbidden.
+
+Every error, interrupt and deadline enters the same terminal cleanup barrier: revoke/zeroize all run credentials, stop/remove only exact ledger-matching containers/network/volumes, verify absence by actual IDs, validate the provisional report while it is still private, and retain only the bounded final public-field preimage in locked memory. It then removes the exact validated run root and verifies path、credential/config/provisional-report absence. Only after that complete barrier succeeds may it create a separate `0700` UUID evidence root, construct the fresh `classification=authoritative` report with the final cleanup-receipt digest, atomically materialize it, zero the in-memory preimage and print the path as its last action. Run-root removal or any cleanup mismatch returns a distinct nonzero status and leaves no evidence root、external file or authoritative bytes. No name/label/wildcard enumeration is a deletion authority. `runner_stub.go` returns exit 3/`diagnostic` on `!linux` without creating a resource. Unit tests inject failure before/after each ledger transition, limit readback, port collision, stale ledger, output collision, run-root removal, pre/post-publication barrier and cleanup mismatch, asserting authoritative output is impossible before successful complete cleanup.
+
+- [ ] **Step 9: Run the precommit candidate acceptance on an eligible runner**
 
 Run:
 
-```powershell
-$loadOutput = Join-Path ([System.IO.Path]::GetTempPath()) 'talenro-c12-load-report-v1.json'
-go run ./cmd/c12-load --profile testdata/c12/load/reference-runner.v1.json --output $loadOutput
+```bash
+go run ./cmd/c12-load-runner --phase candidate --profile testdata/c12/load/reference-runner.v1.json --timeout 15m
 ```
 
-Expected: exit0 with `classification=authoritative`,1,000 ACKs, p95<10s, p99<20s,100% within30s, resource growth within bounds and all three adversarial phases passing. On an ineligible local runner the command exits3 after writing a `diagnostic` report and makes no completion claim.
+Expected: exit0 only after exact run-owned cleanup,1,000 ACKs and all numeric/adversarial assertions, but the retained result is explicitly `classification=candidate` and cannot close B07. On an ineligible local runner the command exits3 with a bounded diagnostic result.
 
-- [ ] **Step 9: Commit load acceptance**
+- [ ] **Step 10: Commit load acceptance**
 
 ```bash
-git add cmd/c12-load/main.go cmd/c12-load/main_test.go internal/c12test/load/config.go internal/c12test/load/generator.go internal/c12test/load/statistics.go internal/c12test/load/report.go internal/c12test/load/generator_test.go internal/c12test/load/statistics_test.go internal/c12test/load/adversarial_test.go testdata/c12/load/reference-runner.v1.json testdata/c12/load/report-schema.v1.json
+git add cmd/c12-load/main.go cmd/c12-load/main_test.go cmd/c12-load-runner/main.go deploy/c12-load-control-api/Dockerfile deploy/c12-load-control-api/.dockerignore deploy/c12-load-generator/Dockerfile deploy/c12-load-generator/.dockerignore internal/c12test/load/config.go internal/c12test/load/generator.go internal/c12test/load/statistics.go internal/c12test/load/report.go internal/c12test/load/runner.go internal/c12test/load/runner_linux.go internal/c12test/load/runner_stub.go internal/c12test/load/generator_test.go internal/c12test/load/statistics_test.go internal/c12test/load/adversarial_test.go internal/c12test/load/runner_test.go testdata/c12/load/reference-runner.v1.json testdata/c12/load/report-schema.v1.json
 git commit -m "test: add node control load acceptance"
 ```
+
+- [ ] **Step 11: Run the owning authoritative gate from the new clean commit**
+
+Immediately after the Step 10 commit, require the T05 exact path set and index/worktree/untracked state clean, then run:
+
+```bash
+go run ./cmd/c12-load-runner --phase authoritative --profile testdata/c12/load/reference-runner.v1.json --timeout 15m
+```
+
+Expected: exit0 only after exact run-owned cleanup, with a printed unique evidence path whose canonical report has `classification=authoritative`, the helper-captured new commit/tree digest,1,000 ACKs, p95<10s, p99<20s,100% within30s, resource growth within bounds and all three adversarial phases passing. B07 does not close before this post-commit command. B10 may consume the retained report, but does not become its first authoritative producer.
 
 ## B07 exit gate
 
@@ -760,12 +844,20 @@ Run:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
-go test ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./internal/observability ./internal/errorreport ./cmd/c12-load ./internal/c12test/load -count=1
-go test -tags=c12fixture ./internal/e2e -run 'TestC12(Outputs|API|Metric)' -count=1 -timeout 5m
+if ($LASTEXITCODE -ne 0) { throw 'B07 generation failed' }
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile base -Packages './internal/nodecontrol/observation|./internal/nodeagentapi' -Run '^(TestObservationPostgres|TestObservationHTTP)$' -Timeout 2m
+git diff --exit-code HEAD -- api gen internal/store
+if ($LASTEXITCODE -ne 0) { throw 'B07 complete generated tree differs from committed tree' }
+$untrackedB07Generated = @(git ls-files --others --exclude-standard -- api gen internal/store)
+if ($LASTEXITCODE -ne 0 -or $untrackedB07Generated.Count -ne 0) { throw 'untracked B07 generated artifact' }
+go test ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./internal/observability ./internal/errorreport ./cmd/c12-load ./cmd/c12-load-runner ./internal/c12test/load -count=1
+go test -tags=c12fixture ./internal/e2e -run '^(TestC12OutputsContainNoNodeCanaries|TestC12APIBounds|TestC12MetricSeriesBounded)$' -count=1 -timeout 5m
 go test -race ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/c12test/load -count=1
-go vet ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./cmd/c12-load
-go tool golangci-lint run ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./cmd/c12-load
+go vet ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./cmd/c12-load ./cmd/c12-load-runner ./internal/c12test/load
+go tool golangci-lint run ./internal/nodecontrol/observation ./internal/nodeagent/observation ./internal/nodeagentapi ./cmd/c12-load ./cmd/c12-load-runner ./internal/c12test/load
+# Required authoritative Linux/amd64 gate; exit 3 remains diagnostic and does not close B07:
+go run ./cmd/c12-load-runner --phase authoritative --profile testdata/c12/load/reference-runner.v1.json --timeout 15m
 git diff --check
 ```
 
-Expected: all local gates pass. B07 is authoritative only when the separately executed reference-runner command returns exit0 and an exact-profile `authoritative` report; local resource mismatch remains diagnostic. Neither result claims the real Linux platform/memory/provider gate reserved for分册09.
+Expected: all local gates pass；the task-local exact observation closure gate passes, and the B07 exit proves the complete `api gen internal/store` generated tree matches the committed tree with no untracked output in that full closure. B07 is authoritative only when the separately executed reference-runner command returns exit0 and an exact-profile `authoritative` report; local resource mismatch remains diagnostic. Neither result claims the real Linux platform/memory/provider gate reserved for分册09.

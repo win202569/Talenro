@@ -1,0 +1,17 @@
+{
+  "schema_version": "1",
+  "base": {
+    "path": "docs/superpowers/specs/2026-08-23-node-pop-control-plane-design.md",
+    "sha256": "b0b0ddbbd11546fc07a25cb76992e375481192a3261270ff442095501cc2b4b5"
+  },
+  "amendments": [
+    {
+      "path": "docs/superpowers/specs/2026-08-24-nodecontrol-authority-abort-serving-design.md",
+      "sha256": "86996084462a5de1e7667d56a135e93099ee38e1089464ccdfcff7284ea0d1d7"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md",
+      "sha256": "efaebe52bdc3d70bda8737c893b02752e60acec0a08441813cadf1425079fc8e"
+    }
+  ]
+}

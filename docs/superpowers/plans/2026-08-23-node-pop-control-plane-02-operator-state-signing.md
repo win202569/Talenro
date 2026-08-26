@@ -2,17 +2,22 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 交付受 PostgreSQL 和 Batch 01 authority fence 约束的 POP/node inventory、operator authorization/cursor/audit、desired/recovery signed-state saga，以及与 online signer 完全隔离的 root-threshold metadata publisher。
+**Goal:** 交付受 PostgreSQL 和 Batch 01 authority fence 约束的 POP/node inventory、operator authorization/cursor/audit、desired/recovery signed-state saga、与 online signer 完全隔离的 root-threshold metadata publisher，以及严格 consumer-only 的 v7 fresh-restore manifest/state-domain 导入。
 
-**Architecture:** Inventory 与 operator audit 是短事务内的数据库权威；opaque list cursor 只封装稳定 keyset continuation，不携带授权。Desired/recovery workflow 先 reserve authority sequence 与永不复用 generation，再在锁外调用有界 `NodeStateSigner`，最后经 fence receipt 和第二次状态校验激活。Root/metadata publication 使用独立的 threshold-share provider、独立 pending cap 和独立 activation path，online signer 没有 root 能力。
+**Architecture:** Inventory 与 operator audit 是短事务内的数据库权威；opaque list cursor 只封装稳定 keyset continuation，不携带授权。Desired/recovery workflow 先 reserve authority sequence 与永不复用 generation，再在锁外调用有界 `NodeStateSigner`，最后经 fence receipt 和第二次状态校验激活。Root/metadata publication 使用独立的 threshold-share provider、独立 pending cap 和独立 activation path，online signer 没有 root 能力。Fresh restore 只验证并消费 B01 已冻结的 `FreshRestoreImportManifestV1`/single-use staging capability，通过 B01-owned transaction function 写入 application 与 disabled state-domain projection；B02 不创建 v7 schema，也不拥有 provider、attestor、Fence 或恢复编排。
 
 **Tech Stack:** Go 1.26.5、PostgreSQL 18.4、pgx 5.10.0、sqlc 1.31.1、Ed25519、RFC 8785 JCS、SHA-256、AES-256-GCM、Batch 01 `contracts`/`authority`/`store`、现有 outbox 与 strict JSON helpers。
 
-**Spec:** [Approved C1.2 node and POP control-plane design](../specs/2026-08-23-node-pop-control-plane-design.md), approved working-tree SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`.
+**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`, especially §10 B02 and §11.5; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json).
 
 ## Global Constraints
 
 - 本册只完成 suite index 的 `C1.2-B02`；不得实现 certificate issuer、bootstrap/agent/operator TLS listener、node-agent、supervisor 或 core adapter。
+- v7 amendment 下本册严格保持 consumer-only：只消费 B01 的 canonical schema/envelope、00007 table/function 与 generated store API；不得新增或修改 migration、table、trigger、security-definer function、wire schema、digest domain 或 SpecDigest。
+- B02 不构造/签发 staging capability、recovery intent、revocation、commit challenge/attestation、Fence、Inspect、Release/Abort 或 evidence；B03按B01固定role签署provider/attestor/challenge/Fence/Inspect response，B11独占编排以及v7 §10明列的operator/source/downgrade/staging/recovery/application evidence角色。
+- `FreshRestoreImportManifestV1` 只能在 B01-owned `nodecontrol_staging_importer` transaction boundary 中消费一次；transaction 内零 provider/attestor/signer/network 调用，存在 recovery intent、wrong held tuple、过期/replayed apply ID 或 projection mismatch 均零写失败。
+- 导入只创建 manifest 明确允许的 disabled node skeleton 与 state-domain current rows；legacy active/pending pointer、legacy generation、resume intent、desired/recovery signing intent/result、certificate/grant/secret/provider result一律不复制。
+- `FreshRestoreImportApplicationV1` 永不允许 Fence rerun。若 held 后 PITR 丢失未归档 import application，B02 固定拒绝 reimport；进入 intent-backed recovery revocation→Abort 属于 B03/B11 边界。
 - Batch 01 的 `contracts.Digest`、`contracts.AuthorityVersion`、`authority.Provider`、`authority.Coordinator`、schema 名和 OpenAPI wire 名称逐字消费，不得复制或重命名；领域 mutation 不直接构造 provider finalize 坐标。
 - PostgreSQL transaction 持有 row/advisory lock 时不得调用 authority provider、`NodeStateSigner`、root-share provider、operator authorizer 或 wall-clock/network dependency。
 - Production `NodeStateSigner`、`RootShareProvider` 和 `OperatorAuthorizer` 均是外部 provider；local/test implementation 名称必须显式含 `Deterministic` 或 `LocalTest`。
@@ -43,6 +48,8 @@ internal/nodecontrol/operator/authorizer.go
 internal/nodecontrol/operator/cursor.go
 internal/nodecontrol/operator/audit.go
 internal/nodecontrol/operator/service.go
+internal/nodecontrol/contracts/process_spec.go
+internal/nodecontrol/contracts/resource_envelope.go
 internal/nodecontrol/state/contracts.go
 internal/nodecontrol/state/canonical.go
 internal/nodecontrol/state/provider.go
@@ -51,9 +58,12 @@ internal/nodecontrol/state/repository.go
 internal/nodecontrol/state/postgres_repository.go
 internal/nodecontrol/state/service.go
 internal/nodecontrol/state/root_publisher.go
+internal/nodecontrol/state/fresh_restore_import.go
+internal/nodecontrol/state/fresh_restore_projection.go
+testdata/c12/integration-operator-state-signing.v1.json
 ```
 
-Batch 03 consumes the active inventory/identity predicates and listener-facing authorizers. Batch 04 consumes signed envelopes and verification vectors. Neither later batch may reinterpret B02 generations, cursor binding, signing kinds, transcript domains, root roles, or terminal states.
+Batch 01 supplies all v7 canonical contracts, exact projection/admission verifiers, opaque `VerifiedFreshRestoreImportAdmission`, tables, triggers, `begin_staging_import` security-definer function and its repository/store adapter. Batch 03 consumes the active inventory/identity predicates and listener-facing authorizers and owns production provider/attestors；Batch 11只签发v7 §10列举的operator/source/staging/recovery evidence、排序调用各服务，并必须通过本册consumer API导入，不能直调store/function。Batch 04 consumes signed envelopes and verification vectors. Neither later batch may reinterpret B02 generations, cursor binding, signing kinds, transcript domains, root roles, terminal states or the disabled-only imported state projection.
 
 ### Task 1: Freeze inventory and capacity domain contracts
 
@@ -84,18 +94,44 @@ const (
 	SecurityQuarantined SecurityState = "quarantined"
 )
 
+type IdentityState string
+
+const (
+	IdentityNeverEnrolled   IdentityState = "never_enrolled"
+	IdentityActive          IdentityState = "active"
+	IdentityRecoveryPending IdentityState = "recovery_pending"
+	IdentityRecoveryLimited IdentityState = "recovery_limited"
+	IdentityRevoked         IdentityState = "revoked"
+	IdentityUnauthorized    IdentityState = "unauthorized" // output/import projection only
+)
+
 type Node struct {
-	NodeID                 uuid.UUID
-	POPCode                string
-	OperatorState          OperatorState
-	SecurityState          SecurityState
-	ResumeOperatorState    *OperatorState
-	PendingTransition      string
-	IdentityEpoch          uint64
-	LineageID              uuid.UUID
-	InventoryVersion       uint64
-	ResourceEnvelopeVersion uint64
-	ResourceEnvelopeDigest contracts.Digest
+	NodeID                     uuid.UUID
+	POPCode                    string
+	OperatorState              OperatorState
+	SecurityState              SecurityState
+	IdentityState              IdentityState
+	ResumeOperatorState        *OperatorState
+	PendingTransition          *string
+	PendingTransitionSigningID *uuid.UUID
+	IdentityEpoch              uint64
+	LineageID                  *uuid.UUID
+	InventoryVersion           uint64
+	SecurityVersion            uint64
+	ResourceEnvelopeVersion *uint64
+	ResourceEnvelopeDigest *contracts.Digest
+	ActiveDesiredGeneration  *uint64
+	NextDesiredGeneration    *uint64
+	ActiveRecoveryGeneration *uint64
+	NextRecoveryGeneration   *uint64
+	ActiveRootPublishID       *uuid.UUID
+	ActiveRootVersion         *uint64
+	ActiveMetadataPublishID   *uuid.UUID
+	ActiveMetadataVersion     *uint64
+	LastAuthorityOperationID  *uuid.UUID
+	LastAuthority             *contracts.AuthorityVersion
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
 }
 
 type CapacityLimits struct {
@@ -111,6 +147,8 @@ type CapacityLimits struct {
 	PacketLossLimitBasisPoints  uint64
 }
 ```
+
+`LineageID` is nil exactly for `never_enrolled` and the B01 verified-import-only `unauthorized` projection；all other identity states require a nonzero lineage and positive identity epoch. Pending transition/signing ID、resource-envelope version/digest、root publish ID/version、metadata publish ID/version and last-authority operation/epoch/sequence are each all-or-none groups；desired/recovery active and next generations obey the B01 nullable ordering checks. `Node` is the complete internal projection used by create/get/update/list response builders, including exact timestamps；there is no partial list-item DTO that can omit required `NodeV1` fields. `Mutation` has no identity-state、identity-epoch、lineage、security-version、resource-pointer、active/next pointer、timestamp or authority fields；ordinary create/update rejects `unauthorized` and cannot select or mutate any output-only group. Only the B01 security-definer fresh-import path can create the exact unauthorized/quarantined/disabled zero-state row.
 
 - [ ] **Step 1 (3 min): Write the RED enum and numeric-boundary table test**
 
@@ -152,7 +190,9 @@ Expected: PASS with checked-add overflow, ninth-slot, unknown adapter, and profi
 
 Move every numeric range into one unexported table used by validation and tests; fuzz aggregate sums and assert the result is only success or a finite sentinel error, never panic or wraparound.
 
-Run: `go test ./internal/nodecontrol/inventory -run 'Test|Fuzz' -count=1`
+Run: `go test ./internal/nodecontrol/inventory -count=1`
+
+Run: `go test ./internal/nodecontrol/inventory -run '^$' -fuzz '^FuzzValidateAggregate$' -fuzztime=10s -timeout 30s`
 
 Expected: PASS.
 
@@ -207,11 +247,11 @@ type ListRequest struct {
 
 - [ ] **Step 1 (4 min): Write the RED repository integration cases**
 
-Cover stale expected version, immutable referenced capacity profile, endpoint replacement atomicity, 8-slot cap, bytewise UUID keyset ordering, no duplicate across pages, and a query canceled at the 2-second statement timeout.
+Cover stale expected version, immutable referenced capacity profile, endpoint replacement atomicity, 8-slot cap, bytewise UUID keyset ordering, no duplicate across pages, and a query canceled at the 2-second statement timeout. Add row/projection cases for every closed identity state、positive `security_version`、nil/non-nil lineage semantics、all-or-none resource and authority groups, plus ordinary create/update attempts to select `unauthorized` or mutate identity/security/authority pointer fields；only the B01 verified-import fixture may materialize the exact unauthorized projection.
 
 - [ ] **Step 2 (2 min): Run the focused RED integration test**
 
-Run: `go test -tags=integration ./internal/nodecontrol/inventory -run TestPostgresInventoryRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/inventory' -Run '^TestPostgresInventoryRepository$' -Timeout 3m`
 
 Expected: FAIL because `nodecontrol_inventory.sql` and repository types do not exist.
 
@@ -220,8 +260,15 @@ Expected: FAIL because `nodecontrol_inventory.sql` and repository types do not e
 ```sql
 -- name: LockNodeInventory :one
 SELECT node_id, pop_code, operator_state, security_state, resume_operator_state,
-       pending_operator_transition, identity_epoch, lineage_id, inventory_version,
-       resource_envelope_version, resource_envelope_digest
+       identity_state, pending_operator_transition, pending_transition_signing_id,
+       identity_epoch, lineage_id,
+       inventory_version, security_version, resource_envelope_version,
+       resource_envelope_digest, active_desired_generation, next_desired_generation,
+       active_recovery_generation, next_recovery_generation,
+       active_root_publish_id, active_root_version,
+       active_metadata_publish_id, active_metadata_version,
+       last_authority_operation_id, last_authority_epoch, last_authority_sequence,
+       created_at, updated_at
 FROM nodecontrol.node_inventory
 WHERE node_id = sqlc.arg(node_id)
 FOR UPDATE;
@@ -235,11 +282,27 @@ SET pop_code = sqlc.arg(pop_code),
 WHERE node_id = sqlc.arg(node_id)
   AND inventory_version = sqlc.arg(expected_inventory_version)
 RETURNING node_id, pop_code, operator_state, security_state, resume_operator_state,
-          pending_operator_transition, identity_epoch, lineage_id, inventory_version,
-          resource_envelope_version, resource_envelope_digest;
+          identity_state, pending_operator_transition, pending_transition_signing_id,
+          identity_epoch, lineage_id,
+          inventory_version, security_version, resource_envelope_version,
+          resource_envelope_digest, active_desired_generation, next_desired_generation,
+          active_recovery_generation, next_recovery_generation,
+          active_root_publish_id, active_root_version,
+          active_metadata_publish_id, active_metadata_version,
+          last_authority_operation_id, last_authority_epoch, last_authority_sequence,
+          created_at, updated_at;
 
 -- name: ListNodeInventoryAfter :many
-SELECT node_id, pop_code, operator_state, security_state, inventory_version
+SELECT node_id, pop_code, operator_state, security_state, resume_operator_state,
+       identity_state, pending_operator_transition, pending_transition_signing_id,
+       identity_epoch, lineage_id, inventory_version, security_version,
+       resource_envelope_version, resource_envelope_digest,
+       active_desired_generation, next_desired_generation,
+       active_recovery_generation, next_recovery_generation,
+       active_root_publish_id, active_root_version,
+       active_metadata_publish_id, active_metadata_version,
+       last_authority_operation_id, last_authority_epoch, last_authority_sequence,
+       created_at, updated_at
 FROM nodecontrol.node_inventory
 WHERE (NOT sqlc.arg(has_after)::boolean OR node_id > sqlc.arg(after_node_id)::uuid)
   AND (sqlc.arg(pop_code)::text = '' OR pop_code = sqlc.arg(pop_code)::text)
@@ -248,13 +311,21 @@ ORDER BY node_id ASC
 LIMIT sqlc.arg(page_limit);
 ```
 
-The row converter maps nullable `resume_operator_state` to `*OperatorState`: SQL NULL stays nil, and a present value must be one of the four closed states. Tests cover NULL, each legal value and corrupt text; no empty-string sentinel is accepted.
+The same total row converter is used for lock/get/update/list and maps nullable resume/transition/lineage/resource/generation/root/metadata/authority groups to the complete `Node`: SQL NULL stays nil, every all-or-none group and generation ordering rule is enforced, timestamps are nonzero UTC instants, and present enum/version/digest values are closed、positive and exact-width. Tests compare every repository path and generated `NodeV1` response field-for-field for never-enrolled、ordinary active/recovery/revoked、verified-import unauthorized projection, each legal resume value, partial nullable groups and corrupt text；no partial list projection, empty-string or zero sentinel is accepted.
 
 - [ ] **Step 4 (3 min): Generate sqlc artifacts and inspect drift**
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS; only `internal/store/nodecontrol_inventory.sql.go`, `models.go`, and `querier.go` change for this task.
+Run: `git add db/queries/nodecontrol_inventory.sql internal/store/nodecontrol_inventory.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_inventory.sql internal/store/nodecontrol_inventory.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_inventory.sql internal/store`
+
+Expected: PASS; the second generation changes none of the exact staged inventory outputs and leaves no untracked generated artifact.
 
 - [ ] **Step 5 (5 min): Implement transactions, validation, and exact conflict mapping**
 
@@ -262,7 +333,7 @@ In `postgres_repository.go`, execute `SET LOCAL statement_timeout = '2s'` for li
 
 - [ ] **Step 6 (3 min): Run GREEN repository tests**
 
-Run: `go test -tags=integration ./internal/nodecontrol/inventory -run TestPostgresInventoryRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/inventory' -Run '^TestPostgresInventoryRepository$' -Timeout 3m`
 
 Expected: PASS; query logs contain no OFFSET and the 201st row is used only to decide whether a next cursor is needed.
 
@@ -291,8 +362,8 @@ git commit -m "feat(nodecontrol): persist versioned inventory"
 - Test: `internal/nodecontrol/operator/cursor_fuzz_test.go`
 
 **Interfaces:**
-- Consumes: exact operator certificate credential from Batch 03, external policy provider, AES-256-GCM key material, `inventory.ListRequest`.
-- Produces: suite-index `OperatorAuthorizer`, closed roles/actions, `OperatorListCursorV1`, `CursorCodec`, and normalized filter/scope digests.
+- Consumes: standard-library `crypto/x509` certificate facts, external policy provider, AES-256-GCM key material, and `inventory.ListRequest`；it has no dependency on future Batch 03 code.
+- Produces: suite-index `OperatorAuthorizer`, canonical `operator.Credential`, closed roles/actions, `OperatorListCursorV1`, `CursorCodec`, and normalized filter/scope digests. Batch 03 later validates its mTLS peer and constructs this credential through an adapter.
 
 ```go
 type OperatorAuthorizer interface {
@@ -367,7 +438,9 @@ Add `ValidateCursor(cursor, endpoint, authorization, filterDigest, now)`; requir
 
 - [ ] **Step 6 (3 min): Run GREEN and fuzz tests**
 
-Run: `go test ./internal/nodecontrol/operator -run 'TestAuthorize|TestOperatorListCursor|FuzzCursor' -count=1`
+Run: `go test ./internal/nodecontrol/operator -run '^(TestAuthorize|TestOperatorListCursor)' -count=1`
+
+Run: `go test ./internal/nodecontrol/operator -run '^$' -fuzz '^FuzzCursorFrame$' -fuzztime=10s -timeout 30s`
 
 Expected: PASS; arbitrary bytes never panic, authenticate as valid, or expose plaintext fields in errors.
 
@@ -399,7 +472,7 @@ git commit -m "feat(nodecontrol): bind operator authorization cursors"
 
 **Interfaces:**
 - Consumes: task 2 `inventory.TxRepository`, task 3 `OperatorAuthorizer`, Batch 01 `contracts.NodeInventoryChangedV1`, existing `outbox.Repository`, one caller-supplied `store.DBTX`.
-- Produces: immutable `AuditEntry`, `AuditWriter`, `MutationCommand`, and `Service.Execute(context.Context, MutationCommand) (MutationResult, error)` with one database transaction for domain row, audit, and outbox.
+- Produces: immutable `AuditEntry`, `AuditWriter`, shared acyclic `AuthorizedMutationBinding`, `MutationCommand`, and `Service.Execute(context.Context, MutationCommand) (MutationResult, error)` with one database transaction for ordinary domain row、audit and outbox. B03 fenced security workflows consume the binding but own their Coordinator orchestration.
 
 ```go
 type AuditResult string
@@ -420,10 +493,20 @@ type AuditEntry struct {
 	TargetID                string
 	ReasonCode              string
 	Result                  AuditResult
-	Authority               contracts.AuthorityVersion
+	Authority               *contracts.AuthorityVersion
 	BeforeInventoryVersion  uint64
 	AfterInventoryVersion   uint64
 	OccurredAt              time.Time
+}
+
+type AuthorizedMutationBinding struct {
+	OperationID             uuid.UUID
+	IdempotencyKeyDigest    contracts.Digest
+	IfMatchDigest           contracts.Digest
+	TargetScopeDigest       contracts.Digest
+	Credential              Credential
+	Authorization           Authorization
+	AuthorizedAt            time.Time
 }
 
 type AuditWriter interface {
@@ -437,7 +520,7 @@ Inject failures after inventory update, after audit insert, and after outbox ins
 
 - [ ] **Step 2 (2 min): Run the focused RED integration test**
 
-Run: `go test -tags=integration ./internal/nodecontrol/operator -run TestOperatorMutationAtomicAuditOutbox -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/operator' -Run '^TestOperatorMutationAtomicAuditOutbox$' -Timeout 3m`
 
 Expected: FAIL because audit queries and `operator.Service` do not exist.
 
@@ -458,28 +541,33 @@ INSERT INTO nodecontrol.node_operator_audit (
   sqlc.arg(before_inventory_version), sqlc.arg(after_inventory_version),
   sqlc.arg(occurred_at)
 )
-ON CONFLICT (operation_id) DO UPDATE
-SET operation_id = EXCLUDED.operation_id
-WHERE nodecontrol.node_operator_audit.credential_digest = EXCLUDED.credential_digest
-  AND nodecontrol.node_operator_audit.action = EXCLUDED.action
-  AND nodecontrol.node_operator_audit.target_type = EXCLUDED.target_type
-  AND nodecontrol.node_operator_audit.target_id = EXCLUDED.target_id
+ON CONFLICT (operation_id) DO NOTHING
 RETURNING audit_id;
 ```
+
+If the insert returns no row, select the immutable row in the same caller transaction and constant-time compare every command、credential、target、reason、result、optional authority and before/after version field；return exact retry only on full equality and conflict otherwise. No idempotency path executes UPDATE, including an apparent no-op update.
 
 - [ ] **Step 4 (3 min): Regenerate store artifacts**
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS; the generated audit method accepts fixed-width digest bytes and returns one audit ID.
+Run: `git add db/queries/nodecontrol_inventory.sql internal/store/nodecontrol_inventory.sql.go internal/store/querier.go`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_inventory.sql internal/store/nodecontrol_inventory.sql.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_inventory.sql internal/store`
+
+Expected: PASS; the generated audit method accepts fixed-width digest bytes and returns one audit ID, while second-generation drift and untracked output are empty.
 
 - [ ] **Step 5 (5 min): Implement the mutation transaction and safe event payload**
 
-Authorize before opening the transaction, then lock/recheck node scope and `If-Match` inside it. Write the domain row, immutable successful audit, and outbox event before commit. The event includes only event ID, node ID, inventory version, POP code, operator lifecycle, and changed-field enum; omit endpoint address, reason text, credential and signed bytes. Provider-authorized actions receive a finalized `AuthorityVersion`; inventory-only writes store a zero authority pair and never invent a sequence.
+Authorize before opening the transaction and freeze the exact `AuthorizedMutationBinding`, then lock/recheck node scope and `If-Match` inside it. Write the domain row, immutable successful audit, and outbox event before commit. The event includes only event ID, node ID, inventory version, POP code, operator lifecycle, and changed-field enum；omit endpoint address, reason text, credential and signed bytes. Provider-authorized actions receive a non-nil finalized `AuthorityVersion`；inventory-only writes use a nil binding and SQL `NULL/NULL`. Zero authority pairs are invalid and never encode absence.
 
 - [ ] **Step 6 (3 min): Run GREEN atomicity tests**
 
-Run: `go test -tags=integration ./internal/nodecontrol/operator -run TestOperatorMutationAtomicAuditOutbox -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/operator' -Run '^TestOperatorMutationAtomicAuditOutbox$' -Timeout 3m`
 
 Expected: PASS at every injected failure and retry point.
 
@@ -503,6 +591,13 @@ git commit -m "feat(nodecontrol): commit operator audit with mutations"
 **Files:**
 - Create: `internal/nodecontrol/contracts/process_spec.go`
 - Test: `internal/nodecontrol/contracts/process_spec_test.go`
+- Create: `internal/nodecontrol/contracts/local_release.go`
+- Test: `internal/nodecontrol/contracts/local_release_test.go`
+- Create: `internal/nodecontrol/contracts/resource_envelope.go`
+- Test: `internal/nodecontrol/contracts/resource_envelope_test.go`
+- Create: `internal/localrelease/approved_manifest.go`
+- Create: `internal/localrelease/approved-release-manifest.v1.json`
+- Test: `internal/localrelease/approved_manifest_test.go`
 - Create: `internal/nodecontrol/state/contracts.go`
 - Create: `internal/nodecontrol/state/canonical.go`
 - Test: `internal/nodecontrol/state/contracts_test.go`
@@ -511,8 +606,8 @@ git commit -m "feat(nodecontrol): commit operator audit with mutations"
 - Test: `internal/nodecontrol/state/cross_schema_test.go`
 
 **Interfaces:**
-- Consumes: `contracts.AuthorityVersion`, `contracts.Digest`, inventory slot/profile types, RFC 8785 JCS, Ed25519 public keys.
-- Produces: the one canonical adapter/process-spec IR, closed signed-state/root/metadata DTOs, exact transcript constructors, semantic validators, transition validators, and deterministic vectors consumed by B03/B04/B05/B07.
+- Consumes: `contracts.AuthorityVersion`, `contracts.Digest`, `contracts.LocalVersionedDigestV1`, inventory slot/profile types, RFC 8785 JCS, Ed25519 public keys.
+- Produces: the one canonical adapter/process-spec IR；the sole canonical `ApprovedReleaseManifestV1` / `InstalledReleaseMapV1` types, strict verifiers and immutable verified handles；the build-embedded canonical approved-manifest byte source；the sole canonical `NodeResourceEnvelopeV1`/package contract required by B03's server-side publisher；closed signed-state/root/metadata DTOs；exact transcript constructors、semantic validators、transition validators and deterministic vectors consumed by B03/B04/B05/B07. Plan 04 and Plan 05 independently verify the embedded bytes and the deployed map/root facts；neither accepts a caller-built local-version tuple.
 
 ```go
 type SigningKind string
@@ -555,6 +650,37 @@ const (
 
 type Nonce32 [32]byte
 
+type ApprovedReleaseManifestV1 struct {
+	SchemaVersion   string
+	ManifestVersion uint64
+	SortedReleases  []ApprovedReleaseV1
+}
+
+type ApprovedReleaseV1 struct {
+	Adapter                 Adapter
+	ReleaseID               string
+	ProfileID               string
+	ReleaseLockDigest       Digest
+	ServerExecutableDigest  Digest
+	ClientExecutableDigest  Digest
+	DependencyClosureDigest Digest
+	CompilerProfileDigest   Digest
+	SandboxProfileDigest    Digest
+	LicenseRecordDigest     Digest
+}
+
+type InstalledReleaseMapV1 struct {
+	SchemaVersion          string
+	MapVersion             uint64
+	ApprovedManifestDigest Digest
+	SortedReleases         []InstalledReleaseRootV1
+}
+
+type InstalledReleaseRootV1 struct {
+	ReleaseID           string
+	ImmutableReleaseRoot string
+}
+
 type ProcessSpecV1 struct {
 	SlotID                 string
 	Adapter                Adapter
@@ -582,6 +708,39 @@ type CapacityLimitsV1 struct {
 	QueueLimit                 uint64
 	PacketLossLimitBasisPoints uint64
 }
+
+type ResourceLimitsV1 struct {
+	CPUMillicores uint64 `json:"cpu_millicores"`
+	MemoryBytes   uint64 `json:"memory_bytes"`
+	TaskLimit     uint64 `json:"task_limit"`
+	FDLimit       uint64 `json:"fd_limit"`
+}
+
+type NodeResourceEnvelopeV1 struct {
+	SchemaVersion                   string           `json:"schema_version"`
+	NodeID                          uuid.UUID        `json:"node_id"`
+	ControlPlaneAuthorityEpoch      uint64           `json:"control_plane_authority_epoch"`
+	AuthoritySequence               uint64           `json:"authority_sequence"`
+	EnvelopeVersion                 uint64           `json:"envelope_version"`
+	MaxSlots                        uint8            `json:"max_slots"`
+	AgentLimits                     ResourceLimitsV1 `json:"agent_limits"`
+	SupervisorLimits                ResourceLimitsV1 `json:"supervisor_limits"`
+	CoreParentLimits                ResourceLimitsV1 `json:"core_parent_limits"`
+	AggregateSlotFDReservationLimit uint64           `json:"aggregate_slot_fd_reservation_limit"`
+	AggregateTmpfsBytes             uint64           `json:"aggregate_tmpfs_bytes"`
+	AggregateTmpfsInodes            uint64           `json:"aggregate_tmpfs_inodes"`
+	DetectedHostCapacityDigest      Digest           `json:"detected_host_capacity_digest"`
+	IssuedAt                        time.Time         `json:"issued_at"`
+}
+
+type NodeResourceEnvelopePackageV1 struct {
+	Envelope                     NodeResourceEnvelopeV1 `json:"envelope"`
+	DeploymentKeyID              Digest                 `json:"deployment_key_id"`
+	Algorithm                    string                 `json:"algorithm"`
+	DeploymentAuthoritySignature [64]byte               `json:"deployment_authority_signature"`
+}
+
+const NodeResourceEnvelopeTranscriptV1 = "TALENRO-NODE-RESOURCE-ENVELOPE-V1\x00"
 
 const (
 	DesiredTranscriptDomain     = "TALENRO-NODE-DESIRED-STATE-V1\x00"
@@ -672,15 +831,23 @@ type SupervisorFaultBindingV1 struct {
 
 `Nonce32` is raw nonce material, not a digest: its JSON/JCS form is strict unpadded base64url of exactly 43 characters, decode length exactly 32, with canonical re-encode equality; the all-zero value is invalid.
 
+`ApprovedReleaseManifestV1` has schema `talenro-approved-release-manifest/v1`, size at most 64 KiB and 1–3 entries sorted uniquely by the declaration-order adapter then bytewise release/profile IDs. All versions are in `1..MaxInt64`; every digest is nonzero；adapter/release/profile pairs are unique；the release-lock、server/client executable、dependency closure、compiler profile、sandbox profile and license facts are complete and cannot be supplied by the installed map. Its digest is `SHA-256(ASCII("TALENRO-APPROVED-RELEASE-MANIFEST-V1") || 0x00 || RFC8785_JCS(manifest))`. `VerifyApprovedReleaseManifestV1([]byte)` strict-decodes、requires canonical round-trip and returns a defensive-copy `VerifiedApprovedReleaseManifestV1` with no exported field or bytes/digest/boolean constructor；its sole tuple accessor returns `contracts.LocalVersionedDigestV1{Version:ManifestVersion,Digest:manifest_digest}`. `RequireC12ProductionReleaseSet` additionally requires the exact final `fixture,xray,sing_box` set and rejects the initial fixture-only/partial development instance until Plan 07 has atomically regenerated the embedded instance from both reviewed release locks.
+
+`InstalledReleaseMapV1` has schema `talenro-installed-release-map/v1`, size at most 16 KiB and a sorted unique nonempty subset of the verified manifest's release IDs. It contains only `{release_id,immutable_release_root}` plus its own positive map version and exact approved-manifest digest；adapter、profile、digest、argv、dependency closure、compiler/sandbox policy and license fields do not exist. Roots must be canonical absolute Linux paths below `/opt/talenro/releases/`, with no `.`/`..`/empty segment, and are not deletion authority. `VerifyInstalledReleaseMapV1([]byte, VerifiedApprovedReleaseManifestV1)` performs the bounded canonical/membership checks, derives `SHA-256(ASCII("TALENRO-INSTALLED-RELEASE-MAP-V1") || 0x00 || RFC8785_JCS(map))` and returns defensive-copy `VerifiedInstalledReleaseMapV1`; only after the consumer's independent filesystem checks may its private commit adapter call the handle's tuple accessor `contracts.LocalVersionedDigestV1{Version:MapVersion,Digest:map_digest}`. Plan 04 and Plan 05 must each no-follow open the fixed production file `/etc/talenro/releases/installed-release-map.v1.json`, require root ownership、non-writability、regular-file identity, then no-follow verify every listed immutable root and its manifest-pinned files before they may derive/persist the local tuple. The map path、bytes、tuple or a filesystem-verifier success boolean is never accepted from an agent request, supervisor request, environment variable or caller DTO.
+
+`internal/localrelease/approved_manifest.go` uses `go:embed` for exactly package-local `approved-release-manifest.v1.json` and exposes only a fresh defensive copy of those build-fixed bytes. The initial P02 instance is fixture-only and explicitly production-incomplete so intermediate packages compile but production startup fails closed. Plan 07 `lock-core` is the sole later writer: after each reviewed lock it atomically regenerates this fixed file from all then-present reviewed locks, and after B09 it must satisfy `RequireC12ProductionReleaseSet`. Any direct/manual edit, partial two-file update or embedded/runtime digest disagreement fails the owning gate.
+
+`NodeResourceEnvelopeV1` has schema `node-resource-envelope.v1`, algorithm `ed25519`, canonical UUID/whole-second UTC time, authority/version values in `1..MaxInt64`, `max_slots=8`, and nonzero digests. Each `ResourceLimitsV1` uses CPU `100..64_000`, memory `67_108_864..1_099_511_627_776`, tasks `32..4_096`, and FDs `64..1_000_000`；aggregate FD reservation is `64..9_000_000`, aggregate tmpfs bytes `1..9_895_604_649_984`, and aggregate tmpfs inodes `1..9_000_000`. Checked sums must fit both the declared aggregate and `uint64`. Strict package canonicalization rejects unknown/duplicate/trailing fields, caps JCS at 64 KiB, and returns only `NodeResourceEnvelopeTranscriptV1 || JCS(package.envelope)` plus its digest；signature role/key verification belongs to B03 and cannot change this contract.
+
 `ProcessSpecV1` validation applies the exact §11.1 ASCII/length rules, at most eight unique slots, the three closed adapters/lifecycles, sorted unique required metrics, immutable inventory/profile equality, and rejects paths, argv, environment, URLs, raw configuration, arbitrary maps and credentials because those fields do not exist. `NodeStateRootSetV1` contains schema version, authority epoch/sequence, root version, threshold and 1–5 bytewise key-ID-sorted unique Ed25519 root keys. `NodeStateTrustMetadataV1` contains a complete key snapshot of at most 64 entries, a sorted cumulative revoked-ID set of at most 4096 entries, metadata version/window, next refresh, authority/root binding and sorted threshold signatures. `NodeStateRootRotationBodyV1` embeds the next root set and requires exact previous version plus current/new signatures.
 
 - [ ] **Step 1 (5 min): Write RED canonical-vector and cross-schema tests**
 
-Load fixed input/output hex from `node-state-vectors.json`; test desired, recovery, time, metadata and root-rotation transcripts. Exercise all four recovery reasons and all three recovery actions, then feed a valid C1.1 `talenro-trust-metadata/v1` payload to every C1.2 decoder and require `ErrSchemaMismatch` before signature acceptance.
+Load fixed input/output hex from `node-state-vectors.json`; test desired, recovery, time, metadata and root-rotation transcripts. Freeze process-spec/Nonce32 semantics, both local-release schemas/domains/immutable verified handles, embedded-byte defensive copies and literal resource-envelope JSON/transcript vectors, numeric edges, checked aggregate overflow, defensive copies and every one-field mutation. Exercise all five recovery reasons and all three recovery actions, then feed a valid C1.1 `talenro-trust-metadata/v1` payload to every C1.2 decoder and require `ErrSchemaMismatch` before signature acceptance. Local-release tests reject unknown/duplicate/trailing fields, unsorted/duplicate entries, map overrides, manifest/map splice, noncanonical/relative/escaping roots, zero/overflow versions, random nonzero tuple injection and production use of the initial partial manifest.
 
 - [ ] **Step 2 (2 min): Run the focused RED tests**
 
-Run: `go test ./internal/nodecontrol/state -run 'TestCanonicalVectors|TestRejectC11Schemas' -count=1`
+Run: `go test ./internal/nodecontrol/contracts ./internal/localrelease ./internal/nodecontrol/state -run 'TestProcessSpec|TestNonce32|TestLocalRelease|TestEmbeddedApprovedManifest|TestNodeResourceEnvelopeContract|TestCanonicalVectors|TestRejectC11Schemas' -count=1`
 
 Expected: FAIL because state contracts and vector file do not exist.
 
@@ -698,7 +865,7 @@ Desired effective deadline is `min(issued_at+24h, metadata.valid_until, key.not_
 
 - [ ] **Step 6 (3 min): Run GREEN vector and transition tests**
 
-Run: `go test ./internal/nodecontrol/state -run 'TestCanonicalVectors|TestRejectC11Schemas|TestMetadataTransition|TestStateDeadlines' -count=1`
+Run: `go test ./internal/nodecontrol/contracts ./internal/localrelease ./internal/nodecontrol/state -run 'TestProcessSpec|TestNonce32|TestLocalRelease|TestEmbeddedApprovedManifest|TestNodeResourceEnvelopeContract|TestCanonicalVectors|TestRejectC11Schemas|TestMetadataTransition|TestStateDeadlines' -count=1`
 
 Expected: PASS and every vector digest/signature transcript matches the checked-in lowercase hex value.
 
@@ -706,14 +873,18 @@ Expected: PASS and every vector digest/signature transcript matches the checked-
 
 The helper accepts a 64 KiB maximum for desired/recovery, bounded metadata collections, and rejects unknown/duplicate JSON fields before allocating nested collections. Add fuzz tests asserting decode-canonical-decode equality and no panic.
 
-Run: `go test ./internal/nodecontrol/state -run 'Test|Fuzz' -count=1`
+Run: `go test ./internal/nodecontrol/contracts ./internal/localrelease ./internal/nodecontrol/state -count=1`
+
+Run: `go test ./internal/nodecontrol/contracts -run '^$' -fuzz '^FuzzProcessSpecCanonicalRoundTrip$' -fuzztime=10s -timeout 30s`
+
+Run: `go test ./internal/nodecontrol/state -run '^$' -fuzz '^FuzzStateCanonicalRoundTrip$' -fuzztime=10s -timeout 30s`
 
 Expected: PASS.
 
 - [ ] **Step 8 (2 min): Commit state contracts and vectors**
 
 ```bash
-git add internal/nodecontrol/contracts/process_spec.go internal/nodecontrol/contracts/process_spec_test.go internal/nodecontrol/state/contracts.go internal/nodecontrol/state/canonical.go internal/nodecontrol/state/contracts_test.go internal/nodecontrol/state/canonical_test.go internal/nodecontrol/state/cross_schema_test.go testdata/c12/node-state-vectors.json
+git add internal/nodecontrol/contracts/process_spec.go internal/nodecontrol/contracts/process_spec_test.go internal/nodecontrol/contracts/local_release.go internal/nodecontrol/contracts/local_release_test.go internal/nodecontrol/contracts/resource_envelope.go internal/nodecontrol/contracts/resource_envelope_test.go internal/localrelease/approved_manifest.go internal/localrelease/approved-release-manifest.v1.json internal/localrelease/approved_manifest_test.go internal/nodecontrol/state/contracts.go internal/nodecontrol/state/canonical.go internal/nodecontrol/state/contracts_test.go internal/nodecontrol/state/canonical_test.go internal/nodecontrol/state/cross_schema_test.go testdata/c12/node-state-vectors.json
 git commit -m "feat(nodecontrol): freeze signed state contracts"
 ```
 
@@ -830,8 +1001,8 @@ git commit -m "feat(nodecontrol): bound node state signing"
 - Test: `internal/nodecontrol/state/postgres_repository_integration_test.go`
 
 **Interfaces:**
-- Consumes: Batch 01 migration and `authority.Repository`, task 5 canonical payloads, `store.DBTX`.
-- Produces: immutable `SigningIntent`, closed `IntentStatus`, `RecoveryIntentBinding`, `LockedState`, and transaction-bound persistence methods that can activate only a committed fence record whose recovery capture still matches.
+- Consumes: Batch 01 migration、`authority.Repository`、`authority.TransactionalEffectResolver`/`TransactionalEffectActivator` contracts and bound `serving.Reader`, task 5 canonical payloads, `store.DBTX`.
+- Produces: immutable `SigningIntent`, closed `IntentStatus`, `RecoveryIntentBinding`, `LockedState`, the B02-owned recovery-guard/capture seam implemented by B03, and one state effect handler that implements the Batch 01 transaction-bound resolver/activator for desired/recovery and, after Task 9, root/metadata kinds. No B02 repository is a production serving reader.
 
 ```go
 type IntentStatus string
@@ -850,10 +1021,10 @@ type StateRepository interface {
 	InsertIntent(context.Context, store.DBTX, SigningIntent) error
 	LoadIntent(context.Context, uuid.UUID) (SigningIntent, error)
 	StoreVerifiedSignature(context.Context, store.DBTX, uuid.UUID, SignResult) error
-	Activate(context.Context, store.DBTX, Activation) (SignedEnvelope, error)
 	Terminate(context.Context, store.DBTX, uuid.UUID, IntentStatus, FailureCode) error
-	LoadActive(context.Context, uuid.UUID, SigningKind) (SignedEnvelope, error)
-	ResolveAuthorityEffect(context.Context, uuid.UUID) (authority.ResolvedEffect, error)
+	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, uuid.UUID) (authority.ResolvedEffect, error)
+	CaptureActivationDecisionEvidence(context.Context, authority.Receipt) (authority.ActivationDecisionEvidence, error)
+	ActivateAuthorityEffect(context.Context, store.DBTX, authority.Receipt, authority.ActivationDecisionEvidence) error
 }
 
 type RecoveryIntentBinding struct {
@@ -867,15 +1038,98 @@ type RecoveryIntentBinding struct {
 	RemediationEvidenceDigest   *contracts.Digest
 	RequiredAction              RecoveryAction
 }
+
+type TransitionKind string
+
+const (
+	TransitionNone               TransitionKind = "none"
+	TransitionDrain              TransitionKind = "drain"
+	TransitionResume             TransitionKind = "resume"
+	TransitionRestoreReauthorize TransitionKind = "restore_reauthorize"
+)
+
+type OperatorTransition struct {
+	Kind                   TransitionKind
+	ExpectedState          inventory.OperatorState
+	TargetState            inventory.OperatorState
+	RecoveryID             uuid.UUID
+	RecoverySessionVersion uint64
+	EffectDigest           contracts.Digest
+	RestoreApprovalIDs     [2]uuid.UUID
+}
+
+type RecoveryInput struct {
+	RecoveryID                    uuid.UUID
+	Reason                        RecoveryReason
+	SessionVersion                uint64
+	SessionStatus                 string
+	IdentityEpoch                 uint64
+	SortedOpenIncidentIDs         []uuid.UUID
+	SortedLocalFaultBindings      []LocalFaultBindingV1
+	SortedSupervisorFaultBindings []SupervisorFaultBindingV1
+	RemediationEvidenceDigest     *contracts.Digest
+	RequiredAction                RecoveryAction
+	AllSlotsStopped               bool
+}
+
+type RestoreCredentialSnapshot struct {
+	ApprovalID               uuid.UUID
+	OperatorID               uuid.UUID
+	CredentialSnapshotDigest contracts.Digest
+	CredentialVersion        uint64
+	ScopeDigest              contracts.Digest
+}
+
+type RecoveryTransitionCapture struct {
+	OperationID               uuid.UUID
+	SigningID                 uuid.UUID
+	Binding                   RecoveryIntentBinding
+	Transition                *OperatorTransition
+	AttestationDigest         contracts.Digest
+	ActivationDeadline        time.Time
+	RestoreCredentialSnapshots *[2]RestoreCredentialSnapshot
+}
+
+type RestoreAuthorizationDecision struct {
+	ApprovalID               uuid.UUID
+	OperatorID               uuid.UUID
+	CredentialSnapshotDigest contracts.Digest
+	CredentialVersion        uint64
+	ScopeDigest              contracts.Digest
+	DecisionDigest           contracts.Digest
+	Authorized               bool
+	ValidUntil               time.Time
+}
+
+type RecoveryTransitionDecisionFacts struct {
+	OperationID           uuid.UUID
+	TransitionKind        TransitionKind
+	CaptureBindingDigest  contracts.Digest
+	DecisionAnchorDigest  contracts.Digest
+	EvidenceValidUntil    time.Time
+	RestoreAuthorizations *[2]RestoreAuthorizationDecision
+}
+
+type RecoveryTransitionDecisionCapture struct { /* unexported defensive facts + one-use seal */ }
+
+func NewRecoveryTransitionDecisionCapture(RecoveryTransitionDecisionFacts) (RecoveryTransitionDecisionCapture, error)
+func (c RecoveryTransitionDecisionCapture) Facts() RecoveryTransitionDecisionFacts
+
+type RecoveryTransitionGuard interface {
+	ValidatePrepare(context.Context, store.DBTX, RecoveryInput, *OperatorTransition) (RecoveryTransitionCapture, error)
+	CaptureActivationDecisionEvidence(context.Context, RecoveryTransitionCapture) (RecoveryTransitionDecisionCapture, error)
+	ValidateActivation(context.Context, store.DBTX, RecoveryTransitionCapture, RecoveryTransitionDecisionCapture, authority.ActivationDecisionEvidence) error
+	ApplyActivation(context.Context, store.DBTX, RecoveryTransitionCapture, RecoveryTransitionDecisionCapture, SignedEnvelope) error
+}
 ```
 
 - [ ] **Step 1 (5 min): Write RED generation and visibility integration tests**
 
-Assert desired and recovery allocators are independent, aborted generation 2 is never reused, only one pending intent per node/kind exists, terminal state never returns to pending, active pointer cannot target a pending or uncommitted-fence row, and serving query returns no orphan signature.
+Assert desired and recovery allocators are independent, aborted generation 2 is never reused, only one pending intent per node/kind exists, terminal state never returns to pending, and the transaction-bound activator cannot point at a pending/unverified signature or a different fence. Increment `security_version` without changing its textual state between prepare/activation and require terminal-not-applied, proving the locked projection selects and rechecks the captured numeric version. Add a fail-closed guard fake and lock probe: nil/unavailable guard rejects transition work, external capture is callable only outside DBTX, and activation accepts only the exact sealed capture bound to operation/receipt/B01 evidence. Prove the repository exposes no independent production active-state load；only the B01 `serving.Reader` integration fixture can return the resulting desired row after its same-connection readiness-query-readiness check.
 
 - [ ] **Step 2 (2 min): Run the focused RED integration test**
 
-Run: `go test -tags=integration ./internal/nodecontrol/state -run TestPostgresStateRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^TestPostgresStateRepository$' -Timeout 3m`
 
 Expected: FAIL because state SQL and repository do not exist.
 
@@ -883,7 +1137,7 @@ Expected: FAIL because state SQL and repository do not exist.
 
 ```sql
 -- name: LockNodeStatePointers :one
-SELECT node_id, inventory_version, identity_epoch, security_state,
+SELECT node_id, inventory_version, identity_epoch, security_version, security_state,
        active_desired_generation, next_desired_generation,
        active_recovery_generation, next_recovery_generation,
        active_root_version, active_root_publish_id,
@@ -928,15 +1182,23 @@ INSERT INTO nodecontrol.node_state_signing_intents (
 
 All recovery columns are null for desired intents and all are non-null (except the conditionally nullable remediation digest) for recovery intents. Add migration/schema checks for that XOR. Recovery activation re-locks the session and recomputes every captured digest; canonical payload equality alone is insufficient.
 
-- [ ] **Step 4 (4 min): Add finalized-only activation and serving queries**
+- [ ] **Step 4 (4 min): Add transaction-bound resolution and finalized-only activation queries**
 
-Activation must join `control_plane_authority_fences` on operation/epoch/sequence and require `provider_status='committed' AND visibility_state='active'`. `ResolveAuthorityEffect` is read-only, recognizes only desired/recovery activation and root/metadata publication operations, and returns the immutable kind/scope/effect digest and `prepared|committed|terminal` state used by the Batch 01 composition-root dispatcher; unknown kinds are not guessed. Root/metadata lookups initially return absent until Task 9 writes their immutable intents. Serving must join the active pointer, exact kind/generation, `IntentActive`, and the same committed fence; it never falls back to the highest generation.
+`ResolveAuthorityEffectForUpdate` uses the caller's `store.DBTX`, locks the exact operation/intent/pointer rows in the B01 order, recognizes only desired/recovery activation and root/metadata publication operations, and returns the immutable kind/scope/effect digest plus `absent|prepared|committed|terminal` state；unknown/multiple/mismatched kinds are not guessed. Root/metadata initially resolve absent until Task 9 adds their intent path. The state handler constructor requires the B02-owned `RecoveryTransitionGuard` seam and stores no reference from that guard back to the state service/Coordinator. `CaptureActivationDecisionEvidence` runs outside DBTX: it loads only the immutable prepared capture, invokes `RecoveryTransitionGuard.CaptureActivationDecisionEvidence`, completes the exact B01 canonical evidence, and holds the sealed finite decision capture in an unexported one-use registry keyed by operation/receipt/evidence digest. Any capture failure clears the entry；process loss or an uncommitted activation recaptures instead of deserializing a seal. `ActivateAuthorityEffect` runs inside the Coordinator-owned activation transaction, re-resolves under the same locks, retrieves the exact sealed decision capture, validates the B01 evidence without consuming its admission token, passes both captures to the guard, rechecks signature/root/metadata/key/deadline, writes the immutable envelope、exact active pointer、transition/session/approval disposition、effect resolution (using the capture's exact decision-anchor digest) and required audit/outbox, and marks the intent active or terminal-not-applied atomically with fence visibility. After the handler returns, only the B01 Coordinator consumes its single-use admission token after every fence/domain/evidence/audit/outbox write and immediately before its sole Commit attempt. There is no B02 serving query；the separate B01 reader owns active desired reads and never falls back to highest generation.
 
 - [ ] **Step 5 (3 min): Generate and inspect state store artifacts**
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS; `nodecontrol_state.sql.go` has distinct desired/recovery allocator and active-load methods.
+Run: `git add db/queries/nodecontrol_state.sql internal/store/nodecontrol_state.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_state.sql internal/store/nodecontrol_state.sql.go internal/store/models.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_state.sql internal/store`
+
+Expected: PASS; `nodecontrol_state.sql.go` has distinct desired/recovery allocator methods (no production active-load method), and the exact second-generation drift/untracked outputs are empty.
 
 - [ ] **Step 6 (5 min): Implement exact row conversion and transition checks**
 
@@ -944,13 +1206,13 @@ Reject zero versions/generations, digest length other than 32, signature length 
 
 - [ ] **Step 7 (3 min): Run GREEN repository tests**
 
-Run: `go test -tags=integration ./internal/nodecontrol/state -run TestPostgresStateRepository -count=1 -timeout 3m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^TestPostgresStateRepository$' -Timeout 3m`
 
 Expected: PASS with desired generations `1,3` after failed generation 2 and no serving visibility for that failed row.
 
-- [ ] **Step 8 (4 min): REFACTOR serving query tests into a corrupt-row matrix**
+- [ ] **Step 8 (4 min): REFACTOR activation and bound-reader tests into a corrupt-row matrix**
 
-Directly insert each invalid pointer/fence/status combination in a rolled-back test transaction and require `ErrStateUnavailable`; do not silently skip to an older envelope.
+Directly insert each invalid pointer/fence/status/evidence combination in a rolled-back test transaction and require the activator to roll back with no pointer/audit/outbox visibility. Through B01 `serving.Reader`, require `ErrStateUnavailable` for every corrupt committed fixture and never silently skip to an older envelope；a compile/static test rejects a public `LoadActive` or independent readiness query in `internal/nodecontrol/state`.
 
 Run: `go test ./internal/nodecontrol/state ./internal/store -count=1`
 
@@ -972,8 +1234,8 @@ git commit -m "feat(nodecontrol): persist signed state intents"
 - Test: `internal/nodecontrol/state/service_crash_test.go`
 
 **Interfaces:**
-- Consumes: Batch 01 `authority.Coordinator`; `authority.Provider` only for read-only `CommittedNodeCheckpoint`; task 6 `NodeStateSigner`; task 7 `StateRepository`/state effect resolver; inventory versions/capacity; root/metadata active key authorization; operator audit/outbox; and a transaction-bound `RecoveryTransitionGuard` implemented by B03.
-- Produces: prepare/drive/recover API keyed by immutable signing ID; desired/recovery terminal results; optional transaction-bound drain/resume/restore transition applied only with exact state activation.
+- Consumes: Batch 01 `authority.Coordinator`, including its DB/provider-consistent read-only `CommittedNodeCheckpoint`; task 6 `NodeStateSigner`; task 7 `StateRepository` transaction-bound state effect handler and its already-defined recovery-guard/capture seam; inventory versions/capacity; root/metadata active key authorization; operator audit/outbox; and the `RecoveryTransitionGuard` implementation supplied by B03. It never receives raw `authority.Provider`.
+- Produces: prepare/drive/recover API keyed by immutable signing ID；desired/recovery terminal results；and the finite inputs consumed by the registered state activator, which alone applies optional drain/resume/restore transition with exact state activation inside the Coordinator transaction.
 
 ```go
 type PrepareRequest struct {
@@ -1003,48 +1265,13 @@ type NodeTimeAttestationRequest struct {
 	RequestNonce contracts.Nonce32
 }
 
-type OperatorTransition struct {
-	Kind               TransitionKind
-	ExpectedState      inventory.OperatorState
-	TargetState        inventory.OperatorState
-	RecoveryID         uuid.UUID
-	RecoverySessionVersion uint64
-	EffectDigest       contracts.Digest
-	RestoreApprovalIDs [2]uuid.UUID
-}
-
-type RecoveryInput struct {
-	RecoveryID                    uuid.UUID
-	Reason                        RecoveryReason
-	SessionVersion                uint64
-	SessionStatus                 string
-	IdentityEpoch                 uint64
-	SortedOpenIncidentIDs         []uuid.UUID
-	SortedLocalFaultBindings      []LocalFaultBindingV1
-	SortedSupervisorFaultBindings []SupervisorFaultBindingV1
-	RemediationEvidenceDigest     *contracts.Digest
-	RequiredAction                RecoveryAction
-	AllSlotsStopped               bool
-}
-
-type RecoveryTransitionCapture struct {
-	Binding            RecoveryIntentBinding
-	Transition         *OperatorTransition
-	AttestationDigest  contracts.Digest
-}
-
-type RecoveryTransitionGuard interface {
-	ValidatePrepare(context.Context, store.DBTX, RecoveryInput, *OperatorTransition) (RecoveryTransitionCapture, error)
-	ValidateActivation(context.Context, store.DBTX, RecoveryTransitionCapture) error
-	ApplyActivation(context.Context, store.DBTX, RecoveryTransitionCapture, SignedEnvelope) error
-}
 ```
 
-`TransitionKind` contains `none`, `drain`, `resume`, and `restore_reauthorize`. B02 implements `drain`; B03 implements the guard and may construct `resume` or `restore_reauthorize` only after locking the exact session, attestation, incident set, host evidence and (for restore) two approval rows. Disable/quarantine is fail-closed identity work owned by B03 and cannot be represented as a signer-only transition. `RecoveryTransitionGuard` is invoked only inside the caller-owned PostgreSQL transaction and cannot call an external provider.
+`TransitionKind` contains `none`, `drain`, `resume`, and `restore_reauthorize`. B02 implements `drain`; B03 implements the guard and may construct `resume` or `restore_reauthorize` only after locking the exact session, attestation, incident set, host evidence and (for restore) two approval rows. Disable/quarantine is fail-closed identity work owned by B03 and cannot be represented as a signer-only transition. Only `ValidatePrepare`、`ValidateActivation` and `ApplyActivation` receive caller-owned DBTX and they cannot call an external provider；the separate `CaptureActivationDecisionEvidence` method receives no DBTX, calls the uncached authorizer when required, and returns only a validated defensive sealed capture.
 
 - [ ] **Step 1 (5 min): Write the RED happy path and stale activation tests**
 
-Test exact order `Coordinator.Reserve → prepare transaction → Sign → local verify → Coordinator.Finalize → activation transaction`; the coordinator alone captures/binds the post-commit database point and activates the provider receipt. Use lock-probing fakes to fail if coordinator/provider/signer is invoked while a DB lock is held. Change base generation, inventory version, identity epoch, security version, key status, recovery ID/reason/session version/status, incident set, either fault-binding set, remediation digest, required action, attestation, restore approval/credential scope, or activation deadline before activation and require superseded with no active bytes.
+Test exact order `Coordinator.Reserve → prepare transaction → Sign → local verify/store transaction → Coordinator.Finalize{resolver-for-update → provider → B01+guard evidence capture → one activation transaction}`；there is no service-owned second activation transaction. Use lock-probing fakes to fail if coordinator/provider/signer/guard external capture is invoked while a DB lock is held. For signer dependency failure、malformed result、expired pre-Finalize deadline and pre-Finalize supersession after the intent exists, require a fence-first transaction to call B01 `NewAuthorityEffectCommitment` with the finite `final_not_applied` disposition, persist that distinct immutable commitment/effect digest, make the resolver return `EffectCommitted`, and then exact-retry `Coordinator.Finalize/Recover`；a recording provider must fail the test if this path calls Abort. Abort remains legal only when prepare never materialized an intent and the transaction-bound resolver proves `EffectAbsent`. Change base generation, inventory version, identity epoch, security version, key status, recovery ID/reason/session version/status, incident set, either fault-binding set, remediation digest, required action, attestation, restore approval/credential snapshot/version/scope/decision, or either activation/capture deadline before the Coordinator activator commits and require terminal-not-applied/superseded with no active bytes/pointer/final audit-outbox leak.
 
 - [ ] **Step 2 (2 min): Run the focused RED service test**
 
@@ -1058,15 +1285,15 @@ Call `authority.Coordinator.Reserve` for `EffectDesiredActivate` or `EffectRecov
 
 - [ ] **Step 4 (5 min): Implement signer call and independent result verification**
 
-Outside transactions call the queue with exact `SignRequest`; verify echoed fields, Ed25519 signature, canonical bytes/digest, schema/domain, current root/metadata/key authorization, and composite deadline. Persist verified signature in a short transaction. `IssueTimeAttestation` reads `authority.Provider.CommittedNodeCheckpoint(SHA256(node_id))`, constructs the exact five-minute `NodeTimeAttestationV1`, and signs it without calling `Reserve`; equal checkpoint values therefore do not create a fence row or advance an allocator. Signer timeout/malformed/mismatch terminates an intent as failed and asks `authority.Coordinator.Abort` to terminate an unfinalized reservation only when the immutable effect resolver proves the domain effect did not commit.
+Outside transactions call the queue with exact `SignRequest`; verify echoed fields, Ed25519 signature, canonical bytes/digest, schema/domain, current root/metadata/key authorization, and composite deadline. Persist verified signature in a short transaction. `IssueTimeAttestation` reads `Coordinator.CommittedNodeCheckpoint(SHA256(node_id))`, whose result already requires the exact provider/repository epoch、sequence and receipt digest to agree, constructs the exact five-minute `NodeTimeAttestationV1`, and signs it without calling `Reserve`; equal checkpoint values therefore do not create a fence row or advance an allocator. A retryable signer timeout before the deadline keeps the exact prepared intent recoverable. Once dependency failure、malformed/mismatched output、deadline expiry or supersession is determined after intent commit, use B01 `NewAuthorityEffectCommitment` in a short fence-first transaction to replace no payload bytes but append one immutable distinct `final_not_applied` commitment with its finite reason and audit inputs；the resolver must then return `EffectCommitted`, and the service calls `Coordinator.Finalize`, never Abort. Only a definite failure before any intent/domain row exists may use Abort after an exact `EffectAbsent` proof.
 
 - [ ] **Step 5 (5 min): Implement fence finalize and activation recheck**
 
-After the verified immutable state effect transaction commits, call `authority.Coordinator.Finalize(operation_id,effect_digest)` outside all transactions. The coordinator reloads the state effect through the registered resolver, captures the same-primary post-commit database point, binds it, finalizes the provider and activates the exact receipt; this service never supplies system ID, timeline or LSN. In the final domain transaction re-lock all captured facts, require that committed active receipt and an unexpired deadline, invoke `RecoveryTransitionGuard.ValidateActivation`, insert the immutable envelope, advance the exact active pointer, invoke `ApplyActivation` for the optional transition/session/approvals, clear pending transition, append audit/outbox, and mark intent active. Any guard mismatch supersedes the intent and leaves the node disabled.
+After either the verified immutable state artifact commitment or the Step 4 immutable `final_not_applied` commitment commits, call `authority.Coordinator.Finalize(operation_id,exact_commitment_digest)` outside all transactions. The registered state handler resolves the effect for update, while only the coordinator captures the same-primary database point、finalizes the provider、asks the guard for its lock-free sealed decision capture、constructs B01 evidence and opens the one activation transaction. For a success candidate, that transaction `ActivateAuthorityEffect` re-locks every captured fact, requires the exact receipt/B01 evidence/guard capture and unexpired deadlines, invokes `RecoveryTransitionGuard.ValidateActivation` with both evidence values, inserts the immutable envelope, advances the exact active pointer, invokes `ApplyActivation` with the same capture for the optional transition/session/approvals, clears pending transition, writes the effect resolution plus audit/outbox and marks the intent active. For an already committed final-not-applied tombstone, the same activator verifies its exact reason/preimage and atomically terminalizes only fence、intent disposition、pending-transition cleanup、resolution/audit/outbox, with no active bytes or pointer. Any later guard mismatch is likewise committed only as the allowed terminal-not-applied/superseded disposition with the node still disabled. The service never supplies system ID/timeline/LSN and never opens a post-Finalize activation transaction.
 
 - [ ] **Step 6 (4 min): Implement drain atomicity**
 
-The prepare transaction leaves `operator_state` unchanged, stores `pending_operator_transition='draining'`, and makes derived `accepting_new=false`. Only successful desired activation changes state to draining. Signer failure/abort clears pending without changing the prior state; concurrent disable/quarantine supersedes the intent and retains disabled/quarantined state.
+The prepare transaction leaves `operator_state` unchanged, stores `pending_operator_transition='draining'`, and makes derived `accepting_new=false`. Only successful desired activation changes state to draining. A pre-intent `EffectAbsent` Abort or a post-intent signer-failure/supersession final-not-applied activation clears pending without changing the prior state；concurrent disable/quarantine retains disabled/quarantined state.
 
 - [ ] **Step 7 (3 min): Run GREEN service tests**
 
@@ -1076,17 +1303,19 @@ Expected: PASS and the test lock probe records zero external calls under lock.
 
 - [ ] **Step 8 (5 min): Add deterministic crash recovery at every durable boundary**
 
-Crash after reserve, intent commit, signer response, verified-signature commit, visibility commit, provider finalize, and activation commit. Repeat with an incident added, a recovery session completed, an approval credential revoked/expired/scope-shrunk, and an effect digest changed at each boundary. `Recover(signingID)` must inspect durable state/provider receipt and either resume the same exact operation or supersede it; it cannot allocate another generation, request changed bytes or retain stale approvals.
+Crash after reserve, intent commit, signer response, final-not-applied commitment commit, verified-signature commit, either commitment's provider finalize, evidence capture, activator writes, Coordinator Commit invocation and commit response. Repeat with signer malformed/deadline/supersession, an incident added, a recovery session completed, an approval credential revoked/expired/scope-shrunk, and an effect digest changed at each boundary. `Recover(signingID)` must delegate visibility recovery to `Coordinator.Recover`, which exact-retries the same success/tombstone commitment and handler transaction；it cannot Abort an `EffectPrepared/EffectCommitted`, allocate another generation, request changed bytes, retain stale approvals or run an independent activation transaction.
 
 Run: `go test ./internal/nodecontrol/state -run TestStateServiceCrashRecovery -count=1`
 
-Expected: PASS for every crash point and response-loss retry.
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/nodecontrol/state' -Run '^TestStateServiceFinalNotAppliedPITR$' -Timeout 5m`
+
+Expected: PASS for every crash point、response-loss retry and database restore between prepared/tombstone/provider/activation boundaries；provider Head prevents resurrection and the operation converges to the same terminal final-not-applied receipt with no pending fence.
 
 - [ ] **Step 9 (4 min): REFACTOR failures into a closed matrix**
 
-Use `validation_failed`, `signer_unavailable`, `signer_malformed`, `authorization_changed`, `deadline_expired`, and `superseded`; map public callers to conflict or dependency unavailable without raw SQL/provider/key details.
+Use `validation_failed`, `signer_unavailable`, `signer_malformed`, `authorization_changed`, `deadline_expired`, and `superseded`; freeze which pre-intent cases may prove `EffectAbsent` and which post-intent cases become distinct B01 final-not-applied commitments. Map public callers to conflict or dependency unavailable without raw SQL/provider/key details.
 
-Run: `go test -tags=integration ./internal/nodecontrol/state ./internal/nodecontrol/operator -count=1 -timeout 5m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state|./internal/nodecontrol/operator' -Timeout 5m`
 
 Expected: PASS.
 
@@ -1109,8 +1338,8 @@ git commit -m "feat(nodecontrol): activate signed node state safely"
 - Test: `internal/nodecontrol/state/root_publisher_crash_test.go`
 
 **Interfaces:**
-- Consumes: task 5 root/metadata validators, task 6 `RootShareProvider`, Batch 01 `authority.Coordinator`, task 7 state effect resolver, root key registry, open security incidents, operator audit/outbox.
-- Produces: `RootMetadataPublisher` with immutable publish IDs, distinct physical-key share persistence, threshold assembly, stale-intent invalidation, and finalized-only active root/metadata pointers.
+- Consumes: task 5 root/metadata validators, task 6 `RootShareProvider`, Batch 01 `authority.Coordinator`, task 7 state transaction-bound effect handler, root key registry, open security incidents, operator audit/outbox.
+- Produces: `RootMetadataPublisher` with immutable publish IDs, distinct physical-key share persistence and threshold assembly；it extends the same state handler with root/metadata resolver+activator paths, so finalized-only active root/metadata pointers and audit/outbox commit inside the Coordinator activation transaction.
 
 ```go
 type PublishKind string
@@ -1182,11 +1411,11 @@ Call `authority.Coordinator.Reserve` for `EffectMetadataPublish` or `EffectRootP
 
 - [ ] **Step 6 (5 min): Verify shares and assemble the envelope**
 
-Verify each Ed25519 signature over the exact metadata or rotation transcript; persist valid shares immutably, ignore unknown shares for threshold, and fail the intent on malformed/duplicate known-key material. Sort accepted shares by key ID, assemble the exact envelope, then rerun canonical, coverage, cumulative revoke, incident and current/new threshold validation from zero.
+Verify each Ed25519 signature over the exact metadata or rotation transcript; persist valid shares immutably and ignore unknown shares for threshold. Sort accepted shares by key ID, assemble the exact envelope, then rerun canonical、base pointer/digest、coverage、cumulative revoke、incident、expected-key/status and current/new threshold validation from zero before committing a success artifact. Any determined failure after the publish intent exists but before a success commitment—including provider dependency/deadline、malformed or duplicate known-key material、insufficient threshold at the terminal collection boundary、canonical/coverage/revoke validation failure、stale base、incident or key-status change、threshold change or supersession—must write one distinct B01-canonical immutable `final_not_applied` commitment with a finite reason in a fence-first transaction；do not Abort, leave the intent pending or proceed with partially assembled bytes. A retryable provider timeout before the composite deadline keeps only the exact same intent recoverable；once the deadline or another terminal condition is determined it uses the tombstone path.
 
 - [ ] **Step 7 (5 min): Finalize and activate with full stale-state recheck**
 
-After the assembled immutable artifact/effect is committed and resolvable by operation ID, call `authority.Coordinator.Finalize(operation_id,effect_digest)` outside locks; only the coordinator captures/binds database coordinates and finalizes visibility. Then re-lock root/metadata pointers and intent. Require the exact committed receipt, base versions/digests, expected keys, key statuses, incident state and deadline before writing the active artifact row, advancing one pointer, marking active, and committing audit/outbox. Otherwise mark intent/shares superseded and keep the artifact unreachable.
+After either the assembled immutable artifact commitment or a Step 6 immutable final-not-applied commitment is committed and resolvable by operation ID, call `authority.Coordinator.Finalize(operation_id,exact_commitment_digest)` outside locks；only the coordinator captures/binds database coordinates and provider visibility. The registered state activator then re-locks root/metadata pointers、intent/shares and all captured inputs inside that same Coordinator activation transaction. A success candidate requires the exact receipt/evidence、base versions/digests、expected keys、key statuses、incident state and deadline, and atomically writes the active artifact row、advances one pointer、marks active、writes resolution/audit/outbox and commits fence visibility. A final-not-applied tombstone or later stale candidate terminalizes the exact intent/fence/resolution/audit/outbox without an artifact/pointer. `RootMetadataPublisher` opens no post-Finalize transaction and never Aborts an existing publish intent.
 
 - [ ] **Step 8 (3 min): Run GREEN threshold and isolation tests**
 
@@ -1196,11 +1425,13 @@ Expected: PASS; the online signer fake receives zero root calls and cannot be ad
 
 - [ ] **Step 9 (5 min): Add crash recovery and emergency revoke integration tests**
 
-Crash after intent, each share, threshold, fence visibility, provider finalize, and pointer activation. Open an exact `online_signer_equivocation` incident, publish an emergency revoke, then resolve/change it before activation and prove stale shares cannot activate.
+Crash after intent, each share, dependency failure、malformed/duplicate known share、terminal insufficient threshold、canonical/coverage/revoke failure、stale base、incident/key-status/threshold change or supersession, immediately before and after the resulting final-not-applied commitment, either provider finalize, fence visibility and pointer/tombstone activation. Repeat every post-intent pre-Finalize tombstone case across the PITR cut. Open an exact `online_signer_equivocation` incident, publish an emergency revoke, then resolve/change it before both success-commitment assembly and activation and prove stale shares cannot activate.
 
-Run: `go test -tags=integration ./internal/nodecontrol/state -run 'TestRootPublisherCrashRecovery|TestEmergencyMetadataIncidentBinding' -count=1 -timeout 5m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^(TestRootPublisherCrashRecovery|TestEmergencyMetadataIncidentBinding)$' -Timeout 5m`
 
-Expected: PASS with one authority operation, one active artifact, and the same terminal response on retry.
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7-pitr -Packages './internal/nodecontrol/state' -Run '^TestRootPublisherFinalNotAppliedPITR$' -Timeout 5m`
+
+Expected: PASS with one authority operation, at most one active artifact, and the same success or final-not-applied terminal response after retry/PITR；no prepared publish fence remains pending.
 
 - [ ] **Step 10 (4 min): REFACTOR provider ACL assertions and terminal cleanup**
 
@@ -1210,35 +1441,206 @@ Run: `go test ./internal/nodecontrol/state ./internal/nodecontrol/operator ./int
 
 Expected: PASS.
 
-- [ ] **Step 11 (3 min): Run the Batch 02 exit gate**
+- [ ] **Step 11 (3 min): Run the pre-v7 state/signing regression gate**
 
 Run: `go test ./internal/nodecontrol/contracts ./internal/nodecontrol/authority ./internal/nodecontrol/inventory ./internal/nodecontrol/operator ./internal/nodecontrol/state ./internal/store -count=1 -timeout 5m`
 
 Expected: PASS.
 
-Run: `go test -tags=integration ./internal/nodecontrol/inventory ./internal/nodecontrol/operator ./internal/nodecontrol/state ./internal/store -count=1 -timeout 8m`
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/inventory|./internal/nodecontrol/operator|./internal/nodecontrol/state' -Timeout 8m`
 
 Expected: PASS with inventory cursor/audit, independent generation gaps, signer crash recovery, threshold root rotation, emergency revoke, and finalized-only serving coverage.
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
 
-Expected: PASS followed by `git diff --exit-code -- db/queries internal/store testdata/c12/node-state-vectors.json` exiting 0.
+Run: `git add db/queries/nodecontrol_state.sql internal/store/nodecontrol_state.sql.go internal/store/querier.go`
 
-- [ ] **Step 12 (2 min): Commit the root publisher and Batch 02 gate**
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code -- db/queries/nodecontrol_state.sql internal/store/nodecontrol_state.sql.go internal/store/querier.go`
+
+Run: `git ls-files --others --exclude-standard -- db/queries/nodecontrol_state.sql internal/store testdata/c12/node-state-vectors.json`
+
+Expected: PASS；the second generation has empty worktree-vs-index diff and no untracked generated/vector path.
+
+- [ ] **Step 12 (2 min): Commit the root publisher sub-gate**
 
 ```bash
 git add db/queries/nodecontrol_state.sql internal/store/nodecontrol_state.sql.go internal/store/querier.go internal/nodecontrol/state/root_publisher.go internal/nodecontrol/state/root_publisher_test.go internal/nodecontrol/state/root_publisher_integration_test.go internal/nodecontrol/state/root_publisher_crash_test.go
 git commit -m "feat(nodecontrol): publish threshold node trust metadata"
 ```
 
+### Task 10: Consume the v7 fresh-restore manifest into disabled state only
+
+**Files:**
+- Create: `internal/nodecontrol/state/fresh_restore_projection.go`
+- Create: `internal/nodecontrol/state/fresh_restore_projection_test.go`
+- Create: `internal/nodecontrol/state/fresh_restore_import.go`
+- Create: `internal/nodecontrol/state/fresh_restore_import_test.go`
+- Create: `internal/nodecontrol/state/fresh_restore_import_integration_test.go`
+- Create: `testdata/c12/integration-operator-state-signing.v1.json`
+- Modify: `internal/nodecontrol/state/service.go`
+- Modify: `internal/nodecontrol/state/service_test.go`
+
+**Interfaces:**
+- Consumes: B01 opaque `authority.VerifiedFreshRestoreImportAdmission` plus B01 `ViewVerifiedFreshRestoreImportAdmission`, which returns defensive `contracts.FreshRestoreImportProjectionInputV1` containing only verified manifest topology and the exact capability/held lease/acquisition-locked/current Head/clock/route/identity/lineage/incarnation/rebind/runtime/catalog/pre/post bindings. B02 cannot construct or mutate the admission/view, duplicate its shared consume right, or consume a provider, archive, Fence, Inspect or terminal-transition client.
+- Produces: `FreshRestoreProjectionBuilder.Build`, `FreshRestoreImportConsumer.Consume`, exact disabled node skeleton/state-domain arguments through the B01 repository boundary, and typed fail-closed errors `ErrFreshRestoreManifest`, `ErrFreshRestoreReplay` and `ErrStagingRecoveryRequired`.
+
+```go
+type FreshRestoreProjectionBuilder struct{}
+
+func (FreshRestoreProjectionBuilder) Build(
+	input contracts.FreshRestoreImportProjectionInputV1,
+) (contracts.FreshImportTopologyProjectionV1, error)
+
+type FreshRestoreImportConsumer struct {
+	repository authority.FreshRestoreImportRepository
+}
+
+func NewFreshRestoreImportConsumer(authority.FreshRestoreImportRepository) (*FreshRestoreImportConsumer, error)
+
+func (c *FreshRestoreImportConsumer) Consume(
+	ctx context.Context,
+	admission authority.VerifiedFreshRestoreImportAdmission,
+) (contracts.FreshRestoreImportApplicationV1, error)
+```
+
+- [ ] **Step 1 (5 min): Write RED closed-projection unit tests**
+
+Create table-driven tests whose only accepted objects are the B01 view's contract allowlist required to reconstruct the complete node set and state domain. Assert target activation/deployment/database identity and normalized catalog digest enter the projection exactly；mutating returned slices/bytes must not change the opaque admission or a second view. Every imported node must have `operator_state=disabled`、`security_state=quarantined`、`identity_state=unauthorized`、`health_state=unknown`、identity epoch `0`、inventory/security version `1`、`next_desired_generation=1`、`next_recovery_generation=1`、empty authority-anchor/active-pointer sets and null resume/pending transition. Reject duplicate canonical keys, unknown object type, payload/digest mismatch, incomplete node set, nonzero forbidden projection and any payload containing legacy pointer/generation/resume intent, desired/recovery intent/result, certificate, secret or provider state.
+
+- [ ] **Step 2 (2 min): Run the projection RED tests**
+
+Run: `go test ./internal/nodecontrol/state -run 'TestFreshRestoreProjection' -count=1`
+
+Expected: FAIL because `FreshRestoreProjectionBuilder` is absent.
+
+- [ ] **Step 3 (5 min): Implement the minimal disabled-only projection builder**
+
+Read only the normalized target/catalog values and canonical manifest objects in `FreshRestoreImportProjectionInputV1`, defensively copy payloads, sort by `(object_type, canonical_key)`, recompute every payload digest, `complete_node_set_digest`, allowed-object-set digest and `FreshImportTopologyProjectionV1` body digest. Construct the exact fixed disabled/quarantined/unauthorized/unknown/version-1/empty-anchor defaults above；do not copy any legacy generation or pointer, but mechanically initialize both new next-generation counters to `1` as required by §7.2. No B02 reflection/unsafe code may inspect the opaque admission.
+
+- [ ] **Step 4 (3 min): Run the projection GREEN tests**
+
+Run: `go test ./internal/nodecontrol/state -run 'TestFreshRestoreProjection' -count=1`
+
+Expected: PASS, including exact bytewise ordering and forbidden-field negatives.
+
+- [ ] **Step 5 (5 min): Write RED consumer and transaction-boundary tests**
+
+In `fresh_restore_import_integration_test.go` with first line `//go:build integration`, use a recording implementation of B01's `authority.FreshRestoreImportRepository` and B01 integration-tag test factory for an opaque verified admission；B02 must not redeclare a look-alike repository/view interface. Require the consumer to call `ViewVerifiedFreshRestoreImportAdmission`, preserve its exact manifest/capability apply ID, held exclusion lease, acquisition/current Head, target activation/database/incarnation/lineage/rebind/runtime, route/clock admission, normalized catalog and expected-post projection, and then pass the same opaque value once to the repository. Assert malformed/expired/replayed or non-held admissions cannot be constructed by the production verifier, a copied admission cannot obtain a second consume, and view/builder failures make zero repository calls. Add integration fixtures for B01's function proving exact `intent/capability/import/revocation/recovery=0/1/0/0/0` succeeds once, replay fails, recovery-intent present fails, capability/admission/runtime/identity mismatch fails and the transaction exposes zero provider/attestor/signer calls. The untagged `fresh_restore_import_test.go` covers only zero-value rejection、static dependency direction and seams that do not require constructing an opaque positive admission.
+
+- [ ] **Step 6 (2 min): Run the focused consumer RED tests**
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^(TestFreshRestoreImportConsumer|TestFreshRestoreImportTransaction)$' -Timeout 5m`
+
+Expected: FAIL because the consumer and B01 store adapter are not wired.
+
+- [ ] **Step 7 (5 min): Implement the consumer without adding schema or orchestration**
+
+Accept only the already-verified opaque admission, obtain one defensive projection input through B01's view API and build the projection before opening the write transaction. Call the single B01 repository method once with the same opaque value；its adapter alone consumes the shared write right and expands normalized fields into the generated `begin_staging_import` params. Require returned `FreshRestoreImportApplicationV1` to copy capability/manifest/activation/identity/lineage/registration/runtime、staging exclusion lease、acquisition-locked Head、route/pre/post inventory, transaction snapshot and projection digests exactly. Map B01's recovery-intent/held/runtime mismatch to `ErrStagingRecoveryRequired`; never retry with a new apply ID and never call Fence, recovery, revocation or Abort from this package.
+
+- [ ] **Step 8 (4 min): Prove the PITR and fresh-import Fence boundary**
+
+Add a fixture where the original import application was committed but not archived and the restored candidate reports it absent. Assert `Consume` returns `ErrStagingRecoveryRequired`, writes no replacement application and has no archive/Fence dependency. Add compile/static checks over both `fresh_restore_import.go` and `fresh_restore_projection.go` that neither imports B03 provider/attestor nor B11 orchestration, and that no B02 code emits `staging_outcome_row_rerun` for `FreshRestoreImportApplicationV1`. The corresponding recovery revocation→Abort success test is required in Plan03/B11, not duplicated here.
+
+- [ ] **Step 9 (4 min): Run GREEN unit, integration and race tests**
+
+Run: `go test ./internal/nodecontrol/state -count=1`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^TestFreshRestoreImport' -Timeout 3m`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/state' -Run '^TestFreshRestore' -Timeout 5m -Race`
+
+Expected: PASS; imported projection is disabled-only, replay/recovery/PITR paths are zero-write, and no external dependency is called under the B01 transaction.
+
+- [ ] **Step 10 (5 min): Run the final Batch 02 exit gate after fresh-import wiring**
+
+Create the sorted Batch 02 integration manifest with one explicit package per group, exact top-level test names, required profile and bounded timeout. B01's parser validator must prove the selected Batch 01+02 manifests exactly cover every tracked first-line `//go:build integration` test inside their closed package union once, with no package glob、extra name or shared database group.
+
+Run: `go test ./internal/nodecontrol/contracts ./internal/nodecontrol/authority ./internal/nodecontrol/inventory ./internal/nodecontrol/operator ./internal/nodecontrol/state ./internal/store -count=1 -timeout 5m`
+
+Run in the current PowerShell process:
+
+```powershell
+$expectedBatch02IntegrationTags = [ordered]@{
+    'internal/nodecontrol/inventory/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/operator/service_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/state/postgres_repository_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/state/service_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/state/root_publisher_integration_test.go' = '//go:build integration'
+    'internal/nodecontrol/state/fresh_restore_import_integration_test.go' = '//go:build integration'
+}
+$badBatch02IntegrationTags = @($expectedBatch02IntegrationTags.GetEnumerator() | Where-Object {
+    -not (Test-Path -LiteralPath $_.Key -PathType Leaf) -or
+    (Get-Content -LiteralPath $_.Key -TotalCount 1) -cne $_.Value
+} | ForEach-Object Key)
+if ($badBatch02IntegrationTags.Count -ne 0) {
+    $badBatch02IntegrationTags
+    throw 'B02 integration test missing exact first-line tag'
+}
+```
+
+Run: `git add internal/nodecontrol/state/fresh_restore_import_integration_test.go testdata/c12/integration-operator-state-signing.v1.json`
+
+Expected: the new integration test and manifest are tracked in the index before the tracked-file parser runs；no broader path is staged.
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Suite batch02 -Timeout 180m`
+
+Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+
+Run: `git diff --exit-code HEAD -- api gen internal/store`
+
+Run: `powershell -NoProfile -Command "if (git ls-files --others --exclude-standard -- api gen internal/store) { throw 'untracked generated artifact' }"`
+
+Expected: all PASS, including every Task 9 regression plus disabled-only fresh import, opaque-view/copy/consume negatives and B01 transaction integration；the committed generated tree and untracked set are clean. Only this step may close B02.
+
+- [ ] **Step 11 (3 min): Verify ownership, staged state and generated artifacts stay untouched**
+
+Run: `git diff --exit-code HEAD -- db/migrations db/schema db/queries internal/store api gen internal/nodecontrol/contracts internal/nodecontrol/authority internal/nodecontrol/claimv1 internal/nodecontrol/incarnation internal/nodecontrol/commitarchive internal/nodecontrol/operations internal/c12evidence testdata/c12/authority-v7 docs/superpowers/specs`
+
+Run in the current PowerShell process:
+
+```powershell
+$b02ForbiddenOwnershipPaths = @(
+    'db', 'internal/store', 'api', 'gen', 'internal/nodecontrol/contracts',
+    'internal/nodecontrol/authority', 'internal/nodecontrol/claimv1',
+    'internal/nodecontrol/incarnation', 'internal/nodecontrol/commitarchive',
+    'internal/nodecontrol/operations', 'internal/c12evidence',
+    'testdata/c12/authority-v7', 'docs/superpowers/specs'
+)
+$b02ForbiddenCached = @(git diff --cached --name-only -- @b02ForbiddenOwnershipPaths)
+if ($b02ForbiddenCached.Count -ne 0) {
+    $b02ForbiddenCached
+    throw 'B02 forbidden path is staged'
+}
+$b02ForbiddenUntracked = @(git ls-files --others --exclude-standard -- @b02ForbiddenOwnershipPaths)
+if ($b02ForbiddenUntracked.Count -ne 0) {
+    $b02ForbiddenUntracked
+    throw 'B02 forbidden path is untracked'
+}
+```
+
+Expected: all three outputs are empty for this task；B02 created no schema/contracts, generated wire/store code, production provider/orchestrator, authority-v7 vectors or SpecDigest input, including pre-staged and untracked paths.
+
+- [ ] **Step 12 (2 min): Commit only the B02 consumer boundary**
+
+```bash
+git add internal/nodecontrol/state/fresh_restore_projection.go internal/nodecontrol/state/fresh_restore_projection_test.go internal/nodecontrol/state/fresh_restore_import.go internal/nodecontrol/state/fresh_restore_import_test.go internal/nodecontrol/state/fresh_restore_import_integration_test.go internal/nodecontrol/state/service.go internal/nodecontrol/state/service_test.go testdata/c12/integration-operator-state-signing.v1.json
+git commit --only -m "feat(nodecontrol): consume v7 fresh restore state" -- internal/nodecontrol/state/fresh_restore_projection.go internal/nodecontrol/state/fresh_restore_projection_test.go internal/nodecontrol/state/fresh_restore_import.go internal/nodecontrol/state/fresh_restore_import_test.go internal/nodecontrol/state/fresh_restore_import_integration_test.go internal/nodecontrol/state/service.go internal/nodecontrol/state/service_test.go testdata/c12/integration-operator-state-signing.v1.json
+```
+
+The task commit must not include migrations, generated contracts/store files, B03 provider/attestor code, B10 spec-set output or B11 orchestration/evidence code.
+
 ## Batch 02 completion check
 
 - POP/node/endpoint/slot/profile inventory validates finite enums, exact ranges, optimistic versions, stable keysets and byte budgets.
 - Every authenticated operator mutation has one transactional audit row and privacy-safe outbox event.
 - Cursor plaintext is AEAD-bound to endpoint, operator, exact role/POP scope, normalized filter, page size and 15-minute lifetime; every page is freshly authorized.
-- Desired and recovery generations are independent, monotonic and never reused; only fence-finalized active pointers are served.
+- Desired and recovery generations are independent, monotonic and never reused；their envelope/pointer/resolution/audit/outbox visibility is committed only by the registered DBTX activator, and production desired bytes are served only by B01 `serving.Reader`.
 - External signer calls occur outside database locks through fixed 32/64/128 queues and 2/4/2 workers.
 - Drain becomes visible only with desired activation; signer failure cannot half-transition operator state.
 - Root/metadata publication requires distinct verified threshold shares, current/new role separation and no online signer capability.
 - Crash recovery and response retry reuse exact operation/signing/publish IDs and never create a second authority effect.
+- Fresh restore consumes one exact B01 manifest/capability into a disabled-only node/state projection; recovery intent, replay, wrong tuple or forbidden legacy state produces zero writes.
+- No legacy pointer/generation/resume intent/signing result is copied, and a lost unarchived import application is never reimported or Fence-rerun by B02.
 - No Batch 03 certificate, TLS listener, trust-bundle or operator-client guard production behavior has entered this batch.

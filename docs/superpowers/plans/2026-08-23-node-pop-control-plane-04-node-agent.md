@@ -25,6 +25,7 @@
 - `effective_authorization_deadline=min(issued_at+24h,metadata.valid_until,key.not_after)`；到期后立即 non-accepting，最多排空 10 分钟后强制停止，security/integrity fault 最多 5 秒强杀。
 - Recovery snapshot 永远不能进入普通 running reconciler；它只能更新 recovery high-water、保持全部 slot stopped、处理精确 latch binding，并提交 recovery attestation。
 - Agent 只向 supervisor 发送完整 signed trust/state、slot/generation、opaque lease/transition/fault ID 和 test-only typed credential FD；不得发送 path、argv、environment、shell、PID、signal 或任意 config bytes。
+- Production agent 只使用随 build 链入的 B02 canonical `ApprovedReleaseManifestV1` source bytes，并从固定 `/etc/talenro/releases/installed-release-map.v1.json` 读取 `InstalledReleaseMapV1`；这两个来源都不是 caller/config/env tuple。Fixture/test byte source、缺失 map、可写/非 root-owned/no-follow 失败或任一 canonical byte tamper 都在启动 worker 前 fail closed。
 - 每个 task 必须执行 RED → GREEN → REFACTOR、focused test、受影响 package test和独立 commit。普通 test 固定 `CGO_ENABLED=0`；race gate固定 `CGO_ENABLED=1`。
 - 禁止 stage 或清理用户的 `.cache/`、`.superpowers/`、`.task19-go/`；commit 必须逐项列出文件。
 
@@ -36,6 +37,7 @@
 cmd/node-agent/                         # composition root; no inbound server
 internal/nodeagent/config/              # agent-only profile and bounded settings
 internal/nodeagent/localstate/          # main guard, latch, secure-time interfaces/fakes
+internal/nodeagent/releasecatalog/      # no-argument embedded-manifest/fixed-map loader
 internal/nodeagent/trust/               # C1.2 root/metadata/state/package verification
 internal/nodeagent/transport/           # claim/rotate/poll/report/recovery clients
 internal/nodeagent/reconcile/           # one writer, typed plan, LKG and recovery coordinator
@@ -115,7 +117,7 @@ type CredentialFD struct {
 }
 ```
 
-Define every request with only `Binding`, complete signed root/metadata/desired/recovery byte slices, opaque seal/lease/transition/fault IDs, booleans with one closed meaning, and the exact test credential role. `StopRequest` contains only `Binding`, `LeaseID`, and `AllOwned`; `AllOwned` never accepts a PID or pattern.
+Define every request with only `Binding`, complete signed root/metadata/desired/recovery byte slices, opaque seal/lease/transition/fault IDs, booleans with one closed meaning, and the exact test credential role. `StopRequest` contains only `Binding`, `LeaseID`, and `AllOwned` and is one closed union. When `AllOwned=false`, `LeaseID` is nonzero and `Binding` is the complete exact current lease binding: configured node、nonempty slot、positive generation/authority sequence、nonzero desired digest and current supervisor boot ID must all match the same supervisor ownership-ledger row. When `AllOwned=true`, `LeaseID` is empty and `Binding` is node-scoped only: it contains exactly the configured nonzero node ID and current supervisor boot ID while slot is empty and generation、authority sequence and desired digest are zero. Any partial/mixed shape、cross-node binding、old/future boot or unverified peer rejects before enumeration. `AllOwned` never accepts a PID、path、pattern or caller enumeration selector；after exact peer/node/boot verification, the supervisor may enumerate only its current-boot ownership ledger and the configured node service cgroup root.
 
 - [ ] **Step 4: Add the frozen client interface**
 
@@ -169,7 +171,7 @@ func VerifySupervisorCompatibility(expected Compatibility, got wire.HandshakeRes
 
 Run: `go test ./internal/nodesupervisor/wire ./internal/nodeagent/reconcile -count=1`
 
-Expected: PASS; reflection rejects forbidden fields and every compatibility mismatch returns only `ErrSupervisorIntegrity`.
+Expected: PASS; reflection rejects forbidden fields, the `StopRequest` union rejects every partial/cross-node/boot/lease substitution, and every compatibility mismatch returns only `ErrSupervisorIntegrity`.
 
 - [ ] **Step 8: Commit the frozen client surface**
 
@@ -189,7 +191,7 @@ git commit -m "feat: freeze node supervisor client contract"
 - Test: `internal/nodeagent/localstate/double_slot_fuzz_test.go`
 
 **Interfaces:**
-- Consumes: suite-index `MonotonicCounter`, `AuthenticatedSealer`, `TrustedTimeSource`, `contracts.AuthorityVersion`, and `contracts.VersionedDigest`.
+- Consumes: suite-index `MonotonicCounter`, `AuthenticatedSealer`, `TrustedTimeSource`, `contracts.AuthorityVersion`, authority-bearing `contracts.VersionedDigest`, and local-artifact-only `contracts.LocalVersionedDigestV1`.
 - Produces: `OpenMainGuard(Config) (*MainGuard, error)`, `(*MainGuard).Load(context.Context) (MainStateV1, error)`, and `(*MainGuard).Commit(context.Context, MainStateV1) error`; later transport/reconciler calls `Commit` only for listed security high-water changes.
 
 - [ ] **Step 1: Write the failing provider-identity and crash-table tests**
@@ -278,8 +280,8 @@ type MainStateV1 struct {
 	IdentityEpoch             uint64
 	CertificateDigest         contracts.Digest
 	ServerBundle              contracts.VersionedDigest
-	ApprovedManifestVersion   uint64
-	InstalledMapVersion       uint64
+	ApprovedManifest          contracts.LocalVersionedDigestV1
+	InstalledMap              contracts.LocalVersionedDigestV1
 	ResourceEnvelope          contracts.VersionedDigest
 	HostMemoryPolicy          contracts.VersionedDigest
 	SupervisorBuildDigest     contracts.Digest
@@ -287,10 +289,12 @@ type MainStateV1 struct {
 	LKGGeneration             uint64
 	LKGDigest                 contracts.Digest
 	RevokedKeyLedgerDigest    contracts.Digest
+	ConflictArtifactSetDigest contracts.Digest
+	ConflictArtifactCount     uint8
 }
 ```
 
-Encode with strict canonical JSON, cap the sealed plaintext at 64 KiB, and bind sealer purpose `talenro-node-agent-main-state-v1`.
+Encode with strict canonical JSON, cap the sealed plaintext at 64 KiB, and bind sealer purpose `talenro-node-agent-main-state-v1`. Root/metadata/desired/recovery/server bundle/resource envelope/host-memory policy use authority-bearing comparison；approved manifest and installed map alone use `CompareLocalVersionedDigest`. A lower local version or equal-version/different-digest fork records local-state corruption, and no artificial authority sequence is invented for host-local artifacts.
 
 - [ ] **Step 6: Implement the inactive-slot, fsync, counter, pointer sequence**
 
@@ -368,6 +372,7 @@ type LocalFaultV1 struct {
 	IdentityEpoch  uint64
 	BootID         [16]byte
 	IncidentID     [16]byte
+	TrustConflict  *contracts.TrustConflictLocalFaultBindingV1
 }
 
 type LocalSecurityLatchV1 struct {
@@ -383,7 +388,7 @@ type LocalSecurityLatchV1 struct {
 }
 ```
 
-`FaultSubtype` is a closed enum copied from B01 contracts; `Active` is sorted by `LocalFaultID`, unique and capped at 64.
+`FaultSubtype` is a closed enum copied from B01 contracts; `Active` is sorted by `LocalFaultID`, unique and capped at 64. `TrustConflict` is non-nil only for subtype `unverified_client_highwater_conflict` or `client_highwater_ahead`; its exact canonical fields must reproduce `LocalFaultID` through `contracts.DeriveTrustConflictLocalFaultIDV1`. Every other subtype requires it nil.
 
 - [ ] **Step 4: Implement record and receipt binding**
 
@@ -391,7 +396,7 @@ type LocalSecurityLatchV1 struct {
 
 - [ ] **Step 5: Implement signed-clear consumption and tombstone retention**
 
-`AuthorizeClear` requires `required_action=clear_security_latches`, exact recovery ID, exact snapshot digest, exact sorted fault bindings, non-null remediation evidence digest and `all_slots_stopped=true`. It clears only the listed exact faults, preserves `LastClearAuthorization`, and never changes desired/LKG fields.
+`AuthorizeClear` requires `required_action=clear_security_latches`, exact recovery ID, exact snapshot digest, exact sorted fault bindings, non-null remediation evidence digest and `all_slots_stopped=true`. It clears only the listed exact faults and atomically preserves in `LastClearAuthorization` the bounded canonical recovery-attestation preimage/digest、certificate/identity binding and unacknowledged state needed to reproduce the identical generated request after response loss/restart；only an exact matching `RecoveryAttestationAckV1` marks that tombstone acknowledged. Neither transition changes desired/LKG fields or permits a process start.
 
 - [ ] **Step 6: Run corruption, replay and independent-provider tests**
 
@@ -414,26 +419,30 @@ git add internal/nodeagent/localstate/providers.go internal/nodeagent/localstate
 git commit -m "feat: add node security latch"
 ```
 
-### Task B04-T04: Verify node-state trust, resource envelopes and deterministic memory policy
+### Task B04-T04: Verify the release catalog, node-state trust, resource envelopes and deterministic memory policy
 
 **Files:**
-- Create: `internal/nodecontrol/contracts/resource_envelope.go`
-- Test: `internal/nodecontrol/contracts/resource_envelope_test.go`
 - Create: `internal/nodecontrol/contracts/host_memory_policy.go`
 - Test: `internal/nodecontrol/contracts/host_memory_policy_test.go`
+- Create: `internal/nodeagent/releasecatalog/catalog.go`
+- Test: `internal/nodeagent/releasecatalog/catalog_test.go`
+- Modify: `internal/nodeagent/localstate/main_state.go`
+- Modify: `internal/nodeagent/localstate/main_state_test.go`
 - Create: `internal/nodeagent/trust/types.go`
 - Create: `internal/nodeagent/trust/verifier.go`
 - Create: `internal/nodeagent/trust/resource_envelope.go`
 - Create: `internal/nodeagent/trust/memory_policy.go`
+- Create: `internal/nodeagent/trust/conflict_cache.go`
 - Create: `internal/nodeagent/trust/deterministic_memory_policy_fake.go`
 - Test: `internal/nodeagent/trust/verifier_test.go`
 - Test: `internal/nodeagent/trust/resource_envelope_test.go`
 - Test: `internal/nodeagent/trust/memory_policy_test.go`
+- Test: `internal/nodeagent/trust/conflict_cache_test.go`
 - Test: `internal/nodeagent/trust/fuzz_test.go`
 
 **Interfaces:**
-- Consumes: B01 closed `DesiredReasonV1` (including the exact value `lease_refresh`), B02 root/metadata/desired/recovery canonical bytes and signatures, B03 deployment key set/trust packages/current certificate identity, B04-T02 main high-water, and `TrustedTimeSource`.
-- Produces: the sole canonical definitions of `contracts.NodeResourceEnvelopeV1`, `contracts.NodeResourceEnvelopePackageV1`, `contracts.HostMemoryIsolationPolicyV1`, and `contracts.HostMemoryIsolationPolicyPackageV1`; `Verifier.VerifyDesired`, `Verifier.VerifyRecovery`, `Verifier.VerifyResourceEnvelope`, `Verifier.VerifyMemoryPolicy`; immutable `VerifiedDesired`/`VerifiedRecovery`; and `EffectiveAuthorizationDeadline`. Agent trust code, Plan 05 supervisor code, and the Linux platform gate import these shared contracts and must not redefine wire-compatible shadows.
+- Consumes: B01 closed `DesiredReasonV1` (including the exact value `lease_refresh`); B02-owned canonical `ApprovedReleaseManifestV1`/`InstalledReleaseMapV1` types、strict canonical validators and approved-manifest source bytes；B02-owned canonical `contracts.NodeResourceEnvelopeV1`/package plus root/metadata/desired/recovery bytes and signatures; B03 deployment key set/trust packages/current certificate identity and server-activated envelope facts; B04-T02 main high-water; and `TrustedTimeSource`.
+- Produces: the sole canonical definitions of `contracts.HostMemoryIsolationPolicyV1` and package；`releasecatalog.LoadProduction() (releasecatalog.Verified, error)` whose returned handle has no exported fields；`MainGuard.CompareAndCommitReleaseCatalog(context.Context, releasecatalog.Verified) error`；`Verifier.VerifyDesired`, `Verifier.VerifyRecovery`, `Verifier.VerifyResourceEnvelope`, `Verifier.VerifyMemoryPolicy`; immutable `VerifiedDesired`/`VerifiedRecovery`/`VerifiedConflictArtifact`; crash-safe `ArtifactCache`; and `EffectiveAuthorizationDeadline`. `internal/nodeagent/releasecatalog` imports only B01/B02 contracts plus bounded OS readers；both `localstate` and `trust` import it, so neither imports the other and no cycle exists. Agent packages must not redefine B02 release/resource DTOs；Plan 05 independently reloads the same canonical sources and the Linux platform gate consumes the same shared resource type.
 
 - [ ] **Step 1: Write the failing fork/audience/deadline table**
 
@@ -461,52 +470,17 @@ Run: `go test ./internal/nodeagent/trust -run TestVerifyDesiredRejectsUnsafeBind
 
 Expected: FAIL because the verifier package does not exist.
 
-- [ ] **Step 3: Define the canonical signed resource-envelope contract**
+- [ ] **Step 3: Consume and independently verify the frozen resource-envelope contract**
 
-In `internal/nodecontrol/contracts/resource_envelope.go`, make these the only exported envelope wire types:
+Import B02's `contracts.NodeResourceEnvelopePackageV1` directly and add compile/static tests rejecting a second package/envelope/limit DTO anywhere under `internal/nodeagent`. Strict-decode with the shared canonicalizer, then independently verify B03 role=`node_resource_envelope` signature、node audience、authority/version/digest high-water、active control-plane pointer、capacity/headroom arithmetic and defensive copies. Lower authority/version、same-value fork、wrong role、partial install or pointer/package mismatch returns `ErrResourceEnvelope` and raises a security fault；the agent cannot publish or advance the control-plane envelope.
 
-```go
-package contracts
+- [ ] **Step 4: Independently load and seal the canonical release catalog**
 
-type ResourceLimitsV1 struct {
-	CPUMillicores uint64 `json:"cpu_millicores"`
-	MemoryBytes   uint64 `json:"memory_bytes"`
-	TaskLimit     uint64 `json:"task_limit"`
-	FDLimit       uint64 `json:"fd_limit"`
-}
+`internal/nodeagent/releasecatalog.LoadProduction()` takes no argument. It obtains a fresh defensive copy only from B02 `internal/localrelease`'s package-local build-embedded approved-manifest source；there is no runtime manifest path、provider、config field or constructor accepting manifest bytes/version/digest. On every production startup it independently calls B02 `VerifyApprovedReleaseManifestV1` and then `RequireC12ProductionReleaseSet`, so absent/empty/tampered/noncanonical bytes and the fixture-only/partial embedded development instance reject. It opens only the literal `/etc/talenro/releases/installed-release-map.v1.json` through an already opened root-owned `/etc/talenro/releases` directory FD with `openat2(RESOLVE_BENEATH|RESOLVE_NO_SYMLINKS|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_XDEV)` plus `O_RDONLY|O_CLOEXEC|O_NOFOLLOW`; require one regular file、link count one、UID 0、no group/other write bit、at most 16 KiB and identical pre/post-read device/inode/size/mode/owner, then independently call B02 `VerifyInstalledReleaseMapV1(mapBytes,verifiedApproved)`. Its parent chain and every mapped absolute versioned release root/component below `/opt/talenro/releases/` must be UID 0 owned、service-unwritable、non-symlink/non-junction/non-reparse、non-mount-escape and opened/pinned without `PATH` or current-directory lookup. The map can contain only the B02-approved release-ID→root shape and cannot override digest、adapter、argv、dependency closure、capability、sandbox、provenance or license.
 
-type NodeResourceEnvelopeV1 struct {
-	SchemaVersion                   string           `json:"schema_version"`
-	NodeID                          uuid.UUID        `json:"node_id"`
-	ControlPlaneAuthorityEpoch      uint64           `json:"control_plane_authority_epoch"`
-	AuthoritySequence               uint64           `json:"authority_sequence"`
-	EnvelopeVersion                 uint64           `json:"envelope_version"`
-	MaxSlots                        uint8            `json:"max_slots"`
-	AgentLimits                     ResourceLimitsV1 `json:"agent_limits"`
-	SupervisorLimits                ResourceLimitsV1 `json:"supervisor_limits"`
-	CoreParentLimits                ResourceLimitsV1 `json:"core_parent_limits"`
-	AggregateSlotFDReservationLimit uint64           `json:"aggregate_slot_fd_reservation_limit"`
-	AggregateTmpfsBytes             uint64           `json:"aggregate_tmpfs_bytes"`
-	AggregateTmpfsInodes            uint64           `json:"aggregate_tmpfs_inodes"`
-	DetectedHostCapacityDigest      Digest           `json:"detected_host_capacity_digest"`
-	IssuedAt                        time.Time         `json:"issued_at"`
-}
+Only after all independent filesystem checks succeed does the loader retain the two B02 immutable verified handles and permit its private commit adapter to call their sole tuple accessors. Those accessors derive the exact domain-separated manifest/map `contracts.LocalVersionedDigestV1` values frozen by B02；P04 never recomputes a raw JCS digest. The loader returns only one immutable defensive `releasecatalog.Verified` whose fields are unexported. No other production constructor exists, and no exported API accepts either tuple、path、bytes、filesystem-success boolean or a caller-decoded DTO. `MainGuard.CompareAndCommitReleaseCatalog` accepts only that handle, extracts both tuples internally, compares with `CompareLocalVersionedDigest`, and on first boot or either verified advance persists both in one main candidate/counter transaction before any desired、LKG、transport or supervisor call. Lower version、same-version/different-digest fork、absent/empty source、unknown field、noncanonical JSON、fixture-only/partial source in production、tampered embedded/map bytes or immutable-root violation records `local_state_corruption_or_rollback` when the latch is usable and otherwise remains stopped. Tests `TestReleaseCatalogHasNoCallerTuple`、`TestReleaseCatalogRejectsRawJCSDigestSubstitution`、`TestProductionReleaseCatalogRejectsAbsentFixtureAndTamper` and `TestReleaseCatalogHighWaterCommitsAtomically` independently mutate every byte/source/path/permission/version boundary, substitute a consumer-computed raw-JCS SHA-256 for each B02 domain-separated tuple and prove the substitution cannot enter the opaque handle or persisted high-water, and prove no worker or LKG starts on rejection.
 
-type NodeResourceEnvelopePackageV1 struct {
-	Envelope                     NodeResourceEnvelopeV1 `json:"envelope"`
-	DeploymentKeyID              Digest                 `json:"deployment_key_id"`
-	Algorithm                    string                 `json:"algorithm"`
-	DeploymentAuthoritySignature [64]byte               `json:"deployment_authority_signature"`
-}
-
-const NodeResourceEnvelopeTranscriptV1 = "TALENRO-NODE-RESOURCE-ENVELOPE-V1\x00"
-```
-
-`schema_version` is exactly `node-resource-envelope.v1`, `algorithm` is exactly `ed25519`, UUID is canonical, every authority/version value is in `1..MaxInt64`, `max_slots` is exactly 8, every digest is nonzero, and `issued_at` is UTC with whole-second precision. Each `ResourceLimitsV1` uses CPU `100..64_000`, memory `67_108_864..1_099_511_627_776`, tasks `32..4_096`, and FDs `64..1_000_000`. Aggregate FD reservation is `64..9_000_000`, aggregate tmpfs bytes is `1..9_895_604_649_984`, and aggregate tmpfs inodes is `1..9_000_000`; checked sums must fit both the declared aggregate and `uint64`. Host-capacity validation requires agent + supervisor + core-parent + fixed OS headroom of at least one CPU/1 GiB/256 tasks to fit the trusted readback before any child operation.
-
-Strict-decode the package with unknown/duplicate/trailing rejection, cap canonical JCS at 64 KiB, and verify only a B03 deployment key whose role is exactly `node_resource_envelope`. The signed bytes are `NodeResourceEnvelopeTranscriptV1 || JCS(package.envelope)`; package metadata is not part of the payload. Lower authority/version, same authority/version with another envelope digest, wrong node/key role, zero digest, overflow, or partial atomic install returns `ErrResourceEnvelope` and raises a security fault. The unit test freezes JSON field names, exact transcript bytes, all numeric edges, same-value fork behavior, and defensive-copy behavior.
-
-- [ ] **Step 4: Define the canonical signed host-memory-policy contract**
+- [ ] **Step 5: Define the canonical signed host-memory-policy contract**
 
 In `internal/nodecontrol/contracts/host_memory_policy.go`, use closed nested types rather than an open `map[string]any`:
 
@@ -559,7 +533,7 @@ const HostMemoryIsolationPolicyTranscriptV1 = "TALENRO-HOST-MEMORY-ISOLATION-POL
 
 Only a B03 key with role exactly `host_remediation` verifies `HostMemoryIsolationPolicyTranscriptV1 || JCS(package.policy)`. The package validator rejects a trust-bundle key, lower policy/authority value, same-value different digest, wrong node, partial install, permissive SELinux, an open/unknown UID-domain mapping, a perf/BPF-capable domain, or collector-mask mismatch. Both agent and supervisor retain `(policy_version,authority_sequence,SHA256(JCS(policy)))` in their independent rollback state and directly read back the package plus all five sysctls, enforcing state, binary-policy digest, own domain, closed UID/domain map, and coredump unit mask before secrets, child prepare, and every lease renewal. Contract tests freeze field order-independent JCS, exact transcript bytes, role isolation, list bounds, domain grammar/subset rules, sysctl values, high-water fork rules, and signature mutation rejection.
 
-- [ ] **Step 5: Define immutable verified outputs**
+- [ ] **Step 6: Define immutable verified outputs**
 
 ```go
 type VerifiedDesired struct {
@@ -570,6 +544,7 @@ type VerifiedDesired struct {
 	InventoryVersion               uint64
 	ResourceEnvelope               contracts.VersionedDigest
 	Processes                      []VerifiedProcessSpec
+	ConflictArtifacts              []VerifiedConflictArtifact
 	EffectiveAuthorizationDeadline time.Time
 }
 
@@ -583,20 +558,33 @@ type VerifiedRecovery struct {
 	RequiredAction       RecoveryAction
 	AllSlotsStopped      bool
 	RemediationDigest    contracts.Digest
+	ConflictArtifacts    []VerifiedConflictArtifact
+}
+
+type VerifiedConflictArtifact struct {
+	kind              nodeagentv1.ConflictArtifactKindV1
+	version           uint64
+	authoritySequence uint64
+	digest            contracts.Digest
+	canonicalBytes    []byte
 }
 ```
 
-Return defensive copies; constructors reject more than 8 processes, payloads above 64 KiB, noncanonical UUIDs, unsorted sets and any unknown enum.
+Return defensive copies; constructors reject more than 8 processes, payloads above 64 KiB, noncanonical UUIDs, unsorted sets and any unknown enum. `VerifiedConflictArtifact` has no exported fields or public constructor；only successful verification of the exact active desired、recovery、root set、metadata or host-deployed server-CA package can create it. `VerifiedDesired` carries the exact active root/metadata/desired artifacts and `VerifiedRecovery` the exact active root/metadata/recovery artifacts in generated-kind declaration order. The host trust watcher supplies the separately verified server-CA artifact. No digest-only state or caller-built `SignedConflictArtifactV1` can become a verified artifact.
 
-- [ ] **Step 6: Implement trust ordering and time checks**
+- [ ] **Step 7: Implement trust ordering and time checks**
 
 Verify continuous root chain, complete metadata, revoked-key cumulative ledger, JCS, domain-separated Ed25519 signature, current node/certificate audience, authority epoch/checkpoint, per-stream sequence/digest and minimum agent version. Compute the deadline using trusted time and reject `issued_at > trusted_now+5m`, expired metadata/key/state and any wall-clock fallback.
 
-- [ ] **Step 7: Implement exact resource-envelope validation**
+Persist verified conflict artifacts through `ArtifactCache`, never in logs or the 64 KiB main-state plaintext. The cache is an agent-only no-follow/one-link sealed file set under the protected state root, purpose `talenro-node-agent-conflict-artifact-cache-v1`, with at most two entries per generated kind、at most ten entries、at most 1 MiB per artifact and at most 4 MiB aggregate canonical bytes；an evidence request still selects at most two whose aggregate is at most 1 MiB. Its canonical cache-set preimage contains the sorted artifact entries plus zero-or-one bounded `PendingTrustConflictNoticeV1={node_id,incident_id,poll_request_digest,certificate_der_sha256,identity_epoch,local_fault_id}`. Each artifact binds exact kind/version/authority-sequence/digest and cache generation；the pending notice must reproduce `local_fault_id` through the B01 helper. The complete cache-set JCS digest and artifact count are the exact `MainStateV1.ConflictArtifactSetDigest/Count`, so adding/removing/replacing the notice requires the same cache-candidate/main-candidate/counter transaction. Commit order is sealed cache candidate write+file/directory fsync → main-state candidate with new cache digest/count and manifest/map/revoked-ledger high-waters → main counter increment/pointer publication. Startup first accepts the one main-state epoch, then requires one byte/digest-equal cache generation；an old/forked/missing cache, same-version artifact fork, notice/certificate/identity mismatch, ledger drop or manifest/map same-value fork records `local_state_corruption_or_rollback` and starts no ordinary transport/LKG. A pre-counter future cache candidate may be removed only after the main guard proves it unreferenced. Capacity overflow never evicts a referenced high-water artifact or pending notice；it records a bounded latch fault and fails closed. Successful evidence ACK、restart or certificate rotation does not erase either record. An exact verified recovery clear/reenrollment transition for the deterministic local-fault binding may mark the latch clear authorization and build its persistent attestation tombstone, but the notice and referenced artifacts remain until the same-certificate recovery-attestation worker receives the exact matching generated ACK；only that ACK transaction may remove the notice and compact entries no longer named by retained high-water/tombstones. Shutdown zeroes in-memory copies.
+
+`ArtifactCache` exposes no raw artifact bytes or caller-shaped generated DTO. Its transport boundary is one opaque `ConflictEvidenceSelection` created only by `SelectPendingConflictEvidence(currentCertificateDigest,currentIdentityEpoch)`, which validates the main-state/cache digest, pending notice and current identity, selects at most two permitted cached artifacts, and internally constructs defensive generated request fields. A separate restore method returns an opaque pending handle only after the same checks；there is no scalar incident-ID or canonical-bytes constructor.
+
+- [ ] **Step 8: Implement exact resource-envelope validation**
 
 Parse `contracts.NodeResourceEnvelopePackageV1` and return an immutable verified view of its canonical `contracts.NodeResourceEnvelopeV1`; do not redeclare either shape in `internal/nodeagent/trust`. Validate role=`node_resource_envelope`, node ID, authority/version/digest monotonicity, `max_slots=8`, all agent/supervisor/core-parent limits, aggregate FD/tmpfs bounds and detected-host-capacity digest. Checked addition/multiplication overflow returns `ErrResourceEnvelope`; no default limit is substituted.
 
-- [ ] **Step 8: Add deterministic host-memory policy evaluation**
+- [ ] **Step 9: Add deterministic host-memory policy evaluation**
 
 ```go
 type DeterministicHostMemoryIsolationPolicyFakeV1 struct {
@@ -612,7 +600,7 @@ func NewDeterministicHostMemoryIsolationPolicyFakeV1(readback HostMemoryPolicyRe
 
 The fake accepts the canonical `contracts.HostMemoryIsolationPolicyPackageV1`, parses/verifies the test-key package with the same transcript and bounds, and simulates the five sysctls, enforcing state, SELinux policy/domain digest and collector mask. `internal/nodeagent/trust/memory_policy.go` consumes the shared contract and must not define another policy/package DTO. Its result type has no field that can claim `linux_platform_operator_trust`.
 
-- [ ] **Step 9: Run contract, verifier, envelope, policy and fuzz tests**
+- [ ] **Step 10: Run catalog, contract, verifier, envelope, policy and fuzz tests**
 
 Run: `go test ./internal/nodecontrol/contracts -run 'TestNodeResourceEnvelopeContract|TestHostMemoryIsolationPolicyContract' -count=1`
 
@@ -620,12 +608,12 @@ Run: `go test ./internal/nodeagent/trust -count=1`
 
 Run: `go test ./internal/nodeagent/trust -run=FuzzSignedNodeState -fuzz=FuzzSignedNodeState -fuzztime=10s`
 
-Expected: PASS; rollback/fork/profile mismatch and unsafe policy readback fail before a typed state is returned, and fake evidence remains `container_deterministic`.
+Expected: PASS; manifest/map absence、fixture injection、tamper、rollback/fork、profile mismatch and unsafe policy readback fail before a typed state is returned, local catalog high-waters advance only in one guard transaction, and fake evidence remains `container_deterministic`.
 
-- [ ] **Step 10: Commit the verifier boundary**
+- [ ] **Step 11: Commit the verifier boundary**
 
 ```bash
-git add internal/nodecontrol/contracts/resource_envelope.go internal/nodecontrol/contracts/resource_envelope_test.go internal/nodecontrol/contracts/host_memory_policy.go internal/nodecontrol/contracts/host_memory_policy_test.go internal/nodeagent/trust/types.go internal/nodeagent/trust/verifier.go internal/nodeagent/trust/resource_envelope.go internal/nodeagent/trust/memory_policy.go internal/nodeagent/trust/deterministic_memory_policy_fake.go internal/nodeagent/trust/verifier_test.go internal/nodeagent/trust/resource_envelope_test.go internal/nodeagent/trust/memory_policy_test.go internal/nodeagent/trust/fuzz_test.go
+git add internal/nodecontrol/contracts/host_memory_policy.go internal/nodecontrol/contracts/host_memory_policy_test.go internal/nodeagent/releasecatalog/catalog.go internal/nodeagent/releasecatalog/catalog_test.go internal/nodeagent/localstate/main_state.go internal/nodeagent/localstate/main_state_test.go internal/nodeagent/trust/types.go internal/nodeagent/trust/verifier.go internal/nodeagent/trust/resource_envelope.go internal/nodeagent/trust/memory_policy.go internal/nodeagent/trust/conflict_cache.go internal/nodeagent/trust/deterministic_memory_policy_fake.go internal/nodeagent/trust/verifier_test.go internal/nodeagent/trust/resource_envelope_test.go internal/nodeagent/trust/memory_policy_test.go internal/nodeagent/trust/conflict_cache_test.go internal/nodeagent/trust/fuzz_test.go
 git commit -m "feat: verify node agent trust state"
 ```
 
@@ -643,7 +631,7 @@ git commit -m "feat: verify node agent trust state"
 
 **Interfaces:**
 - Consumes: B03 generated `nodebootstrapv1`/`nodeagentv1` typed clients, host-deployed purpose-specific server trust bundle, current certificate slot, B04-T04 verifier and `TrustedTimeSource`.
-- Produces: `transport.Client` claim/rotate/desired-poll/recovery-poll/report/security-fault/recovery-attestation methods, `LatestObservationQueue` with capacity one, and sanitized sentinel errors.
+- Produces: `transport.Client` claim/rotate/desired-poll/recovery-poll/report/security-fault/trust-conflict-evidence/recovery-attestation methods, opaque `TrustConflictNotice` constructed only by a validated poll response, `LatestObservationQueue` with capacity one, and sanitized sentinel errors.
 
 - [ ] **Step 1: Write the failing TLS and response-bound tests**
 
@@ -685,7 +673,9 @@ Claim/rotate writes certificate, chain and `CertificateAuthorizationReceiptV1` o
 
 - [ ] **Step 5: Implement desired and recovery long-poll**
 
-Use a 30-second request deadline around the server's 25-second wait. Send complete per-stream high-water tuples and `Accept-Encoding: identity`. Treat `204` as no state. A `200` desired response goes through `VerifyDesired`; a recovery response goes only through `VerifyRecovery` and never returns a `VerifiedDesired` value.
+Use a 30-second request deadline around the server's 25-second wait. Send complete per-stream high-water tuples and `Accept-Encoding: identity`. Treat `204` as no state. A `200` desired response goes through `VerifyDesired`; a recovery response goes only through `VerifyRecovery` and never returns a `VerifiedDesired` value. A bodyless 409 with no `Talenro-Trust-Conflict-Incident-ID` is an ordinary finite conflict. When that header is present, strict-parse one canonical UUID, require no response body/duplicate header, derive the exact local-fault ID with the B01 helper, then transactionally add the `PendingTrustConflictNoticeV1` to `ArtifactCache` and bind the new cache-set digest/count in `MainGuard` before returning only an opaque `TrustConflictNotice`. Any cache/main commit failure returns no ordinary payload and forces fail-closed startup recovery；malformed/header-on-200-or-204 rejects. `SubmitTrustConflictEvidence` accepts only that notice or a cache-restored opaque handle plus `ConflictEvidenceSelection` from the exact `ArtifactCache`, caps the aggregate request at 1 MiB, and lets the selection map defensive copies field-by-field to generated DTOs. It sends only with the same current certificate slot and accepts only a generated `accepted|escalated` ACK whose incident ID matches. It never accepts a caller-supplied incident ID/canonical bytes or a digest-only artifact, and retry/restart reuses the identical bounded request.
+
+The same opaque notice also owns the incident-bound recovery locator: for this trust-conflict path the generated recovery-poll `recovery_id` is the exact retained incident UUID, copied internally from the validated notice and never accepted as a scalar caller argument. `PollTrustConflictRecovery` sends only that locator、the exact current stopped boot/fault set、recovery high-water and a fresh time nonce over the same pinned certificate slot；its `200` can produce only `VerifiedRecovery`, while `204` is empty and any other recovery ID/incident/certificate/identity binding rejects. `SubmitRecoveryAttestation` accepts only the opaque unacknowledged `LastClearAuthorization` handle, internally copies its exact generated attestation preimage and proof-of-possession binding, and accepts only an ACK whose recovery ID and attestation digest match. Evidence、recovery-poll and recovery-attestation methods all reject certificate rotation/substitution and never fall through to desired/report routes.
 
 - [ ] **Step 6: Implement report queue and retry policy**
 
@@ -707,9 +697,9 @@ Retry starts at 1 second, caps at 30 seconds and uses crypto-random ±20% jitter
 
 - [ ] **Step 7: Prove report, security-fault and recovery separation**
 
-Run: `go test ./internal/nodeagent/transport -run 'Test(Poll|Report|SecurityFault|Recovery)' -count=1`
+Run: `go test ./internal/nodeagent/transport -run 'Test(Poll|Report|SecurityFault|TrustConflict|Recovery)' -count=1`
 
-Expected: PASS; ordinary report cannot use recovery credentials, security-fault returns only an exact finalized receipt, and recovery response cannot reach the desired callback.
+Expected: PASS; ordinary report cannot use recovery credentials, security-fault returns only an exact finalized receipt, recovery response cannot reach the desired callback, and trust-conflict evidence/recovery-poll/recovery-attestation cannot cross certificate、incident、recovery or artifact bindings.
 
 - [ ] **Step 8: Run package tests and commit**
 
@@ -733,8 +723,8 @@ git commit -m "feat: add bounded node agent transport"
 - Test: `internal/nodeagent/reconcile/recovery_test.go`
 
 **Interfaces:**
-- Consumes: `trust.VerifiedDesired`, `trust.VerifiedRecovery`, B04-T01 `wire.Client`, B04-T02 `MainGuard`, B04-T03 `SecurityLatch`, and a no-side-effect `PreviewAdapter` registry.
-- Produces: `reconcile.Service.SubmitDesired`, `SubmitRecovery`, `SupervisorFaultsChanged`, `Run`; persistent `AppliedState`; and finite `TransitionResult`/`SecurityFault` outputs used by B06/B07.
+- Consumes: `trust.VerifiedDesired`, `trust.VerifiedRecovery`, `trust.ArtifactCache`, opaque `transport.TrustConflictNotice`, B04-T01 `wire.Client`, B04-T02 `MainGuard`, B04-T03 `SecurityLatch`, and a no-side-effect `PreviewAdapter` registry.
+- Produces: `reconcile.Service.SubmitDesired`, `SubmitRecovery`, `SubmitTrustConflict`, `SupervisorFaultsChanged`, `Run`; persistent `AppliedState`; and finite `TransitionResult`/`SecurityFault` outputs used by B06/B07.
 
 - [ ] **Step 1: Write the failing supersession and critical-section tests**
 
@@ -768,7 +758,7 @@ Expected: FAIL because the reconciler service is undefined.
 type PreviewAdapter interface {
 	Adapter() AdapterKind
 	ValidateProcess(trust.VerifiedProcessSpec) error
-	Preview(trust.VerifiedProcessSpec) (PreviewDigest, error)
+	PreviewVerified(trust.VerifiedProcessSpec) (PreviewDigest, error)
 }
 
 type AppliedState struct {
@@ -780,7 +770,7 @@ type AppliedState struct {
 }
 ```
 
-The registry contains only `fixture`, `xray`, and `sing_box`; B04 tests use a deterministic in-memory preview adapter and B06 adds the fixture implementation.
+The interface is a narrow authorization-free validation surface over an already opaque `trust.VerifiedProcessSpec`; it does not expose `contracts.ProcessSpecV1` or compiled bytes. B04 tests use a deterministic in-memory implementation. B06 uniquely owns the public `adapter.ProfileV1`/`PreviewV1` registry and supplies `RegistryPreviewAdapter`, which implements this exact method by taking one defensive canonical copy from the verified value；B07 real profiles register into that same registry rather than redefining this interface.
 
 - [ ] **Step 4: Implement one writer and cancellation boundaries**
 
@@ -796,13 +786,15 @@ Running-to-running candidate failure may consume only the supervisor-issued roll
 
 - [ ] **Step 7: Implement recovery-state coordination**
 
-Recovery input stops all slots, seals recovery high-water, imports exact receipt/fault bindings into the latch and emits a recovery attestation. Only a verified `clear_security_latches` snapshot can call supervisor `ClearFault` and latch `AuthorizeClear`; even after local clear, no process starts until server finalization and a later ordinary resume generation.
+Recovery input stops all slots, seals recovery high-water, imports exact receipt/fault bindings into the latch and emits a recovery attestation. Only a verified `clear_security_latches` snapshot can call supervisor `ClearFault` and latch `AuthorizeClear`; that guarded transaction stores the exact unacknowledged attestation tombstone before reporting local clear. The dedicated attestation worker retries the identical request until the exact generated ACK is bound, and response loss/restart reconstructs it from `LastClearAuthorization`. Even after local clear or ACK, no process starts until server finalization and a later ordinary resume generation.
+
+`SubmitTrustConflict` enters the same single-writer ahead of all ordinary desired work. It independently recomputes the B01 deterministic local-fault ID from the opaque notice, requires byte equality with the cache record, and atomically records a dedicated `LocalSecurityLatchV1` fault with the same complete `TrustConflictLocalFaultBindingV1` and cache-set digest；this path is distinct from `BindReceipt` and needs no fabricated security-fault receipt. Whether latch persistence succeeds or fails, it immediately makes every lease non-accepting and calls verified-peer `Stop` with the security/integrity five-second hard deadline using exactly `AllOwned=true`、empty `LeaseID` and node-scoped `Binding={NodeID:configured,SupervisorBootID:current}` with slot/generation/authority-sequence/desired zero；timeout kills only through the supervisor's exact owned-cgroup path. Only after stopped state may a closed recovery-only coordinator run three independently bounded single-slot workers over the same pinned certificate/identity: crypto-jittered evidence retry, one 25-second incident-bound recovery long-poll, and one recovery-attestation outbox sender. The recovery poll alone may submit `VerifiedRecovery` to the stopped single-writer；desired poll、ordinary report、ordinary reconcile、lease renewal、certificate rotation and LKG remain disabled while any matching notice/latch/unacknowledged tombstone remains. `accepted` and `escalated` evidence ACKs are retained only as retry facts and never clear the latch or resume LKG. Restart reconstructs the opaque handle from the sealed notice, validates cache/main/certificate/identity/local-fault bindings before any worker, records the same latch ID idempotently if response loss preceded that step, reissues that exact verified-peer node-scoped Stop union, and restarts exactly those three workers. Only a verified recovery snapshot containing the server-derived exact `{LocalFaultID,IncidentID}` may authorize local clear；only the later exact recovery-attestation ACK/server finalization may atomically remove the notice/tombstone and stop the three recovery-only workers. That completion may re-enable desired-state polling solely to receive a later signed ordinary resume generation；report、ordinary mutation and LKG remain disabled until that generation independently verifies and applies.
 
 - [ ] **Step 8: Run transition, expiry and recovery suites**
 
-Run: `go test ./internal/nodeagent/reconcile -run 'Test(SingleWriter|Transition|LeaseRefresh|LKG|Recovery)' -count=1`
+Run: `go test ./internal/nodeagent/reconcile -run 'Test(SingleWriter|Transition|LeaseRefresh|LKG|Recovery|TrustConflict)' -count=1`
 
-Expected: PASS; no canceled staging remains, recovery never invokes prepare/start, and security/expiry paths stop rather than restore LKG.
+Expected: PASS; no canceled staging remains, recovery never invokes prepare/start, security/expiry paths stop rather than restore LKG, and `409 header → deterministic local-fault ID → <=5s stop → response loss/restart stopped → same-certificate evidence retry + recovery poll → exact signed recovery clear → same-certificate recovery attestation ACK` neither resumes early nor leaves an un-clearable latch or unacknowledged tombstone.
 
 - [ ] **Step 9: Run race tests and commit**
 
@@ -824,6 +816,7 @@ git commit -m "feat: reconcile signed node state"
 - Create: `cmd/node-agent/run.go`
 - Test: `cmd/node-agent/main_test.go`
 - Test: `cmd/node-agent/run_test.go`
+- Test: `cmd/node-agent/trust_conflict_recovery_e2e_test.go`
 - Modify: `.env.example`
 
 **Interfaces:**
@@ -857,11 +850,11 @@ Expected: FAIL because agent config and composition root are absent.
 
 - [ ] **Step 3: Implement bounded configuration**
 
-Require explicit profile, canonical node UUID, bootstrap/agent origins, exact server DNS names, protected identity/state/latch roots, supervisor socket, provider IDs, request deadlines, poll=25s, report=5s, lease-renew=20s and shutdown deadline. Production rejects local key bytes, deterministic provider names, non-HTTPS origins, non-linux/amd64 runtime and overlapping state/latch paths.
+Require explicit profile, canonical node UUID, bootstrap/agent origins, exact server DNS names, protected identity/state/latch roots, supervisor socket, provider IDs, request deadlines, poll=25s, report=5s, lease-renew=20s and shutdown deadline. The approved manifest has no config/env/runtime path because its B02 source bytes are build-embedded, and the installed map path is the non-overridable literal `/etc/talenro/releases/installed-release-map.v1.json`. Production rejects local key bytes, caller-supplied catalog bytes/version/digest/path, fixture/test catalog sources, deterministic provider names, non-HTTPS origins, non-linux/amd64 runtime and overlapping or service-writable identity/state/latch/deployment roots.
 
 - [ ] **Step 4: Compose startup in fail-closed order**
 
-Startup order is: parse config → instantiate external providers → verify distinct identities → read trusted time → verify file permissions/trust packages/memory-policy package → open latch → open main guard → load identity → handshake supervisor → build transport → start reconciler → start poll/report workers. Any failure before the last step starts no worker and requests supervisor `Stop(AllOwned=true)` only after exact peer verification.
+Startup order is: parse config → instantiate external providers → verify distinct identities → read trusted time → independently strict-verify the build-embedded B02 approved manifest and fixed root-owned no-follow installed map plus every immutable release root → verify file permissions/trust packages/memory-policy package → open latch → open main guard → atomically compare/persist both derived `LocalVersionedDigestV1` tuples → verify the exact main-state-bound conflict artifact-plus-pending-notice cache → load identity and require pending notice certificate/epoch/local-fault equality → handshake supervisor → build transport → restore the opaque notice/selection/attestation tombstone → choose ordinary or recovery-only worker set. Any failure before the last step starts no worker and requests the same exact node-scoped Stop union only after exact peer、configured-node and current-boot verification. With no retained latch/notice/tombstone, start the ordinary single-writer plus desired poll、report and normal recovery workers. A retained trust-conflict notice、matching latch or unacknowledged recovery-attestation tombstone first reissues that Stop union, then starts only the closed same-certificate evidence retry、incident-bound recovery-poll and recovery-attestation workers；desired/report/ordinary reconcile/lease-renew/rotation/LKG stay disabled while that retained recovery state exists. Exact attestation ACK/server finalization compacts it and may enable desired polling only；report、ordinary mutation and LKG remain disabled until a later signed ordinary resume generation independently applies.
 
 - [ ] **Step 5: Implement bounded shutdown**
 
@@ -884,18 +877,48 @@ Run: `go test ./internal/nodeagent/... ./internal/nodesupervisor/wire ./cmd/node
 
 Expected: PASS; provider loss, corrupt latch/main state, invalid time and supervisor mismatch start no reconciler or transport worker.
 
+Run: `go test ./cmd/node-agent -run '^TestNodeAgentTrustConflict409RestartSignedClearAttestationE2E$' -count=1 -timeout 2m`
+
+The named process-level test launches a real `node-agent` subprocess、strict TLS fixture and verified-peer supervisor fixture. It drives bodyless `409` with the canonical incident header, waits for the node-scoped five-second stop, kills the agent after notice/latch fsync, restarts with the same certificate and guard state, and proves exactly the three recovery-only workers run while desired/report/LKG counters remain zero. The server then returns the exact signed clear snapshot; the test requires supervisor clear、latch authorization、the identical proof-of-possession recovery attestation and matching ACK before notice compaction, and still proves zero prepare/start until a later signed ordinary resume generation. Cross-certificate、cross-incident、old-boot and attestation-response-loss subcases remain stopped and retry only their exact bound request.
+
 - [ ] **Step 8: Build the fixed target and run dependency exclusion**
 
-Run: `go build -trimpath -buildmode=exe -o .task19-go/node-agent-b04.exe ./cmd/node-agent`
+Run in a fresh run-owned OS temp directory whose resolved path is verified to be an immediate child of `[System.IO.Path]::GetTempPath()`:
 
-Run: `go list -deps ./cmd/node-agent | rg 'github.com/(xtls/xray-core|sagernet/sing-box)'`
+```powershell
+$agentBuildRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("talenro-c12-b04-" + [guid]::NewGuid().ToString('N'))
+$agentBuildPath = Join-Path $agentBuildRoot 'node-agent'
+$agentOldCGO = [Environment]::GetEnvironmentVariable('CGO_ENABLED', 'Process')
+$agentOldGOOS = [Environment]::GetEnvironmentVariable('GOOS', 'Process')
+$agentOldGOARCH = [Environment]::GetEnvironmentVariable('GOARCH', 'Process')
+New-Item -ItemType Directory -LiteralPath $agentBuildRoot | Out-Null
+try {
+    $env:CGO_ENABLED = '0'
+    $env:GOOS = 'linux'
+    $env:GOARCH = 'amd64'
+    go build -trimpath -buildmode=exe -o $agentBuildPath ./cmd/node-agent
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $agentBuildPath -PathType Leaf) -or [System.IO.Path]::GetExtension($agentBuildPath) -ne '') { throw 'node-agent linux/amd64 build failed' }
+    $agentProductionDeps = @(go list -deps ./cmd/node-agent)
+    if ($LASTEXITCODE -ne 0) { throw 'node-agent linux/amd64 dependency listing failed' }
+    if (@($agentProductionDeps | Where-Object { $_ -match '^github\.com/(xtls/xray-core|sagernet/sing-box)(/|$)' }).Count -ne 0) { throw 'node-agent production dependency exclusion failed' }
+} finally {
+    foreach ($agentEnv in @(@('CGO_ENABLED',$agentOldCGO),@('GOOS',$agentOldGOOS),@('GOARCH',$agentOldGOARCH))) {
+        if ($null -eq $agentEnv[1]) { Remove-Item -LiteralPath ("Env:" + $agentEnv[0]) -ErrorAction SilentlyContinue } else { [Environment]::SetEnvironmentVariable($agentEnv[0], $agentEnv[1], 'Process') }
+    }
+    $resolvedBuildRoot = [System.IO.Path]::GetFullPath($agentBuildRoot)
+    $tempSeparators = [char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    $resolvedTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd($tempSeparators)
+    if ([System.IO.Path]::GetDirectoryName($resolvedBuildRoot) -ne $resolvedTempRoot -or [System.IO.Path]::GetFileName($resolvedBuildRoot) -notmatch '^talenro-c12-b04-[0-9a-f]{32}$') { throw 'unsafe build cleanup target' }
+    if (Test-Path -LiteralPath $resolvedBuildRoot -PathType Container) { Remove-Item -LiteralPath $resolvedBuildRoot -Recurse -Force }
+}
+```
 
-Expected: build succeeds; the dependency search exits 1 with no match. The output path is an existing user-owned ignored build cache and must not be staged or deleted by this task.
+Expected: the explicit `CGO_ENABLED=0 GOOS=linux GOARCH=amd64` release target builds to extensionless `node-agent`, and its exact target dependency list contains neither core library. The wrapper restores all three prior process-environment values even on failure, and cleanup removes only the validated unique run-owned temp root；the task never creates、stages or deletes `.task19-go/`.
 
 - [ ] **Step 9: Commit the node-agent composition**
 
 ```bash
-git add internal/nodeagent/config/config.go internal/nodeagent/config/config_test.go cmd/node-agent/main.go cmd/node-agent/run.go cmd/node-agent/main_test.go cmd/node-agent/run_test.go .env.example
+git add internal/nodeagent/config/config.go internal/nodeagent/config/config_test.go cmd/node-agent/main.go cmd/node-agent/run.go cmd/node-agent/main_test.go cmd/node-agent/run_test.go cmd/node-agent/trust_conflict_recovery_e2e_test.go .env.example
 git commit -m "feat: compose fail-closed node agent"
 ```
 
@@ -905,11 +928,41 @@ Run:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
+if ($LASTEXITCODE -ne 0) { throw 'B04 generation failed' }
+git diff --exit-code HEAD -- api gen internal/store
+if ($LASTEXITCODE -ne 0) { throw 'B04 generated tree differs from committed tree' }
+$untrackedB04Generated = @(git ls-files --others --exclude-standard -- api gen internal/store)
+if ($LASTEXITCODE -ne 0 -or $untrackedB04Generated.Count -ne 0) { throw 'untracked B04 generated artifact' }
 go test ./internal/nodeagent/... ./internal/nodesupervisor/wire ./cmd/node-agent -count=1
 go test -race ./internal/nodeagent/... ./internal/nodesupervisor/wire ./cmd/node-agent -count=1
 go vet ./internal/nodeagent/... ./internal/nodesupervisor/wire ./cmd/node-agent
 go tool golangci-lint run ./internal/nodeagent/... ./internal/nodesupervisor/wire ./cmd/node-agent
+$agentBuildRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("talenro-c12-b04-" + [guid]::NewGuid().ToString('N'))
+$agentBuildPath = Join-Path $agentBuildRoot 'node-agent'
+$agentOldCGO = [Environment]::GetEnvironmentVariable('CGO_ENABLED', 'Process')
+$agentOldGOOS = [Environment]::GetEnvironmentVariable('GOOS', 'Process')
+$agentOldGOARCH = [Environment]::GetEnvironmentVariable('GOARCH', 'Process')
+New-Item -ItemType Directory -LiteralPath $agentBuildRoot | Out-Null
+try {
+    $env:CGO_ENABLED = '0'
+    $env:GOOS = 'linux'
+    $env:GOARCH = 'amd64'
+    go build -trimpath -buildmode=exe -o $agentBuildPath ./cmd/node-agent
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $agentBuildPath -PathType Leaf) -or [System.IO.Path]::GetExtension($agentBuildPath) -ne '') { throw 'node-agent linux/amd64 build failed' }
+    $agentProductionDeps = @(go list -deps ./cmd/node-agent)
+    if ($LASTEXITCODE -ne 0) { throw 'node-agent linux/amd64 dependency listing failed' }
+    if (@($agentProductionDeps | Where-Object { $_ -match '^github\.com/(xtls/xray-core|sagernet/sing-box)(/|$)' }).Count -ne 0) { throw 'node-agent production dependency exclusion failed' }
+} finally {
+    foreach ($agentEnv in @(@('CGO_ENABLED',$agentOldCGO),@('GOOS',$agentOldGOOS),@('GOARCH',$agentOldGOARCH))) {
+        if ($null -eq $agentEnv[1]) { Remove-Item -LiteralPath ("Env:" + $agentEnv[0]) -ErrorAction SilentlyContinue } else { [Environment]::SetEnvironmentVariable($agentEnv[0], $agentEnv[1], 'Process') }
+    }
+    $resolvedBuildRoot = [System.IO.Path]::GetFullPath($agentBuildRoot)
+    $tempSeparators = [char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    $resolvedTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd($tempSeparators)
+    if ([System.IO.Path]::GetDirectoryName($resolvedBuildRoot) -ne $resolvedTempRoot -or [System.IO.Path]::GetFileName($resolvedBuildRoot) -notmatch '^talenro-c12-b04-[0-9a-f]{32}$') { throw 'unsafe build cleanup target' }
+    if (Test-Path -LiteralPath $resolvedBuildRoot -PathType Container) { Remove-Item -LiteralPath $resolvedBuildRoot -Recurse -Force }
+}
 git diff --check
 ```
 
-Expected: every command succeeds; generated trees are unchanged; deterministic evidence is labeled only `container_deterministic`; no test claims real Linux TPM, secure-time, SELinux, Yama/BPF or host memory isolation; `git status --short` contains no files outside B04 commits and pre-existing user-owned untracked directories.
+Expected: every command succeeds; committed generated trees are unchanged and their closure has no untracked output；the exact production build/dependency check is repeated at exit；deterministic evidence is labeled only `container_deterministic`; no test claims real Linux TPM, secure-time, SELinux, Yama/BPF or host memory isolation; `git status --short` contains no files outside B04 commits and pre-existing user-owned untracked directories.

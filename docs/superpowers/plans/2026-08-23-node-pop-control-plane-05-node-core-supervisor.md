@@ -17,6 +17,7 @@
 - Supervisor 只能接受一个由 `SO_PEERCRED`、pidfd/start token 与 configured exact agent UID绑定的持久 session；socket backlog=1，每 slot最多一个 in-flight，全局最多8个。
 - Local frame是最多1 MiB的4-byte big-endian length-prefixed deterministic Protobuf；unknown field、noncanonical encoding、oversize、truncated、trailing bytes和 `MSG_CTRUNC` 全部在 state advance 前拒绝。
 - Supervisor request不得包含 executable path、argv、environment、shell、PID、signal、任意 config bytes、任意 file或production credential。
+- Production supervisor independently strict-verifies the B02 canonical build-embedded `ApprovedReleaseManifestV1` and only the fixed `/etc/talenro/releases/installed-release-map.v1.json`; neither source/path/version/digest is accepted from the agent、caller、config or env. Missing/fixture/tampered bytes and any non-root-owned、writable or no-follow/immutable-root failure reject before the local socket or child creation.
 - SCM_RIGHTS只允许 test-profile `prepare`/`probe` 各一个 sealed anonymous memfd，role精确为 server/client，大小1–4096 bytes；其他operation或production profile接收任何FD都拒绝并关闭全部FD。
 - Supervisor RollbackGuard 使用独立于 agent main/latch 的 counter/sealer identity。Lease deadline、heartbeat和probe sample只在 boot-nonce-bound volatile table中，不写 counter。
 - `prepare` 独立验证 root、metadata、desired、authority checkpoint、node audience、trusted time、manifest/map/resource envelope、memory policy 和 process spec；agent 的验证结果不是授权。
@@ -39,6 +40,7 @@ cmd/node-core-supervisor/
 internal/nodesupervisor/
 ├── wire/       # framing, peer/session, FD and dispatch
 ├── state/      # rollback high-water, boot leases, security faults
+├── releasecatalog/ # independent no-argument embedded-manifest/fixed-map loader
 ├── adapter/    # manifest/map/compiler and config seals
 ├── sandbox/    # resource reservation, cgroup, namespace, exec readback
 └── runtime/    # operation state machine, lease/drain/rollback
@@ -55,8 +57,11 @@ internal/nodesupervisor/
 - Create: `internal/nodesupervisor/wire/server.go`
 - Create: `internal/nodesupervisor/wire/peer_linux.go`
 - Create: `internal/nodesupervisor/wire/fd_linux.go`
+- Create (first line `//go:build !linux`): `internal/nodesupervisor/wire/peer_stub.go`
+- Create (first line `//go:build !linux`): `internal/nodesupervisor/wire/fd_stub.go`
 - Test: `internal/nodesupervisor/wire/codec_test.go`
 - Test: `internal/nodesupervisor/wire/peer_linux_test.go`
+- Test (first line `//go:build !linux`): `internal/nodesupervisor/wire/platform_stub_test.go`
 - Test: `internal/nodesupervisor/wire/fuzz_test.go`
 
 **Interfaces:**
@@ -300,15 +305,31 @@ message SupervisorResponseV1 {
 
 Reserve field numbers after any removal; never add path/argv/environment/config/PID/signal fields. `request_id` is nonzero and exactly one outcome is present. A success outcome must match the request operation; an error is the only legal non-success outcome. Bytes representing node/boot/seal/lease/transition/fault IDs are exactly 16 bytes, digests are exactly 32 bytes, timestamps are positive Unix milliseconds no greater than `MaxInt64`, and `faults`/`cleared_supervisor_fault_ids` are sorted unique and capped at 16. `rollback_seal_id` is empty exactly when no running-to-running rollback capsule exists; `lease_refresh_seal_id` is exactly 16 bytes only for `RENEW_DISPOSITION_LEASE_REFRESH_REBOUND` and empty for same-generation renewal; `overflow_digest` is 32 bytes iff `overflow=true`.
 
+`StopRequestV1`/B04 `wire.StopRequest` validation is one closed union. For `all_owned=false`, `lease_id` is exactly 16 nonzero bytes and every `BindingV1` field is present/canonical/nonzero: it must equal one current boot-lease row including configured node、slot、generation、authority sequence、desired digest and current supervisor boot ID. For `all_owned=true`, `lease_id` is empty and the binding is node-scoped: exact configured nonzero node ID and current supervisor boot ID, with empty slot and zero generation/authority sequence/desired digest. Partial/mixed forms、cross-node、old/future boot and complete lease bindings combined with `all_owned=true` return only `REJECTED` before any ownership lookup. After verified `SO_PEERCRED`/pidfd peer and configured node/current boot checks, `all_owned=true` may enumerate only the supervisor's current-boot ownership ledger and configured node service cgroup root；it never scans global processes/cgroups and never accepts PID、path、name、label or pattern.
+
 `SupervisorErrorV1.code` is never `UNSPECIFIED`; `retry_after_ms` is zero except for `UNAVAILABLE`, where it is `1..60_000`. The wire layer maps the five codes one-to-one to B04 `ErrProtocol`, `ErrPeerIdentity`, `ErrDeadline`, `ErrRejected`, and `ErrUnavailable`; all internal trust, ordering, resource, integrity, and fault-pending failures collapse to `REJECTED`. No error or operation response contains a free-form result/reason, provider text, decoded input, stdout/stderr, executable identity beyond a digest, PID, path, argv, environment, config, signal, or credential. Contract tests enumerate all eleven request/response pairs, mutate every fixed-width field, reject the wrong success oneof for a request, and assert that generated descriptors contain neither an opaque generic payload nor a string result field.
 
 - [ ] **Step 4: Generate and verify deterministic output**
 
-Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1`
+Run the first generation, stage exactly its source/output baseline, run generation again, then compare worktree against that index baseline and reject any untracked file in the exact generated closure:
 
-Run: `git diff --exit-code -- api/proto/talenro/nodesupervisor/v1/protocol.proto gen/go/talenro/nodesupervisor/v1/protocol.pb.go`
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
+if ($LASTEXITCODE -ne 0) { throw 'first supervisor generation failed' }
+git add -- api/proto/talenro/nodesupervisor/v1/protocol.proto gen/go/talenro/nodesupervisor/v1/protocol.pb.go
+if ($LASTEXITCODE -ne 0) { throw 'failed to stage exact supervisor protocol generation baseline' }
+$expectedSupervisorGenerated = @('api/proto/talenro/nodesupervisor/v1/protocol.proto','gen/go/talenro/nodesupervisor/v1/protocol.pb.go')
+$stagedSupervisorGenerated = @(git diff --cached --name-only --diff-filter=ACMR -- api/proto/talenro/nodesupervisor/v1 gen/go/talenro/nodesupervisor/v1)
+if (@(Compare-Object $expectedSupervisorGenerated $stagedSupervisorGenerated).Count -ne 0) { throw 'supervisor generated baseline is not the exact proto/pb.go pair' }
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
+if ($LASTEXITCODE -ne 0) { throw 'second supervisor generation failed' }
+git diff --exit-code -- api/proto/talenro/nodesupervisor/v1/protocol.proto gen/go/talenro/nodesupervisor/v1/protocol.pb.go
+if ($LASTEXITCODE -ne 0) { throw 'second supervisor generation differs from staged baseline' }
+$untrackedSupervisorGenerated = @(git ls-files --others --exclude-standard -- api/proto/talenro/nodesupervisor/v1 gen/go/talenro/nodesupervisor/v1)
+if ($LASTEXITCODE -ne 0 -or $untrackedSupervisorGenerated.Count -ne 0) { throw 'untracked supervisor generated artifact' }
+```
 
-Expected: the first run creates the generated file; a second generation produces no additional diff.
+Expected: the first run creates the reviewed proto/`pb.go` pair and puts exactly those two paths in the index；the second run has zero worktree-versus-index or untracked generated delta, after which Step 5 proceeds and Step 9 commits normally.
 
 - [ ] **Step 5: Implement canonical framing**
 
@@ -317,6 +338,8 @@ Read exactly four length bytes, reject zero or values above 1 MiB before allocat
 - [ ] **Step 6: Bind the one-session peer before dispatch**
 
 Use `SO_PEERCRED` to require exact agent UID, open pidfd, record PID/start token/image digest, and recheck it before every mutating operation. Backlog is one; a second authenticated session is rejected while the first is alive.
+
+`peer_stub.go` and `fd_stub.go` define the complete same exported constructor/method surface on every `!linux` target and return only `ErrUnsupportedPlatform` before opening a socket、accepting an FD or dispatching a request. `platform_stub_test.go` compile-assigns every Linux/stub method expression and proves each constructor returns that sentinel without side effects.
 
 - [ ] **Step 7: Implement the exact SCM_RIGHTS matrix**
 
@@ -335,7 +358,7 @@ Expected: PASS with no allocation above the cap, FD leak, second session or stat
 - [ ] **Step 9: Commit the protocol**
 
 ```bash
-git add api/proto/talenro/nodesupervisor/v1/protocol.proto gen/go/talenro/nodesupervisor/v1/protocol.pb.go internal/nodesupervisor/wire/types.go internal/nodesupervisor/wire/client.go internal/nodesupervisor/wire/codec.go internal/nodesupervisor/wire/server.go internal/nodesupervisor/wire/peer_linux.go internal/nodesupervisor/wire/fd_linux.go internal/nodesupervisor/wire/codec_test.go internal/nodesupervisor/wire/peer_linux_test.go internal/nodesupervisor/wire/fuzz_test.go
+git add api/proto/talenro/nodesupervisor/v1/protocol.proto gen/go/talenro/nodesupervisor/v1/protocol.pb.go internal/nodesupervisor/wire/types.go internal/nodesupervisor/wire/client.go internal/nodesupervisor/wire/codec.go internal/nodesupervisor/wire/server.go internal/nodesupervisor/wire/peer_linux.go internal/nodesupervisor/wire/fd_linux.go internal/nodesupervisor/wire/peer_stub.go internal/nodesupervisor/wire/fd_stub.go internal/nodesupervisor/wire/codec_test.go internal/nodesupervisor/wire/peer_linux_test.go internal/nodesupervisor/wire/platform_stub_test.go internal/nodesupervisor/wire/fuzz_test.go
 git commit -m "feat: add strict supervisor protocol"
 ```
 
@@ -352,7 +375,7 @@ git commit -m "feat: add strict supervisor protocol"
 - Test: `internal/nodesupervisor/state/faults_test.go`
 
 **Interfaces:**
-- Consumes: a supervisor-only counter/sealer identity, verified state high-waters and supervisor boot nonce.
+- Consumes: a supervisor-only counter/sealer identity, verified state high-waters, independently derived B02 manifest/map `contracts.LocalVersionedDigestV1` tuples and supervisor boot nonce.
 - Produces: `OpenRollbackGuard`, `BootLeaseTable`, `RecordSecurityFault`, `ListSecurityFaults`, and a persisted `SupervisorRollbackStateV1`; B05-T06 uses these as the sole seal/lease authority.
 
 - [ ] **Step 1: Write the failing restart and pending-fault crash tests**
@@ -393,8 +416,9 @@ type SupervisorRollbackStateV1 struct {
 	Metadata                contracts.VersionedDigest
 	HighestVerifiedDesired  contracts.VersionedDigest
 	HighestAppliedDesired   contracts.VersionedDigest
-	ApprovedManifestVersion uint64
-	InstalledMapVersion     uint64
+	ApprovedManifest        contracts.LocalVersionedDigestV1
+	InstalledMap            contracts.LocalVersionedDigestV1
+	RevokedKeyLedgerDigest  contracts.Digest
 	ResourceEnvelope        contracts.VersionedDigest
 	HostMemoryPolicy        contracts.VersionedDigest
 	PendingFaults           []SupervisorSecurityFaultV1
@@ -404,7 +428,7 @@ type SupervisorRollbackStateV1 struct {
 }
 ```
 
-Use the same fsync/counter/double-slot order as B04 but a separate purpose string and provider identity.
+Use the same fsync/counter/double-slot order as B04 but a separate purpose string and provider identity. The guard accepts manifest/map tuples only from B05-T03's opaque independently verified catalog, never as caller fields. On first startup or a verified local catalog advance it compares both with `CompareLocalVersionedDigest` and persists both atomically in one supervisor candidate/file+directory fsync/counter/pointer transaction before socket creation；later prepare may advance them only in the same transaction as root/metadata/desired and cumulative revoked-key-ledger digest. Same version with another digest、any version rollback、ledger disappearance/change without an authorized metadata advance, a half-persisted manifest/map pair or a restart slot whose tuple differs from the counter-selected state is a security fault and cannot reach prepare/renew/rollback.
 
 - [ ] **Step 4: Add the deterministic supervisor guard fake**
 
@@ -434,8 +458,13 @@ git commit -m "feat: persist supervisor rollback state"
 ### Task B05-T03: Validate release installation and seal compiled configuration
 
 **Files:**
+- Create: `internal/nodesupervisor/releasecatalog/catalog.go`
+- Test: `internal/nodesupervisor/releasecatalog/catalog_test.go`
+- Modify: `internal/nodesupervisor/state/rollback.go`
+- Modify: `internal/nodesupervisor/state/rollback_test.go`
 - Create: `internal/nodesupervisor/adapter/manifest.go`
 - Create: `internal/nodesupervisor/adapter/installed_map.go`
+- Create: `internal/nodesupervisor/adapter/types.go`
 - Create: `internal/nodesupervisor/adapter/compiler.go`
 - Create: `internal/nodesupervisor/adapter/seal.go`
 - Test: `internal/nodesupervisor/adapter/manifest_test.go`
@@ -443,10 +472,10 @@ git commit -m "feat: persist supervisor rollback state"
 - Test: `internal/nodesupervisor/adapter/seal_test.go`
 
 **Interfaces:**
-- Consumes: B04 verified canonical `contracts.ProcessSpecV1`, build-embedded `ApprovedReleaseManifestV1`, host-deployed `InstalledReleaseMapV1`, an exact role-bound sealed test-credential reader and B05-T02 guard.
-- Produces: `ValidateInstallation`, the Plan 07 frozen `AdapterCompilerV1.Compile(CompileRequestV1) (CompiledConfigV1, error)` surface, `ConfigSealV1`, one-shot `MarkChecked`/`ConsumeStart`, and secret-free preview digest comparison. There is no positional compile overload or second process-spec/config DTO.
+- Consumes: B04 verified canonical `contracts.ProcessSpecV1`; B02-owned canonical `ApprovedReleaseManifestV1`/`InstalledReleaseMapV1` types、strict validators and build-embedded approved-manifest source bytes；the fixed root-owned installed-map file；an exact role-bound sealed test-credential reader；and B05-T02 guard.
+- Produces and uniquely owns: `releasecatalog.LoadProduction() (releasecatalog.Verified, error)` whose handle has no exported fields；`RollbackGuard.CompareAndCommitReleaseCatalog(context.Context, releasecatalog.Verified) error`；`ValidateInstallation(releasecatalog.Verified, contracts.ProcessSpecV1)` with no caller tuple constructor；`CredentialRole`、`RoleBoundCredentialReader`、`CompileRequestV1`、`CompiledConfigV1`、`CompileFunc`、`AdapterCompilerV1` and `RegisterCompiler(profileID string, CompileFunc) error` in `internal/nodesupervisor/adapter`; `ConfigSealV1`; one-shot `MarkChecked`/`ConsumeStart`; and secret-free preview digest comparison. The leaf `internal/nodesupervisor/releasecatalog` package imports only B01/B02 contracts and bounded OS readers；both `state` and `adapter` import it, avoiding an import cycle. Plan 07 only consumes the adapter surface. There is no positional compile overload or second process-spec/config/release DTO.
 
-- [ ] **Step 1: Write failing path, digest and seal-replay tests**
+- [ ] **Step 1: Write failing source, path, digest and seal-replay tests**
 
 ```go
 func TestConfigSealIsSingleUseAndBootBound(t *testing.T) {
@@ -466,13 +495,15 @@ func TestConfigSealIsSingleUseAndBootBound(t *testing.T) {
 
 - [ ] **Step 2: Run adapter tests and verify RED**
 
-Run: `go test ./internal/nodesupervisor/adapter -run 'Test(ConfigSeal|ValidateInstallation|Compiler)' -count=1`
+Run: `go test ./internal/nodesupervisor/adapter -run 'Test(ConfigSeal|ValidateInstallation|Compiler|ReleaseCatalog)' -count=1`
 
 Expected: FAIL because manifest/compiler/seal code is absent.
 
-- [ ] **Step 3: Implement manifest/map intersection validation**
+- [ ] **Step 3: Independently load, verify and persist the manifest/map intersection**
 
-Require monotonic manifest/map versions, exact adapter/release ID, immutable absolute release root, root ownership, non-writable path components, no symlink/junction/mount escape, exact executable/dependency SHA-256, no setuid/setgid/file capability and exact loader closure. Installed map may provide only release ID→root mapping.
+`internal/nodesupervisor/releasecatalog.LoadProduction()` takes no argument. It obtains a fresh defensive copy only from B02 `internal/localrelease`'s package-local build-embedded approved-manifest source；there is no runtime manifest path/provider or constructor accepting bytes/version/digest/decoded DTO. On every production startup it independently calls B02 `VerifyApprovedReleaseManifestV1` and then `RequireC12ProductionReleaseSet`, so absent/empty/tampered/noncanonical bytes and the fixture-only/partial embedded development instance reject. It opens only literal `/etc/talenro/releases/installed-release-map.v1.json` from a pre-opened UID-0 `/etc/talenro/releases` directory with `openat2(RESOLVE_BENEATH|RESOLVE_NO_SYMLINKS|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_XDEV)` and `O_RDONLY|O_CLOEXEC|O_NOFOLLOW`; require regular file、one link、UID 0、no group/other write、size at most 16 KiB and identical pre/post-read device/inode/size/mode/owner, then independently call B02 `VerifyInstalledReleaseMapV1(mapBytes,verifiedApproved)`. Every mapped root/component below `/opt/talenro/releases/` and every manifest-pinned file/dependency is pinned through root-owned、service-unwritable、no-follow/no-junction/no-reparse/no-mount-escape handles; no current directory、`PATH` or caller path participates.
+
+Only after all independent filesystem checks succeed does the loader retain the two B02 immutable verified handles and permit its private commit adapter to call their sole tuple accessors. Those accessors derive the exact domain-separated manifest/map `contracts.LocalVersionedDigestV1` values frozen by B02；P05 never recomputes a raw JCS digest. The loader returns one defensive `releasecatalog.Verified` whose fields are unexported. No other production constructor exists, and no exported API accepts either tuple、path、bytes、filesystem-success boolean or caller-decoded DTO. `RollbackGuard.CompareAndCommitReleaseCatalog` accepts only that handle, extracts/compares both tuples internally and atomically commits a first/advanced pair before use. `ValidateInstallation` consumes the same handle and requires exact adapter/release ID, immutable absolute release root, exact executable/dependency SHA-256, no setuid/setgid/file capability and exact loader closure. Installed map cannot override digest、argv、adapter、dependency closure、sandbox、provenance or license. Production has no fixture/test byte-source injection seam and rejects absent/empty source、fixture-only/partial embedded set、unknown/duplicate/trailing/noncanonical fields、embedded/map tamper、rollback/fork、permission/root mutation and every pre/post-open substitution before compiler/reservation/child calls. Tests `TestReleaseCatalogHasNoCallerTuple`、`TestReleaseCatalogRejectsRawJCSDigestSubstitution`、`TestProductionReleaseCatalogRejectsAbsentFixtureAndTamper`、`TestReleaseCatalogImmutableRoots` and `TestReleaseCatalogHighWaterCommitsAtomically` mutate both sources and every file identity boundary, substitute a consumer-computed raw-JCS SHA-256 for each B02 domain-separated tuple and prove the substitution cannot enter the opaque handle or persisted guard high-water.
 
 - [ ] **Step 4: Implement the deterministic compiler**
 
@@ -511,9 +542,13 @@ type CompiledConfigV1 struct {
 type AdapterCompilerV1 interface {
 	Compile(CompileRequestV1) (CompiledConfigV1, error)
 }
+
+type CompileFunc func(CompileRequestV1) (CompiledConfigV1, error)
+
+func RegisterCompiler(profileID string, compile CompileFunc) error
 ```
 
-`ProcessSpecDigest` must equal SHA-256 of the canonical B04-verified `ProcessSpec`, and node/generation/slot/release/profile must equal that same signed desired binding and the selected registered profile. `Credential` is nil for production and for profiles that do not require test credentials. Otherwise its sealed FD implementation exposes only the fixed role and declared size `1..4096`; compiler checks the registered template's expected role plus run/node/slot/lease credential header before the first payload read and reads exactly `DeclaredSize()` bytes once. The role cannot be supplied as an independent string that disagrees with the reader. Compiler selects only build-registered fixture/xray/sing-box template IDs, returns canonical JSON capped at 64 KiB, recomputes `ConfigDigest`, and rejects unknown JSON fields, trailing credential bytes, short reads, reader reuse, preview semantic mismatch, or any request mutation. `CompiledConfigV1.CanonicalJSON` remains supervisor-owned and never crosses the wire; `Listen` and `Target` must be exact registered loopback endpoints.
+`ProcessSpecDigest` must equal SHA-256 of the canonical B04-verified `ProcessSpec`, and node/generation/slot/release/profile must equal that same signed desired binding and the selected registered profile. `Credential` is nil for production and for profiles that do not require test credentials. Otherwise its sealed FD implementation exposes only the fixed role and declared size `1..4096`; compiler checks the registered template's expected role plus run/node/slot/lease credential header before the first payload read and reads exactly `DeclaredSize()` bytes once. The role cannot be supplied as an independent string that disagrees with the reader. `RegisterCompiler` accepts one non-nil function for one canonical profile ID exactly once；duplicate、alias、case-folded、nil and post-start registration fail without replacing an existing function. Compiler selects only build-registered fixture/xray/sing-box template IDs, returns canonical JSON capped at 64 KiB, recomputes `ConfigDigest`, and rejects unknown JSON fields, trailing credential bytes, short reads, reader reuse, preview semantic mismatch, or any request mutation. `CompiledConfigV1.CanonicalJSON` remains supervisor-owned and never crosses the wire; `Listen` and `Target` must be exact registered loopback endpoints. An external-package compile test assigns every type/method/function expression and proves P06/P07 cannot redeclare a wire-compatible shadow.
 
 - [ ] **Step 5: Seal generation-isolated config**
 
@@ -529,12 +564,12 @@ Run: `go test ./internal/nodesupervisor/adapter -count=1`
 
 Run: `go test -race ./internal/nodesupervisor/adapter -count=1`
 
-Expected: PASS; path substitution, dependency swap, preview mismatch, cross-slot/boot/generation use and replay all fail closed.
+Expected: PASS; catalog absence/fixture/tamper/rollback/fork、path substitution, dependency swap, preview mismatch, cross-slot/boot/generation use and replay all fail closed, and only an atomic independently verified manifest/map tuple pair reaches compiler state.
 
 - [ ] **Step 8: Commit compiler and seals**
 
 ```bash
-git add internal/nodesupervisor/adapter/manifest.go internal/nodesupervisor/adapter/installed_map.go internal/nodesupervisor/adapter/compiler.go internal/nodesupervisor/adapter/seal.go internal/nodesupervisor/adapter/manifest_test.go internal/nodesupervisor/adapter/compiler_test.go internal/nodesupervisor/adapter/seal_test.go
+git add internal/nodesupervisor/releasecatalog/catalog.go internal/nodesupervisor/releasecatalog/catalog_test.go internal/nodesupervisor/state/rollback.go internal/nodesupervisor/state/rollback_test.go internal/nodesupervisor/adapter/manifest.go internal/nodesupervisor/adapter/installed_map.go internal/nodesupervisor/adapter/types.go internal/nodesupervisor/adapter/compiler.go internal/nodesupervisor/adapter/seal.go internal/nodesupervisor/adapter/manifest_test.go internal/nodesupervisor/adapter/compiler_test.go internal/nodesupervisor/adapter/seal_test.go
 git commit -m "feat: seal supervisor core configuration"
 ```
 
@@ -545,13 +580,13 @@ git commit -m "feat: seal supervisor core configuration"
 - Create: `internal/nodesupervisor/sandbox/reservation.go`
 - Create: `internal/nodesupervisor/sandbox/cgroup_linux.go`
 - Create: `internal/nodesupervisor/sandbox/rlimit_linux.go`
-- Create: `internal/nodesupervisor/sandbox/platform_stub.go`
+- Create (first line `//go:build !linux`): `internal/nodesupervisor/sandbox/platform_stub.go`
 - Test: `internal/nodesupervisor/sandbox/limits_test.go`
 - Test: `internal/nodesupervisor/sandbox/reservation_test.go`
 - Test: `internal/nodesupervisor/sandbox/cgroup_linux_test.go`
 
 **Interfaces:**
-- Consumes: Plan 04 B04-T04 canonical `contracts.NodeResourceEnvelopeV1` through the independently verified `contracts.NodeResourceEnvelopePackageV1`, immutable capacity profiles, at most 8 running/draining/candidate slots and the one allowed ephemeral check/probe reservation. This package must not define a second envelope DTO.
+- Consumes: Plan 02 Task 5 canonical `contracts.NodeResourceEnvelopeV1` through the independently verified `contracts.NodeResourceEnvelopePackageV1`, immutable capacity profiles, at most 8 running/draining/candidate slots and the one allowed ephemeral check/probe reservation. This package must not define a second envelope DTO.
 - Produces: `ReservationLedger.Acquire/Release`, `PrepareCoreParent`, `PrepareSlotCgroup`, and exact readback receipts consumed by B05-T05/T06.
 
 - [ ] **Step 1: Write failing aggregate and overflow tests**
@@ -617,9 +652,11 @@ git commit -m "feat: enforce supervisor resource envelopes"
 - Create: `internal/nodesupervisor/sandbox/network_linux.go`
 - Create: `internal/nodesupervisor/sandbox/exec_linux.go`
 - Create: `internal/nodesupervisor/sandbox/ownership_linux.go`
+- Create (first line `//go:build !linux`): `internal/nodesupervisor/sandbox/exec_stub.go`
 - Test: `internal/nodesupervisor/sandbox/memory_policy_test.go`
 - Test: `internal/nodesupervisor/sandbox/exec_linux_test.go`
 - Test: `internal/nodesupervisor/sandbox/network_linux_test.go`
+- Test (first line `//go:build !linux`): `internal/nodesupervisor/sandbox/exec_stub_test.go`
 
 **Interfaces:**
 - Consumes: B05-T03 validated executable/config handles, B05-T04 reservation/cgroup receipt, Plan 04 B04-T04 canonical `contracts.HostMemoryIsolationPolicyPackageV1`, and exact target core UID/SELinux domain. Supervisor validation imports the shared policy/package types and transcript constant; it must not define a wire-compatible shadow.
@@ -688,16 +725,21 @@ Run: `go test ./internal/nodesupervisor/sandbox -run 'Test(MemoryPolicy|Namespac
 
 Expected: PASS on supported Linux test hosts or explicit skip for kernel features unavailable to the unit runner; no result is labeled real Linux platform evidence.
 
+On `!linux`, `exec_stub.go` supplies every launcher/owned-process/namespace/network/ownership constructor referenced by generic runtime code and returns only `ErrUnsupportedPlatform` before child creation. `exec_stub_test.go` compile-assigns the Linux/stub surface and checks zero child/FD/config-view side effects. It does not emulate any sandbox feature.
+
 - [ ] **Step 9: Commit the launcher**
 
 ```bash
-git add internal/nodesupervisor/sandbox/memory_policy.go internal/nodesupervisor/sandbox/deterministic_memory_policy_fake.go internal/nodesupervisor/sandbox/namespaces_linux.go internal/nodesupervisor/sandbox/seccomp_linux.go internal/nodesupervisor/sandbox/network_linux.go internal/nodesupervisor/sandbox/exec_linux.go internal/nodesupervisor/sandbox/ownership_linux.go internal/nodesupervisor/sandbox/memory_policy_test.go internal/nodesupervisor/sandbox/exec_linux_test.go internal/nodesupervisor/sandbox/network_linux_test.go
+git add internal/nodesupervisor/sandbox/memory_policy.go internal/nodesupervisor/sandbox/deterministic_memory_policy_fake.go internal/nodesupervisor/sandbox/namespaces_linux.go internal/nodesupervisor/sandbox/seccomp_linux.go internal/nodesupervisor/sandbox/network_linux.go internal/nodesupervisor/sandbox/exec_linux.go internal/nodesupervisor/sandbox/ownership_linux.go internal/nodesupervisor/sandbox/exec_stub.go internal/nodesupervisor/sandbox/memory_policy_test.go internal/nodesupervisor/sandbox/exec_linux_test.go internal/nodesupervisor/sandbox/network_linux_test.go internal/nodesupervisor/sandbox/exec_stub_test.go
 git commit -m "feat: sandbox supervised node processes"
 ```
 
 ### Task B05-T06: Implement prepare/check/start/lease/drain/rollback and dual-fault clear
 
 **Files:**
+- Create: `internal/nodesupervisor/trust/types.go`
+- Create: `internal/nodesupervisor/trust/verifier.go`
+- Test: `internal/nodesupervisor/trust/verifier_test.go`
 - Create: `internal/nodesupervisor/runtime/types.go`
 - Create: `internal/nodesupervisor/runtime/service.go`
 - Create: `internal/nodesupervisor/runtime/check.go`
@@ -710,8 +752,8 @@ git commit -m "feat: sandbox supervised node processes"
 - Test: `internal/nodesupervisor/runtime/faults_test.go`
 
 **Interfaces:**
-- Consumes: B01 exact `DesiredReasonV1` value `lease_refresh`; Plan 04 canonical `contracts.NodeResourceEnvelopeV1` and `contracts.HostMemoryIsolationPolicyV1`; B05-T02 guard/leases/faults; B05-T03 compiler/seals; B05-T04 reservation; and B05-T05 launcher.
-- Produces: a complete `wire.Handler` implementation for all eleven operations, `SupervisorSecurityFaultV1` bindings, the sole canonical `LeaseRefreshSealV1`/`RollbackSealV1` definitions in `internal/nodesupervisor/runtime/types.go`, and only the finite typed B05-T01 operation results. Agent code can retain returned opaque seal IDs but cannot construct, open, or deserialize either sealed payload.
+- Consumes: B01 exact `DesiredReasonV1` value `lease_refresh`; Plan 02 canonical root-set、trust-metadata、desired/recovery/resource-envelope DTOs; a preprovisioned C1.2 root anchor and exact deployment-role key; Plan 04 canonical `contracts.HostMemoryIsolationPolicyV1`; `TrustedTimeSource`; B05-T02 guard/leases/faults; B05-T03 compiler/seals; B05-T04 reservation; and B05-T05 launcher. It never consumes an agent `Verified*` object or trusts an agent high-water decision.
+- Produces: supervisor-owned immutable `trust.VerifiedPrepareV1`、`VerifiedRenewV1` and `VerifiedRecoveryClearV1`; a complete `wire.Handler` implementation for all eleven operations, `SupervisorSecurityFaultV1` bindings, the sole canonical `LeaseRefreshSealV1`/`RollbackSealV1` definitions in `internal/nodesupervisor/runtime/types.go`, and only the finite typed B05-T01 operation results. Agent code can retain returned opaque seal IDs but cannot construct, open, or deserialize any verified value or sealed payload.
 
 - [ ] **Step 1: Write the failing operation-state matrix**
 
@@ -733,7 +775,7 @@ func TestOperationOrderIsClosed(t *testing.T) {
 
 - [ ] **Step 2: Run runtime tests and verify RED**
 
-Run: `go test ./internal/nodesupervisor/runtime -run 'TestOperationOrderIsClosed|TestLeaseDeadline|TestLeaseRefreshSeal|TestRollbackSeal|TestSealIsSupervisorOnlyAndSingleUse|TestDualFaultClear' -count=1`
+Run: `go test ./internal/nodesupervisor/runtime -run 'TestOperationOrderIsClosed|TestLeaseDeadline|TestLeaseRefreshSeal|TestRollbackSeal|TestSealIsSupervisorOnlyAndSingleUse|TestStopRequestClosedUnion|TestDualFaultClear' -count=1`
 
 Expected: FAIL because runtime service is absent.
 
@@ -809,38 +851,50 @@ The store generates a random 16-byte external seal ID, canonical-encodes the pay
 
 Add table tests `TestLeaseRefreshSealBindsEveryField`, `TestLeaseRefreshRequiresExactReason`, `TestRollbackSealBindsEveryField`, and `TestSealIsSupervisorOnlyAndSingleUse`. Crash tests stop before seal persist, after persist/before guard mutation, after guard mutation/before response, and after response loss; recovery must expose exactly the old lease or the committed new binding, never two usable seals or a downgraded high-water.
 
-- [ ] **Step 4: Implement prepare/check/start**
+- [ ] **Step 4: Independently verify every supervisor authorization input**
 
-Prepare independently verifies trust/state/time/profile, acquires aggregate reservation, compiles and seals config. Check launches one ephemeral no-network check cgroup, drains stdout/stderr to null/bounded byte counter, requires success and verified empty cleanup, then marks the same seal checked. Start consumes that seal once and commits a boot-bound lease only after post-start verification.
+`internal/nodesupervisor/trust` strict-decodes the canonical B02 DTOs itself, verifies one continuous threshold root chain from the preprovisioned C1.2 anchor, exact deployment role/signature domain, complete metadata, authorizing online key status, cumulative revoked-key ledger, desired/recovery signature, canonical JSON, node/audience, control-plane authority epoch, node checkpoint, stream version/authority-sequence/digest, resource-envelope and memory-policy bindings, trusted UTC whole-millisecond validity and minimum supervisor version. It compares all high-waters against `SupervisorRollbackStateV1`, using `contracts.LocalVersionedDigestV1` only for manifest/map and authority-bearing `VersionedDigest` for signed control-plane streams, plus `RevokedKeyLedgerDigest`; rollback、same-value fork、ledger drop、unknown schema/role/key、insufficient threshold、wrong audience、future/expired time and unsupported minimum version return a finite trust error before compiler、reservation、launcher or latch-clear mutation.
 
-- [ ] **Step 5: Implement probe and bounded snapshots**
+Only this package can construct immutable defensive-copy `VerifiedPrepareV1`、`VerifiedRenewV1` and `VerifiedRecoveryClearV1`; no exported constructor accepts a digest、boolean or agent `Verified*` value. `Prepare` consumes only `VerifiedPrepareV1`; `Renew` consumes only `VerifiedRenewV1`; `ClearFault` consumes only `VerifiedRecoveryClearV1`. The clear verifier additionally requires stopped recovery action、exact sorted local/supervisor fault bindings、remediation digest、all-slots-stopped and current certificate/identity audience. Tests mutate every root/metadata/desired/recovery/audience/authority/time/ledger/min-version field, cover threshold/root fork and restart, and assert zero compiler/launcher/clear calls on rejection.
+
+Run: `go test ./internal/nodesupervisor/trust -run 'TestVerify(Prepare|Renew|RecoveryClear)|TestTrustRestartHighWater' -count=1`
+
+Expected: PASS; the supervisor reaches the same decision from canonical signed bytes and its own providers/state, without accepting an agent verdict.
+
+- [ ] **Step 5: Implement prepare/check/start**
+
+Prepare accepts only the Step 4 `VerifiedPrepareV1`, acquires aggregate reservation, compiles and seals config. Check launches one ephemeral no-network check cgroup, drains stdout/stderr to null/bounded byte counter, requires success and verified empty cleanup, then marks the same seal checked. Start consumes that seal once and commits a boot-bound lease only after post-start verification.
+
+- [ ] **Step 6: Implement probe and bounded snapshots**
 
 Probe checks process identity, loopback management and typed real-handshake result. Snapshot returns finite enum/integer measurements only; it never returns stdout/stderr, path, config, credential or raw upstream error.
 
-- [ ] **Step 6: Implement renew, drain and stop deadlines**
+- [ ] **Step 7: Implement renew, drain and stop deadlines**
 
-Renew revalidates complete trust/state and moves the volatile deadline no later than trusted-now+60s or effective authorization deadline. Ordinary agent death/EOF/expiry starts drain with `hard_stop_at=min(drain_started+10m,lease_deadline+10m,effective_deadline+10m)`. Security/integrity/explicit stopped intent terminates and kills the exact cgroup within five seconds.
+Renew first consumes only a newly independently verified `VerifiedRenewV1` and moves the volatile deadline no later than trusted-now+60s or effective authorization deadline. Ordinary agent death/EOF/expiry starts drain with `hard_stop_at=min(drain_started+10m,lease_deadline+10m,effective_deadline+10m)`. Security/integrity/explicit stopped intent terminates and kills the exact cgroup within five seconds.
 
-- [ ] **Step 7: Implement single-use rollback and lease refresh seals**
+Stop validates the B05-T01 union before mutation. `AllOwned=false` requires the complete exact live lease binding and terminates only that ledger/cgroup entry. `AllOwned=true` requires the already pidfd-verified configured agent peer plus exact configured node/current supervisor boot node-scoped binding and empty lease/slot/generation/authority-sequence/desired fields；it snapshots only the supervisor's sealed ownership ledger, cross-checks each entry is beneath the configured node service cgroup root, terminates that finite set, proves each exact cgroup empty and returns a node-scoped response. With no lease it is an idempotent empty proof；with multiple slots it removes every and only owned current-node entry. Any cross-node、old/future boot、partial binding、global cgroup/process enumeration or ledger/root disagreement returns `ErrRejected` and changes nothing. Add runtime tables `TestStopRequestClosedUnion` and `TestStopAllOwnedNoLeaseMultiSlotCrossNodeAndBoot`.
+
+- [ ] **Step 8: Implement single-use rollback and lease refresh seals**
 
 Implement the Step 3 payloads and guarded store. Only a supervisor-observed candidate check/start/probe failure within the sealed two-minute/composite deadline may consume rollback and mint a new one-time start seal from the prior capsule; an agent-declared failure is insufficient. Lease refresh creates and consumes its seal within one guarded rebind, advances highest-verified and highest-applied to the new desired binding, and leaves the process identity unchanged only when the semantic digest and every process/release/profile/capacity field match. Both paths return only the B05-T01 typed IDs and fields.
 
-- [ ] **Step 8: Implement supervisor-fault reporting and dual clear**
+- [ ] **Step 9: Implement supervisor-fault reporting and dual clear**
 
-Fault detection first makes leases non-accepting, kills owned cgroups and persists pending fault. `ListFaults` is bounded. `ClearFault` independently verifies signed stopped recovery snapshot, exact remediation digest, trusted time, local-latch attestation and empty owned cgroups; agent ACK alone cannot remove the supervisor fault.
+Fault detection first makes leases non-accepting, kills owned cgroups and persists pending fault. `ListFaults` is bounded. `ClearFault` consumes only `VerifiedRecoveryClearV1`, then requires exact local-latch attestation and empty owned cgroups; agent ACK alone cannot remove the supervisor fault.
 
-- [ ] **Step 9: Run crash, deadline and race suites**
+- [ ] **Step 10: Run crash, deadline and race suites**
 
-Run: `go test ./internal/nodesupervisor/runtime -count=1`
+Run: `go test ./internal/nodesupervisor/trust ./internal/nodesupervisor/runtime -count=1`
 
-Run: `go test -race ./internal/nodesupervisor/runtime -count=1`
+Run: `go test -race ./internal/nodesupervisor/trust ./internal/nodesupervisor/runtime -count=1`
 
 Expected: PASS; every crash point preserves either the old valid lease or fail-closed state, no seal replays across boot/slot/transition, and clear requires both latch authorities.
 
-- [ ] **Step 10: Commit runtime semantics**
+- [ ] **Step 11: Commit runtime semantics**
 
 ```bash
-git add internal/nodesupervisor/runtime/types.go internal/nodesupervisor/runtime/service.go internal/nodesupervisor/runtime/check.go internal/nodesupervisor/runtime/lease.go internal/nodesupervisor/runtime/rollback.go internal/nodesupervisor/runtime/faults.go internal/nodesupervisor/runtime/service_test.go internal/nodesupervisor/runtime/lease_test.go internal/nodesupervisor/runtime/rollback_test.go internal/nodesupervisor/runtime/faults_test.go
+git add internal/nodesupervisor/trust/types.go internal/nodesupervisor/trust/verifier.go internal/nodesupervisor/trust/verifier_test.go internal/nodesupervisor/runtime/types.go internal/nodesupervisor/runtime/service.go internal/nodesupervisor/runtime/check.go internal/nodesupervisor/runtime/lease.go internal/nodesupervisor/runtime/rollback.go internal/nodesupervisor/runtime/faults.go internal/nodesupervisor/runtime/service_test.go internal/nodesupervisor/runtime/lease_test.go internal/nodesupervisor/runtime/rollback_test.go internal/nodesupervisor/runtime/faults_test.go
 git commit -m "feat: manage supervised process leases"
 ```
 
@@ -856,10 +910,10 @@ git commit -m "feat: manage supervised process leases"
 - Modify: `.env.example`
 
 **Interfaces:**
-- Consumes: B05-T01 `wire.Serve`, B05-T02–T06 providers/state/runtime and root-owned deployment paths.
+- Consumes: B05-T01 `wire.Serve`, B05-T02–T06 providers/state/runtime, preprovisioned root-anchor/deployment-role-key paths and other root-owned deployment paths.
 - Produces: `node-core-supervisor`, one local socket, bounded shutdown and local/test deterministic composition used by B06.
 
-- [ ] **Step 1: Write the failing profile/startup-order tests**
+- [ ] **Step 1: Write the failing profile, catalog and startup stop-union tests**
 
 ```go
 func TestProductionRejectsDeterministicMemoryPolicy(t *testing.T) {
@@ -873,17 +927,19 @@ func TestProductionRejectsDeterministicMemoryPolicy(t *testing.T) {
 
 - [ ] **Step 2: Run config/composition tests and verify RED**
 
-Run: `go test ./internal/nodesupervisor/config ./cmd/node-core-supervisor -run 'TestProductionRejectsDeterministicMemoryPolicy|TestStartupFailClosed' -count=1`
+Run: `go test ./internal/nodesupervisor/config ./cmd/node-core-supervisor -run 'TestProductionRejectsDeterministicMemoryPolicy|TestProductionRejectsCatalogOverrideOrFixture|TestStartupFailClosed|TestStartupStopAllOwned(NoLease|MultiSlot|RejectsCrossNode|RejectsOldBoot)' -count=1`
 
 Expected: FAIL because config and process entrypoint are absent.
 
 - [ ] **Step 3: Implement exact configuration validation**
 
-Require canonical node ID, exact agent/core UIDs, socket/state roots, manifest/map/envelope/memory-policy package paths, provider identities, protocol/build digests and operation deadlines. Production rejects deterministic providers, writable/non-root paths, overlapping agent/supervisor/latch identities and non-linux/amd64 runtime.
+Require canonical node ID, exact agent/core UIDs, socket/state roots, C1.2 root-anchor and deployment-role-key paths/identities, envelope/memory-policy package paths, provider identities, protocol/build digests and operation deadlines. Approved-manifest source bytes are B02-owned and build-embedded；installed-map path is the non-overridable literal `/etc/talenro/releases/installed-release-map.v1.json`, so configuration/env contains neither catalog bytes nor manifest/map path/version/digest. Each trust-anchor/key/deployment parent is absolute、root-owned、non-writable、no-follow and distinct from agent mutable state. Production rejects deterministic providers、fixture/test catalog sources、catalog override keys、missing/tampered fixed map、writable/non-root paths, overlapping agent/supervisor/latch identities and non-linux/amd64 runtime.
 
 - [ ] **Step 4: Compose startup before accepting the socket**
 
-Startup order is provider identity/time → memory-policy verification → state guard → manifest/map/resource envelope → old cgroup cleanup → new boot nonce/empty lease table → socket ownership/mode → accept. Any failure leaves no socket and no child.
+Startup order is provider identity/time → load and pin exact root anchor/deployment-role key → construct the independent trust verifier → independently strict-verify the build-embedded B02 approved manifest and fixed root-owned no-follow installed map plus immutable release roots → memory-policy verification → state guard → atomically compare/persist the two derived local catalog tuples with resource-envelope/revoked-ledger high-water → use only the configured node service cgroup root to clean/prove empty all old-boot cgroups → create new boot nonce/empty volatile ownership ledger/lease table → socket ownership/mode → accept. Old boot leases are never reconstructed. Any failure leaves no socket and no child.
+
+`TestStartupStopAllOwnedNoLease` starts an exact verified peer/current-node/current-boot server with an empty ownership ledger and requires idempotent empty success. `TestStartupStopAllOwnedMultiSlot` seeds two current-node ledger/cgroup entries and one baseline foreign cgroup, requires exactly the two owned entries empty, and proves the baseline untouched. `TestStartupStopAllOwnedRejectsCrossNode` and `TestStartupStopAllOwnedRejectsOldBoot` submit otherwise canonical node-scoped requests and require `REJECTED`、zero enumeration and zero mutation. All four are process-level server tests and also prove a complete lease binding cannot be mixed with `AllOwned=true`.
 
 - [ ] **Step 5: Implement bounded shutdown**
 
@@ -905,15 +961,43 @@ Run: `go test ./internal/nodesupervisor/... ./cmd/node-core-supervisor -count=1`
 
 Run: `go test -race ./internal/nodesupervisor/... ./cmd/node-core-supervisor -count=1`
 
-Expected: PASS; startup failure creates no socket/child and shutdown leaves no owned cgroup or received FD.
+Expected: PASS; startup failure creates no socket/child, production catalog absence/override/fixture/tamper fails before accept, the no-lease/multi-slot/cross-node/boot stop matrix touches only exact owned cgroups, and shutdown leaves no owned cgroup or received FD.
+
+The untagged gate runs on Windows and must compile every generic package against the exact `!linux` wire/resource/launcher stubs. `TestUnsupportedPlatformSurface` invokes all exported platform constructors and requires `ErrUnsupportedPlatform` plus zero socket、FD、child、config-view and cgroup effects.
 
 - [ ] **Step 8: Build and inspect the fixed target**
 
-Run: `go build -trimpath -buildmode=exe ./cmd/node-core-supervisor`
+Run:
 
-Run: `go list -deps ./cmd/node-core-supervisor | rg 'github.com/(xtls/xray-core|sagernet/sing-box)'`
+```powershell
+$supervisorBuildRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("talenro-c12-b05-" + [guid]::NewGuid().ToString('N'))
+$supervisorBuildPath = Join-Path $supervisorBuildRoot 'node-core-supervisor'
+$supervisorOldCGO = [Environment]::GetEnvironmentVariable('CGO_ENABLED', 'Process')
+$supervisorOldGOOS = [Environment]::GetEnvironmentVariable('GOOS', 'Process')
+$supervisorOldGOARCH = [Environment]::GetEnvironmentVariable('GOARCH', 'Process')
+New-Item -ItemType Directory -LiteralPath $supervisorBuildRoot | Out-Null
+try {
+    $env:CGO_ENABLED = '0'
+    $env:GOOS = 'linux'
+    $env:GOARCH = 'amd64'
+    go build -trimpath -buildmode=exe -o $supervisorBuildPath ./cmd/node-core-supervisor
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $supervisorBuildPath -PathType Leaf)) { throw 'supervisor linux build failed' }
+    $supervisorProductionDeps = @(go list -deps ./cmd/node-core-supervisor)
+    if ($LASTEXITCODE -ne 0) { throw 'supervisor linux/amd64 dependency listing failed' }
+    if (@($supervisorProductionDeps | Where-Object { $_ -match '^github\.com/(xtls/xray-core|sagernet/sing-box)(/|$)' }).Count -ne 0) { throw 'supervisor production dependency exclusion failed' }
+} finally {
+    foreach ($supervisorEnv in @(@('CGO_ENABLED',$supervisorOldCGO),@('GOOS',$supervisorOldGOOS),@('GOARCH',$supervisorOldGOARCH))) {
+        if ($null -eq $supervisorEnv[1]) { Remove-Item -LiteralPath ("Env:" + $supervisorEnv[0]) -ErrorAction SilentlyContinue } else { [Environment]::SetEnvironmentVariable($supervisorEnv[0], $supervisorEnv[1], 'Process') }
+    }
+    $resolvedSupervisorBuildRoot = [System.IO.Path]::GetFullPath($supervisorBuildRoot)
+    $supervisorTempSeparators = [char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    $resolvedSupervisorTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd($supervisorTempSeparators)
+    if ([System.IO.Path]::GetDirectoryName($resolvedSupervisorBuildRoot) -ne $resolvedSupervisorTempRoot -or [System.IO.Path]::GetFileName($resolvedSupervisorBuildRoot) -notmatch '^talenro-c12-b05-[0-9a-f]{32}$') { throw 'unsafe supervisor build cleanup target' }
+    Remove-Item -LiteralPath $resolvedSupervisorBuildRoot -Recurse -Force
+}
+```
 
-Expected: build succeeds; dependency search exits 1 with no match. Remove only the exact build output created in the repository root after verifying its resolved path is inside the repository and is named `node-core-supervisor` or `node-core-supervisor.exe`.
+Expected: the production release target build succeeds and its exact Linux/amd64 dependency set contains neither core module. The wrapper snapshots/restores any prior three environment values in `finally`, verifies the resolved build root is an immediate uniquely named child of the OS temp root, and removes only that exact root. It never writes a repository-root or user cache output.
 
 - [ ] **Step 9: Commit the composition root**
 
@@ -928,6 +1012,11 @@ Run:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate.ps1
+if ($LASTEXITCODE -ne 0) { throw 'B05 generation failed' }
+git diff --exit-code HEAD -- api gen internal/store
+if ($LASTEXITCODE -ne 0) { throw 'B05 generated tree differs from committed tree' }
+$untrackedB05Generated = @(git ls-files --others --exclude-standard -- api gen internal/store)
+if ($LASTEXITCODE -ne 0 -or $untrackedB05Generated.Count -ne 0) { throw 'untracked B05 generated artifact' }
 go test ./internal/nodesupervisor/... ./cmd/node-core-supervisor -count=1
 go test -race ./internal/nodesupervisor/... ./cmd/node-core-supervisor -count=1
 go vet ./internal/nodesupervisor/... ./cmd/node-core-supervisor
@@ -935,4 +1024,4 @@ go tool golangci-lint run ./internal/nodesupervisor/... ./cmd/node-core-supervis
 git diff --check
 ```
 
-Expected: every command succeeds; protocol generation is stable; frame/FD/lease/seal/fault/resource tests are bounded; deterministic memory-policy evidence is only `container_deterministic`; no test or document claims the real Linux platform/operator-trust gate from分册09 has passed.
+Expected: every command succeeds; protocol generation is byte-equal to the committed tree and the complete generated closure has no untracked output；frame/FD/lease/seal/fault/resource tests are bounded; deterministic memory-policy evidence is only `container_deterministic`; no test or document claims the real Linux platform/operator-trust gate from分册09 has passed.
