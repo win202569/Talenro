@@ -364,18 +364,33 @@ func TestC12Task4AllowedPackagesStaySynchronizedWithRunner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	matches := regexp.MustCompile(`(?m)^  '(\./[A-Za-z0-9_./-]+)' = \$true$`).FindAllStringSubmatch(string(raw), -1)
-	runnerPackages := make(map[string]struct{}, len(matches))
+	wantImportPaths := map[string]string{
+		"./internal/testinfra":             "talenro.local/platform/internal/testinfra",
+		"./internal/store":                 "talenro.local/platform/internal/store",
+		"./internal/nodecontrol/contracts": "talenro.local/platform/internal/nodecontrol/contracts",
+		"./internal/nodecontrol/authority": "talenro.local/platform/internal/nodecontrol/authority",
+		"./internal/nodecontrol/serving":   "talenro.local/platform/internal/nodecontrol/serving",
+		"./internal/readiness":             "talenro.local/platform/internal/readiness",
+	}
+	matches := regexp.MustCompile(`(?m)^  '(\./[A-Za-z0-9_./-]+)' = '(talenro\.local/platform/[A-Za-z0-9_./-]+)'$`).FindAllStringSubmatch(string(raw), -1)
+	runnerPackages := make(map[string]string, len(matches))
 	for _, match := range matches {
-		runnerPackages[match[1]] = struct{}{}
+		runnerPackages[match[1]] = match[2]
 	}
 	if len(runnerPackages) != len(c12Task4AllowedPackages) {
 		t.Fatalf("runner allowed package count = %d, validator count = %d", len(runnerPackages), len(c12Task4AllowedPackages))
 	}
 	for packageName := range c12Task4AllowedPackages {
-		if _, exists := runnerPackages[packageName]; !exists {
+		importPath, exists := runnerPackages[packageName]
+		if !exists {
 			t.Errorf("runner and validator allowed package sets differ at %s", packageName)
+		} else if importPath != wantImportPaths[packageName] {
+			t.Errorf("runner import path for %s = %q, want %q", packageName, importPath, wantImportPaths[packageName])
 		}
+	}
+	const assertionCall = `Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests`
+	if !strings.Contains(string(raw), assertionCall) {
+		t.Fatalf("runner JSON assertion does not consume the bound canonical package import path")
 	}
 }
 
@@ -1168,7 +1183,8 @@ func main(){
  if stage=="validator"{command:=exec.Command(os.Getenv("C12_SNAPSHOT_REAL_GO"),args...);command.Env=os.Environ();output,err:=command.CombinedOutput();os.Stdout.Write(output);exitFor(err);return}
  if stage=="goose"||stage=="other"{return}
  testName:="TestFirst";if stage=="./internal/testinfra"{switch os.Getenv("C12_SNAPSHOT_MUTATION"){case "tracked":os.WriteFile(filepath.Join(cwd,"internal","store","later.txt"),[]byte("mutated by first group\n"),0600);case "untracked":os.WriteFile(filepath.Join(cwd,"internal","store","untracked.go"),[]byte("package store\n"),0600)}}else{testName="TestSecond";body,_:=os.ReadFile(filepath.Join(cwd,"internal","store","later.txt"));_,extraErr:=os.Stat(filepath.Join(cwd,"internal","store","untracked.go"));if string(body)!="captured candidate bytes\n"||extraErr==nil{os.WriteFile(os.Getenv("C12_LATER_MUTATION_SENTINEL"),[]byte("later compiled mutation"),0600)}}
- encoder:=json.NewEncoder(os.Stdout);encoder.Encode(map[string]string{"Action":"run","Package":stage,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":stage,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":stage})
+ packageName:=map[string]string{"./internal/testinfra":"talenro.local/platform/internal/testinfra","./internal/store":"talenro.local/platform/internal/store"}[stage];if packageName==""{os.Exit(82)}
+ encoder:=json.NewEncoder(os.Stdout);encoder.Encode(map[string]string{"Action":"run","Package":packageName,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":packageName,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":packageName})
 }`
 	const fakeDockerSource = `package main
 import("fmt";"os";"path/filepath";"strconv";"strings")

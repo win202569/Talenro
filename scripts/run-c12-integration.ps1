@@ -24,12 +24,12 @@ Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
 $script:c12AllowedPackages = @{
-  './internal/testinfra' = $true
-  './internal/store' = $true
-  './internal/nodecontrol/contracts' = $true
-  './internal/nodecontrol/authority' = $true
-  './internal/nodecontrol/serving' = $true
-  './internal/readiness' = $true
+  './internal/testinfra' = 'talenro.local/platform/internal/testinfra'
+  './internal/store' = 'talenro.local/platform/internal/store'
+  './internal/nodecontrol/contracts' = 'talenro.local/platform/internal/nodecontrol/contracts'
+  './internal/nodecontrol/authority' = 'talenro.local/platform/internal/nodecontrol/authority'
+  './internal/nodecontrol/serving' = 'talenro.local/platform/internal/nodecontrol/serving'
+  './internal/readiness' = 'talenro.local/platform/internal/readiness'
 }
 $script:c12NativeDeadline = [DateTime]::MaxValue
 $script:c12SuiteDeadline = [DateTime]::MaxValue
@@ -2141,7 +2141,7 @@ function Invoke-C12Group {
     }
     $goArgs += $Package
     $testResult = Invoke-C12Go -Arguments $goArgs -Stage "tagged Go test group $GroupID" -Timeout $groupDuration -Deadline $groupDeadline -AllowFailure
-    Assert-C12GoJSONResult -Result $testResult -Package $Package -ExpectedTests $ExpectedTests
+    Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests
   }
   catch {
     $primaryFailure = $_.Exception.Message
