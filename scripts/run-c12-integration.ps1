@@ -36,6 +36,242 @@ $script:c12SuiteDeadline = [DateTime]::MaxValue
 if ($PSCmdlet.ParameterSetName -eq 'Suite') {
   $script:c12SuiteDeadline = [DateTime]::UtcNow.AddMinutes(120)
 }
+$script:c12TrustedValidatorVersion = 'talenro-c12-trusted-validator/v1'
+$script:c12TrustedValidatorSource = @'
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"flag"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io"
+	"os"
+	"path"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
+	"time"
+)
+
+const validatorVersion = "talenro-c12-trusted-validator/v1"
+const manifestSchema = "talenro-c12-integration-manifest/v1"
+
+type manifest struct {
+	Schema string  `json:"schema"`
+	Groups []group `json:"groups"`
+}
+
+type group struct {
+	ID string `json:"id"`
+	Package string `json:"package"`
+	Profile string `json:"profile"`
+	Tests []string `json:"tests"`
+	Timeout string `json:"timeout"`
+}
+
+type source struct { Path string; Body []byte }
+type testKey struct { pkg, test string }
+
+var allowed = map[string]struct{}{
+	"./internal/testinfra": {}, "./internal/store": {},
+	"./internal/nodecontrol/contracts": {}, "./internal/nodecontrol/authority": {},
+	"./internal/nodecontrol/serving": {}, "./internal/readiness": {},
+}
+var idPattern = regexp.MustCompile(`^[a-z][a-z0-9-]{0,63}$`)
+var packagePattern = regexp.MustCompile(`^\./(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+$`)
+var testPattern = regexp.MustCompile(`^Test[A-Za-z0-9_]+$`)
+var timeoutPattern = regexp.MustCompile(`^[1-9][0-9]*(?:s|m)$`)
+var treePattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
+
+func main() {
+	mode := flag.String("mode", "", "closed validator mode")
+	version := flag.String("version", "", "trusted validator version")
+	rootFlag := flag.String("root", "", "candidate data root")
+	suite := flag.String("suite", "", "suite")
+	suiteTimeout := flag.String("suite-timeout", "", "suite timeout")
+	tree := flag.String("candidate-tree", "", "candidate tree")
+	manifestList := flag.String("manifests", "", "manifest list")
+	packageList := flag.String("packages", "", "focused packages")
+	testList := flag.String("tests", "", "focused tests")
+	flag.Parse()
+	if flag.NArg() != 0 { fail(fmt.Errorf("unexpected positional validator input")) }
+	if *version != validatorVersion { fail(fmt.Errorf("trusted validator version mismatch")) }
+	root, err := filepath.Abs(*rootFlag)
+	if err != nil { fail(err) }
+	info, err := os.Lstat(root)
+	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 { fail(fmt.Errorf("candidate data root is not one exact directory")) }
+	switch *mode {
+	case "suite":
+		if !treePattern.MatchString(*tree) { fail(fmt.Errorf("candidate tree is not an exact identity")) }
+		timeout, err := time.ParseDuration(*suiteTimeout)
+		if err != nil { fail(fmt.Errorf("parse suite timeout: %w", err)) }
+		manifestPaths, err := splitClosed(*manifestList)
+		if err != nil { fail(err) }
+		raw := make([][]byte, 0, len(manifestPaths))
+		for _, relative := range manifestPaths {
+			full, err := closedPath(root, relative)
+			if err != nil { fail(err) }
+			body, err := os.ReadFile(full)
+			if err != nil { fail(fmt.Errorf("read manifest %s: %w", relative, err)) }
+			raw = append(raw, body)
+		}
+		packages, err := manifestPackages(raw)
+		if err != nil { fail(err) }
+		sources, err := loadSources(root, packages)
+		if err != nil { fail(err) }
+		if err := validate(raw, sources, *suite, timeout); err != nil { fail(err) }
+	case "focused":
+		packages, err := splitClosed(*packageList)
+		if err != nil { fail(err) }
+		tests, err := splitClosed(*testList)
+		if err != nil { fail(err) }
+		selected := make(map[string]struct{}, len(packages))
+		for _, pkg := range packages { selected[pkg] = struct{}{} }
+		sources, err := loadSources(root, selected)
+		if err != nil { fail(err) }
+		mapping, err := resolveFocused(sources, packages, tests)
+		if err != nil { fail(err) }
+		raw, err := json.Marshal(mapping)
+		if err != nil { fail(err) }
+		fmt.Printf("C12_FOCUSED_MAP:%s\n", raw)
+	default:
+		fail(fmt.Errorf("unknown trusted validator mode"))
+	}
+	fmt.Printf("C12_TRUSTED_VALIDATOR_OK:%s\n", validatorVersion)
+}
+
+func fail(err error) { fmt.Fprintln(os.Stderr, err); os.Exit(1) }
+
+func splitClosed(value string) ([]string, error) {
+	if value == "" { return nil, fmt.Errorf("closed list is empty") }
+	items := strings.Split(value, "|")
+	if len(items) > 512 { return nil, fmt.Errorf("closed list exceeds bounded count") }
+	for _, item := range items { if item == "" { return nil, fmt.Errorf("closed list contains an empty item") } }
+	return items, nil
+}
+
+func closedPath(root, relative string) (string, error) {
+	clean := path.Clean(filepath.ToSlash(relative))
+	if clean == "." || path.IsAbs(clean) || strings.HasPrefix(clean, "../") || strings.Contains(clean, "/../") {
+		return "", fmt.Errorf("candidate data path %q escapes its root", relative)
+	}
+	full := filepath.Join(root, filepath.FromSlash(clean))
+	rel, err := filepath.Rel(root, full)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) { return "", fmt.Errorf("candidate data path escapes its root") }
+	return full, nil
+}
+
+func decode(raw []byte) (manifest, error) {
+	decoder := json.NewDecoder(bytes.NewReader(raw)); decoder.DisallowUnknownFields()
+	var value manifest
+	if err := decoder.Decode(&value); err != nil { return manifest{}, fmt.Errorf("decode strict integration manifest: %w", err) }
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		if err == nil { return manifest{}, fmt.Errorf("integration manifest contains a second JSON value") }
+		return manifest{}, fmt.Errorf("decode integration manifest trailer: %w", err)
+	}
+	return value, nil
+}
+
+func manifestPackages(raw [][]byte) (map[string]struct{}, error) {
+	result := make(map[string]struct{})
+	for _, body := range raw { value, err := decode(body); if err != nil { return nil, err }; for _, group := range value.Groups { result[group.Package] = struct{}{} } }
+	return result, nil
+}
+
+func loadSources(root string, packages map[string]struct{}) ([]source, error) {
+	paths := make([]string, 0)
+	for pkg := range packages {
+		if !packagePattern.MatchString(pkg) || pkg == "./..." || strings.Contains(pkg, "//") { return nil, fmt.Errorf("candidate package %q is not one explicit package", pkg) }
+		directory, err := closedPath(root, strings.TrimPrefix(pkg, "./"))
+		if err != nil { return nil, err }
+		entries, err := os.ReadDir(directory)
+		if err != nil { return nil, fmt.Errorf("read candidate package %s: %w", pkg, err) }
+		for _, entry := range entries {
+			if entry.Type()&os.ModeSymlink != 0 { return nil, fmt.Errorf("candidate package %s contains a reparse entry", pkg) }
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_test.go") { paths = append(paths, path.Join(strings.TrimPrefix(pkg, "./"), entry.Name())) }
+		}
+	}
+	sort.Strings(paths)
+	result := make([]source, 0, len(paths))
+	for _, relative := range paths { full, err := closedPath(root, relative); if err != nil { return nil, err }; body, err := os.ReadFile(full); if err != nil { return nil, err }; result = append(result, source{Path: relative, Body: body}) }
+	return result, nil
+}
+
+func validate(raw [][]byte, sources []source, suite string, suiteTimeout time.Duration) error {
+	want, ok := map[string]time.Duration{"batch01": 120*time.Minute, "batch02": 180*time.Minute, "batch03": 240*time.Minute, "final": 240*time.Minute}[suite]
+	if !ok { return fmt.Errorf("unknown C12 integration suite %q", suite) }
+	if suiteTimeout != want { return fmt.Errorf("C12 %s suite timeout = %s, want exactly %s", suite, suiteTimeout, want) }
+	if len(raw) == 0 { return fmt.Errorf("selected C12 integration manifest set is empty") }
+	values := make([]manifest, 0, len(raw))
+	for index, body := range raw { value, err := decode(body); if err != nil { return fmt.Errorf("manifest %d: %w", index+1, err) }; values = append(values, value) }
+	coverage := make(map[testKey]int); packages := make(map[string]struct{}); ids := make(map[string]struct{}); var total time.Duration
+	for manifestIndex, value := range values {
+		if value.Schema != manifestSchema { return fmt.Errorf("manifest %d schema = %q, want %q", manifestIndex+1, value.Schema, manifestSchema) }
+		if len(value.Groups) == 0 { return fmt.Errorf("manifest %d has no integration groups", manifestIndex+1) }
+		previousID := ""
+		for _, group := range value.Groups {
+			if !idPattern.MatchString(group.ID) { return fmt.Errorf("integration group ID %q is not closed and bounded", group.ID) }
+			if previousID != "" && group.ID <= previousID { return fmt.Errorf("integration groups are not sorted by unique ID") }; previousID = group.ID
+			if _, duplicate := ids[group.ID]; duplicate { return fmt.Errorf("duplicate integration group ID %q", group.ID) }; ids[group.ID] = struct{}{}
+			if !packagePattern.MatchString(group.Package) || group.Package == "./..." || strings.Contains(group.Package, "//") { return fmt.Errorf("integration group %s package %q is not one explicit package", group.ID, group.Package) }
+			if _, ok := allowed[group.Package]; !ok { return fmt.Errorf("integration group %s package %q is outside the Task 4 allowed package set", group.ID, group.Package) }; packages[group.Package] = struct{}{}
+			setup := 3*time.Minute
+			switch group.Profile { case "base", "authority-v7": case "authority-v7-pitr": setup = 8*time.Minute; default: return fmt.Errorf("integration group %s has unsupported profile %q", group.ID, group.Profile) }
+			if !timeoutPattern.MatchString(group.Timeout) { return fmt.Errorf("integration group %s timeout is not finite", group.ID) }
+			duration, err := time.ParseDuration(group.Timeout); if err != nil || duration <= 0 || duration > 30*time.Minute { return fmt.Errorf("integration group %s timeout exceeds 30m or is invalid", group.ID) }; total += duration + setup
+			if len(group.Tests) == 0 || len(group.Tests) > 512 { return fmt.Errorf("integration group %s has invalid exact tests", group.ID) }
+			previousTest := ""
+			for _, test := range group.Tests {
+				if !testPattern.MatchString(test) { return fmt.Errorf("integration group %s test %q is not literal", group.ID, test) }
+				if test == "TestPrepareC12AuthorityV7Database" { return fmt.Errorf("profile initializer is forbidden") }
+				if previousTest != "" && test <= previousTest { return fmt.Errorf("integration group %s tests are duplicate or unsorted", group.ID) }; previousTest = test
+				coverage[testKey{group.Package, test}]++
+			}
+		}
+	}
+	if total > suiteTimeout { return fmt.Errorf("C12 %s manifest budget exceeds suite budget", suite) }
+	universe := make(map[testKey]string)
+	for _, source := range sources {
+		if !strings.HasSuffix(filepath.ToSlash(source.Path), "_test.go") || !literalTag(source.Body) { continue }
+		normalized := path.Clean(filepath.ToSlash(source.Path)); pkg := "./" + path.Dir(normalized)
+		if _, selected := packages[pkg]; !selected { continue }
+		parsed, err := parser.ParseFile(token.NewFileSet(), normalized, source.Body, parser.SkipObjectResolution); if err != nil { return fmt.Errorf("parse tracked integration source %s: %w", normalized, err) }
+		for _, declaration := range parsed.Decls {
+			function, ok := declaration.(*ast.FuncDecl); if !ok || function.Recv != nil || !testPattern.MatchString(function.Name.Name) || function.Name.Name == "TestPrepareC12AuthorityV7Database" { continue }
+			if callsSkip(function) { return fmt.Errorf("manifest-selected test %s.%s calls testing Skip", pkg, function.Name.Name) }
+			key := testKey{pkg, function.Name.Name}; if previous, exists := universe[key]; exists { return fmt.Errorf("duplicate tracked integration test in %s and %s", previous, normalized) }; universe[key] = normalized
+		}
+	}
+	for key, count := range coverage { if count != 1 { return fmt.Errorf("duplicate manifest coverage for %s.%s", key.pkg, key.test) }; if _, ok := universe[key]; !ok { return fmt.Errorf("extra manifest test %s.%s has no tracked first-line integration source", key.pkg, key.test) } }
+	for key, source := range universe { if coverage[key] == 0 { return fmt.Errorf("missing manifest coverage for %s.%s from %s", key.pkg, key.test, source) } }
+	return nil
+}
+
+func resolveFocused(sources []source, packages, requested []string) (map[string][]string, error) {
+	selected := make(map[string]struct{}, len(packages)); resolved := make(map[string][]string, len(packages))
+	for _, pkg := range packages { if _, ok := allowed[pkg]; !ok { return nil, fmt.Errorf("focused package %q is outside Task 4", pkg) }; if _, duplicate := selected[pkg]; duplicate { return nil, fmt.Errorf("duplicate focused package %q", pkg) }; selected[pkg] = struct{}{}; resolved[pkg] = nil }
+	requestedSet := make(map[string]struct{}, len(requested)); for _, test := range requested { if !testPattern.MatchString(test) { return nil, fmt.Errorf("malformed focused test") }; if _, duplicate := requestedSet[test]; duplicate { return nil, fmt.Errorf("duplicate focused test") }; requestedSet[test] = struct{}{} }
+	definitions := make(map[string][]string); seen := make(map[string]string)
+	for _, source := range sources {
+		if !literalTag(source.Body) { continue }; normalized := path.Clean(filepath.ToSlash(source.Path)); pkg := "./" + path.Dir(normalized); if _, ok := selected[pkg]; !ok { continue }
+		parsed, err := parser.ParseFile(token.NewFileSet(), normalized, source.Body, parser.SkipObjectResolution); if err != nil { return nil, err }
+		for _, declaration := range parsed.Decls { function, ok := declaration.(*ast.FuncDecl); if !ok || function.Recv != nil || !testPattern.MatchString(function.Name.Name) { continue }; key := pkg+"\x00"+function.Name.Name; if previous, duplicate := seen[key]; duplicate { return nil, fmt.Errorf("ambiguous focused test in %s and %s", previous, normalized) }; seen[key] = normalized; definitions[function.Name.Name] = append(definitions[function.Name.Name], pkg) }
+	}
+	for _, test := range requested { owners := definitions[test]; if len(owners) == 0 { return nil, fmt.Errorf("focused requested test %s is missing", test) }; if len(owners) != 1 { return nil, fmt.Errorf("focused requested test %s is ambiguous", test) }; resolved[owners[0]] = append(resolved[owners[0]], test) }
+	for _, pkg := range packages { if len(resolved[pkg]) == 0 { return nil, fmt.Errorf("focused package %s has no requested local test", pkg) }; sort.Strings(resolved[pkg]) }
+	return resolved, nil
+}
+
+func literalTag(body []byte) bool { line := body; if index := bytes.IndexByte(body, '\n'); index >= 0 { line = body[:index] }; line = bytes.TrimSuffix(line, []byte{'\r'}); return bytes.Equal(line, []byte("//go:build integration")) }
+func callsSkip(function *ast.FuncDecl) bool { names := make(map[string]struct{}); if function.Type.Params != nil { for _, field := range function.Type.Params.List { for _, name := range field.Names { names[name.Name] = struct{}{} } } }; found := false; ast.Inspect(function.Body, func(node ast.Node) bool { call, ok := node.(*ast.CallExpr); if !ok { return true }; selector, ok := call.Fun.(*ast.SelectorExpr); if !ok || (selector.Sel.Name != "Skip" && selector.Sel.Name != "Skipf" && selector.Sel.Name != "SkipNow") { return true }; receiver, ok := selector.X.(*ast.Ident); if ok { if _, parameter := names[receiver.Name]; parameter { found = true; return false } }; return true }); return found }
+'@
 
 function ConvertFrom-C12Duration {
   param(
@@ -180,42 +416,233 @@ public static class C12NativeJob
             throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 }
-'@
 
-$script:c12NativeJobMemberSource = @'
-using System;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-
-public static class C12NativeJobMember
+public sealed class C12OwnedDirectory : IDisposable
 {
-    private const UInt32 JOB_OBJECT_ASSIGN_PROCESS = 0x0001;
+    private const UInt32 FILE_READ_ATTRIBUTES = 0x00000080;
+    private const UInt32 DELETE = 0x00010000;
+    private const UInt32 FILE_SHARE_READ = 0x00000001;
+    private const UInt32 FILE_SHARE_WRITE = 0x00000002;
+    private const UInt32 FILE_SHARE_DELETE = 0x00000004;
+    private const UInt32 OPEN_EXISTING = 3;
+    private const UInt32 FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000;
+    private const UInt32 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+    private const UInt32 FILE_ATTRIBUTE_READONLY = 0x00000001;
+    private const UInt32 FILE_ATTRIBUTE_DIRECTORY = 0x00000010;
+    private const UInt32 FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
+    private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
+    private const Int32 ERROR_ALREADY_EXISTS = 183;
+    private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILETIME
+    {
+        public UInt32 LowDateTime;
+        public UInt32 HighDateTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BY_HANDLE_FILE_INFORMATION
+    {
+        public UInt32 FileAttributes;
+        public FILETIME CreationTime;
+        public FILETIME LastAccessTime;
+        public FILETIME LastWriteTime;
+        public UInt32 VolumeSerialNumber;
+        public UInt32 FileSizeHigh;
+        public UInt32 FileSizeLow;
+        public UInt32 NumberOfLinks;
+        public UInt32 FileIndexHigh;
+        public UInt32 FileIndexLow;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO
+    {
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool DeleteFile;
+    }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr OpenJobObject(UInt32 desiredAccess, bool inheritHandle, string name);
+    private static extern bool CreateDirectory(string path, IntPtr securityAttributes);
 
-    [DllImport("kernel32.dll")]
-    private static extern IntPtr GetCurrentProcess();
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+    private static extern bool GetFileInformationByHandle(IntPtr handle, out BY_HANDLE_FILE_INFORMATION information);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetFileInformationByHandle(IntPtr handle, Int32 informationClass, IntPtr information, UInt32 bufferSize);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool SetFileAttributes(string path, UInt32 attributes);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
 
-    public static void Join(string name)
+    private IntPtr handle;
+    private readonly UInt32 volumeSerial;
+    private readonly UInt64 fileIndex;
+    public string RootPath { get; private set; }
+
+    private C12OwnedDirectory(string rootPath, IntPtr ownedHandle, BY_HANDLE_FILE_INFORMATION information)
     {
-        IntPtr job = OpenJobObject(JOB_OBJECT_ASSIGN_PROCESS, false, name);
-        if (job == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+        RootPath = rootPath;
+        handle = ownedHandle;
+        volumeSerial = information.VolumeSerialNumber;
+        fileIndex = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
+    }
+
+    public static C12OwnedDirectory CreateNew(string exactRoot)
+    {
+        string root = System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\');
+        if (!CreateDirectory(root, IntPtr.Zero))
+        {
+            int error = Marshal.GetLastWin32Error();
+            if (error == ERROR_ALREADY_EXISTS) throw new InvalidOperationException("owned directory already exists");
+            throw new Win32Exception(error);
+        }
         try
         {
-            if (!AssignProcessToJobObject(job, GetCurrentProcess()))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+            return OpenExact(root);
+        }
+        catch
+        {
+            try { System.IO.Directory.Delete(root, false); } catch { }
+            throw;
+        }
+    }
+
+    public static C12OwnedDirectory OpenExisting(string exactRoot)
+    {
+        return OpenExact(System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\'));
+    }
+
+    private static C12OwnedDirectory OpenExact(string root)
+    {
+        IntPtr current = CreateFile(root, FILE_READ_ATTRIBUTES | DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        if (current == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            BY_HANDLE_FILE_INFORMATION information = ReadInformation(current);
+            if ((information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+                throw new InvalidOperationException("owned directory root is not one non-reparse directory object");
+            C12OwnedDirectory result = new C12OwnedDirectory(root, current, information);
+            current = INVALID_HANDLE_VALUE;
+            return result;
         }
         finally
         {
-            CloseHandle(job);
+            if (current != INVALID_HANDLE_VALUE) CloseHandle(current);
         }
+    }
+
+    private static BY_HANDLE_FILE_INFORMATION ReadInformation(IntPtr value)
+    {
+        BY_HANDLE_FILE_INFORMATION information;
+        if (!GetFileInformationByHandle(value, out information)) throw new Win32Exception(Marshal.GetLastWin32Error());
+        return information;
+    }
+
+    private void EnsureOpen()
+    {
+        if (handle == IntPtr.Zero || handle == INVALID_HANDLE_VALUE) throw new ObjectDisposedException("C12OwnedDirectory");
+    }
+
+    public void VerifyExactPath()
+    {
+        EnsureOpen();
+        BY_HANDLE_FILE_INFORMATION retained = ReadInformation(handle);
+        UInt64 retainedIndex = ((UInt64)retained.FileIndexHigh << 32) | retained.FileIndexLow;
+        if ((retained.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (retained.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 || retained.VolumeSerialNumber != volumeSerial || retainedIndex != fileIndex)
+            throw new InvalidOperationException("retained owned-directory identity changed");
+        IntPtr current = CreateFile(RootPath, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        if (current == INVALID_HANDLE_VALUE) throw new InvalidOperationException("owned directory path no longer resolves to its retained identity", new Win32Exception(Marshal.GetLastWin32Error()));
+        try
+        {
+            BY_HANDLE_FILE_INFORMATION observed = ReadInformation(current);
+            UInt64 observedIndex = ((UInt64)observed.FileIndexHigh << 32) | observed.FileIndexLow;
+            if ((observed.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (observed.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 || observed.VolumeSerialNumber != volumeSerial || observedIndex != fileIndex)
+                throw new InvalidOperationException("owned directory path was substituted");
+        }
+        finally { CloseHandle(current); }
+    }
+
+    public void DeleteExactTree(DateTime deadlineUtc)
+    {
+        VerifyExactPath();
+        int visited = 0;
+        DeleteChildren(RootPath, handle, deadlineUtc, ref visited);
+        VerifyExactPath();
+        MarkDelete(handle);
+        Dispose();
+        if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound root deletion remained pending");
+    }
+
+    private static void DeleteChildren(string directory, IntPtr directoryHandle, DateTime deadlineUtc, ref int visited)
+    {
+        CheckDeadline(deadlineUtc);
+        foreach (string child in System.IO.Directory.EnumerateFileSystemEntries(directory, "*", System.IO.SearchOption.TopDirectoryOnly))
+        {
+            CheckDeadline(deadlineUtc);
+            visited++;
+            if (visited > 100000) throw new InvalidOperationException("identity-bound cleanup exceeds the bounded entry count");
+            IntPtr childHandle = CreateFile(child, FILE_READ_ATTRIBUTES | DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+            if (childHandle == INVALID_HANDLE_VALUE) throw new InvalidOperationException("identity-bound cleanup could not lock one descendant", new Win32Exception(Marshal.GetLastWin32Error()));
+            try
+            {
+                BY_HANDLE_FILE_INFORMATION information = ReadInformation(childHandle);
+                bool reparse = (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+                bool directoryEntry = (information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+                if (!reparse && directoryEntry) DeleteChildren(child, childHandle, deadlineUtc, ref visited);
+                if (!reparse && !directoryEntry && (information.FileAttributes & FILE_ATTRIBUTE_READONLY) != 0)
+                {
+                    if (!SetFileAttributes(child, information.FileAttributes & ~FILE_ATTRIBUTE_READONLY))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                }
+                MarkDelete(childHandle);
+            }
+            finally { CloseHandle(childHandle); }
+        }
+        CheckDeadline(deadlineUtc);
+    }
+
+    private static void MarkDelete(IntPtr value)
+    {
+        FILE_DISPOSITION_INFO disposition = new FILE_DISPOSITION_INFO();
+        disposition.DeleteFile = true;
+        int length = Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO));
+        IntPtr pointer = Marshal.AllocHGlobal(length);
+        try
+        {
+            Marshal.StructureToPtr(disposition, pointer, false);
+            if (!SetFileInformationByHandle(value, FILE_DISPOSITION_INFO_CLASS, pointer, (UInt32)length))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+        finally { Marshal.FreeHGlobal(pointer); }
+    }
+
+    private static void CheckDeadline(DateTime deadlineUtc)
+    {
+        if (deadlineUtc != DateTime.MaxValue && DateTime.UtcNow >= deadlineUtc)
+            throw new TimeoutException("identity-bound cleanup exceeded its absolute deadline");
+    }
+
+    public void Dispose()
+    {
+        IntPtr current = handle;
+        handle = IntPtr.Zero;
+        if (current != IntPtr.Zero && current != INVALID_HANDLE_VALUE && !CloseHandle(current))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        GC.SuppressFinalize(this);
+    }
+
+    ~C12OwnedDirectory()
+    {
+        IntPtr current = handle;
+        handle = IntPtr.Zero;
+        if (current != IntPtr.Zero && current != INVALID_HANDLE_VALUE) CloseHandle(current);
     }
 }
 '@
@@ -223,8 +650,51 @@ public static class C12NativeJobMember
 $script:c12ContainedNativeScript = {
   param($Invocation)
   try {
-    Add-Type -TypeDefinition ([string]$Invocation.ClientSource)
-    [C12NativeJobMember]::Join([string]$Invocation.JobName)
+    $assemblyName = New-Object Reflection.AssemblyName("TalenroC12NativeMember_$([Guid]::NewGuid().ToString('N'))")
+    $assemblyBuilder = [AppDomain]::CurrentDomain.DefineDynamicAssembly($assemblyName, [Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $moduleBuilder = $assemblyBuilder.DefineDynamicModule('TalenroC12NativeMember')
+    $typeAttributes = [Reflection.TypeAttributes]::Public -bor [Reflection.TypeAttributes]::Sealed -bor [Reflection.TypeAttributes]::Abstract
+    $typeBuilder = $moduleBuilder.DefineType('TalenroC12NativeMember', $typeAttributes)
+    $methodAttributes = [Reflection.MethodAttributes]::Public -bor [Reflection.MethodAttributes]::Static -bor [Reflection.MethodAttributes]::PinvokeImpl
+    $openMethodBuilder = $typeBuilder.DefinePInvokeMethod(
+      'OpenJobObject', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
+      [IntPtr], [Type[]]@([UInt32], [bool], [string]),
+      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::Unicode)
+    $currentMethodBuilder = $typeBuilder.DefinePInvokeMethod(
+      'GetCurrentProcess', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
+      [IntPtr], [Type[]]@(),
+      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
+    $assignMethodBuilder = $typeBuilder.DefinePInvokeMethod(
+      'AssignProcessToJobObject', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
+      [bool], [Type[]]@([IntPtr], [IntPtr]),
+      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
+    $closeMethodBuilder = $typeBuilder.DefinePInvokeMethod(
+      'CloseHandle', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
+      [bool], [Type[]]@([IntPtr]),
+      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
+    foreach ($methodBuilder in @($openMethodBuilder, $currentMethodBuilder, $assignMethodBuilder, $closeMethodBuilder)) {
+      $methodBuilder.SetImplementationFlags($methodBuilder.GetMethodImplementationFlags() -bor [Reflection.MethodImplAttributes]::PreserveSig)
+    }
+    $memberType = $typeBuilder.CreateType()
+    $openMethod = $memberType.GetMethod('OpenJobObject')
+    $currentMethod = $memberType.GetMethod('GetCurrentProcess')
+    $assignMethod = $memberType.GetMethod('AssignProcessToJobObject')
+    $closeMethod = $memberType.GetMethod('CloseHandle')
+    $memberJobHandle = [IntPtr]$openMethod.Invoke($null, [object[]]@([UInt32]1, $false, [string]$Invocation.JobName))
+    if ($memberJobHandle -eq [IntPtr]::Zero) {
+      throw "open named native Job failed with Win32 error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+    }
+    try {
+      $currentProcess = [IntPtr]$currentMethod.Invoke($null, [object[]]@())
+      if (-not [bool]$assignMethod.Invoke($null, [object[]]@($memberJobHandle, $currentProcess))) {
+        throw "assign current process to named native Job failed with Win32 error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+      }
+    }
+    finally {
+      if (-not [bool]$closeMethod.Invoke($null, [object[]]@($memberJobHandle))) {
+        throw "close child-side named native Job handle failed with Win32 error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+      }
+    }
   }
   catch {
     [pscustomobject]@{ ExitCode = 127; Output = [string[]]@(); ContainmentFailure = $true }
@@ -345,7 +815,6 @@ function Invoke-C12Native {
     Arguments = [string[]]$Arguments
     WorkingDirectory = $WorkingDirectory
     JobName = $nativeJobName
-    ClientSource = $script:c12NativeJobMemberSource
     Environment = [object[]]$childEnvironment
   }
   $job = $null
@@ -443,6 +912,30 @@ function Get-C12BoundedWaitSeconds {
   return [int][Math]::Min([double]$MaximumSeconds, $remainingSeconds)
 }
 
+function New-C12OwnedDirectory {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Root,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ExpectedParent,
+
+    [Parameter(Mandatory = $true)]
+    [string]$LeafPattern,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Stage
+  )
+
+  $resolvedParent = [IO.Path]::GetFullPath($ExpectedParent).TrimEnd('\')
+  $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\')
+  if ([IO.Path]::GetDirectoryName($resolvedRoot).TrimEnd('\') -cne $resolvedParent -or
+      [IO.Path]::GetFileName($resolvedRoot) -notmatch $LeafPattern) {
+    throw "$Stage refused a malformed exact owned-directory path"
+  }
+  return [C12OwnedDirectory]::CreateNew($resolvedRoot)
+}
+
 function Remove-C12BoundedDirectory {
   param(
     [Parameter(Mandatory = $true)]
@@ -457,45 +950,41 @@ function Remove-C12BoundedDirectory {
     [Parameter(Mandatory = $true)]
     [string]$Stage,
 
-    [DateTime]$Deadline = [DateTime]::MaxValue
+    [DateTime]$Deadline = [DateTime]::MaxValue,
+
+    [object]$Ownership = $null
   )
 
-  $resolvedParent = [IO.Path]::GetFullPath($ExpectedParent).TrimEnd('\')
-  $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\')
-  if ([IO.Path]::GetDirectoryName($resolvedRoot).TrimEnd('\') -cne $resolvedParent -or
-      [IO.Path]::GetFileName($resolvedRoot) -notmatch $LeafPattern) {
-    throw "$Stage refused a malformed exact cleanup path"
+  $resolvedRoot = [string]$Root
+  $cleanupOwnership = $Ownership
+  try {
+    $resolvedParent = [IO.Path]::GetFullPath($ExpectedParent).TrimEnd('\')
+    $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\')
+    if ([IO.Path]::GetDirectoryName($resolvedRoot).TrimEnd('\') -cne $resolvedParent -or
+        [IO.Path]::GetFileName($resolvedRoot) -notmatch $LeafPattern) {
+      throw "$Stage refused a malformed exact cleanup path"
+    }
+    if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) {
+      throw "$Stage exceeded its absolute deadline before identity verification"
+    }
+    if ($null -eq $cleanupOwnership) {
+      if (-not [IO.Directory]::Exists($resolvedRoot)) {
+        return
+      }
+      $cleanupOwnership = [C12OwnedDirectory]::OpenExisting($resolvedRoot)
+    }
+    elseif ([string]$cleanupOwnership.RootPath -cne $resolvedRoot) {
+      throw "$Stage refused a mismatched owned-directory handle"
+    }
+    $cleanupOwnership.VerifyExactPath()
+    $cleanupOwnership.DeleteExactTree($Deadline)
   }
-  if ([IO.Directory]::Exists($resolvedRoot)) {
-    $waitSeconds = Get-C12BoundedWaitSeconds -Deadline $Deadline -MaximumSeconds 5 -Stage $Stage
-    $cleanupJob = Start-Job -ArgumentList $resolvedRoot -ScriptBlock {
-      param($ExactRoot)
-      $pendingDirectories = New-Object 'System.Collections.Generic.Stack[string]'
-      $pendingDirectories.Push([string]$ExactRoot)
-      while ($pendingDirectories.Count -gt 0) {
-        $directory = $pendingDirectories.Pop()
-        foreach ($file in [IO.Directory]::GetFiles($directory)) {
-          [IO.File]::SetAttributes($file, [IO.FileAttributes]::Normal)
-        }
-        foreach ($childDirectory in [IO.Directory]::GetDirectories($directory)) {
-          $attributes = [IO.File]::GetAttributes($childDirectory)
-          if (($attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) {
-            $pendingDirectories.Push($childDirectory)
-          }
-        }
-      }
-      [IO.Directory]::Delete([string]$ExactRoot, $true)
-    }
-    try {
-      if ($null -eq (Wait-Job -Job $cleanupJob -Timeout $waitSeconds)) {
-        Stop-Job -Job $cleanupJob -ErrorAction SilentlyContinue
-        throw "$Stage timed out after $waitSeconds seconds"
-      }
-      $null = Receive-Job -Job $cleanupJob -ErrorAction Stop
-    }
-    finally {
-      Stop-Job -Job $cleanupJob -ErrorAction SilentlyContinue
-      Remove-Job -Job $cleanupJob -Force -ErrorAction SilentlyContinue
+  catch {
+    throw "$Stage could not identity-bind cleanup for exact orphan $resolvedRoot`: $($_.Exception.Message)"
+  }
+  finally {
+    if ($null -ne $cleanupOwnership) {
+      $cleanupOwnership.Dispose()
     }
   }
 }
@@ -505,10 +994,12 @@ function Remove-C12CandidateSnapshot {
     [Parameter(Mandatory = $true)]
     [string]$OwnerRoot,
 
+    [object]$Ownership = $null,
+
     [DateTime]$Deadline = [DateTime]::MaxValue
   )
 
-  Remove-C12BoundedDirectory -Root $OwnerRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-candidate-[0-9a-f]{32}$' -Stage 'staged candidate cleanup' -Deadline $Deadline
+  Remove-C12BoundedDirectory -Root $OwnerRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-candidate-[0-9a-f]{32}$' -Stage 'staged candidate cleanup' -Deadline $Deadline -Ownership $Ownership
 }
 
 function Remove-C12CandidateMaterialization {
@@ -522,7 +1013,7 @@ function Remove-C12CandidateMaterialization {
     [DateTime]$Deadline = [DateTime]::MaxValue
   )
 
-  Remove-C12BoundedDirectory -Root ([string]$Snapshot.OwnerRoot) -ExpectedParent ([string]$Candidate.OwnerRoot) -LeafPattern '^snapshot-[0-9a-f]{32}$' -Stage 'candidate group snapshot cleanup' -Deadline $Deadline
+  Remove-C12BoundedDirectory -Root ([string]$Snapshot.OwnerRoot) -ExpectedParent ([string]$Candidate.OwnerRoot) -LeafPattern '^snapshot-[0-9a-f]{32}$' -Stage 'candidate group snapshot cleanup' -Deadline $Deadline -Ownership $Snapshot.Ownership
 }
 
 function Copy-C12CandidateIndex {
@@ -623,8 +1114,10 @@ function New-C12CandidateSnapshot {
   $ownerRoot = Join-Path ([IO.Path]::GetTempPath()) "talenro-c12-candidate-$suffix"
   $candidateIndex = Join-Path $ownerRoot 'candidate.index'
   $candidateObjects = Join-Path $ownerRoot 'objects'
-  [void][IO.Directory]::CreateDirectory($candidateObjects)
+  $ownership = $null
   try {
+    $ownership = New-C12OwnedDirectory -Root $ownerRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-candidate-[0-9a-f]{32}$' -Stage 'staged candidate creation'
+    [void][IO.Directory]::CreateDirectory($candidateObjects)
     $context = Resolve-C12TrustedGitContext -ScriptRoot $script:c12RepositoryRoot -Deadline $script:c12SuiteDeadline
     $gitArguments = @("--git-dir=$([string]$context.GitDirectory)", "--work-tree=$([string]$context.WorkTree)")
     $indexResult = Invoke-C12Git -Arguments @($gitArguments + @('rev-parse', '--path-format=absolute', '--git-path', 'index')) -Stage 'locate staged candidate index' -WorkingDirectory ([string]$context.WorkTree) -Deadline $script:c12SuiteDeadline
@@ -654,6 +1147,7 @@ function New-C12CandidateSnapshot {
       AlternateObjectDirectory = $commonObjects
       WorkTree = [string]$context.WorkTree
       GitDirectory = [string]$context.GitDirectory
+      Ownership = $ownership
       MaterializationDigest = ''
       MaterializationFileCount = 0
       MaterializationTotalBytes = 0
@@ -669,7 +1163,7 @@ function New-C12CandidateSnapshot {
     return $candidate
   }
   catch {
-    Remove-C12CandidateSnapshot -OwnerRoot $ownerRoot -Deadline $script:c12SuiteDeadline
+    Remove-C12CandidateSnapshot -OwnerRoot $ownerRoot -Ownership $ownership -Deadline $script:c12SuiteDeadline
     throw
   }
 }
@@ -807,9 +1301,12 @@ function New-C12CandidateMaterialization {
   $snapshotOwner = Join-Path ([string]$Candidate.OwnerRoot) "snapshot-$(New-C12RandomSuffix)"
   $snapshotRoot = Join-Path $snapshotOwner 'tree'
   $snapshotIndex = Join-Path $snapshotOwner 'snapshot.index'
-  [void][IO.Directory]::CreateDirectory($snapshotRoot)
-  $snapshot = [pscustomobject]@{ OwnerRoot = $snapshotOwner; Root = $snapshotRoot; Index = $snapshotIndex; Digest = ''; FileCount = 0; TotalBytes = 0 }
+  $snapshotOwnership = $null
+  $snapshot = [pscustomobject]@{ OwnerRoot = $snapshotOwner; Root = $snapshotRoot; Index = $snapshotIndex; Ownership = $null; Digest = ''; FileCount = 0; TotalBytes = 0 }
   try {
+    $snapshotOwnership = New-C12OwnedDirectory -Root $snapshotOwner -ExpectedParent ([string]$Candidate.OwnerRoot) -LeafPattern '^snapshot-[0-9a-f]{32}$' -Stage "$Stage owner creation"
+    $snapshot.Ownership = $snapshotOwnership
+    [void][IO.Directory]::CreateDirectory($snapshotRoot)
     $gitArguments = Get-C12CandidateGitArguments -Candidate $Candidate
     Copy-C12CandidateIndex -Source ([string]$Candidate.Index) -Destination $snapshotIndex -Deadline $Deadline
     $environment = Get-C12CandidateGitEnvironment -Candidate $Candidate -IndexPath $snapshotIndex
@@ -872,6 +1369,100 @@ function Invoke-C12Go {
   )
 
   return Invoke-C12Native -Executable 'go' -Arguments $Arguments -Stage $Stage -Timeout $Timeout -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline -AllowFailure:$AllowFailure
+}
+
+function Invoke-C12TrustedValidator {
+  param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('suite', 'focused')]
+    [string]$Mode,
+
+    [Parameter(Mandatory = $true)]
+    [string]$DataRoot,
+
+    [string]$SuiteName = '',
+
+    [string]$SuiteTimeout = '',
+
+    [string]$CandidateTree = '',
+
+    [string[]]$ManifestPaths = @(),
+
+    [string[]]$Packages = @(),
+
+    [string[]]$Tests = @(),
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) {
+    throw 'trusted candidate validation exceeded its absolute deadline before bootstrap'
+  }
+  $resolvedDataRoot = [IO.Path]::GetFullPath($DataRoot).TrimEnd('\')
+  if (-not [IO.Directory]::Exists($resolvedDataRoot)) {
+    throw 'trusted candidate validation data root is absent'
+  }
+  $validatorLeaf = "talenro-c12-validator-$(New-C12RandomSuffix)"
+  $validatorRoot = Join-Path ([IO.Path]::GetTempPath()) $validatorLeaf
+  if ($validatorLeaf -notmatch '^talenro-c12-validator-[0-9a-f]{32}$') {
+    throw 'trusted candidate validation generated a malformed bootstrap identity'
+  }
+  $sourcePath = Join-Path $validatorRoot 'main.go'
+  $validatorOwnership = $null
+  try {
+    $validatorOwnership = New-C12OwnedDirectory -Root $validatorRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'trusted candidate validator creation'
+    $encoding = New-Object System.Text.UTF8Encoding($false)
+    $sourceBytes = $encoding.GetBytes([string]$script:c12TrustedValidatorSource)
+    [IO.File]::WriteAllBytes($sourcePath, $sourceBytes)
+    $writtenBytes = [IO.File]::ReadAllBytes($sourcePath)
+    $expectedHash = [Security.Cryptography.SHA256]::Create()
+    $actualHash = [Security.Cryptography.SHA256]::Create()
+    try {
+      $expectedDigest = [Convert]::ToBase64String($expectedHash.ComputeHash($sourceBytes))
+      $actualDigest = [Convert]::ToBase64String($actualHash.ComputeHash($writtenBytes))
+    }
+    finally {
+      $expectedHash.Dispose()
+      $actualHash.Dispose()
+    }
+    if ($expectedDigest -cne $actualDigest -or $sourceBytes.Length -ne $writtenBytes.Length) {
+      throw 'trusted candidate validation bootstrap bytes changed after materialization'
+    }
+    if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) {
+      throw 'trusted candidate validation exceeded its absolute deadline after bootstrap'
+    }
+
+    $arguments = @(
+      'run', $sourcePath,
+      '-mode', $Mode,
+      '-version', $script:c12TrustedValidatorVersion,
+      '-root', $resolvedDataRoot
+    )
+    if ($Mode -ceq 'suite') {
+      $arguments += @(
+        '-suite', $SuiteName,
+        '-suite-timeout', $SuiteTimeout,
+        '-candidate-tree', $CandidateTree,
+        '-manifests', ($ManifestPaths -join '|')
+      )
+    }
+    else {
+      $arguments += @(
+        '-packages', ($Packages -join '|'),
+        '-tests', ($Tests -join '|')
+      )
+    }
+    $result = Invoke-C12Native -Executable 'go' -Arguments $arguments -Stage 'trusted candidate validation' -Timeout ([TimeSpan]::FromMinutes(2)) -WorkingDirectory $validatorRoot -Deadline $Deadline
+    $successMarker = "C12_TRUSTED_VALIDATOR_OK:$($script:c12TrustedValidatorVersion)"
+    $markers = @($result.Output | Where-Object { [string]$_ -ceq $successMarker })
+    if ($markers.Count -ne 1) {
+      throw 'trusted candidate validation did not return its exact version marker'
+    }
+    return $result
+  }
+  finally {
+    Remove-C12BoundedDirectory -Root $validatorRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'trusted candidate validator cleanup' -Deadline $Deadline -Ownership $validatorOwnership
+  }
 }
 
 function Get-C12SingleOutputLine {
@@ -1196,11 +1787,7 @@ function Resolve-C12FocusedTestMap {
     [string[]]$RequestedTests
   )
 
-  $goArgs = @(
-    'test', '-run', '^TestC12ResolveFocusedIntegrationTests$', '-count=1', '-v', './internal/testinfra',
-    '-args', '-c12-focused-packages', ($Packages -join '|'), '-c12-focused-tests', ($RequestedTests -join '|')
-  )
-  $result = Invoke-C12Go -Arguments $goArgs -Stage 'resolve focused package-local integration tests' -Timeout ([TimeSpan]::FromMinutes(2))
+  $result = Invoke-C12TrustedValidator -Mode 'focused' -DataRoot $script:c12RepositoryRoot -Packages $Packages -Tests $RequestedTests
   $prefix = 'C12_FOCUSED_MAP:'
   $mappingLines = @($result.Output | Where-Object { ([string]$_).StartsWith($prefix, [StringComparison]::Ordinal) })
   if ($mappingLines.Count -ne 1) {
@@ -1608,12 +2195,7 @@ function Invoke-C12SuiteMode {
         throw 'canonical Batch 01 manifest is absent from the staged candidate'
       }
 
-      $goArgs = @(
-        'test', '-run', '^TestC12SelectedIntegrationManifest$', '-count=1', './internal/testinfra',
-        '-args', '-c12-suite', 'batch01', '-c12-manifests', $manifestRelativePath,
-        '-c12-suite-timeout', $Timeout, '-c12-candidate-tree', [string]$candidate.Tree
-      )
-      $null = Invoke-C12Go -Arguments $goArgs -Stage 'validate canonical Batch 01 integration manifest'
+      $null = Invoke-C12TrustedValidator -Mode 'suite' -DataRoot $script:c12RepositoryRoot -SuiteName 'batch01' -SuiteTimeout $Timeout -CandidateTree ([string]$candidate.Tree) -ManifestPaths @($manifestRelativePath) -Deadline $script:c12SuiteDeadline
       $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
       $groups = @($manifest.groups)
       Assert-C12ExecutionPlan -Groups $groups
@@ -1654,7 +2236,7 @@ function Invoke-C12SuiteMode {
   finally {
     $script:c12RepositoryRoot = $originalRoot
     if ($null -ne $candidate) {
-      Remove-C12CandidateSnapshot -OwnerRoot ([string]$candidate.OwnerRoot) -Deadline $script:c12SuiteDeadline
+      Remove-C12CandidateSnapshot -OwnerRoot ([string]$candidate.OwnerRoot) -Ownership $candidate.Ownership -Deadline $script:c12SuiteDeadline
     }
     $script:c12NativeDeadline = $priorNativeDeadline
   }
