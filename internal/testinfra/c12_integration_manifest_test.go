@@ -13,6 +13,7 @@ import (
 	"go/token"
 	"io"
 	"io/fs"
+	"net"
 	"os"
 	"os/exec"
 	"path"
@@ -628,6 +629,29 @@ func main() {
 	}
 }
 
+func TestC12BaseRunnerContainedChildDoesNotSpawnWhenNamedJobContainmentFails(t *testing.T) {
+	for _, mode := range []string{"open", "assignment"} {
+		t.Run(mode, func(t *testing.T) {
+			sentinel := filepath.Join(t.TempDir(), "native-spawned")
+			output, exitCode := runC12ContainmentFailureHarness(t, mode, sentinel)
+			if exitCode != 0 {
+				t.Fatalf("containment failure harness exit=%d output=%q", exitCode, output)
+			}
+			time.Sleep(500 * time.Millisecond)
+			if fileExists(sentinel) {
+				t.Fatalf("native executable spawned after named Job %s failure", mode)
+			}
+		})
+	}
+}
+
+func TestC12BaseRunnerRejectsNamedJobCollision(t *testing.T) {
+	output, exitCode := runC12NamedJobCollisionHarness(t)
+	if exitCode != 0 {
+		t.Fatalf("named Job collision harness exit=%d output=%q", exitCode, output)
+	}
+}
+
 func TestC12BaseRunnerDeclaresExactGroupAndSuiteDeadlines(t *testing.T) {
 	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
 	if err != nil {
@@ -636,15 +660,22 @@ func TestC12BaseRunnerDeclaresExactGroupAndSuiteDeadlines(t *testing.T) {
 	source := string(raw)
 	for _, literal := range []string{
 		"$script:c12SuiteDeadline = [DateTime]::UtcNow.AddMinutes(120)",
-		"$groupDeadline = [DateTime]::UtcNow.Add($groupDuration).AddMinutes(3)",
+		"[DateTime]::UtcNow.Add($groupDuration).AddMinutes(3)",
 		"Invoke-C12Native",
 		"Wait-Job -Job $job -Timeout",
 		"JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE",
-		"[C12NativeJob]::Assign($nativeJobHandle, $jobHostID)",
-		"[IO.File]::WriteAllText($releasePath, 'contained')",
+		"CreateJobObject(IntPtr.Zero, name)",
+		"OpenJobObject",
+		"GetCurrentProcess",
+		"[C12NativeJobMember]::Join",
 	} {
 		if !strings.Contains(source, literal) {
 			t.Errorf("runner lacks enforced deadline literal %q", literal)
+		}
+	}
+	for _, forbidden := range []string{"host.pid", "PIDTemporaryPath", "ReleasePath", "$releasePath", "$jobHostID", "C12NativeJob]::Assign"} {
+		if strings.Contains(source, forbidden) {
+			t.Errorf("runner retains legacy filesystem/PID containment artifact %q", forbidden)
 		}
 	}
 }
@@ -739,26 +770,37 @@ func TestC12BaseRunnerRejectsInheritedDependenciesWithoutEchoingThem(t *testing.
 	}
 }
 
-func TestC12BaseRunnerRejectsInheritedGitCandidateOverrides(t *testing.T) {
-	const canary = `C:\secret-candidate-index`
-	output, exitCode := runC12PowerShell(t, map[string]string{"GIT_INDEX_FILE": canary},
-		"-Profile", "base", "-Packages", "./...", "-Run", "^TestAlpha$", "-Timeout", "3m")
-	if exitCode == 0 || !strings.Contains(output, "inherited Git candidate overrides") {
-		t.Fatalf("exit=%d output=%q, want inherited Git override rejection", exitCode, output)
+func TestC12BaseRunnerRejectsEveryInheritedGitVariableWithoutEchoingIt(t *testing.T) {
+	tests := []struct {
+		name, variable, value string
+	}{
+		{name: "directory", variable: "GIT_DIR", value: `C:\secret-git-dir`},
+		{name: "work tree", variable: "GIT_WORK_TREE", value: `C:\secret-work-tree`},
+		{name: "common directory", variable: "GIT_COMMON_DIR", value: `C:\secret-common-dir`},
+		{name: "lowercase namespace", variable: "git_namespace", value: "secret-namespace"},
+		{name: "config count", variable: "GIT_CONFIG_COUNT", value: "1"},
+		{name: "config key", variable: "GIT_CONFIG_KEY_0", value: "secret.key"},
+		{name: "config value", variable: "GIT_CONFIG_VALUE_0", value: "secret-value"},
+		{name: "index", variable: "GIT_INDEX_FILE", value: `C:\secret-index`},
+		{name: "object directory", variable: "GIT_OBJECT_DIRECTORY", value: `C:\secret-objects`},
+		{name: "alternate objects", variable: "GIT_ALTERNATE_OBJECT_DIRECTORIES", value: `C:\secret-alternate`},
+		{name: "empty value", variable: "GIT_CEILING_DIRECTORIES", value: ""},
 	}
-	if strings.Contains(output, canary) || strings.Contains(output, "secret-candidate-index") {
-		t.Fatalf("runner leaked inherited Git override canary: %q", output)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			output, exitCode := runC12PowerShell(t, map[string]string{test.variable: test.value},
+				"-Profile", "base", "-Packages", "./...", "-Run", "^TestAlpha$", "-Timeout", "3m")
+			if exitCode == 0 || !strings.Contains(output, "inherited GIT_* variable is forbidden") {
+				t.Fatalf("exit=%d output=%q, want inherited GIT_* rejection for %s", exitCode, output, test.variable)
+			}
+			if test.value != "" && strings.Contains(output, test.value) {
+				t.Fatalf("runner leaked inherited %s canary: %q", test.variable, output)
+			}
+		})
 	}
 }
 
 func TestC12Batch01SuiteFailsClosedWhileCanonicalManifestIsAbsent(t *testing.T) {
-	output, exitCode := runC12PowerShell(t, nil, "-Suite", "batch01", "-Timeout", "120m")
-	if exitCode == 0 || !strings.Contains(output, "canonical Batch 01 manifest is absent") {
-		t.Fatalf("exit=%d output=%q, want absent canonical manifest rejection", exitCode, output)
-	}
-}
-
-func TestC12Batch01SuiteUsesOneStagedCandidateSnapshot(t *testing.T) {
 	repository := t.TempDir()
 	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
 	if err != nil {
@@ -771,15 +813,117 @@ func TestC12Batch01SuiteUsesOneStagedCandidateSnapshot(t *testing.T) {
 	if err := os.WriteFile(runnerPath, runner, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	manifestPath := filepath.Join(repository, "testdata", "c12", "integration-contracts-schema-authority.v1.json")
-	if err := os.MkdirAll(filepath.Dir(manifestPath), 0o700); err != nil {
+	for _, arguments := range [][]string{{"init", "--quiet"}, {"add", "--", "scripts/run-c12-integration.ps1"}} {
+		command := exec.Command("git", arguments...)
+		command.Dir = repository
+		if output, commandErr := command.CombinedOutput(); commandErr != nil {
+			t.Fatalf("git %v: %v\n%s", arguments, commandErr, output)
+		}
+	}
+
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 30*time.Second, nil, "-Suite", "batch01", "-Timeout", "120m")
+	if exitCode == 0 || !strings.Contains(output, "canonical Batch 01 manifest is absent") {
+		t.Fatalf("exit=%d output=%q, want absent canonical manifest rejection", exitCode, output)
+	}
+}
+
+func TestC12Batch01SuiteUsesFreshExactSnapshotPerGroup(t *testing.T) {
+	run := runC12SnapshotSuiteFixture(t, "")
+	if run.exitCode != 0 {
+		t.Fatalf("exit=%d output=%q, want two groups from fresh exact snapshots", run.exitCode, run.output)
+	}
+	entries := readC12SnapshotGoLog(t, run.goLog)
+	wantStages := map[string]bool{"validator": false, "./internal/testinfra": false, "./internal/store": false}
+	roots := make(map[string]struct{})
+	for _, entry := range entries {
+		if _, wanted := wantStages[entry.Stage]; !wanted {
+			continue
+		}
+		wantStages[entry.Stage] = true
+		if len(entry.GitEnvironment) != 0 {
+			t.Fatalf("%s child inherited candidate Git variables: %v", entry.Stage, entry.GitEnvironment)
+		}
+		root := filepath.Clean(entry.WorkingDirectory)
+		if strings.HasPrefix(strings.ToLower(root), strings.ToLower(filepath.Clean(run.repository)+string(os.PathSeparator))) {
+			t.Fatalf("%s ran from mutable fixture repository %q", entry.Stage, root)
+		}
+		roots[strings.ToLower(root)] = struct{}{}
+		if entry.Stage == "validator" && !strings.Contains(entry.Arguments, "-c12-candidate-tree") {
+			t.Fatalf("validator did not receive captured tree identity: %q", entry.Arguments)
+		}
+	}
+	for stage, observed := range wantStages {
+		if !observed {
+			t.Fatalf("missing fake Go execution stage %s; entries=%+v", stage, entries)
+		}
+	}
+	if len(roots) != 3 {
+		t.Fatalf("validator and two groups used %d distinct snapshot roots, want 3; entries=%+v", len(roots), entries)
+	}
+	if objectsAfter := relativeFileSet(t, run.objectsRoot); !equalStringSets(run.objectsBefore, objectsAfter) {
+		t.Fatalf("candidate capture wrote to common Git objects: before=%v after=%v", run.objectsBefore, objectsAfter)
+	}
+	assertC12CandidateRootsRemoved(t, entries)
+}
+
+func TestC12Batch01SuiteRejectsTrackedAndUntrackedGroupMutationBeforeLaterCompilation(t *testing.T) {
+	for _, mode := range []string{"tracked", "untracked"} {
+		t.Run(mode, func(t *testing.T) {
+			run := runC12SnapshotSuiteFixture(t, mode)
+			if run.exitCode == 0 || !strings.Contains(run.output, "candidate snapshot integrity check failed") {
+				t.Errorf("exit=%d output=%q, want %s group mutation rejected by post-run integrity check", run.exitCode, run.output, mode)
+			}
+			if fileExists(run.laterMutationSentinel) {
+				t.Errorf("later package compiled bytes changed by the first group in %s mode", mode)
+			}
+			assertC12CandidateRootsRemoved(t, readC12SnapshotGoLog(t, run.goLog))
+		})
+	}
+}
+
+type c12SnapshotSuiteRun struct {
+	repository            string
+	objectsRoot           string
+	objectsBefore         map[string]struct{}
+	goLog                 string
+	laterMutationSentinel string
+	output                string
+	exitCode              int
+}
+
+type c12SnapshotGoLogEntry struct {
+	Stage            string   `json:"stage"`
+	WorkingDirectory string   `json:"working_directory"`
+	Arguments        string   `json:"arguments"`
+	GitEnvironment   []string `json:"git_environment"`
+}
+
+func runC12SnapshotSuiteFixture(t *testing.T, mutationMode string) c12SnapshotSuiteRun {
+	t.Helper()
+	repository := t.TempDir()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
 		t.Fatal(err)
 	}
-	manifest := `{"schema":"talenro-c12-integration-manifest/v1","groups":[{"id":"base-testinfra","package":"./internal/testinfra","profile":"base","tests":["TestC12DependenciesAreIsolatedAndBaseMigrated"],"timeout":"2m"}]}`
-	if err := os.WriteFile(manifestPath, []byte(manifest), 0o600); err != nil {
-		t.Fatal(err)
+	files := map[string][]byte{
+		"scripts/run-c12-integration.ps1":                             runner,
+		"testdata/c12/integration-contracts-schema-authority.v1.json": []byte(`{"schema":"talenro-c12-integration-manifest/v1","groups":[{"id":"a-first","package":"./internal/testinfra","profile":"base","tests":["TestFirst"],"timeout":"2m"},{"id":"b-second","package":"./internal/store","profile":"base","tests":["TestSecond"],"timeout":"2m"}]}`),
+		"internal/store/later.txt":                                    []byte("captured candidate bytes\n"),
 	}
-	for _, arguments := range [][]string{{"init", "--quiet"}, {"add", "--", "scripts/run-c12-integration.ps1", "testdata/c12/integration-contracts-schema-authority.v1.json"}} {
+	tracked := make([]string, 0, len(files))
+	for name, body := range files {
+		fullPath := filepath.Join(repository, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(fullPath, body, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		tracked = append(tracked, name)
+	}
+	sort.Strings(tracked)
+	commands := [][]string{{"init", "--quiet"}, append([]string{"add", "--"}, tracked...)}
+	for _, arguments := range commands {
 		command := exec.Command("git", arguments...)
 		command.Dir = repository
 		if output, commandErr := command.CombinedOutput(); commandErr != nil {
@@ -788,40 +932,119 @@ func TestC12Batch01SuiteUsesOneStagedCandidateSnapshot(t *testing.T) {
 	}
 	objectsRoot := filepath.Join(repository, ".git", "objects")
 	objectsBefore := relativeFileSet(t, objectsRoot)
-	if err := os.Remove(manifestPath); err != nil {
+	if err := os.Remove(filepath.Join(repository, "testdata", "c12", "integration-contracts-schema-authority.v1.json")); err != nil {
 		t.Fatal(err)
 	}
 
 	fakeBin := t.TempDir()
 	goLog := filepath.Join(t.TempDir(), "go.log")
-	if err := os.WriteFile(filepath.Join(fakeBin, "go.cmd"), []byte("@echo off\r\n>>\"%C12_FAKE_GO_LOG%\" echo %CD%^|%*\r\nexit /b 0\r\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(fakeBin, "docker.cmd"), []byte("@echo off\r\nexit /b 73\r\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	output, exitCode := runC12PowerShellAtRoot(t, repository, map[string]string{
-		"C12_FAKE_GO_LOG": goLog,
-		"Path":            fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
+	laterMutationSentinel := filepath.Join(t.TempDir(), "later-mutated")
+	const fakeGoSource = `package main
+import("encoding/json";"os";"path/filepath";"sort";"strings")
+type logEntry struct{Stage string ` + "`json:\"stage\"`" + `;WorkingDirectory string ` + "`json:\"working_directory\"`" + `;Arguments string ` + "`json:\"arguments\"`" + `;GitEnvironment []string ` + "`json:\"git_environment\"`" + `}
+func has(args []string,want string)bool{for _,arg:=range args{if arg==want{return true}};return false}
+func appendLog(entry logEntry){file,_:=os.OpenFile(os.Getenv("C12_FAKE_GO_LOG"),os.O_CREATE|os.O_APPEND|os.O_WRONLY,0600);if file!=nil{json.NewEncoder(file).Encode(entry);file.Close()}}
+func main(){
+ args:=os.Args[1:];cwd,_:=os.Getwd();gitEnvironment:=[]string{};for _,item:=range os.Environ(){name:=strings.SplitN(item,"=",2)[0];if strings.HasPrefix(strings.ToUpper(name),"GIT_"){gitEnvironment=append(gitEnvironment,name)}};sort.Strings(gitEnvironment)
+ stage:="other";if has(args,"^TestC12SelectedIntegrationManifest$"){stage="validator"}else if len(args)>0&&args[0]=="tool"{stage="goose"}else if len(args)>0&&args[0]=="test"&&has(args,"-json"){stage=args[len(args)-1]}
+ appendLog(logEntry{stage,cwd,strings.Join(args," "),gitEnvironment});if len(gitEnvironment)>0{os.Exit(81)}
+ if stage=="validator"||stage=="goose"||stage=="other"{return}
+ testName:="TestFirst";if stage=="./internal/testinfra"{switch os.Getenv("C12_SNAPSHOT_MUTATION"){case "tracked":os.WriteFile(filepath.Join(cwd,"internal","store","later.txt"),[]byte("mutated by first group\n"),0600);case "untracked":os.WriteFile(filepath.Join(cwd,"internal","store","untracked.go"),[]byte("package store\n"),0600)}}else{testName="TestSecond";body,_:=os.ReadFile(filepath.Join(cwd,"internal","store","later.txt"));_,extraErr:=os.Stat(filepath.Join(cwd,"internal","store","untracked.go"));if string(body)!="captured candidate bytes\n"||extraErr==nil{os.WriteFile(os.Getenv("C12_LATER_MUTATION_SENTINEL"),[]byte("later compiled mutation"),0600)}}
+ encoder:=json.NewEncoder(os.Stdout);encoder.Encode(map[string]string{"Action":"run","Package":stage,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":stage,"Test":testName});encoder.Encode(map[string]string{"Action":"pass","Package":stage})
+}`
+	const fakeDockerSource = `package main
+import("fmt";"os";"path/filepath";"strconv";"strings")
+var ids=map[string]string{"postgres":strings.Repeat("1",64),"redis":strings.Repeat("2",64),"nats":strings.Repeat("3",64)}
+var refs=map[string]string{"postgres":"postgres:18.4-alpine3.23","redis":"redis:8.8.1-alpine3.23","nats":"nats:2.14.3-alpine3.22"}
+var imageIDs=map[string]string{"postgres":"sha256:"+strings.Repeat("a",64),"redis":"sha256:"+strings.Repeat("b",64),"nats":"sha256:"+strings.Repeat("c",64)}
+func roleOf(value string)string{for _,role:=range []string{"postgres","redis","nats"}{if strings.Contains(value,role){return role}};if len(value)>0{switch value[0]{case '1':return "postgres";case '2':return "redis";case '3':return "nats"}};return ""}
+func state(role,suffix string)string{return filepath.Join(os.Getenv("C12_DOCKER_STATE"),role+suffix)}
+func main(){args:=os.Args[1:];joined:=strings.Join(args," ");last:=args[len(args)-1]
+ if len(args)>1&&args[0]=="image"&&args[1]=="inspect"{fmt.Println(imageIDs[roleOf(last)]);return}
+ if args[0]=="run"{role:=roleOf(joined);name:="";for i:=range args{if args[i]=="--name"&&i+1<len(args){name=args[i+1]}};os.WriteFile(state(role,".name"),[]byte(name),0600);os.Remove(state(role,".removed"));fmt.Println(ids[role]);return}
+ if len(args)>1&&args[0]=="container"&&args[1]=="inspect"{role:=roleOf(last);if strings.Contains(joined,"State.Health.Status"){fmt.Println("healthy");return};if strings.Contains(joined,"{{.Id}}")&&!strings.Contains(joined,"talenro.c12.role"){if _,err:=os.Stat(state(role,".removed"));err==nil{os.Exit(1)};fmt.Println(ids[role]);return};nameRaw,_:=os.ReadFile(state(role,".name"));name:=string(nameRaw);suffix:=strings.TrimSuffix(strings.TrimPrefix(name,"talenro-c12-"),"-"+role);fmt.Printf("%s|/%s|%s|%s|%s|%s\n",ids[role],name,suffix,role,refs[role],imageIDs[role]);return}
+ if len(args)>1&&args[0]=="container"&&args[1]=="port"{role:=roleOf(args[len(args)-2]);port:=0;if role=="postgres"{port=15432}else if role=="redis"{port,_=strconv.Atoi(os.Getenv("C12_REDIS_PORT"))}else{port,_=strconv.Atoi(os.Getenv("C12_NATS_PORT"))};fmt.Printf("127.0.0.1:%d\n",port);return}
+ if len(args)>1&&args[0]=="container"&&args[1]=="stop"{return};if len(args)>1&&args[0]=="container"&&args[1]=="rm"{os.WriteFile(state(roleOf(last),".removed"),[]byte("removed"),0600);return};os.Exit(74)
+}`
+	buildFakeGoExecutable(t, filepath.Join(fakeBin, "go.exe"), fakeGoSource)
+	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
+	redisPort := startC12ProtocolServer(t, "+PONG\r\n")
+	natsPort := startC12ProtocolServer(t, "PONG\r\n")
+	dockerState := t.TempDir()
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 90*time.Second, map[string]string{
+		"C12_DOCKER_STATE":            dockerState,
+		"C12_FAKE_GO_LOG":             goLog,
+		"C12_LATER_MUTATION_SENTINEL": laterMutationSentinel,
+		"C12_NATS_PORT":               fmt.Sprint(natsPort),
+		"C12_REDIS_PORT":              fmt.Sprint(redisPort),
+		"C12_SNAPSHOT_MUTATION":       mutationMode,
+		"Path":                        fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
 	}, "-Suite", "batch01", "-Timeout", "120m")
-	if exitCode == 0 {
-		t.Fatalf("exit=%d output=%q, want bounded fake Docker failure", exitCode, output)
-	}
-	if strings.Contains(output, "canonical Batch 01 manifest is absent") {
-		t.Fatalf("suite reread the mutable working manifest instead of its staged candidate: %q", output)
-	}
-	logged, err := os.ReadFile(goLog)
+	return c12SnapshotSuiteRun{repository: repository, objectsRoot: objectsRoot, objectsBefore: objectsBefore, goLog: goLog, laterMutationSentinel: laterMutationSentinel, output: output, exitCode: exitCode}
+}
+
+func readC12SnapshotGoLog(t *testing.T, logPath string) []c12SnapshotGoLogEntry {
+	t.Helper()
+	file, err := os.Open(logPath)
 	if err != nil {
-		t.Fatalf("validator did not run from candidate snapshot: %v; output=%q", err, output)
+		t.Fatal(err)
 	}
-	logText := filepath.Clean(strings.TrimSpace(string(logged)))
-	if strings.HasPrefix(strings.ToLower(logText), strings.ToLower(filepath.Clean(repository)+string(os.PathSeparator))) ||
-		!strings.Contains(logText, "-c12-candidate-tree") {
-		t.Fatalf("validator invocation did not identify and consume a separate candidate snapshot: %q", logText)
+	defer file.Close()
+	var entries []c12SnapshotGoLogEntry
+	decoder := json.NewDecoder(file)
+	for {
+		var entry c12SnapshotGoLogEntry
+		if err := decoder.Decode(&entry); errors.Is(err, io.EOF) {
+			break
+		} else if err != nil {
+			t.Fatal(err)
+		}
+		entries = append(entries, entry)
 	}
-	if objectsAfter := relativeFileSet(t, objectsRoot); !equalStringSets(objectsBefore, objectsAfter) {
-		t.Fatalf("candidate materialization wrote to common Git objects: before=%v after=%v", objectsBefore, objectsAfter)
+	return entries
+}
+
+func assertC12CandidateRootsRemoved(t *testing.T, entries []c12SnapshotGoLogEntry) {
+	t.Helper()
+	candidateRoots := make(map[string]struct{})
+	for _, entry := range entries {
+		root := filepath.Clean(entry.WorkingDirectory)
+		candidateRoot := filepath.Dir(filepath.Dir(root))
+		if strings.HasPrefix(filepath.Base(candidateRoot), "talenro-c12-candidate-") {
+			candidateRoots[candidateRoot] = struct{}{}
+		}
 	}
+	if len(candidateRoots) != 1 {
+		t.Fatalf("candidate log resolved %d exact owner roots, want 1: %+v", len(candidateRoots), entries)
+	}
+	for candidateRoot := range candidateRoots {
+		if fileExists(candidateRoot) {
+			t.Fatalf("exact candidate owner root remains after bounded cleanup: %s", candidateRoot)
+		}
+	}
+}
+
+func startC12ProtocolServer(t *testing.T, response string) int {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	go func() {
+		for {
+			connection, acceptErr := listener.Accept()
+			if acceptErr != nil {
+				return
+			}
+			_ = connection.SetDeadline(time.Now().Add(3 * time.Second))
+			buffer := make([]byte, 4096)
+			_, _ = connection.Read(buffer)
+			_, _ = io.WriteString(connection, response)
+			_ = connection.Close()
+		}
+	}()
+	return listener.Addr().(*net.TCPAddr).Port
 }
 
 func validC12ManifestFixture(t *testing.T) ([]byte, []c12IntegrationSource) {
@@ -930,6 +1153,157 @@ func c12GoJSONEvent(t *testing.T, action, packageName, testName string) string {
 		t.Fatal(err)
 	}
 	return string(raw)
+}
+
+func runC12NamedJobCollisionHarness(t *testing.T) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	jobName := fmt.Sprintf("TalenroC12Collision_%d", time.Now().UnixNano())
+	appendix := fmt.Sprintf(`
+$first = [IntPtr]::Zero
+$second = [IntPtr]::Zero
+try {
+  $first = [C12NativeJob]::CreateKillOnClose('%s')
+  try {
+    $second = [C12NativeJob]::CreateKillOnClose('%s')
+    throw 'named native Job collision was accepted'
+  }
+  catch {
+    if ($_.Exception.Message -notmatch 'collision') { throw }
+  }
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+finally { [C12NativeJob]::Close($second); [C12NativeJob]::Close($first) }
+`, jobName, jobName)
+	harness := filepath.Join(t.TempDir(), "assert-c12-job-collision.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("named Job collision harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch named Job collision harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
+func runC12ContainmentFailureHarness(t *testing.T, mode, sentinel string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	fakeBin := t.TempDir()
+	if err := os.WriteFile(filepath.Join(fakeBin, "docker.cmd"), []byte("@echo off\r\n>\"%C12_CONTAINMENT_SENTINEL%\" echo spawned\r\nexit /b 0\r\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	legacyArtifacts := t.TempDir()
+	if err := os.WriteFile(filepath.Join(legacyArtifacts, "host.pid"), []byte("4"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(legacyArtifacts, "release"), []byte("attacker"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	jobName := fmt.Sprintf("TalenroC12Reject_%d", time.Now().UnixNano())
+	setup := ""
+	if mode == "assignment" {
+		setup = "$rejectingHandle = [C12RejectingJobFixture]::Create($jobName)"
+	}
+	rootPayload := base64.StdEncoding.EncodeToString([]byte(legacyArtifacts))
+	appendix := fmt.Sprintf(`
+Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+public static class C12RejectingJobFixture {
+  private const UInt32 JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 0x00000008;
+  [StructLayout(LayoutKind.Sequential)] private struct BASIC {
+    public Int64 PerProcessUserTimeLimit; public Int64 PerJobUserTimeLimit; public UInt32 LimitFlags;
+    public UIntPtr MinimumWorkingSetSize; public UIntPtr MaximumWorkingSetSize; public UInt32 ActiveProcessLimit;
+    public IntPtr Affinity; public UInt32 PriorityClass; public UInt32 SchedulingClass;
+  }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] private static extern IntPtr CreateJobObject(IntPtr attributes, string name);
+  [DllImport("kernel32.dll", SetLastError=true)] private static extern bool SetInformationJobObject(IntPtr job, int informationClass, IntPtr information, UInt32 length);
+  [DllImport("kernel32.dll", SetLastError=true)] private static extern bool CloseHandle(IntPtr handle);
+  public static IntPtr Create(string name) {
+    IntPtr job=CreateJobObject(IntPtr.Zero,name); if(job==IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+    BASIC information=new BASIC(); information.LimitFlags=JOB_OBJECT_LIMIT_ACTIVE_PROCESS; information.ActiveProcessLimit=0;
+    int length=Marshal.SizeOf(typeof(BASIC)); IntPtr pointer=Marshal.AllocHGlobal(length);
+    try { Marshal.StructureToPtr(information,pointer,false); if(!SetInformationJobObject(job,2,pointer,(UInt32)length)){int error=Marshal.GetLastWin32Error();CloseHandle(job);throw new Win32Exception(error);} }
+    finally { Marshal.FreeHGlobal(pointer); }
+    return job;
+  }
+  public static void Close(IntPtr handle) { if(handle!=IntPtr.Zero) CloseHandle(handle); }
+}
+'@
+$workingRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$jobName = '%s'
+$rejectingHandle = [IntPtr]::Zero
+$job = $null
+try {
+  %s
+  $invocation = [pscustomobject]@{ Executable='docker'; Arguments=[string[]]@('version'); WorkingDirectory=$workingRoot; JobName=$jobName; ClientSource=$script:c12NativeJobMemberSource; Environment=[object[]]@() }
+  $job = Start-Job -ArgumentList $invocation -ScriptBlock $script:c12ContainedNativeScript
+  if ($null -eq (Wait-Job -Job $job -Timeout 15)) { throw 'contained child harness timed out' }
+  $received = @(Receive-Job -Job $job -ErrorAction SilentlyContinue)
+  $result = @($received | Where-Object { $_.PSObject.Properties.Name -contains 'ContainmentFailure' } | Select-Object -Last 1)
+  if ($result.Count -ne 1 -or -not [bool]$result[0].ContainmentFailure -or [int]$result[0].ExitCode -ne 127) { throw 'contained child did not report exact containment failure' }
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+finally {
+  if ($null -ne $job) { Stop-Job -Job $job -ErrorAction SilentlyContinue; Remove-Job -Job $job -Force -ErrorAction SilentlyContinue }
+  [C12RejectingJobFixture]::Close($rejectingHandle)
+}
+`, rootPayload, jobName, setup)
+	harness := filepath.Join(t.TempDir(), "assert-c12-containment.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	command.Env = append([]string{}, os.Environ()...)
+	command.Env = append(command.Env,
+		"C12_CONTAINMENT_SENTINEL="+sentinel,
+		"Path="+fakeBin+string(os.PathListSeparator)+os.Getenv("Path"))
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("containment failure harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch containment failure harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
 }
 
 func runC12GoJSONAssertionHarness(t *testing.T, packageName string, expectedTests, events []string) (string, int) {
@@ -1043,6 +1417,9 @@ func runC12PowerShellAtRootWithTimeout(t *testing.T, root string, limit time.Dur
 			}
 		}
 		if overridden {
+			continue
+		}
+		if strings.HasPrefix(strings.ToUpper(name), "GIT_") {
 			continue
 		}
 		environment = append(environment, item)

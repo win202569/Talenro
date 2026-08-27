@@ -93,12 +93,12 @@ function New-C12DatabasePassword {
 Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 public static class C12NativeJob
 {
     private const UInt32 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000;
+    private const Int32 ERROR_ALREADY_EXISTS = 183;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct JOBOBJECT_BASIC_LIMIT_INFORMATION
@@ -143,15 +143,19 @@ public static class C12NativeJob
     private static extern bool SetInformationJobObject(IntPtr job, int informationClass, IntPtr information, UInt32 length);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
 
-    public static IntPtr CreateKillOnClose()
+    public static IntPtr CreateKillOnClose(string name)
     {
-        IntPtr job = CreateJobObject(IntPtr.Zero, null);
+        if (String.IsNullOrEmpty(name)) throw new ArgumentException("named native Job identity is empty", "name");
+        IntPtr job = CreateJobObject(IntPtr.Zero, name);
+        int createError = Marshal.GetLastWin32Error();
         if (job == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+        if (createError == ERROR_ALREADY_EXISTS)
+        {
+            CloseHandle(job);
+            throw new InvalidOperationException("named native Job collision");
+        }
         var information = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
         information.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
         int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
@@ -170,15 +174,6 @@ public static class C12NativeJob
         return job;
     }
 
-    public static void Assign(IntPtr job, int processId)
-    {
-        using (Process process = Process.GetProcessById(processId))
-        {
-            if (!AssignProcessToJobObject(job, process.Handle))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-    }
-
     public static void Close(IntPtr job)
     {
         if (job != IntPtr.Zero && !CloseHandle(job))
@@ -186,6 +181,111 @@ public static class C12NativeJob
     }
 }
 '@
+
+$script:c12NativeJobMemberSource = @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+
+public static class C12NativeJobMember
+{
+    private const UInt32 JOB_OBJECT_ASSIGN_PROCESS = 0x0001;
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr OpenJobObject(UInt32 desiredAccess, bool inheritHandle, string name);
+
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetCurrentProcess();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr handle);
+
+    public static void Join(string name)
+    {
+        IntPtr job = OpenJobObject(JOB_OBJECT_ASSIGN_PROCESS, false, name);
+        if (job == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            if (!AssignProcessToJobObject(job, GetCurrentProcess()))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+        finally
+        {
+            CloseHandle(job);
+        }
+    }
+}
+'@
+
+$script:c12ContainedNativeScript = {
+  param($Invocation)
+  try {
+    Add-Type -TypeDefinition ([string]$Invocation.ClientSource)
+    [C12NativeJobMember]::Join([string]$Invocation.JobName)
+  }
+  catch {
+    [pscustomobject]@{ ExitCode = 127; Output = [string[]]@(); ContainmentFailure = $true }
+    return
+  }
+
+  Set-Location -LiteralPath ([string]$Invocation.WorkingDirectory)
+  foreach ($inheritedName in @([System.Environment]::GetEnvironmentVariables('Process').Keys)) {
+    $name = [string]$inheritedName
+    if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) {
+      [System.Environment]::SetEnvironmentVariable($name, $null, 'Process')
+    }
+  }
+  foreach ($entry in @($Invocation.Environment)) {
+    [System.Environment]::SetEnvironmentVariable([string]$entry.Name, [string]$entry.Value, 'Process')
+  }
+  $nativeArgs = @($Invocation.Arguments | ForEach-Object { [string]$_ })
+  $boundedOutput = New-Object 'System.Collections.Generic.List[string]'
+  $capture = {
+    process {
+      if ($boundedOutput.Count -lt 4096) {
+        $line = ([string]$_) -replace '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '?'
+        if ($line.Length -gt 512) {
+          $line = $line.Substring(0, 512)
+        }
+        $boundedOutput.Add($line)
+      }
+    }
+  }
+  $priorNativeErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    switch ([string]$Invocation.Executable) {
+      'docker' {
+        $dockerArgs = $nativeArgs
+        & docker @dockerArgs 2>&1 | & $capture
+        $nativeExitCode = $LASTEXITCODE
+      }
+      'go' {
+        $goArgs = $nativeArgs
+        & go @goArgs 2>&1 | & $capture
+        $nativeExitCode = $LASTEXITCODE
+      }
+      'git' {
+        $gitArgs = $nativeArgs
+        & git @gitArgs 2>&1 | & $capture
+        $nativeExitCode = $LASTEXITCODE
+      }
+      default {
+        $nativeExitCode = 127
+      }
+    }
+  }
+  catch {
+    $nativeExitCode = 127
+  }
+  finally {
+    $ErrorActionPreference = $priorNativeErrorActionPreference
+  }
+  [pscustomobject]@{ ExitCode = [int]$nativeExitCode; Output = [string[]]$boundedOutput.ToArray(); ContainmentFailure = $false }
+}
 
 function Invoke-C12Native {
   param(
@@ -207,6 +307,8 @@ function Invoke-C12Native {
 
     [DateTime]$Deadline = [DateTime]::MaxValue,
 
+    [hashtable]$Environment = @{},
+
     [switch]$AllowFailure
   )
 
@@ -223,90 +325,35 @@ function Invoke-C12Native {
   if ($remaining -lt $Timeout) {
     $Timeout = $remaining
   }
+  if ($Executable -cne 'git' -and $Environment.Count -ne 0) {
+    throw "$Stage attempted to expose Git environment overrides to a non-Git child"
+  }
+  $childEnvironment = @()
+  foreach ($name in @($Environment.Keys | Sort-Object)) {
+    if ([string]$name -notmatch '^GIT_[A-Z0-9_]+$') {
+      throw "$Stage has an invalid per-call Git environment override"
+    }
+    $childEnvironment += [pscustomobject]@{ Name = [string]$name; Value = [string]$Environment[$name] }
+  }
   $watchdogSuffix = New-C12RandomSuffix
-  $watchdogRoot = Join-Path ([IO.Path]::GetTempPath()) "talenro-c12-watchdog-$watchdogSuffix"
-  $pidPath = Join-Path $watchdogRoot 'host.pid'
-  $pidTemporaryPath = Join-Path $watchdogRoot 'host.pid.tmp'
-  $releasePath = Join-Path $watchdogRoot 'release'
-  [void][IO.Directory]::CreateDirectory($watchdogRoot)
+  $nativeJobName = "TalenroC12Native_$watchdogSuffix"
+  if ($nativeJobName -notmatch '^TalenroC12Native_[0-9a-f]{32}$') {
+    throw "$Stage generated a malformed named native Job identity"
+  }
   $invocation = [pscustomobject]@{
     Executable = $Executable
     Arguments = [string[]]$Arguments
     WorkingDirectory = $WorkingDirectory
-    PIDPath = $pidPath
-    PIDTemporaryPath = $pidTemporaryPath
-    ReleasePath = $releasePath
+    JobName = $nativeJobName
+    ClientSource = $script:c12NativeJobMemberSource
+    Environment = [object[]]$childEnvironment
   }
   $job = $null
   $nativeJobHandle = [IntPtr]::Zero
   $watch = [System.Diagnostics.Stopwatch]::StartNew()
   try {
-    $job = Start-Job -ArgumentList $invocation -ScriptBlock {
-      param($Invocation)
-      [IO.File]::WriteAllText([string]$Invocation.PIDTemporaryPath, [string]$PID)
-      [IO.File]::Move([string]$Invocation.PIDTemporaryPath, [string]$Invocation.PIDPath)
-      while (-not [IO.File]::Exists([string]$Invocation.ReleasePath)) {
-        Start-Sleep -Milliseconds 10
-      }
-      Set-Location -LiteralPath ([string]$Invocation.WorkingDirectory)
-      $nativeArgs = @($Invocation.Arguments | ForEach-Object { [string]$_ })
-      $boundedOutput = New-Object 'System.Collections.Generic.List[string]'
-      $capture = {
-        process {
-          if ($boundedOutput.Count -lt 4096) {
-            $line = ([string]$_) -replace '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '?'
-            if ($line.Length -gt 512) {
-              $line = $line.Substring(0, 512)
-            }
-            $boundedOutput.Add($line)
-          }
-        }
-      }
-      $priorNativeErrorActionPreference = $ErrorActionPreference
-      try {
-        $ErrorActionPreference = 'Continue'
-        switch ([string]$Invocation.Executable) {
-          'docker' {
-            $dockerArgs = $nativeArgs
-            & docker @dockerArgs 2>&1 | & $capture
-            $nativeExitCode = $LASTEXITCODE
-          }
-          'go' {
-            $goArgs = $nativeArgs
-            & go @goArgs 2>&1 | & $capture
-            $nativeExitCode = $LASTEXITCODE
-          }
-          'git' {
-            $gitArgs = $nativeArgs
-            & git @gitArgs 2>&1 | & $capture
-            $nativeExitCode = $LASTEXITCODE
-          }
-          default {
-            $nativeExitCode = 127
-          }
-        }
-      }
-      catch {
-        $nativeExitCode = 127
-      }
-      finally {
-        $ErrorActionPreference = $priorNativeErrorActionPreference
-      }
-      [pscustomobject]@{ ExitCode = [int]$nativeExitCode; Output = [string[]]$boundedOutput.ToArray() }
-    }
-    while (-not [IO.File]::Exists($pidPath) -and $watch.Elapsed -lt $Timeout) {
-      Start-Sleep -Milliseconds 10
-    }
-    if (-not [IO.File]::Exists($pidPath)) {
-      throw "$Stage timed out before native containment"
-    }
-    [int]$jobHostID = 0
-    if (-not [int]::TryParse([IO.File]::ReadAllText($pidPath), [ref]$jobHostID) -or $jobHostID -le 0 -or $jobHostID -eq $PID) {
-      throw "$Stage returned a malformed watchdog host PID"
-    }
-    $nativeJobHandle = [C12NativeJob]::CreateKillOnClose()
-    [C12NativeJob]::Assign($nativeJobHandle, $jobHostID)
-    [IO.File]::WriteAllText($releasePath, 'contained')
+    $nativeJobHandle = [C12NativeJob]::CreateKillOnClose($nativeJobName)
+    $job = Start-Job -ArgumentList $invocation -ScriptBlock $script:c12ContainedNativeScript
     $nativeRemaining = $Timeout - $watch.Elapsed
     if ($nativeRemaining -le [TimeSpan]::Zero) {
       [C12NativeJob]::Close($nativeJobHandle)
@@ -323,13 +370,15 @@ function Invoke-C12Native {
     if (-not $completed) {
       [C12NativeJob]::Close($nativeJobHandle)
       $nativeJobHandle = [IntPtr]::Zero
-      $null = Wait-Job -Job $job -Timeout 2
       throw "$Stage timed out after $waitSeconds seconds"
     }
     $received = @(Receive-Job -Job $job -ErrorAction SilentlyContinue)
     $result = @($received | Where-Object { $_.PSObject.Properties.Name -contains 'ExitCode' } | Select-Object -Last 1)
     if ($result.Count -ne 1) {
       throw "$Stage did not return a bounded native result"
+    }
+    if (-not ($result[0].PSObject.Properties.Name -contains 'ContainmentFailure') -or [bool]$result[0].ContainmentFailure) {
+      throw "$Stage failed native Job self-containment"
     }
     if (-not $AllowFailure -and [int]$result[0].ExitCode -ne 0) {
       throw "$Stage failed with exit code $([int]$result[0].ExitCode)"
@@ -348,9 +397,6 @@ function Invoke-C12Native {
       Stop-Job -Job $job -ErrorAction SilentlyContinue
       Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
     }
-    if ([IO.Directory]::Exists($watchdogRoot)) {
-      [IO.Directory]::Delete($watchdogRoot, $true)
-    }
   }
 }
 
@@ -365,33 +411,85 @@ function Invoke-C12Git {
     [Parameter(Mandatory = $true)]
     [string]$WorkingDirectory,
 
+    [DateTime]$Deadline = [DateTime]::MaxValue,
+
+    [hashtable]$Environment = @{},
+
+    [switch]$AllowFailure
+  )
+
+  return Invoke-C12Native -Executable 'git' -Arguments $Arguments -Stage $Stage -Timeout ([TimeSpan]::FromSeconds(30)) -WorkingDirectory $WorkingDirectory -Deadline $Deadline -Environment $Environment -AllowFailure:$AllowFailure
+}
+
+function Get-C12BoundedWaitSeconds {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTime]$Deadline,
+
+    [Parameter(Mandatory = $true)]
+    [int]$MaximumSeconds,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Stage
+  )
+
+  if ($Deadline -eq [DateTime]::MaxValue) {
+    return $MaximumSeconds
+  }
+  $remainingSeconds = [Math]::Floor(($Deadline - [DateTime]::UtcNow).TotalSeconds)
+  if ($remainingSeconds -lt 1) {
+    throw "$Stage has no bounded second remaining before its absolute deadline"
+  }
+  return [int][Math]::Min([double]$MaximumSeconds, $remainingSeconds)
+}
+
+function Remove-C12BoundedDirectory {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Root,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ExpectedParent,
+
+    [Parameter(Mandatory = $true)]
+    [string]$LeafPattern,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Stage,
+
     [DateTime]$Deadline = [DateTime]::MaxValue
   )
 
-  return Invoke-C12Native -Executable 'git' -Arguments $Arguments -Stage $Stage -Timeout ([TimeSpan]::FromSeconds(30)) -WorkingDirectory $WorkingDirectory -Deadline $Deadline
-}
-
-function Remove-C12CandidateSnapshot {
-  param(
-    [Parameter(Mandatory = $true)]
-    [string]$OwnerRoot
-  )
-
-  $resolvedParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
-  $resolvedOwner = [IO.Path]::GetFullPath($OwnerRoot).TrimEnd('\')
-  if ([IO.Path]::GetDirectoryName($resolvedOwner).TrimEnd('\') -cne $resolvedParent -or
-      [IO.Path]::GetFileName($resolvedOwner) -notmatch '^talenro-c12-candidate-[0-9a-f]{32}$') {
-    throw 'refusing cleanup of malformed C12 candidate snapshot path'
+  $resolvedParent = [IO.Path]::GetFullPath($ExpectedParent).TrimEnd('\')
+  $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\')
+  if ([IO.Path]::GetDirectoryName($resolvedRoot).TrimEnd('\') -cne $resolvedParent -or
+      [IO.Path]::GetFileName($resolvedRoot) -notmatch $LeafPattern) {
+    throw "$Stage refused a malformed exact cleanup path"
   }
-  if ([IO.Directory]::Exists($resolvedOwner)) {
-    $cleanupJob = Start-Job -ArgumentList $resolvedOwner -ScriptBlock {
-      param($ExactOwnerRoot)
-      [IO.Directory]::Delete([string]$ExactOwnerRoot, $true)
+  if ([IO.Directory]::Exists($resolvedRoot)) {
+    $waitSeconds = Get-C12BoundedWaitSeconds -Deadline $Deadline -MaximumSeconds 5 -Stage $Stage
+    $cleanupJob = Start-Job -ArgumentList $resolvedRoot -ScriptBlock {
+      param($ExactRoot)
+      $pendingDirectories = New-Object 'System.Collections.Generic.Stack[string]'
+      $pendingDirectories.Push([string]$ExactRoot)
+      while ($pendingDirectories.Count -gt 0) {
+        $directory = $pendingDirectories.Pop()
+        foreach ($file in [IO.Directory]::GetFiles($directory)) {
+          [IO.File]::SetAttributes($file, [IO.FileAttributes]::Normal)
+        }
+        foreach ($childDirectory in [IO.Directory]::GetDirectories($directory)) {
+          $attributes = [IO.File]::GetAttributes($childDirectory)
+          if (($attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) {
+            $pendingDirectories.Push($childDirectory)
+          }
+        }
+      }
+      [IO.Directory]::Delete([string]$ExactRoot, $true)
     }
     try {
-      if ($null -eq (Wait-Job -Job $cleanupJob -Timeout 5)) {
+      if ($null -eq (Wait-Job -Job $cleanupJob -Timeout $waitSeconds)) {
         Stop-Job -Job $cleanupJob -ErrorAction SilentlyContinue
-        throw 'staged candidate snapshot cleanup timed out after 5 seconds'
+        throw "$Stage timed out after $waitSeconds seconds"
       }
       $null = Receive-Job -Job $cleanupJob -ErrorAction Stop
     }
@@ -402,13 +500,40 @@ function Remove-C12CandidateSnapshot {
   }
 }
 
+function Remove-C12CandidateSnapshot {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$OwnerRoot,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  Remove-C12BoundedDirectory -Root $OwnerRoot -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-candidate-[0-9a-f]{32}$' -Stage 'staged candidate cleanup' -Deadline $Deadline
+}
+
+function Remove-C12CandidateMaterialization {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Candidate,
+
+    [Parameter(Mandatory = $true)]
+    [object]$Snapshot,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  Remove-C12BoundedDirectory -Root ([string]$Snapshot.OwnerRoot) -ExpectedParent ([string]$Candidate.OwnerRoot) -LeafPattern '^snapshot-[0-9a-f]{32}$' -Stage 'candidate group snapshot cleanup' -Deadline $Deadline
+}
+
 function Copy-C12CandidateIndex {
   param(
     [Parameter(Mandatory = $true)]
     [string]$Source,
 
     [Parameter(Mandatory = $true)]
-    [string]$Destination
+    [string]$Destination,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
   )
 
   $sourceLength = (Get-Item -LiteralPath $Source).Length
@@ -420,9 +545,10 @@ function Copy-C12CandidateIndex {
     [IO.File]::Copy([string]$ExactSource, [string]$ExactDestination, $false)
   }
   try {
-    if ($null -eq (Wait-Job -Job $copyJob -Timeout 5)) {
+    $waitSeconds = Get-C12BoundedWaitSeconds -Deadline $Deadline -MaximumSeconds 5 -Stage 'staged candidate index copy'
+    if ($null -eq (Wait-Job -Job $copyJob -Timeout $waitSeconds)) {
       Stop-Job -Job $copyJob -ErrorAction SilentlyContinue
-      throw 'staged candidate index copy timed out after 5 seconds'
+      throw "staged candidate index copy timed out after $waitSeconds seconds"
     }
     $null = Receive-Job -Job $copyJob -ErrorAction Stop
   }
@@ -435,16 +561,73 @@ function Copy-C12CandidateIndex {
   }
 }
 
+function Resolve-C12TrustedGitContext {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$ScriptRoot,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  $trustedRoot = [IO.Path]::GetFullPath($ScriptRoot).TrimEnd('\')
+  $topResult = Invoke-C12Git -Arguments @('-C', $trustedRoot, 'rev-parse', '--show-toplevel') -Stage 'resolve trusted repository root' -WorkingDirectory $trustedRoot -Deadline $Deadline
+  $topLines = @($topResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  if ($topLines.Count -ne 1) {
+    throw 'trusted repository resolution did not return one exact top level'
+  }
+  $resolvedTop = [IO.Path]::GetFullPath([string]$topLines[0]).TrimEnd('\')
+  if (-not [string]::Equals($resolvedTop, $trustedRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'invoked script root is not the exact trusted Git top level'
+  }
+  $gitDirectoryResult = Invoke-C12Git -Arguments @('-C', $trustedRoot, 'rev-parse', '--absolute-git-dir') -Stage 'resolve trusted Git directory' -WorkingDirectory $trustedRoot -Deadline $Deadline
+  $gitDirectoryLines = @($gitDirectoryResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  if ($gitDirectoryLines.Count -ne 1) {
+    throw 'trusted Git directory resolution did not return one exact path'
+  }
+  $gitDirectory = [IO.Path]::GetFullPath([string]$gitDirectoryLines[0]).TrimEnd('\')
+  if (-not [IO.Directory]::Exists($gitDirectory)) {
+    throw 'trusted Git directory is absent'
+  }
+  return [pscustomobject]@{ WorkTree = $trustedRoot; GitDirectory = $gitDirectory }
+}
+
+function Get-C12CandidateGitArguments {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Candidate
+  )
+
+  return @("--git-dir=$([string]$Candidate.GitDirectory)", "--work-tree=$([string]$Candidate.WorkTree)")
+}
+
+function Get-C12CandidateGitEnvironment {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Candidate,
+
+    [string]$IndexPath = ''
+  )
+
+  if ([string]::IsNullOrEmpty($IndexPath)) {
+    $IndexPath = [string]$Candidate.Index
+  }
+  return @{
+    GIT_INDEX_FILE = $IndexPath
+    GIT_OBJECT_DIRECTORY = [string]$Candidate.ObjectDirectory
+    GIT_ALTERNATE_OBJECT_DIRECTORIES = [string]$Candidate.AlternateObjectDirectory
+  }
+}
+
 function New-C12CandidateSnapshot {
   $suffix = New-C12RandomSuffix
   $ownerRoot = Join-Path ([IO.Path]::GetTempPath()) "talenro-c12-candidate-$suffix"
-  $candidateRoot = Join-Path $ownerRoot 'tree'
   $candidateIndex = Join-Path $ownerRoot 'candidate.index'
   $candidateObjects = Join-Path $ownerRoot 'objects'
-  [void][IO.Directory]::CreateDirectory($candidateRoot)
   [void][IO.Directory]::CreateDirectory($candidateObjects)
   try {
-    $indexResult = Invoke-C12Git -Arguments @('rev-parse', '--path-format=absolute', '--git-path', 'index') -Stage 'locate staged candidate index' -WorkingDirectory $script:c12RepositoryRoot
+    $context = Resolve-C12TrustedGitContext -ScriptRoot $script:c12RepositoryRoot -Deadline $script:c12SuiteDeadline
+    $gitArguments = @("--git-dir=$([string]$context.GitDirectory)", "--work-tree=$([string]$context.WorkTree)")
+    $indexResult = Invoke-C12Git -Arguments @($gitArguments + @('rev-parse', '--path-format=absolute', '--git-path', 'index')) -Stage 'locate staged candidate index' -WorkingDirectory ([string]$context.WorkTree) -Deadline $script:c12SuiteDeadline
     $indexLines = @($indexResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     if ($indexLines.Count -ne 1) {
       throw 'locate staged candidate index did not return one exact path'
@@ -453,7 +636,7 @@ function New-C12CandidateSnapshot {
     if (-not [IO.File]::Exists($sourceIndex)) {
       throw 'staged candidate index is absent'
     }
-    $objectsResult = Invoke-C12Git -Arguments @('rev-parse', '--path-format=absolute', '--git-path', 'objects') -Stage 'locate common Git object directory' -WorkingDirectory $script:c12RepositoryRoot
+    $objectsResult = Invoke-C12Git -Arguments @($gitArguments + @('rev-parse', '--path-format=absolute', '--git-path', 'objects')) -Stage 'locate common Git object directory' -WorkingDirectory ([string]$context.WorkTree) -Deadline $script:c12SuiteDeadline
     $objectsLines = @($objectsResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     if ($objectsLines.Count -ne 1) {
       throw 'locate common Git object directory did not return one exact path'
@@ -462,39 +645,195 @@ function New-C12CandidateSnapshot {
     if (-not [IO.Directory]::Exists($commonObjects) -or $commonObjects.Contains([string][IO.Path]::PathSeparator)) {
       throw 'common Git object directory is absent or is not one exact alternate path'
     }
-    Copy-C12CandidateIndex -Source $sourceIndex -Destination $candidateIndex
-    $priorIndex = [System.Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process')
-    $priorObjectDirectory = [System.Environment]::GetEnvironmentVariable('GIT_OBJECT_DIRECTORY', 'Process')
-    $priorAlternateObjects = [System.Environment]::GetEnvironmentVariable('GIT_ALTERNATE_OBJECT_DIRECTORIES', 'Process')
-    try {
-      [System.Environment]::SetEnvironmentVariable('GIT_INDEX_FILE', $candidateIndex, 'Process')
-      [System.Environment]::SetEnvironmentVariable('GIT_OBJECT_DIRECTORY', $candidateObjects, 'Process')
-      [System.Environment]::SetEnvironmentVariable('GIT_ALTERNATE_OBJECT_DIRECTORIES', $commonObjects, 'Process')
-      $treeResult = Invoke-C12Git -Arguments @('write-tree') -Stage 'capture staged candidate tree' -WorkingDirectory $script:c12RepositoryRoot
-      $treeLines = @($treeResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-      if ($treeLines.Count -ne 1 -or [string]$treeLines[0] -notmatch '^[0-9a-f]{40}$') {
-        throw 'capture staged candidate tree did not return one exact tree identity'
-      }
-      $tree = [string]$treeLines[0]
-      $prefix = $candidateRoot.TrimEnd('\') + '\'
-      $null = Invoke-C12Git -Arguments @('checkout-index', '--all', "--prefix=$prefix") -Stage 'materialize staged candidate tree' -WorkingDirectory $script:c12RepositoryRoot
-    }
-    finally {
-      [System.Environment]::SetEnvironmentVariable('GIT_INDEX_FILE', $priorIndex, 'Process')
-      [System.Environment]::SetEnvironmentVariable('GIT_OBJECT_DIRECTORY', $priorObjectDirectory, 'Process')
-      [System.Environment]::SetEnvironmentVariable('GIT_ALTERNATE_OBJECT_DIRECTORIES', $priorAlternateObjects, 'Process')
-    }
-    return [pscustomobject]@{
+    Copy-C12CandidateIndex -Source $sourceIndex -Destination $candidateIndex -Deadline $script:c12SuiteDeadline
+    $candidate = [pscustomobject]@{
       OwnerRoot = $ownerRoot
-      Root = $candidateRoot
-      Tree = $tree
+      Tree = ''
       Index = $candidateIndex
       ObjectDirectory = $candidateObjects
       AlternateObjectDirectory = $commonObjects
+      WorkTree = [string]$context.WorkTree
+      GitDirectory = [string]$context.GitDirectory
+      MaterializationDigest = ''
+      MaterializationFileCount = 0
+      MaterializationTotalBytes = 0
     }
+    $candidateGitEnvironment = Get-C12CandidateGitEnvironment -Candidate $candidate
+    $treeResult = Invoke-C12Git -Arguments @($gitArguments + @('write-tree')) -Stage 'capture staged candidate tree' -WorkingDirectory ([string]$context.WorkTree) -Deadline $script:c12SuiteDeadline -Environment $candidateGitEnvironment
+    $treeLines = @($treeResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($treeLines.Count -ne 1 -or [string]$treeLines[0] -notmatch '^[0-9a-f]{40}$') {
+      throw 'capture staged candidate tree did not return one exact tree identity'
+    }
+    $tree = [string]$treeLines[0]
+    $candidate.Tree = $tree
+    return $candidate
   }
   catch {
-    Remove-C12CandidateSnapshot -OwnerRoot $ownerRoot
+    Remove-C12CandidateSnapshot -OwnerRoot $ownerRoot -Deadline $script:c12SuiteDeadline
+    throw
+  }
+}
+
+function Get-C12CandidateSnapshotDigest {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$SnapshotRoot,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  $waitSeconds = Get-C12BoundedWaitSeconds -Deadline $Deadline -MaximumSeconds 30 -Stage 'candidate snapshot byte digest'
+  $digestJob = Start-Job -ArgumentList $SnapshotRoot -ScriptBlock {
+    param($ExactSnapshotRoot)
+    $root = [IO.Path]::GetFullPath([string]$ExactSnapshotRoot).TrimEnd('\')
+    $files = New-Object 'System.Collections.Generic.List[string]'
+    $directories = New-Object 'System.Collections.Generic.Stack[string]'
+    $directories.Push($root)
+    while ($directories.Count -gt 0) {
+      $directory = $directories.Pop()
+      foreach ($childDirectory in [IO.Directory]::GetDirectories($directory)) {
+        if (([IO.File]::GetAttributes($childDirectory) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+          throw 'candidate snapshot contains a directory reparse point'
+        }
+        $directories.Push($childDirectory)
+      }
+      foreach ($file in [IO.Directory]::GetFiles($directory)) {
+        if (([IO.File]::GetAttributes($file) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+          throw 'candidate snapshot contains a file reparse point'
+        }
+        $files.Add($file)
+        if ($files.Count -gt 100000) {
+          throw 'candidate snapshot exceeds the bounded file count'
+        }
+      }
+    }
+    [string[]]$relativeFiles = @($files | ForEach-Object { $_.Substring($root.Length).TrimStart('\').Replace('\', '/') })
+    [Array]::Sort($relativeFiles, [StringComparer]::Ordinal)
+    [long]$totalBytes = 0
+    $hash = [Security.Cryptography.SHA256]::Create()
+    $sink = [IO.Stream]::Null
+    $crypto = New-Object Security.Cryptography.CryptoStream($sink, $hash, [Security.Cryptography.CryptoStreamMode]::Write)
+    $writer = New-Object IO.BinaryWriter($crypto, (New-Object Text.UTF8Encoding($false)), $true)
+    try {
+      $writer.Write([byte[]][Text.Encoding]::UTF8.GetBytes("TALENRO-C12-SNAPSHOT-DIGEST-V1`0"))
+      $writer.Write([uint32]$relativeFiles.Count)
+      foreach ($relativePath in $relativeFiles) {
+        $fullPath = Join-Path $root ($relativePath.Replace('/', '\'))
+        $pathBytes = [Text.Encoding]::UTF8.GetBytes($relativePath)
+        $fileLength = (Get-Item -LiteralPath $fullPath).Length
+        $totalBytes += $fileLength
+        if ($pathBytes.Length -gt 4096 -or $fileLength -gt 1073741824 -or $totalBytes -gt 4294967296) {
+          throw 'candidate snapshot exceeds a bounded digest dimension'
+        }
+        $writer.Write([uint32]$pathBytes.Length)
+        $writer.Write([byte[]]$pathBytes)
+        $writer.Write([uint64]$fileLength)
+        $writer.Flush()
+        $stream = [IO.File]::Open($fullPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+        try {
+          $stream.CopyTo($crypto)
+        }
+        finally {
+          $stream.Dispose()
+        }
+      }
+      $writer.Flush()
+      $crypto.FlushFinalBlock()
+      $digest = (($hash.Hash | ForEach-Object { $_.ToString('x2') }) -join '')
+      [pscustomobject]@{ Digest = $digest; FileCount = [int]$relativeFiles.Count; TotalBytes = $totalBytes }
+    }
+    finally {
+      $writer.Dispose()
+      $crypto.Dispose()
+      $hash.Dispose()
+    }
+  }
+  try {
+    if ($null -eq (Wait-Job -Job $digestJob -Timeout $waitSeconds)) {
+      Stop-Job -Job $digestJob -ErrorAction SilentlyContinue
+      throw "candidate snapshot byte digest timed out after $waitSeconds seconds"
+    }
+    $result = @(Receive-Job -Job $digestJob -ErrorAction Stop | Where-Object { $_.PSObject.Properties.Name -contains 'Digest' })
+    if ($result.Count -ne 1 -or [string]$result[0].Digest -notmatch '^[0-9a-f]{64}$') {
+      throw 'candidate snapshot byte digest did not return one bounded identity'
+    }
+    if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) {
+      throw 'candidate snapshot byte digest exceeded its absolute deadline'
+    }
+    return [pscustomobject]@{ Digest = [string]$result[0].Digest; FileCount = [int]$result[0].FileCount; TotalBytes = [long]$result[0].TotalBytes }
+  }
+  finally {
+    Stop-Job -Job $digestJob -ErrorAction SilentlyContinue
+    Remove-Job -Job $digestJob -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Assert-C12CandidateSnapshotClean {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Candidate,
+
+    [Parameter(Mandatory = $true)]
+    [object]$Snapshot,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  $gitArguments = Get-C12CandidateGitArguments -Candidate $Candidate
+  $environment = Get-C12CandidateGitEnvironment -Candidate $Candidate -IndexPath ([string]$Snapshot.Index)
+  $treeResult = Invoke-C12Git -Arguments @($gitArguments + @('write-tree')) -Stage 'verify candidate snapshot tree identity' -WorkingDirectory ([string]$Candidate.WorkTree) -Deadline $Deadline -Environment $environment
+  $treeLines = @($treeResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  $currentDigest = Get-C12CandidateSnapshotDigest -SnapshotRoot ([string]$Snapshot.Root) -Deadline $Deadline
+  if ($treeLines.Count -ne 1 -or [string]$treeLines[0] -cne [string]$Candidate.Tree -or
+      [string]$currentDigest.Digest -cne [string]$Candidate.MaterializationDigest -or
+      [int]$currentDigest.FileCount -ne [int]$Candidate.MaterializationFileCount -or
+      [long]$currentDigest.TotalBytes -ne [long]$Candidate.MaterializationTotalBytes -or
+      [string]$currentDigest.Digest -cne [string]$Snapshot.Digest) {
+    throw 'candidate snapshot integrity check failed'
+  }
+}
+
+function New-C12CandidateMaterialization {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Candidate,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Stage,
+
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  $snapshotOwner = Join-Path ([string]$Candidate.OwnerRoot) "snapshot-$(New-C12RandomSuffix)"
+  $snapshotRoot = Join-Path $snapshotOwner 'tree'
+  $snapshotIndex = Join-Path $snapshotOwner 'snapshot.index'
+  [void][IO.Directory]::CreateDirectory($snapshotRoot)
+  $snapshot = [pscustomobject]@{ OwnerRoot = $snapshotOwner; Root = $snapshotRoot; Index = $snapshotIndex; Digest = ''; FileCount = 0; TotalBytes = 0 }
+  try {
+    $gitArguments = Get-C12CandidateGitArguments -Candidate $Candidate
+    Copy-C12CandidateIndex -Source ([string]$Candidate.Index) -Destination $snapshotIndex -Deadline $Deadline
+    $environment = Get-C12CandidateGitEnvironment -Candidate $Candidate -IndexPath $snapshotIndex
+    $prefix = $snapshotRoot.TrimEnd('\') + '\'
+    $null = Invoke-C12Git -Arguments @($gitArguments + @('checkout-index', '--all', "--prefix=$prefix")) -Stage $Stage -WorkingDirectory ([string]$Candidate.WorkTree) -Deadline $Deadline -Environment $environment
+    $baseline = Get-C12CandidateSnapshotDigest -SnapshotRoot $snapshotRoot -Deadline $Deadline
+    $snapshot.Digest = [string]$baseline.Digest
+    $snapshot.FileCount = [int]$baseline.FileCount
+    $snapshot.TotalBytes = [long]$baseline.TotalBytes
+    if ([string]::IsNullOrEmpty([string]$Candidate.MaterializationDigest)) {
+      $Candidate.MaterializationDigest = [string]$baseline.Digest
+      $Candidate.MaterializationFileCount = [int]$baseline.FileCount
+      $Candidate.MaterializationTotalBytes = [long]$baseline.TotalBytes
+    }
+    elseif ([string]$baseline.Digest -cne [string]$Candidate.MaterializationDigest -or
+            [int]$baseline.FileCount -ne [int]$Candidate.MaterializationFileCount -or
+            [long]$baseline.TotalBytes -ne [long]$Candidate.MaterializationTotalBytes) {
+      throw 'candidate snapshot integrity check failed before native execution'
+    }
+    Assert-C12CandidateSnapshotClean -Candidate $Candidate -Snapshot $snapshot -Deadline $Deadline
+    return $snapshot
+  }
+  catch {
+    Remove-C12CandidateMaterialization -Candidate $Candidate -Snapshot $snapshot -Deadline $Deadline
     throw
   }
 }
@@ -1099,14 +1438,16 @@ function Invoke-C12Group {
     [Parameter(Mandatory = $true)]
     [string]$GroupTimeout,
 
-    [string[]]$ExpectedTests = @()
+    [string[]]$ExpectedTests = @(),
+
+    [DateTime]$AbsoluteDeadline = [DateTime]::MaxValue
   )
 
   if ($GroupProfile -cne 'base') {
     throw 'Task 4 runner accepts only the base profile'
   }
   $groupDuration = ConvertFrom-C12Duration -Value $GroupTimeout
-  $groupDeadline = [DateTime]::UtcNow.Add($groupDuration).AddMinutes(3)
+  $groupDeadline = if ($AbsoluteDeadline -eq [DateTime]::MaxValue) { [DateTime]::UtcNow.Add($groupDuration).AddMinutes(3) } else { $AbsoluteDeadline }
   if ($script:c12SuiteDeadline -lt $groupDeadline) {
     $groupDeadline = $script:c12SuiteDeadline
   }
@@ -1193,9 +1534,10 @@ function Assert-C12NoInheritedDependencies {
       throw 'inherited production markers are forbidden'
     }
   }
-  foreach ($name in @('GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES')) {
-    if (-not [string]::IsNullOrEmpty([System.Environment]::GetEnvironmentVariable($name, 'Process'))) {
-      throw 'inherited Git candidate overrides are forbidden'
+  foreach ($inheritedName in @([System.Environment]::GetEnvironmentVariables('Process').Keys)) {
+    $name = [string]$inheritedName
+    if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) {
+      throw 'inherited GIT_* variable is forbidden'
     }
   }
 }
@@ -1253,46 +1595,66 @@ function Invoke-C12SuiteMode {
   $priorNativeDeadline = $script:c12NativeDeadline
   $script:c12NativeDeadline = $script:c12SuiteDeadline
   $originalRoot = $script:c12RepositoryRoot
-  $priorCandidateGitEnvironment = @{
-    GIT_INDEX_FILE = [System.Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process')
-    GIT_OBJECT_DIRECTORY = [System.Environment]::GetEnvironmentVariable('GIT_OBJECT_DIRECTORY', 'Process')
-    GIT_ALTERNATE_OBJECT_DIRECTORIES = [System.Environment]::GetEnvironmentVariable('GIT_ALTERNATE_OBJECT_DIRECTORIES', 'Process')
-  }
   $candidate = $null
+  $groups = @()
   try {
     $candidate = New-C12CandidateSnapshot
-    $script:c12RepositoryRoot = [string]$candidate.Root
-    [System.Environment]::SetEnvironmentVariable('GIT_INDEX_FILE', [string]$candidate.Index, 'Process')
-    [System.Environment]::SetEnvironmentVariable('GIT_OBJECT_DIRECTORY', [string]$candidate.ObjectDirectory, 'Process')
-    [System.Environment]::SetEnvironmentVariable('GIT_ALTERNATE_OBJECT_DIRECTORIES', [string]$candidate.AlternateObjectDirectory, 'Process')
-    $manifestRelativePath = 'testdata/c12/integration-contracts-schema-authority.v1.json'
-    $manifestPath = Join-Path $script:c12RepositoryRoot ($manifestRelativePath.Replace('/', '\'))
-    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
-      throw 'canonical Batch 01 manifest is absent from the staged candidate'
-    }
+    $validationSnapshot = New-C12CandidateMaterialization -Candidate $candidate -Stage 'materialize candidate validation snapshot' -Deadline $script:c12SuiteDeadline
+    try {
+      $script:c12RepositoryRoot = [string]$validationSnapshot.Root
+      $manifestRelativePath = 'testdata/c12/integration-contracts-schema-authority.v1.json'
+      $manifestPath = Join-Path $script:c12RepositoryRoot ($manifestRelativePath.Replace('/', '\'))
+      if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw 'canonical Batch 01 manifest is absent from the staged candidate'
+      }
 
-    $goArgs = @(
-      'test', '-run', '^TestC12SelectedIntegrationManifest$', '-count=1', './internal/testinfra',
-      '-args', '-c12-suite', 'batch01', '-c12-manifests', $manifestRelativePath,
-      '-c12-suite-timeout', $Timeout, '-c12-candidate-tree', [string]$candidate.Tree
-    )
-    $null = Invoke-C12Go -Arguments $goArgs -Stage 'validate canonical Batch 01 integration manifest'
-    $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
-    $groups = @($manifest.groups)
-    Assert-C12ExecutionPlan -Groups $groups
+      $goArgs = @(
+        'test', '-run', '^TestC12SelectedIntegrationManifest$', '-count=1', './internal/testinfra',
+        '-args', '-c12-suite', 'batch01', '-c12-manifests', $manifestRelativePath,
+        '-c12-suite-timeout', $Timeout, '-c12-candidate-tree', [string]$candidate.Tree
+      )
+      $null = Invoke-C12Go -Arguments $goArgs -Stage 'validate canonical Batch 01 integration manifest'
+      $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+      $groups = @($manifest.groups)
+      Assert-C12ExecutionPlan -Groups $groups
+    }
+    finally {
+      try {
+        Assert-C12CandidateSnapshotClean -Candidate $candidate -Snapshot $validationSnapshot -Deadline $script:c12SuiteDeadline
+      }
+      finally {
+        $script:c12RepositoryRoot = $originalRoot
+        Remove-C12CandidateMaterialization -Candidate $candidate -Snapshot $validationSnapshot -Deadline $script:c12SuiteDeadline
+      }
+    }
     foreach ($group in $groups) {
-      $tests = @($group.tests | ForEach-Object { [string]$_ })
-      $runPattern = '^(' + ($tests -join '|') + ')$'
-      Invoke-C12Group -GroupID ([string]$group.id) -GroupProfile ([string]$group.profile) -Package ([string]$group.package) -RunPattern $runPattern -GroupTimeout ([string]$group.timeout) -ExpectedTests $tests
+      $groupDuration = ConvertFrom-C12Duration -Value ([string]$group.timeout)
+      $snapshotGroupDeadline = [DateTime]::UtcNow.Add($groupDuration).AddMinutes(3)
+      if ($script:c12SuiteDeadline -lt $snapshotGroupDeadline) {
+        $snapshotGroupDeadline = $script:c12SuiteDeadline
+      }
+      $groupSnapshot = New-C12CandidateMaterialization -Candidate $candidate -Stage "materialize candidate group $([string]$group.id) snapshot" -Deadline $snapshotGroupDeadline
+      try {
+        $script:c12RepositoryRoot = [string]$groupSnapshot.Root
+        $tests = @($group.tests | ForEach-Object { [string]$_ })
+        $runPattern = '^(' + ($tests -join '|') + ')$'
+        Invoke-C12Group -GroupID ([string]$group.id) -GroupProfile ([string]$group.profile) -Package ([string]$group.package) -RunPattern $runPattern -GroupTimeout ([string]$group.timeout) -ExpectedTests $tests -AbsoluteDeadline $snapshotGroupDeadline
+      }
+      finally {
+        try {
+          Assert-C12CandidateSnapshotClean -Candidate $candidate -Snapshot $groupSnapshot -Deadline $snapshotGroupDeadline
+        }
+        finally {
+          $script:c12RepositoryRoot = $originalRoot
+          Remove-C12CandidateMaterialization -Candidate $candidate -Snapshot $groupSnapshot -Deadline $snapshotGroupDeadline
+        }
+      }
     }
   }
   finally {
     $script:c12RepositoryRoot = $originalRoot
-    foreach ($name in $priorCandidateGitEnvironment.Keys) {
-      [System.Environment]::SetEnvironmentVariable($name, $priorCandidateGitEnvironment[$name], 'Process')
-    }
     if ($null -ne $candidate) {
-      Remove-C12CandidateSnapshot -OwnerRoot ([string]$candidate.OwnerRoot)
+      Remove-C12CandidateSnapshot -OwnerRoot ([string]$candidate.OwnerRoot) -Deadline $script:c12SuiteDeadline
     }
     $script:c12NativeDeadline = $priorNativeDeadline
   }
