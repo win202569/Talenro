@@ -372,7 +372,34 @@ func TestC12Task4AllowedPackagesStaySynchronizedWithRunner(t *testing.T) {
 		"./internal/nodecontrol/serving":   "talenro.local/platform/internal/nodecontrol/serving",
 		"./internal/readiness":             "talenro.local/platform/internal/readiness",
 	}
-	matches := regexp.MustCompile(`(?m)^  '(\./[A-Za-z0-9_./-]+)' = '(talenro\.local/platform/[A-Za-z0-9_./-]+)'$`).FindAllStringSubmatch(string(raw), -1)
+	wantAuthorityLines := []string{
+		`$script:c12AllowedPackages = [System.Collections.Generic.Dictionary[string,string]]::new([System.StringComparer]::Ordinal)`,
+		`$script:c12AllowedPackages.Add('./internal/testinfra', 'talenro.local/platform/internal/testinfra')`,
+		`$script:c12AllowedPackages.Add('./internal/store', 'talenro.local/platform/internal/store')`,
+		`$script:c12AllowedPackages.Add('./internal/nodecontrol/contracts', 'talenro.local/platform/internal/nodecontrol/contracts')`,
+		`$script:c12AllowedPackages.Add('./internal/nodecontrol/authority', 'talenro.local/platform/internal/nodecontrol/authority')`,
+		`$script:c12AllowedPackages.Add('./internal/nodecontrol/serving', 'talenro.local/platform/internal/nodecontrol/serving')`,
+		`$script:c12AllowedPackages.Add('./internal/readiness', 'talenro.local/platform/internal/readiness')`,
+		`    if (-not $script:c12AllowedPackages.ContainsKey($package)) {`,
+		`    Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests`,
+		`    if (-not $script:c12AllowedPackages.ContainsKey($package)) {`,
+	}
+	var authorityLines []string
+	for _, line := range strings.Split(string(raw), "\n") {
+		line = strings.TrimSuffix(line, "\r")
+		if strings.Contains(line, "$script:c12AllowedPackages") {
+			authorityLines = append(authorityLines, line)
+		}
+	}
+	if len(authorityLines) != len(wantAuthorityLines) {
+		t.Fatalf("runner package authority line count = %d, want %d; lines=%q", len(authorityLines), len(wantAuthorityLines), authorityLines)
+	}
+	for index, want := range wantAuthorityLines {
+		if authorityLines[index] != want {
+			t.Fatalf("runner package authority line %d = %q, want %q", index+1, authorityLines[index], want)
+		}
+	}
+	matches := regexp.MustCompile(`(?m)^\$script:c12AllowedPackages\.Add\('(\./[A-Za-z0-9_./-]+)', '(talenro\.local/platform/[A-Za-z0-9_./-]+)'\)$`).FindAllStringSubmatch(string(raw), -1)
 	runnerPackages := make(map[string]string, len(matches))
 	for _, match := range matches {
 		runnerPackages[match[1]] = match[2]
@@ -387,10 +414,6 @@ func TestC12Task4AllowedPackagesStaySynchronizedWithRunner(t *testing.T) {
 		} else if importPath != wantImportPaths[packageName] {
 			t.Errorf("runner import path for %s = %q, want %q", packageName, importPath, wantImportPaths[packageName])
 		}
-	}
-	const assertionCall = `Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests`
-	if !strings.Contains(string(raw), assertionCall) {
-		t.Fatalf("runner JSON assertion does not consume the bound canonical package import path")
 	}
 }
 
@@ -797,6 +820,17 @@ func TestC12BaseRunnerRejectsUntrustedInputsBeforeDocker(t *testing.T) {
 				t.Fatalf("exit=%d output=%q, want failure containing %q", exitCode, output, test.wantErr)
 			}
 		})
+	}
+}
+
+func TestC12BaseRunnerRejectsCaseVariantAllowedPackageBeforeGroup(t *testing.T) {
+	const packageName = "./INTERNAL/STORE"
+	output, exitCode := runC12PackageMembershipHarness(t, packageName)
+	if exitCode == 0 || !strings.Contains(output, "unknown package "+packageName) {
+		t.Fatalf("exit=%d output=%q, want exact-case unknown package rejection", exitCode, output)
+	}
+	if strings.Contains(output, "C12_GROUP_CALLED") {
+		t.Fatalf("case-variant package reached the group boundary: %q", output)
 	}
 }
 
@@ -2038,6 +2072,44 @@ catch {
 		t.Fatalf("launch C12 JSON assertion harness: %v", commandErr)
 	}
 	return string(output), exitError.ExitCode()
+}
+
+func runC12PackageMembershipHarness(t *testing.T, packageName string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	stub := []byte(`function Invoke-C12Group {
+  param(
+    [string]$GroupID,
+    [string]$GroupProfile,
+    [string]$Package,
+    [string]$RunPattern = '',
+    [string]$GroupTimeout,
+    [string[]]$ExpectedTests = @(),
+    [DateTime]$AbsoluteDeadline = [DateTime]::MaxValue
+  )
+  Write-Output "C12_GROUP_CALLED:$Package"
+}
+
+`)
+	harnessRoot := t.TempDir()
+	harness := filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(harness), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	body := append(append(append([]byte(nil), runner[:index]...), stub...), runner[index:]...)
+	if err := os.WriteFile(harness, body, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return runC12PowerShellAtRoot(t, harnessRoot, nil,
+		"-Profile", "base", "-Packages", packageName, "-Timeout", "3m")
 }
 
 func buildFakeGoExecutable(t *testing.T, executable, source string) {

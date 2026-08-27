@@ -23,14 +23,13 @@ param(
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
-$script:c12AllowedPackages = @{
-  './internal/testinfra' = 'talenro.local/platform/internal/testinfra'
-  './internal/store' = 'talenro.local/platform/internal/store'
-  './internal/nodecontrol/contracts' = 'talenro.local/platform/internal/nodecontrol/contracts'
-  './internal/nodecontrol/authority' = 'talenro.local/platform/internal/nodecontrol/authority'
-  './internal/nodecontrol/serving' = 'talenro.local/platform/internal/nodecontrol/serving'
-  './internal/readiness' = 'talenro.local/platform/internal/readiness'
-}
+$script:c12AllowedPackages = [System.Collections.Generic.Dictionary[string,string]]::new([System.StringComparer]::Ordinal)
+$script:c12AllowedPackages.Add('./internal/testinfra', 'talenro.local/platform/internal/testinfra')
+$script:c12AllowedPackages.Add('./internal/store', 'talenro.local/platform/internal/store')
+$script:c12AllowedPackages.Add('./internal/nodecontrol/contracts', 'talenro.local/platform/internal/nodecontrol/contracts')
+$script:c12AllowedPackages.Add('./internal/nodecontrol/authority', 'talenro.local/platform/internal/nodecontrol/authority')
+$script:c12AllowedPackages.Add('./internal/nodecontrol/serving', 'talenro.local/platform/internal/nodecontrol/serving')
+$script:c12AllowedPackages.Add('./internal/readiness', 'talenro.local/platform/internal/readiness')
 $script:c12NativeDeadline = [DateTime]::MaxValue
 $script:c12SuiteDeadline = [DateTime]::MaxValue
 if ($PSCmdlet.ParameterSetName -eq 'Suite') {
