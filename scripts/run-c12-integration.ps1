@@ -421,17 +421,24 @@ public sealed class C12OwnedDirectory : IDisposable
 {
     private const UInt32 FILE_READ_ATTRIBUTES = 0x00000080;
     private const UInt32 DELETE = 0x00010000;
+    private const UInt32 SYNCHRONIZE = 0x00100000;
     private const UInt32 FILE_SHARE_READ = 0x00000001;
     private const UInt32 FILE_SHARE_WRITE = 0x00000002;
     private const UInt32 FILE_SHARE_DELETE = 0x00000004;
     private const UInt32 OPEN_EXISTING = 3;
+    private const UInt32 FILE_CREATE = 2;
+    private const UInt32 FILE_DIRECTORY_FILE = 0x00000001;
+    private const UInt32 FILE_SYNCHRONOUS_IO_NONALERT = 0x00000020;
     private const UInt32 FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000;
     private const UInt32 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+    private const UInt32 FILE_OPEN_REPARSE_POINT = 0x00200000;
     private const UInt32 FILE_ATTRIBUTE_READONLY = 0x00000001;
     private const UInt32 FILE_ATTRIBUTE_DIRECTORY = 0x00000010;
+    private const UInt32 FILE_ATTRIBUTE_NORMAL = 0x00000080;
     private const UInt32 FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
+    private const UInt32 OBJ_CASE_INSENSITIVE = 0x00000040;
+    private const UInt64 FILE_CREATED = 2;
     private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
-    private const Int32 ERROR_ALREADY_EXISTS = 183;
     private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -463,8 +470,37 @@ public sealed class C12OwnedDirectory : IDisposable
         public bool DeleteFile;
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool CreateDirectory(string path, IntPtr securityAttributes);
+    [StructLayout(LayoutKind.Sequential)]
+    private struct UNICODE_STRING
+    {
+        public UInt16 Length;
+        public UInt16 MaximumLength;
+        public IntPtr Buffer;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct OBJECT_ATTRIBUTES
+    {
+        public UInt32 Length;
+        public IntPtr RootDirectory;
+        public IntPtr ObjectName;
+        public UInt32 Attributes;
+        public IntPtr SecurityDescriptor;
+        public IntPtr SecurityQualityOfService;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IO_STATUS_BLOCK
+    {
+        public IntPtr Status;
+        public UIntPtr Information;
+    }
+
+    [DllImport("ntdll.dll")]
+    private static extern Int32 NtCreateFile(out IntPtr fileHandle, UInt32 desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, out IO_STATUS_BLOCK ioStatusBlock, IntPtr allocationSize, UInt32 fileAttributes, UInt32 shareAccess, UInt32 createDisposition, UInt32 createOptions, IntPtr eaBuffer, UInt32 eaLength);
+
+    [DllImport("ntdll.dll")]
+    private static extern UInt32 RtlNtStatusToDosError(Int32 status);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
@@ -497,44 +533,70 @@ public sealed class C12OwnedDirectory : IDisposable
     public static C12OwnedDirectory CreateNew(string exactRoot)
     {
         string root = System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\');
-        if (!CreateDirectory(root, IntPtr.Zero))
-        {
-            int error = Marshal.GetLastWin32Error();
-            if (error == ERROR_ALREADY_EXISTS) throw new InvalidOperationException("owned directory already exists");
-            throw new Win32Exception(error);
-        }
+        if (root.Length < 3 || root[1] != ':' || root[2] != '\\')
+            throw new InvalidOperationException("owned directory requires one local drive-rooted path");
+        string nativePath = @"\??\" + root;
+        int pathByteLength = System.Text.Encoding.Unicode.GetByteCount(nativePath);
+        if (pathByteLength < 2 || pathByteLength > UInt16.MaxValue - 2)
+            throw new InvalidOperationException("owned directory native path is outside the bounded Unicode range");
+
+        IntPtr pathBuffer = IntPtr.Zero;
+        IntPtr namePointer = IntPtr.Zero;
+        IntPtr createdHandle = INVALID_HANDLE_VALUE;
         try
         {
-            return OpenExact(root);
+            pathBuffer = Marshal.StringToHGlobalUni(nativePath);
+            UNICODE_STRING name = new UNICODE_STRING();
+            name.Length = (UInt16)pathByteLength;
+            name.MaximumLength = (UInt16)(pathByteLength + 2);
+            name.Buffer = pathBuffer;
+            namePointer = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(UNICODE_STRING)));
+            Marshal.StructureToPtr(name, namePointer, false);
+            OBJECT_ATTRIBUTES attributes = new OBJECT_ATTRIBUTES();
+            attributes.Length = (UInt32)Marshal.SizeOf(typeof(OBJECT_ATTRIBUTES));
+            attributes.RootDirectory = IntPtr.Zero;
+            attributes.ObjectName = namePointer;
+            attributes.Attributes = OBJ_CASE_INSENSITIVE;
+            IO_STATUS_BLOCK ioStatus;
+            Int32 status = NtCreateFile(
+                out createdHandle,
+                FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE,
+                ref attributes,
+                out ioStatus,
+                IntPtr.Zero,
+                FILE_ATTRIBUTE_NORMAL,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                FILE_CREATE,
+                FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT,
+                IntPtr.Zero,
+                0);
+            if (status < 0)
+            {
+                if ((UInt32)status == 0xC0000035U) throw new InvalidOperationException("owned directory already exists");
+                throw new Win32Exception((Int32)RtlNtStatusToDosError(status));
+            }
+            if (createdHandle == IntPtr.Zero || createdHandle == INVALID_HANDLE_VALUE || ioStatus.Information.ToUInt64() != FILE_CREATED)
+                throw new InvalidOperationException("atomic owned-directory creation did not return one newly created handle");
+            BY_HANDLE_FILE_INFORMATION information = ReadInformation(createdHandle);
+            if ((information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+                throw new InvalidOperationException("owned directory root is not one non-reparse directory object");
+            C12OwnedDirectory result = new C12OwnedDirectory(root, createdHandle, information);
+            createdHandle = INVALID_HANDLE_VALUE;
+            return result;
         }
         catch
         {
-            try { System.IO.Directory.Delete(root, false); } catch { }
+            if (createdHandle != IntPtr.Zero && createdHandle != INVALID_HANDLE_VALUE)
+            {
+                try { MarkDelete(createdHandle); } catch { }
+            }
             throw;
-        }
-    }
-
-    public static C12OwnedDirectory OpenExisting(string exactRoot)
-    {
-        return OpenExact(System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\'));
-    }
-
-    private static C12OwnedDirectory OpenExact(string root)
-    {
-        IntPtr current = CreateFile(root, FILE_READ_ATTRIBUTES | DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
-        if (current == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
-        try
-        {
-            BY_HANDLE_FILE_INFORMATION information = ReadInformation(current);
-            if ((information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
-                throw new InvalidOperationException("owned directory root is not one non-reparse directory object");
-            C12OwnedDirectory result = new C12OwnedDirectory(root, current, information);
-            current = INVALID_HANDLE_VALUE;
-            return result;
         }
         finally
         {
-            if (current != INVALID_HANDLE_VALUE) CloseHandle(current);
+            if (createdHandle != IntPtr.Zero && createdHandle != INVALID_HANDLE_VALUE) CloseHandle(createdHandle);
+            if (namePointer != IntPtr.Zero) Marshal.FreeHGlobal(namePointer);
+            if (pathBuffer != IntPtr.Zero) Marshal.FreeHGlobal(pathBuffer);
         }
     }
 
@@ -968,10 +1030,10 @@ function Remove-C12BoundedDirectory {
       throw "$Stage exceeded its absolute deadline before identity verification"
     }
     if ($null -eq $cleanupOwnership) {
-      if (-not [IO.Directory]::Exists($resolvedRoot)) {
+      if (-not [IO.Directory]::Exists($resolvedRoot) -and -not [IO.File]::Exists($resolvedRoot)) {
         return
       }
-      $cleanupOwnership = [C12OwnedDirectory]::OpenExisting($resolvedRoot)
+      throw "$Stage refused an existing exact orphan without creation ownership: $resolvedRoot"
     }
     elseif ([string]$cleanupOwnership.RootPath -cne $resolvedRoot) {
       throw "$Stage refused a mismatched owned-directory handle"

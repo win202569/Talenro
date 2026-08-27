@@ -637,6 +637,13 @@ func TestC12BaseRunnerCleanupBindsExactOwnedDirectoryIdentity(t *testing.T) {
 	}
 }
 
+func TestC12BaseRunnerCreatesOwnedDirectoryFromAtomicNativeHandle(t *testing.T) {
+	output, exitCode := runC12AtomicOwnedDirectoryCreationHarness(t)
+	if exitCode != 0 {
+		t.Fatalf("atomic owned-directory creation harness exit=%d output=%q", exitCode, output)
+	}
+}
+
 func TestC12BaseRunnerContainedChildDoesNotSpawnWhenNamedJobContainmentFails(t *testing.T) {
 	for _, mode := range []string{"open", "assignment"} {
 		t.Run(mode, func(t *testing.T) {
@@ -1434,6 +1441,8 @@ func runC12OwnedDirectoryIdentityHarness(t *testing.T) (string, int) {
 $testRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
 $canaryRoot = Join-Path $testRoot 'canary'
 $canaryFile = Join-Path $canaryRoot 'readonly-canary.txt'
+$ordinaryRoot = Join-Path $testRoot 'talenro-c12-validator-00000000000000000000000000000000'
+$ordinaryFile = Join-Path $ordinaryRoot 'ordinary-readonly-canary.txt'
 $replacementRoot = Join-Path $testRoot 'talenro-c12-validator-11111111111111111111111111111111'
 $ownedRoot = Join-Path $testRoot 'talenro-c12-validator-22222222222222222222222222222222'
 $movedRoot = Join-Path $testRoot 'moved-owned-root'
@@ -1444,6 +1453,21 @@ try {
   [IO.Directory]::CreateDirectory($canaryRoot) | Out-Null
   [IO.File]::WriteAllText($canaryFile, 'C12_DIRECTORY_IDENTITY_CANARY')
   [IO.File]::SetAttributes($canaryFile, [IO.FileAttributes]::ReadOnly)
+
+  [IO.Directory]::CreateDirectory($ordinaryRoot) | Out-Null
+  [IO.File]::WriteAllText($ordinaryFile, 'C12_NULL_OWNERSHIP_CANARY')
+  [IO.File]::SetAttributes($ordinaryFile, [IO.FileAttributes]::ReadOnly)
+  $ordinaryRejected = $false
+  $ordinaryFailure = ''
+  try {
+    Remove-C12BoundedDirectory -Root $ordinaryRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'ordinary null-ownership cleanup'
+  }
+  catch { $ordinaryRejected = $true; $ordinaryFailure = $_.Exception.Message }
+  if (-not $ordinaryRejected) { throw 'ordinary directory was adopted without creation ownership' }
+  if (-not $ordinaryFailure.Contains($ordinaryRoot)) { throw 'null-ownership failure omitted the exact ordinary orphan' }
+  if (-not [IO.File]::Exists($ordinaryFile)) { throw 'null-ownership cleanup deleted the ordinary canary' }
+  if ([IO.File]::ReadAllText($ordinaryFile) -cne 'C12_NULL_OWNERSHIP_CANARY') { throw 'null-ownership cleanup changed ordinary canary bytes' }
+  if (([IO.File]::GetAttributes($ordinaryFile) -band [IO.FileAttributes]::ReadOnly) -eq 0) { throw 'null-ownership cleanup normalized the ordinary canary attribute' }
 
   New-Item -ItemType Junction -Path $replacementRoot -Target $canaryRoot -Force | Out-Null
   $replacementRejected = $false
@@ -1488,6 +1512,8 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 finally {
   if ($null -ne $ownership) { $ownership.Dispose() }
   if ([IO.Directory]::Exists($replacementRoot) -and (([IO.File]::GetAttributes($replacementRoot) -band [IO.FileAttributes]::ReparsePoint) -ne 0)) { [IO.Directory]::Delete($replacementRoot, $false) }
+  if ([IO.File]::Exists($ordinaryFile)) { [IO.File]::SetAttributes($ordinaryFile, [IO.FileAttributes]::Normal) }
+  if ([IO.Directory]::Exists($ordinaryRoot)) { [IO.Directory]::Delete($ordinaryRoot, $true) }
   if ([IO.Directory]::Exists($deadlineRoot)) { [IO.Directory]::Delete($deadlineRoot, $true) }
   if ([IO.Directory]::Exists($movedDeadlineRoot)) { [IO.Directory]::Delete($movedDeadlineRoot, $true) }
   if ([IO.File]::Exists($canaryFile)) { [IO.File]::SetAttributes($canaryFile, [IO.FileAttributes]::Normal) }
@@ -1511,6 +1537,206 @@ finally {
 	var exitError *exec.ExitError
 	if !errors.As(commandErr, &exitError) {
 		t.Fatalf("launch owned directory identity harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
+func runC12AtomicOwnedDirectoryCreationHarness(t *testing.T) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	rootPayload := base64.StdEncoding.EncodeToString([]byte(t.TempDir()))
+	appendix := fmt.Sprintf(`
+Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+public sealed class C12CreateSubstitutionFixture : IDisposable
+{
+    private const UInt32 FILE_LIST_DIRECTORY = 0x00000001;
+    private const UInt32 FILE_SHARE_READ = 0x00000001;
+    private const UInt32 FILE_SHARE_WRITE = 0x00000002;
+    private const UInt32 FILE_SHARE_DELETE = 0x00000004;
+    private const UInt32 OPEN_EXISTING = 3;
+    private const UInt32 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+    private const UInt32 FILE_NOTIFY_CHANGE_DIR_NAME = 0x00000002;
+    private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool ReadDirectoryChangesW(IntPtr directory, IntPtr buffer, UInt32 length, bool watchSubtree, UInt32 filter, out UInt32 bytesReturned, IntPtr overlapped, IntPtr completionRoutine);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr handle);
+
+    private IntPtr parentHandle;
+    private readonly string target;
+    private readonly string attacker;
+    private readonly ManualResetEvent armed = new ManualResetEvent(false);
+    private readonly ManualResetEvent completed = new ManualResetEvent(false);
+    private readonly Thread thread;
+    public bool Substituted { get; private set; }
+    public string Failure { get; private set; }
+
+    private C12CreateSubstitutionFixture(IntPtr handle, string exactTarget, string exactAttacker)
+    {
+        parentHandle = handle;
+        target = exactTarget;
+        attacker = exactAttacker;
+        Failure = String.Empty;
+        thread = new Thread(Run);
+        thread.IsBackground = true;
+        thread.Priority = ThreadPriority.Highest;
+        thread.Start();
+    }
+
+    public static C12CreateSubstitutionFixture Arm(string parent, string target, string attacker)
+    {
+        IntPtr handle = CreateFile(parent, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, IntPtr.Zero);
+        if (handle == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
+        return new C12CreateSubstitutionFixture(handle, target, attacker);
+    }
+
+    private void Run()
+    {
+        IntPtr buffer = Marshal.AllocHGlobal(4096);
+        try
+        {
+            armed.Set();
+            UInt32 returned;
+            if (!ReadDirectoryChangesW(parentHandle, buffer, 4096, false, FILE_NOTIFY_CHANGE_DIR_NAME, out returned, IntPtr.Zero, IntPtr.Zero))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            Directory.Delete(target, false);
+            Directory.Move(attacker, target);
+            Substituted = true;
+        }
+        catch (Exception exception) { Failure = exception.GetType().Name + ": " + exception.Message; }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
+            completed.Set();
+        }
+    }
+
+    public void WaitUntilArmed()
+    {
+        if (!armed.WaitOne(5000)) throw new TimeoutException("directory substitution fixture did not arm");
+    }
+
+    public void WaitForCompletion()
+    {
+        if (!completed.WaitOne(5000)) throw new TimeoutException("directory substitution fixture did not complete");
+    }
+
+    public void Dispose()
+    {
+        IntPtr handle = parentHandle;
+        parentHandle = IntPtr.Zero;
+        if (handle != IntPtr.Zero && handle != INVALID_HANDLE_VALUE) CloseHandle(handle);
+        if (!completed.WaitOne(5000) && thread.IsAlive) thread.Join(1000);
+        armed.Dispose();
+        completed.Dispose();
+    }
+}
+'@
+$testRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$originalPriority = [Threading.Thread]::CurrentThread.Priority
+try {
+  for ($attempt = 1; $attempt -le 8; $attempt++) {
+    $suffix = ([string]$attempt).PadLeft(32, '0')
+    $ownedRoot = Join-Path $testRoot "talenro-c12-validator-$suffix"
+    $attackerRoot = Join-Path $testRoot "attacker-$suffix"
+    $attackerCanary = Join-Path $attackerRoot 'readonly-canary.txt'
+    $fixture = $null
+    $ownership = $null
+    try {
+      [IO.Directory]::CreateDirectory($attackerRoot) | Out-Null
+      [IO.File]::WriteAllText($attackerCanary, 'C12_ATOMIC_CREATE_CANARY')
+      [IO.File]::SetAttributes($attackerCanary, [IO.FileAttributes]::ReadOnly)
+      $fixture = [C12CreateSubstitutionFixture]::Arm($testRoot, $ownedRoot, $attackerRoot)
+      $fixture.WaitUntilArmed()
+      Start-Sleep -Milliseconds 100
+      [Threading.Thread]::CurrentThread.Priority = [Threading.ThreadPriority]::Lowest
+      $createFailure = ''
+      try {
+        $ownership = New-C12OwnedDirectory -Root $ownedRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'atomic owned-directory creation'
+      }
+      catch { $createFailure = $_.Exception.Message }
+      finally { [Threading.Thread]::CurrentThread.Priority = $originalPriority }
+      $fixture.WaitForCompletion()
+
+      $canaryPath = if ([IO.File]::Exists((Join-Path $ownedRoot 'readonly-canary.txt'))) { Join-Path $ownedRoot 'readonly-canary.txt' } else { $attackerCanary }
+      if (-not [IO.File]::Exists($canaryPath)) { throw 'create/open race deleted the attacker canary' }
+      if ([IO.File]::ReadAllText($canaryPath) -cne 'C12_ATOMIC_CREATE_CANARY') { throw 'create/open race changed attacker canary bytes' }
+      if (([IO.File]::GetAttributes($canaryPath) -band [IO.FileAttributes]::ReadOnly) -eq 0) { throw 'create/open race normalized attacker canary attributes' }
+      if (-not [string]::IsNullOrEmpty($createFailure)) { throw "create/open race caused owned-directory failure: $createFailure" }
+      if ($fixture.Substituted) { throw 'two-step creation adopted a substituted ordinary directory' }
+    }
+    finally {
+      [Threading.Thread]::CurrentThread.Priority = $originalPriority
+      if ($null -ne $ownership) { $ownership.Dispose() }
+      if (-not [IO.Directory]::Exists($testRoot)) { throw "test root disappeared after ownership dispose at attempt $attempt (owned=$ownedRoot attacker=$attackerRoot)" }
+      if ($null -ne $fixture) { $fixture.Dispose() }
+      if (-not [IO.Directory]::Exists($testRoot)) { throw "test root disappeared after fixture dispose at attempt $attempt (owned=$ownedRoot attacker=$attackerRoot)" }
+      foreach ($candidate in @($ownedRoot, $attackerRoot)) {
+        $candidateCanary = Join-Path $candidate 'readonly-canary.txt'
+        if ([IO.File]::Exists($candidateCanary)) { [IO.File]::SetAttributes($candidateCanary, [IO.FileAttributes]::Normal) }
+        if ([IO.Directory]::Exists($candidate)) { [IO.Directory]::Delete($candidate, $true) }
+        if (-not [IO.Directory]::Exists($testRoot)) { throw "test root disappeared while deleting $candidate at attempt $attempt" }
+      }
+    }
+  }
+
+  if (-not [IO.Directory]::Exists($testRoot)) { throw 'test root disappeared before collision verification' }
+  $collisionRoot = Join-Path $testRoot 'talenro-c12-validator-ffffffffffffffffffffffffffffffff'
+  $collisionCanary = Join-Path $collisionRoot 'c.txt'
+  [IO.Directory]::CreateDirectory($collisionRoot) | Out-Null
+  [IO.File]::WriteAllText($collisionCanary, 'C12_ATOMIC_COLLISION_CANARY')
+  [IO.File]::SetAttributes($collisionCanary, [IO.FileAttributes]::ReadOnly)
+  $collisionRejected = $false
+  try {
+    $unexpected = New-C12OwnedDirectory -Root $collisionRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'atomic owned-directory collision'
+    if ($null -ne $unexpected) { $unexpected.Dispose() }
+  }
+  catch { $collisionRejected = $true }
+  if (-not $collisionRejected) { throw 'atomic creation accepted a pre-existing collision' }
+  if ([IO.File]::ReadAllText($collisionCanary) -cne 'C12_ATOMIC_COLLISION_CANARY') { throw 'creation collision changed canary bytes' }
+  if (([IO.File]::GetAttributes($collisionCanary) -band [IO.FileAttributes]::ReadOnly) -eq 0) { throw 'creation collision normalized canary attributes' }
+  [IO.File]::SetAttributes($collisionCanary, [IO.FileAttributes]::Normal)
+  [IO.Directory]::Delete($collisionRoot, $true)
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+finally { [Threading.Thread]::CurrentThread.Priority = $originalPriority }
+`, rootPayload)
+	harness := filepath.Join(t.TempDir(), "assert-c12-atomic-owned-directory.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("atomic owned-directory creation harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch atomic owned-directory creation harness: %v", commandErr)
 	}
 	return string(output), exitError.ExitCode()
 }
