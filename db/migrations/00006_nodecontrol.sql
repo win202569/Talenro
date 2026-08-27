@@ -1097,6 +1097,7 @@ CREATE TABLE nodecontrol.control_plane_trust_bundle_high_waters (
   CONSTRAINT control_plane_trust_bundle_high_waters_cumulative_set__4ff0c7bc CHECK (cumulative_set_count BETWEEN 0 AND 128)
 );
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.reject_row_mutation()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1153,7 +1154,9 @@ BEGIN
   RAISE EXCEPTION '% rows are immutable', TG_TABLE_NAME USING ERRCODE = '23514';
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_authority_fence_update()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1209,7 +1212,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_capacity_profile_immutability()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1229,7 +1234,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_process_slot_cap()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1262,7 +1269,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_inventory_pointers()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1531,7 +1540,9 @@ BEGIN
   RETURN NULL;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_certificate_issuance_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1574,7 +1585,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_enrollment_grant_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1611,7 +1624,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_certificate_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1678,7 +1693,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_security_incident_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1775,7 +1792,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_security_fault_receipt()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1865,7 +1884,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_recovery_session_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1901,7 +1922,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_restore_approval_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2020,7 +2043,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_signing_intent_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2245,7 +2270,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_root_publish_workflow()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2377,7 +2404,9 @@ BEGIN
   RAISE EXCEPTION 'terminal root/metadata publish intent is immutable' USING ERRCODE = '23514';
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_root_share_binding()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2424,7 +2453,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_observed_state()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2458,7 +2489,9 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION nodecontrol.enforce_trust_bundle_high_water()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -2512,6 +2545,7 @@ BEGIN
   RETURN NEW;
 END
 $$;
+-- +goose StatementEnd
 
 CREATE INDEX authority_checkpoint_node
 ON nodecontrol.control_plane_authority_fences USING btree (authority_epoch, scope_digest, authority_sequence DESC)

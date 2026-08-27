@@ -384,10 +384,13 @@ var expectedNodeControlEnums = map[string]map[string][]string{
 	},
 }
 
-func TestNodeControlManifestIsLiteralAndExact(t *testing.T) {
+func TestNodeControlBaseCatalogHasExact25Tables(t *testing.T) {
 	manifest, raw := loadNodeControlManifest(t)
 	if manifest.Version != 1 || manifest.Schema != "nodecontrol" {
 		t.Fatalf("manifest identity = version %d schema %q, want version 1 schema nodecontrol", manifest.Version, manifest.Schema)
+	}
+	if len(manifest.Tables) != 25 {
+		t.Fatalf("base manifest table count = %d, want exactly 25 before registered v7", len(manifest.Tables))
 	}
 
 	migration, err := os.ReadFile("../../db/migrations/00006_nodecontrol.sql")
