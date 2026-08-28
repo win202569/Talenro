@@ -31,6 +31,7 @@ $script:c12AllowedPackages.Add('./internal/nodecontrol/authority', 'talenro.loca
 $script:c12AllowedPackages.Add('./internal/nodecontrol/serving', 'talenro.local/platform/internal/nodecontrol/serving')
 $script:c12AllowedPackages.Add('./internal/readiness', 'talenro.local/platform/internal/readiness')
 $script:c12NativeDeadline = [DateTime]::MaxValue
+$script:c12GroupCleanupBudget = [TimeSpan]::FromSeconds(75)
 $script:c12SuiteDeadline = [DateTime]::MaxValue
 if ($PSCmdlet.ParameterSetName -eq 'Suite') {
   $script:c12SuiteDeadline = [DateTime]::UtcNow.AddMinutes(120)
@@ -1687,25 +1688,43 @@ function Test-C12TCPProtocol {
     [string]$Request,
 
     [Parameter(Mandatory = $true)]
-    [string]$Expected
+    [string]$Expected,
+
+    [Parameter(Mandatory = $true)]
+    [DateTime]$Deadline
   )
 
   $client = New-Object System.Net.Sockets.TcpClient
+  $connectWaitHandle = $null
   try {
+    $remainingMilliseconds = [Math]::Floor(($Deadline - [DateTime]::UtcNow).TotalMilliseconds)
+    if ($remainingMilliseconds -lt 1) {
+      return $false
+    }
     $connection = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
-    if (-not $connection.AsyncWaitHandle.WaitOne(1000)) {
+    $connectWaitHandle = $connection.AsyncWaitHandle
+    $connectMilliseconds = [int][Math]::Min(1000, $remainingMilliseconds)
+    if (-not $connectWaitHandle.WaitOne($connectMilliseconds)) {
       return $false
     }
     $client.EndConnect($connection)
     $stream = $client.GetStream()
-    $stream.ReadTimeout = 1000
-    $stream.WriteTimeout = 1000
+    $remainingMilliseconds = [Math]::Floor(($Deadline - [DateTime]::UtcNow).TotalMilliseconds)
+    if ($remainingMilliseconds -lt 1) {
+      return $false
+    }
+    $stream.WriteTimeout = [int][Math]::Min(1000, $remainingMilliseconds)
     $requestBytes = [System.Text.Encoding]::ASCII.GetBytes($Request)
     $stream.Write($requestBytes, 0, $requestBytes.Length)
     $stream.Flush()
     $buffer = New-Object byte[] 4096
     $response = New-Object System.Text.StringBuilder
     for ($attempt = 0; $attempt -lt 3; $attempt++) {
+      $remainingMilliseconds = [Math]::Floor(($Deadline - [DateTime]::UtcNow).TotalMilliseconds)
+      if ($remainingMilliseconds -lt 1) {
+        return $false
+      }
+      $stream.ReadTimeout = [int][Math]::Min(1000, $remainingMilliseconds)
       $read = $stream.Read($buffer, 0, $buffer.Length)
       if ($read -le 0) {
         break
@@ -1721,6 +1740,9 @@ function Test-C12TCPProtocol {
     return $false
   }
   finally {
+    if ($null -ne $connectWaitHandle) {
+      $connectWaitHandle.Close()
+    }
     $client.Close()
   }
 }
@@ -1728,29 +1750,57 @@ function Test-C12TCPProtocol {
 function Wait-C12Dependencies {
   param(
     [Parameter(Mandatory = $true)]
-    [object[]]$Resources
+    [object[]]$Resources,
+
+    [TimeSpan]$ProbeTimeout = [TimeSpan]::FromSeconds(60)
   )
 
+  if ($ProbeTimeout -le [TimeSpan]::Zero -or
+      $ProbeTimeout -gt [TimeSpan]::FromSeconds(60) -or
+      $ProbeTimeout.Ticks % [TimeSpan]::TicksPerSecond -ne 0) {
+    throw 'C12 dependency probe timeout must be a whole number of seconds from 1 through 60'
+  }
   $postgres = @($Resources | Where-Object { $_.Kind -eq 'postgres' })[0]
   $redis = @($Resources | Where-Object { $_.Kind -eq 'redis' })[0]
   $nats = @($Resources | Where-Object { $_.Kind -eq 'nats' })[0]
-  $deadline = [DateTime]::UtcNow.AddSeconds(60)
+  $deadline = [DateTime]::UtcNow.Add($ProbeTimeout)
+  if ($script:c12NativeDeadline -lt $deadline) {
+    $deadline = $script:c12NativeDeadline
+  }
   while ([DateTime]::UtcNow -lt $deadline) {
     $dockerArgs = @('container', 'inspect', '--format', '{{.State.Health.Status}}', [string]$postgres.ID)
-    $healthResult = Invoke-C12Docker -Arguments $dockerArgs -Stage 'inspect PostgreSQL health' -AllowFailure
+    try {
+      $healthResult = Invoke-C12Docker -Arguments $dockerArgs -Stage 'inspect PostgreSQL health' -Deadline $deadline -AllowFailure
+    }
+    catch {
+      $remaining = $deadline - [DateTime]::UtcNow
+      if ($remaining -le [TimeSpan]::FromSeconds(1) -and
+          $_.Exception.Message -match '^inspect PostgreSQL health (?:exceeded its absolute deadline|timed out (?:before native execution|after [0-9]+ seconds)|has less than one bounded second remaining)$') {
+        break
+      }
+      throw
+    }
     $postgresReady = $false
     if ($healthResult.ExitCode -eq 0) {
       $healthLines = @($healthResult.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
       $postgresReady = $healthLines.Count -eq 1 -and [string]$healthLines[0] -ceq 'healthy'
     }
-    $redisReady = Test-C12TCPProtocol -Port $redis.Port -Request "*1`r`n`$4`r`nPING`r`n" -Expected "+PONG`r`n"
-    $natsReady = Test-C12TCPProtocol -Port $nats.Port -Request "CONNECT {`"verbose`":false,`"pedantic`":false}`r`nPING`r`n" -Expected "PONG`r`n"
+    $redisReady = Test-C12TCPProtocol -Port $redis.Port -Request "*1`r`n`$4`r`nPING`r`n" -Expected "+PONG`r`n" -Deadline $deadline
+    if ([DateTime]::UtcNow -ge $deadline) {
+      break
+    }
+    $natsReady = Test-C12TCPProtocol -Port $nats.Port -Request "CONNECT {`"verbose`":false,`"pedantic`":false}`r`nPING`r`n" -Expected "PONG`r`n" -Deadline $deadline
     if ($postgresReady -and $redisReady -and $natsReady) {
       return
     }
-    Start-Sleep -Milliseconds 250
+    $remainingMilliseconds = [Math]::Floor(($deadline - [DateTime]::UtcNow).TotalMilliseconds)
+    if ($remainingMilliseconds -lt 1) {
+      break
+    }
+    Start-Sleep -Milliseconds ([int][Math]::Min(250, $remainingMilliseconds))
   }
-  throw 'C12 dependencies did not pass health and protocol probes within 60 seconds'
+  $probeSeconds = [int]$ProbeTimeout.TotalSeconds
+  throw "C12 dependencies did not pass health and protocol probes within $probeSeconds seconds"
 }
 
 function Resolve-C12CleanupIdentity {
@@ -1759,7 +1809,10 @@ function Resolve-C12CleanupIdentity {
     [object]$Resource,
 
     [Parameter(Mandatory = $true)]
-    [string]$RunSuffix
+    [string]$RunSuffix,
+
+    [Parameter(Mandatory = $true)]
+    [DateTime]$Deadline
   )
 
   if ([string]::IsNullOrEmpty([string]$Resource.ID)) {
@@ -1770,7 +1823,7 @@ function Resolve-C12CleanupIdentity {
     '{{.Id}}|{{.Name}}|{{ index .Config.Labels `talenro.c12.run` }}|{{ index .Config.Labels `talenro.c12.role` }}|{{.Config.Image}}|{{.Image}}',
     [string]$Resource.ID
   )
-  $result = Invoke-C12Docker -Arguments $dockerArgs -Stage "re-inspect $($Resource.Kind) before cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -AllowFailure
+  $result = Invoke-C12Docker -Arguments $dockerArgs -Stage "re-inspect $($Resource.Kind) before cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($result.ExitCode -ne 0) {
     throw "captured $($Resource.Kind) container is absent before cleanup"
   }
@@ -1794,19 +1847,22 @@ function Remove-C12Container {
     [object]$Resource,
 
     [Parameter(Mandatory = $true)]
-    [string]$RunSuffix
+    [string]$RunSuffix,
+
+    [Parameter(Mandatory = $true)]
+    [DateTime]$Deadline
   )
 
-  $containerID = Resolve-C12CleanupIdentity -Resource $Resource -RunSuffix $RunSuffix
+  $containerID = Resolve-C12CleanupIdentity -Resource $Resource -RunSuffix $RunSuffix -Deadline $Deadline
   if ([string]::IsNullOrEmpty([string]$containerID)) {
     return
   }
   $dockerArgs = @('container', 'stop', '--time', '2', [string]$containerID)
-  $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "stop exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5))
+  $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "stop exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline
   $dockerArgs = @('container', 'rm', [string]$containerID)
-  $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "remove exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5))
+  $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "remove exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline
   $dockerArgs = @('container', 'inspect', '--format', '{{.Id}}', [string]$containerID)
-  $absence = Invoke-C12Docker -Arguments $dockerArgs -Stage "verify $($Resource.Kind) cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -AllowFailure
+  $absence = Invoke-C12Docker -Arguments $dockerArgs -Stage "verify $($Resource.Kind) cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($absence.ExitCode -eq 0) {
     throw "$($Resource.Kind) container remains after exact cleanup"
   }
@@ -2146,16 +2202,22 @@ function Invoke-C12Group {
     $primaryFailure = $_.Exception.Message
   }
   finally {
-    [System.Environment]::SetEnvironmentVariable('TALENRO_DATABASE_URL', $null, 'Process')
-    [System.Environment]::SetEnvironmentVariable('TALENRO_REDIS_ADDRESS', $null, 'Process')
-    [System.Environment]::SetEnvironmentVariable('TALENRO_NATS_URL', $null, 'Process')
-    for ($index = $resources.Count - 1; $index -ge 0; $index--) {
-      try {
-        Remove-C12Container -Resource $resources[$index] -RunSuffix $runSuffix
+    try {
+      [System.Environment]::SetEnvironmentVariable('TALENRO_DATABASE_URL', $null, 'Process')
+      [System.Environment]::SetEnvironmentVariable('TALENRO_REDIS_ADDRESS', $null, 'Process')
+      [System.Environment]::SetEnvironmentVariable('TALENRO_NATS_URL', $null, 'Process')
+      $cleanupDeadline = [DateTime]::UtcNow.Add($script:c12GroupCleanupBudget)
+      for ($index = $resources.Count - 1; $index -ge 0; $index--) {
+        try {
+          Remove-C12Container -Resource $resources[$index] -RunSuffix $runSuffix -Deadline $cleanupDeadline
+        }
+        catch {
+          $cleanupFailures += "$($resources[$index].Kind): $($_.Exception.Message)"
+        }
       }
-      catch {
-        $cleanupFailures += "$($resources[$index].Kind): $($_.Exception.Message)"
-      }
+    }
+    finally {
+      $script:c12NativeDeadline = $priorNativeDeadline
     }
   }
   if ($null -ne $primaryFailure) {
@@ -2164,7 +2226,6 @@ function Invoke-C12Group {
   foreach ($cleanupFailure in $cleanupFailures) {
     [Console]::Error.WriteLine("C12 cleanup failure [$GroupID]: $cleanupFailure")
   }
-  $script:c12NativeDeadline = $priorNativeDeadline
   if ($null -ne $primaryFailure -or $cleanupFailures.Count -ne 0) {
     throw "C12 group $GroupID failed"
   }

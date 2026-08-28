@@ -668,6 +668,66 @@ func main() {
 	}
 }
 
+func TestC12BaseRunnerUsesFreshBoundedDeadlineForExactContainerCleanup(t *testing.T) {
+	output, exitCode := runC12ExpiredGroupCleanupHarness(t)
+	if exitCode != 0 {
+		t.Fatalf("expired-group cleanup harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
+	redisListener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer redisListener.Close()
+	natsListener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer natsListener.Close()
+
+	release := make(chan struct{})
+	defer close(release)
+	redisAccepted := make(chan struct{}, 1)
+	natsAccepted := make(chan struct{}, 1)
+	serveStalledProbe := func(listener net.Listener, accepted chan<- struct{}) {
+		connection, acceptErr := listener.Accept()
+		if acceptErr != nil {
+			return
+		}
+		defer connection.Close()
+		if accepted != nil {
+			accepted <- struct{}{}
+		}
+		_ = connection.SetReadDeadline(time.Now().Add(5 * time.Second))
+		buffer := make([]byte, 4096)
+		_, _ = connection.Read(buffer)
+		<-release
+	}
+	go serveStalledProbe(redisListener, redisAccepted)
+	go serveStalledProbe(natsListener, natsAccepted)
+
+	output, exitCode := runC12DependencyDeadlineHarness(
+		t,
+		redisListener.Addr().(*net.TCPAddr).Port,
+		natsListener.Addr().(*net.TCPAddr).Port,
+	)
+	if exitCode != 0 {
+		t.Fatalf("dependency deadline harness exit=%d output=%q", exitCode, output)
+	}
+	select {
+	case <-redisAccepted:
+	default:
+		t.Fatalf("dependency deadline harness never reached the stalled Redis protocol probe: %q", output)
+	}
+	select {
+	case <-natsAccepted:
+		t.Fatalf("dependency deadline harness granted NATS a new wait window after Redis exhausted the shared deadline: %q", output)
+	default:
+	}
+}
+
 func TestC12BaseRunnerCleanupBindsExactOwnedDirectoryIdentity(t *testing.T) {
 	output, exitCode := runC12OwnedDirectoryIdentityHarness(t)
 	if exitCode != 0 {
@@ -1422,6 +1482,235 @@ func c12GoJSONEvent(t *testing.T, action, packageName, testName string) string {
 		t.Fatal(err)
 	}
 	return string(raw)
+}
+
+func runC12ExpiredGroupCleanupHarness(t *testing.T) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	rootPayload := base64.StdEncoding.EncodeToString([]byte(t.TempDir()))
+	appendix := fmt.Sprintf(`
+$script:c12RepositoryRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$script:c12HarnessPriorDeadline = [DateTime]::UtcNow.AddMinutes(5)
+$script:c12NativeDeadline = $script:c12HarnessPriorDeadline
+$script:c12HarnessResources = @{}
+$script:c12HarnessCalls = New-Object System.Collections.Generic.List[string]
+$script:c12HarnessCleanupDeadlineTicks = [long]0
+$script:c12HarnessIDs = @{
+  postgres = (('1' * 64) -join '')
+  redis = (('2' * 64) -join '')
+  nats = (('3' * 64) -join '')
+}
+$script:c12HarnessImageIDs = @{
+  postgres = ('sha256:' + (('a' * 64) -join ''))
+  redis = ('sha256:' + (('b' * 64) -join ''))
+  nats = ('sha256:' + (('c' * 64) -join ''))
+}
+
+function Resolve-C12ImageIdentity {
+  param([object]$Resource)
+  $Resource.ImageID = [string]$script:c12HarnessImageIDs[[string]$Resource.Kind]
+}
+
+function Start-C12Container {
+  param([object]$Resource, [string]$RunSuffix, [string]$DatabaseName, [string]$DatabasePassword)
+  $Resource.ID = [string]$script:c12HarnessIDs[[string]$Resource.Kind]
+  $script:c12HarnessResources[[string]$Resource.ID] = [pscustomobject]@{
+    ID = [string]$Resource.ID
+    Name = [string]$Resource.Name
+    RunSuffix = $RunSuffix
+    Kind = [string]$Resource.Kind
+    ImageRef = [string]$Resource.ImageRef
+    ImageID = [string]$Resource.ImageID
+  }
+}
+
+function Wait-C12Dependencies { param([object[]]$Resources) }
+
+function Invoke-C12Go {
+  param(
+    [string[]]$Arguments,
+    [string]$Stage,
+    [TimeSpan]$Timeout = [TimeSpan]::FromMinutes(2),
+    [DateTime]$Deadline = [DateTime]::MaxValue,
+    [switch]$AllowFailure
+  )
+  throw 'forced group deadline exhaustion before cleanup'
+}
+
+function Invoke-C12Docker {
+  param(
+    [string[]]$Arguments,
+    [string]$Stage,
+    [TimeSpan]$Timeout = [TimeSpan]::FromSeconds(15),
+    [DateTime]$Deadline = [DateTime]::MaxValue,
+    [switch]$AllowFailure
+  )
+  if ($Deadline -eq [DateTime]::MaxValue -and $script:c12NativeDeadline -ne [DateTime]::MaxValue) {
+    $Deadline = $script:c12NativeDeadline
+  }
+  if ($Deadline -le [DateTime]::UtcNow) {
+    throw "$Stage inherited the expired group deadline"
+  }
+  if ($script:c12HarnessCleanupDeadlineTicks -eq 0) {
+    $cleanupSeconds = ($Deadline - [DateTime]::UtcNow).TotalSeconds
+    if ($cleanupSeconds -lt 70 -or $cleanupSeconds -gt 76) {
+      throw "$Stage received cleanup grace $cleanupSeconds seconds, want approximately 75"
+    }
+    $script:c12HarnessCleanupDeadlineTicks = $Deadline.Ticks
+  }
+  elseif ($script:c12HarnessCleanupDeadlineTicks -ne $Deadline.Ticks) {
+    throw "$Stage did not share the one cleanup deadline"
+  }
+  $script:c12HarnessCalls.Add(($Arguments -join ' '))
+  $containerID = [string]$Arguments[-1]
+  if (-not $script:c12HarnessResources.ContainsKey($containerID)) {
+    throw "$Stage targeted an uncaptured container"
+  }
+  $resource = $script:c12HarnessResources[$containerID]
+  if ($Arguments.Count -ge 2 -and $Arguments[0] -ceq 'container' -and $Arguments[1] -ceq 'inspect') {
+    if ($Arguments -contains '{{.Id}}') {
+      return [pscustomobject]@{ ExitCode = 1; Output = @() }
+    }
+    $identity = "$($resource.ID)|/$($resource.Name)|$($resource.RunSuffix)|$($resource.Kind)|$($resource.ImageRef)|$($resource.ImageID)"
+    return [pscustomobject]@{ ExitCode = 0; Output = @($identity) }
+  }
+  return [pscustomobject]@{ ExitCode = 0; Output = @() }
+}
+
+try {
+  $groupFailed = $false
+  try {
+    Invoke-C12Group -GroupID 'deadline-cleanup' -GroupProfile 'base' -Package './internal/store' -GroupTimeout '3m' -AbsoluteDeadline ([DateTime]::UtcNow.AddSeconds(-1))
+  }
+  catch {
+    $groupFailed = $_.Exception.Message -ceq 'C12 group deadline-cleanup failed'
+  }
+  if (-not $groupFailed) { throw 'expired group did not preserve its primary failure' }
+  if ($script:c12NativeDeadline.Ticks -ne $script:c12HarnessPriorDeadline.Ticks) { throw 'group cleanup did not restore the finite prior native deadline' }
+  if ($script:c12HarnessCalls.Count -ne 12) { throw "exact cleanup call count=$($script:c12HarnessCalls.Count), want 12" }
+  $expectedIDs = @($script:c12HarnessIDs.nats, $script:c12HarnessIDs.redis, $script:c12HarnessIDs.postgres)
+  for ($resourceIndex = 0; $resourceIndex -lt $expectedIDs.Count; $resourceIndex++) {
+    $offset = $resourceIndex * 4
+    $containerID = [string]$expectedIDs[$resourceIndex]
+    if (-not $script:c12HarnessCalls[$offset].StartsWith('container inspect --format ') -or
+        -not $script:c12HarnessCalls[$offset].EndsWith(" $containerID")) {
+      throw "cleanup identity call $resourceIndex was not bound to $containerID"
+    }
+    if ($script:c12HarnessCalls[$offset + 1] -cne "container stop --time 2 $containerID") {
+      throw "cleanup stop call $resourceIndex was not bound to $containerID"
+    }
+    if ($script:c12HarnessCalls[$offset + 2] -cne "container rm $containerID") {
+      throw "cleanup remove call $resourceIndex was not bound to $containerID"
+    }
+    if (-not $script:c12HarnessCalls[$offset + 3].StartsWith('container inspect --format {{.Id}} ') -or
+        -not $script:c12HarnessCalls[$offset + 3].EndsWith(" $containerID")) {
+      throw "cleanup absence call $resourceIndex was not bound to $containerID"
+    }
+  }
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+`, rootPayload)
+	harness := filepath.Join(t.TempDir(), "assert-c12-expired-group-cleanup.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("expired-group cleanup harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch expired-group cleanup harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
+func runC12DependencyDeadlineHarness(t *testing.T, redisPort, natsPort int) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	appendix := fmt.Sprintf(`
+$script:c12ObservedProbeDeadline = [DateTime]::MaxValue
+$script:c12HarnessEnclosingDeadline = [DateTime]::UtcNow.AddSeconds(1)
+$script:c12NativeDeadline = $script:c12HarnessEnclosingDeadline
+function Invoke-C12Docker {
+  param(
+    [string[]]$Arguments,
+    [string]$Stage,
+    [TimeSpan]$Timeout = [TimeSpan]::FromSeconds(15),
+    [DateTime]$Deadline = [DateTime]::MaxValue,
+    [switch]$AllowFailure
+  )
+  if ($Deadline -eq [DateTime]::MaxValue) { throw 'PostgreSQL health inspect did not receive the shared readiness deadline' }
+  if ($Deadline.Ticks -ne $script:c12HarnessEnclosingDeadline.Ticks) { throw 'PostgreSQL health inspect did not use the earlier enclosing deadline' }
+  $script:c12ObservedProbeDeadline = $Deadline
+  return [pscustomobject]@{ ExitCode = 0; Output = @('healthy') }
+}
+$resources = @(
+  [pscustomobject]@{ Kind = 'postgres'; ID = (('1' * 64) -join ''); Port = 1 },
+  [pscustomobject]@{ Kind = 'redis'; ID = (('2' * 64) -join ''); Port = %d },
+  [pscustomobject]@{ Kind = 'nats'; ID = (('3' * 64) -join ''); Port = %d }
+)
+try {
+  $failure = ''
+  $probeWatch = [Diagnostics.Stopwatch]::StartNew()
+  try { Wait-C12Dependencies -Resources $resources -ProbeTimeout ([TimeSpan]::FromSeconds(2)) }
+  catch { $failure = $_.Exception.Message }
+  $probeWatch.Stop()
+  if (-not $failure.Contains('C12 dependencies did not pass health and protocol probes within 2 seconds')) {
+    throw "unexpected readiness failure: $failure"
+  }
+  if ($probeWatch.Elapsed -lt [TimeSpan]::FromMilliseconds(500)) { throw 'readiness returned before exercising the stalled protocol probe' }
+  if ($probeWatch.Elapsed -gt [TimeSpan]::FromSeconds(5)) { throw "readiness exceeded its bounded enclosing deadline: $($probeWatch.Elapsed)" }
+  if ($script:c12ObservedProbeDeadline -eq [DateTime]::MaxValue) { throw 'readiness never inspected PostgreSQL with a deadline' }
+  if ($script:c12NativeDeadline.Ticks -ne $script:c12HarnessEnclosingDeadline.Ticks) { throw 'readiness changed the enclosing native deadline' }
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+`, redisPort, natsPort)
+	harness := filepath.Join(t.TempDir(), "assert-c12-dependency-deadline.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("dependency deadline harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch dependency deadline harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
 }
 
 func runC12NamedJobCollisionHarness(t *testing.T) (string, int) {
