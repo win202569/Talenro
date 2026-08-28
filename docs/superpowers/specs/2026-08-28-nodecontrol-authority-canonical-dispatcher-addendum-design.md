@@ -1,8 +1,8 @@
 # Talenro C1.2 Authority Canonical Evidence and Transactional Dispatcher Addendum
 
-- 状态：待书面复核
+- 状态：已批准
 - 日期：2026-08-28
-- 架构方案：用户于 2026-08-28 选择并批准“最小规范附录”方案；本文逐字内容仍须完成书面复核后才可标记为已批准
+- 批准记录：用户于 2026-08-28 选择“最小规范附录”方案，并在独立 C0/I0/M0 复核后批准本文逐字内容
 - 修订对象：[Authority Abort Linearization and Guarded Serving Design Amendment](./2026-08-24-nodecontrol-authority-abort-serving-design.md) §§5.5、6、6.1、10.1，以及引用这些边界的 suite index、B01/B02/B03 实施计划
 - 触发来源：修订版 B01 Task 7 的 RED-test preflight；批准文本无法唯一推导持久 digest、transactional resolver routing 和 admission-token API
 - 规范优先级：本文获批后，仅在下述 canonical transcript、dispatcher 和 evidence admission 范围内优先于 2026-08-24 amendment；其余 Abort claim、guarded serving、Goose、PITR 和 runtime ownership 保持不变

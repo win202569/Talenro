@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go 1.26.5、OpenAPI 3.0.3、oapi-codegen 2.8.0、Protobuf Go 1.36.11、Buf 1.72.0、PostgreSQL 18.4、pgx 5.10.0、sqlc 1.31.1、goose 3.27.1、RFC 8785 JCS、SHA-256、现有 strictjson/outbox 约束。
 
-**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json) contains the base and those two amendments in order.
+**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`; [approved canonical authority evidence/dispatcher addendum](../specs/2026-08-28-nodecontrol-authority-canonical-dispatcher-addendum-design.md), approved content SHA-256 `7D480607A92214627C1CEF3E81AF76610EC861508CE8D510D5BD046E82600FE2`; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json) contains the base and those three amendments in bytewise path order.
 
 ## Global Constraints
 
@@ -25,7 +25,7 @@
 - Fail-closed effect 可以先写数据库，但 provider finalize 前不得返回成功；任何不确定结果保持不可服务并按 operation ID 恢复。
 - 只有 exact unbound/unclaimed fence 与同一显式 `READ COMMITTED` DBTX 中的 `EffectAbsent` 才能 durable-claim Abort；任何 prepared/committed/terminal、missing resolver、unknown kind 或 tuple mismatch均不得调用 provider Abort。
 - 每个 authority-bearing INSERT/UPDATE/DELETE writer先锁 exact fence；test-only `authorityEffectGuardCoverage` 与 `authorityEffectOutcomeCoverage` 必须对新增路径缺失、错误 phase/event/parent 或重复 kind fail closed。
-- Provider committed receipt、DB fence `committed/active`、domain disposition/pointer、resolution/evidence digest与 required audit/outbox只允许在 Coordinator-owned activation transaction 中一起提交。
+- Provider committed Receipt、stored Head/checkpoint、reason/time/identity/typed activation-input preimage、evidence/resolution JCS+digest、DB fence `committed/active`、domain disposition/pointer与 required audit/outbox只允许在 Coordinator-owned activation transaction 中一起提交；rollback-resistant proof在所有写后紧邻唯一 Commit前 consume且首次失败也 burn，none-time proof绝不 consume，Commit不确定先从同一locked snapshot做parsed contextual/domain validation。
 - Rollback-resistant time evidence的 monotonic budget在 external time/attestation调用前开始，最长5秒；constructor完成与所有锁/写入后唯一 `Commit` 紧邻前均使用 strict `< deadline`，uncertain COMMIT先读 stored resolution。
 - 仓库没有完整、签名、operator-owned deployment ledger，因此本计划固定采用 additive `00007` 承载 semantic upgrade；`00006` 仅加入 StatementBegin/StatementEnd。不得以本地 Goose status、空测试库或未找到部署记录改成 in-place semantic edit。
 - Final catalog 数字固定为 base `00006` 25 张 + v7 `00007` 26 张 = 51 张 `nodecontrol` table；Task 4 的 25-table 清单只是实施中间点，Task 8 后 `db/schema/nodecontrol.v1.yaml` 必须逐 object 精确覆盖 51 张，不得把 26 张 v7 protocol table 视为外部 provider state。
@@ -1401,7 +1401,7 @@ git commit -m "feat(nodecontrol): persist authority fence visibility"
 
 ### Task 7: Freeze effect commitment, resolution, evidence, and dispatcher contracts
 
-This task implements the already approved Abort/serving amendment only. `AuthorityEffectCommitmentV1`, `AuthorityEffectResolutionV1`, and `ActivationDecisionEvidenceV1` remain their existing three historical schemas and domains; Task 11's v7 schema registry must explicitly reject attempts to register these names as new v7 bodies or map them to a second signer role.
+This task implements the approved Abort/serving amendment as amended by the approved 2026-08-28 canonical evidence/dispatcher addendum. `AuthorityEffectCommitmentV1`, `AuthorityProviderHeadV1`, `AuthorityCheckpointAnchorV1`, `ActivationDecisionEvidenceV1`, and `AuthorityEffectResolutionV1` remain historical authority-layer schemas/domains rather than v7 signer-role bodies；Task 11's v7 schema registry must reject duplicate registration. Task 7 proves canonical primitives、opaque admission and dispatcher mechanics only；Task 9 owns DBTX/lock ordering、Provider provenance、atomic persistence and Commit uncertainty.
 
 **Files:**
 - Create: `internal/nodecontrol/authority/commitment.go`
@@ -1414,41 +1414,102 @@ This task implements the already approved Abort/serving amendment only. `Authori
 - Test: `internal/nodecontrol/authority/testdata/authority-effect-vectors.json`
 
 **Interfaces:**
-- Consumes: Task 1 `contracts.Digest`, Task 5 `EffectKind`/`ScopeKind`/`Receipt`, RFC 8785 JCS, `store.DBTX`.
-- Produces: the suite-index canonical constructors, `TransactionalEffectResolver`, `TransactionalEffectActivator`, and one closed `EffectDispatcher`; B02/B03 may register handlers but may not reimplement transcripts.
+- Consumes: Task 1 `contracts.Digest`, Task 5 `EffectKind`/`ScopeKind`/`Reservation`/`Receipt`/`Head`/`NodeCheckpoint`/`ResolvedEffect`, RFC 8785 JCS, `store.DBTX`.
+- Produces: strict New/Parse/accessor APIs for commitment、provider Head snapshot、checkpoint anchor、evidence and resolution；contextual branded proof validation；`RegisteredEffectResolver`、three-method `RegisteredEffectActivator` and the sole sealed dispatcher. B02/B03 may implement registered handlers but may not construct opaque queries、aggregate dispatch or reimplement transcripts.
 
 ```go
+type TransactionalEffectQuery struct {
+	registeredKind EffectKind
+	expected       Reservation
+}
+
+func (q TransactionalEffectQuery) RegisteredKind() EffectKind
+func (q TransactionalEffectQuery) Expected() Reservation
+
+type TransactionalResolvedEffect struct {
+	OperationID uuid.UUID
+	Epoch       uint64
+	Sequence    uint64
+	Effect      ResolvedEffect
+}
+
+type RegisteredEffectResolver interface {
+	ResolveRegisteredAuthorityEffectForUpdate(context.Context, store.DBTX, TransactionalEffectQuery) (TransactionalResolvedEffect, error)
+}
+
 type TransactionalEffectResolver interface {
-	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, uuid.UUID) (ResolvedEffect, error)
+	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, Reservation) (ResolvedEffect, error)
+}
+
+type RegisteredEffectActivator interface {
+	CaptureActivationDecisionMaterial(context.Context, Receipt) (ActivationDecisionMaterial, error)
+	ActivateAuthorityEffect(context.Context, store.DBTX, Receipt, ValidatedActivationDecisionEvidence) error
+	ValidatePersistedAuthorityEffect(context.Context, store.DBTX, Receipt, ValidatedActivationDecisionEvidence, AuthorityEffectResolution) error
 }
 
 type TransactionalEffectActivator interface {
-	CaptureActivationDecisionEvidence(context.Context, Receipt) (ActivationDecisionEvidence, error)
-	ActivateAuthorityEffect(context.Context, store.DBTX, Receipt, ActivationDecisionEvidence) error
+	RegisteredEffectActivator
+}
+
+type EffectDispatcher interface {
+	TransactionalEffectResolver
+	TransactionalEffectActivator
+	authorityEffectDispatcher()
 }
 
 type EffectRegistration struct {
 	Kind      EffectKind
-	Resolver  TransactionalEffectResolver
-	Activator TransactionalEffectActivator
+	Resolver  RegisteredEffectResolver
+	Activator RegisteredEffectActivator
 }
 
 func NewEffectDispatcher([]EffectRegistration) (EffectDispatcher, error)
+
+type ActivationDecisionMaterial struct {
+	Commitment                     AuthorityEffectCommitment
+	Reason                         AuthorityEffectReason
+	CheckpointKind                 CheckpointKind
+	CheckpointScopeDigest          contracts.Digest
+	TrustedTimeKind                TrustedTimeKind
+	TrustedInstant                 time.Time
+	EvidenceValidUntil             time.Time
+	AttestationExpiresAt           time.Time
+	ActivationDeadline             time.Time
+	ProviderIdentityDigest         contracts.Digest
+	ExpectedProviderIdentityDigest contracts.Digest
+	FloorAttestationDigest         contracts.Digest
+	Capability                     DecisionCapability
+}
+
+type ActivationDecisionEvidenceInput struct {
+	Material     ActivationDecisionMaterial
+	Receipt      Receipt
+	ProviderHead AuthorityProviderHeadSnapshot
+	Checkpoint   *AuthorityCheckpointAnchor
+}
+
+func NewAuthorityProviderHeadSnapshot(Head) (AuthorityProviderHeadSnapshot, error)
+func ParseAuthorityProviderHeadSnapshot([]byte) (AuthorityProviderHeadSnapshot, error)
+func NewAuthorityCheckpointAnchor(AuthorityCheckpointAnchorInput) (AuthorityCheckpointAnchor, error)
+func ParseAuthorityCheckpointAnchor([]byte) (AuthorityCheckpointAnchor, error)
+func ParseActivationDecisionEvidence([]byte) (ActivationDecisionEvidence, error)
+func ValidateActivationDecisionEvidence(ActivationDecisionEvidence, ActivationDecisionEvidenceInput) (ValidatedActivationDecisionEvidence, error)
+func ValidateAuthorityEffectResolution(AuthorityEffectResolution, AuthorityEffectCommitment, ValidatedActivationDecisionEvidence) error
 func BeginActivationEvidenceCapture() *ActivationEvidenceCapture
 func (c *ActivationEvidenceCapture) Complete(ActivationDecisionEvidenceInput) (ActivationDecisionEvidence, error)
 ```
 
 - [ ] **Step 1: Write RED independent literal commitment/resolution/evidence vectors**
 
-Use a test-local literal JCS encoder, not production helpers, to assert the exact domains `talenro.nodecontrol.authority-effect-commitment.v1\x00`, `talenro.nodecontrol.authority-effect-resolution.v1\x00`, `talenro.nodecontrol.authority-checkpoint-anchor.v1\x00`, and `talenro.nodecontrol.activation-decision-evidence.v1\x00`. The vector table must include conditional/final-not-applied, every decision-anchor kind, node/global/none checkpoint, rollback-resistant/none time, and mutation of every field.
+Freeze one strict version-1 fixture whose entries contain only hard-coded `name`、`artifact_kind`、semantic `input`、literal `canonical_jcs` and literal lowercase `digest_hex`, plus a mutation manifest classifying every field mutation as `reject` with an exact finite sentinel or `valid_alternate` with a different literal JCS/digest. Expected bytes/digests are reviewed constants, never regenerated during assertions. Cover the fixed empty activation-input digest and every absent marker plus exact domains `talenro.nodecontrol.authority-effect-commitment.v1\x00`, `talenro.nodecontrol.authority-provider-head.v1\x00`, `talenro.nodecontrol.authority-checkpoint-anchor.v1\x00`, `talenro.nodecontrol.activation-decision-evidence.v1\x00`, and `talenro.nodecontrol.authority-effect-resolution.v1\x00`; include conditional/final-not-applied, every resolution anchor, same/later Head, node/global/none checkpoint, rollback-resistant/none time and every valid matrix row.
 
 ```go
 func TestAuthorityEffectCanonicalVectors(t *testing.T) {
 	vectors := loadLiteralVectors(t, "testdata/authority-effect-vectors.json")
 	for _, vector := range vectors {
 		t.Run(vector.Name, func(t *testing.T) {
-			got := mustCanonicalDigest(t, vector.Input)
-			if got != vector.ExpectedDigest { t.Fatalf("digest mismatch") }
+			gotJCS, gotDigest := constructByArtifactKind(t, vector.ArtifactKind, vector.Input)
+			if !bytes.Equal(gotJCS, vector.CanonicalJCS) || gotDigest != vector.Digest { t.Fatalf("literal vector mismatch") }
 		})
 	}
 }
@@ -1456,37 +1517,39 @@ func TestAuthorityEffectCanonicalVectors(t *testing.T) {
 
 - [ ] **Step 2: Run the RED canonical contract tests**
 
-Run: `go test ./internal/nodecontrol/authority -run 'TestAuthorityEffectCanonicalVectors|TestActivationDecisionEvidence' -count=1`
+Run: `go test ./internal/nodecontrol/authority -run 'TestAuthorityEffectCanonicalVectors|TestAuthorityCanonicalMutationManifest|TestActivationDecisionEvidence' -count=1`
 
-Expected: FAIL because commitment, resolution and evidence constructors do not exist.
+Expected: FAIL because the canonical values、parsers、contextual proof and dispatcher do not exist.
 
 - [ ] **Step 3: Implement strict canonical constructors and monotonic capture**
 
-Implement the amendment's exact required fields and closed enums. UUIDs are lowercase canonical text, epoch/sequence/policy are nonempty decimal strings, digests are lowercase 64-hex, unknown/extra/null/JSON-number fields fail. `BeginActivationEvidenceCapture` records production monotonic time before any external time call; `Complete` uses checked positive `min(evidence_valid_until-trusted_instant,5s)`, rejects equal/expired/overflow, and returns an opaque evidence value whose admission token is operation/commitment/evidence-digest-bound, single-use, non-serializable and shared across copies. Test injection is private `beginActivationEvidenceCaptureForTest(func() time.Time)`; production callers cannot supply a wall clock.
+Implement every approved required field、closed enum and branch matrix. Every parser rejects empty or over-4096-byte input before JSON/JCS processing；unknown/missing/extra/duplicate/null/JSON-number/noncanonical values fail, `schema_version` is exact string `"1"`, UUID/decimal/digest/time encoding is exact, and all Facts/JCS/Input accessors deep-copy. Provider Head accepts same-sequence only on exact operation/receipt/database-point match and later only in the same epoch；checkpoint anchors are same-epoch and strictly higher for higher-authority evidence. `NewActivationDecisionEvidence` constructs only the two none-time branches；rollback-resistant rows require `BeginActivationEvidenceCapture`/one-shot `Complete`, and Parse never mints origin or admission. Contextual validation recomputes every preimage/relation and returns the unconstructable `ValidatedActivationDecisionEvidence` while retaining admission only from the matching fresh Complete path.
 
 - [ ] **Step 4: Write and run the RED finite dispatcher tests**
 
-Assert missing, duplicate and unknown registrations fail construction; every known kind dispatches to exactly one handler; zero/multiple/corrupt rows and tuple/digest mismatch return finite errors; `operator_authorizer_change` and `trust_bundle_publish` remain fixed unsupported registrations until their durable workflows exist.
+Require exactly 15 registrations：13 supported with non-nil resolver/activator and two fixed unsupported (`operator_authorizer_change`,`trust_bundle_publish`) with both nil. Assert missing/duplicate/unknown/typed-nil/non-nil-unsupported fail construction；the dispatcher is privately sealed and only it can construct a nonzero opaque query. Resolution probes all 13 supported kinds in frozen bytewise order with the same expected Reservation, validates operation/epoch/sequence echoes, and enforces zero/one/multiple cardinality. Cover absent dirty fields、corrupt echo、cross-kind/scope/tuple/digest、handler errors、direct material/activation/persisted-validation routing、fresh-vs-Parse origin、Receipt/proof/resolution binding and nil/typed-nil DBTX. Exact precedence and mapping are `ErrInvalidArgument`、`ErrConflict`、`ErrCanceled` or `ErrInjectedFailure` only；wrapped sentinels normalize and dynamic handler/SQL/domain text never escapes.
 
-Run: `go test ./internal/nodecontrol/authority -run TestEffectDispatcherClosedRegistry -count=1`
+Run: `go test ./internal/nodecontrol/authority -run 'TestEffectDispatcherClosedRegistry|TestEffectDispatcherOpaqueQueries|TestEffectDispatcherProofRouting|TestEffectDispatcherFiniteErrors' -count=1`
 
 Expected: FAIL before `EffectDispatcher` exists, then PASS after the minimal closed registry is implemented.
 
 - [ ] **Step 5: Add admission boundary and uncertain-result tests**
 
-Cover delayed trusted-time responses at just-under/equal/over budget, pause before BEGIN/while waiting for locks/after writes, token copy/reuse/restart, none-time applied rejection, exact final-not-applied and higher-committed not-applied acceptance, and token consumption immediately before one Commit attempt. Persisted terminal evidence parses without recreating a token; an uncommitted recovery must recapture.
+Cover caller delay and trusted-time response just-under/equal/over bounds、checked overflow、one-shot Complete、copy/concurrent reuse、parse/restart no-token、none-time tokenless、exact final-not-applied and higher-authority branches, and rollback-resistant admission. The package-private consume helper changes shared `live → spent` before checking cancellation、expiry or binding；the first failed attempt therefore burns every copy. Fake handler tests prove only fresh proof reaches activation and only parsed proof reaches persisted validation. Explicitly do not claim BEGIN/lock/write/Commit ordering、atomic persistence or Commit uncertainty here；Task 9 owns those properties.
 
 Run: `go test ./internal/nodecontrol/authority -run 'TestActivationDecisionEvidence|TestActivationAdmission' -count=1`
 
-Expected: PASS with equal/over boundary and every token misuse rejected.
+Expected: PASS with exact boundary handling, no origin upgrade and at most one admission claimant even when the first claim fails.
 
 - [ ] **Step 6: Run fuzz/race and commit the canonical authority layer**
 
 Run: `go test ./internal/nodecontrol/authority -run '^$' -fuzz '^FuzzAuthorityEffectCanonical$' -fuzztime=10s -timeout 30s`
 
+Run: `go test ./internal/nodecontrol/authority -run '^$' -fuzz '^FuzzAuthorityEffectParsers$' -fuzztime=10s -timeout 30s`
+
 Run: `go test -race ./internal/nodecontrol/authority -run 'TestAuthorityEffect|TestActivation|TestEffectDispatcher' -count=1`
 
-Expected: PASS with no panic, aliasing or data race.
+Expected: PASS with no parser panic、aliasing、dynamic error leakage、data race or duplicate admission consumption.
 
 ```bash
 git add internal/nodecontrol/authority/commitment.go internal/nodecontrol/authority/resolution.go internal/nodecontrol/authority/activation_evidence.go internal/nodecontrol/authority/effect_dispatcher.go internal/nodecontrol/authority/commitment_test.go internal/nodecontrol/authority/activation_evidence_test.go internal/nodecontrol/authority/effect_dispatcher_test.go internal/nodecontrol/authority/testdata/authority-effect-vectors.json
@@ -1531,8 +1594,8 @@ git commit -m "feat(nodecontrol): freeze authority effect decisions"
 - Test: `internal/nodecontrol/authority/v7_staging_import_repository_integration_test.go`
 
 **Interfaces:**
-- Consumes: Task 4 base-25 manifest, Task 6 transaction-bound repository, Task 7 historical Abort/serving commitment-resolution-evidence.
-- Produces: sealed `VerifiedAuthorityV7UpGrant`/`VerifiedAuthorityV7DownGrant` and `VerifiedFreshRestoreImportAdmission` types with unexported fields plus the exact defensive cross-package use APIs below, provider-scoped registered-Go migration, a final exact 51-table manifest, v7 output-only `IdentityStateV1=unauthorized`, profile-aware `StoredFence`/`AbortClaim`, the 26 additive tables, NOLOGIN role/ACL/guard/lock registries, exact `begin_staging_import` repository/store boundary, and the transactional Down `1/0 -> 1/1 -> 0/0` primitive consumed only by B11/B02 as assigned.
+- Consumes: Task 4 base-25 manifest, Task 6 transaction-bound repository, and Task 7 canonical commitment/Head/checkpoint/evidence/resolution plus branded contextual-proof contracts.
+- Produces: sealed `VerifiedAuthorityV7UpGrant`/`VerifiedAuthorityV7DownGrant` and `VerifiedFreshRestoreImportAdmission` types with unexported fields plus the exact defensive cross-package use APIs below, provider-scoped registered-Go migration, a final exact 51-table manifest, v7 output-only `IdentityStateV1=unauthorized`, profile-aware `StoredFence`/`AbortClaim` with a defensive locked persisted-outcome projection, the 26 additive tables, exact proof-column lifecycle on the eight existing domain owner tables, NOLOGIN role/ACL/guard/lock registries, exact `begin_staging_import` repository/store boundary, and the transactional Down `1/0 -> 1/1 -> 0/0` primitive consumed only by B11/B02 as assigned.
 
 ```go
 package migrations
@@ -1551,6 +1614,30 @@ func WithAuthorityV7MigrationContext(ctx context.Context, in AuthorityV7Migratio
 ```go
 package authority
 
+type PersistedAuthorityEffectOutcome struct {
+	CommitmentJCS                  []byte
+	CommitmentDigest               contracts.Digest
+	Receipt                        Receipt
+	ProviderHeadJCS                []byte
+	ProviderHeadDigest             contracts.Digest
+	CheckpointAnchorJCS            []byte
+	CheckpointAnchorDigest         contracts.Digest
+	Reason                         AuthorityEffectReason
+	AttestationExpiresAt           time.Time
+	ActivationDeadline             time.Time
+	ExpectedProviderIdentityDigest contracts.Digest
+	EvidenceJCS                    []byte
+	EvidenceDigest                 contracts.Digest
+	ResolutionJCS                  []byte
+	ResolutionDigest               contracts.Digest
+}
+
+type StoredFence struct {
+	Record           Record
+	AbortClaim       *AbortClaim
+	PersistedOutcome *PersistedAuthorityEffectOutcome
+}
+
 func ConsumeVerifiedAuthorityV7UpGrant(VerifiedAuthorityV7UpGrant) (contracts.AuthorityV7UpMigrationFactsV1, error)
 func ConsumeVerifiedAuthorityV7DownGrant(VerifiedAuthorityV7DownGrant) (contracts.AuthorityV7DownMigrationFactsV1, error)
 func ConsumeVerifiedAuthorityV7DownAuthorization(VerifiedAuthorityV7DownAuthorization) (contracts.AuthorityV7DownAuthorizationFactsV1, error)
@@ -1564,6 +1651,8 @@ type FreshRestoreImportRepository interface {
 	ConsumeVerifiedFreshRestoreImport(context.Context, VerifiedFreshRestoreImportAdmission, contracts.FreshImportTopologyProjectionV1) (contracts.FreshRestoreImportApplicationV1, error)
 }
 ```
+
+Task 8 extends the Task 6 `Repository` interface with exact method `Lock(context.Context, store.DBTX, uuid.UUID) (StoredFence, error)`；the operation ID selects the fence while the supplied DBTX owns its lock and snapshot. `Repository.Lock` returns the `StoredFence` and `PersistedOutcome` from that one caller-owned locked snapshot；all byte slices and pointers are defensive copies. `Receipt` is reconstructed only from the exact fence-bound provider terminal fields and database point in that snapshot. A nil outcome means no atomically terminal proof group exists；a non-nil outcome is complete under the branch matrix below and is never synthesized from a mutable current Head. Task 9 parses/recanonicalizes every JCS preimage and validates all digests before invoking the domain persisted validator.
 
 `NodeControlAuthorityV7Migration` is exported by package `db/migrations`; the opaque grants、Down authorization and import admission remain in package `internal/nodecontrol/authority`. Each opaque value contains an unexported pointer to sealed normalized facts plus a shared monotonic consume state, so copying the Go value cannot duplicate its one production write right. The `Consume*` functions defensively return only fixed normalized facts and consume the corresponding write right exactly once；Up facts contain installation/profile/upgrade-intent/expiry/nonce bindings, while the pre-transaction Down grant contains disposable classification、complete retirement/catalog/latch bindings and the fixed authorization seed but no fabricated database txid. After Goose supplies the real txid and the callback constructs/stores `PristineDowngradeInventoryV1`, `DownAuthorizer` is invoked exactly once inside that same transaction；it must return `VerifiedAuthorityV7DownAuthorization` whose normalized facts bind the exact request、actual txid、transaction nonce、inventory/retirement/catalog/anchor digests、role/policy and two-minute window. `ViewVerifiedFreshRestoreImportAdmission` is non-consuming and returns defensive copies of only the allowlisted manifest topology plus exact admission bindings needed by B02；the repository method performs the one consuming write. No accessor exposes signer key、credential、provider/archive handle or raw constructor.
 
@@ -1579,7 +1668,7 @@ Also prebuild the infrastructure-only `authority-v7-pitr` profile consumed later
 
 - [ ] **Step 1: Write RED registered-migration and exact-51 catalog tests**
 
-Add `TestAuthorityV7BoundaryDTOsCompileAndRemainClosed`, `TestNodeControlV7CatalogHasExact51Tables`, `TestNodeControlV7RegisteredMigrationOnly`, `TestNodeControlV7ProviderScopedMigration`, `TestSQLCV7SchemaInputOrder`, `TestNodeControlV7SealedGrantTypes`, `TestNodeControlV7OpaqueCrossPackageUse`, `TestNodeControlV7ProductionBuildOmitsFixtureFactories`, `TestNodeInventoryV7FreshImportShape`, `TestNodeOperatorV7UnauthorizedIsOutputOnly`, `TestNodeControlV7RoleAndGuardRegistry`, and `TestNodeControlV7DownRegistry`. Opaque tests prove copies share one consume right, views are defensive/non-secret, a second grant/authorization/repository consume fails, malformed zero values fail, and the integration-tag factory is importable only under `-tags=integration`. Provider tests must prove only `goose.NewProvider(..., goose.WithDisableGlobalRegistry(true), goose.WithGoMigrations(migrations.NodeControlAuthorityV7Migration()))` sees 00007；a provider without the option and the global registry see no 00007。The sqlc test requires the exact base-directory+Up-asset schema list, rejects Down/asset-directory recursion, and proves every v7 query resolves. The catalog test retains all 25 Task 4 entries and requires these exact 26 additional table names, no aliases and no 27th v7 table:
+Add `TestAuthorityV7BoundaryDTOsCompileAndRemainClosed`, `TestNodeControlV7CatalogHasExact51Tables`, `TestNodeControlV7RegisteredMigrationOnly`, `TestNodeControlV7ProviderScopedMigration`, `TestSQLCV7SchemaInputOrder`, `TestNodeControlV7SealedGrantTypes`, `TestNodeControlV7OpaqueCrossPackageUse`, `TestNodeControlV7ProductionBuildOmitsFixtureFactories`, `TestNodeInventoryV7FreshImportShape`, `TestNodeOperatorV7UnauthorizedIsOutputOnly`, `TestNodeControlV7RoleAndGuardRegistry`, `TestNodeControlV7DownRegistry`, `TestAuthorityEffectProofColumnRegistry`, and `TestStoredFencePersistedOutcomeProjection`. Opaque tests prove copies share one consume right, views are defensive/non-secret, a second grant/authorization/repository consume fails, malformed zero values fail, and the integration-tag factory is importable only under `-tags=integration`. Provider tests must prove only `goose.NewProvider(..., goose.WithDisableGlobalRegistry(true), goose.WithGoMigrations(migrations.NodeControlAuthorityV7Migration()))` sees 00007；a provider without the option and the global registry see no 00007。The proof-column registry exact-covers the 13 supported kinds、eight tables、ten operation-group prefixes and typed activation-input owner columns, rejects a duplicate/missing/extra kind or generic outcome table, and exercises legacy-null、prepared-only、terminal none-time、terminal rollback-resistant and malformed partial groups. Repository tests mutate every stored JCS/digest/time/reason/identity/Receipt field and prove one locked defensive projection or fail-closed. The sqlc test requires the exact base-directory+Up-asset schema list, rejects Down/asset-directory recursion, and proves every v7 query resolves. The catalog test retains all 25 Task 4 entries and requires these exact 26 additional table names, no aliases and no 27th v7 table:
 
 ```text
 control_plane_authority_protocol_migration_latches
@@ -1610,7 +1699,7 @@ control_plane_authority_staging_import_capability_recovery_applications
 control_plane_authority_fresh_restore_import_applications
 ```
 
-Run: `go test ./internal/nodecontrol/contracts ./internal/store ./internal/nodecontrol/authority -run '^(TestAuthorityV7BoundaryDTOsCompileAndRemainClosed|TestNodeControlV7CatalogHasExact51Tables|TestNodeControlV7RegisteredMigrationOnly|TestNodeControlV7ProviderScopedMigration|TestSQLCV7SchemaInputOrder|TestNodeControlV7SealedGrantTypes|TestNodeControlV7OpaqueCrossPackageUse|TestNodeControlV7ProductionBuildOmitsFixtureFactories|TestNodeInventoryV7FreshImportShape|TestNodeOperatorV7UnauthorizedIsOutputOnly|TestNodeControlV7RoleAndGuardRegistry|TestNodeControlV7DownRegistry)$' -count=1`
+Run: `go test ./internal/nodecontrol/contracts ./internal/store ./internal/nodecontrol/authority -run '^(TestAuthorityV7BoundaryDTOsCompileAndRemainClosed|TestNodeControlV7CatalogHasExact51Tables|TestNodeControlV7RegisteredMigrationOnly|TestNodeControlV7ProviderScopedMigration|TestSQLCV7SchemaInputOrder|TestNodeControlV7SealedGrantTypes|TestNodeControlV7OpaqueCrossPackageUse|TestNodeControlV7ProductionBuildOmitsFixtureFactories|TestNodeInventoryV7FreshImportShape|TestNodeOperatorV7UnauthorizedIsOutputOnly|TestNodeControlV7RoleAndGuardRegistry|TestNodeControlV7DownRegistry|TestAuthorityEffectProofColumnRegistry|TestStoredFencePersistedOutcomeProjection)$' -count=1`
 
 Expected: FAIL because only the base-25 manifest exists and no registered 00007 package/assets are present.
 
@@ -1622,15 +1711,21 @@ Wrap each existing `LANGUAGE plpgsql` function in exactly one Goose `StatementBe
 
 Extend the base fence with `authority_protocol_profile`, `abort_claimed_at`, and `protocol_activation_id`. Preserve all legacy_v6 R0/R1/C/A0/A1 rows byte-for-byte: the abort claim pair is required only for claim_v1, legacy aborted rows remain legal, and no default may make an old binary appear claim-v1. Add the 26 tables exactly as v7 §5.1 defines; encode every canonical body field as a literal column/check/FK/unique/INSERT-only trigger in `nodecontrol.v1.yaml`. The five recovery tables enforce INSERT-only, exact intent/application FKs, non-null `recovery_prefix_key_digest` UNIQUE, `count=0 <=> tail=null`, and the closed staging five-table matrix. Gap/PostRecovery/timeline attestations remain signed envelopes stored in result/evidence columns and do not become extra tables.
 
+Without adding a generic outcome table or a 52nd table, add one exact prefixed proof group for each authority operation group on these eight existing domain owners：`node_enrollment_grants` (`create_` and `claim_` groups), `node_certificate_issuances` (`activation_`), `node_certificates` (`revoke_`), `node_state_transitions` (one row-level group with closed `authority_effect_kind` for `identity_epoch_advance|operator_transition`), `node_security_incidents` (`open_` and `resolve_`), `node_resource_envelopes` (`activation_`), `node_state_signing_intents` (`activation_` for desired/recovery), and `node_root_metadata_publish_intents` (`activation_` for root/metadata). Every group has the exact suffixes `authority_effect_commitment_jcs`、`authority_effect_commitment_digest`、`authority_provider_head_jcs`、`authority_provider_head_digest`、`authority_checkpoint_anchor_jcs`、`authority_checkpoint_anchor_digest`、`authority_effect_reason`、`authority_attestation_expires_at`、`authority_activation_deadline`、`authority_expected_provider_identity_digest`、`authority_activation_evidence_jcs`、`authority_activation_evidence_digest`、`authority_effect_resolution_jcs` and `authority_effect_resolution_digest`；all JCS values are `bytea` length `1..4096`, every present digest is exactly 32 bytes, and each JCS/digest pair is all-or-none. The full Receipt remains on the exact fence and is returned in the same locked projection；the real typed activation-input preimage remains in the owner row and is not copied into a generic blob.
+
+Freeze the lifecycle exactly：legacy_v6 rows have the entire new group null；a claim_v1 prepared/committed domain row has exact commitment JCS+digest and all later proof fields null；terminalization changes the remaining group from all-null to exact-once complete in the same transaction as domain disposition/pointer、fence visibility、audit and outbox. Checkpoint JCS/digest is either both absent for `none` or both present；none-time rows require all three external bound columns (attestation expiry、activation deadline、expected provider identity) null, while rollback-resistant rows require all three present and a 32-byte identity digest. `node_state_transitions` gains a unique non-null authority operation key and explicit `applied|not_applied` disposition so identity/operator tombstones are representable without pretending a state changed. Each `node_security_incidents` open/resolve group has an independently unique operation ID and exact-one subtype cardinality across all security-fault/trust-conflict paths. `node_resource_envelopes` keeps package/policy columns immutable but permits exactly one guarded null→terminal proof-group transition；it cannot rewrite the envelope or pointer. Grant create/claim and incident open/resolve groups cannot cross-fill or reuse one another.
+
 The v7 Up asset also replaces the base `node_inventory` identity/quarantine checks with one additive exact exception. `identity_state=unauthorized` is legal only for a row created through the verified fresh-import security-definer path and only with `operator_state=disabled`、`security_state=quarantined`、`identity_epoch=0`、`lineage_id=NULL`、`resume_operator_state=NULL`、no pending transition、no active desired/recovery/root/metadata pointer、empty authority-anchor group、next desired/recovery generation exactly 1 and the verified imported topology versions. Every ordinary/legacy path, any mixed field, nonzero epoch/lineage, saved resume, active/pending pointer or direct role write rejects. The v7 Down asset restores the exact base enum/check text after proving the disposable fixture contains no such rows. Add `unauthorized` to the operator API's output `IdentityStateV1` and regenerated `NodeV1`, but no create/update/action request accepts it or allows a caller to select identity state.
 
 - [ ] **Step 4: Add NOLOGIN ACLs, source-freeze/barrier guards, and canonical lock order**
 
 Create only `nodecontrol_upgrade_executor`, `nodecontrol_migration_downgrader`, and `nodecontrol_staging_importer` as NOLOGIN roles. Revoke direct table/function execution from ordinary runtime, operator and Goose roles. Catalog-test the fixed writer/parent/outcome/forbidden registries, all 19 authority-bearing domain paths, credential/serving/pointer/pending/recovery tables, claim-v1 activation/completion/release barrier, staging-import exception and source-seal freeze. Freeze the exact security-definer `begin_staging_import` signature and generated params: the Go adapter first uses `ViewVerifiedFreshRestoreImportAdmission` only to supply the B02 projection builder, then its one consuming repository call expands normalized fields from the same opaque admission plus the recomputed projection. The function rechecks held exclusion lease、acquisition/current Head、clock、route、identity/lineage/incarnation/rebind/runtime、the exact unauthorized/quarantined/disabled zero-state shape and `0/1/0/0/0`, then atomically writes manifest objects and `FreshRestoreImportApplicationV1` or zero rows. `FreshRestoreImportRepository` is the only Go adapter；B02 cannot call sqlc/store directly. Every restricted function rechecks exact role, transaction, identity, activation, runtime/incarnation chain and preimage; database functions do not implement JCS or public-key verification. All database writers acquire the v7 canonical lock order and issue zero external calls while locked except the sole bounded `authority_protocol_downgrade_authorizer` call in registered Down after pristine `1/0` capture and before authorization insertion；static/runtime tests reject that interface in every other path.
 
+The fixed writer/outcome registry also enumerates every allowed proof-group transition by table、prefix、effect kind and caller role. Direct SQL、wrong prefix/kind、second terminal write、partial JCS/digest group、over-4096 canonical bytes、checkpoint pair mismatch、none-time external-bound columns、rollback-resistant missing-bound columns or a Receipt/fence mismatch fails before any pointer/disposition/audit/outbox visibility. Repository integration tests lock the fence and real domain row in canonical order and prove the returned `PersistedAuthorityEffectOutcome` is byte-defensive and snapshot-consistent；it never issues a Provider/current-Head lookup.
+
 - [ ] **Step 5: Keep Abort/serving claim semantics green under all five legacy shapes**
 
-Implement `LockAuthorityFence`, `ClaimAuthorityAbort`, `BindAuthorityFenceEffect`, `ActivateCommittedAuthorityFence`, and `AbortAuthorityFence` with profile-aware predicates. Add real v6 catalog fixtures R0/R1/C/A0/A1; prove Up only classifies them `legacy_v6`, leaves commitment/resolution/evidence null, accepts legacy aborted rows, and makes every source-sealed shape read-only. Claim-first versus writer-first remains a two-connection barrier with one semantic winner and no provider call inside repository tests.
+Implement `LockAuthorityFence`, `ClaimAuthorityAbort`, `BindAuthorityFenceEffect`, `ActivateCommittedAuthorityFence`, and `AbortAuthorityFence` with profile-aware predicates. Add real v6 catalog fixtures R0/R1/C/A0/A1；prove Up only classifies them `legacy_v6`, leaves every new commitment/Head/checkpoint/reason/time/identity/evidence/resolution column in all ten operation groups null, returns no persisted outcome, accepts legacy aborted rows, and makes every source-sealed shape read-only. Claim-first versus writer-first remains a two-connection barrier with one semantic winner and no provider call inside repository tests.
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile base -Packages './internal/nodecontrol/authority|./internal/store' -Run '^(TestNodeControlV7LegacyShapes|TestPostgresRepositoryAbortClaim|TestFenceFirstWriterAbortRace|TestAuthorityEffectGuards)$' -Timeout 5m`
 
@@ -1698,36 +1793,40 @@ git commit -m "feat(nodecontrol): install registered authority v7 catalog"
 - Modify: `internal/readiness/checker_test.go`
 
 **Interfaces:**
-- Consumes: provider/repository Tasks 5–6, Task 7 dispatcher/evidence, Task 8 claim-aware `StoredFence`.
-- Produces: `func NewCoordinator(Provider, Repository, EffectDispatcher) (*Coordinator, error)` plus `Reserve`, `Finalize`, explicit-reason `Abort`, `Recover`, DBTX-bound and public `CheckReady`, and read-only `CommittedNodeCheckpoint(context.Context, contracts.Digest) (NodeCheckpoint, error)`；no pointer-to-interface、caller-supplied DB point/evidence or raw-provider escape.
+- Consumes: provider/repository Tasks 5–6, Task 7 sealed dispatcher/canonical proof APIs, and Task 8 claim-aware `StoredFence.PersistedOutcome` from one locked snapshot.
+- Produces: `func NewCoordinator(Provider, Repository, EffectDispatcher) (*Coordinator, error)` plus `Reserve`, `Finalize`, explicit-reason `Abort`, `Recover`, DBTX-bound and public `CheckReady`, and read-only `CommittedNodeCheckpoint(context.Context, contracts.Digest) (NodeCheckpoint, error)`；no pointer-to-interface、caller-supplied DB point/evidence or raw-provider escape. Construction requires and stores only the exact non-nil private concrete dynamic type returned by `NewEffectDispatcher`；nil、typed-nil、embedded、wrapped、proxy or alternate implementations return exact `ErrInvalidArgument` before any dependency method call.
 
 - [ ] **Step 1: Write the RED multi-process Abort/Finalize/activation crash matrix**
 
-Cover claim commit before response, provider Abort before response, aborted terminal commit before response, PITR-lost claim with provider aborted, provider reserved with lost claim/no guessed reason, provider committed before activation evidence, activation writes before token consumption, Commit invocation before response loss, and exact terminal replay. Add two goroutines with independent coordinators racing fence-first effect write against Abort; assert exactly one semantic winner.
+Cover the full ownership matrix：fence lock and resolve share one DBTX；claim commit precedes provider Abort；capture starts only after an exact committed Receipt and after every prior transaction/lock is released；the observable order is exact `Begin → registered material/trusted-time → same-Provider Head/checkpoint → Complete/New → ValidateActivationDecisionEvidence`；the constructor rejects every non-exact dispatcher dynamic type before calls；Receipt database point equals the locked fence binding；rollback-resistant proof consumes after all writes and immediately before one Commit while none-time never consumes；every §8.5 preimage commits atomically；Commit response loss reloads and context-validates stored bytes before any recapture；parsed recovery calls the zero-write/external `ValidatePersistedAuthorityEffect` in the same locked DBTX；and two PostgreSQL connections racing fence-first effect versus Abort have one semantic winner. Include claim/Abort response loss、PITR-lost claim、provider reserved with no guessed reason、provider committed before evidence、capture/activation failures、token burn failure、Commit invocation/response loss and exact terminal replay.
 
-Run: `go test ./internal/nodecontrol/authority -run 'TestCoordinatorAbortLinearization|TestCoordinatorAtomicActivationCrashMatrix' -count=1`
+Run: `go test ./internal/nodecontrol/authority -run 'TestCoordinatorDispatcherConstruction|TestCoordinatorAbortLinearization|TestCoordinatorEvidenceCaptureOrder|TestCoordinatorAtomicActivationCrashMatrix|TestCoordinatorPersistedOutcomeRecovery' -count=1`
 
 Expected: FAIL against the pre-amendment Coordinator.
 
 - [ ] **Step 2: Implement claim-before-provider Abort**
 
-Inspect provider outside the transaction, then begin explicit PostgreSQL `READ COMMITTED`, lock `StoredFence`, call `ResolveAuthorityEffectForUpdate` with the same DBTX, and claim only exact absent/unbound/unclaimed. Commit and release locks before provider Abort; terminalize in a new short transaction. Cancellation/SQL/resolver failure rolls back an uncommitted claim. Recovery may reconstruct a provider-aborted claim only from the receipt's exact reason under the same lock/resolver predicates; provider-reserved recovery never guesses a reason.
+Inspect provider outside the transaction, then begin explicit PostgreSQL `READ COMMITTED`, call `Repository.Lock` to obtain the exact locked `Reservation expected`, and invoke only the sealed dispatcher-facing `ResolveAuthorityEffectForUpdate(ctx, tx, expected)` with that same DBTX. The dispatcher privately constructs all 13 registered queries and validates echoes/cardinality；Task 9 cannot select a probe kind. Claim only exact absent/unbound/unclaimed, commit and release locks before provider Abort, and terminalize in a new short transaction. Unknown/fixed-unsupported kinds conflict before any handler call；cancellation/SQL/resolver failure rolls back an uncommitted claim. Recovery may reconstruct a provider-aborted claim only from the receipt's exact reason under the same lock/resolver predicates；provider-reserved recovery never guesses a reason.
 
 - [ ] **Step 3: Implement provider Finalize plus one activation transaction**
 
-After binding and provider Finalize/Inspect outside locks, call the registered activator's evidence capture outside the DB transaction. Begin one short activation transaction, lock/revalidate fence and exact commitment, call `ActivateCommitted`, invoke `ActivateAuthorityEffect` in the same DBTX, persist evidence/resolution/audit/outbox, then consume the single-use monotonic token after all writes and immediately invoke Commit. Any missing handler/evidence, mutable-only stale fact, mismatch, timeout before Commit or SQL error rolls back fence and domain writes together. After Commit uncertainty, `Recover` reads exact stored evidence/resolution first and recaptures only when absence is proven.
+After binding and provider Finalize/Inspect returns the exact committed Receipt outside locks, call `BeginActivationEvidenceCapture` immediately before the first evidence-related observation. Direct-route registered `CaptureActivationDecisionMaterial` (including its authenticated trusted-time/floor facts), call `Head` and the approved node/global checkpoint observation on the same Coordinator-owned `Provider` instance, construct `AuthorityProviderHeadSnapshot`/optional `AuthorityCheckpointAnchor`, then use `Complete` for rollback-resistant material or `NewActivationDecisionEvidence` for none-time material and context-validate to the branded proof. No handler receives Provider or constructs final evidence.
+
+Open one short activation transaction, lock/revalidate the exact fence/commitment/domain row, compare every Receipt field and its complete database point with the locked fence, call `ActivateCommitted`, and direct-route `ActivateAuthorityEffect` with the fresh proof in the same DBTX. The handler recomputes the typed activation-input digest and atomically stores its terminal disposition/pointer plus every proof preimage；the Coordinator completes fence visibility、audit/outbox and `PersistedOutcome`. For rollback-resistant proof only, call the package-private consume after every write and immediately invoke exactly one Commit attempt；the first canceled/expired/mismatched consume is already spent and forces rollback/recapture. None-time proof has no token and proceeds from completed writes directly to that one Commit without calling consume. Any origin、binding、missing handler/preimage、mutable-only fact、timeout or SQL failure rolls back all visibility together.
+
+On Commit uncertainty, begin one locked recovery snapshot and load the exact `StoredFence.PersistedOutcome` plus domain row. Reparse/recanonicalize commitment、stored Head、optional checkpoint、evidence and resolution；reconstruct the original `ActivationDecisionEvidenceInput` from stored reason/time/expected identity and the exact fence Receipt；call `ValidateActivationDecisionEvidence` and `ValidateAuthorityEffectResolution`, then direct-route `ValidatePersistedAuthorityEffect` with the tokenless parsed proof in that same DBTX. It must prove the one exact terminal domain group and typed activation-input binding with zero writes/provider/time/signer/issuer calls. Fresh proof at recovery or parsed proof at activation conflicts before the handler. Never replace the stored Head with current Head；only a proved-absent outcome after resolving commit uncertainty may recapture.
 
 - [ ] **Step 4: Run GREEN crash, admission, and race tests**
 
-Run: `go test ./internal/nodecontrol/authority -run 'TestCoordinatorAbortLinearization|TestCoordinatorAtomicActivationCrashMatrix|TestActivationAdmission' -count=1`
+Run: `go test ./internal/nodecontrol/authority -run 'TestCoordinatorDispatcherConstruction|TestCoordinatorAbortLinearization|TestCoordinatorEvidenceCaptureOrder|TestCoordinatorAtomicActivationCrashMatrix|TestCoordinatorPersistedOutcomeRecovery|TestActivationAdmission' -count=1`
 
 Run: `go test -race ./internal/nodecontrol/authority -run 'TestCoordinatorAbort|TestCoordinatorAtomicActivation' -count=1`
 
-Expected: PASS with no second provider mutation, no fence/domain split and no token reuse.
+Expected: PASS with one Provider instance, exact call/DBTX ordering, no second provider mutation, no fence/domain/proof split, no none-time consume, no token reuse and no recovery write/external call.
 
 - [ ] **Step 5: Rebuild readiness over exact claims/outcomes**
 
-Match latest reserved/committed anchors and every pending `StoredFence`; a pending claim, prepared effect, missing handler, unsupported kind, corrupted commitment/resolution/evidence, provider/DB mismatch or bound-aborted provider record keeps readiness false with a finite value-free reason. DBTX-bound readiness reuses a caller-supplied connection for DB reads; provider calls occur outside SQL statements and locks. Public probe name remains `authority`.
+Match latest reserved/committed anchors and every pending `StoredFence`; a pending claim、prepared effect、missing handler、unsupported kind、provider/DB mismatch、bound-aborted record or any missing/noncanonical/mismatched commitment/Head/checkpoint/evidence/resolution JCS/digest、Receipt database point、reason/time/expected identity、typed activation-input or proof origin/binding keeps readiness false with a finite value-free reason. Terminal recovery uses the same locked snapshot and zero-write persisted validator；it never substitutes mutable current Head. DBTX-bound readiness reuses a caller-supplied connection for DB reads, while all Provider calls remain outside SQL statements/locks. Public probe name remains `authority`.
 
 Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority|./internal/readiness' -Run '^(TestAuthorityReadiness|TestAuthorityProbe)$' -Timeout 5m`
 

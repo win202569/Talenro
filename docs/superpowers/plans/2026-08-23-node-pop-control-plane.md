@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go 1.26.5、PostgreSQL 18.4、Redis 8.8.1、NATS 2.14.3、pgx 5.10.0、OpenAPI 3.0.3、oapi-codegen 2.8.0、Protobuf Go 1.36.11、Buf 1.72.0、sqlc 1.31.1、goose 3.27.1、Prometheus Go client 1.23.2、Ed25519、ECDSA P-256、RFC 8785 JCS、TLS 1.3、Linux cgroup v2/pidfd/seccomp/nftables/SELinux、Docker Compose。
 
-**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json) lists the base followed by those two amendments in that order.
+**Spec:** [Approved C1.2 node and POP control-plane base design](../specs/2026-08-23-node-pop-control-plane-design.md), approved SHA-256 `B0B0DDBBD11546FC07A25CB76992E375481192A3261270FF442095501CC2B4B5`; [approved authority Abort/serving amendment](../specs/2026-08-24-nodecontrol-authority-abort-serving-design.md), approved content SHA-256 `86996084462A5DE1E7667D56A135E93099EE38E1089464CCDFCFF7284EA0D1D7`; [approved authority v7 upgrade amendment](../specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md), approved content SHA-256 `EFAEBE52BDC3D70BDA8737C893B02752E60ACEC0A08441813CADF1425079FC8E`; [approved canonical authority evidence/dispatcher addendum](../specs/2026-08-28-nodecontrol-authority-canonical-dispatcher-addendum-design.md), approved content SHA-256 `7D480607A92214627C1CEF3E81AF76610EC861508CE8D510D5BD046E82600FE2`; canonical set manifest [c12-spec-set.v1.json](../specs/c12-spec-set.v1.json) lists the base followed by those three amendments in bytewise path order.
 
 ## Global Constraints
 
@@ -23,7 +23,7 @@
 - PostgreSQL 是唯一数据库权威；Redis 只能保存可重建的短期状态；NATS JetStream 仍是至少一次投递并按 `event_id` 去重。
 - 所有授权、撤销、identity epoch、trust/root/metadata、desired/recovery activation、operator transition 与 authorizer record 都经过 `ControlPlaneAuthorityFence`。Observation 与纯读不消耗 sequence。
 - Abort 只允许 exact unbound/unclaimed fence 与同一 `READ COMMITTED` DBTX resolver 证明的 `EffectAbsent`；durable claim、所有 authority-bearing writer 的 fence-first lock/trigger、provider Abort 和 terminalization逐阶段分离。`EffectPrepared` 后才确定的 signer/issuer/provider failure、deadline 或 supersession 必须先用 B01 canonical helper 写 immutable `final_not_applied` commitment，使 resolver 返回 `EffectCommitted`，再走同一 `Coordinator.Finalize/Recover`；不得把已准备工作改判为 absent 或 Abort。
-- Provider committed receipt、DB fence terminalization、领域 disposition/active pointer与 required audit/outbox必须由 Coordinator 的 transaction-bound activator一次提交；rollback-resistant trusted-time evidence在 pre-provider-call monotonic budget内、所有重检后和唯一 `Commit` 紧邻前单次消费。
+- Provider committed Receipt、stored Head/checkpoint、全部 contextual-validation preimage、evidence/resolution、DB fence terminalization、领域 disposition/active pointer与 required audit/outbox必须由 Coordinator 的 transaction-bound activator一次提交；rollback-resistant capture在首个 evidence-related external observation前开始，首次 consume 无论成功或失败都 burn，并只在所有写后紧邻唯一 `Commit`；none-time proof无 token且绝不 consume。Commit uncertainty先从同一 locked snapshot解析/验证 stored preimage和领域 terminal outcome，不用 mutable current Head替代。
 - Production fence、certificate issuer、NodeStateSigner、root-share provider、OperatorAuthorizer、OperatorClientTrustGuard、RollbackGuard、SecurityLatchGuard、TrustedTimeSource 和 host evidence verifier 都必须是外部 provider；local/test provider 名称必须显式含 `Deterministic` 或 `LocalTest`，不能进入 production profile。
 - C1.1 `internal/trust`、C1.1 root schema、config signer key 与 device enrollment token domain 不得复用为 C1.2 node-state、node certificate 或 node grant authority。
 - C1.2 canonical JSON 使用现有严格 JSON/JCS 基础，但每个 schema 使用自己的固定 domain-separated transcript；V1 不协商算法。
@@ -243,20 +243,52 @@ type CoordinatorFinalizeRequest struct {
 	EffectDigest contracts.Digest
 }
 
+type TransactionalEffectQuery struct {
+	registeredKind EffectKind
+	expected       Reservation
+}
+
+func (q TransactionalEffectQuery) RegisteredKind() EffectKind
+func (q TransactionalEffectQuery) Expected() Reservation
+
+type TransactionalResolvedEffect struct {
+	OperationID uuid.UUID
+	Epoch       uint64
+	Sequence    uint64
+	Effect      ResolvedEffect
+}
+
+type RegisteredEffectResolver interface {
+	ResolveRegisteredAuthorityEffectForUpdate(context.Context, store.DBTX, TransactionalEffectQuery) (TransactionalResolvedEffect, error)
+}
+
 type TransactionalEffectResolver interface {
-	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, uuid.UUID) (ResolvedEffect, error)
+	ResolveAuthorityEffectForUpdate(context.Context, store.DBTX, Reservation) (ResolvedEffect, error)
+}
+
+type RegisteredEffectActivator interface {
+	CaptureActivationDecisionMaterial(context.Context, Receipt) (ActivationDecisionMaterial, error)
+	ActivateAuthorityEffect(context.Context, store.DBTX, Receipt, ValidatedActivationDecisionEvidence) error
+	ValidatePersistedAuthorityEffect(context.Context, store.DBTX, Receipt, ValidatedActivationDecisionEvidence, AuthorityEffectResolution) error
 }
 
 type TransactionalEffectActivator interface {
-	CaptureActivationDecisionEvidence(context.Context, Receipt) (ActivationDecisionEvidence, error)
-	ActivateAuthorityEffect(context.Context, store.DBTX, Receipt, ActivationDecisionEvidence) error
+	RegisteredEffectActivator
 }
 
 type EffectDispatcher interface {
 	TransactionalEffectResolver
 	TransactionalEffectActivator
+	authorityEffectDispatcher()
 }
 
+type EffectRegistration struct {
+	Kind      EffectKind
+	Resolver  RegisteredEffectResolver
+	Activator RegisteredEffectActivator
+}
+
+func NewEffectDispatcher([]EffectRegistration) (EffectDispatcher, error)
 func NewCoordinator(Provider, Repository, EffectDispatcher) (*Coordinator, error)
 func (c *Coordinator) Reserve(context.Context, ReserveRequest) (Reservation, error)
 func (c *Coordinator) Finalize(context.Context, CoordinatorFinalizeRequest) (Receipt, error)
@@ -265,7 +297,7 @@ func (c *Coordinator) Recover(context.Context, uuid.UUID) (Receipt, error)
 func (c *Coordinator) CheckReady(context.Context) (Readiness, error)
 ```
 
-Identity、state/root publishing、recovery and resource-envelope repositories each expose exactly one transaction-bound resolver/activator registration with a disjoint closed kind set. The dispatcher rejects missing/duplicate/unknown kinds and keeps `operator_authorizer_change`/`trust_bundle_publish` unsupported until separately approved durable workflows exist. Only the coordinator calls `CaptureDatabasePoint`, constructs provider `FinalizeRequest`, claims/aborts, captures validated activation evidence, atomically commits fence plus domain resolution, or exposes a same-repository bound read source；raw `Provider` remains available only to the coordinator, readiness and node-checkpoint time attestation.
+Identity、state/root publishing、recovery and resource-envelope repositories each expose one `RegisteredEffectResolver` plus the three-method `RegisteredEffectActivator` for a disjoint closed kind set. `NewEffectDispatcher` alone constructs opaque per-registration queries, probes all 13 supported handlers in bytewise effect-kind order, validates their operation/epoch/sequence echoes, and keeps `operator_authorizer_change`/`trust_bundle_publish` fixed unsupported. `NewCoordinator` accepts only the exact non-nil private concrete dynamic type returned by `NewEffectDispatcher`; wrapper、embedded、proxy or alternate dispatcher types fail before any method call. Only the coordinator owns raw `Provider`, obtains the locked `Reservation`, captures Receipt/Head/checkpoint preimages after every earlier lock is released, constructs and context-validates the branded proof, atomically commits fence plus domain resolution/proof preimages, or exposes a same-repository bound read source.
 
 | Registration owner | Exact effect kinds |
 | --- | --- |
@@ -273,19 +305,31 @@ Identity、state/root publishing、recovery and resource-envelope repositories e
 | State/root handler | `root_publish`, `metadata_publish`, `desired_activate`, `recovery_activate` |
 | Recovery handler | `security_incident_open`, `security_incident_resolve`, `operator_transition` |
 | Resource-envelope handler | `resource_envelope_activate` |
-| Fixed unsupported handlers | `trust_bundle_publish`, `operator_authorizer_change` |
+| Fixed unsupported registrations (nil resolver + nil activator) | `trust_bundle_publish`, `operator_authorizer_change` |
 
 Canonical effect helpers are owned only by `internal/nodecontrol/authority`:
 
 ```go
 func NewAuthorityEffectCommitment(AuthorityEffectCommitmentInput) (AuthorityEffectCommitment, error)
 func ParseAuthorityEffectCommitment([]byte) (AuthorityEffectCommitment, error)
+func NewAuthorityProviderHeadSnapshot(Head) (AuthorityProviderHeadSnapshot, error)
+func ParseAuthorityProviderHeadSnapshot([]byte) (AuthorityProviderHeadSnapshot, error)
+func AuthorityProviderHeadDigest(Head) (contracts.Digest, error)
+func NewAuthorityCheckpointAnchor(AuthorityCheckpointAnchorInput) (AuthorityCheckpointAnchor, error)
+func ParseAuthorityCheckpointAnchor([]byte) (AuthorityCheckpointAnchor, error)
 func NewAuthorityEffectResolution(AuthorityEffectResolutionInput) (AuthorityEffectResolution, error)
 func ParseAuthorityEffectResolution([]byte) (AuthorityEffectResolution, error)
+func ValidateAuthorityEffectResolution(AuthorityEffectResolution, AuthorityEffectCommitment, ValidatedActivationDecisionEvidence) error
 func NewActivationDecisionEvidence(ActivationDecisionEvidenceInput) (ActivationDecisionEvidence, error)
+func ParseActivationDecisionEvidence([]byte) (ActivationDecisionEvidence, error)
+func ValidateActivationDecisionEvidence(ActivationDecisionEvidence, ActivationDecisionEvidenceInput) (ValidatedActivationDecisionEvidence, error)
+func BeginActivationEvidenceCapture() *ActivationEvidenceCapture
+func (c *ActivationEvidenceCapture) Complete(ActivationDecisionEvidenceInput) (ActivationDecisionEvidence, error)
+func (v ValidatedActivationDecisionEvidence) Evidence() ActivationDecisionEvidence
+func (v ValidatedActivationDecisionEvidence) Input() ActivationDecisionEvidenceInput
 ```
 
-B02/B03 provide finite inputs but never reimplement JCS or digest transcripts. The opaque activation evidence owns a non-serializable operation/commitment/evidence-bound monotonic admission token; copying or restarting cannot duplicate its single `Commit` right.
+B02/B03 authenticate finite domain/trusted-time inputs and return `ActivationDecisionMaterial`, but never receive raw Provider or reimplement JCS/digest transcripts. Coordinator supplies the exact committed Receipt、same-Provider `AuthorityProviderHeadSnapshot` and optional typed checkpoint anchor, then obtains `ValidatedActivationDecisionEvidence`. A fresh rollback-resistant proof shares one non-serializable operation/commitment/evidence-bound admission state across copies；its first consume attempt burns the state even on cancellation、expiry or binding failure. Parsed and none-time proofs never acquire a token, and only parsed-origin proofs may enter zero-write persisted-outcome validation.
 
 Production certificate/desired reads consume only the bound capability below; an arbitrary pool plus independent availability check is not a valid constructor input:
 
@@ -473,7 +517,7 @@ These names are normative; implementations must not shorten, alias or redefine t
 | `AuthorityOperationsSupplyChainRecordSetDigest`、`SupplyChainEvidenceBundleDigest` | `internal/artifactscan/scan.go`, Plan 08 Task 3；consumers in `internal/c12evidence/{scope,platform,authority,completion}.go`, Plans 08–09 | subject-checked nine-record references、bounded canonical retained bundle、four scopes、nested platform/authority evidence、receipt-bound license projection、completion/revalidation；a parallel clean record/license set cannot substitute |
 | `ArtifactCatalogDigest`、`ExpectedProcessImagePolicyDigest`、`ImageSetDigest`、`ArtifactScanDigest` | sole tracked `testdata/c12/artifact-catalog.v1.json` + `internal/artifactscan/scan.go`, Plans 08 Task 3 and 09 Task 6A | exact-cover scanner、four scope policies、nested platform/authority evidence、completion manifest/revalidation、Windows/Linux helper roles and both machine-base launcher binary/SBOM/provenance triples；launchers are B10/B11 frozen inputs rather than rewrite outputs or runtime receipts, and runtime receipts remain scope-specific without making the canonical receipt run-dependent |
 | `authority.NodeCheckpoint` / `node_authority_checkpoint_sequence` | `internal/nodecontrol/authority/provider.go` and `repository.go`, Plan 01 Tasks 5–6; signed field in Plan 02 Tasks 5/8 | poll high-water and time attestation, desired/recovery audience, agent and supervisor rollback state |
-| `AuthorityEffectCommitmentV1`, `AuthorityEffectResolutionV1`, `ActivationDecisionEvidenceV1` | `internal/nodecontrol/authority/{commitment,resolution,activation_evidence}.go`, Plan 01 Tasks 7–9 | B02/B03 resolvers/activators and Coordinator recovery |
+| `AuthorityEffectCommitmentV1`, `AuthorityProviderHeadV1`, `AuthorityCheckpointAnchorV1`, `ActivationDecisionEvidenceV1`, `AuthorityEffectResolutionV1`, sealed dispatcher and branded contextual proof | `internal/nodecontrol/authority/{commitment,resolution,activation_evidence,effect_dispatcher}.go`, Plan 01 Tasks 7–9 | B02/B03 registered resolvers/three-method activators；Coordinator same-Provider capture、atomic activation and parsed persisted-outcome recovery |
 | `serving.BoundAuthorityReadSource` / guarded certificate/desired facts | `internal/nodecontrol/serving`, Plan 01 Tasks 10 and 15 | B02 desired reader and B03 mTLS authorizer only |
 | v7 `CanonicalBodyDigest`, `ParseCanonicalBody`, `VerifiedEnvelope`, `VerifiedEvidenceBundle`, `VerifySignatureEnvelope`, `VerifyCanonicalEvidenceBundle` and fixed schema/role registry | `internal/nodecontrol/contracts/{canonical,signature_envelope,evidence_bundle,schema_registry}.go`, Plan 01 Task 11 | B03 provider/attestor adapters and B11 orchestrator; B10 only hashes the approved spec-set |
 | `DatabaseAuthorityRebindGapAttestationV1`, `DatabaseAuthorityPostRecoveryRebindAttestationV1`, genesis/epoch/lease/staging/source/Down contract families | `internal/nodecontrol/contracts/authority_v7_*.go`, Plan 01 Tasks 11–13 | B03 production signer/provider implementations; B11 supplies exact preimages and sequencing |

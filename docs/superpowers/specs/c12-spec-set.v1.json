@@ -12,6 +12,10 @@
     {
       "path": "docs/superpowers/specs/2026-08-24-nodecontrol-authority-v7-upgrade-design.md",
       "sha256": "efaebe52bdc3d70bda8737c893b02752e60acec0a08441813cadf1425079fc8e"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-28-nodecontrol-authority-canonical-dispatcher-addendum-design.md",
+      "sha256": "7d480607a92214627c1cef3e81af76610ec861508ce8d510d5bd046e82600fe2"
     }
   ]
 }
