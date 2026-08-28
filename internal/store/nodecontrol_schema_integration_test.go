@@ -785,7 +785,7 @@ VALUES($1,$2,1,1,$3,1,$4,$5,'identity_compromise',$6,$7,$8,1,'accepted','pending
 		}
 	})
 
-	t.Run("concurrent resolution and receipt cannot commit a resolved active binding", func(t *testing.T) {
+	t.Run("concurrent resolve and receipt preserve binding invariant", func(t *testing.T) {
 		ctx, pool := openMigratedNodeControlDatabase(t)
 		now := time.Now().UTC().Truncate(time.Microsecond)
 		nodeID := insertNodeControlFixtureNode(ctx, t, pool, "receipt-resolve-race", now)
