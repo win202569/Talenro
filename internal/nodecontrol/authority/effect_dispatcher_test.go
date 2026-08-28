@@ -14,6 +14,22 @@ import (
 	"talenro.local/platform/internal/store"
 )
 
+var dispatcherTestSupportedKinds = []EffectKind{
+	EffectCertificateActivate,
+	EffectCertificateRevoke,
+	EffectDesiredActivate,
+	EffectGrantClaim,
+	EffectGrantCreate,
+	EffectIdentityEpochAdvance,
+	EffectMetadataPublish,
+	EffectOperatorTransition,
+	EffectRecoveryActivate,
+	EffectResourceEnvelopeActivate,
+	EffectRootPublish,
+	EffectSecurityIncidentOpen,
+	EffectSecurityIncidentResolve,
+}
+
 func TestEffectDispatcherClosedRegistry(t *testing.T) {
 	registrations, _ := dispatcherRegistrations(t)
 	dispatcher, err := NewEffectDispatcher(registrations)
@@ -68,21 +84,21 @@ func TestEffectDispatcherOpaqueQueries(t *testing.T) {
 	database := &dispatcherTestDB{}
 
 	t.Run("zero absent and frozen order", func(t *testing.T) {
+		probeLog := handlers[dispatcherTestSupportedKinds[0]].probeLog
 		resetDispatcherHandlers(handlers)
+		probeLog.reset()
 		resolved, err := dispatcher.ResolveAuthorityEffectForUpdate(context.Background(), database, expected)
 		if err != nil || resolved != (ResolvedEffect{State: EffectAbsent}) {
 			t.Fatalf("resolved = %#v, %v", resolved, err)
 		}
-		var order []EffectKind
-		for _, kind := range supportedDispatcherKinds {
+		for _, kind := range dispatcherTestSupportedKinds {
 			handler := handlers[kind]
 			if len(handler.queries) != 1 || handler.queries[0].RegisteredKind() != kind || handler.queries[0].Expected() != expected || handler.databases[0] != database {
 				t.Fatalf("query for %s = %#v", kind, handler.queries)
 			}
-			order = append(order, handler.queries[0].RegisteredKind())
 		}
-		if fmt.Sprint(order) != fmt.Sprint(supportedDispatcherKinds) {
-			t.Fatalf("probe order = %v", order)
+		if order := probeLog.snapshot(); fmt.Sprint(order) != fmt.Sprint(dispatcherTestSupportedKinds) {
+			t.Fatalf("probe order = %v, want %v", order, dispatcherTestSupportedKinds)
 		}
 	})
 
@@ -295,7 +311,9 @@ func (*dispatcherTestDB) Query(context.Context, string, ...interface{}) (pgx.Row
 func (*dispatcherTestDB) QueryRow(context.Context, string, ...interface{}) pgx.Row { return nil }
 
 type dispatcherTestHandler struct {
-	mu sync.Mutex
+	mu       sync.Mutex
+	kind     EffectKind
+	probeLog *dispatcherProbeLog
 
 	resolved    TransactionalResolvedEffect
 	resolveErr  error
@@ -312,7 +330,31 @@ type dispatcherTestHandler struct {
 	validateCalls int
 }
 
+type dispatcherProbeLog struct {
+	mu    sync.Mutex
+	calls []EffectKind
+}
+
+func (log *dispatcherProbeLog) reset() {
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	log.calls = nil
+}
+
+func (log *dispatcherProbeLog) record(kind EffectKind) {
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	log.calls = append(log.calls, kind)
+}
+
+func (log *dispatcherProbeLog) snapshot() []EffectKind {
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	return append([]EffectKind(nil), log.calls...)
+}
+
 func (handler *dispatcherTestHandler) ResolveRegisteredAuthorityEffectForUpdate(_ context.Context, database store.DBTX, query TransactionalEffectQuery) (TransactionalResolvedEffect, error) {
+	handler.probeLog.record(handler.kind)
 	handler.mu.Lock()
 	defer handler.mu.Unlock()
 	handler.queries = append(handler.queries, query)
@@ -350,10 +392,11 @@ func (handler *dispatcherTestHandler) ValidatePersistedAuthorityEffect(context.C
 
 func dispatcherRegistrations(t *testing.T) ([]EffectRegistration, map[EffectKind]*dispatcherTestHandler) {
 	t.Helper()
-	handlers := make(map[EffectKind]*dispatcherTestHandler, len(supportedDispatcherKinds))
+	probeLog := &dispatcherProbeLog{}
+	handlers := make(map[EffectKind]*dispatcherTestHandler, len(dispatcherTestSupportedKinds))
 	registrations := make([]EffectRegistration, 0, 15)
-	for _, kind := range supportedDispatcherKinds {
-		handler := &dispatcherTestHandler{}
+	for _, kind := range dispatcherTestSupportedKinds {
+		handler := &dispatcherTestHandler{kind: kind, probeLog: probeLog}
 		handlers[kind] = handler
 		registrations = append(registrations, EffectRegistration{Kind: kind, Resolver: handler, Activator: handler})
 	}
@@ -366,7 +409,8 @@ func dispatcherRegistrations(t *testing.T) ([]EffectRegistration, map[EffectKind
 
 func resetDispatcherHandlers(handlers map[EffectKind]*dispatcherTestHandler) {
 	for _, handler := range handlers {
-		*handler = dispatcherTestHandler{}
+		kind, probeLog := handler.kind, handler.probeLog
+		*handler = dispatcherTestHandler{kind: kind, probeLog: probeLog}
 	}
 }
 

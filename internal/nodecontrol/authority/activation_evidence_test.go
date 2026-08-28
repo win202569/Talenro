@@ -415,6 +415,66 @@ func TestActivationAdmissionCopyConcurrentAndFailedConsumeBurns(t *testing.T) {
 	})
 }
 
+func TestActivationEvidenceCapturePreUseCopiesShareOneClaim(t *testing.T) {
+	input := evidenceInputFixture(t, "may_apply")
+	start := time.Date(2026, 8, 28, 11, 59, 59, 0, time.UTC)
+
+	t.Run("sequential copy", func(t *testing.T) {
+		capture := captureWithReadings(start, start.Add(time.Second))
+		copyCapture := *capture
+		if _, err := capture.Complete(input); err != nil {
+			t.Fatalf("first completion = %v", err)
+		}
+		if _, err := copyCapture.Complete(input); !errors.Is(err, ErrConflict) {
+			t.Fatalf("copied completion = %v, want ErrConflict", err)
+		}
+	})
+
+	t.Run("concurrent copies", func(t *testing.T) {
+		capture := captureWithReadings(start, start.Add(time.Second))
+		const contenders = 32
+		copies := make([]ActivationEvidenceCapture, contenders)
+		for index := range copies {
+			copies[index] = *capture
+		}
+		var successes atomic.Int32
+		var conflicts atomic.Int32
+		var wait sync.WaitGroup
+		wait.Add(contenders)
+		for index := range copies {
+			go func(candidate *ActivationEvidenceCapture) {
+				defer wait.Done()
+				_, err := candidate.Complete(input)
+				switch {
+				case err == nil:
+					successes.Add(1)
+				case errors.Is(err, ErrConflict):
+					conflicts.Add(1)
+				default:
+					t.Errorf("completion = %v", err)
+				}
+			}(&copies[index])
+		}
+		wait.Wait()
+		if successes.Load() != 1 || conflicts.Load() != contenders-1 {
+			t.Fatalf("successes=%d conflicts=%d", successes.Load(), conflicts.Load())
+		}
+	})
+
+	t.Run("invalid completion burns every copy", func(t *testing.T) {
+		capture := captureWithReadings(start, start.Add(time.Second))
+		copyCapture := *capture
+		invalid := input
+		invalid.Material.ProviderIdentityDigest = contracts.Digest{}
+		if _, err := copyCapture.Complete(invalid); !errors.Is(err, ErrInvalidArgument) {
+			t.Fatalf("invalid completion = %v, want ErrInvalidArgument", err)
+		}
+		if _, err := capture.Complete(input); !errors.Is(err, ErrConflict) {
+			t.Fatalf("retry through original = %v, want ErrConflict", err)
+		}
+	})
+}
+
 func TestAuthorityEffectResolutionClosedMatrix(t *testing.T) {
 	for _, scenario := range []string{"applied", "exact_capture", "deadline_expired", "final", "higher_node"} {
 		scenario := scenario
@@ -454,6 +514,40 @@ func TestAuthorityEffectResolutionClosedMatrix(t *testing.T) {
 	}
 	if err := ValidateAuthorityEffectResolution(resolution, wrongInput.Material.Commitment, wrongProof); !errors.Is(err, ErrConflict) {
 		t.Fatalf("cross commitment error = %v, want ErrConflict", err)
+	}
+}
+
+func TestAuthorityEffectResolutionParseRejectsImpossiblePairs(t *testing.T) {
+	fixture := loadLiteralAuthorityEffectFixture(t)
+	vectors := make(map[string]literalAuthorityEffectVector, len(fixture.Vectors))
+	for _, vector := range fixture.Vectors {
+		vectors[vector.Name] = vector
+	}
+	for _, test := range []struct {
+		name   string
+		vector string
+		field  string
+		value  string
+	}{
+		{name: "failed with trusted time", vector: "resolution-final-not-applied", field: "decision_anchor_kind", value: "trusted_time"},
+		{name: "superseded with exact capture", vector: "resolution-exact-capture", field: "reason_code", value: "superseded"},
+		{name: "failed with higher authority", vector: "resolution-higher-authority", field: "reason_code", value: "failed"},
+		{name: "superseded with trusted time", vector: "resolution-deadline-expired", field: "reason_code", value: "superseded"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var body map[string]string
+			if err := json.Unmarshal([]byte(vectors[test.vector].CanonicalJCS), &body); err != nil {
+				t.Fatal(err)
+			}
+			body[test.field] = test.value
+			canonical, err := json.Marshal(body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := ParseAuthorityEffectResolution(canonical); !errors.Is(err, ErrInvalidArgument) {
+				t.Fatalf("error = %v, want ErrInvalidArgument", err)
+			}
+		})
 	}
 }
 

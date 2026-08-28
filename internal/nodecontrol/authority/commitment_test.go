@@ -33,6 +33,7 @@ type literalAuthorityEffectVector struct {
 type literalAuthorityEffectMutation struct {
 	Name            string `json:"name"`
 	ArtifactKind    string `json:"artifact_kind"`
+	BaseVector      string `json:"base_vector,omitempty"`
 	Field           string `json:"field"`
 	Mutation        string `json:"mutation"`
 	Classification  string `json:"classification"`
@@ -74,30 +75,52 @@ type literalCheckpointInput struct {
 	ReceiptDigest string         `json:"receipt_digest"`
 }
 
+type literalReceiptInput struct {
+	OperationID       string        `json:"operation_id"`
+	Kind              EffectKind    `json:"kind"`
+	ScopeKind         ScopeKind     `json:"scope_kind"`
+	ScopeDigest       string        `json:"scope_digest"`
+	Epoch             uint64        `json:"epoch"`
+	Sequence          uint64        `json:"sequence"`
+	ReservationDigest string        `json:"reservation_digest"`
+	EffectDigest      string        `json:"effect_digest"`
+	DBSystemID        uint64        `json:"db_system_id"`
+	DBTimeline        uint32        `json:"db_timeline"`
+	RequiredLSN       string        `json:"required_lsn"`
+	Status            ReceiptStatus `json:"status"`
+	ReceiptDigest     string        `json:"receipt_digest"`
+}
+
+type literalEvidenceMaterialInput struct {
+	Commitment                     literalCommitmentInput `json:"commitment"`
+	Reason                         AuthorityEffectReason  `json:"reason"`
+	CheckpointKind                 CheckpointKind         `json:"checkpoint_kind"`
+	CheckpointScopeDigest          string                 `json:"checkpoint_scope_digest"`
+	TrustedTimeKind                TrustedTimeKind        `json:"trusted_time_kind"`
+	TrustedInstant                 string                 `json:"trusted_instant"`
+	EvidenceValidUntil             string                 `json:"evidence_valid_until"`
+	AttestationExpiresAt           string                 `json:"attestation_expires_at"`
+	ActivationDeadline             string                 `json:"activation_deadline"`
+	ProviderIdentityDigest         string                 `json:"provider_identity_digest"`
+	ExpectedProviderIdentityDigest string                 `json:"expected_provider_identity_digest"`
+	FloorAttestationDigest         string                 `json:"floor_attestation_digest"`
+	Capability                     DecisionCapability     `json:"capability"`
+}
+
 type literalEvidenceInput struct {
-	Commitment                     string                `json:"commitment"`
-	Receipt                        string                `json:"receipt"`
-	ProviderHead                   string                `json:"provider_head"`
-	Checkpoint                     string                `json:"checkpoint"`
-	Reason                         AuthorityEffectReason `json:"reason"`
-	TrustedTimeKind                TrustedTimeKind       `json:"trusted_time_kind"`
-	TrustedInstant                 string                `json:"trusted_instant"`
-	EvidenceValidUntil             string                `json:"evidence_valid_until"`
-	AttestationExpiresAt           string                `json:"attestation_expires_at"`
-	ActivationDeadline             string                `json:"activation_deadline"`
-	ProviderIdentityDigest         string                `json:"provider_identity_digest"`
-	ExpectedProviderIdentityDigest string                `json:"expected_provider_identity_digest"`
-	FloorAttestationDigest         string                `json:"floor_attestation_digest"`
-	Capability                     DecisionCapability    `json:"capability"`
+	Material     literalEvidenceMaterialInput `json:"material"`
+	Receipt      literalReceiptInput          `json:"receipt"`
+	ProviderHead literalProviderHeadInput     `json:"provider_head"`
+	Checkpoint   *literalCheckpointInput      `json:"checkpoint"`
 }
 
 type literalResolutionInput struct {
-	Commitment   string                `json:"commitment"`
-	Evidence     string                `json:"evidence"`
-	Disposition  EffectDisposition     `json:"disposition"`
-	Reason       AuthorityEffectReason `json:"reason"`
-	AnchorKind   DecisionAnchorKind    `json:"anchor_kind"`
-	AnchorDigest string                `json:"anchor_digest"`
+	Commitment   literalCommitmentInput `json:"commitment"`
+	Evidence     literalEvidenceInput   `json:"evidence"`
+	Disposition  EffectDisposition      `json:"disposition"`
+	Reason       AuthorityEffectReason  `json:"reason"`
+	AnchorKind   DecisionAnchorKind     `json:"anchor_kind"`
+	AnchorDigest string                 `json:"anchor_digest"`
 }
 
 func TestAuthorityEffectLiteralInputsAreSemantic(t *testing.T) {
@@ -106,7 +129,7 @@ func TestAuthorityEffectLiteralInputsAreSemantic(t *testing.T) {
 		"commitment":    {"operation_id", "kind", "scope_kind", "scope_digest", "epoch", "sequence", "base_effect_digest", "mode", "reason", "activation_policy_version", "activation_inputs_digest"},
 		"provider_head": {"epoch", "latest_reserved_sequence", "latest_committed_sequence", "latest_reservation_digest", "latest_committed_operation_id", "latest_committed_receipt_digest", "db_system_id", "db_timeline", "required_lsn"},
 		"checkpoint":    {"kind", "scope_digest", "epoch", "sequence", "receipt_digest"},
-		"evidence":      {"commitment", "receipt", "provider_head", "checkpoint", "reason", "trusted_time_kind", "trusted_instant", "evidence_valid_until", "attestation_expires_at", "activation_deadline", "provider_identity_digest", "expected_provider_identity_digest", "floor_attestation_digest", "capability"},
+		"evidence":      {"material", "receipt", "provider_head", "checkpoint"},
 		"resolution":    {"commitment", "evidence", "disposition", "reason", "anchor_kind", "anchor_digest"},
 	}
 	for _, vector := range fixture.Vectors {
@@ -120,6 +143,35 @@ func TestAuthorityEffectLiteralInputsAreSemantic(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestAuthorityEffectCompositeLiteralInputsAreSelfContained(t *testing.T) {
+	fixture := loadLiteralAuthorityEffectFixture(t)
+	for _, vector := range fixture.Vectors {
+		var input map[string]json.RawMessage
+		if err := strictjson.Decode(bytes.NewReader(vector.Input), 4096, &input); err != nil {
+			t.Fatalf("%s input: %v", vector.Name, err)
+		}
+		switch vector.ArtifactKind {
+		case "evidence":
+			for _, field := range []string{"material", "receipt", "provider_head", "checkpoint"} {
+				if !literalCompositeField(input[field], field == "checkpoint") {
+					t.Errorf("%s %s is not a nested literal preimage", vector.Name, field)
+				}
+			}
+		case "resolution":
+			for _, field := range []string{"commitment", "evidence"} {
+				if !literalCompositeField(input[field], false) {
+					t.Errorf("%s %s is not a nested literal preimage", vector.Name, field)
+				}
+			}
+		}
+	}
+}
+
+func literalCompositeField(value json.RawMessage, nullable bool) bool {
+	value = bytes.TrimSpace(value)
+	return len(value) > 1 && (value[0] == '{' || nullable && bytes.Equal(value, []byte("null")))
 }
 
 func TestAuthorityEffectCanonicalVectors(t *testing.T) {
@@ -171,6 +223,9 @@ func TestAuthorityCanonicalMutationManifest(t *testing.T) {
 		mutation := mutation
 		t.Run(mutation.Name, func(t *testing.T) {
 			base, exists := firstByKind[mutation.ArtifactKind]
+			if mutation.BaseVector != "" {
+				base, exists = vectors[mutation.BaseVector]
+			}
 			if !exists {
 				t.Fatalf("unknown artifact kind %q", mutation.ArtifactKind)
 			}
@@ -318,42 +373,17 @@ func constructLiteralAuthorityArtifact(t *testing.T, vector literalAuthorityEffe
 	case "commitment":
 		var input literalCommitmentInput
 		decodeLiteralInput(t, vector.Input, &input)
-		value, err := NewAuthorityEffectCommitment(AuthorityEffectCommitmentInput{
-			OperationID: uuid.MustParse(input.OperationID), Kind: input.Kind, ScopeKind: input.ScopeKind,
-			ScopeDigest: mustOptionalAuthorityDigest(t, input.ScopeDigest), Epoch: input.Epoch, Sequence: input.Sequence,
-			BaseEffectDigest: mustOptionalAuthorityDigest(t, input.BaseEffectDigest), Mode: input.Mode, Reason: input.Reason,
-			ActivationPolicyVersion: input.ActivationPolicyVersion,
-			ActivationInputsDigest:  mustOptionalAuthorityDigest(t, input.ActivationInputsDigest),
-		})
-		if err != nil {
-			t.Fatalf("commitment: %v", err)
-		}
+		value := commitmentFromLiteralInput(t, input)
 		return value.CanonicalJCS(), value.Digest()
 	case "provider_head":
 		var input literalProviderHeadInput
 		decodeLiteralInput(t, vector.Input, &input)
-		value, err := NewAuthorityProviderHeadSnapshot(Head{
-			Epoch: input.Epoch, LatestReservedSequence: input.LatestReservedSequence,
-			LatestCommittedSequence:      input.LatestCommittedSequence,
-			LatestReservationDigest:      mustAuthorityDigest(t, input.LatestReservationDigest),
-			LatestCommittedOperationID:   uuid.MustParse(input.LatestCommittedOperationID),
-			LatestCommittedReceiptDigest: mustAuthorityDigest(t, input.LatestCommittedReceiptDigest),
-			LatestCommittedDatabasePoint: &DatabasePoint{SystemID: input.DBSystemID, Timeline: input.DBTimeline, RequiredLSN: WALPosition(input.RequiredLSN)},
-		})
-		if err != nil {
-			t.Fatalf("provider head: %v", err)
-		}
+		value := providerHeadFromLiteralInput(t, input)
 		return value.CanonicalJCS(), value.Digest()
 	case "checkpoint":
 		var input literalCheckpointInput
 		decodeLiteralInput(t, vector.Input, &input)
-		value, err := NewAuthorityCheckpointAnchor(AuthorityCheckpointAnchorInput{
-			Kind: input.Kind, ScopeDigest: mustAuthorityDigest(t, input.ScopeDigest),
-			Checkpoint: NodeCheckpoint{AuthorityEpoch: input.Epoch, Sequence: input.Sequence, ReceiptDigest: mustAuthorityDigest(t, input.ReceiptDigest)},
-		})
-		if err != nil {
-			t.Fatalf("checkpoint: %v", err)
-		}
+		value := checkpointFromLiteralInput(t, input)
 		return value.CanonicalJCS(), value.Digest()
 	case "evidence":
 		var input literalEvidenceInput
@@ -398,39 +428,94 @@ func parseLiteralInstant(t *testing.T, value string) time.Time {
 	return parsed
 }
 
+func commitmentFromLiteralInput(t *testing.T, input literalCommitmentInput) AuthorityEffectCommitment {
+	t.Helper()
+	value, err := NewAuthorityEffectCommitment(AuthorityEffectCommitmentInput{
+		OperationID: uuid.MustParse(input.OperationID), Kind: input.Kind, ScopeKind: input.ScopeKind,
+		ScopeDigest: mustOptionalAuthorityDigest(t, input.ScopeDigest), Epoch: input.Epoch, Sequence: input.Sequence,
+		BaseEffectDigest: mustOptionalAuthorityDigest(t, input.BaseEffectDigest), Mode: input.Mode, Reason: input.Reason,
+		ActivationPolicyVersion: input.ActivationPolicyVersion,
+		ActivationInputsDigest:  mustOptionalAuthorityDigest(t, input.ActivationInputsDigest),
+	})
+	if err != nil {
+		t.Fatalf("commitment: %v", err)
+	}
+	return value
+}
+
+func providerHeadFromLiteralInput(t *testing.T, input literalProviderHeadInput) AuthorityProviderHeadSnapshot {
+	t.Helper()
+	value, err := NewAuthorityProviderHeadSnapshot(Head{
+		Epoch: input.Epoch, LatestReservedSequence: input.LatestReservedSequence,
+		LatestCommittedSequence:      input.LatestCommittedSequence,
+		LatestReservationDigest:      mustAuthorityDigest(t, input.LatestReservationDigest),
+		LatestCommittedOperationID:   uuid.MustParse(input.LatestCommittedOperationID),
+		LatestCommittedReceiptDigest: mustAuthorityDigest(t, input.LatestCommittedReceiptDigest),
+		LatestCommittedDatabasePoint: &DatabasePoint{SystemID: input.DBSystemID, Timeline: input.DBTimeline, RequiredLSN: WALPosition(input.RequiredLSN)},
+	})
+	if err != nil {
+		t.Fatalf("provider head: %v", err)
+	}
+	return value
+}
+
+func checkpointFromLiteralInput(t *testing.T, input literalCheckpointInput) AuthorityCheckpointAnchor {
+	t.Helper()
+	value, err := NewAuthorityCheckpointAnchor(AuthorityCheckpointAnchorInput{
+		Kind: input.Kind, ScopeDigest: mustAuthorityDigest(t, input.ScopeDigest),
+		Checkpoint: NodeCheckpoint{AuthorityEpoch: input.Epoch, Sequence: input.Sequence, ReceiptDigest: mustAuthorityDigest(t, input.ReceiptDigest)},
+	})
+	if err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	return value
+}
+
+func receiptFromLiteralInput(t *testing.T, input literalReceiptInput) Receipt {
+	t.Helper()
+	effectDigest := mustAuthorityDigest(t, input.EffectDigest)
+	point := DatabasePoint{SystemID: input.DBSystemID, Timeline: input.DBTimeline, RequiredLSN: WALPosition(input.RequiredLSN)}
+	value := Receipt{
+		Reservation: Reservation{
+			OperationID: uuid.MustParse(input.OperationID), Kind: input.Kind, ScopeKind: input.ScopeKind,
+			ScopeDigest: mustAuthorityDigest(t, input.ScopeDigest), Epoch: input.Epoch, Sequence: input.Sequence,
+			ReservationDigest: mustAuthorityDigest(t, input.ReservationDigest),
+		},
+		EffectDigest: &effectDigest, DatabasePoint: &point, Status: input.Status,
+		ReceiptDigest: mustAuthorityDigest(t, input.ReceiptDigest),
+	}
+	if err := value.Validate(); err != nil {
+		t.Fatalf("receipt: %v", err)
+	}
+	return value
+}
+
 func freshEvidenceProofFromLiteralInput(t *testing.T, input literalEvidenceInput) (ActivationDecisionEvidence, ValidatedActivationDecisionEvidence) {
 	t.Helper()
-	commitment := commitmentFixture(t, input.Commitment)
-	receipt := committedReceiptByLiteralReference(t, input.Receipt)
-	head, err := NewAuthorityProviderHeadSnapshot(headFixture(t, input.ProviderHead))
-	if err != nil {
-		t.Fatalf("head snapshot: %v", err)
-	}
+	materialInput := input.Material
 	material := ActivationDecisionMaterial{
-		Commitment: commitment, Reason: input.Reason,
-		TrustedTimeKind: input.TrustedTimeKind, TrustedInstant: parseLiteralInstant(t, input.TrustedInstant),
-		EvidenceValidUntil:             parseLiteralInstant(t, input.EvidenceValidUntil),
-		AttestationExpiresAt:           parseLiteralInstant(t, input.AttestationExpiresAt),
-		ActivationDeadline:             parseLiteralInstant(t, input.ActivationDeadline),
-		ProviderIdentityDigest:         mustOptionalAuthorityDigest(t, input.ProviderIdentityDigest),
-		ExpectedProviderIdentityDigest: mustOptionalAuthorityDigest(t, input.ExpectedProviderIdentityDigest),
-		FloorAttestationDigest:         mustOptionalAuthorityDigest(t, input.FloorAttestationDigest), Capability: input.Capability,
+		Commitment: commitmentFromLiteralInput(t, materialInput.Commitment), Reason: materialInput.Reason,
+		CheckpointKind: materialInput.CheckpointKind, CheckpointScopeDigest: mustOptionalAuthorityDigest(t, materialInput.CheckpointScopeDigest),
+		TrustedTimeKind: materialInput.TrustedTimeKind, TrustedInstant: parseLiteralInstant(t, materialInput.TrustedInstant),
+		EvidenceValidUntil:             parseLiteralInstant(t, materialInput.EvidenceValidUntil),
+		AttestationExpiresAt:           parseLiteralInstant(t, materialInput.AttestationExpiresAt),
+		ActivationDeadline:             parseLiteralInstant(t, materialInput.ActivationDeadline),
+		ProviderIdentityDigest:         mustOptionalAuthorityDigest(t, materialInput.ProviderIdentityDigest),
+		ExpectedProviderIdentityDigest: mustOptionalAuthorityDigest(t, materialInput.ExpectedProviderIdentityDigest),
+		FloorAttestationDigest:         mustOptionalAuthorityDigest(t, materialInput.FloorAttestationDigest), Capability: materialInput.Capability,
 	}
 	var checkpoint *AuthorityCheckpointAnchor
-	switch input.Checkpoint {
-	case "none":
-		material.CheckpointKind = CheckpointNone
-	case "node", "global":
-		anchor := checkpointFixture(t, input.Checkpoint)
+	if input.Checkpoint != nil {
+		anchor := checkpointFromLiteralInput(t, *input.Checkpoint)
 		checkpoint = &anchor
-		material.CheckpointKind = anchor.Facts().Kind
-		material.CheckpointScopeDigest = anchor.Facts().ScopeDigest
-	default:
-		t.Fatalf("checkpoint reference %q", input.Checkpoint)
 	}
-	evidenceInput := ActivationDecisionEvidenceInput{Material: material, Receipt: receipt, ProviderHead: head, Checkpoint: checkpoint}
+	evidenceInput := ActivationDecisionEvidenceInput{
+		Material: material, Receipt: receiptFromLiteralInput(t, input.Receipt),
+		ProviderHead: providerHeadFromLiteralInput(t, input.ProviderHead), Checkpoint: checkpoint,
+	}
 	var evidence ActivationDecisionEvidence
-	if input.TrustedTimeKind == TrustedTimeRollbackResistant {
+	var err error
+	if materialInput.TrustedTimeKind == TrustedTimeRollbackResistant {
 		start := time.Date(2026, 8, 28, 11, 59, 59, 0, time.UTC)
 		calls := 0
 		capture := beginActivationEvidenceCaptureForTest(func() time.Time {
@@ -451,18 +536,10 @@ func freshEvidenceProofFromLiteralInput(t *testing.T, input literalEvidenceInput
 	return evidence, proof
 }
 
-func committedReceiptByLiteralReference(t *testing.T, reference string) Receipt {
-	t.Helper()
-	if reference == "global" {
-		return globalHigherAuthorityInput(t).Receipt
-	}
-	return committedReceiptFixture(t, reference)
-}
-
 func resolutionFromLiteralInput(t *testing.T, input literalResolutionInput) AuthorityEffectResolution {
 	t.Helper()
-	_, proof := freshEvidenceProofFixture(t, input.Evidence)
-	commitment := commitmentFixture(t, input.Commitment)
+	_, proof := freshEvidenceProofFromLiteralInput(t, input.Evidence)
+	commitment := commitmentFromLiteralInput(t, input.Commitment)
 	if proof.Input().Material.Commitment.Digest() != commitment.Digest() {
 		t.Fatal("resolution semantic input names mismatched preimages")
 	}

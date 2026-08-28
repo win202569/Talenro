@@ -114,6 +114,10 @@ type activationDecisionEvidenceV1 struct {
 }
 
 type ActivationEvidenceCapture struct {
+	state *activationEvidenceCaptureState
+}
+
+type activationEvidenceCaptureState struct {
 	started time.Time
 	now     func() time.Time
 	used    atomic.Bool
@@ -127,14 +131,15 @@ func beginActivationEvidenceCaptureForTest(now func() time.Time) *ActivationEvid
 	if now == nil {
 		return &ActivationEvidenceCapture{}
 	}
-	return &ActivationEvidenceCapture{started: now(), now: now}
+	return &ActivationEvidenceCapture{state: &activationEvidenceCaptureState{started: now(), now: now}}
 }
 
 func (capture *ActivationEvidenceCapture) Complete(input ActivationDecisionEvidenceInput) (ActivationDecisionEvidence, error) {
-	if capture == nil || capture.now == nil || capture.started.IsZero() {
+	if capture == nil || capture.state == nil || capture.state.now == nil || capture.state.started.IsZero() {
 		return ActivationDecisionEvidence{}, ErrInvalidArgument
 	}
-	if !capture.used.CompareAndSwap(false, true) {
+	state := capture.state
+	if !state.used.CompareAndSwap(false, true) {
 		return ActivationDecisionEvidence{}, ErrConflict
 	}
 	if input.Material.TrustedTimeKind != TrustedTimeRollbackResistant {
@@ -151,16 +156,16 @@ func (capture *ActivationEvidenceCapture) Complete(input ActivationDecisionEvide
 	if budget > 5*time.Second {
 		budget = 5 * time.Second
 	}
-	deadline, ok := addCaptureDuration(capture.started, budget)
+	deadline, ok := addCaptureDuration(state.started, budget)
 	if !ok {
 		return ActivationDecisionEvidence{}, ErrInvalidArgument
 	}
-	if !capture.now().Before(deadline) {
+	if !state.now().Before(deadline) {
 		return ActivationDecisionEvidence{}, ErrConflict
 	}
 	evidence.admission = &activationAdmission{
 		operationID: evidence.facts.OperationID, commitmentDigest: evidence.facts.CommitmentDigest,
-		evidenceDigest: evidence.digest, deadline: deadline, now: capture.now,
+		evidenceDigest: evidence.digest, deadline: deadline, now: state.now,
 	}
 	return evidence, nil
 }

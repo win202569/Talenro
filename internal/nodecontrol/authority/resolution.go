@@ -99,10 +99,7 @@ func ParseAuthorityEffectResolution(body []byte) (AuthorityEffectResolution, err
 	if !ok {
 		return AuthorityEffectResolution{}, ErrInvalidArgument
 	}
-	if wire.Disposition == DispositionApplied && (wire.ReasonCode != EffectReasonNone || wire.DecisionAnchorKind != DecisionAnchorTrustedTime) {
-		return AuthorityEffectResolution{}, ErrInvalidArgument
-	}
-	if wire.Disposition == DispositionNotApplied && !wire.ReasonCode.finalReason() {
+	if !resolutionSelfContainedPairValid(wire.Disposition, wire.ReasonCode, wire.DecisionAnchorKind) {
 		return AuthorityEffectResolution{}, ErrInvalidArgument
 	}
 	canonical, digest, err := canonicalAuthorityArtifact(authorityEffectResolutionDomain, wire)
@@ -203,10 +200,32 @@ func resolutionEnumsValid(disposition EffectDisposition, reason AuthorityEffectR
 	}
 }
 
+func resolutionSelfContainedPairValid(disposition EffectDisposition, reason AuthorityEffectReason, anchor DecisionAnchorKind) bool {
+	if disposition == DispositionApplied {
+		return reason == EffectReasonNone && anchor == DecisionAnchorTrustedTime
+	}
+	if disposition != DispositionNotApplied || !reason.finalReason() {
+		return false
+	}
+	switch anchor {
+	case DecisionAnchorFinalCommitment:
+		return true
+	case DecisionAnchorExactCapture:
+		return reason == EffectReasonFailed || reason == EffectReasonValidationRejected
+	case DecisionAnchorHigherAuthority:
+		return reason == EffectReasonSuperseded
+	case DecisionAnchorTrustedTime:
+		return reason == EffectReasonActivationDeadlineExpired
+	default:
+		return false
+	}
+}
+
 func validAuthorityEffectResolution(value AuthorityEffectResolution) bool {
 	if value.digest == (contracts.Digest{}) || len(value.canonical) == 0 ||
 		value.facts.CommitmentDigest == (contracts.Digest{}) || value.facts.AnchorDigest == (contracts.Digest{}) ||
-		!resolutionEnumsValid(value.facts.Disposition, value.facts.Reason, value.facts.AnchorKind) {
+		!resolutionEnumsValid(value.facts.Disposition, value.facts.Reason, value.facts.AnchorKind) ||
+		!resolutionSelfContainedPairValid(value.facts.Disposition, value.facts.Reason, value.facts.AnchorKind) {
 		return false
 	}
 	wire := authorityEffectResolutionV1{
