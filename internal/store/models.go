@@ -7,7 +7,6 @@ package store
 import (
 	"database/sql"
 	"encoding/json"
-	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -252,7 +251,7 @@ type NodecontrolControlPlaneTrustBundleHighWater struct {
 }
 
 type NodecontrolNodeCapacityProfile struct {
-	ProfileID                  uuid.UUID          `json:"profile_id"`
+	ProfileID                  string             `json:"profile_id"`
 	Version                    int64              `json:"version"`
 	Adapter                    string             `json:"adapter"`
 	EgressLimitBps             int64              `json:"egress_limit_bps"`
@@ -356,7 +355,7 @@ type NodecontrolNodeDesiredState struct {
 type NodecontrolNodeEndpoint struct {
 	EndpointID         uuid.UUID          `json:"endpoint_id"`
 	NodeID             uuid.UUID          `json:"node_id"`
-	Address            netip.Addr         `json:"address"`
+	Address            string             `json:"address"`
 	Port               int32              `json:"port"`
 	Transport          string             `json:"transport"`
 	ProtocolCapability string             `json:"protocol_capability"`
@@ -512,9 +511,9 @@ type NodecontrolNodePop struct {
 
 type NodecontrolNodeProcessSlot struct {
 	NodeID                 uuid.UUID          `json:"node_id"`
-	SlotID                 int32              `json:"slot_id"`
+	SlotID                 string             `json:"slot_id"`
 	Adapter                string             `json:"adapter"`
-	CapacityProfileID      uuid.UUID          `json:"capacity_profile_id"`
+	CapacityProfileID      string             `json:"capacity_profile_id"`
 	CapacityProfileVersion int64              `json:"capacity_profile_version"`
 	Required               bool               `json:"required"`
 	OperatorState          string             `json:"operator_state"`

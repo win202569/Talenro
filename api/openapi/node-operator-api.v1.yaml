@@ -753,19 +753,19 @@ components:
       maximum: 9223372036854775807
     POPCodeV1:
       type: string
-      minLength: 2
+      minLength: 1
       maxLength: 32
-      pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+      pattern: '^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$'
     RegionV1:
       type: string
       minLength: 1
       maxLength: 64
-      pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+      pattern: '^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$'
     StableIDV1:
       type: string
       minLength: 1
       maxLength: 128
-      pattern: '^[A-Za-z0-9][A-Za-z0-9._:/-]*$'
+      pattern: '^[!-~]{1,128}$'
     SlotIDV1:
       type: string
       minLength: 1
@@ -787,7 +787,7 @@ components:
       enum: [identity_compromise, online_signer_equivocation, metadata_rollback, root_rollback, root_equivocation, unverified_client_highwater_conflict, client_highwater_ahead, server_trust_bundle_conflict, trusted_time_rollback_or_unavailable, local_state_corruption_or_rollback, release_or_process_integrity, profile_binding_mismatch, incident_overflow]
     ProtocolCapabilityV1:
       type: string
-      enum: [fixture_loopback, xray_loopback, sing_box_loopback]
+      enum: [bootstrap_v1, agent_control_v1, agent_observation_v1]
     AdapterV1:
       type: string
       enum: [fixture, xray, sing_box]
@@ -808,7 +808,7 @@ components:
       enum: [pending, active, accepted, completed, superseded, rejected]
     FailureDomainTypeV1:
       type: string
-      enum: [availability_zone, rack, power_domain, network_domain]
+      enum: [facility, compute, upstream]
     TransportV1:
       type: string
       enum: [tcp, udp]
@@ -816,20 +816,14 @@ components:
       type: string
       enum: [running, stopped, draining]
     DisableReasonV1:
-      allOf:
-        - $ref: "#/components/schemas/OperatorReasonCodeV1"
-        - type: string
-          enum: [administrative_disable, retire]
+      type: string
+      enum: [administrative_disable, retire]
     ResumeOperatorStateV1:
-      allOf:
-        - $ref: "#/components/schemas/OperatorStateV1"
-        - type: string
-          enum: [enabled, draining, disabled]
+      type: string
+      enum: [enabled, draining, disabled]
     RestoreTargetOperatorStateV1:
-      allOf:
-        - $ref: "#/components/schemas/OperatorStateV1"
-        - type: string
-          enum: [enabled, draining]
+      type: string
+      enum: [enabled, draining]
     PublicErrorV1:
       type: object
       additionalProperties: false
@@ -894,11 +888,11 @@ components:
         created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
         resume_operator_state:
-          allOf: [{$ref: "#/components/schemas/OperatorStateV1"}]
+          allOf: [{$ref: "#/components/schemas/ResumeOperatorStateV1"}]
           nullable: true
         pending_operator_transition:
           type: string
-          enum: [draining, resume]
+          enum: [draining, resume, restore_reauthorize]
           nullable: true
         pending_transition_signing_id:
           allOf: [{$ref: "#/components/schemas/CanonicalUUID"}]
@@ -1215,7 +1209,7 @@ components:
         required_metrics:
           type: array
           minItems: 1
-          maxItems: 16
+          maxItems: 5
           uniqueItems: true
           items:
             type: string

@@ -22,11 +22,11 @@ type nodeControlNameSetFingerprint struct {
 var expectedNodeControlConstraintNameSets = map[string]nodeControlNameSetFingerprint{
 	"control_plane_authority_fences":         {count: 36, sha256: "dc47f11499a8452f141f25c05ce68f61735b7ed915f275d545ed4b1528e69a4b"},
 	"control_plane_trust_bundle_high_waters": {count: 23, sha256: "da0c361a820f0b0afbe4961a116d8a817c6763e354214d0aca4b2d08f74d8e96"},
-	"node_capacity_profiles":                 {count: 29, sha256: "e1826af7d3d3ec133bbdbd10cd4ef86e72bf06ac42e36928af720e885f998aa0"},
+	"node_capacity_profiles":                 {count: 30, sha256: "8079d3f64cf7b7f86ac209e6ea176be4967a9650395c4cc57a5f485d1b7b6010"},
 	"node_certificate_issuances":             {count: 43, sha256: "f6e34068645381905814149ce9f626ae8db12a81c08e229acfc7d24747da763f"},
 	"node_certificates":                      {count: 44, sha256: "f7be9d9f58c10142a48383612c94c0f23b66ad729a52ce2ab664a2cb2bd17787"},
 	"node_desired_states":                    {count: 46, sha256: "0e97c1714760df996d652c98571684ac015780ffe9c296fef8091d94312a6ed3"},
-	"node_endpoints":                         {count: 19, sha256: "04d8a170e8a8947d4aa6a5d7fbf02be05431d81693543e9ffd506eabdbf5067f"},
+	"node_endpoints":                         {count: 20, sha256: "46035211ea653523b6542d3641d89c06f98daacc031984bccb404fa15b667253"},
 	"node_enrollment_grants":                 {count: 33, sha256: "79236039dedbc2d81cbdb6455c42d5b56c353d3e322a9acd627a8d5769cd91a9"},
 	"node_failure_domain_membership":         {count: 11, sha256: "bfeb800b21ff571cfcaeb4a01a638fded7ec2a56435ed8a44a67ec2b3c11cdfd"},
 	"node_failure_domains":                   {count: 13, sha256: "ff187c035ab94c5f85b09b397b67f03db63989bb73b359c48d4c2b9ddedae4e2"},
@@ -34,7 +34,7 @@ var expectedNodeControlConstraintNameSets = map[string]nodeControlNameSetFingerp
 	"node_observed_states":                   {count: 46, sha256: "1bbc2a51912b218eebf19540ea20164e6b70da27404f9bd9d148e9b97e74a265"},
 	"node_operator_audit":                    {count: 30, sha256: "987ed09b042cc2ee02322f2fc2a506aae742b273112e4cd920fb4636e486decb"},
 	"node_pops":                              {count: 15, sha256: "629a7b7c7ceb23d14fc879a52f2b035ed207de6418b9dd88a81cdcd94d337bb9"},
-	"node_process_slots":                     {count: 19, sha256: "b2f2f8fccf05c9166f1cf70dd2d59ed918b05aebef11b2faa7c61e570893f94c"},
+	"node_process_slots":                     {count: 20, sha256: "6f03a3682708c318aed4e3eac806e6ae2bb4b547b55ab871306dd2f35dae7e7c"},
 	"node_recovery_sessions":                 {count: 31, sha256: "437de06a455db7e425e7d52ef000056e036feb751bef7b6885f7cec678f0b2bb"},
 	"node_recovery_states":                   {count: 60, sha256: "5d03711cd741a3308592746de07956cbd9ff0ea800ae1fc6549929db9735f24f"},
 	"node_resource_envelopes":                {count: 57, sha256: "d66f83b7b1cd02e0e60083cd2960cbcc174c7288db0e21c9b47d6c1259b6ff38"},
@@ -293,7 +293,7 @@ var expectedNodeControlEnums = map[string]map[string][]string{
 		"node_inventory_operator_state_enum":              {"provisioning", "enabled", "draining", "disabled"},
 		"node_inventory_security_state_enum":              {"normal", "quarantined"},
 		"node_inventory_identity_state_enum":              {"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked"},
-		"node_inventory_resume_operator_state_enum":       {"provisioning", "enabled", "draining"},
+		"node_inventory_resume_operator_state_enum":       {"enabled", "draining", "disabled"},
 		"node_inventory_pending_operator_transition_enum": {"draining", "resume", "restore_reauthorize"},
 	},
 	"node_failure_domain_membership": {"node_failure_domain_membership_domain_type_enum": {"facility", "compute", "upstream"}},
@@ -358,7 +358,7 @@ var expectedNodeControlEnums = map[string]map[string][]string{
 	"node_recovery_sessions": {
 		"node_recovery_sessions_reason_enum":                {"identity_compromise", "administrative_disable", "retire", "authority_restore", "security_incident"},
 		"node_recovery_sessions_status_enum":                {"pending", "completed", "superseded"},
-		"node_recovery_sessions_resume_operator_state_enum": {"provisioning", "enabled", "draining", "disabled"},
+		"node_recovery_sessions_resume_operator_state_enum": {"enabled", "draining", "disabled"},
 	},
 	"node_restore_reauthorization_approvals": {
 		"node_restore_reauthorization_approvals_role_enum":   {"proposal", "approval"},
@@ -413,9 +413,84 @@ func TestNodeControlBaseCatalogHasExact25Tables(t *testing.T) {
 	assertTerminalWorkflowsStartPending(t, manifest)
 	assertTrustPublishVersionUniqueness(t, manifest)
 	assertAuthorityTrustBundleScopeMatrix(t, manifest)
+	assertCrossContractCatalogManifest(t, manifest)
 	if compactManifestToken.Match(raw) {
 		t.Fatalf("manifest contains a compact or qualitative semantic token: %q", compactManifestToken.Find(raw))
 	}
+}
+
+func assertCrossContractCatalogManifest(t *testing.T, manifest nodeControlManifest) {
+	t.Helper()
+	tables := make(map[string]nodeControlTableSpec, len(manifest.Tables))
+	for _, table := range manifest.Tables {
+		tables[table.Name] = table
+	}
+
+	type columnExpectation struct {
+		table, column, sqlType, collation string
+		checkSQL                          []string
+	}
+	for _, want := range []columnExpectation{
+		{table: "node_pops", column: "pop_code", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(pop_code) BETWEEN 1 AND 32 AND pop_code ~ '^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$'"}},
+		{table: "node_pops", column: "region", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(region) BETWEEN 1 AND 64 AND region ~ '^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$'"}},
+		{table: "node_failure_domains", column: "stable_id", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(stable_id) BETWEEN 1 AND 128 AND stable_id ~ '^[!-~]{1,128}$'"}},
+		{table: "node_capacity_profiles", column: "profile_id", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(profile_id) BETWEEN 1 AND 128 AND profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'"}},
+		{table: "node_capacity_profiles", column: "required_metrics", sqlType: "text[]", collation: "C", checkSQL: []string{"cardinality(required_metrics) BETWEEN 1 AND 5 AND array_position(required_metrics,NULL) IS NULL AND required_metrics <@ ARRAY['cpu_basis_points','egress_bps','memory_bytes','open_file_descriptors','task_count']::text[] AND nodecontrol.text_array_is_sorted_unique(required_metrics)"}},
+		{table: "node_endpoints", column: "address", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(address) BETWEEN 1 AND 253 AND address ~ '^[A-Za-z0-9][A-Za-z0-9.:-]*$'"}},
+		{table: "node_process_slots", column: "slot_id", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(slot_id) BETWEEN 1 AND 64 AND slot_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'"}},
+		{table: "node_process_slots", column: "capacity_profile_id", sqlType: "text", collation: "C", checkSQL: []string{"octet_length(capacity_profile_id) BETWEEN 1 AND 128 AND capacity_profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'"}},
+		{table: "node_inventory", column: "resume_operator_state", sqlType: "text", collation: "C", checkSQL: []string{"resume_operator_state IS NULL OR resume_operator_state IN ('enabled','draining','disabled')", "(security_state = 'normal' AND resume_operator_state IS NULL) OR (security_state = 'quarantined' AND operator_state = 'disabled' AND resume_operator_state IS NOT NULL)"}},
+		{table: "node_recovery_sessions", column: "resume_operator_state", sqlType: "text", collation: "C", checkSQL: []string{"resume_operator_state IN ('enabled','draining','disabled')", "reason NOT IN ('retire','authority_restore') OR resume_operator_state = 'disabled'"}},
+	} {
+		table, ok := tables[want.table]
+		if !ok {
+			t.Fatalf("missing manifest table %s", want.table)
+		}
+		var got *nodeControlColumnSpec
+		for index := range table.Columns {
+			if table.Columns[index].Name == want.column {
+				got = &table.Columns[index]
+				break
+			}
+		}
+		if got == nil {
+			t.Fatalf("missing manifest column %s.%s", want.table, want.column)
+		}
+		gotCollation := ""
+		if got.Collation != nil {
+			gotCollation = *got.Collation
+		}
+		if got.SQLType != want.sqlType || gotCollation != want.collation || !equalStrings(got.CheckSQL, want.checkSQL) {
+			t.Errorf("%s.%s contract = type %q collation %q checks %v; want type %q collation %q checks %v", want.table, want.column, got.SQLType, gotCollation, got.CheckSQL, want.sqlType, want.collation, want.checkSQL)
+		}
+	}
+
+	for _, want := range []struct {
+		table, name, definition string
+	}{
+		{table: "node_inventory", name: "node_inventory_resume_operator_state_enum", definition: "CHECK (resume_operator_state IS NULL OR (resume_operator_state = ANY (ARRAY['enabled'::text, 'draining'::text, 'disabled'::text])))"},
+		{table: "node_recovery_sessions", name: "node_recovery_sessions_resume_operator_state_enum", definition: "CHECK (resume_operator_state = ANY (ARRAY['enabled'::text, 'draining'::text, 'disabled'::text]))"},
+		{table: "node_capacity_profiles", name: "node_capacity_profiles_profile_id_format", definition: "CHECK (octet_length(profile_id) >= 1 AND octet_length(profile_id) <= 128 AND profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'::text)"},
+		{table: "node_capacity_profiles", name: "node_capacity_profiles_required_metrics_exact", definition: "CHECK (cardinality(required_metrics) >= 1 AND cardinality(required_metrics) <= 5 AND array_position(required_metrics, NULL::text) IS NULL AND required_metrics <@ ARRAY['cpu_basis_points'::text, 'egress_bps'::text, 'memory_bytes'::text, 'open_file_descriptors'::text, 'task_count'::text] AND nodecontrol.text_array_is_sorted_unique(required_metrics))"},
+		{table: "node_endpoints", name: "node_endpoints_address_format", definition: "CHECK (octet_length(address) >= 1 AND octet_length(address) <= 253 AND address ~ '^[A-Za-z0-9][A-Za-z0-9.:-]*$'::text)"},
+		{table: "node_process_slots", name: "node_process_slots_slot_id_format", definition: "CHECK (octet_length(slot_id) >= 1 AND octet_length(slot_id) <= 64 AND slot_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'::text)"},
+		{table: "node_process_slots", name: "node_process_slots_capacity_profile_id_format", definition: "CHECK (octet_length(capacity_profile_id) >= 1 AND octet_length(capacity_profile_id) <= 128 AND capacity_profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'::text)"},
+	} {
+		assertManifestConstraintDefinition(t, tables[want.table], want.name, want.definition)
+	}
+}
+
+func assertManifestConstraintDefinition(t *testing.T, table nodeControlTableSpec, name, definition string) {
+	t.Helper()
+	for _, constraint := range table.Constraints {
+		if constraint.Name == name {
+			if constraint.Kind != "check" || constraint.DefinitionSQL != definition {
+				t.Errorf("manifest constraint %s.%s = kind %q definition %q; want exact check %q", table.Name, name, constraint.Kind, constraint.DefinitionSQL, definition)
+			}
+			return
+		}
+	}
+	t.Errorf("manifest table %s lacks independent check constraint %s", table.Name, name)
 }
 
 func assertAuthorityTrustBundleScopeMatrix(t *testing.T, manifest nodeControlManifest) {

@@ -142,6 +142,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	bootstrap := loadAndValidateNodeSpec(t, nodebootstrapv1.GetSwagger)
 	agent := loadAndValidateNodeSpec(t, nodeagentv1.GetSwagger)
 	operator := loadAndValidateNodeSpec(t, nodeoperatorv1.GetSwagger)
+	operatorSource := loadNodeOpenAPISource(t, "node-operator-api.v1.yaml")
 
 	for name, spec := range map[string]*openapi3.T{"bootstrap": bootstrap, "agent": agent, "operator": operator} {
 		t.Run(name+" canonical primitives", func(t *testing.T) {
@@ -225,7 +226,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	assertEnumRegistry(t, agent, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
 	assertEnumRegistry(t, operator, "OperatorReasonCodeV1", []string{"provision", "inventory_update", "capacity_change", "drain_maintenance", "administrative_disable", "retire", "identity_compromise", "host_remediation", "security_recovery", "authority_restore", "release_update"})
 	assertEnumRegistry(t, operator, "DesiredReasonV1", []string{"initial", "operator_update", "drain", "resume", "lease_refresh", "clear_slot_quarantine", "restore_reauthorize"})
-	assertEnumRegistry(t, operator, "ProtocolCapabilityV1", []string{"fixture_loopback", "xray_loopback", "sing_box_loopback"})
+	assertEnumRegistry(t, operator, "ProtocolCapabilityV1", []string{"bootstrap_v1", "agent_control_v1", "agent_observation_v1"})
 	assertEnumRegistry(t, operator, "AdapterV1", []string{"fixture", "xray", "sing_box"})
 	assertEnumRegistry(t, operator, "OperatorStateV1", []string{"provisioning", "enabled", "draining", "disabled"})
 	assertEnumRegistry(t, operator, "SecurityStateV1", []string{"normal", "quarantined"})
@@ -233,6 +234,47 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	assertEnumRegistry(t, operator, "FaultSubtypeV1", []string{"identity_compromise", "online_signer_equivocation", "metadata_rollback", "root_rollback", "root_equivocation", "unverified_client_highwater_conflict", "client_highwater_ahead", "server_trust_bundle_conflict", "trusted_time_rollback_or_unavailable", "local_state_corruption_or_rollback", "release_or_process_integrity", "profile_binding_mismatch", "incident_overflow"})
 	assertEnumRegistry(t, operator, "RestorePhaseV1", []string{"proposal", "approval"})
 	assertEnumRegistry(t, operator, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
+	assertEnumRegistry(t, operator, "FailureDomainTypeV1", []string{"facility", "compute", "upstream"})
+	assertStringSchemaContract(t, operator, "POPCodeV1", 1, 32, `^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$`)
+	assertStringSchemaContract(t, operator, "RegionV1", 1, 64, `^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$`)
+	assertStringSchemaContract(t, operator, "StableIDV1", 1, 128, `^[!-~]{1,128}$`)
+	assertStringSchemaContract(t, operator, "SlotIDV1", 1, 64, `^[A-Za-z0-9][A-Za-z0-9._-]*$`)
+	assertStringSchemaContract(t, operator, "CapacityProfileIDV1", 1, 128, `^[A-Za-z0-9][A-Za-z0-9._-]*$`)
+	t.Run("operator source scalar contracts", func(t *testing.T) {
+		assertStringSchemaContract(t, operatorSource, "SlotIDV1", 1, 64, `^[A-Za-z0-9][A-Za-z0-9._-]*$`)
+		assertStringSchemaContract(t, operatorSource, "CapacityProfileIDV1", 1, 128, `^[A-Za-z0-9][A-Za-z0-9._-]*$`)
+	})
+	for _, schemaName := range []string{"NodeEndpointV1", "CreateNodeEndpointV1", "UpdateNodeEndpointV1"} {
+		address := mustSchema(t, operator, schemaName).Properties["address"]
+		if address == nil || address.Value == nil {
+			t.Fatalf("missing %s.address", schemaName)
+		}
+		assertStringContract(t, schemaName+".address", address.Value, 1, 253, `^[A-Za-z0-9][A-Za-z0-9.:-]*$`)
+	}
+	for schemaName, want := range map[string][]string{
+		"DisableReasonV1":              {"administrative_disable", "retire"},
+		"ResumeOperatorStateV1":        {"enabled", "draining", "disabled"},
+		"RestoreTargetOperatorStateV1": {"enabled", "draining"},
+	} {
+		schema := mustSchema(t, operator, schemaName)
+		if len(schema.AllOf) != 0 {
+			t.Errorf("%s allOf count = %d, want direct enum", schemaName, len(schema.AllOf))
+		}
+		assertEnumValues(t, schemaName, schema, want)
+	}
+
+	if !nodeoperatorv1.DisableReasonV1AdministrativeDisable.Valid() || !nodeoperatorv1.DisableReasonV1Retire.Valid() ||
+		nodeoperatorv1.DisableReasonV1("authority_restore").Valid() {
+		t.Error("generated DisableReasonV1.Valid does not enforce the direct subset")
+	}
+	if !nodeoperatorv1.ResumeOperatorStateV1Enabled.Valid() || !nodeoperatorv1.ResumeOperatorStateV1Draining.Valid() ||
+		!nodeoperatorv1.ResumeOperatorStateV1Disabled.Valid() || nodeoperatorv1.ResumeOperatorStateV1("provisioning").Valid() {
+		t.Error("generated ResumeOperatorStateV1.Valid does not enforce the direct subset")
+	}
+	if !nodeoperatorv1.RestoreTargetOperatorStateV1Enabled.Valid() || !nodeoperatorv1.RestoreTargetOperatorStateV1Draining.Valid() ||
+		nodeoperatorv1.RestoreTargetOperatorStateV1("disabled").Valid() || nodeoperatorv1.RestoreTargetOperatorStateV1("provisioning").Valid() {
+		t.Error("generated RestoreTargetOperatorStateV1.Valid does not enforce the direct subset")
+	}
 	assertNodeOpenAPIRegistryBindings(t, bootstrap, agent, operator)
 
 	operatorItemShapes := map[string][]string{
@@ -248,6 +290,10 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	nodeProperties := append(append([]string{}, nodeRequired...), "resume_operator_state", "pending_operator_transition", "pending_transition_signing_id", "lineage_id", "resource_envelope_version", "resource_envelope_digest", "active_desired_generation", "next_desired_generation", "active_recovery_generation", "next_recovery_generation", "active_root_publish_id", "active_root_version", "active_metadata_publish_id", "active_metadata_version", "last_authority_operation_id", "last_authority_epoch", "last_authority_sequence")
 	assertObjectShape(t, operator, "NodeV1", nodeRequired, nodeProperties)
 	nodeSchema := mustSchema(t, operator, "NodeV1")
+	if got := schemaReference(nodeSchema.Properties["resume_operator_state"]); got != "#/components/schemas/ResumeOperatorStateV1" {
+		t.Errorf("NodeV1.resume_operator_state reference = %q, want ResumeOperatorStateV1", got)
+	}
+	assertEnum(t, operator, "NodeV1", "pending_operator_transition", []string{"draining", "resume", "restore_reauthorize"})
 	for _, property := range nodeProperties[len(nodeRequired):] {
 		if !nodeSchema.Properties[property].Value.Nullable {
 			t.Errorf("NodeV1.%s must be explicitly nullable", property)
@@ -255,6 +301,22 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	}
 	if len(nodeSchema.AllOf) != 5 {
 		t.Errorf("NodeV1 all-or-none constraint count = %d, want 5", len(nodeSchema.AllOf))
+	}
+
+	requiredMetrics := mustSchema(t, operator, "DesiredProcessV1").Properties["required_metrics"]
+	if requiredMetrics == nil || requiredMetrics.Value == nil || requiredMetrics.Value.Items == nil || requiredMetrics.Value.Items.Value == nil {
+		t.Fatal("missing DesiredProcessV1.required_metrics item contract")
+	}
+	if requiredMetrics.Value.MinItems != 1 || requiredMetrics.Value.MaxItems == nil || *requiredMetrics.Value.MaxItems != 5 || !requiredMetrics.Value.UniqueItems {
+		t.Errorf("DesiredProcessV1.required_metrics bounds = %#v, want sorted unique subset cardinality 1..5", requiredMetrics.Value)
+	}
+	wantRequiredMetrics := []string{"cpu_basis_points", "egress_bps", "memory_bytes", "open_file_descriptors", "task_count"}
+	gotRequiredMetrics := make([]string, 0, len(requiredMetrics.Value.Items.Value.Enum))
+	for _, value := range requiredMetrics.Value.Items.Value.Enum {
+		gotRequiredMetrics = append(gotRequiredMetrics, fmt.Sprint(value))
+	}
+	if strings.Join(gotRequiredMetrics, "\x00") != strings.Join(wantRequiredMetrics, "\x00") {
+		t.Errorf("DesiredProcessV1.required_metrics registry/order = %v, want %v", gotRequiredMetrics, wantRequiredMetrics)
 	}
 
 	operatorRequestShapes := map[string][]string{
@@ -305,6 +367,57 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	for name, schemaRef := range operator.Components.Schemas {
 		assertClosedRequiredObjects(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
 		assertNoForbiddenOperatorProperties(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
+	}
+}
+
+func TestNodeOpenAPICrossContractIdentifierBindings(t *testing.T) {
+	operator := loadAndValidateNodeSpec(t, nodeoperatorv1.GetSwagger)
+
+	for _, expectation := range []struct {
+		schema, property, reference string
+	}{
+		{schema: "NodeProcessSlotV1", property: "slot_id", reference: "SlotIDV1"},
+		{schema: "NodeProcessSlotV1", property: "capacity_profile_id", reference: "CapacityProfileIDV1"},
+		{schema: "CreateNodeProcessSlotV1", property: "slot_id", reference: "SlotIDV1"},
+		{schema: "CreateNodeProcessSlotV1", property: "capacity_profile_id", reference: "CapacityProfileIDV1"},
+		{schema: "UpdateNodeProcessSlotV1", property: "capacity_profile_id", reference: "CapacityProfileIDV1"},
+		{schema: "DesiredProcessV1", property: "slot_id", reference: "SlotIDV1"},
+		{schema: "DesiredProcessV1", property: "capacity_profile_id", reference: "CapacityProfileIDV1"},
+	} {
+		property := mustSchema(t, operator, expectation.schema).Properties[expectation.property]
+		want := "#/components/schemas/" + expectation.reference
+		if got := schemaReference(property); got != want {
+			t.Errorf("%s.%s reference = %q, want %q", expectation.schema, expectation.property, got, want)
+		}
+	}
+
+	slotIDPath := operator.Components.Parameters["SlotIDPath"]
+	if slotIDPath == nil || slotIDPath.Value == nil {
+		t.Fatal("missing SlotIDPath parameter")
+	}
+	if got, want := schemaReference(slotIDPath.Value.Schema), "#/components/schemas/SlotIDV1"; got != want {
+		t.Errorf("SlotIDPath schema reference = %q, want %q", got, want)
+	}
+}
+
+func TestNodeOpenAPIDisableReasonGeneratedSubset(t *testing.T) {
+	for _, value := range []nodeoperatorv1.DisableReasonV1{
+		"provision",
+		"inventory_update",
+		"capacity_change",
+		"drain_maintenance",
+		"administrative_disable",
+		"retire",
+		"identity_compromise",
+		"host_remediation",
+		"security_recovery",
+		"authority_restore",
+		"release_update",
+	} {
+		wantValid := value == "administrative_disable" || value == "retire"
+		if got := value.Valid(); got != wantValid {
+			t.Errorf("DisableReasonV1(%q).Valid() = %t, want %t", value, got, wantValid)
+		}
 	}
 }
 
@@ -1073,6 +1186,23 @@ func assertCSRDER(t *testing.T, spec *openapi3.T) {
 		}
 	}
 	assertExactStringSet(t, "CSRDER patterns", gotPatterns, wantPatterns)
+}
+
+func assertStringSchemaContract(t *testing.T, spec *openapi3.T, schemaName string, minLength, maxLength uint64, pattern string) {
+	t.Helper()
+	assertStringContract(t, schemaName, mustSchema(t, spec, schemaName), minLength, maxLength, pattern)
+}
+
+func assertStringContract(t *testing.T, label string, schema *openapi3.Schema, minLength, maxLength uint64, pattern string) {
+	t.Helper()
+	if schema.Type == nil {
+		t.Errorf("%s type = <nil>, want exactly one string type", label)
+	} else if !schema.Type.Is(openapi3.TypeString) || len(*schema.Type) != 1 {
+		t.Errorf("%s type = %v (count %d), want exactly one string type", label, schema.Type.Slice(), len(*schema.Type))
+	}
+	if schema.MinLength != minLength || schema.MaxLength == nil || *schema.MaxLength != maxLength || schema.Pattern != pattern {
+		t.Errorf("%s contract = min %d max %v pattern %q; want min %d max %d pattern %q", label, schema.MinLength, schema.MaxLength, schema.Pattern, minLength, maxLength, pattern)
+	}
 }
 
 func assertEnum(t *testing.T, spec *openapi3.T, schemaName, propertyName string, want []string) {

@@ -193,7 +193,7 @@ func validNodeCertificateStatusChanged(payload *nodecontrolv1.NodeCertificateSta
 }
 
 func validNodeOperatorActionRecorded(payload *nodecontrolv1.NodeOperatorActionRecordedV1) bool {
-	return payload != nil && canonicalNodeControlUUID(payload.GetAuditId()) && canonicalNodeControlUUID(payload.GetOperatorId()) &&
+	return payload != nil && canonicalNodeControlUUID(payload.GetAuditId()) && canonicalNodeControlOperatorID(payload.GetOperatorId()) &&
 		nodeControlOperatorActions.has(payload.GetAction()) && nodeControlOperatorTargets.has(payload.GetTarget()) &&
 		nodeControlOperatorResults.has(payload.GetResult()) && nodeControlOperatorReasons.has(payload.GetReason())
 }
@@ -224,6 +224,21 @@ func canonicalNodeControlUUID(value string) bool {
 	return version >= 1 && version <= 5
 }
 
+func canonicalNodeControlOperatorID(value string) bool {
+	if len(value) < 1 || len(value) > 128 {
+		return false
+	}
+	for index := range value {
+		character := value[index]
+		if character >= 'A' && character <= 'Z' || character >= 'a' && character <= 'z' ||
+			character >= '0' && character <= '9' || character == ':' || character == '_' || character == '-' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 type nodeControlValueRegistry map[string]struct{}
 
 func nodeControlRegistry(values ...string) nodeControlValueRegistry {
@@ -240,7 +255,7 @@ func (registry nodeControlValueRegistry) has(value string) bool {
 }
 
 func canonicalNodeControlPOPCode(value string) bool {
-	if len(value) < 2 || len(value) > 32 || !lowercaseAlphaNumeric(value[0]) || !lowercaseAlphaNumeric(value[len(value)-1]) {
+	if len(value) < 1 || len(value) > 32 || !lowercaseAlphaNumeric(value[0]) || !lowercaseAlphaNumeric(value[len(value)-1]) {
 		return false
 	}
 	for index := 1; index < len(value)-1; index++ {

@@ -107,6 +107,96 @@ func TestNodeControlFunctionCatalogRejectsNoopBody(t *testing.T) {
 	}
 }
 
+func TestNodeControlMigrationAlignsCrossContractCatalog(t *testing.T) {
+	manifest, _ := loadNodeControlManifest(t)
+	upSQL, _ := loadNodeControlMigrationSections(t)
+	pool := openOwnedNodeControlDatabase(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	if _, err := pool.Exec(ctx, upSQL); err != nil {
+		t.Fatal("nodecontrol Up failed:", err)
+	}
+	assertNodeControlCatalogMatchesManifest(ctx, t, pool, manifest)
+
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_pops(pop_code,iso_country,region,operator_state,created_at,updated_at) VALUES('x','US','r','enabled',$1,$1)`, now); err != nil {
+		t.Fatal("insert one-character POP/region:", err)
+	}
+	nodeID := uuid.New()
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_inventory(node_id,pop_code,operator_state,security_state,identity_state,created_at,updated_at) VALUES($1,'x','enabled','normal','never_enrolled',$2,$2)`, nodeID, now); err != nil {
+		t.Fatal("insert inventory fixture:", err)
+	}
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_capacity_profiles(
+  profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,
+  cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,
+  queue_limit,packet_loss_limit_basis_points,required_metrics,created_at)
+VALUES('edge-standard',1,'xray',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_basis_points']::text[],$1)`, now); err != nil {
+		t.Fatal("insert textual capacity profile with supported subset:", err)
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'xray-primary','xray','edge-standard',1,true,'enabled',1,$2,$2)`, nodeID, now); err != nil {
+		t.Fatal("insert textual process slot:", err)
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_endpoints(endpoint_id,node_id,address,port,transport,protocol_capability,operator_state,inventory_version,created_at,updated_at) VALUES($1,$2,'api.example.com',443,'tcp','agent_control_v1','enabled',1,$3,$3)`, uuid.New(), nodeID, now); err != nil {
+		t.Fatal("insert public DNS-like endpoint:", err)
+	}
+
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_capacity_profiles(
+  profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,
+  cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,
+  queue_limit,packet_loss_limit_basis_points,required_metrics,created_at)
+VALUES('bad/profile',1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_basis_points']::text[],$1)`, now); err == nil {
+		t.Error("invalid textual profile identifier was accepted")
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'bad/slot','xray','edge-standard',1,true,'enabled',1,$2,$2)`, nodeID, now); err == nil {
+		t.Error("invalid textual slot identifier was accepted")
+	}
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_capacity_profiles(
+  profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,
+  cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,
+  queue_limit,packet_loss_limit_basis_points,required_metrics,created_at)
+VALUES('old-metric',1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_usage_basis_points']::text[],$1)`, now); err == nil {
+		t.Error("obsolete required-metric alias was accepted")
+	}
+
+	disabledNodeID := uuid.New()
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_inventory(node_id,pop_code,operator_state,security_state,identity_state,resume_operator_state,identity_epoch,lineage_id,created_at,updated_at) VALUES($1,'x','disabled','quarantined','recovery_pending','disabled',1,$2,$3,$3)`, disabledNodeID, uuid.New(), now); err != nil {
+		t.Fatal("insert saved disabled resume state:", err)
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_inventory(node_id,pop_code,operator_state,security_state,identity_state,resume_operator_state,identity_epoch,lineage_id,created_at,updated_at) VALUES($1,'x','disabled','quarantined','recovery_pending','provisioning',1,$2,$3,$3)`, uuid.New(), uuid.New(), now); err == nil {
+		t.Error("inventory accepted provisioning as a stored resume state")
+	}
+
+	invalidRecoveryOperationID := uuid.New()
+	insertCommittedFence(ctx, t, pool, invalidRecoveryOperationID, 1, "recovery_activate", "node", now)
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_recovery_sessions(
+  recovery_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  reason,version,status,incident_set_digest,resume_operator_state,created_at,updated_at)
+VALUES($1,$2,1,1,$3,1,'security_incident',1,'pending',$4,'provisioning',$5,$5)`,
+		uuid.New(), invalidRecoveryOperationID, disabledNodeID, bytesOf(0xa2, 32), now); err == nil {
+		t.Fatal("recovery session accepted provisioning as a stored resume state")
+	} else {
+		var pgErr *pgconn.PgError
+		if !errors.As(err, &pgErr) || pgErr.Code != "23514" || pgErr.ConstraintName != "node_recovery_sessions_resume_operator_state_enum" {
+			t.Fatalf("recovery provisioning error = %v, want SQLSTATE 23514 on node_recovery_sessions_resume_operator_state_enum", err)
+		}
+	}
+
+	validRecoveryOperationID := uuid.New()
+	insertCommittedFence(ctx, t, pool, validRecoveryOperationID, 2, "recovery_activate", "node", now)
+	if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.node_recovery_sessions(
+  recovery_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,
+  reason,version,status,incident_set_digest,resume_operator_state,created_at,updated_at)
+VALUES($1,$2,1,2,$3,1,'authority_restore',1,'pending',$4,'disabled',$5,$5)`,
+		uuid.New(), validRecoveryOperationID, disabledNodeID, bytesOf(0xa1, 32), now); err != nil {
+		t.Fatal("insert recovery session with disabled resume state:", err)
+	}
+}
+
 const pendingRootPublishSQL = `
 INSERT INTO nodecontrol.node_root_metadata_publish_intents(
   publish_id,authority_operation_id,authority_epoch,authority_sequence,publish_kind,reason,
@@ -1843,7 +1933,7 @@ func TestNodeControlMigrationSerializesCapacityReferences(t *testing.T) {
 		if err != nil {
 			t.Fatal("begin slot transaction:", err)
 		}
-		if _, err = tx.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,1,'fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err != nil {
+		if _, err = tx.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'slot-1','fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err != nil {
 			tx.Rollback(ctx)
 			t.Fatal("insert first uncommitted slot:", err)
 		}
@@ -1878,7 +1968,7 @@ func TestNodeControlMigrationSerializesCapacityReferences(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)
 		nodeID, profileID := insertCapacityFixture(ctx, t, pool, "slot-cap-race", now)
 		for slot := 1; slot <= 7; slot++ {
-			if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,$2,'fixture',$3,1,true,'enabled',1,$4,$4)`, nodeID, slot, profileID, now); err != nil {
+			if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,$2,'fixture',$3,1,true,'enabled',1,$4,$4)`, nodeID, fmt.Sprintf("slot-%d", slot), profileID, now); err != nil {
 				t.Fatalf("seed slot %d: %v", slot, err)
 			}
 		}
@@ -1886,7 +1976,7 @@ func TestNodeControlMigrationSerializesCapacityReferences(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err = first.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,8,'fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err != nil {
+		if _, err = first.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'slot-8','fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err != nil {
 			first.Rollback(ctx)
 			t.Fatal("stage eighth slot:", err)
 		}
@@ -1897,7 +1987,7 @@ func TestNodeControlMigrationSerializesCapacityReferences(t *testing.T) {
 		}
 		secondResult := make(chan error, 1)
 		go func() {
-			_, insertErr := second.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,9,'fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now)
+			_, insertErr := second.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'slot-9','fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now)
 			secondResult <- insertErr
 		}()
 		select {
@@ -3073,16 +3163,16 @@ VALUES($1,$2,1,$3,$4,$5,'initial',1,$6,'fixture-ca',$7,$8,$9,$10,'pending',$11,$
 	return issuanceID
 }
 
-func insertCapacityFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool, popCode string, now time.Time) (uuid.UUID, uuid.UUID) {
+func insertCapacityFixture(ctx context.Context, t *testing.T, pool *pgxpool.Pool, popCode string, now time.Time) (uuid.UUID, string) {
 	t.Helper()
 	nodeID := insertNodeControlFixtureNode(ctx, t, pool, popCode, now)
-	profileID := uuid.New()
+	profileID := popCode + "-profile"
 	if _, err := pool.Exec(ctx, `
 INSERT INTO nodecontrol.node_capacity_profiles(
   profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,
   cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,
   queue_limit,packet_loss_limit_basis_points,required_metrics,created_at)
-VALUES($1,1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_usage_basis_points']::text[],$2)`, profileID, now); err != nil {
+VALUES($1,1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_basis_points']::text[],$2)`, profileID, now); err != nil {
 		t.Fatal("insert capacity fixture profile:", err)
 	}
 	return nodeID, profileID
@@ -3617,7 +3707,7 @@ VALUES($1,$2,$3,1,$4,$5,decode('01','hex'),$6,$7,8,100,67108864,32,64,100,671088
 func assertSlotCapAndProfileImmutability(ctx context.Context, t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 	nodeID := uuid.New()
-	profileID := uuid.New()
+	profileID := "cap-test-profile"
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_pops(pop_code,iso_country,region,operator_state,created_at,updated_at) VALUES('cap-test','US','test-region','enabled',$1,$1)`, now); err != nil {
 		t.Fatal("insert slot-cap POP:", err)
@@ -3625,15 +3715,15 @@ func assertSlotCapAndProfileImmutability(ctx context.Context, t *testing.T, pool
 	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_inventory(node_id,pop_code,operator_state,security_state,identity_state,created_at,updated_at) VALUES($1,'cap-test','enabled','normal','never_enrolled',$2,$2)`, nodeID, now); err != nil {
 		t.Fatal("insert slot-cap node:", err)
 	}
-	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_capacity_profiles(profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,queue_limit,packet_loss_limit_basis_points,required_metrics,created_at) VALUES($1,1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_usage_basis_points']::text[],$2)`, profileID, now); err != nil {
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_capacity_profiles(profile_id,version,adapter,egress_limit_bps,connection_limit,handshake_limit_per_second,cpu_quota_millicores,cpu_limit_basis_points,memory_limit_bytes,task_limit,file_descriptor_limit,queue_limit,packet_loss_limit_basis_points,required_metrics,created_at) VALUES($1,1,'fixture',1000000,1,1,100,1,67108864,32,64,1,1,ARRAY['cpu_basis_points']::text[],$2)`, profileID, now); err != nil {
 		t.Fatal("insert capacity profile:", err)
 	}
 	for slot := 1; slot <= 8; slot++ {
-		if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,$2,'fixture',$3,1,true,'enabled',1,$4,$4)`, nodeID, slot, profileID, now); err != nil {
+		if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,$2,'fixture',$3,1,true,'enabled',1,$4,$4)`, nodeID, fmt.Sprintf("slot-%d", slot), profileID, now); err != nil {
 			t.Fatalf("insert slot %d: %v", slot, err)
 		}
 	}
-	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,9,'fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err == nil {
+	if _, err := pool.Exec(ctx, `INSERT INTO nodecontrol.node_process_slots(node_id,slot_id,adapter,capacity_profile_id,capacity_profile_version,required,operator_state,inventory_version,created_at,updated_at) VALUES($1,'slot-9','fixture',$2,1,true,'enabled',1,$3,$3)`, nodeID, profileID, now); err == nil {
 		t.Fatal("node process-slot trigger accepted a ninth slot")
 	}
 	if _, err := pool.Exec(ctx, `UPDATE nodecontrol.node_capacity_profiles SET queue_limit=2 WHERE profile_id=$1 AND version=1`, profileID); err == nil {

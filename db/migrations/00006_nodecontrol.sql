@@ -114,7 +114,7 @@ CREATE TABLE nodecontrol.node_failure_domains (
 );
 
 CREATE TABLE nodecontrol.node_capacity_profiles (
-  profile_id uuid CONSTRAINT node_capacity_profiles_profile_id_not_null NOT NULL,
+  profile_id text COLLATE "C" CONSTRAINT node_capacity_profiles_profile_id_not_null NOT NULL,
   version bigint CONSTRAINT node_capacity_profiles_version_not_null NOT NULL,
   adapter text COLLATE "C" CONSTRAINT node_capacity_profiles_adapter_not_null NOT NULL,
   egress_limit_bps bigint CONSTRAINT node_capacity_profiles_egress_limit_bps_not_null NOT NULL,
@@ -130,6 +130,7 @@ CREATE TABLE nodecontrol.node_capacity_profiles (
   required_metrics text[] COLLATE "C" CONSTRAINT node_capacity_profiles_required_metrics_not_null NOT NULL,
   created_at timestamp with time zone CONSTRAINT node_capacity_profiles_created_at_not_null NOT NULL,
   CONSTRAINT node_capacity_profiles_pkey PRIMARY KEY (profile_id, version),
+  CONSTRAINT node_capacity_profiles_profile_id_format CHECK (octet_length(profile_id) BETWEEN 1 AND 128 AND profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'),
   CONSTRAINT node_capacity_profiles_version_range CHECK (version BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_capacity_profiles_adapter_enum CHECK (adapter IN ('fixture','xray','sing_box')),
   CONSTRAINT node_capacity_profiles_egress_limit_range CHECK (egress_limit_bps BETWEEN 1000000 AND 1000000000000),
@@ -142,7 +143,7 @@ CREATE TABLE nodecontrol.node_capacity_profiles (
   CONSTRAINT node_capacity_profiles_file_descriptor_limit_range CHECK (file_descriptor_limit BETWEEN 64 AND 1000000),
   CONSTRAINT node_capacity_profiles_queue_limit_range CHECK (queue_limit BETWEEN 1 AND 1000000),
   CONSTRAINT node_capacity_profiles_packet_loss_range CHECK (packet_loss_limit_basis_points BETWEEN 1 AND 10000),
-  CONSTRAINT node_capacity_profiles_required_metrics_exact CHECK (cardinality(required_metrics) BETWEEN 1 AND 9 AND array_position(required_metrics,NULL) IS NULL AND required_metrics <@ ARRAY['egress_bps','active_connections','handshake_rate','cpu_usage_basis_points','memory_usage_bytes','task_count','file_descriptor_count','queue_depth','packet_loss_basis_points']::text[] AND nodecontrol.text_array_is_sorted_unique(required_metrics))
+  CONSTRAINT node_capacity_profiles_required_metrics_exact CHECK (cardinality(required_metrics) BETWEEN 1 AND 5 AND array_position(required_metrics,NULL) IS NULL AND required_metrics <@ ARRAY['cpu_basis_points','egress_bps','memory_bytes','open_file_descriptors','task_count']::text[] AND nodecontrol.text_array_is_sorted_unique(required_metrics))
 );
 
 CREATE TABLE nodecontrol.node_inventory (
@@ -179,7 +180,7 @@ CREATE TABLE nodecontrol.node_inventory (
   CONSTRAINT node_inventory_operator_state_enum CHECK (operator_state IN ('provisioning','enabled','draining','disabled')),
   CONSTRAINT node_inventory_security_state_enum CHECK (security_state IN ('normal','quarantined')),
   CONSTRAINT node_inventory_identity_state_enum CHECK (identity_state IN ('never_enrolled','active','recovery_pending','recovery_limited','revoked')),
-  CONSTRAINT node_inventory_resume_operator_state_enum CHECK (resume_operator_state IS NULL OR resume_operator_state IN ('provisioning','enabled','draining')),
+  CONSTRAINT node_inventory_resume_operator_state_enum CHECK (resume_operator_state IS NULL OR resume_operator_state IN ('enabled','draining','disabled')),
   CONSTRAINT node_inventory_pending_operator_transition_enum CHECK (pending_operator_transition IS NULL OR pending_operator_transition IN ('draining','resume','restore_reauthorize')),
   CONSTRAINT node_inventory_pending_transition_pair CHECK ((pending_operator_transition IS NULL) = (pending_transition_signing_id IS NULL)),
   CONSTRAINT node_inventory_identity_epoch_range CHECK (identity_epoch BETWEEN 0 AND 9223372036854775807),
@@ -222,7 +223,7 @@ CREATE TABLE nodecontrol.node_failure_domain_membership (
 CREATE TABLE nodecontrol.node_endpoints (
   endpoint_id uuid CONSTRAINT node_endpoints_endpoint_id_not_null NOT NULL,
   node_id uuid CONSTRAINT node_endpoints_node_id_not_null NOT NULL,
-  address inet CONSTRAINT node_endpoints_address_not_null NOT NULL,
+  address text COLLATE "C" CONSTRAINT node_endpoints_address_not_null NOT NULL,
   port integer CONSTRAINT node_endpoints_port_not_null NOT NULL,
   transport text COLLATE "C" CONSTRAINT node_endpoints_transport_not_null NOT NULL,
   protocol_capability text COLLATE "C" CONSTRAINT node_endpoints_protocol_capability_not_null NOT NULL,
@@ -232,6 +233,7 @@ CREATE TABLE nodecontrol.node_endpoints (
   updated_at timestamp with time zone CONSTRAINT node_endpoints_updated_at_not_null NOT NULL,
   CONSTRAINT node_endpoints_pkey PRIMARY KEY (endpoint_id),
   CONSTRAINT node_endpoints_node_fk FOREIGN KEY (node_id) REFERENCES nodecontrol.node_inventory(node_id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT node_endpoints_address_format CHECK (octet_length(address) BETWEEN 1 AND 253 AND address ~ '^[A-Za-z0-9][A-Za-z0-9.:-]*$'),
   CONSTRAINT node_endpoints_port_range CHECK (port BETWEEN 1 AND 65535),
   CONSTRAINT node_endpoints_transport_enum CHECK (transport IN ('tcp','udp')),
   CONSTRAINT node_endpoints_protocol_capability_enum CHECK (protocol_capability IN ('bootstrap_v1','agent_control_v1','agent_observation_v1')),
@@ -243,9 +245,9 @@ CREATE TABLE nodecontrol.node_endpoints (
 
 CREATE TABLE nodecontrol.node_process_slots (
   node_id uuid CONSTRAINT node_process_slots_node_id_not_null NOT NULL,
-  slot_id integer CONSTRAINT node_process_slots_slot_id_not_null NOT NULL,
+  slot_id text COLLATE "C" CONSTRAINT node_process_slots_slot_id_not_null NOT NULL,
   adapter text COLLATE "C" CONSTRAINT node_process_slots_adapter_not_null NOT NULL,
-  capacity_profile_id uuid CONSTRAINT node_process_slots_capacity_profile_id_not_null NOT NULL,
+  capacity_profile_id text COLLATE "C" CONSTRAINT node_process_slots_capacity_profile_id_not_null NOT NULL,
   capacity_profile_version bigint CONSTRAINT node_process_slots_capacity_profile_version_not_null NOT NULL,
   required boolean CONSTRAINT node_process_slots_required_not_null NOT NULL,
   operator_state text COLLATE "C" CONSTRAINT node_process_slots_operator_state_not_null NOT NULL,
@@ -255,8 +257,9 @@ CREATE TABLE nodecontrol.node_process_slots (
   CONSTRAINT node_process_slots_pkey PRIMARY KEY (node_id, slot_id),
   CONSTRAINT node_process_slots_node_fk FOREIGN KEY (node_id) REFERENCES nodecontrol.node_inventory(node_id) ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT node_process_slots_capacity_profile_fk FOREIGN KEY (capacity_profile_id, capacity_profile_version) REFERENCES nodecontrol.node_capacity_profiles(profile_id, version) ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT node_process_slots_slot_id_range CHECK (slot_id BETWEEN 1 AND 65535),
+  CONSTRAINT node_process_slots_slot_id_format CHECK (octet_length(slot_id) BETWEEN 1 AND 64 AND slot_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'),
   CONSTRAINT node_process_slots_adapter_enum CHECK (adapter IN ('fixture','xray','sing_box')),
+  CONSTRAINT node_process_slots_capacity_profile_id_format CHECK (octet_length(capacity_profile_id) BETWEEN 1 AND 128 AND capacity_profile_id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'),
   CONSTRAINT node_process_slots_capacity_profile_version_range CHECK (capacity_profile_version BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_process_slots_operator_state_enum CHECK (operator_state IN ('provisioning','enabled','draining','disabled')),
   CONSTRAINT node_process_slots_inventory_version_range CHECK (inventory_version BETWEEN 1 AND 9223372036854775807),
@@ -610,7 +613,7 @@ CREATE TABLE nodecontrol.node_recovery_sessions (
   CONSTRAINT node_recovery_sessions_version_range CHECK (version BETWEEN 1 AND 9223372036854775807),
   CONSTRAINT node_recovery_sessions_status_enum CHECK (status IN ('pending','completed','superseded')),
   CONSTRAINT node_recovery_sessions_incident_set_digest_length CHECK (octet_length(incident_set_digest) = 32),
-  CONSTRAINT node_recovery_sessions_resume_operator_state_enum CHECK (resume_operator_state IN ('provisioning','enabled','draining','disabled')),
+  CONSTRAINT node_recovery_sessions_resume_operator_state_enum CHECK (resume_operator_state IN ('enabled','draining','disabled')),
   CONSTRAINT node_recovery_sessions_restore_resume_disabled CHECK (reason NOT IN ('retire','authority_restore') OR resume_operator_state = 'disabled'),
   CONSTRAINT node_recovery_sessions_attestation_digest_length CHECK (attestation_digest IS NULL OR octet_length(attestation_digest) = 32),
   CONSTRAINT node_recovery_sessions_terminal_group CHECK ((status = 'pending' AND terminal_at IS NULL AND retention_until IS NULL) OR (status IN ('completed','superseded') AND terminal_at IS NOT NULL AND retention_until IS NOT NULL)),

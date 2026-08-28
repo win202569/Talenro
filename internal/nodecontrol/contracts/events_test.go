@@ -138,7 +138,24 @@ func TestUnmarshalNodeControlEventRejectsOversizedWire(t *testing.T) {
 }
 
 func TestNodeControlEventRoundTripSupportsAllPayloads(t *testing.T) {
-	for _, event := range validNodeControlEvents() {
+	valid := validNodeControlEvents()
+	t.Run("opaque operator ID", func(t *testing.T) {
+		if got := valid[5].GetNodeOperatorActionRecorded().GetOperatorId(); got != "operator:alice" {
+			t.Fatalf("operator fixture ID = %q, want opaque non-UUID operator:alice", got)
+		}
+		if encoded, err := MarshalNodeControlEvent(valid[5]); err != nil || len(encoded) == 0 {
+			t.Fatalf("MarshalNodeControlEvent opaque operator ID = %x, %v; want bytes", encoded, err)
+		}
+	})
+	t.Run("one-character POP", func(t *testing.T) {
+		oneCharacterPOP := clonedNodeControlEvent(valid[0])
+		oneCharacterPOP.GetNodeInventoryChanged().PopCode = "x"
+		if encoded, err := MarshalNodeControlEvent(oneCharacterPOP); err != nil || len(encoded) == 0 {
+			t.Fatalf("MarshalNodeControlEvent one-character POP = %x, %v; want bytes", encoded, err)
+		}
+	})
+
+	for _, event := range valid {
 		t.Run(event.GetEventType(), func(t *testing.T) {
 			encoded, err := MarshalNodeControlEvent(event)
 			if err != nil {
@@ -166,6 +183,28 @@ func TestNodeControlEventRoundTripSupportsAllPayloads(t *testing.T) {
 				t.Fatal("marshal after unmarshal changed bytes")
 			}
 		})
+	}
+}
+
+func TestNodeControlEventValidationAcceptsOpaqueOperatorAndPOPBoundaries(t *testing.T) {
+	for _, operatorID := range []string{
+		"A",
+		strings.Repeat("a", 128),
+		"Az09:_-",
+	} {
+		event := clonedNodeControlEvent(validNodeControlEvents()[5])
+		event.GetNodeOperatorActionRecorded().OperatorId = operatorID
+		if encoded, err := MarshalNodeControlEvent(event); err != nil || len(encoded) == 0 {
+			t.Errorf("MarshalNodeControlEvent operator ID length %d value %q = %x, %v; want bytes", len(operatorID), operatorID, encoded, err)
+		}
+	}
+
+	for _, popCode := range []string{"x", "a" + strings.Repeat("-", 30) + "z"} {
+		event := clonedNodeControlEvent(validNodeControlEvents()[0])
+		event.GetNodeInventoryChanged().PopCode = popCode
+		if encoded, err := MarshalNodeControlEvent(event); err != nil || len(encoded) == 0 {
+			t.Errorf("MarshalNodeControlEvent POP length %d value %q = %x, %v; want bytes", len(popCode), popCode, encoded, err)
+		}
 	}
 }
 
@@ -201,6 +240,15 @@ func TestMarshalNodeControlEventRejectsInvalidInput(t *testing.T) {
 		{name: "unsafe inventory state", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
 			event.GetNodeInventoryChanged().OperatorState = "enabled now"
 		}},
+		{name: "uppercase POP", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeInventoryChanged().PopCode = "US-east"
+		}},
+		{name: "trailing-hyphen POP", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeInventoryChanged().PopCode = "us-east-"
+		}},
+		{name: "POP exceeds 32 bytes", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.GetNodeInventoryChanged().PopCode = strings.Repeat("a", 33)
+		}},
 		{name: "desired digest has wrong length", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
 			event.Payload = clonedNodeControlEvent(valid[1]).Payload
 			event.EventType = valid[1].EventType
@@ -231,13 +279,53 @@ func TestMarshalNodeControlEventRejectsInvalidInput(t *testing.T) {
 			event.AggregateVersion = valid[4].AggregateVersion
 			event.GetNodeCertificateStatusChanged().CertificateRecordId = "not-a-uuid"
 		}},
-		{name: "operator id is not canonical", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+		{name: "blank operator id", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
 			event.Payload = clonedNodeControlEvent(valid[5]).Payload
 			event.EventType = valid[5].EventType
 			event.AggregateType = valid[5].AggregateType
 			event.AggregateId = valid[5].AggregateId
 			event.AggregateVersion = valid[5].AggregateVersion
-			event.GetNodeOperatorActionRecorded().OperatorId = "not-a-uuid"
+			event.GetNodeOperatorActionRecorded().OperatorId = ""
+		}},
+		{name: "overlong operator id", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.Payload = clonedNodeControlEvent(valid[5]).Payload
+			event.EventType = valid[5].EventType
+			event.AggregateType = valid[5].AggregateType
+			event.AggregateId = valid[5].AggregateId
+			event.AggregateVersion = valid[5].AggregateVersion
+			event.GetNodeOperatorActionRecorded().OperatorId = strings.Repeat("a", 129)
+		}},
+		{name: "operator id contains whitespace", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.Payload = clonedNodeControlEvent(valid[5]).Payload
+			event.EventType = valid[5].EventType
+			event.AggregateType = valid[5].AggregateType
+			event.AggregateId = valid[5].AggregateId
+			event.AggregateVersion = valid[5].AggregateVersion
+			event.GetNodeOperatorActionRecorded().OperatorId = "operator alice"
+		}},
+		{name: "operator id contains dot", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.Payload = clonedNodeControlEvent(valid[5]).Payload
+			event.EventType = valid[5].EventType
+			event.AggregateType = valid[5].AggregateType
+			event.AggregateId = valid[5].AggregateId
+			event.AggregateVersion = valid[5].AggregateVersion
+			event.GetNodeOperatorActionRecorded().OperatorId = "operator.alice"
+		}},
+		{name: "operator id contains slash", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.Payload = clonedNodeControlEvent(valid[5]).Payload
+			event.EventType = valid[5].EventType
+			event.AggregateType = valid[5].AggregateType
+			event.AggregateId = valid[5].AggregateId
+			event.AggregateVersion = valid[5].AggregateVersion
+			event.GetNodeOperatorActionRecorded().OperatorId = "operator/alice"
+		}},
+		{name: "operator id is non-ASCII", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
+			event.Payload = clonedNodeControlEvent(valid[5]).Payload
+			event.EventType = valid[5].EventType
+			event.AggregateType = valid[5].AggregateType
+			event.AggregateId = valid[5].AggregateId
+			event.AggregateVersion = valid[5].AggregateVersion
+			event.GetNodeOperatorActionRecorded().OperatorId = "operator:爱丽丝"
 		}},
 		{name: "unknown nested field", mutate: func(event *nodecontrolv1.NodeControlEventV1) {
 			event.GetNodeInventoryChanged().ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 0x01})
@@ -303,9 +391,6 @@ func TestMarshalNodeControlEventRejectsNoncanonicalUUIDInEveryRole(t *testing.T)
 		{name: "operator audit and aggregate id", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
 			event.AggregateId = invalidUUID
 			event.GetNodeOperatorActionRecorded().AuditId = invalidUUID
-		}},
-		{name: "operator id", eventIndex: 5, mutate: func(event *nodecontrolv1.NodeControlEventV1) {
-			event.GetNodeOperatorActionRecorded().OperatorId = invalidUUID
 		}},
 	}
 
@@ -821,7 +906,7 @@ func validNodeControlEvents() []*nodecontrolv1.NodeControlEventV1 {
 		},
 		{
 			EventId: "11111111-1111-4111-8111-111111111116", OccurredAt: occurredAt, AggregateType: "operator_action", AggregateId: "66666666-6666-4666-8666-666666666666", AggregateVersion: 12, EventType: "node_operator_action_recorded.v1",
-			Payload: &nodecontrolv1.NodeControlEventV1_NodeOperatorActionRecorded{NodeOperatorActionRecorded: &nodecontrolv1.NodeOperatorActionRecordedV1{AuditId: "66666666-6666-4666-8666-666666666666", OperatorId: "77777777-7777-4777-8777-777777777777", Action: "put_node_desired_state", Target: "node", Result: "accepted", Reason: "operator_update"}},
+			Payload: &nodecontrolv1.NodeControlEventV1_NodeOperatorActionRecorded{NodeOperatorActionRecorded: &nodecontrolv1.NodeOperatorActionRecordedV1{AuditId: "66666666-6666-4666-8666-666666666666", OperatorId: "operator:alice", Action: "put_node_desired_state", Target: "node", Result: "accepted", Reason: "operator_update"}},
 		},
 	}
 }
