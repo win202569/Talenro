@@ -3,8 +3,10 @@ package testinfra_test
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -22,6 +24,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -360,6 +363,1005 @@ func TestC12BaseRunnerSourceIsClosed(t *testing.T) {
 	}
 }
 
+func TestC12RunnerAuthorityProfilesAreClosed(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"$script:c12AllowedProfiles = @('base', 'authority-v7', 'authority-v7-pitr')",
+		"'base' = [TimeSpan]::FromMinutes(3)",
+		"'authority-v7' = [TimeSpan]::FromMinutes(3)",
+		"'authority-v7-pitr' = [TimeSpan]::FromMinutes(8)",
+		"TestPrepareC12AuthorityV7Database",
+		"TestC12DependenciesAreIsolatedAndAuthorityV7Migrated",
+		"TestC12AuthorityPITRProfile",
+		"TestC12AuthorityPITROwnershipWALFailureSeam",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("authority runner profile registry lacks %q", required)
+		}
+	}
+	if strings.Contains(source, "authority-v7-raw") || strings.Contains(source, "authority_v7.sql") {
+		t.Fatal("runner exposes a raw v7 migration profile")
+	}
+}
+
+func TestC12PreparedAuthorityExecutablesAreClosed(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"$script:c12PreparedAuthorityRoles = @('trusted-validator', 'authority-initializer-json')",
+		"$script:c12GoToolchainVersion = 'go1.26.5'",
+		"function New-C12PreparedArtifactRoot",
+		"function Resolve-C12ClosedGoToolchain",
+		"function Invoke-C12ClosedGoBuild",
+		"function New-C12PreparedTrustedValidator",
+		"function New-C12PreparedAuthorityInitializer",
+		"function Invoke-C12PreparedAuthorityRole",
+		"$validatorBuildArguments = @('build', '-o', $temporaryExecutable, $sourcePath)",
+		"$initializerBuildArguments = @('test', '-c', '-tags=integration', '-p=1', '-o', $temporaryTestExecutable, './internal/testinfra')",
+		"$test2JSONBuildArguments = @('build', '-o', $temporaryTest2JSONExecutable, '.')",
+		"'GOFLAGS', 'GOWORK', 'GOENV', 'GOTOOLCHAIN'",
+		"'GOCACHE', 'GOTMPDIR', 'GOMODCACHE', 'GOPROXY'",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("prepared authority executable contract lacks %q", required)
+		}
+	}
+	for _, forbidden := range []string{
+		"[ValidateSet('trusted-validator', 'authority-initializer-json',",
+		"'direct-executable'",
+		"'trusted-validator-probe'",
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Errorf("prepared authority executable contract exposes %q", forbidden)
+		}
+	}
+}
+
+func TestC12InitializerPreparationIsCompileOnly(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	preparation := c12PowerShellFunction(t, source, "New-C12PreparedAuthorityInitializer")
+	for _, required := range []string{
+		"$initializerBuildArguments = @('test', '-c', '-tags=integration', '-p=1', '-o', $temporaryTestExecutable, './internal/testinfra')",
+		"Resolve-C12Test2JSONExecutable",
+		"New-C12SealedExecutableReceipt",
+	} {
+		if !strings.Contains(preparation, required) {
+			t.Errorf("compile-only initializer preparation lacks %q", required)
+		}
+	}
+	for _, forbidden := range []string{
+		"'-run', '^$'",
+		"TALENRO_C12_AUTHORITY_V7_INIT_NONCE",
+		"TALENRO_DATABASE_URL",
+		"Invoke-C12PreparedAuthorityRole",
+		"& $temporaryTestExecutable",
+	} {
+		if strings.Contains(preparation, forbidden) {
+			t.Errorf("compile-only initializer preparation can execute or receive candidate authority through %q", forbidden)
+		}
+	}
+	test2JSONPreparation := c12PowerShellFunction(t, source, "Resolve-C12Test2JSONExecutable")
+	if !strings.Contains(test2JSONPreparation, "$test2JSONBuildArguments = @('build', '-o', $temporaryTest2JSONExecutable, '.')") {
+		t.Error("compile-only initializer preparation does not setup-build the exact sealed test2json executable")
+	}
+}
+
+func TestC12PreparedArtifactIdentityAndCleanup(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"public sealed class C12SealedExecutable",
+		"VolumeSerialNumber",
+		"FileIndexHigh",
+		"FileIndexLow",
+		"NumberOfLinks",
+		"FileShare.Read",
+		"GetSecurityDescriptorSddlForm",
+		"function New-C12SealedExecutableReceipt",
+		"function Assert-C12SealedExecutableReceipt",
+		"ExecutableSHA256",
+		"ExecutableLength",
+		"ExecutableVolumeSerial",
+		"ExecutableFileIndex",
+		"ExecutableLinkCount",
+		"ExecutableOwner",
+		"ExecutableDACL",
+		"ExecutableReparse",
+		"ReceiptSeal",
+		"receipt replay",
+		"Remove-C12PreparedArtifactRoot",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("prepared artifact identity/cleanup contract lacks %q", required)
+		}
+	}
+}
+
+func TestC12PreparedNativeJobGateIsClosed(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	worker := c12PowerShellAssignment(t, source, "$script:c12PreparedNativeWorkerScript = {")
+	ordered := []string{
+		"AssignProcessToJobObject",
+		"Assert-C12SealedExecutableReceipt",
+		"JOB_MEMBER_READY",
+		"WaitOne",
+		"FORMAL_RELEASE",
+		"EXEC_BEGIN",
+		"EXEC_END",
+	}
+	previous := -1
+	for _, marker := range ordered {
+		index := strings.Index(worker, marker)
+		if index < 0 {
+			t.Errorf("prepared native worker lacks %q", marker)
+			continue
+		}
+		if index <= previous {
+			t.Errorf("prepared native worker phase %q is out of order", marker)
+		}
+		previous = index
+	}
+	for _, required := range []string{"CreateKillOnClose", "EventWaitHandle", "exact-once", "[TimeSpan]::FromMinutes(2)", "[C12NativeJob]::Close"} {
+		if !strings.Contains(source, required) {
+			t.Errorf("prepared native Job gate contract lacks %q", required)
+		}
+	}
+}
+
+func TestC12PreparedArtifactLifecycleIsCoherent(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"$script:c12PreparedArtifactRoot",
+		"$script:c12PreparedReceipts",
+		"ArtifactRootIdentity",
+		"ReceiptIdentity",
+		"Remove-C12PreparedArtifactRoot",
+		"Close-C12PreparedNativeWorker",
+		"function Close-C12AllPreparedArtifacts",
+		"Close-C12AllPreparedArtifacts -Deadline ([DateTime]::UtcNow.Add($script:c12GroupCleanupBudget))",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("prepared artifact lifecycle lacks %q", required)
+		}
+	}
+	for _, forbidden := range []string{"$script:c12GoPrewarmPurposes", "talenro-c12-validator-$(New-C12RandomSuffix)"} {
+		if strings.Contains(source, forbidden) {
+			t.Errorf("prepared artifact lifecycle retains incoherent per-call prewarm state %q", forbidden)
+		}
+	}
+	group := c12PowerShellFunction(t, source, "Invoke-C12Group")
+	prepare := strings.Index(group, "New-C12PreparedAuthorityInitializer")
+	container := strings.Index(group, "Start-C12Container")
+	baseMigration := strings.Index(group, "ordinary Goose base migration")
+	formal := strings.Index(group, "Invoke-C12AuthorityInitializer")
+	if prepare < 0 || container < 0 || prepare >= container {
+		t.Error("authority initializer is not prepared before container/resource startup")
+	}
+	if baseMigration < 0 || formal < 0 || formal <= baseMigration {
+		t.Error("authority initializer formal release does not follow the ordinary base migration")
+	}
+}
+
+func TestC12FormalAuthorityStagesDoNotInvokeGo(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	validator := c12PowerShellFunction(t, source, "Invoke-C12TrustedValidator")
+	initializer := c12PowerShellFunction(t, source, "Invoke-C12AuthorityInitializer")
+	for name, body := range map[string]string{"trusted validator": validator, "authority initializer": initializer} {
+		if !strings.Contains(body, "Invoke-C12PreparedAuthorityRole") {
+			t.Errorf("formal %s does not release a sealed prepared role", name)
+		}
+		for _, forbidden := range []string{"Invoke-C12Go", "-Executable 'go'", "'go', 'run'", "'go', 'test'", "'go', 'build'", "'go', 'tool'"} {
+			if strings.Contains(body, forbidden) {
+				t.Errorf("formal %s re-enters the Go toolchain through %q", name, forbidden)
+			}
+		}
+	}
+	for _, required := range []string{
+		"Invoke-C12PreparedAuthorityRole -Prepared $preparedValidator -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2))",
+		"Invoke-C12PreparedAuthorityRole -Prepared $preparedInitializer -Role 'authority-initializer-json' -Timeout ([TimeSpan]::FromMinutes(2))",
+		"Assert-C12GoJSONResult",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("formal authority handoff lacks %q", required)
+		}
+	}
+}
+
+func TestC12PreparedArtifactExecutionAndTamperConverge(t *testing.T) {
+	for _, mode := range []string{"success", "byte-tamper", "file-id-splice", "reparse", "hard-link", "dacl", "wrong-role", "replay"} {
+		t.Run(mode, func(t *testing.T) {
+			output, exitCode := runC12PreparedArtifactHarness(t, mode)
+			if exitCode != 0 {
+				t.Fatalf("prepared artifact %s harness exit=%d output=%q", mode, exitCode, output)
+			}
+		})
+	}
+}
+
+func TestC12RunnerAuthorityCapabilitiesAreChildScoped(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"TALENRO_C12_AUTHORITY_V7_INIT_NONCE", "TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX",
+		"TALENRO_C12_AUTHORITY_V7_PROFILE", "disposable_fixture",
+		"Clear-C12InheritedCapabilities", "GIT_*", "finally",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("authority child capability boundary lacks %q", required)
+		}
+	}
+	for _, forbidden := range []string{"-Environment $env:", "Get-ChildItem Env: |", "Start-Process -Environment"} {
+		if strings.Contains(source, forbidden) {
+			t.Errorf("authority runner exposes arbitrary inherited environment via %q", forbidden)
+		}
+	}
+}
+
+func TestC12RunnerPITRWALAndCleanupAreClosed(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	for _, required := range []string{
+		"postgres:18.4-alpine3.23", "test_decoding", "TALENRO_C12_AUTHORITY_PITR_NONCE",
+		"TALENRO_C12_AUTHORITY_PITR_DESCRIPTOR", "TALENRO_C12_AUTHORITY_PITR_WAL_PATH",
+		"TALENRO_C12_AUTHORITY_PITR_HMAC_KEY", "HMACSHA256", "8192", "4096",
+		"BOOTSTRAP", "INTENT", "ACTUAL", "RECOVERED_ACTUAL", "NOT_FOUND", "TRANSITION", "CLEAN_INTENT", "CLEAN_RESULT",
+		"[TimeSpan]::FromSeconds(75)", "talenro.c12.run",
+	} {
+		if !strings.Contains(source, required) {
+			t.Errorf("PITR ownership WAL/cleanup boundary lacks %q", required)
+		}
+	}
+	for _, forbidden := range []string{"docker system prune", "container prune", "volume prune", "network prune", "--filter name=", "Get-ChildItem -Recurse"} {
+		if strings.Contains(strings.ToLower(source), strings.ToLower(forbidden)) {
+			t.Errorf("PITR cleanup contains broad discovery/removal surface %q", forbidden)
+		}
+	}
+}
+
+func TestC12RunnerPITRFailureSeamsAreClosed(t *testing.T) {
+	source := string(readC12RunnerSource(t))
+	want := []string{
+		"after-intent-before-create", "after-create-before-actual", "after-actual-before-return",
+		"after-clean-intent-before-remove", "after-remove-before-clean-result",
+	}
+	for _, seam := range want {
+		if got := strings.Count(source, "'"+seam+"'"); got == 0 {
+			t.Errorf("PITR failure seam %q is absent", seam)
+		}
+	}
+	for _, required := range []string{"authority-v7-pitr", "TestC12AuthorityPITROwnershipWALFailureSeam", "foreign canary"} {
+		if !strings.Contains(strings.ToLower(source), strings.ToLower(required)) {
+			t.Errorf("PITR seam closure lacks %q", required)
+		}
+	}
+}
+
+// TestC12PreparedProcessIsSuspendedUntilVerifiedJobMembership catches the
+// production escape window created by Start-Job: the worker begins executing
+// before the controller has assigned and verified its native Job membership.
+func TestC12PreparedProcessIsSuspendedUntilVerifiedJobMembership(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	worker := c12ReachablePowerShellNodes(t, snapshot, "New-C12PreparedNativeWorker")
+	// Embedded C# is one PowerShell AST node, so call ordering is proved by
+	// the native sentinel below, not by four separate PowerShell text nodes.
+	c12RequirePowerShellASTTerms(t, "suspended prepared worker", worker, []string{
+		`(?i)CreateProcessW`, `(?i)AssignProcessToJobObject`, `(?i)IsProcessInJob`, `(?i)ResumeThread`,
+	})
+	c12RequirePowerShellASTTerms(t, "suspended prepared worker", worker, []string{
+		`CREATE_SUSPENDED`, `CREATE_NO_WINDOW`, `CREATE_UNICODE_ENVIRONMENT`, `(?i)bInheritHandles\s*[:=]\s*\$?false`,
+		`(?i)TerminateProcess`, `(?i)TerminateJobObject`, `JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO`,
+		`(?i)GetQueuedCompletionStatus`, `(?i)QueryInformationJobObject`, `ActiveProcesses`,
+	})
+	c12ForbidPowerShellCommand(t, "suspended prepared worker", worker, "Start-Job")
+	for _, mode := range []string{"prepared-suspended-membership", "prepared-assignment-failure", "prepared-pid-mismatch", "prepared-invalid-thread-handle", "prepared-cleanup-retry", "prepared-job-collision"} {
+		t.Run(mode, func(t *testing.T) {
+			output, exitCode := runC12PreparedArtifactHarness(t, mode)
+			if exitCode != 0 {
+				t.Fatalf("production suspended-worker sentinel harness exit=%d output=%q", exitCode, output)
+			}
+		})
+	}
+}
+
+// TestC12PreparedPipeProtocolAndProjectionAreClosed freezes the six private
+// frames and the minimal projection. It rejects the current full-receipt,
+// release-before-capability, byte-stream handoff.
+func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
+	c12AssertLiteralPreparedFrames(t)
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "$script:c12PreparedNativeWorkerScript", "Invoke-C12PreparedAuthorityRole")
+	c12RequirePowerShellASTTerms(t, "prepared private pipe", nodes, []string{
+		`PIPE_ACCESS_DUPLEX`, `FILE_FLAG_FIRST_PIPE_INSTANCE`, `PIPE_TYPE_MESSAGE`, `PIPE_READMODE_MESSAGE`,
+		`PIPE_WAIT`, `PIPE_REJECT_REMOTE_CLIENTS`, `(?i)nMaxInstances\s*[:=]\s*1`,
+		`(?i)GetNamedPipeClientProcessId`, `(?i)GetNamedPipeServerProcessId`,
+	})
+	c12RequirePowerShellASTSequence(t, "prepared private protocol", nodes, []string{
+		`HELLO`, `VERIFICATION_PROJECTION`, `JOB_MEMBER_READY`, `CAPABILITIES`, `CAPABILITIES_INSTALLED`, `GATE_WAITING`,
+	})
+	c12RequirePowerShellASTSequence(t, "capability/gate release", c12ReachablePowerShellNodes(t, snapshot, "Invoke-C12PreparedAuthorityRole"), []string{
+		`JOB_MEMBER_READY`, `CAPABILITIES`, `CAPABILITIES_INSTALLED`, `GATE_WAITING`, `(?i)Stopwatch.*Start`, `(?i)Gate.*Set`,
+	})
+	for _, forbidden := range []string{`Receipt\s*=`, `ReceiptFields`, `PayloadFields`, `ReceiptKeyHex`, `Graph`, `RootHandle`, `RefCount`} {
+		c12ForbidPowerShellASTTerm(t, "minimal worker projection", nodes, forbidden)
+	}
+	c12ForbidPowerShellCommand(t, "prepared pipe path", nodes, "Start-Job")
+	output, exitCode := runC12PreparedArtifactHarness(t, "prepared-pipe-six-frame")
+	if exitCode != 0 {
+		t.Fatalf("production six-frame pipe harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+// TestC12PreparedGoGraphsBindEverySelectedInput freezes the three setup-only
+// graph commands, finite bounds, and every selected Go/toolchain content set.
+func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot,
+		"New-C12PreparedTrustedValidator", "New-C12PreparedAuthorityInitializer", "Resolve-C12Test2JSONExecutable")
+	c12RequirePowerShellASTTerms(t, "prepared Go graph closure", nodes, []string{
+		`(?i)\blist\b.*-deps.*-json`, `(?i)-test.*-tags=integration`, `cmd/test2json`,
+		`\b8192\b`, `\b131072\b`, `\b67108864\b`, `\b16777216\b`, `GOSUMDB`, `-mod=readonly`, `(?i)mod\s+verify`,
+	})
+	graphFields := []string{
+		"schema", "purpose", "go_executable_path", "go_executable_identity", "go_executable_sha256", "go_version",
+		"goroot_path", "goroot_identity", "gomodcache_path", "gomodcache_identity", "module_root_path", "module_root_identity",
+		"goos", "goarch", "cgo_enabled", "go_mod_sha256", "go_sum_sha256", "candidate_tree_digest", "build_argv",
+		"package_count", "file_count", "packages", "import_path", "for_test", "origin", "module_path", "module_version",
+		"module_sum", "module_replace_or_null", "directory_identity", "imports", "deps", "test_imports", "xtest_imports",
+		"embed_patterns", "test_embed_patterns", "xtest_embed_patterns", "files", "set", "origin_relative_path", "length", "sha256",
+	}
+	for _, field := range graphFields {
+		c12RequirePowerShellASTTerms(t, "prepared Go graph registry", nodes, []string{regexp.QuoteMeta(field)})
+	}
+	for _, selectedSet := range []string{
+		"GoFiles", "CgoFiles", "CFiles", "CXXFiles", "MFiles", "HFiles", "FFiles", "SFiles", "SwigFiles",
+		"SwigCXXFiles", "SysoFiles", "EmbedPatterns", "EmbedFiles", "TestGoFiles", "TestEmbedPatterns",
+		"TestEmbedFiles", "XTestGoFiles", "XTestEmbedPatterns", "XTestEmbedFiles",
+	} {
+		c12RequirePowerShellASTTerms(t, "prepared Go selected sets", nodes, []string{regexp.QuoteMeta(selectedSet)})
+	}
+	output, exitCode := runC12PreparedGoGraphHarness(t)
+	if exitCode != 0 {
+		t.Fatalf("production prepared graph/receipt harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PreparedArtifactDirectLeafLedgerIsClosed(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PreparedArtifactRoot", "Remove-C12PreparedArtifactRoot")
+	c12RequirePowerShellASTTerms(t, "prepared direct-leaf ledger", nodes, []string{
+		"Expected", "CreateAttempted", "Bound", "Removed", "Absent", "NeverAttempted", "exact_file",
+		"owned_ephemeral_subtree", "go-cache", "go-tmp", "creation phase", "unknown direct sibling",
+		"NumberOfLinks", "RefCount", "Lifecycle", "InspectDirectory",
+	})
+	for _, forbidden := range []string{"Remove-C12BoundedDirectory", "-Recurse", "Remove-Item -LiteralPath $ArtifactRoot.Root"} {
+		c12ForbidPowerShellASTTerm(t, "prepared direct-leaf cleanup", nodes, regexp.QuoteMeta(forbidden))
+	}
+	output, exitCode := runC12CleanupStateHarness(t, "prepared-direct-ledger")
+	if exitCode != 0 {
+		t.Fatalf("production direct-leaf retained-state harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PITRRunRootHasExactFiveLeafLedger(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PITRRunRoot")
+	wantLeaves := []string{"controller-ownership-v1.wal", "ownership.wal", "tlsgen.go", "server.crt", "server.key"}
+	for _, leaf := range wantLeaves {
+		c12RequirePowerShellASTExactLiteralCount(t, "PITR five-leaf ledger", nodes, leaf, 1)
+	}
+	c12RequirePowerShellASTTerms(t, "PITR five-leaf ledger", nodes, []string{"exact_file", "CreationClosed", "NeverAttempted", "Remove", "unknown sibling", "direct"})
+	output, exitCode := runC12CleanupStateHarness(t, "pitr-five-leaf")
+	if exitCode != 0 {
+		t.Fatalf("production PITR five-leaf harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12CleanupRetryStateRetainsExactOwnership(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "Remove-C12PreparedArtifactRoot", "Remove-C12PITRBaseResources")
+	c12RequirePowerShellASTTerms(t, "cleanup retry ownership state", nodes, []string{
+		"CreationOpen", "CreationClosed", "NeverAttempted", "CreateAttempted", "Created", "Verified", "CleanIntent",
+		"Removed", "Absent", "75", "RetryState", "RootHandle", "ProcessHandle", "WALHandle", "Ledger", "top-level finalizer",
+	})
+	c12ForbidPowerShellASTTerm(t, "cleanup retry ownership state", nodes, `(?i)\.CreateAttempted\s*=\s*\$true`)
+	output, exitCode := runC12CleanupStateHarness(t, "cleanup-retained-production")
+	if exitCode != 0 {
+		t.Fatalf("production retained cleanup state harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12ControllerOwnershipWALUsesExactBytes(t *testing.T) {
+	c12AssertLiteralControllerWAL(t)
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PITRRunRoot", "Remove-C12PITRBaseResources")
+	c12RequirePowerShellASTTerms(t, "controller ownership WAL", nodes, []string{
+		"talenro-c12-authority-pitr-controller-ownership-wal/v1", "controller-ownership-v1.wal", "WriteThrough",
+		"FlushFileBuffers", "BOOTSTRAP", "INTENT", "ACTUAL", "NOT_FOUND", "CLEAN_INTENT", "CLEAN_RESULT",
+		"talenro.c12.controller-wal.registry.v1", "talenro.c12.controller-wal.payload.v1",
+		"talenro.c12.controller-wal.record.v1", "talenro.c12.controller-wal.hmac.v1", "record_digest", "hmac_sha256",
+		"yyyy-MM-ddTHH:mm:ss.fffffffZ", "previous_record_digest", "payload_digest",
+	})
+	for _, forbidden := range []string{"ConvertTo-Json", "ConvertFrom-Json"} {
+		c12ForbidPowerShellCommand(t, "controller WAL exact-byte path", nodes, forbidden)
+	}
+	output, exitCode := runC12CleanupStateHarness(t, "controller-wal")
+	if exitCode != 0 {
+		t.Fatalf("production controller-WAL verifier harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PITRDockerReceiptAndAbsenceAreExact(t *testing.T) {
+	snapshot := c12PowerShellExecutableAST(t)
+	nodes := c12ReachablePowerShellNodes(t, snapshot, "Invoke-C12Docker", "Remove-C12PITRBaseResources")
+	c12RequirePowerShellASTTerms(t, "Docker receipt/exact absence", nodes, []string{
+		"postgres:18.4-alpine3.23", "sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e",
+		"docker_endpoint_identity_digest", "talenro.c12.docker-endpoint.v1", "context_name", "endpoint", "engine_id",
+		"server_version", "os_type", "architecture", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG",
+		"DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "talenro.c12.docker-exact-absence.v1",
+		"Error response from daemon: No such container: ", ": no such volume", "\\[\"container\",\"inspect\"",
+		"\\[\"volume\",\"inspect\"", "5b5d0a",
+	})
+	c12ForbidPowerShellASTTerm(t, "Docker raw inspect", nodes, `--format\s+['\"]\{\{\.(?:Name|Id)\}\}`)
+	output, exitCode := runC12CleanupStateHarness(t, "docker-exact-production")
+	if exitCode != 0 {
+		t.Fatalf("production Docker receipt/absence harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+type c12PowerShellASTNode struct {
+	Kind      string   `json:"kind"`
+	Parent    string   `json:"parent"`
+	Text      string   `json:"text"`
+	Command   string   `json:"command"`
+	Arguments []string `json:"arguments"`
+	Start     int      `json:"start"`
+	Scope     string   `json:"-"`
+	Path      string   `json:"-"`
+	Ordinal   int      `json:"-"`
+}
+
+type c12PowerShellASTScope struct {
+	Name  string                 `json:"name"`
+	Nodes []c12PowerShellASTNode `json:"nodes"`
+}
+
+type c12PowerShellASTDocument struct {
+	Scopes []c12PowerShellASTScope `json:"scopes"`
+}
+
+var (
+	c12PowerShellASTOnce  sync.Once
+	c12PowerShellASTCache map[string][]c12PowerShellASTNode
+	c12PowerShellASTError error
+)
+
+// c12PowerShellExecutableAST delegates syntax classification to the Windows
+// PowerShell parser. Only AST nodes inside one exact function/worker
+// ScriptBlock are returned; comments, sibling functions and nested dead
+// function declarations cannot satisfy a corrective assertion.
+func c12PowerShellExecutableAST(t *testing.T) map[string][]c12PowerShellASTNode {
+	t.Helper()
+	c12PowerShellASTOnce.Do(func() {
+		runner, err := filepath.Abs("../../scripts/run-c12-integration.ps1")
+		if err != nil {
+			c12PowerShellASTError = err
+			return
+		}
+		c12PowerShellASTCache, c12PowerShellASTError = c12ParsePowerShellExecutableAST(t, runner)
+		if c12PowerShellASTError == nil {
+			c12PowerShellASTError = c12CheckPowerShellASTInertMarkerFixture(t)
+		}
+	})
+	if c12PowerShellASTError != nil {
+		t.Fatal(c12PowerShellASTError)
+	}
+	return c12PowerShellASTCache
+}
+
+func c12ParsePowerShellExecutableAST(t *testing.T, scriptPath string) (map[string][]c12PowerShellASTNode, error) {
+	t.Helper()
+	probe := filepath.Join(t.TempDir(), "c12-ast-probe.ps1")
+	if err := os.WriteFile(probe, []byte(c12PowerShellASTProbe), 0o600); err != nil {
+		return nil, err
+	}
+	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", probe, "-ScriptPath", scriptPath)
+	output, runErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		return nil, fmt.Errorf("PowerShell AST probe timeout: %w", ctx.Err())
+	}
+	if runErr != nil {
+		return nil, fmt.Errorf("PowerShell AST probe: %w: %s", runErr, output)
+	}
+	var document c12PowerShellASTDocument
+	if err := json.Unmarshal(output, &document); err != nil {
+		return nil, fmt.Errorf("decode PowerShell AST probe: %w: %s", err, output)
+	}
+	result := make(map[string][]c12PowerShellASTNode, len(document.Scopes))
+	for _, scope := range document.Scopes {
+		if _, duplicate := result[scope.Name]; duplicate {
+			return nil, fmt.Errorf("PowerShell AST scope %s is not unique", scope.Name)
+		}
+		sort.Slice(scope.Nodes, func(i, j int) bool { return scope.Nodes[i].Start < scope.Nodes[j].Start })
+		for index := range scope.Nodes {
+			scope.Nodes[index].Scope = scope.Name
+			scope.Nodes[index].Ordinal = index
+		}
+		result[scope.Name] = scope.Nodes
+	}
+	return result, nil
+}
+
+func c12CheckPowerShellASTInertMarkerFixture(t *testing.T) error {
+	t.Helper()
+	const fixture = `function Invoke-C12ASTGenuine {
+  Write-Output 'C12_GENUINE_MARKER'
+  Write-Output 'C12_SEQUENCE_FIRST'
+  Write-Output 'C12_SEQUENCE_SECOND'
+}
+function Invoke-C12ASTUncalledSibling {
+  Write-Output 'C12_UNCALLED_SIBLING_MARKER'
+}
+function Invoke-C12ASTSplitFirst {
+  Write-Output 'C12_SEQUENCE_FIRST'
+}
+function Invoke-C12ASTSplitSecond {
+  Write-Output 'C12_SEQUENCE_SECOND'
+}
+function Invoke-C12ASTRoot {
+  $assignment = 'C12_ASSIGNMENT_MARKER'
+  $table = @{ value = 'C12_HASHTABLE_MARKER' }
+  if ($false) { Write-Output 'C12_FALSE_BRANCH_MARKER' }
+  Invoke-C12ASTGenuine
+}
+function Invoke-C12ASTSplitRoot {
+  Invoke-C12ASTSplitFirst
+  Invoke-C12ASTSplitSecond
+}`
+	path := filepath.Join(t.TempDir(), "c12-ast-inert-fixture.ps1")
+	if err := os.WriteFile(path, []byte(fixture), 0o600); err != nil {
+		return err
+	}
+	document, err := c12ParsePowerShellExecutableAST(t, path)
+	if err != nil {
+		return err
+	}
+	nodes, err := c12PowerShellCallPaths(document, "Invoke-C12ASTRoot")
+	if err != nil {
+		return err
+	}
+	evidence := c12PowerShellNodeEvidence(nodes)
+	if !strings.Contains(evidence, "C12_GENUINE_MARKER") {
+		return fmt.Errorf("PowerShell AST executable-path fixture lost the genuinely called marker: %s", evidence)
+	}
+	for _, inert := range []string{"C12_ASSIGNMENT_MARKER", "C12_HASHTABLE_MARKER", "C12_UNCALLED_SIBLING_MARKER", "C12_FALSE_BRANCH_MARKER"} {
+		if strings.Contains(evidence, inert) {
+			return fmt.Errorf("PowerShell AST executable-path fixture admitted inert marker %s: %s", inert, evidence)
+		}
+	}
+	sequence := []*regexp.Regexp{regexp.MustCompile(`C12_SEQUENCE_FIRST`), regexp.MustCompile(`C12_SEQUENCE_SECOND`)}
+	if !c12PowerShellAnyLeafPathHasSequence(nodes, sequence) {
+		return fmt.Errorf("PowerShell AST executable-path fixture lost a genuine single-chain sequence: %s", evidence)
+	}
+	splitNodes, err := c12PowerShellCallPaths(document, "Invoke-C12ASTSplitRoot")
+	if err != nil {
+		return err
+	}
+	if c12PowerShellAnyLeafPathHasSequence(splitNodes, sequence) {
+		return fmt.Errorf("PowerShell AST executable-path fixture merged two invoked sibling call chains: %s", c12PowerShellNodeEvidence(splitNodes))
+	}
+	return nil
+}
+
+func c12ReachablePowerShellNodes(t *testing.T, document map[string][]c12PowerShellASTNode, roots ...string) []c12PowerShellASTNode {
+	t.Helper()
+	var result []c12PowerShellASTNode
+	for _, root := range roots {
+		nodes, err := c12PowerShellCallPaths(document, root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		result = append(result, nodes...)
+	}
+	return result
+}
+
+func c12PowerShellCallPaths(document map[string][]c12PowerShellASTNode, root string) ([]c12PowerShellASTNode, error) {
+	type leafPath struct {
+		name  string
+		nodes []c12PowerShellASTNode
+	}
+	resolveCall := func(scope string, node c12PowerShellASTNode) string {
+		if node.Kind != "CommandAst" || node.Command == "" {
+			return ""
+		}
+		candidates := []string{scope + "::" + node.Command, node.Command}
+		if separator := strings.LastIndex(scope, "::"); separator >= 0 {
+			candidates = append([]string{scope[:separator] + "::" + node.Command}, candidates...)
+		}
+		for _, candidate := range candidates {
+			if _, callable := document[candidate]; callable {
+				return candidate
+			}
+		}
+		return ""
+	}
+	var walk func(string, map[string]bool) ([]leafPath, error)
+	walk = func(scope string, active map[string]bool) ([]leafPath, error) {
+		nodes, exists := document[scope]
+		if !exists {
+			return nil, fmt.Errorf("production runner lacks executable AST scope %s", scope)
+		}
+		if active[scope] {
+			return nil, nil
+		}
+		nextActive := make(map[string]bool, len(active)+1)
+		for key, value := range active {
+			nextActive[key] = value
+		}
+		nextActive[scope] = true
+		var paths []leafPath
+		for callIndex, node := range nodes {
+			candidate := resolveCall(scope, node)
+			if candidate == "" || nextActive[candidate] {
+				continue
+			}
+			children, err := walk(candidate, nextActive)
+			if err != nil {
+				return nil, err
+			}
+			for _, child := range children {
+				projection := make([]c12PowerShellASTNode, 0, len(nodes)+len(child.nodes))
+				projection = append(projection, nodes[:callIndex+1]...)
+				projection = append(projection, child.nodes...)
+				projection = append(projection, nodes[callIndex+1:]...)
+				paths = append(paths, leafPath{
+					name:  fmt.Sprintf("%s>%s@%d", scope, child.name, node.Ordinal),
+					nodes: projection,
+				})
+			}
+		}
+		if len(paths) == 0 {
+			paths = append(paths, leafPath{name: scope, nodes: append([]c12PowerShellASTNode(nil), nodes...)})
+		}
+		return paths, nil
+	}
+	paths, err := walk(root, map[string]bool{})
+	if err != nil {
+		return nil, err
+	}
+	var result []c12PowerShellASTNode
+	for pathIndex, path := range paths {
+		pathID := fmt.Sprintf("%s#%d", path.name, pathIndex)
+		for _, sourceNode := range path.nodes {
+			node := sourceNode
+			node.Path = pathID
+			result = append(result, node)
+		}
+	}
+	return result, nil
+}
+
+func c12PowerShellNodeEvidence(nodes []c12PowerShellASTNode) string {
+	var evidence strings.Builder
+	for _, node := range nodes {
+		evidence.WriteString(node.Path)
+		evidence.WriteByte('\x00')
+		evidence.WriteString(node.Command)
+		for _, argument := range node.Arguments {
+			evidence.WriteByte('\x00')
+			evidence.WriteString(argument)
+		}
+		evidence.WriteByte('\n')
+	}
+	return evidence.String()
+}
+
+func c12PowerShellNodeMatches(node c12PowerShellASTNode, expression *regexp.Regexp) bool {
+	if expression.MatchString(node.Command) {
+		return true
+	}
+	for _, argument := range node.Arguments {
+		if expression.MatchString(argument) {
+			return true
+		}
+	}
+	return false
+}
+
+func c12RequirePowerShellASTTerms(t *testing.T, label string, nodes []c12PowerShellASTNode, patterns []string) {
+	t.Helper()
+	for _, pathNodes := range c12PowerShellLeafPaths(nodes) {
+		complete := true
+		for _, pattern := range patterns {
+			expression := regexp.MustCompile(pattern)
+			found := false
+			for _, node := range pathNodes {
+				if c12PowerShellNodeMatches(node, expression) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				complete = false
+				break
+			}
+		}
+		if complete {
+			return
+		}
+	}
+	t.Errorf("%s has no single reachable executable call path containing every term %q", label, patterns)
+}
+
+func c12RequirePowerShellASTSequence(t *testing.T, label string, nodes []c12PowerShellASTNode, patterns []string) {
+	t.Helper()
+	expressions := make([]*regexp.Regexp, len(patterns))
+	for index, pattern := range patterns {
+		expressions[index] = regexp.MustCompile(pattern)
+	}
+	if c12PowerShellAnyLeafPathHasSequence(nodes, expressions) {
+		return
+	}
+	t.Errorf("%s has no single reachable executable call path containing ordered edges %q", label, patterns)
+}
+
+func c12PowerShellAnyLeafPathHasSequence(nodes []c12PowerShellASTNode, expressions []*regexp.Regexp) bool {
+	for _, pathNodes := range c12PowerShellLeafPaths(nodes) {
+		last := -1
+		complete := true
+		for _, expression := range expressions {
+			found := -1
+			for index, node := range pathNodes {
+				if index > last && c12PowerShellNodeMatches(node, expression) {
+					found = index
+					break
+				}
+			}
+			if found < 0 {
+				complete = false
+				break
+			}
+			last = found
+		}
+		if complete {
+			return true
+		}
+	}
+	return false
+}
+
+func c12PowerShellLeafPaths(nodes []c12PowerShellASTNode) map[string][]c12PowerShellASTNode {
+	paths := make(map[string][]c12PowerShellASTNode)
+	for _, node := range nodes {
+		paths[node.Path] = append(paths[node.Path], node)
+	}
+	return paths
+}
+
+func c12ForbidPowerShellCommand(t *testing.T, label string, nodes []c12PowerShellASTNode, command string) {
+	t.Helper()
+	for _, node := range nodes {
+		if strings.EqualFold(node.Command, command) {
+			t.Errorf("%s contains forbidden CommandAst %s", label, command)
+		}
+	}
+}
+
+func c12ForbidPowerShellASTTerm(t *testing.T, label string, nodes []c12PowerShellASTNode, pattern string) {
+	t.Helper()
+	expression := regexp.MustCompile(pattern)
+	for _, node := range nodes {
+		if c12PowerShellNodeMatches(node, expression) {
+			t.Errorf("%s contains forbidden executable AST term %q in %s", label, pattern, node.Kind)
+			return
+		}
+	}
+}
+
+func c12RequirePowerShellASTExactLiteralCount(t *testing.T, label string, nodes []c12PowerShellASTNode, literal string, want int) {
+	t.Helper()
+	for _, pathNodes := range c12PowerShellLeafPaths(nodes) {
+		got := 0
+		for _, node := range pathNodes {
+			for _, argument := range node.Arguments {
+				if argument == literal {
+					got++
+				}
+			}
+		}
+		if got == want {
+			return
+		}
+	}
+	t.Errorf("%s has no single reachable executable call path with literal %q count %d", label, literal, want)
+}
+
+func c12AssertLiteralPreparedFrames(t *testing.T) {
+	t.Helper()
+	payloads := []string{
+		`{"schema":"prepared/v1","type":"HELLO","run":"r","bootstrap_nonce":"b","worker_nonce":"w","worker_pid":41,"expected_controller_pid":42}`,
+		`{"schema":"prepared/v1","type":"VERIFICATION_PROJECTION","role":"trusted-validator","run":"r","bootstrap_nonce":"b","worker_nonce":"w","gate_name":"g","formal_argv":["validator"],"input_count":0,"inputs":[],"terminal_marker":"PASS"}`,
+		`{"schema":"prepared/v1","type":"JOB_MEMBER_READY","run":"r","worker_nonce":"w","projection_digest":"00","opened_inputs_digest":"11"}`,
+		`{"schema":"prepared/v1","type":"CAPABILITIES","run":"r","capability_count":0,"capabilities":[],"capability_digest":"22"}`,
+		`{"schema":"prepared/v1","type":"CAPABILITIES_INSTALLED","run":"r","capability_digest":"22"}`,
+		`{"schema":"prepared/v1","type":"GATE_WAITING","run":"r","gate_name":"g","capability_digest":"22"}`,
+	}
+	prefixes := [][4]byte{{0x87, 0, 0, 0}, {0xe8, 0, 0, 0}, {0x84, 0, 0, 0}, {0x78, 0, 0, 0}, {0x5b, 0, 0, 0}, {0x61, 0, 0, 0}}
+	var wire []byte
+	for index, payload := range payloads {
+		if !json.Valid([]byte(payload)) || strings.ContainsAny(payload, "\r\n") || bytes.HasPrefix([]byte(payload), []byte{0xef, 0xbb, 0xbf}) {
+			t.Fatalf("literal prepared frame %d is not compact BOM-free UTF-8 JSON", index)
+		}
+		wire = append(wire, prefixes[index][:]...)
+		wire = append(wire, payload...)
+	}
+	want, _ := hex.DecodeString("b29408e581e7e4f8d4ed41c67118dbd9cbcfa8fd2473cbb842893536f0025348")
+	got := sha256.Sum256(wire)
+	if !bytes.Equal(got[:], want) {
+		t.Fatalf("literal six-frame wire SHA-256 = %x, want b29408e581e7e4f8d4ed41c67118dbd9cbcfa8fd2473cbb842893536f0025348", got)
+	}
+}
+
+const c12LiteralControllerWALBootstrap = `{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"11111111111111111111111111111111","profile":"authority-v7-pitr","nonce_digest":"2222222222222222222222222222222222222222222222222222222222222222","docker_executable_digest":"3333333333333333333333333333333333333333333333333333333333333333","docker_endpoint_identity_digest":"4444444444444444444444444444444444444444444444444444444444444444","sequence":0,"previous_record_digest":null,"event":"BOOTSTRAP","timestamp_utc":"2026-08-29T17:00:00.0000000Z","payload":{"registry":[],"registry_digest":"f3dc0dc654e27a1376da941217e388da59821b25502a30532149c0a2e536221d"},"payload_digest":"c74747ab1c8a1c04fbb7ae900c465c7c29962094e8062dab6c7e9e4460bfe96f","record_digest":"dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016","hmac_sha256":"827f50e451eeb685ab497f38e9968042e7249aabc64e4df60fb0467b2f4fb8a2"}` + "\n"
+
+func c12AssertLiteralControllerWAL(t *testing.T) {
+	t.Helper()
+	line := c12LiteralControllerWALBootstrap
+	if len(line) != 897 || line[len(line)-1] != '\n' || strings.Contains(line, "\r") || bytes.HasPrefix([]byte(line), []byte{0xef, 0xbb, 0xbf}) {
+		t.Fatalf("literal BOOTSTRAP WAL line grammar/length mismatch: %d bytes", len(line))
+	}
+	const recordDigest = "dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016"
+	key := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
+	rawDigest, err := hex.DecodeString(recordDigest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte("talenro.c12.controller-wal.hmac.v1"))
+	mac.Write([]byte{0})
+	mac.Write(rawDigest)
+	if got := hex.EncodeToString(mac.Sum(nil)); got != "827f50e451eeb685ab497f38e9968042e7249aabc64e4df60fb0467b2f4fb8a2" {
+		t.Fatalf("literal BOOTSTRAP HMAC = %s", got)
+	}
+}
+
+const c12PowerShellASTProbe = `param([Parameter(Mandatory)][string]$ScriptPath)
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$tokens = $null
+$parseErrors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($ScriptPath, [ref]$tokens, [ref]$parseErrors)
+if ($parseErrors.Count -ne 0) { throw ('runner parse errors: ' + ($parseErrors -join '; ')) }
+
+function Get-C12DirectNodes {
+  param([System.Management.Automation.Language.Ast]$Body)
+  $nested = @($Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))
+  $nodes = @($Body.FindAll({
+    param($n)
+    $n -is [System.Management.Automation.Language.CommandAst] -or
+    $n -is [System.Management.Automation.Language.InvokeMemberExpressionAst]
+  }, $true))
+  $result = @()
+  foreach ($node in $nodes) {
+    $insideNested = $false
+    foreach ($definition in $nested) {
+      if ($node.Extent.StartOffset -ge $definition.Extent.StartOffset -and $node.Extent.EndOffset -le $definition.Extent.EndOffset) { $insideNested = $true; break }
+    }
+    if ($insideNested) { continue }
+    $insideLiteralFalseBranch = $false
+    $ancestor = $node.Parent
+    while ($null -ne $ancestor) {
+      if ($ancestor -is [System.Management.Automation.Language.IfStatementAst]) {
+        foreach ($clause in $ancestor.Clauses) {
+          $condition = ([string]$clause.Item1.Extent.Text).Trim()
+          if ($condition -match '^\(?\s*\$false\s*\)?$') { $insideLiteralFalseBranch = $true; break }
+        }
+      }
+      if ($insideLiteralFalseBranch) { break }
+      $ancestor = $ancestor.Parent
+    }
+    if ($insideLiteralFalseBranch) { continue }
+    $command = ''
+    $arguments = [Collections.Generic.List[string]]::new()
+    if ($node -is [System.Management.Automation.Language.CommandAst]) {
+      $command = [string]$node.GetCommandName()
+      for ($index = 1; $index -lt $node.CommandElements.Count; $index++) {
+        $element = $node.CommandElements[$index]
+        if ($element -is [System.Management.Automation.Language.StringConstantExpressionAst] -or $element -is [System.Management.Automation.Language.ExpandableStringExpressionAst]) {
+          $arguments.Add([string]$element.Value)
+        } else {
+          $arguments.Add([string]$element.Extent.Text)
+        }
+      }
+    } else {
+      if ($node.Member -is [System.Management.Automation.Language.StringConstantExpressionAst]) {
+        $command = [string]$node.Member.Value
+      } else {
+        $command = [string]$node.Member.Extent.Text
+      }
+      foreach ($argument in $node.Arguments) {
+        if ($argument -is [System.Management.Automation.Language.StringConstantExpressionAst] -or $argument -is [System.Management.Automation.Language.ExpandableStringExpressionAst]) {
+          $arguments.Add([string]$argument.Value)
+        } else {
+          $arguments.Add([string]$argument.Extent.Text)
+        }
+      }
+    }
+    $result += [pscustomobject]@{
+      kind = $node.GetType().Name
+      parent = if ($null -eq $node.Parent) { '' } else { $node.Parent.GetType().Name }
+      text = [string]$node.Extent.Text
+      command = $command
+      arguments = @($arguments)
+      start = [int]$node.Extent.StartOffset
+    }
+  }
+  return @($result | Sort-Object start,kind,text)
+}
+
+$scopes = @()
+$definitions = @($ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))
+foreach ($definition in $definitions) {
+  $owners = [Collections.Generic.List[string]]::new()
+  $parent = $definition.Parent
+  while ($null -ne $parent) {
+    if ($parent -is [System.Management.Automation.Language.FunctionDefinitionAst]) { $owners.Insert(0, [string]$parent.Name) }
+    if ($parent -is [System.Management.Automation.Language.AssignmentStatementAst] -and $parent.Left.Extent.Text -ceq '$script:c12PreparedNativeWorkerScript') {
+      $owners.Insert(0, '$script:c12PreparedNativeWorkerScript')
+    }
+    $parent = $parent.Parent
+  }
+  $owners.Add([string]$definition.Name)
+  $scopes += [pscustomobject]@{ name = ($owners -join '::'); nodes = @(Get-C12DirectNodes -Body $definition.Body) }
+}
+$workerAssignments = @($ast.FindAll({
+  param($n)
+  $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+    $n.Left.Extent.Text -ceq '$script:c12PreparedNativeWorkerScript'
+}, $true))
+if ($workerAssignments.Count -eq 1) {
+  $scopes += [pscustomobject]@{ name = '$script:c12PreparedNativeWorkerScript'; nodes = @(Get-C12DirectNodes -Body $workerAssignments[0].Right) }
+}
+[pscustomobject]@{ scopes = @($scopes) } | ConvertTo-Json -Depth 8 -Compress
+`
+
+func readC12RunnerSource(t *testing.T) []byte {
+	t.Helper()
+	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
+}
+
+func c12PowerShellFunction(t *testing.T, source, name string) string {
+	t.Helper()
+	marker := "function " + name + " {"
+	start := strings.Index(source, marker)
+	if start < 0 {
+		t.Fatalf("runner lacks PowerShell function %s", name)
+	}
+	rest := source[start+len(marker):]
+	end := strings.Index(rest, "\nfunction ")
+	if end < 0 {
+		return source[start:]
+	}
+	return source[start : start+len(marker)+end]
+}
+
+func c12PowerShellAssignment(t *testing.T, source, marker string) string {
+	t.Helper()
+	start := strings.Index(source, marker)
+	if start < 0 {
+		t.Fatalf("runner lacks PowerShell assignment %s", marker)
+	}
+	rest := source[start+len(marker):]
+	end := strings.Index(rest, "\nfunction ")
+	if end < 0 {
+		return source[start:]
+	}
+	return source[start : start+len(marker)+end]
+}
+
 func TestC12Task4AllowedPackagesStaySynchronizedWithRunner(t *testing.T) {
 	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
 	if err != nil {
@@ -626,8 +1628,41 @@ func main() {
 `
 	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
 
+	// Exercise the production native watchdog and exact cleanup directly. Formal
+	// prepared-validator release belongs to the separate authenticated-pipe tests.
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mainIndex := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if mainIndex < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const cleanupAppendix = `
+$script:c12RepositoryRoot = (Get-Location).Path
+$runSuffix = '11111111111111111111111111111111'
+$failures = @()
+foreach ($kind in @('nats', 'redis', 'postgres')) {
+  $identity = switch ($kind) { 'nats' { '3' }; 'redis' { '2' }; 'postgres' { '1' } }
+  $image = switch ($kind) { 'nats' { 'nats:2.14.3-alpine3.22' }; 'redis' { 'redis:8.8.1-alpine3.23' }; 'postgres' { 'postgres:18.4-alpine3.23' } }
+  $imageByte = switch ($kind) { 'nats' { 'c' }; 'redis' { 'b' }; 'postgres' { 'a' } }
+  $resource = [pscustomobject]@{ Kind = $kind; ID = ($identity * 64); Name = "talenro-c12-$runSuffix-$kind"; ImageRef = $image; ImageID = ('sha256:' + ($imageByte * 64)) }
+  [IO.File]::WriteAllText([Environment]::GetEnvironmentVariable('C12_NAME_' + $kind.ToUpperInvariant()), $resource.Name)
+  try { Remove-C12Container -Resource $resource -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+  catch { $failures += $_.Exception.Message; [Console]::Error.WriteLine($_.Exception.Message) }
+}
+if ($failures.Count -eq 1 -and $failures[0] -match 'stop exact nats container timed out') { Write-Output 'C12_NATIVE_CLEANUP_WATCHDOG_OK' }
+exit 1
+`
+	harnessRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(harnessRoot, "scripts"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1"), append(append([]byte(nil), runner[:mainIndex]...), []byte(cleanupAppendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	started := time.Now()
-	output, exitCode := runC12PowerShellWithTimeout(t, 30*time.Second, map[string]string{
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, harnessRoot, 30*time.Second, map[string]string{
 		"C12_CHILD_PID":        childPID,
 		"C12_CLEANUP_LOG":      cleanupLog,
 		"C12_DELAYED_SENTINEL": delayedSentinel,
@@ -639,6 +1674,9 @@ func main() {
 	elapsed := time.Since(started)
 	if exitCode == 0 || elapsed > 25*time.Second {
 		t.Fatalf("exit=%d elapsed=%s output=%q, want watchdog failure within twenty-five seconds", exitCode, elapsed, output)
+	}
+	if !strings.Contains(output, "C12_NATIVE_CLEANUP_WATCHDOG_OK") {
+		t.Fatalf("production cleanup did not preserve exactly the expected native timeout: %q", output)
 	}
 	deadline := time.Now().Add(7 * time.Second)
 	for time.Now().Before(deadline) && !fileExists(childPID) {
@@ -673,6 +1711,37 @@ func TestC12BaseRunnerUsesFreshBoundedDeadlineForExactContainerCleanup(t *testin
 	output, exitCode := runC12ExpiredGroupCleanupHarness(t)
 	if exitCode != 0 {
 		t.Fatalf("expired-group cleanup harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PreparedArtifactCleanupRetainsOwnershipAfterDeadline(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "prepared-deadline")
+	if exitCode != 0 {
+		t.Fatalf("prepared artifact cleanup retry harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "group-before-run-root")
+	if exitCode != 0 {
+		t.Fatalf("pre-run-root PITR cleanup harness exit=%d output=%q", exitCode, output)
+	}
+	if strings.Contains(output, "C12 cleanup failure [cleanup-before-run-root]: PITR candidates:") {
+		t.Fatalf("pre-run-root failure incorrectly entered PITR candidate cleanup: %q", output)
+	}
+}
+
+func TestC12PITRBaseCleanupSkipsNeverAttemptedVolumes(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "never-attempted-volume")
+	if exitCode != 0 {
+		t.Fatalf("never-attempted PITR volume cleanup harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func TestC12PITRBaseCleanupReinspectsAttemptedUnconfirmedVolume(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "attempted-unconfirmed-volume")
+	if exitCode != 0 {
+		t.Fatalf("attempted-unconfirmed PITR volume cleanup harness exit=%d output=%q", exitCode, output)
 	}
 }
 
@@ -870,7 +1939,7 @@ func TestC12BaseRunnerRejectsUntrustedInputsBeforeDocker(t *testing.T) {
 		{name: "duplicate package", args: []string{"-Profile", "base", "-Packages", "./internal/store|./internal/store", "-Run", "^TestAlpha$", "-Timeout", "3m"}, wantErr: "duplicate package"},
 		{name: "package metacharacter", args: []string{"-Profile", "base", "-Packages", "./internal/store;whoami", "-Run", "^TestAlpha$", "-Timeout", "3m"}, wantErr: "invalid -Packages"},
 		{name: "unknown package", args: []string{"-Profile", "base", "-Packages", "./cmd/control-api", "-Run", "^TestAlpha$", "-Timeout", "3m"}, wantErr: "unknown package"},
-		{name: "future profile", args: []string{"-Profile", "authority-v7", "-Packages", "./internal/store", "-Run", "^TestAlpha$", "-Timeout", "3m"}, wantErr: "only the base profile"},
+		{name: "future profile", args: []string{"-Profile", "authority-v8", "-Packages", "./internal/store", "-Run", "^TestAlpha$", "-Timeout", "3m"}, wantErr: "unsupported closed profile"},
 		{name: "unanchored run", args: []string{"-Profile", "base", "-Packages", "./internal/store", "-Run", "TestAlpha", "-Timeout", "3m"}, wantErr: "anchored"},
 		{name: "oversized focused timeout", args: []string{"-Profile", "base", "-Packages", "./internal/store", "-Run", "^TestAlpha$", "-Timeout", "31m"}, wantErr: "30m"},
 	}
@@ -1485,6 +2554,456 @@ func c12GoJSONEvent(t *testing.T, action, packageName, testName string) string {
 	return string(raw)
 }
 
+func runC12CleanupStateHarness(t *testing.T, mode string) (string, int) {
+	t.Helper()
+	extraEnvironment := map[string]string{}
+	if mode == "cleanup-retained-production" || mode == "docker-exact-production" {
+		fakeBin := t.TempDir()
+		dockerState := t.TempDir()
+		dockerLog := filepath.Join(t.TempDir(), "docker-transcript.log")
+		const fakeDockerSource = `package main
+import("fmt";"os";"strings")
+func failIfDockerEnv(){for _,v:=range os.Environ(){n:=v;if i:=strings.IndexByte(v,'=');i>=0{n=v[:i]};if strings.HasPrefix(strings.ToUpper(n),"DOCKER_"){fmt.Fprintln(os.Stderr,"inherited "+n);os.Exit(91)}}}
+func main(){
+ args:=os.Args[1:];if len(args)==0{os.Exit(74)};f,_:=os.OpenFile(os.Getenv("C12_DOCKER_LOG"),os.O_CREATE|os.O_APPEND|os.O_WRONLY,0600);fmt.Fprintln(f,strings.Join(args,"\x00"));f.Close();failIfDockerEnv()
+ state:=os.Getenv("C12_DOCKER_STATE");suffix:=os.Getenv("C12_RUN_SUFFIX");nonce:=os.Getenv("C12_NONCE_DIGEST");mode:=os.Getenv("C12_DOCKER_MODE");last:=args[len(args)-1]
+ if len(args)>=2&&args[0]=="context"&&args[1]=="show"{fmt.Println("default");return}
+ if len(args)>=2&&args[0]=="context"&&args[1]=="inspect"{host:="npipe:////./pipe/docker_engine";if mode=="endpoint"{host="tcp://attacker.invalid:2375"};fmt.Printf("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":%q,\"SkipTLSVerify\":false}}}]\n",host);return}
+ if args[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
+ if len(args)>=2&&args[0]=="image"&&args[1]=="inspect"{id:="sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e";if mode=="image"{id="sha256:"+strings.Repeat("f",64)};fmt.Println(id);return}
+ if len(args)>=2&&args[0]=="volume"&&args[1]=="create"{os.WriteFile(state,[]byte(last),0600);fmt.Println(last);return}
+ if len(args)>=2&&args[0]=="volume"&&args[1]=="inspect"{
+  if _,e:=os.Stat(state);e!=nil{if mode=="absence-stdout"{fmt.Println("{}") }else{fmt.Println("[]")};message:="Error response from daemon: get "+last+": no such volume";if mode=="absence-stderr"{message+="!"};fmt.Fprintln(os.Stderr,message);os.Exit(1)}
+  driver:="local";managed:="true";if mode=="driver"{driver="attacker"};if mode=="label"{managed="false"}
+  if strings.Contains(strings.Join(args," "),".Driver"){fmt.Printf("%s|%s|%s|%s|authority-v7-pitr|primary-data|%s\n",last,driver,managed,suffix,nonce)}else{fmt.Println(last)};return
+ }
+ if len(args)>=2&&args[0]=="volume"&&args[1]=="rm"{os.Remove(state);if mode=="fail-after-remove"{fmt.Fprintln(os.Stderr,"forced post-remove transport loss");os.Exit(73)};return}
+ if len(args)>=2&&args[0]=="container"&&args[1]=="inspect"{fmt.Println("[]");fmt.Fprintln(os.Stderr,"Error response from daemon: No such container: "+last);os.Exit(1)}
+ fmt.Fprintln(os.Stderr,"unexpected fake docker argv "+strings.Join(args," "));os.Exit(74)
+}`
+		buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
+		extraEnvironment["Path"] = fakeBin + string(os.PathListSeparator) + os.Getenv("Path")
+		extraEnvironment["C12_DOCKER_STATE"] = dockerState
+		extraEnvironment["C12_DOCKER_LOG"] = dockerLog
+		extraEnvironment["C12_RUN_SUFFIX"] = strings.Repeat("d", 32)
+		extraEnvironment["C12_NONCE_DIGEST"] = strings.Repeat("e", 64)
+	}
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	fixturePayload := base64.StdEncoding.EncodeToString([]byte(t.TempDir()))
+	literalWALPayload := base64.StdEncoding.EncodeToString([]byte(c12LiteralControllerWALBootstrap))
+	appendix := fmt.Sprintf(`
+$mode = '%s'
+$fixtureRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$literalControllerWAL = [Convert]::FromBase64String('%s')
+
+try {
+  if ($mode -ceq 'docker-exact') { $mode = 'attempted-unconfirmed-volume' }
+  switch ($mode) {
+	'prepared-direct-ledger' {
+	  $artifact = $null
+	  try {
+	    $artifact = New-C12PreparedArtifactRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -Profile 'authority-v7-pitr'
+	    if ($artifact.PSObject.Properties.Name -cnotcontains 'Ledger') { throw 'production prepared artifact root lacks a direct-leaf ledger' }
+	    $ledgerNames = @($artifact.Ledger | ForEach-Object { [string]$_.Name })
+	    if ($ledgerNames.Count -lt 2 -or $ledgerNames -cnotcontains 'go-cache' -or $ledgerNames -cnotcontains 'go-tmp') {
+	      throw ('production prepared direct-leaf positive ledger mismatch: ' + ($ledgerNames -join '|'))
+	    }
+	    $unknown = Join-Path ([string]$artifact.Root) 'unknown-direct-sibling.bin'
+	    [IO.File]::WriteAllBytes($unknown, [byte[]](1,2,3,4))
+	    $rejected = $false
+	    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+	    catch { $rejected = $_.Exception.Message -match 'unknown.*direct|direct.*sibling' }
+	    if (-not $rejected) { throw 'production prepared ledger accepted an unknown direct sibling' }
+	    if (-not [IO.Directory]::Exists([string]$artifact.Root) -or -not [IO.File]::Exists($unknown)) { throw 'prepared ledger mutation deleted owned state on rejection' }
+	    [IO.File]::Delete($unknown)
+	    Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20))
+	    if ([IO.Directory]::Exists([string]$artifact.Root)) { throw 'production prepared ledger positive cleanup retained its closed root' }
+	    $artifact = $null
+	    Write-Output 'C12_PREPARED_DIRECT_LEDGER_OK'
+	    exit 0
+	  }
+	  finally {
+	    if ($null -ne $artifact -and [IO.Directory]::Exists([string]$artifact.Root)) {
+	      Remove-C12BoundedDirectory -Root ([string]$artifact.Root) -ExpectedParent ([string]$artifact.Parent) -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'test prepared direct-ledger cleanup' -Deadline ([DateTime]::UtcNow.AddSeconds(20)) -Ownership $artifact.Ownership
+	    }
+	  }
+	}
+
+	'pitr-five-leaf' {
+	  $runRoot = $null
+	  try {
+	    $runRoot = New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N'))
+	    if ($runRoot.PSObject.Properties.Name -cnotcontains 'Ledger') { throw 'production PITR run-root lacks retained five-leaf ledger' }
+	    $names = @($runRoot.Ledger | ForEach-Object { [string]$_.Name })
+	    $expected = @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')
+	    if (($names -join '|') -cne ($expected -join '|')) { throw ('production PITR run-root ledger mismatch: ' + ($names -join '|')) }
+	    if ($null -eq (Get-Command Remove-C12PITRRunRoot -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production PITR run-root cleanup entry is absent' }
+	    $sixth = Join-Path ([string]$runRoot.Root) 'sixth-unregistered-leaf.bin'
+	    [IO.File]::WriteAllBytes($sixth, [byte[]](5,6,7,8))
+	    $rejected = $false
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+	    catch { $rejected = $_.Exception.Message -match 'unknown.*direct|direct.*sibling|unregistered.*leaf' }
+	    if (-not $rejected) { throw 'production PITR ledger accepted a sixth direct leaf' }
+	    if (-not [IO.Directory]::Exists([string]$runRoot.Root) -or -not [IO.File]::Exists($sixth)) { throw 'PITR sixth-leaf rejection deleted retained state' }
+	    [IO.File]::Delete($sixth)
+	    Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20))
+	    $runRoot = $null
+	    Write-Output 'C12_PITR_FIVE_LEAF_LEDGER_OK'
+	    exit 0
+	  }
+	  finally {
+	    if ($null -ne $runRoot -and [IO.Directory]::Exists([string]$runRoot.Root)) {
+	      Remove-C12BoundedDirectory -Root ([string]$runRoot.Root) -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-pitr-[0-9a-f]{32}$' -Stage 'test PITR run-root cleanup' -Deadline ([DateTime]::UtcNow.AddSeconds(20)) -Ownership $runRoot.Ownership
+	    }
+	  }
+	}
+
+	'controller-wal' {
+	  $runRoot = $null
+	  try {
+	    $runRoot = New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N'))
+	    if ($null -eq (Get-Command Assert-C12ControllerOwnershipWAL -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production controller-WAL verifier entry is absent' }
+	    if ($runRoot.PSObject.Properties.Name -cnotcontains 'ControllerWAL' -or $runRoot.ControllerWAL.PSObject.Properties.Name -cnotcontains 'Path') { throw 'production PITR run-root lacks controller WAL state/path' }
+	    $walPath = [string]$runRoot.ControllerWAL.Path
+	    $observed = [IO.File]::ReadAllBytes($walPath)
+	    if (-not [Linq.Enumerable]::SequenceEqual([byte[]]$observed, [byte[]]$literalControllerWAL)) { throw 'production BOOTSTRAP WAL bytes differ from the reviewed literal line' }
+	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    $baseline = [byte[]]$observed.Clone()
+	    $baselineText = [Text.Encoding]::UTF8.GetString($baseline)
+	    $mutations = [ordered]@{
+	      payload = $baselineText.Replace('"registry":[]','"registry":[1]')
+	      payload_digest = $baselineText.Replace('"payload_digest":"c747','"payload_digest":"0747')
+	      record_digest = $baselineText.Replace('"record_digest":"dc13','"record_digest":"0c13')
+	      hmac = $baselineText.Replace('"hmac_sha256":"827f','"hmac_sha256":"027f')
+	      previous = $baselineText.Replace('"previous_record_digest":null','"previous_record_digest":"0000000000000000000000000000000000000000000000000000000000000000"')
+	    }
+	    foreach ($entry in $mutations.GetEnumerator()) {
+	      [IO.File]::WriteAllBytes($walPath, [Text.Encoding]::UTF8.GetBytes([string]$entry.Value))
+	      $rejected = $false
+	      try { Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL }
+	      catch { $rejected = $_.Exception.Message -match [string]$entry.Key }
+	      if (-not $rejected) { throw ('production controller WAL verifier accepted or misclassified ' + [string]$entry.Key + ' mutation') }
+	      [IO.File]::WriteAllBytes($walPath, $baseline)
+	    }
+	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    Write-Output 'C12_CONTROLLER_WAL_LITERAL_OK'
+	    exit 0
+	  }
+	  finally {
+	    if ($null -ne $runRoot -and [IO.Directory]::Exists([string]$runRoot.Root)) {
+	      Remove-C12BoundedDirectory -Root ([string]$runRoot.Root) -ExpectedParent ([IO.Path]::GetTempPath()) -LeafPattern '^talenro-c12-pitr-[0-9a-f]{32}$' -Stage 'test controller-WAL run-root cleanup' -Deadline ([DateTime]::UtcNow.AddSeconds(20)) -Ownership $runRoot.Ownership
+	    }
+	  }
+	}
+
+    'prepared-deadline' {
+      $root = Join-Path $fixtureRoot "talenro-c12-artifacts-$([Guid]::NewGuid().ToString('N'))"
+      $ownership = $null
+      try {
+        $ownership = New-C12OwnedDirectory -Root $root -ExpectedParent $fixtureRoot -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'prepared retry fixture creation'
+        $artifact = [pscustomobject]@{
+          Root = $root
+          Parent = $fixtureRoot
+          Ownership = $ownership
+          ArtifactRootIdentity = [string]$ownership.Identity
+          Closed = $false
+        }
+        $script:c12PreparedArtifactRoot = $artifact
+        $script:c12PreparedReceipts.Clear()
+        $script:c12PreparedWorkers.Clear()
+        $script:c12PreparedReceiptKeyHex = (('a' * 64) -join '')
+
+        $expiredRejected = $false
+        try {
+          Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(-1))
+        }
+        catch {
+          $expiredRejected = $_.Exception.Message.Contains('exceeded its absolute deadline')
+        }
+        if (-not $expiredRejected) { throw 'prepared artifact cleanup accepted an expired deadline' }
+        if ($null -eq $script:c12PreparedArtifactRoot) { throw 'failed prepared cleanup cleared its global root state' }
+        $ownership.VerifyExactPath()
+
+        Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+        $ownership = $null
+        if (-not [bool]$artifact.Closed) { throw 'fresh prepared cleanup did not close its artifact state' }
+        if ($null -ne $script:c12PreparedArtifactRoot -or
+            $script:c12PreparedReceipts.Count -ne 0 -or
+            $script:c12PreparedWorkers.Count -ne 0 -or
+            -not [string]::IsNullOrEmpty($script:c12PreparedReceiptKeyHex)) {
+          throw 'fresh prepared cleanup did not clear all global controller state'
+        }
+        if ([IO.Directory]::Exists($root) -or [IO.File]::Exists($root)) {
+          throw 'fresh prepared cleanup left its exact root'
+        }
+      }
+      finally {
+        if ($null -ne $ownership) { $ownership.Dispose() }
+        if ([IO.Directory]::Exists($root)) { [IO.Directory]::Delete($root, $false) }
+      }
+      Write-Output 'C12_PREPARED_DEADLINE_RETRY_OK'
+      exit 0
+    }
+
+    'cleanup-retained-production' {
+      $script:c12RepositoryRoot = $fixtureRoot
+      $runSuffix = (('d' * 32) -join '')
+      $nonceDigest = (('e' * 64) -join '')
+      $volume = New-C12PITRVolumeResource -Name "talenro-c12-$runSuffix-pitr-primary-data" -Role 'primary-data' -NonceDigest $nonceDigest
+      Start-C12PITRVolume -Resource $volume -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+      if ($volume.PSObject.Properties.Name -cnotcontains 'Phase' -or
+          $volume.PSObject.Properties.Name -cnotcontains 'OwnershipHandle' -or
+          $volume.PSObject.Properties.Name -cnotcontains 'RetryState') {
+        throw 'production PITR volume lacks retained phase/ownership/retry state after positive create+inspect'
+      }
+      if ([string]$volume.Phase -cne 'Verified') { throw ('production PITR volume positive phase = ' + [string]$volume.Phase) }
+      $ownershipHandle = $volume.OwnershipHandle
+      $retryState = $volume.RetryState
+      [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', 'fail-after-remove', 'Process')
+      $failed = $false
+      try { Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30)) }
+      catch { $failed = $_.Exception.Message -match 'exit code 73|post-remove transport loss' }
+      if (-not $failed) { throw 'production cleanup did not surface the post-remove/pre-result mutation' }
+      if ([string]$volume.Phase -cne 'CleanIntent' -or $volume.OwnershipHandle -ne $ownershipHandle -or $volume.RetryState -ne $retryState) {
+        throw 'failed cleanup did not retain the same CleanIntent ownership/retry object'
+      }
+      [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
+      Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+      if ([string]$volume.Phase -cnotin @('Removed','Absent')) { throw ('fresh-deadline retry did not reach a terminal phase: ' + [string]$volume.Phase) }
+      Write-Output 'C12_PRODUCTION_CLEANUP_RETAINED_STATE_OK'
+      exit 0
+    }
+
+    'docker-exact-production' {
+      $script:c12RepositoryRoot = $fixtureRoot
+      foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) {
+        [Environment]::SetEnvironmentVariable($name, 'attacker-canary', 'Process')
+      }
+      try {
+        $context = Invoke-C12Docker -Arguments @('context','show') -Stage 'freeze Docker context receipt' -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        if ($context.ExitCode -ne 0 -or (@($context.Output) -join '') -cne 'default') { throw 'production Docker positive context transcript mismatch' }
+        if ($context.PSObject.Properties.Name -cnotcontains 'ExecutableReceipt' -or $context.PSObject.Properties.Name -cnotcontains 'EndpointReceipt') {
+          throw 'production Invoke-C12Docker lacks executable and endpoint receipts'
+        }
+        if ($null -eq (Get-Command New-C12PITRContainerResource -CommandType Function -ErrorAction SilentlyContinue) -or
+            $null -eq (Get-Command Assert-C12PITRContainerReceipt -CommandType Function -ErrorAction SilentlyContinue)) {
+          throw 'production runner lacks a constructible PITR container-resource/receipt boundary; container receipt coverage cannot be synthesized by this harness'
+        }
+        $endpointDigest = [string]$context.EndpointReceipt.Digest
+        $executableDigest = [string]$context.ExecutableReceipt.Digest
+        if ($endpointDigest -notmatch '^[0-9a-f]{64}$' -or $executableDigest -notmatch '^[0-9a-f]{64}$') { throw 'production Docker receipt digest is malformed' }
+        $endpoint = Invoke-C12Docker -Arguments @('context','inspect','default') -Stage 'freeze Docker endpoint' -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        $engine = Invoke-C12Docker -Arguments @('info','--format','{{.ID}}|{{.ServerVersion}}|{{.OSType}}|{{.Architecture}}') -Stage 'freeze Docker engine' -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        $image = Invoke-C12Docker -Arguments @('image','inspect','--format','{{.Id}}','postgres:18.4-alpine3.23') -Stage 'freeze Docker image receipt' -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        foreach ($result in @($endpoint,$engine,$image)) {
+          if ([string]$result.EndpointReceipt.Digest -cne $endpointDigest -or [string]$result.ExecutableReceipt.Digest -cne $executableDigest) { throw 'Docker operation did not revalidate the same executable+endpoint receipt' }
+        }
+        if ((@($image.Output) -join '') -cne 'sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e') { throw 'production Docker image positive receipt mismatch' }
+
+        $runSuffix = (('d' * 32) -join '')
+        $nonceDigest = (('e' * 64) -join '')
+        $volume = New-C12PITRVolumeResource -Name "talenro-c12-$runSuffix-pitr-primary-data" -Role 'primary-data' -NonceDigest $nonceDigest
+        Start-C12PITRVolume -Resource $volume -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        foreach ($mutation in @('endpoint','image','driver','label')) {
+          [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $mutation, 'Process')
+          $rejected = $false
+          try {
+            if ($mutation -ceq 'image') {
+              $null = Invoke-C12Docker -Arguments @('image','inspect','--format','{{.Id}}','postgres:18.4-alpine3.23') -Stage 'mutated Docker image receipt' -Deadline ([DateTime]::UtcNow.AddSeconds(20))
+            } else {
+              $null = Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(20))
+            }
+          }
+          catch { $rejected = $_.Exception.Message -match $mutation }
+          if (-not $rejected) { throw ('production Docker parser accepted or misclassified ' + $mutation + ' mutation') }
+          if (-not [IO.File]::Exists($env:C12_DOCKER_STATE)) { throw ($mutation + ' mutation removed the exact owned volume') }
+        }
+        [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
+        Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        foreach ($mutation in @('absence-stdout','absence-stderr')) {
+          [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $mutation, 'Process')
+          $rejected = $false
+          try { $null = Invoke-C12Docker -Arguments @('volume','inspect','--format','{{.Name}}',[string]$volume.Name) -Stage 'mutated exact absence transcript' -AllowFailure -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+          catch { $rejected = $_.Exception.Message -match 'absence|ambiguous' }
+          if (-not $rejected) { throw ('production Docker exact-absence parser accepted ' + $mutation) }
+        }
+        Write-Output 'C12_PRODUCTION_DOCKER_EXACT_OK'
+        exit 0
+      }
+      finally {
+        [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
+        foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
+      }
+    }
+
+    'group-before-run-root' {
+      $script:c12HarnessCandidateCalls = 0
+      $script:c12HarnessBaseCalls = 0
+      function New-C12PreparedAuthorityInitializer {
+        throw 'forced initializer failure before PITR run-root acquisition'
+      }
+      function Remove-C12PITRCandidates {
+        $script:c12HarnessCandidateCalls++
+      }
+      function Remove-C12PITRBaseResources {
+        $script:c12HarnessBaseCalls++
+      }
+      $groupFailed = $false
+      try {
+        Invoke-C12Group -GroupID 'cleanup-before-run-root' -GroupProfile 'authority-v7-pitr' -Package './internal/testinfra' -GroupTimeout '3m' -AbsoluteDeadline ([DateTime]::UtcNow.AddMinutes(2))
+      }
+      catch {
+        $groupFailed = $_.Exception.Message -ceq 'C12 group cleanup-before-run-root failed'
+      }
+      if (-not $groupFailed) { throw 'pre-run-root group did not preserve its primary failure' }
+      if ($script:c12HarnessCandidateCalls -ne 0) { throw 'pre-run-root group invoked PITR candidate cleanup' }
+      Write-Output ('C12_PRE_RUN_ROOT_CLEANUP_OK BASE_CALLS=' + $script:c12HarnessBaseCalls)
+      exit 0
+    }
+
+    'never-attempted-volume' {
+      $script:c12HarnessDockerCalls = 0
+      function Invoke-C12Docker {
+        param(
+          [string[]]$Arguments,
+          [string]$Stage,
+          [TimeSpan]$Timeout = [TimeSpan]::FromSeconds(15),
+          [DateTime]$Deadline = [DateTime]::MaxValue,
+          [switch]$AllowFailure
+        )
+        $script:c12HarnessDockerCalls++
+        throw 'never-attempted PITR volume reached Docker'
+      }
+      $runSuffix = (('b' * 32) -join '')
+      $nonceDigest = (('c' * 64) -join '')
+      $volume = New-C12PITRVolumeResource -Name "talenro-c12-$runSuffix-pitr-primary-data" -Role 'primary-data' -NonceDigest $nonceDigest
+      if ($volume.PSObject.Properties.Name -cnotcontains 'CreateAttempted') {
+        throw 'PITR volume state lacks CreateAttempted'
+      }
+      if ([bool]$volume.CreateAttempted) { throw 'new PITR volume is already marked attempted' }
+      Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+      if ($script:c12HarnessDockerCalls -ne 0) { throw 'never-attempted PITR volume performed Docker I/O' }
+      Write-Output 'C12_NEVER_ATTEMPTED_VOLUME_SKIPPED'
+      exit 0
+    }
+
+    'attempted-unconfirmed-volume' {
+      $script:c12HarnessDockerMode = ''
+      $script:c12HarnessRemoveCalls = 0
+      $script:c12HarnessInspectCalls = 0
+      $runSuffix = (('d' * 32) -join '')
+      $nonceDigest = (('e' * 64) -join '')
+      $volumeName = "talenro-c12-$runSuffix-pitr-primary-data"
+      function Invoke-C12Docker {
+        param(
+          [string[]]$Arguments,
+          [string]$Stage,
+          [TimeSpan]$Timeout = [TimeSpan]::FromSeconds(15),
+          [DateTime]$Deadline = [DateTime]::MaxValue,
+          [switch]$AllowFailure
+        )
+        if ($Arguments.Count -ge 2 -and $Arguments[0] -ceq 'volume' -and $Arguments[1] -ceq 'inspect') {
+          $script:c12HarnessInspectCalls++
+          $format = if ($Arguments.Count -ge 4) { [string]$Arguments[3] } else { '' }
+          if ($format -ceq '{{.Name}}') {
+            return [pscustomobject]@{ ExitCode = 1; Output = @() }
+          }
+          switch ($script:c12HarnessDockerMode) {
+            'absent' {
+              return [pscustomobject]@{ ExitCode = 1; Output = @() }
+            }
+            'foreign' {
+              $foreign = "$volumeName|local|true|$runSuffix|authority-v7-pitr|archive|$nonceDigest"
+              return [pscustomobject]@{ ExitCode = 0; Output = @($foreign) }
+            }
+            'matching' {
+              $matching = "$volumeName|local|true|$runSuffix|authority-v7-pitr|primary-data|$nonceDigest"
+              return [pscustomobject]@{ ExitCode = 0; Output = @($matching) }
+            }
+          }
+        }
+        if ($Arguments.Count -ge 2 -and $Arguments[0] -ceq 'volume' -and $Arguments[1] -ceq 'rm') {
+          $script:c12HarnessRemoveCalls++
+          if ($script:c12HarnessDockerMode -cne 'matching' -or [string]$Arguments[-1] -cne $volumeName) {
+            throw 'PITR cleanup removed a volume without matching identity'
+          }
+          return [pscustomobject]@{ ExitCode = 0; Output = @() }
+        }
+        throw ('unexpected PITR volume cleanup call: ' + ($Arguments -join ' '))
+      }
+
+      $volume = New-C12PITRVolumeResource -Name $volumeName -Role 'primary-data' -NonceDigest $nonceDigest
+      if ($volume.PSObject.Properties.Name -cnotcontains 'CreateAttempted') {
+        throw 'PITR volume state lacks CreateAttempted'
+      }
+      $volume.CreateAttempted = $true
+      $volume.Created = $false
+
+      $script:c12HarnessDockerMode = 'absent'
+      Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+      if ($script:c12HarnessRemoveCalls -ne 0) { throw 'absent attempted volume was removed' }
+
+      $script:c12HarnessDockerMode = 'foreign'
+      $foreignRejected = $false
+      try {
+        Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+      }
+      catch {
+        $foreignRejected = $_.Exception.Message.Contains('identity mismatch')
+      }
+      if (-not $foreignRejected) { throw 'foreign attempted volume identity was accepted' }
+      if ($script:c12HarnessRemoveCalls -ne 0) { throw 'foreign attempted volume was removed' }
+
+      $script:c12HarnessDockerMode = 'matching'
+      Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+      if ($script:c12HarnessRemoveCalls -ne 1) { throw 'matching attempted volume was not removed exactly once' }
+      if ($script:c12HarnessInspectCalls -lt 4) { throw 'attempted volume was not re-inspected and absence-verified' }
+      Write-Output 'C12_ATTEMPTED_UNCONFIRMED_VOLUME_REINSPECTED'
+      exit 0
+    }
+  }
+  throw ('unknown cleanup-state harness mode ' + $mode)
+}
+catch {
+  [Console]::Error.WriteLine($_.Exception.Message)
+  exit 1
+}
+`, mode, fixturePayload, literalWALPayload)
+	harness := filepath.Join(t.TempDir(), "assert-c12-cleanup-state.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	command.Env = append([]string(nil), os.Environ()...)
+	for name, value := range extraEnvironment {
+		command.Env = append(command.Env, name+"="+value)
+	}
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("cleanup-state %s harness timed out: %v\n%s", mode, ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch cleanup-state %s harness: %v", mode, commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
 func runC12ExpiredGroupCleanupHarness(t *testing.T) (string, int) {
 	t.Helper()
 	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
@@ -1710,6 +3229,517 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 	var exitError *exec.ExitError
 	if !errors.As(commandErr, &exitError) {
 		t.Fatalf("launch dependency deadline harness: %v", commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
+func runC12PreparedArtifactHarness(t *testing.T, mode string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	fixtureRoot := t.TempDir()
+	fixturePayload := base64.StdEncoding.EncodeToString([]byte(fixtureRoot))
+	appendix := fmt.Sprintf(`
+$mode = '%s'
+$fixtureRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$runSuffix = [Guid]::NewGuid().ToString('N')
+$artifact = $null
+$prepared = $null
+$artifactPath = ''
+$executionMarker = Join-Path $fixtureRoot 'prepared-target-executed.txt'
+$success = $false
+try {
+  $artifact = New-C12PreparedArtifactRoot -RunSuffix $runSuffix -Profile 'authority-v7-pitr'
+  $artifactPath = [string]$artifact.Root
+  $sourceExecutable = [IO.Path]::GetFullPath((Join-Path $env:SystemRoot 'System32\cmd.exe'))
+  $executablePath = Join-Path $artifactPath "trusted-validator-$([Guid]::NewGuid().ToString('N')).exe"
+  [IO.File]::Copy($sourceExecutable, $executablePath, $false)
+  $sourceDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes('prepared-artifact-fixture/v1'))
+  $toolchain = [pscustomobject]@{
+    Path = $sourceExecutable
+    SHA256 = (Get-C12SHA256Hex -Bytes ([IO.File]::ReadAllBytes($sourceExecutable)))
+    Version = 'prepared-artifact-fixture/v1'
+    GOOS = 'windows'
+    GOARCH = 'amd64'
+  }
+  $arguments = @('/d', '/c', ('echo C12_TARGET_EXECUTED>"{0}" & echo C12_PREPARED_FIXTURE_OK' -f $executionMarker))
+  $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifact -Role 'trusted-validator' -Profile 'authority-v7-pitr' -Purpose 'prepared-artifact-fixture' -SourceIdentity 'prepared-artifact-fixture/v1' -SourceDigest $sourceDigest -CandidateTreeIdentity ('f' * 40) -BuildArguments @('fixture', 'copy') -GoToolchain $toolchain -ExecutablePath $executablePath -Arguments $arguments -WorkingDirectory $fixtureRoot
+
+  if ($mode -cin @('prepared-suspended-membership', 'prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle', 'prepared-cleanup-retry', 'prepared-job-collision')) {
+    if ($null -eq (Get-Command New-C12SuspendedPreparedWorker -ErrorAction SilentlyContinue)) {
+      throw 'production suspended process factory is absent'
+    }
+    Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.InteropServices;
+public static class C12ContainmentProbe {
+  [DllImport("kernel32.dll", SetLastError=true)] public static extern uint GetProcessId(IntPtr process);
+  [DllImport("kernel32.dll", SetLastError=true)] public static extern uint GetProcessIdOfThread(IntPtr thread);
+  [DllImport("kernel32.dll", SetLastError=true)] public static extern bool IsProcessInJob(IntPtr process, IntPtr job, out bool member);
+  [DllImport("kernel32.dll", SetLastError=true)] static extern bool DuplicateHandle(IntPtr source, IntPtr handle, IntPtr target, out IntPtr duplicate, uint access, bool inherit, uint options);
+  [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
+  [DllImport("kernel32.dll", SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
+  public static void DenyAssignment(object controller) {
+    FieldInfo field = controller.GetType().GetField("jobHandle", BindingFlags.Instance | BindingFlags.NonPublic);
+    if (field == null) throw new Exception("controller has no retained Job handle");
+    IntPtr original = (IntPtr)field.GetValue(controller), restricted;
+    // Keep QUERY, TERMINATE and SYNCHRONIZE, but remove ASSIGN_PROCESS.
+    if (!DuplicateHandle(GetCurrentProcess(), original, GetCurrentProcess(), out restricted, 0x001F003E, false, 0))
+      throw new Win32Exception(Marshal.GetLastWin32Error());
+    field.SetValue(controller, restricted);
+    if (!CloseHandle(original)) throw new Win32Exception(Marshal.GetLastWin32Error());
+  }
+  public static IntPtr RemoveThreadHandle(object controller) {
+    FieldInfo field = controller.GetType().GetField("primaryThreadHandle", BindingFlags.Instance | BindingFlags.NonPublic);
+    IntPtr original = (IntPtr)field.GetValue(controller);
+    field.SetValue(controller, IntPtr.Zero);
+    return original;
+  }
+  public static void RestoreThreadHandle(object controller, IntPtr original) {
+    controller.GetType().GetField("primaryThreadHandle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(controller, original);
+  }
+  public static void ChangeExpectedPID(object controller) {
+    controller.GetType().GetProperty("ProcessId").GetSetMethod(true).Invoke(controller, new object[] { (uint)1 });
+  }
+  public static void CloseTestHandle(IntPtr handle) { if (!CloseHandle(handle)) throw new Win32Exception(Marshal.GetLastWin32Error()); }
+}
+'@
+    if ($mode -ceq 'prepared-job-collision') {
+      $collisionJob = [C12NativeJob]::CreateKillOnClose([string]$receipt.NativeJobName)
+      try {
+        $collisionRejected = $false
+        try { $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20)) }
+        catch { $collisionRejected = $_.Exception.ToString() -match 'collision' }
+        if (-not $collisionRejected -or $script:c12PreparedWorkers.Count -ne 0) { throw 'prepared worker adopted a colliding native Job' }
+        if ([IO.File]::Exists($executionMarker)) { throw 'colliding native Job started the worker' }
+      }
+      finally { [C12NativeJob]::Close($collisionJob) }
+    }
+    elseif ($mode -cin @('prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle')) {
+      $script:containmentRealFactory = (Get-Command New-C12SuspendedProcessController).ScriptBlock
+      $script:containmentFailedController = $null
+      function New-C12SuspendedProcessController {
+        param($Executable, $Arguments, $WorkingDirectory, $Environment, $JobName)
+        $controller = & $script:containmentRealFactory @PSBoundParameters
+        $script:containmentFailedController = $controller
+        $script:containmentFailedPID = $controller.ProcessId
+        if ($mode -ceq 'prepared-assignment-failure') { [C12ContainmentProbe]::DenyAssignment($controller) }
+        elseif ($mode -ceq 'prepared-pid-mismatch') { [C12ContainmentProbe]::ChangeExpectedPID($controller) }
+        else { $script:containmentRemovedThread = [C12ContainmentProbe]::RemoveThreadHandle($controller) }
+        return $controller
+      }
+      $assignmentRejected = $false
+      try { $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20)) }
+      catch { $assignmentRejected = $_.Exception.ToString() -match 'AssignProcessToJobObject|PID/handle mismatch|primary thread handle is zero or invalid' }
+      if (-not $assignmentRejected -or $null -eq $script:containmentFailedController) { throw 'forced native assignment failure was not preserved' }
+      $prepared = @($script:c12PreparedWorkers | Select-Object -Last 1)[0]
+      if ($mode -ceq 'prepared-invalid-thread-handle') {
+        if (-not $prepared.Closed) {
+          # Restore test-owned state so even a RED run can clean its process.
+          [C12ContainmentProbe]::RestoreThreadHandle($prepared.Controller, $script:containmentRemovedThread)
+        }
+        else { [C12ContainmentProbe]::CloseTestHandle($script:containmentRemovedThread) }
+      }
+      if (-not $prepared.Closed -or $prepared.Phase -cne 'Removed' -or -not $prepared.ActiveProcessZeroConfirmed) { throw 'assignment failure did not converge its retained worker record' }
+      if (Get-Process -Id $script:containmentFailedPID -ErrorAction SilentlyContinue) { throw 'assignment-failed suspended worker PID survived cleanup' }
+      if (-not $prepared.Controller.ActiveProcessZeroConfirmed) { throw 'assignment-failed Job did not confirm zero active processes' }
+      if ([IO.File]::Exists($executionMarker)) { throw 'assignment-failed worker executed its sentinel' }
+    }
+    else {
+      $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20))
+      foreach ($handle in @('ProcessHandle', 'PrimaryThreadHandle', 'JobHandle', 'CompletionPortHandle')) {
+        if ($prepared.PSObject.Properties.Name -cnotcontains $handle -or [IntPtr]$prepared.$handle -eq [IntPtr]::Zero -or [IntPtr]$prepared.$handle -eq [IntPtr](-1)) { throw "prepared worker lacks retained $handle" }
+      }
+      if ($prepared.Phase -cne 'MembershipVerified' -or $prepared.Controller.Phase -cne 'MembershipVerified') { throw 'prepared worker did not stop at MembershipVerified' }
+      if ([C12ContainmentProbe]::GetProcessId($prepared.ProcessHandle) -ne $prepared.ProcessId -or [C12ContainmentProbe]::GetProcessIdOfThread($prepared.PrimaryThreadHandle) -ne $prepared.ProcessId) { throw 'retained handles do not bind the worker PID' }
+      $member = $false
+      if (-not [C12ContainmentProbe]::IsProcessInJob($prepared.ProcessHandle, $prepared.JobHandle, [ref]$member) -or -not $member) { throw 'prepared process is not in the exact controller Job' }
+      Start-Sleep -Milliseconds 300
+      if ([IO.File]::Exists($executionMarker)) { throw 'production prepared worker executed before release' }
+      if ($mode -ceq 'prepared-cleanup-retry') {
+        $retainedProcess = $prepared.ProcessHandle
+        $retainedJob = $prepared.JobHandle
+        $retainedPort = $prepared.CompletionPortHandle
+        $retainedThread = $prepared.PrimaryThreadHandle
+        $timedOut = $false
+        try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(-1)) }
+        catch { $timedOut = $_.Exception.Message -match 'confirmation|deadline' }
+        if (-not $timedOut -or $prepared.Closed -or $prepared.Phase -cne 'CleanIntent') { throw 'cleanup timeout erased retryable worker state' }
+        if ($prepared.ProcessHandle -ne $retainedProcess -or $prepared.JobHandle -ne $retainedJob -or $prepared.CompletionPortHandle -ne $retainedPort -or $prepared.PrimaryThreadHandle -ne $retainedThread) { throw 'cleanup timeout disposed retained native handles' }
+      }
+      Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10))
+      if (-not $prepared.Closed -or -not $prepared.ActiveProcessZeroConfirmed -or $prepared.Phase -cne 'Removed') { throw 'prepared worker cleanup did not converge' }
+      if (Get-Process -Id $prepared.ProcessId -ErrorAction SilentlyContinue) { throw 'contained worker PID survived cleanup' }
+
+      if ($mode -ceq 'prepared-suspended-membership') {
+        # The primitive positive control is test-only. Production stops at MembershipVerified.
+        $environment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($entry in [Environment]::GetEnvironmentVariables().GetEnumerator()) { $environment[[string]$entry.Key] = [string]$entry.Value }
+        $controller = [C12SuspendedProcessController]::Create($executablePath, ('/d /c echo C12_TARGET_EXECUTED>"' + $executionMarker + '"'), $fixtureRoot, $environment)
+        try {
+          $earlyDisposeRejected = $false
+          try { $controller.Dispose() } catch { $earlyDisposeRejected = $true }
+          if (-not $earlyDisposeRejected -or $controller.ProcessHandle -eq [IntPtr]::Zero) { throw 'live native controller discarded its handles before exit confirmation' }
+          foreach ($phase in @('CreatedSuspended', 'AssignedToJob')) {
+            if ($controller.Phase -cne $phase) { throw "native controller skipped $phase" }
+            $resumeRejected = $false
+            try { $controller.Resume() } catch { $resumeRejected = $true }
+            if (-not $resumeRejected) { throw "native controller resumed in $phase" }
+            Start-Sleep -Milliseconds 300
+            if ([IO.File]::Exists($executionMarker)) { throw "worker executed while $phase" }
+            if ($phase -ceq 'CreatedSuspended') { $controller.AssignToJob() }
+          }
+          $controller.VerifyMembership()
+          if ([IO.File]::Exists($executionMarker)) { throw 'worker executed before membership verification' }
+          $controller.Resume()
+          if (-not $controller.WaitForActiveProcessZero(10000)) { throw 'positive-control Job did not reach active-process-zero' }
+          if ($controller.ActiveProcesses -ne 0) { throw 'native Job reported active processes after confirmation' }
+          if (-not [IO.File]::Exists($executionMarker) -or ([IO.File]::ReadAllText($executionMarker)).Trim() -cne 'C12_TARGET_EXECUTED') { throw 'native resume positive control did not execute sentinel' }
+          $duplicateResumeRejected = $false
+          try { $controller.Resume() } catch { $duplicateResumeRejected = $true }
+          if (-not $duplicateResumeRejected) { throw 'duplicate native resume was accepted' }
+        }
+        finally { $controller.Terminate(1); if ($controller.WaitForActiveProcessZero(10000)) { $controller.Dispose() } }
+        $disposedRejected = $false
+        try { $controller.VerifyMembership() } catch { $disposedRejected = $true }
+        if (-not $disposedRejected) { throw 'disposed controller accepted membership verification' }
+      }
+    }
+    $success = $true
+  }
+  else {
+
+  switch ($mode) {
+    'byte-tamper' {
+      [IO.File]::AppendAllText($executablePath, 'tamper')
+    }
+    'file-id-splice' {
+      [IO.File]::Move($executablePath, "$executablePath.original")
+      [IO.File]::Copy($sourceExecutable, $executablePath, $false)
+    }
+    'reparse' {
+      [IO.File]::Move($executablePath, "$executablePath.original")
+      New-Item -ItemType Junction -Path $executablePath -Target $fixtureRoot | Out-Null
+    }
+    'hard-link' {
+      New-Item -ItemType HardLink -Path (Join-Path $artifactPath 'receipt-hard-link.exe') -Target $executablePath | Out-Null
+    }
+    'dacl' {
+      $security = [IO.File]::GetAccessControl($executablePath)
+      $everyone = New-Object Security.Principal.SecurityIdentifier('S-1-1-0')
+      $security.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($everyone, [Security.AccessControl.FileSystemRights]::Read, [Security.AccessControl.AccessControlType]::Allow)))
+      [IO.File]::SetAccessControl($executablePath, $security)
+    }
+  }
+
+  if ($mode -cin @('byte-tamper', 'file-id-splice', 'reparse', 'hard-link', 'dacl')) {
+    $rejected = $false
+    try { $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(45)) }
+    catch { $rejected = $true }
+    if (-not $rejected) { throw "$mode mutation reached a prepared worker" }
+    if ($null -ne $prepared -and (Get-C12PreparedWorkerPhases -Prepared $prepared) -ccontains 'EXEC_BEGIN') { throw "$mode mutation reached EXEC_BEGIN" }
+    $success = $true
+  }
+  else {
+    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(45))
+    if ($mode -ceq 'prepared-suspended-membership') {
+      if ([IO.File]::Exists($executionMarker)) { throw 'prepared target executed before controller release' }
+      if ($prepared.PSObject.Properties.Name -cnotcontains 'ProcessID' -or
+          $prepared.PSObject.Properties.Name -cnotcontains 'ProcessHandle' -or
+          $prepared.PSObject.Properties.Name -cnotcontains 'NativeJobHandle') {
+        throw 'production prepared worker lacks exact suspended-process PID/handle membership state'
+      }
+      if ($prepared.PSObject.Properties.Name -ccontains 'Job' -and $prepared.Job -is [Management.Automation.Job]) {
+        throw 'production prepared worker still uses Start-Job instead of a suspended native process'
+      }
+      $membershipMethod = [C12NativeJob].GetMethod('IsProcessInJob', [Reflection.BindingFlags]'Public,Static')
+      if ($null -eq $membershipMethod) { throw 'production native Job sentinel lacks IsProcessInJob' }
+      if (-not [bool]$membershipMethod.Invoke($null, [object[]]@([IntPtr]$prepared.ProcessHandle, [IntPtr]$prepared.NativeJobHandle))) {
+        throw 'production prepared target PID is not a member of its exact native Job before release'
+      }
+    }
+    if ($mode -ceq 'wrong-role') {
+      $rejected = $false
+      try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'authority-initializer-json' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{} }
+      catch { $rejected = $_.Exception.Message.Contains('wrong role') }
+      if (-not $rejected) { throw 'wrong-role prepared invocation was accepted' }
+      if ((Get-C12PreparedWorkerPhases -Prepared $prepared) -ccontains 'EXEC_BEGIN') { throw 'wrong-role invocation reached EXEC_BEGIN' }
+      $success = $true
+    }
+    else {
+      $result = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{}
+      if (@($result.Output | Where-Object { [string]$_ -ceq 'C12_PREPARED_FIXTURE_OK' }).Count -ne 1) { throw 'prepared fixture output marker mismatch' }
+      if (-not [IO.File]::Exists($executionMarker) -or ([IO.File]::ReadAllText($executionMarker)).Trim() -cne 'C12_TARGET_EXECUTED') {
+        throw 'prepared target positive-control execution marker mismatch'
+      }
+      $phases = @(Get-C12PreparedWorkerPhases -Prepared $prepared)
+      if ($mode -ceq 'prepared-pipe-six-frame') {
+        $expectedProtocol = @('SETUP_BEGIN','BUILD_DONE','ARTIFACT_BOUND','HELLO','VERIFICATION_PROJECTION','JOB_MEMBER_READY','CAPABILITIES','CAPABILITIES_INSTALLED','GATE_WAITING','FORMAL_RELEASE','EXEC_BEGIN','EXEC_END')
+        if (($phases -join '|') -cne ($expectedProtocol -join '|')) {
+          throw "production prepared pipe did not expose the exact six-frame protocol trace: $($phases -join '|')"
+        }
+      }
+      elseif ($mode -ceq 'prepared-suspended-membership') {
+        $readyIndex = [Array]::IndexOf([string[]]$phases, 'JOB_MEMBER_READY')
+        $releaseIndex = [Array]::IndexOf([string[]]$phases, 'FORMAL_RELEASE')
+        $execIndex = [Array]::IndexOf([string[]]$phases, 'EXEC_BEGIN')
+        if ($readyIndex -lt 0 -or $releaseIndex -le $readyIndex -or $execIndex -le $releaseIndex) {
+          throw "suspended-process positive control crossed release/exec out of order: $($phases -join '|')"
+        }
+        [IO.File]::Delete($executionMarker)
+        $collisionHandle = [IntPtr]::Zero
+        try {
+          $collisionHandle = [C12NativeJob]::CreateKillOnClose([string]$receipt.NativeJobName)
+          $collisionRejected = $false
+          try { $null = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20)) }
+          catch { $collisionRejected = $_.Exception.Message -match 'collision' }
+          if (-not $collisionRejected) { throw 'prepared Job-identity mutation was accepted' }
+          if ([IO.File]::Exists($executionMarker)) { throw 'prepared Job-identity mutation started the target executable' }
+        }
+        finally { [C12NativeJob]::Close($collisionHandle) }
+      }
+      else {
+        $expected = @('SETUP_BEGIN', 'BUILD_DONE', 'ARTIFACT_BOUND', 'JOB_MEMBER_READY', 'FORMAL_RELEASE', 'EXEC_BEGIN', 'EXEC_END')
+        if (($phases -join '|') -cne ($expected -join '|')) { throw "prepared phase order mismatch: $($phases -join '|')" }
+      }
+      if ($mode -cin @('replay', 'prepared-pipe-six-frame')) {
+        $rejected = $false
+        try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{} }
+        catch { $rejected = $_.Exception.Message.Contains('receipt replay') }
+        if (-not $rejected) { throw 'prepared receipt replay was accepted' }
+        if (@(Get-C12PreparedWorkerPhases -Prepared $prepared | Where-Object { $_ -ceq 'EXEC_BEGIN' }).Count -ne 1) { throw 'receipt replay started another executable' }
+      }
+      $success = $true
+    }
+  }
+  }
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message) }
+finally {
+  if ($null -ne $prepared) {
+    try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+    catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
+  }
+  if ($null -ne $artifact) {
+    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+    catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
+  }
+  if (-not [string]::IsNullOrEmpty($artifactPath) -and [IO.Directory]::Exists($artifactPath)) {
+    [Console]::Error.WriteLine('prepared artifact root remained after cleanup')
+    $success = $false
+  }
+}
+if ($success) { Write-Output "C12_PREPARED_ARTIFACT_HARNESS_OK:$mode"; exit 0 }
+exit 1
+`, mode, fixturePayload)
+	harness := filepath.Join(t.TempDir(), "assert-c12-prepared-artifact.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
+		"-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("prepared artifact %s harness timed out: %v\n%s", mode, ctx.Err(), output)
+	}
+	if commandErr == nil {
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch prepared artifact %s harness: %v", mode, commandErr)
+	}
+	return string(output), exitError.ExitCode()
+}
+
+func runC12PreparedGoGraphHarness(t *testing.T) (string, int) {
+	t.Helper()
+	fixtureRoot := t.TempDir()
+	for _, directory := range []string{"internal/testinfra", "src/cmd/test2json"} {
+		if err := os.MkdirAll(filepath.Join(fixtureRoot, filepath.FromSlash(directory)), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for name, body := range map[string]string{
+		"go.mod":                         "module example.invalid/c12graph\n\ngo 1.26\n",
+		"go.sum":                         "",
+		"main.go":                        "package main\nfunc main() {}\n",
+		"internal/testinfra/fixture.go":  "package testinfra\n",
+		"src/cmd/test2json/test2json.go": "package main\nfunc main() {}\n",
+	} {
+		if err := os.WriteFile(filepath.Join(fixtureRoot, filepath.FromSlash(name)), []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	fakeGo := filepath.Join(t.TempDir(), "go.exe")
+	buildFakeGoExecutable(t, fakeGo, `package main
+import("fmt";"io";"os";"path/filepath";"strings")
+func main(){
+ a:=os.Args[1:]; root:=os.Getenv("C12_FAKE_MODULE_ROOT")
+ if len(a)==1&&a[0]=="version"{fmt.Println("go version go1.26.5 windows/amd64");return}
+ if len(a)>=2&&a[0]=="mod"&&a[1]=="verify"{fmt.Println("all modules verified");return}
+ if len(a)>0&&a[0]=="list"{
+  joined:=strings.Join(a," "); purpose:="trusted-validator"; dir:=""; importPath:="command-line-arguments"; name:="main"; file:=""
+  module:="null"; graphRoot:=filepath.ToSlash(root)
+  if strings.Contains(joined,"cmd/test2json"){
+   purpose="test2json";dir=filepath.ToSlash(filepath.Join(root,"src","cmd","test2json"));importPath="cmd/test2json";file="test2json.go"
+  }else if strings.Contains(joined,"-test")&&strings.Contains(joined,"./internal/testinfra"){
+   purpose="authority-initializer";dir=filepath.ToSlash(filepath.Join(root,"internal","testinfra"));importPath="example.invalid/c12graph/internal/testinfra";name="testinfra";file="fixture.go"
+   module=fmt.Sprintf("{\"Path\":\"example.invalid/c12graph\",\"Main\":true,\"Dir\":%q,\"GoMod\":%q}",graphRoot,filepath.ToSlash(filepath.Join(root,"go.mod")))
+  }else{
+   for _,arg:=range a{if strings.HasSuffix(strings.ToLower(arg),".go"){file=filepath.Base(arg);dir=filepath.ToSlash(filepath.Dir(arg));break}}
+   if file==""{fmt.Fprintln(os.Stderr,"validator graph omitted exact source");os.Exit(74)}
+  }
+  line:=fmt.Sprintf("{\"Dir\":%q,\"ImportPath\":%q,\"Name\":%q,\"Root\":%q,\"Module\":%s,\"GoFiles\":[%q],\"Imports\":[],\"Deps\":[],\"TestGoFiles\":[],\"TestImports\":[],\"XTestGoFiles\":[],\"XTestImports\":[],\"EmbedPatterns\":[],\"EmbedFiles\":[],\"TestEmbedPatterns\":[],\"TestEmbedFiles\":[],\"XTestEmbedPatterns\":[],\"XTestEmbedFiles\":[]}",dir,importPath,name,graphRoot,module,file)
+  fmt.Println(line);if os.Getenv("C12_FAKE_GO_MUTATION")==purpose+":duplicate-import-path"{fmt.Println(line)};return
+ }
+ out:="";for i:=0;i+1<len(a);i++{if a[i]=="-o"{out=a[i+1]}}
+ if out!=""{src,_:=os.Executable();in,e:=os.Open(src);if e!=nil{panic(e)};defer in.Close();o,e:=os.Create(out);if e!=nil{panic(e)};_,e=io.Copy(o,in);if e!=nil{panic(e)};if e=o.Close();e!=nil{panic(e)};return}
+ fmt.Fprintln(os.Stderr,"unexpected fake go argv",strings.Join(a," "));os.Exit(73)
+}`)
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	fixturePayload := base64.StdEncoding.EncodeToString([]byte(fixtureRoot))
+	fakePayload := base64.StdEncoding.EncodeToString([]byte(fakeGo))
+	appendix := fmt.Sprintf(`
+$fixtureRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$fakeGo = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$script:c12RepositoryRoot = $fixtureRoot
+[Environment]::SetEnvironmentVariable('C12_FAKE_MODULE_ROOT', $fixtureRoot, 'Process')
+function Resolve-C12ClosedGoToolchain {
+  param([object]$ArtifactRoot,[DateTime]$SetupDeadline)
+  $seal = [C12SealedExecutable]::Inspect($fakeGo)
+  try {
+    return [pscustomobject]@{ Path=$fakeGo; SHA256=[string]$seal.SHA256; Version='go1.26.5'; GOOS='windows'; GOARCH='amd64'; ModuleCache=$fixtureRoot; Root=$fixtureRoot }
+  }
+  finally { $seal.Dispose() }
+}
+$validator = $null
+$initializer = $null
+$mutants = @()
+$artifact = $null
+$success = $false
+try {
+  $allowance = [TimeSpan]$script:c12ProfileAllowances['authority-v7-pitr']
+  $deadline = [DateTime]::UtcNow.AddSeconds(75)
+  $validator = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
+  $artifact = $validator.ArtifactRoot
+  $initializer = New-C12PreparedAuthorityInitializer -Profile 'authority-v7-pitr' -RunSuffix ([string]$artifact.RunSuffix) -SetupAllowance $allowance -Deadline $deadline
+  foreach ($prepared in @($validator,$initializer)) {
+    if ($prepared.Receipt.PSObject.Properties.Name -cnotcontains 'GoGraphReceipts') {
+      throw 'production prepared receipt lacks purpose-labelled GoGraphReceipts'
+    }
+  }
+  $graphReceipts = @($validator.Receipt.GoGraphReceipts) + @($initializer.Receipt.GoGraphReceipts)
+  $purposes = @('trusted-validator','authority-initializer','test2json')
+  if ($graphReceipts.Count -ne 3) { throw "production graph receipt count $($graphReceipts.Count), want exactly three" }
+  foreach ($purpose in $purposes) {
+    $matches = @($graphReceipts | Where-Object { [string]$_.Purpose -ceq $purpose })
+    if ($matches.Count -ne 1) { throw "production graph purpose $purpose count $($matches.Count), want one" }
+    $graph = $matches[0]
+    if ([string]$graph.Schema -cne 'talenro-c12-go-graph/v1' -or ([byte[]]$graph.BodyBytes).Count -eq 0 -or [string]$graph.Digest -notmatch '^[0-9a-f]{64}$') {
+      throw "production graph receipt $purpose lacks exact schema/body/digest"
+    }
+    Write-Output ('C12_GRAPH_POSITIVE:' + $purpose + ':' + [Convert]::ToBase64String([byte[]]$graph.BodyBytes) + ':' + [string]$graph.Digest)
+  }
+  foreach ($purpose in $purposes) {
+    [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', ($purpose + ':duplicate-import-path'), 'Process')
+    $rejected = $false
+    try {
+      if ($purpose -ceq 'trusted-validator') {
+        $candidate = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
+        $mutants += $candidate
+      }
+      elseif ($purpose -ceq 'authority-initializer') {
+        $candidate = New-C12PreparedAuthorityInitializer -Profile 'authority-v7-pitr' -RunSuffix ([string]$artifact.RunSuffix) -SetupAllowance $allowance -Deadline $deadline
+        $mutants += $candidate
+      }
+      else {
+        $toolchain = Resolve-C12ClosedGoToolchain -ArtifactRoot $artifact -SetupDeadline $deadline
+        $null = Resolve-C12Test2JSONExecutable -ArtifactRoot $artifact -GoToolchain $toolchain -SetupDeadline $deadline
+      }
+    }
+    catch { $rejected = $_.Exception.Message -match 'duplicate.*ImportPath|ImportPath.*duplicate' }
+    finally { [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process') }
+    if (-not $rejected) { throw "production $purpose graph parser accepted its duplicate ImportPath mutation" }
+  }
+  $success = $true
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message) }
+finally {
+  [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process')
+  foreach ($prepared in @($mutants + @($initializer,$validator))) {
+    if ($null -ne $prepared) { try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(15)) } catch { [Console]::Error.WriteLine($_.Exception.Message); $success=$false } }
+  }
+  if ($null -ne $artifact) { try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15)) } catch { [Console]::Error.WriteLine($_.Exception.Message); $success=$false } }
+}
+if ($success) { Write-Output 'C12_PREPARED_GRAPH_HARNESS_OK'; exit 0 }
+exit 1
+`, fixturePayload, fakePayload)
+	harness := filepath.Join(t.TempDir(), "assert-c12-prepared-go-graph.ps1")
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness, "-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	output, commandErr := command.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("prepared graph harness timed out: %v\n%s", ctx.Err(), output)
+	}
+	if commandErr == nil {
+		markers := regexp.MustCompile(`(?m)^C12_GRAPH_POSITIVE:(trusted-validator|authority-initializer|test2json):([A-Za-z0-9+/=]+):([0-9a-f]{64})\r?$`).FindAllSubmatch(output, -1)
+		if len(markers) != 3 {
+			t.Fatalf("prepared graph positive marker count = %d, want three exact purposes; output=%q", len(markers), output)
+		}
+		seenPurpose := make(map[string]bool, 3)
+		seenBody := make(map[string]bool, 3)
+		for _, marker := range markers {
+			purpose := string(marker[1])
+			if seenPurpose[purpose] {
+				t.Fatalf("production graph purpose %s was emitted more than once", purpose)
+			}
+			seenPurpose[purpose] = true
+			graphBytes, err := base64.StdEncoding.DecodeString(string(marker[2]))
+			if err != nil {
+				t.Fatal(err)
+			}
+			bodyKey := string(graphBytes)
+			if seenBody[bodyKey] {
+				t.Fatalf("production graph purpose %s aliased another purpose's body", purpose)
+			}
+			seenBody[bodyKey] = true
+			digestInput := append([]byte("talenro.c12.go-graph.v1\x00"), graphBytes...)
+			got := sha256.Sum256(digestInput)
+			if hex.EncodeToString(got[:]) != string(marker[3]) {
+				t.Fatalf("production %s graph digest does not bind exact graph bytes: got %x want %s", purpose, got, marker[3])
+			}
+		}
+		return string(output), 0
+	}
+	var exitError *exec.ExitError
+	if !errors.As(commandErr, &exitError) {
+		t.Fatalf("launch prepared graph harness: %v", commandErr)
 	}
 	return string(output), exitError.ExitCode()
 }
