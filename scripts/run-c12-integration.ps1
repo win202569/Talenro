@@ -2421,14 +2421,23 @@ $script:c12PreparedNativeWorkerScript = {
   $gate = $null
   $seals = [Collections.Generic.List[IDisposable]]::new()
   try {
-    $deadline = [DateTime]::new([long]$Bootstrap.Deadline, [DateTimeKind]::Utc)
+    # The bootstrap starts only when invoked. Its short initial connection
+    # allowance must never be anchored to the earlier preparation timestamp.
+    $deadline = [DateTime]::UtcNow.AddMinutes(2)
     $pipe.Connect((Get-C12ProtocolMilliseconds $deadline))
     $pipe.ReadMode = [IO.Pipes.PipeTransmissionMode]::Message
     [C12PreparedPipe]::VerifyServerProcessId($pipe, [uint32]$Bootstrap.ControllerPID)
     Send-C12PreparedFrame $state $pipe $deadline 'HELLO' ([ordered]@{ worker_pid = $PID; controller_pid = $Bootstrap.ControllerPID })
-    $projection = Receive-C12PreparedFrame $state $pipe $deadline 'VERIFICATION_PROJECTION'
+    $invocation = Receive-C12PreparedFrame $state $pipe $deadline 'VERIFICATION_PROJECTION'
+    if ((@($invocation.PSObject.Properties.Name) -join '|') -cne 'invocation_deadline_ticks|verification_projection' -or
+        $invocation.invocation_deadline_ticks -isnot [long] -or
+        $invocation.invocation_deadline_ticks -le [DateTime]::UtcNow.Ticks -or
+        $invocation.invocation_deadline_ticks -gt [DateTime]::MaxValue.Ticks) { throw 'protocol invocation deadline is malformed or expired' }
+    $invocationDeadline = [DateTime]::new($invocation.invocation_deadline_ticks, [DateTimeKind]::Utc)
+    $deadline = $invocationDeadline
+    $projection = $invocation.verification_projection
     if ($projection.gate_name -cne $Bootstrap.Gate -or $projection.role -cnotin @('trusted-validator','authority-initializer-json')) { throw 'protocol projection identity mismatch' }
-    $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $projection)))
+    $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $invocation)))
     # AssignProcessToJobObject was completed by the controller before bootstrap resume.
     # These immutable input fields are the worker-side Assert-C12SealedExecutableReceipt projection.
     foreach ($input in @($projection.inputs)) {
@@ -2449,6 +2458,10 @@ $script:c12PreparedNativeWorkerScript = {
     Send-C12PreparedFrame $state $pipe $deadline 'CAPABILITIES_INSTALLED' ([ordered]@{ capability_digest = $capabilityDigest })
     Send-C12PreparedFrame $state $pipe $deadline 'GATE_WAITING' ([ordered]@{ gate_name = $Bootstrap.Gate; capability_digest = $capabilityDigest })
     if (-not $gate.WaitOne((Get-C12ProtocolMilliseconds $deadline))) { throw 'protocol formal gate deadline exhausted' }
+    # Results share the actual invocation ceiling; the authoritative controller
+    # watchdog starts immediately before gate signal, not during preparation.
+    $deadline = [DateTime]::UtcNow.AddMinutes(2)
+    if ($invocationDeadline -lt $deadline) { $deadline = $invocationDeadline }
     # FORMAL_RELEASE is recorded by the controller before it signals this gate.
     $begin = [DateTime]::UtcNow.Ticks
     Send-C12PreparedFrame $state $pipe $deadline 'EXEC_BEGIN' ([ordered]@{ timestamp_ticks = $begin })
@@ -2504,6 +2517,7 @@ public sealed class C12SuspendedProcessController : IDisposable
     public IntPtr CompletionPortHandle { get { return completionPortHandle; } }
     public string Phase { get; private set; }
     public bool ActiveProcessZeroConfirmed { get; private set; }
+    public bool ProcessExitPendingOnly { get; private set; }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct STARTUPINFO {
@@ -2675,11 +2689,34 @@ public sealed class C12SuspendedProcessController : IDisposable
         Phase = "Released";
         if (previous != 1) throw new InvalidOperationException("primary thread suspension count changed");
     }
+    private void TerminateOwnedProcess(uint exitCode) {
+        if (TerminateProcess(processHandle, exitCode)) return;
+        int error = Marshal.GetLastWin32Error();
+        // Windows returns ACCESS_DENIED when natural exit wins the interval
+        // between our outer wait and TerminateProcess. Only the exact retained
+        // process handle can prove this benign race; every ambiguous error stays
+        // fatal. The caller still terminates the Job and confirms active zero.
+        if (error == 5 && WaitForSingleObject(processHandle, 0) == WAIT_OBJECT_0) return;
+        throw new Win32Exception(error, "TerminateProcess failed (Win32 " + error + ")");
+    }
     public void Terminate(uint exitCode) {
         RequireCleanupHandles(); Phase = "CleanIntent";
+        ProcessExitPendingOnly = false;
         var failures = new List<Exception>();
-        if (WaitForSingleObject(processHandle, 0) != WAIT_OBJECT_0 && !TerminateProcess(processHandle, exitCode)) failures.Add(NativeError("TerminateProcess"));
+        bool processAccessDenied = false;
+        if (WaitForSingleObject(processHandle, 0) != WAIT_OBJECT_0) {
+            try { TerminateOwnedProcess(exitCode); }
+            catch (Exception error) {
+                failures.Add(error);
+                var native = error as Win32Exception;
+                processAccessDenied = native != null && native.NativeErrorCode == 5;
+            }
+        }
         if (!TerminateJobObject(jobHandle, exitCode)) failures.Add(NativeError("TerminateJobObject"));
+        // Exit can still be pending on the immediate recheck. This classification
+        // is not success: only the caller's bounded exact exit + Job-zero wait
+        // may resolve the sole ACCESS_DENIED error. All other errors stay fatal.
+        ProcessExitPendingOnly = processAccessDenied && failures.Count == 1;
         if (failures.Count != 0) throw new AggregateException("suspended worker termination failed", failures);
     }
     public uint ActiveProcesses {
@@ -2765,7 +2802,7 @@ function New-C12SuspendedPreparedWorker {
     Role = [string]$Receipt.Role; Receipt = $Receipt; ArtifactRoot = $ArtifactRoot
     Job = $null; Gate = $null; GateSignaled = $false; Released = $false; Closed = $false; ExecutionComplete = $false
     Protocol = $null; Projection = $null; Pipe = $null; ProtocolKey = $null; EnvironmentDigest = ''
-    ReleaseTicks = [long]0; ReleaseWatch = $null; ProtocolReceipts = @()
+    ReleaseTicks = [long]0; ReleaseWatch = $null; ProtocolReceipts = @(); InvocationDeadline = [DateTime]::MinValue
     ActiveProcessZeroConfirmed = $false; CleanupFailures = @(); Phases = $phases
   }
   $script:c12PreparedWorkers.Add($prepared)
@@ -2813,7 +2850,7 @@ function New-C12PreparedNativeWorker {
   $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
   try { $rng.GetBytes($key) } finally { $rng.Dispose() }
   $environment['C12_BOOTSTRAP_KEY'] = [Convert]::ToBase64String($key)
-  $bootstrap = [ordered]@{ Run = $Receipt.RunSuffix; Nonce = $Receipt.OneShotNonce; Pipe = $Receipt.PipeName; Gate = $Receipt.GateName; ControllerPID = $PID; Deadline = $SetupDeadline.AddMinutes(2).Ticks }
+  $bootstrap = [ordered]@{ Run = $Receipt.RunSuffix; Nonce = $Receipt.OneShotNonce; Pipe = $Receipt.PipeName; Gate = $Receipt.GateName; ControllerPID = $PID }
   $source = '$ErrorActionPreference = ''Stop'';' + [Environment]::NewLine
   foreach ($function in @('Initialize-C12PreparedPipe','Get-C12ProtocolMilliseconds','ConvertTo-C12ProtocolValue','ConvertTo-C12ProtocolJSON','New-C12ProtocolState','New-C12PreparedFrame','Assert-C12PreparedFrame','Read-C12PreparedMessage','Receive-C12PreparedFrame','Send-C12PreparedFrame')) {
     $source += 'function ' + $function + ' {' + (Get-Command $function).ScriptBlock.ToString() + '}' + [Environment]::NewLine
@@ -2905,7 +2942,7 @@ function Close-C12PreparedNativeWorker {
   if ($null -ne $Prepared.ProtocolKey) { [Array]::Clear($Prepared.ProtocolKey,0,$Prepared.ProtocolKey.Length); $Prepared.ProtocolKey = $null }
   $Prepared.Phase = 'Removed'
   $Prepared.Closed = $true
-  if ($null -ne $terminationFailure) { throw $terminationFailure }
+  if ($null -ne $terminationFailure -and -not ($Prepared.ActiveProcessZeroConfirmed -and $Prepared.Controller.ProcessExitPendingOnly)) { throw $terminationFailure }
 }
 
 function Assert-C12PreparedClientPID {
@@ -2928,9 +2965,11 @@ function Invoke-C12PreparedProtocol {
   $hello = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'HELLO'
   if ($hello.worker_pid -ne $Prepared.ProcessId -or $hello.controller_pid -ne $PID) { throw 'protocol HELLO PID mismatch' }
   $Prepared.Phases.Add('HELLO')
-  Send-C12PreparedFrame $state $Prepared.Pipe $Deadline 'VERIFICATION_PROJECTION' $Prepared.Projection
+  $Prepared.InvocationDeadline = $Deadline
+  $invocation = [ordered]@{ invocation_deadline_ticks = $Deadline.Ticks; verification_projection = $Prepared.Projection }
+  Send-C12PreparedFrame $state $Prepared.Pipe $Deadline 'VERIFICATION_PROJECTION' $invocation
   $Prepared.Phases.Add('VERIFICATION_PROJECTION')
-  $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $Prepared.Projection)))
+  $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $invocation)))
   $ready = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'JOB_MEMBER_READY'
   if ($ready.projection_digest -cne $projectionDigest) { throw 'protocol projection digest mismatch' }
   $Prepared.Phases.Add('JOB_MEMBER_READY')
@@ -2955,6 +2994,7 @@ function Invoke-C12PreparedProtocol {
 function Release-C12PreparedWorker {
   param($Prepared)
   if ($Prepared.Closed -or $Prepared.Released -or $Prepared.Phase -cne 'GateWaiting' -or $Prepared.Protocol.Sequence -ne 6 -or $Prepared.ProtocolReceipts.Count -ne 6) { throw 'protocol formal release requires exactly six verified frames' }
+  if ([DateTime]::UtcNow -ge $Prepared.InvocationDeadline) { throw 'protocol formal release deadline exhausted' }
   $Prepared.Released = $true # exact-once guard survives all release failures.
   $Prepared.ReleaseWatch = [Diagnostics.Stopwatch]::StartNew()
   $Prepared.ReleaseTicks = [DateTime]::UtcNow.Ticks

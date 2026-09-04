@@ -589,6 +589,19 @@ func TestC12PreparedProtocolRejectsMalformedFrames(t *testing.T) {
 	}
 }
 
+// A prepared worker may remain suspended longer than its preparation allowance
+// plus two minutes. Only the authenticated invocation deadline can bound release.
+func TestC12PreparedInvocationDeadlineIsReleaseRelative(t *testing.T) {
+	for _, mode := range []string{"delayed-preparation-release", "deadline-wire-tamper", "deadline-malformed", "deadline-expired"} {
+		t.Run(mode, func(t *testing.T) {
+			output, code := runC12PreparedArtifactHarness(t, mode)
+			if code != 0 {
+				t.Fatalf("invocation deadline %s exit=%d output=%q", mode, code, output)
+			}
+		})
+	}
+}
+
 func TestC12RunnerAuthorityCapabilitiesAreChildScoped(t *testing.T) {
 	source := string(readC12RunnerSource(t))
 	for _, required := range []string{
@@ -662,7 +675,7 @@ func TestC12PreparedProcessIsSuspendedUntilVerifiedJobMembership(t *testing.T) {
 		`(?i)GetQueuedCompletionStatus`, `(?i)QueryInformationJobObject`, `ActiveProcesses`,
 	})
 	c12ForbidPowerShellCommand(t, "suspended prepared worker", worker, "Start-Job")
-	for _, mode := range []string{"prepared-suspended-membership", "prepared-assignment-failure", "prepared-pid-mismatch", "prepared-invalid-thread-handle", "prepared-cleanup-retry", "prepared-job-collision"} {
+	for _, mode := range []string{"prepared-suspended-membership", "prepared-assignment-failure", "prepared-pid-mismatch", "prepared-invalid-thread-handle", "prepared-cleanup-retry", "prepared-job-collision", "prepared-exit-race", "prepared-exit-pending", "prepared-exit-pending-retry"} {
 		t.Run(mode, func(t *testing.T) {
 			output, exitCode := runC12PreparedArtifactHarness(t, mode)
 			if exitCode != 0 {
@@ -877,7 +890,7 @@ func c12ParsePowerShellExecutableAST(t *testing.T, scriptPath string) (map[strin
 		return nil, err
 	}
 	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", probe, "-ScriptPath", scriptPath)
 	output, runErr := command.CombinedOutput()
@@ -3306,11 +3319,34 @@ try {
   }
   $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifact -Role $invocationRole -Profile 'authority-v7-pitr' -Purpose 'prepared-artifact-fixture' -SourceIdentity 'prepared-artifact-fixture/v1' -SourceDigest $sourceDigest -CandidateTreeIdentity ('f' * 40) -BuildArguments @('fixture', 'copy') -GoToolchain $toolchain -ExecutablePath $executablePath -SecondaryExecutablePath $secondaryExecutablePath -Arguments $arguments -WorkingDirectory $fixtureRoot
 
-  if ($mode.StartsWith('protocol-')) {
+  if ($mode.StartsWith('protocol-') -or $mode.StartsWith('deadline-')) {
     if ($null -eq (Get-Command Invoke-C12PreparedProtocol -ErrorAction SilentlyContinue)) { throw 'authenticated prepared protocol is absent' }
     if ((ConvertTo-C12ProtocolJSON ([ordered]@{entries=@()})) -cne '{"entries":[]}') { throw 'canonical JSON changed an empty array into null' }
     if ((ConvertTo-C12ProtocolJSON ([ordered]@{z=1;entries=@([ordered]@{value='y';name='x'})})) -cne '{"entries":[{"name":"x","value":"y"}],"z":1}') { throw 'canonical JSON lost singleton array or ordinal nested-key ordering' }
-    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(30))
+    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(45))
+    if ($mode.StartsWith('deadline-')) {
+      $script:deadlineSend = (Get-Command Send-C12PreparedFrame).ScriptBlock
+      $script:deadlineMutationApplied = $false
+      function Send-C12PreparedFrame {
+        param($State, $Pipe, $Deadline, $Type, $Payload)
+        if ($Type -cne 'VERIFICATION_PROJECTION') { & $script:deadlineSend @PSBoundParameters; return }
+        if (@($Payload.Keys) -cnotcontains 'invocation_deadline_ticks') { throw 'authenticated invocation deadline is absent' }
+        $script:deadlineMutationApplied = $true
+        if ($mode -ceq 'deadline-wire-tamper') {
+          [byte[]]$wire = New-C12PreparedFrame -State $State -Type $Type -Payload $Payload
+          $null = Assert-C12PreparedFrame -State $State -Bytes $wire -Type $Type
+          $frame = [Text.Encoding]::UTF8.GetString($wire) | ConvertFrom-Json
+          $frame.payload.invocation_deadline_ticks = [DateTime]::UtcNow.AddHours(1).Ticks
+          # Change the authenticated deadline on the wire without re-signing.
+          [C12PreparedPipe]::WriteMessage($Pipe, [Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $frame)), (Get-C12ProtocolMilliseconds $Deadline))
+          return
+        }
+        if ($mode -ceq 'deadline-malformed') { $Payload.invocation_deadline_ticks = 'tomorrow' }
+        else { $Payload.invocation_deadline_ticks = [DateTime]::UtcNow.AddSeconds(-1).Ticks }
+        # A correctly signed but invalid deadline must also fail in the worker.
+        & $script:deadlineSend @PSBoundParameters
+      }
+    }
     $script:protocolRead = (Get-Command Read-C12PreparedMessage).ScriptBlock
     $script:protocolReadCount = 0
     $script:protocolHello = $null
@@ -3364,17 +3400,23 @@ try {
     'protocol-bad-hmac-cleanup' = 'frame HMAC mismatch'
     'protocol-invalid-utf8' = 'not valid UTF-8 JSON'
     'protocol-noncanonical-json' = 'not canonical JSON'
+    'deadline-wire-tamper' = 'protocol frame exceeds message bound or is truncated'
+    'deadline-malformed' = 'protocol frame exceeds message bound or is truncated'
+    'deadline-expired' = 'protocol frame exceeds message bound or is truncated'
   }
-  try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+  $rejectionDeadline = [DateTime]::UtcNow.AddSeconds(20)
+  if ($mode.StartsWith('deadline-')) { $rejectionDeadline = [DateTime]::UtcNow.AddSeconds(60) }
+  try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline $rejectionDeadline }
   catch { if ($_.Exception.ToString().Contains($expectedFailure[$mode])) { $rejected = $true } else { throw } }
     if (-not $rejected) { throw "$mode did not reject its malformed protocol input" }
+    if ($mode.StartsWith('deadline-') -and -not $script:deadlineMutationApplied) { throw 'deadline tamper was never sent to the real worker' }
     if ($mode -ceq 'protocol-bad-hmac-cleanup' -and $prepared.CleanupFailures -cnotcontains 'injected protocol cleanup failure') { throw 'protocol cleanup failure was not retained alongside the primary HMAC failure' }
     if ($prepared.Released -or $prepared.GateSignaled -or [IO.File]::Exists($executionMarker)) { throw "$mode released or executed the payload" }
     Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10))
     if (-not $prepared.ActiveProcessZeroConfirmed -or -not $prepared.Closed -or (Get-Process -Id $prepared.ProcessId -ErrorAction SilentlyContinue)) { throw "$mode did not converge the exact process and Job" }
     $success = $true
   }
-  elseif ($mode -cin @('prepared-suspended-membership', 'prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle', 'prepared-cleanup-retry', 'prepared-job-collision')) {
+  elseif ($mode -cin @('prepared-suspended-membership', 'prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle', 'prepared-cleanup-retry', 'prepared-job-collision', 'prepared-exit-race', 'prepared-exit-pending', 'prepared-exit-pending-retry')) {
     if ($null -eq (Get-Command New-C12SuspendedPreparedWorker -ErrorAction SilentlyContinue)) {
       throw 'production suspended process factory is absent'
     }
@@ -3406,11 +3448,29 @@ public static class C12ContainmentProbe {
     field.SetValue(controller, IntPtr.Zero);
     return original;
   }
+  public static void DenyProcessTermination(object controller) {
+    var field = controller.GetType().GetField("processHandle", BindingFlags.Instance | BindingFlags.NonPublic);
+    IntPtr original = (IntPtr)field.GetValue(controller), restricted;
+    // Retain exact-process query/synchronization, but no PROCESS_TERMINATE.
+    // This deterministically produces the ambiguous Win32 5 while the suspended
+    // process is unsignaled; only the real owned Job can then end the process.
+    if (!DuplicateHandle(GetCurrentProcess(), original, GetCurrentProcess(), out restricted, 0x00101400, false, 0))
+      throw new Win32Exception(Marshal.GetLastWin32Error());
+    field.SetValue(controller, restricted);
+    if (!CloseHandle(original)) throw new Win32Exception(Marshal.GetLastWin32Error());
+  }
   public static void RestoreThreadHandle(object controller, IntPtr original) {
     controller.GetType().GetField("primaryThreadHandle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(controller, original);
   }
   public static void ChangeExpectedPID(object controller) {
     controller.GetType().GetProperty("ProcessId").GetSetMethod(true).Invoke(controller, new object[] { (uint)1 });
+  }
+  public static void TerminateExitedProcess(object controller) {
+    // Reproduce the exact native boundary after the process exits between the
+    // outer wait check and TerminateProcess. No forged handles or native mocks.
+    var method = controller.GetType().GetMethod("TerminateOwnedProcess", BindingFlags.Instance | BindingFlags.NonPublic);
+    if (method == null) throw new Exception("production exact-handle termination boundary is absent");
+    method.Invoke(controller, new object[] { (uint)1 });
   }
   public static void CloseTestHandle(IntPtr handle) { if (!CloseHandle(handle)) throw new Win32Exception(Marshal.GetLastWin32Error()); }
 }
@@ -3457,7 +3517,9 @@ public static class C12ContainmentProbe {
       if ([IO.File]::Exists($executionMarker)) { throw 'assignment-failed worker executed its sentinel' }
     }
     else {
-      $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20))
+      $containmentSetupDeadline = [DateTime]::UtcNow.AddSeconds(20)
+      if ($mode.StartsWith('prepared-exit-')) { $containmentSetupDeadline = [DateTime]::UtcNow.AddSeconds(60) }
+      $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline $containmentSetupDeadline
       foreach ($handle in @('ProcessHandle', 'PrimaryThreadHandle', 'JobHandle', 'CompletionPortHandle')) {
         if ($prepared.PSObject.Properties.Name -cnotcontains $handle -or [IntPtr]$prepared.$handle -eq [IntPtr]::Zero -or [IntPtr]$prepared.$handle -eq [IntPtr](-1)) { throw "prepared worker lacks retained $handle" }
       }
@@ -3467,7 +3529,11 @@ public static class C12ContainmentProbe {
       if (-not [C12ContainmentProbe]::IsProcessInJob($prepared.ProcessHandle, $prepared.JobHandle, [ref]$member) -or -not $member) { throw 'prepared process is not in the exact controller Job' }
       Start-Sleep -Milliseconds 300
       if ([IO.File]::Exists($executionMarker)) { throw 'production prepared worker executed before release' }
-      if ($mode -ceq 'prepared-cleanup-retry') {
+      if ($mode -cin @('prepared-exit-pending','prepared-exit-pending-retry')) {
+        [C12ContainmentProbe]::DenyProcessTermination($prepared.Controller)
+        $prepared.ProcessHandle = $prepared.Controller.ProcessHandle
+      }
+      if ($mode -cin @('prepared-cleanup-retry','prepared-exit-pending-retry')) {
         $retainedProcess = $prepared.ProcessHandle
         $retainedJob = $prepared.JobHandle
         $retainedPort = $prepared.CompletionPortHandle
@@ -3477,12 +3543,15 @@ public static class C12ContainmentProbe {
         catch { $timedOut = $_.Exception.Message -match 'confirmation|deadline' }
         if (-not $timedOut -or $prepared.Closed -or $prepared.Phase -cne 'CleanIntent') { throw 'cleanup timeout erased retryable worker state' }
         if ($prepared.ProcessHandle -ne $retainedProcess -or $prepared.JobHandle -ne $retainedJob -or $prepared.CompletionPortHandle -ne $retainedPort -or $prepared.PrimaryThreadHandle -ne $retainedThread) { throw 'cleanup timeout disposed retained native handles' }
+        if ($prepared.ActiveProcessZeroConfirmed) { throw 'expired cleanup asserted unobserved convergence' }
+        if ($mode -ceq 'prepared-exit-pending-retry' -and -not $prepared.Controller.ProcessExitPendingOnly) { throw 'pending-exit failure was not retained until exact convergence' }
       }
       Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10))
       if (-not $prepared.Closed -or -not $prepared.ActiveProcessZeroConfirmed -or $prepared.Phase -cne 'Removed') { throw 'prepared worker cleanup did not converge' }
+      if ($mode -ceq 'prepared-exit-pending' -and -not $prepared.Controller.ProcessExitPendingOnly) { throw 'pending-exit convergence branch was not exercised' }
       if (Get-Process -Id $prepared.ProcessId -ErrorAction SilentlyContinue) { throw 'contained worker PID survived cleanup' }
 
-      if ($mode -ceq 'prepared-suspended-membership') {
+      if ($mode -cin @('prepared-suspended-membership','prepared-exit-race')) {
         # The primitive positive control is test-only. Production stops at MembershipVerified.
         $environment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
         foreach ($entry in [Environment]::GetEnvironmentVariables().GetEnumerator()) { $environment[[string]$entry.Key] = [string]$entry.Value }
@@ -3505,6 +3574,10 @@ public static class C12ContainmentProbe {
           $controller.Resume()
           if (-not $controller.WaitForActiveProcessZero(10000)) { throw 'positive-control Job did not reach active-process-zero' }
           if ($controller.ActiveProcesses -ne 0) { throw 'native Job reported active processes after confirmation' }
+          if ($mode -ceq 'prepared-exit-race') {
+            [C12ContainmentProbe]::TerminateExitedProcess($controller)
+            if ($controller.ActiveProcesses -ne 0 -or -not $controller.ActiveProcessZeroConfirmed) { throw 'exited-process termination lost exact Job convergence' }
+          }
           if (-not [IO.File]::Exists($executionMarker) -or ([IO.File]::ReadAllText($executionMarker)).Trim() -cne 'C12_TARGET_EXECUTED') { throw 'native resume positive control did not execute sentinel' }
           $duplicateResumeRejected = $false
           try { $controller.Resume() } catch { $duplicateResumeRejected = $true }
@@ -3552,7 +3625,21 @@ public static class C12ContainmentProbe {
     $success = $true
   }
   else {
-    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(45))
+    $preparationDeadline = [DateTime]::UtcNow.AddSeconds(45)
+    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline $preparationDeadline
+    if ($mode -ceq 'delayed-preparation-release') {
+      # Real elapsed-time regression: no fake clock, rewritten bootstrap bytes,
+      # or skipped sleep. The old embedded deadline must expire while suspended.
+      $staleDeadline = $preparationDeadline.AddMinutes(2)
+      while ([DateTime]::UtcNow -le $staleDeadline.AddMilliseconds(250)) { Start-Sleep -Milliseconds 100 }
+      if ($prepared.Released -or [IO.File]::Exists($executionMarker)) { throw 'delayed preparation released a suspended payload' }
+      $script:delayedRelease = (Get-Command Release-C12PreparedWorker).ScriptBlock
+      function Release-C12PreparedWorker {
+        param($Prepared)
+        Start-Sleep -Milliseconds 500
+        & $script:delayedRelease @PSBoundParameters
+      }
+    }
     if ($mode -ceq 'wrong-role') {
       $rejected = $false
       try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'authority-initializer-json' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{} }
@@ -3562,7 +3649,10 @@ public static class C12ContainmentProbe {
       $success = $true
     }
     else {
-      $result = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role $invocationRole -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment $invocationCapabilities
+      $invocationDeadline = [DateTime]::UtcNow.AddMinutes(2)
+      if ($mode -ceq 'delayed-preparation-release') { $invocationDeadline = [DateTime]::UtcNow.AddSeconds(60) }
+      $result = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role $invocationRole -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline $invocationDeadline -CapabilityEnvironment $invocationCapabilities
+      if ($mode -ceq 'delayed-preparation-release' -and ($prepared.ReleaseTicks -le $staleDeadline.Ticks -or $prepared.InvocationDeadline.Ticks -ne $invocationDeadline.Ticks -or -not $prepared.ExecutionComplete)) { throw 'delayed invocation did not complete authenticated EXEC_END after the stale preparation deadline' }
       if ($mode -ceq 'initializer-capabilities') {
         if (@($result.Output | Where-Object { $_ -ceq 'TALENRO_C12_AUTHORITY_V7_INIT_NONCE=fixture-nonce' }).Count -ne 1) { throw 'initializer did not receive its authenticated capability environment' }
         if (@($result.Output | Where-Object { $_ -match 'CONTROLLER_WAL_KEY_CANARY|^C12_BOOTSTRAP_KEY=' }).Count -ne 0) { throw 'initializer inherited a controller or bootstrap key' }
@@ -3593,7 +3683,10 @@ public static class C12ContainmentProbe {
   }
   }
 }
-catch { [Console]::Error.WriteLine($_.Exception.Message) }
+catch {
+  [Console]::Error.WriteLine($_.Exception.ToString())
+  if ($null -ne $prepared) { [Console]::Error.WriteLine("C12 prepared diagnostic: Phase=$($prepared.Phase); ExecutionComplete=$($prepared.ExecutionComplete); GateSignaled=$($prepared.GateSignaled)") }
+}
 finally {
   if ($null -ne $prepared) {
     try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
@@ -3615,7 +3708,17 @@ exit 1
 	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	harnessTimeout := 180 * time.Second
+	if strings.HasPrefix(mode, "deadline-") {
+		harnessTimeout = 150 * time.Second
+	}
+	if strings.HasPrefix(mode, "prepared-exit-") {
+		harnessTimeout = 150 * time.Second
+	}
+	if mode == "delayed-preparation-release" {
+		harnessTimeout = 270 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), harnessTimeout)
 	defer cancel()
 	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
 	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
