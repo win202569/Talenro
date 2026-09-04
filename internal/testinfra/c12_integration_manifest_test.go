@@ -566,11 +566,24 @@ func TestC12FormalAuthorityStagesDoNotInvokeGo(t *testing.T) {
 }
 
 func TestC12PreparedArtifactExecutionAndTamperConverge(t *testing.T) {
-	for _, mode := range []string{"success", "byte-tamper", "file-id-splice", "reparse", "hard-link", "dacl", "wrong-role", "replay"} {
+	for _, mode := range []string{"success", "initializer-capabilities", "byte-tamper", "file-id-splice", "reparse", "hard-link", "dacl", "wrong-role", "replay"} {
 		t.Run(mode, func(t *testing.T) {
 			output, exitCode := runC12PreparedArtifactHarness(t, mode)
 			if exitCode != 0 {
 				t.Fatalf("prepared artifact %s harness exit=%d output=%q", mode, exitCode, output)
+			}
+		})
+	}
+}
+
+// A rejected authenticated frame must never release a payload and must converge
+// the exact retained process and Job, including replay of a previously valid frame.
+func TestC12PreparedProtocolRejectsMalformedFrames(t *testing.T) {
+	for _, mode := range []string{"duplicate-sequence", "reordered-frame", "foreign-pid", "wrong-nonce", "oversized-frame", "previous-digest", "bad-hmac", "bad-hmac-cleanup", "invalid-utf8", "noncanonical-json"} {
+		t.Run(mode, func(t *testing.T) {
+			output, code := runC12PreparedArtifactHarness(t, "protocol-"+mode)
+			if code != 0 {
+				t.Fatalf("protocol rejection %s exit=%d output=%q", mode, code, output)
 			}
 		})
 	}
@@ -674,11 +687,14 @@ func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
 	c12RequirePowerShellASTSequence(t, "prepared private protocol", nodes, []string{
 		`HELLO`, `VERIFICATION_PROJECTION`, `JOB_MEMBER_READY`, `CAPABILITIES`, `CAPABILITIES_INSTALLED`, `GATE_WAITING`,
 	})
-	c12RequirePowerShellASTSequence(t, "capability/gate release", c12ReachablePowerShellNodes(t, snapshot, "Invoke-C12PreparedAuthorityRole"), []string{
-		`JOB_MEMBER_READY`, `CAPABILITIES`, `CAPABILITIES_INSTALLED`, `GATE_WAITING`, `(?i)Stopwatch.*Start`, `(?i)Gate.*Set`,
+	// Protocol and release are distinct sibling calls; behavioral trace assertions
+	// below prove their ordering across that boundary.
+	c12RequirePowerShellASTSequence(t, "formal gate release", c12ReachablePowerShellNodes(t, snapshot, "Release-C12PreparedWorker"), []string{
+		`^StartNew$`, `FORMAL_RELEASE`, `^Set$`,
 	})
+	projectionNodes := c12ReachablePowerShellNodes(t, snapshot, "$script:c12PreparedNativeWorkerScript", "New-C12VerificationProjection")
 	for _, forbidden := range []string{`Receipt\s*=`, `ReceiptFields`, `PayloadFields`, `ReceiptKeyHex`, `Graph`, `RootHandle`, `RefCount`} {
-		c12ForbidPowerShellASTTerm(t, "minimal worker projection", nodes, forbidden)
+		c12ForbidPowerShellASTTerm(t, "minimal worker projection", projectionNodes, forbidden)
 	}
 	c12ForbidPowerShellCommand(t, "prepared pipe path", nodes, "Start-Job")
 	output, exitCode := runC12PreparedArtifactHarness(t, "prepared-pipe-six-frame")
@@ -3259,7 +3275,8 @@ try {
   $artifact = New-C12PreparedArtifactRoot -RunSuffix $runSuffix -Profile 'authority-v7-pitr'
   $artifactPath = [string]$artifact.Root
   $sourceExecutable = [IO.Path]::GetFullPath((Join-Path $env:SystemRoot 'System32\cmd.exe'))
-  $executablePath = Join-Path $artifactPath "trusted-validator-$([Guid]::NewGuid().ToString('N')).exe"
+  $executablePrefix = if ($mode -ceq 'initializer-capabilities') { 'authority-test2json' } else { 'trusted-validator' }
+  $executablePath = Join-Path $artifactPath "$executablePrefix-$([Guid]::NewGuid().ToString('N')).exe"
   [IO.File]::Copy($sourceExecutable, $executablePath, $false)
   $sourceDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes('prepared-artifact-fixture/v1'))
   $toolchain = [pscustomobject]@{
@@ -3270,9 +3287,94 @@ try {
     GOARCH = 'amd64'
   }
   $arguments = @('/d', '/c', ('echo C12_TARGET_EXECUTED>"{0}" & echo C12_PREPARED_FIXTURE_OK' -f $executionMarker))
-  $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifact -Role 'trusted-validator' -Profile 'authority-v7-pitr' -Purpose 'prepared-artifact-fixture' -SourceIdentity 'prepared-artifact-fixture/v1' -SourceDigest $sourceDigest -CandidateTreeIdentity ('f' * 40) -BuildArguments @('fixture', 'copy') -GoToolchain $toolchain -ExecutablePath $executablePath -Arguments $arguments -WorkingDirectory $fixtureRoot
+  $invocationRole = 'trusted-validator'
+  $invocationCapabilities = @{}
+  $secondaryExecutablePath = ''
+  if ($mode -ceq 'initializer-capabilities') {
+    $invocationRole = 'authority-initializer-json'
+    $secondaryExecutablePath = Join-Path $artifactPath "authority-initializer-$([Guid]::NewGuid().ToString('N')).test.exe"
+    [IO.File]::Copy($sourceExecutable, $secondaryExecutablePath, $false)
+    $invocationCapabilities = @{
+      TALENRO_C12_AUTHORITY_V7_INIT_NONCE = 'fixture-nonce'
+      TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX = $runSuffix
+      TALENRO_C12_AUTHORITY_V7_PROFILE = 'authority-v7-pitr'
+      TALENRO_DATABASE_URL = 'fixture-database'
+      TALENRO_INSTALLATION_KIND = 'disposable_fixture'
+    }
+    [Environment]::SetEnvironmentVariable('TALENRO_C12_AUTHORITY_PITR_HMAC_KEY','CONTROLLER_WAL_KEY_CANARY')
+    $arguments[2] = ('echo C12_TARGET_EXECUTED>"{0}" & set TALENRO_C12_AUTHORITY_V7_INIT_NONCE & set TALENRO_C12_AUTHORITY_PITR_HMAC_KEY & set C12_BOOTSTRAP_KEY & echo C12_PREPARED_FIXTURE_OK' -f $executionMarker)
+  }
+  $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifact -Role $invocationRole -Profile 'authority-v7-pitr' -Purpose 'prepared-artifact-fixture' -SourceIdentity 'prepared-artifact-fixture/v1' -SourceDigest $sourceDigest -CandidateTreeIdentity ('f' * 40) -BuildArguments @('fixture', 'copy') -GoToolchain $toolchain -ExecutablePath $executablePath -SecondaryExecutablePath $secondaryExecutablePath -Arguments $arguments -WorkingDirectory $fixtureRoot
 
-  if ($mode -cin @('prepared-suspended-membership', 'prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle', 'prepared-cleanup-retry', 'prepared-job-collision')) {
+  if ($mode.StartsWith('protocol-')) {
+    if ($null -eq (Get-Command Invoke-C12PreparedProtocol -ErrorAction SilentlyContinue)) { throw 'authenticated prepared protocol is absent' }
+    if ((ConvertTo-C12ProtocolJSON ([ordered]@{entries=@()})) -cne '{"entries":[]}') { throw 'canonical JSON changed an empty array into null' }
+    if ((ConvertTo-C12ProtocolJSON ([ordered]@{z=1;entries=@([ordered]@{value='y';name='x'})})) -cne '{"entries":[{"name":"x","value":"y"}],"z":1}') { throw 'canonical JSON lost singleton array or ordinal nested-key ordering' }
+    $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(30))
+    $script:protocolRead = (Get-Command Read-C12PreparedMessage).ScriptBlock
+    $script:protocolReadCount = 0
+    $script:protocolHello = $null
+    function Read-C12PreparedMessage {
+      param($Pipe, $Deadline)
+      [byte[]]$wire = & $script:protocolRead @PSBoundParameters
+      $script:protocolReadCount++
+      if ($script:protocolReadCount -eq 1) { $script:protocolHello = $wire }
+      if ($mode -ceq 'protocol-duplicate-sequence') {
+        if ($script:protocolReadCount -eq 2) { return ,$script:protocolHello }
+        return ,$wire
+      }
+      if ($script:protocolReadCount -ne 1) { return ,$wire }
+      if ($mode -ceq 'protocol-oversized-frame') { return ,([byte[]]::new(131073)) }
+      if ($mode -ceq 'protocol-invalid-utf8') { return ,([byte[]]@(0xc3, 0x28)) }
+      if ($mode -ceq 'protocol-noncanonical-json') { return ,([Text.Encoding]::UTF8.GetBytes(' ' + [Text.Encoding]::UTF8.GetString($wire))) }
+      $frame = [Text.Encoding]::UTF8.GetString($wire) | ConvertFrom-Json
+      switch ($mode) {
+        'protocol-reordered-frame' { $frame.type = 'GATE_WAITING' }
+        'protocol-wrong-nonce' { $frame.worker_nonce = 'foreign-worker' }
+        'protocol-previous-digest' { $frame.previous_frame_digest = ('f' * 64) }
+        'protocol-bad-hmac' { $frame.hmac_sha256 = ('0' * 64) }
+        'protocol-bad-hmac-cleanup' { $frame.hmac_sha256 = ('0' * 64) }
+      }
+      return ,([Text.Encoding]::UTF8.GetBytes(($frame | ConvertTo-Json -Compress -Depth 30)))
+    }
+    if ($mode -ceq 'protocol-foreign-pid') {
+      function Assert-C12PreparedClientPID {
+        param($Prepared, $Pipe)
+        [C12PreparedPipe]::VerifyClientProcessId($Pipe, [uint32]($Prepared.ProcessId + 1))
+      }
+    }
+    if ($mode -ceq 'protocol-bad-hmac-cleanup') {
+      $script:protocolClose = (Get-Command Close-C12PreparedNativeWorker).ScriptBlock
+      $script:protocolCleanupInjected = $false
+      function Close-C12PreparedNativeWorker {
+        param($Prepared, $Deadline)
+        & $script:protocolClose @PSBoundParameters
+        if (-not $script:protocolCleanupInjected) { $script:protocolCleanupInjected = $true; throw 'injected protocol cleanup failure' }
+      }
+    }
+  $rejected = $false
+  $expectedFailure = @{
+    'protocol-duplicate-sequence' = 'sequence/type replay or order mismatch'
+    'protocol-reordered-frame' = 'sequence/type replay or order mismatch'
+    'protocol-foreign-pid' = 'client PID mismatch'
+    'protocol-wrong-nonce' = 'schema/run/worker nonce mismatch'
+    'protocol-oversized-frame' = 'frame exceeds maximum size'
+    'protocol-previous-digest' = 'previous frame digest mismatch'
+    'protocol-bad-hmac' = 'frame HMAC mismatch'
+    'protocol-bad-hmac-cleanup' = 'frame HMAC mismatch'
+    'protocol-invalid-utf8' = 'not valid UTF-8 JSON'
+    'protocol-noncanonical-json' = 'not canonical JSON'
+  }
+  try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+  catch { if ($_.Exception.ToString().Contains($expectedFailure[$mode])) { $rejected = $true } else { throw } }
+    if (-not $rejected) { throw "$mode did not reject its malformed protocol input" }
+    if ($mode -ceq 'protocol-bad-hmac-cleanup' -and $prepared.CleanupFailures -cnotcontains 'injected protocol cleanup failure') { throw 'protocol cleanup failure was not retained alongside the primary HMAC failure' }
+    if ($prepared.Released -or $prepared.GateSignaled -or [IO.File]::Exists($executionMarker)) { throw "$mode released or executed the payload" }
+    Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10))
+    if (-not $prepared.ActiveProcessZeroConfirmed -or -not $prepared.Closed -or (Get-Process -Id $prepared.ProcessId -ErrorAction SilentlyContinue)) { throw "$mode did not converge the exact process and Job" }
+    $success = $true
+  }
+  elseif ($mode -cin @('prepared-suspended-membership', 'prepared-assignment-failure', 'prepared-pid-mismatch', 'prepared-invalid-thread-handle', 'prepared-cleanup-retry', 'prepared-job-collision')) {
     if ($null -eq (Get-Command New-C12SuspendedPreparedWorker -ErrorAction SilentlyContinue)) {
       throw 'production suspended process factory is absent'
     }
@@ -3451,22 +3553,6 @@ public static class C12ContainmentProbe {
   }
   else {
     $prepared = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(45))
-    if ($mode -ceq 'prepared-suspended-membership') {
-      if ([IO.File]::Exists($executionMarker)) { throw 'prepared target executed before controller release' }
-      if ($prepared.PSObject.Properties.Name -cnotcontains 'ProcessID' -or
-          $prepared.PSObject.Properties.Name -cnotcontains 'ProcessHandle' -or
-          $prepared.PSObject.Properties.Name -cnotcontains 'NativeJobHandle') {
-        throw 'production prepared worker lacks exact suspended-process PID/handle membership state'
-      }
-      if ($prepared.PSObject.Properties.Name -ccontains 'Job' -and $prepared.Job -is [Management.Automation.Job]) {
-        throw 'production prepared worker still uses Start-Job instead of a suspended native process'
-      }
-      $membershipMethod = [C12NativeJob].GetMethod('IsProcessInJob', [Reflection.BindingFlags]'Public,Static')
-      if ($null -eq $membershipMethod) { throw 'production native Job sentinel lacks IsProcessInJob' }
-      if (-not [bool]$membershipMethod.Invoke($null, [object[]]@([IntPtr]$prepared.ProcessHandle, [IntPtr]$prepared.NativeJobHandle))) {
-        throw 'production prepared target PID is not a member of its exact native Job before release'
-      }
-    }
     if ($mode -ceq 'wrong-role') {
       $rejected = $false
       try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'authority-initializer-json' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{} }
@@ -3476,41 +3562,25 @@ public static class C12ContainmentProbe {
       $success = $true
     }
     else {
-      $result = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{}
+      $result = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role $invocationRole -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment $invocationCapabilities
+      if ($mode -ceq 'initializer-capabilities') {
+        if (@($result.Output | Where-Object { $_ -ceq 'TALENRO_C12_AUTHORITY_V7_INIT_NONCE=fixture-nonce' }).Count -ne 1) { throw 'initializer did not receive its authenticated capability environment' }
+        if (@($result.Output | Where-Object { $_ -match 'CONTROLLER_WAL_KEY_CANARY|^C12_BOOTSTRAP_KEY=' }).Count -ne 0) { throw 'initializer inherited a controller or bootstrap key' }
+      }
       if (@($result.Output | Where-Object { [string]$_ -ceq 'C12_PREPARED_FIXTURE_OK' }).Count -ne 1) { throw 'prepared fixture output marker mismatch' }
       if (-not [IO.File]::Exists($executionMarker) -or ([IO.File]::ReadAllText($executionMarker)).Trim() -cne 'C12_TARGET_EXECUTED') {
         throw 'prepared target positive-control execution marker mismatch'
       }
       $phases = @(Get-C12PreparedWorkerPhases -Prepared $prepared)
-      if ($mode -ceq 'prepared-pipe-six-frame') {
-        $expectedProtocol = @('SETUP_BEGIN','BUILD_DONE','ARTIFACT_BOUND','HELLO','VERIFICATION_PROJECTION','JOB_MEMBER_READY','CAPABILITIES','CAPABILITIES_INSTALLED','GATE_WAITING','FORMAL_RELEASE','EXEC_BEGIN','EXEC_END')
-        if (($phases -join '|') -cne ($expectedProtocol -join '|')) {
-          throw "production prepared pipe did not expose the exact six-frame protocol trace: $($phases -join '|')"
-        }
+      $expectedProtocol = @('SETUP_BEGIN','BUILD_DONE','ARTIFACT_BOUND','HELLO','VERIFICATION_PROJECTION','JOB_MEMBER_READY','CAPABILITIES','CAPABILITIES_INSTALLED','GATE_WAITING','FORMAL_RELEASE','EXEC_BEGIN','EXEC_END')
+      if (($phases -join '|') -cne ($expectedProtocol -join '|')) { throw "production prepared pipe phase order mismatch: $($phases -join '|')" }
+      if ($prepared.ProtocolReceipts.Count -ne 6 -or -not $prepared.GateSignaled -or $prepared.ReleaseTicks -le 0 -or -not $prepared.ActiveProcessZeroConfirmed) { throw 'six-frame release lacks verified receipts, gate, time or exact Job convergence' }
+      $projectionJSON = ConvertTo-C12ProtocolJSON $prepared.Projection
+      foreach ($forbidden in @('ReceiptKeyHex','ReceiptSeal','ReceiptFields','PayloadFields','RootHandle','RefCount','CONTROLLER_WAL_KEY_CANARY')) {
+        if ($projectionJSON.Contains($forbidden)) { throw "worker projection leaked $forbidden" }
       }
-      elseif ($mode -ceq 'prepared-suspended-membership') {
-        $readyIndex = [Array]::IndexOf([string[]]$phases, 'JOB_MEMBER_READY')
-        $releaseIndex = [Array]::IndexOf([string[]]$phases, 'FORMAL_RELEASE')
-        $execIndex = [Array]::IndexOf([string[]]$phases, 'EXEC_BEGIN')
-        if ($readyIndex -lt 0 -or $releaseIndex -le $readyIndex -or $execIndex -le $releaseIndex) {
-          throw "suspended-process positive control crossed release/exec out of order: $($phases -join '|')"
-        }
-        [IO.File]::Delete($executionMarker)
-        $collisionHandle = [IntPtr]::Zero
-        try {
-          $collisionHandle = [C12NativeJob]::CreateKillOnClose([string]$receipt.NativeJobName)
-          $collisionRejected = $false
-          try { $null = New-C12PreparedNativeWorker -ArtifactRoot $artifact -Receipt $receipt -SetupDeadline ([DateTime]::UtcNow.AddSeconds(20)) }
-          catch { $collisionRejected = $_.Exception.Message -match 'collision' }
-          if (-not $collisionRejected) { throw 'prepared Job-identity mutation was accepted' }
-          if ([IO.File]::Exists($executionMarker)) { throw 'prepared Job-identity mutation started the target executable' }
-        }
-        finally { [C12NativeJob]::Close($collisionHandle) }
-      }
-      else {
-        $expected = @('SETUP_BEGIN', 'BUILD_DONE', 'ARTIFACT_BOUND', 'JOB_MEMBER_READY', 'FORMAL_RELEASE', 'EXEC_BEGIN', 'EXEC_END')
-        if (($phases -join '|') -cne ($expected -join '|')) { throw "prepared phase order mismatch: $($phases -join '|')" }
-      }
+      if ($projectionJSON.Contains($script:c12PreparedReceiptKeyHex)) { throw 'worker projection leaked receipt signing key bytes' }
+      if ([IO.File]::GetLastWriteTimeUtc($executionMarker).Ticks -lt $prepared.ReleaseTicks) { throw 'worker marker timestamp precedes formal release' }
       if ($mode -cin @('replay', 'prepared-pipe-six-frame')) {
         $rejected = $false
         try { $null = Invoke-C12PreparedAuthorityRole -Prepared $prepared -Role 'trusted-validator' -Timeout ([TimeSpan]::FromMinutes(2)) -Deadline ([DateTime]::UtcNow.AddMinutes(2)) -CapabilityEnvironment @{} }

@@ -2237,216 +2237,242 @@ function Assert-C12SealedExecutableReceipt {
   }
 }
 
-$script:c12PreparedNativeWorkerScript = {
-  param($Invocation)
-  $primarySeal = $null
-  $secondarySeal = $null
-  $releaseGate = $null
-  $pipeClient = $null
-  $pipeReader = $null
-  $reachedExec = $false
-  try {
-    $assemblyName = New-Object Reflection.AssemblyName("TalenroC12PreparedMember_$([Guid]::NewGuid().ToString('N'))")
-    $assemblyBuilder = [AppDomain]::CurrentDomain.DefineDynamicAssembly($assemblyName, [Reflection.Emit.AssemblyBuilderAccess]::Run)
-    $moduleBuilder = $assemblyBuilder.DefineDynamicModule('TalenroC12PreparedMember')
-    $typeAttributes = [Reflection.TypeAttributes]::Public -bor [Reflection.TypeAttributes]::Sealed -bor [Reflection.TypeAttributes]::Abstract
-    $typeBuilder = $moduleBuilder.DefineType('TalenroC12PreparedMember', $typeAttributes)
-    $methodAttributes = [Reflection.MethodAttributes]::Public -bor [Reflection.MethodAttributes]::Static -bor [Reflection.MethodAttributes]::PinvokeImpl
-    $openMethodBuilder = $typeBuilder.DefinePInvokeMethod(
-      'OpenJobObject', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
-      [IntPtr], [Type[]]@([UInt32], [bool], [string]),
-      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::Unicode)
-    $currentMethodBuilder = $typeBuilder.DefinePInvokeMethod(
-      'GetCurrentProcess', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
-      [IntPtr], [Type[]]@(),
-      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
-    $assignMethodBuilder = $typeBuilder.DefinePInvokeMethod(
-      'AssignProcessToJobObject', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
-      [bool], [Type[]]@([IntPtr], [IntPtr]),
-      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
-    $closeMethodBuilder = $typeBuilder.DefinePInvokeMethod(
-      'CloseHandle', 'kernel32.dll', $methodAttributes, [Reflection.CallingConventions]::Standard,
-      [bool], [Type[]]@([IntPtr]),
-      [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::None)
-    foreach ($methodBuilder in @($openMethodBuilder, $currentMethodBuilder, $assignMethodBuilder, $closeMethodBuilder)) {
-      $methodBuilder.SetImplementationFlags($methodBuilder.GetMethodImplementationFlags() -bor [Reflection.MethodImplAttributes]::PreserveSig)
+function Initialize-C12PreparedPipe {
+  if ('C12PreparedPipe' -as [type]) { return }
+  Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.IO.Pipes;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
+public static class C12PreparedPipe {
+    const uint PIPE_ACCESS_DUPLEX = 3, FILE_FLAG_FIRST_PIPE_INSTANCE = 0x00080000, FILE_FLAG_OVERLAPPED = 0x40000000;
+    const uint PIPE_TYPE_MESSAGE = 4, PIPE_READMODE_MESSAGE = 2, PIPE_WAIT = 0, PIPE_REJECT_REMOTE_CLIENTS = 8;
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    static extern SafePipeHandle CreateNamedPipeW(string name, uint access, uint mode, uint nMaxInstances, uint outSize, uint inSize, uint timeout, IntPtr security);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetNamedPipeClientProcessId(SafePipeHandle pipe, out uint pid);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetNamedPipeServerProcessId(SafePipeHandle pipe, out uint pid);
+    public static NamedPipeServerStream CreatePrivatePipe(string name) {
+        var handle = CreateNamedPipeW(@"\\.\pipe\" + name,
+            PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED,
+            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
+            nMaxInstances: 1, outSize: 131072, inSize: 131072, timeout: 0, security: IntPtr.Zero);
+        if (handle.IsInvalid) { handle.Dispose(); throw new Win32Exception(Marshal.GetLastWin32Error(), "private pipe creation failed"); }
+        try { return new NamedPipeServerStream(PipeDirection.InOut, true, false, handle); }
+        catch { handle.Dispose(); throw; }
     }
-    $memberType = $typeBuilder.CreateType()
-    $openMethod = $memberType.GetMethod('OpenJobObject')
-    $currentMethod = $memberType.GetMethod('GetCurrentProcess')
-    $assignMethod = $memberType.GetMethod('AssignProcessToJobObject')
-    $closeMethod = $memberType.GetMethod('CloseHandle')
-    $memberJobHandle = [IntPtr]$openMethod.Invoke($null, [object[]]@([UInt32]1, $false, [string]$Invocation.Receipt.NativeJobName))
-    if ($memberJobHandle -eq [IntPtr]::Zero) { throw 'prepared worker could not open its native Job' }
-    try {
-      $currentProcess = [IntPtr]$currentMethod.Invoke($null, [object[]]@())
-      if (-not [bool]$assignMethod.Invoke($null, [object[]]@($memberJobHandle, $currentProcess))) {
-        throw 'prepared worker could not join its native Job'
-      }
+    public static void VerifyClientProcessId(PipeStream pipe, uint expected) {
+        uint pid;
+        if (!GetNamedPipeClientProcessId(pipe.SafePipeHandle, out pid) || pid != expected || expected == 0)
+            throw new InvalidOperationException("protocol client PID mismatch");
     }
-    finally {
-      if (-not [bool]$closeMethod.Invoke($null, [object[]]@($memberJobHandle))) { throw 'prepared worker could not close its child-side native Job handle' }
+    public static void VerifyServerProcessId(PipeStream pipe, uint expected) {
+        uint pid;
+        if (!GetNamedPipeServerProcessId(pipe.SafePipeHandle, out pid) || pid != expected || expected == 0)
+            throw new InvalidOperationException("protocol server PID mismatch");
     }
-
-    Add-Type -TypeDefinition ([string]$Invocation.SealedExecutableSource)
-
-    function Get-C12PreparedWorkerSHA256 {
-      param([byte[]]$Bytes)
-      $algorithm = [Security.Cryptography.SHA256]::Create()
-      try { return (($algorithm.ComputeHash($Bytes) | ForEach-Object { $_.ToString('x2') }) -join '') }
-      finally { $algorithm.Dispose() }
-    }
-
-    function Get-C12PreparedWorkerArrayDigest {
-      param([object[]]$Values)
-      $encoded = New-Object 'System.Collections.Generic.List[string]'
-      foreach ($value in @($Values)) {
-        $text = [string]$value
-        if ($text.IndexOf([char]0) -ge 0 -or $text.Length -gt 32768) { throw 'prepared worker argument vector is malformed' }
-        $encoded.Add([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text)))
-      }
-      return Get-C12PreparedWorkerSHA256 -Bytes ([Text.Encoding]::UTF8.GetBytes(($encoded -join '.')))
-    }
-
-    function Get-C12PreparedWorkerPayload {
-      param([object]$Receipt)
-      $parts = New-Object 'System.Collections.Generic.List[string]'
-      foreach ($field in @($Invocation.PayloadFields)) {
-        if (-not ($Receipt.PSObject.Properties.Name -ccontains [string]$field)) { throw 'prepared worker receipt field is absent' }
-        $value = [string]$Receipt.([string]$field)
-        $parts.Add("$field=$([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($value)))")
-      }
-      return [Text.Encoding]::UTF8.GetBytes(($parts -join "`n"))
-    }
-
-    function Get-C12PreparedWorkerSeal {
-      param([byte[]]$Payload)
-      $keyHex = [string]$Invocation.ReceiptKeyHex
-      if ($keyHex -notmatch '^[0-9a-f]{64}$') { throw 'prepared worker receipt key is malformed' }
-      $key = New-Object byte[] 32
-      for ($index = 0; $index -lt 32; $index++) { $key[$index] = [Convert]::ToByte($keyHex.Substring($index * 2, 2), 16) }
-      $hmac = [Security.Cryptography.HMACSHA256]::new([byte[]]$key)
-      try { return (($hmac.ComputeHash($Payload) | ForEach-Object { $_.ToString('x2') }) -join '') }
-      finally { $hmac.Dispose(); [Array]::Clear($key, 0, $key.Length) }
-    }
-
-    function Assert-C12SealedExecutableReceipt {
-      param([object]$Receipt)
-      $expected = @($Invocation.ReceiptFields | ForEach-Object { [string]$_ } | Sort-Object)
-      $observed = @($Receipt.PSObject.Properties.Name | Sort-Object)
-      if (($expected -join '|') -cne ($observed -join '|')) { throw 'prepared worker receipt has a missing or extra field' }
-      if ([string]$Receipt.Schema -cne 'talenro-c12-prepared-executable-receipt/v1' -or [string]$Receipt.Role -cnotin @('trusted-validator', 'authority-initializer-json')) {
-        throw 'prepared worker receipt schema or role is invalid'
-      }
-      if ((Get-C12PreparedWorkerArrayDigest -Values @($Receipt.BuildArguments)) -cne [string]$Receipt.BuildArgumentsDigest -or
-          (Get-C12PreparedWorkerArrayDigest -Values @($Receipt.Arguments)) -cne [string]$Receipt.ArgumentsDigest) {
-        throw 'prepared worker receipt argument vector changed'
-      }
-      $payload = Get-C12PreparedWorkerPayload -Receipt $Receipt
-      if ((Get-C12PreparedWorkerSHA256 -Bytes $payload) -cne [string]$Receipt.ReceiptIdentity -or
-          (Get-C12PreparedWorkerSeal -Payload $payload) -cne [string]$Receipt.ReceiptSeal) {
-        throw 'prepared worker receipt identity or seal changed'
-      }
-      $rootIdentity = [C12SealedExecutable]::InspectDirectory([string]$Receipt.OwnedRootPath)
-      $parentIdentity = [C12SealedExecutable]::InspectDirectory([string]$Receipt.ParentRootPath)
-      if ($rootIdentity.Value -cne [string]$Receipt.ArtifactRootIdentity -or $parentIdentity.Value -cne [string]$Receipt.ParentIdentity) {
-        throw 'prepared worker artifact root identity changed'
-      }
-      $primary = [C12SealedExecutable]::OpenAndVerify(
-        [string]$Receipt.ExecutablePath, [string]$Receipt.ExecutableSHA256, [UInt64]::Parse([string]$Receipt.ExecutableLength),
-        [UInt32]::Parse([string]$Receipt.ExecutableVolumeSerial), [UInt64]::Parse([string]$Receipt.ExecutableFileIndex),
-        [UInt32]::Parse([string]$Receipt.ExecutableLinkCount), [string]$Receipt.ExecutableOwner, [string]$Receipt.ExecutableDACL)
-      $secondary = $null
-      try {
-        if (-not [string]::IsNullOrEmpty([string]$Receipt.SecondaryExecutablePath)) {
-          $secondary = [C12SealedExecutable]::OpenAndVerify(
-            [string]$Receipt.SecondaryExecutablePath, [string]$Receipt.SecondaryExecutableSHA256, [UInt64]::Parse([string]$Receipt.SecondaryExecutableLength),
-            [UInt32]::Parse([string]$Receipt.SecondaryExecutableVolumeSerial), [UInt64]::Parse([string]$Receipt.SecondaryExecutableFileIndex),
-            [UInt32]::Parse([string]$Receipt.SecondaryExecutableLinkCount), [string]$Receipt.SecondaryExecutableOwner, [string]$Receipt.SecondaryExecutableDACL)
+    static void Wait(IAsyncResult operation, int milliseconds, PipeStream pipe) {
+        if (milliseconds <= 0 || !operation.AsyncWaitHandle.WaitOne(milliseconds)) {
+            pipe.Dispose(); throw new TimeoutException("protocol pipe deadline exhausted");
         }
-        return [pscustomobject]@{ Primary = $primary; Secondary = $secondary }
-      }
-      catch { if ($null -ne $secondary) { $secondary.Dispose() }; $primary.Dispose(); throw }
     }
+    public static void Connect(NamedPipeServerStream pipe, int milliseconds) {
+        var operation = pipe.BeginWaitForConnection(null, null);
+        try { Wait(operation, milliseconds, pipe); pipe.EndWaitForConnection(operation); pipe.ReadMode = PipeTransmissionMode.Message; }
+        finally { operation.AsyncWaitHandle.Close(); }
+    }
+    public static byte[] ReadMessage(PipeStream pipe, int milliseconds) {
+        byte[] bytes = new byte[131073];
+        var operation = pipe.BeginRead(bytes, 0, bytes.Length, null, null);
+        int count;
+        try { Wait(operation, milliseconds, pipe); count = pipe.EndRead(operation); }
+        finally { operation.AsyncWaitHandle.Close(); }
+        if (count == 0 || count > 131072 || !pipe.IsMessageComplete) throw new InvalidDataException("protocol frame exceeds message bound or is truncated");
+        Array.Resize(ref bytes, count);
+        return bytes;
+    }
+    public static void WriteMessage(PipeStream pipe, byte[] bytes, int milliseconds) {
+        if (bytes.Length == 0 || bytes.Length > 131072) throw new InvalidDataException("protocol frame exceeds message bound");
+        var operation = pipe.BeginWrite(bytes, 0, bytes.Length, null, null);
+        try { Wait(operation, milliseconds, pipe); pipe.EndWrite(operation); }
+        finally { operation.AsyncWaitHandle.Close(); }
+    }
+    public static string SHA256(byte[] bytes) {
+        using (var digest = System.Security.Cryptography.SHA256.Create()) { return BitConverter.ToString(digest.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant(); }
+    }
+    public static string HMAC(byte[] bytes, byte[] key) {
+        using (var mac = new HMACSHA256(key)) { return BitConverter.ToString(mac.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant(); }
+    }
+    public static bool FixedEquals(string left, string right) {
+        if (left == null || right == null || left.Length != 64 || right.Length != 64) return false;
+        int difference = 0;
+        for (int i = 0; i < 64; i++) difference |= left[i] ^ right[i];
+        return difference == 0;
+    }
+}
+'@
+}
 
-    foreach ($inheritedName in @([Environment]::GetEnvironmentVariables('Process').Keys)) {
-      $name = [string]$inheritedName
-      if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
-    }
-    foreach ($name in @($Invocation.InitializerCapabilityNames)) {
-      if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable([string]$name, 'Process'))) {
-        throw 'prepared worker inherited an authority capability before release'
-      }
-    }
-    Set-Location -LiteralPath ([string]$Invocation.Receipt.WorkingDirectory)
-    $seals = Assert-C12SealedExecutableReceipt -Receipt $Invocation.Receipt
-    $primarySeal = $seals.Primary
-    $secondarySeal = $seals.Secondary
-    $releaseGate = [Threading.EventWaitHandle]::OpenExisting([string]$Invocation.Receipt.GateName)
-    Write-Output ([pscustomobject]@{ C12PreparedPhase = 'JOB_MEMBER_READY'; ReceiptIdentity = [string]$Invocation.Receipt.ReceiptIdentity })
-    $remainingMilliseconds = [Math]::Floor(([DateTime]::new([Int64]$Invocation.PreparationDeadlineTicks, [DateTimeKind]::Utc) - [DateTime]::UtcNow).TotalMilliseconds)
-    if ($remainingMilliseconds -lt 1 -or -not $releaseGate.WaitOne([int][Math]::Min([double][Int32]::MaxValue, $remainingMilliseconds))) {
-      throw 'prepared worker release gate timed out'
-    }
-    Write-Output ([pscustomobject]@{ C12PreparedPhase = 'FORMAL_RELEASE'; ReceiptIdentity = [string]$Invocation.Receipt.ReceiptIdentity })
+function Get-C12ProtocolMilliseconds {
+  param([DateTime]$Deadline)
+  $remaining = [Math]::Floor(($Deadline - [DateTime]::UtcNow).TotalMilliseconds)
+  if ($remaining -le 0) { throw 'protocol absolute deadline exhausted' }
+  return [int][Math]::Min($remaining, [Int32]::MaxValue)
+}
 
-    $pipeClient = New-Object IO.Pipes.NamedPipeClientStream('.', [string]$Invocation.Receipt.PipeName, [IO.Pipes.PipeDirection]::In, [IO.Pipes.PipeOptions]::None)
-    $pipeClient.Connect(60000)
-    $pipeReader = New-Object IO.StreamReader($pipeClient, (New-Object Text.UTF8Encoding($false)), $false, 4096, $true)
-    $capabilityLine = $pipeReader.ReadLine()
-    if ([string]::IsNullOrEmpty($capabilityLine) -or $capabilityLine.Length -gt 65536) { throw 'prepared worker capability message is malformed' }
-    $capabilityMessage = $capabilityLine | ConvertFrom-Json
-    $entries = @($capabilityMessage.Entries)
-    if ([string]$Invocation.Receipt.Role -ceq 'trusted-validator' -and $entries.Count -ne 0) { throw 'trusted validator received authority capabilities' }
-    $allowedCapabilities = @($Invocation.InitializerCapabilityNames | ForEach-Object { [string]$_ } | Sort-Object)
-    $observedCapabilities = New-Object 'System.Collections.Generic.List[string]'
-    foreach ($entry in $entries) {
-      $name = [string]$entry.Name
-      $value = [string]$entry.Value
-      if ($name -notmatch '^TALENRO_[A-Z0-9_]+$' -or $value.Length -gt 8192 -or $observedCapabilities.Contains($name)) { throw 'prepared worker capability entry is malformed' }
-      $observedCapabilities.Add($name)
-      [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+function ConvertTo-C12ProtocolValue {
+  param($Value)
+  if ($null -eq $Value -or $Value -is [string] -or $Value -is [ValueType]) { return $Value }
+  if ($Value -is [Collections.IDictionary] -or $Value -is [pscustomobject]) {
+    [string[]]$names = if ($Value -is [Collections.IDictionary]) { @($Value.Keys) } else { @($Value.PSObject.Properties.Name) }
+    [Array]::Sort($names, [StringComparer]::Ordinal)
+    $ordered = [ordered]@{}
+    foreach ($name in $names) {
+      if ($Value -is [Collections.IDictionary]) { $item = $Value[$name] } else { $item = $Value.$name }
+      $ordered[$name] = ConvertTo-C12ProtocolValue $item
     }
-    if ([string]$Invocation.Receipt.Role -ceq 'authority-initializer-json' -and (($observedCapabilities | Sort-Object) -join '|') -cne ($allowedCapabilities -join '|')) {
-      throw 'authority initializer did not receive its exact capability allowlist'
-    }
-
-    Write-Output ([pscustomobject]@{ C12PreparedPhase = 'EXEC_BEGIN'; ReceiptIdentity = [string]$Invocation.Receipt.ReceiptIdentity })
-    $reachedExec = $true
-    $boundedOutput = New-Object 'System.Collections.Generic.List[string]'
-    $capture = {
-      process {
-        if ($boundedOutput.Count -lt 4096) {
-          $line = ([string]$_) -replace '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '?'
-          if ($line.Length -gt 512) { $line = $line.Substring(0, 512) }
-          $boundedOutput.Add($line)
-        }
-      }
-    }
-    $nativeArguments = @($Invocation.Receipt.Arguments | ForEach-Object { [string]$_ })
-    $priorPreference = $ErrorActionPreference
-    try {
-      $ErrorActionPreference = 'Continue'
-      switch ([string]$Invocation.Receipt.Role) {
-        'trusted-validator' { & ([string]$Invocation.Receipt.ExecutablePath) @nativeArguments 2>&1 | & $capture; $nativeExitCode = $LASTEXITCODE }
-        'authority-initializer-json' { & ([string]$Invocation.Receipt.ExecutablePath) @nativeArguments 2>&1 | & $capture; $nativeExitCode = $LASTEXITCODE }
-        default { $nativeExitCode = 127 }
-      }
-    }
-    finally { $ErrorActionPreference = $priorPreference }
-    Write-Output ([pscustomobject]@{ C12PreparedPhase = 'EXEC_END'; ReceiptIdentity = [string]$Invocation.Receipt.ReceiptIdentity })
-    Write-Output ([pscustomobject]@{ C12PreparedResult = $true; ExitCode = [int]$nativeExitCode; Output = [string[]]$boundedOutput.ToArray(); ReachedExec = $true })
+    return $ordered
   }
-  catch {
-    Write-Output ([pscustomobject]@{ C12PreparedFailure = $true; ReachedExec = [bool]$reachedExec })
+  if ($Value -is [Collections.IEnumerable]) {
+    $items = @($Value | ForEach-Object { ConvertTo-C12ProtocolValue $_ })
+    return ,$items
+  }
+  throw 'protocol value is not a JSON data type'
+}
+
+function ConvertTo-C12ProtocolJSON {
+  param($Value)
+  # All object keys, including nested payloads, use ordinal order. Acceptance
+  # additionally requires byte-identical, compact, BOM-free UTF-8 re-encoding.
+  return ConvertTo-Json -InputObject (ConvertTo-C12ProtocolValue $Value) -Compress -Depth 30
+}
+
+function New-C12ProtocolState {
+  param([string]$Run, [string]$Nonce, [byte[]]$Key)
+  return [pscustomobject]@{ Run = $Run; Nonce = $Nonce; Key = $Key; Sequence = 0; Previous = ''; Frames = [Collections.Generic.List[object]]::new() }
+}
+
+function New-C12PreparedFrame {
+  param($State, [string]$Type, $Payload)
+  $utf8 = [Text.UTF8Encoding]::new($false, $true)
+  $body = [ordered]@{
+    schema = 'talenro-c12-prepared-frame/v1'; run = $State.Run; worker_nonce = $State.Nonce
+    sequence = $State.Sequence + 1; type = $Type; payload = $Payload
+    payload_digest = [C12PreparedPipe]::SHA256($utf8.GetBytes((ConvertTo-C12ProtocolJSON $Payload)))
+    previous_frame_digest = $State.Previous
+  }
+  $mac = [C12PreparedPipe]::HMAC($utf8.GetBytes((ConvertTo-C12ProtocolJSON $body)), $State.Key)
+  $body.Add('hmac_sha256', $mac)
+  return ,$utf8.GetBytes((ConvertTo-C12ProtocolJSON $body))
+}
+
+function Assert-C12PreparedFrame {
+  param($State, [byte[]]$Bytes, [string]$Type)
+  if ($Bytes.Length -eq 0 -or $Bytes.Length -gt 131072) { throw 'protocol frame exceeds maximum size' }
+  $utf8 = [Text.UTF8Encoding]::new($false, $true)
+  try { $text = $utf8.GetString($Bytes); $frame = $text | ConvertFrom-Json }
+  catch { throw 'protocol frame is not valid UTF-8 JSON' }
+  $fields = @('hmac_sha256','payload','payload_digest','previous_frame_digest','run','schema','sequence','type','worker_nonce')
+  if ((@($frame.PSObject.Properties.Name) -join '|') -cne ($fields -join '|')) { throw 'protocol frame has missing, duplicate, reordered or extra fields' }
+  if ($frame.schema -cne 'talenro-c12-prepared-frame/v1' -or $frame.run -cne $State.Run -or $frame.worker_nonce -cne $State.Nonce) { throw 'protocol frame schema/run/worker nonce mismatch' }
+  if ($frame.sequence -isnot [int] -or $frame.sequence -ne ($State.Sequence + 1) -or $frame.type -cne $Type) { throw 'protocol frame sequence/type replay or order mismatch' }
+  if ($frame.previous_frame_digest -cne $State.Previous) { throw 'protocol previous frame digest mismatch' }
+  $expected = New-C12PreparedFrame -State $State -Type $Type -Payload $frame.payload
+  $canonical = $utf8.GetString($expected) | ConvertFrom-Json
+  if ($frame.payload_digest -cne $canonical.payload_digest) { throw 'protocol payload digest mismatch' }
+  if (-not [C12PreparedPipe]::FixedEquals($frame.hmac_sha256, $canonical.hmac_sha256)) { throw 'protocol frame HMAC mismatch' }
+  if ($text -cne $utf8.GetString($expected)) { throw 'protocol frame is not canonical JSON' }
+  $digest = [C12PreparedPipe]::SHA256($Bytes)
+  $State.Sequence++; $State.Previous = $digest
+  $State.Frames.Add([pscustomobject]@{ Sequence = $State.Sequence; Type = $Type; Digest = $digest; PayloadDigest = $frame.payload_digest })
+  return $frame.payload
+}
+
+function Read-C12PreparedMessage {
+  param($Pipe, [DateTime]$Deadline)
+  return ,([C12PreparedPipe]::ReadMessage($Pipe, (Get-C12ProtocolMilliseconds $Deadline)))
+}
+
+function Receive-C12PreparedFrame {
+  param($State, $Pipe, [DateTime]$Deadline, [string]$Type)
+  [byte[]]$bytes = Read-C12PreparedMessage -Pipe $Pipe -Deadline $Deadline
+  return Assert-C12PreparedFrame -State $State -Bytes $bytes -Type $Type
+}
+
+function Send-C12PreparedFrame {
+  param($State, $Pipe, [DateTime]$Deadline, [string]$Type, $Payload)
+  [byte[]]$bytes = New-C12PreparedFrame -State $State -Type $Type -Payload $Payload
+  $null = Assert-C12PreparedFrame -State $State -Bytes $bytes -Type $Type
+  [C12PreparedPipe]::WriteMessage($Pipe, $bytes, (Get-C12ProtocolMilliseconds $Deadline))
+}
+
+$script:c12PreparedNativeWorkerScript = {
+  param($Bootstrap)
+  $ErrorActionPreference = 'Stop'
+  Set-StrictMode -Version Latest
+  Initialize-C12PreparedPipe
+  $key = [Convert]::FromBase64String($env:C12_BOOTSTRAP_KEY)
+  [Environment]::SetEnvironmentVariable('C12_BOOTSTRAP_KEY', $null)
+  $state = New-C12ProtocolState -Run $Bootstrap.Run -Nonce $Bootstrap.Nonce -Key $key
+  $pipe = [IO.Pipes.NamedPipeClientStream]::new('.', $Bootstrap.Pipe, [IO.Pipes.PipeDirection]::InOut, [IO.Pipes.PipeOptions]::Asynchronous)
+  $gate = $null
+  $seals = [Collections.Generic.List[IDisposable]]::new()
+  try {
+    $deadline = [DateTime]::new([long]$Bootstrap.Deadline, [DateTimeKind]::Utc)
+    $pipe.Connect((Get-C12ProtocolMilliseconds $deadline))
+    $pipe.ReadMode = [IO.Pipes.PipeTransmissionMode]::Message
+    [C12PreparedPipe]::VerifyServerProcessId($pipe, [uint32]$Bootstrap.ControllerPID)
+    Send-C12PreparedFrame $state $pipe $deadline 'HELLO' ([ordered]@{ worker_pid = $PID; controller_pid = $Bootstrap.ControllerPID })
+    $projection = Receive-C12PreparedFrame $state $pipe $deadline 'VERIFICATION_PROJECTION'
+    if ($projection.gate_name -cne $Bootstrap.Gate -or $projection.role -cnotin @('trusted-validator','authority-initializer-json')) { throw 'protocol projection identity mismatch' }
+    $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $projection)))
+    # AssignProcessToJobObject was completed by the controller before bootstrap resume.
+    # These immutable input fields are the worker-side Assert-C12SealedExecutableReceipt projection.
+    foreach ($input in @($projection.inputs)) {
+      $seals.Add([C12SealedExecutable]::OpenAndVerify($input.path, $input.sha256, [uint64]$input.length, [uint32]$input.volume, [uint64]$input.index, [uint32]$input.links, $input.owner, $input.dacl))
+    }
+    $gate = [Threading.EventWaitHandle]::OpenExisting($Bootstrap.Gate)
+    Send-C12PreparedFrame $state $pipe $deadline 'JOB_MEMBER_READY' ([ordered]@{ projection_digest = $projectionDigest })
+    $capabilities = Receive-C12PreparedFrame $state $pipe $deadline 'CAPABILITIES'
+    $allowed = @('TALENRO_C12_AUTHORITY_V7_INIT_NONCE','TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX','TALENRO_C12_AUTHORITY_V7_PROFILE','TALENRO_DATABASE_URL','TALENRO_INSTALLATION_KIND')
+    $entries = @($capabilities.entries)
+    if ($projection.role -ceq 'trusted-validator' -and $entries.Count -ne 0) { throw 'protocol validator capabilities forbidden' }
+    if ($projection.role -ceq 'authority-initializer-json' -and ((@($entries | ForEach-Object { $_.name } | Sort-Object) -join '|') -cne (($allowed | Sort-Object) -join '|'))) { throw 'protocol capability allowlist mismatch' }
+    foreach ($entry in $entries) {
+      if ($entry.name -cnotin $allowed -or $entry.value -isnot [string] -or $entry.value.Length -gt 8192 -or $entry.value.IndexOf([char]0) -ge 0) { throw 'protocol capability entry invalid' }
+      [Environment]::SetEnvironmentVariable($entry.name, $entry.value)
+    }
+    $capabilityDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $capabilities)))
+    Send-C12PreparedFrame $state $pipe $deadline 'CAPABILITIES_INSTALLED' ([ordered]@{ capability_digest = $capabilityDigest })
+    Send-C12PreparedFrame $state $pipe $deadline 'GATE_WAITING' ([ordered]@{ gate_name = $Bootstrap.Gate; capability_digest = $capabilityDigest })
+    if (-not $gate.WaitOne((Get-C12ProtocolMilliseconds $deadline))) { throw 'protocol formal gate deadline exhausted' }
+    # FORMAL_RELEASE is recorded by the controller before it signals this gate.
+    $begin = [DateTime]::UtcNow.Ticks
+    Send-C12PreparedFrame $state $pipe $deadline 'EXEC_BEGIN' ([ordered]@{ timestamp_ticks = $begin })
+    $output = [Collections.Generic.List[string]]::new()
+    $arguments = @($projection.formal_argv | ForEach-Object { [string]$_ })
+    $ErrorActionPreference = 'Continue'
+    & ([string]$projection.executable_path) @arguments 2>&1 | ForEach-Object {
+      if ($output.Count -lt 4096) {
+        $line = ([string]$_) -replace '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '?'
+        if ($line.Length -gt 512) { $line = $line.Substring(0,512) }
+        $output.Add($line)
+      }
+    }
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    # Result chunks use the same authenticated channel after the six-frame handshake.
+    foreach ($line in $output) { Send-C12PreparedFrame $state $pipe $deadline 'OUTPUT' ([ordered]@{ line = $line }) }
+    Send-C12PreparedFrame $state $pipe $deadline 'EXEC_END' ([ordered]@{ timestamp_ticks = [DateTime]::UtcNow.Ticks; exit_code = $code; output_count = $output.Count })
   }
   finally {
-    foreach ($name in @($Invocation.InitializerCapabilityNames)) { [Environment]::SetEnvironmentVariable([string]$name, $null, 'Process') }
-    if ($null -ne $pipeReader) { $pipeReader.Dispose() }
-    if ($null -ne $pipeClient) { $pipeClient.Dispose() }
-    if ($null -ne $releaseGate) { $releaseGate.Dispose() }
-    if ($null -ne $secondarySeal) { $secondarySeal.Dispose() }
-    if ($null -ne $primarySeal) { $primarySeal.Dispose() }
+    foreach ($seal in $seals) { $seal.Dispose() }
+    if ($null -ne $gate) { $gate.Dispose() }
+    $pipe.Dispose()
+    [Array]::Clear($key,0,$key.Length)
   }
 }
 
@@ -2534,7 +2560,10 @@ public sealed class C12SuspendedProcessController : IDisposable
 
     private C12SuspendedProcessController() { }
     private static bool Invalid(IntPtr handle) { return handle == IntPtr.Zero || handle == new IntPtr(-1); }
-    private static Win32Exception NativeError(string operation) { return new Win32Exception(Marshal.GetLastWin32Error(), operation + " failed"); }
+    private static Win32Exception NativeError(string operation) {
+        int code = Marshal.GetLastWin32Error();
+        return new Win32Exception(code, operation + " failed (Win32 " + code + ")");
+    }
     private static void RequireHandle(IntPtr handle, string name) { if (Invalid(handle)) throw new InvalidOperationException(name + " is zero or invalid"); }
     private void RequireOpen() {
         RequireCleanupHandles();
@@ -2734,7 +2763,9 @@ function New-C12SuspendedPreparedWorker {
     JobHandle = $controller.JobHandle; NativeJobHandle = $controller.JobHandle
     CompletionPortHandle = $controller.CompletionPortHandle; Phase = 'CreatedSuspended'
     Role = [string]$Receipt.Role; Receipt = $Receipt; ArtifactRoot = $ArtifactRoot
-    Job = $null; Gate = $null; Released = $false; Closed = $false; ExecutionComplete = $false
+    Job = $null; Gate = $null; GateSignaled = $false; Released = $false; Closed = $false; ExecutionComplete = $false
+    Protocol = $null; Projection = $null; Pipe = $null; ProtocolKey = $null; EnvironmentDigest = ''
+    ReleaseTicks = [long]0; ReleaseWatch = $null; ProtocolReceipts = @()
     ActiveProcessZeroConfirmed = $false; CleanupFailures = @(); Phases = $phases
   }
   $script:c12PreparedWorkers.Add($prepared)
@@ -2769,17 +2800,77 @@ function New-C12PreparedNativeWorker {
   try { if ($null -ne $verified.Secondary) { $verified.Secondary.Dispose() }; $verified.Primary.Dispose() }
   catch { throw }
   $environment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
-  $capabilities = @('TALENRO_C12_AUTHORITY_V7_INIT_NONCE', 'TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX', 'TALENRO_C12_AUTHORITY_V7_PROFILE', 'TALENRO_DATABASE_URL', 'TALENRO_INSTALLATION_KIND')
-  foreach ($entry in [Environment]::GetEnvironmentVariables('Process').GetEnumerator()) {
-    $name = [string]$entry.Key
-    if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase) -or $capabilities -contains $name) { continue }
-    $environment[$name] = [string]$entry.Value
+  # Only ordinary Windows process setup crosses into the bootstrap. Controller
+  # receipt/WAL keys and arbitrary inherited capabilities are never propagated.
+  foreach ($name in @('SystemRoot','WINDIR','TEMP','TMP','PATH','PATHEXT','COMSPEC','USERPROFILE','LOCALAPPDATA','APPDATA','PROCESSOR_ARCHITECTURE','NUMBER_OF_PROCESSORS')) {
+    $value = [Environment]::GetEnvironmentVariable($name)
+    if ($null -ne $value) { $environment[$name] = $value }
   }
-  $encodedArguments = @($Receipt.Arguments | ForEach-Object {
-    if ([string]$_ -match '[\x00\r\n]') { throw 'prepared worker argument is malformed' }
-    '"' + ([regex]::Replace([regex]::Replace([string]$_, '(\\*)"', '$1$1\"'), '(\\+)$', '$1$1')) + '"'
-  }) -join ' '
-  return New-C12SuspendedPreparedWorker -Executable ([string]$Receipt.ExecutablePath) -Arguments $encodedArguments -WorkingDirectory ([string]$Receipt.WorkingDirectory) -Environment $environment -ArtifactRoot $ArtifactRoot -Receipt $Receipt -SetupDeadline $SetupDeadline
+  Initialize-C12PreparedPipe
+  $environmentProjection = @($environment.Keys | Sort-Object | ForEach-Object { [ordered]@{ name = $_; value = $environment[$_] } })
+  $environmentDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $environmentProjection)))
+  $key = New-Object byte[] 32
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try { $rng.GetBytes($key) } finally { $rng.Dispose() }
+  $environment['C12_BOOTSTRAP_KEY'] = [Convert]::ToBase64String($key)
+  $bootstrap = [ordered]@{ Run = $Receipt.RunSuffix; Nonce = $Receipt.OneShotNonce; Pipe = $Receipt.PipeName; Gate = $Receipt.GateName; ControllerPID = $PID; Deadline = $SetupDeadline.AddMinutes(2).Ticks }
+  $source = '$ErrorActionPreference = ''Stop'';' + [Environment]::NewLine
+  foreach ($function in @('Initialize-C12PreparedPipe','Get-C12ProtocolMilliseconds','ConvertTo-C12ProtocolValue','ConvertTo-C12ProtocolJSON','New-C12ProtocolState','New-C12PreparedFrame','Assert-C12PreparedFrame','Read-C12PreparedMessage','Receive-C12PreparedFrame','Send-C12PreparedFrame')) {
+    $source += 'function ' + $function + ' {' + (Get-Command $function).ScriptBlock.ToString() + '}' + [Environment]::NewLine
+  }
+  $source += "Add-Type -TypeDefinition @'" + [Environment]::NewLine + $script:c12SealedExecutableSource + [Environment]::NewLine + "'@" + [Environment]::NewLine
+  $bootstrapJSON = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $bootstrap)))
+  $source += '& {' + $script:c12PreparedNativeWorkerScript.ToString() + '} ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(''' + $bootstrapJSON + ''')) | ConvertFrom-Json)'
+  $tokens = $null; $parseErrors = $null
+  $null = [Management.Automation.Language.Parser]::ParseInput($source, [ref]$tokens, [ref]$parseErrors)
+  if ($parseErrors.Count -ne 0) { throw ('protocol bootstrap syntax invalid: ' + ($parseErrors -join '; ')) }
+  $compressed = [IO.MemoryStream]::new()
+  $gzip = [IO.Compression.GZipStream]::new($compressed, [IO.Compression.CompressionMode]::Compress, $true)
+  try { $bytes = [Text.Encoding]::UTF8.GetBytes($source); $gzip.Write($bytes,0,$bytes.Length) } finally { $gzip.Dispose() }
+  try { $encoded = [Convert]::ToBase64String($compressed.ToArray()) } finally { $compressed.Dispose() }
+  $loader = '$m=[IO.MemoryStream]::new([Convert]::FromBase64String(''' + $encoded + '''));$g=[IO.Compression.GZipStream]::new($m,[IO.Compression.CompressionMode]::Decompress);$r=[IO.StreamReader]::new($g);try{& ([scriptblock]::Create($r.ReadToEnd()))}finally{$r.Dispose();$g.Dispose();$m.Dispose()}'
+  $encodedArguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ' + [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($loader))
+  $bootstrapExecutable = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  $prepared = $null
+  try {
+    $prepared = New-C12SuspendedPreparedWorker -Executable $bootstrapExecutable -Arguments $encodedArguments -WorkingDirectory ([string]$Receipt.WorkingDirectory) -Environment $environment -ArtifactRoot $ArtifactRoot -Receipt $Receipt -SetupDeadline $SetupDeadline
+    $prepared.ProtocolKey = $key
+    $prepared.EnvironmentDigest = $environmentDigest
+    $created = $false
+    $prepared.Gate = [Threading.EventWaitHandle]::new($false, [Threading.EventResetMode]::ManualReset, [string]$Receipt.GateName, [ref]$created)
+    if (-not $created) { throw 'protocol gate collision' }
+    $prepared.Projection = New-C12VerificationProjection -Prepared $prepared
+    return $prepared
+  }
+  catch {
+    $primaryFailure = $_
+    if ($null -ne $prepared) {
+      try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10)) }
+      catch { $prepared.CleanupFailures += $_.Exception.Message }
+    }
+    else { [Array]::Clear($key,0,$key.Length) }
+    throw $primaryFailure
+  }
+}
+
+function New-C12VerificationProjection {
+  param($Prepared)
+  $record = $Prepared.Receipt
+  $inputs = @()
+  foreach ($prefix in @('','Secondary')) {
+    $path = [string]$record.($prefix + 'ExecutablePath')
+    if ([string]::IsNullOrEmpty($path)) { continue }
+    $inputs += [ordered]@{
+      path = $path; sha256 = $record.($prefix + 'ExecutableSHA256'); length = $record.($prefix + 'ExecutableLength')
+      volume = $record.($prefix + 'ExecutableVolumeSerial'); index = $record.($prefix + 'ExecutableFileIndex'); links = $record.($prefix + 'ExecutableLinkCount')
+      owner = $record.($prefix + 'ExecutableOwner'); dacl = $record.($prefix + 'ExecutableDACL')
+    }
+  }
+  return [ordered]@{
+    role = $record.Role; gate_name = $record.GateName; executable_path = $record.ExecutablePath
+    formal_argv = @($record.Arguments); argv_digest = $record.ArgumentsDigest; inputs = $inputs
+    source_digest = $record.SourceDigest; candidate_tree_digest = $record.CandidateTreeIdentity; environment_digest = $Prepared.EnvironmentDigest
+  }
 }
 
 function Get-C12PreparedWorkerPhases {
@@ -2810,9 +2901,67 @@ function Close-C12PreparedNativeWorker {
   $Prepared.NativeJobHandle = [IntPtr]::Zero
   $Prepared.CompletionPortHandle = [IntPtr]::Zero
   if ($null -ne $Prepared.Gate) { $Prepared.Gate.Dispose(); $Prepared.Gate = $null }
+  if ($null -ne $Prepared.Pipe) { $Prepared.Pipe.Dispose(); $Prepared.Pipe = $null }
+  if ($null -ne $Prepared.ProtocolKey) { [Array]::Clear($Prepared.ProtocolKey,0,$Prepared.ProtocolKey.Length); $Prepared.ProtocolKey = $null }
   $Prepared.Phase = 'Removed'
   $Prepared.Closed = $true
   if ($null -ne $terminationFailure) { throw $terminationFailure }
+}
+
+function Assert-C12PreparedClientPID {
+  param($Prepared, $Pipe)
+  [C12PreparedPipe]::VerifyClientProcessId($Pipe, [uint32]$Prepared.ProcessId)
+}
+
+function Invoke-C12PreparedProtocol {
+  param($Prepared, [hashtable]$CapabilityEnvironment, [DateTime]$Deadline)
+  if ($Prepared.Phase -cne 'MembershipVerified' -or $Prepared.Released -or $Prepared.Closed -or $null -ne $Prepared.Protocol) { throw 'protocol requires a fresh contained bootstrap' }
+  Initialize-C12PreparedPipe
+  $Prepared.Pipe = [C12PreparedPipe]::CreatePrivatePipe([string]$Prepared.Receipt.PipeName)
+  $state = New-C12ProtocolState -Run $Prepared.Receipt.RunSuffix -Nonce $Prepared.Receipt.OneShotNonce -Key $Prepared.ProtocolKey
+  $Prepared.Protocol = $state
+  # Only the fixed trusted bootstrap resumes here. No arbitrary payload has
+  # started; it can only be invoked beyond the authenticated formal gate.
+  $Prepared.Controller.Resume()
+  [C12PreparedPipe]::Connect($Prepared.Pipe, (Get-C12ProtocolMilliseconds $Deadline))
+  Assert-C12PreparedClientPID -Prepared $Prepared -Pipe $Prepared.Pipe
+  $hello = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'HELLO'
+  if ($hello.worker_pid -ne $Prepared.ProcessId -or $hello.controller_pid -ne $PID) { throw 'protocol HELLO PID mismatch' }
+  $Prepared.Phases.Add('HELLO')
+  Send-C12PreparedFrame $state $Prepared.Pipe $Deadline 'VERIFICATION_PROJECTION' $Prepared.Projection
+  $Prepared.Phases.Add('VERIFICATION_PROJECTION')
+  $projectionDigest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $Prepared.Projection)))
+  $ready = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'JOB_MEMBER_READY'
+  if ($ready.projection_digest -cne $projectionDigest) { throw 'protocol projection digest mismatch' }
+  $Prepared.Phases.Add('JOB_MEMBER_READY')
+  $Prepared.Phase = 'PipeAuthenticated'
+  $entries = @($CapabilityEnvironment.Keys | Sort-Object | ForEach-Object { [ordered]@{ name = [string]$_; value = [string]$CapabilityEnvironment[$_] } })
+  $capabilities = [ordered]@{ entries = $entries }
+  Send-C12PreparedFrame $state $Prepared.Pipe $Deadline 'CAPABILITIES' $capabilities
+  $Prepared.Phases.Add('CAPABILITIES')
+  $digest = [C12PreparedPipe]::SHA256([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $capabilities)))
+  $installed = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'CAPABILITIES_INSTALLED'
+  if ($installed.capability_digest -cne $digest) { throw 'protocol installed capability digest mismatch' }
+  $Prepared.Phases.Add('CAPABILITIES_INSTALLED')
+  $Prepared.Phase = 'CapabilitiesInstalled'
+  $waiting = Receive-C12PreparedFrame $state $Prepared.Pipe $Deadline 'GATE_WAITING'
+  if ($waiting.gate_name -cne $Prepared.Receipt.GateName -or $waiting.capability_digest -cne $digest) { throw 'protocol gate binding mismatch' }
+  $Prepared.Phases.Add('GATE_WAITING')
+  $Prepared.Phase = 'GateWaiting'
+  $Prepared.ProtocolReceipts = @($state.Frames.ToArray())
+  return [pscustomobject]@{ Frames = $Prepared.ProtocolReceipts; ProjectionDigest = $projectionDigest }
+}
+
+function Release-C12PreparedWorker {
+  param($Prepared)
+  if ($Prepared.Closed -or $Prepared.Released -or $Prepared.Phase -cne 'GateWaiting' -or $Prepared.Protocol.Sequence -ne 6 -or $Prepared.ProtocolReceipts.Count -ne 6) { throw 'protocol formal release requires exactly six verified frames' }
+  $Prepared.Released = $true # exact-once guard survives all release failures.
+  $Prepared.ReleaseWatch = [Diagnostics.Stopwatch]::StartNew()
+  $Prepared.ReleaseTicks = [DateTime]::UtcNow.Ticks
+  $Prepared.Phases.Add('FORMAL_RELEASE')
+  if (-not $Prepared.Gate.Set()) { throw 'protocol formal gate signal failed' }
+  $Prepared.GateSignaled = $true
+  $Prepared.Phase = 'Released'
 }
 
 function Invoke-C12PreparedAuthorityRole {
@@ -2823,78 +2972,56 @@ function Invoke-C12PreparedAuthorityRole {
     [DateTime]$Deadline = [DateTime]::MaxValue,
     [hashtable]$CapabilityEnvironment = @{}
   )
-
   if ([string]$Prepared.Role -cne $Role -or [string]$Prepared.Receipt.Role -cne $Role) { throw 'prepared invocation has the wrong role' }
   if ([bool]$Prepared.Released) { throw 'prepared receipt replay was rejected' }
-  if ([bool]$Prepared.Closed -or $null -eq $Prepared.Job -or $null -eq $Prepared.Gate) { throw 'prepared invocation is already closed' }
+  if ($Prepared.Closed -or $null -eq $Prepared.Gate) { throw 'prepared invocation is already closed' }
   if ($Timeout -ne [TimeSpan]::FromMinutes(2)) { throw 'formal authority watchdog must remain exactly two minutes' }
-  $remaining = $Deadline - [DateTime]::UtcNow
-  if ($remaining -le [TimeSpan]::Zero) { throw 'formal authority stage exceeded its absolute deadline' }
-  if ($remaining -lt $Timeout) { $Timeout = $remaining }
-  $allowed = @('TALENRO_C12_AUTHORITY_V7_INIT_NONCE', 'TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX', 'TALENRO_C12_AUTHORITY_V7_PROFILE', 'TALENRO_DATABASE_URL', 'TALENRO_INSTALLATION_KIND')
+  if ($Deadline -le [DateTime]::UtcNow) { throw 'formal authority stage exceeded its absolute deadline' }
+  $allowed = @('TALENRO_C12_AUTHORITY_V7_INIT_NONCE','TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX','TALENRO_C12_AUTHORITY_V7_PROFILE','TALENRO_DATABASE_URL','TALENRO_INSTALLATION_KIND')
   if ($Role -ceq 'trusted-validator' -and $CapabilityEnvironment.Count -ne 0) { throw 'trusted validator cannot receive authority capabilities' }
-  if ($Role -ceq 'authority-initializer-json') {
-    $observed = @($CapabilityEnvironment.Keys | ForEach-Object { [string]$_ } | Sort-Object)
-    if (($observed -join '|') -cne (($allowed | Sort-Object) -join '|')) { throw 'authority initializer capability allowlist is incomplete or excessive' }
-  }
+  if ($Role -ceq 'authority-initializer-json' -and ((@($CapabilityEnvironment.Keys | Sort-Object) -join '|') -cne (($allowed | Sort-Object) -join '|'))) { throw 'authority initializer capability allowlist is incomplete or excessive' }
+  foreach ($value in $CapabilityEnvironment.Values) { if ($value -isnot [string] -or $value.Length -gt 8192 -or $value.IndexOf([char]0) -ge 0) { throw 'protocol capability value invalid' } }
   $verified = Assert-C12SealedExecutableReceipt -ArtifactRoot $Prepared.ArtifactRoot -Receipt $Prepared.Receipt
-  try { if ($null -ne $verified.Secondary) { $verified.Secondary.Dispose() }; $verified.Primary.Dispose() }
-  catch { throw }
-  $server = $null
-  $writer = $null
-  $watch = [Diagnostics.Stopwatch]::new()
+  $primaryFailure = $null
   try {
-    $server = [IO.Pipes.NamedPipeServerStream]::new([string]$Prepared.Receipt.PipeName, [IO.Pipes.PipeDirection]::Out, 1, [IO.Pipes.PipeTransmissionMode]::Byte, [IO.Pipes.PipeOptions]::Asynchronous)
-    $connection = $server.BeginWaitForConnection($null, $null)
-    $Prepared.Released = $true # exact-once release guard; any later call is receipt replay.
-    $watch.Start()
-    if (-not $Prepared.Gate.Set()) { throw 'prepared one-shot release gate failed' }
-    $waitMilliseconds = [Math]::Floor(($Timeout - $watch.Elapsed).TotalMilliseconds)
-    if ($waitMilliseconds -lt 1 -or -not $connection.AsyncWaitHandle.WaitOne([int][Math]::Min([double][Int32]::MaxValue, $waitMilliseconds))) {
-      if ([IntPtr]$Prepared.NativeJobHandle -ne [IntPtr]::Zero) { [C12NativeJob]::Close([IntPtr]$Prepared.NativeJobHandle); $Prepared.NativeJobHandle = [IntPtr]::Zero }
-      throw 'formal authority stage timed out connecting its one-shot capability pipe'
-    }
-    $server.EndWaitForConnection($connection)
-    $entries = @()
-    foreach ($name in @($CapabilityEnvironment.Keys | Sort-Object)) { $entries += [pscustomobject]@{ Name = [string]$name; Value = [string]$CapabilityEnvironment[$name] } }
-    $message = @{ Entries = [object[]]$entries } | ConvertTo-Json -Compress -Depth 3
-    $writer = New-Object IO.StreamWriter($server, (New-Object Text.UTF8Encoding($false)), 4096, $true)
-    $writer.WriteLine($message)
-    $writer.Flush()
-    $nativeRemaining = $Timeout - $watch.Elapsed
-    if ($nativeRemaining -le [TimeSpan]::Zero) {
-      if ([IntPtr]$Prepared.NativeJobHandle -ne [IntPtr]::Zero) { [C12NativeJob]::Close([IntPtr]$Prepared.NativeJobHandle); $Prepared.NativeJobHandle = [IntPtr]::Zero }
-      throw 'formal authority stage timed out before execution result'
-    }
-    $waitSeconds = [int][Math]::Floor($nativeRemaining.TotalSeconds)
-    if ($waitSeconds -lt 1 -or $null -eq (Wait-Job -Job $Prepared.Job -Timeout $waitSeconds)) {
-      if ([IntPtr]$Prepared.NativeJobHandle -ne [IntPtr]::Zero) { [C12NativeJob]::Close([IntPtr]$Prepared.NativeJobHandle); $Prepared.NativeJobHandle = [IntPtr]::Zero }
-      throw "formal authority stage timed out after $waitSeconds seconds"
-    }
-    $received = @(Receive-Job -Job $Prepared.Job -ErrorAction SilentlyContinue)
-    foreach ($item in $received) {
-      if ($item.PSObject.Properties.Name -contains 'C12PreparedPhase') {
-        $phase = [string]$item.C12PreparedPhase
-        if ($phase -ceq 'JOB_MEMBER_READY') { continue }
-        if ($Prepared.Phases.Contains($phase)) { throw 'prepared worker emitted a duplicate phase marker' }
-        $Prepared.Phases.Add($phase)
+    $expected = New-C12VerificationProjection -Prepared $Prepared
+    if ((ConvertTo-C12ProtocolJSON $expected) -cne (ConvertTo-C12ProtocolJSON $Prepared.Projection)) { throw 'protocol immutable projection changed' }
+    $null = Invoke-C12PreparedProtocol -Prepared $Prepared -CapabilityEnvironment $CapabilityEnvironment -Deadline $Deadline
+    Release-C12PreparedWorker -Prepared $Prepared
+    $releaseDeadline = [DateTime]::UtcNow.Add($Timeout - $Prepared.ReleaseWatch.Elapsed)
+    if ($releaseDeadline -gt $Deadline) { $releaseDeadline = $Deadline }
+    $begin = Receive-C12PreparedFrame $Prepared.Protocol $Prepared.Pipe $releaseDeadline 'EXEC_BEGIN'
+    if ([long]$begin.timestamp_ticks -lt $Prepared.ReleaseTicks) { throw 'protocol EXEC_BEGIN precedes formal release' }
+    $Prepared.Phases.Add('EXEC_BEGIN')
+    $output = [Collections.Generic.List[string]]::new()
+    do {
+      [byte[]]$wire = Read-C12PreparedMessage -Pipe $Prepared.Pipe -Deadline $releaseDeadline
+      $envelope = [Text.UTF8Encoding]::new($false,$true).GetString($wire) | ConvertFrom-Json
+      if ($envelope.type -cnotin @('OUTPUT','EXEC_END')) { throw 'protocol execution frame order mismatch' }
+      $payload = Assert-C12PreparedFrame -State $Prepared.Protocol -Bytes $wire -Type $envelope.type
+      if ($envelope.type -ceq 'OUTPUT') {
+        if ($output.Count -ge 4096 -or $payload.line -isnot [string] -or $payload.line.Length -gt 512) { throw 'protocol output exceeds bound' }
+        $output.Add($payload.line)
       }
-    }
-    $failure = @($received | Where-Object { $_.PSObject.Properties.Name -contains 'C12PreparedFailure' } | Select-Object -Last 1)
-    $results = @($received | Where-Object { $_.PSObject.Properties.Name -contains 'C12PreparedResult' } | Select-Object -Last 1)
-    if ($failure.Count -ne 0 -or $results.Count -ne 1) { throw 'formal authority prepared worker failed without one exact result' }
-    $expectedPhases = @('SETUP_BEGIN', 'BUILD_DONE', 'ARTIFACT_BOUND', 'JOB_MEMBER_READY', 'FORMAL_RELEASE', 'EXEC_BEGIN', 'EXEC_END')
-    if ((@($Prepared.Phases) -join '|') -cne ($expectedPhases -join '|')) { throw 'formal authority prepared worker phase order is invalid' }
+    } while ($envelope.type -cne 'EXEC_END')
+    if ([long]$payload.timestamp_ticks -lt [long]$begin.timestamp_ticks -or [long]$payload.timestamp_ticks -lt $Prepared.ReleaseTicks -or $payload.output_count -ne $output.Count) { throw 'protocol EXEC_END precedes release or result count mismatch' }
+    $Prepared.Phases.Add('EXEC_END')
     $Prepared.ExecutionComplete = $true
-    return [pscustomobject]@{ ExitCode = [int]$results[0].ExitCode; Output = @($results[0].Output | ForEach-Object { [string]$_ }) }
+    $Prepared.Phase = 'Exited'
+    return [pscustomobject]@{ ExitCode = [int]$payload.exit_code; Output = [string[]]$output.ToArray() }
   }
+  catch { $primaryFailure = $_; throw }
   finally {
-    if ($null -ne $writer) { $writer.Dispose() }
-    if ($null -ne $server) { $server.Dispose() }
-    if ([bool]$Prepared.ExecutionComplete) {
-      if ([IntPtr]$Prepared.NativeJobHandle -ne [IntPtr]::Zero) { [C12NativeJob]::Close([IntPtr]$Prepared.NativeJobHandle); $Prepared.NativeJobHandle = [IntPtr]::Zero }
-      if ($null -ne $Prepared.Job) { Stop-Job -Job $Prepared.Job -ErrorAction SilentlyContinue; Remove-Job -Job $Prepared.Job -Force -ErrorAction SilentlyContinue; $Prepared.Job = $null }
-      if ($null -ne $Prepared.Gate) { $Prepared.Gate.Dispose(); $Prepared.Gate = $null }
+    try {
+      if ($null -ne $verified.Secondary) { $verified.Secondary.Dispose() }
+      $verified.Primary.Dispose()
+    }
+    finally {
+      try { Close-C12PreparedNativeWorker -Prepared $Prepared -Deadline ([DateTime]::UtcNow.AddSeconds(10)) }
+      catch {
+        $Prepared.CleanupFailures += $_.Exception.Message
+        if ($null -eq $primaryFailure) { throw }
+      }
     }
   }
 }
