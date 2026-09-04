@@ -207,11 +207,15 @@ func TestTask8ChildGoCommandBindsAuthenticatedOverlayAndWindowsTarget(t *testing
 	}{
 		{
 			name: "semantic probe environment",
-			want: []string{"windows", "amd64", "-overlay=" + approvedOverlayPath},
+			want: []string{"windows", "amd64", "0", "-overlay=" + approvedOverlayPath},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			command := task8ChildGoCommand(t, t.TempDir(), "env", "GOOS", "GOARCH", "GOFLAGS")
+			t.Setenv("GOOS", "linux")
+			t.Setenv("GOARCH", "386")
+			t.Setenv("CGO_ENABLED", "1")
+			t.Setenv("GOFLAGS", "-overlay=ambient-untrusted-overlay.json")
+			command := task8ChildGoCommand(t, t.TempDir(), "env", "GOOS", "GOARCH", "CGO_ENABLED", "GOFLAGS")
 			output, err := command.CombinedOutput()
 			if err != nil {
 				t.Fatalf("inspect child Go environment: %v\n%s", err, output)

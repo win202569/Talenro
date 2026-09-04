@@ -1,8 +1,12 @@
 package store_test
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -515,6 +519,102 @@ func TestNodeControlV7RegisteredMigrationOnly(t *testing.T) {
 	}
 }
 
+func TestTask8RequireFactoryProbeFileHashesRejectsMutatedBacking(t *testing.T) {
+	backingPath := filepath.Join(t.TempDir(), "postgres_repository.go")
+	if err := os.WriteFile(backingPath, []byte("abc"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	guarded := map[string]string{backingPath: "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"}
+	if err := task8RequireFactoryProbeFileHashes(guarded); err != nil {
+		t.Fatalf("authenticate unchanged backing: %v", err)
+	}
+	if err := os.WriteFile(backingPath, []byte("abd"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := task8RequireFactoryProbeFileHashes(guarded); err == nil {
+		t.Fatal("authenticate mutated backing: accepted changed bytes")
+	}
+}
+
+type task8FactoryProbeOverlay struct {
+	Replace map[string]string `json:"Replace"`
+}
+
+func task8DecodeFactoryProbeOverlay(raw []byte) (task8FactoryProbeOverlay, error) {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	var overlay task8FactoryProbeOverlay
+	if err := decoder.Decode(&overlay); err != nil {
+		return task8FactoryProbeOverlay{}, err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return task8FactoryProbeOverlay{}, errors.New("overlay has a trailing JSON value")
+		}
+		return task8FactoryProbeOverlay{}, err
+	}
+	if overlay.Replace == nil {
+		return task8FactoryProbeOverlay{}, errors.New("overlay Replace is nil")
+	}
+	return overlay, nil
+}
+
+func task8ApprovedFactoryProbeReplacementSet(repositoryRoot string) map[string]string {
+	overlayRoot := filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate")
+	return map[string]string{
+		filepath.ToSlash(filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go")):   filepath.ToSlash(filepath.Join(overlayRoot, "postgres_repository.go")),
+		filepath.ToSlash(filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go")): filepath.ToSlash(filepath.Join(overlayRoot, "00007_nodecontrol_authority_abort_serving.go")),
+	}
+}
+
+func task8RequireFactoryProbeFileHashes(guarded map[string]string) error {
+	for path, wantHex := range guarded {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		got := sha256.Sum256(raw)
+		if fmt.Sprintf("%X", got) != wantHex {
+			return fmt.Errorf("%s SHA-256 = %X, want %s", path, got, wantHex)
+		}
+	}
+	return nil
+}
+
+func task8AuthenticateFactoryProbeGuardedFiles(repositoryRoot string) error {
+	if err := task8RequireFactoryProbeFileHashes(map[string]string{
+		filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go"):   "4F759A5B17648A75DF8930939282D51D63F1EC4D8563C254BFE8755321B9AFF3",
+		filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go"): "31352FB84C3CCB69ECD1C999D69D13C4C83D216A9DCA1D015BEBFD902E3E2B1E",
+	}); err != nil {
+		return fmt.Errorf("guarded caller: %w", err)
+	}
+	if err := task8RequireFactoryProbeFileHashes(map[string]string{
+		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "postgres_repository.go"):                       "8F3447CA7D6E32C41FF80057750A6172DB1C2207673BCADB8CDFD9752AE5B5DB",
+		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "00007_nodecontrol_authority_abort_serving.go"): "C01D113F656E3C064536A3BC475A1CE307579766824210984F8E7711D8B182C0",
+	}); err != nil {
+		return fmt.Errorf("approved caller replacement: %w", err)
+	}
+	return nil
+}
+
+func task8AuthenticateApprovedFactoryProbeOverlay(repositoryRoot string, raw []byte) error {
+	if got := sha256.Sum256(raw); fmt.Sprintf("%X", got) != "39ED8367879A0A5D25F2AD6F4C6A2AC3B5F5CE9E3A77EEA3382C7C52311DF0E2" {
+		return fmt.Errorf("approved overlay SHA-256 = %X", got)
+	}
+	overlay, err := task8DecodeFactoryProbeOverlay(raw)
+	if err != nil {
+		return err
+	}
+	if want := task8ApprovedFactoryProbeReplacementSet(repositoryRoot); !reflect.DeepEqual(overlay.Replace, want) {
+		return fmt.Errorf("approved overlay replacements = %v, want exact %v", overlay.Replace, want)
+	}
+	if err := task8AuthenticateFactoryProbeGuardedFiles(repositoryRoot); err != nil {
+		return err
+	}
+	return nil
+}
+
 func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *exec.Cmd {
 	t.Helper()
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
@@ -529,8 +629,8 @@ func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *e
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := sha256.Sum256(raw); fmt.Sprintf("%X", got) != "39ED8367879A0A5D25F2AD6F4C6A2AC3B5F5CE9E3A77EEA3382C7C52311DF0E2" {
-		t.Fatalf("approved child overlay SHA-256 = %X", got)
+	if err := task8AuthenticateApprovedFactoryProbeOverlay(repositoryRoot, raw); err != nil {
+		t.Fatalf("authenticate approved child overlay: %v", err)
 	}
 
 	environment := make([]string, 0, len(os.Environ())+6)

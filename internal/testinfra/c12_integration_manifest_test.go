@@ -2416,6 +2416,22 @@ func buildFakeGoExecutable(t *testing.T, executable, source string) {
 	}
 }
 
+func TestBuildFakeGoExecutableBindsDeterministicChildEnvironment(t *testing.T) {
+	t.Setenv("GOOS", "linux")
+	t.Setenv("GOARCH", "386")
+	t.Setenv("CGO_ENABLED", "1")
+	t.Setenv("GOFLAGS", "-overlay=ambient-untrusted-overlay.json")
+	executable := filepath.Join(t.TempDir(), "fake-go.exe")
+	buildFakeGoExecutable(t, executable, "package main\nimport \"fmt\"\nfunc main() { fmt.Print(\"TASK8_FAKE_GO_OK\") }\n")
+	output, err := exec.Command(executable).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run fake Go executable: %v\n%s", err, output)
+	}
+	if got := string(output); got != "TASK8_FAKE_GO_OK" {
+		t.Fatalf("fake Go executable output = %q, want %q", got, "TASK8_FAKE_GO_OK")
+	}
+}
+
 func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *exec.Cmd {
 	t.Helper()
 	command := exec.Command("go", arguments...)
