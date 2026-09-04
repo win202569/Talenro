@@ -3,6 +3,7 @@ package testinfra_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -2409,10 +2410,63 @@ func buildFakeGoExecutable(t *testing.T, executable, source string) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	command := exec.CommandContext(ctx, "go", "build", "-o", executable, sourcePath)
+	command := task8ChildGoCommandContext(t, ctx, "", "build", "-o", executable, sourcePath)
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build fake native executable: %v\n%s", err, output)
 	}
+}
+
+func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *exec.Cmd {
+	t.Helper()
+	command := exec.Command("go", arguments...)
+	command.Dir = directory
+	command.Env = task8ChildGoEnvironment(t)
+	return command
+}
+
+func task8ChildGoCommandContext(t *testing.T, ctx context.Context, directory string, arguments ...string) *exec.Cmd {
+	t.Helper()
+	command := exec.CommandContext(ctx, "go", arguments...)
+	command.Dir = directory
+	command.Env = task8ChildGoEnvironment(t)
+	return command
+}
+
+func task8ChildGoEnvironment(t *testing.T) []string {
+	t.Helper()
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	approvedOverlayPath, err := filepath.Abs(filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "overlay.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := os.ReadFile(approvedOverlayPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := sha256.Sum256(raw); fmt.Sprintf("%X", got) != "39ED8367879A0A5D25F2AD6F4C6A2AC3B5F5CE9E3A77EEA3382C7C52311DF0E2" {
+		t.Fatalf("approved child overlay SHA-256 = %X", got)
+	}
+
+	environment := make([]string, 0, len(os.Environ())+6)
+	for _, item := range os.Environ() {
+		name, _, _ := strings.Cut(item, "=")
+		switch {
+		case strings.EqualFold(name, "GOOS"), strings.EqualFold(name, "GOARCH"), strings.EqualFold(name, "CGO_ENABLED"), strings.EqualFold(name, "GOFLAGS"):
+			continue
+		}
+		environment = append(environment, item)
+	}
+	return append(environment,
+		"GOOS=windows",
+		"GOARCH=amd64",
+		"CGO_ENABLED=0",
+		"GOFLAGS=-overlay="+approvedOverlayPath,
+		"GOPROXY=off",
+		"GOWORK=off",
+	)
 }
 
 func runC12PowerShell(t *testing.T, extraEnvironment map[string]string, arguments ...string) (string, int) {
