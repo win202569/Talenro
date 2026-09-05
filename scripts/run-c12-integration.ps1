@@ -4895,47 +4895,6 @@ function Remove-C12PITRBaseResources {
   $cleanupErrors=New-Object 'System.Collections.Generic.List[string]'
   $captured = @($Resources | Where-Object { -not [string]::IsNullOrEmpty([string]$_.ID) })
   foreach($resource in $captured){try{Remove-C12Container -Resource $resource -RunSuffix $RunSuffix -Deadline $Deadline}catch{$cleanupErrors.Add($_.Exception.Message)}}
-  $captured=@()
-  if ($captured.Count -ne 0) {
-    $format = '{{.Id}}|{{.Name}}|{{ index .Config.Labels `talenro.c12.run` }}|{{ index .Config.Labels `talenro.c12.role` }}|{{.Config.Image}}|{{.Image}}|{{ index .Config.Labels `talenro.c12.managed` }}|{{ index .Config.Labels `talenro.c12.profile` }}|{{ index .Config.Labels `talenro.c12.nonce-digest` }}'
-    $arguments = @('container', 'inspect', '--format', $format) + @($captured | ForEach-Object { [string]$_.ID })
-    $inspect = Invoke-C12Docker -Arguments $arguments -Stage 'batch re-inspect exact PITR dependency containers' -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline
-    $lines = @($inspect.Output | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
-    if ($lines.Count -ne $captured.Count) {
-      throw 'batch PITR dependency inspection returned an unexpected identity count'
-    }
-    $identities = @{}
-    foreach ($line in $lines) {
-      $parts = ([string]$line) -split '\|', 9
-      if ($parts.Count -ne 9 -or $identities.ContainsKey($parts[0])) {
-        throw 'batch PITR dependency inspection returned malformed or duplicate identity'
-      }
-      $identities[$parts[0]] = $parts
-    }
-    foreach ($resource in $captured) {
-      $id = [string]$resource.ID
-      if (-not $identities.ContainsKey($id)) {
-        throw "batch PITR dependency inspection omitted $($resource.Kind)"
-      }
-      $parts = $identities[$id]
-      if ($parts[1] -cne "/$($resource.Name)" -or $parts[2] -cne $RunSuffix -or
-          $parts[3] -cne [string]$resource.Kind -or $parts[4] -cne [string]$resource.ImageRef -or
-          $parts[5] -cne [string]$resource.ImageID) {
-        throw "refusing batch PITR cleanup for $($resource.Kind): captured identity mismatch"
-      }
-      if ([bool]$resource.PITR -and ($parts[6] -cne 'true' -or $parts[7] -cne 'authority-v7-pitr' -or
-          $parts[8] -cne [string]$resource.NonceDigest -or $parts[3] -cne 'postgres')) {
-        throw 'refusing batch PITR primary cleanup: closed labels mismatch'
-      }
-    }
-    $ids = @($captured | ForEach-Object { [string]$_.ID })
-    $null = Invoke-C12Docker -Arguments (@('container', 'rm', '--force') + $ids) -Stage 'batch remove exact PITR dependency containers' -Timeout ([TimeSpan]::FromSeconds(12)) -Deadline $Deadline
-    $absence = Invoke-C12Docker -Arguments (@('container', 'inspect', '--format', '{{.Id}}') + $ids) -Stage 'batch verify PITR dependency cleanup' -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline -AllowFailure
-    if (@($absence.Output | Where-Object { [string]$_ -match '^[0-9a-f]{64}$' }).Count -ne 0) {
-      throw 'a PITR dependency container remains after exact batch cleanup'
-    }
-  }
-
   foreach ($volume in $Volumes) { try { Remove-C12PITRVolume -Resource $volume -RunSuffix $RunSuffix -Deadline $Deadline } catch { $cleanupErrors.Add($_.Exception.Message) } }
   if($cleanupErrors.Count-ne 0){throw ('Docker cleanup retained retry state: '+($cleanupErrors -join '; '))}
 }
