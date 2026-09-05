@@ -3730,6 +3730,9 @@ $prepared = $null
 $artifactPath = ''
 $executionMarker = Join-Path $fixtureRoot 'prepared-target-executed.txt'
 $success = $false
+$mutationFixturePath = ''
+$mutationFixtureIdentity = ''
+$mutationFixtureOwnership = $null
 try {
   $artifact = New-C12PreparedArtifactRoot -RunSuffix $runSuffix -Profile 'authority-v7-pitr'
   $artifactPath = [string]$artifact.Root
@@ -4050,15 +4053,26 @@ public static class C12ContainmentProbe {
       [IO.File]::AppendAllText($executablePath, 'tamper')
     }
     'file-id-splice' {
-      [IO.File]::Move($executablePath, "$executablePath.original")
+      $mutationFixturePath = "$executablePath.original"
+      [IO.File]::Move($executablePath, $mutationFixturePath)
+      $mutationIdentity = [C12SealedExecutable]::TryInspectPath($mutationFixturePath)
+      $mutationFixtureIdentity = "$([UInt32]$mutationIdentity.VolumeSerialNumber):$([UInt64]$mutationIdentity.FileIndex)"
+      $mutationFixtureOwnership = [C12SealedExecutable]::OpenForCleanup($mutationFixturePath)
       [IO.File]::Copy($sourceExecutable, $executablePath, $false)
     }
     'reparse' {
-      [IO.File]::Move($executablePath, "$executablePath.original")
+      $mutationFixturePath = "$executablePath.original"
+      [IO.File]::Move($executablePath, $mutationFixturePath)
+      $mutationIdentity = [C12SealedExecutable]::TryInspectPath($mutationFixturePath)
+      $mutationFixtureIdentity = "$([UInt32]$mutationIdentity.VolumeSerialNumber):$([UInt64]$mutationIdentity.FileIndex)"
+      $mutationFixtureOwnership = [C12SealedExecutable]::OpenForCleanup($mutationFixturePath)
       New-Item -ItemType Junction -Path $executablePath -Target $fixtureRoot | Out-Null
     }
     'hard-link' {
-      New-Item -ItemType HardLink -Path (Join-Path $artifactPath 'receipt-hard-link.exe') -Target $executablePath | Out-Null
+      $mutationFixturePath = Join-Path $artifactPath 'receipt-hard-link.exe'
+      New-Item -ItemType HardLink -Path $mutationFixturePath -Target $executablePath | Out-Null
+      $mutationIdentity = [C12SealedExecutable]::TryInspectPath($mutationFixturePath)
+      $mutationFixtureIdentity = "$([UInt32]$mutationIdentity.VolumeSerialNumber):$([UInt64]$mutationIdentity.FileIndex)"
     }
     'dacl' {
       $security = [IO.File]::GetAccessControl($executablePath)
@@ -4145,9 +4159,54 @@ finally {
     catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
   }
   if ($null -ne $artifact) {
-    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
-    catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
+    if ($mode -cin @('file-id-splice','reparse','hard-link')) {
+      $entry = @($artifact.Ledger | Where-Object { [string]$_.Name -ceq [IO.Path]::GetFileName($executablePath) })[0]
+      $boundIdentity = [string]$entry.Identity
+      $cleanupError = ''
+      try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+      catch { $cleanupError = $_.Exception.Message }
+      if ($cleanupError -cnotmatch 'refused unknown direct sibling' -or [string]$artifact.RootLastCleanupError -cne $cleanupError -or
+          -not [IO.Directory]::Exists($artifactPath) -or $null -eq $artifact.Ownership -or [string]$artifact.RootLifecycle -cne 'Bound' -or
+          [string]$entry.Identity -cne $boundIdentity -or [string]$entry.Lifecycle -cne 'Bound' -or
+          -not [string]::IsNullOrEmpty([string]$entry.LastCleanupError) -or -not ([IO.File]::Exists($mutationFixturePath) -or [IO.Directory]::Exists($mutationFixturePath))) {
+        [Console]::Error.WriteLine('tamper cleanup did not preserve fail-closed root, ledger identity, and exact unknown-sibling error')
+        $success = $false
+      }
+      try {
+        $observedFixture = [C12SealedExecutable]::TryInspectPath($mutationFixturePath)
+        $observedFixtureIdentity = "$([UInt32]$observedFixture.VolumeSerialNumber):$([UInt64]$observedFixture.FileIndex)"
+        if ($observedFixtureIdentity -cne $mutationFixtureIdentity) { throw 'fixture identity changed before test-owned cleanup' }
+        if ($mode -ceq 'hard-link') {
+          if ([bool]$observedFixture.Directory -or [bool]$observedFixture.Reparse -or [UInt32]$observedFixture.NumberOfLinks -ne 2) { throw 'hard-link fixture identity was not the held two-link file' }
+          [IO.File]::Delete($mutationFixturePath)
+          $afterLink = [C12SealedExecutable]::TryInspectPath($executablePath)
+          if ($null -eq $afterLink -or "$([UInt32]$afterLink.VolumeSerialNumber):$([UInt64]$afterLink.FileIndex)" -cne $boundIdentity -or [UInt32]$afterLink.NumberOfLinks -ne 1) { throw 'hard-link fixture cleanup did not restore the bound single-link identity' }
+        }
+        else {
+          if ($mutationFixtureIdentity -cne $boundIdentity) { throw 'relocated fixture is not the ledger-bound identity' }
+          $mutationFixtureOwnership.DeleteExact()
+          $mutationFixtureOwnership.ReleaseDeletePending()
+          $mutationFixtureOwnership = $null
+          if ($mode -ceq 'file-id-splice') {
+            $replacement = [C12SealedExecutable]::OpenForCleanup($executablePath)
+            try { $replacement.DeleteExact() } finally { $replacement.ReleaseDeletePending() }
+          }
+          else {
+            $reparse = [C12SealedExecutable]::TryInspectPath($executablePath)
+            if ($null -eq $reparse -or -not [bool]$reparse.Reparse -or -not [bool]$reparse.Directory) { throw 'junction fixture identity changed before test-owned cleanup' }
+            [IO.Directory]::Delete($executablePath, $false)
+          }
+        }
+        Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+      }
+      catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
+    }
+    else {
+      try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+      catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false }
+    }
   }
+  if ($null -ne $mutationFixtureOwnership) { try { $mutationFixtureOwnership.Dispose() } catch { [Console]::Error.WriteLine($_.Exception.Message); $success = $false } }
   if (-not [string]::IsNullOrEmpty($artifactPath) -and [IO.Directory]::Exists($artifactPath)) {
     [Console]::Error.WriteLine('prepared artifact root remained after cleanup')
     $success = $false

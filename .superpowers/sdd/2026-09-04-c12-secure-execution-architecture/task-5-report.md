@@ -126,3 +126,39 @@ TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement PASS 34.00s
 ```
 
 The broad tamper aggregate additionally passed success, initializer-capabilities, byte-tamper, DACL, wrong-role, and replay. Its file-id-splice, reparse, and hard-link cases retained deliberately unregistered siblings (`*.original` / `receipt-hard-link.exe`) and therefore left the artifact root, which is the new fail-closed direct-leaf-ledger behavior rather than a safe target for name cleanup. The native-failure fixture was blocked before its intended assertion by `resolve postgres immutable image timed out after 8 seconds`; its earlier focused correction-1 run remains green.
+
+### Review correction 2 follow-up — fail-closed tamper expectations
+
+The three legacy tamper cases now treat the first cleanup rejection as the expected result and assert all of the security state, rather than expecting the root to disappear:
+
+- the exact unknown sibling remains present;
+- `RootLastCleanupError` preserves the exact unknown-sibling rejection;
+- artifact-root identity ownership and `RootLifecycle=Bound` remain intact;
+- the executable ledger entry keeps its original identity and `Lifecycle=Bound`, without a fabricated per-entry error;
+- production cleanup never empties the directory after encountering the unknown sibling.
+
+Only after these assertions, the test fixture cleans objects that it explicitly created and identity-bound. Relocated originals are deleted through fixture-owned `C12SealedExecutable` handles. The replacement file is independently handle-bound. The junction is re-inspected as the same reparse-directory identity before exact non-recursive removal. The hard-link path is re-inspected as the held identity with link count two before removal, and the surviving bound path is then re-inspected as the same identity with link count one. Production cleanup is invoked again only after the fixture-owned foreign objects are gone.
+
+The initial fixture-cleanup RED was:
+
+```text
+file-id-splice: You cannot call a method on a null-valued expression
+reparse:        You cannot call a method on a null-valued expression
+hard-link:      PASS 50.78s
+```
+
+The cause was a test-only assumption that identity binding populated `CleanupHandle`; the corrected fixture opens and retains its own exact handle immediately after relocating the original.
+
+Final isolated GREEN:
+
+```text
+TestC12PreparedArtifactExecutionAndTamperConverge/file-id-splice PASS 48.68s
+TestC12PreparedArtifactExecutionAndTamperConverge/reparse        PASS 28.35s
+TestC12PreparedArtifactExecutionAndTamperConverge/hard-link      PASS 32.76s
+ok talenro.local/platform/internal/testinfra 139.988s
+
+TestC12BaseRunnerCapturesNativeFailuresBeforeCleanup             PASS 71.27s
+ok talenro.local/platform/internal/testinfra 79.038s
+```
+
+The native fixture passed when rerun without concurrent harness load; no production timeout was changed.
