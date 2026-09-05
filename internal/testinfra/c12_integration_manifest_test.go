@@ -3043,6 +3043,10 @@ try {
 	    $names = @($runRoot.Ledger | ForEach-Object { [string]$_.Name })
 	    $expected = @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')
 	    if (($names -join '|') -cne ($expected -join '|')) { throw ('production PITR run-root ledger mismatch: ' + ($names -join '|')) }
+	    $runRoot.Ledger = New-C12DirectLeafLedger
+	    $restored = @(Restore-C12PITRRunLedger -RunRoot $runRoot)
+	    $restoredBound = @($restored | Where-Object { [string]$_.Name -cin @('controller-ownership-v1.wal','ownership.wal') -and [string]$_.Lifecycle -ceq 'Bound' -and [string]$_.Identity -match '^[0-9]+:[0-9]+$' -and [UInt32]$_.NumberOfLinks -eq 1 -and -not [string]::IsNullOrEmpty([string]$_.Owner) -and [string]$_.DACLHash -match '^[0-9a-f]{64}$' })
+	    if ($restored.Count -ne 5 -or $restoredBound.Count -ne 2) { throw 'production PITR WAL could not rebuild the exact five-leaf ledger after in-memory loss' }
 	    if ($null -eq (Get-Command Remove-C12PITRRunRoot -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production PITR run-root cleanup entry is absent' }
 	    $sixth = Join-Path ([string]$runRoot.Root) 'sixth-unregistered-leaf.bin'
 	    [IO.File]::WriteAllBytes($sixth, [byte[]](5,6,7,8))
@@ -3092,7 +3096,8 @@ try {
 	    if ($null -eq (Get-Command Assert-C12ControllerOwnershipWAL -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production controller-WAL verifier entry is absent' }
 	    if ($runRoot.PSObject.Properties.Name -cnotcontains 'ControllerWAL' -or $runRoot.ControllerWAL.PSObject.Properties.Name -cnotcontains 'Path') { throw 'production PITR run-root lacks controller WAL state/path' }
 	    $walPath = [string]$runRoot.ControllerWAL.Path
-	    $observed = [IO.File]::ReadAllBytes($walPath)
+	    $allObserved = [IO.File]::ReadAllBytes($walPath)
+	    $observed = [byte[]]$allObserved[0..($literalControllerWAL.Length-1)]
 	    if (-not [Linq.Enumerable]::SequenceEqual([byte[]]$observed, [byte[]]$literalControllerWAL)) { throw 'production BOOTSTRAP WAL bytes differ from the reviewed literal line' }
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
 	    $baseline = [byte[]]$observed.Clone()
@@ -3122,10 +3127,22 @@ try {
 	    try { Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL } catch { $stateRejected = $_.Exception.Message -match 'State' }
 	    $runRoot.ControllerWAL.RunSuffix = $savedRun
 	    if (-not $stateRejected) { throw 'controller WAL did not bind every record to retained runtime State' }
+	    $payloadSchemaMutations = @(
+	      '{"resource":"tlsgen.go","lifecycle":"CreateAttempted","unknown":"x"}',
+	      '{"lifecycle":"CreateAttempted","resource":"tlsgen.go"}',
+	      '{"resource":"tlsgen.go"}',
+	      '{"resource":"tlsgen.go","lifecycle":false}',
+	      '{"resource":"tlsgen.go","resource":"tlsgen.go","lifecycle":"CreateAttempted"}'
+	    )
+	    foreach ($payloadMutation in $payloadSchemaMutations) {
+	      $schemaRejected = $false
+	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON $payloadMutation } catch { $schemaRejected = $_.Exception.Message -match 'schema|order|type' }
+	      if (-not $schemaRejected -or -not [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($walPath),[byte[]]$baseline)) { throw 'controller WAL payload schema accepted unknown/duplicate/reordered/missing/type-invalid fields or mutated bytes' }
+	    }
 	    $illegalRejected = $false
-	    try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON '{"resource":"tlsgen.go"}' } catch { $illegalRejected = $_.Exception.Message -match 'illegal' }
+	    try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON '{"resource":"tlsgen.go","lifecycle":"Absent","identity":""}' } catch { $illegalRejected = $_.Exception.Message -match 'illegal' }
 	    if (-not $illegalRejected -or -not [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($walPath), [byte[]]$baseline)) { throw 'illegal BOOTSTRAP to CLEAN_RESULT transition mutated the durable WAL' }
-	    $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"tlsgen.go","identity":"abc"}'
+	    $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"tlsgen.go","lifecycle":"CreateAttempted"}'
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
 	    $twoRecord = [IO.File]::ReadAllBytes($walPath)
 	    $twoText = [Text.Encoding]::UTF8.GetString($twoRecord)
@@ -3156,11 +3173,11 @@ try {
 	      $runRoot.ControllerWAL.Sequence = [UInt64]0
 	      $runRoot.ControllerWAL.PreviousRecordDigest = '98c530280e43fc71aff5cabb64ead0448dea84add7f682190050c96ef4b30e52'
 	      $crashed = $false
-	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}' -FailureSeam $seam } catch { $crashed = $_.Exception.Message -match 'injected controller WAL crash' }
+	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt","lifecycle":"CreateAttempted"}' -FailureSeam $seam } catch { $crashed = $_.Exception.Message -match 'injected controller WAL crash' }
 	      if (-not $crashed) { throw ('controller WAL crash seam did not fire: ' + $seam) }
 	      $recovered = Verify-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
 	      if ($recovered.Records -ne 2) { throw ('controller WAL crash recovery lost durable exact record: ' + $seam) }
-	      $retry = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}'
+	      $retry = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt","lifecycle":"CreateAttempted"}'
 	      if ($retry.Records -ne 2) { throw ('controller WAL crash retry was not idempotent: ' + $seam) }
 	    }
 	    $dynamicRun = $null

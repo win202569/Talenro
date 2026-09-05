@@ -4852,17 +4852,17 @@ func main() {
   digest := sha256.Sum256(der); fmt.Println(hex.EncodeToString(digest[:]))
 }
 '@
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"tlsgen.go"}'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry (Get-C12DirectLeafEntry -Ledger $RunRoot.Ledger -Name 'tlsgen.go') -Event 'INTENT')
   [IO.File]::WriteAllText($tlsSource, $source, (New-Object Text.UTF8Encoding($false)))
-  $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'tlsgen.go'
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"tlsgen.go"}'
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}'
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.key"}'
+  $tlsSourceEntry = Bind-C12PITRLeaf -RunRoot $RunRoot -Name 'tlsgen.go'
+  $null = Append-C12PITRLeafActual -RunRoot $RunRoot -Entry $tlsSourceEntry
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry (Get-C12DirectLeafEntry -Ledger $RunRoot.Ledger -Name 'server.crt') -Event 'INTENT')
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry (Get-C12DirectLeafEntry -Ledger $RunRoot.Ledger -Name 'server.key') -Event 'INTENT')
   $tlsResult = Invoke-C12Go -Arguments @('run', $tlsSource, $tlsCertificate, $tlsKey) -Stage 'create PITR primary TLS identity' -Timeout ([TimeSpan]::FromSeconds(30)) -Deadline $Deadline
-  $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'server.crt'
-  $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'server.key'
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"server.crt"}'
-  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"server.key"}'
+  $certificateEntry = Bind-C12PITRLeaf -RunRoot $RunRoot -Name 'server.crt'
+  $keyEntry = Bind-C12PITRLeaf -RunRoot $RunRoot -Name 'server.key'
+  $null = Append-C12PITRLeafActual -RunRoot $RunRoot -Entry $certificateEntry
+  $null = Append-C12PITRLeafActual -RunRoot $RunRoot -Entry $keyEntry
   $tlsPublicDigest = Get-C12SingleOutputLine -Result $tlsResult -Stage 'create PITR primary TLS identity'
   if ($tlsPublicDigest -notmatch '^[0-9a-f]{64}$') {
     throw 'PITR TLS public digest is malformed'
@@ -4884,7 +4884,7 @@ function Register-C12PITRLeaf {
   $entry = [pscustomobject]@{
     Name = $Name; Kind = 'exact_file'; Expected = $true; CreateAttempted = $false
     Identity = ''; NumberOfLinks = [UInt32]0; RefCount = 0; Lifecycle = 'NeverAttempted'
-    LastCleanupError = ''; Ownership = $null; CleanupHandle = $null
+    Reparse = $false; Owner = ''; DACL = ''; DACLHash = ''; LastCleanupError = ''; Ownership = $null; CleanupHandle = $null
   }
   [void]$Ledger.Add($entry)
 }
@@ -4908,11 +4908,50 @@ function Bind-C12PITRLeaf {
     if ([bool]$observed.Reparse -or [UInt32]$observed.NumberOfLinks -ne 1) { throw 'PITR direct leaf identity has a reparse or hard-link splice' }
     $entry.Identity = "$([UInt32]$observed.VolumeSerialNumber):$([UInt64]$observed.FileIndex)"
     $entry.NumberOfLinks = [UInt32]$observed.NumberOfLinks
+    $entry.Reparse = [bool]$observed.Reparse
+    $entry.Owner = [string]$observed.Owner
+    $entry.DACL = [string]$observed.DACL
+    $entry.DACLHash = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes([string]$observed.DACL))
     $entry.RefCount = 1
     Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Bound'
   }
   finally { $observed.Dispose() }
   return $entry
+}
+
+function New-C12PITRLeafEventPayload {
+  param([Parameter(Mandatory)][object]$Entry,[Parameter(Mandatory)][ValidateSet('INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT')][string]$Event)
+  $resource = [string]$Entry.Name
+  switch ($Event) {
+    'INTENT' { return '{"resource":"' + $resource + '","lifecycle":"CreateAttempted"}' }
+    'ACTUAL' { return '{"resource":"' + $resource + '","lifecycle":"Bound","identity":"' + [string]$Entry.Identity + '","links":' + [UInt32]$Entry.NumberOfLinks + ',"kind":"exact_file","reparse":false,"owner":"' + [string]$Entry.Owner + '","dacl_digest":"' + [string]$Entry.DACLHash + '"}' }
+    'NOT_FOUND' { return '{"resource":"' + $resource + '","lifecycle":"Absent"}' }
+    'CLEAN_INTENT' { return '{"resource":"' + $resource + '","lifecycle":"CleanIntent","identity":"' + [string]$Entry.Identity + '"}' }
+    'CLEAN_RESULT' { return '{"resource":"' + $resource + '","lifecycle":"Absent","identity":"' + [string]$Entry.Identity + '"}' }
+  }
+}
+
+function Get-C12ControllerWALPayloadFields {
+  param([Parameter(Mandatory)][string]$Event,[Parameter(Mandatory)][string]$PayloadJSON)
+  $pattern = switch ($Event) {
+    'INTENT' { '^\{"resource":"(?<resource>[a-z0-9.-]+)","lifecycle":"CreateAttempted"\}$' }
+    'ACTUAL' { '^\{"resource":"(?<resource>[a-z0-9.-]+)","lifecycle":"Bound","identity":"(?<identity>[0-9]+:[0-9]+)","links":(?<links>1),"kind":"(?<kind>exact_file)","reparse":(?<reparse>false),"owner":"(?<owner>S-[0-9-]+)","dacl_digest":"(?<dacl>[0-9a-f]{64})"\}$' }
+    'NOT_FOUND' { '^\{"resource":"(?<resource>[a-z0-9.-]+)","lifecycle":"Absent"\}$' }
+    'CLEAN_INTENT' { '^\{"resource":"(?<resource>[a-z0-9.-]+)","lifecycle":"CleanIntent","identity":"(?<identity>[0-9]*:[0-9]*|)"\}$' }
+    'CLEAN_RESULT' { '^\{"resource":"(?<resource>[a-z0-9.-]+)","lifecycle":"Absent","identity":"(?<identity>[0-9]*:[0-9]*|)"\}$' }
+    default { throw 'controller WAL payload event is outside the closed schema' }
+  }
+  $match = [Text.RegularExpressions.Regex]::Match($PayloadJSON,$pattern,[Text.RegularExpressions.RegexOptions]::CultureInvariant)
+  if (-not $match.Success) { throw "controller WAL $Event payload violates its exact field schema/order/type" }
+  $resource = $match.Groups['resource'].Value
+  if ($resource -cnotin @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')) { throw 'controller WAL event names a resource outside the five-leaf registry' }
+  return [pscustomobject]@{ Resource=$resource; Identity=$match.Groups['identity'].Value; Links=$match.Groups['links'].Value; Kind=$match.Groups['kind'].Value; Reparse=$match.Groups['reparse'].Value; Owner=$match.Groups['owner'].Value; DACLHash=$match.Groups['dacl'].Value }
+}
+
+function Append-C12PITRLeafActual {
+  param([Parameter(Mandatory)][object]$RunRoot,[Parameter(Mandatory)][object]$Entry)
+  $payload = New-C12PITRLeafEventPayload -Entry $Entry -Event 'ACTUAL'
+  return Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON $payload
 }
 
 function Get-C12DomainSHA256 {
@@ -5004,6 +5043,7 @@ function Verify-C12ControllerOwnershipWAL {
   $lastEvent = ''
   $lastPayload = ''
   $resourceStates = @{}
+  $resourceReceipts = @{}
   for ($index = 0; $index -lt $lines.Count; $index++) {
     $line = [string]$lines[$index]
     if ([Text.Encoding]::UTF8.GetByteCount($line) + 1 -gt $script:c12PITRWALMaximumLineBytes) { throw 'controller WAL line bound exceeded' }
@@ -5025,10 +5065,8 @@ function Verify-C12ControllerOwnershipWAL {
       if (-not [DateTime]::TryParseExact($timestamp, 'yyyy-MM-ddTHH:mm:ss.fffffffZ', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal, [ref]$parsed)) { throw 'controller WAL timestamp_utc is noncanonical' }
       $payloadText = $match.Groups['payload'].Value
       if ($index -gt 0) {
-        $resourceMatch = [Text.RegularExpressions.Regex]::Match($payloadText, '^\{"resource":"(?<resource>[a-z0-9.-]+)"(?:,"[a-z_]+":"[a-zA-Z0-9:._-]*")*\}$')
-        if (-not $resourceMatch.Success) { throw 'controller WAL event payload is not canonical closed resource JSON' }
-        $resource = $resourceMatch.Groups['resource'].Value
-        if ($resource -cnotin @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')) { throw 'controller WAL event names a resource outside the five-leaf registry' }
+        $payloadFields = Get-C12ControllerWALPayloadFields -Event $event -PayloadJSON $payloadText
+        $resource = [string]$payloadFields.Resource
         $prior = if ($resourceStates.ContainsKey($resource)) { [string]$resourceStates[$resource] } else { '' }
         $legal = switch ($event) {
           'INTENT' { $prior -ceq '' }
@@ -5040,6 +5078,7 @@ function Verify-C12ControllerOwnershipWAL {
         }
         if (-not $legal) { throw "controller WAL illegal $prior -> $event transition for $resource" }
         $resourceStates[$resource] = $event
+        if ($event -ceq 'ACTUAL') { $resourceReceipts[$resource] = $payloadFields }
       }
       $payloadDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.payload.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($payloadText))
       if ($payloadDigest -cne $match.Groups['payload_digest'].Value) { throw 'controller WAL payload_digest mismatch after payload verification' }
@@ -5068,10 +5107,35 @@ function Verify-C12ControllerOwnershipWAL {
     try { $repair.SetLength([Int64]$State.TailRepairLength); $repair.Flush($true) } finally { $repair.Dispose() }
     $State.TailRepairLength = [Int64]0
   }
-  return [pscustomobject]@{ Records = $lines.Count; Head = $previous; LastEvent = $lastEvent; LastPayload = $lastPayload; ResourceStates = $resourceStates; Verified = $true }
+  return [pscustomobject]@{ Records = $lines.Count; Head = $previous; LastEvent = $lastEvent; LastPayload = $lastPayload; ResourceStates = $resourceStates; ResourceReceipts = $resourceReceipts; Verified = $true }
 }
 
 function Assert-C12ControllerOwnershipWAL { param([Parameter(Mandatory)][object]$State) $null = Verify-C12ControllerOwnershipWAL -State $State }
+
+function Restore-C12PITRRunLedger {
+  param([Parameter(Mandatory)][object]$RunRoot)
+  $verified = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
+  $ledger = New-C12DirectLeafLedger
+  foreach ($name in @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')) { Register-C12PITRLeaf -Ledger $ledger -Name $name }
+  foreach ($entry in @($ledger)) {
+    $name = [string]$entry.Name
+    $state = if ($verified.ResourceStates.ContainsKey($name)) { [string]$verified.ResourceStates[$name] } else { '' }
+    $receipt = if ($verified.ResourceReceipts.ContainsKey($name)) { $verified.ResourceReceipts[$name] } else { $null }
+    switch ($state) {
+      'INTENT' { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CreateAttempted'; $entry.CreateAttempted=$true }
+      { $_ -cin @('ACTUAL','CLEAN_INTENT') } {
+        if ($null -eq $receipt) { throw "controller WAL recovery lacks creation-time ACTUAL receipt for $name" }
+        Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CreateAttempted'; $entry.CreateAttempted=$true
+        $entry.Identity=[string]$receipt.Identity; $entry.NumberOfLinks=[UInt32]$receipt.Links; $entry.Reparse=$false; $entry.Owner=[string]$receipt.Owner; $entry.DACLHash=[string]$receipt.DACLHash; $entry.RefCount=1
+        Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Bound'
+        if ($state -ceq 'CLEAN_INTENT') { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CleanIntent' }
+      }
+      { $_ -cin @('NOT_FOUND','CLEAN_RESULT') } { Complete-C12AbsentDirectLeaf -Entry $entry }
+    }
+  }
+  $RunRoot.Ledger = $ledger
+  return $ledger
+}
 
 function Append-C12ControllerOwnershipRecord {
   param(
@@ -5086,9 +5150,8 @@ function Append-C12ControllerOwnershipRecord {
     $State.Sequence = [UInt64]($verified.Records - 1); $State.PreviousRecordDigest = [string]$verified.Head; $State.RetryState = 'Verified'; $State.LastError = ''
     return $verified
   }
-  $resourceMatch = [Text.RegularExpressions.Regex]::Match($PayloadJSON, '^\{"resource":"(?<resource>[a-z0-9.-]+)"(?:,"[a-z_]+":"[a-zA-Z0-9:._-]*")*\}$')
-  if (-not $resourceMatch.Success) { throw 'controller WAL event payload is not canonical closed resource JSON' }
-  $resource = $resourceMatch.Groups['resource'].Value
+  $payloadFields = Get-C12ControllerWALPayloadFields -Event $Event -PayloadJSON $PayloadJSON
+  $resource = [string]$payloadFields.Resource
   $prior = if ($verified.ResourceStates.ContainsKey($resource)) { [string]$verified.ResourceStates[$resource] } else { '' }
   $legal = switch ($Event) { 'INTENT' {$prior -ceq ''}; 'ACTUAL' {$prior -ceq 'INTENT'}; 'NOT_FOUND' {$prior -ceq 'INTENT'}; 'CLEAN_INTENT' {$prior -cin @('','ACTUAL','NOT_FOUND')}; 'CLEAN_RESULT' {$prior -ceq 'CLEAN_INTENT'}; default {$false} }
   if (-not $legal) { throw "controller WAL illegal $prior -> $Event transition for $resource" }
@@ -5142,16 +5205,15 @@ function Remove-C12PITRRunRoot {
   $walView = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
   foreach ($entry in @($RunRoot.Ledger)) {
     $resource = [string]$entry.Name
-    $payload = '{"resource":"' + $resource + '"}'
     $prior = if ($walView.ResourceStates.ContainsKey($resource)) { [string]$walView.ResourceStates[$resource] } else { '' }
     if ($prior -ceq '') {
-      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON $payload
-      $event = if ([IO.File]::Exists((Join-Path ([string]$RunRoot.Root) $resource))) { 'ACTUAL' } else { 'NOT_FOUND' }
-      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event $event -PayloadJSON $payload
-      $prior = $event
+      if ([IO.File]::Exists((Join-Path ([string]$RunRoot.Root) $resource))) { throw "controller WAL lacks creation-time ACTUAL receipt for present $resource" }
+      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'INTENT')
+      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'NOT_FOUND')
+      $prior = 'NOT_FOUND'
     }
-    elseif ($prior -ceq 'INTENT') { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON $payload; $prior = 'NOT_FOUND' }
-    if ($prior -cin @('ACTUAL','NOT_FOUND')) { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_INTENT' -PayloadJSON $payload }
+    elseif ($prior -ceq 'INTENT') { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'NOT_FOUND'); $prior = 'NOT_FOUND' }
+    if ($prior -cin @('ACTUAL','NOT_FOUND')) { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'CLEAN_INTENT') }
   }
   foreach ($entry in @($RunRoot.Ledger)) {
     $path = Join-Path ([string]$RunRoot.Root) ([string]$entry.Name)
@@ -5170,12 +5232,11 @@ function Remove-C12PITRRunRoot {
   # Validate every direct leaf before issuing any disposition, preserving all evidence on one foreign sibling.
   foreach ($entry in @($RunRoot.Ledger | Sort-Object @{Expression={if ([string]$_.Name -ceq 'controller-ownership-v1.wal'){1}else{0}}})) {
     $path = Join-Path ([string]$RunRoot.Root) ([string]$entry.Name)
-    $payload = '{"resource":"' + [string]$entry.Name + '"}'
+    $payload = New-C12PITRLeafEventPayload -Entry $entry -Event 'CLEAN_RESULT'
     $currentView = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
     $alreadyClean = $currentView.ResourceStates.ContainsKey([string]$entry.Name) -and [string]$currentView.ResourceStates[[string]$entry.Name] -ceq 'CLEAN_RESULT'
     if (-not [IO.File]::Exists($path)) { if (-not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }; continue }
     try {
-      if ([string]$entry.Name -ceq 'controller-ownership-v1.wal' -and -not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }
       Request-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
       Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
       if ([string]$entry.Name -cne 'controller-ownership-v1.wal' -and -not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }
@@ -5186,6 +5247,7 @@ function Remove-C12PITRRunRoot {
   $RunRoot.Ownership.RequestDeleteExactTree($Deadline)
   $RunRoot.Ownership.ReleaseDeletePending()
   if ($null -ne [C12SealedExecutable]::TryInspectPath([string]$RunRoot.Root)) { throw 'PITR run root remains after exact handle cleanup' }
+  $RunRoot | Add-Member -NotePropertyName ControllerWALTerminal -NotePropertyValue 'absence-after-authenticated-CLEAN_INTENT' -Force
   $RunRoot.RootLifecycle = 'Absent'
 }
 
@@ -5226,6 +5288,11 @@ function New-C12PITRRunRoot {
     $runRoot.WALPath = $walPath
     $controllerKey = ConvertFrom-C12Hex -Value $HMACKeyHex
     try { $runRoot.ControllerWAL = Open-C12ControllerOwnershipWAL -RunRoot $runRoot -RunSuffix $RunSuffix -NonceDigest $NonceDigest -DockerExecutableDigest $DockerExecutableDigest -DockerEndpointIdentityDigest $DockerEndpointIdentityDigest -HMACKey $controllerKey -Timestamp $ControllerTimestamp } finally { [Array]::Clear($controllerKey,0,$controllerKey.Length) }
+    foreach ($index in 1,0) {
+      $entry = $ledger[$index]
+      $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'INTENT')
+      $null = Append-C12PITRLeafActual -RunRoot $runRoot -Entry $entry
+    }
     foreach ($index in 2..4) { Start-C12PITRLeafCreation -RunRoot $runRoot -Name ([string]$ledger[$index].Name) }
     $runRoot.CreationClosed = $true
     return $runRoot
