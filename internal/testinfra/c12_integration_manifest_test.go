@@ -1919,6 +1919,13 @@ func TestC12PreparedArtifactCleanupRetainsOwnershipAfterDeadline(t *testing.T) {
 	}
 }
 
+func TestC12PreparedArtifactCleanupRetainsDeletePendingHandle(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "prepared-delete-pending")
+	if exitCode != 0 {
+		t.Fatalf("prepared artifact delete-pending retry harness exit=%d output=%q", exitCode, output)
+	}
+}
+
 func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T) {
 	output, exitCode := runC12CleanupStateHarness(t, "group-before-run-root")
 	if exitCode != 0 {
@@ -3066,6 +3073,52 @@ try {
       exit 0
     }
 
+    'prepared-delete-pending' {
+      $root = Join-Path $fixtureRoot "talenro-c12-artifacts-$([Guid]::NewGuid().ToString('N'))"
+      $ownership = $null
+      try {
+        $ownership = New-C12OwnedDirectory -Root $root -ExpectedParent $fixtureRoot -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'prepared delete-pending fixture creation'
+        $ledger = New-C12DirectLeafLedger
+        $artifact = [pscustomobject]@{ Root=$root; Parent=$fixtureRoot; Ownership=$ownership; ArtifactRootIdentity=[string]$ownership.Identity; Ledger=$ledger; Closed=$false }
+        $null = Register-C12DirectLeafIntent -Ledger $ledger -Name 'go-cache' -Kind 'owned_ephemeral_subtree' -Expected $true
+        $null = Register-C12DirectLeafIntent -Ledger $ledger -Name 'go-tmp' -Kind 'owned_ephemeral_subtree' -Expected $true
+        $path = Join-Path $root 'delete-pending.bin'
+        $entry = Register-C12DirectLeafIntent -Ledger $ledger -Name 'delete-pending.bin' -Kind 'exact_file' -Expected $true
+        [IO.File]::WriteAllBytes($path, [byte[]](2,4,6,8))
+        $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name 'delete-pending.bin'
+        $identityParts = ([string]$entry.Identity).Split(':')
+        $retained = [pscustomobject]@{
+          VolumeSerialNumber=[UInt32]::Parse($identityParts[0]); FileIndex=[UInt64]::Parse($identityParts[1]);
+          NumberOfLinks=[UInt32]1; Reparse=$false; Requested=$false; Released=$false
+        }
+        $retained | Add-Member ScriptMethod DeleteExact { $this.Requested = $true; Start-Sleep -Seconds 4 }
+        $retained | Add-Member ScriptMethod ReleaseDeletedExact { $this.Released = $true }
+        $entry.CleanupHandle = $retained
+        $failed = $false
+        try { Converge-C12DirectLeafLedger -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(3)) }
+        catch { $failed = $_.Exception.Message -match 'deadline|convergence|remained' }
+        if (-not $failed -or -not [bool]$retained.Requested) { throw 'delete-pending fixture did not issue one exact delete intent before failure' }
+        if ([string]$entry.Lifecycle -cne 'CleanIntent' -or $entry.CleanupHandle -ne $retained -or [bool]$retained.Released -or
+            [string]::IsNullOrEmpty([string]$entry.LastCleanupError) -or [string]::IsNullOrEmpty([string]$entry.Identity)) {
+          throw 'delete-pending failure did not retain CleanIntent, identity, original handle, and exact error'
+        }
+        [IO.File]::Delete($path)
+        Converge-C12DirectLeafLedger -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+        if ([string]$entry.Lifecycle -cne 'Absent' -or $null -ne $entry.CleanupHandle -or -not [bool]$retained.Released -or
+            -not [string]::IsNullOrEmpty([string]$entry.LastCleanupError)) {
+          throw 'same-identity delete-pending retry did not release only after namespace convergence'
+        }
+        Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+        $ownership = $null
+      }
+      finally {
+        if ($null -ne $ownership) { $ownership.Dispose() }
+        if ([IO.Directory]::Exists($root)) { [IO.Directory]::Delete($root, $true) }
+      }
+      Write-Output 'C12_PREPARED_DELETE_PENDING_RETRY_OK'
+      exit 0
+    }
+
     'cleanup-retained-production' {
       $script:c12RepositoryRoot = $fixtureRoot
       $runSuffix = (('d' * 32) -join '')
@@ -3295,7 +3348,7 @@ catch {
 		t.Fatal(err)
 	}
 	harnessTimeout := 45 * time.Second
-	if mode == "prepared-direct-ledger" {
+	if mode == "prepared-direct-ledger" || mode == "prepared-deadline" || mode == "prepared-delete-pending" {
 		harnessTimeout = 2 * time.Minute
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), harnessTimeout)
