@@ -754,6 +754,61 @@ func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
 	})
 }
 
+func TestC12GoGraphReceiptPurposesRequireIndependentExactLabels(t *testing.T) {
+	runner := readC12RunnerSource(t)
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const appendix = `
+# Isolate the production purpose gate from later filesystem sealing. A valid
+# purpose set must reach the deliberately malformed source identity afterward.
+$ownership = [pscustomobject]@{}
+$ownership | Add-Member -MemberType ScriptMethod -Name VerifyExactPath -Value {}
+$artifact = [pscustomobject]@{ Closed=$false; Profile='base'; Ownership=$ownership }
+$cases = @(
+  @{ name='concatenated'; purpose='authority-initializer'; labels=@('authority-initializer|test2json'); pass=$false },
+  @{ name='duplicate'; purpose='authority-initializer'; labels=@('authority-initializer','authority-initializer'); pass=$false },
+  @{ name='missing'; purpose='authority-initializer'; labels=@('authority-initializer'); pass=$false },
+  @{ name='empty'; purpose='authority-initializer'; labels=@(); pass=$false },
+  @{ name='case-changed'; purpose='authority-initializer'; labels=@('authority-initializer','TEST2JSON'); pass=$false },
+  @{ name='valid'; purpose='authority-initializer'; labels=@('authority-initializer','test2json'); pass=$true },
+  @{ name='valid-reversed'; purpose='authority-initializer'; labels=@('test2json','authority-initializer'); pass=$true },
+  @{ name='validator-valid'; purpose='trusted-validator'; labels=@('trusted-validator'); pass=$true },
+  @{ name='validator-duplicate'; purpose='trusted-validator'; labels=@('trusted-validator','trusted-validator'); pass=$false }
+)
+$failures = [Collections.Generic.List[string]]::new()
+foreach ($case in $cases) {
+  $graphs = @($case.labels | ForEach-Object { [pscustomobject]@{ Purpose=$_ } })
+  $message = ''
+  try {
+    $null = New-C12SealedExecutableReceipt -ArtifactRoot $artifact -Role 'authority-initializer-json' -Profile 'base' -Purpose $case.purpose -SourceIdentity 'fixture' -SourceDigest 'intentionally-invalid' -CandidateTreeIdentity 'intentionally-invalid' -BuildArguments @('build') -GoToolchain ([pscustomobject]@{}) -ExecutablePath 'unused.exe' -Arguments @('fixture') -WorkingDirectory 'unused' -GoGraphReceipts $graphs
+  } catch { $message = $_.Exception.Message }
+  $expected = if ($case.pass) { 'prepared receipt closed identity is malformed' } else { 'prepared receipt requires its independent purpose-labelled Go graphs' }
+  if ($message -cne $expected) { $failures.Add($case.name + ': ' + $message) }
+  else { Write-Output ('C12_GRAPH_PURPOSE_OK:' + $case.name) }
+}
+if ($failures.Count) { throw ('purpose gate rejected/accepted the wrong set: ' + ($failures -join '; ')) }
+`
+	root := t.TempDir()
+	path := filepath.Join(root, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	output, code := runC12PowerShellAtRootWithTimeout(t, root, 2*time.Minute, nil, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
+	if code != 0 {
+		t.Fatalf("purpose gate exit=%d output=%q", code, output)
+	}
+	for _, name := range []string{"concatenated", "duplicate", "missing", "empty", "case-changed", "valid", "valid-reversed", "validator-valid", "validator-duplicate"} {
+		if !strings.Contains(output, "C12_GRAPH_PURPOSE_OK:"+name) {
+			t.Errorf("missing purpose gate case %s: %s", name, output)
+		}
+	}
+}
+
 func TestC12GoGraphReceiptBindingPreservesEveryBodyByte(t *testing.T) {
 	runner := readC12RunnerSource(t)
 	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))

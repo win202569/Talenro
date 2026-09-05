@@ -2374,8 +2374,18 @@ function New-C12SealedExecutableReceipt {
     'authority-initializer' { @('authority-initializer', 'test2json') }
     default { @() }
   }
-  if (@($expectedPurposes).Count -ne 0 -and ((@($GoGraphReceipts | ForEach-Object { $_.Purpose } | Sort-Object) -join '|') -cne (@($expectedPurposes | Sort-Object) -join '|'))) {
-    throw 'prepared receipt requires its independent purpose-labelled Go graphs'
+  if (@($expectedPurposes).Count -ne 0) {
+    if ($GoGraphReceipts.Count -ne @($expectedPurposes).Count) {
+      throw 'prepared receipt requires its independent purpose-labelled Go graphs'
+    }
+    $remainingPurposes = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($expectedPurpose in $expectedPurposes) { [void]$remainingPurposes.Add($expectedPurpose) }
+    foreach ($graph in $GoGraphReceipts) {
+      $label = if ($null -ne $graph) { $graph.PSObject.Properties['Purpose'] } else { $null }
+      if ($null -eq $label -or $label.Value -isnot [string] -or -not $remainingPurposes.Remove($label.Value)) {
+        throw 'prepared receipt requires its independent purpose-labelled Go graphs'
+      }
+    }
   }
   if ([string]$ArtifactRoot.Profile -cne $Profile -or $Purpose -notmatch '^[a-z][a-z0-9-]{0,63}$' -or
       $SourceDigest -notmatch '^[0-9a-f]{64}$' -or $CandidateTreeIdentity -notmatch '^(?:[0-9a-f]{40}|[0-9a-f]{64})$') {
