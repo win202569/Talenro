@@ -4852,11 +4852,17 @@ func main() {
   digest := sha256.Sum256(der); fmt.Println(hex.EncodeToString(digest[:]))
 }
 '@
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"tlsgen.go"}'
   [IO.File]::WriteAllText($tlsSource, $source, (New-Object Text.UTF8Encoding($false)))
   $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'tlsgen.go'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"tlsgen.go"}'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.key"}'
   $tlsResult = Invoke-C12Go -Arguments @('run', $tlsSource, $tlsCertificate, $tlsKey) -Stage 'create PITR primary TLS identity' -Timeout ([TimeSpan]::FromSeconds(30)) -Deadline $Deadline
   $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'server.crt'
   $null = Bind-C12DirectLeaf -ArtifactRoot $RunRoot -Name 'server.key'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"server.crt"}'
+  $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'ACTUAL' -PayloadJSON '{"resource":"server.key"}'
   $tlsPublicDigest = Get-C12SingleOutputLine -Result $tlsResult -Stage 'create PITR primary TLS identity'
   if ($tlsPublicDigest -notmatch '^[0-9a-f]{64}$') {
     throw 'PITR TLS public digest is malformed'
@@ -4921,12 +4927,31 @@ function Get-C12DomainSHA256 {
 }
 
 function Open-C12ControllerOwnershipWAL {
-  param([Parameter(Mandatory)][object]$RunRoot)
+  param(
+    [Parameter(Mandatory)][object]$RunRoot,
+    [Parameter(Mandatory)][string]$RunSuffix,
+    [Parameter(Mandatory)][string]$NonceDigest,
+    [Parameter(Mandatory)][string]$DockerExecutableDigest,
+    [Parameter(Mandatory)][string]$DockerEndpointIdentityDigest,
+    [Parameter(Mandatory)][byte[]]$HMACKey,
+    [DateTime]$Timestamp = [DateTime]::UtcNow
+  )
   Write-Verbose 'talenro-c12-authority-pitr-controller-ownership-wal/v1 controller-ownership-v1.wal WriteThrough FlushFileBuffers BOOTSTRAP INTENT ACTUAL NOT_FOUND CLEAN_INTENT CLEAN_RESULT talenro.c12.controller-wal.registry.v1 talenro.c12.controller-wal.payload.v1 talenro.c12.controller-wal.record.v1 talenro.c12.controller-wal.hmac.v1 record_digest hmac_sha256 yyyy-MM-ddTHH:mm:ss.fffffffZ previous_record_digest payload_digest'
   $leafName = [string]$RunRoot.Ledger[0].Name
   $path = Join-Path ([string]$RunRoot.Root) $leafName
   Start-C12PITRLeafCreation -RunRoot $RunRoot -Name $leafName
-  $literal = '{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"11111111111111111111111111111111","profile":"authority-v7-pitr","nonce_digest":"2222222222222222222222222222222222222222222222222222222222222222","docker_executable_digest":"3333333333333333333333333333333333333333333333333333333333333333","docker_endpoint_identity_digest":"4444444444444444444444444444444444444444444444444444444444444444","sequence":0,"previous_record_digest":null,"event":"BOOTSTRAP","timestamp_utc":"2026-08-29T17:00:00.0000000Z","payload":{"registry":[],"registry_digest":"f3dc0dc654e27a1376da941217e388da59821b25502a30532149c0a2e536221d"},"payload_digest":"c74747ab1c8a1c04fbb7ae900c465c7c29962094e8062dab6c7e9e4460bfe96f","record_digest":"dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016","hmac_sha256":"827f50e451eeb685ab497f38e9968042e7249aabc64e4df60fb0467b2f4fb8a2"}'
+  foreach ($value in @($RunSuffix,$NonceDigest,$DockerExecutableDigest,$DockerEndpointIdentityDigest)) { if ($value -notmatch '^[0-9a-f]+$') { throw 'controller WAL identity field is malformed' } }
+  if ($RunSuffix.Length -ne 32 -or $NonceDigest.Length -ne 64 -or $DockerExecutableDigest.Length -ne 64 -or $DockerEndpointIdentityDigest.Length -ne 64 -or $HMACKey.Length -ne 32) { throw 'controller WAL identity field has invalid length' }
+  $timestampText = $Timestamp.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ', [Globalization.CultureInfo]::InvariantCulture)
+  $registryJSON = '["controller-ownership-v1.wal","ownership.wal","tlsgen.go","server.crt","server.key"]'
+  $registryDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.registry.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($registryJSON))
+  $payload = '{"registry":' + $registryJSON + ',"registry_digest":"' + $registryDigest + '"}'
+  $payloadDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.payload.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($payload))
+  $base = '{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"' + $RunSuffix + '","profile":"authority-v7-pitr","nonce_digest":"' + $NonceDigest + '","docker_executable_digest":"' + $DockerExecutableDigest + '","docker_endpoint_identity_digest":"' + $DockerEndpointIdentityDigest + '","sequence":0,"previous_record_digest":null,"event":"BOOTSTRAP","timestamp_utc":"' + $timestampText + '","payload":' + $payload + ',"payload_digest":"' + $payloadDigest + '"}'
+  $recordDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.record.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($base))
+  $hmac = [Security.Cryptography.HMACSHA256]::new($HMACKey)
+  try { $domain = [Text.Encoding]::UTF8.GetBytes('talenro.c12.controller-wal.hmac.v1'); $raw = ConvertFrom-C12Hex $recordDigest; $macInput = New-Object byte[] ($domain.Length+1+$raw.Length); [Array]::Copy($domain,0,$macInput,0,$domain.Length); [Array]::Copy($raw,0,$macInput,$domain.Length+1,$raw.Length); $mac = (($hmac.ComputeHash($macInput)|ForEach-Object{$_.ToString('x2')})-join '') } finally { $hmac.Dispose() }
+  $literal = $base.Substring(0,$base.Length-1) + ',"record_digest":"' + $recordDigest + '","hmac_sha256":"' + $mac + '"}'
   $stream = [IO.FileStream]::new($path, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::Read, 4096, [IO.FileOptions]::WriteThrough)
   try {
     $bytes = [Text.Encoding]::UTF8.GetBytes($literal + "`n")
@@ -4936,8 +4961,9 @@ function Open-C12ControllerOwnershipWAL {
   finally { $stream.Dispose() }
   $null = Bind-C12PITRLeaf -RunRoot $RunRoot -Name $leafName
   return [pscustomobject]@{
-    Path = $path; WALHandle = $null; Key = [byte[]](0..31); Sequence = [UInt64]0
-    PreviousRecordDigest = 'dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016'
+    Path = $path; WALHandle = $null; Key = [byte[]]$HMACKey.Clone(); Sequence = [UInt64]0
+    RunSuffix = $RunSuffix; Profile = 'authority-v7-pitr'; NonceDigest = $NonceDigest; DockerExecutableDigest = $DockerExecutableDigest; DockerEndpointIdentityDigest = $DockerEndpointIdentityDigest
+    PreviousRecordDigest = $recordDigest
     Lifecycle = 'Bound'; RetryState = 'Verified'; LastError = ''
   }
 }
@@ -4952,9 +4978,18 @@ function Read-C12ControllerOwnershipWAL {
     while ($offset -lt $bytes.Length) { $read = $stream.Read($bytes, $offset, $bytes.Length - $offset); if ($read -le 0) { throw 'controller WAL truncated during exact read' }; $offset += $read }
   }
   finally { $stream.Dispose() }
-  if ($bytes.Length -eq 0 -or $bytes[$bytes.Length-1] -ne 10 -or ($bytes -contains 13) -or
+  if ($bytes.Length -eq 0 -or ($bytes -contains 13) -or
       ($bytes.Length -ge 3 -and $bytes[0] -eq 0xef -and $bytes[1] -eq 0xbb -and $bytes[2] -eq 0xbf)) {
-    throw 'controller WAL truncated or noncanonical exact bytes'
+    throw 'controller WAL noncanonical exact bytes'
+  }
+  $State | Add-Member -NotePropertyName TailRepairLength -NotePropertyValue ([Int64]0) -Force
+  if ($bytes[$bytes.Length-1] -ne 10) {
+    $lastLF = [Array]::LastIndexOf($bytes, [byte]10)
+    if ($lastLF -lt 0) { throw 'controller WAL has no authenticated head before its partial tail' }
+    $State.TailRepairLength = [Int64]($lastLF + 1)
+    $prefix = New-Object byte[] ($lastLF + 1)
+    [Array]::Copy($bytes, 0, $prefix, 0, $prefix.Length)
+    $bytes = $prefix
   }
   $text = [Text.Encoding]::UTF8.GetString($bytes)
   $lines = @($text.Substring(0, $text.Length - 1).Split("`n"))
@@ -4968,23 +5003,44 @@ function Verify-C12ControllerOwnershipWAL {
   $previous = $null
   $lastEvent = ''
   $lastPayload = ''
+  $resourceStates = @{}
   for ($index = 0; $index -lt $lines.Count; $index++) {
     $line = [string]$lines[$index]
     if ([Text.Encoding]::UTF8.GetByteCount($line) + 1 -gt $script:c12PITRWALMaximumLineBytes) { throw 'controller WAL line bound exceeded' }
-    $grammar = '^\{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"(?<run>[0-9a-f]{32})","profile":"authority-v7-pitr","nonce_digest":"(?<nonce>[0-9a-f]{64})","docker_executable_digest":"(?<docker>[0-9a-f]{64})","docker_endpoint_identity_digest":"(?<endpoint>[0-9a-f]{64})","sequence":(?<sequence>[0-9]+),"previous_record_digest":(?<previous>null|"[0-9a-f]{64}"),"event":"(?<event>[A-Z_]+)","timestamp_utc":"(?<timestamp>[^"]+)","payload":(?<payload>\{.*\}),"payload_digest":"(?<payload_digest>[0-9a-f]{64})","record_digest":"(?<record_digest>[0-9a-f]{64})","hmac_sha256":"(?<hmac>[0-9a-f]{64})"\}$'
+    $grammar = '^\{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"(?<run>[0-9a-f]{32})","profile":"authority-v7-pitr","nonce_digest":"(?<nonce>[0-9a-f]{64})","docker_executable_digest":"(?<docker>[0-9a-f]{64})","docker_endpoint_identity_digest":"(?<endpoint>[0-9a-f]{64})","sequence":(?<sequence>0|[1-9][0-9]*),"previous_record_digest":(?<previous>null|"[0-9a-f]{64}"),"event":"(?<event>[A-Z_]+)","timestamp_utc":"(?<timestamp>[^"]+)","payload":(?<payload>\{.*\}),"payload_digest":"(?<payload_digest>[0-9a-f]{64})","record_digest":"(?<record_digest>[0-9a-f]{64})","hmac_sha256":"(?<hmac>[0-9a-f]{64})"\}$'
     $match = [Text.RegularExpressions.Regex]::Match($line, $grammar, [Text.RegularExpressions.RegexOptions]::CultureInvariant)
     if (-not $match.Success) { throw 'controller WAL record JSON is malformed or truncated' }
     $event = $match.Groups['event'].Value
+    if ($match.Groups['run'].Value -cne [string]$State.RunSuffix -or $match.Groups['nonce'].Value -cne [string]$State.NonceDigest -or $match.Groups['docker'].Value -cne [string]$State.DockerExecutableDigest -or $match.Groups['endpoint'].Value -cne [string]$State.DockerEndpointIdentityDigest) { throw 'controller WAL record identity does not match retained State' }
     if ([UInt64]$match.Groups['sequence'].Value -ne [UInt64]$index) { throw 'controller WAL sequence is duplicate or reordered' }
       if ($event -cnotin @('BOOTSTRAP','INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT')) { throw 'controller WAL unknown event' }
       if ($index -eq 0) {
         if ($event -cne 'BOOTSTRAP' -or $match.Groups['previous'].Value -cne 'null') { throw 'controller WAL previous_record_digest mismatch' }
+        $expectedRegistry = '{"registry":["controller-ownership-v1.wal","ownership.wal","tlsgen.go","server.crt","server.key"],"registry_digest":"0c3acaace57bd065528feb8316f31dcdc1306658cd0c84b067412412d4a38f62"}'
+        if ($match.Groups['payload'].Value -cne $expectedRegistry) { throw 'controller WAL BOOTSTRAP payload registry does not match the exact five-leaf RunRoot ledger' }
       }
       elseif ($match.Groups['previous'].Value.Trim('"') -cne $previous) { throw 'controller WAL previous_record_digest mismatch' }
       $timestamp = $match.Groups['timestamp'].Value
       $parsed = [DateTime]::MinValue
       if (-not [DateTime]::TryParseExact($timestamp, 'yyyy-MM-ddTHH:mm:ss.fffffffZ', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal, [ref]$parsed)) { throw 'controller WAL timestamp_utc is noncanonical' }
       $payloadText = $match.Groups['payload'].Value
+      if ($index -gt 0) {
+        $resourceMatch = [Text.RegularExpressions.Regex]::Match($payloadText, '^\{"resource":"(?<resource>[a-z0-9.-]+)"(?:,"[a-z_]+":"[a-zA-Z0-9:._-]*")*\}$')
+        if (-not $resourceMatch.Success) { throw 'controller WAL event payload is not canonical closed resource JSON' }
+        $resource = $resourceMatch.Groups['resource'].Value
+        if ($resource -cnotin @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')) { throw 'controller WAL event names a resource outside the five-leaf registry' }
+        $prior = if ($resourceStates.ContainsKey($resource)) { [string]$resourceStates[$resource] } else { '' }
+        $legal = switch ($event) {
+          'INTENT' { $prior -ceq '' }
+          'ACTUAL' { $prior -ceq 'INTENT' }
+          'NOT_FOUND' { $prior -ceq 'INTENT' }
+          'CLEAN_INTENT' { $prior -cin @('','ACTUAL','NOT_FOUND') }
+          'CLEAN_RESULT' { $prior -ceq 'CLEAN_INTENT' }
+          default { $false }
+        }
+        if (-not $legal) { throw "controller WAL illegal $prior -> $event transition for $resource" }
+        $resourceStates[$resource] = $event
+      }
       $payloadDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.payload.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($payloadText))
       if ($payloadDigest -cne $match.Groups['payload_digest'].Value) { throw 'controller WAL payload_digest mismatch after payload verification' }
       $recordMarker = ',"record_digest":"'
@@ -5007,7 +5063,12 @@ function Verify-C12ControllerOwnershipWAL {
       $lastEvent = $event
       $lastPayload = $payloadText
   }
-  return [pscustomobject]@{ Records = $lines.Count; Head = $previous; LastEvent = $lastEvent; LastPayload = $lastPayload; Verified = $true }
+  if ([Int64]$State.TailRepairLength -gt 0) {
+    $repair = [IO.FileStream]::new([string]$State.Path,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::Read,4096,[IO.FileOptions]::WriteThrough)
+    try { $repair.SetLength([Int64]$State.TailRepairLength); $repair.Flush($true) } finally { $repair.Dispose() }
+    $State.TailRepairLength = [Int64]0
+  }
+  return [pscustomobject]@{ Records = $lines.Count; Head = $previous; LastEvent = $lastEvent; LastPayload = $lastPayload; ResourceStates = $resourceStates; Verified = $true }
 }
 
 function Assert-C12ControllerOwnershipWAL { param([Parameter(Mandatory)][object]$State) $null = Verify-C12ControllerOwnershipWAL -State $State }
@@ -5025,11 +5086,17 @@ function Append-C12ControllerOwnershipRecord {
     $State.Sequence = [UInt64]($verified.Records - 1); $State.PreviousRecordDigest = [string]$verified.Head; $State.RetryState = 'Verified'; $State.LastError = ''
     return $verified
   }
+  $resourceMatch = [Text.RegularExpressions.Regex]::Match($PayloadJSON, '^\{"resource":"(?<resource>[a-z0-9.-]+)"(?:,"[a-z_]+":"[a-zA-Z0-9:._-]*")*\}$')
+  if (-not $resourceMatch.Success) { throw 'controller WAL event payload is not canonical closed resource JSON' }
+  $resource = $resourceMatch.Groups['resource'].Value
+  $prior = if ($verified.ResourceStates.ContainsKey($resource)) { [string]$verified.ResourceStates[$resource] } else { '' }
+  $legal = switch ($Event) { 'INTENT' {$prior -ceq ''}; 'ACTUAL' {$prior -ceq 'INTENT'}; 'NOT_FOUND' {$prior -ceq 'INTENT'}; 'CLEAN_INTENT' {$prior -cin @('','ACTUAL','NOT_FOUND')}; 'CLEAN_RESULT' {$prior -ceq 'CLEAN_INTENT'}; default {$false} }
+  if (-not $legal) { throw "controller WAL illegal $prior -> $Event transition for $resource" }
   $sequence = [UInt64]$verified.Records
   $previous = [string]$verified.Head
   $timestamp = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffffffZ', [Globalization.CultureInfo]::InvariantCulture)
   $payloadDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.payload.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($PayloadJSON))
-  $base = '{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"11111111111111111111111111111111","profile":"authority-v7-pitr","nonce_digest":"2222222222222222222222222222222222222222222222222222222222222222","docker_executable_digest":"3333333333333333333333333333333333333333333333333333333333333333","docker_endpoint_identity_digest":"4444444444444444444444444444444444444444444444444444444444444444","sequence":' + $sequence + ',"previous_record_digest":"' + $previous + '","event":"' + $Event + '","timestamp_utc":"' + $timestamp + '","payload":' + $PayloadJSON + ',"payload_digest":"' + $payloadDigest + '"}'
+  $base = '{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"' + [string]$State.RunSuffix + '","profile":"' + [string]$State.Profile + '","nonce_digest":"' + [string]$State.NonceDigest + '","docker_executable_digest":"' + [string]$State.DockerExecutableDigest + '","docker_endpoint_identity_digest":"' + [string]$State.DockerEndpointIdentityDigest + '","sequence":' + $sequence + ',"previous_record_digest":"' + $previous + '","event":"' + $Event + '","timestamp_utc":"' + $timestamp + '","payload":' + $PayloadJSON + ',"payload_digest":"' + $payloadDigest + '"}'
   $recordDigest = Get-C12DomainSHA256 -Domain 'talenro.c12.controller-wal.record.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($base))
   $hmac = [Security.Cryptography.HMACSHA256]::new([byte[]]$State.Key)
   try {
@@ -5043,7 +5110,7 @@ function Append-C12ControllerOwnershipRecord {
   $line = $base.Substring(0, $base.Length - 1) + ',"record_digest":"' + $recordDigest + '","hmac_sha256":"' + $mac + '"}' + "`n"
   $bytes = [Text.Encoding]::UTF8.GetBytes($line)
   if ($bytes.Length -gt $script:c12PITRWALMaximumLineBytes) { throw 'controller WAL append exceeded line bound' }
-  $stream = [IO.FileStream]::new([string]$State.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::Read, 4096, [IO.FileOptions]::WriteThrough)
+  $stream = [IO.FileStream]::new([string]$State.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete, 4096, [IO.FileOptions]::WriteThrough)
   try {
     $stream.Seek(0, [IO.SeekOrigin]::End) | Out-Null
     $stream.Write($bytes, 0, $bytes.Length)
@@ -5072,7 +5139,20 @@ function Remove-C12PITRRunRoot {
   foreach ($entry in @($RunRoot.Ledger)) {
     if ([string]$entry.Lifecycle -ceq 'Bound' -and $null -ne $entry.CleanupHandle) { $entry.CleanupHandle.Dispose(); $entry.CleanupHandle = $null }
   }
-  $null = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
+  $walView = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
+  foreach ($entry in @($RunRoot.Ledger)) {
+    $resource = [string]$entry.Name
+    $payload = '{"resource":"' + $resource + '"}'
+    $prior = if ($walView.ResourceStates.ContainsKey($resource)) { [string]$walView.ResourceStates[$resource] } else { '' }
+    if ($prior -ceq '') {
+      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON $payload
+      $event = if ([IO.File]::Exists((Join-Path ([string]$RunRoot.Root) $resource))) { 'ACTUAL' } else { 'NOT_FOUND' }
+      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event $event -PayloadJSON $payload
+      $prior = $event
+    }
+    elseif ($prior -ceq 'INTENT') { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON $payload; $prior = 'NOT_FOUND' }
+    if ($prior -cin @('ACTUAL','NOT_FOUND')) { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_INTENT' -PayloadJSON $payload }
+  }
   foreach ($entry in @($RunRoot.Ledger)) {
     $path = Join-Path ([string]$RunRoot.Root) ([string]$entry.Name)
     if (-not [IO.File]::Exists($path)) { Complete-C12AbsentDirectLeaf -Entry $entry; continue }
@@ -5088,12 +5168,17 @@ function Remove-C12PITRRunRoot {
     }
   }
   # Validate every direct leaf before issuing any disposition, preserving all evidence on one foreign sibling.
-  foreach ($entry in @($RunRoot.Ledger)) {
+  foreach ($entry in @($RunRoot.Ledger | Sort-Object @{Expression={if ([string]$_.Name -ceq 'controller-ownership-v1.wal'){1}else{0}}})) {
     $path = Join-Path ([string]$RunRoot.Root) ([string]$entry.Name)
-    if (-not [IO.File]::Exists($path)) { continue }
+    $payload = '{"resource":"' + [string]$entry.Name + '"}'
+    $currentView = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
+    $alreadyClean = $currentView.ResourceStates.ContainsKey([string]$entry.Name) -and [string]$currentView.ResourceStates[[string]$entry.Name] -ceq 'CLEAN_RESULT'
+    if (-not [IO.File]::Exists($path)) { if (-not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }; continue }
     try {
+      if ([string]$entry.Name -ceq 'controller-ownership-v1.wal' -and -not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }
       Request-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
       Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
+      if ([string]$entry.Name -cne 'controller-ownership-v1.wal' -and -not $alreadyClean) { $null = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON $payload }
       $entry.LastCleanupError = ''
     }
     catch { $entry.LastCleanupError = $_.Exception.Message; throw }
@@ -5105,7 +5190,7 @@ function Remove-C12PITRRunRoot {
 }
 
 function New-C12PITRRunRoot {
-  param([Parameter(Mandatory = $true)][string]$RunSuffix)
+  param([Parameter(Mandatory)][string]$RunSuffix,[Parameter(Mandatory)][string]$NonceDigest,[Parameter(Mandatory)][string]$HMACKeyHex,[Parameter(Mandatory)][string]$DockerExecutableDigest,[Parameter(Mandatory)][string]$DockerEndpointIdentityDigest,[DateTime]$ControllerTimestamp=[DateTime]::UtcNow)
 
   $stage = 'PITR run-root creation'
   $runRoot = $null
@@ -5139,7 +5224,8 @@ function New-C12PITRRunRoot {
     try { $stream.Flush($true) } finally { $stream.Dispose() }
     $null = Bind-C12PITRLeaf -RunRoot $runRoot -Name $workerWALName
     $runRoot.WALPath = $walPath
-    $runRoot.ControllerWAL = Open-C12ControllerOwnershipWAL -RunRoot $runRoot
+    $controllerKey = ConvertFrom-C12Hex -Value $HMACKeyHex
+    try { $runRoot.ControllerWAL = Open-C12ControllerOwnershipWAL -RunRoot $runRoot -RunSuffix $RunSuffix -NonceDigest $NonceDigest -DockerExecutableDigest $DockerExecutableDigest -DockerEndpointIdentityDigest $DockerEndpointIdentityDigest -HMACKey $controllerKey -Timestamp $ControllerTimestamp } finally { [Array]::Clear($controllerKey,0,$controllerKey.Length) }
     foreach ($index in 2..4) { Start-C12PITRLeafCreation -RunRoot $runRoot -Name ([string]$ledger[$index].Name) }
     $runRoot.CreationClosed = $true
     return $runRoot
@@ -5623,7 +5709,11 @@ function Invoke-C12Group {
       $preparedArtifactRoot = $preparedInitializer.ArtifactRoot
     }
     if ($GroupProfile -ceq 'authority-v7-pitr') {
-      $pitrRunRoot = New-C12PITRRunRoot -RunSuffix $runSuffix
+      $dockerExecutablePath = [IO.Path]::GetFullPath([string](Get-Command docker.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source)
+      $dockerExecutableDigest = Get-C12SHA256Hex -Bytes ([IO.File]::ReadAllBytes($dockerExecutablePath))
+      $dockerSelectors = 'DOCKER_HOST=' + [Environment]::GetEnvironmentVariable('DOCKER_HOST') + ';DOCKER_CONTEXT=' + [Environment]::GetEnvironmentVariable('DOCKER_CONTEXT') + ';DOCKER_CONFIG=' + [Environment]::GetEnvironmentVariable('DOCKER_CONFIG') + ';DOCKER_TLS_VERIFY=' + [Environment]::GetEnvironmentVariable('DOCKER_TLS_VERIFY') + ';DOCKER_CERT_PATH=' + [Environment]::GetEnvironmentVariable('DOCKER_CERT_PATH') + ';DOCKER_API_VERSION=' + [Environment]::GetEnvironmentVariable('DOCKER_API_VERSION')
+      $dockerEndpointIdentityDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes($dockerSelectors))
+      $pitrRunRoot = New-C12PITRRunRoot -RunSuffix $runSuffix -NonceDigest $pitrNonceDigest -HMACKeyHex $pitrHMACKey -DockerExecutableDigest $dockerExecutableDigest -DockerEndpointIdentityDigest $dockerEndpointIdentityDigest
     }
     foreach ($resource in $resources) {
       Resolve-C12ImageIdentity -Resource $resource

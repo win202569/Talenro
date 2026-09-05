@@ -1378,15 +1378,15 @@ func c12AssertLiteralPreparedFrames(t *testing.T) {
 	}
 }
 
-const c12LiteralControllerWALBootstrap = `{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"11111111111111111111111111111111","profile":"authority-v7-pitr","nonce_digest":"2222222222222222222222222222222222222222222222222222222222222222","docker_executable_digest":"3333333333333333333333333333333333333333333333333333333333333333","docker_endpoint_identity_digest":"4444444444444444444444444444444444444444444444444444444444444444","sequence":0,"previous_record_digest":null,"event":"BOOTSTRAP","timestamp_utc":"2026-08-29T17:00:00.0000000Z","payload":{"registry":[],"registry_digest":"f3dc0dc654e27a1376da941217e388da59821b25502a30532149c0a2e536221d"},"payload_digest":"c74747ab1c8a1c04fbb7ae900c465c7c29962094e8062dab6c7e9e4460bfe96f","record_digest":"dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016","hmac_sha256":"827f50e451eeb685ab497f38e9968042e7249aabc64e4df60fb0467b2f4fb8a2"}` + "\n"
+const c12LiteralControllerWALBootstrap = `{"schema":"talenro-c12-authority-pitr-controller-ownership-wal/v1","version":1,"run":"11111111111111111111111111111111","profile":"authority-v7-pitr","nonce_digest":"2222222222222222222222222222222222222222222222222222222222222222","docker_executable_digest":"3333333333333333333333333333333333333333333333333333333333333333","docker_endpoint_identity_digest":"4444444444444444444444444444444444444444444444444444444444444444","sequence":0,"previous_record_digest":null,"event":"BOOTSTRAP","timestamp_utc":"2026-08-29T17:00:00.0000000Z","payload":{"registry":["controller-ownership-v1.wal","ownership.wal","tlsgen.go","server.crt","server.key"],"registry_digest":"0c3acaace57bd065528feb8316f31dcdc1306658cd0c84b067412412d4a38f62"},"payload_digest":"c45c92dd1bd5991fd9170a4b6f2d15a544b7bc284313421410aee2e48cfcfa27","record_digest":"98c530280e43fc71aff5cabb64ead0448dea84add7f682190050c96ef4b30e52","hmac_sha256":"f1b7aa5d228781e1981e8fcf285da2075357a320303860c6a7dad00c38412bf2"}` + "\n"
 
 func c12AssertLiteralControllerWAL(t *testing.T) {
 	t.Helper()
 	line := c12LiteralControllerWALBootstrap
-	if len(line) != 897 || line[len(line)-1] != '\n' || strings.Contains(line, "\r") || bytes.HasPrefix([]byte(line), []byte{0xef, 0xbb, 0xbf}) {
+	if len(line) != 980 || line[len(line)-1] != '\n' || strings.Contains(line, "\r") || bytes.HasPrefix([]byte(line), []byte{0xef, 0xbb, 0xbf}) {
 		t.Fatalf("literal BOOTSTRAP WAL line grammar/length mismatch: %d bytes", len(line))
 	}
-	const recordDigest = "dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016"
+	const recordDigest = "98c530280e43fc71aff5cabb64ead0448dea84add7f682190050c96ef4b30e52"
 	key := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
 	rawDigest, err := hex.DecodeString(recordDigest)
 	if err != nil {
@@ -1396,7 +1396,7 @@ func c12AssertLiteralControllerWAL(t *testing.T) {
 	mac.Write([]byte("talenro.c12.controller-wal.hmac.v1"))
 	mac.Write([]byte{0})
 	mac.Write(rawDigest)
-	if got := hex.EncodeToString(mac.Sum(nil)); got != "827f50e451eeb685ab497f38e9968042e7249aabc64e4df60fb0467b2f4fb8a2" {
+	if got := hex.EncodeToString(mac.Sum(nil)); got != "f1b7aa5d228781e1981e8fcf285da2075357a320303860c6a7dad00c38412bf2" {
 		t.Fatalf("literal BOOTSTRAP HMAC = %s", got)
 	}
 }
@@ -3038,7 +3038,7 @@ try {
 	'pitr-five-leaf' {
 	  $runRoot = $null
 	  try {
-	    $runRoot = New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N'))
+	    $runRoot = New-C12PITRRunRoot -RunSuffix '11111111111111111111111111111111' -NonceDigest ('2' * 64) -HMACKeyHex '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' -DockerExecutableDigest ('3' * 64) -DockerEndpointIdentityDigest ('4' * 64) -ControllerTimestamp ([DateTime]::Parse('2026-08-29T17:00:00Z').ToUniversalTime())
 	    if ($runRoot.PSObject.Properties.Name -cnotcontains 'Ledger') { throw 'production PITR run-root lacks retained five-leaf ledger' }
 	    $names = @($runRoot.Ledger | ForEach-Object { [string]$_.Name })
 	    $expected = @('controller-ownership-v1.wal','ownership.wal','tlsgen.go','server.crt','server.key')
@@ -3071,8 +3071,8 @@ try {
 	    $deadlineRejected = $false
 	    $deadlineMessage = ''
 	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(-1)) } catch { $deadlineRejected = $true; $deadlineMessage = $_.Exception.Message }
-	    $controllerEntry = @($runRoot.Ledger | Where-Object { [string]$_.Name -ceq 'controller-ownership-v1.wal' })[0]
-	    if (-not $deadlineRejected -or [string]$controllerEntry.Lifecycle -cne 'CleanIntent' -or $null -eq $controllerEntry.CleanupHandle -or [string]::IsNullOrEmpty([string]$controllerEntry.LastCleanupError)) { throw ('PITR deadline did not retain exact identity handle, CleanIntent, and primary cleanup error: rejected=' + $deadlineRejected + ' message=' + $deadlineMessage + ' lifecycle=' + [string]$controllerEntry.Lifecycle + ' handle=' + ($null -ne $controllerEntry.CleanupHandle) + ' error=' + [string]$controllerEntry.LastCleanupError) }
+	    $deadlineEntries = @($runRoot.Ledger | Where-Object { [string]$_.Lifecycle -ceq 'CleanIntent' -and $null -ne $_.CleanupHandle -and -not [string]::IsNullOrEmpty([string]$_.LastCleanupError) })
+	    if (-not $deadlineRejected -or $deadlineEntries.Count -ne 1) { throw ('PITR deadline did not retain one exact identity handle, CleanIntent, and primary cleanup error: rejected=' + $deadlineRejected + ' message=' + $deadlineMessage + ' retained=' + $deadlineEntries.Count) }
 	    Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20))
 	    $runRoot = $null
 	    Write-Output 'C12_PITR_FIVE_LEAF_LEDGER_OK'
@@ -3088,7 +3088,7 @@ try {
 	'controller-wal' {
 	  $runRoot = $null
 	  try {
-	    $runRoot = New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N'))
+	    $runRoot = New-C12PITRRunRoot -RunSuffix '11111111111111111111111111111111' -NonceDigest ('2' * 64) -HMACKeyHex '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' -DockerExecutableDigest ('3' * 64) -DockerEndpointIdentityDigest ('4' * 64) -ControllerTimestamp ([DateTime]::Parse('2026-08-29T17:00:00Z').ToUniversalTime())
 	    if ($null -eq (Get-Command Assert-C12ControllerOwnershipWAL -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production controller-WAL verifier entry is absent' }
 	    if ($runRoot.PSObject.Properties.Name -cnotcontains 'ControllerWAL' -or $runRoot.ControllerWAL.PSObject.Properties.Name -cnotcontains 'Path') { throw 'production PITR run-root lacks controller WAL state/path' }
 	    $walPath = [string]$runRoot.ControllerWAL.Path
@@ -3098,31 +3098,42 @@ try {
 	    $baseline = [byte[]]$observed.Clone()
 	    $baselineText = [Text.Encoding]::UTF8.GetString($baseline)
 	    $mutations = [ordered]@{
-	      payload = $baselineText.Replace('"registry":[]','"registry":[1]')
-	      payload_digest = $baselineText.Replace('"payload_digest":"c747','"payload_digest":"0747')
-	      record_digest = $baselineText.Replace('"record_digest":"dc13','"record_digest":"0c13')
-	      hmac = $baselineText.Replace('"hmac_sha256":"827f','"hmac_sha256":"027f')
+	      payload = $baselineText.Replace('"registry":["controller','"registry":["attacker')
+	      payload_digest = $baselineText.Replace('"payload_digest":"c45c','"payload_digest":"045c')
+	      record_digest = $baselineText.Replace('"record_digest":"98c5','"record_digest":"08c5')
+	      hmac = $baselineText.Replace('"hmac_sha256":"f1b7','"hmac_sha256":"01b7')
 	      previous = $baselineText.Replace('"previous_record_digest":null','"previous_record_digest":"0000000000000000000000000000000000000000000000000000000000000000"')
+	      duplicate_key = $baselineText.Replace('{"schema":','{"schema":"duplicate","schema":')
+	      whitespace = $baselineText.Replace('{"schema":','{ "schema":')
+	      escaped_key = $baselineText.Replace('"event":"BOOTSTRAP"','"event":"\u0042OOTSTRAP"')
 	    }
 	    foreach ($entry in $mutations.GetEnumerator()) {
 	      [IO.File]::WriteAllBytes($walPath, [Text.Encoding]::UTF8.GetBytes([string]$entry.Value))
 	      $rejected = $false
 	      try { Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL }
-	      catch { $rejected = $_.Exception.Message -match [string]$entry.Key }
+	      catch { $rejected = ([string]$entry.Key -cin @('duplicate_key','whitespace','escaped_key')) -or $_.Exception.Message -match [string]$entry.Key }
 	      if (-not $rejected) { throw ('production controller WAL verifier accepted or misclassified ' + [string]$entry.Key + ' mutation') }
 	      [IO.File]::WriteAllBytes($walPath, $baseline)
 	    }
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
-	    $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"candidate","identity":"abc"}'
+	    $savedRun = [string]$runRoot.ControllerWAL.RunSuffix
+	    $runRoot.ControllerWAL.RunSuffix = ('a' * 32)
+	    $stateRejected = $false
+	    try { Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL } catch { $stateRejected = $_.Exception.Message -match 'State' }
+	    $runRoot.ControllerWAL.RunSuffix = $savedRun
+	    if (-not $stateRejected) { throw 'controller WAL did not bind every record to retained runtime State' }
+	    $illegalRejected = $false
+	    try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'CLEAN_RESULT' -PayloadJSON '{"resource":"tlsgen.go"}' } catch { $illegalRejected = $_.Exception.Message -match 'illegal' }
+	    if (-not $illegalRejected -or -not [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($walPath), [byte[]]$baseline)) { throw 'illegal BOOTSTRAP to CLEAN_RESULT transition mutated the durable WAL' }
+	    $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"tlsgen.go","identity":"abc"}'
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
 	    $twoRecord = [IO.File]::ReadAllBytes($walPath)
 	    $twoText = [Text.Encoding]::UTF8.GetString($twoRecord)
 	    $lines = @($twoText.TrimEnd([char]10).Split([char]10))
 	    $chainMutations = [ordered]@{
-	      truncation = $twoRecord[0..($twoRecord.Length-2)]
 	      duplicate_sequence = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"sequence":1','"sequence":0'))
 	      reordered_record = [Text.Encoding]::UTF8.GetBytes($lines[1] + [char]10 + $lines[0] + [char]10)
-	      wrong_previous = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"previous_record_digest":"dc13','"previous_record_digest":"0c13'))
+	      wrong_previous = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"previous_record_digest":"98c5','"previous_record_digest":"08c5'))
 	      noncanonical_timestamp = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('Z","payload":{"resource"','+00:00","payload":{"resource"'))
 	      unknown_event = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"event":"INTENT"','"event":"SURPRISE"'))
 	    }
@@ -3134,18 +3145,33 @@ try {
 	      [IO.File]::WriteAllBytes($walPath, $twoRecord)
 	    }
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    $partialTail = New-Object byte[] ($baseline.Length + 37)
+	    [Array]::Copy($baseline,0,$partialTail,0,$baseline.Length)
+	    [Array]::Copy($twoRecord,$baseline.Length,$partialTail,$baseline.Length,37)
+	    [IO.File]::WriteAllBytes($walPath,$partialTail)
+	    $tailRecovered = Verify-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    if ($tailRecovered.Records -ne 1 -or -not [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($walPath),[byte[]]$baseline)) { throw 'controller WAL did not truncate a partial tail to its last authenticated head' }
 	    foreach ($seam in @('after-write-before-flush','after-flush-before-head')) {
 	      [IO.File]::WriteAllBytes($walPath, $baseline)
 	      $runRoot.ControllerWAL.Sequence = [UInt64]0
-	      $runRoot.ControllerWAL.PreviousRecordDigest = 'dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016'
+	      $runRoot.ControllerWAL.PreviousRecordDigest = '98c530280e43fc71aff5cabb64ead0448dea84add7f682190050c96ef4b30e52'
 	      $crashed = $false
-	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"crash-probe"}' -FailureSeam $seam } catch { $crashed = $_.Exception.Message -match 'injected controller WAL crash' }
+	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}' -FailureSeam $seam } catch { $crashed = $_.Exception.Message -match 'injected controller WAL crash' }
 	      if (-not $crashed) { throw ('controller WAL crash seam did not fire: ' + $seam) }
 	      $recovered = Verify-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
 	      if ($recovered.Records -ne 2) { throw ('controller WAL crash recovery lost durable exact record: ' + $seam) }
-	      $retry = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"crash-probe"}'
+	      $retry = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"server.crt"}'
 	      if ($retry.Records -ne 2) { throw ('controller WAL crash retry was not idempotent: ' + $seam) }
 	    }
+	    $dynamicRun = $null
+	    try {
+	      $dynamicSuffix = [Guid]::NewGuid().ToString('N')
+	      $dynamicRun = New-C12PITRRunRoot -RunSuffix $dynamicSuffix -NonceDigest ('a' * 64) -HMACKeyHex ('5a' * 32) -DockerExecutableDigest ('b' * 64) -DockerEndpointIdentityDigest ('c' * 64)
+	      $dynamicText = [IO.File]::ReadAllText([string]$dynamicRun.ControllerWAL.Path)
+	      if (-not $dynamicText.Contains($dynamicSuffix) -or $dynamicText.Contains('11111111111111111111111111111111') -or -not $dynamicText.Contains(('a' * 64))) { throw 'production controller WAL retained a fixed public identity or key fixture' }
+	      Assert-C12ControllerOwnershipWAL -State $dynamicRun.ControllerWAL
+	      Remove-C12PITRRunRoot -RunRoot $dynamicRun -Deadline ([DateTime]::UtcNow.AddSeconds(20)); $dynamicRun = $null
+	    } finally { if ($null -ne $dynamicRun -and [IO.Directory]::Exists([string]$dynamicRun.Root)) { Remove-C12PITRRunRoot -RunRoot $dynamicRun -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } }
 	    Write-Output 'C12_CONTROLLER_WAL_LITERAL_OK'
 	    exit 0
 	  }
