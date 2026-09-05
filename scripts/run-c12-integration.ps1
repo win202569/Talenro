@@ -702,6 +702,24 @@ public sealed class C12OwnedDirectory : IDisposable
         }
     }
 
+    public static C12OwnedDirectory OpenExisting(string exactRoot, UInt32 expectedVolumeSerial, UInt64 expectedFileIndex)
+    {
+        string root = System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\');
+        IntPtr existing = CreateFile(root, FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        if (existing == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            BY_HANDLE_FILE_INFORMATION information = ReadInformation(existing);
+            UInt64 index = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
+            if ((information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 || information.VolumeSerialNumber != expectedVolumeSerial || index != expectedFileIndex)
+                throw new InvalidOperationException("existing owned-directory identity changed before retry");
+            C12OwnedDirectory result = new C12OwnedDirectory(root, existing, information);
+            existing = INVALID_HANDLE_VALUE;
+            return result;
+        }
+        finally { if (existing != IntPtr.Zero && existing != INVALID_HANDLE_VALUE) CloseHandle(existing); }
+    }
+
     private static BY_HANDLE_FILE_INFORMATION ReadInformation(IntPtr value)
     {
         BY_HANDLE_FILE_INFORMATION information;
@@ -739,7 +757,7 @@ public sealed class C12OwnedDirectory : IDisposable
         int visited = 0;
         DeleteChildren(RootPath, handle, deadlineUtc, ref visited);
         VerifyExactPath();
-        System.IO.Directory.Delete(RootPath, false);
+        MarkDelete(handle);
     }
 
     public void RequestDeleteExactEmpty(DateTime deadlineUtc)
@@ -750,27 +768,23 @@ public sealed class C12OwnedDirectory : IDisposable
         {
             if (entries.MoveNext()) throw new InvalidOperationException("identity-bound empty-directory deletion found a direct child");
         }
-        System.IO.Directory.Delete(RootPath, false);
+        MarkDelete(handle);
     }
 
-    public void ReleaseDeletedExact()
-    {
-        if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound directory namespace has not converged");
-        Dispose();
-    }
+    public void ReleaseDeletePending() { Dispose(); }
 
     public void DeleteExactTree(DateTime deadlineUtc)
     {
         RequestDeleteExactTree(deadlineUtc);
+        ReleaseDeletePending();
         if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound root deletion remained pending");
-        ReleaseDeletedExact();
     }
 
     public void DeleteExactEmpty(DateTime deadlineUtc)
     {
         RequestDeleteExactEmpty(deadlineUtc);
+        ReleaseDeletePending();
         if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound empty-directory deletion remained pending");
-        ReleaseDeletedExact();
     }
 
     private static void DeleteChildren(string directory, IntPtr directoryHandle, DateTime deadlineUtc, ref int visited)
@@ -862,13 +876,15 @@ public sealed class C12PathIdentity
     public UInt64 FileIndex { get; private set; }
     public UInt32 NumberOfLinks { get; private set; }
     public bool Reparse { get; private set; }
+    public bool Directory { get; private set; }
 
-    internal C12PathIdentity(UInt32 volumeSerialNumber, UInt64 fileIndex, UInt32 numberOfLinks, bool reparse)
+    internal C12PathIdentity(UInt32 volumeSerialNumber, UInt64 fileIndex, UInt32 numberOfLinks, bool reparse, bool directory)
     {
         VolumeSerialNumber = volumeSerialNumber;
         FileIndex = fileIndex;
         NumberOfLinks = numberOfLinks;
         Reparse = reparse;
+        Directory = directory;
     }
 
     public string Value { get { return VolumeSerialNumber.ToString("x8") + ":" + FileIndex.ToString("x16"); } }
@@ -887,6 +903,11 @@ public sealed class C12SealedExecutable : IDisposable
     private const UInt32 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
     private const UInt32 FILE_ATTRIBUTE_DIRECTORY = 0x00000010;
     private const UInt32 FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
+    private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
+    private const Int32 FILE_DISPOSITION_INFO_EX_CLASS = 21;
+    private const UInt32 FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
+    private const UInt32 FILE_DISPOSITION_FLAG_POSIX_SEMANTICS = 0x00000002;
+    private const UInt32 FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE = 0x00000010;
     private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -907,11 +928,18 @@ public sealed class C12SealedExecutable : IDisposable
         public UInt32 FileIndexLow;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO { [MarshalAs(UnmanagedType.Bool)] public bool DeleteFile; }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO_EX { public UInt32 Flags; }
+
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool GetFileInformationByHandle(IntPtr handle, out BY_HANDLE_FILE_INFORMATION information);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetFileInformationByHandle(IntPtr handle, Int32 informationClass, IntPtr information, UInt32 bufferSize);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
@@ -1007,9 +1035,30 @@ public sealed class C12SealedExecutable : IDisposable
             bool reparse = (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
             if ((information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || reparse) throw new InvalidOperationException("prepared artifact directory identity is not one non-reparse directory");
             UInt64 index = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
-            return new C12PathIdentity(information.VolumeSerialNumber, index, information.NumberOfLinks, reparse);
+            return new C12PathIdentity(information.VolumeSerialNumber, index, information.NumberOfLinks, reparse, true);
         }
         finally { CloseHandle(directory); }
+    }
+
+    public static C12PathIdentity TryInspectPath(string exactPath)
+    {
+        string path = Path.GetFullPath(exactPath).TrimEnd('\\');
+        IntPtr value = CreateFile(path, FILE_READ_ATTRIBUTES, (UInt32)(FileShare.Read | FileShare.Write | FileShare.Delete), IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        if (value == INVALID_HANDLE_VALUE)
+        {
+            int error = Marshal.GetLastWin32Error();
+            if (error == 2 || error == 3) return null;
+            throw new Win32Exception(error);
+        }
+        try
+        {
+            BY_HANDLE_FILE_INFORMATION information = ReadInformation(value);
+            UInt64 index = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
+            bool reparse = (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+            bool directory = (information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+            return new C12PathIdentity(information.VolumeSerialNumber, index, information.NumberOfLinks, reparse, directory);
+        }
+        finally { CloseHandle(value); }
     }
 
     public void DeleteExact()
@@ -1020,14 +1069,26 @@ public sealed class C12SealedExecutable : IDisposable
         if ((information.FileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) != 0 ||
             information.VolumeSerialNumber != VolumeSerialNumber || currentIndex != FileIndex || information.NumberOfLinks != 1)
             throw new InvalidOperationException("exact cleanup file identity or link count changed");
-        File.Delete(ExactPath);
+        bool preferLegacy;
+        AppContext.TryGetSwitch("Talenro.C12.PreferLegacyDeleteDisposition", out preferLegacy);
+        FILE_DISPOSITION_INFO_EX disposition = new FILE_DISPOSITION_INFO_EX();
+        disposition.Flags = FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS | FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE;
+        int length = Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO_EX));
+        IntPtr pointer = Marshal.AllocHGlobal(length);
+        try
+        {
+            Marshal.StructureToPtr(disposition, pointer, false);
+            if (preferLegacy || !SetFileInformationByHandle(handle, FILE_DISPOSITION_INFO_EX_CLASS, pointer, (UInt32)length))
+            {
+                FILE_DISPOSITION_INFO legacy = new FILE_DISPOSITION_INFO(); legacy.DeleteFile = true;
+                Marshal.StructureToPtr(legacy, pointer, false);
+                if (!SetFileInformationByHandle(handle, FILE_DISPOSITION_INFO_CLASS, pointer, (UInt32)Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO)))) throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+        }
+        finally { Marshal.FreeHGlobal(pointer); }
     }
 
-    public void ReleaseDeletedExact()
-    {
-        if (File.Exists(ExactPath)) throw new InvalidOperationException("exact cleanup file namespace has not converged");
-        Dispose();
-    }
+    public void ReleaseDeletePending() { Dispose(); }
 
     public void Dispose()
     {
@@ -1965,6 +2026,77 @@ function Complete-C12AbsentDirectLeaf {
   $Entry.RefCount = 0
 }
 
+function Request-C12DirectLeafDelete {
+  param(
+    [Parameter(Mandatory = $true)][object]$Entry,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  if ([string]$Entry.Lifecycle -ceq 'Bound') { Set-C12DirectLeafLifecycle -Entry $Entry -Lifecycle 'CleanIntent' }
+  elseif ([string]$Entry.Lifecycle -cne 'CleanIntent') { throw 'prepared direct leaf delete request is outside CleanIntent' }
+  if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) { throw 'prepared direct-leaf cleanup exceeded its absolute deadline' }
+  if ([string]$Entry.Kind -ceq 'exact_file') {
+    if ($null -eq $Entry.CleanupHandle) { throw 'prepared exact_file delete request lacks its retained handle' }
+    $Entry.CleanupHandle.DeleteExact()
+  }
+  else {
+    if ($null -eq $Entry.Ownership) { throw 'prepared subtree delete request lacks its retained handle' }
+    $Entry.Ownership.RequestDeleteExactTree($Deadline)
+  }
+}
+
+function Complete-C12DirectLeafDelete {
+  param(
+    [Parameter(Mandatory = $true)][object]$Entry,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  if ([string]$Entry.Lifecycle -cne 'CleanIntent') { throw 'prepared direct leaf delete completion is outside CleanIntent' }
+  Release-C12DirectLeafDeletePending -Entry $Entry
+
+  try { $observed = [C12SealedExecutable]::TryInspectPath($Path) }
+  catch {
+    $Entry.LastCleanupError = 'prepared direct leaf namespace could not be classified after exact-handle delete intent: ' + $_.Exception.Message
+    throw $Entry.LastCleanupError
+  }
+  if ($null -eq $observed) {
+    Set-C12DirectLeafLifecycle -Entry $Entry -Lifecycle 'Removed'
+    Set-C12DirectLeafLifecycle -Entry $Entry -Lifecycle 'Absent'
+    $Entry.RefCount = 0
+    $Entry.LastCleanupError = ''
+    return
+  }
+  $expectedDirectory = [string]$Entry.Kind -ceq 'owned_ephemeral_subtree'
+  $observedIdentity = if ($expectedDirectory) { [string]$observed.Value } else { "$([UInt32]$observed.VolumeSerialNumber):$([UInt64]$observed.FileIndex)" }
+  if ([bool]$observed.Directory -ne $expectedDirectory -or [bool]$observed.Reparse -or $observedIdentity -cne [string]$Entry.Identity -or
+      (-not $expectedDirectory -and [UInt32]$observed.NumberOfLinks -ne [UInt32]$Entry.NumberOfLinks)) {
+    $Entry.LastCleanupError = 'prepared direct leaf namespace contains a foreign replacement after exact-handle delete intent'
+    throw $Entry.LastCleanupError
+  }
+  if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) {
+    $Entry.LastCleanupError = 'prepared direct leaf namespace retained the same identity after delete intent until its deadline'
+  }
+  else { $Entry.LastCleanupError = 'prepared direct leaf namespace retained the same identity after exact-handle delete intent' }
+  if ($expectedDirectory) {
+    $Entry.Ownership = [C12OwnedDirectory]::OpenExisting($Path, [UInt32]$observed.VolumeSerialNumber, [UInt64]$observed.FileIndex)
+  }
+  else { $Entry.CleanupHandle = [C12SealedExecutable]::OpenForCleanup($Path) }
+  throw $Entry.LastCleanupError
+}
+
+function Release-C12DirectLeafDeletePending {
+  param([Parameter(Mandatory = $true)][object]$Entry)
+
+  if ([string]$Entry.Kind -ceq 'exact_file') {
+    if ($null -ne $Entry.CleanupHandle) { $Entry.CleanupHandle.ReleaseDeletePending(); $Entry.CleanupHandle = $null }
+  }
+  else {
+    if ($null -ne $Entry.Ownership) { $Entry.Ownership.ReleaseDeletePending(); $Entry.Ownership = $null }
+  }
+}
+
 function Converge-C12DirectLeafLedger {
   param(
     [Parameter(Mandatory = $true)][object]$ArtifactRoot,
@@ -2026,43 +2158,13 @@ function Converge-C12DirectLeafLedger {
     $path = Join-Path ([string]$ArtifactRoot.Root) ([string]$entry.Name)
     try {
       if (-not ([IO.File]::Exists($path) -or [IO.Directory]::Exists($path))) {
-        if ($null -ne $entry.CleanupHandle) {
-          $entry.CleanupHandle.ReleaseDeletedExact()
-          $entry.CleanupHandle = $null
-        }
-        if ([string]$entry.Kind -ceq 'owned_ephemeral_subtree' -and $null -ne $entry.Ownership -and [string]$entry.Lifecycle -cin @('CleanIntent','Removed')) {
-          $entry.Ownership.ReleaseDeletedExact()
-          $entry.Ownership = $null
-        }
+        if ([string]$entry.Lifecycle -ceq 'CleanIntent') { Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline }
         Complete-C12AbsentDirectLeaf -Entry $entry
         $entry.LastCleanupError = ''
         continue
       }
-      if ([string]$entry.Lifecycle -ceq 'Bound') { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CleanIntent' }
-      elseif ([string]$entry.Lifecycle -cne 'CleanIntent') { throw 'prepared direct leaf cleanup retry is outside CleanIntent' }
-      if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) { throw 'prepared direct-leaf cleanup exceeded its absolute deadline' }
-      if ([string]$entry.Kind -ceq 'exact_file') {
-        $entry.CleanupHandle.DeleteExact()
-      }
-      else { $entry.Ownership.RequestDeleteExactTree($Deadline) }
-      $settleDeadline = [DateTime]::UtcNow.AddSeconds(5)
-      if ($Deadline -lt $settleDeadline) { $settleDeadline = $Deadline }
-      while (([IO.File]::Exists($path) -or [IO.Directory]::Exists($path)) -and [DateTime]::UtcNow -lt $settleDeadline) {
-        Start-Sleep -Milliseconds 20
-      }
-      if ([IO.File]::Exists($path) -or [IO.Directory]::Exists($path)) { throw "prepared direct leaf $($entry.Name) remained after bounded exact cleanup convergence" }
-      if ($null -ne $entry.CleanupHandle) {
-        $entry.CleanupHandle.ReleaseDeletedExact()
-        $entry.CleanupHandle = $null
-      }
-      if ([string]$entry.Kind -ceq 'owned_ephemeral_subtree' -and $null -ne $entry.Ownership) {
-        $entry.Ownership.ReleaseDeletedExact()
-        $entry.Ownership = $null
-      }
-      if ([string]$entry.Lifecycle -ceq 'CleanIntent') { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Removed' }
-      Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Absent'
-      $entry.RefCount = 0
-      $entry.LastCleanupError = ''
+      Request-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
+      Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline $Deadline
     }
     catch {
       $entry.LastCleanupError = $_.Exception.Message
@@ -3693,9 +3795,18 @@ function Remove-C12PreparedArtifactRoot {
   }
   if ($ArtifactRoot.PSObject.Properties.Name -cnotcontains 'RootLifecycle') { $ArtifactRoot | Add-Member NoteProperty RootLifecycle 'Bound' }
   if ($ArtifactRoot.PSObject.Properties.Name -cnotcontains 'RootLastCleanupError') { $ArtifactRoot | Add-Member NoteProperty RootLastCleanupError '' }
+  if ([string]$ArtifactRoot.RootLifecycle -ceq 'CleanIntent' -and $null -eq $ArtifactRoot.Ownership) {
+    $pending = [C12SealedExecutable]::TryInspectPath([string]$ArtifactRoot.Root)
+    if ($null -eq $pending) { $ArtifactRoot.RootLifecycle = 'Absent' }
+    elseif (-not [bool]$pending.Directory -or [bool]$pending.Reparse -or [string]$pending.Value -cne [string]$ArtifactRoot.ArtifactRootIdentity) {
+      $ArtifactRoot.RootLastCleanupError = 'prepared artifact root namespace contains a foreign replacement after exact-handle delete intent'
+      throw $ArtifactRoot.RootLastCleanupError
+    }
+    else { $ArtifactRoot.Ownership = [C12OwnedDirectory]::OpenExisting([string]$ArtifactRoot.Root, [UInt32]$pending.VolumeSerialNumber, [UInt64]$pending.FileIndex) }
+  }
   if (-not [IO.Directory]::Exists([string]$ArtifactRoot.Root)) {
-    if ([string]$ArtifactRoot.RootLifecycle -cne 'CleanIntent') { throw 'prepared artifact root disappeared without retained CleanIntent' }
-    $ArtifactRoot.Ownership.ReleaseDeletedExact()
+    if ([string]$ArtifactRoot.RootLifecycle -cnotin @('CleanIntent','Absent')) { throw 'prepared artifact root disappeared without retained CleanIntent' }
+    if ($null -ne $ArtifactRoot.Ownership) { $ArtifactRoot.Ownership.ReleaseDeletePending(); $ArtifactRoot.Ownership = $null }
     $ArtifactRoot.RootLifecycle = 'Absent'
   }
   else {
@@ -3710,12 +3821,17 @@ function Remove-C12PreparedArtifactRoot {
       if (@($ArtifactRoot.Ledger | Where-Object { [string]$_.Lifecycle -cne 'Absent' }).Count -ne 0) { throw 'prepared artifact root direct-leaf cleanup did not converge' }
       if ([string]$ArtifactRoot.RootLifecycle -ceq 'Bound') { $ArtifactRoot.RootLifecycle = 'CleanIntent' }
       $ArtifactRoot.Ownership.RequestDeleteExactEmpty($Deadline)
-      $settleDeadline = [DateTime]::UtcNow.AddSeconds(5)
-      if ($Deadline -lt $settleDeadline) { $settleDeadline = $Deadline }
-      while ([IO.Directory]::Exists([string]$ArtifactRoot.Root) -and [DateTime]::UtcNow -lt $settleDeadline) { Start-Sleep -Milliseconds 20 }
-      if ([IO.Directory]::Exists([string]$ArtifactRoot.Root)) { throw 'prepared artifact root remained after bounded exact cleanup convergence' }
-      $ArtifactRoot.Ownership.ReleaseDeletedExact()
-      $ArtifactRoot.RootLifecycle = 'Absent'
+      $ArtifactRoot.Ownership.ReleaseDeletePending()
+      $ArtifactRoot.Ownership = $null
+      $afterRootDelete = [C12SealedExecutable]::TryInspectPath([string]$ArtifactRoot.Root)
+      if ($null -eq $afterRootDelete) { $ArtifactRoot.RootLifecycle = 'Absent' }
+      elseif (-not [bool]$afterRootDelete.Directory -or [bool]$afterRootDelete.Reparse -or [string]$afterRootDelete.Value -cne [string]$ArtifactRoot.ArtifactRootIdentity) {
+        throw 'prepared artifact root namespace contains a foreign replacement after exact-handle delete intent'
+      }
+      else {
+        $ArtifactRoot.Ownership = [C12OwnedDirectory]::OpenExisting([string]$ArtifactRoot.Root, [UInt32]$afterRootDelete.VolumeSerialNumber, [UInt64]$afterRootDelete.FileIndex)
+        throw 'prepared artifact root namespace retained the same identity after exact-handle delete intent'
+      }
       $ArtifactRoot.RootLastCleanupError = ''
     }
     catch {

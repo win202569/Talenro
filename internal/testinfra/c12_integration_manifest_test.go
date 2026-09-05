@@ -1926,6 +1926,13 @@ func TestC12PreparedArtifactCleanupRetainsDeletePendingHandle(t *testing.T) {
 	}
 }
 
+func TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "prepared-real-replacement")
+	if exitCode != 0 {
+		t.Fatalf("prepared artifact real-handle replacement harness exit=%d output=%q", exitCode, output)
+	}
+}
+
 func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T) {
 	output, exitCode := runC12CleanupStateHarness(t, "group-before-run-root")
 	if exitCode != 0 {
@@ -3092,15 +3099,15 @@ try {
           NumberOfLinks=[UInt32]1; Reparse=$false; Requested=$false; Released=$false
         }
         $retained | Add-Member ScriptMethod DeleteExact { $this.Requested = $true; Start-Sleep -Seconds 4 }
-        $retained | Add-Member ScriptMethod ReleaseDeletedExact { $this.Released = $true }
+        $retained | Add-Member ScriptMethod ReleaseDeletePending { $this.Released = $true }
         $entry.CleanupHandle = $retained
         $failed = $false
         try { Converge-C12DirectLeafLedger -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(3)) }
         catch { $failed = $_.Exception.Message -match 'deadline|convergence|remained' }
         if (-not $failed -or -not [bool]$retained.Requested) { throw 'delete-pending fixture did not issue one exact delete intent before failure' }
-        if ([string]$entry.Lifecycle -cne 'CleanIntent' -or $entry.CleanupHandle -ne $retained -or [bool]$retained.Released -or
+        if ([string]$entry.Lifecycle -cne 'CleanIntent' -or $null -eq $entry.CleanupHandle -or -not [bool]$retained.Released -or
             [string]::IsNullOrEmpty([string]$entry.LastCleanupError) -or [string]::IsNullOrEmpty([string]$entry.Identity)) {
-          throw 'delete-pending failure did not retain CleanIntent, identity, original handle, and exact error'
+          throw 'delete-pending failure did not retain CleanIntent, identity, reacquired same-identity handle, and exact error'
         }
         [IO.File]::Delete($path)
         Converge-C12DirectLeafLedger -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
@@ -3116,6 +3123,104 @@ try {
         if ([IO.Directory]::Exists($root)) { [IO.Directory]::Delete($root, $true) }
       }
       Write-Output 'C12_PREPARED_DELETE_PENDING_RETRY_OK'
+      exit 0
+    }
+
+    'prepared-real-replacement' {
+      foreach ($kind in @('file-to-directory','directory-to-file')) {
+        $artifact = $null
+        $relocated = Join-Path $fixtureRoot ("relocated-$kind-$([Guid]::NewGuid().ToString('N'))")
+        try {
+          $artifact = New-C12PreparedArtifactRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -Profile 'base'
+          $name = "replacement-$kind"
+          $path = Join-Path ([string]$artifact.Root) $name
+          if ($kind -ceq 'file-to-directory') {
+            $entry = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name $name -Kind 'exact_file' -Expected $true
+            [IO.File]::WriteAllBytes($path, [byte[]](1,2,3,4))
+            $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name $name
+            $entry.CleanupHandle = [C12SealedExecutable]::OpenForCleanup($path)
+          }
+          else {
+            $entry = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name $name -Kind 'owned_ephemeral_subtree' -Expected $true
+            $leafOwnership = New-C12OwnedDirectory -Root $path -ExpectedParent ([string]$artifact.Root) -LeafPattern ('^' + [Regex]::Escape($name) + '$') -Stage 'real directory replacement fixture'
+            $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name $name -Ownership $leafOwnership
+          }
+          if ($kind -ceq 'file-to-directory') {
+            [IO.File]::Move($path, $relocated)
+            [void][IO.Directory]::CreateDirectory($path)
+          }
+          else {
+            [IO.Directory]::Move($path, $relocated)
+            [IO.File]::WriteAllBytes($path, [byte[]](5,6,7,8))
+          }
+          $rejected = $false
+          try {
+            Request-C12DirectLeafDelete -Entry $entry -Path $path -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+            Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+          }
+          catch { $rejected = $_.Exception.Message -match 'foreign|replacement|type|identity|substitut' }
+          if (-not $rejected -or [string]$entry.Lifecycle -cne 'CleanIntent' -or [string]::IsNullOrEmpty([string]$entry.Identity)) {
+            throw ("real $kind replacement was not retained as foreign CleanIntent state")
+          }
+          if ($kind -ceq 'file-to-directory') {
+            if (-not [IO.Directory]::Exists($path)) { throw 'file-to-directory foreign replacement was deleted' }
+            [IO.Directory]::Delete($path, $false)
+          }
+          else {
+            if (-not [IO.File]::Exists($path)) { throw 'directory-to-file foreign replacement was deleted' }
+            [IO.File]::Delete($path)
+          }
+          $entry.Expected = $false
+          Complete-C12AbsentDirectLeaf -Entry $entry
+          Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+          $artifact = $null
+        }
+        finally {
+          if ([IO.File]::Exists($relocated)) { [IO.File]::Delete($relocated) }
+          if ([IO.Directory]::Exists($relocated)) { [IO.Directory]::Delete($relocated, $true) }
+          if ($null -ne $artifact -and [IO.Directory]::Exists([string]$artifact.Root)) {
+            try { $artifact.Ownership.Dispose() } catch { }
+          }
+        }
+      }
+	  $artifact = $null
+	  $blocker = $null
+	  $pendingStage = 'create'
+	  try {
+	    [AppContext]::SetSwitch('Talenro.C12.PreferLegacyDeleteDisposition', $true)
+	    $artifact = New-C12PreparedArtifactRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -Profile 'base'
+	    $name = 'same-identity-pending.bin'
+	    $path = Join-Path ([string]$artifact.Root) $name
+	    $entry = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name $name -Kind 'exact_file' -Expected $true
+	    [IO.File]::WriteAllBytes($path, [byte[]](9,7,5,3))
+	    $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name $name
+	    $entry.CleanupHandle = [C12SealedExecutable]::OpenForCleanup($path)
+	    $blocker = [C12SealedExecutable]::Inspect($path)
+	    $pendingStage = 'request'
+	    Request-C12DirectLeafDelete -Entry $entry -Path $path -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+	    $pendingStage = 'release'
+	    Release-C12DirectLeafDeletePending -Entry $entry
+	    $pendingRejected = $false
+	    try { Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
+	    catch { $pendingRejected = $_.Exception.Message -match 'could not be classified' }
+	    if (-not $pendingRejected -or [string]$entry.Lifecycle -cne 'CleanIntent' -or $null -ne $entry.CleanupHandle -or
+	        [string]::IsNullOrEmpty([string]$entry.Identity) -or [string]::IsNullOrEmpty([string]$entry.LastCleanupError)) {
+	      throw 'real same-identity pending namespace did not retain exact CleanIntent identity and error'
+	    }
+	    $blocker.Dispose()
+	    $blocker = $null
+	    Complete-C12DirectLeafDelete -Entry $entry -Path $path -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+	    if ([string]$entry.Lifecycle -cne 'Absent' -or $null -ne $entry.CleanupHandle) { throw 'real same-identity retry did not converge' }
+	    Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
+	    $artifact = $null
+	  }
+	  catch { throw ("real same-identity stage ${pendingStage}: " + $_.Exception.Message) }
+	  finally {
+	    [AppContext]::SetSwitch('Talenro.C12.PreferLegacyDeleteDisposition', $false)
+	    if ($null -ne $blocker) { $blocker.Dispose() }
+	    if ($null -ne $artifact -and [IO.Directory]::Exists([string]$artifact.Root)) { try { $artifact.Ownership.Dispose() } catch { } }
+	  }
+      Write-Output 'C12_PREPARED_REAL_REPLACEMENT_OK'
       exit 0
     }
 
@@ -3348,7 +3453,7 @@ catch {
 		t.Fatal(err)
 	}
 	harnessTimeout := 45 * time.Second
-	if mode == "prepared-direct-ledger" || mode == "prepared-deadline" || mode == "prepared-delete-pending" {
+	if mode == "prepared-direct-ledger" || mode == "prepared-deadline" || mode == "prepared-delete-pending" || mode == "prepared-real-replacement" {
 		harnessTimeout = 2 * time.Minute
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), harnessTimeout)
