@@ -35,6 +35,27 @@ $script:c12AllowedPackages.Add('./internal/nodecontrol/contracts', 'talenro.loca
 $script:c12AllowedPackages.Add('./internal/nodecontrol/authority', 'talenro.local/platform/internal/nodecontrol/authority')
 $script:c12AllowedPackages.Add('./internal/nodecontrol/serving', 'talenro.local/platform/internal/nodecontrol/serving')
 $script:c12AllowedPackages.Add('./internal/readiness', 'talenro.local/platform/internal/readiness')
+
+function Assert-C12AllowedPackagePair {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Package,
+
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyString()]
+    [string]$ImportPath
+  )
+
+  if (-not $script:c12AllowedPackages.ContainsKey($Package)) {
+    throw "unknown package $Package is outside the Task 4 allowed set"
+  }
+  $expectedImportPath = [string]$script:c12AllowedPackages[$Package]
+  if ($ImportPath -cne $expectedImportPath) {
+    throw "package $Package import path mismatch"
+  }
+  return $expectedImportPath
+}
+
 $script:c12AllowedProfiles = @('base', 'authority-v7', 'authority-v7-pitr')
 $script:c12ProfileAllowances = @{
   'base' = [TimeSpan]::FromMinutes(3)
@@ -5843,9 +5864,7 @@ function Assert-C12ExecutionPlan {
       throw "invalid suite execution-plan group ID $groupID"
     }
     $priorID = $groupID
-    if (-not $script:c12AllowedPackages.ContainsKey($package)) {
-      throw "suite execution-plan package $package is outside the Task 4 allowed set"
-    }
+    $null = Assert-C12AllowedPackagePair -Package $package -ImportPath ([string]$script:c12AllowedPackages[$package])
     if ($profile -cnotin $script:c12AllowedProfiles) {
       throw "suite execution-plan group $groupID has unsupported closed profile"
     }
@@ -5890,6 +5909,7 @@ function Invoke-C12Group {
     [DateTime]$AbsoluteDeadline = [DateTime]::MaxValue
   )
 
+  $expectedImportPath = Assert-C12AllowedPackagePair -Package $Package -ImportPath ([string]$script:c12AllowedPackages[$Package])
   if ($GroupProfile -cnotin $script:c12AllowedProfiles) {
     throw 'C12 runner rejected an unsupported closed profile'
   }
@@ -6021,7 +6041,7 @@ function Invoke-C12Group {
     $goArgs += $Package
     $testResult = Invoke-C12Go -Arguments $goArgs -Stage "tagged Go test group $GroupID" -Timeout $groupDuration -Deadline $groupDeadline -AllowFailure
     try {
-      Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests
+      Assert-C12GoJSONResult -Result $testResult -Package $expectedImportPath -ExpectedTests $ExpectedTests
     }
     catch {
       foreach ($line in @($testResult.Output | Select-Object -Last 30)) {
@@ -6178,9 +6198,7 @@ function Invoke-C12FocusedMode {
       throw "duplicate package $package"
     }
     $seen[$package] = $true
-    if (-not $script:c12AllowedPackages.ContainsKey($package)) {
-      throw "unknown package $package"
-    }
+    $null = Assert-C12AllowedPackagePair -Package $package -ImportPath ([string]$script:c12AllowedPackages[$package])
   }
   $expectedTests = @()
   $testMap = @{}

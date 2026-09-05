@@ -1535,60 +1535,37 @@ func c12PowerShellAssignment(t *testing.T, source, marker string) string {
 }
 
 func TestC12Task4AllowedPackagesStaySynchronizedWithRunner(t *testing.T) {
-	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	wantImportPaths := map[string]string{
-		"./internal/testinfra":             "talenro.local/platform/internal/testinfra",
-		"./internal/store":                 "talenro.local/platform/internal/store",
-		"./internal/nodecontrol/contracts": "talenro.local/platform/internal/nodecontrol/contracts",
-		"./internal/nodecontrol/authority": "talenro.local/platform/internal/nodecontrol/authority",
-		"./internal/nodecontrol/serving":   "talenro.local/platform/internal/nodecontrol/serving",
-		"./internal/readiness":             "talenro.local/platform/internal/readiness",
-	}
-	wantAuthorityLines := []string{
-		`$script:c12AllowedPackages = [System.Collections.Generic.Dictionary[string,string]]::new([System.StringComparer]::Ordinal)`,
-		`$script:c12AllowedPackages.Add('./internal/testinfra', 'talenro.local/platform/internal/testinfra')`,
-		`$script:c12AllowedPackages.Add('./internal/store', 'talenro.local/platform/internal/store')`,
-		`$script:c12AllowedPackages.Add('./internal/nodecontrol/contracts', 'talenro.local/platform/internal/nodecontrol/contracts')`,
-		`$script:c12AllowedPackages.Add('./internal/nodecontrol/authority', 'talenro.local/platform/internal/nodecontrol/authority')`,
-		`$script:c12AllowedPackages.Add('./internal/nodecontrol/serving', 'talenro.local/platform/internal/nodecontrol/serving')`,
-		`$script:c12AllowedPackages.Add('./internal/readiness', 'talenro.local/platform/internal/readiness')`,
-		`    if (-not $script:c12AllowedPackages.ContainsKey($package)) {`,
-		`    Assert-C12GoJSONResult -Result $testResult -Package ([string]$script:c12AllowedPackages[$Package]) -ExpectedTests $ExpectedTests`,
-		`    if (-not $script:c12AllowedPackages.ContainsKey($package)) {`,
-	}
-	var authorityLines []string
-	for _, line := range strings.Split(string(raw), "\n") {
-		line = strings.TrimSuffix(line, "\r")
-		if strings.Contains(line, "$script:c12AllowedPackages") {
-			authorityLines = append(authorityLines, line)
-		}
-	}
-	if len(authorityLines) != len(wantAuthorityLines) {
-		t.Fatalf("runner package authority line count = %d, want %d; lines=%q", len(authorityLines), len(wantAuthorityLines), authorityLines)
-	}
-	for index, want := range wantAuthorityLines {
-		if authorityLines[index] != want {
-			t.Fatalf("runner package authority line %d = %q, want %q", index+1, authorityLines[index], want)
-		}
-	}
-	matches := regexp.MustCompile(`(?m)^\$script:c12AllowedPackages\.Add\('(\./[A-Za-z0-9_./-]+)', '(talenro\.local/platform/[A-Za-z0-9_./-]+)'\)$`).FindAllStringSubmatch(string(raw), -1)
-	runnerPackages := make(map[string]string, len(matches))
-	for _, match := range matches {
-		runnerPackages[match[1]] = match[2]
-	}
-	if len(runnerPackages) != len(c12Task4AllowedPackages) {
-		t.Fatalf("runner allowed package count = %d, validator count = %d", len(runnerPackages), len(c12Task4AllowedPackages))
-	}
-	for packageName := range c12Task4AllowedPackages {
-		importPath, exists := runnerPackages[packageName]
-		if !exists {
-			t.Errorf("runner and validator allowed package sets differ at %s", packageName)
-		} else if importPath != wantImportPaths[packageName] {
-			t.Errorf("runner import path for %s = %q, want %q", packageName, importPath, wantImportPaths[packageName])
-		}
+	const appendix = `
+$accepted = @(
+  @('./internal/testinfra','talenro.local/platform/internal/testinfra'),
+  @('./internal/store','talenro.local/platform/internal/store'),
+  @('./internal/nodecontrol/contracts','talenro.local/platform/internal/nodecontrol/contracts'),
+  @('./internal/nodecontrol/authority','talenro.local/platform/internal/nodecontrol/authority'),
+  @('./internal/nodecontrol/serving','talenro.local/platform/internal/nodecontrol/serving'),
+  @('./internal/readiness','talenro.local/platform/internal/readiness')
+)
+foreach ($pair in $accepted) {
+  $actual = Assert-C12AllowedPackagePair -Package $pair[0] -ImportPath $pair[1]
+  if ($actual -cne $pair[1]) { throw ('allowed package resolved incorrectly: ' + $pair[0]) }
+}
+$script:goCalls = 0
+function Invoke-C12Go { $script:goCalls++; throw 'Go command must not run for rejected package authority' }
+$rejected = @(
+  @('./Internal/testinfra','talenro.local/platform/internal/testinfra'),
+  @('./internal/unknown','talenro.local/platform/internal/unknown'),
+  @('./internal/store','talenro.local/platform/internal/testinfra')
+)
+foreach ($pair in $rejected) {
+  $message = ''
+  try { $null = Assert-C12AllowedPackagePair -Package $pair[0] -ImportPath $pair[1] } catch { $message = $_.Exception.Message }
+  if ($message -notmatch 'outside the Task 4 allowed set|import path mismatch') { throw ('package authority accepted invalid pair: ' + ($pair -join ' => ')) }
+}
+if ($script:goCalls -ne 0) { throw 'package authority invoked Go before rejecting input' }
+Write-Output 'C12_PACKAGE_AUTHORITY_OK'
+`
+	output, code := runC12RunnerPrefixHarness(t, appendix, nil)
+	if code != 0 || !strings.Contains(output, "C12_PACKAGE_AUTHORITY_OK") {
+		t.Fatalf("package authority harness exit=%d output=%q", code, output)
 	}
 }
 
@@ -1598,17 +1575,57 @@ func TestC12BaseRunnerUsesPowerShellSafeDockerLabelTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 	source := string(raw)
-	const safeTemplate = "{{ index .Config.Labels `talenro.c12.run` }}"
-	if got := strings.Count(source, safeTemplate); got != 2 {
-		t.Fatalf("PowerShell-safe Docker label template count = %d, want 2 identity checks", got)
-	}
-	if strings.Contains(source, `{{index .Config.Labels "talenro.c12.run"}}`) {
+	unsafeLabelTemplate := regexp.MustCompile(`\{\{\s*index\s+\.Config\.Labels\s+"talenro\.c12\.(?:run|role)"\s*\}\}`)
+	if unsafeLabelTemplate.MatchString(source) {
 		t.Fatal("Docker label template uses double quotes that Windows PowerShell strips before native invocation")
 	}
-	const safeRoleTemplate = "{{ index .Config.Labels `talenro.c12.role` }}"
-	if got := strings.Count(source, safeRoleTemplate); got != 2 {
-		t.Fatalf("PowerShell-safe Docker role-label template count = %d, want 2 identity checks", got)
+	const appendix = `
+$script:identityOutput = ''
+function Invoke-C12Docker { param($Arguments,$Stage); [pscustomobject]@{ ExitCode=0; Output=@($script:identityOutput) } }
+$id = ('1' * 64); $image = 'sha256:' + ('a' * 64); $run = "run 'quoted value'"; $role = 'role "quoted value"'
+$ordinary = [pscustomobject]@{ Kind=$role; Name='fixture ordinary'; ID=$id; ImageRef='fixture/image:1'; ImageID=$image; PITR=$false }
+$script:identityOutput = "$id|/fixture ordinary|$run|$role|fixture/image:1|$image"
+Assert-C12ContainerIdentity -Resource $ordinary -RunSuffix $run
+$pitr = [pscustomobject]@{ Kind='postgres'; Name='fixture pitr'; ID=$id; ImageRef='fixture/postgres:1'; ImageID=$image; PITR=$true; NonceDigest=('b' * 64) }
+$script:identityOutput = "$id|/fixture pitr|true|$run|authority-v7-pitr|primary|$($pitr.NonceDigest)|fixture/postgres:1|$image"
+Assert-C12ContainerIdentity -Resource $pitr -RunSuffix $run
+foreach ($bad in @(
+  "$id|/fixture ordinary|$run||fixture/image:1|$image",
+  "$id|/fixture ordinary|altered|$role|fixture/image:1|$image",
+  "$id|/fixture ordinary|$run|altered|fixture/image:1|$image"
+)) {
+  $script:identityOutput = $bad; $rejected = $false
+  try { Assert-C12ContainerIdentity -Resource $ordinary -RunSuffix $run } catch { $rejected = $true }
+  if (-not $rejected) { throw ('container identity accepted missing or altered labels: ' + $bad) }
+}
+$script:identityOutput = "$id|/fixture pitr|true|$run|authority-v7-pitr|altered|$($pitr.NonceDigest)|fixture/postgres:1|$image"
+$pitrRejected = $false
+try { Assert-C12ContainerIdentity -Resource $pitr -RunSuffix $run } catch { $pitrRejected = $true }
+if (-not $pitrRejected) { throw 'PITR identity accepted an altered role label' }
+Write-Output 'C12_DOCKER_LABEL_IDENTITY_OK'
+`
+	output, code := runC12RunnerPrefixHarness(t, appendix, nil)
+	if code != 0 || !strings.Contains(output, "C12_DOCKER_LABEL_IDENTITY_OK") {
+		t.Fatalf("Docker label identity harness exit=%d output=%q", code, output)
 	}
+}
+
+func runC12RunnerPrefixHarness(t *testing.T, appendix string, environment map[string]string) (string, int) {
+	t.Helper()
+	runner := readC12RunnerSource(t)
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	root := t.TempDir()
+	path := filepath.Join(root, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return runC12PowerShellAtRootWithTimeout(t, root, 2*time.Minute, environment, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
 }
 
 func TestC12BaseRunnerCapturesNativeFailuresBeforeCleanup(t *testing.T) {
