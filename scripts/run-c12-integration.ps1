@@ -5203,16 +5203,31 @@ function Remove-C12PITRRunRoot {
     if ([string]$entry.Lifecycle -ceq 'Bound' -and $null -ne $entry.CleanupHandle) { $entry.CleanupHandle.Dispose(); $entry.CleanupHandle = $null }
   }
   $walView = Verify-C12ControllerOwnershipWAL -State $RunRoot.ControllerWAL
+  # Preflight every uncertain creation before appending any cleanup record.
+  foreach ($entry in @($RunRoot.Ledger)) {
+    $name = [string]$entry.Name
+    if ($walView.ResourceStates.ContainsKey($name) -and [string]$walView.ResourceStates[$name] -ceq 'INTENT') {
+      $path = Join-Path ([string]$RunRoot.Root) $name
+      try { $uncertain = [C12SealedExecutable]::TryInspectPath($path) } catch { throw "controller WAL INTENT cannot classify exact absence for ${name}: $($_.Exception.Message)" }
+      if ($null -ne $uncertain) { throw "controller WAL INTENT found present $name without an authenticated ACTUAL receipt" }
+    }
+  }
   foreach ($entry in @($RunRoot.Ledger)) {
     $resource = [string]$entry.Name
+    $resourcePath = Join-Path ([string]$RunRoot.Root) $resource
     $prior = if ($walView.ResourceStates.ContainsKey($resource)) { [string]$walView.ResourceStates[$resource] } else { '' }
     if ($prior -ceq '') {
-      if ([IO.File]::Exists((Join-Path ([string]$RunRoot.Root) $resource))) { throw "controller WAL lacks creation-time ACTUAL receipt for present $resource" }
+      try { $unregisteredObserved = [C12SealedExecutable]::TryInspectPath($resourcePath) } catch { throw "controller WAL cannot classify unregistered $resource without mutating recovery state: $($_.Exception.Message)" }
+      if ($null -ne $unregisteredObserved) { throw "controller WAL lacks creation-time ACTUAL receipt for present $resource" }
       $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'INTENT')
       $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'NOT_FOUND')
       $prior = 'NOT_FOUND'
     }
-    elseif ($prior -ceq 'INTENT') { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'NOT_FOUND'); $prior = 'NOT_FOUND' }
+    elseif ($prior -ceq 'INTENT') {
+      try { $intentObserved = [C12SealedExecutable]::TryInspectPath($resourcePath) } catch { throw "controller WAL INTENT cannot classify exact absence for ${resource}: $($_.Exception.Message)" }
+      if ($null -ne $intentObserved) { throw "controller WAL INTENT found present $resource without an authenticated ACTUAL receipt" }
+      $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'NOT_FOUND' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'NOT_FOUND'); $prior = 'NOT_FOUND'
+    }
     if ($prior -cin @('ACTUAL','NOT_FOUND')) { $walView = Append-C12ControllerOwnershipRecord -State $RunRoot.ControllerWAL -Event 'CLEAN_INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $entry -Event 'CLEAN_INTENT') }
   }
   foreach ($entry in @($RunRoot.Ledger)) {
@@ -5222,9 +5237,11 @@ function Remove-C12PITRRunRoot {
     if ([string]$entry.Lifecycle -ceq 'Bound' -and $null -ne $entry.CleanupHandle) { $entry.CleanupHandle.Dispose(); $entry.CleanupHandle = $null }
     if ($null -eq $entry.CleanupHandle) {
       $handle = [C12SealedExecutable]::OpenLeafForCleanup($path)
-      if ("$([UInt32]$handle.VolumeSerialNumber):$([UInt64]$handle.FileIndex)" -cne [string]$entry.Identity -or [UInt32]$handle.NumberOfLinks -ne 1 -or [bool]$handle.Reparse) {
+      $observedDACLHash = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes([string]$handle.DACL))
+      if ("$([UInt32]$handle.VolumeSerialNumber):$([UInt64]$handle.FileIndex)" -cne [string]$entry.Identity -or [UInt32]$handle.NumberOfLinks -ne 1 -or [bool]$handle.Reparse -or
+          [string]$handle.Owner -cne [string]$entry.Owner -or $observedDACLHash -cne [string]$entry.DACLHash) {
         $handle.Dispose()
-        throw "PITR direct leaf $($entry.Name) exact identity or link count changed"
+        throw "PITR direct leaf $($entry.Name) exact identity, link count, owner, or DACL changed"
       }
       $entry.CleanupHandle = $handle
     }

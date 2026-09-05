@@ -3047,6 +3047,24 @@ try {
 	    $restored = @(Restore-C12PITRRunLedger -RunRoot $runRoot)
 	    $restoredBound = @($restored | Where-Object { [string]$_.Name -cin @('controller-ownership-v1.wal','ownership.wal') -and [string]$_.Lifecycle -ceq 'Bound' -and [string]$_.Identity -match '^[0-9]+:[0-9]+$' -and [UInt32]$_.NumberOfLinks -eq 1 -and -not [string]::IsNullOrEmpty([string]$_.Owner) -and [string]$_.DACLHash -match '^[0-9a-f]{64}$' })
 	    if ($restored.Count -ne 5 -or $restoredBound.Count -ne 2) { throw 'production PITR WAL could not rebuild the exact five-leaf ledger after in-memory loss' }
+	    $workerEntry = @($restored | Where-Object { [string]$_.Name -ceq 'ownership.wal' })[0]
+	    $savedOwner = [string]$workerEntry.Owner
+	    $workerEntry.Owner = 'S-1-5-18'
+	    $ownerRejected = $false
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } catch { $ownerRejected = $_.Exception.Message -match 'owner|ACL|DACL' }
+	    $workerEntry.Owner = $savedOwner
+	    if (-not $ownerRejected -or -not [IO.File]::Exists([string]$runRoot.WALPath)) { throw 'PITR cleanup accepted an owner receipt mismatch for the same exact leaf' }
+	    $workerSecurity = [IO.File]::GetAccessControl([string]$runRoot.WALPath,[Security.AccessControl.AccessControlSections]::Owner -bor [Security.AccessControl.AccessControlSections]::Access)
+	    $workerSDDL = $workerSecurity.GetSecurityDescriptorSddlForm([Security.AccessControl.AccessControlSections]::Owner -bor [Security.AccessControl.AccessControlSections]::Access)
+	    $everyone = New-Object Security.Principal.SecurityIdentifier('S-1-1-0')
+	    $workerSecurity.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($everyone,[Security.AccessControl.FileSystemRights]::Read,[Security.AccessControl.AccessControlType]::Allow)))
+	    [IO.File]::SetAccessControl([string]$runRoot.WALPath,$workerSecurity)
+	    $aclRejected = $false
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } catch { $aclRejected = $_.Exception.Message -match 'owner|ACL|DACL' }
+	    $restoreSecurity = New-Object Security.AccessControl.FileSecurity
+	    $restoreSecurity.SetSecurityDescriptorSddlForm($workerSDDL)
+	    [IO.File]::SetAccessControl([string]$runRoot.WALPath,$restoreSecurity)
+	    if (-not $aclRejected -or -not [IO.File]::Exists([string]$runRoot.WALPath)) { throw 'PITR cleanup accepted a same-inode DACL mutation' }
 	    if ($null -eq (Get-Command Remove-C12PITRRunRoot -CommandType Function -ErrorAction SilentlyContinue)) { throw 'production PITR run-root cleanup entry is absent' }
 	    $sixth = Join-Path ([string]$runRoot.Root) 'sixth-unregistered-leaf.bin'
 	    [IO.File]::WriteAllBytes($sixth, [byte[]](5,6,7,8))
@@ -3187,6 +3205,16 @@ try {
 	      $dynamicText = [IO.File]::ReadAllText([string]$dynamicRun.ControllerWAL.Path)
 	      if (-not $dynamicText.Contains($dynamicSuffix) -or $dynamicText.Contains('11111111111111111111111111111111') -or -not $dynamicText.Contains(('a' * 64))) { throw 'production controller WAL retained a fixed public identity or key fixture' }
 	      Assert-C12ControllerOwnershipWAL -State $dynamicRun.ControllerWAL
+	      $crashEntry = Get-C12DirectLeafEntry -Ledger $dynamicRun.Ledger -Name 'tlsgen.go'
+	      $null = Append-C12ControllerOwnershipRecord -State $dynamicRun.ControllerWAL -Event 'INTENT' -PayloadJSON (New-C12PITRLeafEventPayload -Entry $crashEntry -Event 'INTENT')
+	      [IO.File]::WriteAllText((Join-Path ([string]$dynamicRun.Root) 'tlsgen.go'),'created-before-actual')
+	      $beforeCrashRecovery = [IO.File]::ReadAllBytes([string]$dynamicRun.ControllerWAL.Path)
+	      $dynamicRun.Ledger = New-C12DirectLeafLedger
+	      $null = Restore-C12PITRRunLedger -RunRoot $dynamicRun
+	      $intentRejected = $false
+	      try { Remove-C12PITRRunRoot -RunRoot $dynamicRun -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } catch { $intentRejected = $_.Exception.Message -match 'INTENT|ACTUAL|present|identity' }
+	      if (-not $intentRejected -or -not [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes([string]$dynamicRun.ControllerWAL.Path),[byte[]]$beforeCrashRecovery) -or -not [IO.File]::Exists((Join-Path ([string]$dynamicRun.Root) 'tlsgen.go'))) { throw 'PITR crash recovery converted a present INTENT-only leaf to NOT_FOUND or mutated its WAL' }
+	      [IO.File]::Delete((Join-Path ([string]$dynamicRun.Root) 'tlsgen.go'))
 	      Remove-C12PITRRunRoot -RunRoot $dynamicRun -Deadline ([DateTime]::UtcNow.AddSeconds(20)); $dynamicRun = $null
 	    } finally { if ($null -ne $dynamicRun -and [IO.Directory]::Exists([string]$dynamicRun.Root)) { Remove-C12PITRRunRoot -RunRoot $dynamicRun -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } }
 	    Write-Output 'C12_CONTROLLER_WAL_LITERAL_OK'
