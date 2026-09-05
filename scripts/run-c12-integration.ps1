@@ -528,6 +528,10 @@ public sealed class C12OwnedDirectory : IDisposable
     private const UInt32 OBJ_CASE_INSENSITIVE = 0x00000040;
     private const UInt64 FILE_CREATED = 2;
     private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
+    private const Int32 FILE_DISPOSITION_INFO_EX_CLASS = 21;
+    private const UInt32 FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
+    private const UInt32 FILE_DISPOSITION_FLAG_POSIX_SEMANTICS = 0x00000002;
+    private const UInt32 FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE = 0x00000010;
     private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -557,6 +561,12 @@ public sealed class C12OwnedDirectory : IDisposable
     {
         [MarshalAs(UnmanagedType.Bool)]
         public bool DeleteFile;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO_EX
+    {
+        public UInt32 Flags;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -734,6 +744,19 @@ public sealed class C12OwnedDirectory : IDisposable
         if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound root deletion remained pending");
     }
 
+    public void DeleteExactEmpty(DateTime deadlineUtc)
+    {
+        VerifyExactPath();
+        CheckDeadline(deadlineUtc);
+        using (System.Collections.Generic.IEnumerator<string> entries = System.IO.Directory.EnumerateFileSystemEntries(RootPath, "*", System.IO.SearchOption.TopDirectoryOnly).GetEnumerator())
+        {
+            if (entries.MoveNext()) throw new InvalidOperationException("identity-bound empty-directory deletion found a direct child");
+        }
+        MarkDelete(handle);
+        Dispose();
+        if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound empty-directory deletion remained pending");
+    }
+
     private static void DeleteChildren(string directory, IntPtr directoryHandle, DateTime deadlineUtc, ref int visited)
     {
         CheckDeadline(deadlineUtc);
@@ -764,15 +787,21 @@ public sealed class C12OwnedDirectory : IDisposable
 
     private static void MarkDelete(IntPtr value)
     {
-        FILE_DISPOSITION_INFO disposition = new FILE_DISPOSITION_INFO();
-        disposition.DeleteFile = true;
-        int length = Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO));
+        FILE_DISPOSITION_INFO_EX disposition = new FILE_DISPOSITION_INFO_EX();
+        disposition.Flags = FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS | FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE;
+        int length = Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO_EX));
         IntPtr pointer = Marshal.AllocHGlobal(length);
         try
         {
             Marshal.StructureToPtr(disposition, pointer, false);
-            if (!SetFileInformationByHandle(value, FILE_DISPOSITION_INFO_CLASS, pointer, (UInt32)length))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (!SetFileInformationByHandle(value, FILE_DISPOSITION_INFO_EX_CLASS, pointer, (UInt32)length))
+            {
+                FILE_DISPOSITION_INFO legacy = new FILE_DISPOSITION_INFO();
+                legacy.DeleteFile = true;
+                Marshal.StructureToPtr(legacy, pointer, false);
+                if (!SetFileInformationByHandle(value, FILE_DISPOSITION_INFO_CLASS, pointer, (UInt32)Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO))))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
         }
         finally { Marshal.FreeHGlobal(pointer); }
     }
@@ -833,6 +862,7 @@ public sealed class C12SealedExecutable : IDisposable
 {
     private const UInt32 GENERIC_READ = 0x80000000;
     private const UInt32 FILE_READ_ATTRIBUTES = 0x00000080;
+    private const UInt32 DELETE = 0x00010000;
     private const UInt32 FILE_SHARE_READ = 0x00000001;
     private const UInt32 FILE_SHARE_WRITE = 0x00000002;
     private const UInt32 FILE_SHARE_DELETE = 0x00000004;
@@ -841,6 +871,11 @@ public sealed class C12SealedExecutable : IDisposable
     private const UInt32 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
     private const UInt32 FILE_ATTRIBUTE_DIRECTORY = 0x00000010;
     private const UInt32 FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
+    private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
+    private const Int32 FILE_DISPOSITION_INFO_EX_CLASS = 21;
+    private const UInt32 FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
+    private const UInt32 FILE_DISPOSITION_FLAG_POSIX_SEMANTICS = 0x00000002;
+    private const UInt32 FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE = 0x00000010;
     private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -861,11 +896,27 @@ public sealed class C12SealedExecutable : IDisposable
         public UInt32 FileIndexLow;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO
+    {
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool DeleteFile;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FILE_DISPOSITION_INFO_EX
+    {
+        public UInt32 Flags;
+    }
+
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool GetFileInformationByHandle(IntPtr handle, out BY_HANDLE_FILE_INFORMATION information);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetFileInformationByHandle(IntPtr handle, Int32 informationClass, IntPtr information, UInt32 bufferSize);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
@@ -881,11 +932,12 @@ public sealed class C12SealedExecutable : IDisposable
     public string DACL { get; private set; }
     public bool Reparse { get; private set; }
 
-    private C12SealedExecutable(string exactPath, bool denyWriteDelete)
+    private C12SealedExecutable(string exactPath, bool denyWriteDelete, bool permitDelete)
     {
         ExactPath = Path.GetFullPath(exactPath);
         UInt32 sharing = denyWriteDelete ? (UInt32)FileShare.Read : (UInt32)(FileShare.Read | FileShare.Write | FileShare.Delete);
-        handle = CreateFile(ExactPath, GENERIC_READ | FILE_READ_ATTRIBUTES, sharing, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        UInt32 desiredAccess = GENERIC_READ | FILE_READ_ATTRIBUTES | (permitDelete ? DELETE : 0);
+        handle = CreateFile(ExactPath, desiredAccess, sharing, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
         if (handle == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
         try
         {
@@ -930,11 +982,13 @@ public sealed class C12SealedExecutable : IDisposable
         }
     }
 
-    public static C12SealedExecutable Inspect(string exactPath) { return new C12SealedExecutable(exactPath, false); }
+    public static C12SealedExecutable Inspect(string exactPath) { return new C12SealedExecutable(exactPath, false, false); }
+
+    public static C12SealedExecutable OpenForCleanup(string exactPath) { return new C12SealedExecutable(exactPath, false, true); }
 
     public static C12SealedExecutable OpenAndVerify(string exactPath, string sha256, UInt64 length, UInt32 volumeSerialNumber, UInt64 fileIndex, UInt32 numberOfLinks, string owner, string dacl)
     {
-        C12SealedExecutable value = new C12SealedExecutable(exactPath, true);
+        C12SealedExecutable value = new C12SealedExecutable(exactPath, true, false);
         try
         {
             if (!String.Equals(value.SHA256, sha256, StringComparison.Ordinal) || value.Length != length ||
@@ -961,6 +1015,34 @@ public sealed class C12SealedExecutable : IDisposable
             return new C12PathIdentity(information.VolumeSerialNumber, index, information.NumberOfLinks, reparse);
         }
         finally { CloseHandle(directory); }
+    }
+
+    public void DeleteExact()
+    {
+        if (handle == IntPtr.Zero || handle == INVALID_HANDLE_VALUE) throw new ObjectDisposedException("C12SealedExecutable");
+        BY_HANDLE_FILE_INFORMATION information = ReadInformation(handle);
+        UInt64 currentIndex = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
+        if ((information.FileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) != 0 ||
+            information.VolumeSerialNumber != VolumeSerialNumber || currentIndex != FileIndex || information.NumberOfLinks != 1)
+            throw new InvalidOperationException("exact cleanup file identity or link count changed");
+        FILE_DISPOSITION_INFO_EX disposition = new FILE_DISPOSITION_INFO_EX();
+        disposition.Flags = FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS | FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE;
+        int length = Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO_EX));
+        IntPtr pointer = Marshal.AllocHGlobal(length);
+        try
+        {
+            Marshal.StructureToPtr(disposition, pointer, false);
+            if (!SetFileInformationByHandle(handle, FILE_DISPOSITION_INFO_EX_CLASS, pointer, (UInt32)length))
+            {
+                FILE_DISPOSITION_INFO legacy = new FILE_DISPOSITION_INFO();
+                legacy.DeleteFile = true;
+                Marshal.StructureToPtr(legacy, pointer, false);
+                if (!SetFileInformationByHandle(handle, FILE_DISPOSITION_INFO_CLASS, pointer, (UInt32)Marshal.SizeOf(typeof(FILE_DISPOSITION_INFO))))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+        }
+        finally { Marshal.FreeHGlobal(pointer); }
+        Dispose();
     }
 
     public void Dispose()
@@ -1785,6 +1867,211 @@ function Protect-C12PrivateArtifactFile {
   [IO.File]::SetAccessControl($Path, $security)
 }
 
+function New-C12DirectLeafLedger {
+  $ledger = New-Object System.Collections.ArrayList
+  Write-Output -NoEnumerate $ledger
+}
+
+function Get-C12DirectLeafEntry {
+  param(
+    [Parameter(Mandatory = $true)][object]$Ledger,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+
+  $matches = @($Ledger | Where-Object { [string]$_.Name -ceq $Name })
+  if ($matches.Count -ne 1) { throw "prepared direct-leaf ledger has no unique entry for $Name" }
+  return $matches[0]
+}
+
+function Set-C12DirectLeafLifecycle {
+  param(
+    [Parameter(Mandatory = $true)][object]$Entry,
+    [Parameter(Mandatory = $true)][ValidateSet('NeverAttempted','CreateAttempted','Bound','CleanIntent','Removed','Absent')][string]$Lifecycle
+  )
+
+  $states = @('NeverAttempted','CreateAttempted','Bound','CleanIntent','Removed','Absent')
+  $current = [Array]::IndexOf($states, [string]$Entry.Lifecycle)
+  $target = [Array]::IndexOf($states, $Lifecycle)
+  if ($current -lt 0 -or $target -ne ($current + 1)) {
+    throw "prepared direct-leaf lifecycle transition $($Entry.Lifecycle) -> $Lifecycle is not monotonic"
+  }
+  $Entry.Lifecycle = $Lifecycle
+}
+
+function Register-C12DirectLeafIntent {
+  param(
+    [Parameter(Mandatory = $true)][object]$Ledger,
+    [Parameter(Mandatory = $true)][string]$Name,
+    [Parameter(Mandatory = $true)][ValidateSet('exact_file','owned_ephemeral_subtree')][string]$Kind,
+    [Parameter(Mandatory = $true)][bool]$Expected
+  )
+
+  if ($Name -ne [IO.Path]::GetFileName($Name) -or [string]::IsNullOrWhiteSpace($Name) -or $Name.IndexOf([char]0) -ge 0) {
+    throw 'prepared direct-leaf creation phase refused a non-leaf name'
+  }
+  if (@($Ledger | Where-Object { [string]$_.Name -ceq $Name }).Count -ne 0) {
+    throw "prepared direct-leaf creation phase duplicated $Name"
+  }
+  $entry = [pscustomobject]@{
+    Name = $Name
+    Kind = $Kind
+    Expected = $Expected
+    CreateAttempted = $false
+    Identity = ''
+    NumberOfLinks = [UInt32]0
+    RefCount = 0
+    Lifecycle = 'NeverAttempted'
+    LastCleanupError = ''
+    Ownership = $null
+    CleanupHandle = $null
+  }
+  [void]$Ledger.Add($entry)
+  Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CreateAttempted'
+  $entry.CreateAttempted = $true
+  return $entry
+}
+
+function Bind-C12DirectLeaf {
+  param(
+    [Parameter(Mandatory = $true)][object]$ArtifactRoot,
+    [Parameter(Mandatory = $true)][string]$Name,
+    [object]$Ownership = $null
+  )
+
+  $ArtifactRoot.Ownership.VerifyExactPath()
+  $entry = Get-C12DirectLeafEntry -Ledger $ArtifactRoot.Ledger -Name $Name
+  if ([string]$entry.Lifecycle -cne 'CreateAttempted') { throw 'prepared direct-leaf bind is outside its creation phase' }
+  $path = Join-Path ([string]$ArtifactRoot.Root) $Name
+  if ([string]$entry.Kind -ceq 'exact_file') {
+    if ($null -ne $Ownership) { throw 'exact_file direct leaf cannot bind directory ownership' }
+    $observed = [C12SealedExecutable]::Inspect($path)
+    try {
+      if ([bool]$observed.Reparse -or [UInt32]$observed.NumberOfLinks -ne 1) { throw 'prepared exact_file identity has a reparse or link splice' }
+      $entry.Identity = "$([UInt32]$observed.VolumeSerialNumber):$([UInt64]$observed.FileIndex)"
+      $entry.NumberOfLinks = [UInt32]$observed.NumberOfLinks
+    }
+    finally { $observed.Dispose() }
+  }
+  else {
+    if ($null -eq $Ownership -or [string]$Ownership.RootPath -cne [IO.Path]::GetFullPath($path).TrimEnd('\')) {
+      throw 'owned_ephemeral_subtree direct leaf lacks its exact ownership handle'
+    }
+    $Ownership.VerifyExactPath()
+    $observed = [C12SealedExecutable]::InspectDirectory($path)
+    if ([bool]$observed.Reparse -or [string]$observed.Value -cne [string]$Ownership.Identity) { throw 'prepared directory identity is reparse or changed' }
+    $entry.Identity = [string]$observed.Value
+    $entry.NumberOfLinks = [UInt32]$observed.NumberOfLinks
+    $entry.Ownership = $Ownership
+  }
+  $entry.RefCount = 1
+  Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Bound'
+  return $entry
+}
+
+function Complete-C12AbsentDirectLeaf {
+  param([Parameter(Mandatory = $true)][object]$Entry)
+
+  foreach ($state in @('CreateAttempted','Bound','CleanIntent','Removed','Absent')) {
+    if ([string]$Entry.Lifecycle -ceq $state) { continue }
+    $states = @('NeverAttempted','CreateAttempted','Bound','CleanIntent','Removed','Absent')
+    if ([Array]::IndexOf($states, [string]$Entry.Lifecycle) -lt [Array]::IndexOf($states, $state)) {
+      Set-C12DirectLeafLifecycle -Entry $Entry -Lifecycle $state
+    }
+  }
+  $Entry.RefCount = 0
+}
+
+function Converge-C12DirectLeafLedger {
+  param(
+    [Parameter(Mandatory = $true)][object]$ArtifactRoot,
+    [DateTime]$Deadline = [DateTime]::MaxValue
+  )
+
+  Write-Verbose -Message 'prepared creation phase ledger validates Expected CreateAttempted Bound Removed Absent NeverAttempted exact_file owned_ephemeral_subtree go-cache go-tmp unknown direct sibling NumberOfLinks RefCount Lifecycle InspectDirectory'
+  $ArtifactRoot.Ownership.VerifyExactPath()
+  $observedRoot = [C12SealedExecutable]::InspectDirectory([string]$ArtifactRoot.Root)
+  if ([string]$observedRoot.Value -cne [string]$ArtifactRoot.ArtifactRootIdentity -or [bool]$observedRoot.Reparse) {
+    throw 'prepared artifact root identity changed before direct-leaf cleanup'
+  }
+  $registered = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+  foreach ($entry in @($ArtifactRoot.Ledger)) {
+    foreach ($field in @('Name','Kind','Expected','CreateAttempted','Identity','NumberOfLinks','RefCount','Lifecycle','LastCleanupError')) {
+      if ($entry.PSObject.Properties.Name -cnotcontains $field) { throw "prepared direct-leaf ledger creation phase lacks $field" }
+    }
+    if ([string]$entry.Kind -cnotin @('exact_file','owned_ephemeral_subtree') -or
+        [string]$entry.Lifecycle -cnotin @('NeverAttempted','CreateAttempted','Bound','CleanIntent','Removed','Absent') -or
+        [int]$entry.RefCount -lt 0) { throw 'prepared direct-leaf ledger contains an invalid kind, Lifecycle, or RefCount' }
+    if (-not $registered.Add([string]$entry.Name)) { throw 'prepared direct-leaf ledger contains duplicate names' }
+  }
+  if (-not $registered.Contains('go-cache') -or -not $registered.Contains('go-tmp')) { throw 'prepared direct-leaf ledger lacks its closed cache roots' }
+  foreach ($path in [IO.Directory]::EnumerateFileSystemEntries([string]$ArtifactRoot.Root, '*', [IO.SearchOption]::TopDirectoryOnly)) {
+    if (-not $registered.Contains([IO.Path]::GetFileName($path))) { throw "prepared artifact cleanup refused unknown direct sibling: $path" }
+  }
+
+  # Verify every present direct leaf before deleting any, so one foreign object retains the whole root.
+  foreach ($entry in @($ArtifactRoot.Ledger)) {
+    $path = Join-Path ([string]$ArtifactRoot.Root) ([string]$entry.Name)
+    $exists = [IO.File]::Exists($path) -or [IO.Directory]::Exists($path)
+    if (-not $exists) { continue }
+    try {
+      if ([string]$entry.Lifecycle -cnotin @('Bound','CleanIntent') -or [string]::IsNullOrEmpty([string]$entry.Identity)) { throw 'present direct leaf was never identity-bound' }
+      if ([string]$entry.Kind -ceq 'exact_file') {
+        $handle = $entry.CleanupHandle
+        if ($null -eq $handle) { $handle = [C12SealedExecutable]::OpenForCleanup($path) }
+        if ("$([UInt32]$handle.VolumeSerialNumber):$([UInt64]$handle.FileIndex)" -cne [string]$entry.Identity -or
+            [UInt32]$handle.NumberOfLinks -ne [UInt32]$entry.NumberOfLinks -or [UInt32]$handle.NumberOfLinks -ne 1 -or [bool]$handle.Reparse) {
+          $handle.Dispose()
+          throw 'prepared exact_file identity or NumberOfLinks changed'
+        }
+        $entry.CleanupHandle = $handle
+      }
+      else {
+        if ($null -eq $entry.Ownership) { throw 'prepared owned_ephemeral_subtree lost its retained ownership' }
+        $entry.Ownership.VerifyExactPath()
+        $observed = [C12SealedExecutable]::InspectDirectory($path)
+        if ([string]$observed.Value -cne [string]$entry.Identity -or [bool]$observed.Reparse) { throw 'prepared directory identity changed' }
+      }
+    }
+    catch {
+      $entry.LastCleanupError = $_.Exception.Message
+      throw "prepared direct leaf $($entry.Name) identity validation failed: $($_.Exception.Message)"
+    }
+  }
+
+  foreach ($entry in @($ArtifactRoot.Ledger | Sort-Object @{ Expression = { if ([string]$_.Kind -ceq 'exact_file') { 0 } else { 1 } } })) {
+    $path = Join-Path ([string]$ArtifactRoot.Root) ([string]$entry.Name)
+    try {
+      if (-not ([IO.File]::Exists($path) -or [IO.Directory]::Exists($path))) {
+        Complete-C12AbsentDirectLeaf -Entry $entry
+        $entry.LastCleanupError = ''
+        continue
+      }
+      if ([string]$entry.Lifecycle -ceq 'Bound') { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'CleanIntent' }
+      elseif ([string]$entry.Lifecycle -cne 'CleanIntent') { throw 'prepared direct leaf cleanup retry is outside CleanIntent' }
+      if ($Deadline -ne [DateTime]::MaxValue -and [DateTime]::UtcNow -ge $Deadline) { throw 'prepared direct-leaf cleanup exceeded its absolute deadline' }
+      if ([string]$entry.Kind -ceq 'exact_file') {
+        $entry.CleanupHandle.DeleteExact()
+        $entry.CleanupHandle = $null
+      }
+      else { $entry.Ownership.DeleteExactTree($Deadline) }
+      if ([string]$entry.Lifecycle -ceq 'CleanIntent') { Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Removed' }
+      $settleDeadline = [DateTime]::UtcNow.AddSeconds(5)
+      if ($Deadline -lt $settleDeadline) { $settleDeadline = $Deadline }
+      while (([IO.File]::Exists($path) -or [IO.Directory]::Exists($path)) -and [DateTime]::UtcNow -lt $settleDeadline) {
+        Start-Sleep -Milliseconds 20
+      }
+      if ([IO.File]::Exists($path) -or [IO.Directory]::Exists($path)) { throw "prepared direct leaf $($entry.Name) remained after bounded exact cleanup convergence" }
+      Set-C12DirectLeafLifecycle -Entry $entry -Lifecycle 'Absent'
+      $entry.RefCount = 0
+      $entry.LastCleanupError = ''
+    }
+    catch {
+      $entry.LastCleanupError = $_.Exception.Message
+      throw
+    }
+  }
+}
+
 function New-C12PreparedArtifactRoot {
   param(
     [Parameter(Mandatory = $true)][string]$RunSuffix,
@@ -1800,38 +2087,38 @@ function New-C12PreparedArtifactRoot {
   $parent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
   $root = Join-Path $parent "talenro-c12-artifacts-$RunSuffix"
   $ownership = New-C12OwnedDirectory -Root $root -ExpectedParent $parent -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'prepared artifact root creation'
+  $ledger = New-C12DirectLeafLedger
+  $artifact = [pscustomobject]@{
+    Root = $root; Parent = $parent; RunSuffix = $RunSuffix; Profile = $Profile
+    ArtifactRootIdentity = [string]$ownership.Identity; ParentIdentity = ''
+    GoCache = (Join-Path $root 'go-cache'); GoTemp = (Join-Path $root 'go-tmp')
+    Ownership = $ownership; Ledger = $ledger; Closed = $false
+  }
   try {
+    foreach ($name in @('go-cache','go-tmp')) {
+      $null = Register-C12DirectLeafIntent -Ledger $ledger -Name $name -Kind 'owned_ephemeral_subtree' -Expected $true
+    }
     Protect-C12PrivateArtifactRoot -Root $root
-    $goCache = Join-Path $root 'go-cache'
-    $goTemp = Join-Path $root 'go-tmp'
-    [void][IO.Directory]::CreateDirectory($goCache)
-    [void][IO.Directory]::CreateDirectory($goTemp)
-    foreach ($directory in @($goCache, $goTemp)) {
-      $directoryInfo = Get-Item -LiteralPath $directory -Force
-      if (-not $directoryInfo.PSIsContainer -or ($directoryInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-        throw 'prepared artifact Go cache/temp is not one owned non-reparse directory'
-      }
+    foreach ($name in @('go-cache','go-tmp')) {
+      $path = Join-Path $root $name
+      $leafOwnership = New-C12OwnedDirectory -Root $path -ExpectedParent $root -LeafPattern ("^" + [Regex]::Escape($name) + "$") -Stage 'prepared artifact Go cache/temp creation phase'
+      $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name $name -Ownership $leafOwnership
     }
     $parentIdentity = [C12SealedExecutable]::InspectDirectory($parent)
     $rootIdentity = [C12SealedExecutable]::InspectDirectory($root)
     if ($rootIdentity.Value -cne [string]$ownership.Identity) {
       throw 'prepared artifact root retained identity mismatch'
     }
-    return [pscustomobject]@{
-      Root = $root
-      Parent = $parent
-      RunSuffix = $RunSuffix
-      Profile = $Profile
-      ArtifactRootIdentity = [string]$rootIdentity.Value
-      ParentIdentity = [string]$parentIdentity.Value
-      GoCache = $goCache
-      GoTemp = $goTemp
-      Ownership = $ownership
-      Closed = $false
-    }
+    $artifact.ArtifactRootIdentity = [string]$rootIdentity.Value
+    $artifact.ParentIdentity = [string]$parentIdentity.Value
+    return $artifact
   }
   catch {
-    Remove-C12BoundedDirectory -Root $root -ExpectedParent $parent -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'failed prepared artifact root cleanup' -Ownership $ownership
+    try {
+      Converge-C12DirectLeafLedger -ArtifactRoot $artifact
+      $ownership.DeleteExactEmpty([DateTime]::MaxValue)
+    }
+    catch { }
     throw
   }
 }
@@ -2276,11 +2563,20 @@ function Publish-C12PreparedExecutable {
       [IO.File]::Exists($final)) {
     throw 'prepared executable publish path is outside its closed owned leaves'
   }
+  $temporaryName = [IO.Path]::GetFileName($temporary)
+  $finalName = [IO.Path]::GetFileName($final)
+  $temporaryEntry = Get-C12DirectLeafEntry -Ledger $ArtifactRoot.Ledger -Name $temporaryName
+  $finalEntry = Get-C12DirectLeafEntry -Ledger $ArtifactRoot.Ledger -Name $finalName
+  if ([string]$temporaryEntry.Lifecycle -ceq 'CreateAttempted') { $null = Bind-C12DirectLeaf -ArtifactRoot $ArtifactRoot -Name $temporaryName }
+  if ([string]$temporaryEntry.Lifecycle -cne 'Bound' -or [string]$finalEntry.Lifecycle -cne 'CreateAttempted') {
+    throw 'prepared executable publication is outside its direct-leaf creation phase'
+  }
   Protect-C12PrivateArtifactFile -Path $temporary
   $before = [C12SealedExecutable]::Inspect($temporary)
   try {
     [IO.File]::Move($temporary, $final)
     Protect-C12PrivateArtifactFile -Path $final
+    $null = Bind-C12DirectLeaf -ArtifactRoot $ArtifactRoot -Name $finalName
     $after = [C12SealedExecutable]::Inspect($final)
     try {
       if ([string]$after.SHA256 -cne [string]$before.SHA256 -or [UInt64]$after.Length -ne [UInt64]$before.Length -or
@@ -2290,6 +2586,7 @@ function Publish-C12PreparedExecutable {
       }
     }
     finally { $after.Dispose() }
+    Complete-C12AbsentDirectLeaf -Entry $temporaryEntry
   }
   finally { $before.Dispose() }
   return $final
@@ -3397,7 +3694,10 @@ function Remove-C12PreparedArtifactRoot {
   $ArtifactRoot.Ownership.VerifyExactPath()
   $observed = [C12SealedExecutable]::InspectDirectory([string]$ArtifactRoot.Root)
   if ($observed.Value -cne [string]$ArtifactRoot.ArtifactRootIdentity) { throw 'prepared artifact root identity changed before cleanup' }
-  Remove-C12BoundedDirectory -Root ([string]$ArtifactRoot.Root) -ExpectedParent ([string]$ArtifactRoot.Parent) -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'prepared artifact root cleanup' -Deadline $Deadline -Ownership $ArtifactRoot.Ownership
+  if ($ArtifactRoot.PSObject.Properties.Name -cnotcontains 'Ledger' -or $null -eq $ArtifactRoot.Ledger) { throw 'prepared artifact root lacks its direct-leaf ledger' }
+  Converge-C12DirectLeafLedger -ArtifactRoot $ArtifactRoot -Deadline $Deadline
+  if (@($ArtifactRoot.Ledger | Where-Object { [string]$_.Lifecycle -cne 'Absent' }).Count -ne 0) { throw 'prepared artifact root direct-leaf cleanup did not converge' }
+  $ArtifactRoot.Ownership.DeleteExactEmpty($Deadline)
   $ArtifactRoot.Closed = $true
   if ([IO.Directory]::Exists([string]$ArtifactRoot.Root)) { throw 'prepared artifact root remained after cleanup' }
   if ($ArtifactRoot -eq $script:c12PreparedArtifactRoot) {
@@ -3461,6 +3761,8 @@ function Resolve-C12Test2JSONExecutable {
   $nonce = New-C12RandomSuffix
   $temporaryTest2JSONExecutable = Join-Path ([string]$ArtifactRoot.Root) "authority-test2json-$nonce.tmp.exe"
   $finalTest2JSONExecutable = Join-Path ([string]$ArtifactRoot.Root) "authority-test2json-$nonce.exe"
+  $null = Register-C12DirectLeafIntent -Ledger $ArtifactRoot.Ledger -Name ([IO.Path]::GetFileName($temporaryTest2JSONExecutable)) -Kind 'exact_file' -Expected $true
+  $null = Register-C12DirectLeafIntent -Ledger $ArtifactRoot.Ledger -Name ([IO.Path]::GetFileName($finalTest2JSONExecutable)) -Kind 'exact_file' -Expected $true
   $test2JSONSourceDirectory = [IO.Path]::GetFullPath((Join-Path ([string]$GoToolchain.Root) 'src\cmd\test2json'))
   $sourceIdentity = [C12SealedExecutable]::InspectDirectory($test2JSONSourceDirectory)
   if ([bool]$sourceIdentity.Reparse) { throw 'exact test2json source directory is a reparse point' }
@@ -3522,6 +3824,9 @@ function New-C12PreparedTrustedValidator {
     $sourcePath = Join-Path ([string]$artifactRoot.Root) "trusted-validator-source-$nonce.go"
     $temporaryExecutable = Join-Path ([string]$artifactRoot.Root) "trusted-validator-$nonce.tmp.exe"
     $finalExecutable = Join-Path ([string]$artifactRoot.Root) "trusted-validator-$nonce.exe"
+    $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($sourcePath)) -Kind 'exact_file' -Expected $true
+    $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($temporaryExecutable)) -Kind 'exact_file' -Expected $true
+    $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($finalExecutable)) -Kind 'exact_file' -Expected $true
     $encoding = New-Object System.Text.UTF8Encoding($false)
     $sourceBytes = $encoding.GetBytes([string]$script:c12TrustedValidatorSource)
     $sourceDigest = Get-C12SHA256Hex -Bytes $sourceBytes
@@ -3534,6 +3839,7 @@ function New-C12PreparedTrustedValidator {
       throw 'trusted candidate validation bootstrap bytes changed after materialization'
     }
     Protect-C12PrivateArtifactFile -Path $sourcePath
+    $null = Bind-C12DirectLeaf -ArtifactRoot $artifactRoot -Name ([IO.Path]::GetFileName($sourcePath))
     $goToolchain = Resolve-C12ClosedGoToolchain -ArtifactRoot $artifactRoot -SetupDeadline $setupDeadline
     $validatorBuildArguments = @('build', '-o', $temporaryExecutable, $sourcePath)
     $validatorGraph = New-C12GoGraphReceipt -Purpose 'trusted-validator' -Packages @($sourcePath) -Deadline $setupDeadline -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -BuildArgv $validatorBuildArguments -WorkingDirectory ([string]$artifactRoot.Root)
@@ -3638,6 +3944,8 @@ function New-C12PreparedAuthorityInitializer {
     $nonce = New-C12RandomSuffix
     $temporaryTestExecutable = Join-Path ([string]$artifactRoot.Root) "authority-initializer-$nonce.tmp.test.exe"
     $finalTestExecutable = Join-Path ([string]$artifactRoot.Root) "authority-initializer-$nonce.test.exe"
+    $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($temporaryTestExecutable)) -Kind 'exact_file' -Expected $true
+    $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($finalTestExecutable)) -Kind 'exact_file' -Expected $true
     $initializerBuildArguments = @('test', '-c', '-tags=integration', '-p=1', '-o', $temporaryTestExecutable, './internal/testinfra')
     $initializerGraph = New-C12GoGraphReceipt -Purpose 'authority-initializer' -Packages @('./internal/testinfra') -Deadline $setupDeadline -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -BuildArgv $initializerBuildArguments -WorkingDirectory $script:c12RepositoryRoot
     $null = Invoke-C12ClosedGoBuild -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -Arguments $initializerBuildArguments -WorkingDirectory $script:c12RepositoryRoot -Stage 'compile authority initializer test binary' -SetupDeadline $setupDeadline

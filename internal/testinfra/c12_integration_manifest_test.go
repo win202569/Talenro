@@ -1617,30 +1617,52 @@ func TestC12BaseRunnerUsesPowerShellSafeDockerLabelTemplate(t *testing.T) {
 
 func TestC12BaseRunnerCapturesNativeFailuresBeforeCleanup(t *testing.T) {
 	fakeBin := t.TempDir()
-	fakeDocker := filepath.Join(fakeBin, "docker.cmd")
-	const fakeDockerSource = `@echo off
-if "%1"=="image" if "%2"=="inspect" (
-  echo sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-  exit /b 0
-)
-if "%1"=="run" (
-  >&2 echo C12_NATIVE_STDERR_CANARY
-  exit /b 73
-)
-if "%1"=="container" if "%2"=="inspect" (
-  >&2 echo Error: No such container
-  exit /b 1
-)
->&2 echo unexpected docker invocation
-exit /b 74
-`
-	if err := os.WriteFile(fakeDocker, []byte(fakeDockerSource), 0o600); err != nil {
+	fakeDocker := filepath.Join(fakeBin, "docker.exe")
+	const fakeDockerSource = `package main
+import("fmt";"os")
+func main(){
+ a:=os.Args[1:]
+ if len(a)>=2&&a[0]=="image"&&a[1]=="inspect"{fmt.Println("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");return}
+ if len(a)>=1&&a[0]=="run"{fmt.Fprintln(os.Stderr,"C12_NATIVE_STDERR_CANARY");os.Exit(73)}
+ if len(a)>=2&&a[0]=="container"&&a[1]=="inspect"{fmt.Fprintln(os.Stderr,"Error: No such container");os.Exit(1)}
+ fmt.Fprintln(os.Stderr,"unexpected docker invocation");os.Exit(74)
+}`
+	buildFakeGoExecutable(t, fakeDocker, fakeDockerSource)
+
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
 		t.Fatal(err)
 	}
-
-	output, exitCode := runC12PowerShell(t, map[string]string{
+	marker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	index := bytes.Index(runner, marker)
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	repositoryPayload := base64.StdEncoding.EncodeToString([]byte(repositoryRoot))
+	appendix := fmt.Sprintf(`
+$script:c12RepositoryRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$script:c12SuiteDeadline = [DateTime]::UtcNow.AddMinutes(3)
+try {
+  Invoke-C12Group -GroupID 'base-native-failure-fixture' -GroupProfile 'base' -Package './internal/testinfra' -RunPattern '^TestC12DependenciesAreIsolatedAndBaseMigrated$' -GroupTimeout '3m' -ExpectedTests @('TestC12DependenciesAreIsolatedAndBaseMigrated')
+  exit 0
+}
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+`, repositoryPayload)
+	harnessRoot := t.TempDir()
+	harness := filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(harness), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, harnessRoot, 90*time.Second, map[string]string{
 		"Path": fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
-	}, "-Profile", "base", "-Packages", "./internal/testinfra", "-Run", "^TestC12DependenciesAreIsolatedAndBaseMigrated$", "-Timeout", "3m")
+	}, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
 	if exitCode == 0 || !strings.Contains(output, "start postgres container failed with exit code 73") {
 		t.Fatalf("exit=%d output=%q, want captured native exit failure", exitCode, output)
 	}
@@ -2840,6 +2862,7 @@ try {
   switch ($mode) {
 	'prepared-direct-ledger' {
 	  $artifact = $null
+	  $primaryFailure = $null
 	  try {
 	    $artifact = New-C12PreparedArtifactRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -Profile 'authority-v7-pitr'
 	    if ($artifact.PSObject.Properties.Name -cnotcontains 'Ledger') { throw 'production prepared artifact root lacks a direct-leaf ledger' }
@@ -2855,15 +2878,61 @@ try {
 	    if (-not $rejected) { throw 'production prepared ledger accepted an unknown direct sibling' }
 	    if (-not [IO.Directory]::Exists([string]$artifact.Root) -or -not [IO.File]::Exists($unknown)) { throw 'prepared ledger mutation deleted owned state on rejection' }
 	    [IO.File]::Delete($unknown)
+
+	    $hardLinkSource = Join-Path ([string]$artifact.Root) 'hard-link-source.bin'
+	    $hardLinkSplice = Join-Path $fixtureRoot 'hard-link-splice.bin'
+	    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'hard-link-source.bin' -Kind 'exact_file' -Expected $true
+	    [IO.File]::WriteAllBytes($hardLinkSource, [byte[]](9,8,7,6))
+	    $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name 'hard-link-source.bin'
+	    $hardLinkResult = & (Join-Path $env:SystemRoot 'System32\cmd.exe') /d /c mklink /H $hardLinkSplice $hardLinkSource 2>&1
+	    if ($LASTEXITCODE -ne 0) { throw ('create hard-link splice failed: ' + (@($hardLinkResult) -join ' ')) }
+	    $rejected = $false
+	    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+	    catch { $rejected = $_.Exception.Message -match 'link|identity' }
+	    if (-not $rejected -or -not [IO.File]::Exists($hardLinkSource) -or -not [IO.File]::Exists($hardLinkSplice)) { throw 'prepared ledger did not retain a hard-link splice' }
+	    [IO.File]::Delete($hardLinkSplice)
+
+	    $reparse = Join-Path ([string]$artifact.Root) 'reparse-leaf'
+	    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'reparse-leaf' -Kind 'owned_ephemeral_subtree' -Expected $true
+	    $null = New-Item -ItemType Junction -Path $reparse -Target $fixtureRoot
+	    $rejected = $false
+	    try { Bind-C12DirectLeaf -ArtifactRoot $artifact -Name 'reparse-leaf' }
+	    catch { $rejected = $_.Exception.Message -match 'reparse|identity|ownership' }
+	    if (-not $rejected -or -not [IO.Directory]::Exists($reparse)) { throw 'prepared ledger accepted or deleted a reparse leaf' }
+	    $cleanupRejected = $false
+	    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+	    catch { $cleanupRejected = $_.Exception.Message -match 'identity|bound|reparse' }
+	    if (-not $cleanupRejected -or -not [IO.Directory]::Exists($reparse)) { throw 'prepared cleanup accepted or deleted a foreign reparse leaf' }
+	    [IO.Directory]::Delete($reparse, $false)
+	    $reparseEntry = @($artifact.Ledger | Where-Object { [string]$_.Name -ceq 'reparse-leaf' })[0]
+	    $reparseEntry.Expected = $false
+
+	    $replace = Join-Path ([string]$artifact.Root) 'replace-leaf'
+	    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'replace-leaf' -Kind 'owned_ephemeral_subtree' -Expected $true
+	    $replaceOwnership = New-C12OwnedDirectory -Root $replace -ExpectedParent ([string]$artifact.Root) -LeafPattern '^replace-leaf$' -Stage 'test replacement leaf creation'
+	    $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name 'replace-leaf' -Ownership $replaceOwnership
+	    $replaceOwnership.Dispose()
+	    [IO.Directory]::Delete($replace, $false)
+	    [void][IO.Directory]::CreateDirectory($replace)
+	    $rejected = $false
+	    try { Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+	    catch { $rejected = $_.Exception.Message -match 'identity|substitut|changed|ownership|disposed' }
+	    if (-not $rejected -or -not [IO.Directory]::Exists($replace)) { throw 'prepared ledger accepted or deleted a replaced directory identity' }
+	    [IO.Directory]::Delete($replace, $false)
+	    $replaceEntry = @($artifact.Ledger | Where-Object { [string]$_.Name -ceq 'replace-leaf' })[0]
+	    $replaceEntry.Expected = $false
+
 	    Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(20))
 	    if ([IO.Directory]::Exists([string]$artifact.Root)) { throw 'production prepared ledger positive cleanup retained its closed root' }
 	    $artifact = $null
 	    Write-Output 'C12_PREPARED_DIRECT_LEDGER_OK'
 	    exit 0
 	  }
+	  catch { $primaryFailure = $_; throw }
 	  finally {
 	    if ($null -ne $artifact -and [IO.Directory]::Exists([string]$artifact.Root)) {
-	      Remove-C12BoundedDirectory -Root ([string]$artifact.Root) -ExpectedParent ([string]$artifact.Parent) -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'test prepared direct-ledger cleanup' -Deadline ([DateTime]::UtcNow.AddSeconds(20)) -Ownership $artifact.Ownership
+	      try { Remove-C12BoundedDirectory -Root ([string]$artifact.Root) -ExpectedParent ([string]$artifact.Parent) -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'test prepared direct-ledger cleanup' -Deadline ([DateTime]::UtcNow.AddSeconds(20)) -Ownership $artifact.Ownership }
+	      catch { if ($null -eq $primaryFailure) { throw } }
 	    }
 	  }
 	}
@@ -2940,13 +3009,21 @@ try {
       $ownership = $null
       try {
         $ownership = New-C12OwnedDirectory -Root $root -ExpectedParent $fixtureRoot -LeafPattern '^talenro-c12-artifacts-[0-9a-f]{32}$' -Stage 'prepared retry fixture creation'
+	    $ledger = New-C12DirectLeafLedger
         $artifact = [pscustomobject]@{
           Root = $root
           Parent = $fixtureRoot
           Ownership = $ownership
           ArtifactRootIdentity = [string]$ownership.Identity
+          Ledger = $ledger
           Closed = $false
         }
+	    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'go-cache' -Kind 'owned_ephemeral_subtree' -Expected $true
+	    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'go-tmp' -Kind 'owned_ephemeral_subtree' -Expected $true
+	    $retryPath = Join-Path $root 'retry-state.bin'
+	    $retryEntry = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name 'retry-state.bin' -Kind 'exact_file' -Expected $true
+	    [IO.File]::WriteAllBytes($retryPath, [byte[]](1,3,3,7))
+	    $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name 'retry-state.bin'
         $script:c12PreparedArtifactRoot = $artifact
         $script:c12PreparedReceipts.Clear()
         $script:c12PreparedWorkers.Clear()
@@ -2961,11 +3038,16 @@ try {
         }
         if (-not $expiredRejected) { throw 'prepared artifact cleanup accepted an expired deadline' }
         if ($null -eq $script:c12PreparedArtifactRoot) { throw 'failed prepared cleanup cleared its global root state' }
+	    if ([string]$retryEntry.Lifecycle -cne 'CleanIntent' -or [string]::IsNullOrEmpty([string]$retryEntry.LastCleanupError) -or
+	        $null -eq $retryEntry.CleanupHandle -or [string]::IsNullOrEmpty([string]$retryEntry.Identity)) {
+	      throw 'expired prepared cleanup did not retain exact CleanIntent identity/error/handle state'
+	    }
         $ownership.VerifyExactPath()
 
         Remove-C12PreparedArtifactRoot -ArtifactRoot $artifact -Deadline ([DateTime]::UtcNow.AddSeconds(15))
         $ownership = $null
         if (-not [bool]$artifact.Closed) { throw 'fresh prepared cleanup did not close its artifact state' }
+	    if ([string]$retryEntry.Lifecycle -cne 'Absent' -or -not [string]::IsNullOrEmpty([string]$retryEntry.LastCleanupError)) { throw 'fresh prepared cleanup did not converge the retained ledger entry' }
         if ($null -ne $script:c12PreparedArtifactRoot -or
             $script:c12PreparedReceipts.Count -ne 0 -or
             $script:c12PreparedWorkers.Count -ne 0 -or
@@ -3212,7 +3294,11 @@ catch {
 	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	harnessTimeout := 45 * time.Second
+	if mode == "prepared-direct-ledger" {
+		harnessTimeout = 2 * time.Minute
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), harnessTimeout)
 	defer cancel()
 	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
 	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness,
@@ -3492,7 +3578,10 @@ try {
   $sourceExecutable = [IO.Path]::GetFullPath((Join-Path $env:SystemRoot 'System32\cmd.exe'))
   $executablePrefix = if ($mode -ceq 'initializer-capabilities') { 'authority-test2json' } else { 'trusted-validator' }
   $executablePath = Join-Path $artifactPath "$executablePrefix-$([Guid]::NewGuid().ToString('N')).exe"
+  $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name ([IO.Path]::GetFileName($executablePath)) -Kind 'exact_file' -Expected $true
   [IO.File]::Copy($sourceExecutable, $executablePath, $false)
+  Protect-C12PrivateArtifactFile -Path $executablePath
+  $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name ([IO.Path]::GetFileName($executablePath))
   $sourceDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes('prepared-artifact-fixture/v1'))
   $toolchain = [pscustomobject]@{
     Path = $sourceExecutable
@@ -3508,7 +3597,10 @@ try {
   if ($mode -ceq 'initializer-capabilities') {
     $invocationRole = 'authority-initializer-json'
     $secondaryExecutablePath = Join-Path $artifactPath "authority-initializer-$([Guid]::NewGuid().ToString('N')).test.exe"
+    $null = Register-C12DirectLeafIntent -Ledger $artifact.Ledger -Name ([IO.Path]::GetFileName($secondaryExecutablePath)) -Kind 'exact_file' -Expected $true
     [IO.File]::Copy($sourceExecutable, $secondaryExecutablePath, $false)
+    Protect-C12PrivateArtifactFile -Path $secondaryExecutablePath
+    $null = Bind-C12DirectLeaf -ArtifactRoot $artifact -Name ([IO.Path]::GetFileName($secondaryExecutablePath))
     $invocationCapabilities = @{
       TALENRO_C12_AUTHORITY_V7_INIT_NONCE = 'fixture-nonce'
       TALENRO_C12_AUTHORITY_V7_RUN_SUFFIX = $runSuffix
