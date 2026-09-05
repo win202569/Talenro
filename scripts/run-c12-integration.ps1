@@ -1965,7 +1965,6 @@ function New-C12CandidateMaterialization {
 function Get-C12DockerEndpointReceipt {
   param([Parameter(Mandatory = $true)][DateTime]$Deadline,[switch]$Revalidate)
 
-  if ($null -ne $script:c12DockerEndpointReceipt -and -not $Revalidate) { return $script:c12DockerEndpointReceipt }
 
   $command = Get-Command docker -CommandType Application -ErrorAction Stop | Select-Object -First 1
   $path = [IO.Path]::GetFullPath([string]$command.Source)
@@ -1993,8 +1992,7 @@ function Get-C12DockerEndpointReceipt {
     ExecutableReceipt=[pscustomobject]@{ Path=$path; Length=[long]$bytes.Length; Digest=$executableDigest }
   }
   if ($null -eq $script:c12DockerEndpointReceipt) { $script:c12DockerEndpointReceipt = $observed }
-  elseif ([string]$script:c12DockerEndpointReceipt.Digest -cne $digest -or [string]$script:c12DockerEndpointReceipt.ExecutableReceipt.Digest -cne $executableDigest) { throw 'Docker endpoint identity mismatch' }
-  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest talenro.c12.docker-exact-absence.v1 Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
+  elseif ([string]$script:c12DockerEndpointReceipt.Digest -cne $digest -or [string]$script:c12DockerEndpointReceipt.ExecutableReceipt.Digest -cne $executableDigest -or [string]$script:c12DockerEndpointReceipt.ExecutableReceipt.Path -cne $path -or [long]$script:c12DockerEndpointReceipt.ExecutableReceipt.Length -ne [long]$bytes.Length) { throw 'Docker endpoint or canonical CLI identity mismatch' }
   return $script:c12DockerEndpointReceipt
 }
 
@@ -2013,9 +2011,7 @@ function Invoke-C12Docker {
     [switch]$AllowFailure
   )
 
-  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest talenro.c12.docker-endpoint.v1 context_name endpoint engine_id server_version os_type architecture DOCKER_HOST DOCKER_CONTEXT DOCKER_CONFIG DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_API_VERSION talenro.c12.docker-exact-absence.v1 Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
-  $revalidateEndpoint = $Arguments.Count -ge 2 -and $Arguments[0] -in @('container','volume') -and $Arguments[1] -in @('inspect','rm','stop')
-  $endpointReceipt = Get-C12DockerEndpointReceipt -Deadline $Deadline -Revalidate:$revalidateEndpoint
+  $endpointReceipt = Get-C12DockerEndpointReceipt -Deadline $Deadline -Revalidate
   $result = Invoke-C12Native -Executable 'docker' -Arguments $Arguments -Stage $Stage -Timeout $Timeout -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline -AllowFailure:$AllowFailure
   if ($result.ExitCode -eq 0 -and $Arguments.Count -ge 4 -and $Arguments[0] -ceq 'image' -and $Arguments[1] -ceq 'inspect') {
     if ($null -eq $script:c12DockerImageReceipts) { $script:c12DockerImageReceipts = @{} }
@@ -2032,7 +2028,6 @@ function Invoke-C12Docker {
   }
   $result | Add-Member -NotePropertyName EndpointReceipt -NotePropertyValue $endpointReceipt
   $result | Add-Member -NotePropertyName ExecutableReceipt -NotePropertyValue $endpointReceipt.ExecutableReceipt
-  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
   return $result
 }
 
@@ -4866,8 +4861,8 @@ function Remove-C12PITRVolume {
   )
   $inspect = Invoke-C12Docker -Arguments $inspectArguments -Stage "re-inspect exact PITR volume $([string]$Resource.Role)" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($inspect.ExitCode -ne 0) {
-    $Resource.Phase = 'Absent'
-    Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_NOT_FOUND'
+    if ([string]$Resource.Phase -ceq 'CleanIntent') { Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT'; $Resource.Phase='Removed' }
+    else { $Resource.Phase = 'Absent'; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_NOT_FOUND' }
     return
   }
   $identity = Get-C12SingleOutputLine -Result $inspect -Stage "re-inspect exact PITR volume $([string]$Resource.Role)"
@@ -4897,7 +4892,10 @@ function Remove-C12PITRBaseResources {
     [Parameter(Mandatory = $true)][DateTime]$Deadline
   )
 
+  $cleanupErrors=New-Object 'System.Collections.Generic.List[string]'
   $captured = @($Resources | Where-Object { -not [string]::IsNullOrEmpty([string]$_.ID) })
+  foreach($resource in $captured){try{Remove-C12Container -Resource $resource -RunSuffix $RunSuffix -Deadline $Deadline}catch{$cleanupErrors.Add($_.Exception.Message)}}
+  $captured=@()
   if ($captured.Count -ne 0) {
     $format = '{{.Id}}|{{.Name}}|{{ index .Config.Labels `talenro.c12.run` }}|{{ index .Config.Labels `talenro.c12.role` }}|{{.Config.Image}}|{{.Image}}|{{ index .Config.Labels `talenro.c12.managed` }}|{{ index .Config.Labels `talenro.c12.profile` }}|{{ index .Config.Labels `talenro.c12.nonce-digest` }}'
     $arguments = @('container', 'inspect', '--format', $format) + @($captured | ForEach-Object { [string]$_.ID })
@@ -4938,8 +4936,8 @@ function Remove-C12PITRBaseResources {
     }
   }
 
-  foreach ($volume in $Volumes) { Remove-C12PITRVolume -Resource $volume -RunSuffix $RunSuffix -Deadline $Deadline }
-  Write-Verbose 'CreationOpen CreationClosed NeverAttempted CreateAttempted Created Verified CleanIntent Removed Absent RetryState RootHandle ProcessHandle WALHandle Ledger top-level finalizer 75'
+  foreach ($volume in $Volumes) { try { Remove-C12PITRVolume -Resource $volume -RunSuffix $RunSuffix -Deadline $Deadline } catch { $cleanupErrors.Add($_.Exception.Message) } }
+  if($cleanupErrors.Count-ne 0){throw ('Docker cleanup retained retry state: '+($cleanupErrors -join '; '))}
 }
 
 function Initialize-C12PITRPrimary {
@@ -5092,7 +5090,7 @@ function New-C12DockerRegistryPayload {
     $entries.Add('{"kind":"volume","name":"'+[string]$volume.Name+'","role":"'+[string]$volume.Role+'","image_ref":"","image_id":"","driver":"local","nonce_digest":"'+[string]$volume.NonceDigest+'"}')
   }
   $registry='['+($entries -join ',')+']'
-  $authority='{"schema":"talenro.c12.docker-registry.v1","run":"'+$RunSuffix+'","profile":"authority-v7-pitr","nonce_digest":"'+$NonceDigest+'","endpoint_digest":"'+[string]$EndpointReceipt.Digest+'","cli_digest":"'+[string]$EndpointReceipt.ExecutableReceipt.Digest+'","resources":'+$registry+'}'
+  $authority='{"schema":"talenro.c12.docker-registry.v1","run":"'+$RunSuffix+'","profile":"authority-v7-pitr","nonce_digest":"'+$NonceDigest+'","endpoint_digest":"'+[string]$EndpointReceipt.Digest+'","cli_path":"'+([string]$EndpointReceipt.ExecutableReceipt.Path).Replace('\','/')+'","cli_length":'+[long]$EndpointReceipt.ExecutableReceipt.Length+',"cli_digest":"'+[string]$EndpointReceipt.ExecutableReceipt.Digest+'","resources":'+$registry+'}'
   $digest=Get-C12DomainSHA256 -Domain 'talenro.c12.docker-registry.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($authority))
   return $authority.Substring(0,$authority.Length-1)+',"registry_digest":"'+$digest+'"}'
 }

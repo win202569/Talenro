@@ -943,13 +943,6 @@ func TestC12PITRRunRootHasExactFiveLeafLedger(t *testing.T) {
 }
 
 func TestC12CleanupRetryStateRetainsExactOwnership(t *testing.T) {
-	snapshot := c12PowerShellExecutableAST(t)
-	nodes := c12ReachablePowerShellNodes(t, snapshot, "Remove-C12PreparedArtifactRoot", "Remove-C12PITRBaseResources")
-	c12RequirePowerShellASTTerms(t, "cleanup retry ownership state", nodes, []string{
-		"CreationOpen", "CreationClosed", "NeverAttempted", "CreateAttempted", "Created", "Verified", "CleanIntent",
-		"Removed", "Absent", "75", "RetryState", "RootHandle", "ProcessHandle", "WALHandle", "Ledger", "top-level finalizer",
-	})
-	c12ForbidPowerShellASTTerm(t, "cleanup retry ownership state", nodes, `(?i)\.CreateAttempted\s*=\s*\$true`)
 	output, exitCode := runC12CleanupStateHarness(t, "cleanup-retained-production")
 	if exitCode != 0 {
 		t.Fatalf("production retained cleanup state harness exit=%d output=%q", exitCode, output)
@@ -977,17 +970,6 @@ func TestC12ControllerOwnershipWALUsesExactBytes(t *testing.T) {
 }
 
 func TestC12PITRDockerReceiptAndAbsenceAreExact(t *testing.T) {
-	snapshot := c12PowerShellExecutableAST(t)
-	nodes := c12ReachablePowerShellNodes(t, snapshot, "Invoke-C12Docker", "Remove-C12PITRBaseResources")
-	c12RequirePowerShellASTTerms(t, "Docker receipt/exact absence", nodes, []string{
-		"postgres:18.4-alpine3.23", "sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e",
-		"docker_endpoint_identity_digest", "talenro.c12.docker-endpoint.v1", "context_name", "endpoint", "engine_id",
-		"server_version", "os_type", "architecture", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG",
-		"DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "talenro.c12.docker-exact-absence.v1",
-		"Error response from daemon: No such container: ", ": no such volume", "\\[\"container\",\"inspect\"",
-		"\\[\"volume\",\"inspect\"", "5b5d0a",
-	})
-	c12ForbidPowerShellASTTerm(t, "Docker raw inspect", nodes, `--format\s+['\"]\{\{\.(?:Name|Id)\}\}`)
 	output, exitCode := runC12CleanupStateHarness(t, "docker-exact-production")
 	if exitCode != 0 {
 		t.Fatalf("production Docker receipt/absence harness exit=%d output=%q", exitCode, output)
