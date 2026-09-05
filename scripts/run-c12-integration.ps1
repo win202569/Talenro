@@ -70,13 +70,13 @@ $script:c12PreparedReceiptPayloadFields = @(
   'SecondaryExecutablePath', 'SecondaryExecutableSHA256', 'SecondaryExecutableLength',
   'SecondaryExecutableVolumeSerial', 'SecondaryExecutableFileIndex', 'SecondaryExecutableLinkCount',
   'SecondaryExecutableOwner', 'SecondaryExecutableDACL', 'SecondaryExecutableReparse',
-  'ArgumentsDigest', 'WorkingDirectory', 'NativeJobName', 'GateName', 'PipeName'
+  'ArgumentsDigest', 'WorkingDirectory', 'NativeJobName', 'GateName', 'PipeName', 'GoGraphReceipts'
 )
 $script:c12PreparedReceiptFields = @(
   'Arguments', 'ArgumentsDigest', 'ArtifactRootIdentity', 'BuildArguments', 'BuildArgumentsDigest',
   'CandidateTreeIdentity', 'ExecutableDACL', 'ExecutableFileIndex', 'ExecutableLength', 'ExecutableLinkCount',
   'ExecutableOwner', 'ExecutablePath', 'ExecutableReparse', 'ExecutableSHA256', 'ExecutableVolumeSerial', 'GateName',
-  'GOARCH', 'GoExecutablePath', 'GoExecutableSHA256', 'GoVersion', 'GOOS', 'NativeJobName', 'OneShotNonce',
+  'GOARCH', 'GoExecutablePath', 'GoExecutableSHA256', 'GoVersion', 'GOOS', 'GoGraphReceipts', 'NativeJobName', 'OneShotNonce',
   'OwnedRootPath', 'ParentIdentity', 'ParentRootPath', 'PipeName', 'Profile', 'Purpose', 'ReceiptIdentity', 'ReceiptSeal',
   'Role', 'RunSuffix', 'Schema', 'SecondaryExecutableDACL', 'SecondaryExecutableFileIndex', 'SecondaryExecutableLength',
   'SecondaryExecutableLinkCount', 'SecondaryExecutableOwner', 'SecondaryExecutablePath', 'SecondaryExecutableReparse',
@@ -1046,6 +1046,17 @@ $script:c12ContainedNativeScript = {
     [System.Environment]::SetEnvironmentVariable([string]$entry.Name, [string]$entry.Value, 'Process')
   }
   $nativeArgs = @($Invocation.Arguments | ForEach-Object { [string]$_ })
+  if ($Invocation.PSObject.Properties.Name -contains 'GraphReaderSource' -and $Invocation.GraphReaderSource) {
+    # This process has already joined the exact controller Job; its native Go
+    # child inherits membership before it can execute any graph discovery.
+    try {
+      Add-Type -TypeDefinition ([string]$Invocation.GraphReaderSource)
+      $records = [C12GoGraphReader]::Run([string]$Invocation.ResolvedExecutable, [string[]]$nativeArgs, [string]$Invocation.WorkingDirectory, [DateTime]$Invocation.Deadline)
+      [pscustomobject]@{ ExitCode = 0; Output = [string[]]$records; ContainmentFailure = $false }
+    }
+    catch { [pscustomobject]@{ ExitCode = 126; Output = [string[]]@($_.Exception.Message); ContainmentFailure = $false } }
+    return
+  }
   $boundedOutput = New-Object 'System.Collections.Generic.List[string]'
   $capture = {
     process {
@@ -1121,6 +1132,8 @@ function Invoke-C12Native {
 
     [string]$ResolvedExecutable = '',
 
+    [string]$GraphReaderSource = '',
+
     [switch]$AllowFailure
   )
 
@@ -1167,6 +1180,8 @@ function Invoke-C12Native {
     JobName = $nativeJobName
     Environment = [object[]]$childEnvironment
     ResolvedExecutable = $ResolvedExecutable
+    GraphReaderSource = $GraphReaderSource
+    Deadline = $Deadline
   }
   $job = $null
   $nativeJobHandle = [IntPtr]::Zero
@@ -1201,6 +1216,7 @@ function Invoke-C12Native {
       throw "$Stage failed native Job self-containment"
     }
     if (-not $AllowFailure -and [int]$result[0].ExitCode -ne 0) {
+      if ($GraphReaderSource) { throw "$Stage failed with exit code $([int]$result[0].ExitCode): $(@($result[0].Output) -join ' ')" }
       throw "$Stage failed with exit code $([int]$result[0].ExitCode)"
     }
     return [pscustomobject]@{
@@ -1853,7 +1869,7 @@ function Enter-C12ClosedGoBuildEnvironment {
     'GOFLAGS', 'GOWORK', 'GOENV', 'GOTOOLCHAIN',
     'GOOS', 'GOARCH', 'GOAMD64', 'CGO_ENABLED',
     'GOCACHE', 'GOTMPDIR', 'GOMODCACHE', 'GOPROXY',
-    'GOSUMDB', 'GOPATH', 'GO111MODULE'
+    'GOSUMDB', 'GOPATH', 'GO111MODULE', 'GOROOT'
   )) { [void]$names.Add($name) }
   foreach ($inheritedName in @([Environment]::GetEnvironmentVariables('Process').Keys)) {
     $name = [string]$inheritedName
@@ -1879,6 +1895,7 @@ function Enter-C12ClosedGoBuildEnvironment {
   [Environment]::SetEnvironmentVariable('GOPROXY', 'off', 'Process')
   [Environment]::SetEnvironmentVariable('GOSUMDB', 'off', 'Process')
   [Environment]::SetEnvironmentVariable('GO111MODULE', 'on', 'Process')
+  [Environment]::SetEnvironmentVariable('GOFLAGS', '-mod=readonly -tags=integration', 'Process')
   return [pscustomobject]@{ Prior = $prior }
 }
 
@@ -1929,6 +1946,282 @@ function Resolve-C12ClosedGoToolchain {
     }
   }
   finally { $sealed.Dispose() }
+}
+
+function Get-C12GoGraphReaderSource {
+  return @'
+using System;
+using System.IO;
+using System.Text;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public static class C12GoGraphReader {
+    static int Remaining(DateTime deadline) {
+        double remaining = (deadline - DateTime.UtcNow).TotalMilliseconds;
+        if (remaining <= 0) throw new TimeoutException("Go graph absolute deadline exhausted");
+        return (int)Math.Min(remaining, Int32.MaxValue);
+    }
+    static string Quote(string value) {
+        if (value == null || value.IndexOf('\0') >= 0) throw new InvalidDataException("invalid Go graph argument");
+        var quoted = new StringBuilder("\""); int slashes = 0;
+        foreach (char c in value) {
+            if (c == '\\') { slashes++; continue; }
+            quoted.Append('\\', c == '"' ? slashes * 2 + 1 : slashes); quoted.Append(c); slashes = 0;
+        }
+        return quoted.Append('\\', slashes * 2).Append('"').ToString();
+    }
+    public static string[] Decode(Stream input, DateTime deadline) {
+        byte[] buffer = new byte[8192]; long total = 0;
+        var records = new List<string>(); var utf8 = new UTF8Encoding(false, true);
+        using (var current = new MemoryStream()) {
+            int depth = 0; bool quoted = false, escaped = false;
+            while (true) {
+                var read = input.ReadAsync(buffer, 0, buffer.Length);
+                if (!read.Wait(Remaining(deadline))) throw new TimeoutException("Go graph read deadline exhausted");
+                int count = read.Result; if (count == 0) break;
+                total += count; if (total > 67108864) throw new InvalidDataException("Go graph total exceeds 67108864 bytes");
+                for (int i = 0; i < count; i++) {
+                    byte b = buffer[i];
+                    if (depth == 0) {
+                        if (b == 32 || b == 9 || b == 10 || b == 13) continue;
+                        if (b != 123) throw new InvalidDataException("Go graph stream must contain JSON objects only");
+                    }
+                    current.WriteByte(b);
+                    if (current.Length > 16777216) throw new InvalidDataException("Go graph object exceeds 16777216 bytes");
+                    if (quoted) { if (escaped) escaped = false; else if (b == 92) escaped = true; else if (b == 34) quoted = false; }
+                    else if (b == 34) quoted = true;
+                    else if (b == 123 || b == 91) depth++;
+                    else if (b == 125 || b == 93) depth--;
+                    if (depth == 0) { records.Add(utf8.GetString(current.ToArray())); current.SetLength(0); }
+                }
+            }
+            if (depth != 0 || quoted || current.Length != 0 || records.Count == 0) throw new InvalidDataException("Go graph stream is empty or truncated");
+        }
+        return records.ToArray();
+    }
+    static string ReadErrors(Stream stream, DateTime deadline) {
+        byte[] buffer = new byte[8192];
+        using (var bytes = new MemoryStream()) {
+            while (true) {
+                var read = stream.ReadAsync(buffer, 0, buffer.Length);
+                if (!read.Wait(Remaining(deadline))) throw new TimeoutException("Go graph stderr deadline exhausted");
+                if (read.Result == 0) break;
+                if (bytes.Length + read.Result > 131072) throw new InvalidDataException("Go graph stderr exceeds bound");
+                bytes.Write(buffer, 0, read.Result);
+            }
+            return new UTF8Encoding(false, true).GetString(bytes.ToArray());
+        }
+    }
+    public static string[] Run(string executable, string[] argv, string directory, DateTime deadline) {
+        var arguments = new List<string>(); foreach (string argument in argv) arguments.Add(Quote(argument));
+        using (var process = new Process()) {
+            process.StartInfo = new ProcessStartInfo(executable, String.Join(" ", arguments.ToArray())) {
+                UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = directory
+            };
+            Remaining(deadline); process.Start();
+            try {
+                var errors = Task.Run(() => ReadErrors(process.StandardError.BaseStream, deadline));
+                string[] records = Decode(process.StandardOutput.BaseStream, deadline);
+                if (!process.WaitForExit(Remaining(deadline)) || !errors.Wait(Remaining(deadline))) throw new TimeoutException("Go graph exit deadline exhausted");
+                if (process.ExitCode != 0 || errors.Result.Length != 0) throw new InvalidDataException("Go graph discovery failed: " + errors.Result);
+                return records;
+            }
+            finally { if (!process.HasExited) process.Kill(); }
+        }
+    }
+}
+'@
+}
+
+function Get-C12GoGraphProperty {
+  param($Value, [string]$Name, $Default = $null)
+  if ($null -ne $Value -and $Value.PSObject.Properties.Name -ccontains $Name) { return $Value.$Name }
+  return $Default
+}
+
+function Resolve-C12GoGraphOrigin {
+  param([string]$Path, [object[]]$Roots)
+  $full = [IO.Path]::GetFullPath($Path).TrimEnd('\')
+  foreach ($root in $Roots) {
+    $base = ([string]$root.path).TrimEnd('\')
+    if ($full.Equals($base, [StringComparison]::OrdinalIgnoreCase) -or $full.StartsWith($base + '\', [StringComparison]::OrdinalIgnoreCase)) {
+      # Check every component, not only the final leaf: a linked ancestor must
+      # not turn a lexically-contained directory into a foreign identity.
+      $cursor = $full
+      while ($true) {
+        $item = Get-Item -LiteralPath $cursor -Force
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Go graph path traverses a reparse point' }
+        if ($cursor.Equals($base, [StringComparison]::OrdinalIgnoreCase)) { break }
+        $cursor = [IO.Path]::GetDirectoryName($cursor)
+      }
+      return [pscustomobject]@{ origin = $root.origin; path = $full; origin_relative_path = $full.Substring($base.Length).TrimStart('\').Replace('\','/') }
+    }
+  }
+  throw "Go graph directory identity is outside module/cache roots: $full"
+}
+
+function Get-C12GoGraphFile {
+  param([string]$Path, [object[]]$Roots, [string]$Set, [DateTime]$Deadline)
+  $null = Get-C12ProtocolMilliseconds $Deadline
+  $origin = Resolve-C12GoGraphOrigin -Path $Path -Roots $Roots
+  $stream = [IO.File]::Open($origin.path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+  $hash = [Security.Cryptography.SHA256]::Create()
+  try {
+    if ($stream.Length -gt 67108864) { throw 'Go graph selected file exceeds byte bound' }
+    $digest = [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant()
+    $null = Get-C12ProtocolMilliseconds $Deadline
+    return [ordered]@{ set = $Set; origin = $origin.origin; origin_relative_path = $origin.origin_relative_path; length = $stream.Length; sha256 = $digest }
+  }
+  finally { $hash.Dispose(); $stream.Dispose() }
+}
+
+function Get-C12GoGraphModule {
+  param($Module, [object[]]$Roots, [DateTime]$Deadline, [int]$Depth = 0)
+  if ($null -eq $Module) { return $null }
+  if ($Depth -gt 4) { throw 'Go graph module replacement recursion exceeds bound' }
+  $directory = [string](Get-C12GoGraphProperty $Module 'Dir' '')
+  $identity = $null
+  if ($directory) {
+    $origin = Resolve-C12GoGraphOrigin $directory $Roots
+    $identity = [C12SealedExecutable]::InspectDirectory($origin.path).Value
+  }
+  $modFile = [string](Get-C12GoGraphProperty $Module 'GoMod' '')
+  return [ordered]@{
+    module_path = [string](Get-C12GoGraphProperty $Module 'Path' '')
+    module_version = [string](Get-C12GoGraphProperty $Module 'Version' '')
+    module_sum = [string](Get-C12GoGraphProperty $Module 'Sum' '')
+    go_mod_sum = [string](Get-C12GoGraphProperty $Module 'GoModSum' '')
+    directory = $directory; directory_identity = $identity
+    go_mod = if ($modFile) { Get-C12GoGraphFile $modFile $Roots 'ModuleGoMod' $Deadline } else { $null }
+    module_replace_or_null = Get-C12GoGraphModule (Get-C12GoGraphProperty $Module 'Replace') $Roots $Deadline ($Depth + 1)
+    metadata = $Module
+  }
+}
+
+function New-C12GoGraphReceipt {
+  param(
+    [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$Purpose,
+    [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string[]]$Packages,
+    [Parameter(Mandatory = $true)][DateTime]$Deadline,
+    $ArtifactRoot = $script:c12PreparedArtifactRoot, $GoToolchain = $null,
+    [string[]]$BuildArgv = @(), [string]$WorkingDirectory = $script:c12RepositoryRoot
+  )
+  if ([string]::IsNullOrWhiteSpace($Purpose) -or $Deadline.Kind -ne [DateTimeKind]::Utc) { throw 'Go graph requires a purpose and absolute UTC deadline' }
+  $null = Get-C12ProtocolMilliseconds $Deadline
+  foreach ($package in $Packages) { if ([string]::IsNullOrWhiteSpace($package) -or $package.StartsWith('-') -or $package.IndexOf([char]0) -ge 0) { throw 'Go graph selection is invalid' } }
+  if ($null -eq $GoToolchain) { $GoToolchain = Resolve-C12ClosedGoToolchain -ArtifactRoot $ArtifactRoot -SetupDeadline $Deadline }
+  if ($BuildArgv.Count -eq 0) { $BuildArgv = @('test','-c','-tags=integration') + $Packages }
+  $null = Get-C12PreparedStringArrayDigest $BuildArgv
+  $roots = @(
+    [pscustomobject]@{ origin='module'; path=[IO.Path]::GetFullPath($script:c12RepositoryRoot) },
+    [pscustomobject]@{ origin='goroot'; path=[IO.Path]::GetFullPath($GoToolchain.Root) },
+    [pscustomobject]@{ origin='gomodcache'; path=[IO.Path]::GetFullPath($GoToolchain.ModuleCache) },
+    [pscustomobject]@{ origin='artifact'; path=[IO.Path]::GetFullPath($ArtifactRoot.Root) }
+  )
+  $rootIdentity = [C12SealedExecutable]::InspectDirectory($roots[0].path)
+  $goRootIdentity = [C12SealedExecutable]::InspectDirectory($GoToolchain.Root)
+  $cacheIdentity = [C12SealedExecutable]::InspectDirectory($GoToolchain.ModuleCache)
+  foreach ($root in $roots) { $null = Resolve-C12GoGraphOrigin $root.path @($root) }
+  $null = Resolve-C12GoGraphOrigin $WorkingDirectory $roots
+  $go = [C12SealedExecutable]::Inspect($GoToolchain.Path)
+  try {
+    if ($go.SHA256 -cne $GoToolchain.SHA256 -or $GoToolchain.Version -cne $script:c12GoToolchainVersion -or $GoToolchain.GOOS -cne 'windows' -or $GoToolchain.GOARCH -cne 'amd64') { throw 'Go graph toolchain identity changed' }
+    $toolchainBody = ConvertTo-C12ProtocolValue ([ordered]@{
+      go_executable_path=$GoToolchain.Path; go_executable_identity="$($go.VolumeSerialNumber):$($go.FileIndex)"; go_executable_sha256=$go.SHA256; go_version=$GoToolchain.Version
+      goroot_path=$GoToolchain.Root; goroot_identity=$goRootIdentity.Value; gomodcache_path=$GoToolchain.ModuleCache; gomodcache_identity=$cacheIdentity.Value
+    })
+  }
+  finally { $go.Dispose() }
+  $moduleFiles = @(
+    (Get-C12GoGraphFile (Join-Path $roots[0].path 'go.mod') $roots 'go.mod' $Deadline),
+    (Get-C12GoGraphFile (Join-Path $roots[0].path 'go.sum') $roots 'go.sum' $Deadline)
+  )
+  $listArgv = [Collections.Generic.List[string]]::new([string[]]@('list', '-deps', '-json', '-test', '-tags=integration', '-mod=readonly'))
+  $listArgv.AddRange($Packages)
+  $snapshot = Enter-C12ClosedGoBuildEnvironment -ArtifactRoot $ArtifactRoot -ModuleCache $GoToolchain.ModuleCache
+  try {
+    $environment = ConvertTo-C12ProtocolValue ([ordered]@{ goos=$env:GOOS; goarch=$env:GOARCH; cgo_enabled=$env:CGO_ENABLED; GOSUMDB=$env:GOSUMDB; GOFLAGS=$env:GOFLAGS; GOWORK=$env:GOWORK; GOENV=$env:GOENV; GOTOOLCHAIN=$env:GOTOOLCHAIN; GOPROXY=$env:GOPROXY; GOAMD64=$env:GOAMD64 })
+    $verified = Invoke-C12Native -Executable 'go' -ResolvedExecutable $GoToolchain.Path -Arguments @('mod','verify') -Stage 'Go graph go mod verify' -Timeout ($Deadline - [DateTime]::UtcNow) -WorkingDirectory $roots[0].path -Deadline $Deadline
+    if (($verified.Output -join "`n").Trim() -cne 'all modules verified') { throw 'Go graph go mod verify did not authenticate all modules' }
+    $discovery = Invoke-C12Native -Executable 'go' -ResolvedExecutable $GoToolchain.Path -Arguments $listArgv -Stage 'Go graph discovery' -Timeout ($Deadline - [DateTime]::UtcNow) -WorkingDirectory $WorkingDirectory -Deadline $Deadline -GraphReaderSource (Get-C12GoGraphReaderSource)
+  }
+  finally { Exit-C12ClosedGoBuildEnvironment $snapshot }
+  $packageRecords = [Collections.Generic.List[object]]::new()
+  $files = [Collections.Generic.List[object]]::new()
+  $importsSeen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  foreach ($json in $discovery.Output) {
+    $null = Get-C12ProtocolMilliseconds $Deadline
+    $package = ConvertFrom-Json -InputObject $json
+    $importPath = [string](Get-C12GoGraphProperty $package 'ImportPath' '')
+    if (-not $importPath -or -not $importsSeen.Add($importPath)) { throw "Go graph duplicate or empty ImportPath: $importPath" }
+    if ((Get-C12GoGraphProperty $package 'Error') -or (Get-C12GoGraphProperty $package 'DepsErrors') -or (Get-C12GoGraphProperty $package 'Incomplete' $false)) { throw 'Go graph contains package errors' }
+    $directory = [string](Get-C12GoGraphProperty $package 'Dir' '')
+    if (-not $directory) { throw 'Go graph package directory is absent' }
+    $origin = Resolve-C12GoGraphOrigin $directory $roots
+    $directoryIdentity = [C12SealedExecutable]::InspectDirectory($origin.path)
+    $sets = [ordered]@{}
+    $selectedFiles = [Collections.Generic.List[object]]::new()
+    foreach ($set in [Collections.Generic.List[string]]::new([string[]]@('GoFiles','CgoFiles','CFiles','CXXFiles','MFiles','HFiles','FFiles','SFiles','SwigFiles','SwigCXXFiles','SysoFiles','EmbedFiles','TestGoFiles','TestEmbedFiles','XTestGoFiles','XTestEmbedFiles'))) {
+      [string[]]$names = @(Get-C12GoGraphProperty $package $set @())
+      $sets[$set] = $names
+      foreach ($name in $names) {
+        $path = if ([IO.Path]::IsPathRooted($name)) { $name } else { Join-Path $directory $name }
+        $file = Get-C12GoGraphFile $path $roots $set $Deadline
+        $selectedFiles.Add($file); $files.Add($file)
+      }
+    }
+    $module = Get-C12GoGraphModule (Get-C12GoGraphProperty $package 'Module') $roots $Deadline
+    $packageRecords.Add([ordered]@{
+      import_path=$importPath; for_test=[string](Get-C12GoGraphProperty $package 'ForTest' ''); origin=$origin.origin; origin_relative_path=$origin.origin_relative_path; directory_identity=$directoryIdentity.Value
+      module_path=if ($module) { $module.module_path } else { '' }; module_version=if ($module) { $module.module_version } else { '' }; module_sum=if ($module) { $module.module_sum } else { '' }; module_replace_or_null=if ($module) { $module.module_replace_or_null } else { $null }; module=$module
+      imports=@(Get-C12GoGraphProperty $package 'Imports' @()); deps=@(Get-C12GoGraphProperty $package 'Deps' @()); test_imports=@(Get-C12GoGraphProperty $package 'TestImports' @()); xtest_imports=@(Get-C12GoGraphProperty $package 'XTestImports' @())
+      embed_patterns=@(Get-C12GoGraphProperty $package 'EmbedPatterns' @()); test_embed_patterns=@(Get-C12GoGraphProperty $package 'TestEmbedPatterns' @()); xtest_embed_patterns=@(Get-C12GoGraphProperty $package 'XTestEmbedPatterns' @())
+      selected_sets=$sets; files=@($selectedFiles.ToArray()); import_map=Get-C12GoGraphProperty $package 'ImportMap'
+    })
+  }
+  $body = ConvertTo-C12ProtocolValue ([ordered]@{
+    schema='talenro-c12-go-graph/v1'; purpose=$Purpose; toolchain=$toolchainBody; environment=$environment
+    module_root_path=$roots[0].path; module_root_identity=$rootIdentity.Value; go_mod_sha256=$moduleFiles[0].sha256; go_sum_sha256=$moduleFiles[1].sha256; module_files=$moduleFiles
+    build_argv=@($BuildArgv); selected_packages=@($Packages); working_directory=[IO.Path]::GetFullPath($WorkingDirectory); list_argv=$listArgv; verify_argv=@('mod','verify')
+    stream_read_buffer=8192; protocol_frame_limit=131072; stream_total_limit=67108864; object_limit=16777216
+    package_count=$packageRecords.Count; file_count=$files.Count; packages=@($packageRecords.ToArray()); files=@($files.ToArray())
+  })
+  $candidateDigest = Get-C12SHA256Hex ([Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $body)))
+  $body.Add('candidate_tree_digest', $candidateDigest)
+  [byte[]]$bodyBytes = [Text.Encoding]::UTF8.GetBytes((ConvertTo-C12ProtocolJSON $body))
+  $digest = Get-C12SHA256Hex ([byte[]]([Text.Encoding]::UTF8.GetBytes("talenro.c12.go-graph.v1`0") + $bodyBytes))
+  return [pscustomobject]@{
+    Schema=$body.schema; Purpose=$Purpose; Toolchain=$toolchainBody; ModuleRoot=[ordered]@{ path=$roots[0].path; identity=$rootIdentity.Value }; Environment=$environment; ModuleFiles=$moduleFiles
+    BuildArgv=@($BuildArgv); Packages=@($packageRecords.ToArray()); Files=@($files.ToArray()); CandidateTreeDigest=$candidateDigest; BodyBytes=$bodyBytes; Digest=$digest
+  }
+}
+
+function ConvertTo-C12GoGraphBindingValue {
+  param([Parameter(Mandatory = $true)]$Receipt)
+  $binding = [ordered]@{}
+  foreach ($property in $Receipt.PSObject.Properties) {
+    if ($property.Name -ceq 'BodyBytes') {
+      # Bind every original byte and its length without recursively serializing
+      # hundreds of thousands of individual byte values in PowerShell.
+      [byte[]]$bytes = $property.Value
+      $binding[$property.Name] = [ordered]@{ encoding='base64'; length=$bytes.Length; content=[Convert]::ToBase64String($bytes) }
+    }
+    else { $binding[$property.Name] = $property.Value }
+  }
+  return $binding
+}
+
+function Assert-C12GoGraphReceipt {
+  param($Receipt, $ArtifactRoot, [DateTime]$Deadline)
+  # The focused entry point's legacy MaxValue sentinel is not a UTC deadline.
+  # Use its existing closed profile allowance, never an unbounded native wait.
+  if ($Deadline -eq [DateTime]::MaxValue) { $Deadline = [DateTime]::UtcNow.Add([TimeSpan]$script:c12ProfileAllowances[$ArtifactRoot.Profile]) }
+  $body = ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString([byte[]]$Receipt.BodyBytes))
+  $tool = $body.toolchain
+  $goToolchain = [pscustomobject]@{ Path=$tool.go_executable_path; SHA256=$tool.go_executable_sha256; Version=$tool.go_version; GOOS=$body.environment.goos; GOARCH=$body.environment.goarch; Root=$tool.goroot_path; ModuleCache=$tool.gomodcache_path }
+  $current = New-C12GoGraphReceipt -Purpose $body.purpose -Packages @($body.selected_packages) -Deadline $Deadline -ArtifactRoot $ArtifactRoot -GoToolchain $goToolchain -BuildArgv @($body.build_argv) -WorkingDirectory $body.working_directory
+  if ((ConvertTo-C12ProtocolJSON (ConvertTo-C12GoGraphBindingValue $current)) -cne (ConvertTo-C12ProtocolJSON (ConvertTo-C12GoGraphBindingValue $Receipt))) { throw 'Go graph receipt changed before compilation or execution' }
 }
 
 function Invoke-C12ClosedGoBuild {
@@ -2038,7 +2331,7 @@ function Get-C12PreparedReceiptPayload {
     if (-not ($Receipt.PSObject.Properties.Name -ccontains $field)) {
       throw "prepared receipt lacks $field"
     }
-    $value = [string]$Receipt.$field
+    $value = if ($field -ceq 'GoGraphReceipts') { ConvertTo-C12ProtocolJSON @($Receipt.GoGraphReceipts | ForEach-Object { ConvertTo-C12GoGraphBindingValue $_ }) } else { [string]$Receipt.$field }
     $parts.Add("$field=$([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($value)))")
   }
   return [Text.Encoding]::UTF8.GetBytes(($parts -join "`n"))
@@ -2070,11 +2363,20 @@ function New-C12SealedExecutableReceipt {
     [Parameter(Mandatory = $true)][string]$ExecutablePath,
     [string]$SecondaryExecutablePath = '',
     [Parameter(Mandatory = $true)][string[]]$Arguments,
-    [Parameter(Mandatory = $true)][string]$WorkingDirectory
+    [Parameter(Mandatory = $true)][string]$WorkingDirectory,
+    [object[]]$GoGraphReceipts = @()
   )
 
   if ($null -eq $ArtifactRoot -or [bool]$ArtifactRoot.Closed) { throw 'prepared receipt has no live artifact root' }
   $ArtifactRoot.Ownership.VerifyExactPath()
+  $expectedPurposes = switch ($Purpose) {
+    'trusted-validator' { @('trusted-validator') }
+    'authority-initializer' { @('authority-initializer', 'test2json') }
+    default { @() }
+  }
+  if (@($expectedPurposes).Count -ne 0 -and ((@($GoGraphReceipts | ForEach-Object { $_.Purpose } | Sort-Object) -join '|') -cne (@($expectedPurposes | Sort-Object) -join '|'))) {
+    throw 'prepared receipt requires its independent purpose-labelled Go graphs'
+  }
   if ([string]$ArtifactRoot.Profile -cne $Profile -or $Purpose -notmatch '^[a-z][a-z0-9-]{0,63}$' -or
       $SourceDigest -notmatch '^[0-9a-f]{64}$' -or $CandidateTreeIdentity -notmatch '^(?:[0-9a-f]{40}|[0-9a-f]{64})$') {
     throw 'prepared receipt closed identity is malformed'
@@ -2134,6 +2436,7 @@ function New-C12SealedExecutableReceipt {
       SourceIdentity = $SourceIdentity
       SourceDigest = $SourceDigest
       CandidateTreeIdentity = $CandidateTreeIdentity
+      GoGraphReceipts = @($GoGraphReceipts)
       BuildArguments = [string[]]$BuildArguments
       BuildArgumentsDigest = $buildDigest
       GoExecutablePath = [string]$GoToolchain.Path
@@ -3027,6 +3330,9 @@ function Invoke-C12PreparedAuthorityRole {
     $expected = New-C12VerificationProjection -Prepared $Prepared
     if ((ConvertTo-C12ProtocolJSON $expected) -cne (ConvertTo-C12ProtocolJSON $Prepared.Projection)) { throw 'protocol immutable projection changed' }
     $null = Invoke-C12PreparedProtocol -Prepared $Prepared -CapabilityEnvironment $CapabilityEnvironment -Deadline $Deadline
+    foreach ($graph in @($Prepared.Receipt.GoGraphReceipts)) {
+      Assert-C12GoGraphReceipt -Receipt $graph -ArtifactRoot $Prepared.ArtifactRoot -Deadline $Deadline
+    }
     Release-C12PreparedWorker -Prepared $Prepared
     $releaseDeadline = [DateTime]::UtcNow.Add($Timeout - $Prepared.ReleaseWatch.Elapsed)
     if ($releaseDeadline -gt $Deadline) { $releaseDeadline = $Deadline }
@@ -3149,12 +3455,14 @@ function Resolve-C12Test2JSONExecutable {
   $sourceIdentity = [C12SealedExecutable]::InspectDirectory($test2JSONSourceDirectory)
   if ([bool]$sourceIdentity.Reparse) { throw 'exact test2json source directory is a reparse point' }
   $test2JSONBuildArguments = @('build', '-o', $temporaryTest2JSONExecutable, '.')
+  $graph = New-C12GoGraphReceipt -Purpose 'test2json' -Packages @('cmd/test2json') -Deadline $SetupDeadline -ArtifactRoot $ArtifactRoot -GoToolchain $GoToolchain -BuildArgv $test2JSONBuildArguments -WorkingDirectory $test2JSONSourceDirectory
   $null = Invoke-C12ClosedGoBuild -ArtifactRoot $ArtifactRoot -GoToolchain $GoToolchain -Arguments $test2JSONBuildArguments -WorkingDirectory $test2JSONSourceDirectory -Stage 'compile exact test2json executable' -SetupDeadline $SetupDeadline
   $published = Publish-C12PreparedExecutable -ArtifactRoot $ArtifactRoot -TemporaryPath $temporaryTest2JSONExecutable -FinalPath $finalTest2JSONExecutable -TemporaryLeafPattern '^authority-test2json-[0-9a-f]{32}\.tmp\.exe$' -FinalLeafPattern '^authority-test2json-[0-9a-f]{32}\.exe$'
   return [pscustomobject]@{
     Path = $published
     BuildArguments = [string[]]$test2JSONBuildArguments
     SourceIdentity = "cmd/test2json@$($GoToolchain.Version):$($sourceIdentity.Value)"
+    GoGraphReceipt = $graph
   }
 }
 
@@ -3218,6 +3526,7 @@ function New-C12PreparedTrustedValidator {
     Protect-C12PrivateArtifactFile -Path $sourcePath
     $goToolchain = Resolve-C12ClosedGoToolchain -ArtifactRoot $artifactRoot -SetupDeadline $setupDeadline
     $validatorBuildArguments = @('build', '-o', $temporaryExecutable, $sourcePath)
+    $validatorGraph = New-C12GoGraphReceipt -Purpose 'trusted-validator' -Packages @($sourcePath) -Deadline $setupDeadline -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -BuildArgv $validatorBuildArguments -WorkingDirectory ([string]$artifactRoot.Root)
     $null = Invoke-C12ClosedGoBuild -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -Arguments $validatorBuildArguments -WorkingDirectory ([string]$artifactRoot.Root) -Stage 'compile exact trusted validator' -SetupDeadline $setupDeadline
     $publishedExecutable = Publish-C12PreparedExecutable -ArtifactRoot $artifactRoot -TemporaryPath $temporaryExecutable -FinalPath $finalExecutable -TemporaryLeafPattern '^trusted-validator-[0-9a-f]{32}\.tmp\.exe$' -FinalLeafPattern '^trusted-validator-[0-9a-f]{32}\.exe$'
     $arguments = @(
@@ -3241,7 +3550,8 @@ function New-C12PreparedTrustedValidator {
       )
     }
     $candidateIdentity = Get-C12PreparedCandidateIdentity -DataRoot $resolvedDataRoot -CandidateTree $CandidateTree
-    $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifactRoot -Role 'trusted-validator' -Profile $Profile -Purpose 'trusted-validator' -SourceIdentity $script:c12TrustedValidatorVersion -SourceDigest $sourceDigest -CandidateTreeIdentity $candidateIdentity -BuildArguments $validatorBuildArguments -GoToolchain $goToolchain -ExecutablePath $publishedExecutable -Arguments $arguments -WorkingDirectory ([string]$artifactRoot.Root)
+    $candidateIdentity = Get-C12SHA256Hex ([Text.Encoding]::UTF8.GetBytes("$candidateIdentity`n$($validatorGraph.CandidateTreeDigest)"))
+    $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifactRoot -Role 'trusted-validator' -Profile $Profile -Purpose 'trusted-validator' -SourceIdentity $script:c12TrustedValidatorVersion -SourceDigest $sourceDigest -CandidateTreeIdentity $candidateIdentity -BuildArguments $validatorBuildArguments -GoToolchain $goToolchain -ExecutablePath $publishedExecutable -Arguments $arguments -WorkingDirectory ([string]$artifactRoot.Root) -GoGraphReceipts @($validatorGraph)
     $preparedValidator = New-C12PreparedNativeWorker -ArtifactRoot $artifactRoot -Receipt $receipt -SetupDeadline $setupDeadline
     return $preparedValidator
   }
@@ -3319,6 +3629,7 @@ function New-C12PreparedAuthorityInitializer {
     $temporaryTestExecutable = Join-Path ([string]$artifactRoot.Root) "authority-initializer-$nonce.tmp.test.exe"
     $finalTestExecutable = Join-Path ([string]$artifactRoot.Root) "authority-initializer-$nonce.test.exe"
     $initializerBuildArguments = @('test', '-c', '-tags=integration', '-p=1', '-o', $temporaryTestExecutable, './internal/testinfra')
+    $initializerGraph = New-C12GoGraphReceipt -Purpose 'authority-initializer' -Packages @('./internal/testinfra') -Deadline $setupDeadline -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -BuildArgv $initializerBuildArguments -WorkingDirectory $script:c12RepositoryRoot
     $null = Invoke-C12ClosedGoBuild -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -Arguments $initializerBuildArguments -WorkingDirectory $script:c12RepositoryRoot -Stage 'compile authority initializer test binary' -SetupDeadline $setupDeadline
     $publishedTestExecutable = Publish-C12PreparedExecutable -ArtifactRoot $artifactRoot -TemporaryPath $temporaryTestExecutable -FinalPath $finalTestExecutable -TemporaryLeafPattern '^authority-initializer-[0-9a-f]{32}\.tmp\.test\.exe$' -FinalLeafPattern '^authority-initializer-[0-9a-f]{32}\.test\.exe$'
     $test2JSON = Resolve-C12Test2JSONExecutable -ArtifactRoot $artifactRoot -GoToolchain $goToolchain -SetupDeadline $setupDeadline
@@ -3330,7 +3641,8 @@ function New-C12PreparedAuthorityInitializer {
     $candidateIdentity = Get-C12PreparedCandidateIdentity -DataRoot $script:c12RepositoryRoot -CandidateTree $CandidateTree
     $combinedBuildArguments = @($initializerBuildArguments + @('--sealed-test2json-build--') + @($test2JSON.BuildArguments))
     $sourceDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes("talenro.local/platform/internal/testinfra`n$candidateIdentity`n$(Get-C12PreparedStringArrayDigest -Values $combinedBuildArguments)"))
-    $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifactRoot -Role 'authority-initializer-json' -Profile $Profile -Purpose 'authority-initializer' -SourceIdentity 'talenro.local/platform/internal/testinfra' -SourceDigest $sourceDigest -CandidateTreeIdentity $candidateIdentity -BuildArguments $combinedBuildArguments -GoToolchain $goToolchain -ExecutablePath ([string]$test2JSON.Path) -SecondaryExecutablePath $publishedTestExecutable -Arguments $arguments -WorkingDirectory $script:c12RepositoryRoot
+    $candidateIdentity = Get-C12SHA256Hex ([Text.Encoding]::UTF8.GetBytes("$candidateIdentity`n$($initializerGraph.CandidateTreeDigest)`n$($test2JSON.GoGraphReceipt.CandidateTreeDigest)"))
+    $receipt = New-C12SealedExecutableReceipt -ArtifactRoot $artifactRoot -Role 'authority-initializer-json' -Profile $Profile -Purpose 'authority-initializer' -SourceIdentity 'talenro.local/platform/internal/testinfra' -SourceDigest $sourceDigest -CandidateTreeIdentity $candidateIdentity -BuildArguments $combinedBuildArguments -GoToolchain $goToolchain -ExecutablePath ([string]$test2JSON.Path) -SecondaryExecutablePath $publishedTestExecutable -Arguments $arguments -WorkingDirectory $script:c12RepositoryRoot -GoGraphReceipts @($initializerGraph, $test2JSON.GoGraphReceipt)
     $preparedInitializer = New-C12PreparedNativeWorker -ArtifactRoot $artifactRoot -Receipt $receipt -SetupDeadline $setupDeadline
     return $preparedInitializer
   }

@@ -719,34 +719,126 @@ func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
 // TestC12PreparedGoGraphsBindEverySelectedInput freezes the three setup-only
 // graph commands, finite bounds, and every selected Go/toolchain content set.
 func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
-	snapshot := c12PowerShellExecutableAST(t)
-	nodes := c12ReachablePowerShellNodes(t, snapshot,
-		"New-C12PreparedTrustedValidator", "New-C12PreparedAuthorityInitializer", "Resolve-C12Test2JSONExecutable")
-	c12RequirePowerShellASTTerms(t, "prepared Go graph closure", nodes, []string{
-		`(?i)\blist\b.*-deps.*-json`, `(?i)-test.*-tags=integration`, `cmd/test2json`,
-		`\b8192\b`, `\b131072\b`, `\b67108864\b`, `\b16777216\b`, `GOSUMDB`, `-mod=readonly`, `(?i)mod\s+verify`,
+	t.Run("discovery-policy", func(t *testing.T) {
+		snapshot := c12PowerShellExecutableAST(t)
+		nodes := c12ReachablePowerShellNodes(t, snapshot,
+			"New-C12PreparedTrustedValidator", "New-C12PreparedAuthorityInitializer", "Resolve-C12Test2JSONExecutable")
+		c12RequirePowerShellASTTerms(t, "prepared Go graph closure", nodes, []string{
+			`(?i)\blist\b.*-deps.*-json`, `(?i)-test.*-tags=integration`, `cmd/test2json`,
+			`\b8192\b`, `\b131072\b`, `\b67108864\b`, `\b16777216\b`, `GOSUMDB`, `-mod=readonly`, `(?i)mod\s+verify`,
+		})
+		graphFields := []string{
+			"schema", "purpose", "go_executable_path", "go_executable_identity", "go_executable_sha256", "go_version",
+			"goroot_path", "goroot_identity", "gomodcache_path", "gomodcache_identity", "module_root_path", "module_root_identity",
+			"goos", "goarch", "cgo_enabled", "go_mod_sha256", "go_sum_sha256", "candidate_tree_digest", "build_argv",
+			"package_count", "file_count", "packages", "import_path", "for_test", "origin", "module_path", "module_version",
+			"module_sum", "module_replace_or_null", "directory_identity", "imports", "deps", "test_imports", "xtest_imports",
+			"embed_patterns", "test_embed_patterns", "xtest_embed_patterns", "files", "set", "origin_relative_path", "length", "sha256",
+		}
+		for _, field := range graphFields {
+			c12RequirePowerShellASTTerms(t, "prepared Go graph registry", nodes, []string{regexp.QuoteMeta(field)})
+		}
+		for _, selectedSet := range []string{
+			"GoFiles", "CgoFiles", "CFiles", "CXXFiles", "MFiles", "HFiles", "FFiles", "SFiles", "SwigFiles",
+			"SwigCXXFiles", "SysoFiles", "EmbedPatterns", "EmbedFiles", "TestGoFiles", "TestEmbedPatterns",
+			"TestEmbedFiles", "XTestGoFiles", "XTestEmbedPatterns", "XTestEmbedFiles",
+		} {
+			c12RequirePowerShellASTTerms(t, "prepared Go selected sets", nodes, []string{regexp.QuoteMeta(selectedSet)})
+		}
 	})
-	graphFields := []string{
-		"schema", "purpose", "go_executable_path", "go_executable_identity", "go_executable_sha256", "go_version",
-		"goroot_path", "goroot_identity", "gomodcache_path", "gomodcache_identity", "module_root_path", "module_root_identity",
-		"goos", "goarch", "cgo_enabled", "go_mod_sha256", "go_sum_sha256", "candidate_tree_digest", "build_argv",
-		"package_count", "file_count", "packages", "import_path", "for_test", "origin", "module_path", "module_version",
-		"module_sum", "module_replace_or_null", "directory_identity", "imports", "deps", "test_imports", "xtest_imports",
-		"embed_patterns", "test_embed_patterns", "xtest_embed_patterns", "files", "set", "origin_relative_path", "length", "sha256",
+	t.Run("receipts-and-mutations", func(t *testing.T) {
+		output, exitCode := runC12PreparedGoGraphHarness(t)
+		if exitCode != 0 {
+			t.Fatalf("production prepared graph/receipt harness exit=%d output=%q", exitCode, output)
+		}
+	})
+}
+
+func TestC12GoGraphReceiptBindingPreservesEveryBodyByte(t *testing.T) {
+	runner := readC12RunnerSource(t)
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
 	}
-	for _, field := range graphFields {
-		c12RequirePowerShellASTTerms(t, "prepared Go graph registry", nodes, []string{regexp.QuoteMeta(field)})
+	const appendix = `
+$receipt = [pscustomobject]@{}
+foreach ($field in $script:c12PreparedReceiptPayloadFields) { $receipt | Add-Member -NotePropertyName $field -NotePropertyValue 'fixture' }
+$graph = [pscustomobject]@{ BodyBytes=[byte[]](0..255); Purpose='trusted-validator'; Digest='fixture'; Files=@('selected-file') }
+$receipt.GoGraphReceipts = @($graph)
+$first = Get-C12PreparedReceiptPayload $receipt
+$graphLine = ([Text.Encoding]::UTF8.GetString($first) -split [char]10 | Where-Object { $_.StartsWith('GoGraphReceipts=') })
+$graphJSON = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($graphLine.Substring('GoGraphReceipts='.Length)))
+$expectedBytes = '"BodyBytes":{"content":"' + [Convert]::ToBase64String($graph.BodyBytes) + '","encoding":"base64","length":256}'
+if (-not $graphJSON.Contains($expectedBytes)) { throw 'graph BodyBytes is not bound as full deterministic base64 with exact length' }
+$key = [byte[]](1..32)
+$mac = [Security.Cryptography.HMACSHA256]::new($key)
+try {
+  $baseline = [Convert]::ToBase64String($mac.ComputeHash($first))
+  $graph.BodyBytes = [byte[]](0..255)
+  if ([Convert]::ToBase64String($mac.ComputeHash((Get-C12PreparedReceiptPayload $receipt))) -cne $baseline) { throw 'identical body bytes changed receipt binding' }
+  foreach ($offset in 0..255) {
+    $graph.BodyBytes[$offset] = $graph.BodyBytes[$offset] -bxor 1
+    if ([Convert]::ToBase64String($mac.ComputeHash((Get-C12PreparedReceiptPayload $receipt))) -ceq $baseline) { throw "body byte mutation $offset preserved receipt binding" }
+    $graph.BodyBytes[$offset] = $graph.BodyBytes[$offset] -bxor 1
+  }
+  $graph.BodyBytes = [byte[]](0..254)
+  if ([Convert]::ToBase64String($mac.ComputeHash((Get-C12PreparedReceiptPayload $receipt))) -ceq $baseline) { throw 'body length mutation preserved receipt binding' }
+  $graph.BodyBytes = [byte[]](0..255)
+  $graph.Files = @('changed-file')
+  if ([Convert]::ToBase64String($mac.ComputeHash((Get-C12PreparedReceiptPayload $receipt))) -ceq $baseline) { throw 'graph metadata mutation preserved receipt binding' }
+} finally { $mac.Dispose() }
+Write-Output 'C12_GRAPH_BYTE_BINDING_OK'
+`
+	root := t.TempDir()
+	path := filepath.Join(root, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
 	}
-	for _, selectedSet := range []string{
-		"GoFiles", "CgoFiles", "CFiles", "CXXFiles", "MFiles", "HFiles", "FFiles", "SFiles", "SwigFiles",
-		"SwigCXXFiles", "SysoFiles", "EmbedPatterns", "EmbedFiles", "TestGoFiles", "TestEmbedPatterns",
-		"TestEmbedFiles", "XTestGoFiles", "XTestEmbedPatterns", "XTestEmbedFiles",
-	} {
-		c12RequirePowerShellASTTerms(t, "prepared Go selected sets", nodes, []string{regexp.QuoteMeta(selectedSet)})
+	if err := os.WriteFile(path, append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
 	}
-	output, exitCode := runC12PreparedGoGraphHarness(t)
-	if exitCode != 0 {
-		t.Fatalf("production prepared graph/receipt harness exit=%d output=%q", exitCode, output)
+	output, code := runC12PowerShellAtRootWithTimeout(t, root, 3*time.Minute, nil, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
+	if code != 0 || !strings.Contains(output, "C12_GRAPH_BYTE_BINDING_OK") {
+		t.Fatalf("byte binding exit=%d output=%q", code, output)
+	}
+}
+
+func TestC12GoGraphVerificationDefaultsToProfileDeadline(t *testing.T) {
+	runner := readC12RunnerSource(t)
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const appendix = `
+$body = '{"toolchain":{"go_executable_path":"unused","go_executable_sha256":"unused","go_version":"go1.26.5","goroot_path":"unused","gomodcache_path":"unused"},"environment":{"goos":"windows","goarch":"amd64"},"purpose":"trusted-validator","selected_packages":["fixture.go"],"build_argv":["build","fixture.go"],"working_directory":"unused"}'
+$receipt = [pscustomobject]@{ BodyBytes = [Text.Encoding]::UTF8.GetBytes($body) }
+function New-C12GoGraphReceipt {
+  param($Purpose,$Packages,[DateTime]$Deadline,$ArtifactRoot,$GoToolchain,$BuildArgv,$WorkingDirectory)
+  $script:observedDeadline = $Deadline
+  return $receipt
+}
+$before = [DateTime]::UtcNow
+Assert-C12GoGraphReceipt -Receipt $receipt -ArtifactRoot ([pscustomobject]@{ Profile='base' }) -Deadline ([DateTime]::MaxValue)
+$after = [DateTime]::UtcNow
+if ($script:observedDeadline.Kind -ne [DateTimeKind]::Utc -or $script:observedDeadline -lt $before.AddMinutes(3) -or $script:observedDeadline -gt $after.AddMinutes(3)) {
+  throw 'default graph verification deadline is not bounded by the closed profile in UTC'
+}
+$explicit = [DateTime]::UtcNow.AddSeconds(30)
+Assert-C12GoGraphReceipt -Receipt $receipt -ArtifactRoot ([pscustomobject]@{ Profile='base' }) -Deadline $explicit
+if ($script:observedDeadline -ne $explicit) { throw 'explicit graph verification deadline was changed' }
+Write-Output 'C12_GRAPH_DEFAULT_DEADLINE_OK'
+`
+	root := t.TempDir()
+	path := filepath.Join(root, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	output, code := runC12PowerShellAtRootWithTimeout(t, root, 2*time.Minute, nil, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
+	if code != 0 || !strings.Contains(output, "C12_GRAPH_DEFAULT_DEADLINE_OK") {
+		t.Fatalf("default graph deadline exit=%d output=%q", code, output)
 	}
 }
 
@@ -2319,8 +2411,24 @@ func runC12SnapshotSuiteFixture(t *testing.T, mutationMode string) c12SnapshotSu
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Only the copied test runner seeds its fresh, owned cache. Production still
+	// creates an empty cache, and every graph discovery and verification runs.
+	cacheSeed := prepareC12SnapshotCacheSeed(t, runner)
+	cacheHook := "    [void][IO.Directory]::CreateDirectory($goCache)"
+	if bytes.Count(runner, []byte(cacheHook)) != 1 {
+		t.Fatal("snapshot cache hook is not unique")
+	}
+	seedScript := cacheHook + "\n    $seed = '" + strings.ReplaceAll(cacheSeed, "'", "''") + "'\n" + `    foreach ($seedFile in [IO.Directory]::EnumerateFiles($seed, '*', [IO.SearchOption]::AllDirectories)) {
+      $relative = $seedFile.Substring($seed.Length).TrimStart('\')
+      $target = Join-Path $goCache $relative
+      [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target))
+      [IO.File]::Copy($seedFile, $target, $false)
+    }`
+	runner = bytes.Replace(runner, []byte(cacheHook), []byte(seedScript), 1)
 	files := map[string][]byte{
-		"scripts/run-c12-integration.ps1":                             runner,
+		"go.mod":                          []byte("module talenro.local/platform\n\ngo 1.26.0\n"),
+		"go.sum":                          []byte{},
+		"scripts/run-c12-integration.ps1": runner,
 		"testdata/c12/integration-contracts-schema-authority.v1.json": []byte(`{"schema":"talenro-c12-integration-manifest/v1","groups":[{"id":"a-first","package":"./internal/testinfra","profile":"base","tests":["TestFirst"],"timeout":"2m"},{"id":"b-second","package":"./internal/store","profile":"base","tests":["TestSecond"],"timeout":"2m"}]}`),
 		"internal/store/later.txt":                                    []byte("captured candidate bytes\n"),
 		"internal/testinfra/first_integration_test.go":                []byte("//go:build integration\n\npackage testinfra_test\n\nimport \"testing\"\n\nfunc TestFirst(t *testing.T) {}\n"),
@@ -2390,25 +2498,64 @@ func main(){args:=os.Args[1:];joined:=strings.Join(args," ");last:=args[len(args
  if len(args)>1&&args[0]=="image"&&args[1]=="inspect"{fmt.Println(imageIDs[roleOf(last)]);return}
  if args[0]=="run"{role:=roleOf(joined);name:="";for i:=range args{if args[i]=="--name"&&i+1<len(args){name=args[i+1]}};os.WriteFile(state(role,".name"),[]byte(name),0600);os.Remove(state(role,".removed"));fmt.Println(ids[role]);return}
  if len(args)>1&&args[0]=="container"&&args[1]=="inspect"{role:=roleOf(last);if strings.Contains(joined,"State.Health.Status"){fmt.Println("healthy");return};if strings.Contains(joined,"{{.Id}}")&&!strings.Contains(joined,"talenro.c12.role"){if _,err:=os.Stat(state(role,".removed"));err==nil{os.Exit(1)};fmt.Println(ids[role]);return};nameRaw,_:=os.ReadFile(state(role,".name"));name:=string(nameRaw);suffix:=strings.TrimSuffix(strings.TrimPrefix(name,"talenro-c12-"),"-"+role);fmt.Printf("%s|/%s|%s|%s|%s|%s\n",ids[role],name,suffix,role,refs[role],imageIDs[role]);return}
- if len(args)>1&&args[0]=="container"&&args[1]=="port"{role:=roleOf(args[len(args)-2]);port:=0;if role=="postgres"{port=15432}else if role=="redis"{port,_=strconv.Atoi(os.Getenv("C12_REDIS_PORT"))}else{port,_=strconv.Atoi(os.Getenv("C12_NATS_PORT"))};fmt.Printf("127.0.0.1:%d\n",port);return}
+ if len(args)>1&&args[0]=="container"&&args[1]=="port"{role:=roleOf(args[len(args)-2]);port:=0;if role=="postgres"{port,_=strconv.Atoi(os.Getenv("C12_POSTGRES_PORT"))}else if role=="redis"{port,_=strconv.Atoi(os.Getenv("C12_REDIS_PORT"))}else{port,_=strconv.Atoi(os.Getenv("C12_NATS_PORT"))};fmt.Printf("127.0.0.1:%d\n",port);return}
  if len(args)>1&&args[0]=="container"&&args[1]=="stop"{return};if len(args)>1&&args[0]=="container"&&args[1]=="rm"{os.WriteFile(state(roleOf(last),".removed"),[]byte("removed"),0600);return};os.Exit(74)
 }`
 	buildFakeGoExecutable(t, filepath.Join(fakeBin, "go.exe"), fakeGoSource)
 	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
+	postgresPort := startC12ProtocolServer(t, "")
 	redisPort := startC12ProtocolServer(t, "+PONG\r\n")
 	natsPort := startC12ProtocolServer(t, "PONG\r\n")
 	dockerState := t.TempDir()
-	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 90*time.Second, map[string]string{
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 20*time.Minute, map[string]string{
 		"C12_DOCKER_STATE":            dockerState,
 		"C12_FAKE_GO_LOG":             goLog,
 		"C12_LATER_MUTATION_SENTINEL": laterMutationSentinel,
 		"C12_NATS_PORT":               fmt.Sprint(natsPort),
+		"C12_POSTGRES_PORT":           fmt.Sprint(postgresPort),
 		"C12_REDIS_PORT":              fmt.Sprint(redisPort),
 		"C12_SNAPSHOT_REAL_GO":        realGo,
 		"C12_SNAPSHOT_MUTATION":       mutationMode,
 		"Path":                        fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
 	}, "-Suite", "batch01", "-Timeout", "120m")
 	return c12SnapshotSuiteRun{repository: repository, objectsRoot: objectsRoot, objectsBefore: objectsBefore, goLog: goLog, laterMutationSentinel: laterMutationSentinel, output: output, exitCode: exitCode}
+}
+
+func prepareC12SnapshotCacheSeed(t *testing.T, runner []byte) string {
+	t.Helper()
+	startMarker := []byte("$script:c12TrustedValidatorSource = @'\n")
+	normalized := bytes.ReplaceAll(runner, []byte("\r\n"), []byte("\n"))
+	_, tail, found := bytes.Cut(normalized, startMarker)
+	if !found {
+		t.Fatal("trusted validator source is absent")
+	}
+	source, _, found := bytes.Cut(tail, []byte("\n'@"))
+	if !found {
+		t.Fatal("trusted validator source terminator is absent")
+	}
+	// Use the authenticated child environment and existing trusted test cache;
+	// the executable is only a prewarm output and is never used by the runner.
+	prewarmRoot := t.TempDir()
+	sourcePath := filepath.Join(prewarmRoot, "validator.go")
+	if err := os.WriteFile(sourcePath, source, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
+	defer cancel()
+	command := task8ChildGoCommandContext(t, ctx, "", "build", "-tags=integration", "-o", filepath.Join(prewarmRoot, "prewarm.exe"), sourcePath)
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("prewarm trusted snapshot cache: %v\n%s", err, output)
+	}
+	command = task8ChildGoCommandContext(t, ctx, "", "env", "GOCACHE")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("resolve trusted snapshot cache: %v\n%s", err, output)
+	}
+	cache := strings.TrimSpace(string(output))
+	if !filepath.IsAbs(cache) {
+		t.Fatalf("snapshot cache is not absolute: %q", cache)
+	}
+	return cache
 }
 
 func readC12SnapshotGoLog(t *testing.T, logPath string) []c12SnapshotGoLogEntry {
@@ -3750,6 +3897,7 @@ func runC12PreparedGoGraphHarness(t *testing.T) (string, int) {
 		"go.sum":                         "",
 		"main.go":                        "package main\nfunc main() {}\n",
 		"internal/testinfra/fixture.go":  "package testinfra\n",
+		"internal/testinfra/payload.txt": "selected embed bytes\n",
 		"src/cmd/test2json/test2json.go": "package main\nfunc main() {}\n",
 	} {
 		if err := os.WriteFile(filepath.Join(fixtureRoot, filepath.FromSlash(name)), []byte(body), 0o600); err != nil {
@@ -3758,7 +3906,7 @@ func runC12PreparedGoGraphHarness(t *testing.T) (string, int) {
 	}
 	fakeGo := filepath.Join(t.TempDir(), "go.exe")
 	buildFakeGoExecutable(t, fakeGo, `package main
-import("fmt";"io";"os";"path/filepath";"strings")
+import("fmt";"io";"os";"path/filepath";"strings";"encoding/json")
 func main(){
  a:=os.Args[1:]; root:=os.Getenv("C12_FAKE_MODULE_ROOT")
  if len(a)==1&&a[0]=="version"{fmt.Println("go version go1.26.5 windows/amd64");return}
@@ -3776,7 +3924,13 @@ func main(){
    if file==""{fmt.Fprintln(os.Stderr,"validator graph omitted exact source");os.Exit(74)}
   }
   line:=fmt.Sprintf("{\"Dir\":%q,\"ImportPath\":%q,\"Name\":%q,\"Root\":%q,\"Module\":%s,\"GoFiles\":[%q],\"Imports\":[],\"Deps\":[],\"TestGoFiles\":[],\"TestImports\":[],\"XTestGoFiles\":[],\"XTestImports\":[],\"EmbedPatterns\":[],\"EmbedFiles\":[],\"TestEmbedPatterns\":[],\"TestEmbedFiles\":[],\"XTestEmbedPatterns\":[],\"XTestEmbedFiles\":[]}",dir,importPath,name,graphRoot,module,file)
-  fmt.Println(line);if os.Getenv("C12_FAKE_GO_MUTATION")==purpose+":duplicate-import-path"{fmt.Println(line)};return
+  var graph map[string]interface{};if err:=json.Unmarshal([]byte(line),&graph);err!=nil{panic(err)}
+  if purpose=="authority-initializer"{graph["EmbedPatterns"]=[]string{"payload.txt"};graph["EmbedFiles"]=[]string{"payload.txt"}}
+  mutation:=os.Getenv("C12_FAKE_GO_MUTATION")
+  if mutation=="package-import"{graph["Imports"]=[]string{"example.invalid/changed"}}
+  if mutation=="module-replacement"{graph["Module"].(map[string]interface{})["Replace"]=map[string]interface{}{"Path":"example.invalid/replacement","Version":"v1.0.1","Dir":graphRoot}}
+  encoded,err:=json.Marshal(graph);if err!=nil{panic(err)};line=string(encoded)
+  fmt.Println(line);if mutation==purpose+":duplicate-import-path"{fmt.Println(line)};return
  }
  out:="";for i:=0;i+1<len(a);i++{if a[i]=="-o"{out=a[i+1]}}
  if out!=""{src,_:=os.Executable();in,e:=os.Open(src);if e!=nil{panic(e)};defer in.Close();o,e:=os.Create(out);if e!=nil{panic(e)};_,e=io.Copy(o,in);if e!=nil{panic(e)};if e=o.Close();e!=nil{panic(e)};return}
@@ -3813,7 +3967,7 @@ $artifact = $null
 $success = $false
 try {
   $allowance = [TimeSpan]$script:c12ProfileAllowances['authority-v7-pitr']
-  $deadline = [DateTime]::UtcNow.AddSeconds(75)
+  $deadline = [DateTime]::UtcNow.AddMinutes(20)
   $validator = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
   $artifact = $validator.ArtifactRoot
   $initializer = New-C12PreparedAuthorityInitializer -Profile 'authority-v7-pitr' -RunSuffix ([string]$artifact.RunSuffix) -SetupAllowance $allowance -Deadline $deadline
@@ -3833,6 +3987,36 @@ try {
       throw "production graph receipt $purpose lacks exact schema/body/digest"
     }
     Write-Output ('C12_GRAPH_POSITIVE:' + $purpose + ':' + [Convert]::ToBase64String([byte[]]$graph.BodyBytes) + ':' + [string]$graph.Digest)
+  }
+  $toolchain = Resolve-C12ClosedGoToolchain -ArtifactRoot $artifact -SetupDeadline $deadline
+  $baseline = @($initializer.Receipt.GoGraphReceipts | Where-Object Purpose -CEQ 'authority-initializer')[0]
+  foreach ($mutation in @('selected-source','embed-file','go.mod','go.sum','module-replacement','package-import','build-argument')) {
+    $path = switch ($mutation) {
+      'selected-source' { Join-Path $fixtureRoot 'internal/testinfra/fixture.go' }
+      'embed-file' { Join-Path $fixtureRoot 'internal/testinfra/payload.txt' }
+      'go.mod' { Join-Path $fixtureRoot 'go.mod' }
+      'go.sum' { Join-Path $fixtureRoot 'go.sum' }
+    }
+    $original = $null
+    try {
+      if ($path) { $original = [IO.File]::ReadAllBytes($path); [IO.File]::WriteAllBytes($path, [byte[]](@($original) + @(32))) }
+      [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $mutation, 'Process')
+      $argv = @($baseline.BuildArgv)
+      if ($mutation -ceq 'build-argument') { $argv += '-trimpath' }
+      $changed = New-C12GoGraphReceipt -Purpose 'authority-initializer' -Packages @('./internal/testinfra') -Deadline $deadline -ArtifactRoot $artifact -GoToolchain $toolchain -BuildArgv $argv -WorkingDirectory $fixtureRoot
+      if ($changed.CandidateTreeDigest -ceq $baseline.CandidateTreeDigest) { throw "candidate-tree digest ignored $mutation" }
+      if ($mutation -cne 'build-argument') {
+        $rejected = $false
+        try { Assert-C12GoGraphReceipt -Receipt $baseline -ArtifactRoot $artifact -Deadline $deadline }
+        catch { $rejected = $_.Exception.Message -match 'graph.*changed' }
+        if (-not $rejected) { throw "pre-execution verification accepted $mutation" }
+      }
+      Write-Output ('C12_GRAPH_MUTATION_OK:' + $mutation)
+    }
+    finally {
+      if ($null -ne $original) { [IO.File]::WriteAllBytes($path, $original) }
+      [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process')
+    }
   }
   foreach ($purpose in $purposes) {
     [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', ($purpose + ':duplicate-import-path'), 'Process')
@@ -3872,7 +4056,7 @@ exit 1
 	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Minute)
 	defer cancel()
 	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
 	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness, "-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
@@ -3906,6 +4090,23 @@ exit 1
 			got := sha256.Sum256(digestInput)
 			if hex.EncodeToString(got[:]) != string(marker[3]) {
 				t.Fatalf("production %s graph digest does not bind exact graph bytes: got %x want %s", purpose, got, marker[3])
+			}
+			var candidate map[string]json.RawMessage
+			if err := json.Unmarshal(graphBytes, &candidate); err != nil {
+				t.Fatal(err)
+			}
+			var candidateDigest string
+			if err := json.Unmarshal(candidate["candidate_tree_digest"], &candidateDigest); err != nil {
+				t.Fatal(err)
+			}
+			delete(candidate, "candidate_tree_digest")
+			candidateBytes, err := json.Marshal(candidate)
+			if err != nil {
+				t.Fatal(err)
+			}
+			candidateHash := sha256.Sum256(candidateBytes)
+			if hex.EncodeToString(candidateHash[:]) != candidateDigest {
+				t.Fatalf("production %s candidate-tree digest does not bind its literal input registry", purpose)
 			}
 		}
 		return string(output), 0
@@ -4611,7 +4812,7 @@ func buildFakeGoExecutable(t *testing.T, executable, source string) {
 	if err := os.WriteFile(sourcePath, []byte(source), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	command := task8ChildGoCommandContext(t, ctx, "", "build", "-o", executable, sourcePath)
 	if output, err := command.CombinedOutput(); err != nil {
