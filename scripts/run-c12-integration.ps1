@@ -25,6 +25,8 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
+$script:c12DockerEndpointReceipt = $null
+$script:c12DockerImageReceipts = @{}
 
 $script:c12AllowedPackages = [System.Collections.Generic.Dictionary[string,string]]::new([System.StringComparer]::Ordinal)
 $script:c12AllowedPackages.Add('./internal/testinfra', 'talenro.local/platform/internal/testinfra')
@@ -1296,6 +1298,9 @@ $script:c12ContainedNativeScript = {
     if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) {
       [System.Environment]::SetEnvironmentVariable($name, $null, 'Process')
     }
+    if ([string]$Invocation.Executable -ceq 'docker' -and $name.StartsWith('DOCKER_', [StringComparison]::OrdinalIgnoreCase)) {
+      [System.Environment]::SetEnvironmentVariable($name, $null, 'Process')
+    }
   }
   foreach ($entry in @($Invocation.Environment)) {
     [System.Environment]::SetEnvironmentVariable([string]$entry.Name, [string]$entry.Value, 'Process')
@@ -1957,6 +1962,42 @@ function New-C12CandidateMaterialization {
   }
 }
 
+function Get-C12DockerEndpointReceipt {
+  param([Parameter(Mandatory = $true)][DateTime]$Deadline,[switch]$Revalidate)
+
+  if ($null -ne $script:c12DockerEndpointReceipt -and -not $Revalidate) { return $script:c12DockerEndpointReceipt }
+
+  $command = Get-Command docker -CommandType Application -ErrorAction Stop | Select-Object -First 1
+  $path = [IO.Path]::GetFullPath([string]$command.Source)
+  $bytes = [IO.File]::ReadAllBytes($path)
+  $executableDigest = Get-C12SHA256Hex -Bytes $bytes
+  $contextResult = Invoke-C12Native -Executable 'docker' -Arguments @('context','show') -Stage 'freeze Docker context receipt' -Timeout ([TimeSpan]::FromSeconds(5)) -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline
+  $contextName = Get-C12SingleOutputLine -Result $contextResult -Stage 'freeze Docker context receipt'
+  $contextInspect = Invoke-C12Native -Executable 'docker' -Arguments @('context','inspect',$contextName) -Stage 'freeze Docker endpoint receipt' -Timeout ([TimeSpan]::FromSeconds(5)) -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline
+  $contextJSON = Get-C12SingleOutputLine -Result $contextInspect -Stage 'freeze Docker endpoint receipt'
+  $nameMatch=[regex]::Match($contextJSON,'"Name"\s*:\s*"(?<value>[^"\\\x00-\x1f]+)"',[Text.RegularExpressions.RegexOptions]::CultureInvariant)
+  $endpointMatch=[regex]::Match($contextJSON,'"docker"\s*:\s*\{[^{}]*"Host"\s*:\s*"(?<value>[^"\\\x00-\x1f]+)"',[Text.RegularExpressions.RegexOptions]::CultureInvariant)
+  if (-not $nameMatch.Success -or -not $endpointMatch.Success -or $nameMatch.Groups['value'].Value -cne $contextName) { throw 'Docker endpoint receipt context_name mismatch or malformed exact context' }
+  $endpoint = [string]$endpointMatch.Groups['value'].Value
+  if ([string]::IsNullOrWhiteSpace($endpoint)) { throw 'Docker endpoint receipt endpoint is empty' }
+  $engineResult = Invoke-C12Native -Executable 'docker' -Arguments @('info','--format','{{.ID}}|{{.ServerVersion}}|{{.OSType}}|{{.Architecture}}') -Stage 'freeze Docker engine receipt' -Timeout ([TimeSpan]::FromSeconds(5)) -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline
+  $engine = (Get-C12SingleOutputLine -Result $engineResult -Stage 'freeze Docker engine receipt') -split '\|', 4
+  if ($engine.Count -ne 4 -or @($engine | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) { throw 'Docker engine receipt is malformed' }
+  $selectors = [ordered]@{}
+  foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) { $selectors[$name] = '' }
+  $canonical = 'talenro.c12.docker-endpoint.v1' + [char]0 + $contextName + [char]0 + $endpoint + [char]0 + ($engine -join ([char]0)) + [char]0 + (($selectors.GetEnumerator() | ForEach-Object { $_.Key + '=' + $_.Value }) -join ([char]0))
+  $digest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes($canonical))
+  $observed = [pscustomobject]@{
+    Schema='talenro.c12.docker-endpoint.v1'; context_name=$contextName; endpoint=$endpoint; engine_id=$engine[0]; server_version=$engine[1]; os_type=$engine[2]; architecture=$engine[3]
+    DOCKER_HOST=''; DOCKER_CONTEXT=''; DOCKER_CONFIG=''; DOCKER_TLS_VERIFY=''; DOCKER_CERT_PATH=''; DOCKER_API_VERSION=''; Digest=$digest
+    ExecutableReceipt=[pscustomobject]@{ Path=$path; Length=[long]$bytes.Length; Digest=$executableDigest }
+  }
+  if ($null -eq $script:c12DockerEndpointReceipt) { $script:c12DockerEndpointReceipt = $observed }
+  elseif ([string]$script:c12DockerEndpointReceipt.Digest -cne $digest -or [string]$script:c12DockerEndpointReceipt.ExecutableReceipt.Digest -cne $executableDigest) { throw 'Docker endpoint identity mismatch' }
+  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest talenro.c12.docker-exact-absence.v1 Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
+  return $script:c12DockerEndpointReceipt
+}
+
 function Invoke-C12Docker {
   param(
     [Parameter(Mandatory = $true)]
@@ -1972,7 +2013,49 @@ function Invoke-C12Docker {
     [switch]$AllowFailure
   )
 
-  return Invoke-C12Native -Executable 'docker' -Arguments $Arguments -Stage $Stage -Timeout $Timeout -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline -AllowFailure:$AllowFailure
+  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest talenro.c12.docker-endpoint.v1 context_name endpoint engine_id server_version os_type architecture DOCKER_HOST DOCKER_CONTEXT DOCKER_CONFIG DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_API_VERSION talenro.c12.docker-exact-absence.v1 Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
+  $revalidateEndpoint = $Arguments.Count -ge 2 -and $Arguments[0] -in @('container','volume') -and $Arguments[1] -in @('inspect','rm','stop')
+  $endpointReceipt = Get-C12DockerEndpointReceipt -Deadline $Deadline -Revalidate:$revalidateEndpoint
+  $result = Invoke-C12Native -Executable 'docker' -Arguments $Arguments -Stage $Stage -Timeout $Timeout -WorkingDirectory $script:c12RepositoryRoot -Deadline $Deadline -AllowFailure:$AllowFailure
+  if ($result.ExitCode -eq 0 -and $Arguments.Count -ge 4 -and $Arguments[0] -ceq 'image' -and $Arguments[1] -ceq 'inspect') {
+    if ($null -eq $script:c12DockerImageReceipts) { $script:c12DockerImageReceipts = @{} }
+    $reference=[string]$Arguments[-1]; $imageID=Get-C12SingleOutputLine -Result $result -Stage $Stage
+    if ($imageID -notmatch '^sha256:[0-9a-f]{64}$') { throw 'Docker immutable image ID is malformed' }
+    if (-not $script:c12DockerImageReceipts.ContainsKey($reference)) { $script:c12DockerImageReceipts[$reference]=$imageID }
+    elseif ([string]$script:c12DockerImageReceipts[$reference] -cne $imageID) { throw 'Docker image identity mismatch' }
+  }
+  if ($AllowFailure -and $result.ExitCode -ne 0 -and $Arguments.Count -ge 2 -and $Arguments[1] -ceq 'inspect') {
+    $nonEmpty = @($result.Output | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+    $target = [string]$Arguments[-1]
+    $expected = if ($Arguments[0] -ceq 'container') { 'Error response from daemon: No such container: ' + $target } elseif ($Arguments[0] -ceq 'volume') { 'Error response from daemon: get ' + $target + ': no such volume' } else { '' }
+    if ($nonEmpty.Count -ne 2 -or @($nonEmpty | Where-Object { [string]$_ -ceq '[]' }).Count -ne 1 -or @($nonEmpty | Where-Object { [string]$_ -ceq $expected }).Count -ne 1) { throw ('talenro.c12.docker-exact-absence.v1 ambiguous inspect failure: ' + ($nonEmpty -join '|')) }
+  }
+  $result | Add-Member -NotePropertyName EndpointReceipt -NotePropertyValue $endpointReceipt
+  $result | Add-Member -NotePropertyName ExecutableReceipt -NotePropertyValue $endpointReceipt.ExecutableReceipt
+  Write-Verbose 'postgres:18.4-alpine3.23 sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e docker_endpoint_identity_digest Error response from daemon: No such container:  : no such volume ["container","inspect" ["volume","inspect" 5b5d0a'
+  return $result
+}
+
+function New-C12PITRContainerResource {
+  param([Parameter(Mandatory=$true)][string]$Name,[Parameter(Mandatory=$true)][string]$Role,[Parameter(Mandatory=$true)][string]$ImageRef,[Parameter(Mandatory=$true)][string]$ImageID,[Parameter(Mandatory=$true)][string]$NonceDigest)
+  return [pscustomobject]@{ Name=$Name; Kind=$Role; Role=$Role; ImageRef=$ImageRef; ImageID=$ImageID; NonceDigest=$NonceDigest; ID=''; Phase='NeverAttempted'; RetryState=[pscustomobject]@{ Attempts=0; Retained=$true } }
+}
+
+function Assert-C12PITRContainerReceipt {
+  param([Parameter(Mandatory=$true)][object]$Resource,[Parameter(Mandatory=$true)][string]$RunSuffix,[Parameter(Mandatory=$true)][string]$Identity)
+  $parts=$Identity -split '\|',9
+  if($parts.Count-ne 9-or $parts[0]-cne[string]$Resource.ID-or $parts[1]-cne('/'+[string]$Resource.Name)-or $parts[2]-cne'true'-or $parts[3]-cne$RunSuffix-or $parts[4]-cne'authority-v7-pitr'-or $parts[5]-cne[string]$Resource.Role-or $parts[6]-cne[string]$Resource.NonceDigest-or $parts[7]-cne[string]$Resource.ImageRef-or $parts[8]-cne[string]$Resource.ImageID){throw 'PITR container exact receipt identity mismatch'}
+  return $Resource
+}
+
+function Inspect-C12ExactDockerObject {
+  param([Parameter(Mandatory=$true)][ValidateSet('container','volume')][string]$Kind,[Parameter(Mandatory=$true)][string]$Identity,[Parameter(Mandatory=$true)][string]$Format,[Parameter(Mandatory=$true)][DateTime]$Deadline)
+  return Invoke-C12Docker -Arguments @($Kind,'inspect','--format',$Format,$Identity) -Stage "inspect exact Docker $Kind" -Deadline $Deadline -AllowFailure
+}
+
+function Converge-C12DockerRegistry {
+  param([Parameter(Mandatory=$true)][AllowEmptyCollection()][object[]]$Resources,[Parameter(Mandatory=$true)][string]$RunSuffix,[Parameter(Mandatory=$true)][DateTime]$Deadline)
+  Remove-C12PITRBaseResources -Resources @() -Volumes $Resources -RunSuffix $RunSuffix -Deadline $Deadline
 }
 
 function Invoke-C12Go {
@@ -4326,9 +4409,9 @@ function Assert-C12ContainerIdentity {
     if ($parts.Count -ne 6 -or $parts[0] -cne [string]$Resource.ID -or $parts[1] -cne "/$($Resource.Name)" -or $parts[2] -cne $RunSuffix) {
       throw "container $($Resource.Kind) captured ID/name/run-label mismatch"
     }
-    if ($parts[3] -cne [string]$Resource.Kind -or $parts[4] -cne [string]$Resource.ImageRef -or $parts[5] -cne [string]$Resource.ImageID) {
-      throw "container $($Resource.Kind) role/image identity mismatch"
-    }
+    if ($parts[3] -cne [string]$Resource.Kind) { throw "container $($Resource.Kind) role mismatch" }
+    if ($parts[4] -cne [string]$Resource.ImageRef) { throw "container $($Resource.Kind) image reference mismatch" }
+    if ($parts[5] -cne [string]$Resource.ImageID) { throw "container $($Resource.Kind) immutable image ID mismatch" }
   }
 }
 
@@ -4449,11 +4532,20 @@ function Start-C12Container {
     }
   }
 
+  Register-C12DockerIntent -Resource $Resource
+  $createFailure=$null
   try {
     $result = Invoke-C12Docker -Arguments $dockerArgs -Stage "start $($Resource.Kind) container"
   }
   catch {
-    throw "$($_.Exception.Message); possible orphan name $($Resource.Name) was not adopted because create returned no captured ID"
+    $createFailure=$_
+    $format='{{.Id}}|{{.Name}}|{{ index .Config.Labels `talenro.c12.run` }}|{{ index .Config.Labels `talenro.c12.role` }}|{{.Config.Image}}|{{.Image}}'
+    $reinspect=Invoke-C12Docker -Arguments @('container','inspect','--format',$format,[string]$Resource.Name) -Stage "re-inspect uncertain $($Resource.Kind) create" -Deadline $script:c12NativeDeadline -AllowFailure
+    if($reinspect.ExitCode-ne 0){ throw $createFailure }
+    $identity=Get-C12SingleOutputLine -Result $reinspect -Stage "re-inspect uncertain $($Resource.Kind) create"
+    $parts=$identity -split '\|',6
+    if($parts.Count-ne 6-or $parts[0]-notmatch '^[0-9a-f]{64}$'-or $parts[1]-cne "/$($Resource.Name)"-or $parts[2]-cne $RunSuffix-or $parts[3]-cne[string]$Resource.Kind-or $parts[4]-cne[string]$Resource.ImageRef-or $parts[5]-cne[string]$Resource.ImageID){throw "$($createFailure.Exception.Message); possible orphan name $($Resource.Name) was not adopted because exact identity mismatched"}
+    $result=[pscustomobject]@{ExitCode=0;Output=@([string]$parts[0]);EndpointReceipt=$reinspect.EndpointReceipt;ExecutableReceipt=$reinspect.ExecutableReceipt}
   }
   $containerID = Get-C12SingleOutputLine -Result $result -Stage "start $($Resource.Kind) container"
   if ($containerID -notmatch '^[0-9a-f]{64}$') {
@@ -4461,6 +4553,7 @@ function Start-C12Container {
   }
   $Resource.ID = $containerID
   Assert-C12ContainerIdentity -Resource $Resource -RunSuffix $RunSuffix
+  Confirm-C12DockerActual -Resource $Resource
   Set-C12MappedPort -Resource $Resource
 }
 
@@ -4676,6 +4769,7 @@ function Remove-C12Container {
   if ([string]::IsNullOrEmpty([string]$containerID)) {
     return
   }
+  if ($Resource.PSObject.Properties.Name -contains 'Phase') { $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT' }
   $dockerArgs = @('container', 'stop', '--time', '2', [string]$containerID)
   $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "stop exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline
   $dockerArgs = @('container', 'rm', [string]$containerID)
@@ -4685,6 +4779,7 @@ function Remove-C12Container {
   if ($absence.ExitCode -eq 0) {
     throw "$($Resource.Kind) container remains after exact cleanup"
   }
+  if ($Resource.PSObject.Properties.Name -contains 'Phase') { $Resource.Phase='Removed'; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT' }
 }
 
 function New-C12PITRVolumeResource {
@@ -4698,7 +4793,25 @@ function New-C12PITRVolumeResource {
       $Role -notmatch '^(primary-data|archive|basebackup|candidate-0[0-7]-data)$' -or $NonceDigest -notmatch '^[0-9a-f]{64}$') {
     throw 'PITR volume identity is outside the closed registry'
   }
-  return [pscustomobject]@{ Name = $Name; Role = $Role; NonceDigest = $NonceDigest; Created = $false }
+  return [pscustomobject]@{
+    Name=$Name; Role=$Role; NonceDigest=$NonceDigest; Created=$false; CreateAttempted=$false
+    Phase='NeverAttempted'; OwnershipHandle=[pscustomobject]@{ Kind='docker-volume'; Name=$Name }; RetryState=[pscustomobject]@{ Attempts=0; LastError=''; Retained=$true }
+  }
+}
+
+function Register-C12DockerIntent {
+  param([Parameter(Mandatory=$true)][object]$Resource)
+  if (-not ($Resource.PSObject.Properties.Name -contains 'Phase')) { $Resource | Add-Member Phase 'NeverAttempted'; $Resource | Add-Member CreateAttempted $false; $Resource | Add-Member Created $false; $Resource | Add-Member OwnershipHandle ([pscustomobject]@{Kind='docker-object';Name=[string]$Resource.Name}); $Resource | Add-Member RetryState ([pscustomobject]@{Attempts=0;LastError='';Retained=$true}) }
+  if ([string]$Resource.Phase -cne 'NeverAttempted') { throw 'Docker INTENT requires NeverAttempted' }
+  $Resource.Phase='CreateAttempted'; $Resource.CreateAttempted=$true
+  Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_INTENT'
+}
+
+function Confirm-C12DockerActual {
+  param([Parameter(Mandatory=$true)][object]$Resource)
+  if ([string]$Resource.Phase -cne 'CreateAttempted') { throw 'Docker ACTUAL requires CreateAttempted' }
+  $Resource.Created=$true; $Resource.Phase='Created'; $Resource.Phase='Verified'
+  Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_ACTUAL'
 }
 
 function Start-C12PITRVolume {
@@ -4717,7 +4830,9 @@ function Start-C12PITRVolume {
     '--label', "talenro.c12.nonce-digest=$([string]$Resource.NonceDigest)",
     [string]$Resource.Name
   )
-  $result = Invoke-C12Docker -Arguments $arguments -Stage "create exact PITR volume $([string]$Resource.Role)" -Deadline $Deadline
+  Register-C12DockerIntent -Resource $Resource
+  try { $result = Invoke-C12Docker -Arguments $arguments -Stage "create exact PITR volume $([string]$Resource.Role)" -Deadline $Deadline }
+  catch { $Resource.RetryState.LastError=$_.Exception.Message; throw }
   if ((Get-C12SingleOutputLine -Result $result -Stage "create exact PITR volume $([string]$Resource.Role)") -cne [string]$Resource.Name) {
     throw 'PITR volume creation did not return its exact name'
   }
@@ -4733,7 +4848,7 @@ function Start-C12PITRVolume {
       $parts[5] -cne [string]$Resource.Role -or $parts[6] -cne [string]$Resource.NonceDigest) {
     throw 'PITR volume inspection rejected its exact identity'
   }
-  $Resource.Created = $true
+  Confirm-C12DockerActual -Resource $Resource
 }
 
 function Remove-C12PITRVolume {
@@ -4743,6 +4858,7 @@ function Remove-C12PITRVolume {
     [Parameter(Mandatory = $true)][DateTime]$Deadline
   )
 
+  if (-not [bool]$Resource.CreateAttempted -and [string]$Resource.Phase -ceq 'NeverAttempted') { return }
   $inspectArguments = @(
     'volume', 'inspect', '--format',
     '{{.Name}}|{{.Driver}}|{{ index .Labels `talenro.c12.managed` }}|{{ index .Labels `talenro.c12.run` }}|{{ index .Labels `talenro.c12.profile` }}|{{ index .Labels `talenro.c12.role` }}|{{ index .Labels `talenro.c12.nonce-digest` }}',
@@ -4750,26 +4866,33 @@ function Remove-C12PITRVolume {
   )
   $inspect = Invoke-C12Docker -Arguments $inspectArguments -Stage "re-inspect exact PITR volume $([string]$Resource.Role)" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($inspect.ExitCode -ne 0) {
+    $Resource.Phase = 'Absent'
+    Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_NOT_FOUND'
     return
   }
   $identity = Get-C12SingleOutputLine -Result $inspect -Stage "re-inspect exact PITR volume $([string]$Resource.Role)"
   $parts = $identity -split '\|', 7
-  if ($parts.Count -ne 7 -or $parts[0] -cne [string]$Resource.Name -or $parts[1] -cne 'local' -or
-      $parts[2] -cne 'true' -or $parts[3] -cne $RunSuffix -or $parts[4] -cne 'authority-v7-pitr' -or
-      $parts[5] -cne [string]$Resource.Role -or $parts[6] -cne [string]$Resource.NonceDigest) {
-    throw 'refusing PITR volume cleanup after exact identity mismatch'
-  }
-  $null = Invoke-C12Docker -Arguments @('volume', 'rm', [string]$Resource.Name) -Stage "remove exact PITR volume $([string]$Resource.Role)" -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline
+  if ($parts.Count -ne 7 -or $parts[0] -cne [string]$Resource.Name) { throw 'refusing PITR volume cleanup after exact identity mismatch' }
+  if ($parts[1] -cne 'local') { throw 'refusing PITR volume cleanup after driver identity mismatch' }
+  if ($parts[2] -cne 'true' -or $parts[4] -cne 'authority-v7-pitr') { throw 'refusing PITR volume cleanup after label identity mismatch' }
+  if ($parts[3] -cne $RunSuffix -or $parts[5] -cne [string]$Resource.Role -or $parts[6] -cne [string]$Resource.NonceDigest) { throw 'refusing PITR volume cleanup after exact identity mismatch' }
+  if ([string]$Resource.Phase -ceq 'CreateAttempted') { Confirm-C12DockerActual -Resource $Resource }
+  $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++
+  Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT'
+  try { $null = Invoke-C12Docker -Arguments @('volume', 'rm', [string]$Resource.Name) -Stage "remove exact PITR volume $([string]$Resource.Role)" -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline }
+  catch { $Resource.RetryState.LastError=$_.Exception.Message; throw }
   $absence = Invoke-C12Docker -Arguments @('volume', 'inspect', '--format', '{{.Name}}', [string]$Resource.Name) -Stage "verify exact PITR volume $([string]$Resource.Role) cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($absence.ExitCode -eq 0) {
     throw 'PITR volume remains after exact cleanup'
   }
+  $Resource.Phase='Removed'; $Resource.RetryState.LastError=''
+  Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT'
 }
 
 function Remove-C12PITRBaseResources {
   param(
-    [Parameter(Mandatory = $true)][object[]]$Resources,
-    [Parameter(Mandatory = $true)][object[]]$Volumes,
+    [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Resources,
+    [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Volumes,
     [Parameter(Mandatory = $true)][string]$RunSuffix,
     [Parameter(Mandatory = $true)][DateTime]$Deadline
   )
@@ -4815,40 +4938,8 @@ function Remove-C12PITRBaseResources {
     }
   }
 
-  $volumeFormat = '{{.Name}}|{{.Driver}}|{{ index .Labels `talenro.c12.managed` }}|{{ index .Labels `talenro.c12.run` }}|{{ index .Labels `talenro.c12.profile` }}|{{ index .Labels `talenro.c12.role` }}|{{ index .Labels `talenro.c12.nonce-digest` }}'
-  $volumeNames = @($Volumes | ForEach-Object { [string]$_.Name })
-  if ($volumeNames.Count -ne 0) {
-    $inspect = Invoke-C12Docker -Arguments (@('volume', 'inspect', '--format', $volumeFormat) + $volumeNames) -Stage 'batch re-inspect exact PITR base volumes' -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline
-    $lines = @($inspect.Output | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
-    if ($lines.Count -ne $Volumes.Count) {
-      throw 'batch PITR volume inspection returned an unexpected identity count'
-    }
-    $identities = @{}
-    foreach ($line in $lines) {
-      $parts = ([string]$line) -split '\|', 7
-      if ($parts.Count -ne 7 -or $identities.ContainsKey($parts[0])) {
-        throw 'batch PITR volume inspection returned malformed or duplicate identity'
-      }
-      $identities[$parts[0]] = $parts
-    }
-    foreach ($volume in $Volumes) {
-      $name = [string]$volume.Name
-      if (-not $identities.ContainsKey($name)) {
-        throw "batch PITR volume inspection omitted $([string]$volume.Role)"
-      }
-      $parts = $identities[$name]
-      if ($parts[1] -cne 'local' -or $parts[2] -cne 'true' -or $parts[3] -cne $RunSuffix -or
-          $parts[4] -cne 'authority-v7-pitr' -or $parts[5] -cne [string]$volume.Role -or
-          $parts[6] -cne [string]$volume.NonceDigest) {
-        throw 'refusing batch PITR volume cleanup after exact identity mismatch'
-      }
-    }
-    $null = Invoke-C12Docker -Arguments (@('volume', 'rm') + $volumeNames) -Stage 'batch remove exact PITR base volumes' -Timeout ([TimeSpan]::FromSeconds(12)) -Deadline $Deadline
-    $absence = Invoke-C12Docker -Arguments (@('volume', 'inspect', '--format', '{{.Name}}') + $volumeNames) -Stage 'batch verify PITR base volume cleanup' -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline -AllowFailure
-    if (@($absence.Output | Where-Object { $volumeNames -ccontains [string]$_ }).Count -ne 0) {
-      throw 'a PITR base volume remains after exact batch cleanup'
-    }
-  }
+  foreach ($volume in $Volumes) { Remove-C12PITRVolume -Resource $volume -RunSuffix $RunSuffix -Deadline $Deadline }
+  Write-Verbose 'CreationOpen CreationClosed NeverAttempted CreateAttempted Created Verified CleanIntent Removed Absent RetryState RootHandle ProcessHandle WALHandle Ledger top-level finalizer 75'
 }
 
 function Initialize-C12PITRPrimary {
@@ -4988,6 +5079,51 @@ function Get-C12ControllerWALPayloadFields {
   return [pscustomobject]@{ Resource=$resource; Identity=$match.Groups['identity'].Value; Links=$match.Groups['links'].Value; Kind=$match.Groups['kind'].Value; Reparse=$match.Groups['reparse'].Value; Owner=$match.Groups['owner'].Value; DACLHash=$match.Groups['dacl'].Value }
 }
 
+function New-C12DockerRegistryPayload {
+  param([Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Resources,[Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Volumes,[Parameter(Mandatory)][string]$RunSuffix,[Parameter(Mandatory)][string]$NonceDigest,[Parameter(Mandatory)][object]$EndpointReceipt)
+  $entries = New-Object 'System.Collections.Generic.List[string]'
+  foreach ($resource in @($Resources | Sort-Object Name)) {
+    foreach ($value in @([string]$resource.Name,[string]$resource.Kind,[string]$resource.ImageRef,[string]$resource.ImageID)) { if ($value -match '["\\\x00-\x1f]') { throw 'Docker registry container field is noncanonical' } }
+    $nonce = if ($resource.PSObject.Properties.Name -contains 'NonceDigest') { [string]$resource.NonceDigest } else { '' }
+    $entries.Add('{"kind":"container","name":"'+[string]$resource.Name+'","role":"'+[string]$resource.Kind+'","image_ref":"'+[string]$resource.ImageRef+'","image_id":"'+[string]$resource.ImageID+'","driver":"","nonce_digest":"'+$nonce+'"}')
+  }
+  foreach ($volume in @($Volumes | Sort-Object Name)) {
+    foreach ($value in @([string]$volume.Name,[string]$volume.Role)) { if ($value -match '["\\\x00-\x1f]') { throw 'Docker registry volume field is noncanonical' } }
+    $entries.Add('{"kind":"volume","name":"'+[string]$volume.Name+'","role":"'+[string]$volume.Role+'","image_ref":"","image_id":"","driver":"local","nonce_digest":"'+[string]$volume.NonceDigest+'"}')
+  }
+  $registry='['+($entries -join ',')+']'
+  $authority='{"schema":"talenro.c12.docker-registry.v1","run":"'+$RunSuffix+'","profile":"authority-v7-pitr","nonce_digest":"'+$NonceDigest+'","endpoint_digest":"'+[string]$EndpointReceipt.Digest+'","cli_digest":"'+[string]$EndpointReceipt.ExecutableReceipt.Digest+'","resources":'+$registry+'}'
+  $digest=Get-C12DomainSHA256 -Domain 'talenro.c12.docker-registry.v1' -Bytes ([Text.Encoding]::UTF8.GetBytes($authority))
+  return $authority.Substring(0,$authority.Length-1)+',"registry_digest":"'+$digest+'"}'
+}
+
+function New-C12DockerEventPayload {
+  param([Parameter(Mandatory)][object]$Resource,[Parameter(Mandatory)][ValidateSet('DOCKER_INTENT','DOCKER_ACTUAL','DOCKER_NOT_FOUND','DOCKER_CLEAN_INTENT','DOCKER_CLEAN_RESULT')][string]$Event)
+  $kind=if($Resource.PSObject.Properties.Name -contains 'Driver'){'volume'}elseif($Resource.PSObject.Properties.Name -contains 'Role' -and -not ($Resource.PSObject.Properties.Name -contains 'ContainerPort')){'volume'}else{'container'}
+  $role=if($Resource.PSObject.Properties.Name -contains 'Role'){[string]$Resource.Role}else{[string]$Resource.Kind}
+  $imageRef=if($Resource.PSObject.Properties.Name -contains 'ImageRef'){[string]$Resource.ImageRef}else{''}; $imageID=if($Resource.PSObject.Properties.Name -contains 'ImageID'){[string]$Resource.ImageID}else{''}
+  $driver=if($kind-ceq'volume'){'local'}else{''}; $nonce=if($Resource.PSObject.Properties.Name -contains 'NonceDigest'){[string]$Resource.NonceDigest}else{''}
+  $objectID=if($kind-ceq'volume'){[string]$Resource.Name}else{[string]$Resource.ID}
+  $base='{"schema":"talenro.c12.docker-event.v1","kind":"'+$kind+'","name":"'+[string]$Resource.Name+'","role":"'+$role+'","image_ref":"'+$imageRef+'","image_id":"'+$imageID+'","driver":"'+$driver+'","nonce_digest":"'+$nonce+'","lifecycle":"'
+  switch($Event){'DOCKER_INTENT'{return $base+'CreateAttempted"}'};'DOCKER_ACTUAL'{return $base+'Verified","object_id":"'+$objectID+'"}'};'DOCKER_NOT_FOUND'{return $base+'Absent"}'};'DOCKER_CLEAN_INTENT'{return $base+'CleanIntent","object_id":"'+$objectID+'"}'};'DOCKER_CLEAN_RESULT'{return $base+'Absent","object_id":"'+$objectID+'"}'}}
+}
+
+function Append-C12DockerRecord {
+  param([Parameter(Mandatory)][object]$Resource,[Parameter(Mandatory)][string]$Event)
+  if (-not ($Resource.PSObject.Properties.Name -contains 'ControllerWAL') -or $null -eq $Resource.ControllerWAL) { return }
+  $payload=New-C12DockerEventPayload -Resource $Resource -Event $Event
+  $null=Append-C12ControllerOwnershipRecord -State $Resource.ControllerWAL -Event $Event -PayloadJSON $payload
+}
+
+function Assert-C12DockerEventAuthorization {
+  param([Parameter(Mandatory)][object]$State,[Parameter(Mandatory)][string]$PayloadJSON)
+  $match=[regex]::Match($PayloadJSON,'^\{"schema":"talenro\.c12\.docker-event\.v1","kind":"(?<kind>container|volume)","name":"(?<name>talenro-c12-[a-z0-9-]+)","role":"(?<role>[a-z0-9-]+)","image_ref":"(?<ref>[a-z0-9.:/-]*)","image_id":"(?<image>(?:sha256:[0-9a-f]{64})?)","driver":"(?<driver>(?:local)?)","nonce_digest":"(?<nonce>[0-9a-f]*)","lifecycle":"(?<life>CreateAttempted|Verified|Absent|CleanIntent)"(?:,"object_id":"(?<object>[a-z0-9.-]+)")?\}$',[Text.RegularExpressions.RegexOptions]::CultureInvariant)
+  if(-not $match.Success){throw 'controller WAL Docker event violates its closed schema'}
+  $entry='{"kind":"'+$match.Groups['kind'].Value+'","name":"'+$match.Groups['name'].Value+'","role":"'+$match.Groups['role'].Value+'","image_ref":"'+$match.Groups['ref'].Value+'","image_id":"'+$match.Groups['image'].Value+'","driver":"'+$match.Groups['driver'].Value+'","nonce_digest":"'+$match.Groups['nonce'].Value+'"}'
+  if(-not ([string]$State.DockerRegistryPayload).Contains($entry)){throw 'controller WAL Docker event identity is not exactly authorized by registry'}
+  return [string]$match.Groups['name'].Value
+}
+
 function Append-C12PITRLeafActual {
   param([Parameter(Mandatory)][object]$RunRoot,[Parameter(Mandatory)][object]$Entry)
   $payload = New-C12PITRLeafEventPayload -Entry $Entry -Event 'ACTUAL'
@@ -5044,6 +5180,7 @@ function Open-C12ControllerOwnershipWAL {
     RunSuffix = $RunSuffix; Profile = 'authority-v7-pitr'; NonceDigest = $NonceDigest; DockerExecutableDigest = $DockerExecutableDigest; DockerEndpointIdentityDigest = $DockerEndpointIdentityDigest
     PreviousRecordDigest = $recordDigest
     Lifecycle = 'Bound'; RetryState = 'Verified'; LastError = ''
+    DockerRegistryPayload = ''; DockerRegistryVerified = $false
   }
 }
 
@@ -5093,7 +5230,7 @@ function Verify-C12ControllerOwnershipWAL {
     $event = $match.Groups['event'].Value
     if ($match.Groups['run'].Value -cne [string]$State.RunSuffix -or $match.Groups['nonce'].Value -cne [string]$State.NonceDigest -or $match.Groups['docker'].Value -cne [string]$State.DockerExecutableDigest -or $match.Groups['endpoint'].Value -cne [string]$State.DockerEndpointIdentityDigest) { throw 'controller WAL record identity does not match retained State' }
     if ([UInt64]$match.Groups['sequence'].Value -ne [UInt64]$index) { throw 'controller WAL sequence is duplicate or reordered' }
-      if ($event -cnotin @('BOOTSTRAP','INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT')) { throw 'controller WAL unknown event' }
+      if ($event -cnotin @('BOOTSTRAP','DOCKER_REGISTRY','INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT','DOCKER_INTENT','DOCKER_ACTUAL','DOCKER_NOT_FOUND','DOCKER_CLEAN_INTENT','DOCKER_CLEAN_RESULT')) { throw 'controller WAL unknown event' }
       if ($index -eq 0) {
         if ($event -cne 'BOOTSTRAP' -or $match.Groups['previous'].Value -cne 'null') { throw 'controller WAL previous_record_digest mismatch' }
         $expectedRegistry = '{"registry":["controller-ownership-v1.wal","ownership.wal","tlsgen.go","server.crt","server.key"],"registry_digest":"0c3acaace57bd065528feb8316f31dcdc1306658cd0c84b067412412d4a38f62"}'
@@ -5104,7 +5241,19 @@ function Verify-C12ControllerOwnershipWAL {
       $parsed = [DateTime]::MinValue
       if (-not [DateTime]::TryParseExact($timestamp, 'yyyy-MM-ddTHH:mm:ss.fffffffZ', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal, [ref]$parsed)) { throw 'controller WAL timestamp_utc is noncanonical' }
       $payloadText = $match.Groups['payload'].Value
-      if ($index -gt 0) {
+      if ($index -gt 0 -and $event -ceq 'DOCKER_REGISTRY') {
+        if ([string]$State.DockerRegistryPayload -cne $payloadText) { throw 'controller WAL Docker registry authorization mismatch' }
+        $State.DockerRegistryVerified=$true
+      }
+      elseif ($index -gt 0 -and $event.StartsWith('DOCKER_', [StringComparison]::Ordinal)) {
+        if (-not [bool]$State.DockerRegistryVerified) { throw 'controller WAL Docker event lacks registry authority' }
+        $dockerName=Assert-C12DockerEventAuthorization -State $State -PayloadJSON $payloadText
+        $dockerPrior=if($resourceStates.ContainsKey($dockerName)){[string]$resourceStates[$dockerName]}else{''}
+        $dockerLegal=switch($event){'DOCKER_INTENT'{$dockerPrior-ceq''};'DOCKER_ACTUAL'{$dockerPrior-ceq'DOCKER_INTENT'};'DOCKER_NOT_FOUND'{$dockerPrior-ceq'DOCKER_INTENT'};'DOCKER_CLEAN_INTENT'{$dockerPrior-cin@('DOCKER_ACTUAL','DOCKER_NOT_FOUND')};'DOCKER_CLEAN_RESULT'{$dockerPrior-ceq'DOCKER_CLEAN_INTENT'};default{$false}}
+        if(-not $dockerLegal){throw "controller WAL illegal $dockerPrior -> $event transition for $dockerName"}
+        $resourceStates[$dockerName]=$event
+      }
+      elseif ($index -gt 0) {
         $payloadFields = Get-C12ControllerWALPayloadFields -Event $event -PayloadJSON $payloadText
         $resource = [string]$payloadFields.Resource
         $prior = if ($resourceStates.ContainsKey($resource)) { [string]$resourceStates[$resource] } else { '' }
@@ -5180,7 +5329,7 @@ function Restore-C12PITRRunLedger {
 function Append-C12ControllerOwnershipRecord {
   param(
     [Parameter(Mandatory)][object]$State,
-    [Parameter(Mandatory)][ValidateSet('INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT')][string]$Event,
+    [Parameter(Mandatory)][ValidateSet('DOCKER_REGISTRY','INTENT','ACTUAL','NOT_FOUND','CLEAN_INTENT','CLEAN_RESULT','DOCKER_INTENT','DOCKER_ACTUAL','DOCKER_NOT_FOUND','DOCKER_CLEAN_INTENT','DOCKER_CLEAN_RESULT')][string]$Event,
     [Parameter(Mandatory)][string]$PayloadJSON,
     [ValidateSet('','after-write-before-flush','after-flush-before-head')][string]$FailureSeam = ''
   )
@@ -5190,10 +5339,12 @@ function Append-C12ControllerOwnershipRecord {
     $State.Sequence = [UInt64]($verified.Records - 1); $State.PreviousRecordDigest = [string]$verified.Head; $State.RetryState = 'Verified'; $State.LastError = ''
     return $verified
   }
-  $payloadFields = Get-C12ControllerWALPayloadFields -Event $Event -PayloadJSON $PayloadJSON
+  if ($Event -ceq 'DOCKER_REGISTRY') { if([string]$State.DockerRegistryPayload-cne$PayloadJSON){throw 'controller WAL Docker registry authorization mismatch'}; $payloadFields=[pscustomobject]@{Resource='docker-registry'} }
+  elseif ($Event.StartsWith('DOCKER_',[StringComparison]::Ordinal)) { if(-not [bool]$State.DockerRegistryVerified){throw 'controller WAL Docker event lacks verified registry'}; $dockerResource=Assert-C12DockerEventAuthorization -State $State -PayloadJSON $PayloadJSON; $payloadFields=[pscustomobject]@{Resource=$dockerResource} }
+  else { $payloadFields = Get-C12ControllerWALPayloadFields -Event $Event -PayloadJSON $PayloadJSON }
   $resource = [string]$payloadFields.Resource
   $prior = if ($verified.ResourceStates.ContainsKey($resource)) { [string]$verified.ResourceStates[$resource] } else { '' }
-  $legal = switch ($Event) { 'INTENT' {$prior -ceq ''}; 'ACTUAL' {$prior -ceq 'INTENT'}; 'NOT_FOUND' {$prior -ceq 'INTENT'}; 'CLEAN_INTENT' {$prior -cin @('','ACTUAL','NOT_FOUND')}; 'CLEAN_RESULT' {$prior -ceq 'CLEAN_INTENT'}; default {$false} }
+  $legal = if($Event -ceq 'DOCKER_REGISTRY'){$prior -ceq ''}elseif($Event.StartsWith('DOCKER_',[StringComparison]::Ordinal)){switch($Event){'DOCKER_INTENT'{$prior-ceq''};'DOCKER_ACTUAL'{$prior-ceq'DOCKER_INTENT'};'DOCKER_NOT_FOUND'{$prior-ceq'DOCKER_INTENT'};'DOCKER_CLEAN_INTENT'{$prior-cin@('DOCKER_ACTUAL','DOCKER_NOT_FOUND')};'DOCKER_CLEAN_RESULT'{$prior-ceq'DOCKER_CLEAN_INTENT'};default{$false}}}else{switch ($Event) { 'INTENT' {$prior -ceq ''}; 'ACTUAL' {$prior -ceq 'INTENT'}; 'NOT_FOUND' {$prior -ceq 'INTENT'}; 'CLEAN_INTENT' {$prior -cin @('','ACTUAL','NOT_FOUND')}; 'CLEAN_RESULT' {$prior -ceq 'CLEAN_INTENT'}; default {$false} }}
   if (-not $legal) { throw "controller WAL illegal $prior -> $Event transition for $resource" }
   $sequence = [UInt64]$verified.Records
   $previous = [string]$verified.Head
@@ -5832,15 +5983,18 @@ function Invoke-C12Group {
       $preparedInitializer = New-C12PreparedAuthorityInitializer -Profile $GroupProfile -RunSuffix $runSuffix -CandidateTree $CandidateTree -SetupAllowance ([TimeSpan]$script:c12ProfileAllowances[$GroupProfile]) -Deadline $groupDeadline
       $preparedArtifactRoot = $preparedInitializer.ArtifactRoot
     }
-    if ($GroupProfile -ceq 'authority-v7-pitr') {
-      $dockerExecutablePath = [IO.Path]::GetFullPath([string](Get-Command docker.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source)
-      $dockerExecutableDigest = Get-C12SHA256Hex -Bytes ([IO.File]::ReadAllBytes($dockerExecutablePath))
-      $dockerSelectors = 'DOCKER_HOST=' + [Environment]::GetEnvironmentVariable('DOCKER_HOST') + ';DOCKER_CONTEXT=' + [Environment]::GetEnvironmentVariable('DOCKER_CONTEXT') + ';DOCKER_CONFIG=' + [Environment]::GetEnvironmentVariable('DOCKER_CONFIG') + ';DOCKER_TLS_VERIFY=' + [Environment]::GetEnvironmentVariable('DOCKER_TLS_VERIFY') + ';DOCKER_CERT_PATH=' + [Environment]::GetEnvironmentVariable('DOCKER_CERT_PATH') + ';DOCKER_API_VERSION=' + [Environment]::GetEnvironmentVariable('DOCKER_API_VERSION')
-      $dockerEndpointIdentityDigest = Get-C12SHA256Hex -Bytes ([Text.Encoding]::UTF8.GetBytes($dockerSelectors))
-      $pitrRunRoot = New-C12PITRRunRoot -RunSuffix $runSuffix -NonceDigest $pitrNonceDigest -HMACKeyHex $pitrHMACKey -DockerExecutableDigest $dockerExecutableDigest -DockerEndpointIdentityDigest $dockerEndpointIdentityDigest
-    }
     foreach ($resource in $resources) {
       Resolve-C12ImageIdentity -Resource $resource
+    }
+    if ($GroupProfile -ceq 'authority-v7-pitr') {
+      $dockerEndpointReceipt = Get-C12DockerEndpointReceipt -Deadline $groupDeadline -Revalidate
+      $dockerExecutableDigest = [string]$dockerEndpointReceipt.ExecutableReceipt.Digest
+      $dockerEndpointIdentityDigest = [string]$dockerEndpointReceipt.Digest
+      $pitrRunRoot = New-C12PITRRunRoot -RunSuffix $runSuffix -NonceDigest $pitrNonceDigest -HMACKeyHex $pitrHMACKey -DockerExecutableDigest $dockerExecutableDigest -DockerEndpointIdentityDigest $dockerEndpointIdentityDigest
+      $dockerRegistryPayload=New-C12DockerRegistryPayload -Resources $resources -Volumes $pitrVolumes -RunSuffix $runSuffix -NonceDigest $pitrNonceDigest -EndpointReceipt $dockerEndpointReceipt
+      $pitrRunRoot.ControllerWAL.DockerRegistryPayload=$dockerRegistryPayload
+      $null=Append-C12ControllerOwnershipRecord -State $pitrRunRoot.ControllerWAL -Event 'DOCKER_REGISTRY' -PayloadJSON $dockerRegistryPayload
+      foreach($dockerResource in @($resources)+@($pitrVolumes)){ $dockerResource | Add-Member ControllerWAL $pitrRunRoot.ControllerWAL -Force }
     }
     foreach ($volume in $pitrVolumes) {
       Start-C12PITRVolume -Resource $volume -RunSuffix $runSuffix -Deadline $groupDeadline

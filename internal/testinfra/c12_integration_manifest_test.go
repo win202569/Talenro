@@ -1636,6 +1636,9 @@ func TestC12BaseRunnerCapturesNativeFailuresBeforeCleanup(t *testing.T) {
 import("fmt";"os")
 func main(){
  a:=os.Args[1:]
+ if len(a)>=2&&a[0]=="context"&&a[1]=="show"{fmt.Println("default");return}
+ if len(a)>=2&&a[0]=="context"&&a[1]=="inspect"{fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\"}}}]");return}
+ if len(a)>=1&&a[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
  if len(a)>=2&&a[0]=="image"&&a[1]=="inspect"{fmt.Println("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");return}
  if len(a)>=1&&a[0]=="run"{fmt.Fprintln(os.Stderr,"C12_NATIVE_STDERR_CANARY");os.Exit(73)}
  if len(a)>=2&&a[0]=="container"&&a[1]=="inspect"{fmt.Fprintln(os.Stderr,"Error: No such container");os.Exit(1)}
@@ -1696,6 +1699,9 @@ import("fmt";"os";"strings")
 func main(){
  args:=os.Args[1:]; joined:=strings.Join(args," ")
  f,_:=os.OpenFile(os.Getenv("C12_DOCKER_LOG"),os.O_CREATE|os.O_APPEND|os.O_WRONLY,0600); fmt.Fprintln(f,joined); f.Close()
+ if len(args)>1&&args[0]=="context"&&args[1]=="show"{fmt.Println("default");return}
+ if len(args)>1&&args[0]=="context"&&args[1]=="inspect"{fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\"}}}]");return}
+ if args[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
  if len(args)>1 && args[0]=="image" && args[1]=="inspect" { fmt.Println("sha256:"+strings.Repeat("a",64)); return }
  if args[0]=="run" { os.Exit(73) }
  if len(args)>1 && args[0]=="container" && args[1]=="inspect" { fmt.Println(strings.Repeat("f",64)+"|/attacker|attacker"); return }
@@ -1703,10 +1709,10 @@ func main(){
 }
 `
 	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
-	output, exitCode := runC12PowerShell(t, map[string]string{
+	output, exitCode := runC12FailedCreateHarness(t, map[string]string{
 		"C12_DOCKER_LOG": invocationLog,
 		"Path":           fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
-	}, "-Profile", "base", "-Packages", "./internal/testinfra", "-Run", "^TestC12DependenciesAreIsolatedAndBaseMigrated$", "-Timeout", "3m")
+	})
 	if exitCode == 0 {
 		t.Fatalf("exit=%d output=%q, want failed create", exitCode, output)
 	}
@@ -1714,9 +1720,37 @@ func main(){
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(string(logged), "container inspect") || strings.Contains(string(logged), "container stop") || strings.Contains(string(logged), "container rm") {
-		t.Fatalf("failed create caused name-based adoption or cleanup: %q", logged)
+	if !strings.Contains(string(logged), "container inspect") || strings.Contains(string(logged), "container stop") || strings.Contains(string(logged), "container rm") {
+		t.Fatalf("failed create did not perform exactly one safe reinspection, or cleaned a foreign object: %q", logged)
 	}
+}
+
+func runC12FailedCreateHarness(t *testing.T, environment map[string]string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const appendix = `
+$script:c12RepositoryRoot=(Get-Location).Path
+$script:c12NativeDeadline=[DateTime]::UtcNow.AddSeconds(20)
+$runSuffix=('d'*32)
+$resource=[pscustomobject]@{Kind='postgres';Name="talenro-c12-$runSuffix-postgres";ID='';ImageRef='postgres:18.4-alpine3.23';ImageID='';Port=0;ContainerPort=5432;PITR=$false}
+try { Resolve-C12ImageIdentity -Resource $resource; Start-C12Container -Resource $resource -RunSuffix $runSuffix -DatabaseName 'fixture' -DatabasePassword 'fixture'; exit 0 }
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+`
+	harnessRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(harnessRoot, "scripts"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1"), append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return runC12PowerShellAtRootWithTimeout(t, harnessRoot, 30*time.Second, environment, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
 }
 
 func TestC12BaseRunnerRejectsMutableDockerIdentityDimensions(t *testing.T) {
@@ -1728,6 +1762,9 @@ var imageIDs=map[string]string{"postgres":"sha256:"+strings.Repeat("a",64),"redi
 func roleOf(v string)string{for _,r:=range []string{"postgres","redis","nats"}{if strings.Contains(v,r){return r}};if len(v)>0{switch v[0]{case '1':return "postgres";case '2':return "redis";case '3':return "nats"}};return ""}
 func main(){
  args:=os.Args[1:]; joined:=strings.Join(args," "); last:=args[len(args)-1]
+ if len(args)>1&&args[0]=="context"&&args[1]=="show"{fmt.Println("default");return}
+ if len(args)>1&&args[0]=="context"&&args[1]=="inspect"{fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\",\"SkipTLSVerify\":false}}}]");return}
+ if args[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
  if len(args)>1&&args[0]=="image"&&args[1]=="inspect"{fmt.Println(imageIDs[roleOf(last)]);return}
  if args[0]=="run"{role:=roleOf(joined);name:="";for i:=range args{if args[i]=="--name"&&i+1<len(args){name=args[i+1]}};os.WriteFile(os.Getenv("C12_NAME_STATE"),[]byte(name),0600);fmt.Println(ids[role]);return}
  if len(args)>1&&args[0]=="container"&&args[1]=="inspect"{
@@ -1742,16 +1779,45 @@ func main(){
 		t.Run(test.mode, func(t *testing.T) {
 			fakeBin := t.TempDir()
 			buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
-			output, exitCode := runC12PowerShell(t, map[string]string{
+			output, exitCode := runC12DockerIdentityHarness(t, map[string]string{
 				"C12_IDENTITY_MODE": test.mode,
 				"C12_NAME_STATE":    filepath.Join(t.TempDir(), "name"),
 				"Path":              fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
-			}, "-Profile", "base", "-Packages", "./internal/testinfra", "-Run", "^TestC12DependenciesAreIsolatedAndBaseMigrated$", "-Timeout", "3m")
+			})
 			if exitCode == 0 || !strings.Contains(output, test.want) {
 				t.Fatalf("exit=%d output=%q, want %q", exitCode, output, test.want)
 			}
 		})
 	}
+}
+
+func runC12DockerIdentityHarness(t *testing.T, environment map[string]string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const appendix = `
+$script:c12RepositoryRoot = (Get-Location).Path
+$runSuffix = ('d' * 32)
+$name = "talenro-c12-$runSuffix-postgres"
+[IO.File]::WriteAllText($env:C12_NAME_STATE, $name)
+$resource = [pscustomobject]@{ Kind='postgres'; ID=('1' * 64); Name=$name; ImageRef='postgres:18.4-alpine3.23'; ImageID=('sha256:' + ('a' * 64)) }
+try { Assert-C12ContainerIdentity -Resource $resource -RunSuffix $runSuffix; exit 0 }
+catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+`
+	harnessRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(harnessRoot, "scripts"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1"), append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return runC12PowerShellAtRootWithTimeout(t, harnessRoot, 30*time.Second, environment, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
 }
 
 func TestC12BaseRunnerWatchdogKillsNativeDescendantsAndContinuesCleanup(t *testing.T) {
@@ -1979,6 +2045,11 @@ func TestC12PITRBaseCleanupReinspectsAttemptedUnconfirmedVolume(t *testing.T) {
 }
 
 func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
+	postgresListener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer postgresListener.Close()
 	redisListener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -1994,6 +2065,15 @@ func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
 	defer close(release)
 	redisAccepted := make(chan struct{}, 1)
 	natsAccepted := make(chan struct{}, 1)
+	postgresAccepted := make(chan struct{}, 1)
+	go func() {
+		connection, acceptErr := postgresListener.Accept()
+		if acceptErr != nil {
+			return
+		}
+		postgresAccepted <- struct{}{}
+		_ = connection.Close()
+	}()
 	serveStalledProbe := func(listener net.Listener, accepted chan<- struct{}) {
 		connection, acceptErr := listener.Accept()
 		if acceptErr != nil {
@@ -2013,6 +2093,7 @@ func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
 
 	output, exitCode := runC12DependencyDeadlineHarness(
 		t,
+		postgresListener.Addr().(*net.TCPAddr).Port,
 		redisListener.Addr().(*net.TCPAddr).Port,
 		natsListener.Addr().(*net.TCPAddr).Port,
 	)
@@ -2020,8 +2101,13 @@ func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
 		t.Fatalf("dependency deadline harness exit=%d output=%q", exitCode, output)
 	}
 	select {
+	case <-postgresAccepted:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatalf("dependency deadline harness never completed the controlled PostgreSQL TCP marker: %q", output)
+	}
+	select {
 	case <-redisAccepted:
-	default:
+	case <-time.After(500 * time.Millisecond):
 		t.Fatalf("dependency deadline harness never reached the stalled Redis protocol probe: %q", output)
 	}
 	select {
@@ -2847,7 +2933,7 @@ func runC12CleanupStateHarness(t *testing.T, mode string) (string, int) {
 	extraEnvironment := map[string]string{}
 	if mode == "cleanup-retained-production" || mode == "docker-exact-production" {
 		fakeBin := t.TempDir()
-		dockerState := t.TempDir()
+		dockerState := filepath.Join(t.TempDir(), "owned-volume.state")
 		dockerLog := filepath.Join(t.TempDir(), "docker-transcript.log")
 		const fakeDockerSource = `package main
 import("fmt";"os";"strings")
@@ -3477,6 +3563,7 @@ try {
 
     'docker-exact-production' {
       $script:c12RepositoryRoot = $fixtureRoot
+      $dockerRunRoot = $null
       foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) {
         [Environment]::SetEnvironmentVariable($name, 'attacker-canary', 'Process')
       }
@@ -3504,6 +3591,18 @@ try {
         $runSuffix = (('d' * 32) -join '')
         $nonceDigest = (('e' * 64) -join '')
         $volume = New-C12PITRVolumeResource -Name "talenro-c12-$runSuffix-pitr-primary-data" -Role 'primary-data' -NonceDigest $nonceDigest
+        $dockerRunRoot = New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -NonceDigest $nonceDigest -HMACKeyHex ('5a' * 32) -DockerExecutableDigest $executableDigest -DockerEndpointIdentityDigest $endpointDigest
+        $registryPayload = New-C12DockerRegistryPayload -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -NonceDigest $nonceDigest -EndpointReceipt $context.EndpointReceipt
+        $intentPayload = New-C12DockerEventPayload -Resource $volume -Event 'DOCKER_INTENT'
+        $missingRegistryRejected = $false
+        try { $null = Append-C12ControllerOwnershipRecord -State $dockerRunRoot.ControllerWAL -Event 'DOCKER_INTENT' -PayloadJSON $intentPayload } catch { $missingRegistryRejected = $_.Exception.Message -match 'registry' }
+        if (-not $missingRegistryRejected) { throw 'legacy WAL without Docker registry authorized a Docker INTENT' }
+        $dockerRunRoot.ControllerWAL.DockerRegistryPayload = $registryPayload
+        $null = Append-C12ControllerOwnershipRecord -State $dockerRunRoot.ControllerWAL -Event 'DOCKER_REGISTRY' -PayloadJSON $registryPayload
+        $unknownRejected = $false
+        try { $null = Append-C12ControllerOwnershipRecord -State $dockerRunRoot.ControllerWAL -Event 'DOCKER_INTENT' -PayloadJSON $intentPayload.Replace([string]$volume.Name,"talenro-c12-$runSuffix-pitr-unknown") } catch { $unknownRejected = $_.Exception.Message -match 'authorized|registry' }
+        if (-not $unknownRejected) { throw 'Docker WAL authorized an unknown resource' }
+        $volume | Add-Member ControllerWAL $dockerRunRoot.ControllerWAL -Force
         Start-C12PITRVolume -Resource $volume -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
         foreach ($mutation in @('endpoint','image','driver','label')) {
           [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $mutation, 'Process')
@@ -3521,6 +3620,8 @@ try {
         }
         [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
         Remove-C12PITRBaseResources -Resources @() -Volumes @($volume) -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(30))
+        $dockerWALText = [IO.File]::ReadAllText([string]$dockerRunRoot.ControllerWAL.Path)
+        foreach ($event in @('DOCKER_REGISTRY','DOCKER_INTENT','DOCKER_ACTUAL','DOCKER_CLEAN_INTENT','DOCKER_CLEAN_RESULT')) { if (-not $dockerWALText.Contains('"event":"' + $event + '"')) { throw ('controller WAL lacks Docker event ' + $event) } }
         foreach ($mutation in @('absence-stdout','absence-stderr')) {
           [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $mutation, 'Process')
           $rejected = $false
@@ -3534,6 +3635,7 @@ try {
       finally {
         [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
         foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
+        if ($null -ne $dockerRunRoot -and [IO.Directory]::Exists([string]$dockerRunRoot.Root)) { Remove-C12PITRRunRoot -RunRoot $dockerRunRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
       }
     }
 
@@ -3858,7 +3960,7 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 	return string(output), exitError.ExitCode()
 }
 
-func runC12DependencyDeadlineHarness(t *testing.T, redisPort, natsPort int) (string, int) {
+func runC12DependencyDeadlineHarness(t *testing.T, postgresPort, redisPort, natsPort int) (string, int) {
 	t.Helper()
 	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
 	if err != nil {
@@ -3887,7 +3989,7 @@ function Invoke-C12Docker {
   return [pscustomobject]@{ ExitCode = 0; Output = @('healthy') }
 }
 $resources = @(
-  [pscustomobject]@{ Kind = 'postgres'; ID = (('1' * 64) -join ''); Port = 1 },
+  [pscustomobject]@{ Kind = 'postgres'; ID = (('1' * 64) -join ''); Port = %d },
   [pscustomobject]@{ Kind = 'redis'; ID = (('2' * 64) -join ''); Port = %d },
   [pscustomobject]@{ Kind = 'nats'; ID = (('3' * 64) -join ''); Port = %d }
 )
@@ -3907,7 +4009,7 @@ try {
   exit 0
 }
 catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
-`, redisPort, natsPort)
+`, postgresPort, redisPort, natsPort)
 	harness := filepath.Join(t.TempDir(), "assert-c12-dependency-deadline.ps1")
 	if err := os.WriteFile(harness, append(append([]byte(nil), runner[:index]...), []byte(appendix)...), 0o600); err != nil {
 		t.Fatal(err)
