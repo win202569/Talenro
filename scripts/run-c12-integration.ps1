@@ -4712,7 +4712,8 @@ function Resolve-C12CleanupIdentity {
     [DateTime]$Deadline
   )
 
-  if ([string]::IsNullOrEmpty([string]$Resource.ID)) {
+  $recoverByName = [string]::IsNullOrEmpty([string]$Resource.ID) -and [string]$Resource.Phase -ceq 'CreateAttempted'
+  if ([string]::IsNullOrEmpty([string]$Resource.ID) -and -not $recoverByName) {
     return $null
   }
   $isPITR = $Resource.PSObject.Properties.Name -contains 'PITR' -and [bool]$Resource.PITR
@@ -4722,15 +4723,20 @@ function Resolve-C12CleanupIdentity {
   else {
     '{{.Id}}|{{.Name}}|{{ index .Config.Labels `talenro.c12.run` }}|{{ index .Config.Labels `talenro.c12.role` }}|{{.Config.Image}}|{{.Image}}'
   }
-  $dockerArgs = @('container', 'inspect', '--format', $format, [string]$Resource.ID)
+  $inspectTarget = if ($recoverByName) { [string]$Resource.Name } else { [string]$Resource.ID }
+  $dockerArgs = @('container', 'inspect', '--format', $format, $inspectTarget)
   $result = Invoke-C12Docker -Arguments $dockerArgs -Stage "re-inspect $($Resource.Kind) before cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
   if ($result.ExitCode -ne 0) {
+    if ([string]$Resource.Phase -ceq 'CleanIntent') { return '__C12_EXACT_ABSENT__' }
+    if ($recoverByName) { $Resource.Phase='Absent'; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_NOT_FOUND'; return $null }
     throw "captured $($Resource.Kind) container is absent before cleanup"
   }
   $identity = Get-C12SingleOutputLine -Result $result -Stage "re-inspect $($Resource.Kind) before cleanup"
+  $expectedID = if ($recoverByName) { [string]($identity -split '\|',2)[0] } else { [string]$Resource.ID }
+  if ($expectedID -notmatch '^[0-9a-f]{64}$') { throw "refusing cleanup for $($Resource.Kind): captured immutable ID is malformed" }
   if ($isPITR) {
     $parts = $identity -split '\|', 9
-    if ($parts.Count -ne 9 -or $parts[0] -cne [string]$Resource.ID -or $parts[1] -cne "/$($Resource.Name)" -or
+    if ($parts.Count -ne 9 -or $parts[0] -cne $expectedID -or $parts[1] -cne "/$($Resource.Name)" -or
         $parts[2] -cne 'true' -or $parts[3] -cne $RunSuffix -or $parts[4] -cne 'authority-v7-pitr' -or
         $parts[5] -cne 'primary' -or $parts[6] -cne [string]$Resource.NonceDigest -or
         $parts[7] -cne [string]$Resource.ImageRef -or $parts[8] -cne [string]$Resource.ImageID) {
@@ -4739,12 +4745,13 @@ function Resolve-C12CleanupIdentity {
   }
   else {
     $parts = $identity -split '\|', 6
-    if ($parts.Count -ne 6 -or $parts[0] -cne [string]$Resource.ID -or $parts[1] -cne "/$($Resource.Name)" -or
+    if ($parts.Count -ne 6 -or $parts[0] -cne $expectedID -or $parts[1] -cne "/$($Resource.Name)" -or
         $parts[2] -cne $RunSuffix -or $parts[3] -cne [string]$Resource.Kind -or
         $parts[4] -cne [string]$Resource.ImageRef -or $parts[5] -cne [string]$Resource.ImageID) {
       throw "refusing cleanup for $($Resource.Kind): captured ID/name/run/role/image identity mismatch"
     }
   }
+  if ($recoverByName) { $Resource.ID=$expectedID; Confirm-C12DockerActual -Resource $Resource }
   return [string]$Resource.ID
 }
 
@@ -4761,10 +4768,11 @@ function Remove-C12Container {
   )
 
   $containerID = Resolve-C12CleanupIdentity -Resource $Resource -RunSuffix $RunSuffix -Deadline $Deadline
+  if ($containerID -ceq '__C12_EXACT_ABSENT__') { Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT'; $Resource.Phase='Removed'; $Resource.RetryState.LastError=''; return }
   if ([string]::IsNullOrEmpty([string]$containerID)) {
     return
   }
-  if ($Resource.PSObject.Properties.Name -contains 'Phase') { $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT' }
+  if ($Resource.PSObject.Properties.Name -contains 'Phase' -and [string]$Resource.Phase -cne 'CleanIntent') { $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT' }
   $dockerArgs = @('container', 'stop', '--time', '2', [string]$containerID)
   $null = Invoke-C12Docker -Arguments $dockerArgs -Stage "stop exact $($Resource.Kind) container" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline
   $dockerArgs = @('container', 'rm', [string]$containerID)
@@ -4872,8 +4880,7 @@ function Remove-C12PITRVolume {
   if ($parts[2] -cne 'true' -or $parts[4] -cne 'authority-v7-pitr') { throw 'refusing PITR volume cleanup after label identity mismatch' }
   if ($parts[3] -cne $RunSuffix -or $parts[5] -cne [string]$Resource.Role -or $parts[6] -cne [string]$Resource.NonceDigest) { throw 'refusing PITR volume cleanup after exact identity mismatch' }
   if ([string]$Resource.Phase -ceq 'CreateAttempted') { Confirm-C12DockerActual -Resource $Resource }
-  $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++
-  Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT'
+  if ([string]$Resource.Phase -cne 'CleanIntent') { $Resource.Phase='CleanIntent'; $Resource.RetryState.Attempts++; Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_INTENT' }
   try { $null = Invoke-C12Docker -Arguments @('volume', 'rm', [string]$Resource.Name) -Stage "remove exact PITR volume $([string]$Resource.Role)" -Timeout ([TimeSpan]::FromSeconds(8)) -Deadline $Deadline }
   catch { $Resource.RetryState.LastError=$_.Exception.Message; throw }
   $absence = Invoke-C12Docker -Arguments @('volume', 'inspect', '--format', '{{.Name}}', [string]$Resource.Name) -Stage "verify exact PITR volume $([string]$Resource.Role) cleanup" -Timeout ([TimeSpan]::FromSeconds(5)) -Deadline $Deadline -AllowFailure
@@ -4893,7 +4900,7 @@ function Remove-C12PITRBaseResources {
   )
 
   $cleanupErrors=New-Object 'System.Collections.Generic.List[string]'
-  $captured = @($Resources | Where-Object { -not [string]::IsNullOrEmpty([string]$_.ID) })
+  $captured = @($Resources | Where-Object { -not [string]::IsNullOrEmpty([string]$_.ID) -or [string]$_.Phase -cin @('CreateAttempted','CleanIntent') })
   foreach($resource in $captured){try{Remove-C12Container -Resource $resource -RunSuffix $RunSuffix -Deadline $Deadline}catch{$cleanupErrors.Add($_.Exception.Message)}}
   foreach ($volume in $Volumes) { try { Remove-C12PITRVolume -Resource $volume -RunSuffix $RunSuffix -Deadline $Deadline } catch { $cleanupErrors.Add($_.Exception.Message) } }
   if($cleanupErrors.Count-ne 0){throw ('Docker cleanup retained retry state: '+($cleanupErrors -join '; '))}
