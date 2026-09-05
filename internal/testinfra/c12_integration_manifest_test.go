@@ -2876,6 +2876,7 @@ func main(){
 	literalWALPayload := base64.StdEncoding.EncodeToString([]byte(c12LiteralControllerWALBootstrap))
 	appendix := fmt.Sprintf(`
 $mode = '%s'
+$stage = $mode
 $fixtureRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
 $literalControllerWAL = [Convert]::FromBase64String('%s')
 
@@ -3051,6 +3052,27 @@ try {
 	    if (-not $rejected) { throw 'production PITR ledger accepted a sixth direct leaf' }
 	    if (-not [IO.Directory]::Exists([string]$runRoot.Root) -or -not [IO.File]::Exists($sixth)) { throw 'PITR sixth-leaf rejection deleted retained state' }
 	    [IO.File]::Delete($sixth)
+	    $workerWAL = [string]$runRoot.WALPath
+	    $relocatedWAL = Join-Path $fixtureRoot ('owned-worker-' + [Guid]::NewGuid().ToString('N') + '.wal')
+	    [IO.File]::Move($workerWAL, $relocatedWAL)
+	    [IO.File]::WriteAllText($workerWAL, 'foreign replacement')
+	    $rejected = $false
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } catch { $rejected = $_.Exception.Message -match 'identity|link count|changed' }
+	    if (-not $rejected -or -not [IO.File]::Exists($workerWAL) -or -not [IO.File]::Exists($relocatedWAL)) { throw 'PITR cleanup accepted or deleted a replaced exact leaf' }
+	    [IO.File]::Delete($workerWAL); [IO.File]::Move($relocatedWAL, $workerWAL)
+	    $controllerWAL = [string]$runRoot.ControllerWAL.Path
+	    $hardLink = Join-Path $fixtureRoot ('controller-hard-link-' + [Guid]::NewGuid().ToString('N') + '.wal')
+	    $result = & (Join-Path $env:SystemRoot 'System32\cmd.exe') /d /c mklink /H $hardLink $controllerWAL 2>&1
+	    if ($LASTEXITCODE -ne 0) { throw ('PITR hard-link fixture failed: ' + (@($result) -join ' ')) }
+	    $rejected = $false
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) } catch { $rejected = $true }
+	    if (-not $rejected -or -not [IO.File]::Exists($controllerWAL) -or -not [IO.File]::Exists($hardLink)) { throw ('PITR cleanup accepted or deleted a hard-linked exact leaf: rejected=' + $rejected + ' controller=' + [IO.File]::Exists($controllerWAL) + ' link=' + [IO.File]::Exists($hardLink)) }
+	    [IO.File]::Delete($hardLink)
+	    $deadlineRejected = $false
+	    $deadlineMessage = ''
+	    try { Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(-1)) } catch { $deadlineRejected = $true; $deadlineMessage = $_.Exception.Message }
+	    $controllerEntry = @($runRoot.Ledger | Where-Object { [string]$_.Name -ceq 'controller-ownership-v1.wal' })[0]
+	    if (-not $deadlineRejected -or [string]$controllerEntry.Lifecycle -cne 'CleanIntent' -or $null -eq $controllerEntry.CleanupHandle -or [string]::IsNullOrEmpty([string]$controllerEntry.LastCleanupError)) { throw ('PITR deadline did not retain exact identity handle, CleanIntent, and primary cleanup error: rejected=' + $deadlineRejected + ' message=' + $deadlineMessage + ' lifecycle=' + [string]$controllerEntry.Lifecycle + ' handle=' + ($null -ne $controllerEntry.CleanupHandle) + ' error=' + [string]$controllerEntry.LastCleanupError) }
 	    Remove-C12PITRRunRoot -RunRoot $runRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20))
 	    $runRoot = $null
 	    Write-Output 'C12_PITR_FIVE_LEAF_LEDGER_OK'
@@ -3091,6 +3113,39 @@ try {
 	      [IO.File]::WriteAllBytes($walPath, $baseline)
 	    }
 	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"candidate","identity":"abc"}'
+	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    $twoRecord = [IO.File]::ReadAllBytes($walPath)
+	    $twoText = [Text.Encoding]::UTF8.GetString($twoRecord)
+	    $lines = @($twoText.TrimEnd([char]10).Split([char]10))
+	    $chainMutations = [ordered]@{
+	      truncation = $twoRecord[0..($twoRecord.Length-2)]
+	      duplicate_sequence = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"sequence":1','"sequence":0'))
+	      reordered_record = [Text.Encoding]::UTF8.GetBytes($lines[1] + [char]10 + $lines[0] + [char]10)
+	      wrong_previous = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"previous_record_digest":"dc13','"previous_record_digest":"0c13'))
+	      noncanonical_timestamp = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('Z","payload":{"resource"','+00:00","payload":{"resource"'))
+	      unknown_event = [Text.Encoding]::UTF8.GetBytes($twoText.Replace('"event":"INTENT"','"event":"SURPRISE"'))
+	    }
+	    foreach ($entry in $chainMutations.GetEnumerator()) {
+	      [IO.File]::WriteAllBytes($walPath, [byte[]]$entry.Value)
+	      $rejected = $false
+	      try { Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL } catch { $rejected = $true }
+	      if (-not $rejected) { throw ('controller WAL accepted ' + [string]$entry.Key + ' mutation') }
+	      [IO.File]::WriteAllBytes($walPath, $twoRecord)
+	    }
+	    Assert-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	    foreach ($seam in @('after-write-before-flush','after-flush-before-head')) {
+	      [IO.File]::WriteAllBytes($walPath, $baseline)
+	      $runRoot.ControllerWAL.Sequence = [UInt64]0
+	      $runRoot.ControllerWAL.PreviousRecordDigest = 'dc132aaf295a65ca5e1d21c8854c54be80c836cd8b79b02129f86e29ddce3016'
+	      $crashed = $false
+	      try { $null = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"crash-probe"}' -FailureSeam $seam } catch { $crashed = $_.Exception.Message -match 'injected controller WAL crash' }
+	      if (-not $crashed) { throw ('controller WAL crash seam did not fire: ' + $seam) }
+	      $recovered = Verify-C12ControllerOwnershipWAL -State $runRoot.ControllerWAL
+	      if ($recovered.Records -ne 2) { throw ('controller WAL crash recovery lost durable exact record: ' + $seam) }
+	      $retry = Append-C12ControllerOwnershipRecord -State $runRoot.ControllerWAL -Event 'INTENT' -PayloadJSON '{"resource":"crash-probe"}'
+	      if ($retry.Records -ne 2) { throw ('controller WAL crash retry was not idempotent: ' + $seam) }
+	    }
 	    Write-Output 'C12_CONTROLLER_WAL_LITERAL_OK'
 	    exit 0
 	  }
