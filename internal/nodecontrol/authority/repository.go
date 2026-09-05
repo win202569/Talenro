@@ -48,4 +48,47 @@ type PendingFence struct {
 	BoundDatabasePoint *DatabasePoint
 	ReservedAt         time.Time
 	EffectBoundAt      *time.Time
+	AbortClaim         *AbortClaim
+}
+
+type AbortClaim struct {
+	Reason    AbortReason
+	ClaimedAt time.Time
+}
+
+type PersistedAuthorityEffectOutcome struct {
+	CommitmentJCS                  []byte
+	CommitmentDigest               contracts.Digest
+	Receipt                        Receipt
+	ProviderHeadJCS                []byte
+	ProviderHeadDigest             contracts.Digest
+	CheckpointAnchorJCS            []byte
+	CheckpointAnchorDigest         contracts.Digest
+	Reason                         AuthorityEffectReason
+	AttestationExpiresAt           time.Time
+	ActivationDeadline             time.Time
+	ExpectedProviderIdentityDigest contracts.Digest
+	EvidenceJCS                    []byte
+	EvidenceDigest                 contracts.Digest
+	ResolutionJCS                  []byte
+	ResolutionDigest               contracts.Digest
+}
+
+type StoredFence struct {
+	Record           Record
+	AbortClaim       *AbortClaim
+	PersistedOutcome *PersistedAuthorityEffectOutcome
+}
+
+type ClaimV1Reservation struct {
+	Reservation          Reservation
+	ProtocolActivationID uuid.UUID
+}
+
+type AuthorityV7Repository interface {
+	Repository
+	RecordPendingClaimV1(context.Context, store.DBTX, ClaimV1Reservation, time.Time) error
+	ClaimAbort(context.Context, store.DBTX, uuid.UUID, AbortReason, time.Time) error
+	GetStoredFence(context.Context, uuid.UUID) (StoredFence, error)
+	Lock(context.Context, store.DBTX, uuid.UUID) (StoredFence, error)
 }

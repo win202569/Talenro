@@ -747,7 +747,10 @@ func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
 		graphFields := []string{
 			"schema", "purpose", "go_executable_path", "go_executable_identity", "go_executable_sha256", "go_version",
 			"goroot_path", "goroot_identity", "gomodcache_path", "gomodcache_identity", "module_root_path", "module_root_identity",
-			"goos", "goarch", "cgo_enabled", "go_mod_sha256", "go_sum_sha256", "candidate_tree_digest", "build_argv",
+			"goos", "goarch", "goamd64", "cgo_enabled", "goflags", "gowork", "goenv", "gotoolchain", "goproxy", "gosumdb",
+			"goexperiment", "gocacheprog", "goauth", "goinsecure", "gonosumdb", "gonoproxy", "goprivate", "govcs",
+			"go_extlink_enabled", "gocache", "gotmpdir", "gomodcache", "gopath", "go111module", "goroot",
+			"ambient_go_prefix_policy", "go_mod_sha256", "go_sum_sha256", "candidate_tree_digest", "build_argv",
 			"package_count", "file_count", "packages", "import_path", "for_test", "origin", "module_path", "module_version",
 			"module_sum", "module_replace_or_null", "directory_identity", "imports", "deps", "test_imports", "xtest_imports",
 			"embed_patterns", "test_embed_patterns", "xtest_embed_patterns", "files", "set", "origin_relative_path", "length", "sha256",
@@ -769,6 +772,59 @@ func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
 			t.Fatalf("production prepared graph/receipt harness exit=%d output=%q", exitCode, output)
 		}
 	})
+}
+
+func TestC12ClosedGoEnvironmentClearsPoisonedAmbientSelectors(t *testing.T) {
+	c12RunHarnessInParallel(t)
+	runner := readC12RunnerSource(t)
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main-program marker")
+	}
+	const appendix = `
+$poison = [ordered]@{
+  GOEXPERIMENT='fieldtrack'; GOCACHEPROG='attacker-cache-helper'; GOAUTH='netrc'; GOINSECURE='*'
+  GONOSUMDB='*'; GONOPROXY='*'; GOPRIVATE='*'; GOVCS='*:all'; GO_EXTLINK_ENABLED='1'; GOATTACK_CANARY='selected'
+  GOFLAGS='-overlay=attacker.json'; GOWORK='attacker.work'; GOENV='attacker.env'; GOTOOLCHAIN='auto'; GOOS='linux'
+  GOARCH='386'; GOAMD64='v4'; CGO_ENABLED='1'; GOCACHE='attacker-path'; GOTMPDIR='attacker-path'
+  GOMODCACHE='attacker-path'; GOPROXY='https://attacker.invalid'; GOSUMDB='attacker.invalid'; GOPATH='attacker-path'
+  GO111MODULE='off'; GOROOT='attacker-path'
+}
+foreach ($entry in $poison.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, 'Process') }
+$cache = Join-Path $env:TEMP 'c12-env-cache'; $tmp = Join-Path $env:TEMP 'c12-env-tmp'; $modules = Join-Path $env:TEMP 'c12-env-mod'
+$artifact = [pscustomobject]@{ GoCache=$cache; GoTemp=$tmp }
+$snapshot = Enter-C12ClosedGoBuildEnvironment -ArtifactRoot $artifact -ModuleCache $modules
+try {
+  $expected = [ordered]@{
+    GOEXPERIMENT=$null; GOCACHEPROG=$null; GOAUTH='off'; GOINSECURE=$null; GONOSUMDB=$null
+    GONOPROXY=$null; GOPRIVATE=$null; GOVCS='all:off'; GO_EXTLINK_ENABLED='0'; GOATTACK_CANARY=$null
+    GOFLAGS='-mod=readonly -tags=integration'; GOWORK='off'; GOENV='off'; GOTOOLCHAIN='local'; GOOS='windows'
+    GOARCH='amd64'; GOAMD64='v1'; CGO_ENABLED='0'; GOCACHE=$cache; GOTMPDIR=$tmp; GOMODCACHE=$modules
+    GOPROXY='off'; GOSUMDB='off'; GOPATH=$null; GO111MODULE='on'; GOROOT=$null
+  }
+  foreach ($entry in $expected.GetEnumerator()) {
+    $actual = [Environment]::GetEnvironmentVariable($entry.Key, 'Process')
+    if ($actual -cne $entry.Value) { throw ('closed Go environment retained ' + $entry.Key + '=' + [string]$actual) }
+  }
+}
+finally { Exit-C12ClosedGoBuildEnvironment -Snapshot $snapshot }
+foreach ($entry in $poison.GetEnumerator()) {
+  if ([Environment]::GetEnvironmentVariable($entry.Key, 'Process') -cne $entry.Value) { throw ('closed Go environment failed to restore ' + $entry.Key) }
+}
+Write-Output 'C12_CLOSED_GO_ENV_POISON_OK'
+`
+	root := t.TempDir()
+	path := filepath.Join(root, "scripts", "run-c12-integration.ps1")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	output, code := runC12PowerShellAtRootWithTimeout(t, root, 3*time.Minute, nil, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
+	if code != 0 || !strings.Contains(output, "C12_CLOSED_GO_ENV_POISON_OK") {
+		t.Fatalf("closed Go poison harness exit=%d output=%q", code, output)
+	}
 }
 
 func TestC12GoGraphReceiptPurposesRequireIndependentExactLabels(t *testing.T) {
@@ -4770,6 +4826,9 @@ func runC12PreparedGoGraphHarness(t *testing.T) (string, int) {
 import("fmt";"io";"os";"path/filepath";"strings";"encoding/json")
 func main(){
  a:=os.Args[1:]; root:=os.Getenv("C12_FAKE_MODULE_ROOT")
+ expected:=map[string]string{"GOEXPERIMENT":"","GOCACHEPROG":"","GOAUTH":"off","GOINSECURE":"","GONOSUMDB":"","GONOPROXY":"","GOPRIVATE":"","GOVCS":"all:off","GO_EXTLINK_ENABLED":"0","GOFLAGS":"-mod=readonly -tags=integration","GOWORK":"off","GOENV":"off","GOTOOLCHAIN":"local","GOOS":"windows","GOARCH":"amd64","GOAMD64":"v1","CGO_ENABLED":"0","GOPROXY":"off","GOSUMDB":"off","GOPATH":"","GO111MODULE":"on","GOROOT":""}
+ for name,want:=range expected{if got:=os.Getenv(name);got!=want{fmt.Fprintf(os.Stderr,"closed Go environment %s=%q, want %q\n",name,got,want);os.Exit(82)}}
+ for _,name:=range []string{"GOCACHE","GOTMPDIR","GOMODCACHE"}{if got:=os.Getenv(name);got==""||got=="attacker-path"{fmt.Fprintf(os.Stderr,"closed Go environment %s=%q, want bound path\n",name,got);os.Exit(82)}}
  if len(a)==1&&a[0]=="version"{fmt.Println("go version go1.26.5 windows/amd64");return}
  if len(a)>=2&&a[0]=="mod"&&a[1]=="verify"{fmt.Println("all modules verified");return}
  if len(a)>0&&a[0]=="list"{
@@ -4787,7 +4846,7 @@ func main(){
   line:=fmt.Sprintf("{\"Dir\":%q,\"ImportPath\":%q,\"Name\":%q,\"Root\":%q,\"Module\":%s,\"GoFiles\":[%q],\"Imports\":[],\"Deps\":[],\"TestGoFiles\":[],\"TestImports\":[],\"XTestGoFiles\":[],\"XTestImports\":[],\"EmbedPatterns\":[],\"EmbedFiles\":[],\"TestEmbedPatterns\":[],\"TestEmbedFiles\":[],\"XTestEmbedPatterns\":[],\"XTestEmbedFiles\":[]}",dir,importPath,name,graphRoot,module,file)
   var graph map[string]interface{};if err:=json.Unmarshal([]byte(line),&graph);err!=nil{panic(err)}
   if purpose=="authority-initializer"{graph["EmbedPatterns"]=[]string{"payload.txt"};graph["EmbedFiles"]=[]string{"payload.txt"}}
-  mutation:=os.Getenv("C12_FAKE_GO_MUTATION")
+  mutationBytes,_:=os.ReadFile(filepath.Join(root,".c12-fake-go-mutation"));mutation:=strings.TrimSpace(string(mutationBytes))
   if mutation=="package-import"{graph["Imports"]=[]string{"example.invalid/changed"}}
   if mutation=="module-replacement"{graph["Module"].(map[string]interface{})["Replace"]=map[string]interface{}{"Path":"example.invalid/replacement","Version":"v1.0.1","Dir":graphRoot}}
   encoded,err:=json.Marshal(graph);if err!=nil{panic(err)};line=string(encoded)
@@ -4813,6 +4872,7 @@ $fixtureRoot = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s')
 $fakeGo = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
 $script:c12RepositoryRoot = $fixtureRoot
 [Environment]::SetEnvironmentVariable('C12_FAKE_MODULE_ROOT', $fixtureRoot, 'Process')
+$mutationPath = Join-Path $fixtureRoot '.c12-fake-go-mutation'
 function Resolve-C12ClosedGoToolchain {
   param([object]$ArtifactRoot,[DateTime]$SetupDeadline)
   $seal = [C12SealedExecutable]::Inspect($fakeGo)
@@ -4861,26 +4921,30 @@ try {
     $original = $null
     try {
       if ($path) { $original = [IO.File]::ReadAllBytes($path); [IO.File]::WriteAllBytes($path, [byte[]](@($original) + @(32))) }
-      [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $mutation, 'Process')
+      [IO.File]::WriteAllText($mutationPath, $mutation, (New-Object Text.UTF8Encoding($false)))
       $argv = @($baseline.BuildArgv)
       if ($mutation -ceq 'build-argument') { $argv += '-trimpath' }
       $changed = New-C12GoGraphReceipt -Purpose 'authority-initializer' -Packages @('./internal/testinfra') -Deadline $deadline -ArtifactRoot $artifact -GoToolchain $toolchain -BuildArgv $argv -WorkingDirectory $fixtureRoot
       if ($changed.CandidateTreeDigest -ceq $baseline.CandidateTreeDigest) { throw "candidate-tree digest ignored $mutation" }
       if ($mutation -cne 'build-argument') {
         $rejected = $false
+        $rejectionMessage = ''
         try { Assert-C12GoGraphReceipt -Receipt $baseline -ArtifactRoot $artifact -Deadline $deadline }
-        catch { $rejected = $_.Exception.Message -match 'graph.*changed' }
-        if (-not $rejected) { throw "pre-execution verification accepted $mutation" }
+        catch {
+          $rejectionMessage = $_.Exception.Message
+          $rejected = $rejectionMessage -match 'graph.*changed'
+        }
+        if (-not $rejected) { throw "pre-execution verification accepted $mutation; rejection=$rejectionMessage" }
       }
       Write-Output ('C12_GRAPH_MUTATION_OK:' + $mutation)
     }
     finally {
       if ($null -ne $original) { [IO.File]::WriteAllBytes($path, $original) }
-      [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process')
+      if ([IO.File]::Exists($mutationPath)) { [IO.File]::Delete($mutationPath) }
     }
   }
   foreach ($purpose in $purposes) {
-    [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', ($purpose + ':duplicate-import-path'), 'Process')
+    [IO.File]::WriteAllText($mutationPath, ($purpose + ':duplicate-import-path'), (New-Object Text.UTF8Encoding($false)))
     $rejected = $false
     try {
       if ($purpose -ceq 'trusted-validator') {
@@ -4897,14 +4961,14 @@ try {
       }
     }
     catch { $rejected = $_.Exception.Message -match 'duplicate.*ImportPath|ImportPath.*duplicate' }
-    finally { [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process') }
+    finally { if ([IO.File]::Exists($mutationPath)) { [IO.File]::Delete($mutationPath) } }
     if (-not $rejected) { throw "production $purpose graph parser accepted its duplicate ImportPath mutation" }
   }
   $success = $true
 }
 catch { [Console]::Error.WriteLine($_.Exception.Message) }
 finally {
-  [Environment]::SetEnvironmentVariable('C12_FAKE_GO_MUTATION', $null, 'Process')
+  if ($null -ne $mutationPath -and [IO.File]::Exists($mutationPath)) { [IO.File]::Delete($mutationPath) }
   foreach ($prepared in @($mutants + @($initializer,$validator))) {
     if ($null -ne $prepared) { try { Close-C12PreparedNativeWorker -Prepared $prepared -Deadline ([DateTime]::UtcNow.AddSeconds(15)) } catch { [Console]::Error.WriteLine($_.Exception.Message); $success=$false } }
   }
@@ -4921,6 +4985,26 @@ exit 1
 	defer cancel()
 	powershellPath := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
 	command := exec.CommandContext(ctx, powershellPath, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", harness, "-Profile", "base", "-Packages", "./internal/store", "-Timeout", "3m")
+	poisoned := map[string]string{
+		"GOEXPERIMENT": "fieldtrack", "GOCACHEPROG": "attacker-cache-helper", "GOAUTH": "netrc",
+		"GOINSECURE": "*", "GONOSUMDB": "*", "GONOPROXY": "*", "GOPRIVATE": "*",
+		"GOVCS": "*:all", "GO_EXTLINK_ENABLED": "1", "GOFLAGS": "-overlay=attacker.json",
+		"GOWORK": "attacker.work", "GOENV": "attacker.env", "GOTOOLCHAIN": "auto", "GOOS": "linux",
+		"GOARCH": "386", "GOAMD64": "v4", "CGO_ENABLED": "1", "GOCACHE": "attacker-path",
+		"GOTMPDIR": "attacker-path", "GOMODCACHE": "attacker-path", "GOPROXY": "https://attacker.invalid",
+		"GOSUMDB": "attacker.invalid", "GOPATH": "attacker-path", "GO111MODULE": "off", "GOROOT": "attacker-path",
+	}
+	environment := make([]string, 0, len(os.Environ())+len(poisoned))
+	for _, entry := range os.Environ() {
+		name := strings.SplitN(entry, "=", 2)[0]
+		if _, replace := poisoned[strings.ToUpper(name)]; !replace {
+			environment = append(environment, entry)
+		}
+	}
+	for name, value := range poisoned {
+		environment = append(environment, name+"="+value)
+	}
+	command.Env = environment
 	output, commandErr := command.CombinedOutput()
 	if ctx.Err() != nil {
 		t.Fatalf("prepared graph harness timed out: %v\n%s", ctx.Err(), output)
@@ -5689,7 +5773,7 @@ func buildFakeGoExecutable(t *testing.T, executable, source string) {
 	if err := os.WriteFile(sourcePath, []byte(source), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	command := task8ChildGoCommandContext(t, ctx, "", "build", "-o", executable, sourcePath)
 	if output, err := command.CombinedOutput(); err != nil {

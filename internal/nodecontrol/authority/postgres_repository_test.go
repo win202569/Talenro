@@ -1,6 +1,7 @@
 package authority
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"errors"
@@ -16,6 +17,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"talenro.local/platform/internal/nodecontrol/contracts"
 )
+
+func TestPersistedAuthorityArtifactsRejectJCSAndDigestTampering(t *testing.T) {
+	fixture := loadLiteralAuthorityEffectFixture(t)
+	kinds := map[string]persistedAuthorityArtifactKind{
+		"commitment":    persistedCommitmentArtifact,
+		"provider_head": persistedProviderHeadArtifact,
+		"checkpoint":    persistedCheckpointArtifact,
+		"evidence":      persistedEvidenceArtifact,
+		"resolution":    persistedResolutionArtifact,
+	}
+	seen := map[string]bool{}
+	for _, vector := range fixture.Vectors {
+		kind, ok := kinds[vector.ArtifactKind]
+		if !ok || seen[vector.ArtifactKind] {
+			continue
+		}
+		seen[vector.ArtifactKind] = true
+		body := []byte(vector.CanonicalJCS)
+		digest := mustAuthorityDigest(t, vector.DigestHex)
+		t.Run(vector.ArtifactKind, func(t *testing.T) {
+			if got, err := exactJCSAndDigest(body, digest[:], kind); err != nil || got != digest {
+				t.Fatalf("exact artifact = %x, %v", got, err)
+			}
+			for _, mutation := range []struct {
+				name   string
+				body   []byte
+				digest []byte
+			}{
+				{name: "digest", body: body, digest: append([]byte(nil), digest[:]...)},
+				{name: "noncanonical_jcs", body: append([]byte(" "), body...), digest: digest[:]},
+				{name: "schema", body: bytes.Replace(body, []byte(`"schema_version":"1"`), []byte(`"schema_version":"2"`), 1), digest: digest[:]},
+			} {
+				if mutation.name == "digest" {
+					mutation.digest[0] ^= 1
+				}
+				if _, err := exactJCSAndDigest(mutation.body, mutation.digest, kind); !errors.Is(err, ErrInjectedFailure) {
+					t.Errorf("%s error = %v, want ErrInjectedFailure", mutation.name, err)
+				}
+			}
+		})
+	}
+	if len(seen) != len(kinds) {
+		t.Fatalf("covered kinds = %v, want %v", seen, kinds)
+	}
+}
 
 func TestPostgresRepositoryRecordsExactFenceStateWithCallerDBTX(t *testing.T) {
 	base := &repositoryRecordingDBTX{forbidUse: true}

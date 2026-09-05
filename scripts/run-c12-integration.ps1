@@ -2485,11 +2485,14 @@ function Enter-C12ClosedGoBuildEnvironment {
     'GOFLAGS', 'GOWORK', 'GOENV', 'GOTOOLCHAIN',
     'GOOS', 'GOARCH', 'GOAMD64', 'CGO_ENABLED',
     'GOCACHE', 'GOTMPDIR', 'GOMODCACHE', 'GOPROXY',
-    'GOSUMDB', 'GOPATH', 'GO111MODULE', 'GOROOT'
+    'GOSUMDB', 'GOPATH', 'GO111MODULE', 'GOROOT',
+    'GOEXPERIMENT', 'GOCACHEPROG', 'GOAUTH', 'GOINSECURE',
+    'GONOSUMDB', 'GONOPROXY', 'GOPRIVATE', 'GOVCS', 'GO_EXTLINK_ENABLED'
   )) { [void]$names.Add($name) }
   foreach ($inheritedName in @([Environment]::GetEnvironmentVariables('Process').Keys)) {
     $name = [string]$inheritedName
-    if ($name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) { [void]$names.Add($name) }
+    if ($name.StartsWith('GO', [StringComparison]::OrdinalIgnoreCase) -or
+        $name.StartsWith('GIT_', [StringComparison]::OrdinalIgnoreCase)) { [void]$names.Add($name) }
   }
   $prior = @{}
   foreach ($name in $names) {
@@ -2510,6 +2513,9 @@ function Enter-C12ClosedGoBuildEnvironment {
   }
   [Environment]::SetEnvironmentVariable('GOPROXY', 'off', 'Process')
   [Environment]::SetEnvironmentVariable('GOSUMDB', 'off', 'Process')
+  [Environment]::SetEnvironmentVariable('GOAUTH', 'off', 'Process')
+  [Environment]::SetEnvironmentVariable('GOVCS', 'all:off', 'Process')
+  [Environment]::SetEnvironmentVariable('GO_EXTLINK_ENABLED', '0', 'Process')
   [Environment]::SetEnvironmentVariable('GO111MODULE', 'on', 'Process')
   [Environment]::SetEnvironmentVariable('GOFLAGS', '-mod=readonly -tags=integration', 'Process')
   return [pscustomobject]@{ Prior = $prior }
@@ -2757,7 +2763,16 @@ function New-C12GoGraphReceipt {
   $listArgv.AddRange($Packages)
   $snapshot = Enter-C12ClosedGoBuildEnvironment -ArtifactRoot $ArtifactRoot -ModuleCache $GoToolchain.ModuleCache
   try {
-    $environment = ConvertTo-C12ProtocolValue ([ordered]@{ goos=$env:GOOS; goarch=$env:GOARCH; cgo_enabled=$env:CGO_ENABLED; GOSUMDB=$env:GOSUMDB; GOFLAGS=$env:GOFLAGS; GOWORK=$env:GOWORK; GOENV=$env:GOENV; GOTOOLCHAIN=$env:GOTOOLCHAIN; GOPROXY=$env:GOPROXY; GOAMD64=$env:GOAMD64 })
+    $environment = ConvertTo-C12ProtocolValue ([ordered]@{
+      goos=$env:GOOS; goarch=$env:GOARCH; goamd64=$env:GOAMD64; cgo_enabled=$env:CGO_ENABLED
+      goflags=$env:GOFLAGS; gowork=$env:GOWORK; goenv=$env:GOENV; gotoolchain=$env:GOTOOLCHAIN
+      goproxy=$env:GOPROXY; gosumdb=$env:GOSUMDB; goexperiment=[string]$env:GOEXPERIMENT
+      gocacheprog=[string]$env:GOCACHEPROG; goauth=$env:GOAUTH; goinsecure=[string]$env:GOINSECURE
+      gonosumdb=[string]$env:GONOSUMDB; gonoproxy=[string]$env:GONOPROXY; goprivate=[string]$env:GOPRIVATE
+      govcs=$env:GOVCS; go_extlink_enabled=$env:GO_EXTLINK_ENABLED; gocache=$env:GOCACHE; gotmpdir=$env:GOTMPDIR
+      gomodcache=$env:GOMODCACHE; gopath=[string]$env:GOPATH; go111module=$env:GO111MODULE; goroot=[string]$env:GOROOT
+      ambient_go_prefix_policy='clear_then_fixed_allowlist'
+    })
     $verified = Invoke-C12Native -Executable 'go' -ResolvedExecutable $GoToolchain.Path -Arguments @('mod','verify') -Stage 'Go graph go mod verify' -Timeout ($Deadline - [DateTime]::UtcNow) -WorkingDirectory $roots[0].path -Deadline $Deadline
     if (($verified.Output -join "`n").Trim() -cne 'all modules verified') { throw 'Go graph go mod verify did not authenticate all modules' }
     $discovery = Invoke-C12Native -Executable 'go' -ResolvedExecutable $GoToolchain.Path -Arguments $listArgv -Stage 'Go graph discovery' -Timeout ($Deadline - [DateTime]::UtcNow) -WorkingDirectory $WorkingDirectory -Deadline $Deadline -GraphReaderSource (Get-C12GoGraphReaderSource)

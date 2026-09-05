@@ -230,7 +230,7 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	assertEnumRegistry(t, operator, "AdapterV1", []string{"fixture", "xray", "sing_box"})
 	assertEnumRegistry(t, operator, "OperatorStateV1", []string{"provisioning", "enabled", "draining", "disabled"})
 	assertEnumRegistry(t, operator, "SecurityStateV1", []string{"normal", "quarantined"})
-	assertEnumRegistry(t, operator, "IdentityStateV1", []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked"})
+	assertEnumRegistry(t, operator, "IdentityStateV1", []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked", "unauthorized"})
 	assertEnumRegistry(t, operator, "FaultSubtypeV1", []string{"identity_compromise", "online_signer_equivocation", "metadata_rollback", "root_rollback", "root_equivocation", "unverified_client_highwater_conflict", "client_highwater_ahead", "server_trust_bundle_conflict", "trusted_time_rollback_or_unavailable", "local_state_corruption_or_rollback", "release_or_process_integrity", "profile_binding_mismatch", "incident_overflow"})
 	assertEnumRegistry(t, operator, "RestorePhaseV1", []string{"proposal", "approval"})
 	assertEnumRegistry(t, operator, "OperationResultV1", []string{"pending", "active", "accepted", "completed", "superseded", "rejected"})
@@ -367,6 +367,42 @@ func TestNodeOpenAPISchemaContracts(t *testing.T) {
 	for name, schemaRef := range operator.Components.Schemas {
 		assertClosedRequiredObjects(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
 		assertNoForbiddenOperatorProperties(t, "#/components/schemas/"+name, schemaRef, map[*openapi3.Schema]bool{})
+	}
+}
+
+func TestNodeOperatorV7UnauthorizedIsOutputOnly(t *testing.T) {
+	generated := loadAndValidateNodeSpec(t, nodeoperatorv1.GetSwagger)
+	source := loadNodeOpenAPISource(t, "node-operator-api.v1.yaml")
+	wantOutput := []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked", "unauthorized"}
+	wantFilter := []string{"never_enrolled", "active", "recovery_pending", "recovery_limited", "revoked"}
+
+	for name, spec := range map[string]*openapi3.T{"source": source, "generated": generated} {
+		t.Run(name, func(t *testing.T) {
+			assertEnumRegistryInOrder(t, spec, "IdentityStateV1", wantOutput)
+			parameter := spec.Components.Parameters["IdentityStateFilter"]
+			if parameter == nil || parameter.Value == nil || parameter.Value.Schema == nil || parameter.Value.Schema.Value == nil {
+				t.Fatal("IdentityStateFilter must be a distinct inline schema")
+			}
+			if parameter.Value.Schema.Ref != "" {
+				t.Fatalf("IdentityStateFilter ref = %q, want distinct inline five-value enum", parameter.Value.Schema.Ref)
+			}
+			assertEnumValues(t, "IdentityStateFilter", parameter.Value.Schema.Value, wantFilter)
+		})
+	}
+
+	if !nodeoperatorv1.IdentityStateV1("unauthorized").Valid() {
+		t.Fatal("generated output IdentityStateV1 rejects unauthorized")
+	}
+	for _, schemaName := range []string{
+		"CreateNodeV1", "UpdateNodeV1", "DisableNodeV1", "DrainNodeV1", "ResumeAfterSecurityV1",
+		"ReenrollNodeV1", "CompleteReenrollmentV1", "ClearSecurityQuarantineV1", "ReauthorizeAfterRestoreV1",
+	} {
+		schema := mustSchema(t, source, schemaName)
+		for propertyName, property := range schema.Properties {
+			if property != nil && property.Ref == "#/components/schemas/IdentityStateV1" {
+				t.Errorf("caller-selectable %s.%s references response-only IdentityStateV1", schemaName, propertyName)
+			}
+		}
 	}
 }
 

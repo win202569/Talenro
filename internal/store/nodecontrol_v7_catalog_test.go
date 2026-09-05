@@ -584,13 +584,13 @@ func task8RequireFactoryProbeFileHashes(guarded map[string]string) error {
 
 func task8AuthenticateFactoryProbeGuardedFiles(repositoryRoot string) error {
 	if err := task8RequireFactoryProbeFileHashes(map[string]string{
-		filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go"):   "4F759A5B17648A75DF8930939282D51D63F1EC4D8563C254BFE8755321B9AFF3",
-		filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go"): "31352FB84C3CCB69ECD1C999D69D13C4C83D216A9DCA1D015BEBFD902E3E2B1E",
+		filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go"):   "42B56CD6FE149CABAC6F57F092EDC3B359C72A4A70E63B9D38FDEFB3970E3C05",
+		filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go"): "C01D113F656E3C064536A3BC475A1CE307579766824210984F8E7711D8B182C0",
 	}); err != nil {
 		return fmt.Errorf("guarded caller: %w", err)
 	}
 	if err := task8RequireFactoryProbeFileHashes(map[string]string{
-		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "postgres_repository.go"):                       "8F3447CA7D6E32C41FF80057750A6172DB1C2207673BCADB8CDFD9752AE5B5DB",
+		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "postgres_repository.go"):                       "5625F7C9E031C182202504F46FD032271E9ADAA579C708F0ADF02BB35BA73135",
 		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "00007_nodecontrol_authority_abort_serving.go"): "C01D113F656E3C064536A3BC475A1CE307579766824210984F8E7711D8B182C0",
 	}); err != nil {
 		return fmt.Errorf("approved caller replacement: %w", err)

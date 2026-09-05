@@ -20,6 +20,361 @@ import (
 	"talenro.local/platform/internal/nodecontrol/contracts"
 )
 
+func TestPostgresRepositoryAbortClaim(t *testing.T) {
+	ctx, pool := openAuthorityV7RepositoryDatabase(t, "abort-claim")
+	if _, err := pool.Exec(ctx, `ALTER TABLE nodecontrol.control_plane_authority_fences DROP CONSTRAINT ncv7_fence_activation_fk`); err != nil {
+		t.Fatal("remove unrelated activation fixture dependency:", err)
+	}
+	repository, err := NewPostgresRepository(pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseTime := time.Date(2026, time.August, 29, 14, 0, 0, 123456000, time.UTC)
+	scopeDigest := contracts.Digest(sha256.Sum256([]byte("task8-abort-claim-scope")))
+	activationID := uuid.MustParse("72000000-0000-4000-8000-000000000001")
+
+	newClaimFence := func(operationID string, sequence uint64) (Reservation, time.Time) {
+		t.Helper()
+		reservation := manualAuthorityReservation(t, operationID, EffectDesiredActivate, ScopeNode, scopeDigest, 72, sequence)
+		reservedAt := baseTime.Add(time.Duration(sequence) * time.Minute)
+		if err := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+			return repository.RecordPendingClaimV1(ctx, tx, ClaimV1Reservation{Reservation: reservation, ProtocolActivationID: activationID}, reservedAt)
+		}); err != nil {
+			t.Fatal("record claim-v1 pending fence:", err)
+		}
+		return reservation, reservedAt
+	}
+	claim := func(operationID uuid.UUID, reason AbortReason, claimedAt time.Time) error {
+		return inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+			return repository.ClaimAbort(ctx, tx, operationID, reason, claimedAt)
+		})
+	}
+
+	t.Run("first claim exact retry list lock and defensive copies", func(t *testing.T) {
+		reservation, reservedAt := newClaimFence("72000000-0000-4000-8000-000000000011", 11)
+		claimedAt := reservedAt.Add(time.Second)
+		if err := claim(reservation.OperationID, AbortProviderDependencyFailed, claimedAt); err != nil {
+			t.Fatal("first durable claim:", err)
+		}
+		if err := claim(reservation.OperationID, AbortProviderDependencyFailed, claimedAt); err != nil {
+			t.Fatal("exact durable claim retry:", err)
+		}
+		for _, changed := range []struct {
+			label     string
+			reason    AbortReason
+			claimedAt time.Time
+		}{
+			{"reason", AbortSuperseded, claimedAt},
+			{"time", AbortProviderDependencyFailed, claimedAt.Add(time.Microsecond)},
+		} {
+			if err := claim(reservation.OperationID, changed.reason, changed.claimedAt); !errors.Is(err, ErrConflict) {
+				t.Errorf("changed %s claim error = %v, want ErrConflict", changed.label, err)
+			}
+		}
+		stored, err := repository.GetStoredFence(ctx, reservation.OperationID)
+		if err != nil || stored.AbortClaim == nil || stored.AbortClaim.Reason != AbortProviderDependencyFailed || !stored.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			t.Fatalf("GetStoredFence abort claim = %#v, %v; want exact reason/time", stored.AbortClaim, err)
+		}
+		stored.AbortClaim.Reason = AbortSuperseded
+		stored.AbortClaim.ClaimedAt = claimedAt.Add(24 * time.Hour)
+		again, err := repository.GetStoredFence(ctx, reservation.OperationID)
+		if err != nil || again.AbortClaim == nil || again.AbortClaim.Reason != AbortProviderDependencyFailed || !again.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			t.Fatalf("GetStoredFence aliases caller mutation: %#v, %v", again.AbortClaim, err)
+		}
+		tx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		locked, lockErr := repository.Lock(ctx, tx, reservation.OperationID)
+		_ = tx.Rollback(ctx)
+		if lockErr != nil || locked.AbortClaim == nil || locked.AbortClaim.Reason != AbortProviderDependencyFailed || !locked.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			t.Fatalf("caller-DBTX Lock abort claim = %#v, %v", locked.AbortClaim, lockErr)
+		}
+		locked.AbortClaim.Reason = AbortSuperseded
+		locked.AbortClaim.ClaimedAt = claimedAt.Add(48 * time.Hour)
+		recheckTx, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		lockedAgain, lockAgainErr := repository.Lock(ctx, recheckTx, reservation.OperationID)
+		_ = recheckTx.Rollback(ctx)
+		if lockAgainErr != nil || lockedAgain.AbortClaim == nil || lockedAgain.AbortClaim.Reason != AbortProviderDependencyFailed || !lockedAgain.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			t.Fatalf("caller-DBTX Lock aliases caller mutation: claim=%#v error=%v", lockedAgain.AbortClaim, lockAgainErr)
+		}
+		pending, err := repository.ListPending(ctx, 72)
+		if err != nil {
+			t.Errorf("ListPending after durable claim: %v", err)
+		} else {
+			var matching *PendingFence
+			for index := range pending {
+				if pending[index].OperationID == reservation.OperationID {
+					matching = &pending[index]
+				}
+			}
+			if matching == nil || matching.AbortClaim == nil || matching.AbortClaim.Reason != AbortProviderDependencyFailed || !matching.AbortClaim.ClaimedAt.Equal(claimedAt) {
+				t.Errorf("ListPending claim projection = %#v, want exact unique claim reason/time", matching)
+			} else {
+				matching.AbortClaim.Reason = AbortSuperseded
+				pendingAgain, retryErr := repository.ListPending(ctx, 72)
+				if retryErr != nil {
+					t.Error(retryErr)
+				} else {
+					for index := range pendingAgain {
+						if pendingAgain[index].OperationID == reservation.OperationID && (pendingAgain[index].AbortClaim == nil || pendingAgain[index].AbortClaim.Reason != AbortProviderDependencyFailed) {
+							t.Errorf("ListPending AbortClaim aliases caller mutation: %#v", pendingAgain[index].AbortClaim)
+						}
+					}
+				}
+			}
+		}
+	})
+
+	t.Run("claim time precedes reservation", func(t *testing.T) {
+		reservation, reservedAt := newClaimFence("72000000-0000-4000-8000-000000000012", 12)
+		err := claim(reservation.OperationID, AbortValidationFailed, reservedAt.Add(-time.Microsecond))
+		task8RequireFiniteRepositoryReject(t, "claim before reserved_at", err)
+		stored, readErr := repository.GetStoredFence(ctx, reservation.OperationID)
+		if readErr != nil || stored.AbortClaim != nil {
+			t.Fatalf("rejected early claim changed row: claim=%#v error=%v", stored.AbortClaim, readErr)
+		}
+	})
+
+	t.Run("legacy bound and terminal fences reject claim", func(t *testing.T) {
+		legacy := manualAuthorityReservation(t, "72000000-0000-4000-8000-000000000013", EffectDesiredActivate, ScopeNode, scopeDigest, 72, 13)
+		if _, err := pool.Exec(ctx, `
+INSERT INTO nodecontrol.control_plane_authority_fences(
+ operation_id,effect_kind,scope_kind,authority_epoch,authority_sequence,scope_digest,provider_reservation_digest,
+ provider_status,visibility_state,reserved_at,authority_protocol_profile)
+VALUES($1,$2,$3,$4,$5,$6,$7,'reserved','fence_pending',$8,'legacy_v6')`,
+			legacy.OperationID, string(legacy.Kind), string(legacy.ScopeKind), int64(legacy.Epoch), int64(legacy.Sequence),
+			legacy.ScopeDigest[:], legacy.ReservationDigest[:], baseTime); err != nil {
+			t.Fatal("seed legacy v6 fence:", err)
+		}
+		if err := claim(legacy.OperationID, AbortValidationFailed, baseTime.Add(time.Second)); !errors.Is(err, ErrConflict) {
+			t.Errorf("legacy fence claim error = %v, want ErrConflict", err)
+		}
+
+		bound, reservedAt := newClaimFence("72000000-0000-4000-8000-000000000014", 14)
+		point, err := repository.CaptureDatabasePoint(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		effectDigest := contracts.Digest(sha256.Sum256([]byte("task8-bound-effect")))
+		if err := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+			return repository.BindEffect(ctx, tx, bound.OperationID, effectDigest, point, reservedAt.Add(time.Second))
+		}); err != nil {
+			t.Fatal(err)
+		}
+		if err := claim(bound.OperationID, AbortValidationFailed, reservedAt.Add(2*time.Second)); !errors.Is(err, ErrTerminalConflict) {
+			t.Errorf("effect-bound claim error = %v, want ErrTerminalConflict", err)
+		}
+		boundStored, err := repository.GetStoredFence(ctx, bound.OperationID)
+		if err != nil || boundStored.Record.BoundEffectDigest == nil || boundStored.Record.BoundDatabasePoint == nil {
+			t.Fatalf("read effect-bound stored fence: %#v error=%v", boundStored, err)
+		}
+		boundStored.Record.BoundEffectDigest[0] ^= 0xff
+		boundStored.Record.BoundDatabasePoint.RequiredLSN = "f/ffffffff"
+		boundAgain, err := repository.GetStoredFence(ctx, bound.OperationID)
+		if err != nil || boundAgain.Record.BoundEffectDigest == nil || *boundAgain.Record.BoundEffectDigest != effectDigest ||
+			boundAgain.Record.BoundDatabasePoint == nil || *boundAgain.Record.BoundDatabasePoint != point {
+			t.Fatalf("GetStoredFence aliases bound pointers: %#v error=%v", boundAgain.Record, err)
+		}
+
+		terminal, terminalReservedAt := newClaimFence("72000000-0000-4000-8000-000000000015", 15)
+		claimedAt := terminalReservedAt.Add(2 * time.Second)
+		if err := claim(terminal.OperationID, AbortSuperseded, claimedAt); err != nil {
+			t.Fatal(err)
+		}
+		reason := AbortSuperseded
+		receipt := Receipt{Reservation: terminal, Status: StatusAborted, AbortReason: &reason}
+		receipt.ReceiptDigest, err = receiptDigest(receipt)
+		if err != nil || receipt.Validate() != nil {
+			t.Fatalf("construct terminal abort receipt: %v", err)
+		}
+		if err := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+			return repository.RecordAborted(ctx, tx, receipt, claimedAt.Add(time.Second))
+		}); err != nil {
+			t.Fatal("record claimed terminal abort:", err)
+		}
+		if err := claim(terminal.OperationID, AbortSuperseded, claimedAt); !errors.Is(err, ErrTerminalConflict) {
+			t.Errorf("terminal fence claim error = %v, want ErrTerminalConflict", err)
+		}
+	})
+
+	t.Run("terminal time precedes durable claim", func(t *testing.T) {
+		reservation, reservedAt := newClaimFence("72000000-0000-4000-8000-000000000016", 16)
+		claimedAt := reservedAt.Add(10 * time.Second)
+		if err := claim(reservation.OperationID, AbortActivationDeadlineExpired, claimedAt); err != nil {
+			t.Fatal(err)
+		}
+		reason := AbortActivationDeadlineExpired
+		receipt := Receipt{Reservation: reservation, Status: StatusAborted, AbortReason: &reason}
+		receipt.ReceiptDigest, err = receiptDigest(receipt)
+		if err != nil || receipt.Validate() != nil {
+			t.Fatal(err)
+		}
+		err = inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+			return repository.RecordAborted(ctx, tx, receipt, claimedAt.Add(-time.Microsecond))
+		})
+		task8RequireFiniteRepositoryReject(t, "terminal_at before abort_claimed_at", err)
+		stored, readErr := repository.GetStoredFence(ctx, reservation.OperationID)
+		if readErr != nil || stored.Record.TerminalReceipt != nil || stored.AbortClaim == nil || !stored.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			t.Fatalf("rejected early terminal changed durable claim: %#v error=%v", stored, readErr)
+		}
+	})
+}
+
+func TestFenceFirstWriterAbortRace(t *testing.T) {
+	ctx, pool := openAuthorityV7RepositoryDatabase(t, "first-writer-race")
+	if _, err := pool.Exec(ctx, `ALTER TABLE nodecontrol.control_plane_authority_fences DROP CONSTRAINT ncv7_fence_activation_fk`); err != nil {
+		t.Fatal(err)
+	}
+	repository, err := NewPostgresRepository(pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseTime := time.Date(2026, time.August, 29, 15, 0, 0, 0, time.UTC)
+	scopeDigest := contracts.Digest(sha256.Sum256([]byte("task8-first-writer-scope")))
+	activationID := uuid.MustParse("73000000-0000-4000-8000-000000000001")
+	point, err := repository.CaptureDatabasePoint(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, winner := range []string{"effect", "claim"} {
+		winner := winner
+		t.Run(winner+" commits before loser release", func(t *testing.T) {
+			sequence := uint64(1)
+			operationID := "73000000-0000-4000-8000-000000000011"
+			if winner == "claim" {
+				sequence = 2
+				operationID = "73000000-0000-4000-8000-000000000012"
+			}
+			reservation := manualAuthorityReservation(t, operationID, EffectDesiredActivate, ScopeNode, scopeDigest, 73, sequence)
+			if err := inAuthorityTransaction(ctx, pool, func(tx pgx.Tx) error {
+				return repository.RecordPendingClaimV1(ctx, tx, ClaimV1Reservation{Reservation: reservation, ProtocolActivationID: activationID}, baseTime)
+			}); err != nil {
+				t.Fatal(err)
+			}
+			first, err := pool.Begin(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer first.Rollback(ctx)
+			second, err := pool.Begin(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer second.Rollback(ctx)
+			var firstPID, secondPID int32
+			if err := first.QueryRow(ctx, `SELECT pg_backend_pid()`).Scan(&firstPID); err != nil {
+				t.Fatal(err)
+			}
+			if err := second.QueryRow(ctx, `SELECT pg_backend_pid()`).Scan(&secondPID); err != nil {
+				t.Fatal(err)
+			}
+			effectDigest := contracts.Digest(sha256.Sum256([]byte("task8-first-writer-" + winner)))
+			claimedAt := baseTime.Add(2 * time.Second)
+			if winner == "effect" {
+				if err := repository.BindEffect(ctx, first, reservation.OperationID, effectDigest, point, baseTime.Add(time.Second)); err != nil {
+					t.Fatal("first effect writer:", err)
+				}
+			} else if err := repository.ClaimAbort(ctx, first, reservation.OperationID, AbortValidationFailed, claimedAt); err != nil {
+				t.Fatal("first claim writer:", err)
+			}
+			loserResult := make(chan error, 1)
+			go func() {
+				if winner == "effect" {
+					loserResult <- repository.ClaimAbort(ctx, second, reservation.OperationID, AbortValidationFailed, claimedAt)
+					return
+				}
+				loserResult <- repository.BindEffect(ctx, second, reservation.OperationID, effectDigest, point, baseTime.Add(time.Second))
+			}()
+			task8WaitForRepositoryLockBlock(t, ctx, pool, firstPID, secondPID)
+			if err := first.Commit(ctx); err != nil {
+				t.Fatal("commit first writer before releasing loser:", err)
+			}
+			select {
+			case loserErr := <-loserResult:
+				if !errors.Is(loserErr, ErrTerminalConflict) {
+					t.Fatalf("%s-losing writer error = %v, want ErrTerminalConflict", winner, loserErr)
+				}
+			case <-time.After(10 * time.Second):
+				t.Fatal("losing writer remained blocked after winner commit")
+			}
+			_ = second.Rollback(ctx)
+			stored, err := repository.GetStoredFence(ctx, reservation.OperationID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if winner == "effect" {
+				if stored.Record.BoundEffectDigest == nil || *stored.Record.BoundEffectDigest != effectDigest || stored.AbortClaim != nil {
+					t.Fatalf("effect winner stored state = %#v", stored)
+				}
+			} else if stored.AbortClaim == nil || stored.AbortClaim.Reason != AbortValidationFailed || stored.Record.BoundEffectDigest != nil {
+				t.Fatalf("claim winner stored state = %#v", stored)
+			}
+		})
+	}
+}
+
+func task8RequireFiniteRepositoryReject(t *testing.T, label string, err error) {
+	t.Helper()
+	if !errors.Is(err, ErrInvalidArgument) && !errors.Is(err, ErrConflict) && !errors.Is(err, ErrTerminalConflict) {
+		t.Errorf("%s error = %v, want finite ErrInvalidArgument/ErrConflict/ErrTerminalConflict", label, err)
+	}
+}
+
+func task8WaitForRepositoryLockBlock(t *testing.T, ctx context.Context, pool *pgxpool.Pool, blockerPID, waiterPID int32) {
+	t.Helper()
+	deadline := time.NewTimer(10 * time.Second)
+	defer deadline.Stop()
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		var blocked bool
+		if err := pool.QueryRow(ctx, `
+SELECT wait_event_type='Lock' AND $2=ANY(pg_blocking_pids(pid))
+FROM pg_catalog.pg_stat_activity WHERE pid=$1`, waiterPID, blockerPID).Scan(&blocked); err != nil {
+			t.Fatal("observe repository race lock barrier:", err)
+		}
+		if blocked {
+			return
+		}
+		select {
+		case <-ticker.C:
+		case <-deadline.C:
+			t.Fatalf("backend %d did not block on first-writer backend %d", waiterPID, blockerPID)
+		}
+	}
+}
+
+func openAuthorityV7RepositoryDatabase(t *testing.T, label string) (context.Context, *pgxpool.Pool) {
+	t.Helper()
+	ctx, pool := openMigratedAuthorityDatabase(t)
+	asset, err := os.ReadFile("../../../db/migrations/assets/nodecontrol_authority_v7_up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for index, statement := range strings.Split(string(asset), "-- talenro:statement") {
+		statement = strings.TrimSpace(statement)
+		if statement == "" {
+			continue
+		}
+		if _, err := tx.Exec(ctx, statement); err != nil {
+			_ = tx.Rollback(ctx)
+			t.Fatalf("apply authority-v7 asset statement %d for %s: %v", index, label, err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal("commit authority-v7 test asset:", err)
+	}
+	return ctx, pool
+}
+
 func TestPostgresRepositoryRecordsExactFenceState(t *testing.T) {
 	ctx, pool := openMigratedAuthorityDatabase(t)
 	repository, err := NewPostgresRepository(pool)
@@ -641,16 +996,30 @@ func openOwnedAuthorityDatabase(t *testing.T) *pgxpool.Pool {
 	if err != nil {
 		t.Fatal(err)
 	}
+	const fixtureLock int64 = 0x54414c454e524f37
+	if _, err := admin.Exec(context.Background(), `SELECT pg_advisory_lock($1)`, fixtureLock); err != nil {
+		admin.Close(context.Background())
+		t.Fatal("acquire cluster-wide authority-v7 fixture lock:", err)
+	}
+	var preexistingRoles int
+	if err := admin.QueryRow(context.Background(), `SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname=ANY($1::text[])`, []string{
+		"nodecontrol_upgrade_executor", "nodecontrol_migration_downgrader", "nodecontrol_staging_importer",
+	}).Scan(&preexistingRoles); err != nil || (preexistingRoles != 0 && preexistingRoles != 3) {
+		_, _ = admin.Exec(context.Background(), `SELECT pg_advisory_unlock($1)`, fixtureLock)
+		admin.Close(context.Background())
+		t.Fatalf("authority-v7 fixture started with partial cluster capability roles count=%d error=%v", preexistingRoles, err)
+	}
+	fixtureOwnsRoles := preexistingRoles == 0
 	databaseName := "nodecontrol_task6_" + strings.ReplaceAll(uuid.NewString(), "-", "")
 	databaseIdentifier := pgx.Identifier{databaseName}.Sanitize()
 	createCtx, createCancel := context.WithTimeout(context.Background(), 20*time.Second)
 	if _, err := admin.Exec(createCtx, "CREATE DATABASE "+databaseIdentifier); err != nil {
 		createCancel()
+		_, _ = admin.Exec(context.Background(), `SELECT pg_advisory_unlock($1)`, fixtureLock)
 		admin.Close(context.Background())
 		t.Fatal(err)
 	}
 	createCancel()
-	admin.Close(context.Background())
 
 	parsed.Path = "/" + databaseName
 	pool, err := pgxpool.New(context.Background(), parsed.String())
@@ -659,17 +1028,26 @@ func openOwnedAuthorityDatabase(t *testing.T) *pgxpool.Pool {
 	}
 	t.Cleanup(func() {
 		pool.Close()
-		cleanup, cleanupErr := pgx.ConnectConfig(context.Background(), adminConfig)
-		if cleanupErr != nil {
-			t.Error(cleanupErr)
-			return
-		}
-		defer cleanup.Close(context.Background())
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cleanupCancel()
-		if _, cleanupErr := cleanup.Exec(cleanupCtx, "DROP DATABASE "+databaseIdentifier); cleanupErr != nil {
+		if _, cleanupErr := admin.Exec(cleanupCtx, "DROP DATABASE "+databaseIdentifier+" WITH (FORCE)"); cleanupErr != nil {
 			t.Error(cleanupErr)
 		}
+		if fixtureOwnsRoles {
+			if _, cleanupErr := admin.Exec(cleanupCtx, `DROP ROLE IF EXISTS nodecontrol_staging_importer,nodecontrol_migration_downgrader,nodecontrol_upgrade_executor`); cleanupErr != nil {
+				t.Error("drop exact authority-v7 cluster capability roles:", cleanupErr)
+			}
+			var remainingRoles int
+			if cleanupErr := admin.QueryRow(cleanupCtx, `SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname=ANY($1::text[])`, []string{
+				"nodecontrol_upgrade_executor", "nodecontrol_migration_downgrader", "nodecontrol_staging_importer",
+			}).Scan(&remainingRoles); cleanupErr != nil || remainingRoles != 0 {
+				t.Errorf("authority-v7 fixture capability-role residue count=%d error=%v", remainingRoles, cleanupErr)
+			}
+		}
+		if _, cleanupErr := admin.Exec(cleanupCtx, `SELECT pg_advisory_unlock($1)`, fixtureLock); cleanupErr != nil {
+			t.Error("release cluster-wide authority-v7 fixture lock:", cleanupErr)
+		}
+		_ = admin.Close(context.Background())
 	})
 	return pool
 }

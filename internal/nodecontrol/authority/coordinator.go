@@ -179,10 +179,24 @@ func (coordinator *Coordinator) Abort(ctx context.Context, request AbortRequest)
 	if err != nil {
 		return Receipt{}, coordinatorDependencyError(ctx, err)
 	}
-	if providerRecord.Validate() != nil || providerRecord.Reservation != record.Reservation ||
+	if record.Validate() != nil || providerRecord.Validate() != nil || providerRecord.Reservation != record.Reservation ||
 		!equalOptionalDigest(providerRecord.BoundEffectDigest, record.BoundEffectDigest) ||
 		!equalOptionalDatabasePoint(providerRecord.BoundDatabasePoint, record.BoundDatabasePoint) {
 		return Receipt{}, ErrConflict
+	}
+	if record.TerminalReceipt != nil {
+		if providerRecord.TerminalReceipt == nil ||
+			providerRecord.TerminalReceipt.ReceiptDigest != record.TerminalReceipt.ReceiptDigest {
+			return Receipt{}, ErrConflict
+		}
+		if record.TerminalReceipt.Status != StatusAborted || providerRecord.TerminalReceipt.Status != StatusAborted {
+			return Receipt{}, ErrTerminalConflict
+		}
+		if record.TerminalReceipt.AbortReason == nil || *record.TerminalReceipt.AbortReason != request.Reason ||
+			providerRecord.TerminalReceipt.AbortReason == nil || *providerRecord.TerminalReceipt.AbortReason != request.Reason {
+			return Receipt{}, ErrConflict
+		}
+		return cloneReceipt(*record.TerminalReceipt), nil
 	}
 	if providerRecord.TerminalReceipt != nil {
 		if providerRecord.TerminalReceipt.Status != StatusAborted {
@@ -191,10 +205,26 @@ func (coordinator *Coordinator) Abort(ctx context.Context, request AbortRequest)
 		if providerRecord.TerminalReceipt.AbortReason == nil || *providerRecord.TerminalReceipt.AbortReason != request.Reason {
 			return Receipt{}, ErrConflict
 		}
+		resolved, resolveErr := coordinator.resolve(ctx, request.OperationID)
+		if resolveErr != nil {
+			return Receipt{}, resolveErr
+		}
+		if resolved.State != EffectAbsent || record.BoundEffectDigest != nil || record.BoundDatabasePoint != nil ||
+			providerRecord.BoundEffectDigest != nil || providerRecord.BoundDatabasePoint != nil {
+			return Receipt{}, ErrConflict
+		}
 		if err := coordinator.recordAborted(ctx, *providerRecord.TerminalReceipt); err != nil {
 			return Receipt{}, err
 		}
 		return cloneReceipt(*providerRecord.TerminalReceipt), nil
+	}
+	resolved, err := coordinator.resolve(ctx, request.OperationID)
+	if err != nil {
+		return Receipt{}, err
+	}
+	if resolved.State != EffectAbsent || record.BoundEffectDigest != nil || record.BoundDatabasePoint != nil ||
+		providerRecord.BoundEffectDigest != nil || providerRecord.BoundDatabasePoint != nil {
+		return Receipt{}, ErrConflict
 	}
 	receipt, err := coordinator.provider.Abort(ctx, request)
 	if err != nil {
@@ -327,6 +357,7 @@ func (coordinator *Coordinator) CheckReady(ctx context.Context) (Readiness, erro
 		if !databaseEmpty {
 			return unavailableReadiness(providerHead, databaseHead, ReadinessDatabaseAheadProvider), nil
 		}
+		databaseHead.Epoch = providerHead.Epoch
 	} else {
 		if databaseEmpty || databaseHead.Epoch < providerHead.Epoch {
 			return unavailableReadiness(providerHead, databaseHead, ReadinessDatabaseBehindProvider), nil
@@ -400,7 +431,11 @@ func (coordinator *Coordinator) inspectPending(ctx context.Context, epoch uint64
 			return "", ErrCanceled
 		}
 		if providerErr != nil {
-			reason = readinessReasonWithPriority(reason, ReadinessProviderUnavailable)
+			providerReason := ReadinessProviderUnavailable
+			if errors.Is(providerErr, ErrNotFound) || errors.Is(providerErr, ErrConflict) || errors.Is(providerErr, ErrTerminalConflict) {
+				providerReason = ReadinessPendingMismatch
+			}
+			reason = readinessReasonWithPriority(reason, providerReason)
 		}
 		if resolveErr != nil {
 			reason = readinessReasonWithPriority(reason, ReadinessEffectUnavailable)
@@ -616,7 +651,8 @@ func (coordinator *Coordinator) completeProviderTerminal(
 			return Receipt{}, err
 		}
 	case StatusAborted:
-		if resolved.State == EffectCommitted || resolved.State == EffectPrepared ||
+		if resolved.State != EffectAbsent || databaseRecord.BoundEffectDigest != nil || databaseRecord.BoundDatabasePoint != nil ||
+			receipt.EffectDigest != nil || receipt.DatabasePoint != nil ||
 			!equalOptionalDigest(databaseRecord.BoundEffectDigest, receipt.EffectDigest) ||
 			!equalOptionalDatabasePoint(databaseRecord.BoundDatabasePoint, receipt.DatabasePoint) {
 			return Receipt{}, ErrConflict

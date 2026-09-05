@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -37,6 +38,15 @@ func (q *Queries) AbortAuthorityFence(ctx context.Context, arg AbortAuthorityFen
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const acquireAuthorityV7SourceFreezeForSeal = `-- name: AcquireAuthorityV7SourceFreezeForSeal :exec
+SELECT nodecontrol.v7_acquire_source_freeze_for_seal()
+`
+
+func (q *Queries) AcquireAuthorityV7SourceFreezeForSeal(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, acquireAuthorityV7SourceFreezeForSeal)
+	return err
 }
 
 const activateCommittedAuthorityFence = `-- name: ActivateCommittedAuthorityFence :execrows
@@ -72,6 +82,72 @@ func (q *Queries) ActivateCommittedAuthorityFence(ctx context.Context, arg Activ
 	return result.RowsAffected(), nil
 }
 
+const beginStagingImport = `-- name: BeginStagingImport :one
+SELECT single_use_apply_id, staging_import_capability_digest, staging_import_capability_recovery_intent_digest_or_null, staging_import_capability_recovery_application_digest_or_null, manifest_digest, target_activation_id, current_database_identity_digest, database_timeline_lineage_chain_digest, target_database_incarnation_registration_digest, runtime_rebind_chain_digest, runtime_instance_binding_digest, staging_exclusion_lease_digest, acquisition_locked_provider_head_digest, database_route_closed_digest, pre_import_inventory_digest, post_import_inventory_digest, imported_object_count, complete_node_set_digest, forbidden_state_zero_digest, database_transaction_id, transaction_snapshot_digest, applied_at, canonical_evidence_bundle_jcs, canonical_body_jcs, body_digest FROM nodecontrol.begin_staging_import(
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  $8
+)
+`
+
+type BeginStagingImportParams struct {
+	CapabilityDigest      []byte          `json:"capability_digest"`
+	ManifestDigest        []byte          `json:"manifest_digest"`
+	ExclusionLeaseDigest  []byte          `json:"exclusion_lease_digest"`
+	AcquisitionHeadDigest []byte          `json:"acquisition_head_digest"`
+	RouteClosedDigest     []byte          `json:"route_closed_digest"`
+	ProjectionBodyJcs     []byte          `json:"projection_body_jcs"`
+	ProjectionDigest      []byte          `json:"projection_digest"`
+	ProjectionObjects     json.RawMessage `json:"projection_objects"`
+}
+
+func (q *Queries) BeginStagingImport(ctx context.Context, arg BeginStagingImportParams) (NodecontrolControlPlaneAuthorityFreshRestoreImportApplication, error) {
+	row := q.db.QueryRow(ctx, beginStagingImport,
+		arg.CapabilityDigest,
+		arg.ManifestDigest,
+		arg.ExclusionLeaseDigest,
+		arg.AcquisitionHeadDigest,
+		arg.RouteClosedDigest,
+		arg.ProjectionBodyJcs,
+		arg.ProjectionDigest,
+		arg.ProjectionObjects,
+	)
+	var i NodecontrolControlPlaneAuthorityFreshRestoreImportApplication
+	err := row.Scan(
+		&i.SingleUseApplyID,
+		&i.StagingImportCapabilityDigest,
+		&i.StagingImportCapabilityRecoveryIntentDigestOrNull,
+		&i.StagingImportCapabilityRecoveryApplicationDigestOrNull,
+		&i.ManifestDigest,
+		&i.TargetActivationID,
+		&i.CurrentDatabaseIdentityDigest,
+		&i.DatabaseTimelineLineageChainDigest,
+		&i.TargetDatabaseIncarnationRegistrationDigest,
+		&i.RuntimeRebindChainDigest,
+		&i.RuntimeInstanceBindingDigest,
+		&i.StagingExclusionLeaseDigest,
+		&i.AcquisitionLockedProviderHeadDigest,
+		&i.DatabaseRouteClosedDigest,
+		&i.PreImportInventoryDigest,
+		&i.PostImportInventoryDigest,
+		&i.ImportedObjectCount,
+		&i.CompleteNodeSetDigest,
+		&i.ForbiddenStateZeroDigest,
+		&i.DatabaseTransactionID,
+		&i.TransactionSnapshotDigest,
+		&i.AppliedAt,
+		&i.CanonicalEvidenceBundleJcs,
+		&i.CanonicalBodyJcs,
+		&i.BodyDigest,
+	)
+	return i, err
+}
+
 const bindAuthorityFenceEffect = `-- name: BindAuthorityFenceEffect :execrows
 UPDATE nodecontrol.control_plane_authority_fences
 SET effect_digest = $2, db_system_id = $3, db_timeline = $4,
@@ -104,13 +180,64 @@ func (q *Queries) BindAuthorityFenceEffect(ctx context.Context, arg BindAuthorit
 	return result.RowsAffected(), nil
 }
 
-const getAuthorityFence = `-- name: GetAuthorityFence :one
-SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest, provider_reservation_digest, effect_digest, provider_status, provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason, visibility_state, reserved_at, effect_bound_at, terminal_at FROM nodecontrol.control_plane_authority_fences WHERE operation_id = $1
+const claimAuthorityAbort = `-- name: ClaimAuthorityAbort :execrows
+UPDATE nodecontrol.control_plane_authority_fences
+SET abort_reason = $2, abort_claimed_at = $3
+WHERE operation_id = $1
+  AND authority_protocol_profile = 'claim_v1'
+  AND provider_status = 'reserved'
+  AND visibility_state = 'fence_pending'
+  AND effect_digest IS NULL
+  AND abort_reason IS NULL
+  AND abort_claimed_at IS NULL
 `
 
-func (q *Queries) GetAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error) {
+type ClaimAuthorityAbortParams struct {
+	OperationID    uuid.UUID          `json:"operation_id"`
+	AbortReason    pgtype.Text        `json:"abort_reason"`
+	AbortClaimedAt pgtype.Timestamptz `json:"abort_claimed_at"`
+}
+
+func (q *Queries) ClaimAuthorityAbort(ctx context.Context, arg ClaimAuthorityAbortParams) (int64, error) {
+	result, err := q.db.Exec(ctx, claimAuthorityAbort, arg.OperationID, arg.AbortReason, arg.AbortClaimedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getAuthorityFence = `-- name: GetAuthorityFence :one
+SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence,
+       scope_digest, provider_reservation_digest, effect_digest, provider_status,
+       provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason,
+       visibility_state, reserved_at, effect_bound_at, terminal_at
+FROM nodecontrol.control_plane_authority_fences WHERE operation_id = $1
+`
+
+type GetAuthorityFenceRow struct {
+	OperationID               uuid.UUID          `json:"operation_id"`
+	EffectKind                string             `json:"effect_kind"`
+	ScopeKind                 string             `json:"scope_kind"`
+	AuthorityEpoch            int64              `json:"authority_epoch"`
+	AuthoritySequence         int64              `json:"authority_sequence"`
+	ScopeDigest               []byte             `json:"scope_digest"`
+	ProviderReservationDigest []byte             `json:"provider_reservation_digest"`
+	EffectDigest              []byte             `json:"effect_digest"`
+	ProviderStatus            string             `json:"provider_status"`
+	ProviderReceiptDigest     []byte             `json:"provider_receipt_digest"`
+	DbSystemID                pgtype.Numeric     `json:"db_system_id"`
+	DbTimeline                pgtype.Int8        `json:"db_timeline"`
+	RequiredLsn               interface{}        `json:"required_lsn"`
+	AbortReason               pgtype.Text        `json:"abort_reason"`
+	VisibilityState           string             `json:"visibility_state"`
+	ReservedAt                pgtype.Timestamptz `json:"reserved_at"`
+	EffectBoundAt             pgtype.Timestamptz `json:"effect_bound_at"`
+	TerminalAt                pgtype.Timestamptz `json:"terminal_at"`
+}
+
+func (q *Queries) GetAuthorityFence(ctx context.Context, operationID uuid.UUID) (GetAuthorityFenceRow, error) {
 	row := q.db.QueryRow(ctx, getAuthorityFence, operationID)
-	var i NodecontrolControlPlaneAuthorityFence
+	var i GetAuthorityFenceRow
 	err := row.Scan(
 		&i.OperationID,
 		&i.EffectKind,
@@ -135,14 +262,39 @@ func (q *Queries) GetAuthorityFence(ctx context.Context, operationID uuid.UUID) 
 }
 
 const getAuthorityFenceForUpdate = `-- name: GetAuthorityFenceForUpdate :one
-SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest, provider_reservation_digest, effect_digest, provider_status, provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason, visibility_state, reserved_at, effect_bound_at, terminal_at FROM nodecontrol.control_plane_authority_fences
+SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence,
+       scope_digest, provider_reservation_digest, effect_digest, provider_status,
+       provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason,
+       visibility_state, reserved_at, effect_bound_at, terminal_at
+FROM nodecontrol.control_plane_authority_fences
 WHERE operation_id = $1
 FOR UPDATE
 `
 
-func (q *Queries) GetAuthorityFenceForUpdate(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error) {
+type GetAuthorityFenceForUpdateRow struct {
+	OperationID               uuid.UUID          `json:"operation_id"`
+	EffectKind                string             `json:"effect_kind"`
+	ScopeKind                 string             `json:"scope_kind"`
+	AuthorityEpoch            int64              `json:"authority_epoch"`
+	AuthoritySequence         int64              `json:"authority_sequence"`
+	ScopeDigest               []byte             `json:"scope_digest"`
+	ProviderReservationDigest []byte             `json:"provider_reservation_digest"`
+	EffectDigest              []byte             `json:"effect_digest"`
+	ProviderStatus            string             `json:"provider_status"`
+	ProviderReceiptDigest     []byte             `json:"provider_receipt_digest"`
+	DbSystemID                pgtype.Numeric     `json:"db_system_id"`
+	DbTimeline                pgtype.Int8        `json:"db_timeline"`
+	RequiredLsn               interface{}        `json:"required_lsn"`
+	AbortReason               pgtype.Text        `json:"abort_reason"`
+	VisibilityState           string             `json:"visibility_state"`
+	ReservedAt                pgtype.Timestamptz `json:"reserved_at"`
+	EffectBoundAt             pgtype.Timestamptz `json:"effect_bound_at"`
+	TerminalAt                pgtype.Timestamptz `json:"terminal_at"`
+}
+
+func (q *Queries) GetAuthorityFenceForUpdate(ctx context.Context, operationID uuid.UUID) (GetAuthorityFenceForUpdateRow, error) {
 	row := q.db.QueryRow(ctx, getAuthorityFenceForUpdate, operationID)
-	var i NodecontrolControlPlaneAuthorityFence
+	var i GetAuthorityFenceForUpdateRow
 	err := row.Scan(
 		&i.OperationID,
 		&i.EffectKind,
@@ -171,7 +323,7 @@ WITH latest_epoch AS (
   SELECT COALESCE(MAX(authority_epoch), 0)::bigint AS authority_epoch
   FROM nodecontrol.control_plane_authority_fences
 ), epoch_rows AS (
-  SELECT f.operation_id, f.effect_kind, f.scope_kind, f.authority_epoch, f.authority_sequence, f.scope_digest, f.provider_reservation_digest, f.effect_digest, f.provider_status, f.provider_receipt_digest, f.db_system_id, f.db_timeline, f.required_lsn, f.abort_reason, f.visibility_state, f.reserved_at, f.effect_bound_at, f.terminal_at FROM nodecontrol.control_plane_authority_fences f
+  SELECT f.operation_id, f.effect_kind, f.scope_kind, f.authority_epoch, f.authority_sequence, f.scope_digest, f.provider_reservation_digest, f.effect_digest, f.provider_status, f.provider_receipt_digest, f.db_system_id, f.db_timeline, f.required_lsn, f.abort_reason, f.visibility_state, f.reserved_at, f.effect_bound_at, f.terminal_at, f.authority_protocol_profile, f.abort_claimed_at, f.protocol_activation_id FROM nodecontrol.control_plane_authority_fences f
   JOIN latest_epoch e ON f.authority_epoch = e.authority_epoch
 ), aggregate_head AS (
   SELECT COUNT(*)::bigint AS record_count,
@@ -288,11 +440,60 @@ func (q *Queries) GetNodeControlDatabaseIdentity(ctx context.Context) (GetNodeCo
 	return i, err
 }
 
+const getStoredAuthorityFence = `-- name: GetStoredAuthorityFence :one
+SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest, provider_reservation_digest, effect_digest, provider_status, provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason, visibility_state, reserved_at, effect_bound_at, terminal_at, authority_protocol_profile, abort_claimed_at, protocol_activation_id FROM nodecontrol.control_plane_authority_fences WHERE operation_id = $1
+`
+
+func (q *Queries) GetStoredAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error) {
+	row := q.db.QueryRow(ctx, getStoredAuthorityFence, operationID)
+	var i NodecontrolControlPlaneAuthorityFence
+	err := row.Scan(
+		&i.OperationID,
+		&i.EffectKind,
+		&i.ScopeKind,
+		&i.AuthorityEpoch,
+		&i.AuthoritySequence,
+		&i.ScopeDigest,
+		&i.ProviderReservationDigest,
+		&i.EffectDigest,
+		&i.ProviderStatus,
+		&i.ProviderReceiptDigest,
+		&i.DbSystemID,
+		&i.DbTimeline,
+		&i.RequiredLsn,
+		&i.AbortReason,
+		&i.VisibilityState,
+		&i.ReservedAt,
+		&i.EffectBoundAt,
+		&i.TerminalAt,
+		&i.AuthorityProtocolProfile,
+		&i.AbortClaimedAt,
+		&i.ProtocolActivationID,
+	)
+	return i, err
+}
+
 const insertAuthorityFencePending = `-- name: InsertAuthorityFencePending :execrows
+WITH candidate AS (
+  SELECT jsonb_populate_record(
+    NULL::nodecontrol.control_plane_authority_fences,
+    jsonb_build_object(
+      'operation_id', $1::uuid,
+      'effect_kind', $2::text,
+      'scope_kind', $3::text,
+      'authority_epoch', $4::bigint,
+      'authority_sequence', $5::bigint,
+      'scope_digest', '\x' || encode($6::bytea, 'hex'),
+      'provider_reservation_digest', '\x' || encode($7::bytea, 'hex'),
+      'provider_status', 'reserved',
+      'visibility_state', 'fence_pending',
+      'reserved_at', $8::pg_catalog.timestamptz,
+      'authority_protocol_profile', 'legacy_v6'
+    )
+  ) AS value
+)
 INSERT INTO nodecontrol.control_plane_authority_fences
-  (operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest,
-   provider_reservation_digest, provider_status, visibility_state, reserved_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, 'reserved', 'fence_pending', $8)
+SELECT (value).* FROM candidate
 ON CONFLICT (operation_id) DO NOTHING
 `
 
@@ -317,6 +518,45 @@ func (q *Queries) InsertAuthorityFencePending(ctx context.Context, arg InsertAut
 		arg.ScopeDigest,
 		arg.ProviderReservationDigest,
 		arg.ReservedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const insertClaimV1AuthorityFencePending = `-- name: InsertClaimV1AuthorityFencePending :execrows
+INSERT INTO nodecontrol.control_plane_authority_fences
+  (operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest,
+   provider_reservation_digest, provider_status, visibility_state, reserved_at,
+   authority_protocol_profile, protocol_activation_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, 'reserved', 'fence_pending', $8, 'claim_v1', $9)
+ON CONFLICT (operation_id) DO NOTHING
+`
+
+type InsertClaimV1AuthorityFencePendingParams struct {
+	OperationID               uuid.UUID          `json:"operation_id"`
+	EffectKind                string             `json:"effect_kind"`
+	ScopeKind                 string             `json:"scope_kind"`
+	AuthorityEpoch            int64              `json:"authority_epoch"`
+	AuthoritySequence         int64              `json:"authority_sequence"`
+	ScopeDigest               []byte             `json:"scope_digest"`
+	ProviderReservationDigest []byte             `json:"provider_reservation_digest"`
+	ReservedAt                pgtype.Timestamptz `json:"reserved_at"`
+	ProtocolActivationID      uuid.NullUUID      `json:"protocol_activation_id"`
+}
+
+func (q *Queries) InsertClaimV1AuthorityFencePending(ctx context.Context, arg InsertClaimV1AuthorityFencePendingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertClaimV1AuthorityFencePending,
+		arg.OperationID,
+		arg.EffectKind,
+		arg.ScopeKind,
+		arg.AuthorityEpoch,
+		arg.AuthoritySequence,
+		arg.ScopeDigest,
+		arg.ProviderReservationDigest,
+		arg.ReservedAt,
+		arg.ProtocolActivationID,
 	)
 	if err != nil {
 		return 0, err
@@ -382,4 +622,740 @@ func (q *Queries) ListPendingAuthorityFences(ctx context.Context, authorityEpoch
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockAuthorityFence = `-- name: LockAuthorityFence :one
+SELECT operation_id, effect_kind, scope_kind, authority_epoch, authority_sequence, scope_digest, provider_reservation_digest, effect_digest, provider_status, provider_receipt_digest, db_system_id, db_timeline, required_lsn, abort_reason, visibility_state, reserved_at, effect_bound_at, terminal_at, authority_protocol_profile, abort_claimed_at, protocol_activation_id FROM nodecontrol.control_plane_authority_fences WHERE operation_id = $1 FOR UPDATE
+`
+
+func (q *Queries) LockAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error) {
+	row := q.db.QueryRow(ctx, lockAuthorityFence, operationID)
+	var i NodecontrolControlPlaneAuthorityFence
+	err := row.Scan(
+		&i.OperationID,
+		&i.EffectKind,
+		&i.ScopeKind,
+		&i.AuthorityEpoch,
+		&i.AuthoritySequence,
+		&i.ScopeDigest,
+		&i.ProviderReservationDigest,
+		&i.EffectDigest,
+		&i.ProviderStatus,
+		&i.ProviderReceiptDigest,
+		&i.DbSystemID,
+		&i.DbTimeline,
+		&i.RequiredLsn,
+		&i.AbortReason,
+		&i.VisibilityState,
+		&i.ReservedAt,
+		&i.EffectBoundAt,
+		&i.TerminalAt,
+		&i.AuthorityProtocolProfile,
+		&i.AbortClaimedAt,
+		&i.ProtocolActivationID,
+	)
+	return i, err
+}
+
+const lockCertificateIssuanceActivationOutcome = `-- name: LockCertificateIssuanceActivationOutcome :one
+SELECT activation_authority_effect_commitment_jcs AS commitment_jcs,
+       activation_authority_effect_commitment_digest AS commitment_digest,
+       activation_authority_provider_head_jcs AS provider_head_jcs,
+       activation_authority_provider_head_digest AS provider_head_digest,
+       activation_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       activation_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       activation_authority_effect_reason AS effect_reason,
+       activation_authority_attestation_expires_at AS attestation_expires_at,
+       activation_authority_activation_deadline AS activation_deadline,
+       activation_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       activation_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       activation_authority_activation_evidence_digest AS activation_evidence_digest,
+       activation_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       activation_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_certificate_issuances
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockCertificateIssuanceActivationOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockCertificateIssuanceActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockCertificateIssuanceActivationOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockCertificateIssuanceActivationOutcome, authorityOperationID)
+	var i LockCertificateIssuanceActivationOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockCertificateRevocationOutcome = `-- name: LockCertificateRevocationOutcome :one
+SELECT revoke_authority_effect_commitment_jcs AS commitment_jcs,
+       revoke_authority_effect_commitment_digest AS commitment_digest,
+       revoke_authority_provider_head_jcs AS provider_head_jcs,
+       revoke_authority_provider_head_digest AS provider_head_digest,
+       revoke_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       revoke_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       revoke_authority_effect_reason AS effect_reason,
+       revoke_authority_attestation_expires_at AS attestation_expires_at,
+       revoke_authority_activation_deadline AS activation_deadline,
+       revoke_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       revoke_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       revoke_authority_activation_evidence_digest AS activation_evidence_digest,
+       revoke_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       revoke_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_certificates
+WHERE revoke_authority_operation_id = $1 FOR UPDATE
+`
+
+type LockCertificateRevocationOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockCertificateRevocationOutcome(ctx context.Context, revokeAuthorityOperationID uuid.NullUUID) (LockCertificateRevocationOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockCertificateRevocationOutcome, revokeAuthorityOperationID)
+	var i LockCertificateRevocationOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockEnrollmentGrantClaimOutcome = `-- name: LockEnrollmentGrantClaimOutcome :one
+SELECT claim_authority_effect_commitment_jcs AS commitment_jcs,
+       claim_authority_effect_commitment_digest AS commitment_digest,
+       claim_authority_provider_head_jcs AS provider_head_jcs,
+       claim_authority_provider_head_digest AS provider_head_digest,
+       claim_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       claim_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       claim_authority_effect_reason AS effect_reason,
+       claim_authority_attestation_expires_at AS attestation_expires_at,
+       claim_authority_activation_deadline AS activation_deadline,
+       claim_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       claim_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       claim_authority_activation_evidence_digest AS activation_evidence_digest,
+       claim_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       claim_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_enrollment_grants
+WHERE claim_authority_operation_id = $1 FOR UPDATE
+`
+
+type LockEnrollmentGrantClaimOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockEnrollmentGrantClaimOutcome(ctx context.Context, claimAuthorityOperationID uuid.NullUUID) (LockEnrollmentGrantClaimOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockEnrollmentGrantClaimOutcome, claimAuthorityOperationID)
+	var i LockEnrollmentGrantClaimOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockEnrollmentGrantCreateOutcome = `-- name: LockEnrollmentGrantCreateOutcome :one
+/* The branch registry below is retained as a literal review aid; sqlc uses the
+   ten closed per-owner queries that follow it.
+WITH grant_create AS (
+  SELECT 'grant_create'::text AS owner_kind,
+         create_authority_effect_commitment_jcs AS commitment_jcs,
+         create_authority_effect_commitment_digest AS commitment_digest,
+         create_authority_provider_head_jcs AS provider_head_jcs,
+         create_authority_provider_head_digest AS provider_head_digest,
+         create_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+         create_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+         create_authority_effect_reason AS effect_reason,
+         create_authority_attestation_expires_at AS attestation_expires_at,
+         create_authority_activation_deadline AS activation_deadline,
+         create_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+         create_authority_activation_evidence_jcs AS activation_evidence_jcs,
+         create_authority_activation_evidence_digest AS activation_evidence_digest,
+         create_authority_effect_resolution_jcs AS effect_resolution_jcs,
+         create_authority_effect_resolution_digest AS effect_resolution_digest
+  FROM nodecontrol.node_enrollment_grants AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), grant_claim AS (
+  SELECT 'grant_claim'::text,
+         claim_authority_effect_commitment_jcs, claim_authority_effect_commitment_digest,
+         claim_authority_provider_head_jcs, claim_authority_provider_head_digest,
+         claim_authority_checkpoint_anchor_jcs, claim_authority_checkpoint_anchor_digest,
+         claim_authority_effect_reason, claim_authority_attestation_expires_at,
+         claim_authority_activation_deadline, claim_authority_expected_provider_identity_digest,
+         claim_authority_activation_evidence_jcs, claim_authority_activation_evidence_digest,
+         claim_authority_effect_resolution_jcs, claim_authority_effect_resolution_digest
+  FROM nodecontrol.node_enrollment_grants AS owner WHERE owner.claim_authority_operation_id = $1 FOR UPDATE
+), certificate_activate AS (
+  SELECT 'certificate_activate'::text,
+         activation_authority_effect_commitment_jcs, activation_authority_effect_commitment_digest,
+         activation_authority_provider_head_jcs, activation_authority_provider_head_digest,
+         activation_authority_checkpoint_anchor_jcs, activation_authority_checkpoint_anchor_digest,
+         activation_authority_effect_reason, activation_authority_attestation_expires_at,
+         activation_authority_activation_deadline, activation_authority_expected_provider_identity_digest,
+         activation_authority_activation_evidence_jcs, activation_authority_activation_evidence_digest,
+         activation_authority_effect_resolution_jcs, activation_authority_effect_resolution_digest
+  FROM nodecontrol.node_certificate_issuances AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), certificate_revoke AS (
+  SELECT 'certificate_revoke'::text,
+         revoke_authority_effect_commitment_jcs, revoke_authority_effect_commitment_digest,
+         revoke_authority_provider_head_jcs, revoke_authority_provider_head_digest,
+         revoke_authority_checkpoint_anchor_jcs, revoke_authority_checkpoint_anchor_digest,
+         revoke_authority_effect_reason, revoke_authority_attestation_expires_at,
+         revoke_authority_activation_deadline, revoke_authority_expected_provider_identity_digest,
+         revoke_authority_activation_evidence_jcs, revoke_authority_activation_evidence_digest,
+         revoke_authority_effect_resolution_jcs, revoke_authority_effect_resolution_digest
+  FROM nodecontrol.node_certificates AS owner WHERE owner.revoke_authority_operation_id = $1 FOR UPDATE
+), state_transition AS (
+  SELECT authority_effect_kind,
+         authority_effect_commitment_jcs, authority_effect_commitment_digest,
+         authority_provider_head_jcs, authority_provider_head_digest,
+         authority_checkpoint_anchor_jcs, authority_checkpoint_anchor_digest,
+         authority_effect_reason, authority_attestation_expires_at,
+         authority_activation_deadline, authority_expected_provider_identity_digest,
+         authority_activation_evidence_jcs, authority_activation_evidence_digest,
+         authority_effect_resolution_jcs, authority_effect_resolution_digest
+  FROM nodecontrol.node_state_transitions AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), incident_open AS (
+  SELECT 'security_incident_open'::text,
+         open_authority_effect_commitment_jcs, open_authority_effect_commitment_digest,
+         open_authority_provider_head_jcs, open_authority_provider_head_digest,
+         open_authority_checkpoint_anchor_jcs, open_authority_checkpoint_anchor_digest,
+         open_authority_effect_reason, open_authority_attestation_expires_at,
+         open_authority_activation_deadline, open_authority_expected_provider_identity_digest,
+         open_authority_activation_evidence_jcs, open_authority_activation_evidence_digest,
+         open_authority_effect_resolution_jcs, open_authority_effect_resolution_digest
+  FROM nodecontrol.node_security_incidents AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), incident_resolve AS (
+  SELECT 'security_incident_resolve'::text,
+         resolve_authority_effect_commitment_jcs, resolve_authority_effect_commitment_digest,
+         resolve_authority_provider_head_jcs, resolve_authority_provider_head_digest,
+         resolve_authority_checkpoint_anchor_jcs, resolve_authority_checkpoint_anchor_digest,
+         resolve_authority_effect_reason, resolve_authority_attestation_expires_at,
+         resolve_authority_activation_deadline, resolve_authority_expected_provider_identity_digest,
+         resolve_authority_activation_evidence_jcs, resolve_authority_activation_evidence_digest,
+         resolve_authority_effect_resolution_jcs, resolve_authority_effect_resolution_digest
+  FROM nodecontrol.node_security_incidents AS owner WHERE owner.resolution_authority_operation_id = $1 FOR UPDATE
+), resource_activate AS (
+  SELECT 'resource_envelope_activate'::text,
+         activation_authority_effect_commitment_jcs, activation_authority_effect_commitment_digest,
+         activation_authority_provider_head_jcs, activation_authority_provider_head_digest,
+         activation_authority_checkpoint_anchor_jcs, activation_authority_checkpoint_anchor_digest,
+         activation_authority_effect_reason, activation_authority_attestation_expires_at,
+         activation_authority_activation_deadline, activation_authority_expected_provider_identity_digest,
+         activation_authority_activation_evidence_jcs, activation_authority_activation_evidence_digest,
+         activation_authority_effect_resolution_jcs, activation_authority_effect_resolution_digest
+  FROM nodecontrol.node_resource_envelopes AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), signing_activate AS (
+  SELECT CASE signing_kind WHEN 'desired' THEN 'desired_activate'::text ELSE 'recovery_activate'::text END,
+         activation_authority_effect_commitment_jcs, activation_authority_effect_commitment_digest,
+         activation_authority_provider_head_jcs, activation_authority_provider_head_digest,
+         activation_authority_checkpoint_anchor_jcs, activation_authority_checkpoint_anchor_digest,
+         activation_authority_effect_reason, activation_authority_attestation_expires_at,
+         activation_authority_activation_deadline, activation_authority_expected_provider_identity_digest,
+         activation_authority_activation_evidence_jcs, activation_authority_activation_evidence_digest,
+         activation_authority_effect_resolution_jcs, activation_authority_effect_resolution_digest
+  FROM nodecontrol.node_state_signing_intents AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+), publish_activate AS (
+  SELECT CASE publish_kind WHEN 'root' THEN 'root_publish'::text ELSE 'metadata_publish'::text END,
+         activation_authority_effect_commitment_jcs, activation_authority_effect_commitment_digest,
+         activation_authority_provider_head_jcs, activation_authority_provider_head_digest,
+         activation_authority_checkpoint_anchor_jcs, activation_authority_checkpoint_anchor_digest,
+         activation_authority_effect_reason, activation_authority_attestation_expires_at,
+         activation_authority_activation_deadline, activation_authority_expected_provider_identity_digest,
+         activation_authority_activation_evidence_jcs, activation_authority_activation_evidence_digest,
+         activation_authority_effect_resolution_jcs, activation_authority_effect_resolution_digest
+  FROM nodecontrol.node_root_metadata_publish_intents AS owner WHERE owner.authority_operation_id = $1 FOR UPDATE
+)
+SELECT * FROM grant_create
+UNION ALL SELECT * FROM grant_claim
+UNION ALL SELECT * FROM certificate_activate
+UNION ALL SELECT * FROM certificate_revoke
+UNION ALL SELECT * FROM state_transition
+UNION ALL SELECT * FROM incident_open
+UNION ALL SELECT * FROM incident_resolve
+UNION ALL SELECT * FROM resource_activate
+UNION ALL SELECT * FROM signing_activate
+UNION ALL SELECT * FROM publish_activate;
+*/
+
+SELECT create_authority_effect_commitment_jcs AS commitment_jcs,
+       create_authority_effect_commitment_digest AS commitment_digest,
+       create_authority_provider_head_jcs AS provider_head_jcs,
+       create_authority_provider_head_digest AS provider_head_digest,
+       create_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       create_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       create_authority_effect_reason AS effect_reason,
+       create_authority_attestation_expires_at AS attestation_expires_at,
+       create_authority_activation_deadline AS activation_deadline,
+       create_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       create_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       create_authority_activation_evidence_digest AS activation_evidence_digest,
+       create_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       create_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_enrollment_grants
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockEnrollmentGrantCreateOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+// closed persisted-outcome owner registry
+func (q *Queries) LockEnrollmentGrantCreateOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockEnrollmentGrantCreateOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockEnrollmentGrantCreateOutcome, authorityOperationID)
+	var i LockEnrollmentGrantCreateOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockResourceEnvelopeActivationOutcome = `-- name: LockResourceEnvelopeActivationOutcome :one
+SELECT activation_authority_effect_commitment_jcs AS commitment_jcs,
+       activation_authority_effect_commitment_digest AS commitment_digest,
+       activation_authority_provider_head_jcs AS provider_head_jcs,
+       activation_authority_provider_head_digest AS provider_head_digest,
+       activation_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       activation_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       activation_authority_effect_reason AS effect_reason,
+       activation_authority_attestation_expires_at AS attestation_expires_at,
+       activation_authority_activation_deadline AS activation_deadline,
+       activation_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       activation_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       activation_authority_activation_evidence_digest AS activation_evidence_digest,
+       activation_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       activation_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_resource_envelopes
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockResourceEnvelopeActivationOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockResourceEnvelopeActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockResourceEnvelopeActivationOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockResourceEnvelopeActivationOutcome, authorityOperationID)
+	var i LockResourceEnvelopeActivationOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockRootMetadataPublishIntentActivationOutcome = `-- name: LockRootMetadataPublishIntentActivationOutcome :one
+SELECT activation_authority_effect_commitment_jcs AS commitment_jcs,
+       activation_authority_effect_commitment_digest AS commitment_digest,
+       activation_authority_provider_head_jcs AS provider_head_jcs,
+       activation_authority_provider_head_digest AS provider_head_digest,
+       activation_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       activation_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       activation_authority_effect_reason AS effect_reason,
+       activation_authority_attestation_expires_at AS attestation_expires_at,
+       activation_authority_activation_deadline AS activation_deadline,
+       activation_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       activation_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       activation_authority_activation_evidence_digest AS activation_evidence_digest,
+       activation_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       activation_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_root_metadata_publish_intents
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockRootMetadataPublishIntentActivationOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockRootMetadataPublishIntentActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockRootMetadataPublishIntentActivationOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockRootMetadataPublishIntentActivationOutcome, authorityOperationID)
+	var i LockRootMetadataPublishIntentActivationOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockSecurityIncidentOpenOutcome = `-- name: LockSecurityIncidentOpenOutcome :one
+SELECT open_authority_effect_commitment_jcs AS commitment_jcs,
+       open_authority_effect_commitment_digest AS commitment_digest,
+       open_authority_provider_head_jcs AS provider_head_jcs,
+       open_authority_provider_head_digest AS provider_head_digest,
+       open_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       open_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       open_authority_effect_reason AS effect_reason,
+       open_authority_attestation_expires_at AS attestation_expires_at,
+       open_authority_activation_deadline AS activation_deadline,
+       open_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       open_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       open_authority_activation_evidence_digest AS activation_evidence_digest,
+       open_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       open_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_security_incidents
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockSecurityIncidentOpenOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockSecurityIncidentOpenOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockSecurityIncidentOpenOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockSecurityIncidentOpenOutcome, authorityOperationID)
+	var i LockSecurityIncidentOpenOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockSecurityIncidentResolveOutcome = `-- name: LockSecurityIncidentResolveOutcome :one
+SELECT resolve_authority_effect_commitment_jcs AS commitment_jcs,
+       resolve_authority_effect_commitment_digest AS commitment_digest,
+       resolve_authority_provider_head_jcs AS provider_head_jcs,
+       resolve_authority_provider_head_digest AS provider_head_digest,
+       resolve_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       resolve_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       resolve_authority_effect_reason AS effect_reason,
+       resolve_authority_attestation_expires_at AS attestation_expires_at,
+       resolve_authority_activation_deadline AS activation_deadline,
+       resolve_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       resolve_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       resolve_authority_activation_evidence_digest AS activation_evidence_digest,
+       resolve_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       resolve_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_security_incidents
+WHERE resolution_authority_operation_id = $1 FOR UPDATE
+`
+
+type LockSecurityIncidentResolveOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockSecurityIncidentResolveOutcome(ctx context.Context, resolutionAuthorityOperationID uuid.NullUUID) (LockSecurityIncidentResolveOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockSecurityIncidentResolveOutcome, resolutionAuthorityOperationID)
+	var i LockSecurityIncidentResolveOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockStateSigningIntentActivationOutcome = `-- name: LockStateSigningIntentActivationOutcome :one
+SELECT activation_authority_effect_commitment_jcs AS commitment_jcs,
+       activation_authority_effect_commitment_digest AS commitment_digest,
+       activation_authority_provider_head_jcs AS provider_head_jcs,
+       activation_authority_provider_head_digest AS provider_head_digest,
+       activation_authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       activation_authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       activation_authority_effect_reason AS effect_reason,
+       activation_authority_attestation_expires_at AS attestation_expires_at,
+       activation_authority_activation_deadline AS activation_deadline,
+       activation_authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       activation_authority_activation_evidence_jcs AS activation_evidence_jcs,
+       activation_authority_activation_evidence_digest AS activation_evidence_digest,
+       activation_authority_effect_resolution_jcs AS effect_resolution_jcs,
+       activation_authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_state_signing_intents
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockStateSigningIntentActivationOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockStateSigningIntentActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockStateSigningIntentActivationOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockStateSigningIntentActivationOutcome, authorityOperationID)
+	var i LockStateSigningIntentActivationOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
+}
+
+const lockStateTransitionOutcome = `-- name: LockStateTransitionOutcome :one
+SELECT authority_effect_commitment_jcs AS commitment_jcs,
+       authority_effect_commitment_digest AS commitment_digest,
+       authority_provider_head_jcs AS provider_head_jcs,
+       authority_provider_head_digest AS provider_head_digest,
+       authority_checkpoint_anchor_jcs AS checkpoint_anchor_jcs,
+       authority_checkpoint_anchor_digest AS checkpoint_anchor_digest,
+       authority_effect_reason AS effect_reason,
+       authority_attestation_expires_at AS attestation_expires_at,
+       authority_activation_deadline AS activation_deadline,
+       authority_expected_provider_identity_digest AS expected_provider_identity_digest,
+       authority_activation_evidence_jcs AS activation_evidence_jcs,
+       authority_activation_evidence_digest AS activation_evidence_digest,
+       authority_effect_resolution_jcs AS effect_resolution_jcs,
+       authority_effect_resolution_digest AS effect_resolution_digest
+FROM nodecontrol.node_state_transitions
+WHERE authority_operation_id = $1 FOR UPDATE
+`
+
+type LockStateTransitionOutcomeRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func (q *Queries) LockStateTransitionOutcome(ctx context.Context, authorityOperationID uuid.NullUUID) (LockStateTransitionOutcomeRow, error) {
+	row := q.db.QueryRow(ctx, lockStateTransitionOutcome, authorityOperationID)
+	var i LockStateTransitionOutcomeRow
+	err := row.Scan(
+		&i.CommitmentJcs,
+		&i.CommitmentDigest,
+		&i.ProviderHeadJcs,
+		&i.ProviderHeadDigest,
+		&i.CheckpointAnchorJcs,
+		&i.CheckpointAnchorDigest,
+		&i.EffectReason,
+		&i.AttestationExpiresAt,
+		&i.ActivationDeadline,
+		&i.ExpectedProviderIdentityDigest,
+		&i.ActivationEvidenceJcs,
+		&i.ActivationEvidenceDigest,
+		&i.EffectResolutionJcs,
+		&i.EffectResolutionDigest,
+	)
+	return i, err
 }

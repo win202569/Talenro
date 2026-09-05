@@ -2,13 +2,19 @@ package authority
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gowebpki/jcs"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,6 +27,8 @@ type PostgresRepository struct {
 }
 
 var _ Repository = (*PostgresRepository)(nil)
+var _ AuthorityV7Repository = (*PostgresRepository)(nil)
+var _ FreshRestoreImportRepository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(database store.DBTX) (*PostgresRepository, error) {
 	if nilAuthorityRepositoryValue(database) {
@@ -68,7 +76,7 @@ func (repository *PostgresRepository) RecordPending(
 		if cancellationErr := repositoryCancellationError(ctx, nil); cancellationErr != nil {
 			return cancellationErr
 		}
-		current, getErr := queries.GetAuthorityFenceForUpdate(ctx, reservation.OperationID)
+		currentRow, getErr := queries.GetAuthorityFenceForUpdate(ctx, reservation.OperationID)
 		if getErr != nil {
 			if cancellationErr := repositoryCancellationError(ctx, getErr); cancellationErr != nil {
 				return cancellationErr
@@ -78,6 +86,7 @@ func (repository *PostgresRepository) RecordPending(
 			}
 			return ErrInjectedFailure
 		}
+		current := authorityFenceRowFromForUpdate(currentRow)
 		if _, conversionErr := authorityRecordFromRow(current); conversionErr != nil {
 			return conversionErr
 		}
@@ -88,6 +97,229 @@ func (repository *PostgresRepository) RecordPending(
 	default:
 		return ErrInjectedFailure
 	}
+}
+
+func (repository *PostgresRepository) RecordPendingClaimV1(
+	ctx context.Context,
+	dbtx store.DBTX,
+	claim ClaimV1Reservation,
+	reservedAt time.Time,
+) error {
+	reservedAt = canonicalDatabaseTimestamp(reservedAt)
+	if repositoryCallError(ctx, repository) != nil || nilAuthorityRepositoryValue(dbtx) ||
+		claim.Reservation.Validate() != nil || !validOperationID(claim.ProtocolActivationID) || reservedAt.IsZero() {
+		return repositoryInputError(ctx)
+	}
+	queries := store.New(dbtx)
+	rows, err := queries.InsertClaimV1AuthorityFencePending(ctx, store.InsertClaimV1AuthorityFencePendingParams{
+		OperationID:               claim.Reservation.OperationID,
+		EffectKind:                string(claim.Reservation.Kind),
+		ScopeKind:                 string(claim.Reservation.ScopeKind),
+		AuthorityEpoch:            int64(claim.Reservation.Epoch),
+		AuthoritySequence:         int64(claim.Reservation.Sequence),
+		ScopeDigest:               digestBytes(claim.Reservation.ScopeDigest),
+		ProviderReservationDigest: digestBytes(claim.Reservation.ReservationDigest),
+		ReservedAt:                requiredTimestamp(reservedAt),
+		ProtocolActivationID:      uuid.NullUUID{UUID: claim.ProtocolActivationID, Valid: true},
+	})
+	if err != nil {
+		if cancellationErr := repositoryCancellationError(ctx, err); cancellationErr != nil {
+			return cancellationErr
+		}
+		var postgresError *pgconn.PgError
+		if errors.As(err, &postgresError) && postgresError.Code == "23505" {
+			return ErrConflict
+		}
+		return ErrInjectedFailure
+	}
+	if rows == 1 {
+		return nil
+	}
+	if rows != 0 {
+		return ErrInjectedFailure
+	}
+	current, getErr := queries.LockAuthorityFence(ctx, claim.Reservation.OperationID)
+	if getErr != nil {
+		return repositoryLookupError(ctx, getErr)
+	}
+	stored, conversionErr := storedFenceFromV7Row(current)
+	if conversionErr != nil {
+		return conversionErr
+	}
+	if stored.AbortClaim == nil && current.ReservedAt.Valid && current.ReservedAt.Time.Equal(reservedAt) &&
+		current.AuthorityProtocolProfile == string(contracts.AuthorityV7ProtocolProfileClaimV1) &&
+		current.ProtocolActivationID.Valid && current.ProtocolActivationID.UUID == claim.ProtocolActivationID &&
+		stored.Record.Reservation == claim.Reservation {
+		return nil
+	}
+	return ErrConflict
+}
+
+func (repository *PostgresRepository) ClaimAbort(
+	ctx context.Context,
+	dbtx store.DBTX,
+	operationID uuid.UUID,
+	reason AbortReason,
+	claimedAt time.Time,
+) error {
+	claimedAt = canonicalDatabaseTimestamp(claimedAt)
+	if repositoryCallError(ctx, repository) != nil || nilAuthorityRepositoryValue(dbtx) ||
+		!validOperationID(operationID) || reason.Validate() != nil || claimedAt.IsZero() {
+		return repositoryInputError(ctx)
+	}
+	queries := store.New(dbtx)
+	current, err := queries.LockAuthorityFence(ctx, operationID)
+	if err != nil {
+		return repositoryLookupError(ctx, err)
+	}
+	stored, conversionErr := storedFenceFromV7Row(current)
+	if conversionErr != nil {
+		return conversionErr
+	}
+	if current.AuthorityProtocolProfile != string(contracts.AuthorityV7ProtocolProfileClaimV1) ||
+		!current.ProtocolActivationID.Valid {
+		return ErrConflict
+	}
+	if stored.Record.TerminalReceipt != nil || stored.Record.BoundEffectDigest != nil {
+		return ErrTerminalConflict
+	}
+	if stored.AbortClaim != nil {
+		if stored.AbortClaim.Reason == reason && stored.AbortClaim.ClaimedAt.Equal(claimedAt) {
+			return nil
+		}
+		return ErrConflict
+	}
+	rows, updateErr := queries.ClaimAuthorityAbort(ctx, store.ClaimAuthorityAbortParams{
+		OperationID:    operationID,
+		AbortReason:    pgtype.Text{String: string(reason), Valid: true},
+		AbortClaimedAt: requiredTimestamp(claimedAt),
+	})
+	if updateErr != nil {
+		return repositoryDependencyError(ctx, updateErr)
+	}
+	if rows != 1 {
+		return ErrConflict
+	}
+	return nil
+}
+
+func (repository *PostgresRepository) GetStoredFence(ctx context.Context, operationID uuid.UUID) (StoredFence, error) {
+	if repositoryCallError(ctx, repository) != nil || !validOperationID(operationID) {
+		return StoredFence{}, repositoryInputError(ctx)
+	}
+	row, err := store.New(repository.database).GetStoredAuthorityFence(ctx, operationID)
+	if err != nil {
+		return StoredFence{}, fmt.Errorf("get stored authority fence: %v: %w", err, repositoryLookupError(ctx, err))
+	}
+	stored, conversionErr := storedFenceFromV7Row(row)
+	if conversionErr != nil {
+		return StoredFence{}, fmt.Errorf("decode stored authority fence: %w", conversionErr)
+	}
+	if row.AuthorityProtocolProfile == string(contracts.AuthorityV7ProtocolProfileClaimV1) {
+		outcome, outcomeErr := repository.persistedOutcomeForUpdate(ctx, store.New(repository.database), stored.Record)
+		if outcomeErr != nil {
+			return StoredFence{}, outcomeErr
+		}
+		stored.PersistedOutcome = outcome
+	}
+	return cloneStoredFence(stored), nil
+}
+
+func (repository *PostgresRepository) Lock(ctx context.Context, dbtx store.DBTX, operationID uuid.UUID) (StoredFence, error) {
+	if repositoryCallError(ctx, repository) != nil || nilAuthorityRepositoryValue(dbtx) || !validOperationID(operationID) {
+		return StoredFence{}, repositoryInputError(ctx)
+	}
+	queries := store.New(dbtx)
+	row, err := queries.LockAuthorityFence(ctx, operationID)
+	if err != nil {
+		return StoredFence{}, repositoryLookupError(ctx, err)
+	}
+	stored, conversionErr := storedFenceFromV7Row(row)
+	if conversionErr != nil {
+		return StoredFence{}, conversionErr
+	}
+	if row.AuthorityProtocolProfile == string(contracts.AuthorityV7ProtocolProfileClaimV1) {
+		outcome, outcomeErr := repository.persistedOutcomeForUpdate(ctx, queries, stored.Record)
+		if outcomeErr != nil {
+			return StoredFence{}, outcomeErr
+		}
+		stored.PersistedOutcome = outcome
+	}
+	return cloneStoredFence(stored), nil
+}
+
+func (repository *PostgresRepository) ConsumeVerifiedFreshRestoreImport(
+	ctx context.Context,
+	admission VerifiedFreshRestoreImportAdmission,
+	projection contracts.FreshImportTopologyProjectionV1,
+) (contracts.FreshRestoreImportApplicationV1, error) {
+	facts, consumeErr := consumeVerifiedFreshRestoreImportAdmission(admission)
+	if consumeErr != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, consumeErr
+	}
+	if repositoryCallError(ctx, repository) != nil || projection.Validate() != nil ||
+		projection.TargetActivationID != facts.ManifestTopology.TargetActivationID ||
+		projection.TargetDeploymentID != facts.ManifestTopology.TargetDeploymentID ||
+		projection.TargetDatabaseIdentityDigest != facts.CurrentDatabaseIdentityDigest ||
+		projection.NormalizedCatalogDigest != facts.NormalizedCatalogDigest ||
+		projection.ObjectCount != facts.ManifestTopology.ObjectCount ||
+		len(projection.Objects) != len(facts.ManifestTopology.Objects) {
+		return contracts.FreshRestoreImportApplicationV1{}, repositoryInputError(ctx)
+	}
+	for index := range projection.Objects {
+		if projection.Objects[index].ObjectType != facts.ManifestTopology.Objects[index].ObjectType ||
+			projection.Objects[index].CanonicalKey != facts.ManifestTopology.Objects[index].CanonicalKey {
+			return contracts.FreshRestoreImportApplicationV1{}, ErrInvalidArgument
+		}
+	}
+	projectionJCS, projectionDigest, err := canonicalFreshImportTopologyProjection(projection)
+	if err != nil || projectionDigest != facts.ManifestTopology.ExpectedPostImportInventoryDigest ||
+		projectionDigest != facts.StagingImportCapability.ExpectedPostImportInventoryDigest {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInvalidArgument
+	}
+	objectsJSON, err := freshImportProjectionObjectsJSON(projection.Objects)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInvalidArgument
+	}
+	row, queryErr := store.New(repository.database).BeginStagingImport(ctx, store.BeginStagingImportParams{
+		CapabilityDigest:      digestBytes(facts.StagingImportCapability.CapabilityDigest),
+		ManifestDigest:        digestBytes(facts.ManifestTopology.ManifestDigest),
+		ExclusionLeaseDigest:  digestBytes(facts.StagingExclusionLease.LeaseDigest),
+		AcquisitionHeadDigest: digestBytes(facts.StagingExclusionLease.AcquisitionLockedProviderHeadDigest),
+		RouteClosedDigest:     digestBytes(facts.DatabaseRouteClosedDigest),
+		ProjectionBodyJcs:     projectionJCS,
+		ProjectionDigest:      digestBytes(projectionDigest),
+		ProjectionObjects:     objectsJSON,
+	})
+	if queryErr != nil {
+		if cancellationErr := repositoryCancellationError(ctx, queryErr); cancellationErr != nil {
+			return contracts.FreshRestoreImportApplicationV1{}, cancellationErr
+		}
+		if errors.Is(queryErr, pgx.ErrNoRows) {
+			return contracts.FreshRestoreImportApplicationV1{}, ErrConflict
+		}
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInjectedFailure
+	}
+	application, conversionErr := freshRestoreImportApplicationFromRow(row)
+	if conversionErr != nil || application.SingleUseApplyID != facts.ManifestTopology.SingleUseApplyID ||
+		application.StagingImportCapabilityDigest != facts.StagingImportCapability.CapabilityDigest ||
+		application.ManifestDigest != facts.ManifestTopology.ManifestDigest ||
+		application.TargetActivationID != facts.ManifestTopology.TargetActivationID ||
+		application.CurrentDatabaseIdentityDigest != facts.CurrentDatabaseIdentityDigest ||
+		application.DatabaseTimelineLineageChainDigest != facts.DatabaseTimelineLineageChainDigest ||
+		application.TargetDatabaseIncarnationRegistrationDigest != facts.CurrentDatabaseIncarnationRegistrationDigest ||
+		application.RuntimeRebindChainDigest != facts.RuntimeRebindChainDigest ||
+		application.RuntimeInstanceBindingDigest != facts.RuntimeInstanceBindingDigest ||
+		application.StagingExclusionLeaseDigest != facts.StagingExclusionLease.LeaseDigest ||
+		application.AcquisitionLockedProviderHeadDigest != facts.CurrentProviderHeadDigest ||
+		application.DatabaseRouteClosedDigest != facts.DatabaseRouteClosedDigest ||
+		application.PreImportInventoryDigest != facts.PreImportInventoryDigest ||
+		application.PostImportInventoryDigest != projectionDigest ||
+		application.ImportedObjectCount != projection.ObjectCount ||
+		application.CompleteNodeSetDigest != facts.ManifestTopology.CompleteNodeSetDigest {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInjectedFailure
+	}
+	return application, nil
 }
 
 func (repository *PostgresRepository) CaptureDatabasePoint(ctx context.Context) (DatabasePoint, error) {
@@ -120,9 +352,13 @@ func (repository *PostgresRepository) BindEffect(
 		return repositoryInputError(ctx)
 	}
 	queries := store.New(dbtx)
-	current, err := queries.GetAuthorityFenceForUpdate(ctx, operationID)
+	currentRow, err := queries.GetAuthorityFenceForUpdate(ctx, operationID)
 	if err != nil {
 		return repositoryLookupError(ctx, err)
+	}
+	current := authorityFenceRowFromForUpdate(currentRow)
+	if current.ProviderStatus == "reserved" && current.AbortReason.Valid {
+		return ErrTerminalConflict
 	}
 	record, conversionErr := authorityRecordFromRow(current)
 	if conversionErr != nil {
@@ -170,9 +406,13 @@ func (repository *PostgresRepository) ActivateCommitted(
 		return repositoryInputError(ctx)
 	}
 	queries := store.New(dbtx)
-	current, err := queries.GetAuthorityFenceForUpdate(ctx, receipt.OperationID)
+	currentRow, err := queries.GetAuthorityFenceForUpdate(ctx, receipt.OperationID)
 	if err != nil {
 		return repositoryLookupError(ctx, err)
+	}
+	current := authorityFenceRowFromForUpdate(currentRow)
+	if current.ProviderStatus == "reserved" && current.AbortReason.Valid {
+		return ErrTerminalConflict
 	}
 	record, conversionErr := authorityRecordFromRow(current)
 	if conversionErr != nil {
@@ -224,9 +464,18 @@ func (repository *PostgresRepository) RecordAborted(
 		return repositoryInputError(ctx)
 	}
 	queries := store.New(dbtx)
-	current, err := queries.GetAuthorityFenceForUpdate(ctx, receipt.OperationID)
+	currentRow, err := queries.GetAuthorityFenceForUpdate(ctx, receipt.OperationID)
 	if err != nil {
 		return repositoryLookupError(ctx, err)
+	}
+	current := authorityFenceRowFromForUpdate(currentRow)
+	claimedReason := AbortReason("")
+	if current.ProviderStatus == "reserved" && current.AbortReason.Valid {
+		claimedReason = AbortReason(current.AbortReason.String)
+		if claimedReason.Validate() != nil || *receipt.AbortReason != claimedReason {
+			return ErrConflict
+		}
+		current.AbortReason = pgtype.Text{}
 	}
 	record, conversionErr := authorityRecordFromRow(current)
 	if conversionErr != nil {
@@ -272,7 +521,7 @@ func (repository *PostgresRepository) Get(ctx context.Context, operationID uuid.
 	if err != nil {
 		return Record{}, repositoryLookupError(ctx, err)
 	}
-	return authorityRecordFromRow(row)
+	return authorityRecordFromRow(authorityFenceRowFromGet(row))
 }
 
 func (repository *PostgresRepository) Head(ctx context.Context) (DatabaseHead, error) {
@@ -347,7 +596,480 @@ func (repository *PostgresRepository) CommittedNodeCheckpoint(
 	return checkpoint, nil
 }
 
-func authorityRecordFromRow(row store.NodecontrolControlPlaneAuthorityFence) (Record, error) {
+type authorityFenceDatabaseRow struct {
+	OperationID               uuid.UUID
+	EffectKind                string
+	ScopeKind                 string
+	AuthorityEpoch            int64
+	AuthoritySequence         int64
+	ScopeDigest               []byte
+	ProviderReservationDigest []byte
+	EffectDigest              []byte
+	ProviderStatus            string
+	ProviderReceiptDigest     []byte
+	DbSystemID                pgtype.Numeric
+	DbTimeline                pgtype.Int8
+	RequiredLsn               any
+	AbortReason               pgtype.Text
+	VisibilityState           string
+	ReservedAt                pgtype.Timestamptz
+	EffectBoundAt             pgtype.Timestamptz
+	TerminalAt                pgtype.Timestamptz
+}
+
+func authorityFenceRowFromGet(row store.GetAuthorityFenceRow) authorityFenceDatabaseRow {
+	return authorityFenceDatabaseRow{
+		OperationID: row.OperationID, EffectKind: row.EffectKind, ScopeKind: row.ScopeKind,
+		AuthorityEpoch: row.AuthorityEpoch, AuthoritySequence: row.AuthoritySequence,
+		ScopeDigest: row.ScopeDigest, ProviderReservationDigest: row.ProviderReservationDigest,
+		EffectDigest: row.EffectDigest, ProviderStatus: row.ProviderStatus,
+		ProviderReceiptDigest: row.ProviderReceiptDigest, DbSystemID: row.DbSystemID,
+		DbTimeline: row.DbTimeline, RequiredLsn: row.RequiredLsn, AbortReason: row.AbortReason,
+		VisibilityState: row.VisibilityState, ReservedAt: row.ReservedAt,
+		EffectBoundAt: row.EffectBoundAt, TerminalAt: row.TerminalAt,
+	}
+}
+
+func authorityFenceRowFromForUpdate(row store.GetAuthorityFenceForUpdateRow) authorityFenceDatabaseRow {
+	return authorityFenceDatabaseRow{
+		OperationID: row.OperationID, EffectKind: row.EffectKind, ScopeKind: row.ScopeKind,
+		AuthorityEpoch: row.AuthorityEpoch, AuthoritySequence: row.AuthoritySequence,
+		ScopeDigest: row.ScopeDigest, ProviderReservationDigest: row.ProviderReservationDigest,
+		EffectDigest: row.EffectDigest, ProviderStatus: row.ProviderStatus,
+		ProviderReceiptDigest: row.ProviderReceiptDigest, DbSystemID: row.DbSystemID,
+		DbTimeline: row.DbTimeline, RequiredLsn: row.RequiredLsn, AbortReason: row.AbortReason,
+		VisibilityState: row.VisibilityState, ReservedAt: row.ReservedAt,
+		EffectBoundAt: row.EffectBoundAt, TerminalAt: row.TerminalAt,
+	}
+}
+
+func authorityFenceRowFromV7(row store.NodecontrolControlPlaneAuthorityFence) authorityFenceDatabaseRow {
+	return authorityFenceDatabaseRow{
+		OperationID: row.OperationID, EffectKind: row.EffectKind, ScopeKind: row.ScopeKind,
+		AuthorityEpoch: row.AuthorityEpoch, AuthoritySequence: row.AuthoritySequence,
+		ScopeDigest: row.ScopeDigest, ProviderReservationDigest: row.ProviderReservationDigest,
+		EffectDigest: row.EffectDigest, ProviderStatus: row.ProviderStatus,
+		ProviderReceiptDigest: row.ProviderReceiptDigest, DbSystemID: row.DbSystemID,
+		DbTimeline: row.DbTimeline, RequiredLsn: row.RequiredLsn, AbortReason: row.AbortReason,
+		VisibilityState: row.VisibilityState, ReservedAt: row.ReservedAt,
+		EffectBoundAt: row.EffectBoundAt, TerminalAt: row.TerminalAt,
+	}
+}
+
+type persistedOutcomeDatabaseRow struct {
+	CommitmentJcs                  []byte             `json:"commitment_jcs"`
+	CommitmentDigest               []byte             `json:"commitment_digest"`
+	ProviderHeadJcs                []byte             `json:"provider_head_jcs"`
+	ProviderHeadDigest             []byte             `json:"provider_head_digest"`
+	CheckpointAnchorJcs            []byte             `json:"checkpoint_anchor_jcs"`
+	CheckpointAnchorDigest         []byte             `json:"checkpoint_anchor_digest"`
+	EffectReason                   pgtype.Text        `json:"effect_reason"`
+	AttestationExpiresAt           pgtype.Timestamptz `json:"attestation_expires_at"`
+	ActivationDeadline             pgtype.Timestamptz `json:"activation_deadline"`
+	ExpectedProviderIdentityDigest []byte             `json:"expected_provider_identity_digest"`
+	ActivationEvidenceJcs          []byte             `json:"activation_evidence_jcs"`
+	ActivationEvidenceDigest       []byte             `json:"activation_evidence_digest"`
+	EffectResolutionJcs            []byte             `json:"effect_resolution_jcs"`
+	EffectResolutionDigest         []byte             `json:"effect_resolution_digest"`
+}
+
+func storedFenceFromV7Row(row store.NodecontrolControlPlaneAuthorityFence) (StoredFence, error) {
+	if row.AuthorityProtocolProfile != string(contracts.AuthorityV7ProtocolProfileLegacyV6) &&
+		row.AuthorityProtocolProfile != string(contracts.AuthorityV7ProtocolProfileClaimV1) {
+		return StoredFence{}, ErrInjectedFailure
+	}
+	base := authorityFenceRowFromV7(row)
+	var claim *AbortClaim
+	if row.AuthorityProtocolProfile == string(contracts.AuthorityV7ProtocolProfileLegacyV6) {
+		if row.AbortClaimedAt.Valid || row.ProtocolActivationID.Valid {
+			return StoredFence{}, ErrInjectedFailure
+		}
+	} else {
+		if !row.ProtocolActivationID.Valid || !validOperationID(row.ProtocolActivationID.UUID) ||
+			(row.AbortClaimedAt.Valid != row.AbortReason.Valid) {
+			return StoredFence{}, ErrInjectedFailure
+		}
+		if row.AbortClaimedAt.Valid {
+			reason := AbortReason(row.AbortReason.String)
+			if reason.Validate() != nil || row.AbortClaimedAt.Time.IsZero() || row.EffectDigest != nil {
+				return StoredFence{}, ErrInjectedFailure
+			}
+			claim = &AbortClaim{Reason: reason, ClaimedAt: row.AbortClaimedAt.Time.UTC()}
+			if row.ProviderStatus == "reserved" {
+				base.AbortReason = pgtype.Text{}
+			}
+		}
+	}
+	record, err := authorityRecordFromRow(base)
+	if err != nil {
+		return StoredFence{}, fmt.Errorf("decode %s authority record: %w", row.AuthorityProtocolProfile, err)
+	}
+	return StoredFence{Record: record, AbortClaim: cloneAbortClaim(claim)}, nil
+}
+
+func (repository *PostgresRepository) persistedOutcomeForUpdate(
+	ctx context.Context,
+	queries *store.Queries,
+	record Record,
+) (*PersistedAuthorityEffectOutcome, error) {
+	var row persistedOutcomeDatabaseRow
+	var err error
+	switch record.Kind {
+	case EffectGrantCreate:
+		value, queryErr := queries.LockEnrollmentGrantCreateOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectGrantClaim:
+		value, queryErr := queries.LockEnrollmentGrantClaimOutcome(ctx, uuid.NullUUID{UUID: record.OperationID, Valid: true})
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectCertificateActivate:
+		value, queryErr := queries.LockCertificateIssuanceActivationOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectCertificateRevoke:
+		value, queryErr := queries.LockCertificateRevocationOutcome(ctx, uuid.NullUUID{UUID: record.OperationID, Valid: true})
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectIdentityEpochAdvance, EffectOperatorTransition:
+		value, queryErr := queries.LockStateTransitionOutcome(ctx, uuid.NullUUID{UUID: record.OperationID, Valid: true})
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectSecurityIncidentOpen:
+		value, queryErr := queries.LockSecurityIncidentOpenOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectSecurityIncidentResolve:
+		value, queryErr := queries.LockSecurityIncidentResolveOutcome(ctx, uuid.NullUUID{UUID: record.OperationID, Valid: true})
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectResourceEnvelopeActivate:
+		value, queryErr := queries.LockResourceEnvelopeActivationOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectDesiredActivate, EffectRecoveryActivate:
+		value, queryErr := queries.LockStateSigningIntentActivationOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	case EffectRootPublish, EffectMetadataPublish:
+		value, queryErr := queries.LockRootMetadataPublishIntentActivationOutcome(ctx, record.OperationID)
+		row, err = persistedOutcomeDatabaseRow(value), queryErr
+	default:
+		return nil, nil
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		if record.TerminalReceipt != nil {
+			return nil, ErrInjectedFailure
+		}
+		return nil, nil
+	}
+	if err != nil {
+		return nil, repositoryDependencyError(ctx, err)
+	}
+	return persistedOutcomeFromDatabaseRow(record, row)
+}
+
+func persistedOutcomeFromDatabaseRow(record Record, row persistedOutcomeDatabaseRow) (*PersistedAuthorityEffectOutcome, error) {
+	allNull := row.CommitmentJcs == nil && row.CommitmentDigest == nil && row.ProviderHeadJcs == nil &&
+		row.ProviderHeadDigest == nil && row.CheckpointAnchorJcs == nil && row.CheckpointAnchorDigest == nil &&
+		!row.EffectReason.Valid && !row.AttestationExpiresAt.Valid && !row.ActivationDeadline.Valid &&
+		row.ExpectedProviderIdentityDigest == nil && row.ActivationEvidenceJcs == nil && row.ActivationEvidenceDigest == nil &&
+		row.EffectResolutionJcs == nil && row.EffectResolutionDigest == nil
+	if allNull {
+		if record.TerminalReceipt != nil {
+			return nil, ErrInjectedFailure
+		}
+		return nil, nil
+	}
+	commitmentDigest, err := exactJCSAndDigest(row.CommitmentJcs, row.CommitmentDigest, persistedCommitmentArtifact)
+	if err != nil {
+		return nil, err
+	}
+	terminalProofAbsent := row.ProviderHeadJcs == nil && row.ProviderHeadDigest == nil &&
+		row.CheckpointAnchorJcs == nil && row.CheckpointAnchorDigest == nil && !row.EffectReason.Valid &&
+		!row.AttestationExpiresAt.Valid && !row.ActivationDeadline.Valid && row.ExpectedProviderIdentityDigest == nil &&
+		row.ActivationEvidenceJcs == nil && row.ActivationEvidenceDigest == nil && row.EffectResolutionJcs == nil && row.EffectResolutionDigest == nil
+	if terminalProofAbsent {
+		if record.TerminalReceipt != nil {
+			return nil, ErrInjectedFailure
+		}
+		_ = commitmentDigest
+		return nil, nil
+	}
+	if record.TerminalReceipt == nil || !row.EffectReason.Valid {
+		return nil, ErrInjectedFailure
+	}
+	providerHeadDigest, err := exactJCSAndDigest(row.ProviderHeadJcs, row.ProviderHeadDigest, persistedProviderHeadArtifact)
+	if err != nil {
+		return nil, err
+	}
+	evidenceDigest, err := exactJCSAndDigest(row.ActivationEvidenceJcs, row.ActivationEvidenceDigest, persistedEvidenceArtifact)
+	if err != nil {
+		return nil, err
+	}
+	resolutionDigest, err := exactJCSAndDigest(row.EffectResolutionJcs, row.EffectResolutionDigest, persistedResolutionArtifact)
+	if err != nil {
+		return nil, err
+	}
+	reason := AuthorityEffectReason(row.EffectReason.String)
+	if !reason.valid() {
+		return nil, ErrInjectedFailure
+	}
+	var checkpointDigest contracts.Digest
+	var attestationExpiresAt, activationDeadline time.Time
+	var expectedProviderIdentity contracts.Digest
+	if row.CheckpointAnchorJcs == nil && row.CheckpointAnchorDigest == nil {
+		if row.AttestationExpiresAt.Valid || row.ActivationDeadline.Valid || row.ExpectedProviderIdentityDigest != nil {
+			return nil, ErrInjectedFailure
+		}
+	} else {
+		checkpointDigest, err = exactJCSAndDigest(row.CheckpointAnchorJcs, row.CheckpointAnchorDigest, persistedCheckpointArtifact)
+		if err != nil || !row.AttestationExpiresAt.Valid || !row.ActivationDeadline.Valid ||
+			row.AttestationExpiresAt.Time.IsZero() || row.ActivationDeadline.Time.IsZero() {
+			return nil, ErrInjectedFailure
+		}
+		expectedProviderIdentity, err = exactDigest(row.ExpectedProviderIdentityDigest)
+		if err != nil {
+			return nil, err
+		}
+		attestationExpiresAt = row.AttestationExpiresAt.Time.UTC()
+		activationDeadline = row.ActivationDeadline.Time.UTC()
+	}
+	return &PersistedAuthorityEffectOutcome{
+		CommitmentJCS: cloneBytes(row.CommitmentJcs), CommitmentDigest: commitmentDigest,
+		Receipt:         cloneReceipt(*record.TerminalReceipt),
+		ProviderHeadJCS: cloneBytes(row.ProviderHeadJcs), ProviderHeadDigest: providerHeadDigest,
+		CheckpointAnchorJCS: cloneBytes(row.CheckpointAnchorJcs), CheckpointAnchorDigest: checkpointDigest,
+		Reason: reason, AttestationExpiresAt: attestationExpiresAt, ActivationDeadline: activationDeadline,
+		ExpectedProviderIdentityDigest: expectedProviderIdentity,
+		EvidenceJCS:                    cloneBytes(row.ActivationEvidenceJcs), EvidenceDigest: evidenceDigest,
+		ResolutionJCS: cloneBytes(row.EffectResolutionJcs), ResolutionDigest: resolutionDigest,
+	}, nil
+}
+
+type persistedAuthorityArtifactKind uint8
+
+const (
+	persistedCommitmentArtifact persistedAuthorityArtifactKind = iota + 1
+	persistedProviderHeadArtifact
+	persistedCheckpointArtifact
+	persistedEvidenceArtifact
+	persistedResolutionArtifact
+)
+
+func exactJCSAndDigest(jcsBytes, digestBytes []byte, kind persistedAuthorityArtifactKind) (contracts.Digest, error) {
+	if len(jcsBytes) < 1 || len(jcsBytes) > authorityCanonicalMaximumBytes {
+		return contracts.Digest{}, ErrInjectedFailure
+	}
+	stored, err := exactDigest(digestBytes)
+	if err != nil {
+		return contracts.Digest{}, err
+	}
+	var computed contracts.Digest
+	switch kind {
+	case persistedCommitmentArtifact:
+		value, parseErr := ParseAuthorityEffectCommitment(jcsBytes)
+		if parseErr != nil {
+			return contracts.Digest{}, ErrInjectedFailure
+		}
+		computed = value.Digest()
+	case persistedProviderHeadArtifact:
+		value, parseErr := ParseAuthorityProviderHeadSnapshot(jcsBytes)
+		if parseErr != nil {
+			return contracts.Digest{}, ErrInjectedFailure
+		}
+		computed = value.Digest()
+	case persistedCheckpointArtifact:
+		value, parseErr := ParseAuthorityCheckpointAnchor(jcsBytes)
+		if parseErr != nil {
+			return contracts.Digest{}, ErrInjectedFailure
+		}
+		computed = value.Digest()
+	case persistedEvidenceArtifact:
+		value, parseErr := ParseActivationDecisionEvidence(jcsBytes)
+		if parseErr != nil {
+			return contracts.Digest{}, ErrInjectedFailure
+		}
+		computed = value.Digest()
+	case persistedResolutionArtifact:
+		value, parseErr := ParseAuthorityEffectResolution(jcsBytes)
+		if parseErr != nil {
+			return contracts.Digest{}, ErrInjectedFailure
+		}
+		computed = value.Digest()
+	default:
+		return contracts.Digest{}, ErrInjectedFailure
+	}
+	if computed != stored {
+		return contracts.Digest{}, ErrInjectedFailure
+	}
+	return stored, nil
+}
+
+func cloneStoredFence(value StoredFence) StoredFence {
+	result := value
+	result.Record = cloneRecord(value.Record)
+	result.AbortClaim = cloneAbortClaim(value.AbortClaim)
+	if value.PersistedOutcome != nil {
+		outcome := *value.PersistedOutcome
+		outcome.CommitmentJCS = cloneBytes(value.PersistedOutcome.CommitmentJCS)
+		outcome.Receipt = cloneReceipt(value.PersistedOutcome.Receipt)
+		outcome.ProviderHeadJCS = cloneBytes(value.PersistedOutcome.ProviderHeadJCS)
+		outcome.CheckpointAnchorJCS = cloneBytes(value.PersistedOutcome.CheckpointAnchorJCS)
+		outcome.EvidenceJCS = cloneBytes(value.PersistedOutcome.EvidenceJCS)
+		outcome.ResolutionJCS = cloneBytes(value.PersistedOutcome.ResolutionJCS)
+		result.PersistedOutcome = &outcome
+	}
+	return result
+}
+
+func cloneAbortClaim(value *AbortClaim) *AbortClaim {
+	if value == nil {
+		return nil
+	}
+	result := *value
+	return &result
+}
+
+func cloneBytes(value []byte) []byte {
+	return append([]byte(nil), value...)
+}
+
+func canonicalFreshImportTopologyProjection(value contracts.FreshImportTopologyProjectionV1) ([]byte, contracts.Digest, error) {
+	objects := make([]map[string]any, len(value.Objects))
+	for index := range value.Objects {
+		var payload any
+		if err := json.Unmarshal(value.Objects[index].NormalizedPayload, &payload); err != nil {
+			return nil, contracts.Digest{}, err
+		}
+		objects[index] = map[string]any{
+			"object_type":        value.Objects[index].ObjectType,
+			"canonical_key":      value.Objects[index].CanonicalKey,
+			"normalized_payload": payload,
+		}
+	}
+	body := map[string]any{
+		"projection_version":              strconv.FormatUint(value.ProjectionVersion, 10),
+		"target_activation_id":            value.TargetActivationID.String(),
+		"target_deployment_id":            value.TargetDeploymentID.String(),
+		"target_database_identity_digest": hex.EncodeToString(value.TargetDatabaseIdentityDigest[:]),
+		"normalized_catalog_digest":       hex.EncodeToString(value.NormalizedCatalogDigest[:]),
+		"object_count":                    strconv.FormatUint(value.ObjectCount, 10),
+		"objects":                         objects,
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return nil, contracts.Digest{}, err
+	}
+	canonical, err := jcs.Transform(raw)
+	if err != nil {
+		return nil, contracts.Digest{}, err
+	}
+	hash := sha256.New()
+	_, _ = hash.Write([]byte("talenro.c12.fresh-import-topology-projection.v1"))
+	_, _ = hash.Write([]byte{0})
+	_, _ = hash.Write(canonical)
+	var digest contracts.Digest
+	copy(digest[:], hash.Sum(nil))
+	return canonical, digest, nil
+}
+
+func freshImportProjectionObjectsJSON(values []contracts.FreshImportTopologyProjectionObjectV1) (json.RawMessage, error) {
+	objects := make([]map[string]any, len(values))
+	for index := range values {
+		var body any
+		if err := json.Unmarshal(values[index].NormalizedPayload, &body); err != nil {
+			return nil, err
+		}
+		objects[index] = map[string]any{
+			"object_type":   values[index].ObjectType,
+			"canonical_key": values[index].CanonicalKey,
+			"body":          body,
+		}
+	}
+	return json.Marshal(objects)
+}
+
+func freshRestoreImportApplicationFromRow(row store.NodecontrolControlPlaneAuthorityFreshRestoreImportApplication) (contracts.FreshRestoreImportApplicationV1, error) {
+	if row.StagingImportCapabilityRecoveryIntentDigestOrNull != nil ||
+		row.StagingImportCapabilityRecoveryApplicationDigestOrNull != nil ||
+		row.ImportedObjectCount <= 0 || !row.AppliedAt.Valid || row.AppliedAt.Time.IsZero() {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInjectedFailure
+	}
+	txid, ok := uint64FromNumeric(row.DatabaseTransactionID)
+	if !ok {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInjectedFailure
+	}
+	capabilityDigest, err := exactDigest(row.StagingImportCapabilityDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	manifestDigest, err := exactDigest(row.ManifestDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	currentIdentity, err := exactDigest(row.CurrentDatabaseIdentityDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	lineage, err := exactDigest(row.DatabaseTimelineLineageChainDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	incarnation, err := exactDigest(row.TargetDatabaseIncarnationRegistrationDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	runtimeChain, err := exactDigest(row.RuntimeRebindChainDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	runtimeBinding, err := exactDigest(row.RuntimeInstanceBindingDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	exclusionLease, err := exactDigest(row.StagingExclusionLeaseDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	acquisitionHead, err := exactDigest(row.AcquisitionLockedProviderHeadDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	routeClosed, err := exactDigest(row.DatabaseRouteClosedDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	preInventory, err := exactDigest(row.PreImportInventoryDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	postInventory, err := exactDigest(row.PostImportInventoryDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	completeSet, err := exactDigest(row.CompleteNodeSetDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	forbiddenZero, err := exactDigest(row.ForbiddenStateZeroDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	snapshot, err := exactDigest(row.TransactionSnapshotDigest)
+	if err != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, err
+	}
+	application := contracts.FreshRestoreImportApplicationV1{
+		SingleUseApplyID: row.SingleUseApplyID, StagingImportCapabilityDigest: capabilityDigest,
+		ManifestDigest: manifestDigest, TargetActivationID: row.TargetActivationID,
+		CurrentDatabaseIdentityDigest: currentIdentity, DatabaseTimelineLineageChainDigest: lineage,
+		TargetDatabaseIncarnationRegistrationDigest: incarnation, RuntimeRebindChainDigest: runtimeChain,
+		RuntimeInstanceBindingDigest: runtimeBinding, StagingExclusionLeaseDigest: exclusionLease,
+		AcquisitionLockedProviderHeadDigest: acquisitionHead, DatabaseRouteClosedDigest: routeClosed,
+		PreImportInventoryDigest: preInventory, PostImportInventoryDigest: postInventory,
+		ImportedObjectCount: uint64(row.ImportedObjectCount), CompleteNodeSetDigest: completeSet,
+		ForbiddenStateZeroDigest: forbiddenZero, DatabaseTransactionID: txid,
+		TransactionSnapshotDigest: snapshot, AppliedAt: row.AppliedAt.Time.UTC(),
+	}
+	if application.Validate() != nil {
+		return contracts.FreshRestoreImportApplicationV1{}, ErrInjectedFailure
+	}
+	return application, nil
+}
+
+func authorityRecordFromRow(row authorityFenceDatabaseRow) (Record, error) {
 	reservation, err := reservationFromRow(
 		row.OperationID,
 		row.EffectKind,
@@ -700,7 +1422,7 @@ func canonicalDatabaseTimestamp(value time.Time) time.Time {
 	return value.UTC().Truncate(time.Microsecond)
 }
 
-func reservationMatchesRow(reservation Reservation, row store.NodecontrolControlPlaneAuthorityFence) bool {
+func reservationMatchesRow(reservation Reservation, row authorityFenceDatabaseRow) bool {
 	return reservation.OperationID == row.OperationID && string(reservation.Kind) == row.EffectKind &&
 		string(reservation.ScopeKind) == row.ScopeKind && int64(reservation.Epoch) == row.AuthorityEpoch &&
 		int64(reservation.Sequence) == row.AuthoritySequence &&

@@ -205,6 +205,321 @@ func TestCoordinatorCrashRecoveryMatrix(t *testing.T) {
 	}
 }
 
+func TestCoordinatorAbortRejectsNonAbsentEffectsWithoutMutation(t *testing.T) {
+	t.Parallel()
+
+	baseRequest := ReserveRequest{
+		OperationID: uuid.MustParse("5f8821be-b9f1-4cef-ae96-a7cbba920101"),
+		Kind:        EffectCertificateRevoke,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: sha256.Sum256([]byte("abort-domain-safety-node")),
+	}
+	effectDigest := sha256.Sum256([]byte("abort-domain-safety-effect"))
+	tests := []struct {
+		name     string
+		resolved ResolvedEffect
+	}{
+		{
+			name: "prepared exact tuple",
+			resolved: ResolvedEffect{
+				Kind:         baseRequest.Kind,
+				ScopeKind:    baseRequest.ScopeKind,
+				ScopeDigest:  baseRequest.ScopeDigest,
+				EffectDigest: effectDigest,
+				State:        EffectPrepared,
+			},
+		},
+		{
+			name: "committed exact tuple",
+			resolved: ResolvedEffect{
+				Kind:         baseRequest.Kind,
+				ScopeKind:    baseRequest.ScopeKind,
+				ScopeDigest:  baseRequest.ScopeDigest,
+				EffectDigest: effectDigest,
+				State:        EffectCommitted,
+			},
+		},
+		{
+			name: "terminal exact tuple",
+			resolved: ResolvedEffect{
+				Kind:         baseRequest.Kind,
+				ScopeKind:    baseRequest.ScopeKind,
+				ScopeDigest:  baseRequest.ScopeDigest,
+				EffectDigest: effectDigest,
+				State:        EffectTerminal,
+			},
+		},
+		{
+			name: "prepared cross kind",
+			resolved: ResolvedEffect{
+				Kind:         EffectDesiredActivate,
+				ScopeKind:    ScopeNode,
+				ScopeDigest:  baseRequest.ScopeDigest,
+				EffectDigest: effectDigest,
+				State:        EffectPrepared,
+			},
+		},
+		{
+			name: "committed cross scope",
+			resolved: ResolvedEffect{
+				Kind:         EffectRootPublish,
+				ScopeKind:    ScopeGlobalNodeTrust,
+				ScopeDigest:  globalNodeScopeDigest,
+				EffectDigest: effectDigest,
+				State:        EffectCommitted,
+			},
+		},
+		{
+			name: "terminal cross scope digest",
+			resolved: ResolvedEffect{
+				Kind:         baseRequest.Kind,
+				ScopeKind:    baseRequest.ScopeKind,
+				ScopeDigest:  sha256.Sum256([]byte("abort-domain-safety-other-node")),
+				EffectDigest: effectDigest,
+				State:        EffectTerminal,
+			},
+		},
+		{
+			name: "committed cross effect digest",
+			resolved: ResolvedEffect{
+				Kind:         baseRequest.Kind,
+				ScopeKind:    baseRequest.ScopeKind,
+				ScopeDigest:  baseRequest.ScopeDigest,
+				EffectDigest: sha256.Sum256([]byte("abort-domain-safety-other-effect")),
+				State:        EffectCommitted,
+			},
+		},
+	}
+
+	for index, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			provider, err := NewDeterministicProvider(17)
+			if err != nil {
+				t.Fatal(err)
+			}
+			countingProvider := newCoordinatorCountingProvider(provider)
+			repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+			effects := newCoordinatorEffectResolver()
+			request := baseRequest
+			request.OperationID = uuid.MustParse(fmt.Sprintf("5f8821be-b9f1-4cef-ae96-a7cbba9201%02d", index+1))
+			coordinator := mustNewCoordinatorForTest(t, countingProvider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 10, 0, 0, 0, time.UTC)})
+			coordinatorReserveAndRecord(t, coordinator, repository, request)
+			effects.set(request.OperationID, test.resolved)
+			transactionsBefore := repository.transactionCount()
+
+			if _, abortErr := coordinator.Abort(t.Context(), AbortRequest{OperationID: request.OperationID, Reason: AbortSuperseded}); abortErr != ErrConflict {
+				t.Fatalf("Abort error = %v, want ErrConflict", abortErr)
+			}
+			if countingProvider.abortCount(request.OperationID) != 0 {
+				t.Fatalf("provider Abort calls = %d, want 0", countingProvider.abortCount(request.OperationID))
+			}
+			if repository.transactionCount() != transactionsBefore {
+				t.Fatalf("transactions = %d, want unchanged %d", repository.transactionCount(), transactionsBefore)
+			}
+			record, getErr := repository.Get(t.Context(), request.OperationID)
+			if getErr != nil || record.TerminalReceipt != nil {
+				t.Fatalf("database record = %#v, %v; want pending", record, getErr)
+			}
+			providerRecord, inspectErr := provider.Inspect(t.Context(), request.OperationID)
+			if inspectErr != nil || providerRecord.TerminalReceipt != nil {
+				t.Fatalf("provider record = %#v, %v; want pending", providerRecord, inspectErr)
+			}
+		})
+	}
+}
+
+func TestCoordinatorAbortResponseLossAndExactTerminalRetryAreIdempotent(t *testing.T) {
+	t.Parallel()
+
+	provider, err := NewDeterministicProvider(19)
+	if err != nil {
+		t.Fatal(err)
+	}
+	countingProvider := newCoordinatorCountingProvider(provider)
+	repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+	effects := newCoordinatorEffectResolver()
+	request := ReserveRequest{
+		OperationID: uuid.MustParse("619632c5-2004-4c5a-8426-0e6bf379c701"),
+		Kind:        EffectCertificateRevoke,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: sha256.Sum256([]byte("abort-response-loss-node")),
+	}
+	abortRequest := AbortRequest{OperationID: request.OperationID, Reason: AbortProviderDependencyFailed}
+	first := mustNewCoordinatorForTest(t, countingProvider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 11, 0, 0, 0, time.UTC)})
+	coordinatorReserveAndRecord(t, first, repository, request)
+	if err := provider.FailNext(OperationAbort, FailureAfterMutationResponseLost); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := first.Abort(t.Context(), abortRequest); err != ErrResponseLost {
+		t.Fatalf("first Abort error = %v, want ErrResponseLost", err)
+	}
+	if repository.transactionCount() != 0 {
+		t.Fatalf("transactions after response loss = %d, want 0", repository.transactionCount())
+	}
+
+	restarted := mustNewCoordinatorForTest(t, countingProvider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 11, 1, 0, 0, time.UTC)})
+	receipt, err := restarted.Abort(t.Context(), abortRequest)
+	if err != nil || receipt.Status != StatusAborted {
+		t.Fatalf("response-loss retry = %#v, %v", receipt, err)
+	}
+	if countingProvider.abortCount(request.OperationID) != 1 || repository.transactionCount() != 1 {
+		t.Fatalf("after recovery Abort=%d transactions=%d, want 1/1", countingProvider.abortCount(request.OperationID), repository.transactionCount())
+	}
+	transactionsBefore := repository.transactionCount()
+	retry := mustNewCoordinatorForTest(t, countingProvider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 11, 2, 0, 0, time.UTC)})
+	retried, err := retry.Abort(t.Context(), abortRequest)
+	if err != nil || retried.ReceiptDigest != receipt.ReceiptDigest || retried.Validate() != nil {
+		t.Fatalf("exact terminal retry = %#v, %v; want %#v", retried, err, receipt)
+	}
+	if countingProvider.abortCount(request.OperationID) != 1 || repository.transactionCount() != transactionsBefore {
+		t.Fatalf("terminal retry Abort=%d transactions=%d, want 1/%d", countingProvider.abortCount(request.OperationID), repository.transactionCount(), transactionsBefore)
+	}
+}
+
+func TestCoordinatorFinalizeAbortRaceRejectsAbortAfterCommittedEffect(t *testing.T) {
+	t.Parallel()
+
+	provider, err := NewDeterministicProvider(23)
+	if err != nil {
+		t.Fatal(err)
+	}
+	countingProvider := newCoordinatorCountingProvider(provider)
+	repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/40"}})
+	effects := newCoordinatorEffectResolver()
+	request := ReserveRequest{
+		OperationID: uuid.MustParse("4edbc7ca-8918-46ca-9e89-207a638a7d01"),
+		Kind:        EffectCertificateRevoke,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: sha256.Sum256([]byte("finalize-abort-race-node")),
+	}
+	effectDigest := sha256.Sum256([]byte("finalize-abort-race-effect"))
+	coordinatorReserveAndRecord(t, mustNewCoordinatorForTest(t, countingProvider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 12, 0, 0, 0, time.UTC)}), repository, request)
+	effects.commit(t, request, effectDigest, "0/20")
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	blockingResolver := &coordinatorFirstResolveBlockingResolver{EffectResolver: effects, entered: entered, release: release}
+	coordinator := mustNewCoordinatorForTest(t, countingProvider, repository, blockingResolver, coordinatorClock{now: time.Date(2026, 8, 24, 12, 1, 0, 0, time.UTC)})
+	type finalizeResult struct {
+		receipt Receipt
+		err     error
+	}
+	finalized := make(chan finalizeResult, 1)
+	go func() {
+		receipt, finalizeErr := coordinator.Finalize(context.Background(), CoordinatorFinalizeRequest{OperationID: request.OperationID, EffectDigest: effectDigest})
+		finalized <- finalizeResult{receipt: receipt, err: finalizeErr}
+	}()
+	select {
+	case <-entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Finalize did not reach the bounded resolver barrier")
+	}
+
+	if _, abortErr := coordinator.Abort(t.Context(), AbortRequest{OperationID: request.OperationID, Reason: AbortSuperseded}); abortErr != ErrConflict {
+		close(release)
+		t.Fatalf("concurrent Abort error = %v, want ErrConflict", abortErr)
+	}
+	if countingProvider.abortCount(request.OperationID) != 0 {
+		close(release)
+		t.Fatalf("provider Abort calls = %d, want 0", countingProvider.abortCount(request.OperationID))
+	}
+	close(release)
+	select {
+	case result := <-finalized:
+		if result.err != nil || result.receipt.Status != StatusCommitted {
+			t.Fatalf("Finalize result = %#v, %v; want committed", result.receipt, result.err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Finalize did not complete after releasing resolver barrier")
+	}
+}
+
+func TestCoordinatorRecoverRejectsUnexplainedAbortedTerminalEffects(t *testing.T) {
+	t.Parallel()
+
+	baseRequest := ReserveRequest{
+		Kind:        EffectCertificateRevoke,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: sha256.Sum256([]byte("recover-terminal-node")),
+	}
+	effectDigest := sha256.Sum256([]byte("recover-terminal-effect"))
+	tests := []struct {
+		name     string
+		resolved ResolvedEffect
+	}{
+		{name: "exact terminal tuple", resolved: ResolvedEffect{Kind: baseRequest.Kind, ScopeKind: baseRequest.ScopeKind, ScopeDigest: baseRequest.ScopeDigest, EffectDigest: effectDigest, State: EffectTerminal}},
+		{name: "cross kind", resolved: ResolvedEffect{Kind: EffectDesiredActivate, ScopeKind: ScopeNode, ScopeDigest: baseRequest.ScopeDigest, EffectDigest: effectDigest, State: EffectTerminal}},
+		{name: "cross scope", resolved: ResolvedEffect{Kind: EffectRootPublish, ScopeKind: ScopeGlobalNodeTrust, ScopeDigest: globalNodeScopeDigest, EffectDigest: effectDigest, State: EffectTerminal}},
+		{name: "cross scope digest", resolved: ResolvedEffect{Kind: baseRequest.Kind, ScopeKind: baseRequest.ScopeKind, ScopeDigest: sha256.Sum256([]byte("recover-terminal-other-node")), EffectDigest: effectDigest, State: EffectTerminal}},
+		{name: "cross effect digest", resolved: ResolvedEffect{Kind: baseRequest.Kind, ScopeKind: baseRequest.ScopeKind, ScopeDigest: baseRequest.ScopeDigest, EffectDigest: sha256.Sum256([]byte("recover-terminal-other-effect")), State: EffectTerminal}},
+	}
+
+	for index, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			provider, err := NewDeterministicProvider(29)
+			if err != nil {
+				t.Fatal(err)
+			}
+			repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+			effects := newCoordinatorEffectResolver()
+			request := baseRequest
+			request.OperationID = uuid.MustParse(fmt.Sprintf("9962a8ce-e1bd-4c5f-a477-d92a67f872%02d", index+1))
+			coordinator := mustNewCoordinatorForTest(t, provider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 13, 0, 0, 0, time.UTC)})
+			coordinatorReserveAndRecord(t, coordinator, repository, request)
+			if _, err := provider.Abort(t.Context(), AbortRequest{OperationID: request.OperationID, Reason: AbortValidationFailed}); err != nil {
+				t.Fatal(err)
+			}
+			effects.set(request.OperationID, test.resolved)
+			transactionsBefore := repository.transactionCount()
+
+			if _, err := coordinator.Recover(t.Context(), request.OperationID); err != ErrConflict {
+				t.Fatalf("Recover error = %v, want ErrConflict", err)
+			}
+			if repository.transactionCount() != transactionsBefore {
+				t.Fatalf("transactions = %d, want unchanged %d", repository.transactionCount(), transactionsBefore)
+			}
+			record, getErr := repository.Get(t.Context(), request.OperationID)
+			if getErr != nil || record.TerminalReceipt != nil {
+				t.Fatalf("database record = %#v, %v; unexplained terminal escaped pending visibility", record, getErr)
+			}
+			head, headErr := repository.Head(t.Context())
+			if headErr != nil || head.PendingCount != 1 {
+				t.Fatalf("database head = %#v, %v; want one pending", head, headErr)
+			}
+		})
+	}
+}
+
+func TestCoordinatorRecoverCopiesProviderAbortForExactAbsentUnboundEffect(t *testing.T) {
+	t.Parallel()
+
+	provider, err := NewDeterministicProvider(31)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+	effects := newCoordinatorEffectResolver()
+	request := ReserveRequest{
+		OperationID: uuid.MustParse("e98616b0-401a-4583-94ba-462891b39a01"),
+		Kind:        EffectCertificateRevoke,
+		ScopeKind:   ScopeNode,
+		ScopeDigest: sha256.Sum256([]byte("recover-absent-abort-node")),
+	}
+	coordinator := mustNewCoordinatorForTest(t, provider, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 14, 0, 0, 0, time.UTC)})
+	coordinatorReserveAndRecord(t, coordinator, repository, request)
+	providerReceipt, err := provider.Abort(t.Context(), AbortRequest{OperationID: request.OperationID, Reason: AbortValidationFailed})
+	if err != nil {
+		t.Fatal(err)
+	}
+	recovered, err := coordinator.Recover(t.Context(), request.OperationID)
+	if err != nil || recovered.ReceiptDigest != providerReceipt.ReceiptDigest || recovered.Validate() != nil {
+		t.Fatalf("Recover = %#v, %v; want exact provider receipt %#v", recovered, err, providerReceipt)
+	}
+}
+
 func TestAuthorityReadiness(t *testing.T) {
 	t.Parallel()
 
@@ -380,6 +695,187 @@ func TestAuthorityReadinessInspectsEveryPendingReservation(t *testing.T) {
 	}
 }
 
+func TestAuthorityReadinessNormalizesOnlyExactEmptyHeads(t *testing.T) {
+	t.Parallel()
+
+	t.Run("exact empty pair copies the positive provider epoch into the returned database head", func(t *testing.T) {
+		t.Parallel()
+		provider, err := NewDeterministicProvider(37)
+		if err != nil {
+			t.Fatal(err)
+		}
+		repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+		coordinator := mustNewCoordinatorForTest(t, provider, repository, newCoordinatorEffectResolver(), coordinatorClock{now: time.Date(2026, 8, 24, 15, 0, 0, 0, time.UTC)})
+
+		readiness, err := coordinator.CheckReady(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !readiness.Ready || readiness.Reason != ReadinessReady || readiness.ProviderHead.Epoch != 37 || readiness.DatabaseHead.Epoch != 37 {
+			t.Fatalf("readiness = %#v, want exact normalized empty epoch 37", readiness)
+		}
+		if readiness.DatabaseHead.RecordCount != 0 || readiness.DatabaseHead.LatestReservedSequence != 0 ||
+			readiness.DatabaseHead.LatestCommittedSequence != 0 || readiness.DatabaseHead.PendingCount != 0 ||
+			readiness.DatabaseHead.LatestReservationDigest != (contracts.Digest{}) ||
+			readiness.DatabaseHead.LatestCommittedOperationID != uuid.Nil ||
+			readiness.DatabaseHead.LatestCommittedReceiptDigest != (contracts.Digest{}) ||
+			readiness.DatabaseHead.LatestCommittedDatabasePoint != nil {
+			t.Fatalf("normalized database head fabricated non-epoch data: %#v", readiness.DatabaseHead)
+		}
+
+		readiness.DatabaseHead.Epoch = 0
+		again, err := coordinator.CheckReady(t.Context())
+		if err != nil || again.DatabaseHead.Epoch != 37 {
+			t.Fatalf("caller mutation changed subsequent normalized head: %#v, %v", again, err)
+		}
+	})
+
+	t.Run("partial provider empty is rejected before normalization", func(t *testing.T) {
+		t.Parallel()
+		provider, err := NewDeterministicProvider(37)
+		if err != nil {
+			t.Fatal(err)
+		}
+		wrapped := newCoordinatorCountingProvider(provider)
+		wrapped.setHeadOverride(Head{Epoch: 37, LatestReservationDigest: sha256.Sum256([]byte("partial-provider-empty"))})
+		repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+		coordinator := mustNewCoordinatorForTest(t, wrapped, repository, newCoordinatorEffectResolver(), coordinatorClock{now: time.Date(2026, 8, 24, 15, 0, 0, 0, time.UTC)})
+
+		readiness, err := coordinator.CheckReady(t.Context())
+		if err != nil || readiness.Ready || readiness.Reason != ReadinessProviderUnavailable || readiness.DatabaseHead.Epoch != 0 {
+			t.Fatalf("readiness = %#v, %v; want provider_unavailable without normalization", readiness, err)
+		}
+	})
+
+	t.Run("partial database empty is rejected before normalization", func(t *testing.T) {
+		t.Parallel()
+		provider, err := NewDeterministicProvider(37)
+		if err != nil {
+			t.Fatal(err)
+		}
+		repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+		repository.setHeadOverride(DatabaseHead{RecordCount: 1})
+		coordinator := mustNewCoordinatorForTest(t, provider, repository, newCoordinatorEffectResolver(), coordinatorClock{now: time.Date(2026, 8, 24, 15, 0, 0, 0, time.UTC)})
+
+		readiness, err := coordinator.CheckReady(t.Context())
+		if err != nil || readiness.Ready || readiness.Reason != ReadinessDatabaseUnavailable || readiness.DatabaseHead.Epoch != 0 {
+			t.Fatalf("readiness = %#v, %v; want database_unavailable without normalization", readiness, err)
+		}
+	})
+}
+
+func TestAuthorityReadinessClassifiesPendingInspectErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		inspectErr error
+		wantReason ReadinessReason
+		wantError  error
+	}{
+		{name: "not found is a mismatch", inspectErr: ErrNotFound, wantReason: ReadinessPendingMismatch},
+		{name: "conflict is a mismatch", inspectErr: ErrConflict, wantReason: ReadinessPendingMismatch},
+		{name: "terminal conflict is a mismatch", inspectErr: ErrTerminalConflict, wantReason: ReadinessPendingMismatch},
+		{name: "dependency failure is unavailable", inspectErr: ErrInjectedFailure, wantReason: ReadinessProviderUnavailable},
+		{name: "context cancellation is exact", inspectErr: context.Canceled, wantError: ErrCanceled},
+		{name: "authority cancellation is exact", inspectErr: ErrCanceled, wantError: ErrCanceled},
+	}
+
+	for index, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			provider, err := NewDeterministicProvider(41)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wrapped := newCoordinatorCountingProvider(provider)
+			repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+			effects := newCoordinatorEffectResolver()
+			request := ReserveRequest{
+				OperationID: uuid.MustParse(fmt.Sprintf("b4bef512-ff22-47da-b49e-733cc8d4a1%02d", index+1)),
+				Kind:        EffectCertificateRevoke,
+				ScopeKind:   ScopeNode,
+				ScopeDigest: sha256.Sum256([]byte(fmt.Sprintf("pending-inspect-node-%d", index))),
+			}
+			coordinator := mustNewCoordinatorForTest(t, wrapped, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 16, 0, 0, 0, time.UTC)})
+			coordinatorReserveAndRecord(t, coordinator, repository, request)
+			effects.prepare(request, sha256.Sum256([]byte(fmt.Sprintf("pending-inspect-effect-%d", index))))
+			wrapped.setInspectError(request.OperationID, test.inspectErr)
+
+			readiness, checkErr := coordinator.CheckReady(t.Context())
+			if test.wantError != nil {
+				if checkErr != test.wantError || readiness != (Readiness{}) {
+					t.Fatalf("CheckReady = %#v, %v; want zero/%v", readiness, checkErr, test.wantError)
+				}
+				return
+			}
+			if checkErr != nil || readiness.Ready || readiness.Reason != test.wantReason {
+				t.Fatalf("CheckReady = %#v, %v; want %q", readiness, checkErr, test.wantReason)
+			}
+		})
+	}
+}
+
+func TestAuthorityReadinessPendingReasonPriorityAcrossAllRows(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name               string
+		includeUnavailable bool
+		wantReason         ReadinessReason
+	}{
+		{name: "effect unavailable beats mismatch and unresolved", wantReason: ReadinessEffectUnavailable},
+		{name: "provider unavailable beats every other pending reason", includeUnavailable: true, wantReason: ReadinessProviderUnavailable},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			provider, err := NewDeterministicProvider(43)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wrapped := newCoordinatorCountingProvider(provider)
+			repository := newCoordinatorMemoryRepository([]DatabasePoint{{SystemID: 41, Timeline: 3, RequiredLSN: "0/30"}})
+			effects := newCoordinatorEffectResolver()
+			coordinator := mustNewCoordinatorForTest(t, wrapped, repository, effects, coordinatorClock{now: time.Date(2026, 8, 24, 17, 0, 0, 0, time.UTC)})
+			operationIDs := []uuid.UUID{
+				uuid.MustParse("45ba0535-6209-4e90-a4a2-17f8bc7f4401"),
+				uuid.MustParse("45ba0535-6209-4e90-a4a2-17f8bc7f4402"),
+				uuid.MustParse("45ba0535-6209-4e90-a4a2-17f8bc7f4403"),
+				uuid.MustParse("45ba0535-6209-4e90-a4a2-17f8bc7f4404"),
+			}
+			for index, operationID := range operationIDs {
+				request := ReserveRequest{
+					OperationID: operationID,
+					Kind:        EffectCertificateRevoke,
+					ScopeKind:   ScopeNode,
+					ScopeDigest: sha256.Sum256([]byte(fmt.Sprintf("pending-priority-node-%d", index))),
+				}
+				coordinatorReserveAndRecord(t, coordinator, repository, request)
+				effects.prepare(request, sha256.Sum256([]byte(fmt.Sprintf("pending-priority-effect-%d", index))))
+			}
+			wrapped.setInspectError(operationIDs[0], ErrNotFound)
+			effects.setError(operationIDs[1], ErrInjectedFailure)
+			if test.includeUnavailable {
+				wrapped.setInspectError(operationIDs[2], ErrInjectedFailure)
+			}
+
+			readiness, checkErr := coordinator.CheckReady(t.Context())
+			if checkErr != nil || readiness.Ready || readiness.Reason != test.wantReason {
+				t.Fatalf("CheckReady = %#v, %v; want %q", readiness, checkErr, test.wantReason)
+			}
+			for _, operationID := range operationIDs {
+				if wrapped.inspectCount(operationID) != 1 || effects.resolveCount(operationID) != 1 {
+					t.Fatalf("operation %s calls Inspect=%d Resolve=%d, want 1/1", operationID, wrapped.inspectCount(operationID), effects.resolveCount(operationID))
+				}
+			}
+		})
+	}
+}
+
 func newReadyCoordinatorFixture(t *testing.T) (*Coordinator, *DeterministicProvider, *coordinatorMemoryRepository, *coordinatorEffectResolver) {
 	t.Helper()
 	provider, err := NewDeterministicProvider(7)
@@ -435,6 +931,7 @@ func (clock coordinatorClock) Now() time.Time { return clock.now }
 type coordinatorEffectResolver struct {
 	mu       sync.Mutex
 	effects  map[uuid.UUID]ResolvedEffect
+	errors   map[uuid.UUID]error
 	commits  map[uuid.UUID]int
 	lsns     map[uuid.UUID]WALPosition
 	resolves map[uuid.UUID]int
@@ -443,6 +940,7 @@ type coordinatorEffectResolver struct {
 func newCoordinatorEffectResolver() *coordinatorEffectResolver {
 	return &coordinatorEffectResolver{
 		effects:  make(map[uuid.UUID]ResolvedEffect),
+		errors:   make(map[uuid.UUID]error),
 		commits:  make(map[uuid.UUID]int),
 		lsns:     make(map[uuid.UUID]WALPosition),
 		resolves: make(map[uuid.UUID]int),
@@ -456,11 +954,26 @@ func (resolver *coordinatorEffectResolver) ResolveAuthorityEffect(ctx context.Co
 	resolver.mu.Lock()
 	defer resolver.mu.Unlock()
 	resolver.resolves[operationID]++
+	if err := resolver.errors[operationID]; err != nil {
+		return ResolvedEffect{}, err
+	}
 	resolved, ok := resolver.effects[operationID]
 	if !ok {
 		return ResolvedEffect{State: EffectAbsent}, nil
 	}
 	return resolved, nil
+}
+
+func (resolver *coordinatorEffectResolver) set(operationID uuid.UUID, resolved ResolvedEffect) {
+	resolver.mu.Lock()
+	defer resolver.mu.Unlock()
+	resolver.effects[operationID] = resolved
+}
+
+func (resolver *coordinatorEffectResolver) setError(operationID uuid.UUID, err error) {
+	resolver.mu.Lock()
+	defer resolver.mu.Unlock()
+	resolver.errors[operationID] = err
 }
 
 func (resolver *coordinatorEffectResolver) prepare(request ReserveRequest, digest contracts.Digest) {
@@ -507,21 +1020,96 @@ func (resolver *coordinatorEffectResolver) resolveCount(operationID uuid.UUID) i
 
 type coordinatorCountingProvider struct {
 	Provider
-	mu          sync.Mutex
-	inspections map[uuid.UUID]int
+	mu            sync.Mutex
+	inspections   map[uuid.UUID]int
+	aborts        map[uuid.UUID]int
+	inspectErrors map[uuid.UUID]error
+	headOverride  *Head
+}
+
+func newCoordinatorCountingProvider(provider Provider) *coordinatorCountingProvider {
+	return &coordinatorCountingProvider{
+		Provider:      provider,
+		inspections:   make(map[uuid.UUID]int),
+		aborts:        make(map[uuid.UUID]int),
+		inspectErrors: make(map[uuid.UUID]error),
+	}
 }
 
 func (provider *coordinatorCountingProvider) Inspect(ctx context.Context, operationID uuid.UUID) (Record, error) {
 	provider.mu.Lock()
 	provider.inspections[operationID]++
+	err := provider.inspectErrors[operationID]
 	provider.mu.Unlock()
+	if err != nil {
+		return Record{}, err
+	}
 	return provider.Provider.Inspect(ctx, operationID)
+}
+
+func (provider *coordinatorCountingProvider) Abort(ctx context.Context, request AbortRequest) (Receipt, error) {
+	provider.mu.Lock()
+	provider.aborts[request.OperationID]++
+	provider.mu.Unlock()
+	return provider.Provider.Abort(ctx, request)
+}
+
+func (provider *coordinatorCountingProvider) Head(ctx context.Context) (Head, error) {
+	provider.mu.Lock()
+	override := provider.headOverride
+	provider.mu.Unlock()
+	if override != nil {
+		return cloneHead(*override), nil
+	}
+	return provider.Provider.Head(ctx)
 }
 
 func (provider *coordinatorCountingProvider) inspectCount(operationID uuid.UUID) int {
 	provider.mu.Lock()
 	defer provider.mu.Unlock()
 	return provider.inspections[operationID]
+}
+
+func (provider *coordinatorCountingProvider) abortCount(operationID uuid.UUID) int {
+	provider.mu.Lock()
+	defer provider.mu.Unlock()
+	return provider.aborts[operationID]
+}
+
+func (provider *coordinatorCountingProvider) setInspectError(operationID uuid.UUID, err error) {
+	provider.mu.Lock()
+	defer provider.mu.Unlock()
+	provider.inspectErrors[operationID] = err
+}
+
+func (provider *coordinatorCountingProvider) setHeadOverride(head Head) {
+	provider.mu.Lock()
+	defer provider.mu.Unlock()
+	cloned := cloneHead(head)
+	provider.headOverride = &cloned
+}
+
+type coordinatorFirstResolveBlockingResolver struct {
+	EffectResolver
+	once    sync.Once
+	entered chan<- struct{}
+	release <-chan struct{}
+}
+
+func (resolver *coordinatorFirstResolveBlockingResolver) ResolveAuthorityEffect(ctx context.Context, operationID uuid.UUID) (ResolvedEffect, error) {
+	blocked := false
+	resolver.once.Do(func() {
+		blocked = true
+		close(resolver.entered)
+	})
+	if blocked {
+		select {
+		case <-ctx.Done():
+			return ResolvedEffect{}, ErrCanceled
+		case <-resolver.release:
+		}
+	}
+	return resolver.EffectResolver.ResolveAuthorityEffect(ctx, operationID)
 }
 
 type coordinatorTransactionFailure struct {
@@ -801,6 +1389,12 @@ func (repository *coordinatorMemoryRepository) captureCount() int {
 	repository.mu.Lock()
 	defer repository.mu.Unlock()
 	return repository.captures
+}
+
+func (repository *coordinatorMemoryRepository) transactionCount() int {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	return repository.transactions
 }
 
 type coordinatorNoopDBTX struct{}

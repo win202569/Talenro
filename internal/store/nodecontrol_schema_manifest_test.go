@@ -90,71 +90,97 @@ node_state_transitions_immutable
 control_plane_trust_bundle_high_waters_monotonic`)
 
 type nodeControlManifest struct {
-	Version int                    `yaml:"version"`
-	Schema  string                 `yaml:"schema"`
-	Tables  []nodeControlTableSpec `yaml:"tables"`
+	Version   int                       `yaml:"version"`
+	Schema    string                    `yaml:"schema"`
+	Tables    []nodeControlTableSpec    `yaml:"tables"`
+	Functions []nodeControlFunctionSpec `yaml:"functions"`
+}
+
+type nodeControlFunctionSpec struct {
+	Name                  string  `yaml:"name"`
+	Arguments             string  `yaml:"arguments"`
+	IntroducedInMigration uint64  `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64 `yaml:"retired_in_migration,omitempty"`
+	Language              string  `yaml:"language"`
+	Volatility            string  `yaml:"volatility"`
+	SecurityDefiner       bool    `yaml:"security_definer"`
+	DefinitionSHA256      string  `yaml:"definition_sha256"`
 }
 
 type nodeControlTableSpec struct {
-	Name        string                      `yaml:"name"`
-	Columns     []nodeControlColumnSpec     `yaml:"columns"`
-	PrimaryKey  nodeControlPrimaryKeySpec   `yaml:"primary_key"`
-	Enums       []nodeControlEnumSpec       `yaml:"enums"`
-	Constraints []nodeControlConstraintSpec `yaml:"constraints"`
-	Indexes     []nodeControlIndexSpec      `yaml:"indexes"`
-	Triggers    []nodeControlTriggerSpec    `yaml:"triggers"`
+	Name                  string                      `yaml:"name"`
+	IntroducedInMigration uint64                      `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64                     `yaml:"retired_in_migration,omitempty"`
+	Columns               []nodeControlColumnSpec     `yaml:"columns"`
+	PrimaryKey            nodeControlPrimaryKeySpec   `yaml:"primary_key"`
+	Enums                 []nodeControlEnumSpec       `yaml:"enums"`
+	Constraints           []nodeControlConstraintSpec `yaml:"constraints"`
+	Indexes               []nodeControlIndexSpec      `yaml:"indexes"`
+	Triggers              []nodeControlTriggerSpec    `yaml:"triggers"`
 }
 
 type nodeControlColumnSpec struct {
-	Name       string   `yaml:"name"`
-	SQLType    string   `yaml:"sql_type"`
-	Nullable   bool     `yaml:"nullable"`
-	DefaultSQL *string  `yaml:"default_sql"`
-	Collation  *string  `yaml:"collation"`
-	CheckSQL   []string `yaml:"check_sql"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	SQLType               string   `yaml:"sql_type"`
+	Nullable              bool     `yaml:"nullable"`
+	DefaultSQL            *string  `yaml:"default_sql"`
+	Collation             *string  `yaml:"collation"`
+	CheckSQL              []string `yaml:"check_sql"`
 }
 
 type nodeControlPrimaryKeySpec struct {
-	Name              string   `yaml:"name"`
-	Columns           []string `yaml:"columns"`
-	Deferrable        bool     `yaml:"deferrable"`
-	InitiallyDeferred bool     `yaml:"initially_deferred"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	Columns               []string `yaml:"columns"`
+	Deferrable            bool     `yaml:"deferrable"`
+	InitiallyDeferred     bool     `yaml:"initially_deferred"`
 }
 
 type nodeControlEnumSpec struct {
-	Name   string   `yaml:"name"`
-	Column string   `yaml:"column"`
-	Values []string `yaml:"values"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	Column                string   `yaml:"column"`
+	Values                []string `yaml:"values"`
 }
 
 type nodeControlConstraintSpec struct {
-	Name              string   `yaml:"name"`
-	Kind              string   `yaml:"kind"`
-	DefinitionSQL     string   `yaml:"definition_sql"`
-	Columns           []string `yaml:"columns"`
-	ReferencedTable   *string  `yaml:"referenced_table"`
-	ReferencedColumns []string `yaml:"referenced_columns"`
-	OnUpdate          *string  `yaml:"on_update"`
-	OnDelete          *string  `yaml:"on_delete"`
-	Deferrable        bool     `yaml:"deferrable"`
-	InitiallyDeferred bool     `yaml:"initially_deferred"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	Kind                  string   `yaml:"kind"`
+	DefinitionSQL         string   `yaml:"definition_sql"`
+	Columns               []string `yaml:"columns"`
+	ReferencedTable       *string  `yaml:"referenced_table"`
+	ReferencedColumns     []string `yaml:"referenced_columns"`
+	OnUpdate              *string  `yaml:"on_update"`
+	OnDelete              *string  `yaml:"on_delete"`
+	Deferrable            bool     `yaml:"deferrable"`
+	InitiallyDeferred     bool     `yaml:"initially_deferred"`
 }
 
 type nodeControlIndexSpec struct {
-	Name      string   `yaml:"name"`
-	Unique    bool     `yaml:"unique"`
-	Method    string   `yaml:"method"`
-	Keys      []string `yaml:"keys"`
-	Include   []string `yaml:"include"`
-	Predicate *string  `yaml:"predicate"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	Unique                bool     `yaml:"unique"`
+	Method                string   `yaml:"method"`
+	Keys                  []string `yaml:"keys"`
+	Include               []string `yaml:"include"`
+	Predicate             *string  `yaml:"predicate"`
 }
 
 type nodeControlTriggerSpec struct {
-	Name     string   `yaml:"name"`
-	Timing   string   `yaml:"timing"`
-	Events   []string `yaml:"events"`
-	Function string   `yaml:"function"`
-	WhenSQL  *string  `yaml:"when_sql"`
+	Name                  string   `yaml:"name"`
+	IntroducedInMigration uint64   `yaml:"introduced_in_migration"`
+	RetiredInMigration    *uint64  `yaml:"retired_in_migration,omitempty"`
+	Timing                string   `yaml:"timing"`
+	Events                []string `yaml:"events"`
+	Function              string   `yaml:"function"`
+	WhenSQL               *string  `yaml:"when_sql"`
 }
 
 var compactManifestToken = regexp.MustCompile(`(?i)(^|[^a-z0-9_])(V|N|D32\??|B64K|bounded|closed|paired|optional|authority_group|retention|same as)([^a-z0-9_]|$)`)
@@ -799,7 +825,100 @@ func loadNodeControlManifest(t *testing.T) (nodeControlManifest, []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return manifest, raw
+	return base25Manifest(manifest), raw
+}
+
+func manifestAtMigration(manifest nodeControlManifest, migration uint64) nodeControlManifest {
+	result := manifest
+	result.Tables = make([]nodeControlTableSpec, 0, len(manifest.Tables))
+	for _, table := range manifest.Tables {
+		if table.IntroducedInMigration > migration {
+			continue
+		}
+		if table.RetiredInMigration != nil && *table.RetiredInMigration <= migration {
+			continue
+		}
+		table.Columns = manifestColumnsAtMigration(table.Columns, migration)
+		table.Enums = manifestEnumsAtMigration(table.Enums, migration)
+		table.Constraints = manifestConstraintsAtMigration(table.Constraints, migration)
+		table.Indexes = manifestIndexesAtMigration(table.Indexes, migration)
+		table.Triggers = manifestTriggersAtMigration(table.Triggers, migration)
+		result.Tables = append(result.Tables, table)
+	}
+	result.Functions = manifestFunctionsAtMigration(manifest.Functions, migration)
+	return result
+}
+
+func manifestLifecycleActive(introduced uint64, retired *uint64, migration uint64) bool {
+	return introduced <= migration && (retired == nil || *retired > migration)
+}
+
+func manifestColumnsAtMigration(values []nodeControlColumnSpec, migration uint64) []nodeControlColumnSpec {
+	result := make([]nodeControlColumnSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func manifestEnumsAtMigration(values []nodeControlEnumSpec, migration uint64) []nodeControlEnumSpec {
+	result := make([]nodeControlEnumSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func manifestConstraintsAtMigration(values []nodeControlConstraintSpec, migration uint64) []nodeControlConstraintSpec {
+	result := make([]nodeControlConstraintSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func manifestIndexesAtMigration(values []nodeControlIndexSpec, migration uint64) []nodeControlIndexSpec {
+	result := make([]nodeControlIndexSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func manifestTriggersAtMigration(values []nodeControlTriggerSpec, migration uint64) []nodeControlTriggerSpec {
+	result := make([]nodeControlTriggerSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func manifestFunctionsAtMigration(values []nodeControlFunctionSpec, migration uint64) []nodeControlFunctionSpec {
+	result := make([]nodeControlFunctionSpec, 0, len(values))
+	for _, value := range values {
+		if manifestLifecycleActive(value.IntroducedInMigration, value.RetiredInMigration, migration) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func base25Manifest(manifest nodeControlManifest) nodeControlManifest {
+	return manifestAtMigration(manifest, 6)
+}
+
+func final51Manifest(manifest nodeControlManifest) nodeControlManifest {
+	return manifestAtMigration(manifest, 7)
 }
 
 func decodeNodeControlManifest(raw []byte) (nodeControlManifest, error) {
@@ -839,7 +958,7 @@ func requireManifestFields(document *yaml.Node) error {
 		return fmt.Errorf("manifest must contain one YAML document")
 	}
 	root := document.Content[0]
-	if err := requireMappingKeys(root, "manifest", "version", "schema", "tables"); err != nil {
+	if err := requireMappingKeys(root, "manifest", "version", "schema", "tables", "functions"); err != nil {
 		return err
 	}
 	tables := mappingValue(root, "tables")
@@ -848,27 +967,30 @@ func requireManifestFields(document *yaml.Node) error {
 	}
 	for tableIndex, table := range tables.Content {
 		path := fmt.Sprintf("tables[%d]", tableIndex)
-		if err := requireMappingKeys(table, path, "name", "columns", "primary_key", "enums", "constraints", "indexes", "triggers"); err != nil {
+		if err := requireMappingKeys(table, path, "name", "introduced_in_migration", "columns", "primary_key", "enums", "constraints", "indexes", "triggers"); err != nil {
 			return err
 		}
-		if err := requireSequenceObjectKeys(mappingValue(table, "columns"), path+".columns", "name", "sql_type", "nullable", "default_sql", "collation", "check_sql"); err != nil {
+		if err := requireSequenceObjectKeys(mappingValue(table, "columns"), path+".columns", "name", "introduced_in_migration", "sql_type", "nullable", "default_sql", "collation", "check_sql"); err != nil {
 			return err
 		}
-		if err := requireMappingKeys(mappingValue(table, "primary_key"), path+".primary_key", "name", "columns", "deferrable", "initially_deferred"); err != nil {
+		if err := requireMappingKeys(mappingValue(table, "primary_key"), path+".primary_key", "name", "introduced_in_migration", "columns", "deferrable", "initially_deferred"); err != nil {
 			return err
 		}
-		if err := requireSequenceObjectKeys(mappingValue(table, "enums"), path+".enums", "name", "column", "values"); err != nil {
+		if err := requireSequenceObjectKeys(mappingValue(table, "enums"), path+".enums", "name", "introduced_in_migration", "column", "values"); err != nil {
 			return err
 		}
-		if err := requireSequenceObjectKeys(mappingValue(table, "constraints"), path+".constraints", "name", "kind", "definition_sql", "columns", "referenced_table", "referenced_columns", "on_update", "on_delete", "deferrable", "initially_deferred"); err != nil {
+		if err := requireSequenceObjectKeys(mappingValue(table, "constraints"), path+".constraints", "name", "introduced_in_migration", "kind", "definition_sql", "columns", "referenced_table", "referenced_columns", "on_update", "on_delete", "deferrable", "initially_deferred"); err != nil {
 			return err
 		}
-		if err := requireSequenceObjectKeys(mappingValue(table, "indexes"), path+".indexes", "name", "unique", "method", "keys", "include", "predicate"); err != nil {
+		if err := requireSequenceObjectKeys(mappingValue(table, "indexes"), path+".indexes", "name", "introduced_in_migration", "unique", "method", "keys", "include", "predicate"); err != nil {
 			return err
 		}
-		if err := requireSequenceObjectKeys(mappingValue(table, "triggers"), path+".triggers", "name", "timing", "events", "function", "when_sql"); err != nil {
+		if err := requireSequenceObjectKeys(mappingValue(table, "triggers"), path+".triggers", "name", "introduced_in_migration", "timing", "events", "function", "when_sql"); err != nil {
 			return err
 		}
+	}
+	if err := requireSequenceObjectKeys(mappingValue(root, "functions"), "functions", "name", "arguments", "introduced_in_migration", "language", "volatility", "security_definer", "definition_sha256"); err != nil {
+		return err
 	}
 	return nil
 }

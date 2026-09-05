@@ -2543,7 +2543,7 @@ ORDER BY c.relname`)
 	if err != nil {
 		t.Fatal("collect nodecontrol tables:", err)
 	}
-	assertExactNamedSet(t, "catalog tables", actualTables, nodeControlAuthorityTables)
+	assertExactNamedSet(t, "catalog tables", actualTables, tableNames(manifest.Tables))
 	for _, table := range manifest.Tables {
 		assertCatalogColumns(ctx, t, pool, table)
 		assertCatalogConstraints(ctx, t, pool, table)

@@ -799,7 +799,7 @@ components:
       enum: [normal, quarantined]
     IdentityStateV1:
       type: string
-      enum: [never_enrolled, active, recovery_pending, recovery_limited, revoked]
+      enum: [never_enrolled, active, recovery_pending, recovery_limited, revoked, unauthorized]
     RestorePhaseV1:
       type: string
       enum: [proposal, approval]
@@ -1462,7 +1462,9 @@ components:
       name: identity_state
       in: query
       required: false
-      schema: {$ref: "#/components/schemas/IdentityStateV1"}
+      schema:
+        type: string
+        enum: [never_enrolled, active, recovery_pending, recovery_limited, revoked]
     FailureDomainTypeFilter:
       name: domain_type
       in: query

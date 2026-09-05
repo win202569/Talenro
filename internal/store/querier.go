@@ -15,12 +15,15 @@ import (
 type Querier interface {
 	AbortAuthorityFence(ctx context.Context, arg AbortAuthorityFenceParams) (int64, error)
 	AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) (int64, error)
+	AcquireAuthorityV7SourceFreezeForSeal(ctx context.Context) error
 	ActivateCommittedAuthorityFence(ctx context.Context, arg ActivateCommittedAuthorityFenceParams) (int64, error)
 	ActivateProvisionalAuthorization(ctx context.Context, arg ActivateProvisionalAuthorizationParams) (int64, error)
 	ActivateTOTP(ctx context.Context, arg ActivateTOTPParams) (int64, error)
 	ActivateVerifiedAccount(ctx context.Context, arg ActivateVerifiedAccountParams) (IdentityAccount, error)
+	BeginStagingImport(ctx context.Context, arg BeginStagingImportParams) (NodecontrolControlPlaneAuthorityFreshRestoreImportApplication, error)
 	BindAccountSessionToAuthorization(ctx context.Context, arg BindAccountSessionToAuthorizationParams) (int64, error)
 	BindAuthorityFenceEffect(ctx context.Context, arg BindAuthorityFenceEffectParams) (int64, error)
+	ClaimAuthorityAbort(ctx context.Context, arg ClaimAuthorityAbortParams) (int64, error)
 	ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]TransactionalOutbox, error)
 	ClearPendingEmailDelivery(ctx context.Context, arg ClearPendingEmailDeliveryParams) (int64, error)
 	ClearPendingPasswordResetDelivery(ctx context.Context, arg ClearPendingPasswordResetDeliveryParams) (int64, error)
@@ -54,8 +57,8 @@ type Querier interface {
 	GetAccountSessionForUpdate(ctx context.Context, arg GetAccountSessionForUpdateParams) (IdentityAccountSession, error)
 	GetActiveBundleAuthority(ctx context.Context, arg GetActiveBundleAuthorityParams) (GetActiveBundleAuthorityRow, error)
 	GetActiveRecoveryCodeSetForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityRecoveryCodeSet, error)
-	GetAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
-	GetAuthorityFenceForUpdate(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
+	GetAuthorityFence(ctx context.Context, operationID uuid.UUID) (GetAuthorityFenceRow, error)
+	GetAuthorityFenceForUpdate(ctx context.Context, operationID uuid.UUID) (GetAuthorityFenceForUpdateRow, error)
 	GetAuthorityFenceHead(ctx context.Context) (GetAuthorityFenceHeadRow, error)
 	GetAuthorizationForUpdate(ctx context.Context, id uuid.UUID) (DeviceauthDeviceAuthorization, error)
 	GetBundleByLocatorHash(ctx context.Context, arg GetBundleByLocatorHashParams) (TrustBundleIssuance, error)
@@ -77,6 +80,7 @@ type Querier interface {
 	GetPasswordResetForUpdate(ctx context.Context, resetTokenHash []byte) (IdentityPasswordCredential, error)
 	GetPendingEmailDelivery(ctx context.Context, verificationDeliveryID uuid.NullUUID) (GetPendingEmailDeliveryRow, error)
 	GetPendingPasswordResetDelivery(ctx context.Context, resetDeliveryID uuid.NullUUID) (GetPendingPasswordResetDeliveryRow, error)
+	GetStoredAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
 	GetSystemMetadata(ctx context.Context, key string) (json.RawMessage, error)
 	GetTOTPForUpdate(ctx context.Context, principalID uuid.UUID) (IdentityTotpCredential, error)
 	HasConsumedEvent(ctx context.Context, arg HasConsumedEventParams) (bool, error)
@@ -84,6 +88,7 @@ type Querier interface {
 	InsertAuthorityFencePending(ctx context.Context, arg InsertAuthorityFencePendingParams) (int64, error)
 	InsertBundleAcknowledgement(ctx context.Context, arg InsertBundleAcknowledgementParams) error
 	InsertBundleIssuance(ctx context.Context, arg InsertBundleIssuanceParams) error
+	InsertClaimV1AuthorityFencePending(ctx context.Context, arg InsertClaimV1AuthorityFencePendingParams) (int64, error)
 	InsertDeviceRefreshToken(ctx context.Context, arg InsertDeviceRefreshTokenParams) error
 	InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventParams) error
 	InsertSecurityEvent(ctx context.Context, arg InsertSecurityEventParams) error
@@ -97,11 +102,23 @@ type Querier interface {
 	ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSigningKeysForMetadata(ctx context.Context, rootMetadataVersion int64) ([]TrustSigningKeyMetadatum, error)
 	ListTrustRootMetadata(ctx context.Context) ([]TrustTrustRootMetadatum, error)
+	LockAuthorityFence(ctx context.Context, operationID uuid.UUID) (NodecontrolControlPlaneAuthorityFence, error)
+	LockCertificateIssuanceActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockCertificateIssuanceActivationOutcomeRow, error)
+	LockCertificateRevocationOutcome(ctx context.Context, revokeAuthorityOperationID uuid.NullUUID) (LockCertificateRevocationOutcomeRow, error)
 	LockDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error)
 	LockEmailLookupDigest(ctx context.Context, lookupDigest []byte) error
+	LockEnrollmentGrantClaimOutcome(ctx context.Context, claimAuthorityOperationID uuid.NullUUID) (LockEnrollmentGrantClaimOutcomeRow, error)
+	// closed persisted-outcome owner registry
+	LockEnrollmentGrantCreateOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockEnrollmentGrantCreateOutcomeRow, error)
 	LockPrincipalAccountSessions(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountSession, error)
 	LockPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
+	LockResourceEnvelopeActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockResourceEnvelopeActivationOutcomeRow, error)
+	LockRootMetadataPublishIntentActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockRootMetadataPublishIntentActivationOutcomeRow, error)
+	LockSecurityIncidentOpenOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockSecurityIncidentOpenOutcomeRow, error)
+	LockSecurityIncidentResolveOutcome(ctx context.Context, resolutionAuthorityOperationID uuid.NullUUID) (LockSecurityIncidentResolveOutcomeRow, error)
 	LockSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)
+	LockStateSigningIntentActivationOutcome(ctx context.Context, authorityOperationID uuid.UUID) (LockStateSigningIntentActivationOutcomeRow, error)
+	LockStateTransitionOutcome(ctx context.Context, authorityOperationID uuid.NullUUID) (LockStateTransitionOutcomeRow, error)
 	MarkAccountRefreshUsed(ctx context.Context, arg MarkAccountRefreshUsedParams) (IdentityAccountRefreshToken, error)
 	MarkAccountSessionCompromised(ctx context.Context, arg MarkAccountSessionCompromisedParams) (int64, error)
 	MarkDeviceRefreshUsed(ctx context.Context, arg MarkDeviceRefreshUsedParams) (DeviceauthDeviceRefreshToken, error)
