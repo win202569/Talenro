@@ -916,6 +916,19 @@ func TestC12PreparedArtifactDirectLeafLedgerIsClosed(t *testing.T) {
 }
 
 func TestC12PITRRunRootHasExactFiveLeafLedger(t *testing.T) {
+	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	runner := string(raw)
+	for _, required := range []string{"GetSecurityInfo", "SE_FILE_OBJECT", "OWNER_SECURITY_INFORMATION", "DACL_SECURITY_INFORMATION", "ConvertSecurityDescriptorToStringSecurityDescriptor"} {
+		if !strings.Contains(runner, required) {
+			t.Errorf("retained-handle security receipt path lacks %q", required)
+		}
+	}
+	if strings.Contains(runner, "File.GetAccessControl(ExactPath") {
+		t.Error("retained-handle security receipt still mixes handle identity with path-resolved ACL")
+	}
 	snapshot := c12PowerShellExecutableAST(t)
 	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PITRRunRoot")
 	wantLeaves := []string{"controller-ownership-v1.wal", "ownership.wal", "tlsgen.go", "server.crt", "server.key"}

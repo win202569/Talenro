@@ -992,6 +992,10 @@ public sealed class C12SealedExecutable : IDisposable
     private const UInt32 FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
     private const UInt32 FILE_DISPOSITION_FLAG_POSIX_SEMANTICS = 0x00000002;
     private const UInt32 FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE = 0x00000010;
+    private const UInt32 SE_FILE_OBJECT = 1;
+    private const UInt32 OWNER_SECURITY_INFORMATION = 0x00000001;
+    private const UInt32 DACL_SECURITY_INFORMATION = 0x00000004;
+    private const UInt32 SDDL_REVISION_1 = 1;
     private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -1027,6 +1031,12 @@ public sealed class C12SealedExecutable : IDisposable
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr LocalFree(IntPtr memory);
+    [DllImport("advapi32.dll", SetLastError = true)]
+    private static extern UInt32 GetSecurityInfo(IntPtr handle, UInt32 objectType, UInt32 securityInformation, out IntPtr ownerSid, out IntPtr groupSid, out IntPtr dacl, out IntPtr sacl, out IntPtr securityDescriptor);
+    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool ConvertSecurityDescriptorToStringSecurityDescriptor(IntPtr securityDescriptor, UInt32 revision, UInt32 securityInformation, out IntPtr stringSecurityDescriptor, out UInt32 stringSecurityDescriptorLength);
 
     private IntPtr handle;
     public string ExactPath { get; private set; }
@@ -1058,10 +1068,11 @@ public sealed class C12SealedExecutable : IDisposable
             Length = ((UInt64)information.FileSizeHigh << 32) | information.FileSizeLow;
             if ((!allowEmpty && Length == 0) || NumberOfLinks != 1) throw new InvalidOperationException("sealed executable has invalid length or hard-link count");
             SHA256 = ComputeSHA256(handle);
-            FileSecurity security = File.GetAccessControl(ExactPath, AccessControlSections.Owner | AccessControlSections.Access);
-            IdentityReference owner = security.GetOwner(typeof(SecurityIdentifier));
-            Owner = ((SecurityIdentifier)owner).Value;
-            DACL = security.GetSecurityDescriptorSddlForm(AccessControlSections.Owner | AccessControlSections.Access);
+            string owner;
+            string dacl;
+            ReadSecurityReceipt(handle, out owner, out dacl);
+            Owner = owner;
+            DACL = dacl;
         }
         catch
         {
@@ -1086,6 +1097,35 @@ public sealed class C12SealedExecutable : IDisposable
             stream.Position = 0;
             byte[] digest = algorithm.ComputeHash(stream);
             return BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
+        }
+    }
+
+    private static void ReadSecurityReceipt(IntPtr value, out string owner, out string dacl)
+    {
+        IntPtr ownerSid;
+        IntPtr groupSid;
+        IntPtr daclPointer;
+        IntPtr sacl;
+        IntPtr descriptor;
+        UInt32 result = GetSecurityInfo(value, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+            out ownerSid, out groupSid, out daclPointer, out sacl, out descriptor);
+        if (result != 0) throw new Win32Exception((Int32)result);
+        IntPtr sddl = IntPtr.Zero;
+        try
+        {
+            if (ownerSid == IntPtr.Zero) throw new InvalidOperationException("retained-handle security descriptor has no owner");
+            owner = new SecurityIdentifier(ownerSid).Value;
+            UInt32 length;
+            if (!ConvertSecurityDescriptorToStringSecurityDescriptor(descriptor, SDDL_REVISION_1,
+                OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, out sddl, out length))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            dacl = Marshal.PtrToStringUni(sddl);
+            if (String.IsNullOrEmpty(dacl)) throw new InvalidOperationException("retained-handle security descriptor is empty");
+        }
+        finally
+        {
+            if (sddl != IntPtr.Zero) LocalFree(sddl);
+            if (descriptor != IntPtr.Zero) LocalFree(descriptor);
         }
     }
 
