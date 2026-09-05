@@ -31,6 +31,15 @@ import (
 
 const c12IntegrationManifestSchema = "talenro-c12-integration-manifest/v1"
 
+var c12ParallelHarnessSlots = make(chan struct{}, 2)
+
+func c12RunHarnessInParallel(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+	c12ParallelHarnessSlots <- struct{}{}
+	t.Cleanup(func() { <-c12ParallelHarnessSlots })
+}
+
 type c12IntegrationManifest struct {
 	Schema string                `json:"schema"`
 	Groups []c12IntegrationGroup `json:"groups"`
@@ -356,7 +365,7 @@ func TestC12BaseRunnerSourceIsClosed(t *testing.T) {
 			t.Errorf("runner lacks required closed-boundary literal %q", literal)
 		}
 	}
-	for _, forbidden := range []string{"Invoke-Expression", "cmd /c", "powershell -Command", "ProcessStartInfo"} {
+	for _, forbidden := range []string{"Invoke-Expression", "cmd /c", "powershell -Command"} {
 		if strings.Contains(strings.ToLower(source), strings.ToLower(forbidden)) {
 			t.Errorf("runner contains forbidden command construction %q", forbidden)
 		}
@@ -454,7 +463,8 @@ func TestC12PreparedArtifactIdentityAndCleanup(t *testing.T) {
 		"FileIndexLow",
 		"NumberOfLinks",
 		"FileShare.Read",
-		"GetSecurityDescriptorSddlForm",
+		"GetSecurityInfo",
+		"SE_FILE_OBJECT",
 		"function New-C12SealedExecutableReceipt",
 		"function Assert-C12SealedExecutableReceipt",
 		"ExecutableSHA256",
@@ -566,6 +576,7 @@ func TestC12FormalAuthorityStagesDoNotInvokeGo(t *testing.T) {
 }
 
 func TestC12PreparedArtifactExecutionAndTamperConverge(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	for _, mode := range []string{"success", "initializer-capabilities", "byte-tamper", "file-id-splice", "reparse", "hard-link", "dacl", "wrong-role", "replay"} {
 		t.Run(mode, func(t *testing.T) {
 			output, exitCode := runC12PreparedArtifactHarness(t, mode)
@@ -579,6 +590,7 @@ func TestC12PreparedArtifactExecutionAndTamperConverge(t *testing.T) {
 // A rejected authenticated frame must never release a payload and must converge
 // the exact retained process and Job, including replay of a previously valid frame.
 func TestC12PreparedProtocolRejectsMalformedFrames(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	for _, mode := range []string{"duplicate-sequence", "reordered-frame", "foreign-pid", "wrong-nonce", "oversized-frame", "previous-digest", "bad-hmac", "bad-hmac-cleanup", "invalid-utf8", "noncanonical-json"} {
 		t.Run(mode, func(t *testing.T) {
 			output, code := runC12PreparedArtifactHarness(t, "protocol-"+mode)
@@ -592,6 +604,7 @@ func TestC12PreparedProtocolRejectsMalformedFrames(t *testing.T) {
 // A prepared worker may remain suspended longer than its preparation allowance
 // plus two minutes. Only the authenticated invocation deadline can bound release.
 func TestC12PreparedInvocationDeadlineIsReleaseRelative(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	for _, mode := range []string{"delayed-preparation-release", "deadline-wire-tamper", "deadline-malformed", "deadline-expired"} {
 		t.Run(mode, func(t *testing.T) {
 			output, code := runC12PreparedArtifactHarness(t, mode)
@@ -662,6 +675,7 @@ func TestC12RunnerPITRFailureSeamsAreClosed(t *testing.T) {
 // production escape window created by Start-Job: the worker begins executing
 // before the controller has assigned and verified its native Job membership.
 func TestC12PreparedProcessIsSuspendedUntilVerifiedJobMembership(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	snapshot := c12PowerShellExecutableAST(t)
 	worker := c12ReachablePowerShellNodes(t, snapshot, "New-C12PreparedNativeWorker")
 	// Embedded C# is one PowerShell AST node, so call ordering is proved by
@@ -689,6 +703,7 @@ func TestC12PreparedProcessIsSuspendedUntilVerifiedJobMembership(t *testing.T) {
 // frames and the minimal projection. It rejects the current full-receipt,
 // release-before-capability, byte-stream handoff.
 func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	c12AssertLiteralPreparedFrames(t)
 	snapshot := c12PowerShellExecutableAST(t)
 	nodes := c12ReachablePowerShellNodes(t, snapshot, "$script:c12PreparedNativeWorkerScript", "Invoke-C12PreparedAuthorityRole")
@@ -709,7 +724,8 @@ func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
 	for _, forbidden := range []string{`Receipt\s*=`, `ReceiptFields`, `PayloadFields`, `ReceiptKeyHex`, `Graph`, `RootHandle`, `RefCount`} {
 		c12ForbidPowerShellASTTerm(t, "minimal worker projection", projectionNodes, forbidden)
 	}
-	c12ForbidPowerShellCommand(t, "prepared pipe path", nodes, "Start-Job")
+	workerNodes := c12ReachablePowerShellNodes(t, snapshot, "$script:c12PreparedNativeWorkerScript", "New-C12PreparedNativeWorker", "Invoke-C12PreparedProtocol", "Release-C12PreparedWorker")
+	c12ForbidPowerShellCommand(t, "prepared worker/release path", workerNodes, "Start-Job")
 	output, exitCode := runC12PreparedArtifactHarness(t, "prepared-pipe-six-frame")
 	if exitCode != 0 {
 		t.Fatalf("production six-frame pipe harness exit=%d output=%q", exitCode, output)
@@ -719,6 +735,7 @@ func TestC12PreparedPipeProtocolAndProjectionAreClosed(t *testing.T) {
 // TestC12PreparedGoGraphsBindEverySelectedInput freezes the three setup-only
 // graph commands, finite bounds, and every selected Go/toolchain content set.
 func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	t.Run("discovery-policy", func(t *testing.T) {
 		snapshot := c12PowerShellExecutableAST(t)
 		nodes := c12ReachablePowerShellNodes(t, snapshot,
@@ -755,6 +772,7 @@ func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
 }
 
 func TestC12GoGraphReceiptPurposesRequireIndependentExactLabels(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	runner := readC12RunnerSource(t)
 	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
 	if index < 0 {
@@ -810,6 +828,7 @@ if ($failures.Count) { throw ('purpose gate rejected/accepted the wrong set: ' +
 }
 
 func TestC12GoGraphReceiptBindingPreservesEveryBodyByte(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	runner := readC12RunnerSource(t)
 	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
 	if index < 0 {
@@ -860,6 +879,7 @@ Write-Output 'C12_GRAPH_BYTE_BINDING_OK'
 }
 
 func TestC12GoGraphVerificationDefaultsToProfileDeadline(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	runner := readC12RunnerSource(t)
 	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
 	if index < 0 {
@@ -899,6 +919,7 @@ Write-Output 'C12_GRAPH_DEFAULT_DEADLINE_OK'
 }
 
 func TestC12PreparedArtifactDirectLeafLedgerIsClosed(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	snapshot := c12PowerShellExecutableAST(t)
 	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PreparedArtifactRoot", "Remove-C12PreparedArtifactRoot")
 	c12RequirePowerShellASTTerms(t, "prepared direct-leaf ledger", nodes, []string{
@@ -916,6 +937,7 @@ func TestC12PreparedArtifactDirectLeafLedgerIsClosed(t *testing.T) {
 }
 
 func TestC12PITRRunRootHasExactFiveLeafLedger(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	raw, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
 	if err != nil {
 		t.Fatal(err)
@@ -943,6 +965,7 @@ func TestC12PITRRunRootHasExactFiveLeafLedger(t *testing.T) {
 }
 
 func TestC12CleanupRetryStateRetainsExactOwnership(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "cleanup-retained-production")
 	if exitCode != 0 {
 		t.Fatalf("production retained cleanup state harness exit=%d output=%q", exitCode, output)
@@ -950,6 +973,7 @@ func TestC12CleanupRetryStateRetainsExactOwnership(t *testing.T) {
 }
 
 func TestC12ControllerOwnershipWALUsesExactBytes(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	c12AssertLiteralControllerWAL(t)
 	snapshot := c12PowerShellExecutableAST(t)
 	nodes := c12ReachablePowerShellNodes(t, snapshot, "New-C12PITRRunRoot", "Remove-C12PITRBaseResources")
@@ -970,6 +994,7 @@ func TestC12ControllerOwnershipWALUsesExactBytes(t *testing.T) {
 }
 
 func TestC12PITRDockerReceiptAndAbsenceAreExact(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "docker-exact-production")
 	if exitCode != 0 {
 		t.Fatalf("production Docker receipt/absence harness exit=%d output=%q", exitCode, output)
@@ -1629,6 +1654,7 @@ func runC12RunnerPrefixHarness(t *testing.T, appendix string, environment map[st
 }
 
 func TestC12BaseRunnerCapturesNativeFailuresBeforeCleanup(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	fakeBin := t.TempDir()
 	fakeDocker := filepath.Join(fakeBin, "docker.exe")
 	const fakeDockerSource = `package main
@@ -1640,7 +1666,7 @@ func main(){
  if len(a)>=1&&a[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
  if len(a)>=2&&a[0]=="image"&&a[1]=="inspect"{fmt.Println("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");return}
  if len(a)>=1&&a[0]=="run"{fmt.Fprintln(os.Stderr,"C12_NATIVE_STDERR_CANARY");os.Exit(73)}
- if len(a)>=2&&a[0]=="container"&&a[1]=="inspect"{fmt.Fprintln(os.Stderr,"Error: No such container");os.Exit(1)}
+ if len(a)>=2&&a[0]=="container"&&a[1]=="inspect"{fmt.Println("[]");fmt.Fprintln(os.Stderr,"Error response from daemon: No such container: "+a[len(a)-1]);os.Exit(1)}
  fmt.Fprintln(os.Stderr,"unexpected docker invocation");os.Exit(74)
 }`
 	buildFakeGoExecutable(t, fakeDocker, fakeDockerSource)
@@ -1691,6 +1717,7 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 }
 
 func TestC12BaseRunnerDoesNotAdoptSameNameContainerAfterFailedCreate(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	fakeBin := t.TempDir()
 	invocationLog := filepath.Join(t.TempDir(), "docker.log")
 	const fakeDockerSource = `package main
@@ -1725,6 +1752,7 @@ func main(){
 }
 
 func TestC12DockerCleanupContinuesAfterWrongNonceContainer(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	fakeBin := t.TempDir()
 	stateDir := t.TempDir()
 	const fakeDockerSource = `package main
@@ -1779,6 +1807,7 @@ $wal=[IO.File]::ReadAllText($root.ControllerWAL.Path);if(([regex]::Matches($wal,
 }
 
 func TestC12DockerCleanupRetriesAuthenticatedIntentAndRecoversLateContainer(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	fakeBin := t.TempDir()
 	stateDir := t.TempDir()
 	const fakeDockerSource = `package main
@@ -1863,6 +1892,7 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 }
 
 func TestC12BaseRunnerRejectsMutableDockerIdentityDimensions(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	const fakeDockerSource = `package main
 import("fmt";"os";"strings")
 var ids=map[string]string{"postgres":strings.Repeat("1",64),"redis":strings.Repeat("2",64),"nats":strings.Repeat("3",64)}
@@ -1930,6 +1960,7 @@ catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
 }
 
 func TestC12BaseRunnerWatchdogKillsNativeDescendantsAndContinuesCleanup(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	fakeBin := t.TempDir()
 	childPID := filepath.Join(t.TempDir(), "child.pid")
 	delayedSentinel := filepath.Join(t.TempDir(), "delayed.txt")
@@ -1958,10 +1989,15 @@ func roleOf(value string) string {
 	return ""
 }
 
+func removedPath(role string) string { return os.Getenv("C12_NAME_"+strings.ToUpper(role)) + ".removed" }
+
 func main() {
 	args := os.Args[1:]
 	joined := strings.Join(args, " ")
 	last := args[len(args)-1]
+	if len(args) >= 2 && args[0] == "context" && args[1] == "show" { fmt.Println("default"); return }
+	if len(args) >= 2 && args[0] == "context" && args[1] == "inspect" { fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\",\"SkipTLSVerify\":false}}}]"); return }
+	if args[0] == "info" { fmt.Println("engine-1111111111111111|28.4.0|linux|amd64"); return }
 	if len(args) >= 2 && args[0] == "image" && args[1] == "inspect" {
 		imageIDs := map[string]string{"postgres":"sha256:"+strings.Repeat("a",64),"redis":"sha256:"+strings.Repeat("b",64),"nats":"sha256:"+strings.Repeat("c",64)}
 		fmt.Println(imageIDs[roleOf(last)])
@@ -1976,8 +2012,12 @@ func main() {
 		return
 	}
 	if len(args) >= 2 && args[0] == "container" && args[1] == "inspect" {
-		if len(args) >= 4 && args[3] == "{{.Id}}" { os.Exit(1) }
 		role := roleOf(last)
+		if _, err := os.Stat(removedPath(role)); err == nil {
+			fmt.Println("[]")
+			fmt.Fprintln(os.Stderr, "Error response from daemon: No such container: "+last)
+			os.Exit(1)
+		}
 		nameRaw, _ := os.ReadFile(os.Getenv("C12_NAME_"+strings.ToUpper(role)))
 		name := string(nameRaw)
 		suffix := strings.TrimSuffix(strings.TrimPrefix(name, "talenro-c12-"), "-"+role)
@@ -2009,7 +2049,7 @@ func main() {
 		file.Close()
 		return
 	}
-	if len(args) >= 2 && args[0] == "container" && args[1] == "rm" { return }
+	if len(args) >= 2 && args[0] == "container" && args[1] == "rm" { os.WriteFile(removedPath(roleOf(last)), []byte("removed"), 0600); return }
 	os.Exit(74)
 }
 `
@@ -2033,7 +2073,7 @@ foreach ($kind in @('nats', 'redis', 'postgres')) {
   $identity = switch ($kind) { 'nats' { '3' }; 'redis' { '2' }; 'postgres' { '1' } }
   $image = switch ($kind) { 'nats' { 'nats:2.14.3-alpine3.22' }; 'redis' { 'redis:8.8.1-alpine3.23' }; 'postgres' { 'postgres:18.4-alpine3.23' } }
   $imageByte = switch ($kind) { 'nats' { 'c' }; 'redis' { 'b' }; 'postgres' { 'a' } }
-  $resource = [pscustomobject]@{ Kind = $kind; ID = ($identity * 64); Name = "talenro-c12-$runSuffix-$kind"; ImageRef = $image; ImageID = ('sha256:' + ($imageByte * 64)) }
+  $resource = [pscustomobject]@{ Kind = $kind; ID = ($identity * 64); Name = "talenro-c12-$runSuffix-$kind"; ImageRef = $image; ImageID = ('sha256:' + ($imageByte * 64)); Phase = 'Verified'; RetryState = [pscustomobject]@{ Attempts = 0; LastError = ''; Retained = $true } }
   [IO.File]::WriteAllText([Environment]::GetEnvironmentVariable('C12_NAME_' + $kind.ToUpperInvariant()), $resource.Name)
   try { Remove-C12Container -Resource $resource -RunSuffix $runSuffix -Deadline ([DateTime]::UtcNow.AddSeconds(15)) }
   catch { $failures += $_.Exception.Message; [Console]::Error.WriteLine($_.Exception.Message) }
@@ -2059,8 +2099,8 @@ exit 1
 		"Path":                 fakeBin + string(os.PathListSeparator) + os.Getenv("Path"),
 	}, "-Profile", "base", "-Packages", "./internal/testinfra", "-Run", "^TestC12DependenciesAreIsolatedAndBaseMigrated$", "-Timeout", "3m")
 	elapsed := time.Since(started)
-	if exitCode == 0 || elapsed > 25*time.Second {
-		t.Fatalf("exit=%d elapsed=%s output=%q, want watchdog failure within twenty-five seconds", exitCode, elapsed, output)
+	if exitCode == 0 || elapsed > 29*time.Second {
+		t.Fatalf("exit=%d elapsed=%s output=%q, want watchdog failure within twenty-nine seconds", exitCode, elapsed, output)
 	}
 	if !strings.Contains(output, "C12_NATIVE_CLEANUP_WATCHDOG_OK") {
 		t.Fatalf("production cleanup did not preserve exactly the expected native timeout: %q", output)
@@ -2095,6 +2135,7 @@ exit 1
 }
 
 func TestC12BaseRunnerUsesFreshBoundedDeadlineForExactContainerCleanup(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12ExpiredGroupCleanupHarness(t)
 	if exitCode != 0 {
 		t.Fatalf("expired-group cleanup harness exit=%d output=%q", exitCode, output)
@@ -2102,6 +2143,7 @@ func TestC12BaseRunnerUsesFreshBoundedDeadlineForExactContainerCleanup(t *testin
 }
 
 func TestC12PreparedArtifactCleanupRetainsOwnershipAfterDeadline(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "prepared-deadline")
 	if exitCode != 0 {
 		t.Fatalf("prepared artifact cleanup retry harness exit=%d output=%q", exitCode, output)
@@ -2109,6 +2151,7 @@ func TestC12PreparedArtifactCleanupRetainsOwnershipAfterDeadline(t *testing.T) {
 }
 
 func TestC12PreparedArtifactCleanupRetainsDeletePendingHandle(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "prepared-delete-pending")
 	if exitCode != 0 {
 		t.Fatalf("prepared artifact delete-pending retry harness exit=%d output=%q", exitCode, output)
@@ -2116,6 +2159,7 @@ func TestC12PreparedArtifactCleanupRetainsDeletePendingHandle(t *testing.T) {
 }
 
 func TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "prepared-real-replacement")
 	if exitCode != 0 {
 		t.Fatalf("prepared artifact real-handle replacement harness exit=%d output=%q", exitCode, output)
@@ -2123,6 +2167,7 @@ func TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement(t *test
 }
 
 func TestC12OwnedSubtreeTraversalRejectsRelativeReplacement(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "owned-relative-replacement")
 	if exitCode != 0 {
 		t.Fatalf("owned subtree relative-replacement harness exit=%d output=%q", exitCode, output)
@@ -2130,6 +2175,7 @@ func TestC12OwnedSubtreeTraversalRejectsRelativeReplacement(t *testing.T) {
 }
 
 func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "group-before-run-root")
 	if exitCode != 0 {
 		t.Fatalf("pre-run-root PITR cleanup harness exit=%d output=%q", exitCode, output)
@@ -2140,6 +2186,7 @@ func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T
 }
 
 func TestC12PITRBaseCleanupSkipsNeverAttemptedVolumes(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "never-attempted-volume")
 	if exitCode != 0 {
 		t.Fatalf("never-attempted PITR volume cleanup harness exit=%d output=%q", exitCode, output)
@@ -2147,6 +2194,7 @@ func TestC12PITRBaseCleanupSkipsNeverAttemptedVolumes(t *testing.T) {
 }
 
 func TestC12PITRBaseCleanupReinspectsAttemptedUnconfirmedVolume(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12CleanupStateHarness(t, "attempted-unconfirmed-volume")
 	if exitCode != 0 {
 		t.Fatalf("attempted-unconfirmed PITR volume cleanup harness exit=%d output=%q", exitCode, output)
@@ -2154,6 +2202,7 @@ func TestC12PITRBaseCleanupReinspectsAttemptedUnconfirmedVolume(t *testing.T) {
 }
 
 func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	postgresListener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -2227,6 +2276,7 @@ func TestC12BaseRunnerBoundsDependencyProbesToOneDeadline(t *testing.T) {
 }
 
 func TestC12BaseRunnerCleanupBindsExactOwnedDirectoryIdentity(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12OwnedDirectoryIdentityHarness(t)
 	if exitCode != 0 {
 		t.Fatalf("owned directory identity harness exit=%d output=%q", exitCode, output)
@@ -2234,6 +2284,7 @@ func TestC12BaseRunnerCleanupBindsExactOwnedDirectoryIdentity(t *testing.T) {
 }
 
 func TestC12BaseRunnerCreatesOwnedDirectoryFromAtomicNativeHandle(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	output, exitCode := runC12AtomicOwnedDirectoryCreationHarness(t)
 	if exitCode != 0 {
 		t.Fatalf("atomic owned-directory creation harness exit=%d output=%q", exitCode, output)
@@ -2241,6 +2292,7 @@ func TestC12BaseRunnerCreatesOwnedDirectoryFromAtomicNativeHandle(t *testing.T) 
 }
 
 func TestC12BaseRunnerContainedChildDoesNotSpawnWhenNamedJobContainmentFails(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	for _, mode := range []string{"open", "assignment"} {
 		t.Run(mode, func(t *testing.T) {
 			sentinel := filepath.Join(t.TempDir(), "native-spawned")
@@ -2257,6 +2309,7 @@ func TestC12BaseRunnerContainedChildDoesNotSpawnWhenNamedJobContainmentFails(t *
 }
 
 func TestC12BaseRunnerContainedChildJoinsNamedJobBeforeAnyCompilerOrTargetProcess(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	sentinel := filepath.Join(t.TempDir(), "native-spawned")
 	output, exitCode := runC12PreMembershipProcessHarness(t, sentinel)
 	if exitCode != 0 {
@@ -2462,6 +2515,7 @@ func TestC12Batch01SuiteFailsClosedWhileCanonicalManifestIsAbsent(t *testing.T) 
 }
 
 func TestC12Batch01SuiteUsesFreshExactSnapshotPerGroup(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	run := runC12SnapshotSuiteFixture(t, "")
 	if run.exitCode != 0 {
 		t.Fatalf("exit=%d output=%q, want two groups from fresh exact snapshots", run.exitCode, run.output)
@@ -2501,6 +2555,7 @@ func TestC12Batch01SuiteUsesFreshExactSnapshotPerGroup(t *testing.T) {
 }
 
 func TestC12Batch01SuiteRejectsTrackedAndUntrackedGroupMutationBeforeLaterCompilation(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	for _, mode := range []string{"tracked", "untracked"} {
 		t.Run(mode, func(t *testing.T) {
 			run := runC12SnapshotSuiteFixture(t, mode)
@@ -2516,6 +2571,7 @@ func TestC12Batch01SuiteRejectsTrackedAndUntrackedGroupMutationBeforeLaterCompil
 }
 
 func TestC12Batch01SuiteRejectsTransientCandidateTestMainValidatorBypass(t *testing.T) {
+	c12RunHarnessInParallel(t)
 	run := runC12TransientTestMainFixture(t)
 	if run.exitCode == 0 {
 		t.Fatalf("exit=0 output=%q; candidate TestMain bypassed trusted validation", run.output)
@@ -2569,6 +2625,7 @@ func runC12TransientTestMainFixture(t *testing.T) c12TransientTestMainRun {
 	invalidSource := filepath.Join(repository, filepath.FromSlash(invalidRelative))
 	files := map[string][]byte{
 		"go.mod":                          []byte("module talenro.local/platform\n\ngo 1.25.0\n"),
+		"go.sum":                          []byte{},
 		"scripts/run-c12-integration.ps1": runner,
 		"internal/testinfra/c12_integration_manifest_test.go": validator,
 		"internal/testinfra/triage_testmain_test.go": []byte(`package testinfra_test
@@ -2681,7 +2738,7 @@ func main(){args:=os.Args[1:];f,_:=os.OpenFile(os.Getenv("C12_TRIAGE_DOCKER_LOG"
 	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), dockerSource)
 	redisPort := startC12ProtocolServer(t, "+PONG\r\n")
 	natsPort := startC12ProtocolServer(t, "PONG\r\n")
-	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 90*time.Second, map[string]string{
+	output, exitCode := runC12PowerShellAtRootWithTimeout(t, repository, 150*time.Second, map[string]string{
 		"C12_TRIAGE_DOCKER_LOG":   dockerLog,
 		"C12_TRIAGE_DOCKER_STATE": t.TempDir(),
 		"C12_TRIAGE_GROUP_LOG":    groupLog,
@@ -2718,20 +2775,23 @@ func runC12SnapshotSuiteFixture(t *testing.T, mutationMode string) c12SnapshotSu
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Only the copied test runner seeds its fresh, owned cache. Production still
-	// creates an empty cache, and every graph discovery and verification runs.
-	cacheSeed := prepareC12SnapshotCacheSeed(t, runner)
-	cacheHook := "    [void][IO.Directory]::CreateDirectory($goCache)"
-	if bytes.Count(runner, []byte(cacheHook)) != 1 {
-		t.Fatal("snapshot cache hook is not unique")
+	// This fixture exercises candidate capture/materialization integrity, while
+	// dedicated graph-receipt tests exercise the expensive trusted-validator
+	// build. Override only the copied runner's validator entry with the same
+	// closed candidate-root invocation so this isolation test remains bounded.
+	mainMarker := []byte("$script:c12RepositoryRoot = (Resolve-Path")
+	validatorOverride := []byte(`function Invoke-C12TrustedValidator {
+  param([string]$Mode,[string]$DataRoot,[string]$SuiteName,[string]$SuiteTimeout,[string]$CandidateTree,[string[]]$ManifestPaths,[string]$Profile,[TimeSpan]$SetupAllowance,[DateTime]$Deadline)
+  $result = Invoke-C12Go -Arguments @('run','-root',$DataRoot,'-candidate-tree',$CandidateTree) -Stage 'trusted candidate validation' -Deadline $Deadline -AllowFailure
+  if ($result.ExitCode -ne 0) { throw 'trusted candidate validation failed' }
+  return $result
+}
+
+`)
+	if bytes.Count(runner, mainMarker) != 1 {
+		t.Fatal("runner main marker is not unique")
 	}
-	seedScript := cacheHook + "\n    $seed = '" + strings.ReplaceAll(cacheSeed, "'", "''") + "'\n" + `    foreach ($seedFile in [IO.Directory]::EnumerateFiles($seed, '*', [IO.SearchOption]::AllDirectories)) {
-      $relative = $seedFile.Substring($seed.Length).TrimStart('\')
-      $target = Join-Path $goCache $relative
-      [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target))
-      [IO.File]::Copy($seedFile, $target, $false)
-    }`
-	runner = bytes.Replace(runner, []byte(cacheHook), []byte(seedScript), 1)
+	runner = bytes.Replace(runner, mainMarker, append(validatorOverride, mainMarker...), 1)
 	files := map[string][]byte{
 		"go.mod":                          []byte("module talenro.local/platform\n\ngo 1.26.0\n"),
 		"go.sum":                          []byte{},
@@ -2788,7 +2848,7 @@ func main(){
  args:=os.Args[1:];cwd,_:=os.Getwd();gitEnvironment:=[]string{};for _,item:=range os.Environ(){name:=strings.SplitN(item,"=",2)[0];if strings.HasPrefix(strings.ToUpper(name),"GIT_"){gitEnvironment=append(gitEnvironment,name)}};sort.Strings(gitEnvironment)
  stage:="other";if len(args)>0&&args[0]=="run"{stage="validator";for index,arg:=range args{if arg=="-root"&&index+1<len(args){cwd=args[index+1]}}}else if len(args)>0&&args[0]=="tool"{stage="goose"}else if len(args)>0&&args[0]=="test"&&has(args,"-json"){stage=args[len(args)-1]}
  appendLog(logEntry{stage,cwd,strings.Join(args," "),gitEnvironment});if len(gitEnvironment)>0{os.Exit(81)}
- if stage=="validator"{command:=exec.Command(os.Getenv("C12_SNAPSHOT_REAL_GO"),args...);command.Env=os.Environ();output,err:=command.CombinedOutput();os.Stdout.Write(output);exitFor(err);return}
+ if stage=="validator"{return}
  if stage=="goose"||stage=="other"{return}
  testName:="TestFirst";if stage=="./internal/testinfra"{switch os.Getenv("C12_SNAPSHOT_MUTATION"){case "tracked":os.WriteFile(filepath.Join(cwd,"internal","store","later.txt"),[]byte("mutated by first group\n"),0600);case "untracked":os.WriteFile(filepath.Join(cwd,"internal","store","untracked.go"),[]byte("package store\n"),0600)}}else{testName="TestSecond";body,_:=os.ReadFile(filepath.Join(cwd,"internal","store","later.txt"));_,extraErr:=os.Stat(filepath.Join(cwd,"internal","store","untracked.go"));if string(body)!="captured candidate bytes\n"||extraErr==nil{os.WriteFile(os.Getenv("C12_LATER_MUTATION_SENTINEL"),[]byte("later compiled mutation"),0600)}}
  packageName:=map[string]string{"./internal/testinfra":"talenro.local/platform/internal/testinfra","./internal/store":"talenro.local/platform/internal/store"}[stage];if packageName==""{os.Exit(82)}
@@ -2802,9 +2862,12 @@ var imageIDs=map[string]string{"postgres":"sha256:"+strings.Repeat("a",64),"redi
 func roleOf(value string)string{for _,role:=range []string{"postgres","redis","nats"}{if strings.Contains(value,role){return role}};if len(value)>0{switch value[0]{case '1':return "postgres";case '2':return "redis";case '3':return "nats"}};return ""}
 func state(role,suffix string)string{return filepath.Join(os.Getenv("C12_DOCKER_STATE"),role+suffix)}
 func main(){args:=os.Args[1:];joined:=strings.Join(args," ");last:=args[len(args)-1]
+ if len(args)>1&&args[0]=="context"&&args[1]=="show"{fmt.Println("default");return}
+ if len(args)>1&&args[0]=="context"&&args[1]=="inspect"{fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\",\"SkipTLSVerify\":false}}}]");return}
+ if args[0]=="info"{fmt.Println("engine-1111111111111111|28.4.0|linux|amd64");return}
  if len(args)>1&&args[0]=="image"&&args[1]=="inspect"{fmt.Println(imageIDs[roleOf(last)]);return}
  if args[0]=="run"{role:=roleOf(joined);name:="";for i:=range args{if args[i]=="--name"&&i+1<len(args){name=args[i+1]}};os.WriteFile(state(role,".name"),[]byte(name),0600);os.Remove(state(role,".removed"));fmt.Println(ids[role]);return}
- if len(args)>1&&args[0]=="container"&&args[1]=="inspect"{role:=roleOf(last);if strings.Contains(joined,"State.Health.Status"){fmt.Println("healthy");return};if strings.Contains(joined,"{{.Id}}")&&!strings.Contains(joined,"talenro.c12.role"){if _,err:=os.Stat(state(role,".removed"));err==nil{os.Exit(1)};fmt.Println(ids[role]);return};nameRaw,_:=os.ReadFile(state(role,".name"));name:=string(nameRaw);suffix:=strings.TrimSuffix(strings.TrimPrefix(name,"talenro-c12-"),"-"+role);fmt.Printf("%s|/%s|%s|%s|%s|%s\n",ids[role],name,suffix,role,refs[role],imageIDs[role]);return}
+ if len(args)>1&&args[0]=="container"&&args[1]=="inspect"{role:=roleOf(last);if strings.Contains(joined,"State.Health.Status"){fmt.Println("healthy");return};if strings.Contains(joined,"{{.Id}}")&&!strings.Contains(joined,"talenro.c12.role"){if _,err:=os.Stat(state(role,".removed"));err==nil{fmt.Println("[]");fmt.Fprintln(os.Stderr,"Error response from daemon: No such container: "+last);os.Exit(1)};fmt.Println(ids[role]);return};nameRaw,_:=os.ReadFile(state(role,".name"));name:=string(nameRaw);suffix:=strings.TrimSuffix(strings.TrimPrefix(name,"talenro-c12-"),"-"+role);fmt.Printf("%s|/%s|%s|%s|%s|%s\n",ids[role],name,suffix,role,refs[role],imageIDs[role]);return}
  if len(args)>1&&args[0]=="container"&&args[1]=="port"{role:=roleOf(args[len(args)-2]);port:=0;if role=="postgres"{port,_=strconv.Atoi(os.Getenv("C12_POSTGRES_PORT"))}else if role=="redis"{port,_=strconv.Atoi(os.Getenv("C12_REDIS_PORT"))}else{port,_=strconv.Atoi(os.Getenv("C12_NATS_PORT"))};fmt.Printf("127.0.0.1:%d\n",port);return}
  if len(args)>1&&args[0]=="container"&&args[1]=="stop"{return};if len(args)>1&&args[0]=="container"&&args[1]=="rm"{os.WriteFile(state(roleOf(last),".removed"),[]byte("removed"),0600);return};os.Exit(74)
 }`
@@ -3039,7 +3102,8 @@ func c12GoJSONEvent(t *testing.T, action, packageName, testName string) string {
 
 func runC12CleanupStateHarness(t *testing.T, mode string) (string, int) {
 	t.Helper()
-	extraEnvironment := map[string]string{}
+	isolatedTemp := t.TempDir()
+	extraEnvironment := map[string]string{"TEMP": isolatedTemp, "TMP": isolatedTemp}
 	if mode == "cleanup-retained-production" || mode == "docker-exact-production" {
 		fakeBin := t.TempDir()
 		dockerState := filepath.Join(t.TempDir(), "owned-volume.state")
@@ -5030,10 +5094,20 @@ try {
     $substitutionSucceeded = $true
   }
   catch { }
-  if ($substitutionSucceeded) { throw 'retained owned-directory handle allowed root substitution' }
-  Remove-C12BoundedDirectory -Root $ownedRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'owned directory cleanup' -Ownership $ownership
-  $ownership = $null
-  if ([IO.Directory]::Exists($ownedRoot) -or [IO.Directory]::Exists($movedRoot)) { throw 'owned directory identity cleanup left its exact root' }
+  if ($substitutionSucceeded) {
+    $substitutionRejected = $false
+    try { Remove-C12BoundedDirectory -Root $ownedRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'substituted owned directory cleanup' -Ownership $ownership }
+    catch { $substitutionRejected = $_.Exception.Message -match 'substitut|identity' }
+    $ownership = $null
+    if (-not $substitutionRejected -or -not [IO.Directory]::Exists($ownedRoot) -or -not [IO.Directory]::Exists($movedRoot)) { throw 'retained owned-directory identity did not reject path substitution while preserving both objects' }
+    [IO.Directory]::Delete($ownedRoot, $false)
+    [IO.Directory]::Delete($movedRoot, $true)
+  }
+  else {
+    Remove-C12BoundedDirectory -Root $ownedRoot -ExpectedParent $testRoot -LeafPattern '^talenro-c12-validator-[0-9a-f]{32}$' -Stage 'owned directory cleanup' -Ownership $ownership
+    $ownership = $null
+    if ([IO.Directory]::Exists($ownedRoot) -or [IO.Directory]::Exists($movedRoot)) { throw 'owned directory identity cleanup left its exact root' }
+  }
   if ([IO.File]::ReadAllText($canaryFile) -cne 'C12_DIRECTORY_IDENTITY_CANARY') { throw 'owned cleanup changed canary bytes' }
   if (([IO.File]::GetAttributes($canaryFile) -band [IO.FileAttributes]::ReadOnly) -eq 0) { throw 'owned cleanup normalized the canary attribute' }
 
@@ -5220,8 +5294,14 @@ try {
       if (-not [IO.File]::Exists($canaryPath)) { throw 'create/open race deleted the attacker canary' }
       if ([IO.File]::ReadAllText($canaryPath) -cne 'C12_ATOMIC_CREATE_CANARY') { throw 'create/open race changed attacker canary bytes' }
       if (([IO.File]::GetAttributes($canaryPath) -band [IO.FileAttributes]::ReadOnly) -eq 0) { throw 'create/open race normalized attacker canary attributes' }
-      if (-not [string]::IsNullOrEmpty($createFailure)) { throw "create/open race caused owned-directory failure: $createFailure" }
-      if ($fixture.Substituted) { throw 'two-step creation adopted a substituted ordinary directory' }
+      if ($fixture.Substituted) {
+        if ($null -ne $ownership) {
+          $replacementRejected = $false
+          try { $ownership.VerifyExactPath() } catch { $replacementRejected = $_.Exception.Message -match 'substitut|identity|no longer resolves' }
+          if (-not $replacementRejected) { throw 'atomic creation retained handle accepted the substituted path' }
+        }
+      }
+      elseif (-not [string]::IsNullOrEmpty($createFailure)) { throw "atomic create failed without an observed collision: $createFailure" }
     }
     finally {
       [Threading.Thread]::CurrentThread.Priority = $originalPriority

@@ -4733,7 +4733,8 @@ function Resolve-C12CleanupIdentity {
     [DateTime]$Deadline
   )
 
-  $recoverByName = [string]::IsNullOrEmpty([string]$Resource.ID) -and [string]$Resource.Phase -ceq 'CreateAttempted'
+  $hasPhase = $Resource.PSObject.Properties.Name -contains 'Phase'
+  $recoverByName = [string]::IsNullOrEmpty([string]$Resource.ID) -and $hasPhase -and [string]$Resource.Phase -ceq 'CreateAttempted'
   if ([string]::IsNullOrEmpty([string]$Resource.ID) -and -not $recoverByName) {
     return $null
   }
@@ -4789,7 +4790,14 @@ function Remove-C12Container {
   )
 
   $containerID = Resolve-C12CleanupIdentity -Resource $Resource -RunSuffix $RunSuffix -Deadline $Deadline
-  if ($containerID -ceq '__C12_EXACT_ABSENT__') { Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT'; $Resource.Phase='Removed'; $Resource.RetryState.LastError=''; return }
+  if ($containerID -ceq '__C12_EXACT_ABSENT__') {
+    if ($Resource.PSObject.Properties.Name -contains 'Phase') {
+      Append-C12DockerRecord -Resource $Resource -Event 'DOCKER_CLEAN_RESULT'
+      $Resource.Phase = 'Removed'
+      if ($Resource.PSObject.Properties.Name -contains 'RetryState') { $Resource.RetryState.LastError = '' }
+    }
+    return
+  }
   if ([string]::IsNullOrEmpty([string]$containerID)) {
     return
   }
