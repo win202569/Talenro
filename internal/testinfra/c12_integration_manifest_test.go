@@ -1707,6 +1707,60 @@ func main(){
 	}
 }
 
+func TestC12DockerCleanupContinuesAfterWrongNonceContainer(t *testing.T) {
+	fakeBin := t.TempDir()
+	stateDir := t.TempDir()
+	const fakeDockerSource = `package main
+import("fmt";"os";"path/filepath";"strings")
+func gone(kind,id string)bool{_,e:=os.Stat(filepath.Join(os.Getenv("C12_STATE"),kind+"-"+id));return e==nil}
+func mark(kind,id string){os.WriteFile(filepath.Join(os.Getenv("C12_STATE"),kind+"-"+id),[]byte("gone"),0600)}
+func main(){a:=os.Args[1:];last:=a[len(a)-1];run:=strings.Repeat("d",32);nonce:=strings.Repeat("e",64)
+ if len(a)>1&&a[0]=="context"&&a[1]=="show"{fmt.Println("default");return};if len(a)>1&&a[0]=="context"&&a[1]=="inspect"{fmt.Println("[{\"Name\":\"default\",\"Endpoints\":{\"docker\":{\"Host\":\"npipe:////./pipe/docker_engine\"}}}]");return};if a[0]=="info"{fmt.Println("engine-1|28.4.0|linux|amd64");return}
+ if len(a)>1&&a[0]=="container"&&a[1]=="inspect"{if gone("c",last){fmt.Println("[]");fmt.Fprintln(os.Stderr,"Error response from daemon: No such container: "+last);os.Exit(1)};if strings.HasPrefix(last,"1"){fmt.Printf("%s|/talenro-c12-%s-pitr-primary|true|%s|authority-v7-pitr|primary|%s|postgres:18.4-alpine3.23|sha256:%s\n",last,run,run,strings.Repeat("f",64),strings.Repeat("a",64));return};fmt.Printf("%s|/talenro-c12-%s-redis|%s|redis|redis:8.8.1-alpine3.23|sha256:%s\n",last,run,run,strings.Repeat("b",64));return}
+ if len(a)>1&&a[0]=="container"&&(a[1]=="stop"||a[1]=="rm"){if a[1]=="rm"{mark("c",last)};return}
+ if len(a)>1&&a[0]=="volume"&&a[1]=="inspect"{if gone("v",last){fmt.Println("[]");fmt.Fprintln(os.Stderr,"Error response from daemon: get "+last+": no such volume");os.Exit(1)};fmt.Printf("%s|local|true|%s|authority-v7-pitr|archive|%s\n",last,run,nonce);return};if len(a)>1&&a[0]=="volume"&&a[1]=="rm"{mark("v",last);return};os.Exit(74)}
+`
+	buildFakeGoExecutable(t, filepath.Join(fakeBin, "docker.exe"), fakeDockerSource)
+	output, exitCode := runC12DockerContinuationHarness(t, map[string]string{"Path": fakeBin + string(os.PathListSeparator) + os.Getenv("Path"), "C12_STATE": stateDir})
+	if exitCode != 0 {
+		t.Fatalf("Docker continuation harness exit=%d output=%q", exitCode, output)
+	}
+}
+
+func runC12DockerContinuationHarness(t *testing.T, environment map[string]string) (string, int) {
+	t.Helper()
+	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	index := bytes.Index(runner, []byte("$script:c12RepositoryRoot = (Resolve-Path"))
+	if index < 0 {
+		t.Fatal("runner lacks main marker")
+	}
+	const appendix = `
+$script:c12RepositoryRoot=(Get-Location).Path;$script:c12NativeDeadline=[DateTime]::UtcNow.AddMinutes(2);$run=('d'*32);$nonce=('e'*64)
+$bad=[pscustomobject]@{Kind='postgres';Name="talenro-c12-$run-pitr-primary";ID=('1'*64);ImageRef='postgres:18.4-alpine3.23';ImageID=('sha256:'+('a'*64));PITR=$true;NonceDigest=$nonce;ContainerPort=5432}
+$good=[pscustomobject]@{Kind='redis';Role='redis';Name="talenro-c12-$run-redis";ID=('2'*64);ImageRef='redis:8.8.1-alpine3.23';ImageID=('sha256:'+('b'*64));PITR=$false;ContainerPort=6379}
+$vol=New-C12PITRVolumeResource -Name "talenro-c12-$run-pitr-archive" -Role 'archive' -NonceDigest $nonce
+$endpoint=Get-C12DockerEndpointReceipt -Deadline $script:c12NativeDeadline -Revalidate;$root=$null
+try{$root=New-C12PITRRunRoot -RunSuffix ([Guid]::NewGuid().ToString('N')) -NonceDigest $nonce -HMACKeyHex ('5a'*32) -DockerExecutableDigest $endpoint.ExecutableReceipt.Digest -DockerEndpointIdentityDigest $endpoint.Digest
+$registry=New-C12DockerRegistryPayload -Resources @($bad,$good) -Volumes @($vol) -RunSuffix $run -NonceDigest $nonce -EndpointReceipt $endpoint;$root.ControllerWAL.DockerRegistryPayload=$registry;$null=Append-C12ControllerOwnershipRecord -State $root.ControllerWAL -Event DOCKER_REGISTRY -PayloadJSON $registry
+foreach($r in @($bad,$good,$vol)){$r|Add-Member ControllerWAL $root.ControllerWAL -Force;Register-C12DockerIntent $r;Confirm-C12DockerActual $r}
+$failed=$false;try{Remove-C12PITRBaseResources -Resources @($bad,$good) -Volumes @($vol) -RunSuffix $run -Deadline $script:c12NativeDeadline}catch{$failed=$_.Exception.Message-match 'nonce|identity'}
+if(-not $failed){throw 'wrong nonce was not retained'};if(-not [IO.File]::Exists((Join-Path $env:C12_STATE ('c-'+('2'*64))))-or-not [IO.File]::Exists((Join-Path $env:C12_STATE ('v-'+$vol.Name)))){throw 'later resources did not converge'}
+$wal=[IO.File]::ReadAllText($root.ControllerWAL.Path);if(([regex]::Matches($wal,'"event":"DOCKER_CLEAN_RESULT"')).Count-ne 2){throw 'per-resource WAL cleanup results mismatch'};Write-Output C12_DOCKER_CONTINUATION_OK;exit 0
+}finally{if($null-ne$root-and[IO.Directory]::Exists($root.Root)){Remove-C12PITRRunRoot -RunRoot $root -Deadline ([DateTime]::UtcNow.AddSeconds(20))}}
+`
+	harnessRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(harnessRoot, "scripts"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(harnessRoot, "scripts", "run-c12-integration.ps1"), append(append([]byte(nil), runner[:index]...), appendix...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return runC12PowerShellAtRootWithTimeout(t, harnessRoot, 90*time.Second, environment, "-Profile", "base", "-Packages", "./internal/testinfra", "-Timeout", "3m")
+}
+
 func runC12FailedCreateHarness(t *testing.T, environment map[string]string) (string, int) {
 	t.Helper()
 	runner, err := os.ReadFile("../../scripts/run-c12-integration.ps1")
