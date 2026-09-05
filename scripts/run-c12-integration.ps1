@@ -509,6 +509,7 @@ public static class C12NativeJob
 public sealed class C12OwnedDirectory : IDisposable
 {
     private const UInt32 FILE_READ_ATTRIBUTES = 0x00000080;
+    private const UInt32 FILE_LIST_DIRECTORY = 0x00000001;
     private const UInt32 DELETE = 0x00010000;
     private const UInt32 SYNCHRONIZE = 0x00100000;
     private const UInt32 FILE_SHARE_READ = 0x00000001;
@@ -516,6 +517,7 @@ public sealed class C12OwnedDirectory : IDisposable
     private const UInt32 FILE_SHARE_DELETE = 0x00000004;
     private const UInt32 OPEN_EXISTING = 3;
     private const UInt32 FILE_CREATE = 2;
+    private const UInt32 FILE_OPEN = 1;
     private const UInt32 FILE_DIRECTORY_FILE = 0x00000001;
     private const UInt32 FILE_SYNCHRONOUS_IO_NONALERT = 0x00000020;
     private const UInt32 FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000;
@@ -527,6 +529,8 @@ public sealed class C12OwnedDirectory : IDisposable
     private const UInt32 FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400;
     private const UInt32 OBJ_CASE_INSENSITIVE = 0x00000040;
     private const UInt64 FILE_CREATED = 2;
+    private const Int32 FILE_ID_BOTH_DIRECTORY_INFORMATION_CLASS = 37;
+    private const UInt32 STATUS_NO_MORE_FILES = 0x80000006;
     private const Int32 FILE_DISPOSITION_INFO_CLASS = 4;
     private const Int32 FILE_DISPOSITION_INFO_EX_CLASS = 21;
     private const UInt32 FILE_DISPOSITION_FLAG_DELETE = 0x00000001;
@@ -601,6 +605,9 @@ public sealed class C12OwnedDirectory : IDisposable
     [DllImport("ntdll.dll")]
     private static extern UInt32 RtlNtStatusToDosError(Int32 status);
 
+    [DllImport("ntdll.dll")]
+    private static extern Int32 NtQueryDirectoryFile(IntPtr fileHandle, IntPtr eventHandle, IntPtr apcRoutine, IntPtr apcContext, out IO_STATUS_BLOCK ioStatusBlock, IntPtr fileInformation, UInt32 length, Int32 fileInformationClass, [MarshalAs(UnmanagedType.Bool)] bool returnSingleEntry, IntPtr fileName, [MarshalAs(UnmanagedType.Bool)] bool restartScan);
+
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateFile(string path, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
@@ -623,6 +630,14 @@ public sealed class C12OwnedDirectory : IDisposable
     public UInt32 VolumeSerial { get { return volumeSerial; } }
     public UInt64 FileIndex { get { return fileIndex; } }
     public string Identity { get { return volumeSerial.ToString("x8") + ":" + fileIndex.ToString("x16"); } }
+    public static Action<string> RelativeOpenObserver { get; set; }
+
+    private sealed class RelativeEntry
+    {
+        public string Name;
+        public UInt32 Attributes;
+        public UInt64 FileId;
+    }
 
     private C12OwnedDirectory(string rootPath, IntPtr ownedHandle, BY_HANDLE_FILE_INFORMATION information)
     {
@@ -662,7 +677,7 @@ public sealed class C12OwnedDirectory : IDisposable
             IO_STATUS_BLOCK ioStatus;
             Int32 status = NtCreateFile(
                 out createdHandle,
-                FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE,
+                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE,
                 ref attributes,
                 out ioStatus,
                 IntPtr.Zero,
@@ -705,7 +720,7 @@ public sealed class C12OwnedDirectory : IDisposable
     public static C12OwnedDirectory OpenExisting(string exactRoot, UInt32 expectedVolumeSerial, UInt64 expectedFileIndex)
     {
         string root = System.IO.Path.GetFullPath(exactRoot).TrimEnd('\\');
-        IntPtr existing = CreateFile(root, FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
+        IntPtr existing = CreateFile(root, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
         if (existing == INVALID_HANDLE_VALUE) throw new Win32Exception(Marshal.GetLastWin32Error());
         try
         {
@@ -754,9 +769,18 @@ public sealed class C12OwnedDirectory : IDisposable
     public void RequestDeleteExactTree(DateTime deadlineUtc)
     {
         VerifyExactPath();
+        RequestDeleteRetainedTree(deadlineUtc);
+    }
+
+    public void RequestDeleteRetainedTree(DateTime deadlineUtc)
+    {
+        EnsureOpen();
+        BY_HANDLE_FILE_INFORMATION retained = ReadInformation(handle);
+        UInt64 retainedIndex = ((UInt64)retained.FileIndexHigh << 32) | retained.FileIndexLow;
+        if ((retained.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (retained.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 || retained.VolumeSerialNumber != volumeSerial || retainedIndex != fileIndex)
+            throw new InvalidOperationException("retained owned-directory identity changed before handle-relative cleanup");
         int visited = 0;
-        DeleteChildren(RootPath, handle, deadlineUtc, ref visited);
-        VerifyExactPath();
+        DeleteChildren(handle, deadlineUtc, ref visited);
         MarkDelete(handle);
     }
 
@@ -764,10 +788,8 @@ public sealed class C12OwnedDirectory : IDisposable
     {
         VerifyExactPath();
         CheckDeadline(deadlineUtc);
-        using (System.Collections.Generic.IEnumerator<string> entries = System.IO.Directory.EnumerateFileSystemEntries(RootPath, "*", System.IO.SearchOption.TopDirectoryOnly).GetEnumerator())
-        {
-            if (entries.MoveNext()) throw new InvalidOperationException("identity-bound empty-directory deletion found a direct child");
-        }
+        RelativeEntry entry;
+        if (TryReadFirstEntry(handle, out entry)) throw new InvalidOperationException("identity-bound empty-directory deletion found a direct child");
         MarkDelete(handle);
     }
 
@@ -787,32 +809,94 @@ public sealed class C12OwnedDirectory : IDisposable
         if (System.IO.Directory.Exists(RootPath)) throw new InvalidOperationException("identity-bound empty-directory deletion remained pending");
     }
 
-    private static void DeleteChildren(string directory, IntPtr directoryHandle, DateTime deadlineUtc, ref int visited)
+    private static void DeleteChildren(IntPtr directoryHandle, DateTime deadlineUtc, ref int visited)
     {
-        CheckDeadline(deadlineUtc);
-        foreach (string child in System.IO.Directory.EnumerateFileSystemEntries(directory, "*", System.IO.SearchOption.TopDirectoryOnly))
+        RelativeEntry entry;
+        while (TryReadFirstEntry(directoryHandle, out entry))
         {
             CheckDeadline(deadlineUtc);
             visited++;
             if (visited > 100000) throw new InvalidOperationException("identity-bound cleanup exceeds the bounded entry count");
-            IntPtr childHandle = CreateFile(child, FILE_READ_ATTRIBUTES | DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, IntPtr.Zero);
-            if (childHandle == INVALID_HANDLE_VALUE) throw new InvalidOperationException("identity-bound cleanup could not lock one descendant", new Win32Exception(Marshal.GetLastWin32Error()));
+            Action<string> observer = RelativeOpenObserver;
+            if (observer != null) observer(entry.Name);
+            IntPtr childHandle = OpenRelative(directoryHandle, entry.Name);
             try
             {
                 BY_HANDLE_FILE_INFORMATION information = ReadInformation(childHandle);
+                UInt64 childIndex = ((UInt64)information.FileIndexHigh << 32) | information.FileIndexLow;
                 bool reparse = (information.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
                 bool directoryEntry = (information.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-                if (!reparse && directoryEntry) DeleteChildren(child, childHandle, deadlineUtc, ref visited);
-                if (!reparse && !directoryEntry && (information.FileAttributes & FILE_ATTRIBUTE_READONLY) != 0)
-                {
-                    if (!SetFileAttributes(child, information.FileAttributes & ~FILE_ATTRIBUTE_READONLY))
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                }
+                bool enumeratedReparse = (entry.Attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+                bool enumeratedDirectory = (entry.Attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+                if (childIndex != entry.FileId || reparse != enumeratedReparse || directoryEntry != enumeratedDirectory)
+                    throw new InvalidOperationException("identity-bound descendant was substituted between enumeration and relative open");
+                if (!reparse && directoryEntry) DeleteChildren(childHandle, deadlineUtc, ref visited);
                 MarkDelete(childHandle);
             }
             finally { CloseHandle(childHandle); }
         }
         CheckDeadline(deadlineUtc);
+    }
+
+    private static bool TryReadFirstEntry(IntPtr directoryHandle, out RelativeEntry entry)
+    {
+        int length = 65536;
+        IntPtr buffer = Marshal.AllocHGlobal(length);
+        try
+        {
+            bool restartScan = true;
+            while (true)
+            {
+                IO_STATUS_BLOCK ioStatus;
+                Int32 status = NtQueryDirectoryFile(directoryHandle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, out ioStatus, buffer, (UInt32)length, FILE_ID_BOTH_DIRECTORY_INFORMATION_CLASS, true, IntPtr.Zero, restartScan);
+                if ((UInt32)status == STATUS_NO_MORE_FILES) { entry = null; return false; }
+                if (status < 0) throw new Win32Exception((Int32)RtlNtStatusToDosError(status));
+                restartScan = false;
+                UInt32 nameLength = (UInt32)Marshal.ReadInt32(buffer, 60);
+                string name = Marshal.PtrToStringUni(IntPtr.Add(buffer, 104), (Int32)(nameLength / 2));
+                if (name == "." || name == "..") continue;
+                entry = new RelativeEntry();
+                entry.Name = name;
+                entry.Attributes = (UInt32)Marshal.ReadInt32(buffer, 56);
+                entry.FileId = (UInt64)Marshal.ReadInt64(buffer, 96);
+                return true;
+            }
+        }
+        finally { Marshal.FreeHGlobal(buffer); }
+    }
+
+    private static IntPtr OpenRelative(IntPtr parentHandle, string name)
+    {
+        IntPtr nameBuffer = IntPtr.Zero;
+        IntPtr namePointer = IntPtr.Zero;
+        IntPtr child = INVALID_HANDLE_VALUE;
+        try
+        {
+            nameBuffer = Marshal.StringToHGlobalUni(name);
+            UNICODE_STRING unicode = new UNICODE_STRING();
+            unicode.Length = (UInt16)System.Text.Encoding.Unicode.GetByteCount(name);
+            unicode.MaximumLength = (UInt16)(unicode.Length + 2);
+            unicode.Buffer = nameBuffer;
+            namePointer = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(UNICODE_STRING)));
+            Marshal.StructureToPtr(unicode, namePointer, false);
+            OBJECT_ATTRIBUTES attributes = new OBJECT_ATTRIBUTES();
+            attributes.Length = (UInt32)Marshal.SizeOf(typeof(OBJECT_ATTRIBUTES));
+            attributes.RootDirectory = parentHandle;
+            attributes.ObjectName = namePointer;
+            attributes.Attributes = OBJ_CASE_INSENSITIVE;
+            IO_STATUS_BLOCK ioStatus;
+            Int32 status = NtCreateFile(out child, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | DELETE | SYNCHRONIZE, ref attributes, out ioStatus, IntPtr.Zero, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, FILE_OPEN, FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT, IntPtr.Zero, 0);
+            if (status < 0) throw new Win32Exception((Int32)RtlNtStatusToDosError(status));
+            IntPtr result = child;
+            child = INVALID_HANDLE_VALUE;
+            return result;
+        }
+        finally
+        {
+            if (child != IntPtr.Zero && child != INVALID_HANDLE_VALUE) CloseHandle(child);
+            if (namePointer != IntPtr.Zero) Marshal.FreeHGlobal(namePointer);
+            if (nameBuffer != IntPtr.Zero) Marshal.FreeHGlobal(nameBuffer);
+        }
     }
 
     private static void MarkDelete(IntPtr value)

@@ -162,3 +162,27 @@ ok talenro.local/platform/internal/testinfra 79.038s
 ```
 
 The native fixture passed when rerun without concurrent harness load; no production timeout was changed.
+
+## Review correction 3 — handle-relative owned-subtree traversal
+
+The retained root handle previously protected only the initial and final root check. Recursive enumeration and descendant opens still used `RootPath` strings, leaving rename-and-replacement windows at the root and at every nested directory.
+
+The Windows implementation now grants retained directory handles `FILE_LIST_DIRECTORY` and enumerates them with `NtQueryDirectoryFile(FileIdBothDirectoryInformation)`. It opens each enumerated child with `NtCreateFile` relative to `OBJECT_ATTRIBUTES.RootDirectory=parentHandle`, always using `FILE_OPEN_REPARSE_POINT`. Before recursion or disposition, the opened handle's file ID, type, and reparse state must equal the enumeration snapshot. Recursion passes only the bound child handle; deletion remains `SetFileInformationByHandle`.
+
+Enumeration uses a 64 KiB native buffer and treats only `STATUS_NO_MORE_FILES` as completion. Each deletion restarts the scan, while `.` and `..` advance with `RestartScan=false`; this avoids repeatedly returning the first pseudo-entry. All other failing NTSTATUS values are converted with `RtlNtStatusToDosError` and rejected.
+
+The controlled regression performs both root rename+replacement and nested rename+replacement after enumeration but before relative open. Separate markers prove both windows fired. In each case the replacement remains present through the production operation and the external sentinel survives. The original owned object is cleaned only through its retained handle-relative traversal; the nested replacement is rejected on the enumeration/open identity mismatch.
+
+RED included a real non-converging enumeration caused by restarting on every `.` query, followed by the precise fix above. Final GREEN:
+
+```text
+TestC12OwnedSubtreeTraversalRejectsRelativeReplacement PASS 3.18s
+ok talenro.local/platform/internal/testinfra 4.626s
+
+TestC12PreparedArtifactDirectLeafLedgerIsClosed                         PASS 3.80s
+TestC12PreparedArtifactCleanupRetainsOwnershipAfterDeadline            PASS 2.02s
+TestC12PreparedArtifactCleanupRetainsDeletePendingHandle               PASS 6.36s
+TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement    PASS 2.30s
+TestC12OwnedSubtreeTraversalRejectsRelativeReplacement                 PASS 1.29s
+ok talenro.local/platform/internal/testinfra 17.410s
+```

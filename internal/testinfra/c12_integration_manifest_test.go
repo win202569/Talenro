@@ -828,6 +828,7 @@ if (-not $graphJSON.Contains($expectedBytes)) { throw 'graph BodyBytes is not bo
 $key = [byte[]](1..32)
 $mac = [Security.Cryptography.HMACSHA256]::new($key)
 try {
+  $stage = 'dispatch'
   $baseline = [Convert]::ToBase64String($mac.ComputeHash($first))
   $graph.BodyBytes = [byte[]](0..255)
   if ([Convert]::ToBase64String($mac.ComputeHash((Get-C12PreparedReceiptPayload $receipt))) -cne $baseline) { throw 'identical body bytes changed receipt binding' }
@@ -1933,6 +1934,13 @@ func TestC12PreparedArtifactCleanupRejectsRealHandleNamespaceReplacement(t *test
 	}
 }
 
+func TestC12OwnedSubtreeTraversalRejectsRelativeReplacement(t *testing.T) {
+	output, exitCode := runC12CleanupStateHarness(t, "owned-relative-replacement")
+	if exitCode != 0 {
+		t.Fatalf("owned subtree relative-replacement harness exit=%d output=%q", exitCode, output)
+	}
+}
+
 func TestC12PITRGroupCleanupSkipsCandidatesBeforeRunRootAcquisition(t *testing.T) {
 	output, exitCode := runC12CleanupStateHarness(t, "group-before-run-root")
 	if exitCode != 0 {
@@ -2951,6 +2959,81 @@ try {
 	  }
 	}
 
+	'owned-relative-replacement' {
+	  $external = Join-Path $fixtureRoot 'external'
+	  [void][IO.Directory]::CreateDirectory($external)
+	  $sentinel = Join-Path $external 'sentinel.keep'
+	  [IO.File]::WriteAllText($sentinel, 'keep')
+	  $externalIdentity = [string]([C12SealedExecutable]::InspectDirectory($external).Value)
+	  foreach ($scenario in @('root','nested')) {
+	    $stage = "$scenario-create"
+	    $owned = Join-Path $fixtureRoot ("owned-$scenario-$([Guid]::NewGuid().ToString('N'))")
+	    $relocated = "$owned.relocated"
+	    $ownership = [C12OwnedDirectory]::CreateNew($owned)
+	    $nestedOwnership = $null
+	    $heldJunctionIdentity = ''
+	    try {
+	      if ($scenario -ceq 'root') { [IO.File]::WriteAllText((Join-Path $owned 'trigger.bin'), 'owned') }
+	      else {
+	        $nested = Join-Path $owned 'nested'
+	        $nestedOwnership = [C12OwnedDirectory]::CreateNew($nested)
+	        [IO.File]::WriteAllText((Join-Path $nested 'trigger.bin'), 'owned')
+	      }
+	      $attackFrom = if ($scenario -ceq 'root') { $owned } else { $nested }
+	      $attackMarker = Join-Path $fixtureRoot ("attack-$scenario.fired")
+	      [Environment]::SetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_SCENARIO', $scenario)
+	      [Environment]::SetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_FROM', $attackFrom)
+	      [Environment]::SetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_TO', $relocated)
+	      [Environment]::SetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_EXTERNAL', $external)
+	      [Environment]::SetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_MARKER', $attackMarker)
+	      [C12OwnedDirectory]::RelativeOpenObserver = [Action[string]]{
+	        param($entryName)
+	        $attackScenario = [Environment]::GetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_SCENARIO')
+	        $marker = [Environment]::GetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_MARKER')
+	        if ([IO.File]::Exists($marker)) { return }
+	        if ($attackScenario -ceq 'root' -or $entryName -ceq 'nested') {
+	          $junctionPath = [Environment]::GetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_FROM')
+	          [IO.Directory]::Move($junctionPath, [Environment]::GetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_TO'))
+	          $null = New-Item -ItemType Junction -Path $junctionPath -Target ([Environment]::GetEnvironmentVariable('TALENRO_C12_TEST_ATTACK_EXTERNAL'))
+	          [IO.File]::WriteAllText($marker, 'fired')
+	        }
+	      }
+	      $rejected = $false
+	      $stage = "$scenario-request"
+	      try { $ownership.RequestDeleteExactTree([DateTime]::UtcNow.AddSeconds(15)) }
+	      catch { $rejected = $_.Exception.Message -match 'substitut|identity|path' }
+	      $attackJunction = if ($scenario -ceq 'root') { $owned } else { $nested }
+	      if (-not [IO.File]::Exists($attackMarker) -or -not [IO.Directory]::Exists($attackJunction) -or -not [IO.File]::Exists($sentinel)) { throw "$scenario relative replacement unsafe state: marker=$([IO.File]::Exists($attackMarker)) replacement=$([IO.Directory]::Exists($attackJunction)) sentinel=$([IO.File]::Exists($sentinel))" }
+	      if ($scenario -ceq 'nested' -and -not $rejected) { throw 'nested relative replacement was not rejected fail-closed' }
+	      $junction = if ($scenario -ceq 'root') { $owned } else { Join-Path $owned 'nested' }
+	      $stage = "$scenario-asserted"
+	    }
+	    finally {
+	      $stage = "$scenario-cleanup"
+	      [C12OwnedDirectory]::RelativeOpenObserver = $null
+	      $stage = "$scenario-cleanup-junction"
+	      $junction = if ($scenario -ceq 'root') { $owned } else { Join-Path $owned 'nested' }
+	      if ([IO.Directory]::Exists($junction)) {
+	        $null = & (Join-Path $env:SystemRoot 'System32\cmd.exe') /d /s /c ('rd /s /q "' + $junction + '"')
+	        if ($LASTEXITCODE -ne 0) { throw 'test-owned replacement teardown failed' }
+	        [void][IO.Directory]::CreateDirectory($external)
+	        [IO.File]::WriteAllText($sentinel, 'keep')
+	      }
+	      $stage = "$scenario-cleanup-handles"
+	      if ($scenario -ceq 'root') { $ownership.ReleaseDeletePending() }
+	      else {
+	        $nestedOwnership.RequestDeleteRetainedTree([DateTime]::UtcNow.AddSeconds(15)); $nestedOwnership.ReleaseDeletePending()
+	        $ownership.RequestDeleteExactTree([DateTime]::UtcNow.AddSeconds(15)); $ownership.ReleaseDeletePending()
+	      }
+	      $stage = "$scenario-cleanup-relocated"
+	      if ([IO.Directory]::Exists($relocated)) { throw "$scenario original owned tree did not converge through handle-relative traversal" }
+	    }
+	  }
+	  if (-not [IO.File]::Exists($sentinel)) { throw 'relative replacement deleted the external sentinel' }
+	  Write-Output 'C12_OWNED_RELATIVE_REPLACEMENT_OK'
+	  exit 0
+	}
+
 	'pitr-five-leaf' {
 	  $runRoot = $null
 	  try {
@@ -3444,7 +3527,7 @@ try {
   throw ('unknown cleanup-state harness mode ' + $mode)
 }
 catch {
-  [Console]::Error.WriteLine($_.Exception.Message)
+  [Console]::Error.WriteLine("${stage}: $($_.Exception.Message)")
   exit 1
 }
 `, mode, fixturePayload, literalWALPayload)
