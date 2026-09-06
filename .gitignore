@@ -1,4 +1,7 @@
 .worktrees/
+.cache/
+.superpowers/
+.task*-go/
 .env
 .idea/
 .vscode/
