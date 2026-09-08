@@ -145,14 +145,10 @@ func (handler *coordinatorTestHandler) ActivateAuthorityEffect(ctx context.Conte
 	memory.activations++
 	hook, activationErr := memory.activationHook, memory.activationErr
 	memory.mu.Unlock()
-	if !bytes.Equal(material.Commitment.CanonicalJCS(), input.Material.Commitment.CanonicalJCS()) {
+	domain := tx.shadow.domains[receipt.OperationID]
+	if !coordinatorDomainInputsMatch(domain, receipt) || domain.Terminal != nil ||
+		!reflect.DeepEqual(domain.Material, input.Material) || !reflect.DeepEqual(material, input.Material) {
 		return ErrConflict
-	}
-	if material.Commitment.Facts().Mode == CommitmentConditionalApply {
-		want := sha256.Sum256([]byte("task9-typed-activation-input:" + receipt.OperationID.String()))
-		if material.Commitment.Facts().ActivationInputsDigest != want {
-			return ErrConflict
-		}
 	}
 	record := tx.shadow.records[receipt.OperationID]
 	if record.TerminalReceipt == nil || !receiptEquals(*record.TerminalReceipt, receipt) {
@@ -162,6 +158,9 @@ func (handler *coordinatorTestHandler) ActivateAuthorityEffect(ctx context.Conte
 	if err != nil {
 		return err
 	}
+	domain.Terminal = &coordinatorDomainTerminal{Context: proof.Input(), EvidenceJCS: proof.Evidence().CanonicalJCS(), ResolutionJCS: resolution.CanonicalJCS()}
+	tx.shadow.audits[receipt.OperationID] = coordinatorDomainEvent(receipt, resolution)
+	tx.shadow.outbox[receipt.OperationID] = coordinatorDomainEvent(receipt, resolution)
 	tx.shadow.outcomes[receipt.OperationID] = coordinatorTestOutcome(proof, resolution)
 	tx.writes = append(tx.writes, "domain", "preimages", "audit", "outbox")
 	if hook != nil {
@@ -181,22 +180,80 @@ func (handler *coordinatorTestHandler) ValidatePersistedAuthorityEffect(ctx cont
 	}
 	memory.mu.Lock()
 	memory.validations++
-	material := memory.materials[receipt.OperationID]
 	err := memory.validationErr
 	memory.mu.Unlock()
 	if err != nil {
 		return err
 	}
-	persisted := tx.shadow.outcomes[receipt.OperationID]
-	if persisted == nil || !bytes.Equal(persisted.CommitmentJCS, material.Commitment.CanonicalJCS()) ||
-		persisted.ResolutionDigest != resolution.Digest() || persisted.EvidenceDigest != proof.Evidence().Digest() {
+	domain := tx.shadow.domains[receipt.OperationID]
+	if !coordinatorDomainInputsMatch(domain, receipt) || domain.Terminal == nil {
 		return ErrConflict
 	}
-	if material.Commitment.Facts().Mode == CommitmentConditionalApply &&
-		material.Commitment.Facts().ActivationInputsDigest != sha256.Sum256([]byte("task9-typed-activation-input:"+receipt.OperationID.String())) {
+	original := domain.Terminal
+	if !reflect.DeepEqual(domain.Material, proof.Input().Material) ||
+		!reflect.DeepEqual(original.Context, proof.Input()) ||
+		!bytes.Equal(original.EvidenceJCS, proof.Evidence().CanonicalJCS()) ||
+		!bytes.Equal(original.ResolutionJCS, resolution.CanonicalJCS()) ||
+		!bytes.Equal(tx.shadow.audits[receipt.OperationID], coordinatorDomainEvent(receipt, resolution)) ||
+		!bytes.Equal(tx.shadow.outbox[receipt.OperationID], coordinatorDomainEvent(receipt, resolution)) {
 		return ErrConflict
 	}
 	return nil
+}
+
+// Independent physical domain rows. These are committed/rolled back alongside
+// fence state, but are not aliases of StoredFence.PersistedOutcome. Recovery
+// must recompute typed inputs and compare the original terminal context to the
+// separately loaded projection, including still-valid changed time bounds.
+type coordinatorDomainInputs struct {
+	Reservation      Reservation
+	BaseEffectDigest contracts.Digest
+	Payload          []byte
+}
+
+func (inputs coordinatorDomainInputs) digest() contracts.Digest {
+	r := inputs.Reservation
+	return sha256.Sum256([]byte(fmt.Sprintf("TASK9-TYPED-DOMAIN-V1:%s:%s:%s:%x:%d:%d:%x:%x", r.OperationID, r.Kind, r.ScopeKind, r.ScopeDigest, r.Epoch, r.Sequence, inputs.BaseEffectDigest, inputs.Payload)))
+}
+
+type coordinatorDomainTerminal struct {
+	Context                    ActivationDecisionEvidenceInput
+	EvidenceJCS, ResolutionJCS []byte
+}
+type coordinatorDomainRow struct {
+	Inputs   coordinatorDomainInputs
+	Material ActivationDecisionMaterial
+	Terminal *coordinatorDomainTerminal
+}
+
+func cloneCoordinatorDomainRow(row *coordinatorDomainRow) *coordinatorDomainRow {
+	if row == nil {
+		return nil
+	}
+	clone := *row
+	clone.Inputs.Payload = append([]byte(nil), row.Inputs.Payload...)
+	clone.Material = cloneActivationDecisionMaterial(row.Material)
+	if row.Terminal != nil {
+		terminal := *row.Terminal
+		terminal.Context = cloneActivationEvidenceInput(terminal.Context)
+		terminal.EvidenceJCS = append([]byte(nil), terminal.EvidenceJCS...)
+		terminal.ResolutionJCS = append([]byte(nil), terminal.ResolutionJCS...)
+		clone.Terminal = &terminal
+	}
+	return &clone
+}
+func coordinatorDomainInputsMatch(row *coordinatorDomainRow, receipt Receipt) bool {
+	if row == nil || row.Inputs.Reservation != receipt.Reservation {
+		return false
+	}
+	facts := row.Material.Commitment.Facts()
+	if facts.BaseEffectDigest != row.Inputs.BaseEffectDigest {
+		return false
+	}
+	return facts.Mode != CommitmentConditionalApply || facts.ActivationInputsDigest == row.Inputs.digest()
+}
+func coordinatorDomainEvent(receipt Receipt, resolution AuthorityEffectResolution) []byte {
+	return []byte(fmt.Sprintf("%s:%x:%s", receipt.OperationID, receipt.ReceiptDigest, resolution.CanonicalJCS()))
 }
 
 type coordinatorMemoryTransaction struct {
@@ -246,6 +303,15 @@ func (repository *coordinatorMemoryRepository) beginAuthorityTransaction(ctx con
 	for id, value := range repository.outcomes {
 		shadow.outcomes[id] = cloneStoredFence(StoredFence{PersistedOutcome: value}).PersistedOutcome
 	}
+	for id, row := range repository.domains {
+		shadow.domains[id] = cloneCoordinatorDomainRow(row)
+	}
+	for id, body := range repository.audits {
+		shadow.audits[id] = append([]byte(nil), body...)
+	}
+	for id, body := range repository.outbox {
+		shadow.outbox[id] = append([]byte(nil), body...)
+	}
 	shadow.headErr, shadow.headOverride = repository.headErr, repository.headOverride
 	shadow.captures = repository.captures
 	tx := &coordinatorMemoryTransaction{owner: repository, shadow: shadow, failure: failure}
@@ -259,6 +325,10 @@ func (tx *coordinatorMemoryTransaction) Commit(ctx context.Context) error {
 		return ErrConflict
 	}
 	tx.commits++
+	if tx.failure != nil && tx.failure.beforeApply {
+		_ = tx.Rollback(context.WithoutCancel(ctx))
+		return tx.failure.err
+	}
 	if ctx.Err() != nil {
 		_ = tx.Rollback(context.WithoutCancel(ctx))
 		return ErrCanceled
@@ -267,6 +337,7 @@ func (tx *coordinatorMemoryTransaction) Commit(ctx context.Context) error {
 	repository.mu.Lock()
 	repository.records, repository.reservedAt, repository.boundAt, repository.terminalAt = tx.shadow.records, tx.shadow.reservedAt, tx.shadow.boundAt, tx.shadow.terminalAt
 	repository.claims, repository.outcomes = tx.shadow.claims, tx.shadow.outcomes
+	repository.domains, repository.audits, repository.outbox = tx.shadow.domains, tx.shadow.audits, tx.shadow.outbox
 	repository.events = append(repository.events, tx.writes...)
 	repository.events = append(repository.events, "commit")
 	repository.active = nil
@@ -673,6 +744,68 @@ func TestCoordinatorPersistedOutcomeRecovery(t *testing.T) {
 	}
 }
 
+func TestCoordinatorPersistedOutcomeRecoveryPreservesDomainContext(t *testing.T) {
+	for _, field := range []string{"valid different deadline", "valid different expiry"} {
+		t.Run(field, func(t *testing.T) {
+			f := newTask9Fixture(t, "conditional")
+			if _, err := f.coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{f.request.OperationID, f.digest}); err != nil {
+				t.Fatal(err)
+			}
+			outcome := f.repository.outcomes[f.request.OperationID]
+			if field == "valid different deadline" {
+				outcome.ActivationDeadline = outcome.ActivationDeadline.Add(time.Second)
+			} else {
+				outcome.AttestationExpiresAt = outcome.AttestationExpiresAt.Add(time.Second)
+			}
+			if _, err := f.coordinator.Recover(t.Context(), f.request.OperationID); err != ErrConflict {
+				t.Fatalf("legal but altered original domain context accepted: %v", err)
+			}
+		})
+	}
+}
+
+func TestCoordinatorAtomicActivationCommitBeforeApplyFailure(t *testing.T) {
+	f := newTask9Fixture(t, "conditional")
+	f.repository.transactionFail = &coordinatorTransactionFailure{call: 4, after: true, beforeApply: true, err: ErrInjectedFailure}
+	var failedTx *coordinatorMemoryTransaction
+	var spent *activationAdmission
+	f.effects.activationHook = func(proof ValidatedActivationDecisionEvidence) {
+		failedTx, spent = f.repository.active, proof.admission
+	}
+	if _, err := f.coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{f.request.OperationID, f.digest}); err != ErrInjectedFailure {
+		t.Fatalf("commit failure=%v", err)
+	}
+	if failedTx == nil || failedTx.commits != 1 || spent == nil || spent.state.Load() != 1 {
+		t.Fatal("failure was not one actual Commit invocation after admission consumption")
+	}
+	stored, err := f.repository.GetStoredFence(t.Context(), f.request.OperationID)
+	if err != nil || stored.Record.TerminalReceipt != nil || stored.PersistedOutcome != nil {
+		t.Fatalf("pre-apply Commit failure published state: %#v error=%v", stored, err)
+	}
+	if f.repository.domains[f.request.OperationID].Terminal != nil || len(f.repository.audits) != 0 || len(f.repository.outbox) != 0 || failedTx.shadow.domains[f.request.OperationID].Terminal == nil || len(failedTx.writes) != 4 {
+		t.Fatal("discarded writes did not cover domain/preimages/audit/outbox independently")
+	}
+	captures, start := f.effects.captures, len(f.repository.events)
+	f.effects.activationHook = func(proof ValidatedActivationDecisionEvidence) {
+		if proof.admission == spent || proof.admission == nil || proof.admission.state.Load() != 0 {
+			t.Error("retry reused spent admission")
+		}
+	}
+	if _, err := f.coordinator.Recover(t.Context(), f.request.OperationID); err != nil {
+		t.Fatal(err)
+	}
+	if f.effects.captures != captures+1 || f.effects.validations != 0 || failedTx.commits != 1 || spent.state.Load() != 1 {
+		t.Fatal("retry omitted recapture after proved-absent outcome or reused Commit/token")
+	}
+	events := f.repository.events[start:]
+	if len(events) < 4 || !reflect.DeepEqual(events[:4], []string{"inspect", "begin", "commit", "material"}) {
+		t.Fatalf("retry capture preceded locked absent proof: %v", events)
+	}
+	if f.repository.domains[f.request.OperationID].Terminal == nil || len(f.repository.audits) != 1 || len(f.repository.outbox) != 1 {
+		t.Fatal("retry did not atomically publish independent domain/audit/outbox state")
+	}
+}
+
 func TestCoordinatorDispatcherConstruction(t *testing.T) {
 	factory := reflect.TypeOf(NewCoordinator)
 	if factory.NumIn() != 3 || factory.In(2) != reflect.TypeFor[EffectDispatcher]() {
@@ -689,6 +822,138 @@ func TestCoordinatorDispatcherConstruction(t *testing.T) {
 			t.Fatal("constructor invoked dependency before type rejection")
 		}
 	}
+}
+
+func task9RewriteCoherentOutcome(t *testing.T, outcome *PersistedAuthorityEffectOutcome, change func(*ActivationDecisionEvidenceInput)) *PersistedAuthorityEffectOutcome {
+	t.Helper()
+	parsed, _, err := parsePersistedOutcome(outcome, outcome.Receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := parsed.Input()
+	change(&input)
+	var evidence ActivationDecisionEvidence
+	if input.Material.TrustedTimeKind == TrustedTimeRollbackResistant {
+		evidence, err = BeginActivationEvidenceCapture().Complete(input)
+	} else {
+		evidence, err = NewActivationDecisionEvidence(input)
+	}
+	if err != nil {
+		t.Fatal("coherent mutation evidence preflight:", err)
+	}
+	proof, err := ValidateActivationDecisionEvidence(evidence, input)
+	if err != nil {
+		t.Fatal("coherent mutation context preflight:", err)
+	}
+	resolution, err := coordinatorTestResolution(proof)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mutated := coordinatorTestOutcome(proof, resolution)
+	if _, _, err := parsePersistedOutcome(mutated, outcome.Receipt); err != nil {
+		t.Fatal("mutation is not canonical/context-valid before independent domain validation:", err)
+	}
+	return mutated
+}
+
+func TestCoordinatorPersistedOutcomeRecoveryRejectsCoherentDomainMutations(t *testing.T) {
+	for _, scenario := range []string{"Head plus digests", "checkpoint plus Head and digests", "identity plus evidence", "reason plus resolution", "typed domain input", "domain terminal context", "domain terminal missing", "audit missing", "outbox changed"} {
+		t.Run(scenario, func(t *testing.T) {
+			f := newTask9Fixture(t, "conditional")
+			if _, err := f.coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{f.request.OperationID, f.digest}); err != nil {
+				t.Fatal(err)
+			}
+			if ready, err := f.coordinator.CheckReady(t.Context()); err != nil || !ready.Ready {
+				t.Fatalf("baseline not ready: %#v %v", ready, err)
+			}
+			outcome := f.repository.outcomes[f.request.OperationID]
+			switch scenario {
+			case "Head plus digests":
+				outcome = task9RewriteCoherentOutcome(t, outcome, func(input *ActivationDecisionEvidenceInput) {
+					head := input.ProviderHead.Facts()
+					head.LatestReservedSequence++
+					head.LatestReservationDigest = sha256.Sum256([]byte("coherent different reservation"))
+					var err error
+					input.ProviderHead, err = NewAuthorityProviderHeadSnapshot(head)
+					if err != nil {
+						t.Fatal(err)
+					}
+				})
+			case "checkpoint plus Head and digests":
+				outcome = task9RewriteCoherentOutcome(t, outcome, func(input *ActivationDecisionEvidenceInput) {
+					head := input.ProviderHead.Facts()
+					head.LatestReservedSequence++
+					head.LatestCommittedSequence++
+					head.LatestCommittedOperationID = uuid.New()
+					head.LatestReservationDigest = sha256.Sum256([]byte("coherent higher reservation"))
+					head.LatestCommittedReceiptDigest = sha256.Sum256([]byte("coherent higher receipt"))
+					var err error
+					input.ProviderHead, err = NewAuthorityProviderHeadSnapshot(head)
+					if err != nil {
+						t.Fatal(err)
+					}
+					input.Material = ActivationDecisionMaterial{Commitment: input.Material.Commitment, Reason: EffectReasonSuperseded, CheckpointKind: CheckpointNode, CheckpointScopeDigest: input.Receipt.ScopeDigest, TrustedTimeKind: TrustedTimeNone, Capability: DecisionCapabilityNotAppliedOnly}
+					anchor, err := NewAuthorityCheckpointAnchor(AuthorityCheckpointAnchorInput{Kind: CheckpointNode, ScopeDigest: input.Receipt.ScopeDigest, Checkpoint: NodeCheckpoint{AuthorityEpoch: head.Epoch, Sequence: head.LatestCommittedSequence, ReceiptDigest: head.LatestCommittedReceiptDigest}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					input.Checkpoint = &anchor
+				})
+			case "identity plus evidence":
+				outcome = task9RewriteCoherentOutcome(t, outcome, func(input *ActivationDecisionEvidenceInput) {
+					identity := sha256.Sum256([]byte("coherent alternate time identity"))
+					input.Material.ProviderIdentityDigest = identity
+					input.Material.ExpectedProviderIdentityDigest = identity
+				})
+			case "reason plus resolution":
+				outcome = task9RewriteCoherentOutcome(t, outcome, func(input *ActivationDecisionEvidenceInput) {
+					input.Material.Reason = EffectReasonFailed
+					input.Material.Capability = DecisionCapabilityNotAppliedOnly
+				})
+			case "typed domain input":
+				f.repository.domains[f.request.OperationID].Inputs.Payload[0] ^= 1
+			case "domain terminal context":
+				f.repository.domains[f.request.OperationID].Terminal.Context.Material.ActivationDeadline = f.repository.domains[f.request.OperationID].Terminal.Context.Material.ActivationDeadline.Add(time.Second)
+			case "domain terminal missing":
+				f.repository.domains[f.request.OperationID].Terminal = nil
+			case "audit missing":
+				delete(f.repository.audits, f.request.OperationID)
+			case "outbox changed":
+				f.repository.outbox[f.request.OperationID][0] ^= 1
+			}
+			f.repository.outcomes[f.request.OperationID] = outcome
+			if _, _, err := parsePersistedOutcome(outcome, outcome.Receipt); err != nil {
+				t.Fatal("mutation failed generic validation, not independent domain validator:", err)
+			}
+			beforeDomain := cloneCoordinatorDomainRow(f.repository.domains[f.request.OperationID])
+			captures, activations, validations, start := f.effects.captures, f.effects.activations, f.effects.validations, len(f.repository.events)
+			if _, err := f.coordinator.Recover(t.Context(), f.request.OperationID); err != ErrConflict {
+				t.Fatalf("coherent corruption accepted: %v", err)
+			}
+			if f.effects.captures != captures || f.effects.activations != activations || f.effects.validations != validations+1 {
+				t.Fatal("recovery omitted parsed-only domain validation or recaptured")
+			}
+			if !reflect.DeepEqual(beforeDomain, f.repository.domains[f.request.OperationID]) {
+				t.Fatal("rejected parsed recovery mutated domain")
+			}
+			if events := f.repository.events[start:]; !reflect.DeepEqual(events, []string{"inspect", "begin", "rollback"}) {
+				t.Fatalf("parsed recovery wrote or made extra Provider/time capture calls: %v", events)
+			}
+			if ready, err := f.coordinator.CheckReady(t.Context()); err != nil || ready.Ready {
+				t.Fatalf("coherent domain corruption ready=%#v error=%v", ready, err)
+			}
+		})
+	}
+	t.Run("activation recomputes independent typed input", func(t *testing.T) {
+		f := newTask9Fixture(t, "conditional")
+		f.repository.domains[f.request.OperationID].Inputs.Payload[0] ^= 1
+		if _, err := f.coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{f.request.OperationID, f.digest}); err != ErrConflict {
+			t.Fatalf("altered input activated: %v", err)
+		}
+		if f.repository.outcomes[f.request.OperationID] != nil || f.repository.domains[f.request.OperationID].Terminal != nil || len(f.repository.audits) != 0 || len(f.repository.outbox) != 0 {
+			t.Fatal("input mismatch exposed split domain/outcome/audit/outbox")
+		}
+	})
 }
 
 func TestCoordinatorCrashRecoveryMatrix(t *testing.T) {
@@ -1717,9 +1982,10 @@ func (resolver *coordinatorEffectResolver) commit(t *testing.T, request ReserveR
 	input := AuthorityEffectCommitmentInput{OperationID: request.OperationID, Kind: request.Kind, ScopeKind: request.ScopeKind,
 		ScopeDigest: request.ScopeDigest, Epoch: record.Epoch, Sequence: record.Sequence, BaseEffectDigest: digest,
 		Mode: CommitmentFinalNotApplied, Reason: EffectReasonFailed}
+	domainInputs := coordinatorDomainInputs{Reservation: record.Reservation, BaseEffectDigest: digest, Payload: []byte("independent domain payload")}
 	if resolver.conditional {
 		input.Mode, input.Reason, input.ActivationPolicyVersion = CommitmentConditionalApply, EffectReasonNone, 1
-		input.ActivationInputsDigest = sha256.Sum256([]byte("task9-typed-activation-input:" + request.OperationID.String()))
+		input.ActivationInputsDigest = domainInputs.digest()
 	}
 	commitment, err := NewAuthorityEffectCommitment(input)
 	if err != nil {
@@ -1749,6 +2015,11 @@ func (resolver *coordinatorEffectResolver) commit(t *testing.T, request ReserveR
 		material.FloorAttestationDigest = sha256.Sum256([]byte("task9-authenticated-time-floor"))
 	}
 	resolver.materials[request.OperationID] = material
+	if repository, ok := resolver.repository.(*coordinatorMemoryRepository); ok {
+		repository.mu.Lock()
+		repository.domains[request.OperationID] = &coordinatorDomainRow{Inputs: domainInputs, Material: cloneActivationDecisionMaterial(material)}
+		repository.mu.Unlock()
+	}
 	return digest
 }
 
@@ -1859,9 +2130,10 @@ func (resolver *coordinatorFirstResolveBlockingResolver) ResolveAuthorityEffect(
 }
 
 type coordinatorTransactionFailure struct {
-	call  int
-	after bool
-	err   error
+	call        int
+	after       bool
+	err         error
+	beforeApply bool
 }
 
 type coordinatorMemoryRepository struct {
@@ -1879,6 +2151,9 @@ type coordinatorMemoryRepository struct {
 	headErr         error
 	claims          map[uuid.UUID]*AbortClaim
 	outcomes        map[uuid.UUID]*PersistedAuthorityEffectOutcome
+	domains         map[uuid.UUID]*coordinatorDomainRow
+	audits          map[uuid.UUID][]byte
+	outbox          map[uuid.UUID][]byte
 	active          *coordinatorMemoryTransaction
 	events          []string
 }
@@ -1893,6 +2168,7 @@ func newCoordinatorMemoryRepository(points []DatabasePoint) *coordinatorMemoryRe
 		points:     cloned,
 		claims:     make(map[uuid.UUID]*AbortClaim),
 		outcomes:   make(map[uuid.UUID]*PersistedAuthorityEffectOutcome),
+		domains:    make(map[uuid.UUID]*coordinatorDomainRow), audits: make(map[uuid.UUID][]byte), outbox: make(map[uuid.UUID][]byte),
 	}
 }
 
