@@ -158,7 +158,7 @@ func commitPITRAuthorityEffect(
 	}); err != nil {
 		t.Fatalf("sequence %d domain transaction: %v", sequence, err)
 	}
-	effects.commit(t, request, effectDigest, WALPosition(fmt.Sprintf("0/%X", 0x100+sequence)))
+	effectDigest = effects.commit(t, request, effectDigest, WALPosition(fmt.Sprintf("0/%X", 0x100+sequence)))
 	trace.resetTrace()
 	receipt, err := coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{OperationID: operationID, EffectDigest: effectDigest})
 	if err != nil {
