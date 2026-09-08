@@ -53,6 +53,13 @@ context, but a new checkout does not reproduce old machine-bound evidence.
 
 The earlier full-test result used a local overlay and must not be treated as
 proof that the old commit was independently reproducible. After the portability
-repair, validate a clean checkout using the command above. Follow each stage's
-own implementation plan for live acceptance; C1.2 Batch 01 and the full product
-remain incomplete, as recorded in [current status](../roadmap/current-status.md).
+repair, the command above passed on 2026-09-08 at code commit
+`16c4e8c4e43ae893aad8779639bec0f80ca096cb` in a new independent clone with a
+space-containing path and no pre-existing `.superpowers` directory. The
+PowerShell runner canonicalizes its pinned embedded Go source to LF before
+verifying the digest, so normal CRLF checkout does not require a local patch.
+
+Repeat that verification after installing tools and dependencies on the new
+computer. Follow each stage's own implementation plan for live acceptance;
+C1.2 Batch 01 and the full product remain incomplete, as recorded in
+[current status](../roadmap/current-status.md).
