@@ -1471,22 +1471,26 @@ function Invoke-C12Native {
     $nativeJobHandle = [C12NativeJob]::CreateKillOnClose($nativeJobName)
     $job = Start-Job -ArgumentList $invocation -ScriptBlock $script:c12ContainedNativeScript
     $nativeRemaining = $Timeout - $watch.Elapsed
+    $absoluteRemaining = $Deadline - [DateTime]::UtcNow
+    if ($absoluteRemaining -lt $nativeRemaining) {
+      $nativeRemaining = $absoluteRemaining
+    }
     if ($nativeRemaining -le [TimeSpan]::Zero) {
       [C12NativeJob]::Close($nativeJobHandle)
       $nativeJobHandle = [IntPtr]::Zero
       throw "$Stage timed out before native execution"
     }
-    $waitSeconds = [int][Math]::Floor($nativeRemaining.TotalSeconds)
-    if ($waitSeconds -lt 1) {
+    $waitMilliseconds = [int][Math]::Min([int]::MaxValue, [Math]::Floor($nativeRemaining.TotalMilliseconds))
+    if ($waitMilliseconds -lt 1) {
       [C12NativeJob]::Close($nativeJobHandle)
       $nativeJobHandle = [IntPtr]::Zero
-      throw "$Stage has less than one bounded second remaining"
+      throw "$Stage timed out with less than one bounded millisecond remaining"
     }
-    $completed = $null -ne (Wait-Job -Job $job -Timeout $waitSeconds)
-    if (-not $completed) {
+    $completed = $job.Finished.WaitOne($waitMilliseconds)
+    if (-not $completed -or $watch.Elapsed -ge $Timeout -or [DateTime]::UtcNow -ge $Deadline) {
       [C12NativeJob]::Close($nativeJobHandle)
       $nativeJobHandle = [IntPtr]::Zero
-      throw "$Stage timed out after $waitSeconds seconds"
+      throw "$Stage timed out after its bounded native wait"
     }
     $received = @(Receive-Job -Job $job -ErrorAction SilentlyContinue)
     $result = @($received | Where-Object { $_.PSObject.Properties.Name -contains 'ExitCode' } | Select-Object -Last 1)
@@ -4211,7 +4215,9 @@ function New-C12PreparedTrustedValidator {
     $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($temporaryExecutable)) -Kind 'exact_file' -Expected $true
     $null = Register-C12DirectLeafIntent -Ledger $artifactRoot.Ledger -Name ([IO.Path]::GetFileName($finalExecutable)) -Kind 'exact_file' -Expected $true
     $encoding = New-Object System.Text.UTF8Encoding($false)
-    $sourceBytes = $encoding.GetBytes([string]$script:c12TrustedValidatorSource)
+    # Git checks PowerShell out as CRLF; the pinned Go source and materialized bytes use LF.
+    $canonicalSource = ([string]$script:c12TrustedValidatorSource).Replace("`r`n", "`n")
+    $sourceBytes = $encoding.GetBytes($canonicalSource)
     $sourceDigest = Get-C12SHA256Hex -Bytes $sourceBytes
     if ($sourceDigest -cne $script:c12TrustedValidatorSourceSHA256) {
       throw 'trusted candidate validation embedded-source digest differs from the controller constant'
@@ -4708,7 +4714,7 @@ function Wait-C12Dependencies {
     catch {
       $remaining = $deadline - [DateTime]::UtcNow
       if ($remaining -le [TimeSpan]::FromSeconds(1) -and
-          $_.Exception.Message -match '^inspect PostgreSQL health (?:exceeded its absolute deadline|timed out (?:before native execution|after [0-9]+ seconds)|has less than one bounded second remaining)$') {
+          $_.Exception.Message -match '^inspect PostgreSQL health (?:exceeded its absolute deadline|timed out (?:before native execution|after (?:[0-9]+ seconds|its bounded native wait)|with less than one bounded millisecond remaining)|has less than one bounded second remaining)$') {
         break
       }
       throw

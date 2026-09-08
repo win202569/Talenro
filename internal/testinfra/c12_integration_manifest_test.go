@@ -771,6 +771,9 @@ func TestC12PreparedGoGraphsBindEverySelectedInput(t *testing.T) {
 		if exitCode != 0 {
 			t.Fatalf("production prepared graph/receipt harness exit=%d output=%q", exitCode, output)
 		}
+		if !strings.Contains(output, "C12_VALIDATOR_LINE_ENDINGS_AND_TAMPER_OK") {
+			t.Fatalf("validator line-ending and tamper cases did not complete: %q", output)
+		}
 	})
 }
 
@@ -1054,6 +1057,9 @@ func TestC12PITRDockerReceiptAndAbsenceAreExact(t *testing.T) {
 	output, exitCode := runC12CleanupStateHarness(t, "docker-exact-production")
 	if exitCode != 0 {
 		t.Fatalf("production Docker receipt/absence harness exit=%d output=%q", exitCode, output)
+	}
+	if !strings.Contains(output, "C12_PRODUCTION_DOCKER_CLEANUP_OK") {
+		t.Fatalf("production Docker receipt fixture did not finish exact cleanup: %q", output)
 	}
 }
 
@@ -2123,6 +2129,17 @@ func main() {
 	}
 	const cleanupAppendix = `
 $script:c12RepositoryRoot = (Get-Location).Path
+# This fixture exercises native descendant termination and exact cleanup
+# continuation. Freeze one real fake-Docker receipt here; repeated endpoint
+# revalidation is covered by TestC12PITRDockerReceiptAndAbsenceAreExact. Only
+# this copied runner uses the frozen receipt: every inspect/stop/rm still runs
+# through production Invoke-C12Docker and Invoke-C12Native with their original
+# watchdog deadlines and named-Job containment.
+$script:c12WatchdogEndpointReceipt = Get-C12DockerEndpointReceipt -Deadline ([DateTime]::UtcNow.AddSeconds(15)) -Revalidate
+function Get-C12DockerEndpointReceipt {
+  param([Parameter(Mandatory = $true)][DateTime]$Deadline, [switch]$Revalidate)
+  return $script:c12WatchdogEndpointReceipt
+}
 $runSuffix = '11111111111111111111111111111111'
 $failures = @()
 foreach ($kind in @('nats', 'redis', 'postgres')) {
@@ -2393,7 +2410,7 @@ func TestC12BaseRunnerDeclaresExactGroupAndSuiteDeadlines(t *testing.T) {
 		"$script:c12SuiteDeadline = [DateTime]::UtcNow.AddMinutes(120)",
 		"[DateTime]::UtcNow.Add($groupDuration).AddMinutes(3)",
 		"Invoke-C12Native",
-		"Wait-Job -Job $job -Timeout",
+		"$job.Finished.WaitOne($waitMilliseconds)",
 		"JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE",
 		"CreateJobObject(IntPtr.Zero, name)",
 		"$typeBuilder.DefinePInvokeMethod(",
@@ -3865,6 +3882,8 @@ try {
         [Environment]::SetEnvironmentVariable('C12_DOCKER_MODE', $null, 'Process')
         foreach ($name in @('DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION')) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
         if ($null -ne $dockerRunRoot -and [IO.Directory]::Exists([string]$dockerRunRoot.Root)) { Remove-C12PITRRunRoot -RunRoot $dockerRunRoot -Deadline ([DateTime]::UtcNow.AddSeconds(20)) }
+        if ($null -ne $dockerRunRoot -and [IO.Directory]::Exists([string]$dockerRunRoot.Root)) { throw 'production Docker fixture run-root remains after cleanup' }
+        Write-Output 'C12_PRODUCTION_DOCKER_CLEANUP_OK'
       }
     }
 
@@ -4006,6 +4025,13 @@ catch {
 		t.Fatal(err)
 	}
 	harnessTimeout := 45 * time.Second
+	if mode == "docker-exact-production" {
+		// This transcript has six positive operations with 30s deadlines, six
+		// rejection cases with 20s deadlines, and finally a 20s root cleanup.
+		// The outer process watchdog must cover those sequential finite budgets
+		// plus PowerShell startup; it must not kill a successful finally block.
+		harnessTimeout = 6*30*time.Second + 6*20*time.Second + 20*time.Second + 10*time.Second
+	}
 	if mode == "prepared-direct-ledger" || mode == "prepared-deadline" || mode == "prepared-delete-pending" || mode == "prepared-real-replacement" {
 		harnessTimeout = 2 * time.Minute
 	}
@@ -4889,8 +4915,31 @@ $success = $false
 try {
   $allowance = [TimeSpan]$script:c12ProfileAllowances['authority-v7-pitr']
   $deadline = [DateTime]::UtcNow.AddMinutes(20)
+  $originalValidatorSource = $script:c12TrustedValidatorSource
+  $lfValidatorSource = $originalValidatorSource.Replace(([string][char]13 + [char]10), [string][char]10)
+  $script:c12TrustedValidatorSource = $lfValidatorSource
   $validator = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
   $artifact = $validator.ArtifactRoot
+  try {
+    $script:c12TrustedValidatorSource = $lfValidatorSource.Replace([string][char]10, ([string][char]13 + [char]10))
+    $crlfValidator = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
+    $mutants += $crlfValidator
+    foreach ($prepared in @($validator, $crlfValidator)) {
+      if ($prepared.Receipt.SourceDigest -cne '76ca48488df32a81ab815a9d3cfddbef3bf3cd01bea3d62591c19d8bdbabd4f7') {
+        throw 'validator source line endings changed the compiled source digest'
+      }
+    }
+    $script:c12TrustedValidatorSource = $lfValidatorSource + ' '
+    $rejected = $false
+    try {
+      $candidate = New-C12PreparedTrustedValidator -Mode 'focused' -DataRoot $fixtureRoot -Packages @('./internal/testinfra') -Tests @('TestC12PreparedGoGraphsBindEverySelectedInput') -Profile 'authority-v7-pitr' -SetupAllowance $allowance -Deadline $deadline
+      $mutants += $candidate
+    }
+    catch { $rejected = $_.Exception.Message -match 'embedded-source digest differs' }
+    if (-not $rejected) { throw 'validator accepted a non-line-ending source mutation' }
+    Write-Output 'C12_VALIDATOR_LINE_ENDINGS_AND_TAMPER_OK'
+  }
+  finally { $script:c12TrustedValidatorSource = $originalValidatorSource }
   $initializer = New-C12PreparedAuthorityInitializer -Profile 'authority-v7-pitr' -RunSuffix ([string]$artifact.RunSuffix) -SetupAllowance $allowance -Deadline $deadline
   foreach ($prepared in @($validator,$initializer)) {
     if ($prepared.Receipt.PSObject.Properties.Name -cnotcontains 'GoGraphReceipts') {
