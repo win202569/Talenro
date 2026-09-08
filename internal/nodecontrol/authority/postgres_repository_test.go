@@ -18,6 +18,74 @@ import (
 	"talenro.local/platform/internal/nodecontrol/contracts"
 )
 
+func TestPostgresRepositoryAbortedOutcomeAbsence(t *testing.T) {
+	committed, completeRow := persistedOutcomeRowFixture(t, "may_apply")
+	reason := AbortValidationFailed
+	aborted := Receipt{Reservation: committed.Reservation, Status: StatusAborted, AbortReason: &reason}
+	aborted.ReceiptDigest, _ = receiptDigest(aborted)
+	baseTime := time.Date(2026, 8, 28, 12, 0, 0, 0, time.UTC)
+	for _, route := range []string{"get", "lock"} {
+		for _, scenario := range []struct {
+			name    string
+			receipt Receipt
+			row     pgx.Row
+			want    error
+		}{
+			{"aborted absent", aborted, repositoryErrorRow{err: pgx.ErrNoRows}, nil},
+			{"aborted all-null row", aborted, repositoryValuesRow{values: persistedOutcomeRowValues(persistedOutcomeDatabaseRow{})}, ErrInjectedFailure},
+			{"aborted full row", aborted, repositoryValuesRow{values: persistedOutcomeRowValues(completeRow)}, ErrInjectedFailure},
+			{"committed absent", *committed.TerminalReceipt, repositoryErrorRow{err: pgx.ErrNoRows}, ErrInjectedFailure},
+			{"aborted SQL error", aborted, repositoryErrorRow{err: errors.New("private SQL failure")}, ErrInjectedFailure},
+			{"aborted canceled", aborted, repositoryErrorRow{err: context.Canceled}, ErrCanceled},
+		} {
+			t.Run(route+"/"+scenario.name, func(t *testing.T) {
+				receipt := scenario.receipt
+				values := repositoryFenceRowValues(receipt.Reservation, receipt.EffectDigest, receipt.DatabasePoint,
+					baseTime, &receipt, baseTime.Add(2*time.Second))
+				claimTime := pgtype.Timestamptz{}
+				if receipt.Status == StatusAborted {
+					claimTime = requiredTimestamp(baseTime.Add(time.Second))
+				}
+				values = append(values, "claim_v1", claimTime, uuid.NullUUID{UUID: uuid.MustParse("71000000-0000-4000-8000-000000000001"), Valid: true})
+				db := &repositoryRecordingDBTX{rowSequence: []pgx.Row{repositoryValuesRow{values: values}, scenario.row}}
+				base := &repositoryRecordingDBTX{forbidUse: true}
+				if route == "get" {
+					base = db
+				}
+				repository, err := NewPostgresRepository(base)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var stored StoredFence
+				if route == "get" {
+					stored, err = repository.GetStoredFence(t.Context(), receipt.OperationID)
+				} else {
+					stored, err = repository.Lock(t.Context(), db, receipt.OperationID)
+				}
+				if !errors.Is(err, scenario.want) {
+					t.Fatalf("outcome error=%v, want %v", err, scenario.want)
+				}
+				if err == nil && (stored.AbortClaim == nil || stored.Record.TerminalReceipt == nil ||
+					!receiptEquals(*stored.Record.TerminalReceipt, aborted) || stored.PersistedOutcome != nil) {
+					t.Fatal("aborted projection changed or acquired domain proof")
+				}
+				if db.calls != 2 || (route == "lock" && base.calls != 0) {
+					t.Fatal("lookup escaped caller DBTX or omitted domain absence query")
+				}
+			})
+		}
+	}
+}
+
+func persistedOutcomeRowValues(row persistedOutcomeDatabaseRow) []any {
+	v := reflect.ValueOf(row)
+	values := make([]any, v.NumField())
+	for i := range values {
+		values[i] = v.Field(i).Interface()
+	}
+	return values
+}
+
 func TestPersistedOutcomeTimeCheckpointBranches(t *testing.T) {
 	for _, scenario := range []string{"may_apply", "deadline_expired", "higher_node", "final"} {
 		t.Run(scenario, func(t *testing.T) {
@@ -1206,6 +1274,7 @@ func TestPostgresRepositorySanitizesDatabaseAndMalformedRowErrors(t *testing.T) 
 }
 
 type repositoryRecordingDBTX struct {
+	rowSequence   []pgx.Row
 	forbidUse     bool
 	calls         int
 	arguments     []any
@@ -1254,6 +1323,11 @@ func (db *repositoryRecordingDBTX) Query(context.Context, string, ...any) (pgx.R
 
 func (db *repositoryRecordingDBTX) QueryRow(context.Context, string, ...any) pgx.Row {
 	db.calls++
+	if len(db.rowSequence) > 0 {
+		row := db.rowSequence[0]
+		db.rowSequence = db.rowSequence[1:]
+		return row
+	}
 	if db.rowErr != nil {
 		return repositoryErrorRow{err: db.rowErr, beforeScan: db.rowScanHook}
 	}

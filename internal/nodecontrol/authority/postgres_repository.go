@@ -750,13 +750,18 @@ func (repository *PostgresRepository) persistedOutcomeForUpdate(
 		return nil, nil
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		if record.TerminalReceipt != nil {
+		if record.TerminalReceipt != nil && record.TerminalReceipt.Status == StatusCommitted {
 			return nil, ErrInjectedFailure
 		}
 		return nil, nil
 	}
 	if err != nil {
 		return nil, repositoryDependencyError(ctx, err)
+	}
+	if record.TerminalReceipt != nil && record.TerminalReceipt.Status == StatusAborted {
+		// A durable Abort proves exact domain absence, not an empty or completed
+		// domain row. Only a committed receipt may own an activation outcome.
+		return nil, ErrInjectedFailure
 	}
 	return persistedOutcomeFromDatabaseRow(record, row)
 }
