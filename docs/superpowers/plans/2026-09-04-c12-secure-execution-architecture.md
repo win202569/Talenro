@@ -1,5 +1,13 @@
 # C12 Secure Execution Architecture Implementation Plan
 
+> Portability update (2026-09-08): the local production-source overlay in this
+> historical plan has been retired. Its repository fix is now in tracked source.
+> Ordinary tests run with empty `GOFLAGS`; only the generated factory test probe
+> uses a narrowly scoped temporary overlay passed as an explicit argument.
+> Use [repository recovery](../../runbooks/repository-recovery.md) for current
+> commands. Historical hashes and overlay commands below describe the original
+> execution and are not new-computer prerequisites.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace C12's prepared-worker and cleanup paths with a fail-closed Windows controller that proves process containment, protocol authenticity, immutable inputs, and exact resource ownership.

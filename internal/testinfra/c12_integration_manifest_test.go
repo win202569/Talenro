@@ -5786,7 +5786,9 @@ func TestBuildFakeGoExecutableBindsDeterministicChildEnvironment(t *testing.T) {
 	t.Setenv("GOARCH", "386")
 	t.Setenv("CGO_ENABLED", "1")
 	t.Setenv("GOFLAGS", "-overlay=ambient-untrusted-overlay.json")
-	executable := filepath.Join(t.TempDir(), "fake-go.exe")
+	t.Setenv("GOWORK", "missing-local-workspace.work")
+	t.Setenv("GOENV", filepath.Join(t.TempDir(), "missing-go-env"))
+	executable := filepath.Join(t.TempDir(), "fake go.exe")
 	buildFakeGoExecutable(t, executable, "package main\nimport \"fmt\"\nfunc main() { fmt.Print(\"TASK8_FAKE_GO_OK\") }\n")
 	output, err := exec.Command(executable).CombinedOutput()
 	if err != nil {
@@ -5815,27 +5817,11 @@ func task8ChildGoCommandContext(t *testing.T, ctx context.Context, directory str
 
 func task8ChildGoEnvironment(t *testing.T) []string {
 	t.Helper()
-	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatal(err)
-	}
-	approvedOverlayPath, err := filepath.Abs(filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "overlay.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	raw, err := os.ReadFile(approvedOverlayPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := sha256.Sum256(raw); fmt.Sprintf("%X", got) != "39ED8367879A0A5D25F2AD6F4C6A2AC3B5F5CE9E3A77EEA3382C7C52311DF0E2" {
-		t.Fatalf("approved child overlay SHA-256 = %X", got)
-	}
-
 	environment := make([]string, 0, len(os.Environ())+6)
 	for _, item := range os.Environ() {
 		name, _, _ := strings.Cut(item, "=")
 		switch {
-		case strings.EqualFold(name, "GOOS"), strings.EqualFold(name, "GOARCH"), strings.EqualFold(name, "CGO_ENABLED"), strings.EqualFold(name, "GOFLAGS"):
+		case strings.EqualFold(name, "GOOS"), strings.EqualFold(name, "GOARCH"), strings.EqualFold(name, "CGO_ENABLED"), strings.EqualFold(name, "GOFLAGS"), strings.EqualFold(name, "GOWORK"), strings.EqualFold(name, "GOENV"), strings.EqualFold(name, "GOPROXY"):
 			continue
 		}
 		environment = append(environment, item)
@@ -5844,9 +5830,10 @@ func task8ChildGoEnvironment(t *testing.T) []string {
 		"GOOS=windows",
 		"GOARCH=amd64",
 		"CGO_ENABLED=0",
-		"GOFLAGS=-overlay="+approvedOverlayPath,
+		"GOFLAGS=",
 		"GOPROXY=off",
 		"GOWORK=off",
+		"GOENV=off",
 	)
 }
 

@@ -1,12 +1,8 @@
 package store_test
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -519,125 +515,42 @@ func TestNodeControlV7RegisteredMigrationOnly(t *testing.T) {
 	}
 }
 
-func TestTask8RequireFactoryProbeFileHashesRejectsMutatedBacking(t *testing.T) {
-	backingPath := filepath.Join(t.TempDir(), "postgres_repository.go")
-	if err := os.WriteFile(backingPath, []byte("abc"), 0o600); err != nil {
+func TestTask8ChildGoCommandUsesCheckoutWithoutLocalOverlay(t *testing.T) {
+	t.Setenv("GOOS", "linux")
+	t.Setenv("GOARCH", "386")
+	t.Setenv("CGO_ENABLED", "1")
+	t.Setenv("GOFLAGS", "-overlay=missing-local-overlay.json")
+	t.Setenv("GOWORK", "missing-local-workspace.work")
+	t.Setenv("GOENV", filepath.Join(t.TempDir(), "missing-go-env"))
+	directory := filepath.Join(t.TempDir(), "checkout with spaces")
+	if err := os.Mkdir(directory, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	guarded := map[string]string{backingPath: "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"}
-	if err := task8RequireFactoryProbeFileHashes(guarded); err != nil {
-		t.Fatalf("authenticate unchanged backing: %v", err)
-	}
-	if err := os.WriteFile(backingPath, []byte("abd"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := task8RequireFactoryProbeFileHashes(guarded); err == nil {
-		t.Fatal("authenticate mutated backing: accepted changed bytes")
-	}
-}
-
-type task8FactoryProbeOverlay struct {
-	Replace map[string]string `json:"Replace"`
-}
-
-func task8DecodeFactoryProbeOverlay(raw []byte) (task8FactoryProbeOverlay, error) {
-	decoder := json.NewDecoder(bytes.NewReader(raw))
-	decoder.DisallowUnknownFields()
-	var overlay task8FactoryProbeOverlay
-	if err := decoder.Decode(&overlay); err != nil {
-		return task8FactoryProbeOverlay{}, err
-	}
-	var trailing any
-	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
-		if err == nil {
-			return task8FactoryProbeOverlay{}, errors.New("overlay has a trailing JSON value")
-		}
-		return task8FactoryProbeOverlay{}, err
-	}
-	if overlay.Replace == nil {
-		return task8FactoryProbeOverlay{}, errors.New("overlay Replace is nil")
-	}
-	return overlay, nil
-}
-
-func task8ApprovedFactoryProbeReplacementSet(repositoryRoot string) map[string]string {
-	overlayRoot := filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate")
-	return map[string]string{
-		filepath.ToSlash(filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go")):   filepath.ToSlash(filepath.Join(overlayRoot, "postgres_repository.go")),
-		filepath.ToSlash(filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go")): filepath.ToSlash(filepath.Join(overlayRoot, "00007_nodecontrol_authority_abort_serving.go")),
-	}
-}
-
-func task8RequireFactoryProbeFileHashes(guarded map[string]string) error {
-	for path, wantHex := range guarded {
-		raw, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		got := sha256.Sum256(raw)
-		if fmt.Sprintf("%X", got) != wantHex {
-			return fmt.Errorf("%s SHA-256 = %X, want %s", path, got, wantHex)
-		}
-	}
-	return nil
-}
-
-func task8AuthenticateFactoryProbeGuardedFiles(repositoryRoot string) error {
-	if err := task8RequireFactoryProbeFileHashes(map[string]string{
-		filepath.Join(repositoryRoot, "internal", "nodecontrol", "authority", "postgres_repository.go"):   "42B56CD6FE149CABAC6F57F092EDC3B359C72A4A70E63B9D38FDEFB3970E3C05",
-		filepath.Join(repositoryRoot, "db", "migrations", "00007_nodecontrol_authority_abort_serving.go"): "C01D113F656E3C064536A3BC475A1CE307579766824210984F8E7711D8B182C0",
-	}); err != nil {
-		return fmt.Errorf("guarded caller: %w", err)
-	}
-	if err := task8RequireFactoryProbeFileHashes(map[string]string{
-		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "postgres_repository.go"):                       "5625F7C9E031C182202504F46FD032271E9ADAA579C708F0ADF02BB35BA73135",
-		filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "00007_nodecontrol_authority_abort_serving.go"): "C01D113F656E3C064536A3BC475A1CE307579766824210984F8E7711D8B182C0",
-	}); err != nil {
-		return fmt.Errorf("approved caller replacement: %w", err)
-	}
-	return nil
-}
-
-func task8AuthenticateApprovedFactoryProbeOverlay(repositoryRoot string, raw []byte) error {
-	if got := sha256.Sum256(raw); fmt.Sprintf("%X", got) != "39ED8367879A0A5D25F2AD6F4C6A2AC3B5F5CE9E3A77EEA3382C7C52311DF0E2" {
-		return fmt.Errorf("approved overlay SHA-256 = %X", got)
-	}
-	overlay, err := task8DecodeFactoryProbeOverlay(raw)
+	command := task8ChildGoCommand(t, directory, "env", "-json", "GOOS", "GOARCH", "CGO_ENABLED", "GOFLAGS", "GOWORK", "GOENV")
+	output, err := command.CombinedOutput()
 	if err != nil {
-		return err
+		t.Fatalf("inspect portable child environment: %v\n%s", err, output)
 	}
-	if want := task8ApprovedFactoryProbeReplacementSet(repositoryRoot); !reflect.DeepEqual(overlay.Replace, want) {
-		return fmt.Errorf("approved overlay replacements = %v, want exact %v", overlay.Replace, want)
+	var got map[string]string
+	if err := json.Unmarshal(output, &got); err != nil {
+		t.Fatal(err)
 	}
-	if err := task8AuthenticateFactoryProbeGuardedFiles(repositoryRoot); err != nil {
-		return err
+	want := map[string]string{
+		"GOOS": "windows", "GOARCH": "amd64", "CGO_ENABLED": "0",
+		"GOFLAGS": "", "GOWORK": "off", "GOENV": "",
 	}
-	return nil
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("child Go environment = %v, want %v", got, want)
+	}
 }
 
 func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *exec.Cmd {
 	t.Helper()
-	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatal(err)
-	}
-	approvedOverlayPath, err := filepath.Abs(filepath.Join(repositoryRoot, ".superpowers", "sdd", "task-8-corrective-implementation-plan", "task-2-overlay-gate", "overlay.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	raw, err := os.ReadFile(approvedOverlayPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := task8AuthenticateApprovedFactoryProbeOverlay(repositoryRoot, raw); err != nil {
-		t.Fatalf("authenticate approved child overlay: %v", err)
-	}
-
 	environment := make([]string, 0, len(os.Environ())+6)
 	for _, item := range os.Environ() {
 		name, _, _ := strings.Cut(item, "=")
 		switch {
-		case strings.EqualFold(name, "GOOS"), strings.EqualFold(name, "GOARCH"), strings.EqualFold(name, "CGO_ENABLED"), strings.EqualFold(name, "GOFLAGS"):
+		case strings.EqualFold(name, "GOOS"), strings.EqualFold(name, "GOARCH"), strings.EqualFold(name, "CGO_ENABLED"), strings.EqualFold(name, "GOFLAGS"), strings.EqualFold(name, "GOWORK"), strings.EqualFold(name, "GOENV"), strings.EqualFold(name, "GOPROXY"):
 			continue
 		}
 		environment = append(environment, item)
@@ -646,9 +559,10 @@ func task8ChildGoCommand(t *testing.T, directory string, arguments ...string) *e
 		"GOOS=windows",
 		"GOARCH=amd64",
 		"CGO_ENABLED=0",
-		"GOFLAGS=-overlay="+approvedOverlayPath,
+		"GOFLAGS=",
 		"GOPROXY=off",
 		"GOWORK=off",
+		"GOENV=off",
 	)
 	command := exec.Command("go", arguments...)
 	command.Dir = directory

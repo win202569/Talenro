@@ -1,5 +1,9 @@
 # Implementation sequence
 
+For the implementation snapshot and remaining gaps as of 2026-09-08, see
+[current status](current-status.md). The acceptance records below are historical;
+C1.2 now has a partial implementation, but its final acceptance remains open.
+
 The original device-distribution, node-control, and account/entitlement phases are now grouped into the approved **C1 control-plane program** and split into five independently designed and accepted specifications. Each specification receives its own design document and implementation plan before production code begins.
 
 1. **Project foundation, data dependencies, shared contracts, and health service — complete.** The pinned Go toolchain, PostgreSQL/Redis/NATS development stack, reversible schema baseline, generated Protobuf/OpenAPI/sqlc contracts, health and loopback metrics endpoints, deterministic verification, and end-to-end smoke test passed the Windows/Docker acceptance matrix. Redis 8.8.1 remains on the recorded unmodified AGPLv3 local-development path; production use is blocked until written legal approval or a recorded commercial license exists.

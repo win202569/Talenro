@@ -253,10 +253,11 @@ func (repository *PostgresRepository) ConsumeVerifiedFreshRestoreImport(
 	admission VerifiedFreshRestoreImportAdmission,
 	projection contracts.FreshImportTopologyProjectionV1,
 ) (contracts.FreshRestoreImportApplicationV1, error) {
-	facts, consumeErr := consumeVerifiedFreshRestoreImportAdmission(admission)
+	view, consumeErr := consumeVerifiedFreshRestoreImportAdmission(admission)
 	if consumeErr != nil {
 		return contracts.FreshRestoreImportApplicationV1{}, consumeErr
 	}
+	facts := view.Facts
 	if repositoryCallError(ctx, repository) != nil || projection.Validate() != nil ||
 		projection.TargetActivationID != facts.ManifestTopology.TargetActivationID ||
 		projection.TargetDeploymentID != facts.ManifestTopology.TargetDeploymentID ||
