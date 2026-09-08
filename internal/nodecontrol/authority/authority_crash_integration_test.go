@@ -670,7 +670,9 @@ func (resolver *postgresCrashEffectResolver) CaptureActivationDecisionMaterial(c
 	if err != nil {
 		return ActivationDecisionMaterial{}, err
 	}
-	now := time.Now().UTC()
+	// Choose PostgreSQL-exact fixture input before evidence construction; never
+	// truncate an existing proof or a signed/committed observation after capture.
+	now := time.Now().UTC().Truncate(time.Microsecond)
 	identity := sha256.Sum256([]byte("task9-fixture-trusted-time-provider"))
 	return ActivationDecisionMaterial{Commitment: commitment, Reason: EffectReasonNone, CheckpointKind: CheckpointNone, TrustedTimeKind: TrustedTimeRollbackResistant, Capability: DecisionCapabilityMayApply,
 		TrustedInstant: now, EvidenceValidUntil: now.Add(4 * time.Second), AttestationExpiresAt: now.Add(10 * time.Second), ActivationDeadline: now.Add(10 * time.Second),
