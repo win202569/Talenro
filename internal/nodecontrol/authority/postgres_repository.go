@@ -810,13 +810,16 @@ func persistedOutcomeFromDatabaseRow(record Record, row persistedOutcomeDatabase
 	var checkpointDigest contracts.Digest
 	var attestationExpiresAt, activationDeadline time.Time
 	var expectedProviderIdentity contracts.Digest
-	if row.CheckpointAnchorJcs == nil && row.CheckpointAnchorDigest == nil {
-		if row.AttestationExpiresAt.Valid || row.ActivationDeadline.Valid || row.ExpectedProviderIdentityDigest != nil {
+	hasCheckpoint := row.CheckpointAnchorJcs != nil || row.CheckpointAnchorDigest != nil
+	hasTime := row.AttestationExpiresAt.Valid || row.ActivationDeadline.Valid || row.ExpectedProviderIdentityDigest != nil
+	if hasCheckpoint {
+		checkpointDigest, err = exactJCSAndDigest(row.CheckpointAnchorJcs, row.CheckpointAnchorDigest, persistedCheckpointArtifact)
+		if err != nil || hasTime {
 			return nil, ErrInjectedFailure
 		}
-	} else {
-		checkpointDigest, err = exactJCSAndDigest(row.CheckpointAnchorJcs, row.CheckpointAnchorDigest, persistedCheckpointArtifact)
-		if err != nil || !row.AttestationExpiresAt.Valid || !row.ActivationDeadline.Valid ||
+	}
+	if hasTime {
+		if !row.AttestationExpiresAt.Valid || !row.ActivationDeadline.Valid ||
 			row.AttestationExpiresAt.Time.IsZero() || row.ActivationDeadline.Time.IsZero() {
 			return nil, ErrInjectedFailure
 		}

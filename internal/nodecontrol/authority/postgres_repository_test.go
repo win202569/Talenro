@@ -18,6 +18,94 @@ import (
 	"talenro.local/platform/internal/nodecontrol/contracts"
 )
 
+func TestPersistedOutcomeTimeCheckpointBranches(t *testing.T) {
+	for _, scenario := range []string{"may_apply", "higher_node", "final"} {
+		t.Run(scenario, func(t *testing.T) {
+			record, row := persistedOutcomeRowFixture(t, scenario)
+			got, err := persistedOutcomeFromDatabaseRow(record, row)
+			if err != nil || got == nil {
+				t.Fatalf("legal %s outcome rejected: %v", scenario, err)
+			}
+			if !bytes.Equal(got.CheckpointAnchorJCS, row.CheckpointAnchorJcs) ||
+				!got.AttestationExpiresAt.Equal(row.AttestationExpiresAt.Time) ||
+				!got.ActivationDeadline.Equal(row.ActivationDeadline.Time) ||
+				!receiptEquals(got.Receipt, *record.TerminalReceipt) ||
+				!bytes.Equal(got.EvidenceJCS, row.ActivationEvidenceJcs) {
+				t.Fatal("loader changed an exact persistence preimage")
+			}
+			wantIdentity := contracts.Digest{}
+			copy(wantIdentity[:], row.ExpectedProviderIdentityDigest)
+			if got.ExpectedProviderIdentityDigest != wantIdentity {
+				t.Fatal("loader lost expected identity")
+			}
+		})
+	}
+	for _, mutation := range []struct {
+		name   string
+		change func(*persistedOutcomeDatabaseRow)
+	}{
+		{"missing attestation", func(r *persistedOutcomeDatabaseRow) { r.AttestationExpiresAt = pgtype.Timestamptz{} }},
+		{"missing deadline", func(r *persistedOutcomeDatabaseRow) { r.ActivationDeadline = pgtype.Timestamptz{} }},
+		{"missing identity", func(r *persistedOutcomeDatabaseRow) { r.ExpectedProviderIdentityDigest = nil }},
+		{"zero identity", func(r *persistedOutcomeDatabaseRow) { r.ExpectedProviderIdentityDigest = make([]byte, 32) }},
+		{"zero deadline", func(r *persistedOutcomeDatabaseRow) { r.ActivationDeadline.Time = time.Time{} }},
+		{"mixed checkpoint and time", func(r *persistedOutcomeDatabaseRow) {
+			_, higher := persistedOutcomeRowFixture(t, "higher_node")
+			r.CheckpointAnchorJcs, r.CheckpointAnchorDigest = higher.CheckpointAnchorJcs, higher.CheckpointAnchorDigest
+		}},
+	} {
+		t.Run(mutation.name, func(t *testing.T) {
+			record, row := persistedOutcomeRowFixture(t, "may_apply")
+			mutation.change(&row)
+			if got, err := persistedOutcomeFromDatabaseRow(record, row); err != ErrInjectedFailure || got != nil {
+				t.Fatalf("invalid branch returned outcome=%t, error=%v; want false, ErrInjectedFailure", got != nil, err)
+			}
+		})
+	}
+	for _, field := range []string{"body", "digest"} {
+		t.Run("partial checkpoint "+field, func(t *testing.T) {
+			record, row := persistedOutcomeRowFixture(t, "higher_node")
+			if field == "body" {
+				row.CheckpointAnchorJcs = nil
+			} else {
+				row.CheckpointAnchorDigest = nil
+			}
+			if got, err := persistedOutcomeFromDatabaseRow(record, row); err != ErrInjectedFailure || got != nil {
+				t.Fatalf("partial checkpoint = %v, %v", got, err)
+			}
+		})
+	}
+}
+
+func persistedOutcomeRowFixture(t *testing.T, scenario string) (Record, persistedOutcomeDatabaseRow) {
+	t.Helper()
+	input := evidenceInputFixture(t, scenario)
+	evidence, _ := freshEvidenceProofFixture(t, scenario)
+	resolutionScenario := scenario
+	if scenario == "may_apply" {
+		resolutionScenario = "applied"
+	}
+	resolution := resolutionFixture(t, resolutionScenario)
+	row := persistedOutcomeDatabaseRow{
+		CommitmentJcs: input.Material.Commitment.CanonicalJCS(), CommitmentDigest: digestBytes(input.Material.Commitment.Digest()),
+		ProviderHeadJcs: input.ProviderHead.CanonicalJCS(), ProviderHeadDigest: digestBytes(input.ProviderHead.Digest()),
+		EffectReason:          pgtype.Text{String: string(input.Material.Reason), Valid: true},
+		ActivationEvidenceJcs: evidence.CanonicalJCS(), ActivationEvidenceDigest: digestBytes(evidence.Digest()),
+		EffectResolutionJcs: resolution.CanonicalJCS(), EffectResolutionDigest: digestBytes(resolution.Digest()),
+	}
+	if input.Checkpoint != nil {
+		row.CheckpointAnchorJcs, row.CheckpointAnchorDigest = input.Checkpoint.CanonicalJCS(), digestBytes(input.Checkpoint.Digest())
+	}
+	if input.Material.TrustedTimeKind == TrustedTimeRollbackResistant {
+		row.AttestationExpiresAt = requiredTimestamp(input.Material.AttestationExpiresAt)
+		row.ActivationDeadline = requiredTimestamp(input.Material.ActivationDeadline)
+		row.ExpectedProviderIdentityDigest = digestBytes(input.Material.ExpectedProviderIdentityDigest)
+	}
+	receipt := cloneReceipt(input.Receipt)
+	return Record{Reservation: receipt.Reservation, BoundEffectDigest: cloneDigestPointer(receipt.EffectDigest),
+		BoundDatabasePoint: cloneDatabasePointPointer(receipt.DatabasePoint), TerminalReceipt: &receipt}, row
+}
+
 func TestPersistedAuthorityArtifactsRejectJCSAndDigestTampering(t *testing.T) {
 	fixture := loadLiteralAuthorityEffectFixture(t)
 	kinds := map[string]persistedAuthorityArtifactKind{
