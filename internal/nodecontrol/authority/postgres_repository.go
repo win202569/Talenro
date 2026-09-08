@@ -814,13 +814,16 @@ func persistedOutcomeFromDatabaseRow(record Record, row persistedOutcomeDatabase
 	hasTime := row.AttestationExpiresAt.Valid || row.ActivationDeadline.Valid || row.ExpectedProviderIdentityDigest != nil
 	if hasCheckpoint {
 		checkpointDigest, err = exactJCSAndDigest(row.CheckpointAnchorJcs, row.CheckpointAnchorDigest, persistedCheckpointArtifact)
-		if err != nil || hasTime {
+		if err != nil || hasTime || reason != EffectReasonSuperseded {
 			return nil, ErrInjectedFailure
 		}
 	}
 	if hasTime {
-		if !row.AttestationExpiresAt.Valid || !row.ActivationDeadline.Valid ||
+		if reason == EffectReasonSuperseded || !row.AttestationExpiresAt.Valid || !row.ActivationDeadline.Valid ||
 			row.AttestationExpiresAt.Time.IsZero() || row.ActivationDeadline.Time.IsZero() {
+			return nil, ErrInjectedFailure
+		}
+		if reason == EffectReasonActivationDeadlineExpired && !row.ActivationDeadline.Time.Before(row.AttestationExpiresAt.Time) {
 			return nil, ErrInjectedFailure
 		}
 		expectedProviderIdentity, err = exactDigest(row.ExpectedProviderIdentityDigest)
@@ -829,6 +832,9 @@ func persistedOutcomeFromDatabaseRow(record Record, row persistedOutcomeDatabase
 		}
 		attestationExpiresAt = row.AttestationExpiresAt.Time.UTC()
 		activationDeadline = row.ActivationDeadline.Time.UTC()
+	}
+	if !hasCheckpoint && !hasTime && reason == EffectReasonNone {
+		return nil, ErrInjectedFailure
 	}
 	return &PersistedAuthorityEffectOutcome{
 		CommitmentJCS: cloneBytes(row.CommitmentJcs), CommitmentDigest: commitmentDigest,

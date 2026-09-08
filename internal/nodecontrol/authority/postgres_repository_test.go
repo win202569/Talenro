@@ -19,7 +19,7 @@ import (
 )
 
 func TestPersistedOutcomeTimeCheckpointBranches(t *testing.T) {
-	for _, scenario := range []string{"may_apply", "higher_node", "final"} {
+	for _, scenario := range []string{"may_apply", "deadline_expired", "higher_node", "final"} {
 		t.Run(scenario, func(t *testing.T) {
 			record, row := persistedOutcomeRowFixture(t, scenario)
 			got, err := persistedOutcomeFromDatabaseRow(record, row)
@@ -72,6 +72,27 @@ func TestPersistedOutcomeTimeCheckpointBranches(t *testing.T) {
 			}
 			if got, err := persistedOutcomeFromDatabaseRow(record, row); err != ErrInjectedFailure || got != nil {
 				t.Fatalf("partial checkpoint = %v, %v", got, err)
+			}
+		})
+	}
+	for _, mutation := range []struct {
+		name     string
+		scenario string
+		change   func(*persistedOutcomeDatabaseRow)
+	}{
+		{"checkpoint reason must be superseded", "higher_node", func(r *persistedOutcomeDatabaseRow) { r.EffectReason.String = string(EffectReasonFailed) }},
+		{"time reason cannot be superseded", "may_apply", func(r *persistedOutcomeDatabaseRow) { r.EffectReason.String = string(EffectReasonSuperseded) }},
+		{"empty groups need final reason", "final", func(r *persistedOutcomeDatabaseRow) { r.EffectReason.String = string(EffectReasonNone) }},
+		{"expired deadline equals expiry", "deadline_expired", func(r *persistedOutcomeDatabaseRow) { r.ActivationDeadline.Time = r.AttestationExpiresAt.Time }},
+		{"expired deadline exceeds expiry", "deadline_expired", func(r *persistedOutcomeDatabaseRow) {
+			r.ActivationDeadline.Time = r.AttestationExpiresAt.Time.Add(time.Microsecond)
+		}},
+	} {
+		t.Run(mutation.name, func(t *testing.T) {
+			record, row := persistedOutcomeRowFixture(t, mutation.scenario)
+			mutation.change(&row)
+			if got, err := persistedOutcomeFromDatabaseRow(record, row); err != ErrInjectedFailure || got != nil {
+				t.Fatalf("invalid reason/boundary accepted=%t, error=%v", got != nil, err)
 			}
 		})
 	}
