@@ -78,7 +78,7 @@ func TestCheckReturnsReadyWhenAllProbesSucceed(t *testing.T) {
 	}
 }
 
-func TestAuthorityProbeHasFixedNameAndValueFreeFailure(t *testing.T) {
+func TestAuthorityProbe(t *testing.T) {
 	checker := &fakeAuthorityReadinessChecker{readiness: nodeauthority.Readiness{Ready: true, Reason: nodeauthority.ReadinessReady}}
 	probe, err := newAuthorityProbe(checker)
 	if err != nil {
@@ -89,6 +89,12 @@ func TestAuthorityProbeHasFixedNameAndValueFreeFailure(t *testing.T) {
 	}
 	if err := probe.Ping(t.Context()); err != nil {
 		t.Fatalf("ready Ping error = %v", err)
+	}
+	for _, reason := range []nodeauthority.ReadinessReason{"", nodeauthority.ReadinessPendingUnresolved, "private-value"} {
+		checker.readiness = nodeauthority.Readiness{Ready: true, Reason: reason}
+		if err := probe.Ping(t.Context()); err != nodeauthority.ErrAuthorityUnavailable {
+			t.Fatalf("contradictory ready/reason must remain unavailable: %v", err)
+		}
 	}
 
 	checker.readiness = nodeauthority.Readiness{

@@ -47,7 +47,7 @@ func (probe *authorityProbe) Ping(ctx context.Context) error {
 		return nodeauthority.ErrAuthorityUnavailable
 	}
 	readiness, err := probe.checker.CheckReady(ctx)
-	if err != nil || !readiness.Ready {
+	if err != nil || !readiness.Ready || readiness.Reason != nodeauthority.ReadinessReady {
 		return nodeauthority.ErrAuthorityUnavailable
 	}
 	return nil
