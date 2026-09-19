@@ -127,9 +127,13 @@ execution of the required gates. Docker is unavailable on this host, and the
 repository has no existing GitHub workflow to provide a replacement live run. The runner-owned
 PITR controller's external-package consumer interface is incomplete: authority
 tests cannot observe their actual transaction commits or inspect candidate
-domain rows through the current public contract. A controller-bound interface
-extension requires approval outside the six Task 9 files; cleanup must remain
-runner-owned. The authoritative `authority-v7-pitr` gate is listed in Task 10.
+domain rows through the current public contract. The user approved the
+[controlled PITR interface addendum](../superpowers/specs/2026-09-19-c12-controlled-pitr-test-interface-design.md)
+on 2026-09-19. Its [six-task implementation plan](../superpowers/plans/2026-09-19-c12-controlled-pitr-test-interface.md)
+is awaiting plan review and an execution-method choice; no implementation or
+new test execution is claimed by this documentation checkpoint. Cleanup remains
+runner-owned. The authoritative `authority-v7-pitr` gate is listed in Task 10,
+with the precise authority-only selection recorded in the new plan.
 The older self-owned Docker harness is not equivalent acceptance and has not
 been expanded to work around this boundary.
 
