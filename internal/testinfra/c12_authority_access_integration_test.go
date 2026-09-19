@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"talenro.local/platform/internal/store"
 )
 
 var c12AccessCases = []string{
@@ -73,8 +74,10 @@ func (f *c12AccessTestFixture) counts() (opens, closes, commits, rollbacks, curs
 
 type c12AccessTestDriver struct {
 	pgx.Tx
-	fixture   *c12AccessTestFixture
-	ownership c12BackendOwnership
+	fixture     *c12AccessTestFixture
+	ownership   c12BackendOwnership
+	typeMapOnce sync.Once
+	typeMap     *pgtype.Map
 }
 
 type c12AccessTestRewriter struct {
@@ -263,7 +266,10 @@ func (d *c12AccessTestDriver) Interrupt(context.Context) error {
 	return d.fixture.interruptErr
 }
 
-func (*c12AccessTestDriver) TypeMap() *pgtype.Map { return pgtype.NewMap() }
+func (d *c12AccessTestDriver) TypeMap() *pgtype.Map {
+	d.typeMapOnce.Do(func() { d.typeMap = pgtype.NewMap() })
+	return d.typeMap
+}
 
 type c12AccessTestDriverRow struct {
 	rows pgx.Rows
@@ -287,6 +293,7 @@ func (r c12AccessTestDriverRow) Scan(dest ...any) error {
 type c12AccessTestRows struct {
 	fixture  *c12AccessTestFixture
 	values   [][][]byte
+	fields   []pgconn.FieldDescription
 	nextHook func()
 	hookOnce sync.Once
 	index    int
@@ -312,6 +319,9 @@ func (r *c12AccessTestRows) CommandTag() pgconn.CommandTag {
 	return pgconn.NewCommandTag("SELECT " + string(rune('0'+len(r.values))))
 }
 func (r *c12AccessTestRows) FieldDescriptions() []pgconn.FieldDescription {
+	if r.fields != nil {
+		return r.fields
+	}
 	return []pgconn.FieldDescription{{Name: "payload", DataTypeOID: pgtype.ByteaOID, Format: pgx.BinaryFormatCode}}
 }
 func (r *c12AccessTestRows) Next() bool {
@@ -381,6 +391,134 @@ func newC12AccessTestState(fixture *c12AccessTestFixture) *c12AuthorityPITRState
 }
 
 func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
+	t.Run("independent_result_decoders", func(t *testing.T) {
+		for _, transaction := range []bool{false, true} {
+			name := "access"
+			if transaction {
+				name = "transaction"
+			}
+			t.Run(name, func(t *testing.T) {
+				fixture := &c12AccessTestFixture{}
+				backend := &c12AccessTestDriver{fixture: fixture}
+				driverMap := backend.TypeMap()
+				if backend.TypeMap() != driverMap {
+					t.Fatal("backend must retain one stable driver map")
+				}
+				wireMap := pgtype.NewMap() // Encoding fixtures must not warm the driver's first scan.
+				fields := []pgconn.FieldDescription{
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.ByteaOID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.UUIDOID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.ByteaOID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.NumericOID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode},
+					{DataTypeOID: c12PGTypeLSNOID, Format: pgx.TextFormatCode},
+					{DataTypeOID: pgtype.BoolOID, Format: pgx.BinaryFormatCode},
+				}
+				identifier := uuid.MustParse("00112233-4455-6677-8899-aabbccddeeff")
+				queries := 0
+				fixture.rows = func() pgx.Rows {
+					lsn := []string{"0/16B6C50", "0/16B6D80"}[queries]
+					queries++
+					values := []any{int64(31), int64(1), int64(1), int64(1), int64(0), []byte{1}, identifier, []byte{2}, pgtype.Numeric{Int: big.NewInt(123), Valid: true}, int64(1), lsn, false}
+					raw := make([][]byte, len(fields))
+					for i, field := range fields {
+						var err error
+						raw[i], err = wireMap.Encode(field.DataTypeOID, field.Format, values[i], nil)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					return &c12AccessTestRows{fixture: fixture, fields: fields, values: [][][]byte{raw}}
+				}
+				state := newC12AccessTestState(fixture)
+				state.accessPolicy = nil // Exercise the real, fixed GetAuthorityFenceHead allowance.
+				state.fixture = c12PolicyFixture()
+				state.accessOpen = func(context.Context, *c12CandidateBinding) (c12AccessBackend, error) { return backend, nil }
+				err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+					var reader store.DBTX = access
+					if transaction {
+						tx, err := access.Begin(t.Context())
+						if err != nil {
+							return err
+						}
+						defer tx.Rollback(t.Context())
+						reader = tx
+					}
+					first, firstOK := reader.QueryRow(t.Context(), c12GetAuthorityFenceHeadSQL).(*c12MaterializedRow)
+					second, secondOK := reader.QueryRow(t.Context(), c12GetAuthorityFenceHeadSQL).(*c12MaterializedRow)
+					if !firstOK || !secondOK {
+						t.Fatal("legal independent head reads were not materialized")
+					}
+					_, _, _, _, closes := fixture.counts()
+					if queries != 2 || closes != 2 {
+						t.Fatalf("eager head reads: queries=%d closed=%d", queries, closes)
+					}
+					if first.rows.typeMap == driverMap || second.rows.typeMap == driverMap || first.rows.typeMap == second.rows.typeMap {
+						t.Fatal("independent results retain shared mutable driver decoding state")
+					}
+					start := make(chan struct{})
+					ready := make(chan struct{}, 2)
+					done := make(chan error, 2)
+					var heads [2]store.GetAuthorityFenceHeadRow
+					for i, row := range []*c12MaterializedRow{first, second} {
+						go func() {
+							ready <- struct{}{}
+							<-start
+							h := &heads[i]
+							done <- row.Scan(&h.AuthorityEpoch, &h.RecordCount, &h.LatestReservedSequence, &h.LatestCommittedSequence, &h.PendingCount, &h.ProviderReservationDigest, &h.LatestCommittedOperationID, &h.ProviderReceiptDigest, &h.DbSystemID, &h.DbTimeline, &h.RequiredLsn, &h.HasSequenceGap)
+						}()
+					}
+					<-ready
+					<-ready
+					close(start)
+					for range heads {
+						if err := <-done; err != nil {
+							t.Fatal(err)
+						}
+					}
+					for i, want := range []string{"0/16B6C50", "0/16B6D80"} {
+						h := heads[i]
+						if h.RequiredLsn != want || h.AuthorityEpoch != 31 || !h.LatestCommittedOperationID.Valid || h.LatestCommittedOperationID.UUID != identifier || !h.DbSystemID.Valid || h.DbSystemID.Int.Int64() != 123 || h.DbTimeline.Int64 != 1 || h.HasSequenceGap {
+							t.Fatalf("head%d decoded incorrectly: %+v", i, h)
+						}
+					}
+					return nil
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	})
+	t.Run("decoder_state_budget_boundary", func(t *testing.T) {
+		for _, remaining := range []int64{4095, 4096} {
+			fixture := &c12AccessTestFixture{}
+			state := newC12AccessTestState(fixture)
+			ctx, cancel := context.WithCancel(t.Context())
+			lease := &c12AccessLease{owner: state, generation: 1, ctx: ctx, cancel: cancel}
+			lease.live.Store(true)
+			lease.budget.bytes = (64 << 20) - remaining
+			// No columns or rows: only the retained decoder can consume the budget.
+			driverRows := &c12AccessTestRows{fixture: fixture, fields: []pgconn.FieldDescription{}}
+			rows, err := c12MaterializeRows(ctx, lease, driverRows)
+			cancel()
+			if remaining == 4095 {
+				if rows != nil || !errors.Is(err, C12PITRCapacityExceeded) {
+					t.Fatalf("decoder allocated without complete reservation: rows=%T err=%v", rows, err)
+				}
+			} else if err != nil || rows == nil || lease.budget.bytes != 64<<20 || lease.budget.rows != 0 {
+				t.Fatalf("exact decoder budget: rows=%T err=%v budget=%+v", rows, err, lease.budget)
+			}
+			if !driverRows.closed {
+				t.Fatal("decoder budget path retained the cursor")
+			}
+		}
+	})
 	t.Run("bounded_materialization", func(t *testing.T) {
 		b := c12ReadBudget{}
 		for i := 0; i < 65536; i++ {

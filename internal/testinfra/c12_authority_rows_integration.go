@@ -17,6 +17,17 @@ import (
 
 const c12MaterializedColumnLimit = 65536
 
+// A result owns its fixed pgx v5.10 decoder, with no driver/custom registrations.
+// NewMap retains five empty maps, its Map struct and 15 wrapper-function slots.
+// TypeForValue may add one empty reflect map; PlanScan does not memoize. The
+// existing TimeCodec SQL-scanner fallback may additionally cache one fixed
+// TimeOID/pgtype.Time encode plan (one outer entry and one inner map/entry).
+// 4 KiB conservatively covers this fixed retained state and allocation rounding,
+// independent of rows/columns. Decoded values are separately charged below;
+// Numeric is restricted to its direct binary NumericScanner path.
+// Recheck this bound when upgrading pgx; do not replace this with a driver map.
+const c12MaterializedDecoderBytes int64 = 4096
+
 type c12MaterializedRows struct {
 	lease       *c12AccessLease
 	transaction *c12AuthorityTx
@@ -58,7 +69,7 @@ func c12MaterializeRows(ctx context.Context, lease *c12AccessLease, driverRows p
 		}
 		metadataBytes += nameBytes
 	}
-	if err := lease.takeBytes(metadataBytes); err != nil {
+	if err := lease.takeBytes(metadataBytes + c12MaterializedDecoderBytes); err != nil {
 		return nil, err
 	}
 	fieldCopies := append([]pgconn.FieldDescription(nil), fields...)

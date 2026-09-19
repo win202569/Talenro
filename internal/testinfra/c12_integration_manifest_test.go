@@ -649,21 +649,10 @@ func TestC12PITRConsumerInterfacesAreIntegrationOnly(t *testing.T) {
 		}
 		importAliases[alias] = name
 	}
+	for _, violation := range c12PITRConsumerSelectorViolations(file, importAliases) {
+		t.Error(violation)
+	}
 	ast.Inspect(file, func(node ast.Node) bool {
-		if call, ok := node.(*ast.CallExpr); ok {
-			if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-				if owner, ok := selector.X.(*ast.Ident); ok {
-					switch importAliases[owner.Name] {
-					case "github.com/jackc/pgx/v5":
-						t.Errorf("PITR consumer calls raw driver %s", selector.Sel.Name)
-					case "talenro.local/platform/internal/testinfra":
-						if selector.Sel.Name != "OpenC12AuthorityPITR" {
-							t.Errorf("PITR consumer calls non-controller infrastructure %s", selector.Sel.Name)
-						}
-					}
-				}
-			}
-		}
 		if id, ok := node.(*ast.Ident); ok {
 			lower := strings.ToLower(id.Name)
 			if strings.Contains(lower, "password") || strings.Contains(lower, "docker") || strings.Contains(lower, "rawpool") || strings.Contains(lower, "migration") || strings.Contains(lower, "cleanup") {
@@ -672,6 +661,54 @@ func TestC12PITRConsumerInterfacesAreIntegrationOnly(t *testing.T) {
 		}
 		return true
 	})
+}
+
+func c12PITRConsumerSelectorViolations(file *ast.File, importAliases map[string]string) []string {
+	var violations []string
+	ast.Inspect(file, func(node ast.Node) bool {
+		// Inspect references, not just calls: dial := pgx.Connect is an escape too.
+		if selector, ok := node.(*ast.SelectorExpr); ok {
+			if owner, ok := selector.X.(*ast.Ident); ok {
+				switch importAliases[owner.Name] {
+				case "github.com/jackc/pgx/v5":
+					if selector.Sel.Name != "ErrNoRows" {
+						violations = append(violations, "PITR consumer references raw driver "+selector.Sel.Name)
+					}
+				case "talenro.local/platform/internal/testinfra":
+					switch selector.Sel.Name {
+					case "OpenC12AuthorityPITR", "C12AuthorityAccess", "C12AuthorityPITRController", "C12PITRInvalidHandle":
+					default:
+						violations = append(violations, "PITR consumer references non-controller infrastructure "+selector.Sel.Name)
+					}
+				}
+			}
+		}
+		return true
+	})
+	return violations
+}
+
+func TestC12PITRConsumerSelectorGuard(t *testing.T) {
+	for _, test := range []struct {
+		name, body     string
+		wantViolations int
+	}{
+		{"driver_direct_call", `func f() { p.Connect(nil, "") }`, 1},
+		{"driver_function_alias", `func f() { dial := p.Connect; dial(nil, "") }`, 1},
+		{"infrastructure_function_alias", `func f() { open := infra.OpenC12; open() }`, 1},
+		{"approved_symbols", `var _ = p.ErrNoRows; var _ infra.C12AuthorityAccess; var _ infra.C12AuthorityPITRController; var _ = infra.C12PITRInvalidHandle; func f() { infra.OpenC12AuthorityPITR() }`, 0},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			file, err := parser.ParseFile(token.NewFileSet(), "consumer.go", "package fixture; "+test.body, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := c12PITRConsumerSelectorViolations(file, map[string]string{"p": "github.com/jackc/pgx/v5", "infra": "talenro.local/platform/internal/testinfra"})
+			if len(got) != test.wantViolations {
+				t.Fatalf("selector guard violations=%v want count%d", got, test.wantViolations)
+			}
+		})
+	}
 }
 
 func TestC12PreparedAuthorityExecutablesAreClosed(t *testing.T) {

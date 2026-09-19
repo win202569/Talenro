@@ -1002,3 +1002,89 @@ suppress new source findings, acceptance, or authority to merge main.
 - Ruling R21: Review1's only Task4 Important finding is the failed ordinary validation, without an identified source defect. After exact unchanged diagnostic21969 passed130.82s (package132.117s) and helper/stack trace proved only an outer150s timeout before semantic assertions, authorize one frozen full-suite rerun by the original implementer with identical budgets/permissions/concurrency and no source edits. If it passes without a patch, rereview the original immutable diff with appended evidence rather than fabricate an empty commit/fix diff. Preserve80961 failure and unknown causation; final Task6 gate remains required — cost if wrong: another up-to15m run may not reproduce intermittent failure and cannot prove its cause; if still failing, stop speculative retries and route the concrete blocker.
 - User direction U1 (2026-09-19, async choice after R21 emitted another ordinary failure): user explicitly selected “继续第 5–6 项，保留验收阻塞” in response to a choice stating only an unaccepted development-branch checkpoint would be pushed and main would not be merged. This overrides the normal per-task quality gate solely to permit remaining implementation; it does not declare either ordinary failure fixed, waive final reporting, authorize broader harness/security changes, or imply final acceptance. Keep Task4 Important validation finding OPEN in final review. Task4 source is spec-compliant with no identified source defect; next implementation is Task5. While26986 runs, its whole source tree remains frozen; Task5 may read/prepare only until root explicitly releases edits after test exit.
 - Ruling R22: Allow a narrow Task5 test-local adapter over existing coordinatorMemoryRepository solely for provider-outside-lock scheduling tests using pitrBridgeFakeTx. Root source check confirmed existing memory Lock/readAuthoritySnapshot require exact *coordinatorMemoryTransaction; adapting/delegating existing memory behavior avoids building a second SQL-result simulator for unrelated scheduling. Real Coordinator Finalize/CheckReady and fake active-state guard must execute, with positive method counts and negative guard check; retain separate exact real bridge/transact and dynamic real-handler assertions. No production/existing-memory-test changes or algorithm duplication; actual P/A/B stays real PostgresRepository/handler/controller — cost if wrong: memory adaptation can give false confidence about real SQL/atomicity, so explicitly restrict its claim to scheduling and preserve independent live/handler gates.
+
+### Final whole-branch review and single bounded fix wave
+
+Independent review covered `e1571f9fb1940f341d8e40f55907bec5e4f30dcb..3998d5c9f1c9d400eeeb8b83db7f48190a453786`
+(20 commits): no Critical finding; I1 was a new Important source concurrency defect,
+I2/I3 were retained acceptance blockers, and M1/M2 were confirmed Minor test gaps.
+Root accepted I1/M1/M2 for this one final source-fix wave. The reviewer found no
+additional production Coordinator/repository/readiness defect. Scoped final
+rereview and branch push are still pending; no source approval or acceptance is
+claimed by the implementer.
+
+- I1: Access and Transaction overwrote each eagerly materialized result's private
+  `pgtype.NewMap()` with the backend's mutable map. Those two assignments are
+  removed. Result-local mutexes now protect result-local decoding state; Scan does
+  not acquire backend ownership (the transaction already owns it). Materialization
+  reserves4096 decoder bytes in the existing64MiB shared budget before allocation,
+  including empty results. Existing65536-row/1MiB-row bounds are unchanged.
+- Pinned pgx5.10.0 bound: NewMap retains its struct, five initially empty maps and
+  15 wrapper-function slots. No driver types/default-type registrations are copied.
+  Unknown pg_lsn's first TypeForValue creates only an empty sixth reflect map;
+  PlanScan has no retained plan cache. The already-supported TimeCodec SQL-scanner
+  fallback can memoize one fixed TimeOID/pgtype.Time encode plan: one outer entry,
+  one inner map and entry. This fixed footprint, including allocation rounding,
+  fits conservatively inside4KiB. Numeric's SQL-scanner re-encoding path cannot be
+  reached because existing checks require binary Numeric(20,0) into *pgtype.Numeric;
+  Values rejects Numeric/Time. No arbitrary codec/target, global growing cache,
+  connection, SQL allowance, grant, dependency or API is introduced. Recheck this
+  pinned bound on a future pgx upgrade.
+- Regression: one stable backend map and a separate fixture encoder produce two
+  complete legal GetAuthorityFenceHead results for each Access/Transaction path.
+  Pre-fix retained-map identity assertions fail before scanning; this establishes
+  the actual sharing defect, **not a runtime reproduction of the hypothesized
+  data race**. Barrier-started first pg_lsn scans then decode distinct expected
+  values correctly on the fixed tree under native race. Exact4095/4096-byte empty
+  result boundaries verify precharge and cursor closure. Existing codec, UUID,
+  Numeric(20,0), unknown-LSN, NULL/empty-byte, expiry and defensive-copy coverage
+  remains green.
+- M1: the uncertain-Commit regression now demands a non-error materialized row
+  plus exactly one driver-query delta for its independent read. This is a test-only
+  strengthening; policy behavior was already correct and is unchanged.
+- M2: the ordinary AST guard now checks all imported driver/infrastructure selector
+  references, not only calls. Only the currently used pgx.ErrNoRows and four
+  controller symbols remain allowed. Synthetic pgx.Connect and infrastructure
+  function-alias negatives invoke the same guard as the real consumer; approved
+  symbol positives pass. No runner or embedded validator change is included.
+
+All commands below ran in the same worktree using process-local GOOS=windows;
+native race additionally used existing CGO/GCC. Scoped normal escalation was needed
+after the first sandbox attempt returned Go-cache Access denied (environmental,
+not assertion RED). No installation, persistent settings or live runner substitute.
+
+```powershell
+$env:GOOS='windows'
+go test -tags=integration ./internal/testinfra -run '^TestC12AuthorityPITRScopedAccessPolicy$/(independent_result_decoders|decoder_state_budget_boundary)$' -count=1 -timeout=3m
+go test ./internal/testinfra -run '^TestC12PITRConsumerSelectorGuard$' -count=1 -timeout=3m
+go test ./internal/testinfra -run '^(TestC12PITRConsumerInterfacesAreIntegrationOnly|TestC12PITRConsumerSelectorGuard)$' -count=1 -timeout=3m
+go test -tags=integration ./internal/testinfra -run '^(TestC12AuthorityPITRScopedAccessPolicy|TestC12AuthorityPITRSQLPolicy|TestC12AuthorityPITRSQLRegistryMatchesSources|TestC12AuthorityPITRCommitObservationStateMachine|TestC12AuthorityPITRRecoveryCutStateMachine)$' -count=1 -timeout=3m
+go test -tags=integration ./internal/nodecontrol/authority -run '^TestAuthorityPITRBridgeUsesControlledTransaction$' -count=1 -timeout=2m
+go test -tags=integration ./internal/nodecontrol/authority ./internal/testinfra -run '^$' -count=1 -timeout=5m
+$env:CGO_ENABLED='1'; $env:CC='C:/Programs/mingw64/bin/gcc.exe'
+go test -race -tags=integration ./internal/testinfra -run '^TestC12AuthorityPITRScopedAccessPolicy$/(independent_result_decoders|decoder_state_budget_boundary)$' -count=1 -timeout=3m
+go test -race -tags=integration ./internal/testinfra -run '^(TestC12AuthorityPITRScopedAccessPolicy|TestC12AuthorityPITRSQLPolicy|TestC12AuthorityPITRSQLRegistryMatchesSources|TestC12AuthorityPITRCommitObservationStateMachine|TestC12AuthorityPITRRecoveryCutStateMachine)$' -count=1 -timeout=3m
+go test -race -tags=integration ./internal/nodecontrol/authority -run '^TestAuthorityPITRBridgeUsesControlledTransaction$' -count=1 -timeout=2m
+git diff --check
+```
+
+Actual assertion RED: first command0.382s/EXIT1 (Access and Transaction shared
+decoder plus uncharged decoder boundary); second1.693s/EXIT1 (both aliases escaped).
+After fixes: first0.400s/EXIT0; paired ordinary guard1.421s/EXIT0; scoped behavior
+2.793s/EXIT0; bridge0.339s/EXIT0; compile-only authority0.343s/testinfra0.371s/EXIT0,
+no tests run. Exact new-regression race3.830s, broader scoped race4.385s and bridge
+race1.381s all EXIT0 with no race report. Diff check passed. No full ordinary suite
+was repeated by this implementer; root will run one fresh frozen ordinary15m gate
+after the scoped commit, concurrently with read-only scoped review, and append its
+actual result. Ordinary81642 remains **prior-tree PASS** after these source edits.
+
+I2 and I3 remain OPEN under U1: all13 physical calls above are still unavailable /
+not executed, and the original Task4 validation finding/unknown causes are not
+resolved by this wave. R1–22, U1, all earlier failures and exclusions above remain
+in effect. The final reviewer declined scope expansion into Task10, Tasks15/18,
+B03 production decoder/provider, missing authoritative lost-fence identity,
+cross-process observation restart, arbitrary hostile same-process sandboxing,
+reinstatement of removed fresh-cluster coverage, runner race forwarding, or a
+wholesale unchanged runner audit. Those exclusions are not acceptance waivers.
+The consume → local CAS → sole driver Commit sequence is untouched. No PR, main
+merge, push, cleanup, worktree removal or physical acceptance is claimed.

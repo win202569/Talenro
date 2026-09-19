@@ -602,7 +602,6 @@ func (access *c12AuthorityAccess) query(ctx context.Context, call c12SQLCall, sq
 	if err != nil {
 		return nil, err
 	}
-	materialized.(*c12MaterializedRows).typeMap = backend.TypeMap()
 	return materialized, nil
 }
 
@@ -811,7 +810,6 @@ func (transaction *c12AuthorityTx) query(ctx context.Context, call c12SQLCall, s
 		return nil, err
 	}
 	rows := materialized.(*c12MaterializedRows)
-	rows.typeMap = transaction.backend.TypeMap()
 	rows.transaction = transaction
 	if sql == c12LatchSQL && transaction.fixture != nil {
 		if len(rows.values) != 1 {

@@ -181,9 +181,11 @@ Branch: `codex/c12-b01-task9-coordinator`, isolated worktree
 `d8b8e01483ae5e7fffa5dfb76b4f847ab95740de`. Task source checkpoints are Task1
 `29e03bc8`, Task2 `816fa7fa`, Task3 `374a8098`, Task4 `0cb6c720`, Task5
 `e3b5ed93726dd0b7d02d8a609ae24963e48087fb`, and the Task6 commit containing this
-ledger (`test(c12): close controlled PITR gates and record evidence`). Root's
-independent Task6 review, whole-branch review and authorized development-branch
-push are pending at this handoff. No PR, main merge or worktree removal is claimed.
+ledger (`test(c12): close controlled PITR gates and record evidence`). The Task6
+handoff originally awaited independent review; the subsequent whole-branch
+findings and bounded fix verification are recorded below. Scoped final rereview
+and authorized development-branch push remain pending. No PR, main merge or
+worktree removal is claimed.
 
 The [portable execution record](../superpowers/plans/2026-09-19-c12-controlled-pitr-test-interface.md#execution-record--2026-09-19-development-checkpoint-not-acceptance)
 contains the actual approval/execution checklist, exact commands/results, source
@@ -241,3 +243,42 @@ record-end defect to off/false with PostgreSQL18.4 source citations. R20 retains
 private recovery-safe identity query, without new consumer SQL/grants. Task9/B01
 is still unaccepted; Task10 certificate/desired-state serving and reconcile
 recovery remain undelivered.
+
+### Whole-branch review and bounded final source fixes
+
+The independent whole-branch review of `e1571f9f..3998d5c9` identified Important
+I1 (materialized results retained a shared mutable driver decoder), Important I2
+(all13 physical gates unexecuted), Important I3 (the historical Task4 ordinary
+validation finding), and Minor M1/M2 (an ineffective uncertain-Commit read
+assertion and a raw-driver guard that missed function-value aliases). No Critical
+finding or further production Coordinator/repository/readiness defect was found.
+
+The single final fix wave based on `3998d5c9` addresses I1 and both Minors only:
+each result keeps its independent fixed pgx decoder and reserves4KiB of the
+existing shared64MiB budget before allocation; no Scan acquires backend ownership.
+The stable-map regression exercises two legal materialized GetAuthorityFenceHead
+rows separately through Access and Transaction, then barrier-starts their first
+pg_lsn scans. Pre-fix assertions proved shared retained state and missing decoder
+charging; an actual pre-fix race was **not** reproduced. The corrected concurrent
+tests pass under the direct native race detector. M1 now requires a non-error
+materialized read and exactly one driver-query delta after uncertain Commit.
+M2 checks imported selector references against the existing small symbol inventory,
+with real-guard alias-negative and approved-symbol-positive controls.
+
+Focused final-fix verification: new regression RED0.382s, guard-alias RED1.693s;
+GREEN new regressions0.400s, ordinary API/selector guards1.421s, approved controller
+behavior/registry2.793s, direct new-regression race3.830s, broader scoped race4.385s,
+pure bridge0.339s/race1.381s, and integration compile-only authority0.343s /
+testinfra0.371s. All GREEN commands exited0. The existing codec, NULL/empty-byte,
+expiry, eager-close and Commit-boundary tests are included in the covering gates.
+Exact commands and decoder-cost rationale are in the linked portable record.
+
+I1/M1/M2 fixes await the root-owned scoped rereview; source approval is not yet
+claimed. Ordinary81642 is **prior-tree PASS**, not verification of this changed
+tree. Root will run a fresh frozen ordinary gate after this scoped commit and
+record its actual outcome; none is claimed here. I2 and I3 remain OPEN acceptance
+blockers under U1. All13 physical calls remain unavailable/not executed, and the
+historical failure causes remain unproved. The review's excluded Task10/15/18,
+B03 provider/decoder, lost-fence identity, cross-process restart, hostile same-process
+sandboxing, removed fresh-cluster coverage, runner race forwarding and wholesale
+runner audit remain outside this delivery; none is claimed implemented or accepted.

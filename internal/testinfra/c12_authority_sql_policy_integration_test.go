@@ -528,8 +528,25 @@ func c12TestPolicyAccessLedger(t *testing.T) {
 			}
 			if terminal == "uncertain" {
 				err = c12WithAccess(context.Background(), state, nil, func(a C12AuthorityAccess) error {
+					before := 0
+					for _, event := range driver.snapshot() {
+						if event == "query" {
+							before++
+						}
+					}
 					if row := a.QueryRow(context.Background(), c12GetNodeControlDatabaseIdentitySQL); row == nil {
 						t.Fatal("independent read missing")
+					} else if _, ok := row.(*c12MaterializedRow); !ok {
+						t.Fatalf("independent read rejected after uncertain Commit: %T", row)
+					}
+					after := 0
+					for _, event := range driver.snapshot() {
+						if event == "query" {
+							after++
+						}
+					}
+					if after-before != 1 {
+						t.Fatalf("independent read driver query delta=%d want1", after-before)
 					}
 					tx, err := a.Begin(context.Background())
 					if err != nil {
