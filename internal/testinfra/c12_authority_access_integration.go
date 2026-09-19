@@ -48,6 +48,7 @@ type c12CandidateBinding struct {
 	owner         *c12AuthorityPITRState
 	runGeneration uint64
 	index         uint8
+	cut           *c12CutSelectionState
 }
 
 type c12ReadBudget struct {
@@ -263,14 +264,41 @@ func (controller C12AuthorityPITRController) WithCandidateAuthorityAccess(ctx co
 	if controller.state == nil {
 		return C12PITRInvalidHandle
 	}
-	return c12WithAccess(ctx, controller.state, &candidate.binding, callback)
+	return c12WithCandidateAccess(ctx, controller.state, &candidate, callback)
 }
 
 func c12WithAccess(ctx context.Context, state *c12AuthorityPITRState, binding *c12CandidateBinding, callback func(C12AuthorityAccess) error) (result error) {
+	if binding == nil {
+		return c12WithCandidateAccess(ctx, state, nil, callback)
+	}
+	if state == nil || binding.owner != state || binding.index >= 8 {
+		return C12PITRInvalidHandle
+	}
+	state.mu.Lock()
+	candidate := state.candidates[binding.index].dto
+	state.mu.Unlock()
+	if candidate.binding != *binding {
+		return C12PITRInvalidHandle
+	}
+	return c12WithCandidateAccess(ctx, state, &candidate, callback)
+}
+
+func c12WithCandidateAccess(ctx context.Context, state *c12AuthorityPITRState, candidate *C12AuthorityPITRCandidate, callback func(C12AuthorityAccess) error) (result error) {
 	if ctx == nil || state == nil || callback == nil || state.runGeneration == 0 {
 		return C12PITRInvalidHandle
 	}
 	state.accessGate.Lock()
+	var binding *c12CandidateBinding
+	if candidate != nil {
+		state.mu.Lock()
+		valid := candidate.Promoted && state.validC12Candidate(*candidate)
+		state.mu.Unlock()
+		if !valid {
+			state.accessGate.Unlock()
+			return C12PITRInvalidHandle
+		}
+		binding = &candidate.binding
+	}
 	if state.accessActive || state.transitioning || !state.c12AccessPhaseValid(binding) {
 		state.accessGate.Unlock()
 		return C12PITRWrongPhase
@@ -313,6 +341,11 @@ func c12WithAccess(ctx context.Context, state *c12AuthorityPITRState, binding *c
 		}
 	}()
 
+	if binding != nil {
+		if _, err := lease.backend(leaseContext, false); err != nil {
+			return err
+		}
+	}
 	result = callback(&c12AuthorityAccess{lease: lease})
 	return result
 }
@@ -326,7 +359,7 @@ func (state *c12AuthorityPITRState) c12AccessPhaseValid(binding *c12CandidateBin
 		return true
 	}
 	phase := state.candidatePhase[binding.index].Load()
-	return phase >= 3 && phase <= 5
+	return phase >= 4 && phase <= 5
 }
 
 func (lease *c12AccessLease) revoke(reason C12AuthorityPITRError) {
@@ -441,6 +474,19 @@ func (lease *c12AccessLease) backend(ctx context.Context, transaction bool) (c12
 	opened, err := lease.owner.c12AccessOpener()(ctx, lease.binding)
 	if err != nil {
 		return nil, c12AccessError(err, false)
+	}
+	if lease.binding != nil {
+		err = opened.Acquire(ctx)
+		if err == nil {
+			err = c12VerifyCandidatePrivileges(ctx, opened, lease.owner.candidateRole)
+			opened.Release()
+		}
+		if err != nil {
+			cleanupContext, cancel := context.WithTimeout(context.Background(), time.Second)
+			_ = opened.Close(cleanupContext)
+			cancel()
+			return nil, c12AccessError(err, false)
+		}
 	}
 	if !lease.live.Load() || lease.ctx.Err() != nil {
 		cleanupContext, cancel := context.WithTimeout(context.Background(), time.Second)

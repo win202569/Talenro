@@ -265,6 +265,9 @@ func TestC12AuthorityPITRProfile(t *testing.T) {
 	if backup.BackupID == "" || !validC12AuthorityPITRLSN(backup.StartLSN) || !validC12AuthorityPITRLSN(backup.EndLSN) {
 		t.Fatalf("authority PITR base backup is malformed: %+v", backup)
 	}
+	if backup.binding == nil || backup.binding.systemID == 0 || backup.binding.timeline == 0 || backup.binding.containerID != controller.state.descriptor.PrimaryID {
+		t.Fatal("backup lacks retained physical identity")
+	}
 	if err := issueC12AuthorityPITRRollbackProbe(ctx, controller); err != nil {
 		t.Fatal("prove logical rollback invisibility:", err)
 	}
@@ -302,9 +305,15 @@ func TestC12AuthorityPITRProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal("crash primary at authenticated terminal cut:", err)
 	}
+	if cut.TerminalCommit != prepared || cut.RecoveryTargetLSN != prepared.EndLSN || cut.binding == nil {
+		t.Fatal("legacy prepared cut lost its authenticated target")
+	}
 	candidate, err := controller.RestoreAtCut(ctx, cut)
 	if err != nil {
 		t.Fatal("restore real authority PITR candidate:", err)
+	}
+	if candidate.binding.cut != cut.binding || candidate.TargetLSN != prepared.EndLSN {
+		t.Fatal("candidate lost exact prepared target")
 	}
 	candidate, err = controller.PromoteCandidate(ctx, candidate)
 	if err != nil {
@@ -314,8 +323,20 @@ func TestC12AuthorityPITRProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal("inspect promoted authority PITR timeline:", err)
 	}
-	if !timeline.Promoted || timeline.CandidateIndex != candidate.Index || timeline.TimelineID < 2 || !c12AuthorityPITRLSNGreaterOrEqual(timeline.ReplayLSN, prepared.EndLSN) {
+	if !timeline.Promoted || timeline.CandidateIndex != candidate.Index || timeline.TimelineID <= backup.binding.timeline || controller.state.candidates[candidate.Index].systemID != backup.binding.systemID || !c12AuthorityPITRLSNGreaterOrEqual(timeline.ReplayLSN, prepared.EndLSN) {
 		t.Fatalf("promoted authority PITR timeline is inconsistent: %+v", timeline)
+	}
+	// This is the physical prepared-terminal compatibility gate, not a simulated
+	// replay model. Both committed rows must survive the unchanged record END.
+	database, err := controller.state.openCandidateDatabase(int(candidate.Index))
+	if err != nil {
+		t.Fatal("open candidate for legacy restored-row proof:", err)
+	}
+	var immediateRows, preparedRows, rollbackRows int
+	err = database.QueryRowContext(ctx, `SELECT count(*) FILTER (WHERE commit_kind='commit'),count(*) FILTER (WHERE commit_kind='commit_prepared'),count(*) FILTER (WHERE commit_kind='rollback') FROM public.c12_authority_pitr_probe`).Scan(&immediateRows, &preparedRows, &rollbackRows)
+	_ = database.Close()
+	if err != nil || immediateRows != 1 || preparedRows != 1 || rollbackRows != 0 {
+		t.Fatalf("legacy restored rows: immediate=%d prepared=%d rollback=%d err=%v", immediateRows, preparedRows, rollbackRows, err)
 	}
 	if err := cleanupC12AuthorityPITR(ctx, controller); err != nil {
 		t.Fatal("verify ownership WAL and exact candidate cleanup:", err)

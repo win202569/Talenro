@@ -43,6 +43,7 @@ type C12AuthorityPITRBaseBackup struct {
 	BackupID string
 	StartLSN string
 	EndLSN   string
+	binding  *c12BackupBinding
 }
 
 type C12AuthorityPITRCommit struct {
@@ -56,6 +57,7 @@ type C12AuthorityPITRCut struct {
 	BackupID          string
 	TerminalCommit    C12AuthorityPITRCommit
 	RecoveryTargetLSN string
+	binding           *c12CutSelectionState
 }
 
 type C12AuthorityPITRCandidate struct {
@@ -114,6 +116,9 @@ type c12AuthorityPITRState struct {
 	observationResponse   func() error
 	legacyObservation     bool
 	dockerCalls           atomic.Uint64
+	dockerExecute         func(context.Context, ...string) ([]byte, error)
+	candidateDatabaseOpen func(int) (*sql.DB, error)
+	selection             *c12CutSelectionState
 }
 
 func (state *c12AuthorityPITRState) beginC12Transition(claim func() bool) bool {
@@ -138,6 +143,9 @@ type c12AuthorityPITRCandidateState struct {
 	volumeExists bool
 	containerUp  bool
 	targetLSN    string
+	dto          C12AuthorityPITRCandidate
+	systemID     uint64
+	timeline     uint64
 }
 
 type c12AuthorityPITRDescriptor struct {
@@ -430,6 +438,13 @@ func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Contex
 	if err := state.closeC12Setup(ctx); err != nil {
 		return C12AuthorityPITRBaseBackup{}, err
 	}
+	systemID, timeline, _, err := c12PhysicalIdentity(ctx, state.database)
+	state.fixtureMu.Lock()
+	identityMatches := state.fixture != nil && state.fixture.systemID == systemID && state.fixture.timeline > 0 && uint64(state.fixture.timeline) == timeline
+	state.fixtureMu.Unlock()
+	if err != nil || !identityMatches {
+		return C12AuthorityPITRBaseBackup{}, C12PITRDependencyFailure
+	}
 	if err := state.wal.append("INTENT", "basebackup", state.descriptor.BaseBackupName, "", c12AuthorityPITRLabels(state.descriptor, "basebackup"), 0, state.descriptor.BaseBackupName, "creating", ""); err != nil {
 		return C12AuthorityPITRBaseBackup{}, err
 	}
@@ -450,8 +465,12 @@ func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Contex
 	if err := state.database.QueryRowContext(ctx, `SELECT pg_catalog.pg_current_wal_flush_lsn()::text`).Scan(&endLSN); err != nil || !validC12AuthorityPITRLSN(endLSN) {
 		return C12AuthorityPITRBaseBackup{}, errors.New("authority PITR base-backup end LSN failed")
 	}
+	endSystem, endTimeline, _, err := c12PhysicalIdentity(ctx, state.database)
+	if err != nil || endSystem != systemID || endTimeline != timeline || c12ValidateRecoveryOrder(startLSN, endLSN, endLSN) != nil {
+		return C12AuthorityPITRBaseBackup{}, C12PITRDependencyFailure
+	}
 	backupDigest := sha256.Sum256([]byte(state.descriptor.RunSuffix + "\x00" + startLSN + "\x00" + endLSN))
-	backup := C12AuthorityPITRBaseBackup{BackupID: hex.EncodeToString(backupDigest[:]), StartLSN: startLSN, EndLSN: endLSN}
+	backup := C12AuthorityPITRBaseBackup{BackupID: hex.EncodeToString(backupDigest[:]), StartLSN: startLSN, EndLSN: endLSN, binding: &c12BackupBinding{owner: state, generation: state.runGeneration, systemID: systemID, timeline: timeline, containerID: state.descriptor.PrimaryID}}
 	state.mu.Lock()
 	state.baseBackup = backup
 	state.mu.Unlock()
@@ -463,31 +482,37 @@ func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Contex
 }
 
 func (controller C12AuthorityPITRController) CrashPrimary(ctx context.Context, backup C12AuthorityPITRBaseBackup, terminal C12AuthorityPITRCommit) (C12AuthorityPITRCut, error) {
-	if controller.state == nil || !validC12AuthorityPITRLSN(terminal.EndLSN) {
+	if ctx == nil || controller.state == nil || !validC12AuthorityPITRLSN(terminal.EndLSN) {
 		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
 	}
+	if ctx.Err() != nil {
+		return C12AuthorityPITRCut{}, C12PITRCanceled
+	}
 	state := controller.state
-	poisoned := false
-	if !state.beginC12Transition(func() bool {
-		state.mu.Lock()
-		defer state.mu.Unlock()
-		poisoned = state.observationPoison
-		return !poisoned && state.phase.CompareAndSwap(2, 11)
-	}) {
-		if poisoned {
-			return C12AuthorityPITRCut{}, C12PITRIndeterminate
+	err := state.claimC12Cut(func() error {
+		if !state.validC12Backup(backup) || terminal != state.terminalCommit || terminal.SQLXID == 0 ||
+			(terminal.Kind != C12AuthorityPITRCommitImmediate && terminal.Kind != C12AuthorityPITRCommitPrepared) ||
+			(terminal.Kind == C12AuthorityPITRCommitPrepared) != (terminal.GID != "") {
+			return C12PITRInvalidHandle
 		}
-		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
+		if state.selection != nil {
+			return C12PITRWrongPhase
+		}
+		return c12ValidateRecoveryOrder(backup.EndLSN, terminal.EndLSN, terminal.EndLSN)
+	})
+	if err != nil {
+		return C12AuthorityPITRCut{}, err
 	}
 	defer state.endC12Transition()
 	state.mu.Lock()
-	wantBackup, wantTerminal := state.baseBackup, state.terminalCommit
+	state.selection = &c12CutSelectionState{owner: state, generation: state.runGeneration, backup: backup}
 	state.mu.Unlock()
-	if backup != wantBackup || terminal != wantTerminal || terminal.SQLXID == 0 ||
-		(terminal.Kind != C12AuthorityPITRCommitImmediate && terminal.Kind != C12AuthorityPITRCommitPrepared) ||
-		(terminal.Kind == C12AuthorityPITRCommitPrepared) != (terminal.GID != "") {
-		return C12AuthorityPITRCut{}, errors.New("authority PITR crash cut is not controller-bound")
-	}
+	return c12CrashAtValidatedCut(ctx, state, backup, terminal, terminal)
+}
+
+// The caller has authenticated retained records and exclusively claimed phase11.
+// Archive coverage follows boundary; recovery configuration follows target only.
+func c12CrashAtValidatedCut(ctx context.Context, state *c12AuthorityPITRState, backup C12AuthorityPITRBaseBackup, target, terminal C12AuthorityPITRCommit) (C12AuthorityPITRCut, error) {
 	var archivedSegment string
 	if err := state.database.QueryRowContext(ctx, `SELECT pg_catalog.pg_walfile_name(pg_catalog.pg_switch_wal())`).Scan(&archivedSegment); err != nil || archivedSegment == "" {
 		return C12AuthorityPITRCut{}, errors.New("authority PITR WAL switch failed")
@@ -517,7 +542,7 @@ func (controller C12AuthorityPITRController) CrashPrimary(ctx context.Context, b
 	if err != nil || status != "exited" {
 		return C12AuthorityPITRCut{}, errors.New("authority PITR primary did not reach crashed state")
 	}
-	cut := C12AuthorityPITRCut{BackupID: backup.BackupID, TerminalCommit: terminal, RecoveryTargetLSN: terminal.EndLSN}
+	cut := C12AuthorityPITRCut{BackupID: backup.BackupID, TerminalCommit: terminal, RecoveryTargetLSN: target.EndLSN, binding: state.selection}
 	state.mu.Lock()
 	state.cut = cut
 	state.mu.Unlock()
@@ -534,20 +559,30 @@ func (controller C12AuthorityPITRController) RestoreAtCut(ctx context.Context, c
 		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR restore cut")
 	}
 	state := controller.state
-	if !state.beginC12Transition(func() bool { return state.phase.Load() == 3 }) {
-		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR restore cut")
+	state.accessGate.Lock()
+	state.mu.Lock()
+	var admission error
+	index := state.nextCandidate.Load()
+	switch {
+	case cut != state.cut || cut.binding == nil || cut.binding != state.selection || !state.validC12Backup(cut.binding.backup):
+		admission = C12PITRInvalidHandle
+	case state.phase.Load() != 3 || state.accessActive || state.transitioning:
+		admission = C12PITRWrongPhase
+	case index >= 8 || index >= uint32(state.descriptor.MaxCandidates):
+		admission = C12PITRCapacityExceeded
+	case state.candidatePhase[index].Load() != 0:
+		admission = C12PITRWrongPhase
+	default:
+		state.transitioning = true
+		state.nextCandidate.Store(index + 1)
+		state.candidatePhase[index].Store(1)
+	}
+	state.mu.Unlock()
+	state.accessGate.Unlock()
+	if admission != nil {
+		return C12AuthorityPITRCandidate{}, admission
 	}
 	defer state.endC12Transition()
-	state.mu.Lock()
-	wantCut := state.cut
-	state.mu.Unlock()
-	if cut != wantCut {
-		return C12AuthorityPITRCandidate{}, errors.New("authority PITR restore cut is not controller-bound")
-	}
-	index := state.nextCandidate.Add(1) - 1
-	if index >= uint32(state.descriptor.MaxCandidates) || !state.candidatePhase[index].CompareAndSwap(0, 1) {
-		return C12AuthorityPITRCandidate{}, errors.New("authority PITR candidate limit exceeded")
-	}
 	name := state.descriptor.CandidateNames[index]
 	dataName := state.descriptor.CandidateDataNames[index]
 	role := fmt.Sprintf("candidate-%02d-data", index)
@@ -585,7 +620,9 @@ func (controller C12AuthorityPITRController) RestoreAtCut(ctx context.Context, c
 	if err := state.wal.append("INTENT", "container", name, "", containerLabels, 0, "", "restoring", cut.RecoveryTargetLSN); err != nil {
 		return C12AuthorityPITRCandidate{}, err
 	}
-	recoveryScript := "set -eu; mkdir -p \"$PGDATA\"; cp -a /source/. \"$PGDATA/\"; touch \"$PGDATA/recovery.signal\"; printf \"%s\\n\" \"restore_command = 'cp /archive/%f %p'\" \"recovery_target_lsn = '" + cut.RecoveryTargetLSN + "'\" \"recovery_target_inclusive = 'true'\" \"recovery_target_action = 'pause'\" >> \"$PGDATA/postgresql.auto.conf\"; chown -R postgres:postgres \"$PGDATA\"; exec su-exec postgres postgres"
+	// Logical decoding supplies the commit record END. Exclusive recovery stops
+	// before the following record's START, including the selected commit itself.
+	recoveryScript := "set -eu; mkdir -p \"$PGDATA\"; cp -a /source/. \"$PGDATA/\"; touch \"$PGDATA/recovery.signal\"; printf \"%s\\n\" \"restore_command = 'cp /archive/%f %p'\" \"recovery_target_lsn = '" + cut.RecoveryTargetLSN + "'\" \"recovery_target_inclusive = 'false'\" \"recovery_target_action = 'pause'\" >> \"$PGDATA/postgresql.auto.conf\"; chown -R postgres:postgres \"$PGDATA\"; exec su-exec postgres postgres"
 	containerID, err := state.dockerOne(ctx, "run", "--detach", "--name", name,
 		"--label", "talenro.c12.managed=true", "--label", "talenro.c12.run="+state.descriptor.RunSuffix,
 		"--label", "talenro.c12.profile=authority-v7-pitr", "--label", "talenro.c12.role="+containerRole,
@@ -615,11 +652,26 @@ func (controller C12AuthorityPITRController) RestoreAtCut(ctx context.Context, c
 	if err := state.waitForCandidateCut(ctx, int(index), cut.RecoveryTargetLSN); err != nil {
 		return C12AuthorityPITRCandidate{}, err
 	}
-	state.candidatePhase[index].Store(3)
+	database, err := state.openCandidateDatabase(int(index))
+	if err != nil {
+		return C12AuthorityPITRCandidate{}, err
+	}
+	systemID, timeline, err := c12RecoveryPhysicalIdentity(ctx, database)
+	_ = database.Close()
+	if err != nil || systemID != state.baseBackup.binding.systemID || timeline != state.baseBackup.binding.timeline {
+		return C12AuthorityPITRCandidate{}, C12PITRDependencyFailure
+	}
 	if err := state.wal.append("TRANSITION", "candidate", name, containerID, containerLabels, port, "", "paused_at_cut", cut.RecoveryTargetLSN); err != nil {
 		return C12AuthorityPITRCandidate{}, err
 	}
-	return C12AuthorityPITRCandidate{Index: uint8(index), Name: name, DataName: dataName, TargetLSN: cut.RecoveryTargetLSN}, nil
+	candidate := C12AuthorityPITRCandidate{Index: uint8(index), Name: name, DataName: dataName, TargetLSN: cut.RecoveryTargetLSN, binding: c12CandidateBinding{owner: state, runGeneration: state.runGeneration, index: uint8(index), cut: cut.binding}}
+	state.mu.Lock()
+	state.candidates[index].dto = candidate
+	state.candidates[index].systemID = systemID
+	state.candidates[index].timeline = timeline
+	state.candidatePhase[index].Store(3)
+	state.mu.Unlock()
+	return candidate, nil
 }
 
 func (controller C12AuthorityPITRController) PromoteCandidate(ctx context.Context, candidate C12AuthorityPITRCandidate) (C12AuthorityPITRCandidate, error) {
@@ -627,13 +679,10 @@ func (controller C12AuthorityPITRController) PromoteCandidate(ctx context.Contex
 		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR candidate promotion")
 	}
 	state := controller.state
-	if !state.beginC12Transition(func() bool { return state.candidatePhase[candidate.Index].CompareAndSwap(3, 4) }) {
-		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR candidate promotion")
+	if err := state.claimC12Candidate(candidate, 3); err != nil {
+		return C12AuthorityPITRCandidate{}, err
 	}
 	defer state.endC12Transition()
-	if candidate.Name != state.descriptor.CandidateNames[candidate.Index] || candidate.DataName != state.descriptor.CandidateDataNames[candidate.Index] {
-		return C12AuthorityPITRCandidate{}, errors.New("authority PITR candidate promotion identity mismatch")
-	}
 	database, err := state.openCandidateDatabase(int(candidate.Index))
 	if err != nil {
 		return C12AuthorityPITRCandidate{}, err
@@ -647,10 +696,20 @@ func (controller C12AuthorityPITRController) PromoteCandidate(ctx context.Contex
 	if err := database.QueryRowContext(ctx, `SELECT pg_catalog.pg_is_in_recovery()`).Scan(&inRecovery); err != nil || inRecovery {
 		return C12AuthorityPITRCandidate{}, errors.New("authority PITR candidate remained in recovery")
 	}
+	systemID, timeline, _, err := c12PhysicalIdentity(ctx, database)
+	if err != nil || systemID != state.baseBackup.binding.systemID || timeline <= state.baseBackup.binding.timeline {
+		return C12AuthorityPITRCandidate{}, C12PITRDependencyFailure
+	}
 	candidate.Promoted = true
 	if err := state.wal.append("TRANSITION", "candidate", candidate.Name, state.candidates[candidate.Index].containerID, c12AuthorityPITRLabels(state.descriptor, fmt.Sprintf("candidate-%02d", candidate.Index)), state.candidates[candidate.Index].port, "", "promoted", candidate.TargetLSN); err != nil {
 		return C12AuthorityPITRCandidate{}, err
 	}
+	state.mu.Lock()
+	state.candidates[candidate.Index].dto = candidate
+	state.candidates[candidate.Index].systemID = systemID
+	state.candidates[candidate.Index].timeline = timeline
+	state.candidatePhase[candidate.Index].Store(4)
+	state.mu.Unlock()
 	return candidate, nil
 }
 
@@ -659,8 +718,8 @@ func (controller C12AuthorityPITRController) InspectTimeline(ctx context.Context
 		return C12AuthorityPITRTimeline{}, errors.New("invalid authority PITR timeline inspection")
 	}
 	state := controller.state
-	if !state.beginC12Transition(func() bool { return state.candidatePhase[candidate.Index].CompareAndSwap(4, 5) }) {
-		return C12AuthorityPITRTimeline{}, errors.New("invalid authority PITR timeline inspection")
+	if err := state.claimC12Candidate(candidate, 4); err != nil {
+		return C12AuthorityPITRTimeline{}, err
 	}
 	defer state.endC12Transition()
 	database, err := state.openCandidateDatabase(int(candidate.Index))
@@ -668,15 +727,15 @@ func (controller C12AuthorityPITRController) InspectTimeline(ctx context.Context
 		return C12AuthorityPITRTimeline{}, err
 	}
 	defer database.Close()
-	var timeline uint64
-	var replayLSN string
-	if err := database.QueryRowContext(ctx, `SELECT timeline_id::bigint, pg_catalog.pg_current_wal_flush_lsn()::text FROM pg_catalog.pg_control_checkpoint()`).Scan(&timeline, &replayLSN); err != nil || timeline < 2 || !validC12AuthorityPITRLSN(replayLSN) {
+	systemID, timeline, replayLSN, err := c12PhysicalIdentity(ctx, database)
+	if err != nil || systemID != state.baseBackup.binding.systemID || timeline <= state.baseBackup.binding.timeline || timeline != state.candidates[candidate.Index].timeline {
 		return C12AuthorityPITRTimeline{}, errors.New("authority PITR timeline inspection failed")
 	}
 	timelineResult := C12AuthorityPITRTimeline{CandidateIndex: candidate.Index, TimelineID: timeline, ReplayLSN: normalizeC12AuthorityPITRLSN(replayLSN), Promoted: true}
 	if err := state.wal.append("TRANSITION", "candidate", candidate.Name, state.candidates[candidate.Index].containerID, c12AuthorityPITRLabels(state.descriptor, fmt.Sprintf("candidate-%02d", candidate.Index)), state.candidates[candidate.Index].port, "", "timeline_inspected", timelineResult.ReplayLSN); err != nil {
 		return C12AuthorityPITRTimeline{}, err
 	}
+	state.candidatePhase[candidate.Index].Store(5)
 	return timelineResult, nil
 }
 
@@ -878,10 +937,11 @@ func (state *c12AuthorityPITRState) waitForCandidateCut(ctx context.Context, ind
 		database, err := state.openCandidateDatabase(index)
 		if err == nil {
 			var inRecovery bool
+			var paused bool
 			var replayLSN sql.NullString
-			err = database.QueryRowContext(ctx, `SELECT pg_catalog.pg_is_in_recovery(), pg_catalog.pg_last_wal_replay_lsn()::text`).Scan(&inRecovery, &replayLSN)
+			err = database.QueryRowContext(ctx, `SELECT pg_catalog.pg_is_in_recovery(), pg_catalog.pg_last_wal_replay_lsn()::text, pg_catalog.pg_is_wal_replay_paused()`).Scan(&inRecovery, &replayLSN, &paused)
 			_ = database.Close()
-			if err == nil && inRecovery && replayLSN.Valid && c12AuthorityPITRLSNGreaterOrEqual(replayLSN.String, targetLSN) {
+			if err == nil && inRecovery && paused && replayLSN.Valid && c12AuthorityPITRLSNGreaterOrEqual(replayLSN.String, targetLSN) {
 				return nil
 			}
 		}
@@ -895,6 +955,9 @@ func (state *c12AuthorityPITRState) waitForCandidateCut(ctx context.Context, ind
 }
 
 func (state *c12AuthorityPITRState) openCandidateDatabase(index int) (*sql.DB, error) {
+	if state.candidateDatabaseOpen != nil {
+		return state.candidateDatabaseOpen(index)
+	}
 	state.mu.Lock()
 	port := state.candidates[index].port
 	state.mu.Unlock()
@@ -965,6 +1028,9 @@ func (state *c12AuthorityPITRState) verifyVolume(ctx context.Context, name, role
 
 func (state *c12AuthorityPITRState) docker(ctx context.Context, arguments ...string) ([]byte, error) {
 	state.dockerCalls.Add(1)
+	if state.dockerExecute != nil {
+		return state.dockerExecute(ctx, arguments...)
+	}
 	command := exec.CommandContext(ctx, state.descriptor.DockerExecutable, arguments...)
 	var output bytes.Buffer
 	command.Stdout = &output

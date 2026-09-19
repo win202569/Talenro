@@ -21,6 +21,7 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -923,11 +924,36 @@ func c12TestOriginalCallKind(t *testing.T) {
 			state.fixture = c12PolicyFixture()
 			var binding *c12CandidateBinding
 			if candidate {
-				state.candidatePhase[0].Store(5)
-				binding = &c12CandidateBinding{owner: state, runGeneration: 1, index: 0}
+				controller, fixture := newC12CutFixture(t)
+				observed := fixture.observed("0/20", 7)
+				selection, err := controller.SelectRecoveryCut(controller.state.baseBackup, observed)
+				if err != nil {
+					t.Fatal(err)
+				}
+				cut, err := controller.CrashPrimaryAtCut(context.Background(), selection, observed)
+				if err != nil {
+					t.Fatal(err)
+				}
+				dto, err := controller.RestoreAtCut(context.Background(), cut)
+				if err != nil {
+					t.Fatal(err)
+				}
+				dto, err = controller.PromoteCandidate(context.Background(), dto)
+				if err != nil {
+					t.Fatal(err)
+				}
+				state = controller.state
+				state.fixture = c12PolicyFixture()
+				state.candidateRole = "candidate_role"
+				state.accessOpen = func(context.Context, *c12CandidateBinding) (c12AccessBackend, error) {
+					d.event("open")
+					return &c12PrivilegeBackend{c12AccessTestDriver: &c12AccessTestDriver{fixture: d}, values: []any{"candidate_role", "candidate_role", false, "off", true, true, false, true}}, nil
+				}
+				binding = &dto.binding
 			}
 			err := c12WithAccess(context.Background(), state, binding, func(a C12AuthorityAccess) error {
 				for _, db := range []C12AuthorityAccess{a} {
+					before := d.snapshot()
 					if _, err := db.Query(context.Background(), pitrAuxCountSQL, state.fixture.operations[0].operationID); err == nil {
 						t.Fatal("access Query admitted QueryRow")
 					}
@@ -935,7 +961,7 @@ func c12TestOriginalCallKind(t *testing.T) {
 					if _, ok := row.(c12ErrorRow); !ok {
 						t.Fatal("access QueryRow admitted Query")
 					}
-					if opens, _, _, _, _ := d.counts(); opens != 0 {
+					if !reflect.DeepEqual(before, d.snapshot()) {
 						t.Fatal("authorization waited for Scan/driver")
 					}
 					row = db.QueryRow(context.Background(), pitrAuxCountSQL, state.fixture.operations[0].operationID)
@@ -947,6 +973,7 @@ func c12TestOriginalCallKind(t *testing.T) {
 				if err != nil {
 					return err
 				}
+				before := d.snapshot()
 				if _, err := tx.Query(context.Background(), pitrAuxCountSQL, state.fixture.operations[0].operationID); err == nil {
 					t.Fatal("tx Query admitted QueryRow")
 				}
@@ -954,17 +981,24 @@ func c12TestOriginalCallKind(t *testing.T) {
 				if _, ok := row.(c12ErrorRow); !ok {
 					t.Fatal("tx QueryRow admitted Query")
 				}
+				if !reflect.DeepEqual(before, d.snapshot()) {
+					t.Fatal("invalid transaction call reached driver")
+				}
 				row = tx.QueryRow(context.Background(), pitrAuxCountSQL, state.fixture.operations[0].operationID)
 				if _, ok := row.(c12ErrorRow); ok {
 					t.Fatal("valid tx QueryRow denied")
 				}
 				if candidate {
+					before = d.snapshot()
 					for query, rule := range c12AuthoritySQLRules {
 						if rule.call == c12SQLExec {
 							if _, err := tx.Exec(context.Background(), query, make([]any, rule.arity)...); err == nil {
 								t.Fatal("candidate write reached driver")
 							}
 						}
+					}
+					if !reflect.DeepEqual(before, d.snapshot()) {
+						t.Fatal("candidate write reached driver")
 					}
 				}
 				return tx.Rollback(context.Background())
