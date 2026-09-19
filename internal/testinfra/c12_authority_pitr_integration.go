@@ -740,7 +740,12 @@ func issueC12AuthorityPITRCommit(ctx context.Context, controller C12AuthorityPIT
 	}
 	commit, err := parseC12AuthorityPITRTerminal(decoded, kind, xid, gid)
 	if err != nil {
-		return C12AuthorityPITRCommit{}, err
+		// The slot has already advanced. Complete transport does not make an
+		// ambiguous terminal safe to retry or permit an older terminal to crash.
+		state.mu.Lock()
+		state.observationPoison = true
+		state.mu.Unlock()
+		return C12AuthorityPITRCommit{}, C12PITRIndeterminate
 	}
 	state.mu.Lock()
 	state.terminalCommit = commit
@@ -773,7 +778,12 @@ func issueC12AuthorityPITRRollbackProbe(ctx context.Context, controller C12Autho
 		return err
 	}
 	if len(decoded) != 0 {
-		return errors.New("authority PITR logical decoding exposed a rolled-back probe")
+		// Unexpected rollback output is semantic ambiguity after destructive
+		// consumption, just like a malformed commit terminal.
+		state.mu.Lock()
+		state.observationPoison = true
+		state.mu.Unlock()
+		return C12PITRIndeterminate
 	}
 	return nil
 }

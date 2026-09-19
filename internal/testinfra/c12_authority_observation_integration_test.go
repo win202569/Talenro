@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -115,6 +117,91 @@ type c12ObservationSQLRows struct {
 	at   int
 }
 
+// This transport drives the real legacy helpers, including their transaction
+// and terminal-validation stages. Every attempted SQL operation is recorded.
+type c12LegacyProbeConnector struct {
+	rows              []c12AuthorityPITRDecodedRow
+	events            *c12AccessTestFixture
+	cancelAfterCommit context.CancelFunc
+}
+
+func (c c12LegacyProbeConnector) Connect(context.Context) (driver.Conn, error) {
+	c.events.event("connect")
+	return &c12LegacyProbeConnection{fixture: c}, nil
+}
+func (c12LegacyProbeConnector) Driver() driver.Driver { return c12InitDriver{} }
+
+type c12LegacyProbeConnection struct{ fixture c12LegacyProbeConnector }
+
+func (c *c12LegacyProbeConnection) Prepare(string) (driver.Stmt, error) {
+	c.fixture.events.event("prepare")
+	return nil, errors.New("unexpected prepare")
+}
+func (*c12LegacyProbeConnection) Close() error { return nil }
+func (c *c12LegacyProbeConnection) Begin() (driver.Tx, error) {
+	c.fixture.events.event("begin")
+	return c, nil
+}
+func (c *c12LegacyProbeConnection) Commit() error {
+	c.fixture.events.event("commit")
+	if c.fixture.cancelAfterCommit != nil {
+		c.fixture.cancelAfterCommit()
+	}
+	return nil
+}
+func (c *c12LegacyProbeConnection) Rollback() error { c.fixture.events.event("rollback"); return nil }
+func (c *c12LegacyProbeConnection) ExecContext(_ context.Context, q string, _ []driver.NamedValue) (driver.Result, error) {
+	c.fixture.events.event("exec:" + q)
+	if q == "BEGIN" || strings.HasPrefix(q, "INSERT INTO public.c12_authority_pitr_probe(") || strings.HasPrefix(q, "PREPARE TRANSACTION '") || strings.HasPrefix(q, "COMMIT PREPARED '") {
+		return driver.RowsAffected(1), nil
+	}
+	return nil, errors.New("unexpected legacy exec")
+}
+func (c *c12LegacyProbeConnection) QueryContext(_ context.Context, q string, args []driver.NamedValue) (driver.Rows, error) {
+	c.fixture.events.event("query:" + q)
+	if q == "SELECT pg_catalog.txid_current()" && len(args) == 0 {
+		return &c12LegacyXIDRow{}, nil
+	}
+	if q == c12ObservationSQL && len(args) == 1 && args[0].Value == "slot" {
+		return &c12ObservationSQLRows{rows: c.fixture.rows}, nil
+	}
+	return nil, errors.New("unexpected legacy query")
+}
+
+type c12LegacyXIDRow struct{ done bool }
+
+func (*c12LegacyXIDRow) Columns() []string { return []string{"txid_current"} }
+func (*c12LegacyXIDRow) Close() error      { return nil }
+func (r *c12LegacyXIDRow) Next(values []driver.Value) error {
+	if r.done {
+		return io.EOF
+	}
+	r.done = true
+	values[0] = int64(7)
+	return nil
+}
+
+func newC12LegacyProbeTest(t *testing.T, rows []c12AuthorityPITRDecodedRow, cancel context.CancelFunc) (C12AuthorityPITRController, *c12AccessTestFixture) {
+	t.Helper()
+	events := &c12AccessTestFixture{}
+	db := sql.OpenDB(c12LegacyProbeConnector{rows: rows, events: events, cancelAfterCommit: cancel})
+	t.Cleanup(func() { _ = db.Close() })
+	state := &c12AuthorityPITRState{database: db, runGeneration: 1}
+	state.phase.Store(2)
+	state.descriptor.RunSuffix = "0123456789abcdef0123456789abcdef"
+	state.descriptor.SlotName = "slot"
+	path := filepath.Join(t.TempDir(), "ownership.jsonl")
+	if err := os.WriteFile(path, nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	var err error
+	state.wal, err = openC12AuthorityPITROWAL(path, [32]byte{}, 8192, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return C12AuthorityPITRController{state: state}, events
+}
+
 func (*c12ObservationSQLRows) Columns() []string { return []string{"lsn", "xid", "data"} }
 func (*c12ObservationSQLRows) Close() error      { return nil }
 func (r *c12ObservationSQLRows) Next(values []driver.Value) error {
@@ -176,6 +263,93 @@ func c12DecodedCommit(xid uint64, marker, end string) []c12AuthorityPITRDecodedR
 }
 
 func TestC12AuthorityPITRCommitObservationStateMachine(t *testing.T) {
+	t.Run("legacy_semantic_ambiguity_poison", func(t *testing.T) {
+		for _, name := range []string{"missing_terminal", "duplicate_terminal", "wrong_kind", "wrong_gid", "invalid_lsn", "rollback_rows"} {
+			t.Run(name, func(t *testing.T) {
+				rows := []c12AuthorityPITRDecodedRow{{LSN: "0/30", XID: 7, Data: "COMMIT 7"}}
+				kind := C12AuthorityPITRCommitImmediate
+				switch name {
+				case "missing_terminal":
+					rows = nil
+				case "duplicate_terminal":
+					rows = append(rows, rows[0])
+				case "wrong_kind":
+					rows[0].Data = "COMMIT PREPARED 'wrong'"
+				case "wrong_gid":
+					kind = C12AuthorityPITRCommitPrepared
+					rows[0].Data = "COMMIT PREPARED 'wrong'"
+				case "invalid_lsn":
+					rows[0].LSN = "bad"
+				}
+				c, events := newC12LegacyProbeTest(t, rows, nil)
+				previous := C12AuthorityPITRCommit{Kind: C12AuthorityPITRCommitImmediate, SQLXID: 6, EndLSN: "0/20"}
+				backup := C12AuthorityPITRBaseBackup{BackupID: "previous", StartLSN: "0/10", EndLSN: "0/18"}
+				c.state.terminalCommit = previous
+				c.state.baseBackup = backup
+				var err error
+				if name == "rollback_rows" {
+					err = issueC12AuthorityPITRRollbackProbe(context.Background(), c)
+				} else {
+					_, err = issueC12AuthorityPITRCommit(context.Background(), c, kind)
+				}
+				if !errors.Is(err, C12PITRIndeterminate) || !c.state.observationPoison {
+					t.Fatalf("destructive legacy ambiguity remained usable: poison=%v err=%v", c.state.observationPoison, err)
+				}
+				if c.state.terminalCommit != previous || c.state.baseBackup != backup || c.state.wal.sequence != 0 {
+					t.Fatal("ambiguous response changed installed diagnostics or ownership WAL")
+				}
+				before := events.snapshot()
+				dockerBefore := c.state.dockerCalls.Load()
+				sequence := c.state.commitSequence
+				for _, nextKind := range []C12AuthorityPITRCommitKind{C12AuthorityPITRCommitImmediate, C12AuthorityPITRCommitPrepared} {
+					if _, err = issueC12AuthorityPITRCommit(context.Background(), c, nextKind); !errors.Is(err, C12PITRIndeterminate) {
+						t.Fatalf("poison legacy commit: %v", err)
+					}
+				}
+				if err = issueC12AuthorityPITRRollbackProbe(context.Background(), c); !errors.Is(err, C12PITRIndeterminate) {
+					t.Fatalf("poison legacy rollback: %v", err)
+				}
+				if _, err = c.CrashPrimary(context.Background(), backup, previous); !errors.Is(err, C12PITRIndeterminate) {
+					t.Fatalf("old diagnostics authorized crash: %v", err)
+				}
+				if !reflect.DeepEqual(before, events.snapshot()) || c.state.dockerCalls.Load() != dockerBefore || c.state.phase.Load() != 2 || c.state.commitSequence != sequence {
+					t.Fatalf("poison permitted effects: before=%v after=%v", before, events.snapshot())
+				}
+			})
+		}
+	})
+	t.Run("legacy_valid_prepared_and_rollback_routes", func(t *testing.T) {
+		gid := "talenro_c12_0123456789abcdef_1"
+		c, events := newC12LegacyProbeTest(t, []c12AuthorityPITRDecodedRow{{LSN: "0/30", XID: 7, Data: "COMMIT PREPARED '" + gid + "'"}}, nil)
+		facts, err := issueC12AuthorityPITRCommit(context.Background(), c, C12AuthorityPITRCommitPrepared)
+		want := C12AuthorityPITRCommit{Kind: C12AuthorityPITRCommitPrepared, SQLXID: 7, EndLSN: "0/30", GID: gid}
+		if err != nil || facts != want || c.state.terminalCommit != want || c.state.observationPoison || c.state.wal.sequence != 1 {
+			t.Fatalf("valid prepared route: %#v %v", facts, err)
+		}
+		wantEvents := []string{"connect", "exec:BEGIN", "query:SELECT pg_catalog.txid_current()",
+			"exec:INSERT INTO public.c12_authority_pitr_probe(probe_id,commit_kind,created_at) VALUES($1,$2,clock_timestamp())",
+			"exec:PREPARE TRANSACTION '" + gid + "'", "exec:COMMIT PREPARED '" + gid + "'", "connect", "query:" + c12ObservationSQL}
+		if got := events.snapshot(); !reflect.DeepEqual(got, wantEvents) {
+			t.Fatalf("prepared operation sequence: %v", got)
+		}
+		rollback, _ := newC12LegacyProbeTest(t, nil, nil)
+		if err = issueC12AuthorityPITRRollbackProbe(context.Background(), rollback); err != nil || rollback.state.observationPoison {
+			t.Fatalf("valid rollback route: %v", err)
+		}
+	})
+	t.Run("legacy_pre_query_cancel_does_not_poison", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		c, events := newC12LegacyProbeTest(t, nil, cancel)
+		if _, err := issueC12AuthorityPITRCommit(ctx, c, C12AuthorityPITRCommitImmediate); !errors.Is(err, C12PITRCanceled) || c.state.observationPoison {
+			t.Fatalf("pre-drain canceled: poison=%v err=%v", c.state.observationPoison, err)
+		}
+		for _, event := range events.snapshot() {
+			if event == "query:"+c12ObservationSQL {
+				t.Fatal("destructive query issued after pre-query cancellation")
+			}
+		}
+	})
 	t.Run("legacy_shared_bounded_reader", func(t *testing.T) {
 		for _, count := range []int{3, 65537} {
 			t.Run(strconv.Itoa(count), func(t *testing.T) {
