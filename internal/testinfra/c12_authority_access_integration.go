@@ -125,15 +125,16 @@ type c12AuthorityAccess struct {
 }
 
 type c12AuthorityTx struct {
-	driver       c12AccessDriver
-	backend      c12AccessBackend
-	lease        *c12AccessLease
-	generation   uint64
-	terminal     atomic.Uint32
-	operation    chan struct{}
-	ownsBackend  atomic.Bool
-	fixture      *c12FixtureLedger
-	fixtureDirty bool
+	driver        c12AccessDriver
+	backend       c12AccessBackend
+	lease         *c12AccessLease
+	generation    uint64
+	runGeneration uint64
+	terminal      atomic.Uint32
+	operation     chan struct{}
+	ownsBackend   atomic.Bool
+	fixture       *c12FixtureLedger
+	fixtureDirty  bool
 }
 
 const (
@@ -634,7 +635,8 @@ func (transaction *c12AuthorityTx) status() error {
 func newC12AuthorityTx(driver c12AccessDriver, backend c12AccessBackend, lease *c12AccessLease, generation uint64) *c12AuthorityTx {
 	transaction := &c12AuthorityTx{
 		driver: driver, backend: backend, lease: lease, generation: generation,
-		operation: make(chan struct{}, 1),
+		runGeneration: lease.owner.runGeneration,
+		operation:     make(chan struct{}, 1),
 	}
 	transaction.operation <- struct{}{}
 	transaction.ownsBackend.Store(true)

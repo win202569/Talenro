@@ -28,6 +28,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -106,6 +107,13 @@ type c12AuthorityPITRState struct {
 	setupClosed           bool
 	candidateRole         string
 	candidatePassword     string
+	observations          [64]*c12ObservationState // mu protects observation state and seams
+	observationPoison     bool
+	observationQuery      func(context.Context) (pgx.Rows, error)
+	observationRandom     func([]byte) (int, error)
+	observationResponse   func() error
+	legacyObservation     bool
+	dockerCalls           atomic.Uint64
 }
 
 func (state *c12AuthorityPITRState) beginC12Transition(claim func() bool) bool {
@@ -459,7 +467,16 @@ func (controller C12AuthorityPITRController) CrashPrimary(ctx context.Context, b
 		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
 	}
 	state := controller.state
-	if !state.beginC12Transition(func() bool { return state.phase.CompareAndSwap(2, 11) }) {
+	poisoned := false
+	if !state.beginC12Transition(func() bool {
+		state.mu.Lock()
+		defer state.mu.Unlock()
+		poisoned = state.observationPoison
+		return !poisoned && state.phase.CompareAndSwap(2, 11)
+	}) {
+		if poisoned {
+			return C12AuthorityPITRCut{}, C12PITRIndeterminate
+		}
 		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
 	}
 	defer state.endC12Transition()
@@ -668,6 +685,10 @@ func issueC12AuthorityPITRCommit(ctx context.Context, controller C12AuthorityPIT
 		return C12AuthorityPITRCommit{}, errors.New("invalid authority PITR commit probe")
 	}
 	state := controller.state
+	if err := c12BeginLegacyObservation(state); err != nil {
+		return C12AuthorityPITRCommit{}, err
+	}
+	defer state.endC12Transition()
 	state.mu.Lock()
 	state.commitSequence++
 	sequence := state.commitSequence
@@ -713,29 +734,10 @@ func issueC12AuthorityPITRCommit(ctx context.Context, controller C12AuthorityPIT
 			return C12AuthorityPITRCommit{}, errors.New("commit prepared authority PITR probe")
 		}
 	}
-	rows, err := state.database.QueryContext(ctx, `SELECT lsn::text, xid::text, data FROM pg_catalog.pg_logical_slot_get_changes($1,NULL,NULL,'include-xids','1')`, state.descriptor.SlotName)
+	decoded, err := c12ReadLegacyObservation(ctx, state)
 	if err != nil {
-		return C12AuthorityPITRCommit{}, errors.New("read authority PITR logical terminal")
+		return C12AuthorityPITRCommit{}, err
 	}
-	decoded := make([]c12AuthorityPITRDecodedRow, 0, 8)
-	for rows.Next() {
-		var row c12AuthorityPITRDecodedRow
-		var rawXID string
-		if err := rows.Scan(&row.LSN, &rawXID, &row.Data); err != nil {
-			rows.Close()
-			return C12AuthorityPITRCommit{}, errors.New("scan authority PITR logical terminal")
-		}
-		row.XID, err = strconv.ParseUint(rawXID, 10, 64)
-		if err != nil {
-			rows.Close()
-			return C12AuthorityPITRCommit{}, errors.New("parse authority PITR logical xid")
-		}
-		decoded = append(decoded, row)
-	}
-	if err := rows.Err(); err != nil {
-		return C12AuthorityPITRCommit{}, errors.New("iterate authority PITR logical terminal")
-	}
-	rows.Close()
 	commit, err := parseC12AuthorityPITRTerminal(decoded, kind, xid, gid)
 	if err != nil {
 		return C12AuthorityPITRCommit{}, err
@@ -751,6 +753,10 @@ func issueC12AuthorityPITRCommit(ctx context.Context, controller C12AuthorityPIT
 
 func issueC12AuthorityPITRRollbackProbe(ctx context.Context, controller C12AuthorityPITRController) error {
 	state := controller.state
+	if err := c12BeginLegacyObservation(state); err != nil {
+		return err
+	}
+	defer state.endC12Transition()
 	tx, err := state.database.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -762,15 +768,14 @@ func issueC12AuthorityPITRRollbackProbe(ctx context.Context, controller C12Autho
 	if err := tx.Rollback(); err != nil {
 		return err
 	}
-	rows, err := state.database.QueryContext(ctx, `SELECT lsn::text, xid::text, data FROM pg_catalog.pg_logical_slot_get_changes($1,NULL,NULL,'include-xids','1')`, state.descriptor.SlotName)
+	decoded, err := c12ReadLegacyObservation(ctx, state)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
-	if rows.Next() {
+	if len(decoded) != 0 {
 		return errors.New("authority PITR logical decoding exposed a rolled-back probe")
 	}
-	return rows.Err()
+	return nil
 }
 
 func parseC12AuthorityPITRTerminal(rows []c12AuthorityPITRDecodedRow, kind C12AuthorityPITRCommitKind, xid uint64, gid string) (C12AuthorityPITRCommit, error) {
@@ -949,6 +954,7 @@ func (state *c12AuthorityPITRState) verifyVolume(ctx context.Context, name, role
 }
 
 func (state *c12AuthorityPITRState) docker(ctx context.Context, arguments ...string) ([]byte, error) {
+	state.dockerCalls.Add(1)
 	command := exec.CommandContext(ctx, state.descriptor.DockerExecutable, arguments...)
 	var output bytes.Buffer
 	command.Stdout = &output
