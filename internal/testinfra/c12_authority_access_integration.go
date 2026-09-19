@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/url"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -123,13 +125,15 @@ type c12AuthorityAccess struct {
 }
 
 type c12AuthorityTx struct {
-	driver      c12AccessDriver
-	backend     c12AccessBackend
-	lease       *c12AccessLease
-	generation  uint64
-	terminal    atomic.Uint32
-	operation   chan struct{}
-	ownsBackend atomic.Bool
+	driver       c12AccessDriver
+	backend      c12AccessBackend
+	lease        *c12AccessLease
+	generation   uint64
+	terminal     atomic.Uint32
+	operation    chan struct{}
+	ownsBackend  atomic.Bool
+	fixture      *c12FixtureLedger
+	fixtureDirty bool
 }
 
 const (
@@ -219,10 +223,19 @@ func (state *c12AuthorityPITRState) openC12AccessBackend(ctx context.Context, bi
 			return nil, C12PITRDependencyFailure
 		}
 		connectionURL.Host = "127.0.0.1:" + strconv.Itoa(port)
+		if state.candidateRole == "" || state.candidatePassword == "" {
+			return nil, C12PITRDependencyFailure
+		}
+		connectionURL.User = url.UserPassword(state.candidateRole, state.candidatePassword)
 	}
 	config, err := pgx.ParseConfig(connectionURL.String())
 	if err != nil {
 		return nil, C12PITRDependencyFailure
+	}
+	if binding != nil {
+		// URL query parameters must not retain primary credentials after parsing.
+		config.User = state.candidateRole
+		config.Password = state.candidatePassword
 	}
 	connection, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
@@ -381,6 +394,12 @@ func (lease *c12AccessLease) authorize(inTransaction bool, operation c12AccessOp
 	if err := lease.status(); err != nil {
 		return err
 	}
+	lease.owner.fixtureMu.Lock()
+	configured := lease.owner.fixture != nil
+	lease.owner.fixtureMu.Unlock()
+	if configured {
+		return nil
+	}
 	if lease.owner.accessPolicy == nil || !lease.owner.accessPolicy(lease.binding, inTransaction, operation, sql) {
 		return C12PITRDependencyFailure
 	}
@@ -476,6 +495,10 @@ func (access *c12AuthorityAccess) Exec(ctx context.Context, sql string, args ...
 	if err := access.lease.authorize(false, c12AccessOperationExec, sql); err != nil {
 		return pgconn.CommandTag{}, err
 	}
+	args, err := access.lease.prepareSQL(nil, c12SQLExec, sql, args)
+	if err != nil {
+		return pgconn.CommandTag{}, err
+	}
 	operationContext, cancel, err := access.lease.operationContext(ctx)
 	if err != nil {
 		return pgconn.CommandTag{}, err
@@ -494,6 +517,10 @@ func (access *c12AuthorityAccess) Exec(ctx context.Context, sql string, args ...
 }
 
 func (access *c12AuthorityAccess) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return access.query(ctx, c12SQLQuery, sql, args...)
+}
+
+func (access *c12AuthorityAccess) query(ctx context.Context, call c12SQLCall, sql string, args ...any) (pgx.Rows, error) {
 	if access == nil || access.lease == nil {
 		return nil, C12PITRInvalidHandle
 	}
@@ -501,6 +528,10 @@ func (access *c12AuthorityAccess) Query(ctx context.Context, sql string, args ..
 		return nil, err
 	}
 	if err := access.lease.authorize(false, c12AccessOperationQuery, sql); err != nil {
+		return nil, err
+	}
+	args, err := access.lease.prepareSQL(nil, call, sql, args)
+	if err != nil {
 		return nil, err
 	}
 	operationContext, cancel, err := access.lease.operationContext(ctx)
@@ -529,7 +560,7 @@ func (access *c12AuthorityAccess) Query(ctx context.Context, sql string, args ..
 }
 
 func (access *c12AuthorityAccess) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	rows, err := access.Query(ctx, sql, args...)
+	rows, err := access.query(ctx, c12SQLQueryRow, sql, args...)
 	if err != nil {
 		return c12ErrorRow{err: err}
 	}
@@ -607,6 +638,9 @@ func newC12AuthorityTx(driver c12AccessDriver, backend c12AccessBackend, lease *
 	}
 	transaction.operation <- struct{}{}
 	transaction.ownsBackend.Store(true)
+	lease.owner.fixtureMu.Lock()
+	transaction.fixture = lease.owner.fixture.clone()
+	lease.owner.fixtureMu.Unlock()
 	return transaction
 }
 
@@ -681,11 +715,23 @@ func (transaction *c12AuthorityTx) Exec(ctx context.Context, sql string, args ..
 		return pgconn.CommandTag{}, err
 	}
 	defer transaction.releaseOperation(true)
+	args, err = transaction.lease.prepareSQL(transaction, c12SQLExec, sql, args)
+	if err != nil {
+		return pgconn.CommandTag{}, err
+	}
 	tag, err := transaction.driver.Exec(operationContext, sql, args...)
+	if err == nil && transaction.fixture != nil {
+		transaction.fixture.applied(sql, args, tag.RowsAffected())
+		transaction.fixtureDirty = true
+	}
 	return tag, c12AccessError(err, false)
 }
 
 func (transaction *c12AuthorityTx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return transaction.query(ctx, c12SQLQuery, sql, args...)
+}
+
+func (transaction *c12AuthorityTx) query(ctx context.Context, call c12SQLCall, sql string, args ...any) (pgx.Rows, error) {
 	if err := transaction.status(); err != nil {
 		return nil, err
 	}
@@ -704,6 +750,10 @@ func (transaction *c12AuthorityTx) Query(ctx context.Context, sql string, args .
 		return nil, err
 	}
 	defer transaction.releaseOperation(true)
+	args, err = transaction.lease.prepareSQL(transaction, call, sql, args)
+	if err != nil {
+		return nil, err
+	}
 	driverRows, err := transaction.driver.Query(operationContext, sql, args...)
 	if err != nil {
 		return nil, c12AccessError(err, false)
@@ -715,11 +765,24 @@ func (transaction *c12AuthorityTx) Query(ctx context.Context, sql string, args .
 	rows := materialized.(*c12MaterializedRows)
 	rows.typeMap = transaction.backend.TypeMap()
 	rows.transaction = transaction
+	if sql == c12LatchSQL && transaction.fixture != nil {
+		if len(rows.values) != 1 {
+			return nil, C12PITRDependencyFailure
+		}
+		if len(rows.fields) != 1 || rows.fields[0].DataTypeOID != pgtype.UUIDOID || rows.fields[0].Format != pgx.BinaryFormatCode || len(rows.values[0]) != 1 {
+			return nil, C12PITRDependencyFailure
+		}
+		id, err := uuid.FromBytes(rows.values[0][0])
+		if err != nil || id == uuid.Nil {
+			return nil, C12PITRDependencyFailure
+		}
+		transaction.fixture.installationID = id
+	}
 	return rows, nil
 }
 
 func (transaction *c12AuthorityTx) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	rows, err := transaction.Query(ctx, sql, args...)
+	rows, err := transaction.query(ctx, c12SQLQueryRow, sql, args...)
 	if err != nil {
 		return c12ErrorRow{err: err}
 	}
@@ -731,6 +794,7 @@ func (transaction *c12AuthorityTx) Commit(ctx context.Context) error {
 		return C12PITRWrongPhase
 	}
 	err := transaction.driver.Commit(ctx)
+	transaction.mergeFixtureAfterCommit(err)
 	transaction.finishAfterDriver(err)
 	return transaction.commitResult(err)
 }

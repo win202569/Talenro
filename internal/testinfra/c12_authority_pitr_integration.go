@@ -100,6 +100,12 @@ type c12AuthorityPITRState struct {
 	transitioning         bool
 	accessGeneration      atomic.Uint64
 	transactionGeneration atomic.Uint64
+	fixtureMu             sync.Mutex
+	fixture               *c12FixtureLedger
+	writesUncertain       bool
+	setupClosed           bool
+	candidateRole         string
+	candidatePassword     string
 }
 
 func (state *c12AuthorityPITRState) beginC12Transition(claim func() bool) bool {
@@ -264,6 +270,10 @@ func OpenC12AuthorityPITR() (C12AuthorityPITRController, error) {
 		database.Close()
 		return C12AuthorityPITRController{}, err
 	}
+	if err := state.initializeC12SQLCapabilities(context.Background()); err != nil {
+		database.Close()
+		return C12AuthorityPITRController{}, err
+	}
 	state.phase.Store(1)
 	if err := wal.append("TRANSITION", "controller", descriptor.PrimaryName, descriptor.PrimaryID, c12AuthorityPITRLabels(descriptor, "controller"), 0, "", "ready", ""); err != nil {
 		database.Close()
@@ -409,6 +419,9 @@ func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Contex
 		return C12AuthorityPITRBaseBackup{}, errors.New("authority PITR base backup already consumed")
 	}
 	defer state.endC12Transition()
+	if err := state.closeC12Setup(ctx); err != nil {
+		return C12AuthorityPITRBaseBackup{}, err
+	}
 	if err := state.wal.append("INTENT", "basebackup", state.descriptor.BaseBackupName, "", c12AuthorityPITRLabels(state.descriptor, "basebackup"), 0, state.descriptor.BaseBackupName, "creating", ""); err != nil {
 		return C12AuthorityPITRBaseBackup{}, err
 	}
