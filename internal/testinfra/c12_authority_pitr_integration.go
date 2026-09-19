@@ -63,6 +63,7 @@ type C12AuthorityPITRCandidate struct {
 	DataName  string
 	TargetLSN string
 	Promoted  bool
+	binding   c12CandidateBinding
 }
 
 type C12AuthorityPITRTimeline struct {
@@ -77,20 +78,44 @@ type C12AuthorityPITRController struct {
 }
 
 type c12AuthorityPITRState struct {
-	database       *sql.DB
-	databaseURL    *url.URL
-	descriptor     c12AuthorityPITRDescriptor
-	nonce          [32]byte
-	wal            *c12AuthorityPITROWAL
-	phase          atomic.Uint32
-	nextCandidate  atomic.Uint32
-	candidatePhase [8]atomic.Uint32
-	mu             sync.Mutex
-	baseBackup     C12AuthorityPITRBaseBackup
-	terminalCommit C12AuthorityPITRCommit
-	cut            C12AuthorityPITRCut
-	candidates     [8]c12AuthorityPITRCandidateState
-	commitSequence uint32
+	database              *sql.DB
+	databaseURL           *url.URL
+	descriptor            c12AuthorityPITRDescriptor
+	nonce                 [32]byte
+	wal                   *c12AuthorityPITROWAL
+	phase                 atomic.Uint32
+	nextCandidate         atomic.Uint32
+	candidatePhase        [8]atomic.Uint32
+	mu                    sync.Mutex
+	baseBackup            C12AuthorityPITRBaseBackup
+	terminalCommit        C12AuthorityPITRCommit
+	cut                   C12AuthorityPITRCut
+	candidates            [8]c12AuthorityPITRCandidateState
+	commitSequence        uint32
+	runGeneration         uint64
+	accessPolicy          c12AccessPolicy
+	accessOpen            c12AccessOpener
+	accessGate            sync.Mutex
+	accessActive          bool
+	transitioning         bool
+	accessGeneration      atomic.Uint64
+	transactionGeneration atomic.Uint64
+}
+
+func (state *c12AuthorityPITRState) beginC12Transition(claim func() bool) bool {
+	state.accessGate.Lock()
+	defer state.accessGate.Unlock()
+	if state.accessActive || state.transitioning || !claim() {
+		return false
+	}
+	state.transitioning = true
+	return true
+}
+
+func (state *c12AuthorityPITRState) endC12Transition() {
+	state.accessGate.Lock()
+	state.transitioning = false
+	state.accessGate.Unlock()
 }
 
 type c12AuthorityPITRCandidateState struct {
@@ -234,7 +259,7 @@ func OpenC12AuthorityPITR() (C12AuthorityPITRController, error) {
 	if err != nil {
 		return C12AuthorityPITRController{}, errors.New("open authority PITR database")
 	}
-	state := &c12AuthorityPITRState{database: database, databaseURL: parsedURL, descriptor: descriptor, nonce: nonce, wal: wal}
+	state := &c12AuthorityPITRState{database: database, databaseURL: parsedURL, descriptor: descriptor, nonce: nonce, wal: wal, runGeneration: 1}
 	if err := state.verifyPrimaryAndRuntime(context.Background()); err != nil {
 		database.Close()
 		return C12AuthorityPITRController{}, err
@@ -376,10 +401,14 @@ func (state *c12AuthorityPITRState) installObserverAndSlot(ctx context.Context) 
 }
 
 func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Context) (C12AuthorityPITRBaseBackup, error) {
-	if controller.state == nil || !controller.state.phase.CompareAndSwap(1, 10) {
+	if controller.state == nil {
 		return C12AuthorityPITRBaseBackup{}, errors.New("authority PITR base backup already consumed")
 	}
 	state := controller.state
+	if !state.beginC12Transition(func() bool { return state.phase.CompareAndSwap(1, 10) }) {
+		return C12AuthorityPITRBaseBackup{}, errors.New("authority PITR base backup already consumed")
+	}
+	defer state.endC12Transition()
 	if err := state.wal.append("INTENT", "basebackup", state.descriptor.BaseBackupName, "", c12AuthorityPITRLabels(state.descriptor, "basebackup"), 0, state.descriptor.BaseBackupName, "creating", ""); err != nil {
 		return C12AuthorityPITRBaseBackup{}, err
 	}
@@ -413,10 +442,14 @@ func (controller C12AuthorityPITRController) CreateBaseBackup(ctx context.Contex
 }
 
 func (controller C12AuthorityPITRController) CrashPrimary(ctx context.Context, backup C12AuthorityPITRBaseBackup, terminal C12AuthorityPITRCommit) (C12AuthorityPITRCut, error) {
-	if controller.state == nil || !controller.state.phase.CompareAndSwap(2, 11) || !validC12AuthorityPITRLSN(terminal.EndLSN) {
+	if controller.state == nil || !validC12AuthorityPITRLSN(terminal.EndLSN) {
 		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
 	}
 	state := controller.state
+	if !state.beginC12Transition(func() bool { return state.phase.CompareAndSwap(2, 11) }) {
+		return C12AuthorityPITRCut{}, errors.New("invalid authority PITR crash cut")
+	}
+	defer state.endC12Transition()
 	state.mu.Lock()
 	wantBackup, wantTerminal := state.baseBackup, state.terminalCommit
 	state.mu.Unlock()
@@ -467,10 +500,14 @@ func (controller C12AuthorityPITRController) CrashPrimary(ctx context.Context, b
 }
 
 func (controller C12AuthorityPITRController) RestoreAtCut(ctx context.Context, cut C12AuthorityPITRCut) (C12AuthorityPITRCandidate, error) {
-	if controller.state == nil || controller.state.phase.Load() != 3 || !validC12AuthorityPITRLSN(cut.RecoveryTargetLSN) {
+	if controller.state == nil || !validC12AuthorityPITRLSN(cut.RecoveryTargetLSN) {
 		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR restore cut")
 	}
 	state := controller.state
+	if !state.beginC12Transition(func() bool { return state.phase.Load() == 3 }) {
+		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR restore cut")
+	}
+	defer state.endC12Transition()
 	state.mu.Lock()
 	wantCut := state.cut
 	state.mu.Unlock()
@@ -556,11 +593,14 @@ func (controller C12AuthorityPITRController) RestoreAtCut(ctx context.Context, c
 }
 
 func (controller C12AuthorityPITRController) PromoteCandidate(ctx context.Context, candidate C12AuthorityPITRCandidate) (C12AuthorityPITRCandidate, error) {
-	if controller.state == nil || candidate.Index >= 8 || candidate.Promoted || !validC12AuthorityPITRLSN(candidate.TargetLSN) ||
-		!controller.state.candidatePhase[candidate.Index].CompareAndSwap(3, 4) {
+	if controller.state == nil || candidate.Index >= 8 || candidate.Promoted || !validC12AuthorityPITRLSN(candidate.TargetLSN) {
 		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR candidate promotion")
 	}
 	state := controller.state
+	if !state.beginC12Transition(func() bool { return state.candidatePhase[candidate.Index].CompareAndSwap(3, 4) }) {
+		return C12AuthorityPITRCandidate{}, errors.New("invalid authority PITR candidate promotion")
+	}
+	defer state.endC12Transition()
 	if candidate.Name != state.descriptor.CandidateNames[candidate.Index] || candidate.DataName != state.descriptor.CandidateDataNames[candidate.Index] {
 		return C12AuthorityPITRCandidate{}, errors.New("authority PITR candidate promotion identity mismatch")
 	}
@@ -585,11 +625,14 @@ func (controller C12AuthorityPITRController) PromoteCandidate(ctx context.Contex
 }
 
 func (controller C12AuthorityPITRController) InspectTimeline(ctx context.Context, candidate C12AuthorityPITRCandidate) (C12AuthorityPITRTimeline, error) {
-	if controller.state == nil || candidate.Index >= 8 || !candidate.Promoted ||
-		!controller.state.candidatePhase[candidate.Index].CompareAndSwap(4, 5) {
+	if controller.state == nil || candidate.Index >= 8 || !candidate.Promoted {
 		return C12AuthorityPITRTimeline{}, errors.New("invalid authority PITR timeline inspection")
 	}
 	state := controller.state
+	if !state.beginC12Transition(func() bool { return state.candidatePhase[candidate.Index].CompareAndSwap(4, 5) }) {
+		return C12AuthorityPITRTimeline{}, errors.New("invalid authority PITR timeline inspection")
+	}
+	defer state.endC12Transition()
 	database, err := state.openCandidateDatabase(int(candidate.Index))
 	if err != nil {
 		return C12AuthorityPITRTimeline{}, err
