@@ -1009,9 +1009,9 @@ Independent review covered `e1571f9fb1940f341d8e40f55907bec5e4f30dcb..3998d5c9f1
 (20 commits): no Critical finding; I1 was a new Important source concurrency defect,
 I2/I3 were retained acceptance blockers, and M1/M2 were confirmed Minor test gaps.
 Root accepted I1/M1/M2 for this one final source-fix wave. The reviewer found no
-additional production Coordinator/repository/readiness defect. Scoped final
-rereview and branch push are still pending; no source approval or acceptance is
-claimed by the implementer.
+additional production Coordinator/repository/readiness defect. At implementer
+handoff, scoped rereview and branch push were pending. The completed rereview and
+fresh final ordinary result are recorded below; physical acceptance remains open.
 
 - I1: Access and Transaction overwrote each eagerly materialized result's private
   `pgtype.NewMap()` with the backend's mutable map. Those two assignments are
@@ -1074,9 +1074,9 @@ After fixes: first0.400s/EXIT0; paired ordinary guard1.421s/EXIT0; scoped behavi
 2.793s/EXIT0; bridge0.339s/EXIT0; compile-only authority0.343s/testinfra0.371s/EXIT0,
 no tests run. Exact new-regression race3.830s, broader scoped race4.385s and bridge
 race1.381s all EXIT0 with no race report. Diff check passed. No full ordinary suite
-was repeated by this implementer; root will run one fresh frozen ordinary15m gate
-after the scoped commit, concurrently with read-only scoped review, and append its
-actual result. Ordinary81642 remains **prior-tree PASS** after these source edits.
+was repeated by this implementer; root ran the one fresh frozen ordinary15m gate
+recorded below after the scoped commit, concurrently with read-only scoped review.
+Ordinary81642 remains **prior-tree PASS** after these source edits.
 
 I2 and I3 remain OPEN under U1: all13 physical calls above are still unavailable /
 not executed, and the original Task4 validation finding/unknown causes are not
@@ -1087,4 +1087,42 @@ cross-process observation restart, arbitrary hostile same-process sandboxing,
 reinstatement of removed fresh-cluster coverage, runner race forwarding, or a
 wholesale unchanged runner audit. Those exclusions are not acceptance waivers.
 The consume → local CAS → sole driver Commit sequence is untouched. No PR, main
-merge, push, cleanup, worktree removal or physical acceptance is claimed.
+merge, cleanup, worktree removal or physical acceptance is claimed. Branch push
+remains pending at this documentation commit.
+
+### Final source disposition and frozen ordinary result
+
+- Final source commit: `b1e1d7c209bd63acd01f3ee00ba06eb765044990`
+  (`fix(testinfra): isolate PITR result decoding state`).
+- Independent scoped rereview: I1/M1/M2 **ADDRESSED**; no new Critical/Important/
+  Minor finding or out-of-scope observation. Decoder isolation, stable-map Access/
+  Transaction tests, preallocation accounting, pinned pgx/runtime footprint,
+  TimeCodec cache nuance, exact guard controls and unchanged consume→Commit were
+  checked. This closes source findings, not physical/historical acceptance I2/I3.
+- Root-owned session5472 ran exactly `$env:GOOS='windows'; go test ./... -count=1 -timeout=15m`
+  once on the clean source commit. EXIT0, all packages PASS:
+  testinfra469.316s, authority17.181s, readiness4.484s, platform0.436s,
+  trust4.228s, trustclient1.304s. The complete output is summarized here without
+  depending on ignored scratch for the acceptance disposition.
+- Freeze began2026-09-19T18:20:11+04. At18:28:56+04, HEAD was still the exact
+  source commit, worktree clean, all seven hashes below matched, and diff check
+  passed. No source/test/docs edits or other tests ran during this ordinary gate.
+  Only documentation/coordination edits follow; runtime and test source stay fixed.
+
+| Frozen file | SHA256 |
+| --- | --- |
+| `internal/testinfra/c12_authority_access_integration.go` | `A29D9C61445DB4B13AF0DFB64C012D3CCA8E80040DF232F20674EAFB2CFE7EE8` |
+| `internal/testinfra/c12_authority_rows_integration.go` | `FE1E8ECAF35F6A2B15051BA95655476CA84A186AE1D0FFB9BF190F1AC99AA4C2` |
+| `internal/testinfra/c12_authority_access_integration_test.go` | `0AD69C1D55EC2604EDF342874E2D29797F7C83B7797B0211441F9C134BE551ED` |
+| `internal/testinfra/c12_authority_sql_policy_integration_test.go` | `5BF957F4F24E5174661F91DC88B77DBD2C1482CE688B256B9168B0F00D3FD624` |
+| `internal/testinfra/c12_integration_manifest_test.go` | `929278F948B66F744770C6A9E2D8413E4DF40D33F90355C21C11298084C60264` |
+| `docs/roadmap/current-status.md` (before this evidence update) | `DFA535DAC593B25D40753F1FC43F33625D82A880CE86D9DA6181D9E865E28A0E` |
+| This plan (before this evidence update) | `278AD7EE15CB36B4749FC577F8B5241B0FED7A53100C81AED313FD6E80D25531` |
+
+I2/I3 remain OPEN under the user's U1 decision. All13 approved physical calls
+remain unavailable/not executed; Task4's failed frozen runs remain unexplained.
+The new PASS is fresh final-tree evidence, not a root-cause conclusion or waiver.
+This is an **unaccepted development checkpoint**, not Task9/B01 completion, a
+production serving implementation, main-merge readiness or physical acceptance.
+The next authorized Git action is the normal current-branch checkpoint push;
+no force push, PR, merge, worktree/branch or scratch deletion is included.

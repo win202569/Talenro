@@ -119,11 +119,12 @@ integration-tag compilation check at `cc88e916` exited 0 for authority/readiness
 go test -tags=integration ./internal/nodecontrol/authority ./internal/readiness -run '^$' -count=1 -timeout=5m
 ```
 
-The preceding whole-branch review found no Critical issues and one Important
-legacy PITR integration regression, described below. The branch is an explicitly
-unfinished checkpoint, not review-approved or ready to merge into main.
-The controlled-interface source correction is now implemented, while physical
-PITR integration, final independent reviews and live execution remain open.
+The earlier whole-branch review found no Critical issues and one Important
+legacy PITR integration regression, described below. The controlled-interface
+correction and final decoder fix now have independent source-review approval and
+fresh ordinary verification, as recorded below. The branch remains an explicitly
+unaccepted development checkpoint, not ready to merge into main: physical PITR
+acceptance and the historical validation finding remain open.
 Docker is unavailable on this host, and the repository has no existing GitHub
 workflow to provide a replacement live run. The user approved the
 [controlled PITR interface addendum](../superpowers/specs/2026-09-19-c12-controlled-pitr-test-interface-design.md)
@@ -144,8 +145,9 @@ The legacy schema could also fail before that point. Task5 replaced that harness
 with real PostgresRepository/registered-handler/controller P/A/B transactions,
 preserved the top-level name, and received independent source review approval
 for a development checkpoint. Task6 closes exact PITR-only runner registration.
-This is implemented source remediation, not a claim that the unavailable physical
-gate passed or that final whole-branch review has accepted the checkpoint.
+This is source remediation now covered by final whole-branch review and its scoped
+fix rereview, not a claim that the unavailable physical gate passed or that the
+checkpoint has received acceptance approval.
 
 The existing authority-v7 runner was attempted without changing its guards or
 budgets. Initial launches rejected inherited `GIT_*` variables. A separate child
@@ -184,8 +186,8 @@ Branch: `codex/c12-b01-task9-coordinator`, isolated worktree
 ledger (`test(c12): close controlled PITR gates and record evidence`). The Task6
 handoff originally awaited independent review; the subsequent whole-branch
 findings and bounded fix verification are recorded below. Scoped final rereview
-and authorized development-branch push remain pending. No PR, main merge or
-worktree removal is claimed.
+is complete; authorized development-branch push is pending at this documentation
+commit. No PR, main merge or worktree removal is claimed.
 
 The [portable execution record](../superpowers/plans/2026-09-19-c12-controlled-pitr-test-interface.md#execution-record--2026-09-19-development-checkpoint-not-acceptance)
 contains the actual approval/execution checklist, exact commands/results, source
@@ -220,7 +222,7 @@ failure and focused-rerun history remains in the linked record.
 
 User U1 explicitly chose “继续第 5–6 项，保留验收阻塞”: continue development and
 push only an unaccepted branch checkpoint, without merging main. Task4's Important
-validation finding remains OPEN for final review; this is not a general waiver of
+validation finding remains OPEN after final review; this is not a general waiver of
 new source findings, physical gates or final reporting.
 
 Physical precheck again found no Docker executable; its daemon, endpoint/image
@@ -273,10 +275,22 @@ testinfra0.371s. All GREEN commands exited0. The existing codec, NULL/empty-byte
 expiry, eager-close and Commit-boundary tests are included in the covering gates.
 Exact commands and decoder-cost rationale are in the linked portable record.
 
-I1/M1/M2 fixes await the root-owned scoped rereview; source approval is not yet
-claimed. Ordinary81642 is **prior-tree PASS**, not verification of this changed
-tree. Root will run a fresh frozen ordinary gate after this scoped commit and
-record its actual outcome; none is claimed here. I2 and I3 remain OPEN acceptance
+The fix is committed as `b1e1d7c209bd63acd01f3ee00ba06eb765044990`. Independent
+scoped rereview verified I1/M1/M2 **ADDRESSED**, with no new Critical, Important,
+Minor or out-of-scope source finding. It independently checked the pinned decoder
+allocation bound, both Access/Transaction regressions and unchanged Commit ordering.
+Source review is closed; acceptance is not approved.
+
+Root then completed the fresh frozen ordinary command shown above on that exact
+clean commit: session5472 exited0, all packages passed, including testinfra469.316s,
+authority17.181s, readiness4.484s, trust4.228s and trustclient1.304s. The run began
+at2026-09-19T18:20:11+04; post-run verification at18:28:56+04 found all seven source/
+test/document SHA256s unchanged and the same clean HEAD. No source/test/document
+edits or other test runs occurred during it. Subsequent commits update only the
+portable evidence. Ordinary81642 remains prior-tree evidence, while5472 covers
+the final source fix. Neither run diagnoses the historical failures.
+
+I2 and I3 remain OPEN acceptance
 blockers under U1. All13 physical calls remain unavailable/not executed, and the
 historical failure causes remain unproved. The review's excluded Task10/15/18,
 B03 provider/decoder, lost-fence identity, cross-process restart, hostile same-process
