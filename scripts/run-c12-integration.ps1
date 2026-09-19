@@ -64,6 +64,11 @@ $script:c12ProfileAllowances = @{
 }
 $script:c12PITRPrivateTest = 'TestC12AuthorityPITROwnershipWALFailureSeam'
 $script:c12PITRPublicTest = 'TestC12AuthorityPITRProfile'
+$script:c12PITRConsumerTests = @{
+  'TestC12AuthorityPITRProfile' = './internal/testinfra'
+  'TestC12AuthorityPITROwnershipWALFailureSeam' = './internal/testinfra'
+  'TestPITRBeforeRevocationFailsClosed' = './internal/nodecontrol/authority'
+}
 $script:c12AuthorityV7PublicTest = 'TestC12DependenciesAreIsolatedAndAuthorityV7Migrated'
 $script:c12PITRFailureSeams = @(
   'after-intent-before-create',
@@ -5915,6 +5920,53 @@ function Assert-C12ExecutionPlan {
   }
 }
 
+function Assert-C12PITRConsumerSelection {
+  param([string]$GroupProfile, [string]$Package, [string]$RunPattern, [string[]]$ExpectedTests)
+
+  # ExpectedTests is closed only when it describes the exact Go selector.
+  # Focused emits ^Test$ for one name; Suite always emits ^(names)$.
+  if ($ExpectedTests.Count -eq 0) {
+    if ($RunPattern -cne '' -or $Package -cin @($script:c12PITRConsumerTests.Values)) {
+      throw 'C12 PITR selection: all-tests selection is not a closed consumer group'
+    }
+  }
+  else {
+    foreach ($test in $ExpectedTests) {
+      if ($test -cnotmatch '^Test[A-Za-z0-9_]+$') {
+        throw 'C12 PITR selection: expected tests must be exact top-level names'
+      }
+    }
+    $focusedPattern = ConvertTo-C12RunPattern -Tests $ExpectedTests
+    $suitePattern = '^(' + ($ExpectedTests -join '|') + ')$'
+    if ($RunPattern -cne $focusedPattern -and $RunPattern -cne $suitePattern) {
+      throw 'C12 PITR selection: selector does not match the closed expected tests'
+    }
+  }
+  $consumerCount = 0
+  $privateSelected = $false
+  foreach ($test in $ExpectedTests) {
+    foreach ($registered in $script:c12PITRConsumerTests.Keys) {
+      # PowerShell hashtables are case-insensitive; never use their lookup as
+      # proof that a caller supplied the exact registered name or package.
+      if ($test -ieq $registered) {
+        if ($test -cne $registered -or $Package -cne $script:c12PITRConsumerTests[$registered] -or $GroupProfile -cne 'authority-v7-pitr') {
+          throw 'C12 PITR selection: consumer requires its exact name, package and authority-v7-pitr profile'
+        }
+        $consumerCount++
+        $privateSelected = $privateSelected -or $test -ceq $script:c12PITRPrivateTest
+      }
+    }
+  }
+  if ($consumerCount -gt 1) {
+    throw 'C12 PITR selection: at most one controller consumer may run in a group'
+  }
+  if ($privateSelected -or -not [string]::IsNullOrEmpty($PITRFailureSeam)) {
+    if (-not $privateSelected -or $ExpectedTests.Count -ne 1 -or $RunPattern -cne "^$($script:c12PITRPrivateTest)`$" -or $Race -or $PITRFailureSeam -cnotin $script:c12PITRFailureSeams) {
+      throw 'C12 PITR selection: private failure seam requires its exact single selector and one closed seam'
+    }
+  }
+}
+
 function Invoke-C12Group {
   param(
     [Parameter(Mandatory = $true)]
@@ -5942,6 +5994,7 @@ function Invoke-C12Group {
   if ($GroupProfile -cnotin $script:c12AllowedProfiles) {
     throw 'C12 runner rejected an unsupported closed profile'
   }
+	Assert-C12PITRConsumerSelection -GroupProfile $GroupProfile -Package $Package -RunPattern $RunPattern -ExpectedTests $ExpectedTests
 	$groupDuration = ConvertFrom-C12Duration -Value $GroupTimeout
 	$groupDeadline = if ($AbsoluteDeadline -eq [DateTime]::MaxValue) { [DateTime]::UtcNow.Add($groupDuration).Add($script:c12ProfileAllowances[$GroupProfile]) } else { $AbsoluteDeadline }
   if ($script:c12SuiteDeadline -lt $groupDeadline) {

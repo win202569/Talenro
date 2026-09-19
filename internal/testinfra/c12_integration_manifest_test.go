@@ -12,6 +12,8 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
+	"go/format"
 	"go/parser"
 	"go/token"
 	"io"
@@ -23,6 +25,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -391,6 +394,284 @@ func TestC12RunnerAuthorityProfilesAreClosed(t *testing.T) {
 	if strings.Contains(source, "authority-v7-raw") || strings.Contains(source, "authority_v7.sql") {
 		t.Fatal("runner exposes a raw v7 migration profile")
 	}
+	// Exercise the actual common group boundary used by Focused and Suite.
+	// Stopping at its first resource operation proves rejection happened before
+	// setup, without replacing the rule under test or launching Docker/Go.
+	const appendix = `
+function New-C12RandomSuffix { throw 'C12_RESOURCE_BOUNDARY' }
+function Assert-Selection([string]$Label, [string]$SelectedProfile, [string]$SelectedPackage, [string[]]$Tests, [string]$Pattern, [bool]$Allowed, [string]$Seam = '', [bool]$UseRace = $false) {
+  $script:PITRFailureSeam = $Seam
+  $script:Race = $UseRace
+  $message = ''
+  try { Invoke-C12Group -GroupID 'registration-probe' -GroupProfile $SelectedProfile -Package $SelectedPackage -ExpectedTests $Tests -RunPattern $Pattern -GroupTimeout '5m' }
+  catch { $message = $_.Exception.Message }
+  $reached = $message -ceq 'C12_RESOURCE_BOUNDARY'
+  if ($reached -ne $Allowed) { throw "$Label allowed=$Allowed reached=$reached message=$message" }
+  if (-not $Allowed -and $message -notlike 'C12 PITR selection:*') { throw "$Label rejected for unrelated reason: $message" }
+}
+$consumers = @(
+  @('TestC12AuthorityPITRProfile', './internal/testinfra'),
+  @('TestC12AuthorityPITROwnershipWALFailureSeam', './internal/testinfra'),
+  @('TestPITRBeforeRevocationFailsClosed', './internal/nodecontrol/authority')
+)
+foreach ($consumer in $consumers) {
+  $name = $consumer[0]; $package = $consumer[1]; $pattern = '^' + $name + '$'
+  $seam = if ($name -ceq 'TestC12AuthorityPITROwnershipWALFailureSeam') { 'after-intent-before-create' } else { '' }
+  foreach ($profile in @('base', 'authority-v7')) { Assert-Selection "$name/$profile" $profile $package @($name) $pattern $false $seam }
+  Assert-Selection "$name/exact" 'authority-v7-pitr' $package @($name) $pattern $true $seam
+  Assert-Selection "$name/package" 'authority-v7-pitr' './internal/store' @($name) $pattern $false $seam
+  Assert-Selection "$name/case" 'authority-v7-pitr' $package @($name.ToLowerInvariant()) ('^' + $name.ToLowerInvariant() + '$') $false $seam
+  Assert-Selection "$name/profile-case" 'authority-v7' $package @($name) ('^(' + $name + '|TestOther)$') $false $seam
+  Assert-Selection "$name/slash" 'base' $package @('TestOther') ('^TestOther/' + $name + '$') $false
+  Assert-Selection "$name/partial-parent" 'authority-v7-pitr' $package @($name) ($pattern + '/missing') $false $seam
+}
+foreach ($profile in @('base', 'authority-v7', 'authority-v7-pitr')) {
+  foreach ($package in @('./internal/testinfra', './internal/nodecontrol/authority')) {
+    Assert-Selection 'all-tests' $profile $package @() '' $false
+  }
+}
+Assert-Selection 'two consumers' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITRProfile','TestC12AuthorityPITROwnershipWALFailureSeam') '^(TestC12AuthorityPITRProfile|TestC12AuthorityPITROwnershipWALFailureSeam)$' $false
+Assert-Selection 'duplicate consumer' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITRProfile','TestC12AuthorityPITRProfile') '^(TestC12AuthorityPITRProfile|TestC12AuthorityPITRProfile)$' $false
+Assert-Selection 'suite public exact' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITRProfile') '^(TestC12AuthorityPITRProfile)$' $true
+Assert-Selection 'suite authority wrong profile' 'authority-v7' './internal/nodecontrol/authority' @('TestPITRBeforeRevocationFailsClosed') '^(TestPITRBeforeRevocationFailsClosed)$' $false
+Assert-Selection 'suite authority exact' 'authority-v7-pitr' './internal/nodecontrol/authority' @('TestPITRBeforeRevocationFailsClosed') '^(TestPITRBeforeRevocationFailsClosed)$' $true
+Assert-Selection 'mixed unrelated authority' 'authority-v7-pitr' './internal/nodecontrol/authority' @('TestPITRBeforeRevocationFailsClosed','TestOther') '^(TestPITRBeforeRevocationFailsClosed|TestOther)$' $true
+Assert-Selection 'private missing seam' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam') '^TestC12AuthorityPITROwnershipWALFailureSeam$' $false
+foreach ($seam in @('after-intent-before-create','after-create-before-actual','after-actual-before-return','after-clean-intent-before-remove','after-remove-before-clean-result')) {
+  Assert-Selection 'private seam' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam') '^TestC12AuthorityPITROwnershipWALFailureSeam$' $true $seam
+}
+Assert-Selection 'private bad seam' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam') '^TestC12AuthorityPITROwnershipWALFailureSeam$' $false 'AFTER-INTENT-BEFORE-CREATE'
+Assert-Selection 'private suite selector' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam') '^(TestC12AuthorityPITROwnershipWALFailureSeam)$' $false 'after-intent-before-create'
+Assert-Selection 'private plus unrelated' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam','TestOther') '^(TestC12AuthorityPITROwnershipWALFailureSeam|TestOther)$' $false 'after-intent-before-create'
+Assert-Selection 'private race' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITROwnershipWALFailureSeam') '^TestC12AuthorityPITROwnershipWALFailureSeam$' $false 'after-intent-before-create' $true
+Assert-Selection 'seam on public' 'authority-v7-pitr' './internal/testinfra' @('TestC12AuthorityPITRProfile') '^TestC12AuthorityPITRProfile$' $false 'after-intent-before-create'
+Assert-Selection 'mismatched expected' 'base' './internal/nodecontrol/authority' @('TestOther') '^TestPITRBeforeRevocationFailsClosed$' $false
+foreach ($name in @('TestCoordinatorPostgresCrashRecoveryMatrix','TestCoordinatorPostgresAbortDomainSafetyAndIdempotence','TestCoordinatorPostgresCrashResolverFailsClosedOnSQLDeletionOrCorruption','TestCoordinatorPostgresAtomicActivationCrashMatrix','TestCoordinatorPostgresFenceFirstAbortRace','TestCoordinatorPostgresFinalizeCapturesAfterEffectWriterCommit')) {
+  Assert-Selection $name 'authority-v7' './internal/nodecontrol/authority' @($name) ('^' + $name + '$') $true
+}
+Assert-Selection 'base exact' 'base' './internal/testinfra' @('TestC12DependenciesAreIsolatedAndBaseMigrated') '^TestC12DependenciesAreIsolatedAndBaseMigrated$' $true
+Assert-Selection 'authority exact' 'authority-v7' './internal/testinfra' @('TestC12DependenciesAreIsolatedAndAuthorityV7Migrated') '^TestC12DependenciesAreIsolatedAndAuthorityV7Migrated$' $true
+Assert-Selection 'unrelated all-tests' 'base' './internal/store' @() '' $true
+Write-Output 'C12_PITR_REGISTRATION_OK'
+`
+	output, code := runC12RunnerPrefixHarness(t, appendix, nil)
+	if code != 0 || !strings.Contains(output, "C12_PITR_REGISTRATION_OK") {
+		t.Fatalf("actual PITR registration exit=%d output=%s", code, output)
+	}
+}
+
+func TestC12PITRConsumerInterfacesAreIntegrationOnly(t *testing.T) {
+	// Closed exported declarations catch new capability escape paths even when
+	// split across files; ordinary go/build exclusion independently checks tags.
+	wantTypes := strings.Fields("C12AuthorityAccess C12AuthorityTransaction C12AuthorityPITRError C12AuthorityPITRObservation C12AuthorityPITRObservedCommit C12AuthorityPITRCutSelection C12AuthorityPITRCommitKind C12AuthorityPITRBaseBackup C12AuthorityPITRCommit C12AuthorityPITRCut C12AuthorityPITRCandidate C12AuthorityPITRTimeline C12AuthorityPITRController")
+	wantMethods := strings.Fields("CreateBaseBackup CrashPrimary RestoreAtCut PromoteCandidate InspectTimeline WithPrimaryAuthorityAccess WithCandidateAuthorityAccess NewCommitObservation BindCommitObservation ObserveCommit SelectRecoveryCut CrashPrimaryAtCut")
+	wantSignatures := map[string]string{
+		"OpenC12AuthorityPITR":         "func() (C12AuthorityPITRController, error)",
+		"CreateBaseBackup":             "func(context.Context) (C12AuthorityPITRBaseBackup, error)",
+		"CrashPrimary":                 "func(context.Context, C12AuthorityPITRBaseBackup, C12AuthorityPITRCommit) (C12AuthorityPITRCut, error)",
+		"RestoreAtCut":                 "func(context.Context, C12AuthorityPITRCut) (C12AuthorityPITRCandidate, error)",
+		"PromoteCandidate":             "func(context.Context, C12AuthorityPITRCandidate) (C12AuthorityPITRCandidate, error)",
+		"InspectTimeline":              "func(context.Context, C12AuthorityPITRCandidate) (C12AuthorityPITRTimeline, error)",
+		"WithPrimaryAuthorityAccess":   "func(context.Context, func(C12AuthorityAccess) error) error",
+		"WithCandidateAuthorityAccess": "func(context.Context, C12AuthorityPITRCandidate, func(C12AuthorityAccess) error) error",
+		"NewCommitObservation":         "func() (C12AuthorityPITRObservation, error)",
+		"BindCommitObservation":        "func(context.Context, C12AuthorityPITRObservation, C12AuthorityTransaction) error",
+		"ObserveCommit":                "func(context.Context, C12AuthorityPITRObservation) (C12AuthorityPITRObservedCommit, C12AuthorityPITRCommit, error)",
+		"SelectRecoveryCut":            "func(C12AuthorityPITRBaseBackup, C12AuthorityPITRObservedCommit) (C12AuthorityPITRCutSelection, error)",
+		"CrashPrimaryAtCut":            "func(context.Context, C12AuthorityPITRCutSelection, C12AuthorityPITRObservedCommit) (C12AuthorityPITRCut, error)",
+	}
+	files, err := filepath.Glob("c12_authority*.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ordinary, err := build.Default.ImportDir(".", build.IgnoreVendor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var gotTypes, gotMethods []string
+	newTypes := map[string]string{
+		"C12AuthorityAccess":             "interface { store.DBTX; Begin(context.Context) (C12AuthorityTransaction, error) }",
+		"C12AuthorityTransaction":        "interface { store.DBTX; Commit(context.Context) error; Rollback(context.Context) error }",
+		"C12AuthorityPITRError":          "string",
+		"C12AuthorityPITRObservation":    "struct { state *c12ObservationState }",
+		"C12AuthorityPITRObservedCommit": "struct { state *c12ObservedCommitState }",
+		"C12AuthorityPITRCutSelection":   "struct { state *c12CutSelectionState }",
+		"C12AuthorityPITRController":     "struct { state *c12AuthorityPITRState }",
+		"C12AuthorityPITRCommitKind":     "string",
+		"C12AuthorityPITRBaseBackup":     "struct { BackupID string; StartLSN string; EndLSN string; binding *c12BackupBinding }",
+		"C12AuthorityPITRCommit":         "struct { Kind C12AuthorityPITRCommitKind; SQLXID uint64; EndLSN string; GID string }",
+		"C12AuthorityPITRCut":            "struct { BackupID string; TerminalCommit C12AuthorityPITRCommit; RecoveryTargetLSN string; binding *c12CutSelectionState }",
+		"C12AuthorityPITRCandidate":      "struct { Index uint8; Name string; DataName string; TargetLSN string; Promoted bool; binding c12CandidateBinding }",
+		"C12AuthorityPITRTimeline":       "struct { CandidateIndex uint8; TimelineID uint64; ReplayLSN string; Promoted bool }",
+	}
+	formatNode := func(node ast.Node) string {
+		var b bytes.Buffer
+		if err := format.Node(&b, token.NewFileSet(), node); err != nil {
+			t.Fatal(err)
+		}
+		return strings.Join(strings.Fields(b.String()), " ")
+	}
+	assertSignature := func(d *ast.FuncDecl) {
+		expected, ok := wantSignatures[d.Name.Name]
+		if !ok {
+			return
+		}
+		expr, err := parser.ParseExpr(expected)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Parameter names are not capabilities. Compare the complete type tree.
+		ast.Inspect(d.Type, func(node ast.Node) bool {
+			if fields, ok := node.(*ast.FieldList); ok {
+				var list []*ast.Field
+				for _, field := range fields.List {
+					count := len(field.Names)
+					if count == 0 {
+						count = 1
+					}
+					for i := 0; i < count; i++ {
+						list = append(list, &ast.Field{Type: field.Type})
+					}
+				}
+				fields.List = list
+			}
+			return true
+		})
+		if formatNode(d.Type) != formatNode(expr) {
+			t.Errorf("%s signature = %s, want %s", d.Name.Name, formatNode(d.Type), formatNode(expr))
+		}
+	}
+	for _, path := range files {
+		if strings.HasSuffix(path, "_test.go") {
+			continue
+		}
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.HasPrefix(raw, []byte("//go:build integration\n")) && !bytes.HasPrefix(raw, []byte("//go:build integration\r\n")) {
+			t.Errorf("%s lacks exact first-line integration tag", path)
+		}
+		for _, ordinaryPath := range ordinary.GoFiles {
+			if ordinaryPath == path {
+				t.Errorf("ordinary build includes %s", path)
+			}
+		}
+		file, err := parser.ParseFile(token.NewFileSet(), path, raw, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, decl := range file.Decls {
+			switch d := decl.(type) {
+			case *ast.GenDecl:
+				for _, spec := range d.Specs {
+					ts, ok := spec.(*ast.TypeSpec)
+					if !ok || !ts.Name.IsExported() {
+						continue
+					}
+					gotTypes = append(gotTypes, ts.Name.Name)
+					if expected, ok := newTypes[ts.Name.Name]; ok {
+						expr, err := parser.ParseExpr(expected)
+						if err != nil {
+							t.Fatal(err)
+						}
+						if formatNode(ts.Type) != formatNode(expr) {
+							t.Errorf("%s capability shape = %s", ts.Name.Name, formatNode(ts.Type))
+						}
+					}
+				}
+			case *ast.FuncDecl:
+				if !d.Name.IsExported() {
+					continue
+				}
+				if d.Recv == nil {
+					if d.Name.Name != "OpenC12AuthorityPITR" {
+						t.Errorf("unexpected public function %s", d.Name.Name)
+					}
+					assertSignature(d)
+					continue
+				}
+				receiver := d.Recv.List[0].Type
+				if pointer, ok := receiver.(*ast.StarExpr); ok {
+					receiver = pointer.X
+				}
+				name, ok := receiver.(*ast.Ident)
+				if ok && name.Name == "C12AuthorityPITRController" {
+					gotMethods = append(gotMethods, d.Name.Name)
+					assertSignature(d)
+				}
+				if ok && ast.IsExported(name.Name) && name.Name != "C12AuthorityPITRController" && !(name.Name == "C12AuthorityPITRError" && d.Name.Name == "Error") {
+					t.Errorf("unexpected exported capability method %s.%s", name.Name, d.Name.Name)
+				}
+			}
+		}
+	}
+	for label, pair := range map[string][2][]string{"types": {gotTypes, wantTypes}, "methods": {gotMethods, wantMethods}} {
+		sort.Strings(pair[0])
+		sort.Strings(pair[1])
+		if strings.Join(pair[0], "|") != strings.Join(pair[1], "|") {
+			t.Errorf("public %s = %v, want %v", label, pair[0], pair[1])
+		}
+	}
+	for _, name := range []string{"c12_authority_access_integration.go", "c12_authority_rows_integration.go", "c12_authority_sql_policy_integration.go", "c12_authority_observation_integration.go", "c12_authority_cut_integration.go"} {
+		if _, err := os.Stat(name); err != nil {
+			t.Fatal(err)
+		}
+	}
+	consumer := "../nodecontrol/authority/authority_pitr_integration_test.go"
+	file, err := parser.ParseFile(token.NewFileSet(), consumer, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allowedImports := strings.Fields("bytes context errors reflect testing time github.com/google/uuid github.com/jackc/pgx/v5 talenro.local/platform/internal/store talenro.local/platform/internal/testinfra")
+	importAliases := map[string]string{}
+	for _, item := range file.Imports {
+		name, err := strconv.Unquote(item.Path.Value)
+		if err != nil {
+			t.Fatal(err)
+		}
+		allowed := false
+		for _, want := range allowedImports {
+			allowed = allowed || name == want
+		}
+		if !allowed {
+			t.Errorf("PITR consumer imports resource/SQL escape %s", name)
+		}
+		alias := filepath.Base(name)
+		if name == "github.com/jackc/pgx/v5" {
+			alias = "pgx"
+		}
+		if item.Name != nil {
+			alias = item.Name.Name
+		}
+		if alias == "." || alias == "_" {
+			t.Errorf("PITR consumer obscures import %s", name)
+		}
+		importAliases[alias] = name
+	}
+	ast.Inspect(file, func(node ast.Node) bool {
+		if call, ok := node.(*ast.CallExpr); ok {
+			if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+				if owner, ok := selector.X.(*ast.Ident); ok {
+					switch importAliases[owner.Name] {
+					case "github.com/jackc/pgx/v5":
+						t.Errorf("PITR consumer calls raw driver %s", selector.Sel.Name)
+					case "talenro.local/platform/internal/testinfra":
+						if selector.Sel.Name != "OpenC12AuthorityPITR" {
+							t.Errorf("PITR consumer calls non-controller infrastructure %s", selector.Sel.Name)
+						}
+					}
+				}
+			}
+		}
+		if id, ok := node.(*ast.Ident); ok {
+			lower := strings.ToLower(id.Name)
+			if strings.Contains(lower, "password") || strings.Contains(lower, "docker") || strings.Contains(lower, "rawpool") || strings.Contains(lower, "migration") || strings.Contains(lower, "cleanup") {
+				t.Errorf("PITR consumer retains resource-owning symbol %s", id.Name)
+			}
+		}
+		return true
+	})
 }
 
 func TestC12PreparedAuthorityExecutablesAreClosed(t *testing.T) {
@@ -3901,7 +4182,7 @@ try {
       }
       $groupFailed = $false
       try {
-        Invoke-C12Group -GroupID 'cleanup-before-run-root' -GroupProfile 'authority-v7-pitr' -Package './internal/testinfra' -GroupTimeout '3m' -AbsoluteDeadline ([DateTime]::UtcNow.AddMinutes(2))
+        Invoke-C12Group -GroupID 'cleanup-before-run-root' -GroupProfile 'authority-v7-pitr' -Package './internal/testinfra' -RunPattern '^TestC12AuthorityPITRProfile$' -ExpectedTests @('TestC12AuthorityPITRProfile') -GroupTimeout '3m' -AbsoluteDeadline ([DateTime]::UtcNow.AddMinutes(2))
       }
       catch {
         $groupFailed = $_.Exception.Message -ceq 'C12 group cleanup-before-run-root failed'

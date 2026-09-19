@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - 实施目录：`D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator`；分支 `codex/c12-b01-task9-coordinator`。不在主工作区 main 实现，不合并 main。
-- 当前仅交付计划；计划审阅及执行方式确认前，不修改实现、不执行测试或 Docker。
+- 原批准前约束：计划审阅及执行方式确认前，不修改实现、不执行测试或 Docker。用户已于 2026-09-19 以“是”批准本计划及逐任务子代理执行；实际状态与未通过 gate 见文末执行记录。
 - 生产 wire schema、canonical transcript、签名角色、数据库迁移及 `c12-spec-set.v1.json` 不变。
 - 不实现 Task 10 serving、Task 15/18 exact-epoch/runtime/lease/staging readiness、B03 decoder/provider 或完全丢失 fence 的 ProtocolActivationID 修复。
 - 最大 64 个 observation；单个 run 只选定一个 recovery cut；candidate 上限 8 个。无驱逐、无跨 controller/run/database/generation 转让。
@@ -539,7 +539,7 @@ cut := C12AuthorityPITRCut{
 
 cut 加私有 retained binding；TerminalCommit 表示物理崩溃证明边界，恢复目标只由 target 决定。旧 CrashPrimary 验证已保留的私有 probe record 后进入同一 helper，target=boundary；不能接受外部伪造新 observation。旧 prepared probe 可走兼容入口，不可进入新 Select。
 
-恢复配置明确设置`recovery_target_inclusive=on`，使处于所选LSN的事务包含在恢复结果内；依据 [PostgreSQL 18 Recovery Target 文档](https://www.postgresql.org/docs/18/runtime-config-wal.html#RUNTIME-CONFIG-WAL-RECOVERY-TARGET)。最终仍以A/B领域数据而非LSN文本证明边界。
+原批准文本在此要求`recovery_target_inclusive=on`；R17 已纠正此计划缺陷为 `off/false`，保留原样逻辑 terminal EndLSN，不作 LSN 运算。[REL_18_4 logical.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/replication/logical/logical.c) 与 [logicalfuncs.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/replication/logical/logicalfuncs.c) 输出 commit record END；[xlogrecovery.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/access/transam/xlogrecovery.c) 按 record START 在 replay 前/后判断非 inclusive/inclusive。由此推论，off 在 A 已重放后、下一 record 前停止，on 会多重放下一 record。此修正保留已批准 A 包含/B 排除语义，见 [PostgreSQL 18 Recovery Target 文档](https://www.postgresql.org/docs/18/runtime-config-wal.html#RUNTIME-CONFIG-WAL-RECOVERY-TARGET) 和文末 R17 记录。实际恢复参数断言已执行；真实 A/B 领域数据物理 gate 仍未执行，不能以 LSN 文本或源代码证明替代。
 
 - [ ] **Step 4: candidate 所有操作验证完整状态。** retained candidate 存 exact index/name/dataName/target/promoted、container ID/system identity/timeline、binding。Restore 必须 exact cut、固定8槽，容量检查先于 intent/create；Promote 返回新 promoted DTO，旧 pre-promote DTO 随即无效；Inspect/Access 只接受已晋升状态4或已检查状态5的 exact DTO。InspectTimeline 保留原有一次性行为，不放宽为任意再晋升。检查 systemID=backup systemID、timeline > backup timeline。callback 存活时 CreateBaseBackup/Crash/Restore/Promote 均拒绝，不接管该 callback 的连接。
 
@@ -733,7 +733,7 @@ coordinatorA/B由同access/bridge创建，仅provider不同；provider B 的Head
 
 **Interfaces:** runner仍用现有Focused参数；仅登记`TestPITRBeforeRevocationFailsClosed`为authority-v7-pitr专属，保留`TestC12AuthorityPITRProfile`和私有failure-seam。每个controller消费者单独调用；同一group不并列两个会Open/Crash的顶层测试。
 
-- [ ] **Step 1: 写普通静态 guard RED。** 扩展 `TestC12RunnerAuthorityProfilesAreClosed` 和新增 `TestC12PITRConsumerInterfacesAreIntegrationOnly`：读取本计划列出的新文件，首行tag精确匹配；go/build普通构建排除它们；AST枚举controller公开方法与有限新types，仅为上面冻结集合；authority bridge只在`_test.go`。读旧PITR文件确认无os/exec、net、rawpool、密码、raw迁移加载与Docker cleanup符号。source guard解析调用/方法集，不依赖一个易绕过的substring。
+- [x] **Step 1: 写普通静态 guard RED。** 扩展 `TestC12RunnerAuthorityProfilesAreClosed` 和新增 `TestC12PITRConsumerInterfacesAreIntegrationOnly`：读取本计划列出的新文件，首行tag精确匹配；go/build普通构建排除它们；AST枚举controller公开方法与有限新types，仅为上面冻结集合；authority bridge只在`_test.go`。读旧PITR文件确认无os/exec、net、rawpool、密码、raw迁移加载与Docker cleanup符号。source guard解析调用/方法集，不依赖一个易绕过的substring。
 
 ```go
 for _, path := range []string{
@@ -750,7 +750,7 @@ for _, path := range []string{
 
 测试runner注册规则：authority测试在base/authority-v7拒绝；exact pitr profile接收；两个controller consumers同组拒绝；无关既有精确选择仍允许。执行普通`go test ./internal/testinfra -run '^(TestC12RunnerAuthorityProfilesAreClosed|TestC12PITRConsumerInterfacesAreIntegrationOnly)$' -count=1 -timeout=5m`，先记录RED。
 
-- [ ] **Step 2: 仅修改runner closed登记。** 把现有单一public-test判断扩为固定name→package映射；保持prepared artifact、HMAC、five-leafrunroot、Dockerendpoint、inherited-env、deadline、finally cleanup原样。检查selectedgroup中属于该映射的数量<=1，所有这些测试要求pitr profile；私有failureseam仍必须exact单测且指定现有五值之一。写固定注册内容：
+- [x] **Step 2: 仅修改runner closed登记。** 把现有单一public-test判断扩为固定name→package映射；保持prepared artifact、HMAC、five-leafrunroot、Dockerendpoint、inherited-env、deadline、finally cleanup原样。检查selectedgroup中属于该映射的数量<=1，所有这些测试要求pitr profile；私有failureseam仍必须exact单测且指定现有五值之一。写固定注册内容：
 
 ```powershell
 $script:c12PITRConsumerTests = @{
@@ -762,7 +762,7 @@ $script:c12PITRConsumerTests = @{
 
 当前runner的`-Race`未加入最终goArgs，不能拿它当race证据；本计划不顺手修此缺陷，race只用下面直接无Docker精确命令，留明确记录。
 
-- [ ] **Step 3: 无Docker验证。** 从worktree根运行，每条保留命令/exit code/测试名/耗时；真正RED/GREEN在各task已记录，不允许只最后一次大测：
+- [x] **Step 3: 无Docker验证。** 从worktree根运行，每条保留命令/exit code/测试名/耗时；真正RED/GREEN在各task已记录，不允许只最后一次大测：
 
 ```powershell
 go test -tags=integration ./internal/testinfra -run '^(TestC12AuthorityPITRScopedAccessPolicy|TestC12AuthorityPITRSQLPolicy|TestC12AuthorityPITRSQLRegistryMatchesSources|TestC12AuthorityPITRCommitObservationStateMachine|TestC12AuthorityPITRRecoveryCutStateMachine)$' -count=1 -timeout=3m
@@ -790,7 +790,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.
 
 要求go-json明确PASS非skip、runnercleanup/foreigncanary检查通过、无非owned删除。迁移测试物理证据必须包含P ready、A/B真实terminal、A数据有/B无、candidate timeline前进、精确database_behind_provider和同candidate Ready。若工具缺失/依赖校验超时/预算耗尽，保留失败证据并停止该gate；不放宽deadline、不用原harness替代、不标完成。
 
-- [ ] **Step 5: 更新事实记录。** 在current-status新增本计划链接、准确提交/测试证据、legacy harness替换范围及剩余阻塞。删除fresh-unrelated physicalcluster分支的覆盖由既有`TestAuthorityReadiness` identity-mismatch单元保持，明确它不是等价物理覆盖。Task10证书/desired serving与reconcile恢复仍未交付；B01未完成，除非所有本计划gate和后续原计划要求真正满足。不能把实现完成、可编译、live验收混写。
+- [x] **Step 5: 更新事实记录。** 在current-status新增本计划链接、准确提交/测试证据、legacy harness替换范围及剩余阻塞。删除fresh-unrelated physicalcluster分支的覆盖由既有`TestAuthorityReadiness` identity-mismatch单元保持，明确它不是等价物理覆盖。Task10证书/desired serving与reconcile恢复仍未交付；B01未完成，除非所有本计划gate和后续原计划要求真正满足。不能把实现完成、可编译、live验收混写。
 
 - [ ] **Step 6: 独立最终review及提交推送。** 使用requesting-code-review检查整个实施diff，特别ReviewFocus五项、candidate列权限、marker→consume→Commit、原crash抽取回归、没有放大公开能力。Critical/Important先修复再对应复测。只在实际验证支持时声明完成；否则提交标为checkpoint并列未通过gate。提交 `test(c12): close controlled PITR gates and record evidence`，推送当前codex分支；不创建PR、不合并、不删worktree。Git索引/网络权限不足时按既有审批流程请求，不绕过。
 
@@ -802,6 +802,203 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.
 - [x] 按spec§8–9核对真实P前缀→backup→A→B→restoreA、同候选正向对照、profile-only、prepared/cleanup兼容及ordinary/race/review，覆盖于Tasks5–6；未把计划中的gate当作执行证据。
 - [x] 已按source修正activator为`ValidatedActivationDecisionEvidence → error`、确认controller返回值、sqlc参数数量、Snapshot排序及6个crash测试名称；补充pre-backup P、事务ledger overlay和run generation语义。
 - [x] 已检查接口/步骤及ReviewFocus归属；aux表/角色在Open固定建立，避免旧profile未调用authority setup时被新backup前置条件拒绝。
-- [ ] 保存文档并交用户审阅，确认执行方式后才开始Task1。
+- [x] 保存文档并交用户审阅，确认执行方式后才开始Task1。
 
 建议逐任务子代理实现与独立审查：六个task共享能力身份、事务时序与清理边界，逐步审查比只在末尾发现接口偏差更合适。也可由主代理顺序实施、最后独立审查；这是本轮需用户选择的执行方式，不由过去的“1”自动推定。
+
+## Execution record — 2026-09-19 (development checkpoint, not acceptance)
+
+The user approved this written plan and subagent-driven execution with “是”
+after the `d8b8e014` handoff. The pre-implementation approval condition was
+satisfied before Task1. Implementation ran only in the named isolated worktree
+and branch; main was not modified. The historical task text above remains the
+approved sequence; this ledger distinguishes work performed from gates accepted.
+
+- [x] Task1 implementation and three fix rounds, `d8b8e014..29e03bc8`: narrow
+  access/eager rows/lifecycle. Independent source review closed all seven initial
+  Important findings and follow-on findings; ordinary failures below remain evidence.
+- [x] Task2 implementation, `816fa7fa`: fixed SQL/argument capabilities and
+  candidate grants; independent source review approved. No physical privilege claim.
+- [x] Task3 implementation and legacy poison fix, `816fa7fa..374a8098`:
+  ordinary commit observation and bounded destructive drain; independent source review
+  approved after fixing semantic rejection outside the legacy poison scope.
+- [x] Task4 source implementation, `0cb6c720`: earlier A target/B crash boundary,
+  retained candidate identity and private pre-callback privilege verification.
+  Source review found no Critical/Important source defect; its Important ordinary
+  validation finding remains OPEN under U1. It is not a quality-acceptance approval.
+- [x] Task5 implementation, `e3b5ed93726dd0b7d02d8a609ae24963e48087fb`:
+  real controlled P/A/B authority bridge, shared fixture extraction and required
+  22-owner AST parity (including all three snapshot owners); source review approved
+  only for an unaccepted development checkpoint. Frozen ordinary26567 PASS below.
+- [x] Task6 implementation in the commit containing this ledger: exact three-name
+  PITR-only package registry and common pre-resource selection boundary; actual
+  PowerShell and ordinary integration-only API guards. Base is `e3b5ed93`;
+  see Task6 source-freeze hashes and command results below.
+- [ ] Physical acceptance: all 13 calls below unavailable/not executed.
+- [ ] Root independent Task6 review, whole-branch review and authorized checkpoint
+  push: pending at this implementation handoff. No PR, merge or worktree deletion.
+- [ ] Task9/B01 acceptance and Task10 serving/reconcile recovery: not delivered.
+
+### Transparent amendments and coverage boundaries
+
+R17 corrects an original plan defect, not the approved semantic requirement:
+the original Task4 text prescribed `recovery_target_inclusive=on`. PostgreSQL
+18.4 logical callbacks emit `txn->end_lsn`, the end of the commit record, whereas
+recovery compares the record-start `ReadRecPtr`; inclusive on can replay the first
+following record. Retain the unmodified terminal EndLSN and use off/false so A is
+included and the following record is not replayed. This is an inference from
+[REL_18_4 logical.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/replication/logical/logical.c),
+[logicalfuncs.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/replication/logical/logicalfuncs.c),
+[xlogrecovery.c](https://github.com/postgres/postgres/blob/REL_18_4/src/backend/access/transam/xlogrecovery.c)
+and the [PostgreSQL18 recovery-target documentation](https://www.postgresql.org/docs/18/runtime-config-wal.html#RUNTIME-CONFIG-WAL-RECOVERY-TARGET).
+Task4 asserts actual ordinary and legacy prepared restore arguments. Source proof
+and those tests do not replace the unavailable real A-present/B-absent acceptance.
+
+R20 retains the private two-column unsigned SystemID/timeline identity projection
+while the candidate is paused in recovery. Current insert/flush WAL functions
+cannot run during recovery; original frozen identity SQL remains for primary and
+promoted stages. Replay position is checked separately before promotion. This
+adds no consumer query, grant, connection or public API. See
+[PostgreSQL18 administration functions §§9.28.3–4](https://www.postgresql.org/docs/18/functions-admin.html).
+
+Task5 removed the old authority-owned Docker/exec/network/password/raw-pool/raw
+migration loading and cleanup harness. The replacement exercises real
+PostgresRepository/registered handler/controller transactions, pre-backup P Ready,
+actual A/B terminals, A recovery with B archive/crash boundary, exact recovered
+domain/null state, B-provider `database_behind_provider`, and same-candidate
+A-provider Ready. These assertions are implemented, not physically verified here.
+The unrelated fresh-cluster physical branch was removed. Existing
+`TestAuthorityReadiness` identity-mismatch unit coverage remains, but is NOT
+equivalent physical coverage and does not establish fresh-cluster behavior.
+R22's memory adapter proves provider/lock scheduling only; it is not SQL,
+transaction-atomicity or physical acceptance. Fixed SQL authorization does not
+replace the trusted real activation handler or enforce a second activation protocol.
+Task10 authorized-certificate/desired-state serving and reconcile recovery remain
+outside this delivery.
+
+### Historical verification retained
+
+All native commands below used process-local `GOOS=windows`; no persistent Go
+configuration, ACL, concurrency, harness timeout or runner allowance was altered.
+
+| Source/checkpoint | Command/result and disposition |
+| --- | --- |
+| Initial default elevated baseline74809 | `go test ./...` EXIT1 before assertions: GOOS=linux/GOHOSTOS=windows produced invalid Win32 executables. Process-local native correction only. |
+| Native pre-change baseline93669 | `go test ./...` EXIT1; testinfra677.290s, watchdog30s helper timeout. Exact unchanged watchdog reruns PASS18.64s and two18.70s/18.87s; not a full-suite pass or proven cause. |
+| Task1 initial implementation, before later review fixes | Intermediate ordinary full PASS; then-final tree ordinary full failed prepared-artifact previous-digest CreateProcessW Win325. Unchanged exact previous-digest passed. Both retained; no all-green claim. |
+| Task2 ordinary92487 and final `816fa7fa` | `go test ./... -count=1 -timeout=15m` EXIT0, testinfra584.942s. An integration-test registry mutation guard was added during that run, and the run preceded the integration-only domain-separated commitment-digest correction; it is NOT a frozen-final-tree gate. Final focused2.285s/race3.518s(no race report)/compile testinfra0.254s+authority0.236s PASS after the fix; physical acceptance not run. |
+| Task3 frozen1641 | `go test ./... -count=1 -timeout=15m` EXIT1; testinfra595.495s, watchdog30s timeout and prepared-cleanup-retry CreateProcessW Win325. Unchanged serial exact reruns PASS watchdog19.80s/package20.931s and cleanup3.75s/package6.360s. No cause established. |
+| Task4 frozen80961, `0cb6c720` tree | Same ordinary15m command EXIT1; transient-validator test220.58s exceeded unchanged PowerShell150s helper, then package timeout/testinfra903.139s. |
+| Root unchanged focused21969 | `go test ./internal/testinfra -run '^TestC12Batch01SuiteRejectsTransientCandidateTestMainValidatorBypass$' -count=1 -v -timeout=5m` EXIT0, test130.82s/package132.117s. Not proof of cause or erasure of80961. |
+| R21 unchanged frozen26986, same `0cb6c720` | Same ordinary15m command EXIT1: `TestOpenHonorsCancelledContext`1.2828222s>1s (platform18.393s), and `TestC12PreparedProtocolRejectsMalformedFrames/oversized-frame` CreateProcessW Win325 (parent173.13s/sub3.47s, testinfra583.287s). No package timeout that round; no source/budget/permission change. Important validation finding stays OPEN under U1. |
+| Task5 frozen26567, `e3b5ed93` source | Same ordinary15m command EXIT0, all packages PASS/testinfra563.456s; all four frozen hashes matched. Final focused authority0.319s/testinfra0.277s, direct race1.476s/1.686s and compile0.337s/0.322s PASS. This fresh PASS does not explain or erase older failures. |
+
+### Task6 exact verification and source identity
+
+Task6 RED: ordinary exact registration/API pair EXIT1,testinfra4.138s:
+`TestC12AuthorityPITRProfile/base allowed=False reached=True` at the actual
+PowerShell first-resource sentinel. Minimal common guard GREEN3.154s. Existing
+pre-run-root cleanup harness then failed for its former empty/all selection
+(EXIT1,testinfra5.715s); narrowing only its call to exact public PITR selection
+restored the original forced-initializer/cleanup assertions (combined GREEN5.845s).
+Final API/DTO/signature and actual PS guard pair PASS2.473s.
+
+Source/test freeze: `2026-09-19T17:37:17.4497348+04:00`, base `e3b5ed93`.
+No source/test edits during ordinary81642. Documentation appended after results,
+not relabeled as part of the earlier source freeze.
+
+| Frozen path | SHA256 |
+| --- | --- |
+| internal/nodecontrol/authority/v7_migration_grant_test.go | ABFC0667D67D97581233091300E097A1D56B2D2C1EE2CA24A2BB7E4ADB2288AC |
+| internal/testinfra/c12_integration_manifest_test.go | 97329E6C186D1D74D55AB549F8E930CB906D6EF493E3C7400DA018E8CBD34E91 |
+| scripts/run-c12-integration.ps1 | 047B07EEC9615FC43AA112E867AF861493309D4C91083A7A2755F0665D42B359 |
+
+Commands executed from the worktree root; each exact no-Docker command exited0.
+The integration compile-only line executes no tests.
+
+```powershell
+$env:GOOS='windows'
+go test ./internal/testinfra -run '^(TestC12RunnerAuthorityProfilesAreClosed|TestC12PITRConsumerInterfacesAreIntegrationOnly)$' -count=1 -timeout=5m
+go test -tags=integration ./internal/testinfra -run '^(TestC12AuthorityPITRScopedAccessPolicy|TestC12AuthorityPITRSQLPolicy|TestC12AuthorityPITRSQLRegistryMatchesSources|TestC12AuthorityPITRCommitObservationStateMachine|TestC12AuthorityPITRRecoveryCutStateMachine)$' -count=1 -timeout=3m
+go test -tags=integration ./internal/nodecontrol/authority -run '^TestAuthorityPITRBridgeUsesControlledTransaction$' -count=1 -timeout=2m
+go test -tags=integration ./internal/nodecontrol/authority ./internal/testinfra -run '^$' -count=1 -timeout=5m
+go test ./internal/nodecontrol/authority ./internal/readiness -count=1 -timeout=5m
+$env:CGO_ENABLED='1'; $env:CC='C:/Programs/mingw64/bin/gcc.exe'
+go test -race -tags=integration ./internal/testinfra -run '^(TestC12AuthorityPITRScopedAccessPolicy|TestC12AuthorityPITRCommitObservationStateMachine|TestC12AuthorityPITRRecoveryCutStateMachine)$' -count=1 -timeout=3m
+go test -race -tags=integration ./internal/nodecontrol/authority -run '^TestAuthorityPITRBridgeUsesControlledTransaction$' -count=1 -timeout=2m
+```
+
+Results in order: guard2.473s; behavior testinfra2.799s; bridge authority0.318s;
+compile-only authority0.324s/testinfra0.367s; ordinary authority10.336s/readiness2.822s;
+native direct race testinfra6.337s/authority1.384s with no race report.
+Runner `-Race` remains unforwarded and is NOT evidence of race coverage.
+
+Final ordinary81642 used its own process-local `GOOS=windows` child:
+`go test ./... -count=1 -timeout=15m`. EXIT0; all packages passed, testinfra587.277s/trust4.295s/trustclient2.024s. Postrun17:48:21.997+04 hashes all MATCH the three values above.
+The15m ordinary per-package limit is not a change to the5m physical gates.
+
+### Physical gate prerequisites and all unavailable calls
+
+2026-09-19 recheck: `Get-Command docker.exe -CommandType Application` found no
+Docker executable, so daemon/endpoint/image identity could not be checked.
+PowerShell/Git/Go exist; Go reports1.26.5 windows/amd64. Existing gcc is present.
+The module declares goose3.27.1 as a Go tool; optional `go tool -n goose` lookup
+produced no output while waiting approximately3m and was interrupted (EXIT1).
+Goose/dependency resolution is unverified, not a runner-gate PASS or timeout.
+Ambient inherited GIT_* names were present; a future run needs the unchanged
+legal clean-child environment. No guard was removed and no physical runner was
+launched/staged-tree receipt acquired after Docker was found absent. No installation,
+legacy harness substitute, deadline extension or non-owned deletion occurred.
+
+All seven separate PITR commands in Task6 Step4 remain UNAVAILABLE / NOT EXECUTED
+(not failed/skipped/passed): public testinfra profile; authority migration; and
+private seams after-intent-before-create, after-create-before-actual,
+after-actual-before-return, after-clean-intent-before-remove,
+after-remove-before-clean-result. Each retains its own5m budget.
+
+The six preserved crash regressions also remain UNAVAILABLE / NOT EXECUTED; each
+must run separately with unchanged authority-v7 profile and5m budget:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresCrashRecoveryMatrix$' -Timeout 5m
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresAbortDomainSafetyAndIdempotence$' -Timeout 5m
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresCrashResolverFailsClosedOnSQLDeletionOrCorruption$' -Timeout 5m
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresAtomicActivationCrashMatrix$' -Timeout 5m
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresFenceFirstAbortRace$' -Timeout 5m
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.ps1 -Profile authority-v7 -Packages './internal/nodecontrol/authority' -Run '^TestCoordinatorPostgresFinalizeCapturesAfterEffectWriterCommit$' -Timeout 5m
+```
+
+Without those calls, explicit non-skip go-json PASS, cleanup/foreign-canary and
+exact ownership checks, real row-lock privilege sufficiency, P Ready, A/B actual
+terminals, A-present/B-absent data, timeline advance and B-denied/A-Ready on the
+same candidate are all unverified. Unit/static/compile evidence cannot close them.
+
+### Ordered decisions and explicit user exception
+
+The following ordered record preserves the root's reasons and cost-if-wrong.
+U1 is an explicit user exception; it is not a root waiver, general permission to
+suppress new source findings, acceptance, or authority to merge main.
+
+- Ruling R1: Introduce the minimum private candidate identity carrier with Task1 (owner, run generation, index), leaving its cut association/issuance to Task4; consumer candidate access denies absent binding. Task1's real default SQL policy is deny-all; tests may inject only private backend/fixed-fixture authorization to exercise real adapter behavior — Task1 otherwise cannot compile or test its adapter before Tasks2/4 — cost if wrong: cross-task type churn or an unintended authorization path, caught by API/identity tests and reviews.
+- Ruling R2: The approved spec's cancellation deadline and immediate sole driver Commit both apply. Do not blindly ignore a supplied Commit context as the illustrative plan pseudocode does. Pass that context directly to the sole driver Commit while a lease guardian, established before admission, independently cancels/closes the private connection on the earlier lease/parent deadline. No context merge, clock query, SQL, WAL, or hook is inserted between admission and driver Commit — preserves per-call cancellation and the harder ordering rule — cost if wrong: cancellation leak or an extra pre-Commit operation; explicit event/cancellation/race tests must catch it. If this cannot be implemented safely in pgx, escalate to controller before changing scope.
+- Ruling R3: Preserve the spec-required exact SQL/source/build-tag/API parity guards, with runtime rejection tests and real positive controls alongside them — these enforce an explicit compile-time authority boundary rather than substitute source matching for behavior — cost if wrong: brittle guards or missed behavioral coverage, reviewed independently.
+- Ruling R4: A missing-symbol compile failure can record interface introduction, but each substantive behavior also needs an assertion-level RED after minimal declarations exist; environment failures never count — reconciles plan examples with TDD evidence — cost if wrong: extra test cycles, not scope expansion.
+- Ruling R5: Retain this plan's .superpowers workspace after finishing; never delete it or unrelated scratch — the user-approved plan explicitly prohibits deletion and takes precedence over the generic SDD cleanup step — cost if wrong: small ignored local scratch remains; portable progress stays in tracked docs/commits.
+- Ruling R6: Explicitly set GOOS=windows only in the child PowerShell processes used for native Windows tests, because actual elevated Go reports GOOS=linux with GOHOSTOS=windows — restores host-native executable generation without modifying user configuration or runner policy — cost if wrong: host-specific verification would be mislabeled; commands and GOOS/GOHOSTOS evidence are recorded, and Linux/Docker acceptance remains separate.
+- Ruling R7: Keep the existing runner as the outer absolute group-deadline enforcer; derive only min(caller,30s) inside the access capability, with earlier parent-context tests. Do not invent a new deadline env/descriptor field — source inspection shows runner:5945 establishes groupDeadline and :6070 bounds Invoke-C12Go by it, while the current descriptor has no transport for that value — cost if wrong: group-bound termination uses the runner's process cutoff instead of a pre-cutoff Go cancellation; runner remains the sole resource cleaner and no total budget is extended.
+- Ruling R8: Proceed with Task1 after recording the pre-existing full-suite watchdog timeout and three passing unchanged focused reruns; retain the full-suite failure and require ordinary post-change verification, without editing runner timing or declaring baseline all-green — the failure predates implementation, source timing supports load sensitivity, and the scoped adapter work does not alter those paths — cost if wrong: an existing cleanup defect may remain hidden by focused success; final evidence must retain and separately report any recurrence.
+- Ruling R9: Task2 freezes/tests the three new snapshot SQL literals in its own policy while enforcing all existing-source parity. Task5, when it creates the bridge owner, must replace the staged literal check with required bridge AST parity and update moved fixture owners; never silently skip a missing owner — the Task2 plan references a source file created only in Task5, so final-owner parity cannot execute yet without violating file ownership — cost if wrong: bridge drift might escape until the later gate; Task5/6 completion must explicitly verify the transition.
+- Ruling R10: Task3 uses the fixed numeric get_changes hint65536 plus independent client row65536/byte64MiB/per-row1MiB caps; successful completion means normal EOF, no stream error, and complete validated transaction blocks for that response, not proof the entire slot is empty. A complete response with no requested marker is not-observed; any partial/error/over-limit response poisons. PostgreSQL18 docs confirm the hint is checked after whole transaction output and can be exceeded (https://www.postgresql.org/docs/18/functions-admin.html#FUNCTIONS-REPLICATION) — resolves the brief's unspecified hint without treating a server hint as a safety bound or looping unbounded drains — cost if wrong: false poison or lost proof; explicit exact-cap/over-cap/incomplete-block tests and the live gate must cover it.
+- Ruling R11: Task3 proves poison rejection through existing CrashPrimary and its internal gates; Task4 must add the exact public SelectRecoveryCut/CrashPrimaryAtCut poison-with-zero-Docker assertions when those methods exist, without introducing premature Task4 APIs — Task3's example calls methods only introduced by its dependent task — cost if wrong: a new path could omit poison enforcement; Task4 review must resolve this explicit follow-on obligation before completion.
+- Ruling R12: Use the already-frozen GetNodeControlDatabaseIdentity SQL via controller-private access to establish actual system ID/timeline in Task2 for policy validation, and Task4 captures/rechecks that tuple in retained backup/candidate records before authorizing their lifecycle. The descriptor database digest is not a PostgreSQL system identifier; no new public DTO field/SQL permission is needed — baseline backup lacks the facts the approved candidate equality/timeline comparison requires — cost if wrong: identity could be accepted from the wrong checkpoint; tests must reject mismatched retained system IDs/timelines and live acceptance remains required.
+- Ruling R13: Task4 may add the minimal unexported controller backend seam needed to substitute/record external Docker, SQL and WAL operations in its tests; default paths keep the existing exact resource execution. Test actual validation/state transitions, not a fake whole crash/cut algorithm — the plan says reuse a recorder, but immutable baseline contains no Docker-capable one — cost if wrong: tests could validate a mock instead of controller behavior; independent review must verify seam placement and unchanged public surface.
+- Ruling R14: Bind setup fixture groups in two stages: retain at most3 structurally consistent node/scope/sequence/lineage/history/issuance/attempt/certificate groups from authorized setup; when claim supplies the original operationID, validate every required NewSHA1 derivation before registering that current operation or permitting its domain writes — setup SQL carries derived UUIDs only, while the approved Task5 plan does not supply three concrete original UUIDs to Task2; neither SHA1 inversion nor invented hardcoded IDs/new registration API is justified — cost if wrong: a malformed setup group could become an authorized claim; test partial/conflicting/reused groups and every late-binding mismatch and review independently.
+- Ruling R15: Keep Task2 a fixed-SQL/argument/fixture capability, not a replacement activation-sequence validator. Do not add pre-Commit completeness checks or post-commit poisoning solely for intentionally truncated already-authorized activation DML; merge only verified NEW setup/claim identities, retain uncertain-Commit failclosed behavior, and allow legitimate committed pending claims — approved spec7.3 treats handler DBTX usage as trusted fixed test code, while the real Coordinator/handler plus Task5 prove atomic activation and the consume→Commit interval forbids added checks — cost if wrong: a deliberately truncated trusted callback can physically commit partial allowed DML; explicitly document this boundary and never claim wrapper-enforced protocol atomicity/rollback or skip the real atomicity acceptance assertions.
+- Ruling R16: Route the already-approved Task5 Step6 testinfra-private candidate privilege verification into Task4's candidate-access lifecycle work. Task2 currently installs grants but only has an observer read-only/TLS probe, not a candidate-role probe; Task5 owns authority tests and must not gain arbitrary probe SQL. Task4 adds a fixed unexported verifier on the existing restricted candidate connection before callback entry, with failure preventing capability exposure, no additional connection/public API/consumer SQL/grants. Verify effective non-superuser, non-read-only and exact required column privileges; actual FOR UPDATE sufficiency remains the real Task5/6 Coordinator gate — resolves a cross-task ownership omission without expanding authority — cost if wrong: private catalog checks could reject a valid restored candidate or falsely certify insufficient grants; negative behavioral tests and real same-candidate Ready remain mandatory, and no live acceptance is claimed without them.
+- Ruling R17: Correct Task4's literal recovery_target_inclusive=on to off/false when the unchanged target is the logical terminal EndLSN, for both new ordinary and legacy prepared restore paths. REL_18_4 logical.c reports commit record END, while xlogrecovery.c compares record START before replay for off and after replay for on; on replays one subsequent record. The approved spec section6 requires semantic A inclusion/B exclusion, not that literal on, so off implements its stronger exact-boundary intent without LSN arithmetic or a new API. Task4 tests actual restore arguments; Task5/6 retain real A/B and legacy prepared gates; Task6 corrects the tracked plan with citations — cost if wrong: the selected commit might be omitted or later WAL included; only real data checks can close physical acceptance. Evidence: postgresql18-terminal-boundary-facts.md.
+- Ruling R18: Allow private candidate phases6/7 as started/in-flight-or-failed reservations for valid Promote/Inspect, preserving4=successfully promoted and5=successfully inspected; expose4/5 only after success. Full caller identity validation still precedes any phase claim, while an uncertain started external operation must not roll back to an authorizing/retryable state. Baseline grep confirms candidatePhase is only private controller/access state plus one policy fixture, not WAL/runner/public protocol. This avoids the baseline bug that claimed success4 before promotion SQL and avoids redundant success/failure flags — cost if wrong: a valid failed operation can strand a candidate or an overlooked phase consumer can misinterpret it; tests must cover valid4/5, failed6/7 access/retry refusal, zero later effects and unchanged cleanup compatibility.
+- Ruling R19: Adapt only Task2's c12TestOriginalCallKind candidate fixture/helpers in c12_authority_sql_policy_integration_test.go to the new exact promoted DTO and private pre-callback verification; do not introduce an optional-unverified candidate admission route merely to retain its zero-open assertion. Record backend events after valid candidate admission, then prove rejected consumer calls add zero Query/Exec/driver events (also after Begin for tx); primary behavior remains. No runtime SQL/grant changes and no opportunistic deferred-Minor edit. Optional nil DTO may mean primary only, never bypass validation for a nonnil candidate binding — cost if wrong: fixture adaptation could weaken authorization-before-driver regression coverage; scoped tests/review must verify event-delta assertions, not merely opens==1.
+- Ruling R20: Refine R12's fixed identity-query reuse by adding one unexported two-column systemID/timeline SELECT for the paused pre-promote candidate on its existing private database connection. Preserve the frozen query's signed-to-unsigned CASE projections/ranges, but omit current insert/flush LSN; keep original frozen SQL for backup and promoted stages. PostgreSQL18 functions-admin9.28.3 forbids pg_current_wal_insert_lsn during recovery, while existing cut-wait already verifies replay LSN. Do not defer candidate identity verification until after promotion and do not add consumer SQL/grants/API/connections — cost if wrong: projection drift or a fake-only recovery success could accept wrong identity or fail live; tests must reject insert/flush queries while fake recovery is active, check actual Restore uses the narrow query, unsigned bounds/wrong tuple, and retain real physical gate. Primary source: https://www.postgresql.org/docs/18/functions-admin.html .
+- Ruling R21: Review1's only Task4 Important finding is the failed ordinary validation, without an identified source defect. After exact unchanged diagnostic21969 passed130.82s (package132.117s) and helper/stack trace proved only an outer150s timeout before semantic assertions, authorize one frozen full-suite rerun by the original implementer with identical budgets/permissions/concurrency and no source edits. If it passes without a patch, rereview the original immutable diff with appended evidence rather than fabricate an empty commit/fix diff. Preserve80961 failure and unknown causation; final Task6 gate remains required — cost if wrong: another up-to15m run may not reproduce intermittent failure and cannot prove its cause; if still failing, stop speculative retries and route the concrete blocker.
+- User direction U1 (2026-09-19, async choice after R21 emitted another ordinary failure): user explicitly selected “继续第 5–6 项，保留验收阻塞” in response to a choice stating only an unaccepted development-branch checkpoint would be pushed and main would not be merged. This overrides the normal per-task quality gate solely to permit remaining implementation; it does not declare either ordinary failure fixed, waive final reporting, authorize broader harness/security changes, or imply final acceptance. Keep Task4 Important validation finding OPEN in final review. Task4 source is spec-compliant with no identified source defect; next implementation is Task5. While26986 runs, its whole source tree remains frozen; Task5 may read/prepare only until root explicitly releases edits after test exit.
+- Ruling R22: Allow a narrow Task5 test-local adapter over existing coordinatorMemoryRepository solely for provider-outside-lock scheduling tests using pitrBridgeFakeTx. Root source check confirmed existing memory Lock/readAuthoritySnapshot require exact *coordinatorMemoryTransaction; adapting/delegating existing memory behavior avoids building a second SQL-result simulator for unrelated scheduling. Real Coordinator Finalize/CheckReady and fake active-state guard must execute, with positive method counts and negative guard check; retain separate exact real bridge/transact and dynamic real-handler assertions. No production/existing-memory-test changes or algorithm duplication; actual P/A/B stays real PostgresRepository/handler/controller — cost if wrong: memory adaptation can give false confidence about real SQL/atomicity, so explicitly restrict its claim to scheduling and preserve independent live/handler gates.

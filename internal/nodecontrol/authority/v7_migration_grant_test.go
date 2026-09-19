@@ -613,6 +613,31 @@ func TestNodeControlV7ProductionBuildOmitsFixtureFactories(t *testing.T) {
 	if containsString(testinfra.GoFiles, "c12_authority_pitr_integration.go") {
 		t.Fatal("ordinary testinfra production build includes PITR control helper")
 	}
+	bridge := "authority_pitr_bridge_integration_test.go"
+	if first := strings.SplitN(strings.ReplaceAll(string(task8ReadAuthorityFile(t, bridge)), "\r\n", "\n"), "\n", 2)[0]; first != "//go:build integration" {
+		t.Fatalf("authority bridge first line = %q", first)
+	}
+	for _, path := range append(append([]string(nil), ordinary.GoFiles...), ordinary.TestGoFiles...) {
+		if path == bridge {
+			t.Fatal("ordinary authority build includes controlled PITR bridge")
+		}
+	}
+	paths, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range paths {
+		if strings.HasSuffix(path, "_test.go") {
+			continue
+		}
+		file := task8ParseAuthorityFile(t, path)
+		ast.Inspect(file, func(node ast.Node) bool {
+			if id, ok := node.(*ast.Ident); ok && (id.Name == "pitrAuthorityRepository" || id.Name == "C12AuthorityAccess" || id.Name == "C12AuthorityTransaction") {
+				t.Errorf("authority production source %s references test-only bridge %s", path, id.Name)
+			}
+			return true
+		})
+	}
 }
 
 func TestStoredFencePersistedOutcomeProjection(t *testing.T) {
