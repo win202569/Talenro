@@ -501,49 +501,57 @@ func (fixture *postgresCrashFixture) reserveAndCommitDomain(t *testing.T, commit
 
 func (fixture *postgresCrashFixture) seedCertificate(t *testing.T, tx pgx.Tx, reservation Reservation) {
 	t.Helper()
-	ctx, at := t.Context(), fixture.clock.Now().Add(-time.Minute)
+	point, err := fixture.rawRepository.CaptureDatabasePoint(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	op := pitrOperationFixture{request: ReserveRequest{OperationID: reservation.OperationID, Kind: reservation.Kind, ScopeKind: reservation.ScopeKind, ScopeDigest: reservation.ScopeDigest}, nodeID: fixture.nodeID, certificateID: uuid.NewSHA1(reservation.OperationID, []byte("certificate")), sequence: reservation.Sequence}
+	if err := pitrSeedCertificate(t.Context(), tx, point, op, fixture.clock.Now().Add(-time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func pitrSeedCertificate(ctx context.Context, tx store.DBTX, point DatabasePoint, op pitrOperationFixture, at time.Time) error {
+	reservation := Reservation{OperationID: op.request.OperationID, Sequence: op.sequence, ScopeDigest: op.request.ScopeDigest}
 	id := func(label string) uuid.UUID { return uuid.NewSHA1(reservation.OperationID, []byte(label)) }
 	// Historical issuance/node dependencies are inert setup, not the operation under
 	// test. This matches task8SeedPreparedProofOwner's replica-only dependencies.
 	if _, err := tx.Exec(ctx, `SET LOCAL session_replication_role=replica`); err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.node_pops(pop_code,iso_country,region,operator_state,created_at,updated_at)
  VALUES('coordinator-crash','US','fixture','enabled',$1,$1) ON CONFLICT DO NOTHING`, at); err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.node_inventory(node_id,pop_code,operator_state,security_state,identity_state,identity_epoch,lineage_id,created_at,updated_at)
- VALUES($1,'coordinator-crash','enabled','normal','active',1,$2,$3,$3)`, fixture.nodeID, id("lineage"), at); err != nil {
-		t.Fatal(err)
-	}
-	point, err := fixture.rawRepository.CaptureDatabasePoint(ctx)
-	if err != nil {
-		t.Fatal(err)
+ VALUES($1,'coordinator-crash','enabled','normal','active',1,$2,$3,$3)`, op.nodeID, id("lineage"), at); err != nil {
+		return err
 	}
 	// The historical issuance belongs to an earlier epoch and is never a current
 	// provider anchor. All values are deterministic fixture data, not signed evidence.
 	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.control_plane_authority_fences(operation_id,effect_kind,scope_kind,authority_epoch,authority_sequence,scope_digest,provider_reservation_digest,effect_digest,provider_status,provider_receipt_digest,db_system_id,db_timeline,required_lsn,visibility_state,reserved_at,effect_bound_at,terminal_at,authority_protocol_profile)
  VALUES($1,'certificate_activate','node',1,$2,$3,$3,$3,'committed',$3,$4,$5,$6::pg_lsn,'active',$7,$7,$7,'legacy_v6')`, id("issuance-operation"), int64(reservation.Sequence), reservation.ScopeDigest[:], fmt.Sprint(point.SystemID), int64(point.Timeline), string(point.RequiredLSN), at); err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.node_certificate_issuances(
  issuance_id,authority_operation_id,authority_epoch,authority_sequence,node_id,attempt_id,issuance_kind,identity_epoch,lineage_id,
  issuer_id,csr_sha256,public_key_sha256,template_sha256,request_digest,status,serial_bytes,leaf_der,leaf_der_sha256,
  chain_der,chain_der_sha256,not_before,not_after,created_at,updated_at,terminal_at,retention_until)
  VALUES($1,$2,1,$3,$4,$5,'initial',1,$6,'fixture-ca',$7,$7,$7,$7,'active',decode('01','hex'),decode('02','hex'),$7,
- decode('03','hex'),$7,$8,$9,$8,$8,$8,$10)`, id("issuance"), id("issuance-operation"), int64(reservation.Sequence), fixture.nodeID, id("attempt"), id("lineage"), reservation.ScopeDigest[:], at, at.Add(time.Hour), time.Now().UTC().Add(365*24*time.Hour)); err != nil {
-		t.Fatal(err)
+ decode('03','hex'),$7,$8,$9,$8,$8,$8,$10)`, id("issuance"), id("issuance-operation"), int64(reservation.Sequence), op.nodeID, id("attempt"), id("lineage"), reservation.ScopeDigest[:], at, at.Add(time.Hour), time.Now().UTC().Add(365*24*time.Hour)); err != nil {
+		return err
 	}
 	if _, err := tx.Exec(ctx, `SET LOCAL session_replication_role=origin`); err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.node_certificates(
  certificate_id,issuance_id,authority_operation_id,authority_epoch,authority_sequence,node_id,identity_epoch,lineage_id,
  issuer_id,serial_bytes,leaf_der,leaf_der_sha256,public_key_sha256,chain_der_sha256,valid_from,valid_until,status,created_at,updated_at,retention_until)
  VALUES($1,$2,$3,1,$4,$5,1,$6,'fixture-ca',decode('01','hex'),decode('02','hex'),$7,$7,$7,$8,$9,'active',$8,$8,$10)`,
-		id("certificate"), id("issuance"), id("issuance-operation"), int64(reservation.Sequence), fixture.nodeID, id("lineage"), reservation.ScopeDigest[:], at, at.Add(time.Hour), time.Now().UTC().Add(365*24*time.Hour)); err != nil {
-		t.Fatal(err)
+		id("certificate"), id("issuance"), id("issuance-operation"), int64(reservation.Sequence), op.nodeID, id("lineage"), reservation.ScopeDigest[:], at, at.Add(time.Hour), time.Now().UTC().Add(365*24*time.Hour)); err != nil {
+		return err
 	}
+	return nil
 }
 
 func task9CertificateInputDigest(operationID, nodeID, certificateID uuid.UUID, leafDigest []byte) contracts.Digest {
@@ -556,34 +564,45 @@ func task9CertificateInputDigest(operationID, nodeID, certificateID uuid.UUID, l
 
 func (fixture *postgresCrashFixture) commitDomain(t *testing.T, tx pgx.Tx, reservation Reservation) contracts.Digest {
 	t.Helper()
-	// The first-writer contract is explicit: lock the fence before any domain row.
-	stored, err := fixture.rawRepository.Lock(t.Context(), tx, reservation.OperationID)
+	digest, err := pitrCommitDomain(t.Context(), tx, fixture.rawRepository, reservation, fixture.nodeID)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if stored.AbortClaim != nil || stored.Record.TerminalReceipt != nil {
-		t.Fatal("effect writer lost fence to Abort")
-	}
-	certificateID := uuid.NewSHA1(reservation.OperationID, []byte("certificate"))
-	inputs := task9CertificateInputDigest(reservation.OperationID, fixture.nodeID, certificateID, reservation.ScopeDigest[:])
-	commitment, err := NewAuthorityEffectCommitment(AuthorityEffectCommitmentInput{OperationID: reservation.OperationID, Kind: reservation.Kind, ScopeKind: reservation.ScopeKind, ScopeDigest: reservation.ScopeDigest, Epoch: reservation.Epoch, Sequence: reservation.Sequence,
-		BaseEffectDigest: sha256.Sum256([]byte("task9-revoke:" + reservation.OperationID.String())), Mode: CommitmentConditionalApply, Reason: EffectReasonNone, ActivationPolicyVersion: 1, ActivationInputsDigest: inputs})
-	if err != nil {
-		t.Fatal(err)
-	}
-	digest := commitment.Digest()
-	if _, err := tx.Exec(t.Context(), `UPDATE nodecontrol.node_certificates SET revoke_authority_operation_id=$2,revoke_authority_epoch=$3,revoke_authority_sequence=$4,revoke_authority_effect_commitment_jcs=$5,revoke_authority_effect_commitment_digest=$6 WHERE certificate_id=$1`,
-		certificateID, reservation.OperationID, int64(reservation.Epoch), int64(reservation.Sequence), commitment.CanonicalJCS(), digest[:]); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := tx.Exec(t.Context(), `INSERT INTO nodecontrol.authority_task7_crash_effects(operation_id,effect_kind,scope_kind,scope_digest,effect_digest,effect_state) VALUES($1,$2,$3,$4,$5,$6)`, reservation.OperationID, reservation.Kind, reservation.ScopeKind, reservation.ScopeDigest[:], digest[:], EffectCommitted); err != nil {
 		t.Fatal(err)
 	}
 	return digest
 }
 
+const pitrCertificateCommitmentUpdateSQL = `UPDATE nodecontrol.node_certificates SET revoke_authority_operation_id=$2,revoke_authority_epoch=$3,revoke_authority_sequence=$4,revoke_authority_effect_commitment_jcs=$5,revoke_authority_effect_commitment_digest=$6 WHERE certificate_id=$1`
+const pitrAuditOutboxCountsSQL = `SELECT (SELECT count(*) FROM nodecontrol.node_operator_audit WHERE authority_operation_id=$1),(SELECT count(*) FROM public.transactional_outbox WHERE event_id=$1)`
+
+func pitrCommitDomain(ctx context.Context, tx store.DBTX, repository *PostgresRepository, reservation Reservation, nodeID uuid.UUID) (contracts.Digest, error) {
+	// The first-writer contract is explicit: lock the fence before any domain row.
+	stored, err := repository.Lock(ctx, tx, reservation.OperationID)
+	if err != nil {
+		return contracts.Digest{}, err
+	}
+	if stored.AbortClaim != nil || stored.Record.TerminalReceipt != nil {
+		return contracts.Digest{}, ErrConflict
+	}
+	certificateID := uuid.NewSHA1(reservation.OperationID, []byte("certificate"))
+	inputs := task9CertificateInputDigest(reservation.OperationID, nodeID, certificateID, reservation.ScopeDigest[:])
+	commitment, err := NewAuthorityEffectCommitment(AuthorityEffectCommitmentInput{OperationID: reservation.OperationID, Kind: reservation.Kind, ScopeKind: reservation.ScopeKind, ScopeDigest: reservation.ScopeDigest, Epoch: reservation.Epoch, Sequence: reservation.Sequence,
+		BaseEffectDigest: sha256.Sum256([]byte("task9-revoke:" + reservation.OperationID.String())), Mode: CommitmentConditionalApply, Reason: EffectReasonNone, ActivationPolicyVersion: 1, ActivationInputsDigest: inputs})
+	if err != nil {
+		return contracts.Digest{}, err
+	}
+	digest := commitment.Digest()
+	if _, err := tx.Exec(ctx, pitrCertificateCommitmentUpdateSQL,
+		certificateID, reservation.OperationID, int64(reservation.Epoch), int64(reservation.Sequence), commitment.CanonicalJCS(), digest[:]); err != nil {
+		return contracts.Digest{}, err
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO nodecontrol.authority_task7_crash_effects(operation_id,effect_kind,scope_kind,scope_digest,effect_digest,effect_state) VALUES($1,$2,$3,$4,$5,$6)`, reservation.OperationID, reservation.Kind, reservation.ScopeKind, reservation.ScopeDigest[:], digest[:], EffectCommitted); err != nil {
+		return contracts.Digest{}, err
+	}
+	return digest, nil
+}
+
 type postgresCrashEffectResolver struct {
-	pool              *pgxpool.Pool
+	pool              store.DBTX
 	repository        *postgresCrashRepository
 	mu                sync.Mutex
 	captures          int
@@ -593,7 +612,7 @@ type postgresCrashEffectResolver struct {
 	onResolve         func(context.Context, store.DBTX) error
 }
 
-func newPostgresCrashEffectResolver(pool *pgxpool.Pool) *postgresCrashEffectResolver {
+func newPostgresCrashEffectResolver(pool store.DBTX) *postgresCrashEffectResolver {
 	return &postgresCrashEffectResolver{pool: pool}
 }
 func (resolver *postgresCrashEffectResolver) ResolveAuthorityEffect(ctx context.Context, id uuid.UUID) (ResolvedEffect, error) {
@@ -764,7 +783,7 @@ func (resolver *postgresCrashEffectResolver) ValidatePersistedAuthorityEffect(ct
 	if err := dbtx.QueryRow(ctx, `SELECT status,revoke_authority_activation_evidence_jcs,revoke_authority_effect_resolution_jcs FROM nodecontrol.node_certificates WHERE revoke_authority_operation_id=$1 FOR UPDATE`, receipt.OperationID).Scan(&status, &evidence, &resolved); err != nil {
 		return err
 	}
-	if err := dbtx.QueryRow(ctx, `SELECT (SELECT count(*) FROM nodecontrol.node_operator_audit WHERE authority_operation_id=$1),(SELECT count(*) FROM public.transactional_outbox WHERE event_id=$1)`, receipt.OperationID).Scan(&audit, &outbox); err != nil {
+	if err := dbtx.QueryRow(ctx, pitrAuditOutboxCountsSQL, receipt.OperationID).Scan(&audit, &outbox); err != nil {
 		return err
 	}
 	var originalContext []byte
@@ -936,12 +955,18 @@ func (repository *postgresCrashRepository) inTransaction() bool {
 // protocol evidence and this does not validate production activation.
 func task9SeedProofActivation(t *testing.T, tx pgx.Tx, activationID uuid.UUID, discriminator int, now time.Time) {
 	t.Helper()
-	var installationID uuid.UUID
-	if err := tx.QueryRow(t.Context(), `SELECT installation_id FROM nodecontrol.control_plane_authority_protocol_migration_latches WHERE singleton_key ORDER BY installation_id LIMIT 1`).Scan(&installationID); err != nil {
-		t.Fatal("load exact installed migration latch for claim-v1 closure:", err)
-	}
-	if _, err := tx.Exec(t.Context(), `SET LOCAL session_replication_role=replica`); err != nil {
+	if err := pitrSeedClosure(t.Context(), tx, activationID, discriminator, now); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func pitrSeedClosure(ctx context.Context, tx store.DBTX, activationID uuid.UUID, discriminator int, now time.Time) error {
+	var installationID uuid.UUID
+	if err := tx.QueryRow(ctx, `SELECT installation_id FROM nodecontrol.control_plane_authority_protocol_migration_latches WHERE singleton_key ORDER BY installation_id LIMIT 1`).Scan(&installationID); err != nil {
+		return fmt.Errorf("load exact installed migration latch for claim-v1 closure: %w", err)
+	}
+	if _, err := tx.Exec(ctx, `SET LOCAL session_replication_role=replica`); err != nil {
+		return err
 	}
 	deploymentID := uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-deployment:%d", discriminator)))
 	intentID := uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-intent:%d", discriminator)))
@@ -951,7 +976,7 @@ func task9SeedProofActivation(t *testing.T, tx pgx.Tx, activationID uuid.UUID, d
 	completionID := uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-completion:%d", discriminator)))
 	releasePreparationID := uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-release:%d", discriminator)))
 	openID := uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-open:%d", discriminator)))
-	if _, err := tx.Exec(t.Context(), `
+	if _, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_protocol_upgrade_intents(
  intent_id,installation_id,installation_kind,activation_id,request_nonce,incarnation_registration_id,
  provider_absence_proof_id,observed_deployment_id,database_identity_digest,local_runtime_isolation_digest,
@@ -962,9 +987,9 @@ VALUES($1,$2,'production',$3,decode(repeat('91',32),'hex'),$4,$5,$6,decode(repea
 		uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-incarnation:%d", discriminator))),
 		uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-absence:%d", discriminator))),
 		deploymentID, now); err != nil {
-		t.Fatal("seed legal claim-v1 upgrade intent:", err)
+		return fmt.Errorf("seed legal claim-v1 upgrade intent: %w", err)
 	}
-	if _, err := tx.Exec(t.Context(), `
+	if _, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_runtime_registration_results(
  registration_id,upgrade_intent_digest,activation_id,provider_identity_digest,provider_endpoint_identity_digest,
  namespace,credential_policy_digest,database_incarnation_attestation_digest,provider_registration_digest,
@@ -979,9 +1004,9 @@ VALUES($1,decode(repeat('a1',32),'hex'),$2,decode(repeat('94',32),'hex'),decode(
  'registered_pending_genesis',0,decode('01','hex'),$4,decode('7b7d','hex'),decode('7b7d','hex'),decode(repeat('a2',32),'hex'))`,
 		registrationID, activationID,
 		uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("task8-proof-runtime:%d", discriminator))), now); err != nil {
-		t.Fatal("seed legal claim-v1 runtime registration:", err)
+		return fmt.Errorf("seed legal claim-v1 runtime registration: %w", err)
 	}
-	if _, err := tx.Exec(t.Context(), `
+	if _, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_protocol_upgrade_attempts(
  attempt_id,upgrade_intent_digest,activation_id,preparation_id,completion_id,release_preparation_id,open_id,
  mode,deployment_id,request_nonce,environment_inventory_digest,environment_inventory_anchor_set_digest,
@@ -998,9 +1023,9 @@ VALUES($1,decode(repeat('a1',32),'hex'),$2,$3,$4,$5,$6,'empty_in_place',$7,decod
  decode(repeat('a2',32),'hex'),decode(repeat('ad',32),'hex'),decode(repeat('ae',32),'hex'),decode(repeat('af',32),'hex'),
  decode(repeat('b0',32),'hex'),1,$8,decode('7b7d','hex'),decode('7b7d','hex'),decode(repeat('a3',32),'hex'))`,
 		attemptID, activationID, preparationID, completionID, releasePreparationID, openID, deploymentID, now); err != nil {
-		t.Fatal("seed legal claim-v1 upgrade attempt:", err)
+		return fmt.Errorf("seed legal claim-v1 upgrade attempt: %w", err)
 	}
-	_, err := tx.Exec(t.Context(), `
+	_, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_protocol_activations(
  activation_id,mode,attempt_digest,deployment_id,database_identity_digest,database_incarnation_attestation_digest,
  genesis_database_incarnation_registration_digest,runtime_registration_result_digest,runtime_rebind_chain_digest,
@@ -1018,9 +1043,9 @@ VALUES($1,'empty_in_place',decode(repeat('a3',32),'hex'),$2,decode(repeat('92',3
 	 1,decode(repeat('94',32),'hex'),decode(repeat('95',32),'hex'),'task8-proof','claim_v1',decode(repeat('66',32),'hex'),
 	 $3,decode('7b7d','hex'),decode('7b7d','hex'),decode(repeat('a4',32),'hex'))`, activationID, deploymentID, now)
 	if err != nil {
-		t.Fatal("seed CHECK-valid claim-v1 activation:", err)
+		return fmt.Errorf("seed CHECK-valid claim-v1 activation: %w", err)
 	}
-	if _, err := tx.Exec(t.Context(), `
+	if _, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_protocol_activation_completions(
  completion_id,activation_id,activation_digest,preparation_digest,provider_completion_digest,
  provider_completion_phase,database_activation_attestation_digest,current_database_incarnation_registration_digest,
@@ -1032,9 +1057,9 @@ VALUES($1,$2,decode(repeat('a4',32),'hex'),decode(repeat('66',32),'hex'),decode(
 	 decode(repeat('ad',32),'hex'),decode(repeat('ae',32),'hex'),decode(repeat('a6',32),'hex'),
 	 decode(repeat('af',32),'hex'),decode(repeat('b0',32),'hex'),1,$3,decode('7b7d','hex'),decode('7b7d','hex'),
  decode(repeat('a5',32),'hex'))`, completionID, activationID, now); err != nil {
-		t.Fatal("seed CHECK-valid claim-v1 activation completion:", err)
+		return fmt.Errorf("seed CHECK-valid claim-v1 activation completion: %w", err)
 	}
-	if _, err := tx.Exec(t.Context(), `
+	if _, err := tx.Exec(ctx, `
 INSERT INTO nodecontrol.control_plane_authority_protocol_activation_releases(
  release_preparation_id,open_id,activation_id,activation_digest,completion_digest,
  provider_release_preparation_digest,provider_release_phase,database_completion_attestation_digest,open_nonce,
@@ -1046,11 +1071,12 @@ VALUES($1,$2,$3,decode(repeat('a4',32),'hex'),decode(repeat('a5',32),'hex'),deco
 	 NULL,decode(repeat('ad',32),'hex'),decode(repeat('ae',32),'hex'),decode(repeat('a6',32),'hex'),
 	 decode(repeat('af',32),'hex'),decode(repeat('b0',32),'hex'),1,$4,decode('7b7d','hex'),decode('7b7d','hex'),
  decode(repeat('a6',32),'hex'))`, releasePreparationID, openID, activationID, now); err != nil {
-		t.Fatal("seed CHECK-valid claim-v1 activation release:", err)
+		return fmt.Errorf("seed CHECK-valid claim-v1 activation release: %w", err)
 	}
-	if _, err := tx.Exec(t.Context(), `SET LOCAL session_replication_role=origin`); err != nil {
-		t.Fatal(err)
+	if _, err := tx.Exec(ctx, `SET LOCAL session_replication_role=origin`); err != nil {
+		return err
 	}
+	return nil
 }
 
 type postgresTransactionGuardProvider struct {

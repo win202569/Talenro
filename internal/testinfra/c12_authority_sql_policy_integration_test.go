@@ -44,29 +44,31 @@ type c12SourceOwner struct {
 }
 
 var c12SQLSourceOwners = map[string]c12SourceOwner{
-	"GetNodeControlDatabaseIdentity":            {sql: []string{c12GetNodeControlDatabaseIdentitySQL}, argsSHA: "062ed05a49164fd40b25dd1873a7cfe12bb767712ad34499d5404a09cf01ec1b"},
-	"GetAuthorityFenceHead":                     {sql: []string{c12GetAuthorityFenceHeadSQL}, argsSHA: "a4dabf8aa4aa5e569a169d87caf2433563e91e71c3297b8d3e54f75eefb26ac2"},
-	"ListPendingAuthorityFences":                {sql: []string{c12ListPendingAuthorityFencesSQL}, argsSHA: "a1e7cf1ec779172ce4f06c70eb6876341a48e097ea0bedca5fb3a3249f51fa08"},
-	"LockAuthorityFence":                        {sql: []string{c12LockAuthorityFenceSQL}, argsSHA: "4cb3429b0ee8016fd3539e11ca0d9cd9c409b93fbdf113cbfc825822746094d3"},
-	"LockCertificateRevocationOutcome":          {sql: []string{c12LockCertificateRevocationOutcomeSQL}, argsSHA: "60e849ad4ea08ac7c49bf468afe1ef3f91cac922bb0c5e7719b196ab543a2a16"},
-	"GetStoredAuthorityFence":                   {sql: []string{c12GetStoredAuthorityFenceSQL}, argsSHA: "e4825697aaea75b16075381e7183debc1650d27406b7de1422bae8e63540a8fe"},
-	"GetAuthorityFenceForUpdate":                {sql: []string{c12GetAuthorityFenceForUpdateSQL}, argsSHA: "6122cf7c60fa91606208b206e8ac63ad4c4ac1d2707950fb2864f48ca47ac221"},
-	"InsertClaimV1AuthorityFencePending":        {sql: []string{c12InsertClaimV1AuthorityFencePendingSQL}, argsSHA: "8f4202fd446a1e36a42cf38e2c76306c3486a115d52f2495570b3db46060a462"},
-	"BindAuthorityFenceEffect":                  {sql: []string{c12BindAuthorityFenceEffectSQL}, argsSHA: "3818c9e23ff4df258e32e4ea981c2d71b61dafbcb170117101aae00db187e96d"},
-	"ActivateCommittedAuthorityFence":           {sql: []string{c12ActivateCommittedAuthorityFenceSQL}, argsSHA: "a5f06309eb86de08b334295e77e30658435a83c7fa9a8c41bf75eb49c89ef96d"},
-	"ResolveRegisteredAuthorityEffectForUpdate": {sql: []string{c12AuxResolveSQL, c12CertificateResolutionSQL}, argsSHA: "81655de1fb027843970e0dbeef207d626e38af671ccbd906828e828e1062bc02"},
-	"task9ReadCertificateInput":                 {sql: []string{c12CertificateInputSQL}, argsSHA: "96d621e28abedf083da32826d7da990c42182ed48b124a733fcc57e1cb654d27"},
-	"ValidatePersistedAuthorityEffect":          {sql: []string{c12PersistedEffectSQL, c12AuditOutboxCountsSQL, c12OutboxPayloadSQL}, argsSHA: "1cae982b4bfa52670939ddbd42ab6e12e5e8eef0dc593de9aad88959f0b63cce"},
-	"CaptureActivationDecisionMaterial":         {sql: []string{c12CommitmentReadSQL}, argsSHA: "3952a97e390b0826173ea037434a16294967171ae4a02443cb6092a1afc77721"},
-	"commitDomain":                              {sql: []string{c12CommitmentWriteSQL, c12AuxInsertSQL}, argsSHA: "3475924fe6daae04d181a13d22815059f9872641d8268b02c6aaccbf23267bec"},
-	"ActivateAuthorityEffect":                   {sql: []string{c12CertificateActivateSQL, c12AuditInsertSQL, c12OutboxInsertSQL}, argsSHA: "35499d194ed2510a002f21ba3518d74198eb6df4db762e17a0b9d4c6651e2c06"},
-	"task9SeedProofActivation":                  {sql: []string{c12LatchSQL, c12ReplicaSQL, c12UpgradeIntentSQL, c12RuntimeRegistrationSQL, c12UpgradeAttemptSQL, c12ProtocolActivationSQL, c12ActivationCompletionSQL, c12ActivationReleaseSQL, c12OriginSQL}, argsSHA: "e1457e4aadfd8381e3da92b7f9122d54af80c9dd5aa63ae6520b9199c2e8a26b"},
-	"seedCertificate":                           {sql: []string{c12ReplicaSQL, c12NodePopSQL, c12NodeInventorySQL, c12LegacyFenceSQL, c12IssuanceSQL, c12OriginSQL, c12CertificateSeedSQL}, argsSHA: "fe7c6b191c2b7a1f044394007061c72a48ef10792d26f0989e90ade45422d459"},
-	"task9InstallCrashAuxiliaryTables":          {sql: []string{c12AuxDDLSQL, ""}, argsSHA: "f6c4be6d24a7430d27dfbea67b286850a6bf98896fe472557694fe661eb89fb6"},
+	"GetNodeControlDatabaseIdentity":     {sql: []string{c12GetNodeControlDatabaseIdentitySQL}, argsSHA: "062ed05a49164fd40b25dd1873a7cfe12bb767712ad34499d5404a09cf01ec1b"},
+	"GetAuthorityFenceHead":              {sql: []string{c12GetAuthorityFenceHeadSQL}, argsSHA: "a4dabf8aa4aa5e569a169d87caf2433563e91e71c3297b8d3e54f75eefb26ac2"},
+	"ListPendingAuthorityFences":         {sql: []string{c12ListPendingAuthorityFencesSQL}, argsSHA: "a1e7cf1ec779172ce4f06c70eb6876341a48e097ea0bedca5fb3a3249f51fa08"},
+	"LockAuthorityFence":                 {sql: []string{c12LockAuthorityFenceSQL}, argsSHA: "4cb3429b0ee8016fd3539e11ca0d9cd9c409b93fbdf113cbfc825822746094d3"},
+	"LockCertificateRevocationOutcome":   {sql: []string{c12LockCertificateRevocationOutcomeSQL}, argsSHA: "60e849ad4ea08ac7c49bf468afe1ef3f91cac922bb0c5e7719b196ab543a2a16"},
+	"GetStoredAuthorityFence":            {sql: []string{c12GetStoredAuthorityFenceSQL}, argsSHA: "e4825697aaea75b16075381e7183debc1650d27406b7de1422bae8e63540a8fe"},
+	"GetAuthorityFenceForUpdate":         {sql: []string{c12GetAuthorityFenceForUpdateSQL}, argsSHA: "6122cf7c60fa91606208b206e8ac63ad4c4ac1d2707950fb2864f48ca47ac221"},
+	"InsertClaimV1AuthorityFencePending": {sql: []string{c12InsertClaimV1AuthorityFencePendingSQL}, argsSHA: "8f4202fd446a1e36a42cf38e2c76306c3486a115d52f2495570b3db46060a462"},
+	"BindAuthorityFenceEffect":           {sql: []string{c12BindAuthorityFenceEffectSQL}, argsSHA: "3818c9e23ff4df258e32e4ea981c2d71b61dafbcb170117101aae00db187e96d"},
+	"ActivateCommittedAuthorityFence":    {sql: []string{c12ActivateCommittedAuthorityFenceSQL}, argsSHA: "a5f06309eb86de08b334295e77e30658435a83c7fa9a8c41bf75eb49c89ef96d"},
+	"postgresCrashEffectResolver.ResolveRegisteredAuthorityEffectForUpdate": {sql: []string{c12AuxResolveSQL, c12CertificateResolutionSQL}, argsSHA: "81655de1fb027843970e0dbeef207d626e38af671ccbd906828e828e1062bc02"},
+	"task9ReadCertificateInput":                                     {sql: []string{c12CertificateInputSQL}, argsSHA: "96d621e28abedf083da32826d7da990c42182ed48b124a733fcc57e1cb654d27"},
+	"postgresCrashEffectResolver.ValidatePersistedAuthorityEffect":  {sql: []string{c12PersistedEffectSQL, c12AuditOutboxCountsSQL, c12OutboxPayloadSQL}, argsSHA: "01717df3bdba8e14c6e000414c81a3bdb05764a8c0fe9756c30043e13832f59a"},
+	"postgresCrashEffectResolver.CaptureActivationDecisionMaterial": {sql: []string{c12CommitmentReadSQL}, argsSHA: "3952a97e390b0826173ea037434a16294967171ae4a02443cb6092a1afc77721"},
+	"pitrCommitDomain": {sql: []string{c12CommitmentWriteSQL, c12AuxInsertSQL}, argsSHA: "a23906a9cc48c81e85e747569f9c2c89f8f7b2ebe23b288c8a19cc26039d1d0c"},
+	"postgresCrashEffectResolver.ActivateAuthorityEffect": {sql: []string{c12CertificateActivateSQL, c12AuditInsertSQL, c12OutboxInsertSQL}, argsSHA: "35499d194ed2510a002f21ba3518d74198eb6df4db762e17a0b9d4c6651e2c06"},
+	"pitrSeedClosure":                  {sql: []string{c12LatchSQL, c12ReplicaSQL, c12UpgradeIntentSQL, c12RuntimeRegistrationSQL, c12UpgradeAttemptSQL, c12ProtocolActivationSQL, c12ActivationCompletionSQL, c12ActivationReleaseSQL, c12OriginSQL}, argsSHA: "ebad71461437d8976d65d2588ee89e0db8434907039caf98e6540fe361b158f2"},
+	"pitrSeedCertificate":              {sql: []string{c12ReplicaSQL, c12NodePopSQL, c12NodeInventorySQL, c12LegacyFenceSQL, c12IssuanceSQL, c12OriginSQL, c12CertificateSeedSQL}, argsSHA: "3533aca61c7ccfc86924331c93040d7a314697481cbd9dc19cac707688cdf482"},
+	"task9InstallCrashAuxiliaryTables": {sql: []string{c12AuxDDLSQL, ""}, argsSHA: "f6c4be6d24a7430d27dfbea67b286850a6bf98896fe472557694fe661eb89fb6"},
+	"pitrReadCertificateSnapshot":      {sql: []string{pitrCertificateSnapshotSQL}, argsSHA: "294df496d818eb9ec1bbb4a9f1b74826d9ce889fe77b1b2389e08064dbfb18db"},
+	"pitrReadOperationSnapshot":        {sql: []string{pitrOperationSnapshotSQL}, argsSHA: "97e86cd769fc6a0577ce3bc93d626f313b69b3e6f577806871136e06c85355c4"},
+	"pitrReadAuxCount":                 {sql: []string{pitrAuxCountSQL}, argsSHA: "3d9105c8d20de1d41edb003eb3a060670c33b52973f3151bb4588ce5213c4120"},
 }
 
-// The three snapshots are frozen here at Task2. Task5 MUST add their real
-// authority bridge owner and require AST parity; this is not a missing-file skip.
+// Every capability, including the three bridge snapshots, has a mandatory owner.
 func TestC12AuthorityPITRSQLRegistryMatchesSources(t *testing.T) {
 	storeSource, err := os.ReadFile("../store/nodecontrol_authority.sql.go")
 	if err != nil {
@@ -78,13 +80,18 @@ func TestC12AuthorityPITRSQLRegistryMatchesSources(t *testing.T) {
 	}
 	storeSource = bytes.ReplaceAll(storeSource, []byte("\r\n"), []byte("\n"))
 	fixtureSource = bytes.ReplaceAll(fixtureSource, []byte("\r\n"), []byte("\n"))
-	if err := c12CheckSQLSources(storeSource, fixtureSource, t.Logf); err != nil {
+	bridgeSource, err := os.ReadFile("../nodecontrol/authority/authority_pitr_bridge_integration_test.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bridgeSource = bytes.ReplaceAll(bridgeSource, []byte("\r\n"), []byte("\n"))
+	if err := c12CheckSQLSources(storeSource, fixtureSource, bridgeSource, t.Logf); err != nil {
 		t.Fatal(err)
 	}
 	t.Run("unmapped_registry_entry", func(t *testing.T) {
 		c12AuthoritySQLRules["SELECT arbitrary_extra_capability"] = c12SQLRule{call: c12SQLQueryRow, modes: uint8(c12SQLPrimary), arity: 0, validate: func([]any, *c12FixtureLedger) bool { return true }}
 		defer delete(c12AuthoritySQLRules, "SELECT arbitrary_extra_capability")
-		if err := c12CheckSQLSources(storeSource, fixtureSource, nil); err == nil {
+		if err := c12CheckSQLSources(storeSource, fixtureSource, bridgeSource, nil); err == nil {
 			t.Fatal("unmapped runtime SQL capability escaped source inventory")
 		}
 	})
@@ -95,11 +102,27 @@ func TestC12AuthorityPITRSQLRegistryMatchesSources(t *testing.T) {
 		{"SQL byte", bytes.Replace(storeSource, []byte("-- name: GetAuthorityFenceHead"), []byte("-- name: XetAuthorityFenceHead"), 1), fixtureSource},
 		{"call kind", bytes.Replace(storeSource, []byte("q.db.QueryRow(ctx, lockAuthorityFence"), []byte("q.db.Query(ctx, lockAuthorityFence"), 1), fixtureSource},
 		{"argument position", bytes.Replace(storeSource, []byte("arg.DbSystemID,\n\t\targ.DbTimeline,"), []byte("arg.DbTimeline,\n\t\targ.DbSystemID,"), 1), fixtureSource},
-		{"new DBTX call", storeSource, bytes.Replace(fixtureSource, []byte("func task9SeedProofActivation(t *testing.T, tx pgx.Tx, activationID uuid.UUID, discriminator int, now time.Time) {"), []byte("func task9SeedProofActivation(t *testing.T, tx pgx.Tx, activationID uuid.UUID, discriminator int, now time.Time) { tx.Exec(t.Context(), `SELECT 1`);"), 1)},
+		{"new DBTX call", storeSource, bytes.Replace(fixtureSource, []byte("func pitrSeedClosure(ctx context.Context, tx store.DBTX, activationID uuid.UUID, discriminator int, now time.Time) error {"), []byte("func pitrSeedClosure(ctx context.Context, tx store.DBTX, activationID uuid.UUID, discriminator int, now time.Time) error { tx.Exec(ctx, `SELECT 1`);"), 1)},
 	} {
 		t.Run(mutation.name, func(t *testing.T) {
-			if err := c12CheckSQLSources(mutation.store, mutation.fixture, nil); err == nil {
+			if err := c12CheckSQLSources(mutation.store, mutation.fixture, bridgeSource, nil); err == nil {
 				t.Fatal("source drift authorized")
+			}
+		})
+	}
+	t.Run("missing_snapshot_owners", func(t *testing.T) {
+		if err := c12CheckSQLSources(storeSource, fixtureSource, []byte("package authority"), nil); err == nil {
+			t.Fatal("missing bridge owners authorized")
+		}
+	})
+	for _, name := range []string{"pitrCertificateSnapshotSQL", "pitrOperationSnapshotSQL", "pitrAuxCountSQL"} {
+		t.Run("snapshot_drift/"+name, func(t *testing.T) {
+			mutated := bytes.Replace(bridgeSource, []byte("const "+name+" = `SELECT"), []byte("const "+name+" = `SELECT DISTINCT"), 1)
+			if bytes.Equal(mutated, bridgeSource) {
+				t.Fatal("snapshot mutation did not reach source")
+			}
+			if err := c12CheckSQLSources(storeSource, fixtureSource, mutated, nil); err == nil {
+				t.Fatal("snapshot SQL drift authorized")
 			}
 		})
 	}
@@ -111,10 +134,10 @@ func TestC12AuthorityPITRSQLRegistryMatchesSources(t *testing.T) {
 	}
 }
 
-func c12CheckSQLSources(storeSource, fixtureSource []byte, log func(string, ...any)) error {
+func c12CheckSQLSources(storeSource, fixtureSource, bridgeSource []byte, log func(string, ...any)) error {
 	seen := make(map[string]bool)
 	var failures []string
-	expectedRules := map[string]bool{pitrCertificateSnapshotSQL: true, pitrOperationSnapshotSQL: true, pitrAuxCountSQL: true}
+	expectedRules := make(map[string]bool)
 	for _, owner := range c12SQLSourceOwners {
 		for _, sql := range owner.sql {
 			if sql != "" && sql != c12AuxDDLSQL {
@@ -130,7 +153,7 @@ func c12CheckSQLSources(storeSource, fixtureSource []byte, log func(string, ...a
 	if len(expectedRules) != len(c12AuthoritySQLRules) {
 		failures = append(failures, "closed runtime inventory mismatch")
 	}
-	for _, src := range [][]byte{storeSource, fixtureSource} {
+	for _, src := range [][]byte{storeSource, fixtureSource, bridgeSource} {
 		fs := token.NewFileSet()
 		file, err := parser.ParseFile(fs, "source.go", src, 0)
 		if err != nil {
@@ -156,11 +179,27 @@ func c12CheckSQLSources(storeSource, fixtureSource []byte, log func(string, ...a
 			if !ok {
 				continue
 			}
-			owner, wanted := c12SQLSourceOwners[fn.Name.Name]
+			ownerName := fn.Name.Name
+			// The observing activator delegates to the real SQL owner; it cannot
+			// satisfy parity merely by sharing that owner's method name.
+			if fn.Recv != nil && len(fn.Recv.List) == 1 {
+				if pointer, ok := fn.Recv.List[0].Type.(*ast.StarExpr); ok {
+					if receiver, ok := pointer.X.(*ast.Ident); ok {
+						switch ownerName {
+						case "ActivateAuthorityEffect", "ResolveRegisteredAuthorityEffectForUpdate", "CaptureActivationDecisionMaterial", "ValidatePersistedAuthorityEffect":
+							ownerName = receiver.Name + "." + ownerName
+						}
+					}
+				}
+			}
+			owner, wanted := c12SQLSourceOwners[ownerName]
 			if !wanted {
 				continue
 			}
-			seen[fn.Name.Name] = true
+			if seen[ownerName] {
+				failures = append(failures, ownerName+": duplicate owner")
+			}
+			seen[ownerName] = true
 			count := 0
 			var args bytes.Buffer
 			ast.Inspect(fn.Body, func(node ast.Node) bool {

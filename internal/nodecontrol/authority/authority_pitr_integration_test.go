@@ -3,461 +3,290 @@
 package authority
 
 import (
+	"bytes"
 	"context"
-	"crypto/sha256"
-	"fmt"
-	"net"
-	"os"
-	"os/exec"
-	"strings"
-	"sync"
+	"errors"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"talenro.local/platform/internal/nodecontrol/contracts"
 	"talenro.local/platform/internal/store"
+	"talenro.local/platform/internal/testinfra"
 )
 
+// The runner owns the cluster, backup, credentials, recovery and cleanup. This
+// consumer performs only real claim-v1 certificate operations through scoped access.
 func TestPITRBeforeRevocationFailsClosed(t *testing.T) {
-	harness := newPITRDockerHarness(t)
-	t.Cleanup(harness.cleanup)
-
-	primaryVolume := harness.createVolume("primary")
-	backupVolume := harness.createVolume("backup")
-	primaryPort := reservePITRLoopbackPort(t)
-	primaryName := harness.startPostgres("primary", primaryPort, primaryVolume, "", backupVolume)
-	primaryPool := openPITRPool(t, primaryPort)
-	applyPITRAuthoritySchema(t, primaryPool)
-	createPITREffectTable(t, primaryPool)
-
-	provider, err := NewDeterministicProvider(29)
+	controller, err := testinfra.OpenC12AuthorityPITR()
 	if err != nil {
 		t.Fatal(err)
 	}
-	effects := newCoordinatorEffectResolver()
-	clock := coordinatorClock{now: time.Date(2026, time.August, 23, 12, 0, 0, 0, time.UTC)}
-	primaryRepository, err := NewPostgresRepository(primaryPool)
+	provider, err := NewDeterministicProvider(31)
 	if err != nil {
 		t.Fatal(err)
 	}
-	tracingRepository := &pitrTracingRepository{PostgresRepository: primaryRepository}
-	primaryCoordinator := mustNewCoordinatorForTest(t, provider, tracingRepository, effects, clock)
-
-	for sequence := 1; sequence <= 11; sequence++ {
-		commitPITRAuthorityEffect(t, primaryPool, primaryCoordinator, tracingRepository, effects, sequence, tracingRepository)
-	}
-	providerAtBackup, err := provider.Head(t.Context())
-	if err != nil || providerAtBackup.LatestReservedSequence != 11 || providerAtBackup.LatestCommittedSequence != 11 {
-		t.Fatalf("provider head at backup = %#v, %v; want committed sequence 11", providerAtBackup, err)
-	}
-	identityAtBackup, err := primaryRepository.CaptureDatabasePoint(t.Context())
-	if err != nil {
-		t.Fatal(err)
-	}
-	harness.physicalBaseBackup(primaryName)
-
-	revocationReceipt := commitPITRAuthorityEffect(t, primaryPool, primaryCoordinator, tracingRepository, effects, 12, tracingRepository)
-	providerAfterRevocation, err := provider.Head(t.Context())
-	if err != nil || providerAfterRevocation.LatestReservedSequence != 12 || providerAfterRevocation.LatestCommittedSequence != 12 ||
-		providerAfterRevocation.LatestCommittedReceiptDigest != revocationReceipt.ReceiptDigest {
-		t.Fatalf("provider head after revoke = %#v, %v; want unchanged external sequence 12", providerAfterRevocation, err)
-	}
-
-	primaryPool.Close()
-	harness.stopContainer(primaryName)
-	restorePort := reservePITRLoopbackPort(t)
-	harness.startPostgres("restore", restorePort, backupVolume, "base", "")
-	restoredPool := openPITRPool(t, restorePort)
-	restoredRepository, err := NewPostgresRepository(restoredPool)
-	if err != nil {
-		t.Fatal(err)
-	}
-	restoredCoordinator := mustNewCoordinatorForTest(t, provider, restoredRepository, effects, clock)
-	restoredIdentity, err := restoredRepository.CaptureDatabasePoint(t.Context())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if restoredIdentity.SystemID != identityAtBackup.SystemID || restoredIdentity.Timeline != identityAtBackup.Timeline {
-		t.Fatalf("historical restore identity = %#v, want preserved system/timeline from %#v", restoredIdentity, identityAtBackup)
-	}
-	var staleActive int
-	if err := restoredPool.QueryRow(t.Context(), `SELECT count(*) FROM nodecontrol.control_plane_authority_fences WHERE provider_status='committed' AND visibility_state='active'`).Scan(&staleActive); err != nil {
-		t.Fatal(err)
-	}
-	if staleActive != 11 {
-		t.Fatalf("historical restore active fixture rows = %d, want 11", staleActive)
-	}
-
-	readiness, err := restoredCoordinator.CheckReady(t.Context())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if readiness.Ready || string(readiness.Reason) != "database_behind_provider" {
-		t.Fatalf("historical restore readiness = %#v, want database_behind_provider", readiness)
-	}
-	if err := queryPITRActiveAuthorityFixture(t.Context(), restoredCoordinator, restoredPool); err != ErrAuthorityUnavailable {
-		t.Fatalf("guarded active fixture query error = %v, want ErrAuthorityUnavailable", err)
-	}
-
-	freshVolume := harness.createVolume("different")
-	freshPort := reservePITRLoopbackPort(t)
-	harness.startPostgres("different", freshPort, freshVolume, "", "")
-	freshPool := openPITRPool(t, freshPort)
-	applyPITRAuthoritySchema(t, freshPool)
-	freshRepository, err := NewPostgresRepository(freshPool)
-	if err != nil {
-		t.Fatal(err)
-	}
-	freshCoordinator := mustNewCoordinatorForTest(t, provider, freshRepository, effects, clock)
-	freshReadiness, err := freshCoordinator.CheckReady(t.Context())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if freshReadiness.Ready || string(freshReadiness.Reason) != "database_identity_mismatch" {
-		t.Fatalf("different-cluster readiness = %#v, want database_identity_mismatch precedence", freshReadiness)
-	}
-
-	providerStillExternal, err := provider.Head(t.Context())
-	if err != nil || providerStillExternal.LatestCommittedSequence != 12 ||
-		providerStillExternal.LatestCommittedReceiptDigest != revocationReceipt.ReceiptDigest {
-		t.Fatalf("provider changed during PITR = %#v, %v", providerStillExternal, err)
-	}
-}
-
-func commitPITRAuthorityEffect(
-	t *testing.T,
-	pool *pgxpool.Pool,
-	coordinator *Coordinator,
-	repository Repository,
-	effects *coordinatorEffectResolver,
-	sequence int,
-	trace *pitrTracingRepository,
-) Receipt {
-	t.Helper()
-	operationID := uuid.NewSHA1(uuid.MustParse("87bd4647-c131-4d50-96d4-f690ab276760"), []byte(fmt.Sprintf("authority-%02d", sequence)))
-	request := ReserveRequest{
-		OperationID: operationID,
-		Kind:        EffectCertificateRevoke,
-		ScopeKind:   ScopeNode,
-		ScopeDigest: sha256.Sum256([]byte(fmt.Sprintf("pitr-node-%02d", sequence))),
-	}
-	reservation, err := coordinator.Reserve(t.Context(), request)
-	if err != nil {
-		t.Fatalf("sequence %d reserve: %v", sequence, err)
-	}
-	effectDigest := sha256.Sum256([]byte(fmt.Sprintf("pitr-effect-%02d", sequence)))
-	if err := inAuthorityTransaction(t.Context(), pool, func(transaction pgx.Tx) error {
-		if err := repository.RecordPending(t.Context(), transaction, reservation, coordinator.clock.Now().Add(-time.Second)); err != nil {
+	operations := pitrOperations()
+	activationID := uuid.MustParse("79000000-0000-4000-8000-000000000001")
+	clock := coordinatorClock{now: time.Date(2026, 8, 23, 13, 0, 0, 0, time.UTC)}
+	var primaryPoint DatabasePoint
+	err = controller.WithPrimaryAuthorityAccess(t.Context(), func(access testinfra.C12AuthorityAccess) error {
+		ctx := t.Context()
+		raw, err := NewPostgresRepository(access)
+		if err != nil {
 			return err
 		}
-		_, err := transaction.Exec(t.Context(), `INSERT INTO nodecontrol.authority_task7_effects(operation_id,effect_digest) VALUES ($1,$2)`, operationID, effectDigest[:])
-		return err
-	}); err != nil {
-		t.Fatalf("sequence %d domain transaction: %v", sequence, err)
-	}
-	effectDigest = effects.commit(t, request, effectDigest, WALPosition(fmt.Sprintf("0/%X", 0x100+sequence)))
-	trace.resetTrace()
-	receipt, err := coordinator.Finalize(t.Context(), CoordinatorFinalizeRequest{OperationID: operationID, EffectDigest: effectDigest})
-	if err != nil {
-		var reservedAt time.Time
-		if queryErr := pool.QueryRow(t.Context(), `SELECT reserved_at FROM nodecontrol.control_plane_authority_fences WHERE operation_id=$1`, operationID).Scan(&reservedAt); queryErr != nil {
-			t.Fatalf("sequence %d finalize: %v; trace=%v; reserved-at probe: %v", sequence, err, trace.snapshotTrace(), queryErr)
+		primaryPoint, err = raw.CaptureDatabasePoint(ctx)
+		if err != nil {
+			return err
 		}
-		coordinatorNow := coordinator.clock.Now()
-		t.Fatalf("sequence %d finalize: %v; trace=%v; reserved_at=%s coordinator_now=%s bound_before_reserved=%t",
-			sequence, err, trace.snapshotTrace(), reservedAt.UTC().Format(time.RFC3339Nano), coordinatorNow.Format(time.RFC3339Nano), coordinatorNow.Before(reservedAt))
-	}
-	return receipt
-}
-
-type pitrTracingRepository struct {
-	*PostgresRepository
-	mu    sync.Mutex
-	trace []string
-}
-
-func (repository *pitrTracingRepository) Get(ctx context.Context, operationID uuid.UUID) (Record, error) {
-	record, err := repository.PostgresRepository.Get(ctx, operationID)
-	repository.addTrace(fmt.Sprintf("get:%s:bound=%t:terminal=%t", pitrTraceError(err), record.BoundEffectDigest != nil, record.TerminalReceipt != nil))
-	return record, err
-}
-
-func (repository *pitrTracingRepository) CaptureDatabasePoint(ctx context.Context) (DatabasePoint, error) {
-	point, err := repository.PostgresRepository.CaptureDatabasePoint(ctx)
-	repository.addTrace(fmt.Sprintf("capture:%s:valid=%t", pitrTraceError(err), point.Validate() == nil))
-	return point, err
-}
-
-func (repository *pitrTracingRepository) BindEffect(ctx context.Context, dbtx store.DBTX, operationID uuid.UUID, digest contracts.Digest, point DatabasePoint, at time.Time) error {
-	err := repository.PostgresRepository.BindEffect(ctx, dbtx, operationID, digest, point, at)
-	repository.addTrace("bind:" + pitrTraceError(err))
-	return err
-}
-
-func (repository *pitrTracingRepository) ActivateCommitted(ctx context.Context, dbtx store.DBTX, receipt Receipt, at time.Time) error {
-	err := repository.PostgresRepository.ActivateCommitted(ctx, dbtx, receipt, at)
-	repository.addTrace("activate:" + pitrTraceError(err))
-	return err
-}
-
-func (repository *pitrTracingRepository) withAuthorityTransaction(ctx context.Context, operation func(store.DBTX) error) error {
-	repository.addTrace("transaction:begin")
-	err := repository.PostgresRepository.withAuthorityTransaction(ctx, func(dbtx store.DBTX) error {
-		repository.addTrace("transaction:callback")
-		callbackErr := operation(dbtx)
-		repository.addTrace("transaction:callback:" + pitrTraceError(callbackErr))
-		return callbackErr
+		tx, err := access.Begin(ctx)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback(ctx)
+		if err := pitrSeedClosure(ctx, tx, activationID, 79, time.Date(2026, 8, 23, 12, 0, 0, 0, time.UTC)); err != nil {
+			return err
+		}
+		for _, op := range operations {
+			if err := pitrSeedCertificate(ctx, tx, primaryPoint, op, clock.Now().Add(-time.Minute)); err != nil {
+				return err
+			}
+		}
+		return tx.Commit(ctx)
 	})
-	repository.addTrace("transaction:end:" + pitrTraceError(err))
-	return err
-}
-
-func (repository *pitrTracingRepository) addTrace(value string) {
-	repository.mu.Lock()
-	defer repository.mu.Unlock()
-	repository.trace = append(repository.trace, value)
-}
-
-func (repository *pitrTracingRepository) resetTrace() {
-	repository.mu.Lock()
-	defer repository.mu.Unlock()
-	repository.trace = nil
-}
-
-func (repository *pitrTracingRepository) snapshotTrace() []string {
-	repository.mu.Lock()
-	defer repository.mu.Unlock()
-	return append([]string(nil), repository.trace...)
-}
-
-func pitrTraceError(err error) string {
-	switch err {
-	case nil:
-		return "ok"
-	case ErrInvalidArgument:
-		return "invalid_argument"
-	case ErrConflict:
-		return "conflict"
-	case ErrTerminalConflict:
-		return "terminal_conflict"
-	case ErrNotFound:
-		return "not_found"
-	case ErrCanceled:
-		return "canceled"
-	case ErrInjectedFailure:
-		return "injected_failure"
-	case ErrResponseLost:
-		return "response_lost"
-	default:
-		return "other"
+	if err != nil {
+		t.Fatal(err)
 	}
-}
-
-func createPITREffectTable(t *testing.T, pool *pgxpool.Pool) {
-	t.Helper()
-	if _, err := pool.Exec(t.Context(), `CREATE TABLE nodecontrol.authority_task7_effects(operation_id uuid PRIMARY KEY,effect_digest bytea NOT NULL CHECK(octet_length(effect_digest)=32))`); err != nil {
+	// P establishes a real current-epoch prefix; historical fences alone must
+	// never be described as Ready against an empty provider.
+	receiptP, _, _ := pitrFinalizeObserved(t, controller, provider, operations[0], activationID, clock)
+	pitrAssertPrimaryReady(t, controller, provider, operations[0], receiptP, clock)
+	backup, err := controller.CreateBaseBackup(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	receiptA, observedA, factsA := pitrFinalizeObserved(t, controller, provider, operations[1], activationID, clock)
+	pitrAssertPrimaryReady(t, controller, provider, operations[1], receiptA, clock)
+	selection, err := controller.SelectRecoveryCut(backup, observedA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	providerA, err := pitrCopyCommittedProvider(t.Context(), provider)
+	if err != nil {
+		t.Fatal(err)
+	}
+	headA, err := providerA.Head(t.Context())
+	if err != nil || headA.LatestReservedSequence != 2 || headA.LatestCommittedSequence != receiptA.Sequence || headA.LatestCommittedReceiptDigest != receiptA.ReceiptDigest || !reflect.DeepEqual(headA.LatestCommittedDatabasePoint, receiptA.DatabasePoint) {
+		t.Fatalf("independent provider A: %#v %v", headA, err)
+	}
+	receiptB, observedB, factsB := pitrFinalizeObserved(t, controller, provider, operations[2], activationID, clock)
+	pitrAssertPrimaryReady(t, controller, provider, operations[2], receiptB, clock)
+	if factsA.EndLSN == factsB.EndLSN {
+		t.Fatal("B must be later than A")
+	}
+	headB, err := provider.Head(t.Context())
+	if err != nil || headB.LatestReservedSequence != 3 || headB.LatestCommittedSequence != 3 || headB.LatestCommittedReceiptDigest != receiptB.ReceiptDigest {
+		t.Fatalf("provider B: %#v %v", headB, err)
+	}
+	recordsB := provider.Snapshot()
+	cut, err := controller.CrashPrimaryAtCut(t.Context(), selection, observedB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cut.RecoveryTargetLSN != factsA.EndLSN || cut.TerminalCommit != factsB {
+		t.Fatalf("B replaced A recovery target: %#v", cut)
+	}
+	candidate, err := controller.RestoreAtCut(t.Context(), cut)
+	if err != nil {
+		t.Fatal(err)
+	}
+	candidate, err = controller.PromoteCandidate(t.Context(), candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	timeline, err := controller.InspectTimeline(t.Context(), candidate)
+	if err != nil || !timeline.Promoted || timeline.TimelineID <= uint64(primaryPoint.Timeline) {
+		t.Fatalf("promotion: %#v %v", timeline, err)
+	}
+	err = controller.WithCandidateAuthorityAccess(t.Context(), candidate, func(access testinfra.C12AuthorityAccess) error {
+		ctx := t.Context()
+		raw, err := NewPostgresRepository(access)
+		if err != nil {
+			return err
+		}
+		repository := &pitrAuthorityRepository{PostgresRepository: raw, access: access}
+		resolver := newPostgresCrashEffectResolver(access)
+		coordinatorB := mustNewCoordinatorForTest(t, provider, repository, resolver, clock)
+		coordinatorA := mustNewCoordinatorForTest(t, providerA, repository, resolver, clock)
+		point, err := raw.CaptureDatabasePoint(ctx)
+		if err != nil {
+			return err
+		}
+		if point.SystemID != primaryPoint.SystemID || point.Timeline <= primaryPoint.Timeline || uint64(point.Timeline) != timeline.TimelineID {
+			t.Fatalf("candidate physical identity: %#v versus %#v", point, primaryPoint)
+		}
+		// State proof precedes readiness, so a wrapper/SQL permission failure
+		// cannot accidentally count as the required business rejection.
+		pitrAssertCommittedState(t, access, coordinatorA, operations[1], receiptA)
+		beforeB := pitrAssertAbsentState(t, access, operations[2])
+		beforeA := pitrMustCertificateSnapshot(t, access, operations[1])
+		behind, err := coordinatorB.CheckReady(ctx)
+		if err != nil || behind.Ready || behind.Reason != ReadinessDatabaseBehindProvider {
+			t.Fatalf("provider B must be exactly behind: %#v %v", behind, err)
+		}
+		pitrAssertProviderUnchanged(t, provider, headB, recordsB)
+		ready, err := coordinatorA.CheckReady(ctx)
+		if err != nil || !ready.Ready || ready.Reason != ReadinessReady || ready.DatabaseHead.PendingCount != 0 {
+			t.Fatalf("same candidate provider A must really be ready: %#v %v", ready, err)
+		}
+		pitrAssertProviderUnchanged(t, provider, headB, recordsB)
+		pitrAssertProviderUnchanged(t, providerA, headA, recordsB[:2])
+		// Use a valid fixed domain UPDATE and arguments. The candidate wrapper,
+		// not PostgreSQL read-only mode, must reject before execution.
+		tx, err := access.Begin(ctx)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback(ctx)
+		_, writeErr := tx.Exec(ctx, pitrCertificateCommitmentUpdateSQL, operations[1].certificateID, receiptA.OperationID, int64(receiptA.Epoch), int64(receiptA.Sequence), beforeA.commitment, (*receiptA.EffectDigest)[:])
+		if writeErr != testinfra.C12PITRInvalidHandle {
+			t.Fatalf("candidate domain write not rejected by wrapper: %v", writeErr)
+		}
+		if err := tx.Rollback(ctx); err != nil {
+			return err
+		}
+		afterB := pitrAssertAbsentState(t, access, operations[2])
+		afterA := pitrMustCertificateSnapshot(t, access, operations[1])
+		if !reflect.DeepEqual(beforeB, afterB) || !reflect.DeepEqual(beforeA, afterA) {
+			t.Fatal("rejected DML changed certificate snapshots")
+		}
+		pitrAssertCommittedState(t, access, coordinatorA, operations[1], receiptA)
+		// Test-local gate only; this is not Task10 same-connection serving.
+		data, err := pitrReadReadyCertificate(ctx, coordinatorB, access, operations[2].certificateID)
+		if err != ErrAuthorityUnavailable || !reflect.DeepEqual(data, pitrCertificateSnapshot{}) {
+			t.Fatalf("readiness gate returned data: %#v %v", data, err)
+		}
+		pitrAssertProviderUnchanged(t, provider, headB, recordsB)
+		return nil
+	})
+	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func queryPITRActiveAuthorityFixture(ctx context.Context, coordinator *Coordinator, pool *pgxpool.Pool) error {
+func pitrAssertPrimaryReady(t *testing.T, controller testinfra.C12AuthorityPITRController, provider *DeterministicProvider, op pitrOperationFixture, receipt Receipt, clock coordinatorClock) {
+	t.Helper()
+	err := controller.WithPrimaryAuthorityAccess(t.Context(), func(access testinfra.C12AuthorityAccess) error {
+		raw, err := NewPostgresRepository(access)
+		if err != nil {
+			return err
+		}
+		repository := &pitrAuthorityRepository{PostgresRepository: raw, access: access}
+		coordinator := mustNewCoordinatorForTest(t, provider, repository, newPostgresCrashEffectResolver(access), clock)
+		pitrAssertCommittedState(t, access, coordinator, op, receipt)
+		ready, err := coordinator.CheckReady(t.Context())
+		if err != nil {
+			return err
+		}
+		if !ready.Ready || ready.Reason != ReadinessReady || ready.DatabaseHead.PendingCount != 0 {
+			t.Fatalf("primary not ready: %#v", ready)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func pitrAssertCommittedState(t *testing.T, access testinfra.C12AuthorityAccess, coordinator *Coordinator, op pitrOperationFixture, receipt Receipt) {
+	t.Helper()
+	ctx := t.Context()
+	fence, err := pitrReadOperationSnapshot(ctx, access, op.request.OperationID)
+	if err != nil || fence != (pitrOperationSnapshot{"committed", "active", "claim_v1"}) {
+		t.Fatalf("committed fence: %#v %v", fence, err)
+	}
+	certificate := pitrMustCertificateSnapshot(t, access, op)
+	if certificate.status != "revoked" || !certificate.operationID.Valid || certificate.operationID.UUID != receipt.OperationID || len(certificate.commitment) == 0 || len(certificate.evidence) == 0 || len(certificate.resolution) == 0 {
+		t.Fatalf("incomplete revoked certificate: %#v", certificate)
+	}
+	commitment, err := ParseAuthorityEffectCommitment(certificate.commitment)
+	if err != nil || receipt.EffectDigest == nil || commitment.Digest() != *receipt.EffectDigest {
+		t.Fatalf("commitment differs from provider receipt: %v", err)
+	}
+	aux, err := pitrReadAuxCount(ctx, access, receipt.OperationID)
+	if err != nil || aux != 1 {
+		t.Fatalf("committed auxiliary count: %d %v", aux, err)
+	}
+	var audit, outbox int64
+	if err := access.QueryRow(ctx, pitrAuditOutboxCountsSQL, receipt.OperationID).Scan(&audit, &outbox); err != nil || audit != 1 || outbox != 1 {
+		t.Fatalf("committed audit/outbox: %d/%d %v", audit, outbox, err)
+	}
+	tx, err := access.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx)
+	stored, err := coordinator.repository.Lock(ctx, tx, receipt.OperationID)
+	if err != nil || stored.Record.TerminalReceipt == nil || !receiptEquals(*stored.Record.TerminalReceipt, receipt) {
+		t.Fatalf("persisted receipt: %#v %v", stored, err)
+	}
+	if err := coordinator.validatePersistedOutcome(ctx, tx, stored, receipt); err != nil {
+		t.Fatal("real persisted validator:", err)
+	}
+	if !bytes.Equal(stored.PersistedOutcome.CommitmentJCS, certificate.commitment) || !bytes.Equal(stored.PersistedOutcome.EvidenceJCS, certificate.evidence) || !bytes.Equal(stored.PersistedOutcome.ResolutionJCS, certificate.resolution) {
+		t.Fatal("snapshot differs from validated original outcome")
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func pitrMustCertificateSnapshot(t *testing.T, db store.DBTX, op pitrOperationFixture) pitrCertificateSnapshot {
+	t.Helper()
+	value, err := pitrReadCertificateSnapshot(t.Context(), db, op.certificateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return value
+}
+
+func pitrAssertAbsentState(t *testing.T, db store.DBTX, op pitrOperationFixture) pitrCertificateSnapshot {
+	t.Helper()
+	if _, err := pitrReadOperationSnapshot(t.Context(), db, op.request.OperationID); !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatalf("B fence must be absent: %v", err)
+	}
+	certificate := pitrMustCertificateSnapshot(t, db, op)
+	if certificate.status != "active" || certificate.operationID.Valid || certificate.commitment != nil || certificate.evidence != nil || certificate.resolution != nil {
+		t.Fatalf("B certificate must have SQL NULL revoke fields: %#v", certificate)
+	}
+	aux, err := pitrReadAuxCount(t.Context(), db, op.request.OperationID)
+	if err != nil || aux != 0 {
+		t.Fatalf("B auxiliary rows: %d %v", aux, err)
+	}
+	var audit, outbox int64
+	if err := db.QueryRow(t.Context(), pitrAuditOutboxCountsSQL, op.request.OperationID).Scan(&audit, &outbox); err != nil || audit != 0 || outbox != 0 {
+		t.Fatalf("B audit/outbox: %d/%d %v", audit, outbox, err)
+	}
+	return certificate
+}
+
+func pitrAssertProviderUnchanged(t *testing.T, provider *DeterministicProvider, expected Head, records []Record) {
+	t.Helper()
+	head, err := provider.Head(t.Context())
+	if err != nil || !reflect.DeepEqual(head, expected) || !reflect.DeepEqual(provider.Snapshot(), records) {
+		t.Fatalf("external provider changed: %#v %v", head, err)
+	}
+}
+
+func pitrReadReadyCertificate(ctx context.Context, coordinator *Coordinator, db store.DBTX, id uuid.UUID) (pitrCertificateSnapshot, error) {
 	readiness, err := coordinator.CheckReady(ctx)
 	if err != nil {
-		return err
+		return pitrCertificateSnapshot{}, err
 	}
 	if !readiness.Ready {
-		return ErrAuthorityUnavailable
+		return pitrCertificateSnapshot{}, ErrAuthorityUnavailable
 	}
-	var count int
-	if err := pool.QueryRow(ctx, `SELECT count(*) FROM nodecontrol.control_plane_authority_fences WHERE provider_status='committed' AND visibility_state='active'`).Scan(&count); err != nil {
-		return ErrInjectedFailure
-	}
-	return nil
-}
-
-func applyPITRAuthoritySchema(t *testing.T, pool *pgxpool.Pool) {
-	t.Helper()
-	raw, err := os.ReadFile("../../../db/migrations/00006_nodecontrol.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	body := string(raw)
-	upMarker := strings.Index(body, "-- +goose Up")
-	downMarker := strings.Index(body, "-- +goose Down")
-	if upMarker < 0 || downMarker <= upMarker {
-		t.Fatal("nodecontrol migration lacks ordered goose sections")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-	if _, err := pool.Exec(ctx, body[upMarker+len("-- +goose Up"):downMarker]); err != nil {
-		t.Fatal(err)
-	}
-}
-
-const pitrPostgresPassword = "task7-loopback-only-password"
-
-type pitrDockerHarness struct {
-	t          *testing.T
-	runID      string
-	image      string
-	containers []string
-	volumes    []string
-}
-
-func newPITRDockerHarness(t *testing.T) *pitrDockerHarness {
-	t.Helper()
-	if _, err := exec.LookPath("docker"); err != nil {
-		t.Fatal("docker CLI is required for physical PITR integration:", err)
-	}
-	harness := &pitrDockerHarness{
-		t:     t,
-		runID: strings.ReplaceAll(uuid.NewString(), "-", ""),
-		image: "postgres:18.4-alpine3.23",
-	}
-	if output, err := harness.docker("image", "inspect", harness.image, "--format", "{{.Id}}"); err != nil {
-		t.Fatalf("pinned PostgreSQL image %s is not preloaded: %v: %s", harness.image, err, output)
-	}
-	t.Logf("Task 7 PITR run_id=%s image=%s", harness.runID, harness.image)
-	return harness
-}
-
-func (harness *pitrDockerHarness) createVolume(role string) string {
-	harness.t.Helper()
-	name := "talenro-task7-" + harness.runID + "-" + role
-	if _, err := harness.docker("volume", "inspect", name); err == nil {
-		harness.t.Fatalf("refusing to adopt pre-existing Docker volume %s", name)
-	}
-	output, err := harness.docker("volume", "create", "--label", "talenro.task7.run="+harness.runID, name)
-	if err != nil || strings.TrimSpace(output) != name {
-		harness.t.Fatalf("create volume %s: %v: %s", name, err, output)
-	}
-	harness.volumes = append(harness.volumes, name)
-	harness.t.Logf("Task 7 PITR volume role=%s name=%s", role, name)
-	return name
-}
-
-func (harness *pitrDockerHarness) startPostgres(role string, port int, dataVolume, dataSubdirectory, backupVolume string) string {
-	harness.t.Helper()
-	name := "talenro-task7-" + harness.runID + "-" + role
-	if _, err := harness.docker("container", "inspect", name); err == nil {
-		harness.t.Fatalf("refusing to adopt pre-existing Docker container %s", name)
-	}
-	dataTarget := "/var/lib/postgresql"
-	args := []string{
-		"run", "-d", "--pull=never", "--name", name,
-		"--label", "talenro.task7.run=" + harness.runID,
-		"-e", "POSTGRES_PASSWORD=" + pitrPostgresPassword,
-		"-p", fmt.Sprintf("127.0.0.1:%d:5432", port),
-		"--mount", "type=volume,src=" + dataVolume + ",dst=" + dataTarget,
-	}
-	if dataSubdirectory != "" {
-		args = append(args, "-e", "PGDATA="+dataTarget+"/"+dataSubdirectory)
-	}
-	if backupVolume != "" {
-		args = append(args, "--mount", "type=volume,src="+backupVolume+",dst=/backup")
-	}
-	args = append(args, harness.image, "-c", "wal_level=replica", "-c", "max_wal_senders=4")
-	containerID, err := harness.docker(args...)
-	if err != nil {
-		harness.t.Fatalf("start %s: %v: %s", name, err, containerID)
-	}
-	harness.containers = append(harness.containers, name)
-	harness.t.Logf("Task 7 PITR container role=%s name=%s id=%s loopback_port=%d", role, name, strings.TrimSpace(containerID), port)
-	return name
-}
-
-func (harness *pitrDockerHarness) physicalBaseBackup(primaryName string) {
-	harness.t.Helper()
-	if output, err := harness.docker("exec", "--user", "root", primaryName, "mkdir", "-p", "/backup/base"); err != nil {
-		harness.t.Fatalf("prepare backup directory: %v: %s", err, output)
-	}
-	if output, err := harness.docker("exec", "--user", "root", primaryName, "chown", "postgres:postgres", "/backup/base"); err != nil {
-		harness.t.Fatalf("chown backup directory: %v: %s", err, output)
-	}
-	started := time.Now()
-	if output, err := harness.docker("exec", "--user", "postgres", primaryName, "pg_basebackup", "-D", "/backup/base", "-Fp", "-X", "stream", "-c", "fast", "-U", "postgres"); err != nil {
-		harness.t.Fatalf("physical pg_basebackup: %v: %s", err, output)
-	}
-	harness.t.Logf("Task 7 physical pg_basebackup completed in %s", time.Since(started))
-}
-
-func (harness *pitrDockerHarness) stopContainer(name string) {
-	harness.t.Helper()
-	if output, err := harness.docker("stop", "--time", "20", name); err != nil {
-		harness.t.Fatalf("stop container %s: %v: %s", name, err, output)
-	}
-}
-
-func (harness *pitrDockerHarness) cleanup() {
-	for index := len(harness.containers) - 1; index >= 0; index-- {
-		name := harness.containers[index]
-		if output, err := harness.docker("rm", "--force", "--volumes", name); err != nil && !strings.Contains(output, "No such container") {
-			harness.t.Errorf("remove owned container %s: %v: %s", name, err, output)
-		}
-		for attempt := 1; attempt <= 2; attempt++ {
-			if output, err := harness.docker("container", "inspect", name); err == nil {
-				harness.t.Errorf("owned container %s remains after cleanup check %d: %s", name, attempt, output)
-			}
-		}
-	}
-	for index := len(harness.volumes) - 1; index >= 0; index-- {
-		name := harness.volumes[index]
-		if output, err := harness.docker("volume", "rm", name); err != nil && !strings.Contains(output, "No such volume") {
-			harness.t.Errorf("remove owned volume %s: %v: %s", name, err, output)
-		}
-		for attempt := 1; attempt <= 2; attempt++ {
-			if output, err := harness.docker("volume", "inspect", name); err == nil {
-				harness.t.Errorf("owned volume %s remains after cleanup check %d: %s", name, attempt, output)
-			}
-		}
-	}
-}
-
-func (harness *pitrDockerHarness) docker(arguments ...string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-	command := exec.CommandContext(ctx, "docker", arguments...)
-	output, err := command.CombinedOutput()
-	return string(output), err
-}
-
-func reservePITRLoopbackPort(t *testing.T) int {
-	t.Helper()
-	listener, err := net.Listen("tcp4", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	port := listener.Addr().(*net.TCPAddr).Port
-	if err := listener.Close(); err != nil {
-		t.Fatal(err)
-	}
-	return port
-}
-
-func openPITRPool(t *testing.T, port int) *pgxpool.Pool {
-	t.Helper()
-	url := fmt.Sprintf("postgres://postgres:%s@127.0.0.1:%d/postgres?sslmode=disable", pitrPostgresPassword, port)
-	deadline := time.Now().Add(90 * time.Second)
-	var lastErr error
-	for time.Now().Before(deadline) {
-		pool, err := pgxpool.New(context.Background(), url)
-		if err == nil {
-			pingCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			lastErr = pool.Ping(pingCtx)
-			cancel()
-			if lastErr == nil {
-				t.Cleanup(pool.Close)
-				return pool
-			}
-			pool.Close()
-		} else {
-			lastErr = err
-		}
-		time.Sleep(250 * time.Millisecond)
-	}
-	t.Fatalf("PostgreSQL on loopback port %d did not become ready: %v", port, lastErr)
-	return nil
+	return pitrReadCertificateSnapshot(ctx, db, id)
 }
