@@ -123,11 +123,13 @@ type c12AuthorityAccess struct {
 }
 
 type c12AuthorityTx struct {
-	driver     c12AccessDriver
-	backend    c12AccessBackend
-	lease      *c12AccessLease
-	generation uint64
-	terminal   atomic.Uint32
+	driver      c12AccessDriver
+	backend     c12AccessBackend
+	lease       *c12AccessLease
+	generation  uint64
+	terminal    atomic.Uint32
+	operation   chan struct{}
+	ownsBackend atomic.Bool
 }
 
 type c12PGXAccessBackend struct {
@@ -327,22 +329,25 @@ func (lease *c12AccessLease) revoke(reason C12AuthorityPITRError) {
 			_ = txBackend.Interrupt(cleanupContext)
 		}
 		if txBackend != nil && txBackend != direct {
-			lease.cleanupBackend(cleanupContext, txBackend, activeTx)
+			if activeTx != nil && activeTx.backend == txBackend {
+				activeTx.cleanupRollback(cleanupContext)
+			}
+			lease.closeBackend(cleanupContext, txBackend)
 		}
 		if direct != nil {
-			lease.cleanupBackend(cleanupContext, direct, activeTx)
+			if activeTx != nil && activeTx.backend == direct {
+				activeTx.cleanupRollback(cleanupContext)
+			}
+			lease.closeBackend(cleanupContext, direct)
 		}
 	})
 }
 
-func (lease *c12AccessLease) cleanupBackend(ctx context.Context, backend c12AccessBackend, transaction *c12AuthorityTx) {
+func (lease *c12AccessLease) closeBackend(ctx context.Context, backend c12AccessBackend) {
 	if err := backend.Acquire(ctx); err != nil {
 		return
 	}
 	defer backend.Release()
-	if transaction != nil && transaction.backend == backend {
-		transaction.cleanupRollbackOwned(ctx)
-	}
 	_ = backend.Close(ctx)
 }
 
@@ -550,18 +555,19 @@ func (access *c12AuthorityAccess) Begin(ctx context.Context) (C12AuthorityTransa
 	if err := backend.Acquire(operationContext); err != nil {
 		return nil, c12AccessError(err, false)
 	}
-	defer backend.Release()
 	driver, err := backend.BeginTx(operationContext, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
+		backend.Release()
 		return nil, c12AccessError(err, false)
 	}
-	transaction := &c12AuthorityTx{driver: driver, backend: backend, lease: access.lease, generation: access.lease.owner.transactionGeneration.Add(1)}
+	transaction := newC12AuthorityTx(driver, backend, access.lease, access.lease.owner.transactionGeneration.Add(1))
 	access.lease.mu.Lock()
 	if access.lease.activeTx != nil || !access.lease.live.Load() {
 		access.lease.mu.Unlock()
 		cleanupContext, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
 		_ = driver.Rollback(cleanupContext)
 		cleanupCancel()
+		transaction.releaseBackend()
 		return nil, C12PITRWrongPhase
 	}
 	access.lease.activeTx = transaction
@@ -582,20 +588,47 @@ func (transaction *c12AuthorityTx) status() error {
 	return nil
 }
 
-func (transaction *c12AuthorityTx) commitPreflight(ctx context.Context) error {
-	if transaction == nil || transaction.driver == nil || transaction.backend == nil || transaction.lease == nil || transaction.generation == 0 || ctx == nil {
+func newC12AuthorityTx(driver c12AccessDriver, backend c12AccessBackend, lease *c12AccessLease, generation uint64) *c12AuthorityTx {
+	transaction := &c12AuthorityTx{
+		driver: driver, backend: backend, lease: lease, generation: generation,
+		operation: make(chan struct{}, 1),
+	}
+	transaction.operation <- struct{}{}
+	transaction.ownsBackend.Store(true)
+	return transaction
+}
+
+func (transaction *c12AuthorityTx) acquireOperation(ctx context.Context, terminal uint32) error {
+	if transaction == nil || transaction.operation == nil || ctx == nil {
 		return C12PITRInvalidHandle
 	}
-	if !transaction.lease.live.Load() {
-		return c12AccessReason(transaction.lease.reason.Load())
+	select {
+	case <-ctx.Done():
+		return C12PITRCanceled
+	case <-transaction.operation:
 	}
-	if transaction.lease.ctx.Err() != nil {
+	if err := ctx.Err(); err != nil {
+		transaction.operation <- struct{}{}
 		return C12PITRCanceled
 	}
-	if transaction.terminal.Load() != 0 {
+	if !transaction.terminal.CompareAndSwap(0, terminal) {
+		transaction.operation <- struct{}{}
 		return C12PITRWrongPhase
 	}
 	return nil
+}
+
+func (transaction *c12AuthorityTx) releaseOperation(active bool) {
+	if active {
+		transaction.terminal.CompareAndSwap(3, 0)
+	}
+	transaction.operation <- struct{}{}
+}
+
+func (transaction *c12AuthorityTx) releaseBackend() {
+	if transaction.ownsBackend.CompareAndSwap(true, false) {
+		transaction.backend.Release()
+	}
 }
 
 func (transaction *c12AuthorityTx) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
@@ -613,10 +646,10 @@ func (transaction *c12AuthorityTx) Exec(ctx context.Context, sql string, args ..
 		return pgconn.CommandTag{}, err
 	}
 	defer cancel()
-	if err := transaction.backend.Acquire(operationContext); err != nil {
-		return pgconn.CommandTag{}, c12AccessError(err, false)
+	if err := transaction.acquireOperation(operationContext, 3); err != nil {
+		return pgconn.CommandTag{}, err
 	}
-	defer transaction.backend.Release()
+	defer transaction.releaseOperation(true)
 	tag, err := transaction.driver.Exec(operationContext, sql, args...)
 	return tag, c12AccessError(err, false)
 }
@@ -636,10 +669,10 @@ func (transaction *c12AuthorityTx) Query(ctx context.Context, sql string, args .
 		return nil, err
 	}
 	defer cancel()
-	if err := transaction.backend.Acquire(operationContext); err != nil {
-		return nil, c12AccessError(err, false)
+	if err := transaction.acquireOperation(operationContext, 3); err != nil {
+		return nil, err
 	}
-	defer transaction.backend.Release()
+	defer transaction.releaseOperation(true)
 	driverRows, err := transaction.driver.Query(operationContext, sql, args...)
 	if err != nil {
 		return nil, c12AccessError(err, false)
@@ -663,16 +696,6 @@ func (transaction *c12AuthorityTx) QueryRow(ctx context.Context, sql string, arg
 }
 
 func (transaction *c12AuthorityTx) Commit(ctx context.Context) error {
-	if err := transaction.commitPreflight(ctx); err != nil {
-		return err
-	}
-	if err := transaction.backend.Acquire(transaction.lease.ctx); err != nil {
-		return c12AccessError(err, false)
-	}
-	defer transaction.backend.Release()
-	if err := transaction.commitPreflight(ctx); err != nil {
-		return err
-	}
 	if !transaction.terminal.CompareAndSwap(0, 1) {
 		return C12PITRWrongPhase
 	}
@@ -693,26 +716,29 @@ func (transaction *c12AuthorityTx) Rollback(ctx context.Context) error {
 		return err
 	}
 	defer cancel()
-	if err := transaction.backend.Acquire(operationContext); err != nil {
-		return c12AccessError(err, false)
+	if err := transaction.acquireOperation(operationContext, 2); err != nil {
+		return err
 	}
-	defer transaction.backend.Release()
-	if !transaction.terminal.CompareAndSwap(0, 2) {
-		return C12PITRWrongPhase
-	}
+	defer transaction.releaseOperation(false)
 	err = transaction.driver.Rollback(operationContext)
 	transaction.finishAfterDriver(err)
 	return c12AccessError(err, false)
 }
 
-func (transaction *c12AuthorityTx) cleanupRollbackOwned(ctx context.Context) {
-	if transaction.terminal.CompareAndSwap(0, 2) {
-		err := transaction.driver.Rollback(ctx)
-		transaction.finishAfterDriver(err)
+func (transaction *c12AuthorityTx) cleanupRollback(ctx context.Context) {
+	if transaction == nil || transaction.terminal.Load() == 1 || transaction.terminal.Load() == 2 {
+		return
 	}
+	if err := transaction.acquireOperation(ctx, 2); err != nil {
+		return
+	}
+	defer transaction.releaseOperation(false)
+	err := transaction.driver.Rollback(ctx)
+	transaction.finishAfterDriver(err)
 }
 
 func (transaction *c12AuthorityTx) finishAfterDriver(error) {
+	transaction.releaseBackend()
 	transaction.lease.finishTransaction(transaction)
 }
 

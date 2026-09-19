@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"math/big"
 	"reflect"
 	"slices"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -96,6 +98,35 @@ func (*c12AccessUnboundedCodec) DecodeDatabaseSQLValue(*pgtype.Map, uint32, int1
 func (codec *c12AccessUnboundedCodec) DecodeValue(*pgtype.Map, uint32, int16, []byte) (any, error) {
 	codec.decoded.Store(true)
 	return map[string][]byte{"mutable": make([]byte, 1<<20)}, nil
+}
+
+type c12AccessExpandingCodec struct {
+	planned atomic.Bool
+	scanned atomic.Bool
+}
+
+func (*c12AccessExpandingCodec) FormatSupported(int16) bool { return true }
+func (*c12AccessExpandingCodec) PreferredFormat() int16     { return pgx.BinaryFormatCode }
+func (*c12AccessExpandingCodec) PlanEncode(*pgtype.Map, uint32, int16, any) pgtype.EncodePlan {
+	return nil
+}
+func (codec *c12AccessExpandingCodec) PlanScan(*pgtype.Map, uint32, int16, any) pgtype.ScanPlan {
+	codec.planned.Store(true)
+	return c12AccessExpandingScanPlan{codec: codec}
+}
+func (*c12AccessExpandingCodec) DecodeDatabaseSQLValue(*pgtype.Map, uint32, int16, []byte) (driver.Value, error) {
+	return nil, nil
+}
+func (*c12AccessExpandingCodec) DecodeValue(*pgtype.Map, uint32, int16, []byte) (any, error) {
+	return nil, nil
+}
+
+type c12AccessExpandingScanPlan struct{ codec *c12AccessExpandingCodec }
+
+func (plan c12AccessExpandingScanPlan) Scan(_ []byte, target any) error {
+	plan.codec.scanned.Store(true)
+	*(target.(*[]byte)) = make([]byte, 1<<20)
+	return nil
 }
 
 func (r *c12AccessTestRewriter) RewriteQuery(_ context.Context, conn *pgx.Conn, sql string, args []any) (string, []any, error) {
@@ -428,6 +459,113 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 			t.Fatal("unsupported mutable codec decoded before rejection")
 		}
 	})
+	t.Run("decoded_copy_budget_uses_codec_and_target_bounds", func(t *testing.T) {
+		t.Run("date_values_fixed_size", func(t *testing.T) {
+			state := newC12AccessTestState(&c12AccessTestFixture{})
+			leaseContext, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+			lease.live.Store(true)
+			lease.budget.bytes = (64 << 20) - 63
+			rows := &c12MaterializedRows{
+				lease: lease, typeMap: pgtype.NewMap(), index: 0, current: true,
+				fields: []pgconn.FieldDescription{{Name: "date", DataTypeOID: pgtype.DateOID, Format: pgx.BinaryFormatCode}},
+				values: [][][]byte{{{0, 0, 0, 0}}},
+			}
+			if _, err := rows.Values(); !errors.Is(err, C12PITRCapacityExceeded) {
+				t.Fatalf("Date decoded-size reservation = %v", err)
+			}
+		})
+		t.Run("unsupported_expanding_scan", func(t *testing.T) {
+			const expandingOID = 91002
+			codec := &c12AccessExpandingCodec{}
+			typeMap := pgtype.NewMap()
+			typeMap.RegisterType(&pgtype.Type{Name: "c12_expanding", OID: expandingOID, Codec: codec})
+			state := newC12AccessTestState(&c12AccessTestFixture{})
+			leaseContext, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+			lease.live.Store(true)
+			rows := &c12MaterializedRows{
+				lease: lease, typeMap: typeMap, index: 0, current: true,
+				fields: []pgconn.FieldDescription{{Name: "expanding", DataTypeOID: expandingOID, Format: pgx.BinaryFormatCode}},
+				values: [][][]byte{{{1}}},
+			}
+			destination := []byte{99}
+			if err := rows.Scan(&destination); !errors.Is(err, C12PITRDependencyFailure) {
+				t.Fatalf("expanding Scan = %v", err)
+			}
+			if !slices.Equal(destination, []byte{99}) || codec.planned.Load() || codec.scanned.Load() {
+				t.Fatalf("expanding codec invoked: destination=%d planned=%t scanned=%t", len(destination), codec.planned.Load(), codec.scanned.Load())
+			}
+		})
+	})
+	t.Run("fixed_query_scan_shapes_remain_supported", func(t *testing.T) {
+		typeMap := pgtype.NewMap()
+		encode := func(oid uint32, value any) []byte {
+			raw, err := typeMap.Encode(oid, pgx.BinaryFormatCode, value, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return raw
+		}
+		identifier := uuid.MustParse("00112233-4455-6677-8899-aabbccddeeff")
+		numericInt, ok := new(big.Int).SetString("18446744073709551615", 10)
+		if !ok {
+			t.Fatal("numeric fixture")
+		}
+		numericRaw := encode(pgtype.NumericOID, pgtype.Numeric{Int: numericInt, Valid: true})
+		timestamp := time.Date(2026, time.September, 19, 12, 0, 0, 0, time.UTC)
+		var (
+			plainUUID    uuid.UUID
+			nullUUID     uuid.NullUUID
+			numeric      pgtype.Numeric
+			pgInt        pgtype.Int8
+			plainInt     int64
+			fixtureCount int
+			pgTimestamp  pgtype.Timestamptz
+			pgText       pgtype.Text
+			plainText    string
+			bytesValue   []byte
+			booleanValue bool
+			unknownLSN   any
+		)
+		cases := []struct {
+			name   string
+			field  pgconn.FieldDescription
+			raw    []byte
+			target any
+		}{
+			{"uuid", pgconn.FieldDescription{DataTypeOID: pgtype.UUIDOID, Format: pgx.BinaryFormatCode}, identifier[:], &plainUUID},
+			{"nullable_uuid", pgconn.FieldDescription{DataTypeOID: pgtype.UUIDOID, Format: pgx.BinaryFormatCode}, identifier[:], &nullUUID},
+			{"numeric", pgconn.FieldDescription{DataTypeOID: pgtype.NumericOID, Format: pgx.BinaryFormatCode}, numericRaw, &numeric},
+			{"pg_int8", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &pgInt},
+			{"int64", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &plainInt},
+			{"int", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &fixtureCount},
+			{"timestamptz", pgconn.FieldDescription{DataTypeOID: pgtype.TimestamptzOID, Format: pgx.BinaryFormatCode}, encode(pgtype.TimestamptzOID, timestamp), &pgTimestamp},
+			{"pg_text", pgconn.FieldDescription{DataTypeOID: pgtype.TextOID, Format: pgx.TextFormatCode}, []byte("text"), &pgText},
+			{"string", pgconn.FieldDescription{DataTypeOID: pgtype.TextOID, Format: pgx.TextFormatCode}, []byte("text"), &plainText},
+			{"bytea", pgconn.FieldDescription{DataTypeOID: pgtype.ByteaOID, Format: pgx.BinaryFormatCode}, []byte{1, 2, 3}, &bytesValue},
+			{"bool", pgconn.FieldDescription{DataTypeOID: pgtype.BoolOID, Format: pgx.BinaryFormatCode}, []byte{1}, &booleanValue},
+			{"unknown_lsn", pgconn.FieldDescription{DataTypeOID: c12PGTypeLSNOID, Format: pgx.TextFormatCode}, []byte("0/16B6C50"), &unknownLSN},
+		}
+		for _, test := range cases {
+			t.Run(test.name, func(t *testing.T) {
+				state := newC12AccessTestState(&c12AccessTestFixture{})
+				leaseContext, cancel := context.WithCancel(t.Context())
+				defer cancel()
+				lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+				lease.live.Store(true)
+				rows := &c12MaterializedRows{
+					lease: lease, typeMap: typeMap, index: 0, current: true,
+					fields: []pgconn.FieldDescription{test.field}, values: [][][]byte{{test.raw}},
+				}
+				if err := rows.Scan(test.target); err != nil {
+					t.Fatalf("fixed Scan shape = %v", err)
+				}
+			})
+		}
+	})
 	t.Run("empty_bytea_remains_distinct_from_null", func(t *testing.T) {
 		for _, view := range []string{"raw", "scan", "values"} {
 			t.Run(view, func(t *testing.T) {
@@ -634,7 +772,10 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
 		lease.live.Store(true)
 		backend := &c12AccessTestDriver{fixture: fixture}
-		transaction := &c12AuthorityTx{driver: backend, backend: backend, lease: lease, generation: 1}
+		if err := backend.Acquire(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+		transaction := newC12AuthorityTx(backend, backend, lease, 1)
 		lease.txBackend = backend
 		lease.activeTx = transaction
 		commitDone := make(chan error, 1)
@@ -695,24 +836,52 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 		}
 	})
 
-	t.Run("commit_preflight_has_no_cleanup_side_effects", func(t *testing.T) {
-		fixture := &c12AccessTestFixture{}
-		state := newC12AccessTestState(fixture)
-		leaseContext, cancel := context.WithCancel(t.Context())
-		cancel()
-		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: func() {}}
-		lease.live.Store(true)
-		backend := &c12AccessTestDriver{fixture: fixture}
-		transaction := &c12AuthorityTx{driver: backend, backend: backend, lease: lease, generation: 1}
-		lease.txBackend = backend
-		lease.activeTx = transaction
-		if err := transaction.Commit(context.Background()); !errors.Is(err, C12PITRCanceled) {
-			t.Fatalf("expired commit = %v", err)
-		}
-		_, closes, commits, rollbacks, _ := fixture.counts()
-		if terminal := transaction.terminal.Load(); terminal != 0 || commits != 0 || rollbacks != 0 || closes != 0 {
-			t.Fatalf("preflight side effects = terminal %d commits %d rollbacks %d closes %d", terminal, commits, rollbacks, closes)
-		}
+	t.Run("commit_after_admission_has_only_transition_and_driver", func(t *testing.T) {
+		t.Run("lease_canceled_after_admission", func(t *testing.T) {
+			fixture := &c12AccessTestFixture{}
+			state := newC12AccessTestState(fixture)
+			leaseContext, cancel := context.WithCancel(t.Context())
+			cancel()
+			lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: func() {}}
+			lease.live.Store(true)
+			backend := &c12AccessTestDriver{fixture: fixture}
+			transaction := &c12AuthorityTx{driver: backend, backend: backend, lease: lease, generation: 1}
+			lease.txBackend = backend
+			lease.activeTx = transaction
+			if err := transaction.Commit(context.Background()); !errors.Is(err, C12PITRCanceled) {
+				t.Fatalf("commit result = %v", err)
+			}
+			_, closes, commits, rollbacks, _ := fixture.counts()
+			if terminal := transaction.terminal.Load(); terminal != 1 || commits != 1 || rollbacks != 0 || closes != 0 {
+				t.Fatalf("post-admission path = terminal %d commits %d rollbacks %d closes %d", terminal, commits, rollbacks, closes)
+			}
+		})
+		t.Run("prepared_backend_ownership", func(t *testing.T) {
+			fixture := &c12AccessTestFixture{commitStart: make(chan struct{})}
+			state := newC12AccessTestState(fixture)
+			leaseContext, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+			lease.live.Store(true)
+			backend := &c12AccessTestDriver{fixture: fixture}
+			if err := backend.Acquire(t.Context()); err != nil {
+				t.Fatal(err)
+			}
+			transaction := newC12AuthorityTx(backend, backend, lease, 1)
+			done := make(chan error, 1)
+			go func() { done <- transaction.Commit(context.Background()) }()
+			select {
+			case <-fixture.commitStart:
+				if err := <-done; err != nil {
+					t.Fatalf("commit result = %v", err)
+				}
+			case <-time.After(250 * time.Millisecond):
+				transaction.ownsBackend.Store(false)
+				backend.Release()
+				<-done
+				t.Fatal("Commit waited for backend ownership after admission")
+			}
+		})
 	})
 
 	for _, name := range c12AccessCases {

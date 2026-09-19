@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -222,13 +223,19 @@ func (rows *c12MaterializedRows) Scan(dest ...any) error {
 		return rows.err
 	}
 	copyBytes := int64(24 + len(rows.fields)*24)
-	for _, value := range rows.values[rows.index] {
-		valueBytes := int64(len(value))
-		if valueBytes > ((64<<20)-copyBytes)/2 {
+	for index, value := range rows.values[rows.index] {
+		if dest[index] == nil {
+			continue
+		}
+		decodedBytes, ok := c12ScanDecodedCost(rows.typeMap, rows.fields[index], value, dest[index])
+		if !ok || !c12AddCopyCost(&copyBytes, int64(len(value))) || !c12AddCopyCost(&copyBytes, decodedBytes) {
+			if !ok {
+				rows.err = C12PITRDependencyFailure
+				return rows.err
+			}
 			rows.err = C12PITRCapacityExceeded
 			return rows.err
 		}
-		copyBytes += valueBytes * 2
 	}
 	if err := rows.lease.takeBytes(copyBytes); err != nil {
 		rows.err = err
@@ -268,25 +275,15 @@ func (rows *c12MaterializedRows) Values() ([]any, error) {
 		if raw == nil {
 			continue
 		}
-		dataType, known := rows.typeMap.TypeForOID(field.DataTypeOID)
-		if known && !c12ValuesCodecSupported(dataType.Codec) {
+		decodedBytes, ok := c12ValuesDecodedCost(rows.typeMap, field, raw)
+		if !ok {
 			rows.err = C12PITRDependencyFailure
 			return nil, rows.err
 		}
-		if known && !dataType.Codec.FormatSupported(field.Format) {
-			rows.err = C12PITRDependencyFailure
-			return nil, rows.err
-		}
-		if !known && field.Format != pgx.TextFormatCode && field.Format != pgx.BinaryFormatCode {
-			rows.err = C12PITRDependencyFailure
-			return nil, rows.err
-		}
-		rawBytes := int64(len(raw))
-		if rawBytes > ((64<<20)-copyBytes)/2 {
+		if !c12AddCopyCost(&copyBytes, decodedBytes) {
 			rows.err = C12PITRCapacityExceeded
 			return nil, rows.err
 		}
-		copyBytes += rawBytes * 2
 	}
 	if err := rows.lease.takeBytes(copyBytes); err != nil {
 		rows.err = err
@@ -324,14 +321,105 @@ func (rows *c12MaterializedRows) Values() ([]any, error) {
 	return decoded, nil
 }
 
-func c12ValuesCodecSupported(codec pgtype.Codec) bool {
-	switch codec.(type) {
-	case pgtype.BoolCodec, pgtype.ByteaCodec,
-		pgtype.Int2Codec, pgtype.Int4Codec, pgtype.Int8Codec,
-		pgtype.Float4Codec, pgtype.Float8Codec, pgtype.TextCodec,
-		pgtype.Uint32Codec, pgtype.DateCodec,
-		*pgtype.TimestampCodec, *pgtype.TimestamptzCodec:
+const c12PGTypeLSNOID = 3220
+
+func c12AddCopyCost(total *int64, cost int64) bool {
+	if cost < 0 || *total > (64<<20)-cost {
+		return false
+	}
+	*total += cost
+	return true
+}
+
+func c12ValuesDecodedCost(typeMap *pgtype.Map, field pgconn.FieldDescription, raw []byte) (int64, bool) {
+	dataType, known := typeMap.TypeForOID(field.DataTypeOID)
+	if !known {
+		if field.Format == pgx.TextFormatCode {
+			return int64(len(raw)), true
+		}
+		if field.Format == pgx.BinaryFormatCode {
+			return int64(len(raw)) * 2, true
+		}
+		return 0, false
+	}
+	if !dataType.Codec.FormatSupported(field.Format) {
+		return 0, false
+	}
+	switch dataType.Codec.(type) {
+	case pgtype.BoolCodec:
+		return 1, true
+	case pgtype.ByteaCodec:
+		return int64(len(raw)) * 2, true
+	case pgtype.Int2Codec:
+		return 2, true
+	case pgtype.Int4Codec, pgtype.Float4Codec, pgtype.Uint32Codec:
+		return 4, true
+	case pgtype.Int8Codec, pgtype.Float8Codec:
+		return 8, true
+	case pgtype.TextCodec:
+		return int64(len(raw)), true
+	case pgtype.DateCodec, *pgtype.TimestampCodec, *pgtype.TimestamptzCodec:
+		return int64(reflect.TypeFor[time.Time]().Size()), true
+	default:
+		return 0, false
+	}
+}
+
+func c12ScanDecodedCost(typeMap *pgtype.Map, field pgconn.FieldDescription, raw []byte, target any) (int64, bool) {
+	dataType, known := typeMap.TypeForOID(field.DataTypeOID)
+	if !c12ScanTargetSupported(target, field, known) {
+		return 0, false
+	}
+	if !known {
+		if field.Format != pgx.TextFormatCode && field.Format != pgx.BinaryFormatCode {
+			return 0, false
+		}
+		return int64(len(raw)), true
+	}
+	if !dataType.Codec.FormatSupported(field.Format) {
+		return 0, false
+	}
+	rawBytes := int64(len(raw))
+	switch dataType.Codec.(type) {
+	case pgtype.BoolCodec:
+		return 8, true
+	case pgtype.ByteaCodec, pgtype.TextCodec:
+		return rawBytes, true
+	case pgtype.Int2Codec, pgtype.Int4Codec, pgtype.Int8Codec,
+		pgtype.Float4Codec, pgtype.Float8Codec, pgtype.Uint32Codec:
+		return 32, true
+	case pgtype.DateCodec:
+		return 32, true
+	case *pgtype.TimestampCodec, *pgtype.TimestamptzCodec:
+		return 128, true
+	case pgtype.UUIDCodec:
+		return 128, true
+	case pgtype.NumericCodec:
+		if rawBytes > ((64<<20)-256)/8 {
+			return 0, false
+		}
+		return rawBytes*8 + 256, true
+	case pgtype.TimeCodec:
+		return 64, true
+	default:
+		return 0, false
+	}
+}
+
+func c12ScanTargetSupported(target any, field pgconn.FieldDescription, known bool) bool {
+	switch target.(type) {
+	case *bool,
+		*int, *int8, *int16, *int32, *int64,
+		*uint, *uint8, *uint16, *uint32, *uint64,
+		*float32, *float64, *string, *[]byte, *time.Time, *time.Duration,
+		*uuid.UUID, *uuid.NullUUID,
+		*pgtype.Bool, *pgtype.Int2, *pgtype.Int4, *pgtype.Int8,
+		*pgtype.Float4, *pgtype.Float8, *pgtype.Text,
+		*pgtype.Date, *pgtype.Timestamp, *pgtype.Timestamptz,
+		*pgtype.UUID, *pgtype.Numeric, *pgtype.Time:
 		return true
+	case *any:
+		return !known && field.DataTypeOID == c12PGTypeLSNOID && field.Format == pgx.TextFormatCode
 	default:
 		return false
 	}
