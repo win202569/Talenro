@@ -132,6 +132,15 @@ type c12AuthorityTx struct {
 	ownsBackend atomic.Bool
 }
 
+const (
+	c12TxIdle uint32 = iota
+	c12TxCommitting
+	c12TxRollingBack
+	c12TxOperation
+	c12TxRevokedOperation
+	c12TxRevoked
+)
+
 type c12PGXAccessBackend struct {
 	conn      *pgx.Conn
 	transport net.Conn
@@ -322,6 +331,9 @@ func (lease *c12AccessLease) revoke(reason C12AuthorityPITRError) {
 		lease.mu.Lock()
 		activeTx, direct, txBackend := lease.activeTx, lease.direct, lease.txBackend
 		lease.mu.Unlock()
+		if activeTx != nil {
+			activeTx.markRevoked()
+		}
 		if direct != nil {
 			_ = direct.Interrupt(cleanupContext)
 		}
@@ -611,7 +623,7 @@ func (transaction *c12AuthorityTx) acquireOperation(ctx context.Context, termina
 		transaction.operation <- struct{}{}
 		return C12PITRCanceled
 	}
-	if !transaction.terminal.CompareAndSwap(0, terminal) {
+	if !transaction.terminal.CompareAndSwap(c12TxIdle, terminal) {
 		transaction.operation <- struct{}{}
 		return C12PITRWrongPhase
 	}
@@ -620,9 +632,28 @@ func (transaction *c12AuthorityTx) acquireOperation(ctx context.Context, termina
 
 func (transaction *c12AuthorityTx) releaseOperation(active bool) {
 	if active {
-		transaction.terminal.CompareAndSwap(3, 0)
+		if !transaction.terminal.CompareAndSwap(c12TxOperation, c12TxIdle) {
+			transaction.terminal.CompareAndSwap(c12TxRevokedOperation, c12TxRevoked)
+		}
 	}
 	transaction.operation <- struct{}{}
+}
+
+func (transaction *c12AuthorityTx) markRevoked() {
+	for {
+		switch state := transaction.terminal.Load(); state {
+		case c12TxIdle:
+			if transaction.terminal.CompareAndSwap(state, c12TxRevoked) {
+				return
+			}
+		case c12TxOperation:
+			if transaction.terminal.CompareAndSwap(state, c12TxRevokedOperation) {
+				return
+			}
+		default:
+			return
+		}
+	}
 }
 
 func (transaction *c12AuthorityTx) releaseBackend() {
@@ -646,7 +677,7 @@ func (transaction *c12AuthorityTx) Exec(ctx context.Context, sql string, args ..
 		return pgconn.CommandTag{}, err
 	}
 	defer cancel()
-	if err := transaction.acquireOperation(operationContext, 3); err != nil {
+	if err := transaction.acquireOperation(operationContext, c12TxOperation); err != nil {
 		return pgconn.CommandTag{}, err
 	}
 	defer transaction.releaseOperation(true)
@@ -669,7 +700,7 @@ func (transaction *c12AuthorityTx) Query(ctx context.Context, sql string, args .
 		return nil, err
 	}
 	defer cancel()
-	if err := transaction.acquireOperation(operationContext, 3); err != nil {
+	if err := transaction.acquireOperation(operationContext, c12TxOperation); err != nil {
 		return nil, err
 	}
 	defer transaction.releaseOperation(true)
@@ -696,7 +727,7 @@ func (transaction *c12AuthorityTx) QueryRow(ctx context.Context, sql string, arg
 }
 
 func (transaction *c12AuthorityTx) Commit(ctx context.Context) error {
-	if !transaction.terminal.CompareAndSwap(0, 1) {
+	if !transaction.terminal.CompareAndSwap(c12TxIdle, c12TxCommitting) {
 		return C12PITRWrongPhase
 	}
 	err := transaction.driver.Commit(ctx)
@@ -716,7 +747,7 @@ func (transaction *c12AuthorityTx) Rollback(ctx context.Context) error {
 		return err
 	}
 	defer cancel()
-	if err := transaction.acquireOperation(operationContext, 2); err != nil {
+	if err := transaction.acquireOperation(operationContext, c12TxRollingBack); err != nil {
 		return err
 	}
 	defer transaction.releaseOperation(false)
@@ -726,10 +757,21 @@ func (transaction *c12AuthorityTx) Rollback(ctx context.Context) error {
 }
 
 func (transaction *c12AuthorityTx) cleanupRollback(ctx context.Context) {
-	if transaction == nil || transaction.terminal.Load() == 1 || transaction.terminal.Load() == 2 {
+	if transaction == nil || transaction.operation == nil {
 		return
 	}
-	if err := transaction.acquireOperation(ctx, 2); err != nil {
+	select {
+	case <-ctx.Done():
+		return
+	case <-transaction.operation:
+	}
+	if err := ctx.Err(); err != nil {
+		transaction.operation <- struct{}{}
+		return
+	}
+	state := transaction.terminal.Load()
+	if (state != c12TxRevoked && state != c12TxIdle) || !transaction.terminal.CompareAndSwap(state, c12TxRollingBack) {
+		transaction.operation <- struct{}{}
 		return
 	}
 	defer transaction.releaseOperation(false)

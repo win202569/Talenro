@@ -4,6 +4,7 @@ package testinfra
 
 import (
 	"context"
+	"encoding/binary"
 	"reflect"
 	"sync"
 	"time"
@@ -395,15 +396,51 @@ func c12ScanDecodedCost(typeMap *pgtype.Map, field pgconn.FieldDescription, raw 
 	case pgtype.UUIDCodec:
 		return 128, true
 	case pgtype.NumericCodec:
-		if rawBytes > ((64<<20)-256)/8 {
+		if _, ok := target.(*pgtype.Numeric); !ok || field.Format != pgx.BinaryFormatCode || !c12Numeric20ZeroBinary(raw) {
 			return 0, false
 		}
-		return rawBytes*8 + 256, true
+		return 128, true
 	case pgtype.TimeCodec:
 		return 64, true
 	default:
 		return 0, false
 	}
+}
+
+func c12Numeric20ZeroBinary(raw []byte) bool {
+	if raw == nil {
+		return true
+	}
+	if len(raw) < 8 {
+		return false
+	}
+	ndigits := int(binary.BigEndian.Uint16(raw[0:2]))
+	weight := int(int16(binary.BigEndian.Uint16(raw[2:4])))
+	sign := binary.BigEndian.Uint16(raw[4:6])
+	dscale := binary.BigEndian.Uint16(raw[6:8])
+	if len(raw) != 8+ndigits*2 || (sign != 0 && sign != 0x4000) || dscale != 0 {
+		return false
+	}
+	if ndigits == 0 {
+		return true
+	}
+	if weight < 0 || ndigits > weight+1 {
+		return false
+	}
+	first := binary.BigEndian.Uint16(raw[8:10])
+	if first == 0 || first > 9999 {
+		return false
+	}
+	for offset := 10; offset < len(raw); offset += 2 {
+		if binary.BigEndian.Uint16(raw[offset:offset+2]) > 9999 {
+			return false
+		}
+	}
+	leadingDigits := 1
+	for value := first; value >= 10; value /= 10 {
+		leadingDigits++
+	}
+	return leadingDigits+weight*4 <= 20
 }
 
 func c12ScanTargetSupported(target any, field pgconn.FieldDescription, known bool) bool {

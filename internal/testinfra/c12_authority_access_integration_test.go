@@ -285,13 +285,15 @@ func (r c12AccessTestDriverRow) Scan(dest ...any) error {
 }
 
 type c12AccessTestRows struct {
-	fixture *c12AccessTestFixture
-	values  [][][]byte
-	index   int
-	errAt   int
-	err     error
-	closed  bool
-	started bool
+	fixture  *c12AccessTestFixture
+	values   [][][]byte
+	nextHook func()
+	hookOnce sync.Once
+	index    int
+	errAt    int
+	err      error
+	closed   bool
+	started  bool
 }
 
 func (r *c12AccessTestRows) Close() {
@@ -331,6 +333,9 @@ func (r *c12AccessTestRows) Next() bool {
 	}
 	r.index = next
 	r.started = true
+	if r.nextHook != nil {
+		r.hookOnce.Do(r.nextHook)
+	}
 	r.fixture.event("cursor:next")
 	return true
 }
@@ -499,6 +504,43 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 				t.Fatalf("expanding codec invoked: destination=%d planned=%t scanned=%t", len(destination), codec.planned.Load(), codec.scanned.Load())
 			}
 		})
+		for _, test := range []struct {
+			name   string
+			raw    []byte
+			target func() any
+		}{
+			{
+				name: "numeric_weight_expansion_to_string",
+				raw:  []byte{0, 1, 0x03, 0xe8, 0, 0, 0, 0, 0, 1},
+				target: func() any {
+					value := "unchanged"
+					return &value
+				},
+			},
+			{
+				name: "numeric_dscale_expansion_to_numeric",
+				raw:  []byte{0, 1, 0, 0, 0, 0, 0x10, 0, 0, 1},
+				target: func() any {
+					return &pgtype.Numeric{}
+				},
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				state := newC12AccessTestState(&c12AccessTestFixture{})
+				leaseContext, cancel := context.WithCancel(t.Context())
+				defer cancel()
+				lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+				lease.live.Store(true)
+				rows := &c12MaterializedRows{
+					lease: lease, typeMap: pgtype.NewMap(), index: 0, current: true,
+					fields: []pgconn.FieldDescription{{Name: "system_id", DataTypeOID: pgtype.NumericOID, Format: pgx.BinaryFormatCode}},
+					values: [][][]byte{{test.raw}},
+				}
+				if err := rows.Scan(test.target()); !errors.Is(err, C12PITRDependencyFailure) {
+					t.Fatalf("unbounded numeric Scan = %v", err)
+				}
+			})
+		}
 	})
 	t.Run("fixed_query_scan_shapes_remain_supported", func(t *testing.T) {
 		typeMap := pgtype.NewMap()
@@ -520,6 +562,7 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 			plainUUID    uuid.UUID
 			nullUUID     uuid.NullUUID
 			numeric      pgtype.Numeric
+			numericNull  pgtype.Numeric
 			pgInt        pgtype.Int8
 			plainInt     int64
 			fixtureCount int
@@ -539,6 +582,7 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 			{"uuid", pgconn.FieldDescription{DataTypeOID: pgtype.UUIDOID, Format: pgx.BinaryFormatCode}, identifier[:], &plainUUID},
 			{"nullable_uuid", pgconn.FieldDescription{DataTypeOID: pgtype.UUIDOID, Format: pgx.BinaryFormatCode}, identifier[:], &nullUUID},
 			{"numeric", pgconn.FieldDescription{DataTypeOID: pgtype.NumericOID, Format: pgx.BinaryFormatCode}, numericRaw, &numeric},
+			{"numeric_null", pgconn.FieldDescription{DataTypeOID: pgtype.NumericOID, Format: pgx.BinaryFormatCode}, nil, &numericNull},
 			{"pg_int8", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &pgInt},
 			{"int64", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &plainInt},
 			{"int", pgconn.FieldDescription{DataTypeOID: pgtype.Int8OID, Format: pgx.BinaryFormatCode}, encode(pgtype.Int8OID, int64(7)), &fixtureCount},
@@ -802,6 +846,41 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 		close(fixture.commitWait)
 		if err := <-commitDone; !errors.Is(err, C12PITRCanceled) {
 			t.Fatalf("released commit = %v", err)
+		}
+	})
+
+	t.Run("query_self_revocation_survives_late_operation_unwind", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{
+			interruptErr: errors.New("transport did not close"), interruptStuck: true,
+		}
+		state := newC12AccessTestState(fixture)
+		leaseContext, cancel := context.WithCancel(t.Context())
+		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+		lease.live.Store(true)
+		fixture.rows = func() pgx.Rows {
+			return &c12AccessTestRows{
+				fixture: fixture, values: [][][]byte{{{1, 2}}}, nextHook: cancel,
+			}
+		}
+		backend := &c12AccessTestDriver{fixture: fixture}
+		if err := backend.Acquire(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+		transaction := newC12AuthorityTx(backend, backend, lease, 1)
+		defer transaction.releaseBackend()
+		lease.txBackend = backend
+		lease.activeTx = transaction
+		started := time.Now()
+		if _, err := transaction.Query(context.Background(), "self-revoke"); !errors.Is(err, C12PITRCanceled) {
+			t.Fatalf("self-revoking Query = %v", err)
+		}
+		if elapsed := time.Since(started); elapsed < 500*time.Millisecond || elapsed > 2*time.Second {
+			t.Fatalf("cleanup timeout path elapsed %v", elapsed)
+		}
+		commitErr := transaction.Commit(context.Background())
+		_, closes, commits, rollbacks, _ := fixture.counts()
+		if !errors.Is(commitErr, C12PITRWrongPhase) || fixture.interrupts.Load() != 1 || commits != 0 || rollbacks != 0 || closes != 0 {
+			t.Fatalf("late unwind state = commit %v interrupts %d commits %d rollbacks %d closes %d", commitErr, fixture.interrupts.Load(), commits, rollbacks, closes)
 		}
 	})
 
