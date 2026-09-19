@@ -4,11 +4,13 @@ package testinfra
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"reflect"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -25,21 +27,28 @@ var c12AccessCases = []string{
 }
 
 type c12AccessTestFixture struct {
-	mu           sync.Mutex
-	events       []string
-	opens        int
-	closes       int
-	commits      int
-	rollbacks    int
-	cursorCloses int
-	rows         func() pgx.Rows
-	queryErr     error
-	commitErr    error
-	commitCtxErr error
-	commitWait   chan struct{}
-	commitStart  chan struct{}
-	closeOnce    sync.Once
-	startOnce    sync.Once
+	mu             sync.Mutex
+	events         []string
+	opens          int
+	closes         int
+	commits        int
+	rollbacks      int
+	cursorCloses   int
+	rows           func() pgx.Rows
+	queryErr       error
+	commitErr      error
+	commitCtxErr   error
+	commitWait     chan struct{}
+	commitStart    chan struct{}
+	queryWait      chan struct{}
+	queryStart     chan struct{}
+	interruptErr   error
+	interruptStuck bool
+	closeOnce      sync.Once
+	startOnce      sync.Once
+	protocolLive   atomic.Int32
+	cleanupRace    atomic.Bool
+	interrupts     atomic.Int32
 }
 
 func (f *c12AccessTestFixture) event(event string) {
@@ -62,7 +71,37 @@ func (f *c12AccessTestFixture) counts() (opens, closes, commits, rollbacks, curs
 
 type c12AccessTestDriver struct {
 	pgx.Tx
-	fixture *c12AccessTestFixture
+	fixture   *c12AccessTestFixture
+	ownership c12BackendOwnership
+}
+
+type c12AccessTestRewriter struct {
+	called   bool
+	retained *pgx.Conn
+}
+
+type c12AccessUnboundedCodec struct{ decoded atomic.Bool }
+
+func (*c12AccessUnboundedCodec) FormatSupported(int16) bool { return true }
+func (*c12AccessUnboundedCodec) PreferredFormat() int16     { return pgx.BinaryFormatCode }
+func (*c12AccessUnboundedCodec) PlanEncode(*pgtype.Map, uint32, int16, any) pgtype.EncodePlan {
+	return nil
+}
+func (*c12AccessUnboundedCodec) PlanScan(*pgtype.Map, uint32, int16, any) pgtype.ScanPlan {
+	return nil
+}
+func (*c12AccessUnboundedCodec) DecodeDatabaseSQLValue(*pgtype.Map, uint32, int16, []byte) (driver.Value, error) {
+	return nil, nil
+}
+func (codec *c12AccessUnboundedCodec) DecodeValue(*pgtype.Map, uint32, int16, []byte) (any, error) {
+	codec.decoded.Store(true)
+	return map[string][]byte{"mutable": make([]byte, 1<<20)}, nil
+}
+
+func (r *c12AccessTestRewriter) RewriteQuery(_ context.Context, conn *pgx.Conn, sql string, args []any) (string, []any, error) {
+	r.called = true
+	r.retained = conn
+	return sql, args, nil
 }
 
 func (d *c12AccessTestDriver) Exec(ctx context.Context, _ string, _ ...any) (pgconn.CommandTag, error) {
@@ -76,6 +115,15 @@ func (d *c12AccessTestDriver) Exec(ctx context.Context, _ string, _ ...any) (pgc
 }
 
 func (d *c12AccessTestDriver) Query(ctx context.Context, _ string, _ ...any) (pgx.Rows, error) {
+	if d.fixture.queryWait != nil {
+		d.fixture.protocolLive.Add(1)
+		defer d.fixture.protocolLive.Add(-1)
+		d.fixture.event("query:start")
+		d.fixture.startOnce.Do(func() { close(d.fixture.queryStart) })
+		<-d.fixture.queryWait
+		d.fixture.event("query:end")
+		return nil, ctx.Err()
+	}
 	d.fixture.event("query")
 	select {
 	case <-ctx.Done():
@@ -110,6 +158,8 @@ func (d *c12AccessTestDriver) BeginTx(ctx context.Context, options pgx.TxOptions
 }
 
 func (d *c12AccessTestDriver) Commit(ctx context.Context) error {
+	d.fixture.protocolLive.Add(1)
+	defer d.fixture.protocolLive.Add(-1)
 	d.fixture.mu.Lock()
 	d.fixture.commits++
 	d.fixture.events = append(d.fixture.events, "commit:start")
@@ -136,6 +186,9 @@ func (d *c12AccessTestDriver) Commit(ctx context.Context) error {
 }
 
 func (d *c12AccessTestDriver) Rollback(context.Context) error {
+	if d.fixture.protocolLive.Load() != 0 {
+		d.fixture.cleanupRace.Store(true)
+	}
 	d.fixture.mu.Lock()
 	d.fixture.rollbacks++
 	d.fixture.events = append(d.fixture.events, "rollback")
@@ -144,6 +197,9 @@ func (d *c12AccessTestDriver) Rollback(context.Context) error {
 }
 
 func (d *c12AccessTestDriver) Close(context.Context) error {
+	if d.fixture.protocolLive.Load() != 0 {
+		d.fixture.cleanupRace.Store(true)
+	}
 	d.fixture.mu.Lock()
 	d.fixture.closes++
 	d.fixture.events = append(d.fixture.events, "close")
@@ -151,7 +207,29 @@ func (d *c12AccessTestDriver) Close(context.Context) error {
 	if d.fixture.commitWait != nil {
 		d.fixture.closeOnce.Do(func() { close(d.fixture.commitWait) })
 	}
+	if d.fixture.queryWait != nil {
+		d.fixture.closeOnce.Do(func() { close(d.fixture.queryWait) })
+	}
 	return nil
+}
+
+func (d *c12AccessTestDriver) Acquire(ctx context.Context) error { return d.ownership.acquire(ctx) }
+func (d *c12AccessTestDriver) Release()                          { d.ownership.release() }
+func (d *c12AccessTestDriver) Interrupt(context.Context) error {
+	if !d.ownership.active.Load() {
+		return nil
+	}
+	d.fixture.interrupts.Add(1)
+	d.fixture.event("interrupt")
+	if !d.fixture.interruptStuck {
+		if d.fixture.commitWait != nil {
+			d.fixture.closeOnce.Do(func() { close(d.fixture.commitWait) })
+		}
+		if d.fixture.queryWait != nil {
+			d.fixture.closeOnce.Do(func() { close(d.fixture.queryWait) })
+		}
+	}
+	return d.fixture.interruptErr
 }
 
 func (*c12AccessTestDriver) TypeMap() *pgtype.Map { return pgtype.NewMap() }
@@ -285,6 +363,165 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 			t.Fatal("byte cap")
 		}
 	})
+	t.Run("copy_budget_is_reserved_before_decode", func(t *testing.T) {
+		for _, test := range []struct {
+			name      string
+			remaining int64
+			invoke    func(*testing.T, *c12MaterializedRows) error
+		}{
+			{
+				name: "scan", remaining: 24 + 24 + 64,
+				invoke: func(t *testing.T, rows *c12MaterializedRows) error {
+					destination := []byte{99}
+					err := rows.Scan(&destination)
+					if !slices.Equal(destination, []byte{99}) {
+						t.Fatalf("Scan mutated destination before capacity rejection: %v", destination)
+					}
+					return err
+				},
+			},
+			{
+				name: "values", remaining: 24 + 16 + 64,
+				invoke: func(_ *testing.T, rows *c12MaterializedRows) error {
+					_, err := rows.Values()
+					return err
+				},
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				state := newC12AccessTestState(&c12AccessTestFixture{})
+				leaseContext, cancel := context.WithCancel(t.Context())
+				defer cancel()
+				lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+				lease.live.Store(true)
+				lease.budget.bytes = (64 << 20) - test.remaining
+				rows := &c12MaterializedRows{
+					lease: lease, typeMap: pgtype.NewMap(), index: 0, current: true,
+					fields: []pgconn.FieldDescription{{Name: "payload", DataTypeOID: pgtype.ByteaOID, Format: pgx.BinaryFormatCode}},
+					values: [][][]byte{{make([]byte, 64)}},
+				}
+				if err := test.invoke(t, rows); !errors.Is(err, C12PITRCapacityExceeded) {
+					t.Fatalf("copy reservation = %v", err)
+				}
+			})
+		}
+	})
+	t.Run("unsupported_values_codec_is_not_decoded", func(t *testing.T) {
+		const unsafeOID = 91001
+		codec := &c12AccessUnboundedCodec{}
+		typeMap := pgtype.NewMap()
+		typeMap.RegisterType(&pgtype.Type{Name: "c12_unsafe", OID: unsafeOID, Codec: codec})
+		state := newC12AccessTestState(&c12AccessTestFixture{})
+		leaseContext, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+		lease.live.Store(true)
+		rows := &c12MaterializedRows{
+			lease: lease, typeMap: typeMap, index: 0, current: true,
+			fields: []pgconn.FieldDescription{{Name: "unsafe", DataTypeOID: unsafeOID, Format: pgx.BinaryFormatCode}},
+			values: [][][]byte{{{1}}},
+		}
+		if _, err := rows.Values(); !errors.Is(err, C12PITRDependencyFailure) {
+			t.Fatalf("unsupported codec = %v", err)
+		}
+		if codec.decoded.Load() {
+			t.Fatal("unsupported mutable codec decoded before rejection")
+		}
+	})
+	t.Run("empty_bytea_remains_distinct_from_null", func(t *testing.T) {
+		for _, view := range []string{"raw", "scan", "values"} {
+			t.Run(view, func(t *testing.T) {
+				fixture := &c12AccessTestFixture{}
+				fixture.rows = func() pgx.Rows {
+					return &c12AccessTestRows{fixture: fixture, values: [][][]byte{{make([]byte, 0)}, {nil}}}
+				}
+				state := newC12AccessTestState(fixture)
+				err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+					rows, err := access.Query(t.Context(), "empty-and-null")
+					if err != nil {
+						return err
+					}
+					for index := 0; index < 2; index++ {
+						if !rows.Next() {
+							t.Fatalf("row %d missing: %v", index, rows.Err())
+						}
+						var value []byte
+						switch view {
+						case "raw":
+							value = rows.RawValues()[0]
+						case "scan":
+							value = []byte{99}
+							if err := rows.Scan(&value); err != nil {
+								return err
+							}
+						case "values":
+							decoded, err := rows.Values()
+							if err != nil {
+								return err
+							}
+							if decoded[0] != nil {
+								value = decoded[0].([]byte)
+							}
+						}
+						if index == 0 && (value == nil || len(value) != 0) {
+							t.Fatalf("empty bytea became NULL: %#v", value)
+						}
+						if index == 1 && value != nil {
+							t.Fatalf("NULL became nonnil: %#v", value)
+						}
+					}
+					return nil
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	})
+	t.Run("queryrow_success_is_never_replayed", func(t *testing.T) {
+		t.Run("consumed", func(t *testing.T) {
+			fixture := &c12AccessTestFixture{}
+			state := newC12AccessTestState(fixture)
+			err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+				row := access.QueryRow(t.Context(), "one")
+				var first []byte
+				if err := row.Scan(&first); err != nil {
+					return err
+				}
+				second := []byte{99}
+				if err := row.Scan(&second); !errors.Is(err, C12PITRWrongPhase) {
+					t.Fatalf("second Scan = %v", err)
+				}
+				if !slices.Equal(second, []byte{99}) {
+					t.Fatalf("second Scan mutated destination: %v", second)
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+		t.Run("revoked", func(t *testing.T) {
+			fixture := &c12AccessTestFixture{}
+			state := newC12AccessTestState(fixture)
+			var saved pgx.Row
+			err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+				saved = access.QueryRow(t.Context(), "one")
+				var first []byte
+				return saved.Scan(&first)
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			destination := []byte{99}
+			if err := saved.Scan(&destination); !errors.Is(err, C12PITRWrongPhase) {
+				t.Fatalf("revoked Scan = %v", err)
+			}
+			if !slices.Equal(destination, []byte{99}) {
+				t.Fatalf("revoked Scan mutated destination: %v", destination)
+			}
+		})
+	})
 	t.Run("zero_controller", func(t *testing.T) {
 		called := false
 		err := (C12AuthorityPITRController{}).WithPrimaryAuthorityAccess(
@@ -305,6 +542,176 @@ func TestC12AuthorityPITRScopedAccessPolicy(t *testing.T) {
 		}
 		if reflect.TypeFor[*c12AuthorityTx]().Implements(reflect.TypeFor[pgx.Tx]()) {
 			t.Fatal("transaction exposes pgx.Tx")
+		}
+	})
+
+	t.Run("rejects_pgx_control_arguments", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{}
+		state := newC12AccessTestState(fixture)
+		err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+			tx, err := access.Begin(t.Context())
+			if err != nil {
+				return err
+			}
+			rewriter := &c12AccessTestRewriter{}
+			controls := []any{
+				rewriter,
+				pgx.QueryExecModeSimpleProtocol,
+				pgx.QueryResultFormats{pgx.BinaryFormatCode},
+				pgx.QueryResultFormatsByOID{pgtype.ByteaOID: pgx.BinaryFormatCode},
+			}
+			for _, db := range []interface {
+				Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+				Query(context.Context, string, ...any) (pgx.Rows, error)
+				QueryRow(context.Context, string, ...any) pgx.Row
+			}{access, tx} {
+				for _, control := range controls {
+					before := len(fixture.snapshot())
+					if _, err := db.Exec(t.Context(), "authorized", control); !errors.Is(err, C12PITRDependencyFailure) {
+						t.Fatalf("Exec accepted %T: %v", control, err)
+					}
+					if _, err := db.Query(t.Context(), "authorized", control); !errors.Is(err, C12PITRDependencyFailure) {
+						t.Fatalf("Query accepted %T: %v", control, err)
+					}
+					var payload []byte
+					if err := db.QueryRow(t.Context(), "authorized", control).Scan(&payload); !errors.Is(err, C12PITRDependencyFailure) {
+						t.Fatalf("QueryRow accepted %T: %v", control, err)
+					}
+					if got := len(fixture.snapshot()); got != before {
+						t.Fatalf("%T reached backend: events %d -> %d", control, before, got)
+					}
+				}
+			}
+			if rewriter.called || rewriter.retained != nil {
+				t.Fatal("QueryRewriter received raw connection")
+			}
+			return tx.Rollback(t.Context())
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("transport_interrupt_serializes_query_cleanup", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{
+			queryWait: make(chan struct{}), queryStart: make(chan struct{}),
+			interruptErr: errors.New("transport close status"),
+		}
+		state := newC12AccessTestState(fixture)
+		ctx, cancel := context.WithCancel(t.Context())
+		done := make(chan error, 1)
+		go func() {
+			done <- c12WithAccess(ctx, state, nil, func(access C12AuthorityAccess) error {
+				_, err := access.Query(context.Background(), "authorized")
+				return err
+			})
+		}()
+		<-fixture.queryStart
+		cancel()
+		if err := <-done; !errors.Is(err, C12PITRCanceled) {
+			t.Fatalf("cancel result = %v", err)
+		}
+		events := fixture.snapshot()
+		start := slices.Index(events, "query:start")
+		interrupt := slices.Index(events, "interrupt")
+		end := slices.Index(events, "query:end")
+		closeIndex := slices.Index(events, "close")
+		if start < 0 || interrupt < start || end < interrupt || closeIndex < end {
+			t.Fatalf("query cancellation order = %v", events)
+		}
+		if fixture.interrupts.Load() != 1 || fixture.cleanupRace.Load() {
+			t.Fatalf("transport interruption = interrupts %d cleanup overlap %t", fixture.interrupts.Load(), fixture.cleanupRace.Load())
+		}
+	})
+
+	t.Run("unresponsive_transport_never_forces_protocol_cleanup_overlap", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{
+			commitWait: make(chan struct{}), commitStart: make(chan struct{}),
+			interruptErr: errors.New("transport did not close"), interruptStuck: true,
+		}
+		state := newC12AccessTestState(fixture)
+		leaseContext, cancel := context.WithCancel(t.Context())
+		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: cancel}
+		lease.live.Store(true)
+		backend := &c12AccessTestDriver{fixture: fixture}
+		transaction := &c12AuthorityTx{driver: backend, backend: backend, lease: lease, generation: 1}
+		lease.txBackend = backend
+		lease.activeTx = transaction
+		commitDone := make(chan error, 1)
+		go func() { commitDone <- transaction.Commit(context.Background()) }()
+		<-fixture.commitStart
+		started := time.Now()
+		revokeDone := make(chan struct{})
+		go func() {
+			lease.revoke(C12PITRCanceled)
+			close(revokeDone)
+		}()
+		select {
+		case <-revokeDone:
+		case <-time.After(2 * time.Second):
+			t.Fatal("bounded cleanup did not return")
+		}
+		if elapsed := time.Since(started); elapsed < 500*time.Millisecond {
+			t.Fatalf("cleanup did not wait for ownership: %v", elapsed)
+		}
+		_, closes, _, rollbacks, _ := fixture.counts()
+		if fixture.interrupts.Load() != 1 || fixture.cleanupRace.Load() || closes != 0 || rollbacks != 0 {
+			t.Fatalf("failed interrupt cleanup = interrupts %d overlap %t closes %d rollbacks %d", fixture.interrupts.Load(), fixture.cleanupRace.Load(), closes, rollbacks)
+		}
+		close(fixture.commitWait)
+		if err := <-commitDone; !errors.Is(err, C12PITRCanceled) {
+			t.Fatalf("released commit = %v", err)
+		}
+	})
+
+	t.Run("canceled_rollback_does_not_consume_transaction", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{}
+		state := newC12AccessTestState(fixture)
+		err := c12WithAccess(t.Context(), state, nil, func(access C12AuthorityAccess) error {
+			tx, err := access.Begin(t.Context())
+			if err != nil {
+				return err
+			}
+			canceled, cancel := context.WithCancel(t.Context())
+			cancel()
+			if err := tx.Rollback(canceled); !errors.Is(err, C12PITRCanceled) {
+				t.Fatalf("canceled rollback = %v", err)
+			}
+			if _, err := access.Begin(t.Context()); !errors.Is(err, C12PITRWrongPhase) {
+				t.Fatalf("canceled rollback released active transaction: %v", err)
+			}
+			if err := tx.Rollback(t.Context()); err != nil {
+				t.Fatalf("rollback retry = %v", err)
+			}
+			next, err := access.Begin(t.Context())
+			if err != nil {
+				return err
+			}
+			return next.Rollback(t.Context())
+		})
+		_, _, _, rollbacks, _ := fixture.counts()
+		if err != nil || rollbacks != 2 {
+			t.Fatalf("transaction cleanup = %v, rollbacks %d", err, rollbacks)
+		}
+	})
+
+	t.Run("commit_preflight_has_no_cleanup_side_effects", func(t *testing.T) {
+		fixture := &c12AccessTestFixture{}
+		state := newC12AccessTestState(fixture)
+		leaseContext, cancel := context.WithCancel(t.Context())
+		cancel()
+		lease := &c12AccessLease{owner: state, generation: 1, ctx: leaseContext, cancel: func() {}}
+		lease.live.Store(true)
+		backend := &c12AccessTestDriver{fixture: fixture}
+		transaction := &c12AuthorityTx{driver: backend, backend: backend, lease: lease, generation: 1}
+		lease.txBackend = backend
+		lease.activeTx = transaction
+		if err := transaction.Commit(context.Background()); !errors.Is(err, C12PITRCanceled) {
+			t.Fatalf("expired commit = %v", err)
+		}
+		_, closes, commits, rollbacks, _ := fixture.counts()
+		if terminal := transaction.terminal.Load(); terminal != 0 || commits != 0 || rollbacks != 0 || closes != 0 {
+			t.Fatalf("preflight side effects = terminal %d commits %d rollbacks %d closes %d", terminal, commits, rollbacks, closes)
 		}
 	})
 
@@ -669,10 +1076,14 @@ func testC12AccessLifecycleCase(t *testing.T, name string) {
 		}
 		events := fixture.snapshot()
 		commitStart := slices.Index(events, "commit:start")
+		interruptIndex := slices.Index(events, "interrupt")
 		closeIndex := slices.Index(events, "close")
 		commitEnd := slices.Index(events, "commit:end")
-		if commitStart < 0 || closeIndex < commitStart || commitEnd < closeIndex {
+		if commitStart < 0 || interruptIndex < commitStart || commitEnd < interruptIndex || closeIndex < commitEnd {
 			t.Fatalf("cancel event order = %v", events)
+		}
+		if fixture.interrupts.Load() != 1 || fixture.cleanupRace.Load() {
+			t.Fatalf("transport interruption = interrupts %d cleanup overlap %t", fixture.interrupts.Load(), fixture.cleanupRace.Load())
 		}
 		if _, _, commits, rollbacks, _ := fixture.counts(); commits != 1 || rollbacks != 0 {
 			t.Fatalf("cancel commit/rollback = %d/%d", commits, rollbacks)

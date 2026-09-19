@@ -31,9 +31,9 @@ type c12MaterializedRows struct {
 }
 
 type c12MaterializedRow struct {
-	rows *c12MaterializedRows
-	once sync.Once
-	err  error
+	rows     *c12MaterializedRows
+	mu       sync.Mutex
+	consumed bool
 }
 
 func c12MaterializeRows(ctx context.Context, lease *c12AccessLease, driverRows pgx.Rows) (pgx.Rows, error) {
@@ -83,7 +83,7 @@ func c12MaterializeRows(ctx context.Context, lease *c12AccessLease, driverRows p
 		row := make([][]byte, len(raw))
 		for index, value := range raw {
 			if value != nil {
-				row[index] = append([]byte(nil), value...)
+				row[index] = c12CopyBytes(value)
 			}
 		}
 		materialized = append(materialized, row)
@@ -223,7 +223,12 @@ func (rows *c12MaterializedRows) Scan(dest ...any) error {
 	}
 	copyBytes := int64(24 + len(rows.fields)*24)
 	for _, value := range rows.values[rows.index] {
-		copyBytes += int64(len(value))
+		valueBytes := int64(len(value))
+		if valueBytes > ((64<<20)-copyBytes)/2 {
+			rows.err = C12PITRCapacityExceeded
+			return rows.err
+		}
+		copyBytes += valueBytes * 2
 	}
 	if err := rows.lease.takeBytes(copyBytes); err != nil {
 		rows.err = err
@@ -234,7 +239,7 @@ func (rows *c12MaterializedRows) Scan(dest ...any) error {
 			continue
 		}
 		field := rows.fields[index]
-		source := append([]byte(nil), rows.values[rows.index][index]...)
+		source := c12CopyBytes(rows.values[rows.index][index])
 		if err := rows.typeMap.Scan(field.DataTypeOID, field.Format, source, target); err != nil {
 			rows.err = C12PITRDependencyFailure
 			return rows.err
@@ -257,8 +262,37 @@ func (rows *c12MaterializedRows) Values() ([]any, error) {
 		rows.err = C12PITRWrongPhase
 		return nil, rows.err
 	}
-	decoded := make([]any, len(rows.fields))
 	copyBytes := int64(24 + len(rows.fields)*16)
+	for index, field := range rows.fields {
+		raw := rows.values[rows.index][index]
+		if raw == nil {
+			continue
+		}
+		dataType, known := rows.typeMap.TypeForOID(field.DataTypeOID)
+		if known && !c12ValuesCodecSupported(dataType.Codec) {
+			rows.err = C12PITRDependencyFailure
+			return nil, rows.err
+		}
+		if known && !dataType.Codec.FormatSupported(field.Format) {
+			rows.err = C12PITRDependencyFailure
+			return nil, rows.err
+		}
+		if !known && field.Format != pgx.TextFormatCode && field.Format != pgx.BinaryFormatCode {
+			rows.err = C12PITRDependencyFailure
+			return nil, rows.err
+		}
+		rawBytes := int64(len(raw))
+		if rawBytes > ((64<<20)-copyBytes)/2 {
+			rows.err = C12PITRCapacityExceeded
+			return nil, rows.err
+		}
+		copyBytes += rawBytes * 2
+	}
+	if err := rows.lease.takeBytes(copyBytes); err != nil {
+		rows.err = err
+		return nil, err
+	}
+	decoded := make([]any, len(rows.fields))
 	for index, field := range rows.fields {
 		raw := rows.values[rows.index][index]
 		if raw == nil {
@@ -272,7 +306,7 @@ func (rows *c12MaterializedRows) Values() ([]any, error) {
 		} else if field.Format == pgx.TextFormatCode {
 			value = string(raw)
 		} else if field.Format == pgx.BinaryFormatCode {
-			value = append([]byte(nil), raw...)
+			value = c12CopyBytes(raw)
 		} else {
 			err = C12PITRDependencyFailure
 		}
@@ -280,19 +314,27 @@ func (rows *c12MaterializedRows) Values() ([]any, error) {
 			rows.err = C12PITRDependencyFailure
 			return nil, rows.err
 		}
-		value, valueBytes, ok := c12CopyDecodedValue(value)
-		if !ok || copyBytes > (64<<20)-valueBytes {
+		value, _, ok := c12CopyDecodedValue(value)
+		if !ok {
 			rows.err = C12PITRDependencyFailure
 			return nil, rows.err
 		}
-		copyBytes += valueBytes
 		decoded[index] = value
 	}
-	if err := rows.lease.takeBytes(copyBytes); err != nil {
-		rows.err = err
-		return nil, err
-	}
 	return decoded, nil
+}
+
+func c12ValuesCodecSupported(codec pgtype.Codec) bool {
+	switch codec.(type) {
+	case pgtype.BoolCodec, pgtype.ByteaCodec,
+		pgtype.Int2Codec, pgtype.Int4Codec, pgtype.Int8Codec,
+		pgtype.Float4Codec, pgtype.Float8Codec, pgtype.TextCodec,
+		pgtype.Uint32Codec, pgtype.DateCodec,
+		*pgtype.TimestampCodec, *pgtype.TimestamptzCodec:
+		return true
+	default:
+		return false
+	}
 }
 
 func (rows *c12MaterializedRows) RawValues() [][]byte {
@@ -319,7 +361,7 @@ func (rows *c12MaterializedRows) RawValues() [][]byte {
 	result := make([][]byte, len(current))
 	for index, value := range current {
 		if value != nil {
-			result[index] = append([]byte(nil), value...)
+			result[index] = c12CopyBytes(value)
 		}
 	}
 	return result
@@ -331,22 +373,29 @@ func (row *c12MaterializedRow) Scan(dest ...any) error {
 	if row == nil || row.rows == nil {
 		return C12PITRInvalidHandle
 	}
-	row.once.Do(func() {
-		if !row.rows.Next() {
-			if err := row.rows.Err(); err != nil {
-				row.err = err
-			} else {
-				row.err = c12NoRows{}
-			}
-			return
+	row.mu.Lock()
+	defer row.mu.Unlock()
+	if err := row.rows.lease.status(); err != nil {
+		return err
+	}
+	if row.rows.transaction != nil {
+		if err := row.rows.transaction.status(); err != nil {
+			return err
 		}
-		row.err = row.rows.Scan(dest...)
-		row.rows.Close()
-	})
-	if row.err == nil && row.rows.closed && len(dest) != len(row.rows.fields) {
+	}
+	if row.consumed {
 		return C12PITRWrongPhase
 	}
-	return row.err
+	row.consumed = true
+	if !row.rows.Next() {
+		if err := row.rows.Err(); err != nil {
+			return err
+		}
+		return c12NoRows{}
+	}
+	err := row.rows.Scan(dest...)
+	row.rows.Close()
+	return err
 }
 
 func c12CopyDecodedValue(value any) (any, int64, bool) {
@@ -354,7 +403,7 @@ func c12CopyDecodedValue(value any) (any, int64, bool) {
 	case nil:
 		return nil, 0, true
 	case []byte:
-		return append([]byte(nil), typed...), int64(len(typed)), true
+		return c12CopyBytes(typed), int64(len(typed)), true
 	case string:
 		return typed, int64(len(typed)), true
 	case bool, int8, int16, int32, int64, int, uint8, uint16, uint32, uint64, uint, float32, float64, time.Time:
@@ -362,4 +411,13 @@ func c12CopyDecodedValue(value any) (any, int64, bool) {
 	default:
 		return nil, 0, false
 	}
+}
+
+func c12CopyBytes(value []byte) []byte {
+	if value == nil {
+		return nil
+	}
+	result := make([]byte, len(value))
+	copy(result, value)
+	return result
 }
