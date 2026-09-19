@@ -186,8 +186,11 @@ Branch: `codex/c12-b01-task9-coordinator`, isolated worktree
 ledger (`test(c12): close controlled PITR gates and record evidence`). The Task6
 handoff originally awaited independent review; the subsequent whole-branch
 findings and bounded fix verification are recorded below. Scoped final rereview
-is complete; authorized development-branch push is pending at this documentation
-commit. No PR, main merge or worktree removal is claimed.
+and the authorized development-checkpoint push are complete. GitHub confirmed
+`adc3494d9fd6391b2520358d346bc2b7e7de05bd` on the development branch; this concluding
+documentation update records that result. No PR, main merge or worktree removal
+was performed. On another computer, fetch and switch to
+`codex/c12-b01-task9-coordinator`; main does not contain this checkpoint.
 
 The [portable execution record](../superpowers/plans/2026-09-19-c12-controlled-pitr-test-interface.md#execution-record--2026-09-19-development-checkpoint-not-acceptance)
 contains the actual approval/execution checklist, exact commands/results, source

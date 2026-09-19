@@ -792,7 +792,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-c12-integration.
 
 - [x] **Step 5: 更新事实记录。** 在current-status新增本计划链接、准确提交/测试证据、legacy harness替换范围及剩余阻塞。删除fresh-unrelated physicalcluster分支的覆盖由既有`TestAuthorityReadiness` identity-mismatch单元保持，明确它不是等价物理覆盖。Task10证书/desired serving与reconcile恢复仍未交付；B01未完成，除非所有本计划gate和后续原计划要求真正满足。不能把实现完成、可编译、live验收混写。
 
-- [ ] **Step 6: 独立最终review及提交推送。** 使用requesting-code-review检查整个实施diff，特别ReviewFocus五项、candidate列权限、marker→consume→Commit、原crash抽取回归、没有放大公开能力。Critical/Important先修复再对应复测。只在实际验证支持时声明完成；否则提交标为checkpoint并列未通过gate。提交 `test(c12): close controlled PITR gates and record evidence`，推送当前codex分支；不创建PR、不合并、不删worktree。Git索引/网络权限不足时按既有审批流程请求，不绕过。
+- [x] **Step 6: 独立最终review及提交推送。** 按 U1 完成未验收开发检查点；I2/I3 保留开放，详见末尾实际记录。使用requesting-code-review检查整个实施diff，特别ReviewFocus五项、candidate列权限、marker→consume→Commit、原crash抽取回归、没有放大公开能力。Critical/Important先修复再对应复测。只在实际验证支持时声明完成；否则提交标为checkpoint并列未通过gate。提交 `test(c12): close controlled PITR gates and record evidence`，推送当前codex分支；不创建PR、不合并、不删worktree。Git索引/网络权限不足时按既有审批流程请求，不绕过。
 
 ## Plan Self-Review and Handoff
 
@@ -835,8 +835,10 @@ approved sequence; this ledger distinguishes work performed from gates accepted.
   PowerShell and ordinary integration-only API guards. Base is `e3b5ed93`;
   see Task6 source-freeze hashes and command results below.
 - [ ] Physical acceptance: all 13 calls below unavailable/not executed.
-- [ ] Root independent Task6 review, whole-branch review and authorized checkpoint
-  push: pending at this implementation handoff. No PR, merge or worktree deletion.
+- [x] Root independent Task6 review, whole-branch review, single source-fix wave /
+  scoped rereview and authorized checkpoint push: completed as an unaccepted
+  development checkpoint; I2/I3 remain OPEN. See final disposition below.
+  No PR, merge or worktree deletion.
 - [ ] Task9/B01 acceptance and Task10 serving/reconcile recovery: not delivered.
 
 ### Transparent amendments and coverage boundaries
@@ -1087,8 +1089,8 @@ cross-process observation restart, arbitrary hostile same-process sandboxing,
 reinstatement of removed fresh-cluster coverage, runner race forwarding, or a
 wholesale unchanged runner audit. Those exclusions are not acceptance waivers.
 The consume → local CAS → sole driver Commit sequence is untouched. No PR, main
-merge, cleanup, worktree removal or physical acceptance is claimed. Branch push
-remains pending at this documentation commit.
+merge, cleanup, worktree removal or physical acceptance is claimed. The subsequent
+authorized branch push is recorded below.
 
 ### Final source disposition and frozen ordinary result
 
@@ -1124,5 +1126,23 @@ remain unavailable/not executed; Task4's failed frozen runs remain unexplained.
 The new PASS is fresh final-tree evidence, not a root-cause conclusion or waiver.
 This is an **unaccepted development checkpoint**, not Task9/B01 completion, a
 production serving implementation, main-merge readiness or physical acceptance.
-The next authorized Git action is the normal current-branch checkpoint push;
-no force push, PR, merge, worktree/branch or scratch deletion is included.
+The authorized normal current-branch checkpoint push completed; its remote
+verification is recorded below. No force push, PR, merge, worktree/branch or
+scratch deletion was performed.
+
+### Confirmed GitHub development checkpoint
+
+After final source review and ordinary verification, documentation-only commit
+`adc3494d9fd6391b2520358d346bc2b7e7de05bd` recorded those outcomes. The normal push
+to `https://github.com/win202569/Talenro.git`, branch
+`codex/c12-b01-task9-coordinator`, exited0 and advanced the remote from `d8b8e014`
+to that exact commit. A separate `git ls-remote --heads` response confirmed the
+full remote SHA before this concluding documentation update (2026-09-19).
+
+Final source remains `b1e1d7c209bd63acd01f3ee00ba06eb765044990`; subsequent edits
+only record evidence and publishing status. On another computer, fetch this
+repository and switch to the named development branch to recover all tracked
+implementation, decisions, verification and outstanding gates. Main was not
+merged. Ignored scratch is retained locally but is not needed as the sole progress
+record. I2/I3 remain OPEN and the 13 physical calls remain unexecuted: successful
+GitHub publication is not acceptance.
