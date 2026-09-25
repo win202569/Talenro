@@ -12,7 +12,7 @@
 
 **Approved addendum:** `docs/superpowers/specs/2026-09-25-c12-devtools-windows-powershell-addendum-design.md`（用户已确认；与原设计冲突时以附录为准）。
 
-**Revision status:** 7.6.5 书面附录已获确认，本次对应计划修订待用户审阅。保留已选 Native inline 执行方式，不重新选择。原任务 1 未完成、任务 2/3 未开始；已有未提交实现只作为待核验工作，不能重记为完成。恢复时先读两份设计、当前 ledger 和本计划；本次修订不执行代码或测试。
+**Revision status:** 7.6.5 书面附录及对应计划修订均已获用户确认，Native inline 执行已恢复。任务 1 部分 Windows 实现和专项回归通过，原生 Unix 实现/验收未完成；任务 2/3 未开始。检查点不是任务完成；恢复时先读两份设计、当前 ledger 和本计划。
 
 ## Global Constraints
 
@@ -70,7 +70,7 @@ Task 3 执行真实验证与文档交接。每任务自带测试周期和独立�
 - Go 非零退出原样传播；校验语义错误/清理失败退出 1；命令缺失 127；超时 124。
 - 不启动生成、lint、Docker；不得 dot-source 或执行 C12 runner 来借用函数。
 
-- [ ] **0a. 写版本边界 RED。** 在 `TestDevtoolsVerificationPowerShell` 增加 `runtime-5.1-rejected`、
+- [x] **0a. 写版本边界 RED。** 在 `TestDevtoolsVerificationPowerShell` 增加 `runtime-5.1-rejected`、
   `runtime-prerelease-rejected`、`runtime-other-version-rejected`、`runtime-7.6.5-accepted`。
   实际 5.1 使用系统 powershell.exe，成功路径用已解析的实际 7.6.5；两者在 fixture 中运行同一
   真实入口，缺少 7.6.5 则明确记录环境阻塞，绝不回退 5.1。版本拒绝断言完整输出和退出码：
@@ -86,7 +86,7 @@ if exitCode != 1 || strings.TrimSpace(output) != "verify-devtools: PowerShell 7.
   的运行时信息读取处注入明确值，必须断言恰好一次替换；标为判定逻辑测试，不算实际版本验收。
   拒绝分支配套自身进程启动事件观察，确认没有 csc/Go/工作子进程；观察器需独立正向对照。
 
-- [ ] **0b. 运行版本 RED，再实现入口最前部检查。**
+- [x] **0b. 运行版本 RED，再实现入口最前部检查。**
 
 ```powershell
 go test -tags=e2e ./internal/e2e -run '^TestDevtoolsVerificationPowerShell$/^runtime-' -count=1 -timeout=5m
@@ -553,6 +553,6 @@ Task 1 的私有帮助文件和 Task 2 的全入口取消测试；第 4 节预�
 SameHostDispatch/ConsumerRuntime 及消费者调用，Task 3 的新电脑前提与独立证据。
 保留文中的 C12 powershell 调用作为原合同的受阻命令，不做全局替换；当前不得执行。
 
-本修订待用户审阅确认，继续保留 Native inline：本会话逐任务执行，最后进行一次独立整体审查。
+本修订已获用户确认，继续保留 Native inline：本会话逐任务执行，最后进行一次独立整体审查。
 不重新选择执行方式，不把本计划批准当作安全事件解除、测试通过或推送/合并授权。
-本次编写计划不启动实现、测试或代理。
+实际结果以 ledger 及 Windows 实现检查点报告为准；未完成阶段不得因计划获批而标为完成。
