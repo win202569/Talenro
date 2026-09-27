@@ -78,7 +78,7 @@ trap 'finish 124' TERM INT HUP
 cd -- "${repo_root}/tools/devtools" 2>/dev/null || finish 1
 capture "${go_path}" version
 if ((windows)); then [[ ${captured} == 'go version go1.26.5 windows/amd64' ]] || finish 1
-else [[ ${captured} =~ ^go\ version\ go1\.26\.5\ [a-z0-9]+/[a-z0-9]+$ ]] || finish 1; fi
+else [[ ${captured} =~ ^go\ version\ go1\.26\.5\ [a-z0-9]+/[a-z0-9]+$ && ${captured} != 'go version go1.26.5 windows/'* ]] || finish 1; fi
 stage=dependencies
 capture "${go_path}" list -m -f '{{if not .Main}}{{.Path}}|{{.Version}}|{{.Dir}}{{end}}' all
 modules=${captured}

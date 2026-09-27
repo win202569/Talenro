@@ -19,6 +19,9 @@ import (
 )
 
 func TestDevtoolsVerificationPowerShell(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows-only PowerShell entry")
+	}
 	testDevtoolsRuntime(t)
 	testDevtoolsOwnership(t)
 	testDevtoolsMissingModule(t, "ps1")
@@ -41,7 +44,8 @@ func TestDevtoolsVerificationBash(t *testing.T) {
 func testDevtoolsProcess(t *testing.T, extension string) {
 	t.Helper()
 	if runtime.GOOS != "windows" {
-		t.Skip("Windows process fixture")
+		testDevtoolsUnixProcess(t)
+		return
 	}
 	profile := filepath.Join(t.TempDir(), "owned profile")
 	goPath := filepath.Join(profile, "go", "pkg", "mod", "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64", "bin", "go.exe")
@@ -294,9 +298,6 @@ func main(){
 // corruption cases must never open the user's shared module cache for writing.
 func testDevtoolsIntegrity(t *testing.T, extension string) {
 	t.Helper()
-	if runtime.GOOS != "windows" {
-		t.Skip("Windows fixed-toolchain fixture; native Bash fixture is separate")
-	}
 	for _, tc := range []struct {
 		name string
 		want int
@@ -347,26 +348,41 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 			write(filepath.Join(module, "go.mod"), []byte("module talenro.local/devtools\n\ngo 1.26.0\n\nrequire "+dependency+" v1.0.0\n"))
 			toolchain := filepath.Join(os.Getenv("USERPROFILE"), "go", "pkg", "mod", "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64")
 			goPath := filepath.Join(toolchain, "bin", "go.exe")
+			if runtime.GOOS != "windows" {
+				var err error
+				goPath, err = exec.LookPath("go")
+				if err != nil {
+					t.Fatal("native Go toolchain unavailable: ", err)
+				}
+			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 			prep := exec.CommandContext(ctx, goPath, "mod", "download", dependency)
 			prep.Dir = module
-			proxyURL := (&url.URL{Scheme: "file", Path: "/" + filepath.ToSlash(proxy)}).String()
-			prep.Env = devtoolsFixtureEnv(map[string]string{"GOMODCACHE": cache, "GOPROXY": proxyURL, "GOSUMDB": "off", "GOENV": "off", "GOWORK": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""})
+			proxyPath := filepath.ToSlash(proxy)
+			if runtime.GOOS == "windows" {
+				proxyPath = "/" + proxyPath
+			}
+			proxyURL := (&url.URL{Scheme: "file", Path: proxyPath}).String()
+			// Only this disposable cache is writable, so unprivileged Unix test
+			// cleanup and deliberate corruption do not require DAC privileges.
+			prep.Env = devtoolsFixtureEnv(map[string]string{"GOMODCACHE": cache, "GOPROXY": proxyURL, "GOSUMDB": "off", "GOENV": "off", "GOWORK": "off", "GOTOOLCHAIN": "local", "GOFLAGS": "-modcacherw"})
 			if output, err := prep.CombinedOutput(); err != nil {
 				t.Fatalf("local proxy preparation: %v: %s", err, output)
 			}
-			for _, relative := range []string{"bin/go.exe", "go.env", "VERSION"} {
-				data, err := os.ReadFile(filepath.Join(toolchain, filepath.FromSlash(relative)))
-				if err != nil {
+			if runtime.GOOS == "windows" {
+				for _, relative := range []string{"bin/go.exe", "go.env", "VERSION"} {
+					data, err := os.ReadFile(filepath.Join(toolchain, filepath.FromSlash(relative)))
+					if err != nil {
+						t.Fatal(err)
+					}
+					write(filepath.Join(cache, "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64", filepath.FromSlash(relative)), data)
+				}
+				// cmd/go locates a relocated GOROOT by its pkg/tool directory.
+				// These module-only commands do not invoke a compiler.
+				if err := os.MkdirAll(filepath.Join(cache, "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64", "pkg", "tool"), 0700); err != nil {
 					t.Fatal(err)
 				}
-				write(filepath.Join(cache, "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64", filepath.FromSlash(relative)), data)
-			}
-			// cmd/go locates a relocated GOROOT by its pkg/tool directory.
-			// These module-only commands do not invoke a compiler.
-			if err := os.MkdirAll(filepath.Join(cache, "golang.org", "toolchain@v0.0.1-go1.26.5.windows-amd64", "pkg", "tool"), 0700); err != nil {
-				t.Fatal(err)
 			}
 			zipPath := filepath.Join(cache, "cache", "download", filepath.FromSlash(escaped), "@v", "v1.0.0.zip")
 			directory := filepath.Join(cache, filepath.FromSlash(escaped)+"@v1.0.0")
@@ -400,14 +416,14 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 			}
 			entry := filepath.Join(root, "scripts", "verify-devtools."+extension)
 			if tc.name == "missing-cache-without-presence-check" {
-				if extension != "ps1" {
-					t.Skip("PowerShell mutation; Unix mutation requires its native fixture")
+				loop, replacement := "foreach ($line in ($modules -split \"`n\")) {", "foreach ($line in @()) {"
+				if extension == "sh" {
+					loop, replacement = `done <<<"${modules}"`, `done <<<""`
 				}
-				const loop = "foreach ($line in ($modules -split \"`n\")) {"
 				if bytes.Count(content, []byte(loop)) != 1 {
 					t.Fatal("presence-check mutation must replace exactly one loop")
 				}
-				content = bytes.Replace(content, []byte(loop), []byte("foreach ($line in @()) {"), 1)
+				content = bytes.Replace(content, []byte(loop), []byte(replacement), 1)
 			}
 			write(entry, content)
 			var command *exec.Cmd
@@ -415,9 +431,9 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 				copyDevtoolsProcessHelper(t, root)
 				command = exec.CommandContext(ctx, devtoolsPowerShell(t), "-NoProfile", "-NonInteractive", "-File", entry)
 			} else {
-				command = exec.CommandContext(ctx, `C:\Program Files\Git\bin\bash.exe`, filepath.ToSlash(entry))
+				command = exec.CommandContext(ctx, "bash", entry)
 			}
-			env := map[string]string{"USERPROFILE": profile, "GOPATH": filepath.Join(profile, "go"), "GOENV": "off", "GOPROXY": "off", "GOSUMDB": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""}
+			env := map[string]string{"USERPROFILE": profile, "HOME": profile, "GOPATH": filepath.Join(profile, "go"), "GOENV": "off", "GOPROXY": "off", "GOSUMDB": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""}
 			if tc.name == "inherited-module-override" {
 				env["GOFLAGS"] = "-modfile=untrusted.mod"
 			}

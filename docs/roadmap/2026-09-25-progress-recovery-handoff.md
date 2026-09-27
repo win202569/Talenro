@@ -96,3 +96,35 @@ go test -v -tags=e2e ./internal/e2e -run '^TestDevtoolsVerification(PowerShell|B
 换机可据本说明重建本地执行流水，不需重复已批准设计，也不能把历史测试视为新机器验收。
 
 本次仅按用户要求提交并推送进度分支；不合并 main，不声称产品工作完成。
+
+## 2026-09-27 环境续查
+
+用户提供 Docker Desktop 的实际安装目录后，只读检查确认 CLI 和 Linux 引擎均可用：
+Docker Desktop 4.85.0、Engine 29.6.2、desktop-linux context、linux/amd64。
+CLI 位于用户提供安装目录下的 resources/bin/docker.exe；不把这台电脑的路径固化为项目要求。
+因此上文“尚未定位 Docker”的旧环境阻塞已解除。
+
+现有 Docker 镜像列表没有 Go 工具链镜像；本机已检查的 Go toolchain 缓存仅有
+1.26.5 windows-amd64，没有 Linux 版本。尚未启动容器、下载镜像或执行 Unix 测试。
+下一步需单独批准联网准备固定版本的 Linux Go 1.26.5 测试镜像，或提供已有离线镜像。
+网络准备与离线验收仍分开；Docker 可用不代表任务 1 或 C12 验收通过。
+
+后续用户已批准下载，官方 golang:1.26.5-bookworm 拉取成功。固定镜像摘要：
+`sha256:53eeac89074db483fdf0ab3be1df32bf6e47562263d2d0d6baa7f26acb4957dd`。
+禁网、只读、无宿主挂载的临时容器实际报告 `go version go1.26.5 linux/amd64`、
+Bash 5.2.15；timeout、mktemp、wc、rm、rmdir、setsid 均存在。
+另一个禁网、只读临时容器仅挂载项目 scripts 目录，确认 verify-devtools.sh 的 Bash
+语法检查通过，且缺少工具模块时退出 1、仅输出预期脱敏错误。两个容器均配置 --rm。
+这两项是环境/前置检查，不是依赖完整性、输出限制、取消清理或任务 1 整体通过。
+未运行 C12、完整 C11 或完整普通测试；未修改生产代码、未提交或推送本次环境记录。
+
+随后继续实现，新增 Linux 进程测试并将真实缓存完整性夹具移植到原生 Unix。
+Windows Go 平台误接受已取得 RED→GREEN；Linux 专项当前 14 PASS、4 FAIL，
+强杀/正常退出后的子进程清理及运行中输出上限仍未满足。详细结果与范围见
+[2026-09-27 Unix 边界报告](2026-09-27-devtools-unix-boundary.md)。
+任务 1 仍未完成；监督方式涉及既有设计边界，不能因 Docker 已就绪而直接进入模块拆分。
+
+用户随后批准隔离的 Unix 监督可行性探针。Linux 原生候选取得八项局部正向结果，
+但负向对照确认监督程序自身被强杀仍会遗留子进程，不能直接晋升产品。
+详见[监督探针报告](2026-09-27-unix-supervision-feasibility.md)。
+正式入口和测试未因此再修改，原四项失败及所有验收阻塞继续保留。
