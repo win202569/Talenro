@@ -14,7 +14,7 @@
 
 **Latest approved revision:** `docs/superpowers/specs/2026-09-27-c12-devtools-windows-only-design.md`（用户已书面确认；平台支持与测试迁移冲突以此为准）。
 
-**Revision status:** 用户已确认本次 Windows-only 计划修订；保留 Native inline，不重新选择执行方式。任务 1 未完成，任务 2/3 未开始。历史 Windows 专项 28 PASS / 0 FAIL / 1 Skip；Linux 专项 14 PASS / 4 FAIL。缩减平台不是修复或验收通过；按三份设计、当前 ledger 和本计划继续实施。
+**Revision status:** 用户已确认本次 Windows-only 计划修订；保留 Native inline。任务 1 已完成专项与本地提交，Windows 收尾复验 49 PASS / 0 FAIL / 1 不适用 Skip，Linux 拒绝 10 PASS。任务 2 停在离线版本基线（207 项模块查询缺失），尚未改模块和消费者；任务 3 未开始。历史 Linux 14 PASS / 4 FAIL 不变，缩减平台不是旧缺陷修复或整体验收通过。详见 `docs/roadmap/2026-09-27-devtools-module-baseline-blocker.md`。
 
 ## Global Constraints
 
@@ -118,7 +118,7 @@ if ($devtoolsRuntime.PSEdition -ne 'Core' -or
 
   重跑同一命令，Expected: 版本判定用例 PASS；正向完整性/进程测试尚需后续步骤，不能标记任务完成。
 
-- [ ] **0c. 冻结旧 Unix 合同证据。** 在改动旧执行体或删除活动夹具前，检查下列明确文件，
+- [x] **0c. 冻结旧 Unix 合同证据。** 在改动旧执行体或删除活动夹具前，检查下列明确文件，
   将现有源码、测试与脱敏报告提交为带未验收说明的历史检查点；不得把红色专项称为通过。
   不重跑已知四项同原因失败、不提交原始日志或 `.superpowers` 探针。
 
@@ -131,7 +131,7 @@ git commit -m "wip(tooling): archive unaccepted Unix verification evidence"
   Expected: 提交仅包含列明文件，保存此前 14 PASS / 4 FAIL 的实现和测试；没有探针/二进制。
   记录该提交号及源码 SHA-256 到接续文档，作为后续移除活动 Unix 正向测试的可恢复来源。
 
-- [ ] **1. 补 Windows 合同缺口与全平台拒绝 RED。** 文件使用 `//go:build e2e` 和 `package e2e`。
+- [x] **1. 补 Windows 合同缺口与全平台拒绝 RED。** 文件使用 `//go:build e2e` 和 `package e2e`。
   用 t.TempDir 创建带空格的镜像仓库，复制待测脚本，提供固定的 tools/devtools/go.mod，
   从现有 privacy_test.go 的假工具及进程测试模式建立本任务专属 fixture。
   已有脚本不得再用“入口不存在”作 RED 证据；新增断言必须失败于尚未实现的合同。测试表固定为：
@@ -190,7 +190,7 @@ if _, err := os.Stat(eventPath); !os.IsNotExist(err) {
 }
 ```
 
-- [ ] **2. 跑 RED。**
+- [x] **2. 跑 RED。**
 
 ```powershell
 $env:GOOS='windows'
@@ -217,7 +217,7 @@ $repoPath = (Get-Location).Path
   Go fixture 启动正式验证器时改用实际 7.6.5 的已解析绝对路径；不得在测试代码中硬编码
   `C:/Users/Lenovo/.cache/...`。缺少该版本记录未验收，不通过伪解释器模拟实际 Job 证据。
 
-- [ ] **3. 完成 Windows 验证命令链。** 完成平台/版本拒绝和 PowerShell 归属初始化后，以脚本位置解析根目录及工具模块，先检查两个锁文件存在。
+- [x] **3. 完成 Windows 验证命令链。** 完成平台/版本拒绝和 PowerShell 归属初始化后，以脚本位置解析根目录及工具模块，先检查两个锁文件存在。
   固定环境使用进程级设置且 finally 恢复：GOWORK=off、GOENV=off、GOTOOLCHAIN=local、
   GOPROXY=off、GOSUMDB=off、GOAUTH=off、GOVCS=all:off、GOFLAGS=-mod=readonly；
   继承的 GOFLAGS 中若含 -modfile/-overlay，先拒绝并退出 1；其余继承 GOFLAGS、
@@ -238,7 +238,7 @@ go mod verify
   先检查齐备，再完整 verify；最终要求退出 0 且标准输出严格为 `all modules verified`。
   不运行 download；需要准备依赖时停止并提示阶段失败。
 
-- [ ] **4a. 抽取私有 Job 初始化并先测试边界。** 从现有验证器抽取
+- [x] **4a. 抽取私有 Job 初始化并先测试边界。** 从现有验证器抽取
   `Initialize-DevtoolsProcessOwnership` 到 `scripts/private/devtools-process.ps1`；帮助文件加载
   不启动工作、不自动初始化。保留未命名 Job、非继承句柄、kill-on-close、当前进程先入 Job
   的顺序，初始化失败在 Go 启动前返回脱敏失败。入口在受控 catch 中调用：
@@ -260,7 +260,7 @@ Initialize-DevtoolsProcessOwnership
   对照，确认它被观察到；事件订阅在 finally 清理。记录真实运行时版本和初始化窗口事件，
   无观察权限应报告证据缺失，不能按“零事件”通过。本机探针的成功记录不能替代这一正式测试。
 
-- [ ] **4b. 实现进程预算与输出保护。** 单个入口从启动起只用一个 900 秒绝对截止时间，
+- [x] **4b. 实现进程预算与输出保护。** 单个入口从启动起只用一个 900 秒绝对截止时间，
   version、list、verify 共用剩余预算，不给每条命令另加 900 秒。
   PowerShell 以现有 verify-c11.ps1 的 `ConvertTo-C11CommandLineArgument`、
   `Get-C11CompletedProcessExitCode`、`Stop-C11OwnedProcessTree`、`Invoke-C11External`
@@ -281,7 +281,7 @@ if ($remaining -le 0) { throw 'verify-devtools deadline exhausted' }
   以持续写超限输出后阻塞的 fixture 断言提前失败、进程退出及不泄露内容；清理失败不能被成功状态覆盖。
   保留私有测试副本的单次精确期限替换与独立外层保护，公开入口固定 900 秒，不增加参数。
 
-- [ ] **4c. 实现独立 Bash 拒绝入口。** 将 verify-devtools.sh 替换为以下完整最小入口，
+- [x] **4c. 实现独立 Bash 拒绝入口。** 将 verify-devtools.sh 替换为以下完整最小入口，
   不在它后面保留旧模块校验执行体，不调用 uname 或其他外部程序；旧源码在 Step 0c 提交中。
 
 ```bash
@@ -292,7 +292,7 @@ exit 1
 
   其他三个 `.sh` 在 Task 2 与消费者迁移一起替换，当前不提前改变它们。
 
-- [ ] **5. GREEN 与独立负向确认。** 运行 Step 2，增加超时边界前自然退出、子进程存活 canary、
+- [x] **5. GREEN 与独立负向确认。** 运行 Step 2，增加超时边界前自然退出、子进程存活 canary、
   父进程取消、stderr 敏感 canary、目录含空格和调用后环境不泄漏断言。
   移除齐备检查的测试副本必须使 missing-cache 负向测试失败，证明不会受 Go 的跳过语义欺骗。
   只在 fixture 中做变异，不修改真实脚本来求通过。
@@ -301,7 +301,7 @@ exit 1
   对 Windows Git 包装器专属不适用用例仍独立记录 Skip，不能把它或未知平台计为成功。
   接续文档写明历史 Linux 四项失败已从本轮支持合同撤回、并未修复，附 Step 0c 提交号。
   逐项核对任务合同后才记录 Task 1 完成；历史通过次数不替代本轮证据。
-- [ ] **6. 提交。**
+- [x] **6. 提交。**
 
 ```text
 git add scripts/verify-devtools.ps1 scripts/verify-devtools.sh scripts/private/devtools-process.ps1 internal/e2e/devtools_verification_test.go internal/e2e/devtools_runtime_test.go internal/e2e/devtools_ownership_test.go internal/e2e/devtools_bash_rejection_test.go internal/e2e/devtools_unix_test.go docs/roadmap/2026-09-25-progress-recovery-handoff.md
