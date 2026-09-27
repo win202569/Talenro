@@ -4,15 +4,17 @@
 
 **Goal:** 将五个开发工具与 C12 主模块依赖分离，保留完整校验并重新取得真实验收证据。
 
-**Architecture:** 根模块保留业务、测试、Goose 库及 CLI。独立 `tools/devtools` 模块保存五个开发工具，公开脚本先验证工具模块，再以显式 -modfile 调用工具。Windows 四个工具入口仅支持独立 PowerShell，以共享私有 Job 帮助文件覆盖整个入口；原生 Unix 保留 Bash。C12 runner 不修改。
+**Architecture:** 根模块保留业务、测试、Goose 库及 CLI。独立 `tools/devtools` 模块保存五个开发工具，公开脚本先验证工具模块，再以显式 -modfile 调用工具。本轮四个工具入口仅支持 Windows 独立 PowerShell，以共享私有 Job 帮助文件覆盖整个入口；对应 `.sh` 在所有平台只执行拒绝。既有 Bash smoke 和 C12 runner 不修改。
 
-**Tech Stack:** Go 1.26.0 / go1.26.5、Windows 上的 PowerShell Core 7.6.5 正式版、Unix Bash、现有 Go 脚本契约测试、Docker Desktop。
+**Tech Stack:** Go 1.26.0 / go1.26.5、Windows 上的 PowerShell Core 7.6.5 正式版、既有 Bash smoke、Go 脚本契约测试、Docker Desktop（Linux 容器仅用于新增拒绝测试，不代表 Unix 工具流水支持）。
 
 **Spec:** `docs/superpowers/specs/2026-09-25-c12-development-tool-isolation-design.md`（用户已批准）。
 
 **Approved addendum:** `docs/superpowers/specs/2026-09-25-c12-devtools-windows-powershell-addendum-design.md`（用户已确认；与原设计冲突时以附录为准）。
 
-**Revision status:** 7.6.5 书面附录及对应计划修订均已获用户确认，Native inline 执行已恢复。任务 1 部分 Windows 实现和专项回归通过，原生 Unix 实现/验收未完成；任务 2/3 未开始。检查点不是任务完成；恢复时先读两份设计、当前 ledger 和本计划。
+**Latest approved revision:** `docs/superpowers/specs/2026-09-27-c12-devtools-windows-only-design.md`（用户已书面确认；平台支持与测试迁移冲突以此为准）。
+
+**Revision status:** 用户已确认本次 Windows-only 计划修订；保留 Native inline，不重新选择执行方式。任务 1 未完成，任务 2/3 未开始。历史 Windows 专项 28 PASS / 0 FAIL / 1 Skip；Linux 专项 14 PASS / 4 FAIL。缩减平台不是修复或验收通过；按三份设计、当前 ledger 和本计划继续实施。
 
 ## Global Constraints
 
@@ -29,7 +31,9 @@
 - Windows 的 verify-devtools、check-tools、generate、verify-c11 仅支持独立 `pwsh.exe -NoProfile -File`，精确要求 PowerShell Core 7.6.5 正式版；公开入口不支持 dot-source。
 - 5.1、其他版本和预发布版本在加载帮助文件、Add-Type 或启动工作前退出 1，提示 `<入口名>: PowerShell 7.6.5 required.`；不自动安装、升级、转调，不固定 Codex 私有路径。
 - 四个工具入口之间只用当前已验证宿主的绝对路径启动子入口，不重新查 PATH。旧 smoke 和 C12 runner 宿主合同保持，不全局替换 powershell.exe。
-- 四个 Windows `.sh` 入口在 Go/工具/验证器/Docker 启动前退出 1；不自动转调 PowerShell、不设绕过开关。Unix/WSL Bash 不回退到 Windows 工具，WSL 不替代 Windows C12 验收。
+- 四个 `.sh` 在所有平台只用 shell 内建命令输出 stderr 一行 `<入口名>: this release requires Windows and PowerShell 7.6.5.`，stdout 空，退出 1。无平台探测、模块解析、临时目录、外部程序或绕过参数，不自动转调其他入口。
+- `.ps1` 在非 Windows 平台也提前拒绝；Linux、macOS、其他 Unix、WSL 本轮均不支持四入口正向流程。撤回 Unix 支持不改变其他组件部署平台，也不要求 Docker 使用 Windows 容器。
+- 保留历史 Unix 失败对应的源码/测试提交与脱敏报告，不把新拒绝测试记为旧清理缺陷修复。不全局 Skip Bash 测试；探针仍只在忽略目录，不晋升产品。
 - PowerShell C11 原有 Bash smoke 子步骤保留；不是 Windows Bash 工具入口支持。无新原生监督程序、编码加载器或 C12 帮助函数复用。
 - Defender 事件未解除：暂缓供应商提交不等于确认误报。含受阻 bootstrap 的全套普通测试、完整 C11 和 C12 物理 gate 暂不运行；仅继续不触发该路径的独立工作。
 - Job 只保证本机自有进程边界，不承诺强杀后删除 Docker 服务端资源；既有资源协议不变。
@@ -37,7 +41,7 @@
 ## Review Focus
 
 1. 缓存完全缺失时 Go mod verify 可能成功：Task 1 必须先证明依赖齐备且离线缺失失败。
-2. 路径含空格、错误/预发布 PowerShell、Windows Bash 误调用及 PATH 伪解释器：Task 1/2 验证早期拒绝、同宿主分派及 Buf 参数边界。
+2. 路径含空格、错误/预发布 PowerShell、任意平台 Bash 误调用及 PATH 伪解释器：Task 1/2 验证无工作拒绝、同宿主分派及 Buf 参数边界，不遗漏保留的 Bash smoke。
 3. 工具构建使用备用模块，lint 子进程误用工具模块：Task 2 用根模块专属包验证分析对象。
 4. 拆分触发间接版本降低或生成差异：Task 2 锁定迁移前选中版本，Task 3 真实生成比较。
 5. 子进程自然退出与超时竞争、嵌套 Job、外层提前终止及脱敏：Task 1/2 验证整个 PowerShell 入口的自有进程退出、外部 canary 存活及初始化失败关闭。
@@ -49,6 +53,10 @@
 | scripts/verify-devtools.ps1、scripts/verify-devtools.sh（新增） | Task 1，独立离线验证、期限和自有进程清理 |
 | scripts/private/devtools-process.ps1（新增） | Task 1，函数定义式加载，私有 Job 初始化；Task 2 被另三个 PowerShell 入口复用 |
 | internal/e2e/devtools_verification_test.go（新增，e2e tag） | Task 1，验证脚本的进程、缓存、错误与隐私测试 |
+| internal/e2e/devtools_runtime_test.go、devtools_ownership_test.go | Task 1 已有运行时和真实 Job 边界测试，保留 |
+| internal/e2e/devtools_bash_rejection_test.go（新增，e2e tag） | Task 1 独立标准库拒绝夹具；Task 2 复用测四入口 |
+| internal/e2e/devtools_unix_test.go、当前 verify-devtools.sh 和共享测试 | Task 1 先保存旧合同源码/测试检查点，再移除活动 Unix 正向夹具及旧脚本执行体 |
+| docs/roadmap/2026-09-27-devtools-unix-boundary.md、2026-09-27-unix-supervision-feasibility.md、2026-09-25-progress-recovery-handoff.md | Task 1 保存历史事实和接续状态，不提交原始日志/探针 |
 | go.mod、go.sum；tools/devtools/go.mod、go.sum（新增） | Task 2，依赖边界与固定版本 |
 | scripts/generate.ps1/.sh、scripts/check-tools.ps1/.sh、scripts/verify-c11.ps1/.sh | Task 2，入口验证及显式工具分派 |
 | buf.gen.yaml | Task 2，protoc-gen-go 嵌套分派 |
@@ -61,12 +69,13 @@ Task 3 执行真实验证与文档交接。每任务自带测试周期和独立�
 
 ## Task 1: 新增独立开发工具验证入口
 
-**Files:** 完成两份未提交 verify-devtools 脚本和 `internal/e2e/devtools_verification_test.go`；创建 `scripts/private/devtools-process.ps1`。不覆盖既有诊断报告或忽略目录探针。
+**Files:** 完成已有 Windows verify-devtools.ps1 和私有帮助文件；修改 verify-devtools.sh 为拒绝入口；保留 devtools_verification/runtime/ownership 测试，新增 devtools_bash_rejection_test.go；先归档后移除活动 devtools_unix_test.go。不覆盖既有诊断或忽略目录探针。
 
 **Interfaces:**
-- Windows：`pwsh.exe -NoProfile -File scripts/verify-devtools.ps1`（Core 7.6.5 正式版）；Unix：`bash scripts/verify-devtools.sh`。Windows Bash 只执行拒绝路径；无公开跳过、模块路径、命令或超时覆盖参数。
+- 唯一正向入口：Windows `pwsh.exe -NoProfile -File scripts/verify-devtools.ps1`（Core 7.6.5 正式版）。`bash scripts/verify-devtools.sh` 所有平台只拒绝；无公开跳过、模块路径、命令或超时覆盖参数。
 - 私有帮助文件只定义 `Initialize-DevtoolsProcessOwnership`（无参数、无成功输出，失败抛异常）；入口捕获后按自身脱敏格式退出 1。Job 句柄不返回给消费者，保持到进程退出；不提供释放接口。
-- 受支持验证路径成功输出仅 `verify-devtools: passed`，退出 0；失败仅输出 `verify-devtools: <stage> failed with exit code <n>.`，不回显底层输出。PowerShell 版本及 Windows Bash 环境拒绝提示另按本文固定格式输出。
+- 受支持验证路径成功输出仅 `verify-devtools: passed`，退出 0；失败仅输出 `verify-devtools: <stage> failed with exit code <n>.`，不回显底层输出。PowerShell 版本/平台及全平台 Bash 拒绝提示另按本文固定格式输出。
+- 新测试接口 `testDevtoolsBashEntryRejection(t *testing.T, entry string)` 在 devtools_bash_rejection_test.go；仅依赖标准库，entry 是仓库固定 `.sh` 文件名。`TestDevtoolsVerificationBash` 在该文件调用它测试 verify-devtools.sh；Task 2 的四入口测试复用它，不依赖 PowerShell fixture 或其他测试文件。
 - Go 非零退出原样传播；校验语义错误/清理失败退出 1；命令缺失 127；超时 124。
 - 不启动生成、lint、Docker；不得 dot-source 或执行 C12 runner 来借用函数。
 
@@ -92,7 +101,8 @@ if exitCode != 1 || strings.TrimSpace(output) != "verify-devtools: PowerShell 7.
 go test -tags=e2e ./internal/e2e -run '^TestDevtoolsVerificationPowerShell$/^runtime-' -count=1 -timeout=5m
 ```
 
-  Expected: 5.1 当前进入旧验证流程而非版本拒绝，断言失败；不能把测试初始化错误当 RED。
+  历史 Expected RED（此步已完成，不回退产品重新制造失败）：5.1 曾进入旧验证流程而非版本拒绝。
+  恢复时核对已有证据并运行现有 GREEN；不能把测试初始化错误当 RED。
   在公开入口自身、加载任何帮助文件前写入下列 5.1 可解析语法，不使用需要子进程的版本命令：
 
 ```powershell
@@ -108,7 +118,20 @@ if ($devtoolsRuntime.PSEdition -ne 'Core' -or
 
   重跑同一命令，Expected: 版本判定用例 PASS；正向完整性/进程测试尚需后续步骤，不能标记任务完成。
 
-- [ ] **1. 先保存历史失败，再补 RED 测试。** 文件使用 `//go:build e2e` 和 `package e2e`。
+- [ ] **0c. 冻结旧 Unix 合同证据。** 在改动旧执行体或删除活动夹具前，检查下列明确文件，
+  将现有源码、测试与脱敏报告提交为带未验收说明的历史检查点；不得把红色专项称为通过。
+  不重跑已知四项同原因失败、不提交原始日志或 `.superpowers` 探针。
+
+```text
+git add scripts/verify-devtools.sh internal/e2e/devtools_verification_test.go internal/e2e/devtools_unix_test.go docs/roadmap/2026-09-27-devtools-unix-boundary.md docs/roadmap/2026-09-27-unix-supervision-feasibility.md docs/roadmap/2026-09-25-progress-recovery-handoff.md
+git diff --cached --check
+git commit -m "wip(tooling): archive unaccepted Unix verification evidence"
+```
+
+  Expected: 提交仅包含列明文件，保存此前 14 PASS / 4 FAIL 的实现和测试；没有探针/二进制。
+  记录该提交号及源码 SHA-256 到接续文档，作为后续移除活动 Unix 正向测试的可恢复来源。
+
+- [ ] **1. 补 Windows 合同缺口与全平台拒绝 RED。** 文件使用 `//go:build e2e` 和 `package e2e`。
   用 t.TempDir 创建带空格的镜像仓库，复制待测脚本，提供固定的 tools/devtools/go.mod，
   从现有 privacy_test.go 的假工具及进程测试模式建立本任务专属 fixture。
   已有脚本不得再用“入口不存在”作 RED 证据；新增断言必须失败于尚未实现的合同。测试表固定为：
@@ -132,14 +155,35 @@ cases := []struct{name string; want int}{
   checksum 缺失、zip 和目录全部缺失必须失败；成功 fixture 运行真实 go mod verify。
   fake Go 只模拟进程/错误/环境合同，不作为真实哈希验证证据。
 
-  Windows 下 `TestDevtoolsVerificationBash` 改测入口拒绝，原 parent-cancel / launcher-cancel
-  的失败证据保留在 ledger，不称为修复。原生 Unix 分支保留完整性及进程测试，不能在函数
-  开头无条件以非 Windows 为由 Skip；为 Unix 构造真实本地 Go/cache fixture，不使用 Windows 路径。
-  拒绝测试先创建 fake Go/Docker 事件文件写入器，运行真实入口，断言如下（结果由 fixture 捕获）：
+  补充 Windows `natural-exit-with-child`：fake 工具启动长存子进程，测试先取得双方句柄，
+  再经专属放行文件允许工具正常退出；断言入口成功、子进程有界退出、外部 canary 存活。
+  `combined-output-limit`：stdout 与 stderr 各输出 3 MiB 后保持运行，断言退出 1 而非 124，
+  自有进程退出、无原始输出泄露；验证合计上限，不只测单流超过 4 MiB。
+  已实现行为若首次测试即通过，记录为新增覆盖，不伪造 RED；发现缺陷才按真实 RED 修复。
+  `runtime-non-windows-rejected` 在专属 `.ps1` 测试副本中恰好一次替换平台读取为 Unix 值，
+  保留实际 7.6.5 宿主，断言版本/平台拒绝、帮助文件工作标记不存在。此为判定逻辑测试；
+  没有实际 Unix PowerShell 时记未实测，不下载运行时或把副本当真实平台证据。
+
+  将 `TestDevtoolsVerificationBash` 移到新的 devtools_bash_rejection_test.go，并用同文件的
+  `testDevtoolsBashEntryRejection(t, "verify-devtools.sh")` 在 Windows 与 Linux 执行同一拒绝合同。
+  不再在非 Windows 调用旧完整性/进程正向夹具；其源码已由 Step 0c 归档，移除活动
+  devtools_unix_test.go 及仅服务于旧 Unix 正向路径的分派，保留 Windows 完整性和进程测试。
+  此为合同迁移，不声称原取消或输出保护已修复。
+
+  拒绝夹具使用实际解释器绝对路径：Windows 分别为 Git bin 包装器和 usr 实际 Bash；Linux
+  使用已解析的 bash。复制未经插入工作标记的真实入口到带空格目录；stdout/stderr 分开捕获。
+  专属 PATH 前置 Go、Git、Docker、pwsh/powershell、uname、mktemp 的事件写入器；临时私有
+  帮助脚本同样写事件，以正向控制证明事件夹具有效，再清空本次事件记录后启动待测入口。
+  不继续依赖旧 `stage=module` 字符串恰好出现一次的插桩。
+  测试表：缺模块、完整模块、只读模块、仓库外 cwd、额外参数、GOFLAGS/-modfile 与
+  GOCACHEPROG 污染、假的 OSTYPE 值、仅标记工具的 PATH、空 PATH。空 PATH 用实际解释器
+  绝对路径启动；清除解释器启动文件变量 BASH_ENV/ENV，测试入口本身而非任意用户启动脚本。
+  不伪造 uname 结果来声称另一个 OS 通过。下面的 exitCode/stdout/stderr 来自实际进程结果：
 
 ```go
-if exitCode != 1 || !strings.Contains(output, "PowerShell") {
-    t.Fatalf("expected unsupported-platform rejection: code=%d output=%q", exitCode, output)
+want := strings.TrimSuffix(entry, ".sh") + ": this release requires Windows and PowerShell 7.6.5."
+if exitCode != 1 || stdout != "" || strings.TrimSpace(stderr) != want || strings.Count(strings.TrimSpace(stderr), "\n") != 0 {
+    t.Fatalf("rejection mismatch: code=%d stdout=%q stderr=%q", exitCode, stdout, stderr)
 }
 if _, err := os.Stat(eventPath); !os.IsNotExist(err) {
     t.Fatalf("unsupported entry launched work: %v", err)
@@ -153,22 +197,33 @@ $env:GOOS='windows'
 go test -tags=e2e ./internal/e2e -run '^TestDevtoolsVerification(PowerShell|Bash)$' -count=1 -timeout=5m
 ```
 
-  预期为新平台拒绝/进程归属断言失败。Windows 分别测试 Git bin 包装器和 usr 实际解释器；
-  可用的 MSYS/Cygwin 实际入口也执行同一拒绝断言，缺失环境列未实测。Unix 用本机 Go 1.26.5
-  执行相同选择器（不设置 GOOS=windows）；缺少环境不能称跨平台通过。
+  Expected RED: 旧 Windows 文案不符合统一提示，Linux 仍进入模块阶段/工作流程，因此拒绝
+  断言失败；编译、环境初始化失败不是 RED。既有 Windows 正向测试预期继续通过。
+  Windows 两个实际解释器必须覆盖；可用的 MSYS/Cygwin 也执行，缺失则记录未实测。
+  Linux 只跑新的独立拒绝文件，不编译整套 e2e 或执行旧 Unix 正向流程：
+
+```powershell
+# 在 worktree 根目录运行；使用上一轮已准备的实际 Docker 路径，未找到则报告环境阻塞。
+$dockerExe = Join-Path $env:LOCALAPPDATA 'Programs/DockerDesktop/resources/bin/docker.exe'
+$repoPath = (Get-Location).Path
+& $dockerExe run --rm --init --pull=never --network=none --read-only --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=1g --cpus=2 --tmpfs /tmp:rw,exec,size=536870912 --mount "type=bind,source=$repoPath,target=/repo,readonly" --workdir /repo/internal/e2e --env GOCACHE=/tmp/go-build --env GOTOOLCHAIN=local --env GOENV=off --env GOWORK=off --env GOPROXY=off --env GOSUMDB=off --entrypoint /usr/local/go/bin/go golang@sha256:53eeac89074db483fdf0ab3be1df32bf6e47562263d2d0d6baa7f26acb4957dd test -v -tags=e2e devtools_bash_rejection_test.go -run '^TestDevtoolsVerificationBash$' -count=1 -timeout=3m
+```
+
+  Expected RED: 同一拒绝断言失败；GREEN 时退出 0，实际 Linux 拒绝子用例 PASS、无 Skip。
+  该命令仅是 Linux 拒绝测试，不替代 Windows 包级专项。无网络拉取、socket 或共享缓存挂载。
   Go 测试固定 GOTOOLCHAIN=local、GOENV=off、GOPROXY=off、GOSUMDB=off。本机固定工具链为
   `C:/Users/Lenovo/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.5.windows-amd64/bin/go.exe`；
   仅在已确认的沙箱标准库访问问题出现时申请限定测试命令提权，不改全局配置。
   Go fixture 启动正式验证器时改用实际 7.6.5 的已解析绝对路径；不得在测试代码中硬编码
   `C:/Users/Lenovo/.cache/...`。缺少该版本记录未验收，不通过伪解释器模拟实际 Job 证据。
 
-- [ ] **3. 实现验证命令链。** 完成入口平台拒绝和 PowerShell 归属初始化后，以脚本位置解析根目录及工具模块，先检查两个锁文件存在。
-  固定环境使用进程级设置且 finally/trap 恢复：GOWORK=off、GOENV=off、GOTOOLCHAIN=local、
+- [ ] **3. 完成 Windows 验证命令链。** 完成平台/版本拒绝和 PowerShell 归属初始化后，以脚本位置解析根目录及工具模块，先检查两个锁文件存在。
+  固定环境使用进程级设置且 finally 恢复：GOWORK=off、GOENV=off、GOTOOLCHAIN=local、
   GOPROXY=off、GOSUMDB=off、GOAUTH=off、GOVCS=all:off、GOFLAGS=-mod=readonly；
   继承的 GOFLAGS 中若含 -modfile/-overlay，先拒绝并退出 1；其余继承 GOFLAGS、
   GOEXPERIMENT、GOCACHEPROG 和模块/工具链覆盖项清除后使用上述固定设置。
-  Windows 使用既有固定工具链目录，但不加载 C12 runner；Bash 原生使用已解析本地 Go，
-  必须精确匹配 go1.26.5，拒绝 Windows 平台工具。Windows Bash 在此之前已经拒绝。
+  Windows 使用既有固定工具链目录，但不加载 C12 runner；必须精确匹配
+  `go version go1.26.5 windows/amd64`。Bash 不再执行任何验证命令。
   所有验证命令在 tools/devtools 下运行：
 
 ```text
@@ -210,10 +265,10 @@ Initialize-DevtoolsProcessOwnership
   PowerShell 以现有 verify-c11.ps1 的 `ConvertTo-C11CommandLineArgument`、
   `Get-C11CompletedProcessExitCode`、`Stop-C11OwnedProcessTree`、`Invoke-C11External`
   为已知模式，在新脚本内部建立私有实现；不改旧 C11 函数、不引入系统全局清理。
-  Start-Process 使用 Hidden，读取 Process.Handle 后等待，超时停止自有进程树。
-  原生 Unix Bash 使用有界执行和专属临时目录，失败必须清理自有 sink；不能把 timeout 或 trap
-  的存在当作强制取消成功证据，必须实测入口终止后子孙退出。Windows 不再实现 Bash 监督。
-  受支持入口提前终止时不得留下自有 Go/子进程；无法证明这一点则相应平台验收不通过。
+  沿用已实现的 .NET ProcessStartInfo 独立 ArgumentList、UseShellExecute=false、CreateNoWindow=true，
+  保留进程句柄；超时停止自有进程树。若使用 Start-Process 必须 Hidden，不引入可执行字符串拼接。
+  Windows 入口提前终止时不得留下自有 Go/子进程；不能证明则验收不通过。
+  不新增 Unix 监督程序；四个 Bash 入口不启动工作，无需建立进程清理拓扑。
 
 ```powershell
 # 每次启动前从同一个截止时间计算；耗尽即失败，不自动续期。
@@ -221,47 +276,47 @@ $remaining = [Math]::Floor(($deadline - [DateTime]::UtcNow).TotalSeconds)
 if ($remaining -le 0) { throw 'verify-devtools deadline exhausted' }
 ```
 
-  输出写入自有随机临时目录中的 sink，校验阶段只解析需要的数据，不打印原始错误。
-  受控捕获上限 4 MiB，超限失败；必须在命令仍运行时限制捕获，不能只在结束后检查文件大小。
+  沿用已通过专项的内存有界捕获，不恢复旧落盘 sink。stdout/stderr 合计保留上限 4 MiB，
+  固定读取缓冲区开销另计；只解析需要的数据，不打印原始错误，超限在命令仍运行时失败。
   以持续写超限输出后阻塞的 fixture 断言提前失败、进程退出及不泄露内容；清理失败不能被成功状态覆盖。
-  私有执行函数接受 Deadline 供测试传入短期限，公开入口固定 900 秒；不增加生产跳过参数。
+  保留私有测试副本的单次精确期限替换与独立外层保护，公开入口固定 900 秒，不增加参数。
+
+- [ ] **4c. 实现独立 Bash 拒绝入口。** 将 verify-devtools.sh 替换为以下完整最小入口，
+  不在它后面保留旧模块校验执行体，不调用 uname 或其他外部程序；旧源码在 Step 0c 提交中。
+
+```bash
+#!/usr/bin/env bash
+printf '%s\n' 'verify-devtools: this release requires Windows and PowerShell 7.6.5.' >&2
+exit 1
+```
+
+  其他三个 `.sh` 在 Task 2 与消费者迁移一起替换，当前不提前改变它们。
 
 - [ ] **5. GREEN 与独立负向确认。** 运行 Step 2，增加超时边界前自然退出、子进程存活 canary、
   父进程取消、stderr 敏感 canary、目录含空格和调用后环境不泄漏断言。
   移除齐备检查的测试副本必须使 missing-cache 负向测试失败，证明不会受 Go 的跳过语义欺骗。
   只在 fixture 中做变异，不修改真实脚本来求通过。
-  Windows Bash 的最前部拒绝代码固定提示（其余三个入口由 Task 2 同步）：
-
-```bash
-case "${OSTYPE-}" in
-  msys*|cygwin*|win32*) printf '%s\n' 'verify-devtools: Windows requires PowerShell 7.6.5.' >&2; exit 1 ;;
-esac
-devtools_platform=$(uname -s 2>/dev/null) || {
-  printf '%s\n' 'verify-devtools: platform failed with exit code 1.' >&2
-  exit 1
-}
-case "${devtools_platform}" in
-  MINGW*|MSYS*|CYGWIN*) printf '%s\n' 'verify-devtools: Windows requires PowerShell 7.6.5.' >&2; exit 1 ;;
-esac
-```
-
-  此检查放在 shebang 后、依赖解析/临时目录创建/验证前；平台识别失败也必须失败关闭。
-  拒绝路径不包含绕过变量，不能伪造 uname 测试结果就声称实际 Cygwin 已验证。
+  重跑 Step 2 的 Windows 包级选择器与 Linux 单文件拒绝测试。
+  Expected GREEN: 两条命令退出 0；Windows 正向、两个 Git Bash 拒绝路径及 Linux 拒绝通过。
+  对 Windows Git 包装器专属不适用用例仍独立记录 Skip，不能把它或未知平台计为成功。
+  接续文档写明历史 Linux 四项失败已从本轮支持合同撤回、并未修复，附 Step 0c 提交号。
+  逐项核对任务合同后才记录 Task 1 完成；历史通过次数不替代本轮证据。
 - [ ] **6. 提交。**
 
 ```text
-git add scripts/verify-devtools.ps1 scripts/verify-devtools.sh scripts/private/devtools-process.ps1 internal/e2e/devtools_verification_test.go
+git add scripts/verify-devtools.ps1 scripts/verify-devtools.sh scripts/private/devtools-process.ps1 internal/e2e/devtools_verification_test.go internal/e2e/devtools_runtime_test.go internal/e2e/devtools_ownership_test.go internal/e2e/devtools_bash_rejection_test.go internal/e2e/devtools_unix_test.go docs/roadmap/2026-09-25-progress-recovery-handoff.md
 git commit -m "feat(tooling): add fail-closed offline development tool verification"
 ```
 
 ## Task 2: 原子拆分模块并更新全部调用链
 
-**Files:** 文件映射中的模块文件、六份入口脚本、buf.gen.yaml、privacy_test.go、devtools_routing_test.go。
+**Files:** 文件映射中的模块文件、六份入口脚本、buf.gen.yaml、privacy_test.go、devtools_routing_test.go、Task 1 的 devtools_bash_rejection_test.go。
 
 **Interfaces:** 消费 Task 1 的无参公开入口；新工具模块锁文件和显式 -modfile 调用是唯一新增分派合同。
   Goose 裸 go tool 命令保持。子工具和 lint 仍以根工作目录运行。
   三个 PowerShell 消费者还调用 Task 1 的 `Initialize-DevtoolsProcessOwnership`；公开验证器必须
   通过当前已验证宿主的绝对路径启动独立 pwsh.exe 子进程，不使用 `& <verify-devtools.ps1>` 在同一进程运行第二次初始化。
+  `.sh` 仅复用 Task 1 的拒绝合同，不消费工具模块或参与正向路由。
 
 - [ ] **1. 记录不可变版本基线。** 在修改前用固定 Go 读取 `go mod graph`、模块选中版本及普通、
   integration、Goose CLI 和五个工具的包闭包。结果仅写忽略的证据目录。
@@ -293,8 +348,10 @@ verification failure => zero version/generation/lint/Docker events
   根模块专属测试包放进 fixture；假 lint 验证 cwd/argv/环境，后续真实 lint 验证根源码确被分析。
   为 Buf 建立会真正执行本地插件命令的 fake buf，不只把 `buf generate` 当成功文本输出。
   更新既有 privacy fake 的 tool 分派以解析 -modfile 参数，但不放宽 canary 或顺序断言。
-  新增 `TestDevtoolsWindowsEntryRejection`、`TestDevtoolsConsumerOwnership`。前者遍历四个 `.sh`
-  入口，复用 Task 1 的无工作事件/退出 1/PowerShell 提示断言；后者遍历三个 `.ps1` 消费者，
+  在 Task 1 的独立拒绝文件新增 `TestDevtoolsShellEntryRejection`，以及路由文件中的
+  `TestDevtoolsConsumerOwnership`。前者遍历四个 `.sh` 入口调用
+  `testDevtoolsBashEntryRejection(t, entry)`，在 Windows 与 Linux 均断言零工作、统一提示、
+  stdout 空、退出 1；后者遍历三个 `.ps1` 消费者，
   让验证成功后 fake 工具创建长存子进程，强杀外层入口并检查全部自有句柄退出及外部 canary 存活。
   在 C11 fixture 中假造 Docker 响应，不创建真实容器；Job 测试不宣称 Docker 服务端清理成功。
 
@@ -303,12 +360,23 @@ entries := []string{"verify-devtools.sh", "check-tools.sh", "generate.sh", "veri
 consumers := []string{"check-tools.ps1", "generate.ps1", "verify-c11.ps1"}
 ```
 
-  旧 Windows Bash 工具入口隐私正向测试迁移到 Unix 分支；Windows 改为明确拒绝合同。
+  旧 Bash 工具入口隐私正向测试不迁移到 Unix：四入口在所有平台均不支持。按入口逐项改为
+  拒绝合同，原测试版本由历史提交保留。特别核对 privacy_test.go 中
+  `TestVerifyC11BashContract`、`TestVerifyC11BashWindowsConformancePathReachesNativeGo`、
+  `TestVerifyC11BashWindowsConformancePathRejectsMalformedConversion`；后两项分别改名为
+  `TestVerifyC11BashRejectsBeforeNativeGo`、`TestVerifyC11BashRejectsBeforePathConversion`，
+  测试拒绝发生在工具/路径转换之前，不保留旧成功路径或改成无条件 Skip。
+  `TestScriptCleanupExitStatusContracts` 的 Bash/verify 项改验拒绝，不删 Bash/smoke 项。
+  `TestVerifyFakeToolsExerciseEveryPrivacyCanary` 和旧 round2 gate 契约对 PowerShell 的断言
+  全保留；仅移除四个已撤回 `.sh` 的正向工具预期，并加入其拒绝行为覆盖。
+  `TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment` 与其他 smoke 用例继续运行。
   不移除 Bash smoke 隐私用例，不全局 Skip Bash 测试。fixture 复制私有帮助文件，保留真实 Job
   初始化，不能替换为空操作以使取消测试通过。
   增加 `TestDevtoolsSameHostDispatch` 和 `TestDevtoolsConsumerRuntime`：三个消费者均测试真实
   5.1 早期拒绝、7.6.5 接受；在专属 PATH 最前放置写入事件的伪 pwsh/powershell，真正父入口用
-  已验证绝对路径启动。仅在子脚本测试副本中加入采集版本和当前进程路径的标记，不替换实际
+  已验证绝对路径启动。ConsumerRuntime 同时复用 Task 1 的非 Windows 平台判定逻辑测试，
+  标为测试副本证据，不宣称实际 Unix PowerShell 运行验证。
+  仅在同宿主分派子脚本测试副本中加入采集版本和当前进程路径的标记，不替换实际
   子解释器或初始化。子入口断言：
 
 ```go
@@ -328,8 +396,12 @@ if _, err := os.Stat(fakeInterpreterEvent); !os.IsNotExist(err) {
 - [ ] **3. 跑 RED。**
 
 ```powershell
-go test -tags=e2e ./internal/e2e -run '^TestDevtools(ModuleBoundary|Routing|NestedProtoc|LintTargetsRoot|FailureStopsConsumers|WindowsEntryRejection|ConsumerOwnership|SameHostDispatch|ConsumerRuntime)$' -count=1 -timeout=5m
+go test -tags=e2e ./internal/e2e -run '^TestDevtools(ModuleBoundary|Routing|NestedProtoc|LintTargetsRoot|FailureStopsConsumers|ShellEntryRejection|ConsumerOwnership|SameHostDispatch|ConsumerRuntime)$' -count=1 -timeout=5m
 ```
+
+  Expected RED: 模块边界、消费者前置验证/归属/同宿主分派和后三个 `.sh` 拒绝尚未实现，
+  各自失败于对应断言；不能以环境错误冒充 RED。Linux 复用 Task 1 Step 2 的固定禁网容器命令，
+  将 -run 改为 `^TestDevtools(VerificationBash|ShellEntryRejection)$`，保持只编译拒绝测试文件。
 
 - [ ] **4. 建立新模块并整理根模块。** 新模块基本内容固定如下，require/sum 必须从 Step 1
   的实际选中闭包生成并逐项对照，不在计划中臆造完整间接版本表。
@@ -360,16 +432,17 @@ require (
   不借 tidy 升级、不 use latest、不生成 workspace、不引入跨模块 replace。
   根模块移除五个 tool 指令，保留 Goose；doubleclick 若仍出现，先报告真实引入链，不强删。
 
-- [ ] **5a. 同步入口支持与归属。** 三个 `.sh` 消费者复制 Task 1 最前部平台检查，提示分别为
-  `check-tools: Windows requires PowerShell 7.6.5.`、`generate: Windows requires PowerShell 7.6.5.`、
-  `verify-c11: Windows requires PowerShell 7.6.5.`；平台识别失败提示同样替换入口前缀。Unix 原有分派保留。
+- [ ] **5a. 同步入口支持与归属。** 三个 `.sh` 消费者替换为 Task 1 Step 4c 同型最小拒绝入口，
+  提示分别为 `check-tools: this release requires Windows and PowerShell 7.6.5.`、
+  `generate: this release requires Windows and PowerShell 7.6.5.`、
+  `verify-c11: this release requires Windows and PowerShell 7.6.5.`。移除旧执行体，不留回退分支。
   三个 `.ps1` 最前部使用 Task 1 Step 0b 的进程内检查，拒绝提示分别为
   `check-tools: PowerShell 7.6.5 required.`、`generate: PowerShell 7.6.5 required.`、
   `verify-c11: PowerShell 7.6.5 required.`。检查通过后才加载帮助文件并初始化；初始化 catch 按各入口现有
   internal 阶段脱敏输出、退出 1。C11 的 git 清单命令也必须在初始化之后。
   PowerShell C11 中 Get-C11BashExecutable 和 Bash smoke 调用保持，不删除或转换它们。
 
-- [ ] **5b. 同步脚本调用。** generate/check-tools 的受支持平台在任何工具前调用对应 verify-devtools；
+- [ ] **5b. 同步 Windows 脚本调用。** generate/check-tools 的 `.ps1` 在任何工具前调用对应 verify-devtools；
   C11 在工具阶段前也调用验证入口，保持原 check-tools 900 秒、generate 600 秒外层预算。
   外层剩余时间不足时允许明确失败，不用改预算或跳过标记规避重复验证。
   Windows 消费者独立调用验证器的参数固定为：
@@ -398,10 +471,6 @@ $devtoolsMod = Join-Path $repoRoot 'tools/devtools/go.mod'
 Invoke-External -Stage 'generate: SQL' -FilePath 'go' -ArgumentList @('tool', "-modfile=$devtoolsMod", 'sqlc', 'generate')
 ```
 
-```bash
-run_quiet 'generate: SQL' go tool "-modfile=${repo_root}/tools/devtools/go.mod" sqlc generate
-```
-
   check-tools 仅为那五个工具增加 -modfile；Goose 仍是 `go tool goose -version`。
   C11 的 lint 是 `go tool -modfile=<absolute tools module> golangci-lint run ./...`，cwd 根。
   不把 -modfile 放进全局 GOFLAGS；脚本不接受用户提供任意备用模块路径。
@@ -414,15 +483,18 @@ local: ["go", "tool", "-modfile=tools/devtools/go.mod", "protoc-gen-go"]
 - [ ] **6. GREEN 与兼容性确认。** 重跑 Step 3 及 Task 1；运行下列真实现有脚本契约：
 
 ```powershell
-go test -tags=e2e ./internal/e2e -run '^(TestDevtools.*|TestVerifyC11.*Contract|TestVerifyFakeToolsExerciseEveryPrivacyCanary|TestScriptCleanupExitStatusContracts|TestVerifyCommandContractRejectsLegacyMissingRound2Gates)$' -count=1 -timeout=10m
+go test -tags=e2e ./internal/e2e -run '^(TestDevtools.*|TestVerifyC11.*Contract|TestVerifyC11Bash.*Reject.*|TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment|TestVerifyFakeToolsExerciseEveryPrivacyCanary|TestScriptCleanupExitStatusContracts|TestVerifyCommandContractRejectsLegacyMissingRound2Gates)$' -count=1 -timeout=10m
 ```
 
+  同时运行 Step 3 的 Linux 拒绝文件选择器。Expected GREEN: Windows 上全部适用专项通过；
+  Linux 四入口实际拒绝通过；不记录 Unix 正向工具流水成功。新增/重命名的拒绝测试须全部
+  命中上述选择器，执行后检查实际 RUN 清单，不能因漏选得到虚假的绿色结果。
   测根路径含空格、继承 GOFLAGS/-modfile 污染、缺工具锁文件、父任务取消和 Buf 子命令失败。
   对实际 argv/cwd/退出码做断言，保留既有隐私测试。确认 runner、smoke 和生产源码无差异。
 - [ ] **7. 原子提交所有模块及路由文件。**
 
 ```text
-git add go.mod go.sum tools/devtools/go.mod tools/devtools/go.sum scripts/generate.ps1 scripts/generate.sh scripts/check-tools.ps1 scripts/check-tools.sh scripts/verify-c11.ps1 scripts/verify-c11.sh buf.gen.yaml internal/e2e/privacy_test.go internal/e2e/devtools_routing_test.go
+git add go.mod go.sum tools/devtools/go.mod tools/devtools/go.sum scripts/generate.ps1 scripts/generate.sh scripts/check-tools.ps1 scripts/check-tools.sh scripts/verify-c11.ps1 scripts/verify-c11.sh buf.gen.yaml internal/e2e/privacy_test.go internal/e2e/devtools_routing_test.go internal/e2e/devtools_bash_rejection_test.go
 git commit -m "refactor(tooling): isolate development tools from C12 module verification"
 ```
 
@@ -436,6 +508,9 @@ git commit -m "refactor(tooling): isolate development tools from C12 module veri
   先由用户准备 Microsoft 正式发布的 PowerShell 7.6.5。安装/下载属于单独环境准备，不在
   此计划离线执行步骤内自动完成；文档写清 5.1 不受支持、其他 7.x 也未纳入本次精确版本范围。
   允许用户用完整路径启动 pwsh.exe，禁止把本机 Codex 运行时位置写进通用恢复命令。
+  手册明确仅 Windows 四个 `.ps1` 为正向入口；四个 `.sh` 在 Linux、macOS、WSL 和 Windows
+  都只拒绝，Unix 暂不支持。既有 Bash smoke 仍保留，按其原前提准备 Git Bash；这不等于支持
+  Bash 工具流水，也不要求把 Linux Docker 引擎改成 Windows 容器。
   人工检查命令（不改变系统）：
 
 ```powershell
@@ -460,18 +535,12 @@ pwsh.exe -NoProfile -File scripts/generate.ps1
 git diff --exit-code -- api gen internal/store
 ```
 
-```bash
-# 仅在原生 Unix/WSL 环境运行；Windows 不执行这组正向验证。
-bash scripts/verify-devtools.sh
-bash scripts/check-tools.sh
-bash scripts/generate.sh
-git diff --exit-code -- api gen internal/store
-```
-
-  每个平台独立报告；生成变更不允许直接提交，先调查版本/路径差异。
+  Expected: 三个 Windows 入口退出 0，生成目录 git diff 退出 0。任一失败保留原输出摘要，
+  不能继续当作工具链成功。生成变更不允许直接提交，先调查版本/路径差异。
   任一工具验证超时则整体工具链验收开放，不标记通过、不重复相同失败运行。
-  当前安全事件阻塞仍在，不运行 C12 专项测试来补足工具链证据。Unix 无可用环境时记录未验收，
-  不把 Windows Bash 的拒绝测试计为 Unix 成功。恢复手册列出四个入口支持矩阵和保留的 Bash smoke。
+  当前安全事件阻塞仍在，不运行 C12 专项测试来补足工具链证据。Unix 正向生成已撤回本轮
+  交付范围，不再运行或记为成功；四入口的实际 Windows/Linux 拒绝结果仍独立列出。
+  恢复手册列出支持矩阵、保留的 Bash smoke 及历史 Unix 失败对应的归档提交。
 - [ ] **3. 普通与编译回归（执行门禁）。** 下列完整普通测试及完整 C11 会触发当前受阻路径，
   在安全事件得到单独处理并明确允许恢复前保持未运行。仅 compile-only 命令可先执行；它不运行
   bootstrap，也不记为普通测试通过。不得通过排除失败子测试声称“全套通过”。
@@ -535,7 +604,8 @@ git commit -m "docs(tooling): record isolated toolchain recovery and verificatio
 ```
 
 - [ ] **6. 整体审查与交接。** 按用户选择的执行方式完成独立审查，重点检查双模块完整性、
-  子进程/外层取消、全平台参数和未降低现有保护。审查缺陷修复需独立 RED/GREEN。
+  Windows 子进程/外层取消、全平台无工作拒绝、保留的 Bash smoke 及未降低现有保护。
+  审查缺陷修复需独立 RED/GREEN。
   无条件保持 main 不变；推送/合并遵循届时明确授权，不能把计划批准当合并批准。
 
 ## 自查及审批
@@ -553,6 +623,13 @@ Task 1 的私有帮助文件和 Task 2 的全入口取消测试；第 4 节预�
 SameHostDispatch/ConsumerRuntime 及消费者调用，Task 3 的新电脑前提与独立证据。
 保留文中的 C12 powershell 调用作为原合同的受阻命令，不做全局替换；当前不得执行。
 
-本修订已获用户确认，继续保留 Native inline：本会话逐任务执行，最后进行一次独立整体审查。
-不重新选择执行方式，不把本计划批准当作安全事件解除、测试通过或推送/合并授权。
-实际结果以 ledger 及 Windows 实现检查点报告为准；未完成阶段不得因计划获批而标为完成。
+2026-09-27 Windows-only 书面设计和本次对应计划修订均已获用户确认。
+修订第 1–2 节由 Task 1 Step 1/2/4c/5 和 Task 2 Step 2/3/5a/6 覆盖；第 3 节保留
+Windows 既有完整性、Job、版本及路由测试；第 4 节由 Task 1 Step 0c 历史提交和 Task 2
+privacy/smoke 逐项迁移覆盖；第 5–6 节由三任务顺序、Task 3 支持矩阵及原安全门禁覆盖。
+已对齐统一拒绝文案、标准库独立拒绝夹具、生产 900 秒/4 MiB 与既有 900/600 秒外层预算；
+Windows 内存捕获裁定已反映到计划，未恢复旧落盘捕获。没有通过支持范围调整勾选任务完成。
+
+继续保留 Native inline：本会话逐任务执行，最后进行一次独立整体审查。
+用户已确认本修订符合已批准设计；无需重新选择执行方式，继续实施。
+不把计划批准当作安全事件解除、测试通过或推送/合并授权；实际结果以 ledger 和新测试证据为准。

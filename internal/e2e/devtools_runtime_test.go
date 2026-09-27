@@ -64,6 +64,7 @@ func testDevtoolsRuntime(t *testing.T) {
 		{name: "runtime-other-version-rejected", injected: "@{PSEdition='Core'; PSVersion='7.6.4'}"},
 		{name: "runtime-prerelease-rejected", injected: "@{PSEdition='Core'; PSVersion='7.6.5-preview.1'}"},
 		{name: "runtime-later-version-rejected", injected: "@{PSEdition='Core'; PSVersion='7.6.6'}"},
+		{name: "runtime-non-windows-rejected"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			content, err := os.ReadFile(filepath.Join("..", "..", "scripts", "verify-devtools.ps1"))
@@ -76,6 +77,13 @@ func testDevtoolsRuntime(t *testing.T) {
 					t.Fatal("runtime-input fixture must replace one read")
 				}
 				content = bytes.Replace(content, []byte(read), []byte("$devtoolsRuntime = "+tc.injected), 1)
+			}
+			if tc.name == "runtime-non-windows-rejected" {
+				const platform = "[Environment]::OSVersion.Platform"
+				if bytes.Count(content, []byte(platform)) != 1 {
+					t.Fatal("platform fixture must replace exactly one read")
+				}
+				content = bytes.Replace(content, []byte(platform), []byte("[PlatformID]::Unix"), 1)
 			}
 			root := filepath.Join(t.TempDir(), "repository with spaces")
 			private := filepath.Join(root, "scripts", "private")
@@ -167,45 +175,3 @@ const devtoolsRuntimeTraceSuffix = `
   }
 }
 `
-
-func testDevtoolsBashRejection(t *testing.T) {
-	t.Helper()
-	for _, interpreter := range []string{`C:\Program Files\Git\bin\bash.exe`, `C:\Program Files\Git\usr\bin\bash.exe`} {
-		t.Run(filepath.Base(filepath.Dir(interpreter)), func(t *testing.T) {
-			if _, err := os.Stat(interpreter); err != nil {
-				t.Fatal("required Windows Bash refusal environment unavailable: ", err)
-			}
-			root := filepath.Join(t.TempDir(), "repository with spaces")
-			if err := os.MkdirAll(filepath.Join(root, "scripts"), 0700); err != nil {
-				t.Fatal(err)
-			}
-			content, err := os.ReadFile(filepath.Join("..", "..", "scripts", "verify-devtools.sh"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			// Observe whether the first work-stage statement is reached. No tools
-			// are permitted even when the module is absent.
-			const begin = "stage=module"
-			if bytes.Count(content, []byte(begin)) != 1 {
-				t.Fatal("expected one work-stage start")
-			}
-			content = bytes.Replace(content, []byte(begin), []byte("printf reached > \"${DEVTOOLS_WORK_MARKER}\"\n"+begin), 1)
-			entry := filepath.Join(root, "scripts", "verify-devtools.sh")
-			if err := os.WriteFile(entry, content, 0600); err != nil {
-				t.Fatal(err)
-			}
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			cmd := exec.CommandContext(ctx, interpreter, filepath.ToSlash(entry))
-			cmd.Dir = root
-			cmd.Env = devtoolsFixtureEnv(map[string]string{"DEVTOOLS_WORK_MARKER": "work-reached"})
-			output, err := cmd.CombinedOutput()
-			if ctx.Err() != nil || err == nil || cmd.ProcessState == nil || cmd.ProcessState.ExitCode() != 1 || strings.TrimSpace(string(output)) != "verify-devtools: Windows requires PowerShell 7.6.5." {
-				t.Fatalf("expected early Windows rejection, got %v: %q", err, output)
-			}
-			if _, err := os.Stat(filepath.Join(root, "work-reached")); !os.IsNotExist(err) {
-				t.Fatalf("unsupported entry reached work stage: %v", err)
-			}
-		})
-	}
-}

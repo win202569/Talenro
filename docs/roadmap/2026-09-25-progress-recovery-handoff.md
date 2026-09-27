@@ -128,3 +128,31 @@ Windows Go 平台误接受已取得 RED→GREEN；Linux 专项当前 14 PASS、4
 但负向对照确认监督程序自身被强杀仍会遗留子进程，不能直接晋升产品。
 详见[监督探针报告](2026-09-27-unix-supervision-feasibility.md)。
 正式入口和测试未因此再修改，原四项失败及所有验收阻塞继续保留。
+
+## Windows-only 修订与旧实现归档
+
+用户已确认 Windows-only 设计及修订实施计划。旧 Unix 实现、测试和脱敏报告已保存在
+本地提交 `03947e31536a803aaca19c295edd8d9eb4d258f1`，明确标记未验收，尚未推送。
+其历史结果为 14 PASS / 4 FAIL，不因后续拒绝入口而变成修复。归档时工作文件 SHA-256：
+
+| 文件 | SHA-256 |
+| --- | --- |
+| scripts/verify-devtools.sh | 676F8C9B79F3DF74547AB1FF52134BD362F6730E9CF9094EED6089454FA44B12 |
+| internal/e2e/devtools_verification_test.go | DF3BDAC535DF31625DF4B41149F685F310FAACEF02157202FA2849D2DA3B8D38 |
+| internal/e2e/devtools_unix_test.go | 91A52F10FF827135B7124808FD1CBC2095D02CC273F465A1D7554E3AF33C608A |
+
+活动 Unix 正向夹具已移除（可从上述提交恢复），verify-devtools.sh 改为所有平台只拒绝。
+新增标准库独立拒绝测试，覆盖两种实际 Windows Git Bash 和 Linux Bash，每个解释器十项
+场景，使用工作标记正向对照验证无工具启动；没有全局跳过 Bash，也未修改 smoke。
+
+本轮取得新合同 RED→GREEN：Linux 旧入口执行 uname、提示不符，10 项失败；修改后
+10 项通过、0 Skip，退出 0 / 0.153 秒。Windows 旧入口的 20 项拒绝测试因旧提示失败；
+修改后包级专项退出 0 / 81.259 秒：PowerShell 29 项通过、Bash 20 项通过、0 失败、
+1 项 Git 包装器专属不适用 Skip。新增合计输出超限、自然退出遗留子进程及非 Windows
+平台判定覆盖首次即通过，属于既有行为覆盖，不称为缺陷修复。
+
+非 Windows PowerShell 只做私有副本平台判定测试，不是实际 Unix PowerShell 验收。
+MSYS/Cygwin 的两个常见安装位置未找到解释器，macOS 及这些环境未实测。
+PowerShell 生产实现、900 秒/4 MiB、Bash smoke、C12 runner 均未修改。
+完整普通测试、完整 C11、C12 物理 gate 仍受原安全事件阻塞，不运行、不声称通过。
+本地保存任务 1 专项实现后继续任务 2 版本基线检查；尚未推送或合并 main。

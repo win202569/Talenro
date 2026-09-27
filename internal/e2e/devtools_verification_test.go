@@ -29,22 +29,12 @@ func TestDevtoolsVerificationPowerShell(t *testing.T) {
 	testDevtoolsProcess(t, "ps1")
 }
 
-func TestDevtoolsVerificationBash(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		testDevtoolsBashRejection(t)
-		return
-	}
-	testDevtoolsMissingModule(t, "sh")
-	testDevtoolsIntegrity(t, "sh")
-	testDevtoolsProcess(t, "sh")
-}
-
 // Only process/error contracts use this executable; integrity tests above always
 // run the real pinned Go implementation against real module archives.
 func testDevtoolsProcess(t *testing.T, extension string) {
 	t.Helper()
 	if runtime.GOOS != "windows" {
-		testDevtoolsUnixProcess(t)
+		t.Fatal("positive process fixture requires Windows")
 		return
 	}
 	profile := filepath.Join(t.TempDir(), "owned profile")
@@ -73,6 +63,7 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 		{"timeout", 124, "toolchain"}, {"natural-exit", 0, ""},
 		{"timeout-with-child", 124, "toolchain"}, {"parent-cancel", -1, ""},
 		{"output-limit", 1, "toolchain"}, {"stderr-limit", 1, "toolchain"},
+		{"combined-output-limit", 1, "toolchain"}, {"natural-exit-with-child", 0, ""},
 		{"ownership-init-failure", 1, "toolchain"},
 		{"environment-restore-success", 0, ""}, {"environment-restore-failure", 7, "toolchain"},
 		{"launcher-cancel", -1, ""},
@@ -105,7 +96,7 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 				deadline = "deadline=$((SECONDS + 900))"
 				replacement = "deadline=$((SECONDS + 2))"
 			}
-			if tc.name == "parent-cancel" || tc.name == "launcher-cancel" || tc.name == "output-limit" || tc.name == "stderr-limit" {
+			if tc.name == "parent-cancel" || tc.name == "launcher-cancel" || tc.name == "output-limit" || tc.name == "stderr-limit" || tc.name == "combined-output-limit" || tc.name == "natural-exit-with-child" {
 				if extension == "sh" {
 					replacement = "deadline=$((SECONDS + 30))"
 				} else {
@@ -168,7 +159,8 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 			command.Stdout = &captured
 			command.Stderr = &captured
 			var foreignDone chan error
-			if tc.name == "parent-cancel" || tc.name == "timeout-with-child" {
+			observeOwned := tc.name == "parent-cancel" || tc.name == "timeout-with-child" || tc.name == "natural-exit-with-child" || tc.name == "combined-output-limit"
+			if observeOwned {
 				foreign := exec.Command(goPath, "child")
 				if err := foreign.Start(); err != nil {
 					t.Fatal(err)
@@ -181,7 +173,7 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 				t.Fatal(err)
 			}
 			var owned []*os.Process
-			if tc.name == "timeout-with-child" || tc.name == "parent-cancel" || tc.name == "launcher-cancel" {
+			if observeOwned || tc.name == "launcher-cancel" {
 				readyDeadline := time.Now().Add(5 * time.Second)
 				for {
 					data, readErr := os.ReadFile(marker)
@@ -211,6 +203,11 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 				}
 				for _, process := range owned {
 					t.Cleanup(func() { _ = process.Kill() })
+				}
+				if tc.name == "natural-exit-with-child" || tc.name == "combined-output-limit" {
+					if err := os.WriteFile(marker+".release", []byte("ready"), 0600); err != nil {
+						t.Fatal(err)
+					}
 				}
 				if tc.name == "parent-cancel" || tc.name == "launcher-cancel" {
 					if err := command.Process.Kill(); err != nil {
@@ -283,6 +280,16 @@ func main(){
  case "timeout": time.Sleep(10*time.Second)
  case "output-limit": fmt.Print(strings.Repeat("secret-output-canary",300000)); time.Sleep(60*time.Second)
  case "stderr-limit": fmt.Fprint(os.Stderr,strings.Repeat("secret-error-canary",300000)); time.Sleep(60*time.Second)
+ case "natural-exit-with-child", "combined-output-limit":
+  if len(os.Args)>1 && os.Args[1]=="version" {
+   child:=exec.Command(os.Args[0],"child"); if err:=child.Start(); err!=nil { os.Exit(11) }
+   marker:=os.Getenv("DEVTOOLS_PROCESS_MARKER")
+   if err:=os.WriteFile(marker,[]byte(fmt.Sprintf("%d %d",os.Getpid(),child.Process.Pid)),0600); err!=nil { os.Exit(12) }
+   for { if _,err:=os.Stat(marker+".release"); err==nil { break }; time.Sleep(10*time.Millisecond) }
+   if os.Getenv("DEVTOOLS_PROCESS_CASE")=="combined-output-limit" {
+    fmt.Print(strings.Repeat("x",3*1024*1024)); fmt.Fprint(os.Stderr,strings.Repeat("y",3*1024*1024)); time.Sleep(60*time.Second)
+   }
+  }
  case "timeout-with-child", "parent-cancel", "launcher-cancel":
   child:=exec.Command(os.Args[0],"child"); if err:=child.Start(); err!=nil { os.Exit(11) }
   if err:=os.WriteFile(os.Getenv("DEVTOOLS_PROCESS_MARKER"),[]byte(fmt.Sprintf("%d %d",os.Getpid(),child.Process.Pid)),0600); err!=nil { os.Exit(12) }
