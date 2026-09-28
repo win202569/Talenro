@@ -346,10 +346,10 @@ R1 基线已归档；R2 新纯规则历史 76 PASS（含顶层）/0 FAIL，但�
 - 新增 `validateDevtoolsEvidence(snapshot devtoolsVersionSnapshot, policy devtoolsVersionPolicy, records []devtoolsEvidenceRecord) []string`：对实际使用例外和 removed 条目，检查 ID 非空、唯一、存在且 owner/path/version/kind 全匹配，错误则拒绝。`TestDevtoolsVersionLock` 必须同时通过版本比较、证据验证、包用途与原包基线比较，不能只调用版本比较器宣称条件例外合格。
 - 测试内独立字面量保护原 Required 32 和 Exceptions 35（root 31/tools 4）；新增 `const devtoolsRootGraphCandidates` 逐行保存最新设计第 3 节的 `root path candidate` 28 三元组，再与原七项组成 `devtoolsAllowedVersions`。不得取 policy 或现场结果作期望。只用标准库，证据写既有 roadmap evidence 文件。
 
-- [ ] **R1. 核对已归档基线，不重建。** 核验 baseline.json 的 666 条模块、八组 516/523/656/858/137/279/575/1187 个包和 54 个原哈希；对照既有成功原始记录与恢复前四锁哈希，记录新的接续 HEAD 和四锁哈希，不覆盖原记录。
+- [x] **R1. 核对已归档基线，不重建。** 核验 baseline.json 的 666 条模块、八组 516/523/656/858/137/279/575/1187 个包和 54 个原哈希；对照既有成功原始记录与恢复前四锁哈希，记录新的接续 HEAD 和四锁哈希，不覆盖原记录。
   Expected：基线身份/版本和原文件哈希不变，无本机绝对路径或凭据；历史归档不是本次真实验收。
 
-- [ ] **R2a. 扩展根 28 的 RED。** 在 `TestDevtoolsVersionPolicy/root-28-candidates` 用独立 28 字面清单逐项测试原值/精确候选正例、错误版本、移用于 tools、目标缺失/removed、未审核归属、缺证据反例；保留原七项及 35 回放。`TestDevtoolsVersionEvidence/root-28-bindings` 逐项覆盖正确绑定、错误 owner/path/version/kind、缺 ID/校验和；增加标记大小写错误字段、重复 JSON 字段、未知字段、尾随 JSON、重复 ID 拒绝，沿用精确字段名合同。`TestDevtoolsVersionPackageUse/root-28-phases` 对三组 × 28 路径 × 原/候选版本逐一拒绝；tools 使用本表路径、root 使用 mathutil v1.7.1 为正对照。第五 tools 或本表外第 29 新 root 路径拒绝。保留八组空/缺组/错误/重复反例。
+- [x] **R2a. 扩展根 28 的 RED。** 在 `TestDevtoolsVersionPolicy/root-28-candidates` 用独立 28 字面清单逐项测试原值/精确候选正例、错误版本、移用于 tools、目标缺失/removed、未审核归属、缺证据反例；保留原七项及 35 回放。`TestDevtoolsVersionEvidence/root-28-bindings` 逐项覆盖正确绑定、错误 owner/path/version/kind、缺 ID/校验和；增加标记大小写错误字段、重复 JSON 字段、未知字段、尾随 JSON、重复 ID 拒绝，沿用精确字段名合同。`TestDevtoolsVersionPackageUse/root-28-phases` 对三组 × 28 路径 × 原/候选版本逐一拒绝；tools 使用本表路径、root 使用 mathutil v1.7.1 为正对照。第五 tools 或本表外第 29 新 root 路径拒绝。保留八组空/缺组/错误/重复反例。
   合成用例须逐项可判读，例如：
 ```go
 // 正常 tools 组均含至少一个标准库包；添加目标包后必须失败。
@@ -371,14 +371,14 @@ if len(compareDevtoolsPackageUse(s, p)) == 0 { t.Fatal("root graph-only module b
 ```
   TestDevtoolsVersionLock 保留两模块真实查询，补齐 module identity、Exclude、跨模块 require、Go/toolchain、工具表。历史 35 回放缺证据时仍拒绝，条件齐备才允许，不能整体删除回放。
 
-- [ ] **R2b. 运行 RED，完成测试辅助检查器，再跑 GREEN。**
+- [x] **R2b. 运行 RED，完成测试辅助检查器，再跑 GREEN。**
 ```powershell
 go test -v -tags=e2e ./internal/e2e -run '^TestDevtoolsVersion(Policy|Evidence|PackageUse)$' -count=1 -timeout=5m
 ```
   Expected RED：新增根候选正例和根用途/严格证据反例出现语义失败；不回退已实现功能来制造 RED，编译失败不算。随后在 `compareDevtoolsVersions` 的 Required 分支允许本归属精确候选，仍独立验证存在、retained 和证据；更新 policy 与独立字面量 35 例外。扩展上述证据/用途检查器并补严格读取/Lock 联合验证。重跑同选择器 Expected GREEN；真实 Lock 未补证前保持失败，Membership 保持 pending 直至 R5。
   旧 19 场景绿色不能覆盖新条件。真实 Lock 可在 R6 前保持阻塞；未完成证据的候选绝不记录验收通过。
 
-- [ ] **R3a. 保留原三个 root 准备记录。** readline v1.5.1、demangle v0.0.0-20250417193237-f615e6bd150b、metric/x v0.66.0 已获授权并准备成功；核对既有 Sum/GoModSum 与结果，不无故重复下载，也不视为已证明必要。
+- [x] **R3a. 保留原三个 root 准备记录。** readline v1.5.1、demangle v0.0.0-20250417193237-f615e6bd150b、metric/x v0.66.0 已获授权并准备成功；核对既有 Sum/GoModSum 与结果，不无故重复下载，也不视为已证明必要。
 
 - [x] **R3b. 四个 tools 候选准备（历史已授权且已完成，不重复）。** 下列保留原准备范围与过程作为记录：
 ```text
@@ -390,7 +390,7 @@ modernc.org/strutil@v1.2.0
   固定 Go、独立最小备用模块、逐个显式 module@version 的 mod download -json；仅 https://proxy.golang.org 和 sum.golang.org。GOENV/GOWORK=off、GOTOOLCHAIN=local、GOAUTH=off、GOVCS=all:off，清除 GOPRIVATE/GONOSUMDB/GONOPROXY/GOINSECURE 及继承覆盖。整批总预算 900 秒，Hidden/无窗口，保留进程句柄，超时只停止自有进程。请求和结果写忽略目录，脱敏精确版本/校验和/来源/起止时间/退出码写证据文档。
   Expected：每个请求对应唯一精确记录，无 Error，Sum/GoModSum 齐备；不得执行下载内容或改生产锁文件。额外版本/传递准备需求停止报告，不回退 direct/VCS/auth。若只确认计划而未批准本段，缺缓存时停止询问。随后恢复禁网，不把 root 三候选或旧 207 项授权扩展到本段。
 
-- [ ] **R3c-1. 接续时只读复核缓存清单。** 逐项使用最新设计第 3 节的精确 path/version，按 Go 的大写字母 ! 小写转义定位缓存 .mod/.info/.zip/.ziphash，并核对已提取源码目录供后续审查；不得删除或改写缓存。2026-09-28 规划时四文件检查仅 perfstat@v0.0.0-20210106213030-5aafc221ea8c 齐备，其余 27 项存在缺失；文件存在不证明完整性。记录实际缺失文件类型到忽略目录，在可提交证据文档保存脱敏清单。
+- [x] **R3c-1. 接续时只读复核缓存清单。** 逐项使用最新设计第 3 节的精确 path/version，按 Go 的大写字母 ! 小写转义定位缓存 .mod/.info/.zip/.ziphash，并核对已提取源码目录供后续审查；不得删除或改写缓存。2026-09-28 规划时四文件检查仅 perfstat@v0.0.0-20210106213030-5aafc221ea8c 齐备，其余 27 项存在缺失；文件存在不证明完整性。记录实际缺失文件类型到忽略目录，在可提交证据文档保存脱敏清单。
   Expected：28 项均有明确逐文件状态；复核只能缩小下列待授权下载集合，不能增加 path/version。perfstat 此轮仅离线读取既有校验和/源码并在完整性阶段验证，若发现仍需联网则另报，不把它隐含加入。
 
 - [x] **R3c-2. 新增根候选精确准备（已单独授权并完成）。** 本段授权对象只包含以下 27 个精确版本的缺失模块元数据、归档/校验和及正常解压源码（逐项显式 mod download -json；不执行内容）。R3c-1 复核后已齐备项不下载：
@@ -426,15 +426,15 @@ honnef.co/go/tools@v0.0.0-20190523083050-ea95bdfd59fc
   固定 Go、独立最小备用模块、逐项显式 module@version；仅 https://proxy.golang.org 与 sum.golang.org。清除继承 GO* 覆盖后设 GOENV/GOWORK=off、GOTOOLCHAIN=local、GOAUTH=off、GOVCS=all:off，GOPRIVATE/GONOPROXY/GONOSUMDB/GOINSECURE 为空。整批共用 900 秒绝对期限，不分项重置；Hidden/保留自有进程句柄，超时仅清理本次自有进程。结果精确绑定 Path/Version、无 Error、Sum/GoModSum 齐全；原四锁哈希前后相同，恢复禁网。日志保留起止/退出码，脱敏记录写既有 evidence 文档。
   Expected：只准备批准且缺失的精确版本，校验来源可追溯；如 Go 请求清单外版本/传递准备，或权限未明确批准，停止报告，不扩范围。准备成功不证明源码无风险、例外必要或验收通过。计划确认和本段授权分别记录；仅确认计划不包含本段下载许可。
 
-- [ ] **R4. 核对实际精确候选及活动来源。** 在获准准备后读取两模块严格完整图/版本；32 Required 均存在且仅为原值或本归属精确候选。root 28 逐项核对较高版本来源、当前声明/选中值、TestImports/XTestImports、平台条件；22 直接边与 6 历史链按评估清单分别追踪，旧父版本不能冒充选中值。cloud/genproto/api/rpc 联合检查重复包。不重复已失败 pin、不为其余 27 项制造失败实验；若有具体稳定来源可保留原值，禁止引入新上游或工具回流。
+- [x] **R4. 核对实际精确候选及活动来源。** 在获准准备后读取两模块严格完整图/版本；32 Required 均存在且仅为原值或本归属精确候选。root 28 逐项核对较高版本来源、当前声明/选中值、TestImports/XTestImports、平台条件；22 直接边与 6 历史链按评估清单分别追踪，旧父版本不能冒充选中值。cloud/genproto/api/rpc 联合检查重复包。不重复已失败 pin、不为其余 27 项制造失败实验；若有具体稳定来源可保留原值，禁止引入新上游或工具回流。
   每组变更后正常离线 tidy、严格完整图查询，各命令仍为 90 秒。tidy 必须在所属模块目录运行：root 为仓库根，tools 为 tools/devtools，不从 root 用 tools modfile 整理根源码。记录 before/target/after、父边、cwd 和锁文件哈希。
   Expected：32 目标 retained、实际值在精确允许范围，活动链可解释；候选仍须 R5/R6 补证，不因严格查询成功就通过。未知差异、重复包、目标缺失、用途或平台影响无法解释即阻塞，不动 doubleclick/replace/exclude。
 
-- [ ] **R5. 审核最多 35 个条件例外及全部成员归属。** 原 root 三项/tools 四项沿用各自必要性合同；新增 root 28 按最新设计第 4 节逐项记录来源、用途、选择理由及实际做过的稳定性试验。没有做过的 pin 不写成失败。两个校验和必须与可信准备记录一致；逐项正文与机器标记交叉审查，不能只凭 ID 或缓存存在放行。
+- [x] **R5. 审核最多 35 个条件例外及全部成员归属。** 原 root 三项/tools 四项沿用各自必要性合同；新增 root 28 按最新设计第 4 节逐项记录来源、用途、选择理由及实际做过的稳定性试验。没有做过的 pin 不写成失败。两个校验和必须与可信准备记录一致；逐项正文与机器标记交叉审查，不能只凭 ID 或缓存存在放行。
   为每个实际使用的例外及每个 removed 项写唯一绑定标记和可审阅正文；不要把所有删除指向一条不含对应模块身份的泛化说明。填充 Membership/Evidence 必须基于依赖路径审核，不能复制实际快照当期望。原值自然保持则不强行使用例外；tools 四节点缺失仍须重新报批。
   Expected：实际例外为 root 31/tools 4 固定集合的子集；每项版本、校验和、活动链、测试/构建条件审查可复核，未运行范围明确。非 Required 移出需原版本 removal 记录，32 Required 均不能移出。
 
-- [ ] **R6. 严格离线全图、八组包、证据绑定和稳定性复验。** 固定 Go；GOENV/GOWORK=off、GOTOOLCHAIN=local、GOPROXY/GOSUMDB=off、GOAUTH=off、GOVCS=all:off、GOFLAGS=-mod=readonly。两模块 list -m -json all、go mod graph 各有 90 秒上限；tools 元数据用明确 modfile 或所属目录，记录真实 cwd/argv。禁止 -e。
+- [x] **R6. 严格离线全图、八组包、证据绑定和稳定性复验。** 固定 Go；GOENV/GOWORK=off、GOTOOLCHAIN=local、GOPROXY/GOSUMDB=off、GOAUTH=off、GOVCS=all:off、GOFLAGS=-mod=readonly。两模块 list -m -json all、go mod graph 各有 90 秒上限；tools 元数据用明确 modfile 或所属目录，记录真实 cwd/argv。禁止 -e。
   八组命令沿用下方原 Step 1 的完整字段：root/integration 为 -deps -test ./...（后者加 -tags=integration），Goose 为 -deps 加其 CLI 路径；buf/protoc/oapi/sqlc/lint 分别使用其既有固定完整工具包路径、-deps、显式 tools modfile。每条 90 秒，不执行第三方测试。TestDevtoolsVersionLock 通过 readDevtoolsPackageSnapshot 读取这八组并逐组与 baseline.json 比较 ImportPath/Module.Path/Module.Version，同时调用用途及证据检查器，不读取忽略日志当实时成功证据。
   再在各所属模块目录正常离线 tidy，四锁字节和新模块选择必须不变。重跑：
 ```powershell
@@ -442,11 +442,11 @@ go test -v -tags=e2e ./internal/e2e -run '^TestDevtoolsVersion(Policy|Evidence|P
 ```
   Expected：所有适用规则通过；root 28/tools 4 存在且值与条件合规，root 三组无新增 28 包，tools 五组无原四包，root/Goose mathutil v1.7.1 不变。八组映射及 52 保护哈希不变。四锁与整理前字节比较，不要求拆分后根锁等于迁移前历史哈希。专项 5m/R7 10m 总预算不扩展，超时保留阻塞，不替代 mod verify。
 
-- [ ] **R7. 补 lint fixture 并跑原专项。** 在 newDevtoolsRouteFixture 增加只存在于根模块的 rootonly/fixture.go（无外部依赖）；TestDevtoolsLintTargetsRoot 保留真实 cwd/argv/GOFLAGS 断言，增加解析该文件及其包归属的检查。另用仅测试副本将 lint cwd 改为 tools/devtools，要求现有断言失败，不能靠假工具自报成功。先见针对错误对象的 RED，再保持正常对象 GREEN；真实 lint 在 Task 3 单独验证。
+- [x] **R7. 补 lint fixture 并跑原专项。** 在 newDevtoolsRouteFixture 增加只存在于根模块的 rootonly/fixture.go（无外部依赖）；TestDevtoolsLintTargetsRoot 保留真实 cwd/argv/GOFLAGS 断言，增加解析该文件及其包归属的检查。另用仅测试副本将 lint cwd 改为 tools/devtools，要求现有断言失败，不能靠假工具自报成功。先见针对错误对象的 RED，再保持正常对象 GREEN；真实 lint 在 Task 3 单独验证。
   核对现有 Step 5a/5b 不回退，执行下方 Step 6 完整选择器（TestDevtools.* 自动包含新版本测试）及 Linux 独立拒绝文件选择器，仍为原 10m/3m 上限。
   Expected：新增版本测试实际出现在 RUN 清单，适用测试全部通过；Linux 四入口拒绝不作 Unix 正向成功；无额外预算、隐私断言删减或忽略历史失败。
 
-- [ ] **R8. 原子提交及接续。** 只有 R1–R7 和原 Task 2 的全部适用合同成立，才执行 Step 7 的原子提交，额外明确加入新版本测试、两份 testdata 和脱敏证据文档；检查暂存清单不包含其他未批准修改或 .superpowers。使用 task-done 重跑原完整选择器记录最终结果，不因历史绿色直接完成。然后继续 Task 3；有阻塞则保存事实，不提交部分模块/消费者破链状态。
+- [x] **R8. 原子提交及接续。** 只有 R1–R7 和原 Task 2 的全部适用合同成立，才执行 Step 7 的原子提交，额外明确加入新版本测试、两份 testdata 和脱敏证据文档；检查暂存清单不包含其他未批准修改或 .superpowers。使用 task-done 重跑原完整选择器记录最终结果，不因历史绿色直接完成。然后继续 Task 3；有阻塞则保存事实，不提交部分模块/消费者破链状态。
   Expected：提交可在新电脑恢复基线/策略/源码；Task 2 完成记录有实际最终证据。推送、合并和安全验收恢复均仍不授权。
 
 ### 原任务步骤（保留历史与未完成合同）
@@ -470,7 +470,7 @@ go list -deps "-json=$packageFields" -mod=readonly github.com/pressly/goose/v3/c
   缺陷已修复。五工具按各自完整路径逐项使用相同字段和 90 秒上限，最终合并其依赖集合。
   这不是完整性校验、构建或测试通过证据，不改变任何产品及验收预算。
 
-- [ ] **2. 写 RED 边界与调用测试。** 新增 `TestDevtoolsModuleBoundary`、`TestDevtoolsRouting`、
+- [x] **2. 写 RED 边界与调用测试。** 新增 `TestDevtoolsModuleBoundary`、`TestDevtoolsRouting`、
   `TestDevtoolsNestedProtoc`、`TestDevtoolsLintTargetsRoot`、`TestDevtoolsFailureStopsConsumers`。
   下面断言同时用于源合同检查和 fake 调用事件检查，不只匹配任意源码子串：
 
@@ -533,7 +533,7 @@ if _, err := os.Stat(fakeInterpreterEvent); !os.IsNotExist(err) {
   对 C11 的 check-tools、generate、verify-devtools 三条分派分别断言；保留 smoke 原宿主，
   不把 smoke 的合法 powershell 调用误判为这四个入口的分派失败。
 
-- [ ] **3. 跑 RED。**
+- [x] **3. 跑 RED。**
 
 ```powershell
 go test -tags=e2e ./internal/e2e -run '^TestDevtools(ModuleBoundary|Routing|NestedProtoc|LintTargetsRoot|FailureStopsConsumers|ShellEntryRejection|ConsumerOwnership|SameHostDispatch|ConsumerRuntime)$' -count=1 -timeout=5m
@@ -543,7 +543,7 @@ go test -tags=e2e ./internal/e2e -run '^TestDevtools(ModuleBoundary|Routing|Nest
   各自失败于对应断言；不能以环境错误冒充 RED。Linux 复用 Task 1 Step 2 的固定禁网容器命令，
   将 -run 改为 `^TestDevtools(VerificationBash|ShellEntryRejection)$`，保持只编译拒绝测试文件。
 
-- [ ] **4. 建立新模块并整理根模块。** 新模块基本内容固定如下，require/sum 必须从 Step 1
+- [x] **4. 建立新模块并整理根模块。** 新模块基本内容固定如下，require/sum 必须从 Step 1
   的实际选中闭包生成并逐项对照，不在计划中臆造完整间接版本表。
 
 ```go
@@ -572,7 +572,7 @@ require (
   不借 tidy 升级、不 use latest、不生成 workspace、不引入跨模块 replace。
   根模块移除五个 tool 指令，保留 Goose；doubleclick 若仍出现，先报告真实引入链，不强删。
 
-- [ ] **5a. 同步入口支持与归属。** 三个 `.sh` 消费者替换为 Task 1 Step 4c 同型最小拒绝入口，
+- [x] **5a. 同步入口支持与归属。** 三个 `.sh` 消费者替换为 Task 1 Step 4c 同型最小拒绝入口，
   提示分别为 `check-tools: this release requires Windows and PowerShell 7.6.5.`、
   `generate: this release requires Windows and PowerShell 7.6.5.`、
   `verify-c11: this release requires Windows and PowerShell 7.6.5.`。移除旧执行体，不留回退分支。
@@ -582,7 +582,7 @@ require (
   internal 阶段脱敏输出、退出 1。C11 的 git 清单命令也必须在初始化之后。
   PowerShell C11 中 Get-C11BashExecutable 和 Bash smoke 调用保持，不删除或转换它们。
 
-- [ ] **5b. 同步 Windows 脚本调用。** generate/check-tools 的 `.ps1` 在任何工具前调用对应 verify-devtools；
+- [x] **5b. 同步 Windows 脚本调用。** generate/check-tools 的 `.ps1` 在任何工具前调用对应 verify-devtools；
   C11 在工具阶段前也调用验证入口，保持原 check-tools 900 秒、generate 600 秒外层预算。
   外层剩余时间不足时允许明确失败，不用改预算或跳过标记规避重复验证。
   Windows 消费者独立调用验证器的参数固定为：
@@ -620,7 +620,7 @@ Invoke-External -Stage 'generate: SQL' -FilePath 'go' -ArgumentList @('tool', "-
 local: ["go", "tool", "-modfile=tools/devtools/go.mod", "protoc-gen-go"]
 ```
 
-- [ ] **6. GREEN 与兼容性确认。** 重跑 Step 3 及 Task 1；运行下列真实现有脚本契约：
+- [x] **6. GREEN 与兼容性确认。** 重跑 Step 3 及 Task 1；运行下列真实现有脚本契约：
 
 ```powershell
 go test -tags=e2e ./internal/e2e -run '^(TestDevtools.*|TestVerifyC11.*Contract|TestVerifyC11Bash.*Reject.*|TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment|TestVerifyFakeToolsExerciseEveryPrivacyCanary|TestScriptCleanupExitStatusContracts|TestVerifyCommandContractRejectsLegacyMissingRound2Gates)$' -count=1 -timeout=10m
@@ -631,7 +631,7 @@ go test -tags=e2e ./internal/e2e -run '^(TestDevtools.*|TestVerifyC11.*Contract|
   命中上述选择器，执行后检查实际 RUN 清单，不能因漏选得到虚假的绿色结果。
   测根路径含空格、继承 GOFLAGS/-modfile 污染、缺工具锁文件、父任务取消和 Buf 子命令失败。
   对实际 argv/cwd/退出码做断言，保留既有隐私测试。确认 runner、smoke 和生产源码无差异。
-- [ ] **7. 原子提交所有模块及路由文件。**
+- [x] **7. 原子提交所有模块及路由文件。**
 
 ```text
 git add go.mod go.sum tools/devtools/go.mod tools/devtools/go.sum scripts/generate.ps1 scripts/generate.sh scripts/check-tools.ps1 scripts/check-tools.sh scripts/verify-c11.ps1 scripts/verify-c11.sh buf.gen.yaml internal/e2e/privacy_test.go internal/e2e/devtools_routing_test.go internal/e2e/devtools_bash_rejection_test.go
@@ -640,10 +640,12 @@ git commit -m "refactor(tooling): isolate development tools from C12 module veri
 
 ## Task 3: 真实验证、恢复手册与最终审查交接
 
+2026-09-28 执行证据：Task 2 已本地提交 a0ca189；根完整性退出0/875.905秒，公开工具验证在依赖阶段退出1/7.296秒，147项缓存缺目录（27项同时缺归档/哈希）。仅编译退出0/59.767秒，未执行测试。后续工具/生成/lint未运行。一次独立审查已完成，缓存验证/执行绑定 Important 尚待授权修复；恢复文档补齐固定工具链缓存前提，Minor及审查排除项留存。Task 3 不标完成、不运行 task-done；原安全、main及推送门禁不变。见[真实验证检查点](../../roadmap/2026-09-28-devtools-real-verification-checkpoint.md)。
+
 **Files:** README.md、docs/runbooks/repository-recovery.md、docs/roadmap/current-status.md，本计划证据区。
 **Interfaces:** 消费 Task 1/2 的公开入口；输出逐阶段真实结果，不修改代码来覆盖失败。
 
-- [ ] **1. 更新新电脑恢复说明。** 两个模块分别准备依赖（网络准备与离线验收明确分开），
+- [x] **1. 更新新电脑恢复说明。** 两个模块分别准备依赖（网络准备与离线验收明确分开），
   说明显式工具命令和裸 go tool 兼容性变化；固定版本，不加入防护排除项建议。
   先由用户准备 Microsoft 正式发布的 PowerShell 7.6.5。安装/下载属于单独环境准备，不在
   此计划离线执行步骤内自动完成；文档写清 5.1 不受支持、其他 7.x 也未纳入本次精确版本范围。

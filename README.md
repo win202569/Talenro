@@ -9,15 +9,21 @@ for public consumption.
 ## Getting started
 
 For a new computer, follow [repository recovery](docs/runbooks/repository-recovery.md).
-The current full repository test suite includes Windows-native C12 tests.
+Development-tool entrypoints require Windows and **PowerShell Core 7.6.5**.
+Windows PowerShell 5.1 and other PowerShell 7 versions are not supported by those
+entrypoints. The separate C12/smoke host requirements are unchanged.
 
 ```powershell
+pwsh.exe -NoProfile -Command '$PSVersionTable.PSVersion.ToString(); $PSVersionTable.PSEdition'
+$env:GOTOOLCHAIN='local'
 go version
-$env:GOOS='windows'; $env:GOARCH='amd64'; $env:CGO_ENABLED='0'
-$env:GOFLAGS=''; $env:GOWORK='off'; $env:GOENV='off'
-go mod download
-go test ./... -count=1 -p=1 -timeout=60m
 ```
+
+Expect `7.6.5`, `Core`, and Go `1.26.5`. Follow the recovery runbook to prepare
+both modules separately, then run the offline tool checks. The four development
+`.sh` entrypoints reject execution on every platform; Bash smoke is separate.
+Full ordinary/C11/C12 acceptance is currently blocked by the recorded security
+event. Do not run the full suite or weaken protection to bypass that gate.
 
 See [project status](docs/roadmap/current-status.md) for delivered features and
 remaining work. The C12 secure execution controller is part of the test

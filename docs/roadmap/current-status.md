@@ -1,4 +1,4 @@
-# Project status — 2026-09-08
+# Project status — updated 2026-09-28
 
 The original snapshot was checked against the implementation and plans at
 `2668b901`, followed by the repository-portability repair. This branch also
@@ -299,3 +299,31 @@ historical failure causes remain unproved. The review's excluded Task10/15/18,
 B03 provider/decoder, lost-fence identity, cross-process restart, hostile same-process
 sandboxing, removed fresh-cluster coverage, runner race forwarding and wholesale
 runner audit remain outside this delivery; none is claimed implemented or accepted.
+## 2026-09-28 development-tool isolation checkpoint
+
+Task 2 is committed locally as `a0ca18928f552752c6580929f9b6fff88cd8d58b` on
+`codex/c12-b01-task9-coordinator`; no push or merge is included. The root retains
+Goose/runtime dependencies, and five development tools use `tools/devtools`.
+Windows development entries require stable PowerShell Core 7.6.5; the four Bash
+tool entries reject all platforms. Existing Bash smoke requirements are retained.
+
+The final task-level Windows selector passed in 541.597s under the original10m
+budget (1031 PASS markers,0 FAIL,1 existing inapplicable Skip). Earlier Linux
+four-entry rejection passed0.916s. These are scoped implementation tests, not
+full ordinary/C11/C12 or production acceptance. Historical readiness timeout
+571.336s remains recorded; later successes do not establish its cause or cold/load
+stability. Eight package maps and52 protected files were unchanged.
+
+Task 3 root integrity passed (875.905s), but public tool verification failed at
+dependency presence (7.296s). The cache lacks 147 extracted modules; 27 also lack
+zip/ziphash. Tool versions, generation and real root lint were not run. Two-package
+compile-only passed (59.767s), with no tests executed. Independent review found an
+open Important verification/execution-cache binding gap; its missing-toolchain
+recovery instruction finding is documented, but fresh-machine execution is unverified.
+See the [real-verification checkpoint and exact cache inventory](2026-09-28-devtools-real-verification-checkpoint.md).
+No success is inferred from fake-tool routing tests. The13 physical
+gates, full ordinary/C11/C12 and I2/I3 remain OPEN/blocked by the existing security
+event. Docker is installed locally, but availability does not constitute physical
+acceptance. No Defender exception, quarantine restoration or bootstrap change was
+made. See the [current recovery runbook](../runbooks/repository-recovery.md) and
+[version-lock evidence](2026-09-27-devtools-version-lock-evidence.md).
