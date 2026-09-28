@@ -855,9 +855,11 @@ function Invoke-C11Main {
   }
 }
 
+$devtoolsExecutionEnvironment = $null
 try {
   . (Join-Path $PSScriptRoot 'private/devtools-process.ps1')
   Initialize-DevtoolsProcessOwnership
+  $devtoolsExecutionEnvironment = Initialize-DevtoolsExecutionEnvironment
   Invoke-C11Main
 } catch {
   $exitCode = 1
@@ -880,4 +882,6 @@ try {
   }
   [Console]::Error.WriteLine("${stage} failed with exit code ${exitCode}.")
   exit $exitCode
+} finally {
+  if ($null -ne $devtoolsExecutionEnvironment) { Restore-DevtoolsExecutionEnvironment -Saved $devtoolsExecutionEnvironment }
 }

@@ -1141,7 +1141,7 @@ func requirePowerShellContract(t *testing.T) {
 	command := exec.CommandContext(commandContext, powerShell, "-NoProfile", "-NonInteractive", "-File", script) //nolint:gosec // Fixed reviewed script path.
 	command.WaitDelay = 5 * time.Second
 	command.Dir = filepath.Dir(repoRoot)
-	command.Env = contractEnvironment(devtoolsFixtureEnv(map[string]string{"USERPROFILE": fixture.profile, "DEVTOOLS_ROUTE_LOG": fixture.log, "DEVTOOLS_EXPECTED_MODULE": filepath.Join(repoRoot, "tools/devtools/go.mod")}), fakeDirectory, logPath, projectPath)
+	command.Env = contractEnvironment(devtoolsFixtureEnv(map[string]string{"USERPROFILE": fixture.profile, "DEVTOOLS_ROUTE_LOG": fixture.log, "DEVTOOLS_ROUTE_BACKEND": fakeDirectory, "DEVTOOLS_EXPECTED_MODULE": filepath.Join(repoRoot, "tools/devtools/go.mod")}), fakeDirectory, logPath, projectPath)
 	outputCapture := newBoundedCommandCapture()
 	command.Stdout = outputCapture
 	command.Stderr = outputCapture

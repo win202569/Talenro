@@ -1,4 +1,42 @@
 # Private to standalone devtools entries. Loading only defines functions.
+function Restore-DevtoolsExecutionEnvironment {
+  param([hashtable]$Saved)
+  foreach ($item in @(Get-ChildItem Env: | Where-Object { $_.Name -match '^GO' })) {
+    Remove-Item -LiteralPath ('Env:' + $item.Name)
+  }
+  foreach ($key in $Saved.Go.Keys) {
+    [Environment]::SetEnvironmentVariable($key, $Saved.Go[$key], 'Process')
+  }
+  $env:PATH = $Saved.Path
+}
+
+function Initialize-DevtoolsExecutionEnvironment {
+  # The verifier's child restores its own environment. Bind its consumers too,
+  # including Go resolved by Buf's nested local plugin command.
+  if ($env:GOFLAGS -match '(^|\s)-(modfile|overlay)(=|\s|$)') { throw 'module override' }
+  $cache = Join-Path $env:USERPROFILE 'go/pkg/mod'
+  $bin = Join-Path $cache 'golang.org/toolchain@v0.0.1-go1.26.5.windows-amd64/bin'
+  if (-not [IO.File]::Exists((Join-Path $bin 'go.exe'))) { throw 'missing fixed toolchain' }
+  $saved = @{ Go = @{}; Path = $env:PATH }
+  foreach ($item in @(Get-ChildItem Env: | Where-Object { $_.Name -match '^GO' })) {
+    $saved.Go[$item.Name] = $item.Value
+  }
+  try {
+    foreach ($key in $saved.Go.Keys) { Remove-Item -LiteralPath ('Env:' + $key) }
+    $fixed = @{
+      GOWORK='off'; GOENV='off'; GOTOOLCHAIN='local'; GOPROXY='off'; GOSUMDB='off';
+      GOAUTH='off'; GOVCS='all:off'; GOFLAGS='-mod=readonly';
+      GOPATH=(Join-Path $env:USERPROFILE 'go'); GOMODCACHE=$cache
+    }
+    foreach ($key in $fixed.Keys) { [Environment]::SetEnvironmentVariable($key, $fixed[$key], 'Process') }
+    $env:PATH = $bin + [IO.Path]::PathSeparator + $saved.Path
+    return $saved
+  } catch {
+    Restore-DevtoolsExecutionEnvironment -Saved $saved
+    throw
+  }
+}
+
 function Initialize-DevtoolsProcessOwnership {
   # Keep this unnamed, non-inherited handle alive until the owning host exits.
   # PowerShell 7.6.5 compiles this definition in-process; public entries reject

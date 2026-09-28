@@ -97,9 +97,10 @@ func TestDevtoolsModuleBoundary(t *testing.T) {
 }
 
 type devtoolsRouteEvent struct {
-	Tool       string
-	Args       []string
-	Dir, Flags string
+	Tool                                                                string
+	Args                                                                []string
+	Dir, Flags                                                          string
+	Exe, Cache, GoPath, Proxy, SumDB, GoEnv, Work, Toolchain, Auth, VCS string
 }
 type devtoolsRouteFixture struct{ root, profile, bin, log, host string }
 
@@ -151,6 +152,9 @@ func newDevtoolsRouteFixture(t *testing.T) *devtoolsRouteFixture {
 	}
 	binary, err := os.ReadFile(pinned)
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(filepath.Dir(pinned), "gofmt.exe"), binary, 0700); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"go.exe", "git.exe", "docker.exe", "gofmt.exe", "pwsh.exe", "powershell.exe"} {
@@ -244,6 +248,79 @@ func TestDevtoolsRouting(t *testing.T) {
 				t.Error("missing actual verification/tool events")
 			}
 		})
+	}
+}
+
+// Removing consumer environment binding must expose the foreign cache and PATH
+// executable here, even though the real verifier independently uses its own cache.
+func TestDevtoolsConsumerCacheBinding(t *testing.T) {
+	for _, entry := range []string{"check-tools.ps1", "generate.ps1", "verify-c11.ps1"} {
+		t.Run(entry, func(t *testing.T) {
+			f := newDevtoolsRouteFixture(t)
+			foreign := filepath.Join(t.TempDir(), "unverified cache B")
+			code, out, events := f.run(t, entry, map[string]string{
+				"GOMODCACHE": foreign, "GOPATH": filepath.Join(foreign, "gopath"),
+				"GOPROXY": "https://untrusted.invalid", "GOSUMDB": "off",
+				"GOENV": filepath.Join(foreign, "goenv"), "GOWORK": filepath.Join(foreign, "go.work"),
+				"GOTOOLCHAIN": "auto", "GOFLAGS": "-tags=cache_canary", "GOAUTH": "netrc", "GOVCS": "*:all",
+			})
+			want := 0
+			if entry == "verify-c11.ps1" {
+				want = 47
+			}
+			if code != want {
+				t.Fatalf("consumer exit %d want %d: %s", code, want, out)
+			}
+			tools, plugins := 0, 0
+			for _, e := range events {
+				if e.Tool != "go" {
+					continue
+				}
+				if len(e.Args) == 0 || e.Args[0] != "tool" {
+					continue
+				}
+				tools++
+				if slices.Contains(e.Args, "protoc-gen-go") {
+					plugins++
+				}
+				cache := filepath.Join(f.profile, "go/pkg/mod")
+				pinned := filepath.Join(cache, "golang.org/toolchain@v0.0.1-go1.26.5.windows-amd64/bin/go.exe")
+				if !strings.EqualFold(e.Cache, cache) || !strings.EqualFold(e.GoPath, filepath.Join(f.profile, "go")) || !strings.EqualFold(e.Exe, pinned) {
+					t.Errorf("verified cache/toolchain not bound to execution: %+v", e)
+				}
+				if e.Proxy != "off" || e.SumDB != "off" || e.GoEnv != "off" || e.Work != "off" || e.Toolchain != "local" || e.Auth != "off" || e.VCS != "all:off" || e.Flags != "-mod=readonly" {
+					t.Errorf("tool inherited unverified configuration: %+v", e)
+				}
+			}
+			if tools == 0 || (entry != "check-tools.ps1" && plugins == 0) {
+				t.Fatal("missing tool/plugin execution")
+			}
+		})
+	}
+}
+
+func TestDevtoolsConsumerEnvironmentRestored(t *testing.T) {
+	f := newDevtoolsRouteFixture(t)
+	entry := filepath.Join(f.root, "scripts", "restore-check.ps1")
+	body := `
+$ErrorActionPreference='Stop'
+function Snapshot { return ((Get-ChildItem Env: | Where-Object { $_.Name -match '^GO' -or $_.Name -eq 'PATH' } | Sort-Object Name | ForEach-Object { $_.Name+'='+$_.Value }) -join "\n") }
+$before=Snapshot
+& (Join-Path $PSScriptRoot 'check-tools.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'consumer failed' }
+if ($before -cne (Snapshot)) { throw 'consumer changed caller environment' }
+. (Join-Path $PSScriptRoot 'private/devtools-process.ps1')
+$saved=Initialize-DevtoolsExecutionEnvironment
+try { throw 'simulated caller failure' } catch {} finally { Restore-DevtoolsExecutionEnvironment -Saved $saved }
+if ($before -cne (Snapshot)) { throw 'failure path changed caller environment' }
+Write-Output 'environment restored'
+`
+	if err := os.WriteFile(entry, []byte(body), 0600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := f.run(t, "restore-check.ps1", map[string]string{"GOMODCACHE": filepath.Join(t.TempDir(), "original cache"), "GOFLAGS": "-tags=original", "GOPROXY": "https://untrusted.invalid"})
+	if code != 0 || !strings.Contains(out, "environment restored") {
+		t.Fatalf("environment restoration failed %d: %s", code, out)
 	}
 }
 
@@ -656,17 +733,32 @@ func verifyDevtoolsRootOnlyPackage(t *testing.T, dir string) error {
 // The real scripts and private Job helper run unchanged. This executable doubles
 // only external Go/tool work and reports the actual process argument boundary.
 const devtoolsRoutingSource = `package main
-import("encoding/json";"fmt";"os";"os/exec";"path/filepath";"strings";"time")
+import("encoding/json";"fmt";"os";"os/exec";"path/filepath";"strings";"syscall";"time")
+func batchBackend(name string,args []string) {
+ dir:=os.Getenv("DEVTOOLS_ROUTE_BACKEND");if dir=="" {return}
+ // Match the original C11 batch boundary: quote shell metacharacters as well
+ // as spaces. Default native quoting alone loses the fuzz selector's caret.
+ parts:=append([]string{filepath.Join(dir,name+".cmd")},args...)
+ for i,v:=range parts {if strings.ContainsAny(v,"\r\n\"%!" ){os.Exit(99)};if i==0||v==""||strings.ContainsAny(v," \t&|<>()^"){parts[i]="\""+v+"\""}}
+ interpreter:=filepath.Join(os.Getenv("SystemRoot"),"System32","cmd.exe")
+ child:=exec.Command(interpreter)
+ child.SysProcAttr=&syscall.SysProcAttr{CmdLine:"\""+interpreter+"\" /d /q /v:off /s /c \""+strings.Join(parts," ")+"\""}
+ child.Stdout=os.Stdout;child.Stderr=os.Stderr;child.Env=os.Environ()
+ if err:=child.Run();err!=nil {if exit,ok:=err.(*exec.ExitError);ok {os.Exit(exit.ExitCode())};os.Exit(99)}
+ os.Exit(0)
+}
 func main(){
  if len(os.Args)>1&&os.Args[1]=="owned-child" {time.Sleep(60*time.Second);return}
  name:=strings.TrimSuffix(strings.ToLower(filepath.Base(os.Args[0])),".exe");args:=os.Args[1:];cwd,_:=os.Getwd()
- event:=struct{Tool string;Args []string;Dir,Flags string}{name,args,cwd,os.Getenv("GOFLAGS")}
+ exe,_:=os.Executable()
+ event:=struct{Tool string;Args []string;Dir,Flags string;Exe,Cache,GoPath,Proxy,SumDB,GoEnv,Work,Toolchain,Auth,VCS string}{name,args,cwd,os.Getenv("GOFLAGS"),exe,os.Getenv("GOMODCACHE"),os.Getenv("GOPATH"),os.Getenv("GOPROXY"),os.Getenv("GOSUMDB"),os.Getenv("GOENV"),os.Getenv("GOWORK"),os.Getenv("GOTOOLCHAIN"),os.Getenv("GOAUTH"),os.Getenv("GOVCS")}
  f,err:=os.OpenFile(os.Getenv("DEVTOOLS_ROUTE_LOG"),os.O_CREATE|os.O_APPEND|os.O_WRONLY,0600);if err!=nil {os.Exit(90)};_ = json.NewEncoder(f).Encode(event);f.Close()
  if name=="pwsh"||name=="powershell"||name=="docker" {os.Exit(91)}
- if name!="go" {return}
+ if name!="go" {if name=="gofmt" {batchBackend(name,args)};return}
  if len(args)==1&&args[0]=="version" {fmt.Println("go version go1.26.5 windows/amd64");return}
  if len(args)>0&&args[0]=="list" {return}
  if len(args)==2&&args[0]=="mod"&&args[1]=="verify" {fmt.Println("all modules verified");return}
+ batchBackend(name,args)
  if len(args)<2||args[0]!="tool" {return}
  if marker:=os.Getenv("DEVTOOLS_ROUTE_HOLD");marker!="" {child:=exec.Command(os.Args[0],"owned-child");if child.Start()!=nil {os.Exit(98)};_ = os.WriteFile(marker,[]byte(fmt.Sprintf("%d %d",os.Getpid(),child.Process.Pid)),0600);time.Sleep(60*time.Second);return}
  pos:=1;if strings.HasPrefix(args[pos],"-modfile="){pos++};if pos>=len(args){os.Exit(92)};tool:=args[pos];tail:=args[pos+1:]
@@ -676,7 +768,7 @@ func main(){
  if tool=="buf"&&len(tail)>0&&tail[0]=="generate" {
   data,err:=os.ReadFile("buf.gen.yaml");if err!=nil {os.Exit(93)}
   for _,line:=range strings.Split(string(data),"\n") {if i:=strings.Index(line,"local:");i>=0 {var command []string;if json.Unmarshal([]byte(strings.TrimSpace(line[i+6:])),&command)!=nil||len(command)<2||command[0]!="go" {os.Exit(94)}
-   child:=exec.Command(os.Args[0],command[1:]...);child.Env=os.Environ();child.Stdout=os.Stdout;child.Stderr=os.Stderr;if err:=child.Run();err!=nil {os.Exit(95)};return}}
+   child:=exec.Command(command[0],command[1:]...);child.Env=os.Environ();child.Stdout=os.Stdout;child.Stderr=os.Stderr;if err:=child.Run();err!=nil {os.Exit(95)};return}}
   os.Exit(96)
  }
 }
