@@ -64,12 +64,13 @@ Keep the committed lockfiles unchanged; do not substitute `latest`, add a
 workspace/replace, or disable checksum verification. Missing dependencies during
 offline checks remain failures requiring separate preparation approval.
 
-Current real verification is blocked by incomplete tool cache, and independent
-review found that consumer execution does not yet enforce the verifier's fixed
-cache/environment. These preparation instructions do not repair that product
-boundary. Do not treat the following commands as accepted recovery until the
-[open review finding and real verification](../roadmap/2026-09-28-devtools-real-verification-checkpoint.md)
-are resolved; inherited cache/proxy/workspace overrides are not supported.
+Consumer execution now enforces the verifier's fixed cache/offline environment.
+Real verification is still blocked: Go can omit Dir metadata when a full-module
+checksum is absent from the project's go.sum, even when the cache directory exists.
+Do not rerun preparation or change lockfiles merely to bypass this diagnosis.
+These preparation instructions are not accepted fresh-machine recovery until the
+[remaining verifier contract issue](../roadmap/2026-09-28-devtools-cache-binding-fix.md)
+is resolved; inherited cache/proxy/workspace overrides are not supported.
 
 ```powershell
 $env:GOPROXY='off'; $env:GOSUMDB='off'; $env:GOFLAGS='-mod=readonly'

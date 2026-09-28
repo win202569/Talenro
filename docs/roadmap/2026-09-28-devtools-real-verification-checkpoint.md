@@ -1,5 +1,12 @@
 # 2026-09-28 Task 3 real verification and review checkpoint
 
+**Historical checkpoint; directory diagnosis corrected:** after approved cache
+preparation, all 147 physical directories exist, but readonly Go metadata still
+omits their `Dir` because full-module checksums are absent from the tools go.sum.
+The original inference that empty `Dir` proves a missing directory was too strong.
+The consumer-binding repair, complete regression pass and remaining verifier
+blocker are recorded in the [latest follow-up](2026-09-28-devtools-cache-binding-fix.md).
+
 Status: **not accepted; no push or merge**. Implementation commit:
 `a0ca18928f552752c6580929f9b6fff88cd8d58b`, branch
 `codex/c12-b01-task9-coordinator`. Commands ran from that worktree root with

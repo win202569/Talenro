@@ -5,6 +5,44 @@ The user explicitly approved the Important cache-binding repair and its exact
 147-entry cache-preparation list. No additional dependencies, push, merge or
 restoration of the existing security gate is included.
 
+Implementation and regression evidence are committed as
+`aed4b10d13295fade38dd1f5c7ccd089aff46706`. No push or merge.
+
+## Latest real-verification blocker and correction
+
+After preparation and the fix commit, the public verifier ran from
+2026-09-28T13:34:05.1304666Z to 13:34:06.4805805Z, exit 1 / 1.352s,
+still reporting `verify-devtools: dependencies failed with exit code 1.`
+No check-tools, generation or lint followed.
+
+A fresh strict offline metadata diagnostic exited 0 / 0.182s. All 147 listed
+modules still had an empty `Dir`, but direct inspection of the independently
+derived cache paths found **zero missing directories**. All archives and ziphash
+files were present. The tools `go.sum` lacks the full-module checksum entries for
+those same 147 module/version pairs (as distinct from `/go.mod` checksums).
+
+The fixed Go 1.26.5 implementation explains the result:
+`src/cmd/go/internal/modload/build.go`, `completeFromModCache`, first evaluates
+`checksumOk("")` using `modfetch.HaveSum`; only then does it call `DownloadDir`
+and populate `Dir`. In readonly module-list mode, an empty directory field is
+therefore **not proof of an absent physical directory**.
+
+Correction to the prior checkpoint: its 147-directory classification was inferred
+from empty metadata, not independent physical-path checks. That inference was
+too strong; the 27 missing-archive observations remain independently recorded.
+Preparation successfully checked all 147 returned physical directories, but the
+120 offline preparations cannot be described as proof that 120 directories had
+previously been missing. There is no evidence of subsequent cache deletion.
+
+The remaining issue is separate from consumer cache binding. Do not redownload
+the same list, edit lockfiles, remove directory/archive guards, or call integrity
+successful. A follow-up verifier repair needs explicit approval: preserve the
+selected module/version list and four lockfiles, obtain cache identity without
+treating an empty all-module `Dir` as physical absence (for example, a bounded
+offline exact-version metadata query), and retain directory, archive, ziphash,
+tamper, redaction, deadline and whole-tree-cleanup checks with new RED/GREEN.
+No such verifier change was made in this checkpoint. Task 3 remains incomplete.
+
 ## Implementation and observed regression
 
 The three PowerShell consumers now select the verifier's fixed Go toolchain
@@ -57,7 +95,7 @@ All 147 returned identities were compared against the approved committed list.
 
 | Preparation mode | Count | Scope |
 | --- | --- | --- |
-| Existing archives, offline | 120 | Extract the selected version; no network fallback |
+| Existing archives, offline | 120 | Ensure the selected version is extracted; no network fallback |
 | Official proxy and checksum service | 27 | Prepare only the listed missing version |
 
 Each result supplied the exact module/version, Sum, GoModSum and an existing

@@ -315,12 +315,16 @@ full ordinary/C11/C12 or production acceptance. Historical readiness timeout
 stability. Eight package maps and52 protected files were unchanged.
 
 Task 3 root integrity passed (875.905s), but public tool verification failed at
-dependency presence (7.296s). The cache lacks 147 extracted modules; 27 also lack
-zip/ziphash. Tool versions, generation and real root lint were not run. Two-package
-compile-only passed (59.767s), with no tests executed. Independent review found an
-open Important verification/execution-cache binding gap; its missing-toolchain
-recovery instruction finding is documented, but fresh-machine execution is unverified.
-See the [real-verification checkpoint and exact cache inventory](2026-09-28-devtools-real-verification-checkpoint.md).
+dependency presence. Consumer cache binding is now repaired in local commit
+`aed4b10d13295fade38dd1f5c7ccd089aff46706`; the full original-env devtool selector
+passed379.127s,1036 PASS markers/0 FAIL/1 inapplicable Skip. Exact147 cache preparation
+completed62.288s without changing locks. A subsequent real verifier still failed
+(1.352s): all147 physical directories exist, but Go omits their Dir metadata when
+the tools go.sum lacks their full-module checksums. The previous missing-directory
+inference was incorrect; no verifier guard or lockfile was changed to bypass it.
+Tool versions, generation and real root lint remain unrun. Two-package compile-only
+passed59.767s earlier, with no tests executed. Fresh-machine recovery is unverified.
+See the [latest evidence and remaining verifier blocker](2026-09-28-devtools-cache-binding-fix.md).
 No success is inferred from fake-tool routing tests. The13 physical
 gates, full ordinary/C11/C12 and I2/I3 remain OPEN/blocked by the existing security
 event. Docker is installed locally, but availability does not constitute physical
