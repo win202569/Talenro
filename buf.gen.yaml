@@ -1,7 +1,7 @@
 version: v2
 clean: true
 plugins:
-  - local: ["go", "tool", "protoc-gen-go"]
+  - local: ["go", "tool", "-modfile=tools/devtools/go.mod", "protoc-gen-go"]
     out: gen/go
     opt:
       - paths=source_relative

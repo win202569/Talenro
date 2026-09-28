@@ -1,3 +1,12 @@
+$devtoolsRuntime = $PSVersionTable
+if ($devtoolsRuntime.PSEdition -ne 'Core' -or
+    [string]$devtoolsRuntime.PSVersion -cne '7.6.5' -or
+    $devtoolsRuntime.ContainsKey('PSVersionPreReleaseLabel') -or
+    [Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
+  [Console]::Error.WriteLine('verify-c11: PowerShell 7.6.5 required.')
+  exit 1
+}
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -699,6 +708,15 @@ function Invoke-C11E2ETests {
 function Invoke-C11Main {
   $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
   $powerShell = (Get-Process -Id $PID).Path
+  $devtoolsMod = Join-Path $repoRoot 'tools/devtools/go.mod'
+  $devtoolsPowerShell = [Environment]::ProcessPath
+  if ([string]::IsNullOrWhiteSpace($devtoolsPowerShell) -or
+      -not [IO.Path]::IsPathFullyQualified($devtoolsPowerShell) -or
+      [IO.Path]::GetFileName($devtoolsPowerShell) -ine 'pwsh.exe' -or
+      -not [IO.File]::Exists($devtoolsPowerShell)) {
+    throw 'devtools host resolution failed'
+  }
+  $verifyArguments = @('-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'verify-devtools.ps1'))
   $migrationDirectory = Join-Path $repoRoot 'db\migrations'
   $primaryFailure = $null
   $cleanupFailure = $null
@@ -714,13 +732,14 @@ function Invoke-C11Main {
     $locationPushed = $true
 
     try {
-      Invoke-C11Stage -Stage 'check tools' -FilePath $powerShell -ArgumentList @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'check-tools.ps1')
+      Invoke-C11Stage -Stage 'devtools verification' -FilePath $devtoolsPowerShell -ArgumentList $verifyArguments -TimeoutSeconds 900
+      Invoke-C11Stage -Stage 'check tools' -FilePath $devtoolsPowerShell -ArgumentList @(
+        '-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'check-tools.ps1')
       ) -TimeoutSeconds 900
 
       $generatedBefore = Get-C11GeneratedSnapshot -RepoRoot $repoRoot
-      Invoke-C11Stage -Stage 'generate' -FilePath $powerShell -ArgumentList @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'generate.ps1')
+      Invoke-C11Stage -Stage 'generate' -FilePath $devtoolsPowerShell -ArgumentList @(
+        '-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'generate.ps1')
       ) -TimeoutSeconds 600
       $generatedAfter = Get-C11GeneratedSnapshot -RepoRoot $repoRoot
       Write-Output 'verify-c11: generated diff'
@@ -747,7 +766,7 @@ function Invoke-C11Main {
         [System.Environment]::SetEnvironmentVariable('CGO_ENABLED', '0', 'Process')
       }
       Invoke-C11Stage -Stage 'go vet' -FilePath 'go' -ArgumentList @('vet', './...')
-      Invoke-C11Stage -Stage 'golangci-lint' -FilePath 'go' -ArgumentList @('tool', 'golangci-lint', 'run', './...')
+      Invoke-C11Stage -Stage 'golangci-lint' -FilePath 'go' -ArgumentList @('tool', "-modfile=$devtoolsMod", 'golangci-lint', 'run', './...')
 
       $runtime = Initialize-C11Dependencies -ComposeOverride $composeOverride
       Set-C11RuntimeEnvironment -Runtime $runtime
@@ -837,6 +856,8 @@ function Invoke-C11Main {
 }
 
 try {
+  . (Join-Path $PSScriptRoot 'private/devtools-process.ps1')
+  Initialize-DevtoolsProcessOwnership
   Invoke-C11Main
 } catch {
   $exitCode = 1

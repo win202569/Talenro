@@ -1,3 +1,12 @@
+$devtoolsRuntime = $PSVersionTable
+if ($devtoolsRuntime.PSEdition -ne 'Core' -or
+    [string]$devtoolsRuntime.PSVersion -cne '7.6.5' -or
+    $devtoolsRuntime.ContainsKey('PSVersionPreReleaseLabel') -or
+    [Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
+  [Console]::Error.WriteLine('check-tools: PowerShell 7.6.5 required.')
+  exit 1
+}
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -31,7 +40,13 @@ function Invoke-ToolVersion {
   $ErrorActionPreference = 'Continue'
   try {
     $global:LASTEXITCODE = 0
-    $output = @(& $commands[0].Source tool $Tool @Arguments 2>&1 | ForEach-Object { $_.ToString() })
+    $toolArguments = @('tool')
+    if ($Tool -ne 'goose') {
+      $toolArguments += "-modfile=$script:devtoolsMod"
+    }
+    $toolArguments += $Tool
+    $toolArguments += $Arguments
+    $output = @(& $commands[0].Source @toolArguments 2>&1 | ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
   } finally {
     $ErrorActionPreference = $previousErrorAction
@@ -43,8 +58,32 @@ function Invoke-ToolVersion {
   return $output
 }
 
+function Invoke-DevtoolsVerification {
+  $devtoolsPowerShell = [Environment]::ProcessPath
+  if ([string]::IsNullOrWhiteSpace($devtoolsPowerShell) -or
+      -not [IO.Path]::IsPathFullyQualified($devtoolsPowerShell) -or
+      [IO.Path]::GetFileName($devtoolsPowerShell) -ine 'pwsh.exe' -or
+      -not [IO.File]::Exists($devtoolsPowerShell)) {
+    throw 'devtools host resolution failed'
+  }
+  $verifyArguments = @('-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'verify-devtools.ps1'))
+  $previousErrorAction = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $global:LASTEXITCODE = 0
+    $null = @(& $devtoolsPowerShell @verifyArguments 2>&1 | ForEach-Object { $_.ToString() })
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorAction
+  }
+  if ($exitCode -ne 0) {
+    Stop-Script -ExitCode $exitCode -Stage 'check-tools: devtools verification'
+  }
+}
+
 function Invoke-Main {
   $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+  $script:devtoolsMod = Join-Path $repoRoot 'tools/devtools/go.mod'
   $checks = @(
     [pscustomobject]@{ Tool = 'buf'; Arguments = @('--version'); Pattern = '^1\.72\.0$' }
     [pscustomobject]@{ Tool = 'protoc-gen-go'; Arguments = @('--version'); Pattern = '^protoc-gen-go v1\.36\.11$' }
@@ -56,6 +95,7 @@ function Invoke-Main {
 
   Push-Location -LiteralPath $repoRoot
   try {
+    Invoke-DevtoolsVerification
     foreach ($check in $checks) {
       $lines = @(Invoke-ToolVersion -Tool $check.Tool -Arguments $check.Arguments)
       if ($check.Tool -eq 'protoc-gen-go') {
@@ -74,6 +114,8 @@ function Invoke-Main {
 }
 
 try {
+  . (Join-Path $PSScriptRoot 'private/devtools-process.ps1')
+  Initialize-DevtoolsProcessOwnership
   Invoke-Main
 } catch {
   $exitCode = 1

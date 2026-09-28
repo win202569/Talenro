@@ -14,14 +14,24 @@
 
 **Latest approved revision:** `docs/superpowers/specs/2026-09-27-c12-devtools-windows-only-design.md`（用户已书面确认；平台支持与测试迁移冲突以此为准）。
 
-**Revision status:** 用户已确认本次 Windows-only 计划修订；保留 Native inline。任务 1 已完成专项与本地提交，Windows 收尾复验 49 PASS / 0 FAIL / 1 不适用 Skip，Linux 拒绝 10 PASS。任务 2 停在离线版本基线（207 项模块查询缺失），尚未改模块和消费者；任务 3 未开始。历史 Linux 14 PASS / 4 FAIL 不变，缩减平台不是旧缺陷修复或整体验收通过。详见 `docs/roadmap/2026-09-27-devtools-module-baseline-blocker.md`。
+**Approved lock-version revision:** `docs/superpowers/specs/2026-09-27-c12-devtools-version-lock-revision-design.md`（用户已书面确认；仅锁版本差异处理以此为准）。
+
+**Approved four-tools revision:** `docs/superpowers/specs/2026-09-28-c12-devtools-four-graph-exceptions-design.md`（用户已书面确认；仅四项 tools 图级候选条款优先）。
+
+**Approved root28 revision:** `docs/superpowers/specs/2026-09-28-c12-devtools-root28-graph-exceptions-design.md`（用户已书面确认；仅新增 root 28 条件候选和相应上限优先）。
+
+**本次计划审批状态：已确认。** 用户随后以“是”同时确认修订计划和 R3c-2 的 27 个精确版本准备范围；2026-09-28 已完成该范围准备，校验记录见版本证据文档。原 root 三项/tools 四项准备已完成，不重复。保留 Native inline，安全和推送/合并门禁不变。
+
+**Revision status:** 用户已确认本次 Windows-only 计划修订；保留 Native inline。任务 1 已完成专项与本地提交，Windows 收尾复验 49 PASS / 0 FAIL / 1 不适用 Skip，Linux 拒绝 10 PASS。经授权准备依赖后，任务 2 已取得迁移前基线，模块及消费者实现处于未提交工作树；路由专项和 Linux 四入口拒绝已通过，但完整模块图存在未接受的版本差异，任务 2 尚未完成，任务 3 未开始。历史 Linux 14 PASS / 4 FAIL 不变。最新见 `docs/roadmap/2026-09-27-devtools-task2-checkpoint.md`；原 207 项阻塞记录保留历史。
 
 ## Global Constraints
 
 - 当前工作目录为既有 `codex/c12-b01-task9-coordinator` worktree，基线文档提交 `ff302750`；不创建第二个 worktree，不切换 main。
 - 新模块 `talenro.local/devtools`；不建立 go.work，不添加两模块间 require/replace。
 - Buf 1.72.0、protoc-gen-go 1.36.11、oapi-codegen 2.8.0、sqlc 1.31.1、golangci-lint 2.12.2；Goose 3.27.1 留在根模块。
-- 不升级或隐式降级保留的选中版本；无法保留的差异先报告，不自行接受。
+- Required 保留原 32 个优先值和 retained 义务：root 28/tools 4 必须存在，只允许原值或各自精确条件候选。新增 root 28 清单完全按最新设计第 3 节；独立字面量锁定，禁止现场快照生成期望。
+- 原 root 三候选仍限定 github.com/chzyer/readline v1.5.1、github.com/ianlancetaylor/demangle v0.0.0-20250417193237-f615e6bd150b、go.opentelemetry.io/otel/metric/x v0.66.0，自然消失不引入；新增 root 28 后总上限 root 31/tools 4。无 latest、范围、新 replace/exclude 或清单外候选。
+- tools 四候选仅为 golang.org/x/time v0.11.0、modernc.org/mathutil v1.6.0、modernc.org/sortutil v1.2.0、modernc.org/strutil v1.2.0；对应原值 v0.14.0/v1.7.1/v1.2.1/v1.2.1 仍优先。四节点不可缺失，不能用于 root；无第五项 tools 例外。root/Goose mathutil v1.7.1 不变。
 - 不关闭防护、不添加排除项、不删除共享模块缓存或第三方 testdata。
 - 新工具验证独立默认 900 秒；既有 C11 外层超时保持，嵌套可更早失败，不扩展外层预算。
 - C12 原准备预算及各项 5m 测试预算、候选树、模块图、进程、清理保护一律不改。
@@ -43,7 +53,7 @@
 1. 缓存完全缺失时 Go mod verify 可能成功：Task 1 必须先证明依赖齐备且离线缺失失败。
 2. 路径含空格、错误/预发布 PowerShell、任意平台 Bash 误调用及 PATH 伪解释器：Task 1/2 验证无工作拒绝、同宿主分派及 Buf 参数边界，不遗漏保留的 Bash smoke。
 3. 工具构建使用备用模块，lint 子进程误用工具模块：Task 2 用根模块专属包验证分析对象。
-4. 拆分触发间接版本降低或生成差异：Task 2 锁定迁移前选中版本，Task 3 真实生成比较。
+4. 拆分触发间接版本降低、图裁剪掩盖新增/删除、例外跨模块误用、进入实际包、伪造证据或重复包：Task 2 R2/R6 用缺失/额外/错误归属/错误版本/错误记录、实际包用途和唯一证据绑定反例及完整图核对；Task 3 真实生成比较。不得用 Windows 包集合相同替代全图规则。
 5. 子进程自然退出与超时竞争、嵌套 Job、外层提前终止及脱敏：Task 1/2 验证整个 PowerShell 入口的自有进程退出、外部 canary 存活及初始化失败关闭。
 
 ## 文件职责与顺序
@@ -61,6 +71,10 @@
 | scripts/generate.ps1/.sh、scripts/check-tools.ps1/.sh、scripts/verify-c11.ps1/.sh | Task 2，入口验证及显式工具分派 |
 | buf.gen.yaml | Task 2，protoc-gen-go 嵌套分派 |
 | internal/e2e/privacy_test.go；internal/e2e/devtools_routing_test.go（新增，e2e tag） | Task 2，脚本契约、模块边界、版本和调用对象 |
+| internal/e2e/devtools_version_lock_test.go（新增，e2e tag） | Task 2 R2/R6，标准库实现的版本策略比较与真实完整模块查询；不新增生产入口 |
+| internal/e2e/devtools_version_evidence_test.go（已有未提交，e2e tag） | Task 2 R2/R6，证据解析绑定、owner 隔离和包用途拒绝及纯数据测试 |
+| internal/e2e/testdata/devtools-version-lock/baseline.json、policy.json（新增） | Task 2 R1/R2，可提交的脱敏不可变基线、精确目标/例外和经审核归属决策 |
+| docs/roadmap/2026-09-27-devtools-version-lock-evidence.md（新增） | Task 2 R1–R8，逐项引入链、恢复/例外必要性、证据哈希、查询结果和未验收事项 |
 | README.md、docs/runbooks/repository-recovery.md、docs/roadmap/current-status.md | Task 3，恢复步骤、兼容性、实际验收记录 |
 
 Task 1 不接入公开调用链，允许根目录尚无工具模块时独立入口明确失败。
@@ -318,17 +332,143 @@ git commit -m "feat(tooling): add fail-closed offline development tool verificat
   通过当前已验证宿主的绝对路径启动独立 pwsh.exe 子进程，不使用 `& <verify-devtools.ps1>` 在同一进程运行第二次初始化。
   `.sh` 仅复用 Task 1 的拒绝合同，不消费工具模块或参与正向路由。
 
-- [ ] **1. 记录不可变版本基线。** 在修改前用固定 Go 读取 `go mod graph`、模块选中版本及普通、
+### 当前接续点与锁版本修订步骤
+
+Task 1 已完成，不能为制造 RED 回退它。Task 2 的基线、脚本实现及原专项已存在：256 PASS / 0 FAIL / 1 不适用 Skip、577.969 秒；Linux 50 PASS、0.960 秒。这是历史证据，不勾选版本迁移完成。
+R1 基线已归档；R2 新纯规则历史 76 PASS（含顶层）/0 FAIL，但真实 Lock 接线未完成。R3a/root 三项和 R3b/tools 四项已准备完成。tools 严格模块/图查询已成功；root cel pin 被 tidy 删除，未重复；root 28 why 成功，严格版本批次因缓存缺失失败。接续核对 R1 后执行新版 R2、获准的 R3c、R4–R8；不重建模块/基线，不重做 Task 1，不将历史绿色当验收。
+
+**接口与文件（均为测试/证据，不供生产脚本调用）：**
+- 在既有 `internal/e2e/devtools_version_lock_test.go` 中保留 `devtoolsVersionRecord`、`devtoolsVersionPolicy`、`compareDevtoolsVersions(snapshot devtoolsVersionSnapshot, policy devtoolsVersionPolicy) []string`、`readDevtoolsVersionSnapshot(t *testing.T, owner string) devtoolsVersionSnapshot`。Owner 仅 root/tools；Error 在过滤 main/go/toolchain 虚拟节点前检查。
+- `Required` 仍保存原 32 优先值；root 28/tools 4 必须存在且 retained，取原值或满足证据的本归属候选。`Exceptions` 精确为 root 31/tools 4。`Membership` 人工审阅，`Evidence` 为 owner/path → ID。只修改 policy.json，不改 schema 1 或 baseline.json 的 666 模块、八组映射、54 原哈希。
+- 新增 `devtoolsPackageRecord{ImportPath string; Module *devtoolsVersionRecord; Incomplete bool; Error json.RawMessage; DepsErrors []json.RawMessage}`，`devtoolsVersionSnapshot` 增加 `Packages map[string][]devtoolsPackageRecord`。tools 必须有 buf/protoc/oapi/sqlc/lint 五个键及每组完整非空查询结果，root 有 root/integration/goose 三组。缺键、空结果、重复 ImportPath、Error/Incomplete/DepsErrors 均失败；合成正向 fixture 使用至少一个无关标准库包，不能用空切片冒充成功查询。
+- 在 `internal/e2e/devtools_version_evidence_test.go` 保留 `compareDevtoolsPackageUse(snapshot devtoolsVersionSnapshot, policy devtoolsVersionPolicy) []string` 及已有包/证据类型和函数；新增严格读取 `readDevtoolsPackageSnapshot(t *testing.T, phase string) []devtoolsPackageRecord` 到版本 Lock 测试文件。用途规则：root 三组禁入新增 28 路径，tools 五组禁入原四路径，均不论原值或候选。其他归属的合法包不误拒绝。R6 比较完整映射；查询固定环境/90 秒。
+- 新增 `devtoolsEvidenceRecord{ID, Owner, Path, Version, Kind, Sum, GoModSum string}`；`parseDevtoolsEvidence(report []byte) ([]devtoolsEvidenceRecord, error)` 只解析证据文档逐行 `<!-- devtools-evidence {JSON} -->` 标记，JSON 使用上述字段名。拒绝格式错误、未知字段、重复 ID；Kind 仅 exception/removal。exception 绑定实际选中版本、非空 Sum/GoModSum；removal 绑定原基线版本。记录后的人类可读段落载明来源链/审核结论，机器标记不替代内容审查。
+- 新增 `validateDevtoolsEvidence(snapshot devtoolsVersionSnapshot, policy devtoolsVersionPolicy, records []devtoolsEvidenceRecord) []string`：对实际使用例外和 removed 条目，检查 ID 非空、唯一、存在且 owner/path/version/kind 全匹配，错误则拒绝。`TestDevtoolsVersionLock` 必须同时通过版本比较、证据验证、包用途与原包基线比较，不能只调用版本比较器宣称条件例外合格。
+- 测试内独立字面量保护原 Required 32 和 Exceptions 35（root 31/tools 4）；新增 `const devtoolsRootGraphCandidates` 逐行保存最新设计第 3 节的 `root path candidate` 28 三元组，再与原七项组成 `devtoolsAllowedVersions`。不得取 policy 或现场结果作期望。只用标准库，证据写既有 roadmap evidence 文件。
+
+- [ ] **R1. 核对已归档基线，不重建。** 核验 baseline.json 的 666 条模块、八组 516/523/656/858/137/279/575/1187 个包和 54 个原哈希；对照既有成功原始记录与恢复前四锁哈希，记录新的接续 HEAD 和四锁哈希，不覆盖原记录。
+  Expected：基线身份/版本和原文件哈希不变，无本机绝对路径或凭据；历史归档不是本次真实验收。
+
+- [ ] **R2a. 扩展根 28 的 RED。** 在 `TestDevtoolsVersionPolicy/root-28-candidates` 用独立 28 字面清单逐项测试原值/精确候选正例、错误版本、移用于 tools、目标缺失/removed、未审核归属、缺证据反例；保留原七项及 35 回放。`TestDevtoolsVersionEvidence/root-28-bindings` 逐项覆盖正确绑定、错误 owner/path/version/kind、缺 ID/校验和；增加标记大小写错误字段、重复 JSON 字段、未知字段、尾随 JSON、重复 ID 拒绝，沿用精确字段名合同。`TestDevtoolsVersionPackageUse/root-28-phases` 对三组 × 28 路径 × 原/候选版本逐一拒绝；tools 使用本表路径、root 使用 mathutil v1.7.1 为正对照。第五 tools 或本表外第 29 新 root 路径拒绝。保留八组空/缺组/错误/重复反例。
+  合成用例须逐项可判读，例如：
+```go
+// 正常 tools 组均含至少一个标准库包；添加目标包后必须失败。
+s.Packages["sqlc"] = append(s.Packages["sqlc"],
+    devtoolsPackageRecord{ImportPath: "modernc.org/mathutil",
+        Module: &devtoolsVersionRecord{Path: "modernc.org/mathutil", Version: "v1.6.0"}})
+if len(compareDevtoolsPackageUse(s, p)) == 0 { t.Fatal("graph-only exception became a used package") }
+// 同一 ID 指向错误归属记录，不能只因 ID 非空而通过。
+records[0].Owner = "root"
+if len(validateDevtoolsEvidence(s, p, records)) == 0 { t.Fatal("wrong-owner evidence accepted") }
+```
+  新根边界用例示意（fixture 内其余阶段必须非空）：
+```go
+s := devtoolsCleanPackageFixture("root")
+s.Packages["goose"] = append(s.Packages["goose"], devtoolsPackageRecord{
+    ImportPath: "cel.dev/expr", Module: &devtoolsVersionRecord{Path: "cel.dev/expr", Version: "v0.25.1"},
+})
+if len(compareDevtoolsPackageUse(s, p)) == 0 { t.Fatal("root graph-only module became used") }
+```
+  TestDevtoolsVersionLock 保留两模块真实查询，补齐 module identity、Exclude、跨模块 require、Go/toolchain、工具表。历史 35 回放缺证据时仍拒绝，条件齐备才允许，不能整体删除回放。
+
+- [ ] **R2b. 运行 RED，完成测试辅助检查器，再跑 GREEN。**
+```powershell
+go test -v -tags=e2e ./internal/e2e -run '^TestDevtoolsVersion(Policy|Evidence|PackageUse)$' -count=1 -timeout=5m
+```
+  Expected RED：新增根候选正例和根用途/严格证据反例出现语义失败；不回退已实现功能来制造 RED，编译失败不算。随后在 `compareDevtoolsVersions` 的 Required 分支允许本归属精确候选，仍独立验证存在、retained 和证据；更新 policy 与独立字面量 35 例外。扩展上述证据/用途检查器并补严格读取/Lock 联合验证。重跑同选择器 Expected GREEN；真实 Lock 未补证前保持失败，Membership 保持 pending 直至 R5。
+  旧 19 场景绿色不能覆盖新条件。真实 Lock 可在 R6 前保持阻塞；未完成证据的候选绝不记录验收通过。
+
+- [ ] **R3a. 保留原三个 root 准备记录。** readline v1.5.1、demangle v0.0.0-20250417193237-f615e6bd150b、metric/x v0.66.0 已获授权并准备成功；核对既有 Sum/GoModSum 与结果，不无故重复下载，也不视为已证明必要。
+
+- [x] **R3b. 四个 tools 候选准备（历史已授权且已完成，不重复）。** 下列保留原准备范围与过程作为记录：
+```text
+golang.org/x/time@v0.11.0
+modernc.org/mathutil@v1.6.0
+modernc.org/sortutil@v1.2.0
+modernc.org/strutil@v1.2.0
+```
+  固定 Go、独立最小备用模块、逐个显式 module@version 的 mod download -json；仅 https://proxy.golang.org 和 sum.golang.org。GOENV/GOWORK=off、GOTOOLCHAIN=local、GOAUTH=off、GOVCS=all:off，清除 GOPRIVATE/GONOSUMDB/GONOPROXY/GOINSECURE 及继承覆盖。整批总预算 900 秒，Hidden/无窗口，保留进程句柄，超时只停止自有进程。请求和结果写忽略目录，脱敏精确版本/校验和/来源/起止时间/退出码写证据文档。
+  Expected：每个请求对应唯一精确记录，无 Error，Sum/GoModSum 齐备；不得执行下载内容或改生产锁文件。额外版本/传递准备需求停止报告，不回退 direct/VCS/auth。若只确认计划而未批准本段，缺缓存时停止询问。随后恢复禁网，不把 root 三候选或旧 207 项授权扩展到本段。
+
+- [ ] **R3c-1. 接续时只读复核缓存清单。** 逐项使用最新设计第 3 节的精确 path/version，按 Go 的大写字母 ! 小写转义定位缓存 .mod/.info/.zip/.ziphash，并核对已提取源码目录供后续审查；不得删除或改写缓存。2026-09-28 规划时四文件检查仅 perfstat@v0.0.0-20210106213030-5aafc221ea8c 齐备，其余 27 项存在缺失；文件存在不证明完整性。记录实际缺失文件类型到忽略目录，在可提交证据文档保存脱敏清单。
+  Expected：28 项均有明确逐文件状态；复核只能缩小下列待授权下载集合，不能增加 path/version。perfstat 此轮仅离线读取既有校验和/源码并在完整性阶段验证，若发现仍需联网则另报，不把它隐含加入。
+
+- [x] **R3c-2. 新增根候选精确准备（已单独授权并完成）。** 本段授权对象只包含以下 27 个精确版本的缺失模块元数据、归档/校验和及正常解压源码（逐项显式 mod download -json；不执行内容）。R3c-1 复核后已齐备项不下载：
+```text
+cel.dev/expr@v0.25.1
+cloud.google.com/go@v0.34.0
+github.com/Azure/go-ansiterm@v0.0.0-20210617225240-d185dfc1b5a1
+github.com/BurntSushi/toml@v1.3.2
+github.com/alecthomas/units@v0.0.0-20211218093645-b94a6e3cc137
+github.com/ebitengine/purego@v0.8.4
+github.com/gorilla/websocket@v1.4.2
+github.com/hashicorp/go-version@v1.8.0
+github.com/mattn/go-colorable@v0.1.14
+github.com/moby/moby/api@v1.54.2
+github.com/moby/moby/client@v0.4.1
+github.com/moby/term@v0.5.0
+github.com/pelletier/go-toml/v2@v2.2.2
+github.com/shirou/gopsutil/v4@v4.25.6
+github.com/sirupsen/logrus@v1.9.3
+github.com/tklauser/go-sysconf@v0.3.12
+github.com/tklauser/numcpus@v0.6.1
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp@v0.68.0
+go.uber.org/zap@v1.27.1
+golang.org/x/lint@v0.0.0-20190313153728-d0100b6bd8b3
+golang.org/x/oauth2@v0.34.0
+golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1
+google.golang.org/appengine@v1.4.0
+google.golang.org/genproto@v0.0.0-20200526211855-cb27e3aa2013
+google.golang.org/genproto/googleapis/api@v0.0.0-20260120221211-b8f7ae30c516
+gopkg.in/yaml.v2@v2.2.3
+honnef.co/go/tools@v0.0.0-20190523083050-ea95bdfd59fc
+```
+  固定 Go、独立最小备用模块、逐项显式 module@version；仅 https://proxy.golang.org 与 sum.golang.org。清除继承 GO* 覆盖后设 GOENV/GOWORK=off、GOTOOLCHAIN=local、GOAUTH=off、GOVCS=all:off，GOPRIVATE/GONOPROXY/GONOSUMDB/GOINSECURE 为空。整批共用 900 秒绝对期限，不分项重置；Hidden/保留自有进程句柄，超时仅清理本次自有进程。结果精确绑定 Path/Version、无 Error、Sum/GoModSum 齐全；原四锁哈希前后相同，恢复禁网。日志保留起止/退出码，脱敏记录写既有 evidence 文档。
+  Expected：只准备批准且缺失的精确版本，校验来源可追溯；如 Go 请求清单外版本/传递准备，或权限未明确批准，停止报告，不扩范围。准备成功不证明源码无风险、例外必要或验收通过。计划确认和本段授权分别记录；仅确认计划不包含本段下载许可。
+
+- [ ] **R4. 核对实际精确候选及活动来源。** 在获准准备后读取两模块严格完整图/版本；32 Required 均存在且仅为原值或本归属精确候选。root 28 逐项核对较高版本来源、当前声明/选中值、TestImports/XTestImports、平台条件；22 直接边与 6 历史链按评估清单分别追踪，旧父版本不能冒充选中值。cloud/genproto/api/rpc 联合检查重复包。不重复已失败 pin、不为其余 27 项制造失败实验；若有具体稳定来源可保留原值，禁止引入新上游或工具回流。
+  每组变更后正常离线 tidy、严格完整图查询，各命令仍为 90 秒。tidy 必须在所属模块目录运行：root 为仓库根，tools 为 tools/devtools，不从 root 用 tools modfile 整理根源码。记录 before/target/after、父边、cwd 和锁文件哈希。
+  Expected：32 目标 retained、实际值在精确允许范围，活动链可解释；候选仍须 R5/R6 补证，不因严格查询成功就通过。未知差异、重复包、目标缺失、用途或平台影响无法解释即阻塞，不动 doubleclick/replace/exclude。
+
+- [ ] **R5. 审核最多 35 个条件例外及全部成员归属。** 原 root 三项/tools 四项沿用各自必要性合同；新增 root 28 按最新设计第 4 节逐项记录来源、用途、选择理由及实际做过的稳定性试验。没有做过的 pin 不写成失败。两个校验和必须与可信准备记录一致；逐项正文与机器标记交叉审查，不能只凭 ID 或缓存存在放行。
+  为每个实际使用的例外及每个 removed 项写唯一绑定标记和可审阅正文；不要把所有删除指向一条不含对应模块身份的泛化说明。填充 Membership/Evidence 必须基于依赖路径审核，不能复制实际快照当期望。原值自然保持则不强行使用例外；tools 四节点缺失仍须重新报批。
+  Expected：实际例外为 root 31/tools 4 固定集合的子集；每项版本、校验和、活动链、测试/构建条件审查可复核，未运行范围明确。非 Required 移出需原版本 removal 记录，32 Required 均不能移出。
+
+- [ ] **R6. 严格离线全图、八组包、证据绑定和稳定性复验。** 固定 Go；GOENV/GOWORK=off、GOTOOLCHAIN=local、GOPROXY/GOSUMDB=off、GOAUTH=off、GOVCS=all:off、GOFLAGS=-mod=readonly。两模块 list -m -json all、go mod graph 各有 90 秒上限；tools 元数据用明确 modfile 或所属目录，记录真实 cwd/argv。禁止 -e。
+  八组命令沿用下方原 Step 1 的完整字段：root/integration 为 -deps -test ./...（后者加 -tags=integration），Goose 为 -deps 加其 CLI 路径；buf/protoc/oapi/sqlc/lint 分别使用其既有固定完整工具包路径、-deps、显式 tools modfile。每条 90 秒，不执行第三方测试。TestDevtoolsVersionLock 通过 readDevtoolsPackageSnapshot 读取这八组并逐组与 baseline.json 比较 ImportPath/Module.Path/Module.Version，同时调用用途及证据检查器，不读取忽略日志当实时成功证据。
+  再在各所属模块目录正常离线 tidy，四锁字节和新模块选择必须不变。重跑：
+```powershell
+go test -v -tags=e2e ./internal/e2e -run '^TestDevtoolsVersion(Policy|Evidence|PackageUse|Lock)$' -count=1 -timeout=5m
+```
+  Expected：所有适用规则通过；root 28/tools 4 存在且值与条件合规，root 三组无新增 28 包，tools 五组无原四包，root/Goose mathutil v1.7.1 不变。八组映射及 52 保护哈希不变。四锁与整理前字节比较，不要求拆分后根锁等于迁移前历史哈希。专项 5m/R7 10m 总预算不扩展，超时保留阻塞，不替代 mod verify。
+
+- [ ] **R7. 补 lint fixture 并跑原专项。** 在 newDevtoolsRouteFixture 增加只存在于根模块的 rootonly/fixture.go（无外部依赖）；TestDevtoolsLintTargetsRoot 保留真实 cwd/argv/GOFLAGS 断言，增加解析该文件及其包归属的检查。另用仅测试副本将 lint cwd 改为 tools/devtools，要求现有断言失败，不能靠假工具自报成功。先见针对错误对象的 RED，再保持正常对象 GREEN；真实 lint 在 Task 3 单独验证。
+  核对现有 Step 5a/5b 不回退，执行下方 Step 6 完整选择器（TestDevtools.* 自动包含新版本测试）及 Linux 独立拒绝文件选择器，仍为原 10m/3m 上限。
+  Expected：新增版本测试实际出现在 RUN 清单，适用测试全部通过；Linux 四入口拒绝不作 Unix 正向成功；无额外预算、隐私断言删减或忽略历史失败。
+
+- [ ] **R8. 原子提交及接续。** 只有 R1–R7 和原 Task 2 的全部适用合同成立，才执行 Step 7 的原子提交，额外明确加入新版本测试、两份 testdata 和脱敏证据文档；检查暂存清单不包含其他未批准修改或 .superpowers。使用 task-done 重跑原完整选择器记录最终结果，不因历史绿色直接完成。然后继续 Task 3；有阻塞则保存事实，不提交部分模块/消费者破链状态。
+  Expected：提交可在新电脑恢复基线/策略/源码；Task 2 完成记录有实际最终证据。推送、合并和安全验收恢复均仍不授权。
+
+### 原任务步骤（保留历史与未完成合同）
+
+- [x] **1. 记录不可变版本基线。** 在修改前用固定 Go 读取 `go mod graph`、模块选中版本及普通、
   integration、Goose CLI 和五个工具的包闭包。结果仅写忽略的证据目录。
   每条有界只读命令出现离线缺失就停止，不能把不完整 -e 输出当成功基线。
   记录根 go.mod/go.sum、runner、生成目录的哈希。环境不允许下载时报告准备阻塞。
 
-```text
+```powershell
 go list -m -json all
-go list -deps -json -test -mod=readonly ./...
-go list -deps -json -test -tags=integration -mod=readonly ./...
-go list -deps -json -mod=readonly github.com/pressly/goose/v3/cmd/goose
+$packageFields = 'Dir,ImportPath,Name,Standard,ForTest,Module,Match,DepOnly,GoFiles,CgoFiles,TestGoFiles,XTestGoFiles,Imports,ImportMap,Deps,TestImports,XTestImports,Incomplete,Error,DepsErrors,EmbedFiles,TestEmbedFiles,XTestEmbedFiles'
+go list -deps "-json=$packageFields" -test -mod=readonly ./...
+go list -deps "-json=$packageFields" -test -tags=integration -mod=readonly ./...
+go list -deps "-json=$packageFields" -mod=readonly github.com/pressly/goose/v3/cmd/goose
 ```
+
+  执行裁定：默认全字段 JSON 还会计算 Stale 构建状态；本地 Go 源码确认这触发额外构建器
+  工作，非版本基线要求。明确保留上述依赖/模块/错误字段，仍解析完整包集合、不使用 -e。
+  Goose 原全字段查询及五工具合并查询均曾触及 90 秒诊断上限，失败事实保留；不声称性能
+  缺陷已修复。五工具按各自完整路径逐项使用相同字段和 90 秒上限，最终合并其依赖集合。
+  这不是完整性校验、构建或测试通过证据，不改变任何产品及验收预算。
 
 - [ ] **2. 写 RED 边界与调用测试。** 新增 `TestDevtoolsModuleBoundary`、`TestDevtoolsRouting`、
   `TestDevtoolsNestedProtoc`、`TestDevtoolsLintTargetsRoot`、`TestDevtoolsFailureStopsConsumers`。
@@ -427,8 +567,8 @@ require (
 ```
 
   使用 apply_patch 创建初始文件/编辑 tool 表，go mod tidy 属机械整理，可在明确模块目录运行。
-  先加迁移前闭包版本约束，再 tidy，然后比较选中版本；如有保留模块降级，添加明确 require
-  保持基线再检查。不保留无实际来源的工具依赖来掩盖拆分失效。
+  接续时不重建已有模块；版本处理以 R1–R6 和已批准锁版本修订为准。仅添加具有保留来源、
+  经稳定性验证的约束，不把全图全部直接 require。不保留无实际来源的工具依赖来掩盖拆分失效。
   不借 tidy 升级、不 use latest、不生成 workspace、不引入跨模块 replace。
   根模块移除五个 tool 指令，保留 Goose；doubleclick 若仍出现，先报告真实引入链，不强删。
 
@@ -535,6 +675,12 @@ pwsh.exe -NoProfile -File scripts/generate.ps1
 git diff --exit-code -- api gen internal/store
 ```
 
+  上述流程成功后，单独验证真实根 lint：先再次通过公开 verify-devtools.ps1，再在根目录运行
+  `go tool "-modfile=$((Join-Path (Get-Location).Path 'tools/devtools/go.mod'))" golangci-lint run ./...`。
+  使用固定 Go 和独立受控进程，沿用 C11 lint 的 600 秒阶段上限，保存实际 argv/cwd/退出码；
+  不通过完整 verify-c11.ps1 间接启动，以免触发受阻普通/C12 路径。不将 -modfile 加进 GOFLAGS。
+  Expected：真实 lint 退出 0，分析根源码而非工具模块；超时/失败如实保留，不调整规则求绿。
+
   Expected: 三个 Windows 入口退出 0，生成目录 git diff 退出 0。任一失败保留原输出摘要，
   不能继续当作工具链成功。生成变更不允许直接提交，先调查版本/路径差异。
   任一工具验证超时则整体工具链验收开放，不标记通过、不重复相同失败运行。
@@ -631,5 +777,7 @@ privacy/smoke 逐项迁移覆盖；第 5–6 节由三任务顺序、Task 3 支�
 Windows 内存捕获裁定已反映到计划，未恢复旧落盘捕获。没有通过支持范围调整勾选任务完成。
 
 继续保留 Native inline：本会话逐任务执行，最后进行一次独立整体审查。
-用户已确认本修订符合已批准设计；无需重新选择执行方式，继续实施。
-不把计划批准当作安全事件解除、测试通过或推送/合并授权；实际结果以 ledger 和新测试证据为准。
+2026-09-27 的历史锁版本计划及三个 root 候选准备已获批准。2026-09-28 四项 tools 书面设计、对应计划修订与 R3b 精确准备范围均已获确认；既有 Native inline 不变。
+历史锁版本与四工具修订的基线/权限/用途合同保留；与最新根 28 设计冲突处以上方新版 R2–R6 为准。Required32 不变，候选上限 root31/tools4；历史绿色不替代新回归。
+四工具设计原合同的对应关系保留。最新 root28 设计第 1–3 节对应全局约束/R2 的独立 32/35 字面集合；第 4 节对应 R4/R5 逐项链、校验来源、测试/平台及历史父边审查；第 5 节对应 R1/R2/R6 的不可变基线和联合 Lock；第 6 节对应 R3c-1/2 的只读核查、独立准备授权和总期限；第 7 节对应 R2/R6/R7 反例、包/保护哈希、预算与 Task 3 真实验证；第 8 节对应 R8、安全门禁及审批交接。未做实验不写成失败，文件齐备不写成完整性通过。
+本次计划修订与 R3c 27 候选精确准备已由用户同时确认。授权仍限上述清单，任何新增准备范围另行处理。任何批准不等于安全事件解除、测试通过、推送或合并。

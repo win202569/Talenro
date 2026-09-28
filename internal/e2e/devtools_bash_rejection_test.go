@@ -18,6 +18,12 @@ func TestDevtoolsVerificationBash(t *testing.T) {
 	testDevtoolsBashEntryRejection(t, "verify-devtools.sh")
 }
 
+func TestDevtoolsShellEntryRejection(t *testing.T) {
+	for _, entry := range []string{"verify-devtools.sh", "check-tools.sh", "generate.sh", "verify-c11.sh"} {
+		t.Run(entry, func(t *testing.T) { testDevtoolsBashEntryRejection(t, entry) })
+	}
+}
+
 // Running the real, unmodified entry catches accidental work, fallbacks, and
 // argument/environment bypasses. This file is independently runnable on Linux.
 func testDevtoolsBashEntryRejection(t *testing.T, entry string) {
@@ -72,7 +78,7 @@ func testDevtoolsBashEntryRejection(t *testing.T, entry string) {
 						}
 					}
 					marker := filepath.Join(root, "work-events")
-					tools := []string{"go", "git", "docker", "pwsh", "powershell", "uname", "mktemp"}
+					tools := []string{"go", "git", "docker", "pwsh", "powershell", "uname", "mktemp", "cygpath"}
 					for _, tool := range tools {
 						write(filepath.Join(bin, tool), "#!/bin/bash\nprintf '%s\\n' '"+tool+"' >>\"$DEVTOOLS_REJECTION_MARKER\"\nexit 91\n", 0700)
 					}

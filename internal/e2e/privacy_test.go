@@ -206,138 +206,14 @@ func TestVerifyC11BashContract(t *testing.T) {
 	requireBashContract(t)
 }
 
-func TestVerifyC11BashWindowsConformancePathReachesNativeGo(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		t.Skip("verify-c11 Bash native conformance-path regression is isolated to Windows")
-	}
-	repoRoot := e2eRepositoryRoot(t)
-	script := filepath.Join(repoRoot, "scripts", "verify-c11.sh")
-	if info, err := os.Stat(script); err != nil || info.IsDir() {
-		t.Fatal("verify-c11 Bash entrypoint is missing")
-	}
-	bash := findGitForWindowsBash()
-	if bash == "" {
-		t.Fatal("Git for Windows Bash executable is missing")
-	}
-	nativeTestBinary, err := os.Executable()
-	if err != nil {
-		t.Fatal("native e2e test executable is missing")
-	}
-
-	fakeDirectory := t.TempDir()
-	temporaryDirectory := filepath.Join(fakeDirectory, "tmp")
-	if err := os.Mkdir(temporaryDirectory, 0o700); err != nil {
-		t.Fatal("verify-c11 Bash conformance temporary directory creation failed")
-	}
-	logPath := filepath.Join(fakeDirectory, "calls.log")
-	projectPath := filepath.Join(fakeDirectory, "project.txt")
-	childLogPath := filepath.Join(fakeDirectory, "native-child.log")
-	writeFakeTool(t, filepath.Join(fakeDirectory, "go"), fakeVerifyNativeConformanceGoShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "git"), fakeGitShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "docker"), fakeDockerShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "gofmt"), fakeGofmtShell())
-	pathValue := gitBashPath(fakeDirectory) + ":/usr/bin:/bin"
-
-	commandContext, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-	defer cancel()
-	command := exec.CommandContext(commandContext, bash, "-c", `PATH="$1"; export PATH; exec "$2"`,
-		"task19-verify-native", pathValue, gitBashPath(script)) //nolint:gosec // Fixed reviewed Bash script and test-owned PATH.
-	command.Dir = repoRoot
-	command.Env = verifyNativeConformanceEnvironment(os.Environ(),
-		gitBashPath(temporaryDirectory), gitBashPath(nativeTestBinary), gitBashPath(logPath),
-		gitBashPath(projectPath), gitBashPath(childLogPath))
-	command.WaitDelay = 5 * time.Second
-	outputCapture := newBoundedCommandCapture()
-	command.Stdout = outputCapture
-	command.Stderr = outputCapture
-	runErr := command.Run()
-	if commandContext.Err() != nil || outputCapture.overflowed() {
-		t.Fatal("verify-c11 Bash native conformance-path regression exceeded its hard bound")
-	}
-	childLog, _ := os.ReadFile(childLogPath) //nolint:gosec // Exact test-owned bounded diagnostic path.
-	if actual := commandExitStatus(runErr); actual != 73 {
-		t.Fatalf("verify-c11 Bash native conformance-path regression exit code: got %d, want 73; output=%q child=%q", actual, outputCapture.bytes(), childLog)
-	}
-	if bytes.Count(outputCapture.bytes(), []byte("verify-c11: e2e tests failed with exit code 73.\n")) != 1 {
-		t.Fatalf("verify-c11 Bash native conformance-path regression output: got %q", outputCapture.bytes())
-	}
-	if strings.Count(string(childLog), fixtureVerifyNativeValidatorMarker+"\n") != 1 ||
-		strings.Count(string(childLog), fixtureVerifyNativeExecutableMarker+"\n") != 1 ||
-		!strings.Contains(string(childLog), "--- PASS: TestVerifyC11BashNativeConformanceExecutableChild") ||
-		!strings.Contains(string(childLog), "--- PASS: TestVerifyC11BashNativeConformancePathChild") {
-		t.Fatalf("verify-c11 Bash native conformance-path child did not prove validator and execution success: output=%q", childLog)
-	}
-	remaining, err := os.ReadDir(temporaryDirectory)
-	if err != nil || len(remaining) != 0 {
-		t.Fatalf("verify-c11 Bash native conformance-path cleanup left test-owned artifacts: entries=%v err=%v", remaining, err)
-	}
-	assertVerifyScriptResult(t, "Bash native conformance-path", outputCapture.bytes(), logPath)
+func TestVerifyC11BashRejectsBeforeNativeGo(t *testing.T) {
+	t.Helper()
+	testDevtoolsBashEntryRejection(t, "verify-c11.sh")
 }
 
-func TestVerifyC11BashWindowsConformancePathRejectsMalformedConversion(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		t.Skip("verify-c11 Bash conformance conversion rejection contract is isolated to Windows")
-	}
-	repoRoot := e2eRepositoryRoot(t)
-	script := filepath.Join(repoRoot, "scripts", "verify-c11.sh")
-	if info, err := os.Stat(script); err != nil || info.IsDir() {
-		t.Fatal("verify-c11 Bash entrypoint is missing")
-	}
-	bash := findGitForWindowsBash()
-	if bash == "" {
-		t.Fatal("Git for Windows Bash executable is missing")
-	}
-
-	testDirectory := t.TempDir()
-	harness := filepath.Join(testDirectory, "conformance-conversion-contract.sh")
-	fakeDirectory := filepath.Join(testDirectory, "fake-bin")
-	if err := os.Mkdir(fakeDirectory, 0o700); err != nil {
-		t.Fatal("verify-c11 Bash conversion fake-tool directory creation failed")
-	}
-	writeFakeTool(t, harness, bashConformanceConversionRejectionContract())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "cygpath"), fakeVerifierCygpathShell())
-
-	for _, mode := range []string{"nonzero", "empty", "oversize_trailing_lf", "nul", "multiline", "control", "non_drive", "no_lf"} {
-		t.Run(mode, func(t *testing.T) {
-			caseDirectory := filepath.Join(testDirectory, "case-"+mode)
-			runDirectory := filepath.Join(caseDirectory, "run")
-			if err := os.MkdirAll(runDirectory, 0o700); err != nil {
-				t.Fatal("verify-c11 Bash conversion run directory creation failed")
-			}
-			stdoutPath := filepath.Join(caseDirectory, "derive.stdout")
-			stderrPath := filepath.Join(caseDirectory, "derive.stderr")
-			callLogPath := filepath.Join(caseDirectory, "cygpath.log")
-			commandContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-			command := exec.CommandContext(commandContext, bash, gitBashPath(harness),
-				gitBashPath(script), mode, gitBashPath(runDirectory), gitBashPath(fakeDirectory),
-				gitBashPath(stdoutPath), gitBashPath(stderrPath), gitBashPath(callLogPath)) //nolint:gosec // Fixed Git for Windows Bash, reviewed harness, and test-owned paths.
-			command.Dir = repoRoot
-			command.WaitDelay = 2 * time.Second
-			outputCapture := newBoundedCommandCapture()
-			command.Stdout = outputCapture
-			command.Stderr = outputCapture
-			runErr := command.Run()
-			if commandContext.Err() != nil || outputCapture.overflowed() {
-				t.Fatal("verify-c11 Bash conversion rejection contract exceeded its hard bound")
-			}
-			if runErr != nil {
-				t.Fatalf("verify-c11 Bash conversion rejection contract failed with exit code %d: output=%q", commandExitStatus(runErr), outputCapture.bytes())
-			}
-			if output := string(outputCapture.bytes()); output != "rejection:"+mode+"\n" {
-				t.Fatalf("verify-c11 Bash conversion rejection contract returned unexpected output: %q", output)
-			}
-			callLog, err := os.ReadFile(callLogPath) //nolint:gosec // Exact test-owned bounded call log.
-			wantCall := mode + "|-w|--|/tmp/talenro-verify-c11-owned/trust-conformance.exe\n"
-			if err != nil || string(callLog) != wantCall {
-				t.Fatalf("verify-c11 Bash conversion invoked the wrong cygpath command: got %q err=%v", callLog, err)
-			}
-			remaining, err := os.ReadDir(runDirectory)
-			if err != nil || len(remaining) != 0 {
-				t.Fatalf("verify-c11 Bash conversion rejection left owned capture artifacts: entries=%v err=%v", remaining, err)
-			}
-		})
-	}
+func TestVerifyC11BashRejectsBeforePathConversion(t *testing.T) {
+	t.Helper()
+	testDevtoolsBashEntryRejection(t, "verify-c11.sh")
 }
 
 func TestSmokeBashWindowsScriptPathLoadsRepositoryEnvironment(t *testing.T) {
@@ -566,6 +442,10 @@ func TestScriptCleanupExitStatusContracts(t *testing.T) {
 		{name: "Bash/smoke", mode: "smoke", path: filepath.Join(repoRoot, "scripts", "smoke.sh"), shell: "bash"},
 	}
 	for _, entrypoint := range entrypoints {
+		if entrypoint.name == "Bash/verify" {
+			t.Run(entrypoint.name, func(t *testing.T) { testDevtoolsBashEntryRejection(t, "verify-c11.sh") })
+			continue
+		}
 		for _, testCase := range testCases {
 			if testCase.smokeOnly && entrypoint.mode != "smoke" {
 				continue
@@ -1242,15 +1122,13 @@ func requirePowerShellContract(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("verify-c11 PowerShell contract is isolated to Windows")
 	}
-	repoRoot := e2eRepositoryRoot(t)
+	fixture := newDevtoolsRouteFixture(t)
+	repoRoot := fixture.root
 	script := filepath.Join(repoRoot, "scripts", "verify-c11.ps1")
 	if info, err := os.Stat(script); err != nil || info.IsDir() {
 		t.Fatal("verify-c11 PowerShell entrypoint is missing")
 	}
-	powerShell, err := exec.LookPath("powershell")
-	if err != nil {
-		t.Fatal("verify-c11 PowerShell executable is missing")
-	}
+	powerShell := fixture.host
 	fakeDirectory := t.TempDir()
 	logPath := filepath.Join(fakeDirectory, "calls.log")
 	projectPath := filepath.Join(fakeDirectory, "project.txt")
@@ -1260,10 +1138,10 @@ func requirePowerShellContract(t *testing.T) {
 	writeFakeTool(t, filepath.Join(fakeDirectory, "gofmt.cmd"), fakeGofmtBatch(logPath))
 	commandContext, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	command := exec.CommandContext(commandContext, powerShell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script) //nolint:gosec // Fixed reviewed script path.
+	command := exec.CommandContext(commandContext, powerShell, "-NoProfile", "-NonInteractive", "-File", script) //nolint:gosec // Fixed reviewed script path.
 	command.WaitDelay = 5 * time.Second
 	command.Dir = filepath.Dir(repoRoot)
-	command.Env = contractEnvironment(os.Environ(), fakeDirectory, logPath, projectPath)
+	command.Env = contractEnvironment(devtoolsFixtureEnv(map[string]string{"USERPROFILE": fixture.profile, "DEVTOOLS_ROUTE_LOG": fixture.log, "DEVTOOLS_EXPECTED_MODULE": filepath.Join(repoRoot, "tools/devtools/go.mod")}), fakeDirectory, logPath, projectPath)
 	outputCapture := newBoundedCommandCapture()
 	command.Stdout = outputCapture
 	command.Stderr = outputCapture
@@ -1285,55 +1163,12 @@ func requirePowerShellContract(t *testing.T) {
 		t.Fatalf("verify-c11 PowerShell did not preserve the injected e2e exit code: got %d, stages=%q, commands=%q", actual,
 			observedVerifyStages(output), observedCommandClasses(string(transcript)))
 	}
-	assertVerifyScriptResult(t, "PowerShell", output, logPath)
+	assertVerifyScriptResult(t, "PowerShell", output, logPath, filepath.Join(repoRoot, "tools/devtools/go.mod"))
 }
 
 func requireBashContract(t *testing.T) {
 	t.Helper()
-	repoRoot := e2eRepositoryRoot(t)
-	script := filepath.Join(repoRoot, "scripts", "verify-c11.sh")
-	if info, err := os.Stat(script); err != nil || info.IsDir() {
-		t.Fatal("verify-c11 Bash entrypoint is missing")
-	}
-	bash := findContractBash()
-	if bash == "" {
-		t.Fatal("verify-c11 Bash executable is missing")
-	}
-	fakeDirectory := t.TempDir()
-	logPath := filepath.Join(fakeDirectory, "calls.log")
-	projectPath := filepath.Join(fakeDirectory, "project.txt")
-	writeFakeTool(t, filepath.Join(fakeDirectory, "go"), fakeGoShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "git"), fakeGitShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "docker"), fakeDockerShell())
-	writeFakeTool(t, filepath.Join(fakeDirectory, "gofmt"), fakeGofmtShell())
-	commandContext, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-	defer cancel()
-	scriptArgument := script
-	bashLogPath := logPath
-	bashProjectPath := projectPath
-	if runtime.GOOS == "windows" {
-		scriptArgument = gitBashPath(script)
-		bashLogPath = gitBashPath(logPath)
-		bashProjectPath = gitBashPath(projectPath)
-	}
-	command := exec.CommandContext(commandContext, bash, scriptArgument) //nolint:gosec // Fixed reviewed Bash and script paths.
-	command.WaitDelay = 5 * time.Second
-	command.Dir = repoRoot
-	command.Env = contractEnvironment(os.Environ(), fakeDirectory, bashLogPath, bashProjectPath)
-	outputCapture := newBoundedCommandCapture()
-	command.Stdout = outputCapture
-	command.Stderr = outputCapture
-	runErr := command.Run()
-	if commandContext.Err() != nil || outputCapture.overflowed() {
-		transcript, _ := os.ReadFile(logPath) //nolint:gosec // Exact test-owned diagnostic path.
-		t.Fatalf("verify-c11 Bash contract exceeded its hard bound; stages=%q, summary=%+v",
-			observedVerifyStages(outputCapture.bytes()), summarizeCommandTranscript(string(transcript)))
-	}
-	var exitError *exec.ExitError
-	if !errors.As(runErr, &exitError) || exitError.ExitCode() != 73 {
-		t.Fatal("verify-c11 Bash did not preserve the injected e2e exit code")
-	}
-	assertVerifyScriptResult(t, "Bash", outputCapture.bytes(), logPath)
+	testDevtoolsBashEntryRejection(t, "verify-c11.sh")
 }
 
 func requireScriptCleanupExitStatus(t *testing.T, shell, mode, scriptPath, powerShellHarness, bashHarness,
@@ -1691,18 +1526,21 @@ echo go %* CGO_ENABLED=%CGO_ENABLED% >>"%TASK19_FAKE_LOG%"
 if defined C11_UNOWNED_PRIVATE echo ambient-leak >>"%TASK19_FAKE_LOG%"
 if defined TALENRO_UNOWNED_PRIVATE echo ambient-leak >>"%TASK19_FAKE_LOG%"
 if defined COMPOSE_PROJECT_NAME echo ambient-leak >>"%TASK19_FAKE_LOG%"
-if "%1 %2 %3"=="tool buf --version" (echo 1.72.0& exit /b 0)
-if "%1 %2 %3"=="tool protoc-gen-go --version" (echo protoc-gen-go v1.36.11& exit /b 0)
-if "%1 %2 %3"=="tool oapi-codegen --version" (echo v2.8.0& exit /b 0)
-if "%1 %2 %3"=="tool sqlc version" (echo v1.31.1& exit /b 0)
-if "%1 %2 %3"=="tool goose -version" (echo goose version: v3.27.1& exit /b 0)
-if "%1 %2 %3"=="tool golangci-lint version" (echo golangci-lint has version 2.12.2 built with go1.26.5& exit /b 0)
+if "%1"=="tool" if not "%~2"=="goose" (
+    if not "%~2"=="-modfile=%DEVTOOLS_EXPECTED_MODULE%" (echo module-boundary-invalid >>"%TASK19_FAKE_LOG%"& exit /b 72)
+    if "%~3 %~4"=="buf --version" (echo 1.72.0& exit /b 0)
+    if "%~3 %~4"=="protoc-gen-go --version" (echo protoc-gen-go v1.36.11& exit /b 0)
+    if "%~3 %~4"=="oapi-codegen --version" (echo v2.8.0& exit /b 0)
+    if "%~3 %~4"=="sqlc version" (echo v1.31.1& exit /b 0)
+    if "%~3 %~4"=="golangci-lint version" (echo golangci-lint has version 2.12.2 built with go1.26.5& exit /b 0)
+)
+if "%1 %~2 %3"=="tool goose -version" (echo goose version: v3.27.1& exit /b 0)
 if defined C11_CONFORMANCE_BINARY (
     echo %*| findstr /C:"-tags=e2e" >nul
     if errorlevel 1 echo conformance-env-leak >>"%TASK19_FAKE_LOG%"
 )
 if "%1"=="build" (
-    if not "%2"=="-o" (echo conformance-build-invalid >>"%TASK19_FAKE_LOG%"& exit /b 72)
+    if not "%~2"=="-o" (echo conformance-build-invalid >>"%TASK19_FAKE_LOG%"& exit /b 72)
     if not "%~4"=="./cmd/trust-conformance" (echo conformance-build-invalid >>"%TASK19_FAKE_LOG%"& exit /b 72)
     >"%~3" echo task19 fake conformance
     echo conformance-build-ok >>"%TASK19_FAKE_LOG%"
@@ -2225,7 +2063,7 @@ func (capture *boundedCommandCapture) overflowed() bool {
 	return capture.overflow
 }
 
-func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath string) {
+func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath, devtoolsModule string) {
 	t.Helper()
 	forbidden := append(privacyCanaryValues(privacySurfaceCanaries()),
 		"C11-FAKE-TOOL-STDOUT-PRIVATE", "C11-FAKE-TOOL-STDERR-PRIVATE",
@@ -2262,7 +2100,15 @@ func assertVerifyScriptResult(t *testing.T, shell string, output []byte, logPath
 	if !regexp.MustCompile(`talenro-c11-verify-[0-9a-f]{12}`).MatchString(transcript) {
 		t.Fatalf("verify-c11 %s did not use an owned compose project", shell)
 	}
-	normalizedTranscript := strings.ReplaceAll(transcript, `"`, "")
+	// Strip only the exact fixture module after checking every moved tool used it.
+	for _, line := range strings.Split(transcript, "\n") {
+		if strings.HasPrefix(line, "go tool ") && !strings.HasPrefix(line, "go tool goose ") &&
+			!strings.HasPrefix(line, "go tool \"-modfile="+devtoolsModule+"\" ") {
+			t.Fatalf("verify-c11 %s routed a tool outside its module", shell)
+		}
+	}
+	normalizedTranscript := strings.ReplaceAll(transcript, "\"-modfile="+devtoolsModule+"\" ", "")
+	normalizedTranscript = strings.ReplaceAll(normalizedTranscript, `"`, "")
 	assertCommandOrder(t, normalizedTranscript, []string{
 		"go tool buf --version", "go tool buf lint", "go tool oapi-codegen --config", "gofmt -w",
 		"go test ./... -count=1", "go test -run ^$ -fuzz ^FuzzDecode$", "go test -race ./... -count=1",
