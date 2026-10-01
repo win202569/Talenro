@@ -10,6 +10,13 @@ Implementation and regression evidence are committed as
 
 ## Latest real-verification blocker and correction
 
+Follow-up (2026-10-01): the approved metadata repair and timeout alignment
+pass the scoped verifier and C11 fake-tool regression groups locally. Earlier
+timeout and observer failures are retained as historical evidence, not the
+latest result. Real full acceptance and the security gates remain blocked.
+See [metadata repair evidence](2026-09-28-devtools-metadata-fix.md) for the
+current uncommitted checkpoint; the history below is retained.
+
 After preparation and the fix commit, the public verifier ran from
 2026-09-28T13:34:05.1304666Z to 13:34:06.4805805Z, exit 1 / 1.352s,
 still reporting `verify-devtools: dependencies failed with exit code 1.`

@@ -1,4 +1,236 @@
-# Project status — updated 2026-09-28
+# Project status — updated 2026-10-01
+
+Checkpoint publication scope: the user authorized committing and pushing the
+eight reviewed source/test/document files to codex/c12-b01-task9-coordinator.
+This is an UNACCEPTED DEVELOPMENT CHECKPOINT, not a release or main merge.
+Ignored machine-local diagnostics are excluded. Earlier "no commit/push"
+statements below describe those individual work steps, not this authorization.
+Use the Git remote branch state to confirm publication completion.
+
+Latest approved change: C11 devtools verification now has a 3660s outer cap;
+check-tools and generate each have a 4200s total stage cap, including their
+own repeated 3600s verifier. All other stage limits, repeated checks, cleanup
+and failure propagation remain unchanged. The previous outer/inner timeout
+mismatch is addressed in code, not yet accepted by a real full C11 run.
+Four scoped regression groups PASS (91.175s, exit 0): C11 stage-budget
+forwarding, failure-stops-consumers, same-host dispatch and PowerShell C11
+fake-tool contract. The new test failed against the old 900/900/600 values
+before implementation and passed afterward; ordinary unit-stage default is
+still 600s. No full suite/long verification, commit or push. Security gates
+remain blocked; historical shorter-budget statements below are superseded.
+
+Independent read-only checkpoint review (2026-10-01): no blocking production
+defect identified; suitable as an unaccepted development checkpoint, not for
+overall/security acceptance. Nonblocking follow-ups: direct negative coverage
+for malformed/mismatched fallback metadata, and tighter behavioral coverage
+of the exact 3600s boundary. No additional runtime tests were run during review.
+Eight pending source/test/document files are in scope; local diagnostics remain
+ignored. No staging, commit, push or merge performed.
+
+## Historical progress (superseded where noted above)
+
+Earlier scoped regression PASSED: the entire TestDevtoolsVerificationPowerShell
+group, fresh run with -count=1 and a 4m cap, package duration 104.482s, exit 0.
+Both observer cases, aged-clock budget cases, integrity/cache checks, timeout
+and descendant cleanup, cancellation, output caps and environment restoration
+passed. Only the inapplicable Git-for-Windows launcher case skipped. This closes
+the observed failure for this scoped group, not the full project suite or
+real shared-cache acceptance. Four lock hashes remain unchanged; gofmt and
+diff checks pass (existing Git LF/CRLF notice only). No implementation change,
+long verification, C11/C12 run, commit or push in this step. Next unresolved
+integration issue is the unchanged shorter C11 outer-stage budget; security
+gates remain in force. Entries below record the earlier sequence.
+
+Post-restart targeted verification PASSED: runtime-5.1-rejected (5.08s) and
+ownership-boundary (8.03s), package duration 15.337s, exit 0. Windows reports
+a new boot on 2026-10-01. No observer code, assertions, deadlines or security
+settings were changed to obtain this result. The observed failure cleared
+after restart; this does not establish its underlying cause or prove stability.
+Only these two tests were rerun, not the entire verifier regression group or
+the long shared-cache verification. Next: consolidate the short verifier
+regression group; C11 outer budgets and existing security gates remain blocked.
+No commit or push. Earlier failed runs below are retained as historical evidence.
+
+Approved bounded timeout revision implemented: the standalone PowerShell
+devtools verifier now shares one fixed 3600s deadline across all commands.
+Offline/cache-completeness/integrity checks, output cap and owned-process
+cleanup are unchanged. C11 stage limits and the private task3 wrapper remain
+unchanged; neither is ready for full acceptance. No long verification rerun,
+commit or push is included.
+
+Short regression: both new aged-clock cases PASS, along with integrity,
+timeout/descendant cleanup, output-cap and environment-restoration cases.
+The `TestDevtoolsVerificationPowerShell` group still FAILS (100.130s, exit 1):
+`runtime-5.1-rejected` reports `PositiveControl:false`, and `ownership-boundary`
+reports `process-event positive control missing`. Both reproduce in an isolated
+rerun (15.925s, exit 1). They fail at CIM process-event observer self-checks;
+the underlying reason is not established. No assertion was relaxed. Four lock
+hashes remain unchanged; formatting and diff checks pass (existing Git line-
+ending warning only). Next: diagnose these observer failures before claiming
+regression acceptance; full tests and the existing security gates stay blocked.
+
+Observer diagnosis (2026-09-30): independent probes reproduce zero
+Win32_ProcessStartTrace events in both PowerShell 7.6.5 and Windows PowerShell
+5.1, even with a diagnostic-only 10s observation window. The effective token
+is administrator, the child parent PID matches the query, a local event queue
+control passes, and Winmgmt is running. A simultaneous filtered intrinsic WMI
+process-creation subscription observes the exact same owned child (1 match),
+while the trace subscription observes none. The fault boundary is narrowed to
+the process-start trace event path, not general WMI delivery or the revised
+verifier deadline; the underlying provider/trace cause is not yet established.
+No polling substitute, test relaxation, service restart or security change.
+
+Provider/session checks: exact COM registration resolves to signed-valid
+krnlprov.dll; WMI logs report provider startup result 0x0. During the final
+bounded probe, Admin_PS_Provider is running with Microsoft-Windows-Kernel-Process
+process/thread/image keywords (0x70), yet the matching trace event still does
+not arrive; the intrinsic control still does. This does not identify a repairable
+repository defect. Stop repeating unchanged probes. Suggested next recovery
+boundary: user-controlled Windows restart, then rerun only the two failed
+observer tests before any larger acceptance. Restart has not been performed
+and is not guaranteed to resolve the fault. No session/service/security changes.
+
+Historical evidence before this revision:
+
+Approved extended diagnostic PASSED at 2026-09-30T11:33:54Z: 507 selected
+modules, exit 0, 2114.906s total (about 35m15s), within the separate 3600s cap.
+All cache-binding/completeness preconditions and the exact Go success-output
+check were retained. Four locks and public verifier source remained unchanged.
+This result exceeds 900s and does not satisfy or change the public acceptance
+gate, establish cold-cache performance, or clear the security finding.
+Log: ignored extended-integrity-2026-09-30.log. No automatic rerun followed.
+
+Historical next-step assessment (superseded by the diagnostic and revision above): both public verifier and diagnostic
+wrapper have 900s deadlines; extending the wrapper alone cannot fix the inner
+limit. Proposed one-off full cache-verification diagnostic has a separate
+3600s cap, preserves Defender/cache-binding/completeness preconditions and
+offline fixed-toolchain behavior, and requires approval. Even diagnostic
+success would not satisfy or change the public 900s acceptance gate.
+
+Official Defender analyzer corroboration: existing-trace analysis succeeded
+and classifies all 60 target scans in the selected window as RealTimeScan /
+OnOpen / Not skipped (average 14.375ms). Its returned fields do not separate
+CPU from internal waits. Actual opening-triggered real-time scanning is now
+confirmed, but internal delay cause and original integrity acceptance remain
+unresolved. No recapture, protection change, upload or verification rerun.
+
+Latest existing-trace analysis correlates delayed opens with Defender OnOpen
+scan requests: all 60 complete engine request pairs in seconds 10–11 match
+the target process, exact cache-file paths and enclosing WdFilter CREATE
+intervals. Request duration averaged 14.375ms (0.913–26.496ms). This is direct
+scan-path evidence, not proof of active CPU cost, internal wait cause or a
+Defender defect. No new capture or protection change; integrity acceptance
+remains blocked and the existing security finding is not cleared.
+
+Latest phase-gated trace reproduced content-open slowness after enumeration:
+about 30s of hashing completed 2070 files, with 28.345s measured in open.
+The recorder is stopped. Target process coverage and zero header loss counters
+were verified. In seconds 10–11, all 62 target callbacks exceeding 1ms were
+WdFilter.sys CREATE (1.313–28.315ms each). This localizes recorded delays to
+that filter path, not an intrinsic driver defect or exclusive cause. No
+security setting changed and no integrity pass was obtained; acceptance stays
+blocked. Further analysis should use the existing trace, not another capture.
+
+Latest approved trace: one 30-second full-directory run stopped at its deadline
+and saved locally (1.72 GB); WPR confirmed stopped. The probe remained in
+enumeration throughout, so content-open slowness was not captured. PID/time
+coverage and target filter activity during seconds 10–11 were verified with
+zero header-reported losses, but no causal driver attribution is established.
+No automatic recapture, security change or acceptance clearance followed.
+
+Newest integrity diagnostic: a progress-instrumented full-directory hash
+reproduced slow opens. Enumeration found 127449 files in 11.231s; at the 90s
+diagnostic deadline only 7405 files were completed, with 75.421s measured in
+open versus 1.633s read and 1.307s close. Exit 124, no digest/acceptance pass.
+An initial read-counter defect was corrected and self-tested; its invalid
+log is retained. Instrumentation affects timing and the OS cause is unproven.
+No new system trace, public-verifier rerun or security change occurred.
+
+Newest trace result: analysis limited to the first 1.5s succeeded in 23.043s
+(exit 0), identifying file-filter I/O activity for tca0a383cf.exe. Together
+with the PID/time match this confirms target process and I/O presence, not
+exhaustive accounting of all 2048 reads. The sample was fast; filter totals
+are not a root-cause attribution and must not be summed as wall-clock costs.
+No additional capture is needed just to establish target activity. Original
+cache-verification timeout and acceptance blockers remain unresolved.
+
+Latest diagnostic: the approved one-shot file-mode recapture saved locally
+and WPR stopped. The 2048-file sample took 0.403s (slow condition absent).
+Independent xperf queries confirm PID 16480 / tca0a383cf.exe is in this new
+trace, whose header reports zero lost events/buffers. Combined filter analysis
+timed out at 60s with no output; attributable file-operation coverage remains
+unverified. No second capture, security change or acceptance clearance followed.
+
+Newest result: the complete development-tool selector passed in 471.162s
+(1041 PASS markers, zero FAIL, one existing inapplicable Skip), with normal
+timing disabled and failure diagnostics retained. Earlier intermittent
+failures below remain historical evidence, not a proven root-cause fix.
+Real-cache integrity verification advanced to `go mod verify`, but its
+unchanged 900-second wrapper budget expired (exit 124 / 900.206s). No integrity
+pass was obtained; check-tools, generation and lint did not follow. Changes
+remain local and uncommitted, with Task 3 acceptance blocked on this result.
+
+Bounded follow-up localized a performance candidate: doubleclick v1.0.0
+contains 127,449 of the selected archives' 199,115 entries. Its Go archive
+hash matched in 2.123s, while directory hashing exceeded a 90-second probe;
+directory enumeration alone took 10.152s in a separate run. Per-file tree
+access warrants further tracing; no underlying OS cause or full integrity
+pass is established, and no verification requirement was relaxed.
+
+A distributed 2048-file sample now pinpoints the dominant measured operation:
+19.852s in file open out of 20.737s wall time (about 96%), versus 0.470s
+read/copy and 0.001528s hashing. The underlying Windows/storage/filter cause
+remains unproven. Next investigation should target file opens; full integrity
+acceptance remains blocked and no security setting or production budget changed.
+
+The user-approved approximately 30-second system trace was saved locally and
+WPR stopped; the raw 963.6 MB ETL is Git-ignored and not uploaded. The sampled
+opens were fast in this recording (0.338s total versus the earlier 20.737s),
+so the slow condition was not captured. Local summary conversion hit its
+90-second cap; driver attribution and event-loss statistics remain unverified.
+
+Targeted follow-up could read the first 200 ETL events, but the sample-PID
+query also hit its 90-second cap without usable results. No new capture,
+tool installation or security change followed. Detailed trace analysis is
+blocked with the attempted built-in readers; the original local-only ETL is
+preserved. Another analyzer would require a separate decision and cannot
+retroactively reproduce the slow condition absent from this capture.
+
+The user subsequently approved installing only Windows Performance Toolkit.
+Microsoft-signed ADK 10.1.26100.9457 setup returned 0 without restart;
+xperf and WPAExporter help commands ran. WPAExporter warned of a missing
+deps.json file, so actual analysis remains unverified. No new recording,
+upload or security change occurred. Next step is a local xperf trace summary;
+this does not clear the existing integrity-verification acceptance blocker.
+
+xperf analysis subsequently succeeded: the ETL header spans 52.605s and
+reports zero lost events/buffers. Filter/process aggregation completed in
+33.483s, but neither it nor a separate process report identified the sampled
+program (PID 35860). Workload coverage is therefore unverified despite zero
+header loss counters. This recording cannot attribute the earlier slow opens;
+no new capture or security change followed, and acceptance remains blocked.
+
+Latest local follow-up: the approved empty-cache-metadata repair and its real
+cache regression cases pass, with all four lockfiles unchanged. The covering
+development-tool run failed at its unchanged 10-minute deadline and had two
+Bash marker-control timeouts; acceptance remains open. These changes are not
+committed or pushed. See [metadata repair evidence](2026-09-28-devtools-metadata-fix.md).
+
+Follow-up instrumented regression completed in 459.228s but still failed:
+the original Bash timeouts did not reproduce; environment-restore-success
+instead hit its test-only two-second deadline. Production budgets were not
+changed. The failure cause and overall acceptance remain open.
+
+The subsequently approved success-fixture budget adjustment passed targeted
+checks and the PowerShell verifier group in a fresh non-instrumented run.
+Production and timeout-injection limits are unchanged. The covering run
+still exited 1 in 465.502s: one Git Bash outside-cwd entry timed out. Overall
+acceptance remains blocked; changes remain local, uncommitted and unpushed.
+
+Latest focused diagnosis: ten bounded samples of the failing Bash case and
+one complete Bash entry group passed (4.639s / 62.844s). Failure-only launch
+timing is now retained even with normal diagnostics off. The intermittent
+timeout was not reproduced; the last combined failure is not cleared.
 
 The original snapshot was checked against the implementation and plans at
 `2668b901`, followed by the repository-portability repair. This branch also

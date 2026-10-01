@@ -61,6 +61,7 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 	}{
 		{"go-exit-7", 7, "toolchain"}, {"wrong-version", 1, "toolchain"}, {"output-canary", 7, "toolchain"},
 		{"timeout", 124, "toolchain"}, {"natural-exit", 0, ""},
+		{"budget-after-30-minutes", 0, ""}, {"budget-after-60-minutes", 124, "toolchain"},
 		{"timeout-with-child", 124, "toolchain"}, {"parent-cancel", -1, ""},
 		{"output-limit", 1, "toolchain"}, {"stderr-limit", 1, "toolchain"},
 		{"combined-output-limit", 1, "toolchain"}, {"natural-exit-with-child", 0, ""},
@@ -90,11 +91,19 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 				t.Fatal(err)
 			}
 			// Shorten only this owned test copy, never a public production flag.
-			deadline := ".AddSeconds(900)"
+			deadline := ".AddSeconds(3600)"
 			replacement := ".AddSeconds(2)"
 			if extension == "sh" {
 				deadline = "deadline=$((SECONDS + 900))"
 				replacement = "deadline=$((SECONDS + 2))"
+			}
+			// Successful runs must not share the deliberately tight timeout
+			// injection budget. The independent 15-second outer guard remains.
+			if tc.want == 0 {
+				replacement = ".AddSeconds(10)"
+				if extension == "sh" {
+					replacement = "deadline=$((SECONDS + 10))"
+				}
 			}
 			if tc.name == "parent-cancel" || tc.name == "launcher-cancel" || tc.name == "output-limit" || tc.name == "stderr-limit" || tc.name == "combined-output-limit" || tc.name == "natural-exit-with-child" {
 				if extension == "sh" {
@@ -103,10 +112,25 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 					replacement = ".AddSeconds(30)"
 				}
 			}
-			if bytes.Count(content, []byte(deadline)) != 1 {
-				t.Fatal("short-deadline fixture must replace exactly one deadline")
+			if strings.HasPrefix(tc.name, "budget-after-") {
+				// Age only the initial clock in this owned copy. Keep the real
+				// production budget and command deadline enforcement unchanged:
+				// work may finish after 30 minutes, but cannot start after 60.
+				const clockStart = "$deadline = [DateTime]::UtcNow"
+				if bytes.Count(content, []byte(clockStart)) != 1 {
+					t.Fatal("aged-clock fixture requires exactly one initial deadline clock")
+				}
+				age := ".AddSeconds(-1800)"
+				if tc.want == 124 {
+					age = ".AddSeconds(-3601)"
+				}
+				content = bytes.Replace(content, []byte(clockStart), []byte(clockStart+age), 1)
+			} else {
+				if bytes.Count(content, []byte(deadline)) != 1 {
+					t.Fatal("short-deadline fixture must replace exactly one deadline")
+				}
+				content = bytes.Replace(content, []byte(deadline), []byte(replacement), 1)
 			}
-			content = bytes.Replace(content, []byte(deadline), []byte(replacement), 1)
 			restoreCase := strings.HasPrefix(tc.name, "environment-restore-")
 			if restoreCase && extension == "ps1" {
 				const finalOutput = "if ($exitCode -eq 0) { [Console]::Out.WriteLine('verify-devtools: passed') }"
@@ -312,6 +336,11 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 		{"valid", 0}, {"missing-cache", 1}, {"tampered-directory", 1},
 		{"tampered-zip", 1}, {"missing-ziphash", 1}, {"inherited-module-override", 1},
 		{"missing-cache-without-presence-check", 0},
+		{"cached-without-project-sum", 0},
+		{"cached-without-project-sum/missing-cache", 1},
+		{"cached-without-project-sum/missing-ziphash", 1},
+		{"cached-without-project-sum/tampered-directory", 1},
+		{"cached-without-project-sum/tampered-zip", 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := filepath.Join(t.TempDir(), "repository with spaces")
@@ -393,7 +422,46 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 			}
 			zipPath := filepath.Join(cache, "cache", "download", filepath.FromSlash(escaped), "@v", "v1.0.0.zip")
 			directory := filepath.Join(cache, filepath.FromSlash(escaped)+"@v1.0.0")
-			switch tc.name {
+			if strings.HasPrefix(tc.name, "cached-without-project-sum") {
+				sumPath := filepath.Join(module, "go.sum")
+				sums, err := os.ReadFile(sumPath)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var retained []string
+				removed := 0
+				for _, line := range strings.Split(string(sums), "\n") {
+					if strings.HasPrefix(line, dependency+" v1.0.0 h1:") {
+						removed++
+						continue
+					}
+					retained = append(retained, line)
+				}
+				if removed != 1 {
+					t.Fatalf("expected one full-module checksum, got %d", removed)
+				}
+				write(sumPath, []byte(strings.Join(retained, "\n")))
+				query := exec.CommandContext(ctx, goPath, "list", "-m", "-f", "{{if not .Main}}{{.Path}}|{{.Version}}|{{.Dir}}{{end}}", "all")
+				query.Dir = module
+				query.Env = devtoolsFixtureEnv(map[string]string{"GOMODCACHE": cache, "GOPROXY": "off", "GOSUMDB": "off", "GOENV": "off", "GOWORK": "off", "GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"})
+				output, err := query.CombinedOutput()
+				if err != nil || strings.TrimSpace(string(output)) != dependency+"|v1.0.0|" {
+					t.Fatalf("expected empty directory metadata: %v: %s", err, output)
+				}
+				if info, err := os.Stat(directory); err != nil || !info.IsDir() {
+					t.Fatalf("expected physically present cache directory: %v", err)
+				}
+			}
+			locks := make(map[string][]byte)
+			for _, name := range []string{"go.mod", "go.sum"} {
+				data, err := os.ReadFile(filepath.Join(module, name))
+				if err != nil {
+					t.Fatal(err)
+				}
+				locks[name] = data
+			}
+			fault := strings.TrimPrefix(tc.name, "cached-without-project-sum/")
+			switch fault {
 			case "missing-cache", "missing-cache-without-presence-check":
 				if err := os.RemoveAll(directory); err != nil {
 					t.Fatal(err)
@@ -447,6 +515,12 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 			command.Env = devtoolsFixtureEnv(env)
 			command.Dir = root
 			output, runErr := command.CombinedOutput()
+			for name, before := range locks {
+				after, err := os.ReadFile(filepath.Join(module, name))
+				if err != nil || !bytes.Equal(before, after) {
+					t.Fatalf("verifier changed %s: %v", name, err)
+				}
+			}
 			if ctx.Err() != nil {
 				t.Fatalf("fixture deadline: %v", ctx.Err())
 			}
@@ -460,7 +534,7 @@ func testDevtoolsIntegrity(t *testing.T, extension string) {
 			if tc.want != 0 && (!strings.HasPrefix(got, "verify-devtools: ") || !strings.HasSuffix(got, fmt.Sprintf(" failed with exit code %d.", tc.want)) || strings.ContainsAny(got, "\r\n")) {
 				t.Fatalf("unsanitized failure: %q", got)
 			}
-			stage := map[string]string{"missing-cache": "dependencies", "missing-ziphash": "dependencies", "tampered-directory": "integrity", "tampered-zip": "integrity", "inherited-module-override": "environment"}[tc.name]
+			stage := map[string]string{"missing-cache": "dependencies", "missing-ziphash": "dependencies", "tampered-directory": "integrity", "tampered-zip": "integrity", "inherited-module-override": "environment"}[fault]
 			if tc.want != 0 && got != "verify-devtools: "+stage+" failed with exit code 1." {
 				t.Fatalf("failure did not exercise intended %s stage: %q", stage, got)
 			}

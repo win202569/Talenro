@@ -116,7 +116,15 @@ func testDevtoolsBashEntryRejection(t *testing.T, entry string) {
 						cmd.WaitDelay = 300 * time.Millisecond
 						var stdout, stderr bytes.Buffer
 						cmd.Stdout, cmd.Stderr = &stdout, &stderr
-						err := cmd.Run()
+						startedAt := time.Now()
+						err := cmd.Start()
+						startElapsed := time.Since(startedAt)
+						if err == nil {
+							err = cmd.Wait()
+						}
+						if os.Getenv("DEVTOOLS_TEST_TIMING") == "1" || ctx.Err() != nil || cmd.ProcessState == nil {
+							t.Logf("launch timing script=%s start=%s total=%s deadline=%v", filepath.Base(script), startElapsed, time.Since(startedAt), ctx.Err())
+						}
 						if ctx.Err() != nil || cmd.ProcessState == nil {
 							t.Fatalf("entry failed to run: %v / %v", err, ctx.Err())
 						}

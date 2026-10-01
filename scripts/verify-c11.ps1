@@ -732,15 +732,16 @@ function Invoke-C11Main {
     $locationPushed = $true
 
     try {
-      Invoke-C11Stage -Stage 'devtools verification' -FilePath $devtoolsPowerShell -ArgumentList $verifyArguments -TimeoutSeconds 900
+      # The verifier owns a shared 3600s budget. Allow startup/cleanup outside it.
+      Invoke-C11Stage -Stage 'devtools verification' -FilePath $devtoolsPowerShell -ArgumentList $verifyArguments -TimeoutSeconds 3660
       Invoke-C11Stage -Stage 'check tools' -FilePath $devtoolsPowerShell -ArgumentList @(
         '-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'check-tools.ps1')
-      ) -TimeoutSeconds 900
+      ) -TimeoutSeconds 4200
 
       $generatedBefore = Get-C11GeneratedSnapshot -RepoRoot $repoRoot
       Invoke-C11Stage -Stage 'generate' -FilePath $devtoolsPowerShell -ArgumentList @(
         '-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'generate.ps1')
-      ) -TimeoutSeconds 600
+      ) -TimeoutSeconds 4200
       $generatedAfter = Get-C11GeneratedSnapshot -RepoRoot $repoRoot
       Write-Output 'verify-c11: generated diff'
       if (-not (Test-C11GeneratedSnapshotEqual -Before $generatedBefore -After $generatedAfter)) {

@@ -70,7 +70,9 @@ function ConvertTo-DevtoolsCacheKey {
   return [regex]::Replace($Value, '[A-Z]', { param($match) '!' + $match.Value.ToLowerInvariant() })
 }
 
-$deadline = [DateTime]::UtcNow.AddSeconds(900)
+# Shared budget for the entire standalone verification, not each command.
+# Callers may enforce shorter limits; this does not widen C11 stage budgets.
+$deadline = [DateTime]::UtcNow.AddSeconds(3600)
 $stage = 'module'
 $exitCode = 1
 $savedEnvironment = @{}
@@ -112,6 +114,15 @@ try {
     $key = ConvertTo-DevtoolsCacheKey $fields[0]
     $versionKey = ConvertTo-DevtoolsCacheKey $fields[1]
     $expected = [System.IO.Path]::GetFullPath((Join-Path $moduleCache ($key + '@' + $versionKey)))
+    if ([string]::IsNullOrEmpty($fields[2])) {
+      # Readonly build-list metadata omits Dir without a project-level full sum,
+      # even when the cache is complete. Query only this selected exact version;
+      # retain the same offline environment, output cap and shared deadline.
+      $metadata = Invoke-DevtoolsCommand -GoPath $goPath -Arguments @('list','-m','-f','{{.Path}}|{{.Version}}|{{.Dir}}',($fields[0] + '@' + $fields[1])) -Directory $moduleRoot -Deadline $deadline
+      $resolved = $metadata -split '\|'
+      if ($metadata -match '[\r\n]' -or $resolved.Count -ne 3 -or $resolved[0] -cne $fields[0] -or $resolved[1] -cne $fields[1]) { throw 'unexpected module metadata' }
+      $fields[2] = $resolved[2]
+    }
     if ([string]::IsNullOrEmpty($fields[2]) -or [System.IO.Path]::GetFullPath($fields[2]) -cne $expected -or -not [System.IO.Directory]::Exists($expected)) { throw 'missing module directory' }
     $zip = Join-Path $moduleCache ('cache/download/' + $key + '/@v/' + $versionKey + '.zip')
     if (-not [System.IO.File]::Exists($zip) -or -not [System.IO.File]::Exists($zip + 'hash')) { throw 'missing module archive' }
