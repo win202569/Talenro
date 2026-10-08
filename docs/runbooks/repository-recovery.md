@@ -2,10 +2,10 @@
 
 Clone `https://github.com/win202569/Talenro.git` and select the branch/commit named
 in the latest handoff; do not assume `main` contains an unaccepted checkpoint.
-The development-tool implementation is local commit `a0ca18928f552752c6580929f9b6fff88cd8d58b`
-on `codex/c12-b01-task9-coordinator`; it has not been pushed as of this update.
-Another computer cannot fetch a local-only commit until a separately authorized
-push publishes it. Git carries
+The development checkpoint `fed278f3afae1abcd496caeef1ce855e73cc021d`
+on `codex/c12-b01-task9-coordinator` was pushed and remotely confirmed on
+2026-10-01, including its prerequisite commits. It is not merged into main and
+is not full acceptance. Git carries
 the source, generated contracts, tests, designs, implementation plans, and
 runbooks. Start with [current status](../roadmap/current-status.md) to resume work.
 
@@ -65,12 +65,14 @@ workspace/replace, or disable checksum verification. Missing dependencies during
 offline checks remain failures requiring separate preparation approval.
 
 Consumer execution now enforces the verifier's fixed cache/offline environment.
-Real verification is still blocked: Go can omit Dir metadata when a full-module
-checksum is absent from the project's go.sum, even when the cache directory exists.
-Do not rerun preparation or change lockfiles merely to bypass this diagnosis.
-These preparation instructions are not accepted fresh-machine recovery until the
-[remaining verifier contract issue](../roadmap/2026-09-28-devtools-cache-binding-fix.md)
-is resolved; inherited cache/proxy/workspace overrides are not supported.
+The empty-Dir metadata issue is repaired in the published checkpoint: an offline
+exact-version query resolves metadata while preserving identity/cache binding
+and complete integrity checks. The standalone verifier has one 3600s budget;
+C11 outer verification/check-tools/generate caps are 3660/4200/4200s. These
+approved limits do not clear security gates or prove fresh-machine recovery.
+See [current verification evidence](../roadmap/2026-09-28-devtools-metadata-fix.md).
+Do not change locks or repeat downloads to bypass a failure; inherited
+cache/proxy/workspace overrides remain unsupported.
 
 ```powershell
 $env:GOPROXY='off'; $env:GOSUMDB='off'; $env:GOFLAGS='-mod=readonly'

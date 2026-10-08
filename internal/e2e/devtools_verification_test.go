@@ -62,6 +62,14 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 		{"go-exit-7", 7, "toolchain"}, {"wrong-version", 1, "toolchain"}, {"output-canary", 7, "toolchain"},
 		{"timeout", 124, "toolchain"}, {"natural-exit", 0, ""},
 		{"budget-after-30-minutes", 0, ""}, {"budget-after-60-minutes", 124, "toolchain"},
+		{"budget-before-boundary", 0, ""}, {"budget-at-boundary", 124, "toolchain"},
+		{"budget-before-boundary-shortened", 124, "toolchain"}, {"budget-at-boundary-extended", 0, ""},
+		{"metadata-valid", 0, ""},
+		{"metadata-short", 1, "dependencies"}, {"metadata-extra", 1, "dependencies"},
+		{"metadata-multiline", 1, "dependencies"}, {"metadata-path", 1, "dependencies"},
+		{"metadata-version", 1, "dependencies"}, {"metadata-empty-dir", 1, "dependencies"},
+		{"metadata-wrong-dir", 1, "dependencies"},
+		{"metadata-path-unchecked", 0, ""}, {"metadata-version-unchecked", 0, ""},
 		{"timeout-with-child", 124, "toolchain"}, {"parent-cancel", -1, ""},
 		{"output-limit", 1, "toolchain"}, {"stderr-limit", 1, "toolchain"},
 		{"combined-output-limit", 1, "toolchain"}, {"natural-exit-with-child", 0, ""},
@@ -99,7 +107,7 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 			}
 			// Successful runs must not share the deliberately tight timeout
 			// injection budget. The independent 15-second outer guard remains.
-			if tc.want == 0 {
+			if tc.want == 0 || strings.HasPrefix(tc.name, "metadata-") {
 				replacement = ".AddSeconds(10)"
 				if extension == "sh" {
 					replacement = "deadline=$((SECONDS + 10))"
@@ -112,7 +120,26 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 					replacement = ".AddSeconds(30)"
 				}
 			}
-			if strings.HasPrefix(tc.name, "budget-after-") {
+			if strings.Contains(tc.name, "boundary") {
+				// Freeze only the owned copy's clock. The real outer timeout still
+				// bounds execution, while 3599/3600 seconds become deterministic.
+				const start = "$deadline = [DateTime]::UtcNow"
+				if bytes.Count(content, []byte(start)) != 1 {
+					t.Fatal("boundary fixture requires one initial clock")
+				}
+				age := 3600
+				if strings.HasPrefix(tc.name, "budget-before-") {
+					age = 3599
+				}
+				content = bytes.Replace(content, []byte(start), []byte(fmt.Sprintf("%s.AddSeconds(-%d)", start, age)), 1)
+				content = bytes.ReplaceAll(content, []byte("[DateTime]::UtcNow"), []byte("([DateTime]::new(2026, 10, 8, 0, 0, 0, [DateTimeKind]::Utc))"))
+				if strings.HasSuffix(tc.name, "-shortened") {
+					content = bytes.Replace(content, []byte(deadline), []byte(".AddSeconds(3599)"), 1)
+				}
+				if strings.HasSuffix(tc.name, "-extended") {
+					content = bytes.Replace(content, []byte(deadline), []byte(".AddSeconds(3601)"), 1)
+				}
+			} else if strings.HasPrefix(tc.name, "budget-after-") {
 				// Age only the initial clock in this owned copy. Keep the real
 				// production budget and command deadline enforcement unchanged:
 				// work may finish after 30 minutes, but cannot start after 60.
@@ -130,6 +157,16 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 					t.Fatal("short-deadline fixture must replace exactly one deadline")
 				}
 				content = bytes.Replace(content, []byte(deadline), []byte(replacement), 1)
+			}
+			if strings.HasSuffix(tc.name, "-unchecked") {
+				guard := "$resolved[0] -cne $fields[0]"
+				if strings.Contains(tc.name, "version") {
+					guard = "$resolved[1] -cne $fields[1]"
+				}
+				if bytes.Count(content, []byte(guard)) != 1 {
+					t.Fatal("metadata mutant requires exactly one identity check")
+				}
+				content = bytes.Replace(content, []byte(guard), []byte("$false"), 1)
 			}
 			restoreCase := strings.HasPrefix(tc.name, "environment-restore-")
 			if restoreCase && extension == "ps1" {
@@ -171,6 +208,24 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 			trace := filepath.Join(root, "process-trace")
 			envMarker := filepath.Join(root, "restored-environment")
 			env := map[string]string{"USERPROFILE": profile, "DEVTOOLS_PROCESS_CASE": tc.name, "DEVTOOLS_PROCESS_MARKER": marker, "DEVTOOLS_PROCESS_TRACE": trace, "GOENV": "off"}
+			if strings.HasPrefix(tc.name, "metadata-") {
+				cache := filepath.Join(profile, "go", "pkg", "mod")
+				dir := filepath.Join(cache, "example.test", "module@v1.0.0")
+				zip := filepath.Join(cache, "cache", "download", "example.test", "module", "@v", "v1.0.0.zip")
+				for _, path := range []string{dir, filepath.Dir(zip), dir + "-other"} {
+					if err := os.MkdirAll(path, 0700); err != nil {
+						t.Fatal(err)
+					}
+				}
+				// Presence fixtures only: real archive integrity remains covered
+				// independently by testDevtoolsIntegrity with the pinned Go binary.
+				for _, path := range []string{zip, zip + "hash"} {
+					if err := os.WriteFile(path, []byte("owned fixture"), 0600); err != nil {
+						t.Fatal(err)
+					}
+				}
+				env["DEVTOOLS_METADATA_DIR"] = dir
+			}
 			if restoreCase {
 				env["DEVTOOLS_ENV_MARKER"] = envMarker
 				env["GOPROXY"] = "https://fixture.invalid"
@@ -282,6 +337,16 @@ func testDevtoolsProcess(t *testing.T, extension string) {
 			if got := strings.TrimSpace(string(output)); got != want {
 				t.Fatalf("expected sanitized output %q, got %q", want, got)
 			}
+			if strings.HasPrefix(tc.name, "metadata-") {
+				data, err := os.ReadFile(trace)
+				wantTrace := "all\nexact\n"
+				if tc.want == 0 {
+					wantTrace += "verify\n"
+				}
+				if err != nil || string(data) != wantTrace {
+					t.Fatalf("metadata command sequence: %v: got %q, want %q", err, data, wantTrace)
+				}
+			}
 			if restoreCase {
 				data, err := os.ReadFile(envMarker)
 				if err != nil || string(data) != "https://fixture.invalid|-trimpath|fixture-original.work|fixture-never-execute" {
@@ -320,6 +385,25 @@ func main(){
   time.Sleep(60*time.Second)
  }
  if len(os.Args)>1 && os.Args[1]=="version" { time.Sleep(30*time.Millisecond); fmt.Println("go version go1.26.5 windows/amd64"); return }
+ if strings.HasPrefix(os.Getenv("DEVTOOLS_PROCESS_CASE"),"metadata-") {
+  record:=func(s string){ f,e:=os.OpenFile(os.Getenv("DEVTOOLS_PROCESS_TRACE"),os.O_CREATE|os.O_APPEND|os.O_WRONLY,0600); if e!=nil { os.Exit(20) }; defer f.Close(); if _,e=f.WriteString(s+"\n");e!=nil { os.Exit(21) } }
+  if strings.Join(os.Args[1:]," ")=="mod verify" { record("verify"); fmt.Println("all modules verified"); return }
+  if len(os.Args)!=6 || os.Args[1]!="list" || os.Args[2]!="-m" || os.Args[3]!="-f" { os.Exit(22) }
+  if os.Args[5]=="all" && os.Args[4]=="{{if not .Main}}{{.Path}}|{{.Version}}|{{.Dir}}{{end}}" { record("all"); fmt.Println("example.test/module|v1.0.0|"); return }
+  if os.Args[5]!="example.test/module@v1.0.0" || os.Args[4]!="{{.Path}}|{{.Version}}|{{.Dir}}" { os.Exit(23) }
+  record("exact")
+  path,version,dir:="example.test/module","v1.0.0",os.Getenv("DEVTOOLS_METADATA_DIR")
+  switch os.Getenv("DEVTOOLS_PROCESS_CASE") {
+  case "metadata-short": fmt.Println(path+"|"+version); return
+  case "metadata-extra": fmt.Println(path+"|"+version+"|"+dir+"|extra"); return
+  case "metadata-multiline": fmt.Println(path+"|"+version+"|"+dir+"\n"+path+"|"+version+"|"+dir); return
+  case "metadata-path", "metadata-path-unchecked": path="example.test/other"
+  case "metadata-version", "metadata-version-unchecked": version="v1.0.1"
+  case "metadata-empty-dir": dir=""
+  case "metadata-wrong-dir": dir+="-other"
+  }
+  fmt.Println(path+"|"+version+"|"+dir); return
+ }
  if len(os.Args)>1 && os.Args[1]=="list" { return }
  if len(os.Args)==3 && os.Args[1]=="mod" && os.Args[2]=="verify" { fmt.Println("all modules verified"); return }
  os.Exit(8)

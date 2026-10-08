@@ -1,4 +1,39 @@
-# Project status — updated 2026-10-01
+# Project status — updated 2026-10-08
+
+Approved test-only follow-up: fallback metadata now has a valid positive control
+and rejection cases for short/extra fields, multiline replies, mismatched path
+or version, empty directory and an existing but incorrect directory. The fixture
+checks exact offline query arguments and that rejected metadata never reaches
+integrity verification. Owned-copy identity-check removal controls demonstrate
+that the mismatch tests depend on the intended guards. Frozen-clock cases cover
+3599s success and 3600s expiry; 3599s/3601s budget mutations reverse the respective
+outcomes. The 16 selected metadata/budget cases PASS (31.444s package duration,
+exit 0). Production scripts and all four dependency lock hashes are unchanged.
+The user authorized saving this follow-up as an unaccepted development checkpoint
+on codex/c12-b01-task9-coordinator, without merging main. Confirm publication
+against the remote branch before recovery; this does not clear security/acceptance
+gates or authorize a full C11/C12 run.
+
+The complete scoped TestDevtoolsVerificationPowerShell regression also PASSes
+with -count=1 and a 4m cap (112.063s package duration, exit 0); its Bash-only
+launcher case is intentionally skipped. Independent read-only review found no
+blocking issue. Nonblocking coverage note: the multiline case also violates the
+field-count guard, so it does not isolate newline-guard sensitivity. This result
+is not a full repository, C11 or C12 acceptance run.
+Fresh pre-commit repeat of the same scoped group PASSes (102.445s package
+duration, exit 0), with the same Bash-only skip and no production-script changes.
+
+Read-only resumption check: local HEAD is published checkpoint fed278f3 and
+the worktree was clean before this documentation correction. Defender service,
+antivirus and real-time protection report enabled; intelligence version is
+1.459.601.0. The recorded Commando.A!ml threat reports IsActive=False and
+DidThreatExecute=False. This is current product status, not a false-positive
+determination or clearance of the historical bootstrap event. No vendor/security
+owner disposition has been supplied; full ordinary/C11/C12 and I2/I3 remain
+blocked. No blocked executable/test, security change, upload or rerun occurred.
+Recovery instructions now reflect the published metadata/budget fixes rather
+than their obsolete local-only state. These doc updates accompany the test-only
+checkpoint; earlier local-only statements describe their respective work steps.
 
 Checkpoint publication scope: the user authorized committing and pushing the
 eight reviewed source/test/document files to codex/c12-b01-task9-coordinator.
