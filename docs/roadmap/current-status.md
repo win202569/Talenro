@@ -1,5 +1,51 @@
 # Project status — updated 2026-10-08
 
+Task 10 checkpoint preparation: both previously deferred coverage items are now
+covered. Tests assert exact release counts on acquisition/precheck failures and
+propagated precheck/query/postcheck panics; a valid provider-head positive control
+and in-place mutation case verify defensive copying independently of the DB head.
+Removing release produced expected failures (3.497s, exit 1); removing only the
+provider-head clone produced an erroneous nil result caught by the test (3.103s,
+exit 1). Both temporary mutations were restored. Final scoped regression PASSes:
+serving 6.108s, contracts 7.349s, readiness 4.490s, BoundRead/Coordinator selection
+2.439s, all exit 0. The user authorized committing/pushing the accumulated Task 10
+source, tests and progress notes as an UNACCEPTED DEVELOPMENT CHECKPOINT on the
+existing development branch, never main. Confirm the remote branch SHA before
+recovery. Earlier local-only/deferred notes below describe their respective steps.
+Production serving, full Task 10, v7 proof/lease, PostgreSQL/PITR and C12/security
+acceptance remain open; no full-suite or blocked bootstrap was run.
+
+Task 10 follow-up: a private Coordinator-bound same-connection mechanism now
+exists. It acquires from the Coordinator's exact PostgresRepository/pool, binds
+ordinary readiness discovery/checks and query to that DBTX, compares frozen
+pre/post heads, rejects connection replacement/system/timeline changes and WAL
+regression, and releases the connection on exit. There is NO exported factory,
+production reader or v7 proof/lease gate. Real PostgreSQL/PITR remains untested.
+Six isolated source groups pass after RED/GREEN; final regression: serving
+2.892s, contracts 3.402s, readiness 2.807s, and BoundRead/Coordinator selection
+3.005s, all exit 0. Independent read-only review found no P1/P2. Deferred minor
+coverage: explicit release assertions on precheck/panic paths and provider-head
+pointer alias mutation. Four lock hashes and formatting checks are unchanged/
+clean. This and the preceding Task 10 increment are local, uncommitted/unpushed.
+See [execution notes and remaining gates](2026-10-08-task10-read-boundary.md).
+
+Earlier Task 10 consumer increment (source mechanism subsequently added above):
+Task 10 has started with a local, uncommitted interface and reader-side staging
+boundary; see [scope, evidence and remaining work](2026-10-08-task10-read-boundary.md).
+The source interface is defined, but no Coordinator-owned physical-connection
+implementation, certificate/desired projection, public reader factory or runtime
+wiring exists yet. Three new unit-test groups (32 cases) PASS after behavioral
+RED/GREEN and an independently identified error-precedence fix. Final package
+durations: serving 2.691s, contracts 3.670s, readiness 2.494s, all exit 0.
+The Coordinator-only regression also PASSes (3.197s, exit 0); no full authority
+package or repository suite was run. Formatting checks and all four lock hashes
+are unchanged/clean.
+This is partial Task 10 work, not completion of Step 1 or production authorization.
+Database/source tests, PITR, Task 15/18 and all existing security gates stay open.
+
+The preceding test-only checkpoint is published as `92651a31`; remote SHA was
+confirmed after push. The Task 10 work described above is not included in it.
+
 Approved test-only follow-up: fallback metadata now has a valid positive control
 and rejection cases for short/extra fields, multiline replies, mismatched path
 or version, empty directory and an existing but incorrect directory. The fixture

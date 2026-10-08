@@ -2,6 +2,11 @@
 
 Clone `https://github.com/win202569/Talenro.git` and select the branch/commit named
 in the latest handoff; do not assume `main` contains an unaccepted checkpoint.
+For the latest development work, use `codex/c12-b01-task9-coordinator` and verify
+its remote SHA against that handoff. The Task 10 checkpoint adds private read
+boundaries and isolated tests only; it does not enable production serving or
+clear PostgreSQL/PITR/C12 security gates. See [Task 10 scope and evidence](../roadmap/2026-10-08-task10-read-boundary.md).
+The following hash identifies the earlier tooling checkpoint, not the latest tip.
 The development checkpoint `fed278f3afae1abcd496caeef1ce855e73cc021d`
 on `codex/c12-b01-task9-coordinator` was pushed and remotely confirmed on
 2026-10-01, including its prerequisite commits. It is not merged into main and
