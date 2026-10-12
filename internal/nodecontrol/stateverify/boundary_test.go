@@ -94,7 +94,68 @@ func ownerCleanupBeforeParse(source []byte) bool {
 
 // Only the explicitly isolated policy and composition packages may use the verifier.
 // No non-test package may consume the policy package itself.
+func TestNodeCertTimeConsumerException(t *testing.T) {
+	root, e := filepath.Abs("../../..")
+	if e != nil {
+		t.Fatal(e)
+	}
+	dir := filepath.FromSlash("internal/nodecontrol/nodecerttime")
+	target := "talenro.local/platform/internal/nodecontrol/statepolicy"
+	cases := []struct {
+		path, pkg string
+		want      bool
+	}{
+		{filepath.Join(dir, "a.go"), "nodecerttime", true},
+		{filepath.Join(root, dir, "a.go"), "nodecerttime", true},
+		{filepath.Join(dir, "a_test.go"), "nodecerttime", true},
+		{filepath.Join(root, dir, "a_test.go"), "nodecerttime", true},
+		{filepath.Join(dir, "nested", "a.go"), "nodecerttime", false},
+		{filepath.FromSlash("internal/nodecontrol/nodecerttime_extra/a.go"), "nodecerttime", false},
+		{filepath.Join("else", dir, "a.go"), "nodecerttime", false},
+		{filepath.Join(root, "..", "external", dir, "a.go"), "nodecerttime", false},
+		{filepath.Join(dir, "a.go"), "other", false},
+		{filepath.Join(dir, "a_test.go"), "nodecerttime_test", false},
+		{"internal/nodecontrol/brother/a_test.go", "nodecerttime", false},
+	}
+	for _, c := range cases {
+		if got := isolatedImportAllowed(c.path, c.pkg, target); got != c.want {
+			t.Errorf("%s %s: got %v want %v", c.path, c.pkg, got, c.want)
+		}
+	}
+	if isolatedImportAllowed(filepath.Join(dir, "a.go"), "nodecerttime", target+"/child") {
+		t.Error("subpath")
+	}
+	if isolatedImportAllowed(filepath.Join(dir, "a.go"), "nodecerttime", "talenro.local/platform/internal/nodecontrol/stateverify") {
+		t.Error("verifier import")
+	}
+}
+
 func isolatedImportAllowed(relativePath, packageName, imported string) bool {
+	// Only the new exact consumer is added; all previous rules below remain.
+	certTimeTarget := "talenro.local/platform/internal/nodecontrol/statepolicy"
+	if imported == certTimeTarget || strings.HasPrefix(imported, certTimeTarget+"/") {
+		root, e := filepath.Abs("../../..")
+		if e != nil {
+			return false
+		}
+		normalized := filepath.Clean(relativePath)
+		if !filepath.IsAbs(normalized) {
+			if strings.HasPrefix(filepath.ToSlash(normalized), "internal/") {
+				normalized = filepath.Join(root, normalized)
+			} else {
+				normalized, e = filepath.Abs(normalized)
+				if e != nil {
+					return false
+				}
+			}
+		}
+		rel, e := filepath.Rel(root, normalized)
+		exact := e == nil && filepath.Dir(rel) == filepath.FromSlash("internal/nodecontrol/nodecerttime")
+		if exact || packageName == "nodecerttime" || packageName == "nodecerttime_test" {
+			return imported == certTimeTarget && exact && packageName == "nodecerttime"
+		}
+	}
+
 	if imported == "talenro.local/platform/internal/nodecontrol/statepolicy" {
 		return (packageName == "statepolicybinding" && filepath.Dir(filepath.Clean(relativePath)) == filepath.FromSlash("internal/nodecontrol/statepolicybinding")) ||
 			(packageName == "statetimebinding" && filepath.Dir(filepath.Clean(relativePath)) == filepath.FromSlash("internal/nodecontrol/statetimebinding"))

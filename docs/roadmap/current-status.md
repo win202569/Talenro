@@ -1,5 +1,48 @@
 # Project status — updated 2026-10-11
 
+## 2026-10-12 Nodecerttime 保存阶段
+
+用户新批准归档必要证据、暂存/提交并普通推送现有开发分支，明确不合并main。
+下方“本轮未提交/仅本机”保留为实施阶段真实历史，不回写审查BASE/index。
+本节记录保存授权和提交前事实，不预填推送成功；实际提交SHA/远端结果
+以Git回执及最终聊天交付为准。没有PR、强推、配置修改或清理授权。
+
+074格式exact43路径空输出/exit0；075–097共23条原范围验证全部exit0，
+377源码摘要仍匹配已审查版本。此次Envelope40次、Pair5,037次，非穷尽。
+395份本计划原始记录逐条长度/hash核对归档，排除全部缓存/凭据/其他计划；
+保存exact50必要文件，不修改产品源码或增加独立审查。
+M1的API合同注释改进仍延期；原审查0 Critical/0 Important/1 Minor、所有下层
+Pending/Obligations、生产兼容UNKNOWN及Task10/B01/C12/main阻塞不变。
+见[换机恢复、证据清单和提交前验证](2026-10-12-nodecerttime-checkpoint.md)。
+
+## 2026-10-12 Node certificate conditional-time binding — local closeout
+
+批准的五任务 Native 增量已实现 nodecerttime exact35 Go 文件
+（17产品/18测试），只新增八个准许旧 boundary_test.go 的精确消费者例外。
+组合真实 nodeissuer/statetimebinding，绑定节点与观测 tuple，保留所有下层
+Proof/Pending/Obligations，以纳秒半开区间检查本次条件 Now，取三个精确到期
+上限的最小值。不是可信当前时间、部署 CA 信任、缓存许可或运行授权。
+
+048格式43路径空输出/exit0。23条有效最终命令全部exit0：19完整包、
+指定authority、store仅编译无测试、两项配置5s短fuzz。
+Envelope110,263次、Pair仅8次，不是穷尽证明。
+原067 readiness路径错误exit1且无测试开始，保留失败；072实际internal/readiness
+验证通过，store使用actual internal/store。全部24次矩阵执行中23条有效通过。
+602个可观察取消/超时/panic回调控制通过，不保证硬实时或不可达内存擦除。
+073审查后新包完整复核exit0；377 nodecontrol Go源码前后无漂移。
+
+一次fresh只读独立审查：0 Critical/0 Important/1 Minor。
+M1延期：API注释尚需明确新观测重评估、ValidUntil非缓存/授权、共享Clear生命周期
+及不支持并发Clear/read；未发现对应实现缺陷。审查者独立核对源码摘要与固定
+34 packets，但没有重跑测试。没有审查后Go源码修改，正式文档是作者事实记录。
+
+BASE/HEAD仍f5d731bef9d767d57ca32f0f4c3a0f532a4bc322；index/config/批准规格不变。
+本轮未暂存/提交/推送/合并/PR/清理；新增实现与被忽略原始证据尚仅本机，
+换电脑不能靠旧远端检查点恢复本轮新增进度。需要另行批准证据归档及开发分支
+普通提交推送，不自动合并main。生产/provider兼容UNKNOWN，全部Task10/B01/C12/main
+阻塞、旧未验收历史及下层待认证责任不变。
+见[执行、原始失败、最终矩阵、25项裁定与延期项](2026-10-12-node-certificate-time-binding-execution.md)。
+
 ## 2026-10-12 Nodeissuer 保存阶段
 
 用户批准归档必要证据、暂存/提交并普通推送现有开发分支；不合并main、
