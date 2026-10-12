@@ -1,5 +1,26 @@
 # Project status — updated 2026-10-11
 
+## 2026-10-12 Nodecerttime M1 API 文档补充 — 本机完成
+
+用户要求继续下一步后，作者对照已批准规格§3/§7和原审查M1，仅补充
+nodecerttime/doc.go、input.go、model.go的API注释及必要格式：
+新观测须完整Evaluate；ValidUntil不是缓存/复用或运行授权；Model浅拷贝
+共享Clear生命周期；不支持并发访问。无业务逻辑、公开字段/签名、Proof、
+守卫schema、消费者、批准规格或下层责任修改。
+
+三文件格式空输出/exit0；新包完整测试exit0（Go报告11.867s），包括原有
+能力/生命周期/消费守卫；35源码前后摘要相同。go doc -all输出已核对上述
+使用边界。仅作者核对，没有追加独立审查，不回写原审查的1 Minor历史。
+原始结果在本轮专用忽略证据目录，未改前轮归档。
+
+用户随后同意按建议继续，授权先提交这四个文档修改，再梳理身份绑定设计。
+提交前本轮完整包复测exit0（Go报告8.439s），三文件格式检查空输出/exit0；
+新复测实证为专用目录005-precommit-test，不覆盖前轮结果。
+本条记录为提交前说明，不提前宣称提交成功；实际提交号由Git历史确认。
+本轮不推送、不合并main；远端恢复检查点仍为
+bfb01bad53f465142cdaa4c9d1aabde4af206f2a。
+所有Pending/Obligations、生产兼容UNKNOWN和Task10/B01/C12/main阻塞保持。
+
 ## 2026-10-12 Nodecerttime 保存阶段
 
 用户新批准归档必要证据、暂存/提交并普通推送现有开发分支，明确不合并main。
