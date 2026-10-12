@@ -113,6 +113,35 @@ func TestCAConsumers(t *testing.T) {
 			t.Fatalf("consumer %s/%s", c.path, c.pkg)
 		}
 	}
+	issuer := "internal/nodecontrol/nodeissuer"
+	issuerRoot, issuerErr := filepath.Abs("../../..")
+	if issuerErr != nil {
+		t.Fatal(issuerErr)
+	}
+	for _, c := range []struct {
+		path, pkg string
+		want      bool
+	}{
+		{issuer + "/a.go", "nodeissuer", true},
+		{filepath.Join(issuerRoot, issuer, "a.go"), "nodeissuer", true},
+		{issuer + "/a_test.go", "nodeissuer", true},
+		{issuer + "_extra/a.go", "nodeissuer", false},
+		{issuer + "/nested/a.go", "nodeissuer", false},
+		{"else/" + issuer + "/a.go", "nodeissuer", false},
+		{filepath.Join(issuerRoot, "..", "external", issuer, "a.go"), "nodeissuer", false},
+		{issuer + "/a.go", "other", false},
+		{issuer + "/a_test.go", "nodeissuer_test", false},
+		{"internal/nodecontrol/brother/a_test.go", "nodeissuer", false},
+	} {
+		f := boundaryParse(t, strings.Replace(source, "package nodeca;", "package "+c.pkg+";", 1))
+		if got := guardConsumer(c.path, f) == ""; got != c.want {
+			t.Errorf("issuer consumer %s/%s: got %v want %v", c.path, c.pkg, got, c.want)
+		}
+	}
+	f := boundaryParse(t, "package nodeissuer; import \""+target+"/child\"")
+	if guardConsumer(issuer+"/a.go", f) == "" {
+		t.Fatal("nodeca subpath permitted")
+	}
 	root := filepath.Clean("../../..")
 	e := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -480,6 +509,21 @@ func guardConsumer(path string, f *ast.File) string {
 			return "import syntax"
 		}
 		if p != target && !strings.HasPrefix(p, target+"/") {
+			continue
+		}
+		issuerPath := path
+		if filepath.IsAbs(issuerPath) {
+			root, err := filepath.Abs("../../..")
+			if err != nil {
+				return "nodeca consumer forbidden"
+			}
+			rel, err := filepath.Rel(root, issuerPath)
+			if err != nil {
+				return "nodeca consumer forbidden"
+			}
+			issuerPath = filepath.ToSlash(rel)
+		}
+		if p == target && filepath.ToSlash(filepath.Dir(issuerPath)) == "internal/nodecontrol/nodeissuer" && f.Name.Name == "nodeissuer" {
 			continue
 		}
 		if filepath.ToSlash(filepath.Dir(path)) != "internal/nodecontrol/nodeca" || f.Name.Name != "nodeca" || !strings.HasSuffix(path, "_test.go") {

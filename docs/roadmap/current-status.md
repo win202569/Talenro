@@ -1,5 +1,57 @@
 # Project status — updated 2026-10-11
 
+## 2026-10-12 Nodeissuer 保存阶段
+
+用户批准归档必要证据、暂存/提交并普通推送现有开发分支；不合并main、
+不建PR、不强推、不改Git配置、不清理。下方“尚未提交/仅本机”是各实施
+阶段真实历史，新授权不回写原审查基线。最终提交SHA及远端写入结果以
+Git回执和聊天交付为准，本节不预先证明推送成功。
+
+再次验证exact27源码未变；058格式检查空输出/exit0，059–080共22条
+限定命令全部exit0。此次短fuzz实际Envelope44次、Pair6,911次，非穷尽。
+103份本增量原始文本证据逐条校验归档；保留原失败、reviewer原文及全部
+Ruling，排除Go缓存。新保存33文件，无产品修订或追加独立审查。
+所有下层Pending、生产兼容UNKNOWN及Task10/B01/C12/main阻塞不变。
+见[换机恢复、归档与提交前验证](2026-10-12-nodeissuer-checkpoint.md)。
+
+## Node leaf direct issuer relation — local partial increment complete
+
+批准2026-10-12；五任务Native顺序实现新增nodeissuer exact24 Go文件
+（12产品/12测试），仅三个lower boundary_test.go新增精确消费例外和控制。
+真实CA/leaf lower之后，绑定exact CA key/SPKI、raw Name及full32 identifiers，
+以实际P-256公钥验证SHA256(full original leaf TBS DER)/ECDSA签名；
+不重编码、fallback或low-S改写，无nodeissuer产品消费者/provider/运行能力。
+
+最终032–053共22条author-run命令全exit0，前后27 source hashes均同freeze1：
+18完整包、指定authority、store仅编译无测试、两个配置5s的短fuzz。
+Envelope 75,755 executions/5初始seeds，Pair 6,917/4；
+无报告失败，非穷尽证明。格式027/028 exit0，028空输出。
+早期预期RED及021/024守卫误拒绝均保留真实失败、诊断和修正回执。
+019取消控制10次观察到取消、22次先完成，不承诺硬实时。
+外部启动延迟不等于fuzztime或确定的失败原因。
+
+一次fresh gpt-6-astra/xhigh只读独立审查：0 Critical/0 Important/0 Minor。
+独立确认27冻结源码、766基线、234摘要及13个.NET leaf签名验证；
+Go测试结果是作者原始回执，不是reviewer重跑。无deferred Minor，
+无审查后源码修改；正式文档为作者核对，不扩称独立复审。
+
+NodeLeafDirectIssuerSignatureBound只证明本次直接数学/原字节关系。
+两个lower原Proof和两张完整六项Pending原样保留：
+CA自身/parent/root/chain/path、可信issuer来源/唯一性、可信时间/窗口策略、
+部署/identity/bundle/rollback/私钥持有/main-state/runtime责任仍未认证。
+same-key/name另一CA仍可通过但DER摘要不同；生产/provider兼容仍UNKNOWN。
+输入139,776-byte预算不是heap bound；有限AST/fuzz不是形式证明；
+不承诺并发、constant-time、硬实时或不可达/crash-time内存擦除。
+
+旧设计/CA/leaf/检查点状态保留为真实历史；旧44 testdata与其他旧源码保持原样。
+HEAD仍764dcb8b6b682ecce03fd6de02dbe339c66ff985，开发分支和index未变。
+本次没有暂存/提交/推送/合并/PR/config写入/清理授权；
+实现与忽略证据仍仅本机，最新远端恢复检查点仍2877f89c。
+下一步需单独批准Git保存及普通开发分支推送，不自动合并main。
+整仓/race/Linux/真实DB/Docker/provider/hardware/reboot/PITR未验；
+Task10/B01/C12/main全部既有阻塞保留。
+见[执行、全部attempt、源码hash、Ruling与证据限制](2026-10-12-node-leaf-issuer-relation-execution.md)。
+
 ## 2026-10-12 开发恢复检查点
 
 用户批准按建议建立可迁移开发检查点：保存当前开发分支

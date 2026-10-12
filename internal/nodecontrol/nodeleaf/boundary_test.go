@@ -112,7 +112,7 @@ func leafConsumerAllowed(path, pkg, imported string) bool {
 	if imported != "talenro.local/platform/internal/nodecontrol/nodeleaf" || (strings.HasSuffix(filepath.ToSlash(path), "_test.go") && pkg == "nodeleaf") {
 		return true
 	}
-	if pkg != "nodeleafkeys" {
+	if pkg != "nodeleafkeys" && pkg != "nodeissuer" {
 		return false
 	}
 	root, err := filepath.Abs(filepath.Clean(filepath.Join("..", "..", "..")))
@@ -127,7 +127,7 @@ func leafConsumerAllowed(path, pkg, imported string) bool {
 	if err != nil {
 		return false
 	}
-	return filepath.Dir(rel) == filepath.Join("internal", "nodecontrol", "nodeleafkeys")
+	return filepath.Dir(rel) == filepath.Join("internal", "nodecontrol", pkg)
 }
 
 func TestLeafProductImports(t *testing.T) {
@@ -198,6 +198,30 @@ func TestLeafConsumers(t *testing.T) {
 	})
 	if e != nil {
 		t.Fatal(e)
+	}
+	issuer := filepath.Join(root, "internal", "nodecontrol", "nodeissuer")
+	issuerAbs, issuerErr := filepath.Abs(filepath.Join(issuer, "a.go"))
+	if issuerErr != nil {
+		t.Fatal(issuerErr)
+	}
+	for _, c := range []struct {
+		path, pkg string
+		want      bool
+	}{
+		{filepath.Join(issuer, "a.go"), "nodeissuer", true},
+		{issuerAbs, "nodeissuer", true},
+		{filepath.Join(issuer, "a_test.go"), "nodeissuer", true},
+		{filepath.Join(root, "internal", "nodecontrol", "nodeissuer_extra", "a.go"), "nodeissuer", false},
+		{filepath.Join(issuer, "nested", "a.go"), "nodeissuer", false},
+		{filepath.Join(root, "else", "internal", "nodecontrol", "nodeissuer", "a.go"), "nodeissuer", false},
+		{filepath.Join(root, "..", "external", "internal", "nodecontrol", "nodeissuer", "a.go"), "nodeissuer", false},
+		{filepath.Join(issuer, "a.go"), "other", false},
+		{filepath.Join(issuer, "a_test.go"), "nodeissuer_test", false},
+		{filepath.Join(root, "internal", "nodecontrol", "brother", "a_test.go"), "nodeissuer", false},
+	} {
+		if got := leafConsumerAllowed(c.path, c.pkg, "talenro.local/platform/internal/nodecontrol/nodeleaf"); got != c.want {
+			t.Errorf("issuer consumer %s/%s: got %v want %v", c.path, c.pkg, got, c.want)
+		}
 	}
 	exact := filepath.Join(root, "internal", "nodecontrol", "nodeleafkeys")
 	abs, err := filepath.Abs(filepath.Join(exact, "a.go"))

@@ -290,6 +290,9 @@ func keysConsumerAllowed(path, pkg, imported string) bool {
 		return false
 	}
 	exact := filepath.Dir(rel) == filepath.Join("internal", "nodecontrol", "nodeleafkeys") && pkg == "nodeleafkeys"
+	if filepath.Dir(rel) == filepath.Join("internal", "nodecontrol", "nodeissuer") && pkg == "nodeissuer" {
+		return true
+	}
 	if imported == self {
 		return exact && strings.HasSuffix(filepath.ToSlash(path), "_test.go")
 	}
@@ -494,6 +497,32 @@ func TestKeysConsumers(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+	issuer := filepath.Join(root, "internal", "nodecontrol", "nodeissuer")
+	issuerAbs, issuerErr := filepath.Abs(filepath.Join(issuer, "a.go"))
+	if issuerErr != nil {
+		t.Fatal(issuerErr)
+	}
+	for _, c := range []struct {
+		path, pkg string
+		want      bool
+	}{
+		{filepath.Join(issuer, "a.go"), "nodeissuer", true},
+		{issuerAbs, "nodeissuer", true},
+		{filepath.Join(issuer, "a_test.go"), "nodeissuer", true},
+		{filepath.Join(root, "internal", "nodecontrol", "nodeissuer_extra", "a.go"), "nodeissuer", false},
+		{filepath.Join(issuer, "nested", "a.go"), "nodeissuer", false},
+		{filepath.Join(root, "else", "internal", "nodecontrol", "nodeissuer", "a.go"), "nodeissuer", false},
+		{filepath.Join(root, "..", "external", "internal", "nodecontrol", "nodeissuer", "a.go"), "nodeissuer", false},
+		{filepath.Join(issuer, "a.go"), "other", false},
+		{filepath.Join(issuer, "a_test.go"), "nodeissuer_test", false},
+		{filepath.Join(root, "internal", "nodecontrol", "brother", "a_test.go"), "nodeissuer", false},
+	} {
+		for _, imported := range []string{"talenro.local/platform/internal/nodecontrol/nodeleaf", "talenro.local/platform/internal/nodecontrol/nodeleafkeys"} {
+			if got := keysConsumerAllowed(c.path, c.pkg, imported); got != c.want {
+				t.Errorf("issuer consumer %s/%s/%s: got %v want %v", c.path, c.pkg, imported, got, c.want)
+			}
+		}
 	}
 	exact := filepath.Join(root, "internal", "nodecontrol", "nodeleafkeys")
 	abs, e := filepath.Abs(filepath.Join(exact, "a.go"))
