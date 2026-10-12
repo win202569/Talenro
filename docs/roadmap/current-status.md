@@ -1,4 +1,595 @@
-# Project status — updated 2026-10-08
+# Project status — updated 2026-10-11
+
+## 2026-10-12 开发恢复检查点
+
+用户批准按建议建立可迁移开发检查点：保存当前开发分支
+`codex/c12-b01-task9-coordinator` 的365项既有项目进度及恢复说明、
+CA证据归档和本次验证回执；不合并main、不创建PR、不强推、不清理。
+本节记录保存阶段的新授权；下方各增量“仅本机/无Git授权”描述保留为
+当时真实历史，不等于当前仍未允许建立检查点。提交SHA及实际推送结果
+以最终Git回执和聊天交付为准，本节不预先证明远端写入成功。
+
+本次重新验证17个完整包、指定authority、store编译、CA两项短fuzz
+均exit0，源码前后保持不变。整体格式检查有一项旧测试生成脚本欠账，
+暂存差异检查也仍报告历史文档/SQL的空白欠账，未放宽或标为通过。
+保留原样并记录，不能声称全部格式通过。CA六项Pending和所有历史
+证明限制保留；Task10/B01/C12/main、全仓库及生产验收仍未完成。
+最新CA的162份原始文本证据已逐份校验归档，缓存和更早增量的全部
+原始scratch没有迁移。见[恢复步骤、证据及已知限制](2026-10-12-development-checkpoint.md)。
+
+## Node CA material — local partial increment complete
+
+Approval2026-10-11; local closeout2026-10-12 (UTC+4), receipts retain actual UTC. Approved five-task Native increment adds isolated nodeca:24 new Go files
+(12 product/12 tests), no old source/test/testdata/config/API/guard changes and
+no consumer. Bounded owned CA DER binds exact canonical P-256 subject SPKI and
+full32-byte raw-SPKI SHA256 SKI; four distinct BC/KU/SKI/AKI extensions, canonical
+known fields, absent-versus-zero pathLen and shared-owner Clear remain explicit.
+
+Final author commands0100–0104 exit0 on frozen revision8 sources;
+format0099 empty/exit0.104 attempt paths retain103 complete original receipts
+and0094's explicit collection-loss diagnostic (unknown UTC/exit/hashes/output).
+No outcome inferred for0094;0095 genuine RED,0096/0097 GREEN.
+DER fuzz36 executions from5 seeds;SPKI4963 from65 cached seeds
+(1newinteresting),no reported crash—very limited exploration.
+Recent startup/wall-clock delays were observed, cause unknown; no timeout changes.
+All seven earlier review reports, their reproduced fixes, and the corrected malformed-AKI test oracle are retained. Known RSA/DSA payload consumption and rejected issuer GeneralNames encoding/container grammar now precede unsupported-profile classification. Opaque OIDs require minimal terminated base128 representation, without a Go-int arc cap. Supported algorithms remain P-256 only. Additional GeneralName naming/routing/length/range policies and unknown vendor schemas are not certified; malformed encodings and fixed error priorities are not waived.
+
+Fresh approved read-only review8:0 Critical/0 Important/0 Minor; no deferred
+Minor and no post-review source edits. Reviewer independently checked the
+frozen sources,preservation and receipt consistency, but ran no tests or network.
+Five tasks close locally after approved documentary checks; this is not certificate
+trust,merge/main authorization or C12 acceptance. Leading-zero expanded-year and
+normative/informative offset-range questions were considered without an established
+defect; exhaustive ISO/ASN.1 compatibility was not independently settled.
+
+Review7 TIME14 encoding/notation and generic GeneralizedTime leap-second error
+classification findings were repaired with genuine RED0095 and GREEN0096/0097.
+TIME preserves date/local/UTC/offset/duration/interval/recurrence formats and arbitrary
+canonical precision; calendar temporary does not rewrite exact input. UTC and
+certificate validity Go-front rejection unchanged; no actual leap-event, chronological
+interval or vendor-time subtype certification. Rulings preserve these evidence limits,
+not waive known malformed representation or sentinel defects.
+
+Review6 Name-value and extension ANY grammar fixes retained genuine assertion
+RED0084 (0083 included a wrong new EXTERNAL length fixture), GREEN0085/0086.
+Rejected directoryName uses pinned six string interpretations, not CN-specific
+policy. Extension-only VisibleString/RelativeOID/time/REAL/EXTERNAL/PDV/CHARACTER
+STRING known representation/container checks precede excluded-profile return.
+No unknown signer semantics/profile/API/consumer expansion. Full legacy charset
+repertoires, unknown vendor/session meaning and generic time-policy conformance
+remain unproved; finite controls are not full-universal conformance.
+
+NodeCAMaterialShapeAndDeclaredKeyBound retains all six fixed Pending obligations.
+No signature/signer policy, parent/chain/root/AKI-parent binding, trusted current
+validity, deployment authorization, bundle/rollback status or leaf/runtime relation
+is established. DeclaredSPKI is subject key, not parent key. Existing leaf proof
+grades/Pending and production CA/provider compatibility UNKNOWN remain unchanged.
+Opaque unknown-parameter full primitive semantics and schema-dependent SET/SET OF
+ordering are not certified; known DN SET OF ordering remains checked. Raw names
+are not normalized and serial projection does not prove global uniqueness.
+
+Input73,728-byte aggregate is not a heap ceiling. Failed private-owner erasure is
+source-supported; successful owned aliases are observed. Finite AST guards/fuzz
+are not formal/exhaustive proofs; no concurrent mutation/Clear/read, fatal-OOM/
+crash/unreachable-copy erasure or hard-real-time guarantee.
+
+Only allowed state/checklist/execution documents change. Existing dirty progress,
+HEAD/branch/index and all44 prior testdata files (28 nested/16 root) preserved.
+No staging/commit/push/merge/config/cleanup: new progress and ignored evidence are
+local only, not a remote cross-computer recovery checkpoint. Full-repo/race/Linux/
+DB/Docker/hardware/production acceptance unrun; Task10/B01/C12/main gates blocked.
+Final status/execution documents are author-checked, not a source-review extension.
+See [execution, attempts, source hashes and limits](2026-10-11-node-ca-material-execution.md).
+
+
+## Node leaf declared key identifiers — complete locally
+
+Approved five-task Native increment adds isolated nodeleafkeys: 17 new Go files
+(nine product/eight tests), with exactly one old nodeleaf consumer-guard exception
+and regression-case addition. Exact full SPKI SHA-256 gives complete32-byte SKI
+and caller-declared issuer AKI; fixed canonical representation accepts RSA,
+ECDSA P-256/P-384/P-521 and Ed25519, rejects rather than repairs other encodings.
+Same SPKI for both roles is allowed without implying self-signing or trust.
+No runtime/product consumer, provider, old fixture or CA migration introduced.
+
+All final18 fixed author commands exit0: sixteen full packages, selected authority,
+store compile-only/no store tests. Every original Go test attempt retains full
+offline wrapper, actual UTC/output/exit and paired source hashes. Format40 is
+clean; final41–58 and review cover the same frozen18 files. First format attempt21
+failed pre-format due culture/ordinal sorting; its missing in-process finish UTC
+is retained as a historical limitation, not backfilled. Early passes22–25 are
+prechecks only. Guard false-positive15/reproduction16/fix17–20 fully recorded.
+No gap26–39 executions invented.
+
+One fresh strongest-model read-only review:0 Critical /0 Important /0 Minor.
+Reviewer independently confirmed all18 source hashes, 714/715 prior files
+unchanged before the approved status updates, old guard remainder/cases preserved,
+and branch/HEAD/index unchanged. No post-review source edits or second reviewer.
+Final status/execution documents are author-checked, not separately reviewed.
+
+NodeLeafDeclaredKeyIdentifiersBound retains the nested lower partial proof and
+all six original Pending obligations. Actual issuer origin/signature/CA trust,
+trusted current time, identity/authority provenance, private-key possession,
+main-state/runtime binding remain unproved; CA SKI compatibility UNKNOWN.
+The 74,240-byte aggregate is an input budget, not a heap bound. Successful owned
+buffer erasure is observed; failed/clone-time panic erasure source-supported.
+Finite AST guards are not formal proof; no concurrency/hard-real-time promise.
+
+PowerShell/apply_patch equivalents preserve Native evidence without Bash/Git
+bookkeeping writes. All320 prior dirty entries retained; no staging/commit/push/
+merge/config/cleanup. Progress and ignored evidence remain local, not a remote
+cross-computer checkpoint. Full-repo/race/DB/Docker/hardware/C11/C12/PITR/production
+acceptance unrun; Task10/B01/C12/main existing gates remain blocked.
+See [execution, all attempts and retained limits](2026-10-11-node-leaf-key-identifiers-execution.md).
+
+## Node leaf partial-material validation — complete locally
+
+Approved five-task Native increment adds isolated nodeleaf (20 new Go files),
+with no old source/guard/SQL/module/vector changes or product consumer.
+Exact single DER, canonical v3/empty subject/P-256/serial/time and six extensions
+bind byte-for-byte to declared node/domain URI and expected SPKI. Shared-owner
+Clear and detached outputs do not introduce certificate trust or runtime authority.
+NodeLeafMaterialShapeValid always retains all six Pending obligations; expired,
+future, invalid-signature and arbitrary shape-valid key-ID cases remain partial.
+
+Both original and fresh final 17-command matrices exit 0: fifteen full packages,
+selected authority tests, store compile-only (no store tests run). Fresh final
+receipts record complete offline wrappers/UTC/pre-post hashes; formatting clean.
+One fresh strongest-model read-only review: 0 Critical / 0 Important / 2 Minor,
+both accepted historical audit limits (first RED lacked paired pre/post hashes;
+earlier receipts saved fragments only). Old records are retained, not backfilled.
+Same reviewer inspected fresh final receipts and independently confirmed all
+577 baseline/new entries unchanged. No post-review source edit or second reviewer.
+
+Only approved status docs change from 557 protected entries; other 554 unchanged.
+All 297 prior dirty entries preserved; HEAD/branch/index unchanged. No staging,
+commit/push/merge/config change or cleanup; progress is local, not a remote
+cross-computer checkpoint. Final documents are author-checked, not separately reviewed.
+Failed-private-owner erasure is source-supported; finite AST guards are not formal
+proofs. Signature/issuer trust, key-ID derivation, trusted time, identity/authority
+provenance, private-key possession and main-state/runtime binding remain pending.
+Full-repo/race/DB/Docker/hardware/C11/C12/PITR/production acceptance unexecuted;
+production compatibility UNKNOWN; existing Task10/B01/C12/main gates unchanged.
+See [execution and retained audit limits](2026-10-11-node-leaf-material-execution.md).
+
+## Main-state current-target time evidence binding — complete locally
+
+Approved five-task Native increment in isolated statetimebinding is implemented
+and source-review complete. Complete owned selected-policy/time input binds exact
+current metadata bytes, full unchanged root/metadata sections, declared common
+base state, fixed time/request and old/signed-new checkpoint declarations.
+Detached Summary and full fresh-input Recheck preserve all lower obligations and
+five explicit additional responsibilities. No provider, runtime consumer,
+consumption, commit or State/Ready/Authorize capability was introduced.
+
+All sixteen fixed post-fix author commands completed exit 0: fourteen full
+packages, selected authority, store compile-only (no store tests run). The single
+fresh read-only review found 0 Critical / 1 Important / 1 Minor. Important I1 was
+reproduced with public assertion RED, minimally fixed, then all sixteen rerun;
+the same reviewer explicitly rechecked both changed files and confirmed resolved,
+with no new findings. Minor M1 remains accepted historical audit limitation:
+early original UTC/per-stage hashes (and the supplemental receipt selector) are
+not reconstructed. Fresh final freezes/UTC receipts are actual current evidence.
+
+Twenty new Go files and only eight approved old boundary changes; 507/515 old
+baseline files and all 24 captured testdata files unchanged. Revised 28-file
+source freeze matches author and reviewer checks; HEAD/branch/index unchanged.
+No staging/commit/push/merge/reset/deletion/worktree cleanup, so new progress is
+local, not a cross-computer remote recovery checkpoint. Final documents are
+author-checked, not an additional independent documentation review.
+
+Physical provenance/trusted clock/TLS/nonce randomness and atomic consumption,
+replay protection/durable checkpoint commit/full historical and other-domain
+authentication/runtime authority remain unproved. Failed private-owner erasure
+is source-supported, not directly observed; AST checks are not a general proof.
+Full-repository/race/DB/Docker/hardware/C11/C12/PITR acceptance unexecuted;
+production compatibility UNKNOWN, existing Task10/B01/C12/main gates unchanged.
+See [execution and remaining responsibilities](2026-10-11-main-state-time-evidence-binding-execution.md).
+
+## Main-state current-target policy binding — complete locally
+
+Approved five-task Native implementation in isolated statepolicybinding is source-
+and review-complete. Same owned input binds exact current-target Batch, typed root
+path, old/new policy projections, complete current keys/ledger and explicit time.
+Full normalized-input Recheck and detached Summary preserve lower obligations;
+SelectedPolicyNoChange is not whole-main-state no-change. No production consumer
+or State/Commit/Authorize/Ready capability introduced.
+
+All fifteen fixed author-run commands exit0: thirteen full packages, selected
+authority, store compile-only/no tests. One fresh read-only incremental review:
+0 Critical / 0 Important / 0 Minor; no source changes or second review afterward.
+The ledger's earlier twelve-full-package count was corrected, not a missing test.
+Twenty new Go files and only six permitted old guard changes; 442/448 old source
+files and 24 captured vectors unchanged, census468. All six old guards were
+untracked at setup; their reconstructed original bytes hash-match that baseline,
+so review used real incremental differences, not HEAD/whole-dirty-branch diff.
+Final 26-file freeze exactly matches post-format/pre-review/independent review;
+documentation/Git/source closeout checks passed. All 90 previous dirty entries
+retained (now92; only new package and execution record), HEAD/branch/index
+unchanged. Final format/diff checks exit0. No staging/commit/push/merge/cleanup;
+all progress is local, not a remote cross-computer checkpoint.
+
+Separate per-command sandbox caches plausibly explained cold-build delay; only
+process-local GOCACHE now uses retained owned scratch, no permanent policy/config
+change. Interrupted attempts and invalid oracles are explicitly not passing
+evidence. AST checks fixed shapes, not general control flow; never-returned memory
+was not directly observed. Platform provenance/old physical co-capture/time truth/
+full history/other domains/full closure/commit/runtime/real providers and overall
+Task10/B01/C12/main acceptance remain open; production compatibility UNKNOWN.
+See 2026-10-10-main-state-selected-policy-binding-execution.md and approved plan.
+
+## Bounded statecontract panic-cleanup follow-up — complete locally
+
+User approved one existing evaluator fix, one new test and execution records.
+Immediate conditional deferred Clear covers the post-clone context-panic exit
+without changing interfaces, rules, error precedence or proof grades. Structural
+RED exit1/3.207s preceded product change; targeted GREEN exit0/2.963s. Runtime
+panic propagation, success/cancellation and nineteen backing-store cleanup tests
+pass, but no direct observation of an unreachable owner/full runtime erasure is
+claimed. One fresh source review: 0 Critical / 0 Important / 0 Minor, no source
+changes afterward. All fourteen approved commands completed exit0: twelve full
+packages, selected authority, store compile only (not store test acceptance).
+Only one of 447 old source-scope files differs (446 unchanged), one new test,
+source census448. Both reviewed candidate hashes and all eighteen prior binding
+freeze files exact. All 87 prior dirty status entries retained (now88); HEAD/
+branch/index unchanged; source/format/diff checks exit0. No production or Git write.
+All review exclusions/author costs retained; no full memory-erasure/broad tests/
+whole-branch/main acceptance. See 2026-10-10-statecontract-panic-cleanup-followup.md.
+All local bounded work complete; progress remains uncommitted/unpushed.
+
+## Main-state dual-snapshot projection binding — complete locally
+
+Approved on 2026-10-10; all five Native tasks complete locally in isolated
+statebinding. Complete old/new L0 declarations and independent material tables
+are owned together with the explicit selected desired. Exact projections and
+current transition bind without replacing original authorizers or upgrading
+lower proof grades. Full Recheck and detached summaries preserve every lower
+and all eight binding obligations. No production consumer introduced.
+
+One fresh strongest-model read-only incremental review found 0 Critical /
+0 Important / 2 Minor. Both closed by author: missing transition start retains
+MissingMaterial; both tables now test exact 16 MiB + 1 byte. Lower-valid integrated
+RED preceded the product correction; targeted GREEN and all fourteen post-fix
+commands exit 0. Twelve full packages, selected authority, store compile only
+(not store test acceptance). No second independent review or deferred Minor.
+Final eighteen frozen hashes match; baseline 432 files has only three approved
+guard differences (429 unchanged). Fifteen added source files all in statebinding;
+all 85 previous dirty status entries preserved (now 87). HEAD/branch/index unchanged,
+format and diff checks exit 0. Documents only after final source tests.
+
+No staging/commit/push/merge/cleanup; progress remains local. Broader compatibility
+and production acceptance UNKNOWN; prior dirty work not independently reviewed.
+Trusted old baseline, atomic external capture/provenance, original unsigned
+associations, previous/unselected signatures, history/set truth, other domains/
+current time, full closure/composition, physical commit and runtime authorization
+remain unproved. Never-returned lower owners/unreachable copies and unsupported
+concurrency remain outside Clear guarantees. Task10/B01/C12/main gates unchanged.
+See 2026-10-10-main-state-projection-binding-execution.md and
+../superpowers/plans/2026-10-10-main-state-projection-binding.md with retained scratch.
+Scoped local handoff only, not project acceptance.
+
+## Main-state selected-target signature composition — complete locally
+
+The user approved the design and five-task plan on 2026-10-10. Native local
+implementation is complete in isolated statecomposition, joining the complete
+statematerials check to stateverify for one explicitly selected desired from
+the same owned raw-material snapshot. Independent anchor P/E and exact ordered
+target refs are bound; the v1-anchor/32-rotation limit is retained and other
+history stays material-only. Complete Recheck includes every unselected record.
+All three mutation probes were restored and tested. Final eleven full packages,
+selected authority and store compile-only each exit 0 (store is not test acceptance).
+The single fresh read-only incremental review found 0 Critical / 0 Important /
+0 Minor; no deferred minors or second review. Final checks match all 16 frozen
+source/test hashes, only the two approved changes among 418 baseline files
+(416 unchanged), and unchanged HEAD/branch/index. Only documents changed after
+final tests/review. No staging, commit, push, merge or cleanup; existing worktree
+and prior dirty progress remain local. Anchor provenance, historical/unselected
+signatures, trusted current time, full main-state closure/composition, physical
+commit and runtime authorization remain open. Production compatibility is UNKNOWN;
+overall Task10/B01/C12/main gates are unchanged. See
+2026-10-10-main-state-selected-signature-composition-execution.md and
+../superpowers/plans/2026-10-10-main-state-selected-signature-composition.md
+with the corresponding approved design. This is not whole-project acceptance.
+
+## Previous main-state raw-material subset increment
+
+Main-state raw-material subset implemented locally: statematerials checks root
+sets/rotations/metadata/desired with exact parser facts, bounded references,
+ownership and full rechecks. Approved ten-package regression, selected authority
+and store compile-only all exit0. One fresh review: 0 Critical / 0 Important /
+3 Minor test gaps, all closed by focused tests and mutation verification; final
+statematerials2.620s/stateformat2.568s exit0. Product remains hash-identical to
+reviewed source. Only four approved parser files changed among 403 existing
+Go/SQL/module files; 399 unchanged. No production consumer or L0 exception;
+signatures/anchor/full closure/composition/persistence/runtime gates outstanding.
+Uncommitted/unpushed. See 2026-10-10-main-state-materials-subset-execution.md.
+
+## Previous main-state L0 coverage increment
+
+Task 10 main-state L0 coverage contract is implemented locally in isolated
+statecontract. One fresh source review found 0 Critical / 3 Important / 2 Minor;
+all Important findings reproduced and fixed, full approved post-fix regressions
+passed. The 2026-10-10 bounded follow-up now closes both Minors: all 19
+collections independently tested, nested coverage errors consistently classified.
+Targeted RED1.713s→GREEN1.722s; all nine approved packages and selected authority
+passed, store compile-only passed. No second independent review. Follow-up
+changed only shape.go plus a new test; 401 other baseline Go/SQL/module files
+unchanged. See 2026-10-10-main-state-contract-followup.md. No production authority, material
+verification or persistence implemented. Uncommitted/unpushed; see
+2026-10-10-main-state-contract-execution.md. Overall gates remain open.
+
+## Previous state-recovery increment
+
+Task 10 isolated dual-slot state-recovery model implemented locally,
+uncommitted/unpushed. New staterecovery checks both slots, models no-change and
+ordered commit events, and requires independent fresh scans after interrupted
+or acknowledged increments. No actual disk, seal, hardware counter, retry,
+statepolicy/statetime mutation or production consumer is installed.
+
+Post-fix scoped verification all exit0: targeted1.556s, staterecovery4.141s,
+statetime6.122s, stateformat6.165s, stateverify6.044s, statepolicy5.055s,
+serving3.406s, contracts4.020s, readiness2.674s, selected authority3.383s;
+store compile-only1.988s (no tests). All 370 pre-existing Go/SQL/module files unchanged.
+One fresh read-only independent source review found 0 Critical / 1 Important /
+1 Minor. Cross-epoch reuse of a complete blob identity was reproduced RED and
+fixed GREEN by the author; all scoped regressions passed. The 2026-10-10 test-only
+follow-up now closes the FutureSlot diagnostic assertion Minor: exact A/B and
+no-future SlotUnknown expectations. Targeted test3.481s and full staterecovery
+package2.877s both exit0; only one test file changed (386 other Go/SQL/module
+files unchanged). No second independent review. See
+2026-10-10-state-recovery-test-followup.md; earlier review history remains intact.
+Production compatibility UNKNOWN; all real-provider/durability/reboot/TLS and
+overall Task10/B01/C12/main gates remain open. See
+2026-10-09-state-recovery-model-execution.md for scope and evidence.
+
+## Previous time-attestation increment
+
+Task 10 isolated time-attestation increment implemented locally, uncommitted/
+unpushed. stateformat adds strict time-attestation bytes and independent
+checkpoint/nonce bindings. New statetime evaluates conditional signatures,
+metadata P/E, explicit time/request/checkpoint models and complete rechecks.
+It authenticates neither metadata roots nor platform observations; no TLS,
+real clock, nonce consumption, persistence or production caller is installed.
+
+Fresh source-only review: 0 Critical / 1 Important / 2 Minor. The Important
+multiple-time-alias AST guard bypass was reproduced RED and fixed GREEN by
+the author. No second independent review. Follow-up now closes both Minor
+coverage items: direct same-P/different-E raw metadata substitution and exact
+policy error assertions. Only two test files changed, no product behavior.
+Fresh follow-up runs all exit0: targeted4.457s, statetime3.270s,
+stateformat6.073s, stateverify6.943s, statepolicy7.198s, serving10.777s,
+contracts20.383s, readiness5.548s, selected authority11.345s;
+store compile-only6.083s. This test-only follow-up was not independently
+re-reviewed. See 2026-10-09-time-attestation-test-followup.md.
+
+Earlier post-fix scoped runs all exit0: statetime6.744s, stateformat8.630s,
+stateverify6.063s, statepolicy5.987s, serving13.079s, contracts9.850s,
+readiness4.122s, selected authority5.296s; store compile-only2.821s
+(no tests). Runtime evidence is author-run, not independently reproduced.
+Production compatibility UNKNOWN; real-platform/TLS/replay/durability and
+overall Task10/B01/C12/main acceptance remain open. See
+2026-10-09-time-attestation-execution.md for evidence, rulings and limits.
+
+## Previous node-trust-policy increment
+
+Task 10 isolated node-trust-policy increment implemented locally, uncommitted/
+unpushed. New statepolicy re-verifies exact signed inputs and evaluates explicit
+deployment/time/history models, root prefixes, high-water changes and revocation
+retention. Candidate/recheck outputs are conditional models, NOT production
+authorization or a committed/platform-authenticated state. No provider, clock,
+network, storage, hardware or runtime caller is installed.
+
+Fresh independent review found 0 Critical / 2 Important / 0 Minor. Both Important
+findings (revoked-deadline reconciliation and allocated-empty false staleness)
+were reproduced RED and fixed by the author with targeted GREEN; no second review.
+An existing stateverify test guard was precisely updated to allow the approved
+isolated policy dependency while still forbidding runtime callers of statepolicy;
+stateverify/stateformat product code remains unchanged.
+
+Final post-fix scoped verification all exit0: statepolicy4.390s, stateformat6.428s,
+stateverify3.846s, serving4.915s, contracts4.368s, readiness3.641s, selected authority
+6.755s; store compile-only3.141s (no tests). Formatting/whitespace checks clean.
+Real platform provenance, reboot rollback resistance, durable commits/recovery,
+TLS and production acceptance remain unverified; deployment compatibility UNKNOWN.
+Not overall Task10/B01/C12 or main/merge acceptance. Previous unrelated test Minors
+remain open. See 2026-10-09-node-trust-policy-execution.md for evidence and rulings.
+
+## Previous signature increment
+
+Task 10 isolated desired signature-evidence increment implemented locally,
+uncommitted/unpushed. New stateverify verifies ordinary Ed25519 over exact
+domain+NUL+payload, separate current/new root thresholds, 0..32 continuous
+rotations, metadata signatures and desired key/static-window relationships.
+SignatureEvidence is conditional on the supplied anchor; it is NOT trusted
+deployment, current-time validity, rollback protection or production authority.
+stateformat remains the sole wire parser, with detached owned key/share materials.
+No production caller, signer service, network, DB, clock or root installation.
+
+Follow-up closed the active-root error-classification Minor: malformed or wrong-
+Kind mismatched artifacts now return InvalidInput; valid-but-different artifacts
+still return BindingMismatch; exact-byte acceptance is unchanged. Targeted RED
+3.802s then full stateverify GREEN3.088s. Fresh scoped regression all exit0:
+stateformat4.060s, serving6.214s, contracts6.668s, readiness4.486s; selected
+authority6.618s; store compile-only6.336s (no tests). Original independent review
+had no Critical/Important; this small TDD follow-up was not separately re-reviewed.
+Reviewer did not rerun tests or independently confirm Git HEAD/protection hashes.
+Previous canonical-buffer and canonical-size-test Minors addressed; two older
+test Minors remain open. Deployment compatibility stays UNKNOWN; real DB/Docker,
+full repository/C11/C12/bootstrap/PITR/race and production/security acceptance
+remain unverified. This is not full Task 10/B01/C12 or main/merge acceptance.
+HEAD remains 6752b9612a00b9d6b0bf87ae8dd95063f6b056ee. See
+2026-10-09-desired-signature-execution.md for evidence and all rulings.
+
+## Previous canonical increment
+
+Task 10 isolated desired canonical format/binding increment complete locally;
+independent review found no Critical/Important issues. New stateformat checks exact wire JSON,
+primitive encodings, payload semantics, four envelope kinds, independent digest/
+transcript vectors and owned artifact cleanup. New private desired binder checks
+projection equality; only test composition invokes it, not a production reader.
+Fresh post-review PASS: stateformat 4.598s, serving 5.966s, contracts 6.635s,
+readiness 3.713s, selected authority 3.139s, store compile-only 3.626s (no tests).
+All 156 protected files match
+their pre-increment hashes. G1–G5 are local development contracts, not registered
+production protocol or deployment compatibility (UNKNOWN). No signing/crypto,
+trusted time, DB/Docker/full-suite, commit, push or merge. See
+2026-10-09-desired-canonical-execution.md for evidence and all review rulings.
+Two new Minors deferred: clear the mutable JCS canonicalization temporary;
+use canonical limit+1 bytes to isolate the size guard in its test. Two historical
+test minors also remain open. Reviewer independently checked file/vector hashes,
+but did not rerun tests. Next: scope the signature/trust design; this is not
+full Task 10, production, security, whole-branch or merge acceptance.
+
+## Previous adapter increment
+
+Task 10 desired adapter/bound composition complete locally (uncommitted/unpushed).
+Independent review found no Critical/Important or new Minor issues. Single
+generated query, canonical-byte scope parameters,
+33-scan bound, partial-scan/panic/rows+error cleanup, and private bound-epoch
+reader now compose with the real converter and guardedRead. Postcheck reject,
+cancellation and panic discard owned staged data; scoped-context cleanup after
+success does not cancel the request. No exported reader or production wiring.
+Fresh scoped PASS: serving 4.371s, contracts 4.840s, readiness 2.544s, selected
+authority 3.437s, store compile-only 3.196s (no tests run). Mutation tests catch
+missing decoded-byte clearing and no-op staged discard; both restored.
+No commit/push or real DB/Docker/full-suite execution. Production/security gates
+remain open; two historical test minors remain deferred. SQL, all 30 store files
+and four lock hashes unchanged; formatting/whitespace checks clean. This is not
+whole-branch review or full Task 10 completion. Next: canonical-envelope/signature
+design. See 2026-10-08-desired-adapter-execution.md for evidence and all rulings.
+
+## Earlier increments (historical status at each step)
+
+Task 10 desired query/row increment complete locally (uncommitted/unpushed).
+Fixed-base exact SQL and sqlc generation plus private row conversion added;
+version 1 empty-chain through version 33 (32 rotations), exact pointer/intent/
+fence joins, invalid-state diagnostics, bounded slots and defensive-copy checks.
+Final scoped regression PASS: serving 4.833s, contracts 6.156s, readiness 4.114s,
+authority selected 5.269s, store compile-only 2.491s. Two sqlc generations stable;
+only serving generated query and Querier changed; dependency locks unchanged.
+No DB execution/adapter/public reader, canonical/crypto or production evidence.
+Independent review found one Important static test coverage gap, fixed with
+sensitivity RED 4.672s then query GREEN 3.381s and final scoped suite. No current
+SQL/converter correctness defect found; no new minors. Historical branch was not
+audited as a whole; old minors remain deferred. No commit/push. Next: private
+adapter lifecycle/bound composition design, then canonical-envelope gates.
+See 2026-10-08-desired-query-execution.md for evidence and review exclusions.
+
+Task 10 desired projection phase 1 implemented (local, uncommitted/unpushed):
+private structure validates exact node/active pointers, authority epoch and
+coordinates, bounded payload/envelope hashes, desired time-window shape, and a
+0..32-step explicit root interval with continuous versions/increasing sequences.
+The chain endpoint must equal the active root in all fields. Success owns deep
+copies; detached snapshots and discard preserve caller data. This is NOT
+canonical parsing, signature verification, a trusted chain base or serving facts.
+RED 3.518s then serving GREEN 1.410s; discard RED 2.382s; shallow-copy mutation
+caught 3.134s and restored, serving GREEN 2.605s. Final scoped PASS: serving
+2.527s, contracts 3.188s, readiness 2.537s, selected authority 4.240s, store
+compile-only 2.501s (no tests). Locks and existing SQL/generated files unchanged.
+Independent review found no Critical/Important issues; M1 ownership-test shared
+buffer double-mutation/envelope-alias strengthening remains deferred (code copies
+correctly), along with the older certificate fixture UUID minor. Next gate: design exact desired SQL,
+root-history window and canonical-envelope handling; no production entry or DB
+validation added. See 2026-10-08-desired-projection-execution.md for evidence.
+
+Task 10 private bound-epoch implementation (local, uncommitted/unpushed):
+authority now supplies an exact private DBTX wrapper carrying the frozen matching
+provider/database epoch. BoundReadEpoch rejects unrelated/decorated/expired
+objects; atomic expiry occurs before postcheck and on panic. The private
+certificate reader obtains epoch only through that accessor, uses the same DBTX,
+and stages results through guardedRead with actual facts cleanup. No production
+factory or endpoint added. Authority RED 3.053s then GREEN 3.100s; reader RED
+2.859s then serving GREEN 2.647s. Final scoped PASS: serving 3.493s, contracts
+4.292s, readiness 3.198s, authority selected groups 3.468s, store compile-only
+1.894s (no tests run). Locks unchanged; formatting/whitespace clean. Independent
+read-boundary review found no Critical/Important issues; prior distinct-UUID
+fixture minor remains deferred. Execution evidence and rulings:
+2026-10-08-bound-epoch-execution.md. Review is not whole-branch acceptance.
+Only isolated provenance/composition evidence, not live DB, race-detector, v7 or
+production acceptance. Full Task 10 and security gates remain open.
+
+Task 10 private query adapter complete (local, uncommitted/unpushed): calls the
+generated exact query with validated fixed parameters; returns only staged,
+defensively copied facts and finite errors. Captured Scan destinations are cleared
+even on partial scan failure or panic, and rows close once. This clears owned
+decoded buffers, not driver network buffers, immutable strings or runtime copies.
+Guard composition tests verify rejected postchecks clear staged serial/DER/trust,
+while successful postchecks preserve output. RED 2.576s, initial serving GREEN
+3.745s; final serving PASS 2.591s, contracts 3.591s, readiness 2.617s, scoped
+authority 2.923s, store compile-only 1.873s (no store tests). Four lock hashes
+unchanged; formatting/whitespace checks clean. Independent read-only adapter
+review and supplemental composition-test review found no issues.
+No live DB, production wiring, full suite, security changes, commit or push.
+Next: design private bound-reader composition with source-proven epoch; Task 10,
+v7 production authorization and the existing security acceptance remain open.
+
+Task 10 private generated-row conversion complete (local, uncommitted/unpushed):
+certificateFactsFromRows rejects invalid lookup/epoch, absent or duplicate rows,
+NULL lineage/time, infinite/unknown time modifiers, nonpositive signed versions,
+wrong expected authority epoch, nonexact 32-byte digests and missing/unexpected
+trust groups. It delegates exact identity/status/material checks and copying to
+the private facts constructor. No SQL execution or public Reader was added.
+RED 2.528s, first serving GREEN 2.603s; valid-prefix 33-byte mutation cases caught
+relaxed length checks (2.792s), then all strict checks were restored. Final PASS:
+serving 3.119s, contracts 3.506s, readiness 1.977s; store compile-only 2.237s
+(no tests run). Locks unchanged, format/whitespace checks clean. Independent
+read-only review found no Critical/Important issues; optional distinct UUID
+fixture values are deferred to strengthen field-swap detection. Production,
+real DB, full Task 10 and security acceptance remain open. Next: private query
+adapter/error handling and failure cleanup, before bound-reader integration.
+
+Task 10 combined-query generation complete (local, uncommitted/unpushed;
+reader integration and live acceptance remain open):
+added nodecontrol_serving.sql with exact certificate/inventory joins and separate
+committed-active certificate/trust fences. The optional agent trust selector is
+fixed in SQL; candidates are capped at two for ambiguity rejection, not a
+latest-row fallback. Private result cardinality/validation tests observed RED
+(6.152s) then whole-serving GREEN (11.176s). Private scope/epoch argument binding
+observed RED (10.824s) then whole-serving GREEN (9.291s). Scope digests are derived
+from canonical UUID bytes/fixed global transcript, not accepted from callers.
+The public offline devtool verifier completed with `verify-devtools: passed`
+(exit 0). Following user continuation, pinned sqlc 1.31.1 generation passed via
+the supported explicit tools-module entry. A second generation had identical
+internal/store file names and SHA-256 hashes. Generated changes are the new
+nodecontrol_serving.sql.go and one Querier method; models and locks are unchanged.
+Fresh serving tests passed (2.977s); store compile-only passed (1.837s, no tests
+run); formatting and whitespace checks are clean. No SQL runtime correctness,
+real DB integration or full Task 10 completion claim. Initial SQL/cardinality read-only review found
+no defects; it explicitly excluded the subsequently added argument mapping.
+No production reader, commits, pushes, downloads or security changes.
+The generated-row conversion follow-up is recorded above; guarded reader wiring
+remains open.
+
+Task 10 certificate-facts increment (local, uncommitted/unpushed): added a private
+constructor and immutable CertificateFacts with detached snapshots. Pure checks
+match all lookup identity fields, inventory epoch/lineage, finite certificate
+status, ordered nonzero validity times, positive authority coordinates, bounded
+DER and its SHA-256, and the complete exact agent server-CA trust group. Serial,
+DER and trust data are copied on construction/access. Invalid input returns zero
+facts with a finite error. This is NOT a Reader or authorization proof: SQL,
+committed-active fences, readiness provenance, X.509/profile verification,
+trusted current time and complete B03 inventory/endpoint policy remain pending.
+Initial RED 2.971s; serving GREEN 2.541s. A temporary validation bypass made all
+37 corruption cases fail (2.587s), then was removed. Restored regression passed
+serving 4.476s, contracts 5.437s and readiness 3.785s; source regression/review
+details are in the execution notes. No production entry, full suite, C12/PITR,
+security settings, dependency locks, staging, commits or pushes were changed.
+
+Task 10 lookup-input increment (local, uncommitted/unpushed): added immutable
+CertificateLookup inputs, nonzero RFC4122 node identity, exact ASCII issuer,
+canonical positive unsigned serial (1–20 bytes), and nonzero fixed-width digests.
+The agent constructor fixes agent_server/agent and validates the exact configured
+lowercase trust domain; the non-agent constructor has no trust selector. Serial
+bytes are copied on construction and access. This is input-shape validation,
+not certificate authorization, a reader, SQL integration or production entry.
+Fail-closed skeleton RED: 3.904s. Removing constructor validation produced the
+expected malformed-input/domain failures (2.715s); the mutation was restored.
+Scoped regression before mutation passed serving (3.694s), contracts (3.446s),
+readiness (3.253s), and BoundRead/Coordinator selection (7.039s). Final restored
+verification and independent review are recorded in the execution notes below.
+All four dependency lock hashes remain unchanged. The last saved checkpoint is
+6752b9612a00b9d6b0bf87ae8dd95063f6b056ee; this increment is not part of it.
+Task 10, v7 proof/lease, real PostgreSQL/PITR and security acceptance remain open.
 
 Task 10 checkpoint preparation: both previously deferred coverage items are now
 covered. Tests assert exact release counts on acquisition/precheck failures and

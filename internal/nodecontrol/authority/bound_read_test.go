@@ -83,7 +83,9 @@ func TestBoundReadOrderAndErrors(t *testing.T) {
 				},
 			}
 			err := source.WithConsistentReadyRead(ctx, func(actualCtx context.Context, db store.DBTX) error {
-				if actualCtx != ctx || db != conn {
+				wrapper, ok := db.(*boundEpochDB)
+				epoch, epochErr := BoundReadEpoch(db)
+				if actualCtx != ctx || !ok || wrapper.db != conn || epoch != 7 || epochErr != nil {
 					t.Fatal("query escaped bound context/connection")
 				}
 				events = append(events, "query")

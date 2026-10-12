@@ -91,7 +91,16 @@ func (source *boundAuthorityReadSource) WithConsistentReadyRead(ctx context.Cont
 	// the pre-check snapshot so an in-place mutation cannot erase the evidence.
 	before.readiness.ProviderHead = cloneHead(before.readiness.ProviderHead)
 	before.readiness.DatabaseHead = cloneDatabaseHead(before.readiness.DatabaseHead)
-	queryErr := query(ctx, conn)
+	epoch := before.readiness.ProviderHead.Epoch
+	if !validPositiveCoordinate(epoch) || before.readiness.DatabaseHead.Epoch != epoch {
+		return ErrAuthorityUnavailable
+	}
+	callbackDB := &boundEpochDB{db: conn}
+	callbackDB.epoch.Store(epoch)
+	queryErr := func() error {
+		defer callbackDB.expire()
+		return query(ctx, callbackDB)
+	}()
 	if boundReadCanceled(ctx, queryErr) {
 		return ErrCanceled
 	}

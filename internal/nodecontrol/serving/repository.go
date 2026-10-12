@@ -18,6 +18,9 @@ import (
 //
 // The source synchronously calls query exactly once between readiness checks on
 // one physical connection, without holding a transaction across provider calls.
+// Its callback DBTX is a private authority wrapper: BoundReadEpoch can read the
+// frozen pre-check epoch only during that callback. Do not decorate or retain
+// the DBTX; interface identity need not equal the underlying physical connection.
 // It must perform the post-check even on a domain error, and return nil only
 // after both ready snapshots match exactly. Connection loss/replacement and
 // identity/head mismatches fail closed. The callback/DBTX must not be retained.

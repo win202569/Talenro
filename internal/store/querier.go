@@ -97,6 +97,13 @@ type Querier interface {
 	ListActivePasskeys(ctx context.Context, principalID uuid.UUID) ([]IdentityPasskeyCredential, error)
 	ListDeviceAuthorizationFamilies(ctx context.Context, authorizationID uuid.UUID) ([]DeviceauthDeviceTokenFamily, error)
 	ListDeviceFamilyRefreshTokens(ctx context.Context, familyID uuid.UUID) ([]DeviceauthDeviceRefreshToken, error)
+	// Private staging projection only: committed/active rows are necessary, not a
+	// substitute for Coordinator-bound v7 readiness, incarnation and lease gates.
+	// Two rows preserve ambiguity detection; never select an arbitrary first row.
+	ListExactCertificateProjection(ctx context.Context, arg ListExactCertificateProjectionParams) ([]ListExactCertificateProjectionRow, error)
+	// Private fixed-base staging only. Not a canonical envelope or authorization.
+	// Invalid pointers retain a diagnostic row; no alternative current artifact.
+	ListExactDesiredProjection(ctx context.Context, arg ListExactDesiredProjectionParams) ([]ListExactDesiredProjectionRow, error)
 	ListPendingAuthorityFences(ctx context.Context, authorityEpoch int64) ([]ListPendingAuthorityFencesRow, error)
 	ListPrincipalRefreshTokens(ctx context.Context, principalID uuid.UUID) ([]IdentityAccountRefreshToken, error)
 	ListSessionRefreshTokens(ctx context.Context, sessionID uuid.UUID) ([]IdentityAccountRefreshToken, error)

@@ -1,0 +1,1 @@
+{"authority_sequence":"3","control_plane_authority_epoch":"19","keys":[{"algorithm":"ed25519","key_id":"01d0fabd251fcbbe2b93b4b927b26ad2a1a99077152e45ded1e678afa45dbec5","public_key":"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}],"root_version":"1","schema_version":"node-state-root-set.v1","threshold":"1"}
