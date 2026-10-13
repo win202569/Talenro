@@ -14,6 +14,45 @@ is not full acceptance. Git carries
 the source, generated contracts, tests, designs, implementation plans, and
 runbooks. Start with [current status](../roadmap/current-status.md) to resume work.
 
+## Standing preservation rule and latest development work
+
+From2026-10-13 the user authorizes ordinary commits and pushes of necessary files
+at completed-work/handoff checkpoints. The durable instruction is [AGENTS.md](../../AGENTS.md).
+It does not authorize main merges, force pushes, branch deletion or clearing
+acceptance/security gates. Only necessary reviewed files are saved; secrets,
+caches, temporary files and ignored raw receipts are excluded.
+
+The current handoff adds declared issuer mapping consistency plus the M1 test
+hardening. Its outcome is declared consistency only, not authenticated registry,
+production compatibility, database uniqueness or v7 acceptance. Read its
+[execution record](../roadmap/2026-10-13-declared-issuer-mapping-consistency-execution.md)
+and latest current-status appendices. The final commit SHA is verified remotely
+and reported at the actual preservation handoff, not inferred from a pending push.
+This checkpoint is unfinished: pre-save matrix3 stopped on FuzzIssuerEnvelope's
+context deadline exceeded after24 successful commands; Pair was not run.
+Earlier reviewed matrix2 passed26/26, but does not erase this latest blocker.
+Recover the saved source/plans and continue the recorded diagnosis; do not treat
+the saved development branch as main-ready or accepted production code.
+
+On a fresh computer, clone into a new empty directory using PowerShell:
+
+```powershell
+git clone --branch codex/c12-b01-task9-coordinator --single-branch https://github.com/win202569/Talenro.git Talenro
+if ($LASTEXITCODE -ne 0) { throw 'Clone failed.' }
+Set-Location -LiteralPath Talenro
+git rev-parse HEAD
+git ls-remote origin refs/heads/codex/c12-b01-task9-coordinator
+if ($LASTEXITCODE -ne 0) { throw 'Remote identity check failed.' }
+```
+
+Check the local SHA against the remote branch and the handoff SHA. Then read
+AGENTS.md, current-status.md, the latest execution record, spec and plan to find
+the exact completed work and open blockers. Do not reuse a nonempty checkout or
+overwrite unrelated local changes through these example commands.
+These are recovery instructions, not a claim that a fresh-machine clone or
+physical acceptance was performed. Continue with the separately authorized
+dependency preparation and verification gates below.
+
 ## Windows test environment
 
 The current full repository suite includes Windows process, named-pipe, and

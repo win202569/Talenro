@@ -10,6 +10,34 @@ import (
 	"testing"
 )
 
+func TestIssuerBindingMappingBoundary(t *testing.T) {
+	const imported = "talenro.local/platform/internal/nodecontrol/nodeissuerbinding"
+	root, e := filepath.Abs("../../..")
+	if e != nil {
+		t.Fatal(e)
+	}
+	dir := filepath.Join(root, "internal/nodecontrol/nodeissuermapping")
+	for _, c := range []struct {
+		path, pkg, imp string
+		want           bool
+	}{
+		{filepath.Join(dir, "a.go"), "nodeissuermapping", imported, true},
+		{filepath.Join(dir, "a_test.go"), "nodeissuermapping", imported, true},
+		{"internal/nodecontrol/nodeissuermapping/a.go", "nodeissuermapping", imported, true},
+		{filepath.Join(dir, "a_test.go"), "nodeissuermapping_test", imported, false},
+		{filepath.Join(dir, "child/a.go"), "nodeissuermapping", imported, false},
+		{filepath.Join(root, "internal/nodecontrol/nodeissuermapping_sibling/a.go"), "nodeissuermapping", imported, false},
+		{filepath.Join(root, "other/internal/nodecontrol/nodeissuermapping/a.go"), "nodeissuermapping", imported, false},
+		{filepath.Join(root, "../external/internal/nodecontrol/nodeissuermapping/a.go"), "nodeissuermapping", imported, false},
+		{filepath.Join(dir, "a.go"), "wrong", imported, false},
+		{filepath.Join(dir, "a.go"), "nodeissuermapping", imported + "/child", false},
+	} {
+		if got := issuerBindingConsumerAllowed(c.path, c.pkg, c.imp); got != c.want {
+			t.Fatal(c, got)
+		}
+	}
+}
+
 func TestIssuerBindingConsumers(t *testing.T) {
 	const imported = "talenro.local/platform/internal/nodecontrol/nodeissuerbinding"
 	root, e := filepath.Abs("../../..")
@@ -72,7 +100,7 @@ func TestIssuerBindingConsumers(t *testing.T) {
 	}
 }
 func issuerBindingConsumerAllowed(path, pkg, imported string) bool {
-	if imported != "talenro.local/platform/internal/nodecontrol/nodeissuerbinding" || pkg != "nodeissuerbinding" || !strings.HasSuffix(path, "_test.go") {
+	if imported != "talenro.local/platform/internal/nodecontrol/nodeissuerbinding" {
 		return false
 	}
 	root, e := filepath.Abs("../../..")
@@ -91,5 +119,11 @@ func issuerBindingConsumerAllowed(path, pkg, imported string) bool {
 		}
 	}
 	rel, e := filepath.Rel(root, normalized)
-	return e == nil && filepath.Dir(rel) == filepath.FromSlash("internal/nodecontrol/nodeissuerbinding")
+	if e != nil {
+		return false
+	}
+	if pkg == "nodeissuermapping" && strings.HasSuffix(path, ".go") && filepath.Dir(rel) == filepath.FromSlash("internal/nodecontrol/nodeissuermapping") {
+		return true
+	}
+	return pkg == "nodeissuerbinding" && strings.HasSuffix(path, "_test.go") && filepath.Dir(rel) == filepath.FromSlash("internal/nodecontrol/nodeissuerbinding")
 }

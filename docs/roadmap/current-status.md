@@ -1441,3 +1441,100 @@ The earlier uncommitted status describes initial delivery. Actual saving is
 verified separately by the resulting commit and matching GitHub branch tip.
 Recovery must select this development branch, not main. Ignored raw receipts
 and caches are not saved; historical blockers and all16 review boundaries remain.
+
+## 2026-10-13 declared issuer mapping consistency — local checkpoint
+
+The approved Native plan is implemented locally on unchanged HEAD `d2829bfa`.
+New `nodeissuermapping` has exactly12 product files and13 tests; only the approved
+`nodeissuerbinding/consumer_boundary_test.go` changes (36 additions/2 removals).
+Its sole new entry `CheckDeclared` checks caller-declared registry/version and
+issuance associations against one real nodeissuerbinding evaluation. All inherited
+evidence/time/obligations and five new unresolved responsibilities remain.
+
+Final scoped matrix1 passed26/26 independent commands:22 full packages, specified
+authority tests, store compile-only and two configured5s fuzz targets. All701
+Go/SQL/module hashes match before/after;26 format paths are clean. Actual fuzz
+execution counts24/6915 remain limited evidence. Dynamic composed cancellation,
+deadline and ordinary-panic testing enumerated730 observed checkpoints. All39
+original Material packets/raw and manifests are preserved with independent controls.
+
+One fresh read-only review found Critical0/Important0/Minor1; bounded local handoff
+accepted. M1 is deferred test hardening for sentinel identity and explicit structured
+policy-failure/unwrap presence. Current product preserves lower errors unchanged;
+no fix or re-matrix/reinspection is claimed. Every13 declined review domain has
+an explicit author ruling and risk in the execution record.
+
+Coherent fabricated, old-head or content-changed catalog declarations can still
+pass ONLY declaration consistency. This is not registry provenance, content-digest,
+rollback/withdrawal safety, historical issuance identity, database uniqueness,
+v7 protected-read/lease, trusted-time or runtime-authority acceptance. Historical
+physical/full ordinary/C11/C12/I2/I3/main/Task10/Task15 blockers remain open.
+
+The necessary30-file handoff remains local, not staged/committed/pushed/merged and
+not recoverable from GitHub yet. Previous d2829bfa preservation does not include
+this increment. Spec, old products/fixtures/SQL/modules, HEAD and Git index stay
+unchanged; ignored receipts/cache remain local. See the
+[execution record, deferred Minor and complete rulings](2026-10-13-declared-issuer-mapping-consistency-execution.md).
+### M1 test-hardening follow-up
+
+The user continued to the deferred M1. Only nodeissuermapping lower_test.go and
+check_test.go change; all12 products, schemas, fixtures and the old consumer delta
+remain unchanged. Receipts024/025 reproduce direct/wrapped sentinel-identity and
+ordinary-pointer structured-classification gaps;026 targeted checks pass.
+Terminal sentinel identity now supplements complete concrete type/field/unwrap
+comparison. Both lower and public double-failure tests explicitly require the
+known real policy-failure control with structured fields and non-nil unwrap.
+
+Format027 covers26 paths cleanly. Full matrix2 passes26/26 with701 identical
+Path/SHA256 pairs before/after. Raw before JSON includes two comparison metadata
+fields, so its byte hash differs from after; the normalized Path/SHA256 view
+matches after exactly, and all raw receipts remain preserved. Short fuzz counts
+72498/9 remain finite evidence. Same original reviewer's reinspection is pending.
+This updates the earlier deferred status, without claiming a completed review,
+Git saving, main/production acceptance or closure of any prior blocker.
+
+### M1 reinspection closure
+
+The same original reviewer confirmed M1 ADDRESSED, new Critical0/Important0/Minor0,
+and accepted this bounded local handoff. It verified024–027, all26 matrix2 results,
+701 frozen source pairs/current workspace and the supplied document updates;
+only the two authorized tests changed. It did not rerun tests or mutate files.
+The earlier pending-review statement is historical; this author-written closure
+reports the returned verdict, not an additional review of future edits.
+
+OriginalD1–D13 boundaries remain. D14 explicitly limits the test-only error matcher
+to the existing finite lower-error contract, not arbitrary/cyclic/multi-error graphs;
+future error-contract changes require renewed test review. Product behavior,
+spec/HEAD/index,30-file local-only status and all wider acceptance blockers remain.
+No staging, commit, push, main merge, installs or cleanup occurred.
+### Standing preservation authorization
+
+The user now instructs that necessary files be committed and pushed at subsequent
+completed-work/handoff checkpoints so a fresh computer can recover project progress.
+This authorizes this pending preservation and routine future development-branch
+saves, not main merges/force pushes or acceptance expansion. The rule is tracked
+in root AGENTS.md; the recovery runbook now identifies the development branch,
+portable project context, prerequisites and excluded machine-bound state.
+This handoff contains32 necessary files (the previous30 plusAGENTS.md and the
+recovery-runbook update). No credentials, caches or ignored raw receipts are included.
+The earlier local-only statements describe the preceding delivery; actual remote
+preservation is confirmed by the resulting commit and matching GitHub branch tip.
+### Pre-save verification blocker — unfinished development checkpoint
+
+Fresh pre-save matrix3 passed its first24 commands, then command25
+FuzzIssuerEnvelope failed with context deadline exceeded (12 executions,
+reported6.02s; test package8.844s). Command26 FuzzIssuerPair was not run because
+the matrix stopped. This supersedes any interpretation that current pre-save
+verification is fully green; earlier matrix1/matrix2 passes remain historical.
+All701 Go/SQL/module Path/SHA256 entries still match the reviewed matrix2 version.
+
+Read-only investigation found no deadline in the Envelope fuzz callback and no
+reported failing corpus input/testdata artifact. The fuzz framework has bounded
+coordinator/worker execution, but the precise failure cause is not established.
+No retry, timeout increase, cache deletion, product/test change or security
+workaround was used to suppress this failure. Continue diagnosis separately.
+
+Under the user's standing preservation authorization, save the32 necessary
+files as an explicitly unfinished development checkpoint on the existing branch.
+M1 remains addressed in the reviewed code, but the latest validation blocker
+stays open. Do not merge main or infer production/physical acceptance.
