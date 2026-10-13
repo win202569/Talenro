@@ -1351,3 +1351,42 @@ event. Docker is installed locally, but availability does not constitute physica
 acceptance. No Defender exception, quarantine restoration or bootstrap change was
 made. See the [current recovery runbook](../runbooks/repository-recovery.md) and
 [version-lock evidence](2026-09-27-devtools-version-lock-evidence.md).
+
+## 2026-10-12 main-state selected-leaf binding — local checkpoint
+
+The approved five-task plan is implemented locally on
+`codex/c12-b01-task9-coordinator` (unchanged HEAD `a820f550`). New
+`nodeleafbinding` has exactly16 product files and17 tests; only nine approved
+old consumer tests change. It conditionally binds Proposed identity to selected
+leaf DER, SPKI DER and the full certificate window using one real nodecerttime
+evaluation. No runtime, provider, full identity composition or commit consumer
+is added; all inherited obligations and five further responsibilities remain.
+
+All24 final commands passed on the corrected frozen42 Go files:20 full packages,
+specified authority tests, store compile-only and two configured5s fuzz runs.
+Actual final fuzz execution counts9/5 are limited evidence, not sufficient
+coverage proof. Fresh review found one Minor normalized-time comparison issue;
+actual regression/schema RED–GREEN and full re-matrix resolved it. Same-reviewer
+reinspection: M1 ADDRESSED, new Critical0/Important0/Minor0, no scope drift.
+
+Design, old products/fixtures/SQL/modules, HEAD and Git index were preserved;
+all failed evidence remains recorded. Historical physical, full ordinary/C11/C12,
+I2/I3 and other acceptance blockers above are not closed. This checkpoint was
+not committed, pushed or merged and is not recoverable from GitHub yet. See the
+[execution record, rulings and all17 review boundaries](2026-10-12-main-state-selected-leaf-binding-execution.md).
+Git preservation needs separate approval; do not treat installed Docker or this
+pure-package success as real-environment acceptance.
+
+### 2026-10-13 preservation handoff
+
+The user authorized the next step: save the46 necessary files by committing and
+pushing the existing `codex/c12-b01-task9-coordinator` development branch. No
+main merge, PR or cleanup is included. The original46-file handoff was unchanged
+at preflight; reviewed Go sources remain unchanged after author documentation
+updates. Fresh pre-commit115–138 reran all24 scoped commands successfully, with
+matching42-file source hashes before/after and an empty formatting check.
+Envelope/Pair fuzz counts37,513/5 remain finite evidence. Historical acceptance
+blockers and all17 review boundaries are retained. The preceding uncommitted
+status describes the initial delivery; actual remote save is verified by the
+resulting Git commit and matching GitHub branch tip. Recovery uses this branch,
+not main. Local caches and ignored raw receipts are not part of the saved files.
