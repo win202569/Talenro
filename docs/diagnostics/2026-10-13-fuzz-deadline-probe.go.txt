@@ -4,46 +4,137 @@
 package main
 
 import (
- "context"
- "encoding/json"
- "os"
- "runtime"
- "time"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"runtime"
+	"time"
 )
 
-type result struct {
- ExtraChildren int
- Attempts int
- ParentDeadlineBeforeChild int
- ClassifiedDeadline int
- BoundReached bool
+// Finite diagnostic model only; interrupt handling and coordinator side effects
+// are outside this model. Tests catch swallowed errors and wrong replacement order.
+func classify(incoming, child, parent, previous error) error {
+	if incoming == child {
+		incoming = nil
+	}
+	if incoming != nil && (previous == nil || previous == parent) {
+		previous = incoming
+	}
+	return previous
 }
+
+type materialFailure struct {
+	Code  string
+	Cause error
+}
+
+func (e *materialFailure) Error() string { return e.Code + ": " + e.Cause.Error() }
+func (e *materialFailure) Unwrap() error { return e.Cause }
+
+type control struct {
+	Name      string
+	Preserved bool
+}
+
+func controls() ([]control, error) {
+	worker := errors.New("worker failed")
+	sameText := errors.New("context deadline exceeded")
+	material := &materialFailure{Code: "invalid-material", Cause: worker}
+	wrapped := fmt.Errorf("worker: %w", context.DeadlineExceeded)
+	cases := []struct {
+		name                                    string
+		incoming, child, parent, previous, want error
+	}{
+		{"normal-stop", nil, nil, nil, nil, nil},
+		{"synchronized-deadline", context.DeadlineExceeded, context.DeadlineExceeded, context.DeadlineExceeded, nil, nil},
+		{"parent-before-child", context.DeadlineExceeded, nil, context.DeadlineExceeded, nil, context.DeadlineExceeded},
+		{"synchronized-cancel", context.Canceled, context.Canceled, context.Canceled, nil, nil},
+		{"same-text-is-not-deadline", sameText, context.DeadlineExceeded, context.DeadlineExceeded, nil, sameText},
+		{"wrapped-deadline-is-not-equal", wrapped, context.DeadlineExceeded, context.DeadlineExceeded, nil, wrapped},
+		{"worker-error", worker, context.DeadlineExceeded, context.DeadlineExceeded, nil, worker},
+		{"material-error", material, context.DeadlineExceeded, context.DeadlineExceeded, nil, material},
+		{"worker-replaces-budget", worker, context.Canceled, context.DeadlineExceeded, context.DeadlineExceeded, worker},
+		{"budget-cannot-replace-material", context.DeadlineExceeded, nil, context.DeadlineExceeded, material, material},
+		{"normal-stop-retains-worker", nil, context.Canceled, context.DeadlineExceeded, worker, worker},
+	}
+	out := make([]control, 0, len(cases))
+	for _, tc := range cases {
+		got := classify(tc.incoming, tc.child, tc.parent, tc.previous)
+		if got != tc.want {
+			return nil, fmt.Errorf("control %s: got %v, want exact identity %v", tc.name, got, tc.want)
+		}
+		out = append(out, control{tc.name, true})
+	}
+	if material.Code != "invalid-material" || material.Cause != worker || errors.Unwrap(material) != worker {
+		return nil, errors.New("material fields/unwrap changed")
+	}
+	return out, nil
+}
+
+type result struct {
+	ExtraChildren             int
+	Attempts                  int
+	ParentDeadlineBeforeChild int
+	ClassifiedDeadline        int
+	BoundReached              bool
+}
+
 func main() {
- results:=make([]result,0,2)
- bound:=time.Now().Add(5*time.Second)
- for _,extra:=range []int{0,32}{
-  r:=result{ExtraChildren:extra}
-  for i:=0;i<4096;i++{
-   if !time.Now().Before(bound){r.BoundReached=true;break}
-   parent,cancelParent:=context.WithTimeout(context.Background(),100*time.Microsecond)
-   child,cancelChild:=context.WithCancel(parent)
-   children:=make([]context.CancelFunc,0,extra)
-   for j:=0;j<extra;j++{_,cancel:=context.WithCancel(parent);children=append(children,cancel)}
-   <-parent.Done()
-   parentError,childError:=parent.Err(),child.Err()
-   r.Attempts++
-   if parentError==context.DeadlineExceeded&&childError==nil{
-    r.ParentDeadlineBeforeChild++
-    // CoordinateFuzzing.stop only suppresses err==fuzzCtx.Err().
-    sampled:=parentError
-    if sampled==childError{sampled=nil}
-    if sampled==context.DeadlineExceeded{r.ClassifiedDeadline++}
-   }
-   cancelChild()
-   for _,cancel:=range children{cancel()}
-   cancelParent()
-  }
-  results=append(results,r)
- }
- if err:=json.NewEncoder(os.Stdout).Encode(struct{GoVersion string;GOMAXPROCS int;Results []result}{runtime.Version(),runtime.GOMAXPROCS(0),results});err!=nil{panic(err)}
+	checks, err := controls()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if len(os.Args) == 2 && os.Args[1] == "--controls-only" {
+		if err := json.NewEncoder(os.Stdout).Encode(checks); err != nil {
+			panic(err)
+		}
+		return
+	}
+	results := make([]result, 0, 2)
+	bound := time.Now().Add(5 * time.Second)
+	for _, extra := range []int{0, 32} {
+		r := result{ExtraChildren: extra}
+		for i := 0; i < 4096; i++ {
+			if !time.Now().Before(bound) {
+				r.BoundReached = true
+				break
+			}
+			parent, cancelParent := context.WithTimeout(context.Background(), 100*time.Microsecond)
+			child, cancelChild := context.WithCancel(parent)
+			children := make([]context.CancelFunc, 0, extra)
+			for j := 0; j < extra; j++ {
+				_, cancel := context.WithCancel(parent)
+				children = append(children, cancel)
+			}
+			<-parent.Done()
+			parentError, childError := parent.Err(), child.Err()
+			r.Attempts++
+			if parentError == context.DeadlineExceeded && childError == nil {
+				r.ParentDeadlineBeforeChild++
+				// CoordinateFuzzing.stop only suppresses err==fuzzCtx.Err().
+				sampled := classify(parentError, childError, parentError, nil)
+				if sampled == context.DeadlineExceeded {
+					r.ClassifiedDeadline++
+				}
+			}
+			cancelChild()
+			for _, cancel := range children {
+				cancel()
+			}
+			cancelParent()
+		}
+		results = append(results, r)
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(struct {
+		GoVersion  string
+		GOMAXPROCS int
+		Model      string
+		Controls   []control
+		Results    []result
+	}{runtime.Version(), runtime.GOMAXPROCS(0), "Go1.26.5 stop error-state model; no interrupt/side effects; not actual coordinator", checks, results}); err != nil {
+		panic(err)
+	}
 }

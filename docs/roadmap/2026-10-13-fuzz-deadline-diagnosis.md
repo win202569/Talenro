@@ -122,3 +122,35 @@ before-source.json与after-source.json摘要均为
 
 需要fuzz日志时，仍用上面原5s/30s预算，单独记录GODEBUG=fuzzdebug=1和
 新cache种子数/输入差异。不把诊断日志模式的通过当正常验收；保留历史失败。
+
+## 7. 已批准的有界模型对照（2026-10-13）
+
+用户批准短设计后，仅增强同一 portable probe 和两份诊断/状态文档。
+新增11个确定性对照：正常停止、同步截止、父截止/子未传播、同步取消、
+同文字但不同身份的错误、包装截止错误、worker错误、结构化材料错误、
+真实错误替换旧预算错误、旧材料错误不被预算覆盖、正常停止保留旧worker错误。
+这些是明确指定的模型观察顺序，不是强行改变真实context传播顺序。
+
+分类器忠实重演固定fuzz.go的错误相等比较及fuzzErr更新条件；没有提出或
+实施新抑制规则。interrupt判断、实际取消副作用、worker RPC和完整coordinator
+不在模型内。worker sentinel及带Code/Cause/Unwrap的材料错误是独立标准库
+诊断fixture，并非真实项目材料错误或真实worker进程的集成验证。
+对照按原错误对象身份比较，材料字段/unwrap另行检查；不按文字吞错。
+
+TDD：先以空分类器运行对照，exit1，明确失败于parent-before-child：
+got nil / want exact identity context deadline exceeded；补齐原有分类逻辑后，
+全部11项通过、exit0。归档red.go/green.go保留在本诊断自己的controls目录。
+最初go run启动临时可执行文件失败，不算RED；随后显式build为Windows .exe
+运行才取得上述有效RED/GREEN。未修改安全设置或安装工具。
+
+新采样：go1.26.5、GOMAXPROCS16；0额外子4096次中观察3个窗口，
+32额外子3165次中观察2个窗口后达到5s迭代检查边界，模型分别保留3/2个截止错误。
+这不是固定预期；没有窗口也不否定候选机制。完整程序exit0。
+未重跑完整项目矩阵、Envelope/Pair或真实环境验收；历史matrix3失败、Pair未运行
+和所有产品/生产信任验收门槛保持开放。只完成本次诊断增强，不宣称项目测试全绿。
+
+新电脑复核同一探针：复制.go.txt为独立probe.go，使用已批准的固定Go版本和
+独立GOCACHE，显式build -o probe.exe probe.go。先运行probe.exe --controls-only，
+再运行probe.exe获取真实采样；保存版本、完整JSON和exit。所有对照已内嵌，
+不依赖本机私有目录；不得把模型fixture替换成真实框架复现的证据。
+后续完整框架复现或工具链处理仍需单独设计授权，禁止缓存内overlay绕过限制。

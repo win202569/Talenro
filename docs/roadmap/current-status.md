@@ -1583,3 +1583,19 @@ Historical failure/Pair-unrun and all production gates remain open.
 A full instrumented-framework reproduction or toolchain/acceptance change is
 a separate larger design/authorization, not implicit permission from this proposal.
 Standing commit/push authorization saves this pending design state only.
+
+### Bounded diagnostic controls implemented after approval
+
+The user approved the short design. The portable probe now runs11 deterministic
+error-state controls before real-context sampling; --controls-only supports a
+bounded independent check on a fresh computer. A valid RED failed on the missing
+parent-before-child classification; GREEN passed all11 controls. The latest real
+sample observed3/4096 and2/3165 propagation windows within the original5s check
+budget (Go1.26.5, GOMAXPROCS16). Counts are scheduling-dependent, not acceptance.
+
+The classifier models existing error identity/replacement behavior only; its
+material/worker fixtures are diagnostic objects, not actual project integration.
+No product, toolchain, test-timeout or safety-setting changes. No full matrix or
+new fuzz acceptance run. Historical matrix3 failure and Pair-unrun remain open;
+main is not merged. See the diagnosis report section7 for recovery and RED/GREEN
+details. Full instrumented-framework reproduction needs a separate approved design.
