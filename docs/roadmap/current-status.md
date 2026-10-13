@@ -1538,3 +1538,23 @@ Under the user's standing preservation authorization, save the32 necessary
 files as an explicitly unfinished development checkpoint on the existing branch.
 M1 remains addressed in the reviewed code, but the latest validation blocker
 stays open. Do not merge main or infer production/physical acceptance.
+
+### Fuzz deadline investigation — candidate mechanism, no fix
+
+At baseline c75b66a9 a dedicated bounded diagnosis inspected the pinned Go1.26.5
+fuzzer/context code without editing products/tests/toolchain. A real context probe
+observed parent DeadlineExceeded before direct-child Err propagation3/4096 times;
+the32-extra-child arm observed1/3106 before its5s check bound. Reenacting the
+existing fuzz stop comparison retains the deadline in this window, but does not
+call the actual coordinator or prove the historical failure's precise cause.
+
+One GODEBUG=fuzzdebug=1 original5s/30s Envelope run passed71486 executions and
+logged the coordinator's total-deadline stop branch. It used a new independent
+cache with5 initial seeds, not the original10-entry cache, and instrumentation
+affects timing. All701 source hashes remain unchanged. This is a strong candidate
+framework-exit explanation, not a fix or full acceptance. Matrix3's recorded
+failure and unrun Pair remain open; no timeouts/cache/security gates were changed.
+The portable standard-library probe and [diagnosis report](2026-10-13-fuzz-deadline-diagnosis.md)
+preserve the evidence and next-step boundaries for a fresh computer. A toolchain
+or acceptance-contract change needs separate design/approval; do not retry to
+hide the original failure or modify the pinned cache in place.

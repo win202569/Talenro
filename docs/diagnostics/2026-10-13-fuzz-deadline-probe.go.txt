@@ -1,0 +1,49 @@
+// Diagnostic only: observe real parent/child context propagation under the
+// pinned Go runtime. Reenact the existing fuzz stop classification from sampled
+// errors; do not patch the toolchain or claim the original failure is fixed.
+package main
+
+import (
+ "context"
+ "encoding/json"
+ "os"
+ "runtime"
+ "time"
+)
+
+type result struct {
+ ExtraChildren int
+ Attempts int
+ ParentDeadlineBeforeChild int
+ ClassifiedDeadline int
+ BoundReached bool
+}
+func main() {
+ results:=make([]result,0,2)
+ bound:=time.Now().Add(5*time.Second)
+ for _,extra:=range []int{0,32}{
+  r:=result{ExtraChildren:extra}
+  for i:=0;i<4096;i++{
+   if !time.Now().Before(bound){r.BoundReached=true;break}
+   parent,cancelParent:=context.WithTimeout(context.Background(),100*time.Microsecond)
+   child,cancelChild:=context.WithCancel(parent)
+   children:=make([]context.CancelFunc,0,extra)
+   for j:=0;j<extra;j++{_,cancel:=context.WithCancel(parent);children=append(children,cancel)}
+   <-parent.Done()
+   parentError,childError:=parent.Err(),child.Err()
+   r.Attempts++
+   if parentError==context.DeadlineExceeded&&childError==nil{
+    r.ParentDeadlineBeforeChild++
+    // CoordinateFuzzing.stop only suppresses err==fuzzCtx.Err().
+    sampled:=parentError
+    if sampled==childError{sampled=nil}
+    if sampled==context.DeadlineExceeded{r.ClassifiedDeadline++}
+   }
+   cancelChild()
+   for _,cancel:=range children{cancel()}
+   cancelParent()
+  }
+  results=append(results,r)
+ }
+ if err:=json.NewEncoder(os.Stdout).Encode(struct{GoVersion string;GOMAXPROCS int;Results []result}{runtime.Version(),runtime.GOMAXPROCS(0),results});err!=nil{panic(err)}
+}
