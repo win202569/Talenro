@@ -1390,3 +1390,54 @@ blockers and all17 review boundaries are retained. The preceding uncommitted
 status describes the initial delivery; actual remote save is verified by the
 resulting Git commit and matching GitHub branch tip. Recovery uses this branch,
 not main. Local caches and ignored raw receipts are not part of the saved files.
+
+## 2026-10-13 main-state selected-issuer/serial binding — local checkpoint
+
+The approved Native increment adds pure `nodeissuerbinding`: exactly17 product
+files and18 tests, with only ten old consumer-test exceptions (501 added lines).
+It conditionally binds Proposed IssuerID/Serial to exact CA DER and canonical
+leaf serial using one real nodeleafbinding evaluation, complete owned inputs,
+preserved evidence/time/errors and five unresolved responsibilities. It adds
+no runtime consumer or production issuer/store compatibility claim.
+
+Both25-command frozen matrices049–073 and076–100 passed:21 full packages,
+specified authority tests, store compile-only and two short fuzz targets.
+All676-file Go/SQL/module hashes match before/after;45 format paths are clean.
+Repeat fuzz execution counts14/6 are limited evidence, not comprehensive coverage.
+Full composed evaluation observed710 cooperative cancellation/deadline/panic
+checkpoints; ownership observed39. Fixed39-packet controls preserve all34 prior
+raw inputs and only change their four allowed issuer/serial declaration fields.
+
+Fresh read-only review: Critical0/Important0/Minor1. M1 is the early022 selector
+excluding PreflightPriority, not a final product failure: full049 and targeted075
+cover it. Documentation corrects the attribution; required re-matrix passed.
+Same-reviewer documentation/scope reinspection is pending.
+
+Spec, old products/fixtures/SQL/modules, HEAD `649cc089` and Git index remain
+unchanged. No staging, commit, push, merge, install or cleanup occurred; this new
+increment is not saved on GitHub or recoverable there yet. Historical physical,
+whole ordinary/C11/C12, I2/I3, main/Task10 and other blockers remain open.
+See the [execution evidence and explicit review exclusions](2026-10-13-main-state-selected-issuer-serial-binding-execution.md).
+
+### Final review closure
+
+Same-reviewer reinspection accepted this bounded local checkpoint: M1 addressed,
+new Critical0/Important0/Minor0, no outstanding finding or scope drift. It checked
+the delivery record, all16 author rulings,075 coverage,076–100 results and101's
+45-path empty formatting receipt. All five approved tasks are now complete
+locally. Source/spec/HEAD/index remain unchanged; no Git save or wider acceptance
+is implied. Separate authorization is still required to commit and push.
+
+### Selected-issuer/serial preservation handoff
+
+The user requested the offered next step: commit and push the49 necessary
+files to the existing `codex/c12-b01-task9-coordinator` development branch.
+No PR, main merge, cleanup or broader acceptance is included. All49 completed
+handoff files matched preflight. Fresh pre-commit102–126 passed all25 scoped
+commands with identical676-file source hashes and clean45-file formatting;
+Envelope/Pair fuzz counts37,020/8 remain finite evidence.
+
+The earlier uncommitted status describes initial delivery. Actual saving is
+verified separately by the resulting commit and matching GitHub branch tip.
+Recovery must select this development branch, not main. Ignored raw receipts
+and caches are not saved; historical blockers and all16 review boundaries remain.

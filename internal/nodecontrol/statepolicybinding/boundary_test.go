@@ -79,6 +79,29 @@ func TestNodeCertTimeConsumerException(t *testing.T) {
 }
 
 func policyBindingConsumerAllowed(path, pkg, imported string) bool {
+	issuerBindingTarget := "talenro.local/platform/internal/nodecontrol/statepolicybinding"
+	if imported == issuerBindingTarget || strings.HasPrefix(imported, issuerBindingTarget+"/") {
+		root, err := filepath.Abs("../../..")
+		if err != nil {
+			return false
+		}
+		normalized := filepath.Clean(path)
+		if !filepath.IsAbs(normalized) {
+			if strings.HasPrefix(filepath.ToSlash(normalized), "internal/") {
+				normalized = filepath.Join(root, normalized)
+			} else {
+				normalized, err = filepath.Abs(normalized)
+				if err != nil {
+					return false
+				}
+			}
+		}
+		rel, err := filepath.Rel(root, normalized)
+		exact := err == nil && filepath.Dir(rel) == filepath.FromSlash("internal/nodecontrol/nodeissuerbinding")
+		if exact || pkg == "nodeissuerbinding" || pkg == "nodeissuerbinding_test" {
+			return imported == issuerBindingTarget && exact && pkg == "nodeissuerbinding"
+		}
+	}
 	// Only the exact selected-leaf projection consumer is added.
 	leafBindingTarget := "talenro.local/platform/internal/nodecontrol/statepolicybinding"
 	if imported == leafBindingTarget || strings.HasPrefix(imported, leafBindingTarget+"/") {
@@ -747,6 +770,33 @@ func TestPolicyBindingBoundary(t *testing.T) {
 		}
 		if !policyBindingConsumerAllowed(path, "p", "context") {
 			t.Fatal("unrelated import")
+		}
+	}
+}
+func TestPolicyBindingIssuerBindingBoundary(t *testing.T) {
+	const target = "talenro.local/platform/internal/nodecontrol/statepolicybinding"
+	root, e := filepath.Abs("../../..")
+	if e != nil {
+		t.Fatal(e)
+	}
+	dir := filepath.Join(root, "internal/nodecontrol/nodeissuerbinding")
+	for _, c := range []struct {
+		path, pkg, imp string
+		want           bool
+	}{
+		{filepath.Join(dir, "x.go"), "nodeissuerbinding", target, true},
+		{"internal/nodecontrol/nodeissuerbinding/x.go", "nodeissuerbinding", target, true},
+		{filepath.Join(dir, "x_test.go"), "nodeissuerbinding", target, true},
+		{filepath.Join(dir, "x_test.go"), "nodeissuerbinding_test", target, false},
+		{filepath.Join(dir, "sub/x.go"), "nodeissuerbinding", target, false},
+		{filepath.Join(root, "internal/nodecontrol/nodeissuerbinding_sibling/x.go"), "nodeissuerbinding", target, false},
+		{filepath.Join(root, "else/internal/nodecontrol/nodeissuerbinding/x.go"), "nodeissuerbinding", target, false},
+		{filepath.Join(root, "../external/internal/nodecontrol/nodeissuerbinding/x.go"), "nodeissuerbinding", target, false},
+		{filepath.Join(dir, "x.go"), "wrong", target, false},
+		{filepath.Join(dir, "x.go"), "nodeissuerbinding", target + "/child", false},
+	} {
+		if got := policyBindingConsumerAllowed(c.path, c.pkg, c.imp); got != c.want {
+			t.Fatal("exact issuer binding consumer", c, got)
 		}
 	}
 }
