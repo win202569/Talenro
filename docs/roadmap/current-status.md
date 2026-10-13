@@ -1558,3 +1558,28 @@ The portable standard-library probe and [diagnosis report](2026-10-13-fuzz-deadl
 preserve the evidence and next-step boundaries for a fresh computer. A toolchain
 or acceptance-contract change needs separate design/approval; do not retry to
 hide the original failure or modify the pinned cache in place.
+
+### Next bounded diagnostic design — awaiting approval
+
+At f15863be the proposed next step is to extend the existing portable probe,
+not to patch or replace the actual fuzzer/toolchain. In-chat bounded-design
+approval is still required before implementation. No new code or tests run.
+
+The fixed toolchain's help/build and cmd/go/internal/work/init.go:69 explicitly
+reject replacements beneath GOMODCACHE. Its GOROOT currently resides inside
+that module cache. Do not attempt an overlay against that immutable directory
+or change cache settings to bypass the restriction.
+
+Recommended scope: deterministic tests of the existing stop-classification
+model for synchronized deadline, parent-before-child deadline, normal stop,
+and real non-deadline worker/material errors. Preserve concrete error identity
+and fields; output the observed/modelled states and provenance, with positive
+and negative controls and bounded execution. Only the existing portable probe,
+its diagnosis report and progress documentation may change after approval.
+This remains model-level diagnosis, not a full actual CoordinatorFuzzing
+reproduction, product fix or replacement for the original5s/30s acceptance.
+Historical failure/Pair-unrun and all production gates remain open.
+
+A full instrumented-framework reproduction or toolchain/acceptance change is
+a separate larger design/authorization, not implicit permission from this proposal.
+Standing commit/push authorization saves this pending design state only.
