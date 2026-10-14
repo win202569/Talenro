@@ -1,0 +1,50 @@
+package context
+
+import (
+ "sync"
+ "sync/atomic"
+ "time"
+)
+
+// Diagnostic-only APIs in an isolated copy; never installed/promoted.
+var diagnosticFuzzActive atomic.Pointer[DiagnosticFuzzGate]
+type DiagnosticFuzzGate struct {
+ parent *cancelCtx
+ owner canceler
+ entered,release,propagated chan struct{}
+ enterOnce,releaseOnce,propagatedOnce sync.Once
+ watchdog atomic.Bool
+}
+func DiagnosticFuzzRegister(ctx Context) *DiagnosticFuzzGate {
+ owner,ok:=ctx.(canceler)
+ if !ok {panic("diagnostic unsupported context")}
+ parent,ok:=ctx.Value(&cancelCtxKey).(*cancelCtx)
+ if !ok || parent==nil {panic("diagnostic parent missing")}
+ parent.mu.Lock()
+ defer parent.mu.Unlock()
+ if parent.err.Load()!=nil {panic("diagnostic canceled parent")}
+ g:=&DiagnosticFuzzGate{parent:parent,owner:owner,entered:make(chan struct{}),release:make(chan struct{}),propagated:make(chan struct{})}
+ if !diagnosticFuzzActive.CompareAndSwap(nil,g) {panic("diagnostic duplicate registration")}
+ return g
+}
+func(g *DiagnosticFuzzGate) Entered() <-chan struct{} {return g.entered}
+func(g *DiagnosticFuzzGate) Propagated() <-chan struct{} {return g.propagated}
+func(g *DiagnosticFuzzGate) Release() {g.releaseOnce.Do(func(){close(g.release)})}
+func(g *DiagnosticFuzzGate) Unregister() {g.Release();diagnosticFuzzActive.CompareAndSwap(g,nil)}
+func(g *DiagnosticFuzzGate) Cancel() {g.owner.cancel(true,Canceled,Canceled)}
+func(g *DiagnosticFuzzGate) WatchdogExpired() bool {return g.watchdog.Load()}
+func diagnosticFuzzBeforeChildren(parent *cancelCtx) *DiagnosticFuzzGate {
+ g:=diagnosticFuzzActive.Load()
+ if g==nil || g.parent!=parent {return nil}
+ g.enterOnce.Do(func(){close(g.entered)})
+ timer:=time.NewTimer(time.Second)
+ defer timer.Stop()
+ select {
+ case <-g.release:
+ case <-timer.C: g.watchdog.Store(true);g.Release()
+ }
+ return g
+}
+func diagnosticFuzzAfterUnlock(g *DiagnosticFuzzGate) {
+ if g!=nil {g.propagatedOnce.Do(func(){close(g.propagated)})}
+}

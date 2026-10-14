@@ -1,0 +1,82 @@
+package context_test
+
+import (
+ . "context"
+ "testing"
+ "time"
+)
+
+func TestDiagnosticFuzzSelectedParent(t *testing.T) {
+ parent,cancel:=WithTimeout(Background(),100*time.Millisecond)
+ defer cancel()
+ gate:=DiagnosticFuzzRegister(parent)
+ defer gate.Unregister()
+ child,cancelChild:=WithCancel(parent)
+ defer cancelChild()
+ <-gate.Entered()
+ if parent.Err()!=DeadlineExceeded || child.Err()!=nil { t.Fatal("selected parent window not established") }
+ gate.Release()
+ <-gate.Propagated()
+ if child.Err()!=DeadlineExceeded { t.Fatal("child did not inherit exact deadline") }
+ gate.Release()
+ gate.Unregister()
+ if gate.WatchdogExpired() { t.Fatal("unexpected watchdog") }
+}
+
+func TestDiagnosticFuzzUnregistered(t *testing.T) {
+ parent,cancel:=WithTimeout(Background(),time.Second)
+ defer cancel()
+ gate:=DiagnosticFuzzRegister(parent)
+ defer gate.Unregister()
+ unrelated,stop:=WithCancel(Background())
+ stop()
+ if unrelated.Err()!=Canceled {t.Fatal("unrelated cancellation changed")}
+ select {case <-gate.Entered(): t.Fatal("unrelated context entered gate"); default:}
+ gate.Unregister()
+ cancel()
+ <-parent.Done()
+}
+
+func TestDiagnosticFuzzWatchdog(t *testing.T) {
+ parent,cancel:=WithTimeout(Background(),10*time.Millisecond)
+ defer cancel()
+ gate:=DiagnosticFuzzRegister(parent)
+ defer gate.Unregister()
+ child,stop:=WithCancel(parent)
+ defer stop()
+ <-gate.Entered()
+ <-gate.Propagated()
+ if !gate.WatchdogExpired() || child.Err()!=DeadlineExceeded {t.Fatal("forgotten gate must release with watchdog evidence")}
+}
+
+func TestDiagnosticFuzzEarlyUnregisterAndCancel(t *testing.T) {
+ parent,cancel:=WithTimeout(Background(),time.Second)
+ defer cancel()
+ gate:=DiagnosticFuzzRegister(parent)
+ gate.Unregister()
+ cancel()
+ <-parent.Done()
+ if parent.Err()!=Canceled {t.Fatal("early unregister changed cancellation")}
+ parent,cancel=WithTimeout(Background(),time.Second)
+ defer cancel()
+ gate=DiagnosticFuzzRegister(parent)
+ defer gate.Unregister()
+ child,stop:=WithCancel(parent)
+ defer stop()
+ go gate.Cancel()
+ <-gate.Entered()
+ if parent.Err()!=Canceled || child.Err()!=nil {t.Fatal("selected cancellation window absent")}
+ gate.Release()
+ <-gate.Propagated()
+ if child.Err()!=Canceled {t.Fatal("child cancel identity changed")}
+}
+
+func TestDiagnosticFuzzRejectRegistration(t *testing.T) {
+ expectPanic:=func(fn func()) {t.Helper(); defer func(){if recover()==nil {t.Error("invalid registration accepted")}}();fn()}
+ expectPanic(func(){DiagnosticFuzzRegister(Background())})
+ canceled,cancel:=WithCancel(Background());cancel()
+ expectPanic(func(){DiagnosticFuzzRegister(canceled)})
+ parent,cancel:=WithTimeout(Background(),time.Second);defer cancel()
+ gate:=DiagnosticFuzzRegister(parent);defer gate.Unregister()
+ expectPanic(func(){DiagnosticFuzzRegister(parent)})
+}

@@ -1,0 +1,7 @@
+diff --git a/src/context/context.go b/src/context/context.go
+--- a/src/context/context.go
++++ b/src/context/context.go
+@@ -568,0 +569 @@ func (c *cancelCtx) cancel(removeFromParent bool, err, cause error) {
++	diagnosticGate := diagnosticFuzzBeforeChildren(c)
+@@ -574,0 +576 @@ func (c *cancelCtx) cancel(removeFromParent bool, err, cause error) {
++	diagnosticFuzzAfterUnlock(diagnosticGate)

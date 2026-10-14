@@ -1633,3 +1633,14 @@ toolchain copy/patch/build or actual framework arm has run at this checkpoint.
 Tasks2–5 and final independent review remain pending. See the
 [execution record](2026-10-14-isolated-fuzz-coordinator-execution.md) for rulings,
 evidence and recovery. Original product acceptance blockers remain unchanged.
+
+### Context gate verified; actual framework arms still unrun
+
+Task2 progressed to real-context gate RED/GREEN:5 tests passed in a verified
+independent11536-file Go1.26.5 copy. Copy validation was refactored to remove
+redundant ancestor checks after a slow attempt was stopped; all16 isolation
+assertions then passed again. Original source copy manifests matched before/after.
+Only the test copy's context was patched. Tracked templates and the partial
+context patch are portable, but actual internal/fuzz tracing/runner are absent.
+Task2 overall is incomplete; Tasks3–5, six actual framework arms and final
+independent review remain pending. No new product acceptance/fix/main merge.

@@ -22,3 +22,28 @@ GREEN：普通沙箱测试13项通过，真实junction/hardlink创建受限、�
 
 下一步是Task2专属副本/真实上下文钩子TDD。原matrix3失败、Pair未运行及
 全部生产验收门槛继续开放。当前仅诊断工具进度，不是修复或完整框架复现。
+
+## Task2：上下文门已验证，框架追踪未完成
+
+首次copy校验反复检查每个文件的全套祖先路径，持续数分钟仍未完成。
+只读抽样7文件祖先检查耗时103ms；核实所属进程后仅停止本任务慢速校验，
+不删除文件。改为根祖先一次检查、逐层每组件检查、复制时每不同源父目录
+检查一次；每文件reparse/hardlink检查及三份hash清单仍保留。
+这是GREEN后的去重重构，随后16项隔离测试再次全部通过。
+
+新的gate-tests-002副本复制并核对11536文件，与源清单一致，原目录前后不变。
+实际go version为go1.26.5 windows/amd64，GOROOT明确指向独立副本。
+只在此副本src/context增加诊断代码，原模块缓存不修改。
+
+RED：无行为stub构建成功；第一次未加引号的-test.run参数被PowerShell误解析，
+该参数错误不算RED。改成整参数字符串后TestDiagnosticFuzzSelectedParent真实
+exit1，提示selected parent window not established。
+GREEN：实现原上下文定向传播门后，5项真实context测试全部通过、exit0：
+SelectedParent、Unregistered、Watchdog、EarlyUnregisterAndCancel、RejectRegistration。
+看门狗测试故意验证超时释放（1.01s）；这不等于实际框架臂允许看门狗触发。
+
+测试使用外部context_test包，避免testing对context的依赖形成内部测试导入环；
+代价是只验证导出通道/行为而非未导出字段。该裁决已记入本计划台账。
+coordinator.patch目前只包含context部分；internal/fuzz插桩、追踪测试、runner、
+六个框架臂及最终独立审查尚未实施，Task2整体未完成，Task3–5待办。
+必要模板/局部patch与记录保存为明确未完成检查点，不能当作完整复现或修复。

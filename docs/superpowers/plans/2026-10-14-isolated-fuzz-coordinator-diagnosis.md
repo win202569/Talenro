@@ -68,7 +68,7 @@ Assert-Equal ($before | ConvertTo-Json) ((Get-TreeManifest $source) | ConvertTo-
 - [x] Run `powershell -NoProfile -File docs/diagnostics/isolated-fuzz/isolation.tests.ps1`; confirm behavioral RED (unsafe copy allowed or missing independent copy), not merely missing-file/parser error. Start with safe throwing stubs if needed to obtain meaningful assertion failures.
 - [x] Implement validation and copying with native LiteralPath operations. Resolve existing ancestors, validate each component and every source entry; inspect HardLink count for source ordinary files and reject multiple links. Require destination nonexistent, then create it and copy ordinary bytes. Do not delete fixtures on failure.
 - [x] Run the full standalone tests; expect exit0 with named passed assertions and explicit unrun integration entries. Include before/after source equality. Verify actual fixed source manifests only after execution authorization.
-- [ ] Update execution/status checkpoint and commit explicit tracked files; push and verify SHA. Do not copy the real toolchain yet if tests fail.
+- [x] Update execution/status checkpoint and commit explicit tracked files; push and verify SHA. Do not copy the real toolchain yet if tests fail.
 
 ## Task2: Targeted propagation gate and truthful trace
 
@@ -94,8 +94,8 @@ gate.Release()
 if child.Err() != DeadlineExceeded { t.Fatal("child did not inherit exact deadline") }
 ```
 
-- [ ] Write diagnostic tests asserting: unrelated canceled context never enters gate; selected parent Done closes while child Err is nil; release produces child's exact DeadlineExceeded and closes Propagated; duplicate release/unregister are harmless; watchdog releases a forgotten gate but marks expiry; early unregister cannot leave a blocked cancellation. Explicitly test the lock order by releasing before cancelChild and requiring completion under30s. Tests use real contexts, not fake Err implementations.
-- [ ] Materialize tests in the verified copy and run copied `go test context -run '^TestDiagnosticFuzz' -count=1 -p=1 -timeout=30s`; observe a behavioral RED against safe no-gate stubs. Build separate if cold compilation would consume external test guard.
+- [x] Write diagnostic tests asserting: unrelated canceled context never enters gate; selected parent Done closes while child Err is nil; release produces child's exact DeadlineExceeded and closes Propagated; duplicate release/unregister are harmless; watchdog releases a forgotten gate but marks expiry; early unregister cannot leave a blocked cancellation. Explicitly test the lock order by releasing before cancelChild and requiring completion under30s. Tests use real contexts, not fake Err implementations.
+- [x] Materialize tests in the verified copy and run copied `go test context -run '^TestDiagnosticFuzz' -count=1 -p=1 -timeout=30s`; observe a behavioral RED against safe no-gate stubs. Build separate if cold compilation would consume external test guard.
 - [ ] Implement the protocol and exact source patch, rejecting source drift (fuzz.go SHA D9DE12569D5C18FB629C8E79A4D629EB2985B719E4FBFE30C3F3CE23FC44FEB5; context.go SHA765F99F7CC0710B0117FFA183E432524F429C21496FCBAD9B63FB9886FDBAAC7). Add copied-source trace tests for unread parent operand and exact same-text/wrapped/typed error identities; do not extract a new classifier that replaces actual stop.
 - [ ] Run all added copied context/trace tests, inspect complete output, then source hash and diff audits. Confirm no suppression/replacement semantic change and no import cycle. Failure to implement protocol faithfully stops implementation for design revision, not fabricated context fallback.
 - [ ] Save tests/patch and checkpoint with explicit observed versus unrun status; commit/push necessary files only.

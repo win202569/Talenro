@@ -54,9 +54,15 @@ function Assert-IsolatedPaths([string]$Source,[string]$Destination,[string]$Allo
 function Get-IsolatedFiles([string]$Root) {
     $resolved=Get-IsolatedFullPath $Root
     if (-not (Test-Path -LiteralPath $resolved -PathType Container)) { throw 'Manifest directory missing' }
+    Get-IsolatedChildren $resolved
+}
+function Get-IsolatedChildren([string]$Root) {
+    # Ancestors were validated at the root; descent checks every component once.
+    # Never recurse through a reparse entry, even if its target stays in scope.
+    $resolved=$Root
     foreach ($entry in Get-ChildItem -LiteralPath $resolved -Force -ErrorAction Stop) {
-        $null=Get-IsolatedFullPath $entry.FullName
-        if ($entry.PSIsContainer) { Get-IsolatedFiles $entry.FullName }
+        if (-not (Test-IsolatedWithin $entry.FullName $resolved) -or ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Reparse or escaped entry rejected: $($entry.FullName)" }
+        if ($entry.PSIsContainer) { Get-IsolatedChildren $entry.FullName }
         else {
             if ([IsolatedFuzzFileInfo]::Links($entry.FullName) -ne 1) { throw "Multiple hardlink rejected: $($entry.FullName)" }
             $entry
@@ -80,10 +86,13 @@ function New-IsolatedToolchain([string]$Source,[string]$RunRoot) {
     $cache=Join-Path $root 'cache'
     New-Item -ItemType Directory -Path $toolchain -ErrorAction Stop | Out-Null
     New-Item -ItemType Directory -Path $cache -ErrorAction Stop | Out-Null
+    $parents=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
     foreach ($row in $before) {
         $original=Join-Path $src $row.Path
         $target=Join-Path $toolchain $row.Path
-        $null=Get-IsolatedFullPath $original
+        $parent=Split-Path -Parent $original
+        if ($parents.Add($parent)) { $null=Get-IsolatedFullPath $parent }
+        if (((Get-Item -LiteralPath $original -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Source became reparse entry' }
         if ([IsolatedFuzzFileInfo]::Links($original) -ne 1) { throw 'Source link changed' }
         New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force -ErrorAction Stop | Out-Null
         Copy-Item -LiteralPath $original -Destination $target -ErrorAction Stop
