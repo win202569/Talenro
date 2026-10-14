@@ -86,3 +86,26 @@ handle; no identity inferred, current guard remained failure. No fixture build o
 actual arm executed. Retaining first-read facts and confirming final state on the
 same verified live handle, plus a fresh preparation identity, needs an explicitly
 bounded continuation; do not query archived PIDs or overwrite the failed directory.
+
+## Subsequent author closeout — six actual controls, not a second review
+
+Following separate human approvals, final schema3/v2 policy requires same retained
+owned-handle signaled exit/query plus naturally empty job within shared500ms;
+prior reads/images remain unchanged and diagnostic-only evidence cannot upgrade.
+Full bounded-batch handles are gathered before waiting; unknown initial identity
+still fails.183 scoped assertions passed (11 duplicate reused checks;172 distinct).
+
+All six actual arms now passed their prescribed diagnostic checks, with completed
+arms never repeated. Remaining synchronized-prep-002 exit0, injected crash exit1,
+and early cancel exit1 have full worker/return traces, watchdogfalse, empty owned
+job and no forced cleanup. Original11536/product701 hash inventories unchanged.
+Earlier failed preparations remain failures; source/binary and recovery fixes stand.
+
+This closes the missing five-arm evidence only at author-verification level. The
+reviewer's original UNRUN statements/grades remain historical; it did not observe
+these later executions or independently review their final receipts. No re-review
+was dispatched. Early-failure behavior beyond the specific warmup-crasher/selected
+cancel controls, hostile concurrent filesystem changes, arbitrary toolchains and
+product acceptance remain outside the judgment. Unknown image-error/history causes
+are not inferred. Full results do not establish main merge readiness or production
+trust; see the execution report for the bounded evidence and recovery limitations.

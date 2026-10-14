@@ -1,5 +1,33 @@
 # Isolated fuzz diagnosis
 
+Current outcome2026-10-14: all six finite actual-framework arms completed and
+their expected diagnostic checks passed. Baseline/observe/synchronized exited0;
+parent-first/crash/cancel deliberately exited1 with the prescribed complete trace.
+Every instrumented arm returned activeWorkers0/watchdogfalse, and every arm ended
+with an empty owned job and no forced cleanup. Completed arms were not rerun.
+The earlier failed preparations remain failures, not retrospective successes.
+
+Final remaining-arm authorization used synchronized-prep-002, then fresh crash
+and cancel once each. synchronized recorded326344 executions; crash injected the
+warmup worker panic marker and retained the same opaque error identity through
+crasher/worker/return; cancel stopped early after22914 executions and retained exact
+canceled identity. Latest three receipts use schema3/v2, earlier results retain
+their original formats. Source-bound diagnostic binary reused without rebuilding.
+
+Fresh full scoped suite183 assertions PASS (11 reused duplicates;172 distinct).
+Final original11536-file and701 product-hash inventories unchanged. This establishes
+bounded actual-framework controls, not the historical Envelope cause, a product
+fix, material-error integration, toolchain promotion, main merge or acceptance.
+The one earlier independent review concerned an unfinished checkpoint; subsequent
+policy changes and integration results are author-verified, not a new review.
+See [complete six-arm report](../../roadmap/2026-10-14-isolated-fuzz-coordinator-execution.md).
+Fresh-PC recovery uses tracked code/report on the development branch; do not
+repeat completed arms merely to recover progress. Copies/caches/raw receipts are
+local ignored data; no additional execution or deletion is implied.
+
+Sections below preserve earlier stages and policy explanations, not current
+UNRUN status. All former3/6 and UNRUN references below are historical.
+
 Latest approved completion policy: ordinary runs now produce ShutdownSchema3 /
 owned-final-signaled-exit-image-optional-v2. A running member is not accepted merely
 because its image is readable or accounting later becomes empty: its same retained,

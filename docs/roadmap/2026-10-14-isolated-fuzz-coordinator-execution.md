@@ -473,3 +473,87 @@ code259，随后同句柄final exited/code0；首成员shared elapsed10→158ms�
 文件/产品701路径摘要差异0；复制插桩SourceIdentity未变。仅保存七个必要
 代码、测试、README、执行/状态及计划更新到既有开发分支；原始收据、工具链、
 缓存和忽略ledger不提交。实际提交及远端SHA相等性由最终Git回执确认。
+
+## 六臂实际执行结果（最终有限执行，不是产品验收）
+
+用户单独批准新同步准备及崩溃/取消各一次，BASEaef7fc7d。使用现有已绑定
+SourceIdentity的diagnostic fixture.exe，没有重建或复跑已完成三个臂；
+synchronized-prep-002保留原失败synchronized目录。先重新核对fresh路径、
+Go/安装源码/current模板/fixture/二进制身份；每臂独立runtime/fuzz cache/tmp，
+offline child-only环境、5s/parallel1/count1/internal30s/external60s上限不变。
+版本和GOROOT/GOTOOLDIR准备逐项通过；三个新臂均完整通过预设轨迹和自然
+收尾守卫，没有自动重试、安全/超时/watchdog失败或强制job终止。
+
+| 臂/实际记录 | 退出与分类 | 实际证据 |
+| --- | --- | --- |
+| baseline-retry-001 | exit0，未插桩对照通过 | 238579execs；来源/编译证据通过，原格式保留 |
+| observe-prep-002 | exit0，实际自然观察通过 | 278626execs；截止输入/子状态均deadline，最终nil |
+| parent-first | 预期exit1，受控机制复现 | incoming deadline/child nil→原stop保留deadline；工作进程最终0 |
+| synchronized-prep-002 | exit0，同步截止对照通过 | 326344execs；传播已完成/child deadline，最终nil |
+| crash | 预期exit1，故意worker crasher保留 | warmup panic marker；同一opaque error经crasher→worker→return |
+| cancel | 预期exit1，提前取消机制复现 | 22914execs；incoming canceled/child nil→保留canceled |
+
+所有六个结果当前验证器只读核对通过；已完成三臂没有再执行。每臂总进程3，
+最后owned job计数0/列表空、无强制清理；五个插桩臂均3条schema1 trace，
+stoppingRead/parentRead/return未读语义完整，最后activeWorkers0/watchdogfalse。
+baseline收据未带ShutdownSchema，不添加后来的自然观察字段；observe与
+parent-first是原schema2；新三臂是schema3/v2。不能把不同阶段收据改成统一
+schema后声称重验，原失败准备与唯一no-hit探测仍保持原失败/诊断身份。
+
+### 同步截止
+
+UTC18:13:13.137–18:13:18.231（Asia/Tbilisi22:13:13–22:13:18），5.094s，
+exit0/326344execs。parent-done stop：incoming deadline、child deadline、old/new
+nil、gateEntered/propagated true；worker stop：incoming nil、child deadline、
+stopping true、new nil；return incoming/new nil、activeWorkers0。全程watchdog
+false。自然最终job0/空，shutdown0ms（整数毫秒取整）；初始成员owned、首读
+running/单次确认exited、code0、ImageError5仍单列记录，没有名字豁免。
+
+### 故意崩溃
+
+UTC18:13:19.160–18:13:19.206（本地22:13:19），约46ms，exit1。在warmup
+worker真实执行fixture callback，输出isolated-fixture-crash marker，未产生
+有效execs汇总（记未记录，不填0）。原crasher分支incoming/new为
+error:*errors.errorString#1；worker停止时child canceled、old/new保持同一opaque
+身份；return保留它，activeWorkers0、watchdogfalse。错误身份仅该进程内相等，
+不比较跨进程#1，不以文本判断；panic并非产品材料拒绝或发现产品缺陷。
+
+### 提前取消
+
+UTC18:13:19.949–18:13:20.503（本地22:13:19–22:13:20），约554ms，exit1/
+22914execs。登记父context在500ms提前取消：parent-done incoming canceled、
+child nil、old nil→new canceled、gate true/propagated false；worker随后child
+canceled、stopping true、old/new canceled；return canceled、传播true、工作
+进程0、watchdogfalse。与deadline身份分开，不发明未读的parent Err。
+
+crash/cancel均真实捕获owned成员核心首读+确认running/code0/ImageError5，
+FinalShutdown在同一保留句柄上signaled并成功重读code0，原running及映像失败
+不回写；剩余预算500ms、整数elapsed0ms，最终job0/空、无强制终止。这是
+新判据在真实框架执行里的正例，不改变旧synchronized版本准备的失败结论，
+也不确定那些旧失败成员的身份、后续退出时间或ImageError5根因。
+
+### 后验、审查与恢复边界
+
+执行后完整183次PS断言通过（含11次重复复用，172不同检查）；来源/provenance/
+真实链接隔离/最终退出/旧收据拒绝保持。UTC18:14:52.774（本地22:14:52）
+正式工具链11536文件、产品701路径/hash差异0。全部实际臂和9个新准备/执行
+收据逐项只读通过，之前所有失败及diagnostic-only记录仍不升级。
+
+作者按规格自检隔离、钩子与释放顺序、原判断读取、不额外parent Err、有限
+错误身份、真正worker/crasher、取消/截止区分、job自然收尾及恢复材料；本次
+结果均满足有限诊断对照要求。唯一此前独立审查针对unfinished checkpoint，
+后续有界政策/本次实际结果是作者验证，不追加review或称独立重现全部测试。
+审查原来未判的五臂，现在有作者实证；更宽早期失败/恶意并发/任意工具链/
+生产集成仍不在范围内，没有一般沙箱保证。
+
+六臂有限执行完成，结论只到“指定干预下真实框架的原分类行为被复现”。
+自然观察已传播时成功、受控父先截止保留deadline、同步传播成功、worker
+崩溃错误未吞掉、提前取消保留canceled；不能倒推历史Envelope裸截止失败
+来自相同调度窗口，更不等于原产品修复/验收。matrix3仍24PASS/Envelope
+失败/Pair未运行，生产信任、C11/C12/Task10/B01/main等既有门槛不清除。
+
+只提交README、执行/状态、计划和审查处置说明五个必要报告；源码本轮无改动。
+新电脑从既有开发分支最新提交读取这些结论和已跟踪复建代码，不能为恢复
+而重复已完成六臂；原始日志/工具链/cache仍仅本机忽略范围，不随Git迁移。
+本轮不清理旧目录、不安装、不改安全或Docker、不合并main。实际提交/远端
+SHA相等性在交付时检查，不由这段提交前文字预填成功。

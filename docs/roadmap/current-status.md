@@ -1,5 +1,29 @@
 # Project status — updated 2026-10-14
 
+## Latest result — all six diagnostic arms completed
+
+The user approved the remaining bounded executions: synchronized-prep-002, crash
+and cancel once each. All passed the prescribed actual-framework diagnostic checks:
+synchronized exit0/326344 executions, crash intentional warmup panic exit1 with
+crasher error preserved, cancel intentional early cancellation exit1/22914 executions.
+Complete3-event traces ended activeWorkers0/watchdogfalse. Sources/executable/
+binary identity matched; all preparation and execution processes naturally reached
+empty owned jobs, with no timeout or forced cleanup. No automatic retry.
+
+Actual-arm progress is now6/6: historical baseline/observe/parent-first results
+were revalidated readonly, not rerun or rewritten. New three receipts use the
+approved final-exit schema3/v2. Fresh183 scoped PowerShell assertions PASS (11
+reused duplicates;172 distinct); final original11536/product701 hash inventories
+unchanged at UTC18:14:52.774 (Asia/Tbilisi22:14:52).
+
+This completes the six-arm diagnostic execution, not product acceptance or proof
+of the historical failure's cause. Envelope/matrix3/Pair and all production/main
+gates remain open. The earlier independent review was for an unfinished checkpoint;
+later policy/integration verification is author-only, no new review or cleanup.
+Necessary completion/recovery reports are saved to the existing development branch;
+actual push success is verified against the final commit at handoff.
+See [six-arm outcome, evidence and limits](2026-10-14-isolated-fuzz-coordinator-execution.md).
+
 ## Latest approved final-exit policy — runner/test increment only
 
 Ordinary diagnostic-runner receipts now use schema3/v2 final-signaled policy:
