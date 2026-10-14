@@ -39,6 +39,9 @@ public static class IsolatedFuzzProcess {
     [DllImport("kernel32.dll",SetLastError=true)] static extern uint ResumeThread(IntPtr thread);
     [DllImport("kernel32.dll",SetLastError=true)] static extern uint WaitForSingleObject(IntPtr handle,uint milliseconds);
     [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetExitCodeProcess(IntPtr process,out uint exitCode);
+    [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr OpenProcess(uint access,bool inherit,uint id);
+    [DllImport("kernel32.dll",SetLastError=true)] static extern bool IsProcessInJob(IntPtr process,IntPtr job,out bool owned);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool QueryFullProcessImageName(IntPtr process,uint flags,StringBuilder image,ref uint length);
     [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
     static readonly IntPtr Invalid=new IntPtr(-1);
     static void Check(bool ok) {if(!ok)throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());}
@@ -87,8 +90,34 @@ public static class IsolatedFuzzProcess {
     public static uint CountDescendants(uint root,ulong[] members) {
         uint count=0;foreach(ulong id in members)if(id!=root)count++;return count;
     }
-    public class Result {public long ExitCode;public bool TimedOut,CleanupVerified,RootExited,TerminationRequested;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersAfterCleanup;public string StartUTC,EndUTC;}
-    public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds) {
+    public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead;public uint ExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC;}
+    static MemberObservation[] InspectMembers(IntPtr job,ulong[] members) {
+        var observations=new List<MemberObservation>();
+        // Evidence gathering has a fixed cap; it never changes member counting.
+        for(int i=0;i<Math.Min(members.Length,32);i++) {
+            var row=new MemberObservation{Id=members[i],State="unknown"};
+            IntPtr handle=IntPtr.Zero;
+            try {
+                if(row.Id==0 || row.Id>UInt32.MaxValue)throw new InvalidOperationException("Invalid live job member ID");
+                handle=OpenProcess(0x101000,false,(uint)row.Id); // QUERY_LIMITED_INFORMATION | SYNCHRONIZE only.
+                Check(handle!=IntPtr.Zero);
+                bool owned;Check(IsProcessInJob(handle,job,out owned));row.Owned=owned;
+                if(!owned){row.State="ownership-lost";continue;}
+                // Identity/state are read only after this exact handle is verified
+                // against our live job. Never query a PID from an archived receipt.
+                uint status=WaitForSingleObject(handle,0);Check(status!=UInt32.MaxValue);
+                row.State=status==0?"exited":status==258?"running":"unknown";
+                uint code;Check(GetExitCodeProcess(handle,out code));row.ExitCode=code;row.ExitCodeRead=true;
+                var image=new StringBuilder(32768);uint length=(uint)image.Capacity;
+                if(QueryFullProcessImageName(handle,0,image,ref length))row.ImagePath=image.ToString();
+                else row.ImageError=Marshal.GetLastWin32Error();
+            } catch(System.ComponentModel.Win32Exception e) {row.QueryError=e.NativeErrorCode;}
+            finally {row.ObservedUTC=DateTime.UtcNow.ToString("o");Close(handle);observations.Add(row);}
+        }
+        return observations.ToArray();
+    }
+    public class Result {public long ExitCode;public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun;public string StartUTC,EndUTC;}
+    public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers) {
         IntPtr job=IntPtr.Zero,output=IntPtr.Zero,error=IntPtr.Zero,input=IntPtr.Zero,attributes=IntPtr.Zero,handles=IntPtr.Zero,environment=IntPtr.Zero;
         ProcessInfo pi=new ProcessInfo();bool attributesReady=false,assigned=false;
         var result=new Result{StartUTC=DateTime.UtcNow.ToString("o")};
@@ -125,19 +154,31 @@ public static class IsolatedFuzzProcess {
             Check(AssignProcessToJobObject(job,pi.Process));assigned=true;
             Check(ResumeThread(pi.Thread)!=UInt32.MaxValue);
             bool rootExited=false;Accounting accounting;
+            var live=new List<MemberObservation>();var seen=new HashSet<ulong>();
+            result.LiveSampling=captureLiveMembers;
             while(true) {
                 double left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;
                 if(left<=0){result.TimedOut=true;break;}
-                uint status=WaitForSingleObject(pi.Process,(uint)Math.Min(100,Math.Ceiling(left)));
+                if(captureLiveMembers && live.Count<32) {
+                    var fresh=new List<ulong>();
+                    foreach(ulong id in Members(job))if(!seen.Contains(id) && fresh.Count+live.Count<32){seen.Add(id);fresh.Add(id);}
+                    live.AddRange(InspectMembers(job,fresh.ToArray()));
+                    left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;
+                    if(left<=0){result.TimedOut=true;break;}
+                }
+                uint status=WaitForSingleObject(pi.Process,(uint)Math.Min(captureLiveMembers?10:100,Math.Ceiling(left)));
                 Check(status!=UInt32.MaxValue);
                 Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
                 if(status==0){rootExited=true;break;}
             }
             Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
             result.TotalProcesses=accounting.Total;
+            result.MembersDuringRun=live.ToArray();
             result.RootExited=rootExited;result.ActiveAtRootWait=accounting.Active;
             result.MembersAtRootWait=Members(job);
             result.DescendantsRemaining=CountDescendants(pi.Id,result.MembersAtRootWait);
+            result.MemberEvidence=InspectMembers(job,result.MembersAtRootWait);
+            result.MemberEvidenceTruncated=result.MembersAtRootWait.Length>result.MemberEvidence.Length;
             if(result.TimedOut || accounting.Active>0 || result.MembersAtRootWait.Length>0) {
                 result.TerminationRequested=true;
                 Check(TerminateJobObject(job,0xE001));

@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'isolation.ps1')
 if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'process-native.cs') }
-function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds) {
+function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds,[bool]$CaptureLiveMembers=$false) {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
     $allowed=Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator'
     $receipt=Get-IsolatedFullPath $ReceiptDir
@@ -15,8 +15,12 @@ function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashta
     New-Item -ItemType Directory -Path $receipt -ErrorAction Stop | Out-Null
     $stdout=Join-Path $receipt 'stdout.txt';$stderr=Join-Path $receipt 'stderr.txt'
     try {
-        $native=[IsolatedFuzzProcess]::Run($exe,$Arguments,$Environment,(Split-Path -Parent $receipt),$stdout,$stderr,$LimitSeconds)
+        $native=[IsolatedFuzzProcess]::Run($exe,$Arguments,$Environment,(Split-Path -Parent $receipt),$stdout,$stderr,$LimitSeconds,$CaptureLiveMembers)
         $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
+        $result | Add-Member -NotePropertyName MemberEvidence -NotePropertyValue $native.MemberEvidence
+        $result | Add-Member -NotePropertyName MemberEvidenceTruncated -NotePropertyValue $native.MemberEvidenceTruncated
+        $result | Add-Member -NotePropertyName LiveSampling -NotePropertyValue $native.LiveSampling
+        $result | Add-Member -NotePropertyName MembersDuringRun -NotePropertyValue $native.MembersDuringRun
         $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $receipt 'receipt.json')
         return $result
     } catch {

@@ -57,6 +57,27 @@ do not query recycled receipt PIDs or treat cleanup as acceptance. No further
 arms ran. Task3 remains blocked and final review pending. Once any baseline
 retry has launched fuzz, the retry helper refuses additional attempts.
 
+Bounded live-identity investigation now records MemberEvidence before cleanup:
+open only IDs from the current job list with limited query/synchronize rights,
+verify exact-handle job membership, then read image and zero-wait state/exit code.
+Query failures and ownership loss remain unknown; they never clear existing gates.
+At most32 identity records are collected. Optional final boolean argument to
+Invoke-RecordedProcess enables MembersDuringRun with10ms polling; default remains
+off/100ms. This timing-perturbed observation is not a natural fuzz/acceptance arm.
+State and exit code are separate reads, not an atomic snapshot; exit code0 does
+not prove the prior wait observation was exited. No archived PID is queried.
+
+Two finite model-only observations were recorded, no baseline rerun: first had
+no members available at capture; opt-in live observation captured an owned
+C:/Windows/System32/conhost.exe during root execution and at root exit. It again
+failed DescendantsRemaining1, then owned cleanup reached zero/empty. All11 model
+controls were preserved. This identifies this new failure's member, not the old
+ones, and does not establish why the console host was created or its exit timing.
+See [Microsoft's console-host definition](https://learn.microsoft.com/en-us/windows/console/definitions).
+Current tests:20 runner assertions+13 regression assertions passed. Later arms
+and final review remain pending. Any change to natural shutdown waiting, launch
+flags or member acceptance needs a separately approved bounded design.
+
 Windows API references: [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
 [AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),
 [job limits](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information).

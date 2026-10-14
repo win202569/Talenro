@@ -53,3 +53,10 @@ $orphanCode='Start-Process -FilePath "'+$shell+'" -ArgumentList "-NoProfile -Enc
 $orphan=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded $orphanCode)) @{} (Join-Path $root 'root-exit-child-live') 10
 Assert-True ($orphan.RootExited -and -not $orphan.TimedOut -and $orphan.DescendantsRemaining -ge 1 -and $orphan.CleanupVerified -and $orphan.MembersAfterCleanup.Count -eq 0) 'root exit cannot conceal live owned child'
 Assert-Throws {Assert-ArmResult 'baseline' $orphan @()} 'cleaned live child still fails baseline gate'
+$evidenceProperty=$orphan.PSObject.Properties['MemberEvidence']
+$evidence=@(if($null -ne $evidenceProperty){$evidenceProperty.Value})
+Assert-True (@($evidence | Where-Object {$null -ne $_ -and $_.Owned -and $_.State -eq 'running' -and [IO.Path]::GetFileName($_.ImagePath) -eq 'powershell.exe'}).Count -ge 1) 'live owned child identity and state captured before cleanup'
+$sampled=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded $parentCode)) @{} (Join-Path $root 'live-sampling') 2 $true
+$liveProperty=$sampled.PSObject.Properties['MembersDuringRun']
+$live=@(if($null -ne $liveProperty){$liveProperty.Value})
+Assert-True (@($live | Where-Object {$null -ne $_ -and $_.Id -ne $sampled.RootId -and $_.Owned -and $_.State -eq 'running' -and [IO.Path]::GetFileName($_.ImagePath) -eq 'powershell.exe'}).Count -ge 1) 'opt-in sampling captures child while root is still running'

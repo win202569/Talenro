@@ -1697,3 +1697,17 @@ Later five fuzz arms stopped/unrun; Task3 overall blocked, Task4 baseline only,
 Task5/final independent review pending. No product fix/acceptance/main merge.
 Necessary repair/tests/report files are a development checkpoint; remote recovery
 is confirmed by the Git push receipt, not preclaimed here.
+
+### Bounded live member identity captured; shutdown gate still blocks
+
+Added exact-handle owned-job identity/state evidence, capped32, with optional
+timing-perturbed10ms live sampling (default off).20 runner+13 regression assertions
+passed. Two finite model-only observations: first captured no remaining member;
+the final live observation identified owned C:/Windows/System32/conhost.exe both
+during root execution and at root exit.11 model controls preserved, but remaining1
+again failed the unchanged process gate; owned cleanup verified zero/empty.
+Wait-state and exit-code reads were non-atomic (running then code0), not proof of
+a single consistent exit state. Creation/exit-order cause and historical member
+identities remain unresolved. No baseline rerun, member exemption, timeout/launch
+change or main merge. Later five arms/final review remain pending. A natural
+shutdown/forced-cleanup distinction needs a separately approved bounded design.
