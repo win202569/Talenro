@@ -1,4 +1,30 @@
-# Project status — updated 2026-10-11
+# Project status — updated 2026-10-14
+
+## Latest diagnostic checkpoint — partial actual-framework progress
+
+Approved same-handle single exit confirmation and fresh observe-prep-002 are
+implemented; first reads/image errors remain recorded, no timeout expansion or
+PID reopening.109 PowerShell diagnostic assertions passed (including11 real-handle
+and21 attempt/source regressions). These are author checks, not a new independent review.
+
+Actual baseline remains completed once. observe passed exit0/278626 executions;
+parent-first reproduced the controlled deadline-retention mechanism in the real
+framework, expected exit1, worker count0 at return, watchdogfalse. Both completed
+naturally without forced cleanup. This does not identify the historical product
+failure or clear Envelope/Pair/production/main acceptance.
+
+synchronized stopped at version preparation: initial and confirming waits both
+running, owned handle/code0 but missing image(error5). Current guard correctly
+refused; owned cleanup reached0/empty. No synchronized fuzz launched; crash/cancel
+also UNRUN. Do not retry any completed arm or overwrite failed preparations.
+Source/binary identity matched; full original11536/product701 manifest check after
+the continuation is recorded in the execution report. Necessary files are saved
+to the existing development branch under standing authorization; remote success
+must be checked against the final commit, not inferred from this precommit text.
+
+Next: a bounded investigation of the owned-but-still-unsignaled/missing-image
+preparation boundary, not another immediate retry or silent guard relaxation.
+See [details and recovery](2026-10-14-isolated-fuzz-coordinator-execution.md).
 
 ## 2026-10-12 Nodecerttime M1 API 文档补充 — 本机完成
 

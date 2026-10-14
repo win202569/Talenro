@@ -1,13 +1,29 @@
 # Isolated fuzz diagnosis
 
 Current checkpoint2026-10-14: baseline passed once; framework copy now instrumented.
-The approved exited-state/image split is implemented and verified; fresh context5
-and trace3 logic/completion passed. observe preparation then stopped on non-atomic
-running/code0/image-error reads without a final signaled-state confirmation.
-Five actual fuzz arms remain UNRUN. Independent-review source/binary binding and
-recovery gaps fixed; no old failure reclassification/main merge.
+The approved exited-state/image split and one same-handle confirmation are verified.
+observe-prep-002 and parent-first actual fuzz passed their diagnostic checks;
+synchronized stopped during version preparation with the confirming wait still
+running and missing image metadata. synchronized/crash/cancel actual fuzz remain
+UNRUN. No retries, old failure reclassification or main merge.
 [Review/dispositions](../../roadmap/2026-10-14-isolated-fuzz-checkpoint-review.md).
 Entries below preserve historical checkpoints, not the latest state.
+
+The latest continuation passed109 PowerShell assertions. Member receipts retain
+InitialState/InitialExitCode/InitialExitCodeRead and ConfirmationState/UTC/attempt;
+the producer performs only one zero-wait on the same retained, job-verified handle
+before closing it. A signaled confirmation refreshes the exit code; running with
+missing image, failed queries and unknown ownership remain failures. No new delay
+or budget is introduced. same-handle.tests.ps1 uses real owned process handles.
+
+The explicitly approved call was `Invoke-DiagnosticArm <verified-run-root> observe
+-PreparationAttempt prep-002`. Preparation identities must match prep-NNN and
+require an existing failed nonbaseline preparation. Original or any prep execute
+directory prevents another execution; duplicate identities are rejected. This is
+not authorization to generate retries. Failed synchronized version preparation
+is immutable; further execution needs a separate bounded investigation/approval.
+Fresh-PC recovery reads the execution report before creating any new run root;
+never repeat completed baseline/observe/parent-first merely to restore progress.
 
 Latest bounded revision: exact verified ownership + signaled exited state +
 successful exit-code query permits missing image metadata. Unknown ownership,

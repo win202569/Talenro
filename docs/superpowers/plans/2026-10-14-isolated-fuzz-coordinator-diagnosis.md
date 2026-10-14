@@ -141,8 +141,8 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 
 - [x] Create verified real isolated copy using Task1; retain pristine manifest and baseline toolchain version/source evidence. Run baseline once before patch. If baseline cannot launch correctly, stop all later arms. Approved retry-001 fresh build and actual baseline passed; original failed preparation remains preserved. Later arms still stopped by Task3 model process-group gate.
 - [x] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch. Historical trace-process ImageError31 failure preserved. Approved policy revision/fresh state-002 gate8 logic and completion PASS; observe origin preparation then failed on running/code0/image-error without final signaled confirmation. Five actual arms UNRUN.
-- [ ] Execute observe once, recording outcome without treating its possible deadline failure as product failure or passing acceptance.
-- [ ] Execute parent-first and synchronized once each; reject false success if trace does not establish the prescribed state or watchdog expired. Mechanism reproduced means actual original stop/return path reached, not merely model assertion passed.
+- [x] Execute observe once, recording outcome without treating its possible deadline failure as product failure or passing acceptance. Approved prep-002 actual exit0,278626 executions/full3-event trace and natural completion PASS; original failed preparation unchanged.
+- [ ] Execute parent-first and synchronized once each; reject false success if trace does not establish the prescribed state or watchdog expired. Mechanism reproduced means actual original stop/return path reached, not merely model assertion passed. parent-first executed once/PASS expected exit1 and actual child-nil/incoming-deadline retention; synchronized version preparation failed on still-running/missing-image evidence, actual fuzz UNRUN. Do not repeat parent-first or silently retry synchronized.
 - [ ] Execute crash and cancel once each; require complete worker shutdown. Unexpected outcome stops that arm; safety/provenance/cleanup failure stops subsequent arms. A controlled nonzero expected result may count as a valid diagnostic control only after full trace checks.
 - [ ] Recompute original toolchain and product manifests; require equality. Report all arms, including failed/unrun, with counts, timing, source identity, release and worker evidence. Commit/push report/status, no raw/private files.
 
@@ -160,3 +160,13 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 
 Original plan self-review covered all seven spec sections and five Review Focus risks. Execution is partial: component tests do not close real integration risk. Baseline compilation exit0 was rejected by a remaining-process gate; actual fuzz arms were not launched and will not be retried without new bounded authorization. No product fix, acceptance clearance or main merge.
 Latest checkpoint: approved new baseline did execute/PASS; historical failed preparation is immutable. Source-pinned patch/component runs completed, but trace-process shutdown failed despite three logic tests passing. Single independent review0C/2I/1M (recovery re-graded Important) produced two tested fixes and one unresolved approved-policy issue. No remaining actual arm ran or was retried; full plan completion is not claimed.
+
+Latest authorized increment supersedes the preceding historical checkpoint: bounded
+exit-state/image split and one same-handle confirmation implemented; first reads
+preserved, code refreshed only after signaled state. Explicit observe-prep-002
+failed-preparation continuation permitted by user, no baseline/actual-arm repeats.
+109 PS assertions passed; actual observe and parent-first diagnostic checks PASS.
+synchronized preparation then stopped on two running wait observations/image error5;
+synchronized/crash/cancel fuzz UNRUN. Original/product full manifests require final
+post-continuation equality before checkpoint preservation. No re-review, scratch
+deletion, new wait window or production/main acceptance.

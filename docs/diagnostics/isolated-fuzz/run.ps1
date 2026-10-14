@@ -86,8 +86,22 @@ function Assert-ArmResult([string]$Arm,[object]$Receipt,[object[]]$Trace) {
         default {throw 'Unknown diagnostic arm'}
     }
 }
-function Get-DiagnosticAttemptPaths([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='') {
+function Get-DiagnosticAttemptPaths([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='',[string]$PreparationAttempt='') {
+    if($Arm -cnotin @('baseline','observe','parent-first','synchronized','crash','cancel')) {throw 'Unknown arm'}
+    if($BaselineAttempt -and $PreparationAttempt) {throw 'Attempt identities are mutually exclusive'}
     $suffix=''
+    if($PreparationAttempt) {
+        if($Arm -eq 'baseline' -or $PreparationAttempt -cnotmatch '^prep-[0-9]{3}$') {throw 'Invalid diagnostic preparation identity'}
+        $prior=Get-IsolatedFullPath (Join-Path $RunRoot ('arms/'+$Arm))
+        if(-not (Test-Path -LiteralPath $prior -PathType Container) -or (Test-Path -LiteralPath (Join-Path $prior 'execute'))) {throw 'Preparation only supports a failed preparation, never an executed fuzz arm'}
+        foreach($attempt in Get-ChildItem -LiteralPath (Split-Path -Parent $prior) -Directory -Force) {
+            if($attempt.Name -cmatch ('^'+[regex]::Escape($Arm)+'-prep-[0-9]{3}$')) {
+                $validated=Get-IsolatedFullPath $attempt.FullName
+                if(Test-Path -LiteralPath (Join-Path $validated 'execute')) {throw 'A preparation already launched fuzz; no further attempt allowed'}
+            }
+        }
+        $suffix='-'+$PreparationAttempt
+    }
     if($BaselineAttempt) {
         if($Arm -ne 'baseline' -or $BaselineAttempt -cnotmatch '^retry-[0-9]{3}$') {throw 'Invalid baseline attempt identity'}
         $prior=Join-Path $RunRoot 'arms/baseline'
@@ -106,8 +120,8 @@ function Get-DiagnosticAttemptPaths([string]$RunRoot,[string]$Arm,[string]$Basel
     if($BaselineAttempt -and (Test-Path -LiteralPath $buildDir)) {throw 'Retry build identity already exists'}
     [pscustomobject]@{ArmDir=$armDir;BuildDir=$buildDir}
 }
-function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='') {
-    $paths=Get-DiagnosticAttemptPaths $RunRoot $Arm $BaselineAttempt
+function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='',[string]$PreparationAttempt='') {
+    $paths=Get-DiagnosticAttemptPaths $RunRoot $Arm $BaselineAttempt $PreparationAttempt
     if($Arm -notin @('baseline','observe','parent-first','synchronized','crash','cancel')) {throw 'Unknown arm'}
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
     $allowed=Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator'

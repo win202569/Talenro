@@ -303,3 +303,62 @@ UTC17:17:37.226–17:17:43.280，3项测试UTC17:17:43.709–17:17:44.209
 已执行fuzz。当前有界I1修订已验证，整体框架诊断/生产/main仍未验收。
 本轮后验原工具链完整11536文件清单差异0，产品701摘要差异0；没有修改
 正式源或产品。只保存必要修订/测试/报告，原始收据与所有失败准备目录保留。
+
+## 单句柄确认后的实际框架进展（最新）
+
+用户批准保留首读、在同一已验证归属句柄上仅补一次零等待退出确认，使用
+observe-prep-002新准备身份；预算不变，旧失败不可覆盖。真实句柄测试先RED
+（生产确认方法缺失），再GREEN11项；新prepare身份先RED（旧observe存在
+而拒绝），再GREEN21项regression。完整109项PS断言通过：11确认+9状态+
+31runner+21regression+8materialization+7provenance+4preflight+18真实链接隔离。
+已有source-bound context5/trace3组件代码与SourceIdentity未变；未另派审查。
+
+首读State/ExitCode/read标记与补读State/UTC/attempt分别保留。只对当前已验证
+job归属的保留句柄调用，不重开PID；仅在补读signaled后重新读退出码，失败
+仍未知；第二次确认拒绝。仍运行且缺映像仍失败。没有额外等待或自动重试。
+prep-NNN仅适用于原非baseline准备失败且无execute；任何同臂旧/新execute
+都拒绝再执行，不能用新身份重复已完成fuzz。其他电脑据本报告恢复进度，
+不可为恢复而重复三个已完成臂；新实际执行预算仍需批准。
+
+| 臂 | 当前状态 | 实证 |
+| --- | --- | --- |
+| baseline | 已完成，禁止重跑 | 历史retry-001未插桩，exit0/238579execs |
+| observe | 实际诊断通过 | prep-002，exit0/278626execs，3条trace，工作进程收尾0 |
+| parent-first | 受控机制复现 | 预期exit1，incoming deadline/child nil，原判断保留deadline，return activeWorkers0 |
+| synchronized | 准备失败、fuzz UNRUN | version完成守卫拒绝，未到origin或execute |
+| crash | UNRUN | 未创建准备/execute |
+| cancel | UNRUN | 未创建准备/execute |
+
+observe版本UTC17:37:10.855–17:37:10.936通过，origin17:37:11.025–
+17:37:11.088通过；真实成员首读running/后读exited、ImageError31保留，natural
+empty1ms、无终止。新diagnostic fixture构建17:37:11.182–17:37:34.214，
+exit0/278 processes，复制编译器/context/internal-fuzz同命令源证据和binary
+SourceIdentity绑定通过。实际observe17:37:34.834–17:37:40.548
+（Asia/Tbilisi21:37:34–21:37:40），5s单worker；自然时序受插桩影响，不能泛化。
+stop parent-done incoming/child均deadline，newError nil；worker停止stopping
+true；return incoming/newError nil、activeWorkers0，全程watchdogfalse。
+
+parent-first实际UTC17:38:05.083–17:38:10.160（本地21:38:05–21:38:10），
+初次stop incoming deadline、child nil、old nil→new deadline，gateEntered true、
+propagated false；worker停止时child deadline、stopping true、保留旧deadline；
+return incoming/new deadline、activeWorkers0、gate释放/传播true，全部watchdog
+false。exit1正是预设控制结果；确切成员首读running/补读exited，ImageError5
+独立保留；自然最终0/空，无强制终止。证明指定干预下原框架保留截止错误，
+不证明历史Envelope裸DeadlineExceeded的原因，也不是产品错误修复或验收。
+
+随后synchronized version准备UTC17:38:10.779–17:38:10.841
+（本地21:38:10），root19740退出，成员27600 Owned true；首读与单次补读均
+running，ExitCode0、QueryError0、ImageError5/null。退出码0不能替代signaled
+状态，也不能推断成员名称。守卫按设计拒绝，NaturalShutdownVerified false、
+ShutdownEvidenceComplete false、请求仅owned job终止、最终0/空；没有超时。
+已停止后续臂，不查询旧PID、不再准备/重跑、不放宽缺映像运行态门槛。
+
+当前single-confirm政策能处理实际observe/parent-first已signaled的边界，但
+不能处理synchronized在补读时仍unsignaled的缺映像成员；该成员后续何时退出
+未知。下一步需要重新审视此准备/状态采集边界并取得有界调查授权，不能把
+局部成功当整个runner/六臂完成。所有旧失败原样保留，生产/main阻塞不变。
+
+所有本轮实际进程停止后UTC17:40:43.925（本地21:40:43）重新全量核对：
+正式工具链11536文件差异0，产品701路径/摘要差异0。旧原始失败准备目录、
+成功臂和缓存均只保留本机忽略范围，不提交；换机所需代码、测试、计划与
+本报告保存到既有开发分支。实际提交号/远端相等性由最终Git回执确认。

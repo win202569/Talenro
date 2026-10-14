@@ -90,7 +90,26 @@ public static class IsolatedFuzzProcess {
     public static uint CountDescendants(uint root,ulong[] members) {
         uint count=0;foreach(ulong id in members)if(id!=root)count++;return count;
     }
-    public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead;public uint ExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC;}
+    public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead,InitialExitCodeRead,ConfirmationAttempted;public uint ExitCode,InitialExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC,InitialState,ConfirmationState,ConfirmationUTC;}
+    public static void ConfirmMemberExit(IntPtr handle,MemberObservation row) {
+        // Caller retains the same handle already verified against its live job.
+        // Never reopen a PID or turn this single zero-wait into a retry loop.
+        if(handle==IntPtr.Zero || handle==Invalid || row==null || !row.Owned || row.QueryError!=0 || !row.ExitCodeRead || row.ConfirmationAttempted)
+            throw new InvalidOperationException("Member exit confirmation requires an unconfirmed verified handle");
+        row.InitialState=row.State;row.InitialExitCode=row.ExitCode;row.InitialExitCodeRead=row.ExitCodeRead;
+        row.ConfirmationAttempted=true;
+        try {
+            uint status=WaitForSingleObject(handle,0);Check(status!=UInt32.MaxValue);
+            row.ConfirmationState=status==0?"exited":status==258?"running":"unknown";
+            row.State=row.ConfirmationState;
+            if(status==0) {
+                // The earlier exit-code read may predate the signaled state.
+                row.ExitCodeRead=false;
+                uint code;Check(GetExitCodeProcess(handle,out code));row.ExitCode=code;row.ExitCodeRead=true;
+            }
+        } catch(System.ComponentModel.Win32Exception e) {row.QueryError=e.NativeErrorCode==0?-1:e.NativeErrorCode;row.State="unknown";}
+        finally {row.ConfirmationUTC=DateTime.UtcNow.ToString("o");}
+    }
     public static bool IsShutdownStateVerified(MemberObservation row) {
         if(row==null || !row.Owned || row.QueryError!=0 || !row.ExitCodeRead)return false;
         // Exited means the exact owned handle was signaled, not merely code0.
@@ -119,6 +138,8 @@ public static class IsolatedFuzzProcess {
                 var image=new StringBuilder(32768);uint length=(uint)image.Capacity;
                 if(QueryFullProcessImageName(handle,0,image,ref length))row.ImagePath=image.ToString();
                 else row.ImageError=Marshal.GetLastWin32Error();
+                row.InitialState=row.State;row.InitialExitCode=row.ExitCode;row.InitialExitCodeRead=row.ExitCodeRead;
+                if(row.State=="running")ConfirmMemberExit(handle,row);
             } catch(System.ComponentModel.Win32Exception e) {row.QueryError=e.NativeErrorCode;}
             finally {row.ObservedUTC=DateTime.UtcNow.ToString("o");Close(handle);observations.Add(row);}
         }

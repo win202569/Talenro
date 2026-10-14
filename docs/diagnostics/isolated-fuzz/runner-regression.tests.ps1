@@ -24,3 +24,16 @@ Reject-Regression {Get-DiagnosticAttemptPaths $root 'observe' 'retry-002'} 'base
 Reject-Regression {Get-DiagnosticAttemptPaths $root 'baseline' '../escape'} 'attempt identity cannot escape'
 New-Item -ItemType Directory -Path (Join-Path $paths.ArmDir 'execute') | Out-Null
 Reject-Regression {Get-DiagnosticAttemptPaths $root 'baseline' 'retry-002'} 'completed retry cannot authorize another fuzz run'
+New-Item -ItemType Directory -Path (Join-Path $root 'arms/observe') | Out-Null
+$paths=Get-DiagnosticAttemptPaths $root 'observe' '' 'prep-002'
+Assert-Regression ($paths.ArmDir -eq (Join-Path $root 'arms/observe-prep-002') -and $paths.BuildDir -eq (Join-Path $root 'binaries/diagnostic')) 'new preparation preserves failed observe and shares only bound diagnostic binary'
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'baseline' '' 'prep-002'} 'diagnostic preparation cannot repeat baseline'
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'observe' '' '../escape'} 'preparation identity cannot escape'
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'cancel' '' 'prep-002'} 'preparation requires an existing failed preparation'
+New-Item -ItemType Directory -Path $paths.ArmDir | Out-Null
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'observe' '' 'prep-002'} 'duplicate preparation identity refused'
+New-Item -ItemType Directory -Path (Join-Path $paths.ArmDir 'execute') | Out-Null
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'observe' '' 'prep-003'} 'executed preparation forbids further fuzz attempt'
+New-Item -ItemType Directory -Path (Join-Path $root 'arms/observe/execute') | Out-Null
+Reject-Regression {Get-DiagnosticAttemptPaths $root 'observe' '' 'prep-004'} 'executed original arm forbids preparation retry'
+Reject-Regression {Get-DiagnosticAttemptPaths $root '../escape'} 'arm identity cannot escape'
