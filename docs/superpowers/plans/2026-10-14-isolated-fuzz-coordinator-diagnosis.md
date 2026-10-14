@@ -153,7 +153,7 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 - [x] Verify committed scripts/templates independently materialize all required files without old receipts/cache; readonly preflight mode checks prerequisites without executing/copying. Record any real integration test still unrun. Materialization8 + preflight4 + provenance7 + real-link isolation18 assertions PASS; five actual arms remain UNRUN.
 - [x] Self-review spec coverage: isolation Task1; deadlock/trace Task2; bounded processes Task3; six finite arms Task4; recovery/limits Task5. Distinguish real-worker failure, model material fixtures, forced scheduling and natural observations throughout. Final author coverage/limits documented; no historical root-cause or product-acceptance claim.
 - [x] Use chosen execution method's final review gate. Do not create reviewers until that method is selected. Fix scoped findings with tests; no repeated fuzz arms to hide a failure—rerunning an arm requires a new bounded authorization and fresh receipt identity. One independent unfinished-checkpoint review completed; findings and declined-to-judge rulings documented. Subsequent approved policy fixes/tests and six-arm evidence author-verified, not an independent re-review or general merge-readiness review.
-- [ ] Confirm exact staged file list excludes binaries/toolchain/cache/receipts; verify source unchanged and documentation checks; commit/push and confirm remote SHA. If blocked, preserve/report local-only checkpoint without claiming remote recovery.
+- [x] Confirm exact staged file list excludes binaries/toolchain/cache/receipts; verify source unchanged and documentation checks; commit/push and confirm remote SHA. If blocked, preserve/report local-only checkpoint without claiming remote recovery. Exact five-report checkpoint ea6ade8c0d03b6c99611370745dc70c532826006 committed/pushed; remote SHA equality and clean worktree verified before this closeout update.
 - [x] Final handoff states reproduced/not-reproduced/failed/unrun per arm; original matrix3/Pair and all production gates remain open. No fix, toolchain promotion or main merge is authorized by completing this plan. Six expected diagnostic controls passed; historical failed preparations preserved and one standalone no-hit probe remains inconclusive. No other integration/material classes inferred.
 
 ## Plan self-review and approval gate
@@ -186,5 +186,6 @@ cancel once. All6 actual diagnostic controls now completed/PASS, source manifest
 unchanged, full scoped183 assertions PASS. Historical partial/UNRUN statements
 above and in reports describe prior checkpoints only. One earlier independent
 review remains historical/unfinished-checkpoint scoped; final integration proof
-is author verified. Completion-report staging/push verification is the only
-remaining handoff bookkeeping item before that Task5 checkbox can be marked.
+is author verified. Completion-report checkpoint ea6ade8c was pushed and remote
+SHA equality verified; Task5 handoff bookkeeping is now recorded complete. This
+plan closeout is diagnostic-only, not broader development-branch/main readiness.

@@ -23,6 +23,10 @@ later policy/integration verification is author-only, no new review or cleanup.
 Necessary completion/recovery reports are saved to the existing development branch;
 actual push success is verified against the final commit at handoff.
 See [six-arm outcome, evidence and limits](2026-10-14-isolated-fuzz-coordinator-execution.md).
+Completion evidence checkpoint ea6ade8c0d03b6c99611370745dc70c532826006 was
+committed/pushed and remote SHA equality verified. The subsequent plan closeout
+records that completed preservation; fresh-PC recovery uses the latest head of
+codex/c12-b01-task9-coordinator, not automatically main or a previous fixed SHA.
 
 ## Latest approved final-exit policy — runner/test increment only
 
