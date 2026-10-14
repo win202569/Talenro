@@ -1711,3 +1711,18 @@ a single consistent exit state. Creation/exit-order cause and historical member
 identities remain unresolved. No baseline rerun, member exemption, timeout/launch
 change or main merge. Later five arms/final review remain pending. A natural
 shutdown/forced-cleanup distinction needs a separately approved bounded design.
+
+### Approved natural shutdown increment verified; later arms still pending
+
+Approved schema2 observes natural completion up to500ms inside the existing
+shared5000ms shutdown budget; no process-name exemptions. Initial remainder
+facts are preserved. Unknown evidence/timeout/forced termination never passes;
+schema-less historical failures retain the old strict gate. Actual elapsed times
+are recorded, not a Windows hard real-time guarantee.
+Fresh31 runner+13 regression+8 materialization assertions passed. One authorized
+controls-natural-001 model-only run preserved11 controls and observed owned
+conhost initial remainder1 naturally settle to zero/empty in25ms without forced
+termination. Completion checks passed.701 product hashes and fixed context/fuzz
+pins unchanged. No baseline rerun, later-five-arm execution or main merge.
+This bounded increment is verified, not historical root-cause/fuzz acceptance;
+full framework controls and final independent review remain pending.

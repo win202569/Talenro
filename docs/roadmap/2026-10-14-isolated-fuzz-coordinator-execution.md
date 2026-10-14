@@ -187,3 +187,34 @@ DescendantsRemaining1，实际gate再次失败；只清理本job后0/空，未�
 后续五个fuzz臂UNRUN，Task3阻塞/Task5最终审查待办，原产品/main阻塞保持。
 下一步建议另行批准收尾设计：在既有清理上限内研究自然退出与强制清理的
 证据区分，保留超时/未知成员失败；本次不实现该语义变化。
+
+## 批准的500ms自然收尾增量
+
+用户批准短设计后实现：根退出后的证据收集、最多500ms自然观察和强制清理，
+共用原有5000ms清理时钟。不按conhost或其他名字豁免；超时、未知/截断成员
+证据或请求强制终止均不能通过。初始DescendantsRemaining/活跃计数/列表原样
+保存，schema2另记自然收尾、决策时零计数/空列表、强制清理及实际耗时。
+schema-less旧收据仍用旧严格剩余判据，旧失败不改判。版本/来源/构建/臂共用
+完成验证器。Windows调度/native调用不保证硬实时；记录实际耗时，成功收据
+超过500ms观察或5000ms收尾上限也拒绝。
+
+真实短命子进程检查先RED；第一版fixture在ready信号后才首次导入Start-Sleep
+模块，超出500ms，运行器正确拒绝。改为直接Thread.Sleep300，未改窗口或
+程序判据；native检查GREEN后旧validator对初始剩余拒绝（validator RED），
+新增schema2验证GREEN。真实长期子进程和超时仍拒绝；强制清理、未知证据、
+超预算、决策时非零计数/成员、未知schema负面对照通过。最终31 runner+
+13 regression+8 materialization断言全部通过、exit0。没有产品全套重跑。
+
+唯一新模型对照controls-natural-001：UTC13:35:58.895–13:35:58.958
+（Asia/Tbilisi17:35:58），exit0、TimedOut=false、TotalProcesses2、
+根25008退出时原始剩余1、成员11884确认为本job的System32/conhost.exe。
+自然收尾25ms，NaturalShutdownVerified=true、ShutdownEvidenceComplete=true，
+决策时/最终活跃计数0、成员空，TerminationRequested=false、CleanupVerified=true。
+11项模型Preserved=true，当前完成验证器通过；没有再次启动模型或基线。
+仍保留wait running与随后退出码0的非原子读，不用它们伪造同刻退出状态。
+
+新对照证明本次残留能在短窗口自然收尾，不证明为何创建、所有历史剩余均是
+conhost或原Envelope失败根因。701产品摘要无变化，正式context/fuzz钉定hash
+仍765F99F7/D9DE1256全值。本轮仅有界收尾增量完成；后续observe/parent-first/
+synchronized/crash/cancel五臂UNRUN，完整框架复现/最终审查未完成，生产及main
+门槛保持。源/测试/报告照常保存开发分支，不提交原始收据或工具链。

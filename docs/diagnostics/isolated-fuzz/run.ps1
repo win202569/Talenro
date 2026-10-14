@@ -21,6 +21,9 @@ function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashta
         $result | Add-Member -NotePropertyName MemberEvidenceTruncated -NotePropertyValue $native.MemberEvidenceTruncated
         $result | Add-Member -NotePropertyName LiveSampling -NotePropertyValue $native.LiveSampling
         $result | Add-Member -NotePropertyName MembersDuringRun -NotePropertyValue $native.MembersDuringRun
+        foreach($field in @('ShutdownSchema','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence')) {
+            $result | Add-Member -NotePropertyName $field -NotePropertyValue $native.$field
+        }
         $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $receipt 'receipt.json')
         return $result
     } catch {
@@ -47,8 +50,17 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
         if(-not $found) {throw 'Actual copied standard-library compiler/source tokens missing'}
     }
 }
+function Assert-ProcessCompletion([object]$Receipt) {
+    if($Receipt.TimedOut -or -not $Receipt.CleanupVerified -or $Receipt.ActiveAfterCleanup -ne 0) {throw 'Unfinished or timed-out process group'}
+    $schema=$Receipt.PSObject.Properties['ShutdownSchema']
+    if($null -eq $schema) {
+        if($Receipt.DescendantsRemaining -ne 0){throw 'Legacy unfinished process group'}
+        return
+    }
+    if($schema.Value -ne 2 -or -not $Receipt.RootExited -or -not $Receipt.NaturalShutdownVerified -or -not $Receipt.ShutdownEvidenceComplete -or $Receipt.TerminationRequested -or $Receipt.ActiveBeforeTermination -ne 0 -or $Receipt.MembersBeforeTermination.Count -ne 0 -or $Receipt.MembersAfterCleanup.Count -ne 0 -or $Receipt.NaturalObservationMs -gt 500 -or $Receipt.ShutdownElapsedMs -gt 5000) {throw 'Natural shutdown not verified; forced cleanup is not success'}
+}
 function Assert-ArmResult([string]$Arm,[object]$Receipt,[object[]]$Trace) {
-    if($Receipt.TimedOut -or $Receipt.DescendantsRemaining -ne 0 -or -not $Receipt.CleanupVerified -or $Receipt.ActiveAfterCleanup -ne 0) {throw 'Unfinished or timed-out process group'}
+    Assert-ProcessCompletion $Receipt
     if($Arm -eq 'baseline') {if($Receipt.ExitCode -ne 0){throw 'Baseline failed'};return}
     if($Trace.Count -lt 2) {throw 'Trace incomplete'}
     $expectedMode=if($Arm -eq 'crash'){'observe'}else{$Arm}
@@ -121,8 +133,10 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAtt
     $mode=if($Arm -eq 'baseline'){''}elseif($Arm -eq 'crash'){'observe'}else{$Arm}
     $environment=@{GOROOT=$tool;GOCACHE=(Join-Path $armDir 'runtime-cache');GOTOOLCHAIN='local';GOENV='off';GOPROXY='off';GOSUMDB='off';GOAUTH='off';GOVCS='all:off';GO111MODULE='off';GOFLAGS='';GOOS='windows';GOARCH='amd64';TEMP=(Join-Path $armDir 'tmp');TMP=(Join-Path $armDir 'tmp');GOTMPDIR=(Join-Path $armDir 'tmp');TALENRO_FUZZ_DIAG_MODE=$mode;TALENRO_FUZZ_FIXTURE=$(if($Arm -eq 'crash'){'crash'}else{'normal'})}
     $version=Invoke-RecordedProcess $go @('version') $environment (Join-Path $armDir 'version') 60
+    Assert-ProcessCompletion $version
     if($version.ExitCode -ne 0 -or (Get-Content -Raw -LiteralPath $version.StdoutPath).Trim() -ne 'go version go1.26.5 windows/amd64') {throw 'Pinned version verification failed'}
     $origin=Invoke-RecordedProcess $go @('env','GOROOT','GOTOOLDIR','GOEXPERIMENT') $environment (Join-Path $armDir 'origin') 60
+    Assert-ProcessCompletion $origin
     $originLines=@(Get-Content -LiteralPath $origin.StdoutPath)
     if($origin.ExitCode -ne 0 -or $originLines.Count -lt 2 -or $originLines[0] -ne $tool -or -not $originLines[1].StartsWith($tool+'\',[StringComparison]::OrdinalIgnoreCase)) {throw 'Copied compiler origin verification failed'}
     $variant=if($Arm -eq 'baseline'){'plain'}else{'diagnostic'}
@@ -136,7 +150,8 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAtt
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'fixture_test.go.txt') -Destination $fixture
         $buildEnvironment=$environment.Clone();$buildEnvironment.GOCACHE=Join-Path $buildDir 'cache';$buildEnvironment.GOTMPDIR=Join-Path $buildDir 'tmp';$buildEnvironment.TEMP=$buildEnvironment.GOTMPDIR;$buildEnvironment.TMP=$buildEnvironment.GOTMPDIR
         $build=Invoke-RecordedProcess $go @('test','-c','-x','-p=1','-count=1','-run=^$','-fuzz=^FuzzDiagnostic$','-fuzztime=5s','-parallel=1','-timeout=30s',('-o='+$binary),$fixture) $buildEnvironment (Join-Path $buildDir 'build') 600
-        if($build.ExitCode -ne 0 -or $build.TimedOut -or -not $build.CleanupVerified -or $build.DescendantsRemaining -ne 0) {throw 'Fixture build failed; do not retry arm'}
+        Assert-ProcessCompletion $build
+        if($build.ExitCode -ne 0) {throw 'Fixture build failed; do not retry arm'}
         $buildLog=Get-Content -Raw -LiteralPath $build.StderrPath
         Assert-CopiedCompileEvidence $buildLog $tool
         [pscustomobject]@{FixtureHash=$fixtureHash;BinaryHash=(Get-FileHash -LiteralPath $binary).Hash;Variant=$variant;GOROOT=$tool;CompilerEvidence=$build.StderrPath} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $buildDir 'binary-receipt.json')
@@ -153,6 +168,7 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAtt
         Assert-ArmResult $Arm $receipt $trace
     } catch {$failure=$_.Exception.Message}
     [pscustomobject]@{Arm=$Arm;ValidationPassed=($null -eq $failure);ValidationFailure=$failure;Receipt=$receipt;Trace=$trace;FixtureHash=$fixtureHash;BinaryHash=$binaryRecord.BinaryHash} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $armDir 'arm-result.json')
-    if($receipt.TimedOut -or $receipt.DescendantsRemaining -ne 0 -or -not $receipt.CleanupVerified -or $receipt.ActiveAfterCleanup -ne 0 -or @($trace | Where-Object {$_.watchdog}).Count -gt 0) {throw 'Safety/cleanup/watchdog gate failed; stop later arms'}
+    Assert-ProcessCompletion $receipt
+    if(@($trace | Where-Object {$_.watchdog}).Count -gt 0) {throw 'Safety/cleanup/watchdog gate failed; stop later arms'}
     [pscustomobject]@{Arm=$Arm;ValidationPassed=($null -eq $failure);ValidationFailure=$failure;ExitCode=$receipt.ExitCode;TraceCount=$trace.Count;TotalProcesses=$receipt.TotalProcesses;ResultPath=(Join-Path $armDir 'arm-result.json')}
 }

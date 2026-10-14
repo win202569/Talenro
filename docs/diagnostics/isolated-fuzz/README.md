@@ -78,6 +78,27 @@ Current tests:20 runner assertions+13 regression assertions passed. Later arms
 and final review remain pending. Any change to natural shutdown waiting, launch
 flags or member acceptance needs a separately approved bounded design.
 
+Approved bounded shutdown revision (schema2): after root exit, observe for at
+most500ms within the existing shared5000ms shutdown clock, including evidence
+collection and forced cleanup. No named-process exemption; unknown or truncated
+shutdown evidence, timeout, or any requested termination cannot pass. Scheduling
+and native-call latency are not hard real-time guarantees; actual elapsed times
+are recorded and an over-budget successful receipt is refused.
+Initial DescendantsRemaining/ActiveAtRootWait/MembersAtRootWait remain raw facts.
+NaturalShutdownVerified plus zero accounting/membership at the natural decision
+and final check determine completion; forced CleanupVerified is only cleanup.
+Schema-less historical receipts retain the old strict remainder gate, not a
+retroactive reinterpretation. Version/origin/build/arm checks share this validator.
+
+Real short-lived child and natural-decision validation RED→GREEN; long-lived
+children/timeouts still fail. Final31 runner+13 regression+8 materialization
+assertions passed. One new controls-natural-001 run preserved all11 model controls;
+initial owned conhost remainder1 became zero/empty naturally in25ms, no termination
+requested, schema2 completion passed. It does not rewrite previous failures or
+explain console-host creation/historical fuzz failure. Baseline was not rerun;
+later five arms and final review still pending. Necessary source/report files
+are recovery artifacts; machine receipts/caches/binaries remain excluded.
+
 Windows API references: [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
 [AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),
 [job limits](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information).

@@ -60,3 +60,26 @@ $sampled=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded
 $liveProperty=$sampled.PSObject.Properties['MembersDuringRun']
 $live=@(if($null -ne $liveProperty){$liveProperty.Value})
 Assert-True (@($live | Where-Object {$null -ne $_ -and $_.Id -ne $sampled.RootId -and $_.Owned -and $_.State -eq 'running' -and [IO.Path]::GetFileName($_.ImagePath) -eq 'powershell.exe'}).Count -ge 1) 'opt-in sampling captures child while root is still running'
+$eventName='Local\TalenroNatural-'+[guid]::NewGuid().ToString('N')
+$shortChild=Encoded ('$ready=[Threading.EventWaitHandle]::OpenExisting("'+$eventName+'");$ready.Set()|Out-Null;[Threading.Thread]::Sleep(300);exit 0')
+$shortParent='$ready=New-Object Threading.EventWaitHandle($false,[Threading.EventResetMode]::ManualReset,"'+$eventName+'");Start-Process -FilePath "'+$shell+'" -ArgumentList "-NoProfile -EncodedCommand '+$shortChild+'" -WindowStyle Hidden;if(-not $ready.WaitOne(5000)){exit 9};exit 0'
+$natural=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded $shortParent)) @{} (Join-Path $root 'natural-short-child') 10
+$naturalFlag=$natural.PSObject.Properties['NaturalShutdownVerified']
+Assert-True ($null -ne $naturalFlag -and $naturalFlag.Value -and $natural.DescendantsRemaining -ge 1 -and -not $natural.TerminationRequested -and $natural.CleanupVerified) 'short-lived real child exits naturally without erasing initial remainder'
+Assert-ArmResult 'baseline' $natural @()
+Assert-True $true 'natural receipt accepted only after verified empty group'
+foreach($case in @(
+    @('TerminationRequested',$true,'forced cleanup cannot masquerade as natural success'),
+    @('ShutdownEvidenceComplete',$false,'unknown member evidence remains failure'),
+    @('NaturalShutdownVerified',$false,'empty after cleanup does not prove natural shutdown'),
+    @('NaturalObservationMs',501,'natural observation cannot exceed approved window'),
+    @('ShutdownElapsedMs',5001,'natural and forced cleanup share the original bound'),
+    @('ActiveBeforeTermination',1,'natural decision cannot retain active accounting'),
+    @('MembersBeforeTermination',@(42),'natural decision cannot retain job members'),
+    @('ShutdownSchema',99,'unknown shutdown schema refused')
+)) {
+    $changed=$natural | ConvertTo-Json -Depth 6 | ConvertFrom-Json
+    $changed.($case[0])=$case[1]
+    Assert-Throws {Assert-ProcessCompletion $changed} $case[2]
+}
+Assert-Throws {Assert-ProcessCompletion $timeout} 'timed-out real process remains failed after successful cleanup'

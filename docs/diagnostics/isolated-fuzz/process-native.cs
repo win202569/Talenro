@@ -116,7 +116,7 @@ public static class IsolatedFuzzProcess {
         }
         return observations.ToArray();
     }
-    public class Result {public long ExitCode;public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun;public string StartUTC,EndUTC;}
+    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=2;public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;}
     public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers) {
         IntPtr job=IntPtr.Zero,output=IntPtr.Zero,error=IntPtr.Zero,input=IntPtr.Zero,attributes=IntPtr.Zero,handles=IntPtr.Zero,environment=IntPtr.Zero;
         ProcessInfo pi=new ProcessInfo();bool attributesReady=false,assigned=false;
@@ -171,6 +171,9 @@ public static class IsolatedFuzzProcess {
                 Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
                 if(status==0){rootExited=true;break;}
             }
+            // One shared five-second shutdown clock includes evidence gathering,
+            // natural observation (at most500ms) and any forced-job cleanup.
+            var cleanup=Stopwatch.StartNew();
             Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
             result.TotalProcesses=accounting.Total;
             result.MembersDuringRun=live.ToArray();
@@ -179,14 +182,44 @@ public static class IsolatedFuzzProcess {
             result.DescendantsRemaining=CountDescendants(pi.Id,result.MembersAtRootWait);
             result.MemberEvidence=InspectMembers(job,result.MembersAtRootWait);
             result.MemberEvidenceTruncated=result.MembersAtRootWait.Length>result.MemberEvidence.Length;
-            if(result.TimedOut || accounting.Active>0 || result.MembersAtRootWait.Length>0) {
+            var shutdownEvidence=new List<MemberObservation>(result.MemberEvidence);
+            var observed=new HashSet<ulong>(result.MembersAtRootWait);
+            result.ShutdownEvidenceComplete=!result.MemberEvidenceTruncated;
+            foreach(var row in shutdownEvidence)if(row.Id!=pi.Id && (!row.Owned || row.QueryError!=0 || row.ImageError!=0 || (row.State!="running" && row.State!="exited")))result.ShutdownEvidenceComplete=false;
+            ulong[] remaining=result.MembersAtRootWait;
+            if(rootExited && !result.TimedOut && result.ShutdownEvidenceComplete) {
+                while(cleanup.ElapsedMilliseconds<=500) {
+                    Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
+                    remaining=Members(job);
+                    var fresh=new List<ulong>();
+                    foreach(ulong id in remaining)if(!observed.Contains(id)){observed.Add(id);fresh.Add(id);}
+                    if(fresh.Count>0) {
+                        if(shutdownEvidence.Count+fresh.Count>32){result.ShutdownEvidenceComplete=false;break;}
+                        var added=InspectMembers(job,fresh.ToArray());shutdownEvidence.AddRange(added);
+                        foreach(var row in added)if(row.Id!=pi.Id && (!row.Owned || row.QueryError!=0 || row.ImageError!=0 || (row.State!="running" && row.State!="exited")))result.ShutdownEvidenceComplete=false;
+                        if(!result.ShutdownEvidenceComplete)break;
+                    }
+                    if(accounting.Active==0 && remaining.Length==0 && cleanup.ElapsedMilliseconds<=500){result.NaturalShutdownVerified=true;break;}
+                    long left=500-cleanup.ElapsedMilliseconds;if(left<=0)break;
+                    Thread.Sleep((int)Math.Min(10,left));
+                }
+            }
+            result.NaturalObservationMs=cleanup.ElapsedMilliseconds;
+            result.ShutdownMemberEvidence=shutdownEvidence.ToArray();
+            result.ActiveBeforeTermination=accounting.Active;result.MembersBeforeTermination=remaining;
+            if(!result.NaturalShutdownVerified) {
                 result.TerminationRequested=true;
                 Check(TerminateJobObject(job,0xE001));
-                var cleanup=Stopwatch.StartNew();
-                do {Thread.Sleep(10);Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));}while(accounting.Active>0 && cleanup.ElapsedMilliseconds<5000);
+                do {
+                    Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));remaining=Members(job);
+                    if(accounting.Active==0 && remaining.Length==0)break;
+                    long left=5000-cleanup.ElapsedMilliseconds;if(left<=0)break;
+                    Thread.Sleep((int)Math.Min(10,left));
+                }while(true);
             }
             result.MembersAfterCleanup=Members(job);
             result.ActiveAfterCleanup=accounting.Active;result.CleanupVerified=accounting.Active==0 && result.MembersAfterCleanup.Length==0;
+            result.ShutdownElapsedMs=cleanup.ElapsedMilliseconds;
             uint code;Check(GetExitCodeProcess(pi.Process,out code));result.ExitCode=code;
             result.EndUTC=DateTime.UtcNow.ToString("o");return result;
         } finally {
