@@ -1654,3 +1654,17 @@ Unsupported non-comparable identity is marked, not inferred from error text.
 Source patches target only the validated owned copy. Task3 runner, Task4's six
 single-execution arms and Task5 recovery/final review remain pending; no original
 product acceptance or main merge. See the execution record for RED/GREEN evidence.
+
+### Baseline pre-build blocked; no actual fuzz arm started
+
+Runner components passed16 assertions and existing11 model controls; final-state
+unread regression brings Go component checks to8. Baseline prep used a fresh
+verified11536-file copy. Its fixture compilation exited0, but job accounting
+reported1 remaining process at root exit; owned-job cleanup reached0. Actual
+fuzz did not start. No retry/later arm ran; task3 overall and tasks4–5 are pending.
+Whether the1 was a real descendant or accounting lag is unknown; do not reinterpret
+the receipt or inspect recycled historical PIDs. A separate compile-log escaped
+path matcher defect is recorded, not bypassed. Product701-file hashes unchanged;
+original toolchain context/fuzz pins unchanged. Final independent review pending.
+Next requires a bounded ruling/authorization for runner diagnosis/repair and a
+fresh baseline receipt. Original matrix3/Pair and all production gates remain open.

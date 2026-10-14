@@ -27,6 +27,10 @@ func DiagnosticParentLabel(err error,read bool) string {
  if !read {return "unread"}
  return DiagnosticErrorIdentity(err)
 }
+func DiagnosticObservationLabels(event string,child,parent,old error,parentRead bool)(string,string,string,bool) {
+ if event=="return" {return "unread",DiagnosticParentLabel(parent,parentRead),"unread",false}
+ return DiagnosticErrorIdentity(child),DiagnosticParentLabel(parent,parentRead),DiagnosticErrorIdentity(old),true
+}
 type diagnosticTrace struct {
  Schema int `json:"schema"`
  Seq int `json:"seq"`
@@ -40,6 +44,7 @@ type diagnosticTrace struct {
  OldError string `json:"oldError"`
  NewError string `json:"newError"`
  Stopping bool `json:"stopping"`
+ StoppingRead bool `json:"stoppingRead"`
  GateEntered bool `json:"gateEntered"`
  Propagated bool `json:"propagated"`
  Watchdog bool `json:"watchdog"`
@@ -69,10 +74,11 @@ func(d *diagnosticFuzzState) release() {if d!=nil {d.gate.Release()}}
 func(d *diagnosticFuzzState) emit(event,source string,incoming,child,parent,old,next error,parentRead,stopping bool,workers int) {
  if d==nil {return}
  d.seq++
+ childLabel,parentLabel,oldLabel,stoppingRead:=DiagnosticObservationLabels(event,child,parent,old,parentRead)
  r:=diagnosticTrace{Schema:1,Seq:d.seq,Mode:d.mode,Event:event,Source:source,
- Incoming:DiagnosticErrorIdentity(incoming),ChildErr:DiagnosticErrorIdentity(child),
- ParentRead:parentRead,ParentErr:DiagnosticParentLabel(parent,parentRead),OldError:DiagnosticErrorIdentity(old),NewError:DiagnosticErrorIdentity(next),
- Stopping:stopping,GateEntered:diagnosticClosed(d.gate.Entered()),Propagated:diagnosticClosed(d.gate.Propagated()),Watchdog:d.gate.WatchdogExpired(),ActiveWorkers:workers}
+ Incoming:DiagnosticErrorIdentity(incoming),ChildErr:childLabel,
+ ParentRead:parentRead,ParentErr:parentLabel,OldError:oldLabel,NewError:DiagnosticErrorIdentity(next),
+ Stopping:stopping,StoppingRead:stoppingRead,GateEntered:diagnosticClosed(d.gate.Entered()),Propagated:diagnosticClosed(d.gate.Propagated()),Watchdog:d.gate.WatchdogExpired(),ActiveWorkers:workers}
  data,err:=json.Marshal(r)
  if err!=nil {panic(err)}
  if _,err=fmt.Fprintf(os.Stderr,"TALENRO_FUZZ_DIAG %s\n",data);err!=nil {panic(err)}

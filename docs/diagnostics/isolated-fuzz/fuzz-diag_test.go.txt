@@ -29,3 +29,9 @@ func TestDiagnosticFuzzUnreadParent(t *testing.T) {
  if fuzz.DiagnosticParentLabel(nil,false)!="unread" || fuzz.DiagnosticParentLabel(context.DeadlineExceeded,false)!="unread" {t.Fatal("unread operand represented as observed value")}
  if fuzz.DiagnosticParentLabel(nil,true)!="nil" || fuzz.DiagnosticParentLabel(context.DeadlineExceeded,true)!="deadline" {t.Fatal("read operand lost")}
 }
+func TestDiagnosticFuzzReturnUnread(t *testing.T) {
+ child,parent,old,stoppingRead:=fuzz.DiagnosticObservationLabels("return",context.DeadlineExceeded,context.DeadlineExceeded,context.Canceled,false)
+ if child!="unread" || parent!="unread" || old!="unread" || stoppingRead {t.Fatal("return log fabricates unread state")}
+ child,parent,old,stoppingRead=fuzz.DiagnosticObservationLabels("stop",context.DeadlineExceeded,nil,context.Canceled,false)
+ if child!="deadline" || parent!="unread" || old!="canceled" || !stoppingRead {t.Fatal("stop observations lost")}
+}

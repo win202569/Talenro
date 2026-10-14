@@ -127,4 +127,7 @@ function Install-DiagnosticPatch([string]$Toolchain) {
     git -c core.fsmonitor=false -C $workspace apply --unidiff-zero --ignore-space-change --directory=$relative $patch
     if ($LASTEXITCODE -ne 0) { throw 'Patch application failed; preserve incomplete copy' }
     foreach($name in $templates.Keys) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $tool $templates[$name]) -ErrorAction Stop }
+    $installed=@{}
+    foreach($path in @($pins.Keys)+@($templates.Values)) {$installed[$path]=(Get-FileHash -LiteralPath (Join-Path $tool $path)).Hash}
+    [pscustomobject]@{Toolchain=$tool;SourcePins=$pins;InstalledHashes=$installed;PatchHash=(Get-FileHash -LiteralPath $patch).Hash;UTC=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path (Split-Path -Parent $tool) 'patch-receipt.json')
 }

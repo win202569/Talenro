@@ -6,12 +6,31 @@ framework reproducer. Never run scripts against a project/cache root as target.
 
 Checkpoint: context gate and trace templates passed7 Go tests; materialization
 passed8 assertions. coordinator.patch now contains both context and actual
-internal/fuzz tracing changes. The bounded runner/actual framework arms are
-still pending. Do not treat these component tests as a full reproduction.
+internal/fuzz tracing changes. The runner is implemented but its real Go build
+handoff is blocked: baseline compilation exited0 while job accounting reported1
+remaining process at root exit, cleaned to0 afterward. No actual fuzz arm ran.
+Do not retry baseline or run later arms without new bounded authorization.
+Do not treat these component tests as a full reproduction.
 The diagnostic gate deliberately pauses propagation and is never an official
 toolchain patch. Trace IDs preserve equality for comparable errors without
 printing payloads; non-comparable errors are explicitly unsupported, not silently
 classified. Observation mode releases the propagation gate immediately.
+Final return marks child/old state unread and stoppingRead=false; stop captures
+the original operands. Source parent-done names the actual ctx.Done branch;
+incoming deadline/canceled distinguishes the cause without extra Err reads.
+
+run.tests.ps1 currently passes16 assertions, including actual descendant cleanup,
+wrong-mode/missing-worker evidence rejection and wrapped child-only environment.
+process-native.cs launches suspended into an owned, non-breakaway Windows job,
+whitelists inherited std handles and records group accounting. Its baseline
+remaining-count interpretation still needs investigation; unit passes are not
+proof of real Go integration. Current run.ps1 also has a known pending compile
+log path-escaping incompatibility (raw doubled backslashes); do not bypass its
+provenance guard. Keep the failed launch/build receipts unchanged.
+
+Windows API references: [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
+[AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),
+[job limits](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information).
 
 After verifying a new independent copy and the pinned context.go hash
 765F99F7CC0710B0117FFA183E432524F429C21496FCBAD9B63FB9886FDBAAC7,

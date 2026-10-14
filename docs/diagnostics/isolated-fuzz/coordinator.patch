@@ -42,7 +42,7 @@ index e406c8c4..9f012fdf 100644
 +	diagnosticWorkers = activeWorkers
 @@ -227,0 +249,2 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
 +			diagnostic.beforeDeadline()
-+			diagnosticSource = "deadline"
++			diagnosticSource = "parent-done"
 @@ -231,0 +255 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
 +			diagnosticSource = "worker"
 @@ -233,0 +258 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err

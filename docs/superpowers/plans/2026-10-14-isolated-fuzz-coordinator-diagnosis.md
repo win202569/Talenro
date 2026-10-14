@@ -8,7 +8,7 @@
 
 **Tech Stack:** Windows PowerShell, existing Go1.26.5 windows/amd64, standard library only; no installs or downloads.
 
-**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. This plan awaits user review and execution-method selection; no implementation has occurred.
+**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. The user approved Native execution by choosing1. Tasks1–2 verified; Task3/4 blocked at baseline build handoff before any actual fuzz arm. Final review remains pending; see the execution record.
 
 ## Global Constraints
 
@@ -98,7 +98,7 @@ if child.Err() != DeadlineExceeded { t.Fatal("child did not inherit exact deadli
 - [x] Materialize tests in the verified copy and run copied `go test context -run '^TestDiagnosticFuzz' -count=1 -p=1 -timeout=30s`; observe a behavioral RED against safe no-gate stubs. Build separate if cold compilation would consume external test guard.
 - [x] Implement the protocol and exact source patch, rejecting source drift (fuzz.go SHA D9DE12569D5C18FB629C8E79A4D629EB2985B719E4FBFE30C3F3CE23FC44FEB5; context.go SHA765F99F7CC0710B0117FFA183E432524F429C21496FCBAD9B63FB9886FDBAAC7). Add copied-source trace tests for unread parent operand and exact same-text/wrapped/typed error identities; do not extract a new classifier that replaces actual stop.
 - [x] Run all added copied context/trace tests, inspect complete output, then source hash and diff audits. Confirm no suppression/replacement semantic change and no import cycle. Failure to implement protocol faithfully stops implementation for design revision, not fabricated context fallback.
-- [ ] Save tests/patch and checkpoint with explicit observed versus unrun status; commit/push necessary files only.
+- [x] Save tests/patch and checkpoint with explicit observed versus unrun status; commit/push necessary files only.
 
 ## Task3: Runner, receipts and single-execution fixtures
 
@@ -115,8 +115,8 @@ $receipt = [pscustomobject]@{ ExitCode=1; TimedOut=$false; DescendantsRemaining=
 Assert-Throws { Assert-ArmResult -Arm 'parent-first' -Receipt $receipt -Trace @() }
 ```
 
-- [ ] Write runner tests: nonzero harmless child preserves exit and complete streams; timeout marked separately from exit; invalid GOROOT refused before execution; duplicate arm refused; expected nonzero with empty/incomplete trace refused; watchdog/remaining descendants rejected. Use literal assertions, e.g. `Assert-ArmResult parent-first` must reject a receipt with ExitCode1 but no stop/return trace.
-- [ ] Run `powershell -NoProfile -File docs/diagnostics/isolated-fuzz/run.tests.ps1`; confirm behavioral RED against minimal runner/validator stubs, not command syntax errors.
+- [x] Write runner tests: nonzero harmless child preserves exit and complete streams; timeout marked separately from exit; invalid GOROOT refused before execution; duplicate arm refused; expected nonzero with empty/incomplete trace refused; watchdog/remaining descendants rejected. Use literal assertions, e.g. `Assert-ArmResult parent-first` must reject a receipt with ExitCode1 but no stop/return trace.
+- [x] Run `powershell -NoProfile -File docs/diagnostics/isolated-fuzz/run.tests.ps1`; confirm behavioral RED against minimal runner/validator stubs, not command syntax errors.
 - [ ] Implement using hidden child processes, explicit working directory, redirected streams and process-specific environment. Track child descendants while root is alive; terminate only verified task-owned processes on timeout, record and report it, do not kill unrelated processes. Fail closed when ownership/cleanup cannot be verified.
 - [ ] Build fixture test binary using copy `go test -c -o <arm>/fixture.exe <fixture_test.go>` once per source variant, limit600s. Record actual GOROOT/version, compile trace proving copied context/internal/fuzz source, fixture/patch hashes and env. Execute prebuilt binary with `-test.run=^$ -test.fuzz=^FuzzDiagnostic$ -test.fuzztime=5s -test.parallel=1 -test.timeout=30s -test.count=1`; the build retains `-p=1`. No build/test downloads.
 - [ ] Run all runner tests and existing11 model controls (controls-only, no stochastic rerun needed). Check known error identity/field/unwrap cases retain their model-level label. Commit/push scripts/templates and docs checkpoint.
@@ -155,4 +155,4 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 
 ## Plan self-review and approval gate
 
-Covered all seven spec sections; tests pin the five Review Focus risks. The targeted gate API, lock/release order, trace operands, process result API and finite arm list agree across tasks. No new production interfaces or dependencies. Expected failing arms remain evidence rather than test-suite success. The plan is unexecuted; approval and method selection are required next.
+Original plan self-review covered all seven spec sections and five Review Focus risks. Execution is partial: component tests do not close real integration risk. Baseline compilation exit0 was rejected by a remaining-process gate; actual fuzz arms were not launched and will not be retried without new bounded authorization. No product fix, acceptance clearance or main merge.

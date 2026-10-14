@@ -1,0 +1,14 @@
+package diagnosticfixture
+
+import (
+ "os"
+ "testing"
+)
+
+// Deliberate independent worker fixture, never project acceptance/material data.
+func FuzzDiagnostic(f *testing.F) {
+ f.Add([]byte("seed"))
+ f.Fuzz(func(t *testing.T,_ []byte) {
+  if os.Getenv("TALENRO_FUZZ_FIXTURE")=="crash" {panic("isolated-fixture-crash")}
+ })
+}

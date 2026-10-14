@@ -66,3 +66,38 @@ GREEN两项通过。错误ID按相等性登记，不读Error正文、不用error
 最新范围复核：5 context +2 trace Go测试通过；16 isolation +8 materialize
 PowerShell断言通过。原context/fuzz源码hash仍765F99F7/D9DE1256（全值见spec）。
 这些是组件验证；runner、六个真实框架臂及最终独立审查尚未执行。
+
+## Task3运行器检查点及基线构建阻塞
+
+已新增run.ps1/run.tests.ps1、process-native.cs及独立fixture模板。Native helper
+先挂起启动，再绑定独立非breakaway job并恢复，只有stdout/stderr/NUL标准句柄
+列入继承白名单；超限只处理该job，不按猜测PID清理。代价是Windows专用素材。
+原退出码丢失stub RED后修复；wrong-mode和缺worker证据对照也分别RED再修复。
+当前16项运行器断言通过，包含真实子进程清理、重复收据/臂拒绝和子环境隔离。
+
+模型复核首次在Go启动之前因PSObject环境值cast失败，失败收据保留；
+显式包装值回归重现RED，解包字符串修复后16项通过。新model-check-002
+只运行controls-only，11项通过，没有随机采样或产品验收重跑。
+返回日志不应伪称读取child/old/stopping，新回归RED后修复为unread及
+stoppingRead=false；context5+trace3共8项Go测试。退出源parent-done
+准确指ctx.Done分支，incoming字段区分deadline/canceled（不新增Err读）。
+
+新framework-001副本11536文件校验成功；准备UTC11:54:25–12:05:26
+（Asia/Tbilisi15:54:25–16:05:26）。副本仍未插桩，仅开始baseline预备构建。
+baseline构建UTC12:30:49–12:32:23（Asia/Tbilisi16:30:49–16:32:23）：
+exit0、TimedOut=false、job累计278进程、根退出时记录剩余1；
+已执行该job清理，CleanupVerified=true、ActiveAfterCleanup=0。
+因此运行器构建门槛失败并按设计停止；不把exit0当完整基线通过。
+剩余1是否实际子进程、根job记录滞后或其他记账问题尚未确定；历史收据
+未含该时刻成员PID列表，不能事后按旧PID排查/终止或改写证据。
+
+实际baseline/execute目录不存在，只有baseline预备目录；六个fuzz臂全部未运行，
+没有重试，后续臂未启动。另一个静态复核发现编译日志中的Windows路径转义：
+原始Contains匹配context/fuzz路径均false，规范化双反斜线后均true；
+这项尚未修复，不允许直接跳过来源检查。Task3整体/Task4–5仍未完成。
+最终独立审查未进行，不能声称完整框架复现、历史根因或修复。
+
+产品前后701文件清单Path/SHA256差异0；固定原context/fuzz hash仍为
+765F99F7/D9DE1256全值。没有重跑原产品套件/Envelope/Pair，验收阻塞及main禁合并保持。
+下一步需批准：先排查运行器收尾/路径证据判断，建立回归；保留本次失败收据，
+再以明确新收据身份启动基线。不得在未获准前复用当前臂目录或重复运行直到通过。
