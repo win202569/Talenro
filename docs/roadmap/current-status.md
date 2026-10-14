@@ -1,5 +1,25 @@
 # Project status — updated 2026-10-14
 
+## Latest continuation — Envelope preparation stopped before Go launch
+
+The user approved one original-project Envelope observation sample, build600s /
+fuzz5s / internal30s / external60s, using the verified instrumented copy and new
+caches. Pair/full matrix/downloads/official-toolchain changes/retries remain outside
+scope. Product build and sample are UNRUN; envelope-observe-001 was not created.
+A cross-PowerShell source-identity serialization defect was reproduced before
+launch and repaired with the recorded fixed order, preserving the historical
+identity and all hash/binary guards. Eight provenance fixture assertions passed in
+both Windows PowerShell5.1 and PowerShell7; no archived receipts were changed.
+All21 driver assertions passed under each runtime (58 combined provenance/driver
+assertion executions,29 distinct assertions). The fresh scoped
+suite then stopped in final-exit.tests.ps1 after13 PASS, at `later signaled exit
+refreshes code only in final evidence`. Exact failed conjunct/timing is unknown;
+there was no saved final row, no automatic retry or safety-policy change. Earlier
+183-PASS results are historical, not a fresh passing suite. Remaining scoped checks
+were not reached. This is an unfinished, unaccepted development checkpoint.
+See [bounded Envelope continuation and recovery](2026-10-14-envelope-observation-execution.md).
+This diagnostic work cannot clear original matrix3/Pair or production/main gates.
+
 ## Latest result — all six diagnostic arms completed
 
 The user approved the remaining bounded executions: synchronized-prep-002, crash

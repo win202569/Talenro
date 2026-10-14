@@ -16,6 +16,11 @@ $record=[pscustomobject]@{Toolchain=$tool;PatchHash=(Get-FileHash -LiteralPath (
 . (Join-Path $portable 'provenance.ps1')
 $identity=Get-DiagnosticSourceIdentity $tool $record
 Check-Provenance (-not [string]::IsNullOrWhiteSpace($identity)) 'matched installed and portable source identity accepted'
+$canonicalPaths=@('src/context/context.go','src/context/diagnostic_fuzz_test.go','src/context/diagnostic_fuzz.go','src/internal/fuzz/diagnostic_fuzz_test.go','src/internal/fuzz/diagnostic_fuzz.go','src/internal/fuzz/fuzz.go')
+$canonicalLines=@('patch='+$record.PatchHash)+@(foreach($path in $canonicalPaths){$path+'='+$hashes[$path]})
+$sha=[Security.Cryptography.SHA256]::Create()
+try {$canonicalIdentity=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($canonicalLines -join "`n")))).Replace('-','')}finally {$sha.Dispose()}
+Check-Provenance ($identity -ceq $canonicalIdentity) 'source binding preserves historical fixed order independently of runtime collation'
 $template=Join-Path $portable 'fuzz-diag.go.txt';$original=[IO.File]::ReadAllText($template)
 Set-Content -LiteralPath $template -Value 'portable-template-drift'
 Reject-Provenance {Get-DiagnosticSourceIdentity $tool $record} 'portable template drift cannot reuse old installed helper'

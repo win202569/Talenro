@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Original-project Envelope continuation: the user approved one observation sample,
+not Pair or full matrix. `envelope-observe.ps1` provides readonly planning and a
+fresh-identity, offline, source-bound one-shot build/run entry point. Preparation
+and remaining results are documented in the [Envelope execution/recovery report](../../roadmap/2026-10-14-envelope-observation-execution.md).
+Source identity now uses the recorded literal six-path order, avoiding different
+PowerShell5.1/7 collation while preserving historical identities and hash checks.
+Recovery does not authorize a repeated sample or acceptance upgrade.
+
 Current outcome2026-10-14: all six finite actual-framework arms completed and
 their expected diagnostic checks passed. Baseline/observe/synchronized exited0;
 parent-first/crash/cancel deliberately exited1 with the prescribed complete trace.

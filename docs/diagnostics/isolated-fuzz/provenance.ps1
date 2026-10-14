@@ -18,7 +18,9 @@ function Get-DiagnosticSourceIdentity([string]$Toolchain,[object]$PatchRecord) {
         $portable=Get-IsolatedFullPath (Join-Path $PSScriptRoot $name)
         if([IsolatedFuzzFileInfo]::Links($portable) -ne 1 -or (Get-FileHash -LiteralPath $portable).Hash -ne $hashes[$map[$name]]){throw 'Portable template differs from installed helper'}
     }
-    $parts=@('patch='+$patchHash)+@(foreach($path in ($expected|Sort-Object)){ $path+'='+$hashes[$path] })
+    # Preserve the recorded identity's order; runtime/culture collation is not a source binding.
+    $canonicalPaths=@('src/context/context.go','src/context/diagnostic_fuzz_test.go','src/context/diagnostic_fuzz.go','src/internal/fuzz/diagnostic_fuzz_test.go','src/internal/fuzz/diagnostic_fuzz.go','src/internal/fuzz/fuzz.go')
+    $parts=@('patch='+$patchHash)+@(foreach($path in $canonicalPaths){ $path+'='+$hashes[$path] })
     $sha=[Security.Cryptography.SHA256]::Create()
     try{return [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($parts -join "`n")))).Replace('-','')}finally{$sha.Dispose()}
 }
