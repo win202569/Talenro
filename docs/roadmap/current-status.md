@@ -1612,3 +1612,14 @@ The design needs user review; only then write an implementation plan, and await
 plan approval/execution selection. Matrix3 failure, Pair-unrun and all existing
 production gates remain open. Save the design/status on the development branch
 for fresh-computer recovery; no main merge.
+
+### Isolated diagnosis design approved; implementation plan awaits review
+
+On2026-10-14 the user approved the written design saved at05e5a17c.
+The [implementation plan](../superpowers/plans/2026-10-14-isolated-fuzz-coordinator-diagnosis.md)
+now defines five tasks: verified copying, targeted gate/trace, bounded runner,
+six single-execution framework arms, and recovery/review handoff. Every task is
+unexecuted. No toolchain copy, patch, build or diagnostic run has occurred here.
+Next: user reviews the plan and chooses Native or Subagent-driven execution.
+This approval stage does not permit a product fix, timeout change, acceptance
+clearance or main merge; historical matrix3/Pair blockers remain open.
