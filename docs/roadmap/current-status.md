@@ -1,5 +1,29 @@
 # Project status — updated 2026-10-14
 
+## Latest approved final-exit policy — runner/test increment only
+
+Ordinary diagnostic-runner receipts now use schema3/v2 final-signaled policy:
+retain exact job-verified member handles, gather the whole bounded batch before
+waiting, and require successful signaled-exit/exit-code evidence within the shared
+500ms plus naturally empty job accounting/member list. Earlier core/first/confirm
+state and image errors stay preserved. Unknown/query-failed/still-running/late,
+timeout, truncation, forced cleanup and nonempty job still fail;5000ms cleanup unchanged.
+
+Final evidence is distinct from diagnostic-only observations. New receipt validation
+checks member identity/proof/coverage and forbids schema downgrade. Historical
+successful baseline/observe/parent-first receipts still validate readonly; old
+failed and diagnostic-only receipts remain refused. Full scoped suite183 assertions
+passed (11 repeated reused assertions;172 distinct); native short-child final proof
+and persisted JSON validation passed. No new independent review was dispatched.
+
+This is an approved runner-policy revision, not proof of the historical root cause
+or full framework/product acceptance. No Go version probe or remaining fuzz arm
+was launched. Actual-arm progress remains3/6, synchronized/crash/cancel UNRUN;
+production/main gates unchanged. Necessary implementation/test/recovery files are
+preserved on the existing development branch; remote success is verified at handoff.
+Final original full11536/product701 manifest differences0 at UTC18:10:26.333
+(Asia/Tbilisi22:10:26); copied diagnostic source identity unchanged.
+
 ## Latest bounded observation — implemented, one probe inconclusive
 
 The user approved diagnostic-only retained-handle observation and one standalone

@@ -170,3 +170,13 @@ synchronized preparation then stopped on two running wait observations/image err
 synchronized/crash/cancel fuzz UNRUN. Original/product full manifests require final
 post-continuation equality before checkpoint preservation. No re-review, scratch
 deletion, new wait window or production/main acceptance.
+
+Latest bounded policy increment (user approved implementation/tests only): ordinary
+runner schema3/v2 requires final same-retained-handle signaled exit for running
+members plus natural empty job within shared500ms. Gather all bounded handles
+before waiting; first/confirm/image snapshots preserved, unknown queries still
+fail, diagnostic-only/legacy receipts cannot adopt final evidence. Full scoped
+suite183 assertions PASS (11 reused duplicates;172 distinct), historical receipt
+interpretations checked readonly. No new probe or remaining actual fuzz arm ran;
+synchronized/crash/cancel still UNRUN and fresh bounded execution approval remains
+necessary. No main merge, product acceptance or re-review follows from this change.

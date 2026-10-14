@@ -1,5 +1,31 @@
 # Isolated fuzz diagnosis
 
+Latest approved completion policy: ordinary runs now produce ShutdownSchema3 /
+owned-final-signaled-exit-image-optional-v2. A running member is not accepted merely
+because its image is readable or accounting later becomes empty: its same retained,
+job-verified handle must signal and its exit-code query succeed within the shared
+500ms window. Immediate verified exited snapshots remain sufficient. Unknown
+ownership/state, query failure, truncation, still-running/late final evidence,
+timeout, nonempty job or forced cleanup still fails; shared5000ms cleanup is unchanged.
+
+FinalShutdown is separate from DiagnosticShutdown and all earlier core/initial/
+confirmation fields. It records member identity, same-handle proof, query/read
+result and shared-clock budget/times. All bounded batch handles/core snapshots are
+acquired before any final wait, preventing our own first wait from making a later
+listed PID vanish before identity capture. Every retained handle closes in finally;
+no unknown-ID or image-name exemption is introduced. Diagnostic-only mode still
+produces legacy schema2, never final evidence, and is refused for acceptance.
+
+Schema3 validates per-member final proof and initial-member coverage after JSON
+serialization. Legacy schema2 retains its old rules and cannot carry v2 policy or
+FinalShutdown evidence. Old failed/diagnostic receipts remain refused unchanged.
+final-exit.tests.ps1 passed52 assertions (11 reused/41 new); the full scoped suite
+passed183 assertions including11 duplicate reused checks,172 distinct checks.
+Controlled missing-image rows used real owned handles/waits; actual native short-
+child schema3 completion/serialized receipt passed. No remaining framework fuzz,
+version probe or product suite ran in this increment. Actual-arm progress stays3/6,
+and the historical image-query failure/root cause remains unproven.
+
 Latest bounded diagnostic-only increment: opt-in `CaptureShutdownDiagnostic` on
 Invoke-RecordedProcess records a separate DiagnosticShutdown member observation
 on the same retained, live-job-verified handle. Only running-after-confirmation

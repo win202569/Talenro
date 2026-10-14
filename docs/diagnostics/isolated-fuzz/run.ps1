@@ -60,7 +60,35 @@ function Assert-ProcessCompletion([object]$Receipt) {
         if($Receipt.DescendantsRemaining -ne 0){throw 'Legacy unfinished process group'}
         return
     }
-    if($schema.Value -ne 2 -or -not $Receipt.RootExited -or -not $Receipt.NaturalShutdownVerified -or -not $Receipt.ShutdownEvidenceComplete -or $Receipt.TerminationRequested -or $Receipt.ActiveBeforeTermination -ne 0 -or $Receipt.MembersBeforeTermination.Count -ne 0 -or $Receipt.MembersAfterCleanup.Count -ne 0 -or $Receipt.NaturalObservationMs -gt 500 -or $Receipt.ShutdownElapsedMs -gt 5000) {throw 'Natural shutdown not verified; forced cleanup is not success'}
+    if($schema.Value -notin @(2,3) -or -not $Receipt.RootExited -or -not $Receipt.NaturalShutdownVerified -or -not $Receipt.ShutdownEvidenceComplete -or $Receipt.TerminationRequested -or $Receipt.ActiveBeforeTermination -ne 0 -or $Receipt.MembersBeforeTermination.Count -ne 0 -or $Receipt.MembersAfterCleanup.Count -ne 0 -or $Receipt.NaturalObservationMs -gt 500 -or $Receipt.ShutdownElapsedMs -gt 5000) {throw 'Natural shutdown not verified; forced cleanup is not success'}
+    if($schema.Value -eq 2) {
+        $policy=$Receipt.PSObject.Properties['ShutdownStatePolicy']
+        if($null -ne $policy -and $policy.Value -cne 'owned-signaled-exit-image-optional-v1') {throw 'Legacy receipt cannot adopt final-exit policy'}
+        $evidence=$Receipt.PSObject.Properties['ShutdownMemberEvidence']
+        if($null -ne $evidence) {foreach($row in $evidence.Value) {
+            $final=$row.PSObject.Properties['FinalShutdown']
+            if($null -ne $final -and $null -ne $final.Value) {throw 'Final evidence cannot be downgraded to legacy schema'}
+        }}
+    }
+    if($schema.Value -eq 3) {
+        if($Receipt.ShutdownStatePolicy -cne 'owned-final-signaled-exit-image-optional-v2' -or $Receipt.MemberEvidenceTruncated -or $Receipt.RootId -le 0) {throw 'Final shutdown policy or identity incomplete'}
+        $rows=@($Receipt.ShutdownMemberEvidence)
+        if($rows.Count -gt 32) {throw 'Final member evidence exceeds bound'}
+        $seen=New-Object 'System.Collections.Generic.HashSet[UInt64]'
+        foreach($row in $rows) {
+            if($null -eq $row -or $row.Id -le 0 -or -not $seen.Add([uint64]$row.Id) -or $null -ne $row.DiagnosticShutdown) {throw 'Final member identity ambiguous or diagnostic-only'}
+            if($row.Id -eq $Receipt.RootId) {continue}
+            $native=New-Object 'IsolatedFuzzProcess+MemberObservation'
+            foreach($field in @('Id','Owned','QueryError','ExitCodeRead','ExitCode','State','ConfirmationAttempted','ConfirmationState')) {$native.$field=$row.$field}
+            if($null -ne $row.FinalShutdown) {
+                $final=New-Object 'IsolatedFuzzProcess+ShutdownObservation'
+                foreach($field in @('MemberId','SameHandleVerified','Attempted','State','QueryError','ExitCodeRead','ExitCode','WaitBudgetMs','StartElapsedMs','EndElapsedMs')) {$final.$field=$row.FinalShutdown.$field}
+                $native.FinalShutdown=$final
+            }
+            if(-not [IsolatedFuzzProcess]::IsFinalShutdownStateVerified($native)) {throw 'Final same-handle signaled exit not verified'}
+        }
+        foreach($id in $Receipt.MembersAtRootWait) {if(-not $seen.Contains([uint64]$id)) {throw 'Initial job member missing final evidence'}}
+    }
 }
 function Assert-ArmResult([string]$Arm,[object]$Receipt,[object[]]$Trace) {
     Assert-ProcessCompletion $Receipt
