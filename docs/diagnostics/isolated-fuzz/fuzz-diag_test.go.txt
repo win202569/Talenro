@@ -1,0 +1,31 @@
+package fuzz_test
+
+import (
+ "context"
+ "errors"
+ "fmt"
+ "internal/fuzz"
+ "testing"
+)
+
+type diagnosticMaterialError struct { code string; cause error }
+func(e *diagnosticMaterialError) Error() string {return "private-material-text"}
+func(e *diagnosticMaterialError) Unwrap() error {return e.cause}
+
+func TestDiagnosticFuzzIdentity(t *testing.T) {
+ if fuzz.DiagnosticErrorIdentity(nil)!="nil" || fuzz.DiagnosticErrorIdentity(context.DeadlineExceeded)!="deadline" || fuzz.DiagnosticErrorIdentity(context.Canceled)!="canceled" {t.Fatal("sentinel identity labels missing")}
+ first,second:=errors.New("context deadline exceeded"),errors.New("context deadline exceeded")
+ a,b:=fuzz.DiagnosticErrorIdentity(first),fuzz.DiagnosticErrorIdentity(second)
+ if a=="deadline" || a==b {t.Fatal("same-text errors collapsed or mistaken for sentinel")}
+ wrapped:=fmt.Errorf("wrapped: %w",context.DeadlineExceeded)
+ if fuzz.DiagnosticErrorIdentity(wrapped)=="deadline" || errors.Unwrap(wrapped)!=context.DeadlineExceeded {t.Fatal("wrapped identity changed")}
+ material:=&diagnosticMaterialError{code:"material",cause:first}
+ before:=fuzz.DiagnosticErrorIdentity(material)
+ if before!=fuzz.DiagnosticErrorIdentity(material) || material.code!="material" || errors.Unwrap(material)!=first {t.Fatal("typed error identity/fields/unwrap changed")}
+ if before==material.Error() {t.Fatal("private payload leaked")}
+}
+
+func TestDiagnosticFuzzUnreadParent(t *testing.T) {
+ if fuzz.DiagnosticParentLabel(nil,false)!="unread" || fuzz.DiagnosticParentLabel(context.DeadlineExceeded,false)!="unread" {t.Fatal("unread operand represented as observed value")}
+ if fuzz.DiagnosticParentLabel(nil,true)!="nil" || fuzz.DiagnosticParentLabel(context.DeadlineExceeded,true)!="deadline" {t.Fatal("read operand lost")}
+}

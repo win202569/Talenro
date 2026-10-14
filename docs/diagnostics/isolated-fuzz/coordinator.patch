@@ -5,3 +5,47 @@ diff --git a/src/context/context.go b/src/context/context.go
 +	diagnosticGate := diagnosticFuzzBeforeChildren(c)
 @@ -574,0 +576 @@ func (c *cancelCtx) cancel(removeFromParent bool, err, cause error) {
 +	diagnosticFuzzAfterUnlock(diagnosticGate)
+diff --git a/src/internal/fuzz/fuzz.go b/src/internal/fuzz/fuzz.go
+index e406c8c4..9f012fdf 100644
+--- a/src/internal/fuzz/fuzz.go
++++ b/src/internal/fuzz/fuzz.go
+@@ -114,0 +115,9 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++	diagnostic := diagnosticStart(ctx)
++	diagnosticSource := "other"
++	diagnosticWorkers := -1
++	defer func() {
++		if diagnostic != nil {
++			diagnostic.gate.Unregister()
++			diagnostic.emit("return", "return", err, nil, nil, nil, err, false, false, diagnosticWorkers)
++		}
++	}()
+@@ -119,0 +129,8 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++		diagnosticIncoming, diagnosticOld := err, fuzzErr
++		diagnosticParentRead := false
++		var diagnosticParent error
++		diagnosticParentErr := func() error {
++			diagnosticParentRead = true
++			diagnosticParent = ctx.Err()
++			return diagnosticParent
++		}
+@@ -129 +146,2 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
+-		if err == fuzzCtx.Err() || isInterruptError(err) {
++		diagnosticChild := fuzzCtx.Err()
++		if err == diagnosticChild || isInterruptError(err) {
+@@ -135 +153 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
+-		if err != nil && (fuzzErr == nil || fuzzErr == ctx.Err()) {
++		if err != nil && (fuzzErr == nil || fuzzErr == diagnosticParentErr()) {
+@@ -137,0 +156,2 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++		diagnostic.release()
++		diagnostic.emit("stop", diagnosticSource, diagnosticIncoming, diagnosticChild, diagnosticParent, diagnosticOld, fuzzErr, diagnosticParentRead, stopping, diagnosticWorkers)
+@@ -200,0 +221 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++	diagnosticWorkers = activeWorkers
+@@ -227,0 +249,2 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++			diagnostic.beforeDeadline()
++			diagnosticSource = "deadline"
+@@ -231,0 +255 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++			diagnosticSource = "worker"
+@@ -233,0 +258 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++			diagnosticWorkers = activeWorkers
+@@ -248,0 +274 @@ func CoordinateFuzzing(ctx context.Context, opts CoordinateFuzzingOpts) (err err
++					diagnosticSource = "crasher"

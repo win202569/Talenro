@@ -47,3 +47,22 @@ SelectedParent、Unregistered、Watchdog、EarlyUnregisterAndCancel、RejectRegi
 coordinator.patch目前只包含context部分；internal/fuzz插桩、追踪测试、runner、
 六个框架臂及最终独立审查尚未实施，Task2整体未完成，Task3–5待办。
 必要模板/局部patch与记录保存为明确未完成检查点，不能当作完整复现或修复。
+
+## Task2追踪补齐检查点
+
+新增fuzz-diag.go.txt/fuzz-diag_test.go.txt组织追踪格式和测试；新增materialize.tests.ps1
+验证复建器。这些必要模板仍仅进入复制的标准库，不进入产品包，代价是多3份素材。
+追踪格式RED：哨兵身份缺失、未读取值错误标为已读取，两项测试真实exit1；
+GREEN两项通过。错误ID按相等性登记，不读Error正文、不用errors.Is吞错；
+不可比较的错误明确标unsupported，其实际框架集成尚未验证。
+
+实际stop仍保留原错误相等、interrupt短路及旧错误替换条件；子Err和条件性
+父Err各在原求值位置捕获，不额外读取父状态。先释放传播门再写日志/取消workers。
+截止、worker、种子crasher及最终返回有独立来源记录；未知路径标other，不假定来源。
+观察模式立即释放门；其他模式只操控已登记父context。最终收尾记录worker计数。
+
+复建器RED缺少应安装的context helper；GREEN8项断言通过，含双源码hash钉定、
+全守卫先于修改、原工具链拒绝、重复安装拒绝、实际patch反向核对。
+最新范围复核：5 context +2 trace Go测试通过；16 isolation +8 materialize
+PowerShell断言通过。原context/fuzz源码hash仍765F99F7/D9DE1256（全值见spec）。
+这些是组件验证；runner、六个真实框架臂及最终独立审查尚未执行。

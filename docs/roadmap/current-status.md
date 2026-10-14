@@ -1644,3 +1644,13 @@ Only the test copy's context was patched. Tracked templates and the partial
 context patch are portable, but actual internal/fuzz tracing/runner are absent.
 Task2 overall is incomplete; Tasks3–5, six actual framework arms and final
 independent review remain pending. No new product acceptance/fix/main merge.
+
+### Task2 trace/patch materialization verified; runner next
+
+Actual copied coordinator tracing and source-pinned materialization are now
+implemented. Fresh checks passed7 Go component tests and24 PowerShell assertions.
+No extra Err reads or new suppression rule; unread parent state stays explicit.
+Unsupported non-comparable identity is marked, not inferred from error text.
+Source patches target only the validated owned copy. Task3 runner, Task4's six
+single-execution arms and Task5 recovery/final review remain pending; no original
+product acceptance or main merge. See the execution record for RED/GREEN evidence.

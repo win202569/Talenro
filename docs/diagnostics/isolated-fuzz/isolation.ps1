@@ -104,3 +104,27 @@ function New-IsolatedToolchain([string]$Source,[string]$RunRoot) {
     if ($expected -cne (ConvertTo-Json -InputObject $copied -Compress) -or $expected -cne (ConvertTo-Json -InputObject $after -Compress)) { throw 'Source or copy manifest changed' }
     [pscustomobject]@{ Source=$src; Toolchain=$toolchain; Cache=$cache; BeforeManifest=$before; CopyManifest=$copied }
 }
+function Install-DiagnosticPatch([string]$Toolchain) {
+    $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
+    $allowed=Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator'
+    $tool=Get-IsolatedFullPath $Toolchain
+    if (-not (Test-IsolatedWithin $tool $allowed)) { throw 'Patch target outside dedicated copy scope' }
+    $pins=@{ 'src/context/context.go'='765F99F7CC0710B0117FFA183E432524F429C21496FCBAD9B63FB9886FDBAAC7'; 'src/internal/fuzz/fuzz.go'='D9DE12569D5C18FB629C8E79A4D629EB2985B719E4FBFE30C3F3CE23FC44FEB5' }
+    foreach($path in $pins.Keys) {
+        $file=Get-IsolatedFullPath (Join-Path $tool $path)
+        if ([IsolatedFuzzFileInfo]::Links($file) -ne 1 -or (Get-FileHash -LiteralPath $file).Hash -ne $pins[$path]) { throw "Source pin or independent file check failed: $path" }
+    }
+    $templates=@{ 'context-diag.go.txt'='src/context/diagnostic_fuzz.go'; 'context-diag_test.go.txt'='src/context/diagnostic_fuzz_test.go'; 'fuzz-diag.go.txt'='src/internal/fuzz/diagnostic_fuzz.go'; 'fuzz-diag_test.go.txt'='src/internal/fuzz/diagnostic_fuzz_test.go' }
+    foreach($name in $templates.Keys) {
+        $destination=Get-IsolatedFullPath (Join-Path $tool $templates[$name])
+        if (Test-Path -LiteralPath $destination) { throw 'Diagnostic template target already exists' }
+        if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $name) -PathType Leaf)) { throw 'Required portable template missing' }
+    }
+    $relative=$tool.Substring($workspace.Length+1).Replace('\','/')
+    $patch=Join-Path $PSScriptRoot 'coordinator.patch'
+    git -c core.fsmonitor=false -C $workspace apply --check --unidiff-zero --ignore-space-change --directory=$relative $patch
+    if ($LASTEXITCODE -ne 0) { throw 'Patch precheck failed' }
+    git -c core.fsmonitor=false -C $workspace apply --unidiff-zero --ignore-space-change --directory=$relative $patch
+    if ($LASTEXITCODE -ne 0) { throw 'Patch application failed; preserve incomplete copy' }
+    foreach($name in $templates.Keys) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $tool $templates[$name]) -ErrorAction Stop }
+}

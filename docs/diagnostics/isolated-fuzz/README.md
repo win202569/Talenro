@@ -4,11 +4,14 @@ Use PowerShell on Windows. Read the approved2026-10-14 spec/plan and AGENTS.md.
 This directory currently contains the verified isolation utility, not a complete
 framework reproducer. Never run scripts against a project/cache root as target.
 
-Checkpoint: context gate templates passed5 real-context tests in a verified
-test-only toolchain copy. coordinator.patch currently contains ONLY the context
-part; actual internal/fuzz tracing and runner are still missing. Do not use it
-as a complete reproducer or invoke actual framework arms yet. The diagnostic
-gate deliberately pauses propagation and is never an official toolchain patch.
+Checkpoint: context gate and trace templates passed7 Go tests; materialization
+passed8 assertions. coordinator.patch now contains both context and actual
+internal/fuzz tracing changes. The bounded runner/actual framework arms are
+still pending. Do not treat these component tests as a full reproduction.
+The diagnostic gate deliberately pauses propagation and is never an official
+toolchain patch. Trace IDs preserve equality for comparable errors without
+printing payloads; non-comparable errors are explicitly unsupported, not silently
+classified. Observation mode releases the propagation gate immediately.
 
 After verifying a new independent copy and the pinned context.go hash
 765F99F7CC0710B0117FFA183E432524F429C21496FCBAD9B63FB9886FDBAAC7,
@@ -28,6 +31,10 @@ Run `powershell -NoProfile -File docs/diagnostics/isolated-fuzz/isolation.tests.
 from the development worktree. Tests generate unique tiny fixture directories
 inside the owned diagnostic root and retain them. Real link tests report UNRUN
 if privileges prevent creation; UNRUN is not PASS. No external test library needed.
+Run materialize.tests.ps1 for actual patch replay/source-drift guard tests using
+tiny source-only fixtures. Install-DiagnosticPatch requires both exact source
+pins, rejects official/outside targets and existing template files, then installs
+all four templates and the patch only into the validated copy.
 
 Dot-source isolation.ps1, then use New-IsolatedToolchain with an existing source
 directory and a nonexistent unique RunRoot beneath
