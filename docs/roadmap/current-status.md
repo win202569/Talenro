@@ -1599,3 +1599,16 @@ No product, toolchain, test-timeout or safety-setting changes. No full matrix or
 new fuzz acceptance run. Historical matrix3 failure and Pair-unrun remain open;
 main is not merged. See the diagnosis report section7 for recovery and RED/GREEN
 details. Full instrumented-framework reproduction needs a separate approved design.
+
+### Isolated framework diagnosis — written design awaiting review (2026-10-14)
+
+At baseline25d214fe the user approved writing the isolated-toolchain diagnostic
+design only. See [written design](../superpowers/specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md).
+It separates untouched-source copying, observed framework states, controlled
+propagation scheduling and deliberate worker failure fixtures. It preserves
+the original5s/30s gates and explicitly excludes product/full-matrix acceptance.
+Source/toolchain changes, execution and downloads have not occurred in this stage.
+The design needs user review; only then write an implementation plan, and await
+plan approval/execution selection. Matrix3 failure, Pair-unrun and all existing
+production gates remain open. Save the design/status on the development branch
+for fresh-computer recovery; no main merge.
