@@ -1623,3 +1623,13 @@ unexecuted. No toolchain copy, patch, build or diagnostic run has occurred here.
 Next: user reviews the plan and chooses Native or Subagent-driven execution.
 This approval stage does not permit a product fix, timeout change, acceptance
 clearance or main merge; historical matrix3/Pair blockers remain open.
+
+### Native execution started; isolation tests verified
+
+The user selected1, approving Native execution of the saved plan. Task1 isolation
+utilities passed16 behavioral assertions after RED/GREEN, including real junction
+and multiple-hardlink rejection in the dedicated test directory. No fixed
+toolchain copy/patch/build or actual framework arm has run at this checkpoint.
+Tasks2–5 and final independent review remain pending. See the
+[execution record](2026-10-14-isolated-fuzz-coordinator-execution.md) for rulings,
+evidence and recovery. Original product acceptance blockers remain unchanged.
