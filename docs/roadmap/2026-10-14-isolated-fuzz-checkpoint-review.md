@@ -68,3 +68,21 @@ Independent review completed for an unfinished checkpoint. Two issues fixed and
 verified; I1 awaits approved policy revision. Context5 logic/completion passed;
 trace3 logic/exit0 passed but process completion failed. All five fuzz arms remain
 UNRUN; stop was correct. Not merge readiness or a finished coordinator study.
+
+## Subsequent user-approved I1 revision (author verification, no re-review)
+
+The user approved separating proven owned/signaled exit from missing image
+metadata, retaining unknown-state/ownership/query failure and timeout/forced-cleanup
+refusal plus500ms/shared5000ms bounds. A shared native predicate uses the exact
+observed state and successful exit query, never code0 alone. Image completeness
+is separately recorded.9 state tests RED→GREEN,90 total PS assertions PASS.
+Fresh gate-framework-state-002 context5 + trace3 logic/completion PASS; trace run
+captured owned/exited/code0/ImageError31 and naturally empty job in5ms without
+termination. This verifies the bounded change, not a retrospective PASS for the
+old forced-cleanup receipt or an independent re-review.
+Continuation stopped at observe's source probe: owned member initial wait running,
+later code0 and ImageError5. No later signaled-state read was captured on that
+handle; no identity inferred, current guard remained failure. No fixture build or
+actual arm executed. Retaining first-read facts and confirming final state on the
+same verified live handle, plus a fresh preparation identity, needs an explicitly
+bounded continuation; do not query archived PIDs or overwrite the failed directory.

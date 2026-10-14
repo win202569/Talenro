@@ -266,3 +266,40 @@ RED→GREEN，三清单相等后仅CreateNew写入、返回/保存身份相同�
 含真实链接通过，README当前状态前置，preflight纳入新provenance材料。
 没有二次审查、actual-arm重跑、conhost豁免、正式工具链修改或main合并。
 本次审查不代表完成五臂或整个计划，I1设计政策仍阻塞。
+
+## 已批准的已退出状态/映像缺失分离
+
+用户批准有界I1修订：同一确切句柄归属已验证、wait状态exited且退出码读取
+成功，才允许映像缺失作为metadata记录。未知归属/状态、状态查询失败或
+未读退出码仍拒绝；运行中且缺映像也拒绝，不以code0替代signaled状态。
+shared predicate用于初始及新增成员判断，另记ShutdownImageEvidenceComplete
+和policy owned-signaled-exit-image-optional-v1，所有原始字段保留。
+500ms观察/共用5000ms清理、超时/截断/强制清理失败条件不变；不是按名豁免。
+字面成员证据正反检查真实RED→GREEN：9项state检查通过，完整90项PS断言通过
+（9 state+31 runner+13 regression+8 materialization+7 provenance+4 preflight+
+18真实链接isolation）。旧强制清理失败收据当前验证器仍拒绝，无PID重查或改写。
+
+依据此前五臂授权，先在全新gate-framework-state-002记录/缓存中构建两份
+测试exe，源identity绑定，不复用旧未绑定二进制。context构建UTC17:17:10.972–
+17:17:34.880，5项测试UTC17:17:35.314–17:17:36.935；internal/fuzz构建
+UTC17:17:37.226–17:17:43.280，3项测试UTC17:17:43.709–17:17:44.209
+（Asia/Tbilisi21:17:10–21:17:44）。四进程全部exit0、自然收尾通过、未请求
+终止；trace-run真实捕获Owned/exited/code0且ImageError31，状态完整true、
+映像完整false、自然收尾5ms，最终0/空。这次正是新批准例外的实际组件验证，
+不是把前轮已请求终止的收据改为PASS，也未追加独立审查。
+
+首次observe仅进入准备：version探测UTC17:17:46.251–17:17:46.336 exit0、
+收尾通过；origin探测UTC17:17:46.543–17:17:46.623
+（Asia/Tbilisi21:17:46）exit0，但root13488退出时剩余成员30692，Owned=true，
+首读wait状态running、后读ExitCode0、QueryError0、ImageError5、无映像。
+这是不同读取时刻的证据，没有同句柄后续signaled确认，不能倒推首读已退出。
+新规则按设计拒绝：NaturalShutdownVerified=false，状态证据不完整false，
+请求仅本job终止后0/空、CleanupVerified=true。不能推断该成员是conhost。
+
+按门槛停止：observe目录仅准备/version/origin，无execute；diagnostic fixture
+未构建，五个实际fuzz仍UNRUN，其他四臂未启动，没有重试。产品701摘要无变；
+原工具链全清单后验检查另记。下一步若继续，须保留首读，在同一已验证句柄
+补充退出确认，并使用明确新prepare身份；不查询旧PID、不覆盖本次失败或重跑
+已执行fuzz。当前有界I1修订已验证，整体框架诊断/生产/main仍未验收。
+本轮后验原工具链完整11536文件清单差异0，产品701摘要差异0；没有修改
+正式源或产品。只保存必要修订/测试/报告，原始收据与所有失败准备目录保留。

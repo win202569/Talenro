@@ -1759,3 +1759,19 @@ Final author verification:81 diagnostic PowerShell assertions PASS (31 runner,
 links). These do not override the actual trace-process completion failure or
 constitute independently reproduced tests/five-arm completion. Necessary checkpoint
 files target the existing development branch; remote identity requires push verification.
+
+### Approved exit-state/image split verified; observe preparation stopped safely
+
+Native completion now permits missing image only for exact-owned/signaled-exited
+members with successful exit query; metadata completeness and policy separately
+recorded. Unknown/running-with-missing-image state remains failure; budgets and
+forced-cleanup refusal unchanged.9 state regressions RED→GREEN,90 PS assertions PASS.
+Fresh component gate context5 + trace3 logic/completion PASS, including true exited
+member with image error31, natural empty job5ms, no termination. Historical forced
+cleanup receipt still refuses; no retroactive acceptance or independent re-review.
+Previously authorized continuation stopped at observe's origin probe: initial
+wait running, later code0, image error5; no final signaled-state observation. Owned
+cleanup verified but process completion failed. observe preparation directory now
+exists, no fixture build/execute; all five actual fuzz arms remain UNRUN. Product701
+hashes unchanged. Same verified-handle final-state confirmation/fresh preparation
+identity needed before continuing; no archived PID lookup, repeat-until-pass or main.

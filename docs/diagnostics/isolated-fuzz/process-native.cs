@@ -91,6 +91,14 @@ public static class IsolatedFuzzProcess {
         uint count=0;foreach(ulong id in members)if(id!=root)count++;return count;
     }
     public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead;public uint ExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC;}
+    public static bool IsShutdownStateVerified(MemberObservation row) {
+        if(row==null || !row.Owned || row.QueryError!=0 || !row.ExitCodeRead)return false;
+        // Exited means the exact owned handle was signaled, not merely code0.
+        // Image-name loss after exit remains metadata loss, never an exemption
+        // for an unknown or still-running process.
+        if(row.State=="exited")return true;
+        return row.State=="running" && row.ImageError==0 && !String.IsNullOrEmpty(row.ImagePath);
+    }
     static MemberObservation[] InspectMembers(IntPtr job,ulong[] members) {
         var observations=new List<MemberObservation>();
         // Evidence gathering has a fixed cap; it never changes member counting.
@@ -116,7 +124,7 @@ public static class IsolatedFuzzProcess {
         }
         return observations.ToArray();
     }
-    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=2;public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;}
+    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=2;public string ShutdownStatePolicy="owned-signaled-exit-image-optional-v1";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;}
     public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers) {
         IntPtr job=IntPtr.Zero,output=IntPtr.Zero,error=IntPtr.Zero,input=IntPtr.Zero,attributes=IntPtr.Zero,handles=IntPtr.Zero,environment=IntPtr.Zero;
         ProcessInfo pi=new ProcessInfo();bool attributesReady=false,assigned=false;
@@ -185,7 +193,7 @@ public static class IsolatedFuzzProcess {
             var shutdownEvidence=new List<MemberObservation>(result.MemberEvidence);
             var observed=new HashSet<ulong>(result.MembersAtRootWait);
             result.ShutdownEvidenceComplete=!result.MemberEvidenceTruncated;
-            foreach(var row in shutdownEvidence)if(row.Id!=pi.Id && (!row.Owned || row.QueryError!=0 || row.ImageError!=0 || (row.State!="running" && row.State!="exited")))result.ShutdownEvidenceComplete=false;
+            foreach(var row in shutdownEvidence)if(row.Id!=pi.Id && !IsShutdownStateVerified(row))result.ShutdownEvidenceComplete=false;
             ulong[] remaining=result.MembersAtRootWait;
             if(rootExited && !result.TimedOut && result.ShutdownEvidenceComplete) {
                 while(cleanup.ElapsedMilliseconds<=500) {
@@ -196,7 +204,7 @@ public static class IsolatedFuzzProcess {
                     if(fresh.Count>0) {
                         if(shutdownEvidence.Count+fresh.Count>32){result.ShutdownEvidenceComplete=false;break;}
                         var added=InspectMembers(job,fresh.ToArray());shutdownEvidence.AddRange(added);
-                        foreach(var row in added)if(row.Id!=pi.Id && (!row.Owned || row.QueryError!=0 || row.ImageError!=0 || (row.State!="running" && row.State!="exited")))result.ShutdownEvidenceComplete=false;
+                        foreach(var row in added)if(row.Id!=pi.Id && !IsShutdownStateVerified(row))result.ShutdownEvidenceComplete=false;
                         if(!result.ShutdownEvidenceComplete)break;
                     }
                     if(accounting.Active==0 && remaining.Length==0 && cleanup.ElapsedMilliseconds<=500){result.NaturalShutdownVerified=true;break;}
@@ -206,6 +214,8 @@ public static class IsolatedFuzzProcess {
             }
             result.NaturalObservationMs=cleanup.ElapsedMilliseconds;
             result.ShutdownMemberEvidence=shutdownEvidence.ToArray();
+            result.ShutdownImageEvidenceComplete=!result.MemberEvidenceTruncated;
+            foreach(var row in shutdownEvidence)if(row.ImageError!=0 || String.IsNullOrEmpty(row.ImagePath))result.ShutdownImageEvidenceComplete=false;
             result.ActiveBeforeTermination=accounting.Active;result.MembersBeforeTermination=remaining;
             if(!result.NaturalShutdownVerified) {
                 result.TerminationRequested=true;

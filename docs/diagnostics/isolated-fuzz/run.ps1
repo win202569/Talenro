@@ -22,7 +22,7 @@ function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashta
         $result | Add-Member -NotePropertyName MemberEvidenceTruncated -NotePropertyValue $native.MemberEvidenceTruncated
         $result | Add-Member -NotePropertyName LiveSampling -NotePropertyValue $native.LiveSampling
         $result | Add-Member -NotePropertyName MembersDuringRun -NotePropertyValue $native.MembersDuringRun
-        foreach($field in @('ShutdownSchema','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence')) {
+        foreach($field in @('ShutdownSchema','ShutdownStatePolicy','ShutdownImageEvidenceComplete','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence')) {
             $result | Add-Member -NotePropertyName $field -NotePropertyValue $native.$field
         }
         $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $receipt 'receipt.json')

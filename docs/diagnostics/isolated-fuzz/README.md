@@ -1,12 +1,26 @@
 # Isolated fuzz diagnosis
 
 Current checkpoint2026-10-14: baseline passed once; framework copy now instrumented.
-Context5 tests/completion passed; trace3 logic passed but completion failed on an
-exited owned member's missing image metadata. Five remaining fuzz arms are UNRUN.
-Independent checkpoint review found an unresolved shutdown-policy issue; source/
-binary binding and copy-receipt recovery gaps were fixed by regressions. No old
-failure reclassification/main merge. [Review/dispositions](../../roadmap/2026-10-14-isolated-fuzz-checkpoint-review.md).
+The approved exited-state/image split is implemented and verified; fresh context5
+and trace3 logic/completion passed. observe preparation then stopped on non-atomic
+running/code0/image-error reads without a final signaled-state confirmation.
+Five actual fuzz arms remain UNRUN. Independent-review source/binary binding and
+recovery gaps fixed; no old failure reclassification/main merge.
+[Review/dispositions](../../roadmap/2026-10-14-isolated-fuzz-checkpoint-review.md).
 Entries below preserve historical checkpoints, not the latest state.
+
+Latest bounded revision: exact verified ownership + signaled exited state +
+successful exit-code query permits missing image metadata. Unknown ownership,
+state/query/unread exit still fails; missing-image running members do not pass.
+ShutdownImageEvidenceComplete is recorded separately from ownership/liveness
+completeness, with policy tag owned-signaled-exit-image-optional-v1. Budgets and
+forced-cleanup refusal unchanged.9 state regressions RED→GREEN,90 PS assertions PASS.
+New component gate8 logic tests and completion passed, including an exited owned
+member with ImageError31 whose metadata stayed missing. Old failures not rewritten.
+The first observe preparation stopped at go-env origin: initial wait state running,
+later exit code0, image error5. Non-atomic reads do not prove a signaled exit; current
+guard refused/owned cleanup verified. No fixture build or actual fuzz execution.
+Five actual arms remain UNRUN; observe now has a failed preparation directory.
 
 Use PowerShell on Windows. Read the approved2026-10-14 spec/plan and AGENTS.md.
 This directory currently contains the verified isolation utility, not a complete

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Windows PowerShell, existing Go1.26.5 windows/amd64, standard library only; no installs or downloads.
 
-**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. Native execution selected. Baseline and new natural-shutdown model passed; five-arm preparation now stops on an exited member's missing image metadata. One independent unfinished-checkpoint review completed; source/binary binding and recovery fixes verified, shutdown-policy revision still pending. See the execution record.
+**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. Native selected. Baseline/model and approved exited-state/image split verified; fresh8 component logic/completion PASS. observe preparation stops at origin on first-wait running/later-code0/image-error evidence without final signaled-state confirmation. One independent checkpoint review done; source/binary/recovery fixes verified; all five actual fuzz arms still UNRUN. See execution record.
 
 ## Global Constraints
 
@@ -38,6 +38,7 @@ Tracked files, all under docs/diagnostics/isolated-fuzz/ unless noted:
 - isolation.tests.ps1: standalone behavioral assertions; no Pester dependency.
 - run.ps1: bounded processes, per-arm directories, recording and result validation.
 - run.tests.ps1: runner tests with harmless local child-process fixtures.
+- shutdown-state.tests.ps1:9 positive/negative state/metadata classification checks; actual component integration separately recorded.
 - provenance.ps1 / provenance.tests.ps1: current-template/complete installed-source identity and binary binding; stale receipts refuse reuse, no automatic rebuild.
 - preflight.ps1 / preflight.tests.ps1: readonly static prerequisite checks, not a full copy/origin substitute; test source path configurable for another PC.
 - context-diag.go.txt / context-diag_test.go.txt: diagnostic-only context registry/gate and tests, materialized inside copied src/context.
@@ -139,7 +140,7 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 | cancel | Patched copy/cancel | selected parent early cancellation500ms; trace distinguishes cancellation from deadline; preserves original decision outcome, releases gate and workers finish |
 
 - [x] Create verified real isolated copy using Task1; retain pristine manifest and baseline toolchain version/source evidence. Run baseline once before patch. If baseline cannot launch correctly, stop all later arms. Approved retry-001 fresh build and actual baseline passed; original failed preparation remains preserved. Later arms still stopped by Task3 model process-group gate.
-- [x] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch. Context5 logic/completion PASS; trace3 logic PASS but process completion FAIL on ImageError31 of an owned exited member. STOP five later arms, no retry.
+- [x] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch. Historical trace-process ImageError31 failure preserved. Approved policy revision/fresh state-002 gate8 logic and completion PASS; observe origin preparation then failed on running/code0/image-error without final signaled confirmation. Five actual arms UNRUN.
 - [ ] Execute observe once, recording outcome without treating its possible deadline failure as product failure or passing acceptance.
 - [ ] Execute parent-first and synchronized once each; reject false success if trace does not establish the prescribed state or watchdog expired. Mechanism reproduced means actual original stop/return path reached, not merely model assertion passed.
 - [ ] Execute crash and cancel once each; require complete worker shutdown. Unexpected outcome stops that arm; safety/provenance/cleanup failure stops subsequent arms. A controlled nonzero expected result may count as a valid diagnostic control only after full trace checks.
