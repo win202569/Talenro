@@ -8,7 +8,7 @@
 
 **Tech Stack:** Windows PowerShell, existing Go1.26.5 windows/amd64, standard library only; no installs or downloads.
 
-**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. The user approved Native execution by choosing1. Tasks1–2 verified; Task3/4 blocked at baseline build handoff before any actual fuzz arm. Final review remains pending; see the execution record.
+**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. The user approved Native execution by choosing1. Tasks1–2 verified; approved retry-001 baseline passed, but Task3 model process-group completion now blocks later arms. Final review remains pending; see the execution record.
 
 ## Global Constraints
 
@@ -136,7 +136,7 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 | crash | Patched copy/observe + crash fixture | actual worker/crasher evidence, final failure not swallowed; no claim of product material integration |
 | cancel | Patched copy/cancel | selected parent early cancellation500ms; trace distinguishes cancellation from deadline; preserves original decision outcome, releases gate and workers finish |
 
-- [ ] Create verified real isolated copy using Task1; retain pristine manifest and baseline toolchain version/source evidence. Run baseline once before patch. If baseline cannot launch correctly, stop all later arms.
+- [x] Create verified real isolated copy using Task1; retain pristine manifest and baseline toolchain version/source evidence. Run baseline once before patch. If baseline cannot launch correctly, stop all later arms. Approved retry-001 fresh build and actual baseline passed; original failed preparation remains preserved. Later arms still stopped by Task3 model process-group gate.
 - [ ] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch.
 - [ ] Execute observe once, recording outcome without treating its possible deadline failure as product failure or passing acceptance.
 - [ ] Execute parent-first and synchronized once each; reject false success if trace does not establish the prescribed state or watchdog expired. Mechanism reproduced means actual original stop/return path reached, not merely model assertion passed.

@@ -16,12 +16,31 @@ function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashta
     $stdout=Join-Path $receipt 'stdout.txt';$stderr=Join-Path $receipt 'stderr.txt'
     try {
         $native=[IsolatedFuzzProcess]::Run($exe,$Arguments,$Environment,(Split-Path -Parent $receipt),$stdout,$stderr,$LimitSeconds)
-        $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
+        $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
         $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $receipt 'receipt.json')
         return $result
     } catch {
         [pscustomobject]@{StartUTC=[DateTime]::UtcNow.ToString('o');LaunchError=$_.Exception.GetType().FullName;CleanupVerified=$false} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $receipt 'launch-error.json')
         throw
+    }
+}
+function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
+    $compiler=Join-Path $Toolchain 'pkg/tool/windows_amd64/compile.exe'
+    foreach($package in @('context','internal/fuzz')) {
+        $source=Join-Path $Toolchain ('src/'+$package+'/'+$(if($package -eq 'context'){'context.go'}else{'fuzz.go'}))
+        $found=$false
+        foreach($line in ($Log -split '\r?\n')) {
+            $tokens=@([regex]::Matches($line,'"(?:\\.|[^"\\])*"|[^\s"]+') | ForEach-Object {
+                $value=$_.Value
+                if($value.StartsWith('"')) {$value=$value.Substring(1,$value.Length-2).Replace('\\','\').Replace('\"','"')}
+                $value
+            })
+            if($tokens.Count -lt 4 -or $tokens[0] -cne $compiler) {continue}
+            $hasPackage=$false
+            for($i=1;$i -lt $tokens.Count-1;$i++) {if($tokens[$i] -ceq '-p' -and $tokens[$i+1] -ceq $package){$hasPackage=$true}}
+            if($hasPackage -and $tokens -ccontains $source) {$found=$true;break}
+        }
+        if(-not $found) {throw 'Actual copied standard-library compiler/source tokens missing'}
     }
 }
 function Assert-ArmResult([string]$Arm,[object]$Receipt,[object[]]$Trace) {
@@ -50,8 +69,28 @@ function Assert-ArmResult([string]$Arm,[object]$Receipt,[object[]]$Trace) {
         default {throw 'Unknown diagnostic arm'}
     }
 }
-function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm) {
-    if(Test-Path -LiteralPath (Join-Path $RunRoot ('arms/'+$Arm))) {throw 'Arm already exists'}
+function Get-DiagnosticAttemptPaths([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='') {
+    $suffix=''
+    if($BaselineAttempt) {
+        if($Arm -ne 'baseline' -or $BaselineAttempt -cnotmatch '^retry-[0-9]{3}$') {throw 'Invalid baseline attempt identity'}
+        $prior=Join-Path $RunRoot 'arms/baseline'
+        if(-not (Test-Path -LiteralPath $prior -PathType Container) -or (Test-Path -LiteralPath (Join-Path $prior 'execute'))) {throw 'Baseline retry only supports a failed preparation, not a completed fuzz run'}
+        foreach($attempt in Get-ChildItem -LiteralPath (Split-Path -Parent $prior) -Directory -Force) {
+            if($attempt.Name -cmatch '^baseline-retry-[0-9]{3}$') {
+                $validated=Get-IsolatedFullPath $attempt.FullName
+                if(Test-Path -LiteralPath (Join-Path $validated 'execute')) {throw 'A baseline retry already launched fuzz; no further retry allowed'}
+            }
+        }
+        $suffix='-'+$BaselineAttempt
+    }
+    $armDir=Join-Path $RunRoot ('arms/'+$Arm+$suffix)
+    $buildDir=Join-Path $RunRoot ('binaries/'+$(if($Arm -eq 'baseline'){'plain'+$suffix}else{'diagnostic'}))
+    if(Test-Path -LiteralPath $armDir) {throw 'Arm already exists'}
+    if($BaselineAttempt -and (Test-Path -LiteralPath $buildDir)) {throw 'Retry build identity already exists'}
+    [pscustomobject]@{ArmDir=$armDir;BuildDir=$buildDir}
+}
+function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAttempt='') {
+    $paths=Get-DiagnosticAttemptPaths $RunRoot $Arm $BaselineAttempt
     if($Arm -notin @('baseline','observe','parent-first','synchronized','crash','cancel')) {throw 'Unknown arm'}
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
     $allowed=Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator'
@@ -72,7 +111,7 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm) {
         if($patchRecord.Toolchain -ne $tool -or $patchRecord.PatchHash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'coordinator.patch')).Hash) {throw 'Patch provenance drift'}
         foreach($row in $patchRecord.InstalledHashes.PSObject.Properties) {if((Get-FileHash -LiteralPath (Join-Path $tool $row.Name)).Hash -ne $row.Value) {throw 'Instrumented source drift'}}
     }
-    $armDir=Join-Path $root ('arms/'+$Arm)
+    $armDir=Get-IsolatedFullPath $paths.ArmDir
     New-Item -ItemType Directory -Path $armDir -ErrorAction Stop | Out-Null
     foreach($dir in @('runtime-cache','fuzz-cache','tmp')) {New-Item -ItemType Directory -Path (Join-Path $armDir $dir) | Out-Null}
     $mode=if($Arm -eq 'baseline'){''}elseif($Arm -eq 'crash'){'observe'}else{$Arm}
@@ -83,7 +122,7 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm) {
     $originLines=@(Get-Content -LiteralPath $origin.StdoutPath)
     if($origin.ExitCode -ne 0 -or $originLines.Count -lt 2 -or $originLines[0] -ne $tool -or -not $originLines[1].StartsWith($tool+'\',[StringComparison]::OrdinalIgnoreCase)) {throw 'Copied compiler origin verification failed'}
     $variant=if($Arm -eq 'baseline'){'plain'}else{'diagnostic'}
-    $buildDir=Join-Path $root ('binaries/'+$variant)
+    $buildDir=Get-IsolatedFullPath $paths.BuildDir
     $binary=Join-Path $buildDir 'fixture.exe'
     $fixtureHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'fixture_test.go.txt')).Hash
     if(-not (Test-Path -LiteralPath $buildDir)) {
@@ -95,7 +134,7 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm) {
         $build=Invoke-RecordedProcess $go @('test','-c','-x','-p=1','-count=1','-run=^$','-fuzz=^FuzzDiagnostic$','-fuzztime=5s','-parallel=1','-timeout=30s',('-o='+$binary),$fixture) $buildEnvironment (Join-Path $buildDir 'build') 600
         if($build.ExitCode -ne 0 -or $build.TimedOut -or -not $build.CleanupVerified -or $build.DescendantsRemaining -ne 0) {throw 'Fixture build failed; do not retry arm'}
         $buildLog=Get-Content -Raw -LiteralPath $build.StderrPath
-        if(-not $buildLog.Contains((Join-Path $tool 'src/context/context.go')) -or -not $buildLog.Contains((Join-Path $tool 'src/internal/fuzz/fuzz.go'))) {throw 'Actual copied standard-library compile paths missing'}
+        Assert-CopiedCompileEvidence $buildLog $tool
         [pscustomobject]@{FixtureHash=$fixtureHash;BinaryHash=(Get-FileHash -LiteralPath $binary).Hash;Variant=$variant;GOROOT=$tool;CompilerEvidence=$build.StderrPath} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $buildDir 'binary-receipt.json')
     }
     $binaryRecord=Get-Content -Raw -LiteralPath (Join-Path $buildDir 'binary-receipt.json') | ConvertFrom-Json

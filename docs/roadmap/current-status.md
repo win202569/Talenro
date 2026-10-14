@@ -1668,3 +1668,32 @@ path matcher defect is recorded, not bypassed. Product701-file hashes unchanged;
 original toolchain context/fuzz pins unchanged. Final independent review pending.
 Next requires a bounded ruling/authorization for runner diagnosis/repair and a
 fresh baseline receipt. Original matrix3/Pair and all production gates remain open.
+
+### Approved bounded runner repair; baseline retry-001 preparation
+
+Root/descendant membership is now recorded independently of raw job accounting;
+cleanup still requires zero active count and empty membership. Genuine surviving
+children remain failures even after cleanup. Historical remaining1 is unresolved.
+Copied-compiler evidence now validates exact decoded compiler/package/source
+tokens, retaining wrong-root and malformed-source rejection.
+Fresh12 regression+18 runner+8 materialization+16 isolation assertions passed.
+The user approved a new baseline preparation identity retry-001, preserving old
+receipts and using fresh build/cache directories after full pristine-copy
+revalidation. Actual outcome will be recorded separately; later arms/final review
+remain pending and original product acceptance/main blockers are unchanged.
+
+### retry-001 baseline passed; model process-group gate blocks continuation
+
+Pristine copy and original full11536-file manifests matched;701 product hashes
+unchanged. Fresh baseline build exited0 in33.13s, actual5s fuzz exited0 with
+238579 executions and3 recorded processes. Both finished with zero active count
+and empty owned membership, no termination needed. Historical failure preserved.
+Final13 regression+18 runner assertions passed, including refusal to retry after
+an actual baseline execution. The source-matched model controls-only rerun printed
+11 preserved controls but failed group completion: root exited, one different
+owned member remained, then was cleaned to zero/empty. No image/liveness evidence
+was captured, so its cause is unresolved and the gate was not relaxed.
+Later five fuzz arms stopped/unrun; Task3 overall blocked, Task4 baseline only,
+Task5/final independent review pending. No product fix/acceptance/main merge.
+Necessary repair/tests/report files are a development checkpoint; remote recovery
+is confirmed by the Git push receipt, not preclaimed here.

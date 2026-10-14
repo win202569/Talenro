@@ -10,6 +10,13 @@ internal/fuzz tracing changes. The runner is implemented but its real Go build
 handoff is blocked: baseline compilation exited0 while job accounting reported1
 remaining process at root exit, cleaned to0 afterward. No actual fuzz arm ran.
 Do not retry baseline or run later arms without new bounded authorization.
+The user subsequently approved bounded runner repair and one new baseline
+preparation, identity retry-001. Historical receipts remain unchanged. Use
+`Invoke-DiagnosticArm <verified-run-root> baseline retry-001` only under that
+approval: it creates arms/baseline-retry-001 and binaries/plain-retry-001 with
+fresh caches, refuses duplicate identities, and cannot retry other fuzz arms.
+Before reusing an unmodified copy, revalidate its complete manifest and links
+against the original copy receipt; never adopt the failed build's binary.
 Do not treat these component tests as a full reproduction.
 The diagnostic gate deliberately pauses propagation and is never an official
 toolchain patch. Trace IDs preserve equality for comparable errors without
@@ -24,9 +31,31 @@ wrong-mode/missing-worker evidence rejection and wrapped child-only environment.
 process-native.cs launches suspended into an owned, non-breakaway Windows job,
 whitelists inherited std handles and records group accounting. Its baseline
 remaining-count interpretation still needs investigation; unit passes are not
-proof of real Go integration. Current run.ps1 also has a known pending compile
-log path-escaping incompatibility (raw doubled backslashes); do not bypass its
-provenance guard. Keep the failed launch/build receipts unchanged.
+proof of real Go integration. That checkpoint also recorded a compile-log
+path-escaping incompatibility (raw doubled backslashes), repaired below without
+bypassing provenance guards. Keep the failed launch/build receipts unchanged.
+
+Current repair: live owned-job membership is recorded at root wait and after
+cleanup. Descendants exclude only the exact root creation ID, while raw active
+accounting is retained separately. Cleanup still requires both accounting and
+member list empty, within the existing5s cleanup bound; query failure is fatal.
+Observed genuine descendants remain a failed gate even when cleanup succeeds.
+This does not establish what the historical remaining1 represented.
+Compile evidence now requires exact decoded Windows tokens for the copied
+compiler, correct package and source in the same command, not loose substrings.
+Run runner-regression.tests.ps1 (13 assertions) and run.tests.ps1 (18 assertions,
+including a root that exits while an owned child remains) to verify the repairs.
+Raw membership uses [JobObjectBasicProcessIdList](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_process_id_list).
+
+retry-001 outcome: pristine copy revalidated11536 files, baseline build and
+actual5s fuzz passed,238579 executions, no remaining members and no termination
+needed. Original full11536-file manifest and701 product hashes remained unchanged.
+A fresh controls-only model run printed11 preserved controls but failed the
+process gate: after the root exited, the owned job still listed one different
+member. Owned cleanup reached empty/zero. Member image/liveness was not captured;
+do not query recycled receipt PIDs or treat cleanup as acceptance. No further
+arms ran. Task3 remains blocked and final review pending. Once any baseline
+retry has launched fuzz, the retry helper refuses additional attempts.
 
 Windows API references: [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
 [AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),

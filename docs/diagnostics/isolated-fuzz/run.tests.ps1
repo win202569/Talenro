@@ -49,3 +49,7 @@ $wrappedEnv=[System.Management.Automation.PSObject]::AsPSObject('child-only')
 $envRun=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded '[Console]::Out.WriteLine($env:TALENRO_DIAG_ENV_TEST)')) @{TALENRO_DIAG_ENV_TEST=$wrappedEnv} (Join-Path $root 'env') 10
 Assert-True ((Get-Content -Raw -LiteralPath $envRun.StdoutPath).Trim() -eq 'child-only' -and [Environment]::GetEnvironmentVariable($envName) -eq $beforeEnv) 'environment override remains child-only'
 Write-Output "Fixtures retained: $root"
+$orphanCode='Start-Process -FilePath "'+$shell+'" -ArgumentList "-NoProfile -EncodedCommand '+$childCode+'" -WindowStyle Hidden; Start-Sleep -Milliseconds 300; exit 0'
+$orphan=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded $orphanCode)) @{} (Join-Path $root 'root-exit-child-live') 10
+Assert-True ($orphan.RootExited -and -not $orphan.TimedOut -and $orphan.DescendantsRemaining -ge 1 -and $orphan.CleanupVerified -and $orphan.MembersAfterCleanup.Count -eq 0) 'root exit cannot conceal live owned child'
+Assert-Throws {Assert-ArmResult 'baseline' $orphan @()} 'cleaned live child still fails baseline gate'

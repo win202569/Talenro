@@ -101,3 +101,57 @@ exit0、TimedOut=false、job累计278进程、根退出时记录剩余1；
 765F99F7/D9DE1256全值。没有重跑原产品套件/Envelope/Pair，验收阻塞及main禁合并保持。
 下一步需批准：先排查运行器收尾/路径证据判断，建立回归；保留本次失败收据，
 再以明确新收据身份启动基线。不得在未获准前复用当前臂目录或重复运行直到通过。
+
+## 批准后的运行器修复与新基线准备
+
+用户批准修复收尾判断/路径解析，并用新收据重启基线。使用系统化排查、
+TDD与原计划Native执行，范围仅现有诊断工具，不修改产品或正式工具链。
+历史构建收据仍保留，不能据新结果推定上次remaining1的真实身份。
+
+任务成员列表现在单独记录，DescendantsRemaining只排除确切创建的根ID，
+不把根直接当子进程。记录ActiveAtRootWait、RootExited、成员列表及是否
+请求清理；既有5s清理上限不变，最终计数和成员列表必须均为空。
+真实存活子进程即使后来被清理，仍拒绝基线；列表无法核实则失败关闭。
+编译来源按Go日志的引号/双反斜线解析，要求同条命令包含精确副本compiler、
+对应package及source token；错根、后缀伪装、错包、错compiler均拒绝。
+
+根计数、转义路径、新收据身份分别真实RED→GREEN；首个uint64别名错误仅是
+测试编写错误，不计RED。12项修复回归+18项运行器检查全部通过；包括根退出
+而真实子进程仍在的对照及清理后仍拒绝。另8项复建、16项真实链接隔离通过。
+
+裁决：重验framework-001完整11536文件/hash/link清单后复用未插桩副本，
+不采用旧fixture.exe。retry-001单独创建baseline-retry-001和plain-retry-001，
+缓存/构建/收据均为新目录，旧记录不覆盖；该入口只支持未启动fuzz的失败
+baseline准备，不支持已运行臂的自动重试。代价是重新构建及完整清单核对；
+若复用核对错误可能漏漂移，所以必须在启动前通过全清单验证。
+本节先记录修复/准备，不提前宣称基线成功或后续臂已运行。
+
+### retry-001实际结果与新的收尾阻塞
+
+副本全11536文件清单差异0；原工具链全11536文件清单差异0（UTC13:05:03），
+产品701摘要差异0。旧失败构建收据hash仍
+E1989051F7B7630B04A457165E35D31A08AA8EA3B52191DC60F0CE570198A1EF。
+新build UTC13:03:50.049–13:04:23.178（Asia/Tbilisi17:03:50–17:04:23），
+exit0、278进程、计数/成员均0、未请求终止。编译来源token守卫通过，
+fixture hash9FAA1E69E2DDFFB81339CC465B4300C10CA77F1ACFEC6D6CC2D4575B0433FBAB，
+binary hashC3E6CD21E1327574B2FA499D16BDBCDF5F4C8F5DF9233BC0CED94C41D355F23F。
+
+实际baseline UTC13:04:24.543–13:04:30.291（Asia/Tbilisi17:04:24–17:04:30），
+exit0、238579次、5s预算、parallel1、count1、内部30s/外部60s不变。
+TotalProcesses3、根退出时计数和成员均0、未请求终止、CleanupVerified=true；
+实际版本go1.26.5 windows/amd64，GOROOT/GOTOOLDIR都在未插桩副本。
+这是独立无错误fixture基线通过，不是产品或Envelope/Pair验收。
+
+随后Task3现有controls-only模型重新核对源模板相同，在独立新收据
+controls-repair-001运行：11项Preserved=true，但process gate真实失败。
+UTC13:06:47.016–13:06:47.064，exit0、TimedOut=false、TotalProcesses2；
+根ID23688已退出，job仍列不同成员24584、ActiveAtRootWait1、DescendantsRemaining1。
+只清理所属job后计数和列表均为空、CleanupVerified=true，不能因此改判通过。
+此记录首次明确非根成员；未捕获其映像/活性，不能断言真实工作进程或退出记账滞后。
+不按历史PID追查/终止，不回写旧模型收据或推定旧构建失败原因。
+
+停止后续臂：observe、parent-first、synchronized、crash、cancel仍UNRUN，
+副本未插桩；Task3整体仍阻塞，Task4仅基线完成，Task5/最终独立审查未进行。
+额外重试入口守卫对“retry已启动fuzz后再次运行”真实RED→GREEN，最终13项
+回归+18项运行器通过；不重跑真实基线。下一步需要有界实时成员身份/活性
+诊断以解释这个新阻塞，不能放宽收尾门槛或循环重试。原生产/main阻塞不变。
