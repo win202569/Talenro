@@ -1,5 +1,36 @@
 # Isolated fuzz diagnosis
 
+Latest bounded diagnostic-only increment: opt-in `CaptureShutdownDiagnostic` on
+Invoke-RecordedProcess records a separate DiagnosticShutdown member observation
+on the same retained, live-job-verified handle. Only running-after-confirmation
+members with missing image metadata qualify; unknown ownership/core queries skip.
+One wait uses the remainder of the shared500ms shutdown window, not a fresh window
+per member. Core state/exit/image/first/confirm fields stay untouched. Live pre-root
+sampling and ordinary arm execution do not enable this mode. Member cap32 and
+shared5000ms cleanup remain unchanged; scheduler latency is not hard real-time.
+
+Every opt-in receipt carries ShutdownDiagnosticOnly=true; Assert-ProcessCompletion
+refuses it even if the process naturally finished with an empty job. Diagnostic
+observations never substitute for core acceptance evidence or launch an arm.
+shutdown-observation.tests.ps1 runs real short/long owned process waits plus
+ownership/query/window/no-upgrade controls. It reuses11 same-handle assertions;
+22 additional assertions give33 in that script and131 in the full scoped suite.
+CoreObservedUTC separately captures the core snapshot before any later diagnostic
+wait; legacy ObservedUTC still describes inspection completion. A real native
+live-child test protects this ordering and owned cleanup.
+Literal image-error boundary rows are controlled inputs, not proof that those test
+children naturally produced Windows image errors. No product full-suite/fuzz ran.
+
+One authorized copied-Go version probe, shutdown-probe-001, ran2026-10-14 UTC17:51:32.
+It did not hit the running+missing-image target: the owned running member had a
+readable conhost.exe image, so observation was skipped as not-needed. Exit0,
+bounded owned cleanup verified; acceptance deliberately refused. This cannot
+identify old failed members or explain their image errors. No second probe,
+remaining fuzz execution, guard relaxation or acceptance follows from a no-hit.
+Probe receipts/caches remain local ignored data, not recoverable from Git.
+The single probe preceded the CoreObservedUTC addition; no probe was repeated to
+populate that extra field. Final native/serialization behavior is component-tested.
+
 Current checkpoint2026-10-14: baseline passed once; framework copy now instrumented.
 The approved exited-state/image split and one same-handle confirmation are verified.
 observe-prep-002 and parent-first actual fuzz passed their diagnostic checks;

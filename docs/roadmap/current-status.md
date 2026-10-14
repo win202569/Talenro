@@ -1,5 +1,27 @@
 # Project status — updated 2026-10-14
 
+## Latest bounded observation — implemented, one probe inconclusive
+
+The user approved diagnostic-only retained-handle observation and one standalone
+copied-Go version probe. Explicit opt-in waits once within the remaining shared
+500ms; it neither changes first/confirm/core evidence nor upgrades acceptance.
+Every such receipt is tagged diagnostic-only and refused by the completion gate.
+Fresh131 scoped PowerShell assertions passed, including22 added observation checks
+and real owned short/long handles, unknown ownership/query, shared-window expiry
+and receipt/acceptance protection. No original product suite or fuzz arm ran.
+CoreObservedUTC now records core evidence time separately from later observation;
+native live-child timing/cleanup test RED→GREEN. The single actual version probe
+was not repeated after this timestamp-only addition.
+
+shutdown-probe-001 ran UTC17:51:32.449–17:51:32.589 (Asia/Tbilisi21:51:32).
+Exit0, no timeout, owned cleanup verified. Target hit count0: captured running
+member had readable image, so diagnostic wait was not needed. No-repeat condition
+observed; this is inconclusive for missing-image failures, not a fix or acceptance.
+Actual-arm progress remains3/6; synchronized/crash/cancel UNRUN. Old failures,
+production/main gates and existing one-review checkpoint limitations remain.
+Necessary source/tests/recovery reports are preserved on the development branch;
+actual push success is checked against the final commit in the handoff.
+
 ## Latest diagnostic checkpoint — partial actual-framework progress
 
 Approved same-handle single exit confirmation and fresh observe-prep-002 are
