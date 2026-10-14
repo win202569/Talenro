@@ -218,3 +218,51 @@ conhost或原Envelope失败根因。701产品摘要无变化，正式context/fuz
 仍765F99F7/D9DE1256全值。本轮仅有界收尾增量完成；后续observe/parent-first/
 synchronized/crash/cancel五臂UNRUN，完整框架复现/最终审查未完成，生产及main
 门槛保持。源/测试/报告照常保存开发分支，不提交原始收据或工具链。
+
+## 后续五臂预备停止：已退出成员映像读取缺失
+
+用户同意继续五臂及独立审查后，未重跑baseline。framework-001仅副本应用
+钉定补丁，UTC13:45:48.223（Asia/Tbilisi17:45:48），patch hash
+99990264F055992FE1618297CB3B0FEB3E569A8C8D216C4E0A07888B7CCE84D1；
+原始源pins及6个安装后文件hash均记入专属收据。
+
+gate-framework-001按新缓存/独立测试exe准备，均保留原时限/count1：
+context构建UTC13:45:48.302–13:46:38.074，exit0，收尾通过；
+context运行UTC13:46:38.326–13:46:39.914，5逻辑测试通过、exit0、收尾通过。
+internal/fuzz构建UTC13:46:40.112–13:46:44.560，exit0，收尾通过；
+internal/fuzz运行UTC13:46:44.645–13:46:45.481（Asia/Tbilisi17:46:44–17:46:45），
+3逻辑测试通过/exit0，但整个运行的完成门槛失败，不能写作“8项整体全部通过”。
+
+失败证据：根23604已退出，job剩余成员12116，Owned=true，零等待状态exited，
+ExitCode0，QueryError0，但ImageError31、ImagePath缺失。当前批准规则将映像
+缺失也归为不完整收尾证据，NaturalShutdownVerified=false；请求仅所属job的
+终止后计数0/成员空、CleanupVerified=true，未改判通过。不能据此推测成员
+一定是conhost，不能凭退出码0或最终清理成功掩盖当前gate失败。
+
+按停止条件，observe、parent-first、synchronized、crash、cancel全部UNRUN，
+没有臂目录/实际fuzz启动，也没有重试gate。副本已插桩，禁止再用于baseline。
+后验原工具链全11536文件清单差异0；产品701摘要差异0。
+系统化排查已定位触发分支：已知退出状态和缺失映像身份被同一完整性判据
+绑定；是否调整需要明确有界设计/审批，不自动放宽“未知状态必须失败”。
+
+不受影响的Task5只读前置检查已实现：合法钉定文件stub RED→GREEN，4项行为
+测试通过（预检不启动Go、不复制工具链、不产生缓存/收据；缺失/漂移拒绝）。
+实际正式源静态预检通过，不替代全copy清单与实际GOROOT/版本证据。
+新电脑先运行preflight.ps1函数，再按原隔离流程准备新root，不能复用旧本机缓存。
+鲜活4 preflight+31 runner+13 regression+8 materialization断言通过；这些通过
+不抵消本次真实trace-run完成失败。当前未完成检查点交单一独立审查，结果另记。
+
+### 独立检查点审查与一轮范围内修复
+
+单一fresh-context只读审查：原0 Critical/2 Important/1 Minor。作者按换机
+恢复的实际影响升级收据缺口为Important；3 Important中源码/二进制绑定和
+复制收据两项已修复，收尾语义一项仍待批准。
+见[审查、处置及未判项](2026-10-14-isolated-fuzz-checkpoint-review.md)。
+I1：已退出不等于状态未知，映像缺失是独立metadata；当前守卫仍有效，不
+改写已请求终止的失败，五臂UNRUN。I2模板漂移RED→GREEN，完整6文件/当前
+4模板/patch绑定，binary SourceIdentity缺失/漂移拒绝，无自动重建/重跑；
+二进制错配也RED→GREEN，7项通过，实际安装源码只读匹配。I3缺复制收据
+RED→GREEN，三清单相等后仅CreateNew写入、返回/保存身份相同；18项隔离
+含真实链接通过，README当前状态前置，preflight纳入新provenance材料。
+没有二次审查、actual-arm重跑、conhost豁免、正式工具链修改或main合并。
+本次审查不代表完成五臂或整个计划，I1设计政策仍阻塞。

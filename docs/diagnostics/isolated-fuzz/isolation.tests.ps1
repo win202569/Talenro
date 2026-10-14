@@ -30,6 +30,9 @@ Assert-Throws { Assert-IsolatedPaths $source ($allowed+'-outside/copy') $allowed
 Assert-True (-not (Test-Path -LiteralPath $target)) 'validation writes nothing'
 $before=@(Get-TreeManifest $source)
 $copy=New-IsolatedToolchain $source $target
+Assert-True (Test-Path -LiteralPath (Join-Path $target 'copy-receipt.json')) 'fresh verified copy saves required recovery receipt'
+$saved=Get-Content -Raw -LiteralPath (Join-Path $target 'copy-receipt.json')|ConvertFrom-Json
+Assert-True ($saved.Toolchain -eq $copy.Toolchain -and $saved.BeforeManifest.Count -eq 2 -and @((Compare-Object $saved.CopyManifest $copy.CopyManifest -Property Path,SHA256,Length)).Count -eq 0) 'saved receipt preserves copy identity and verified manifests'
 Assert-True ($before.Count -eq 2) 'manifest contains exact two files'
 Assert-True (($before | ConvertTo-Json -Compress) -ceq ($copy.CopyManifest | ConvertTo-Json -Compress)) 'copy manifest equality'
 Assert-True (($before | ConvertTo-Json -Compress) -ceq (@(Get-TreeManifest $source) | ConvertTo-Json -Compress)) 'source unchanged'

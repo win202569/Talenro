@@ -1726,3 +1726,36 @@ termination. Completion checks passed.701 product hashes and fixed context/fuzz
 pins unchanged. No baseline rerun, later-five-arm execution or main merge.
 This bounded increment is verified, not historical root-cause/fuzz acceptance;
 full framework controls and final independent review remain pending.
+
+### Remaining-arm preparation stopped by exited-member image evidence gap
+
+Pinned patch installed only in framework-001; baseline not rerun. Context5 logic
+tests and completion passed, internal/fuzz3 logic tests passed/exit0 but process
+completion failed: owned member verified exited/code0, image lookup error31,
+shutdown evidence incomplete; owned forced cleanup0/empty did not turn it into
+success. No assumption that the member was conhost. All five actual fuzz arms
+remain UNRUN and no failed test/arm was retried. Copy is now instrumented.
+Original full11536-file manifest and701 product hashes unchanged. Static readonly
+fresh-computer preflight added/4 behavioral assertions passed, actual source check
+passed; not a full manifest or actual compiler-origin replacement. Fresh56 PS
+assertions passed but do not override the real trace-process gate failure.
+One independent review covers the current unfinished diagnostic implementation;
+full-run completion/production/main gates remain open. Resolving exited-state
+proof versus image loss needs a bounded policy decision, not a silent bypass.
+
+### Independent checkpoint review; provenance/recovery fixes verified
+
+One read-only independent review for unfinished implementation, not five-arm
+acceptance.0C/2I/1M originally; author promoted fresh-copy receipt gap to Important
+by recovery impact. Source/binary binding and receipt handoff fixed RED→GREEN:
+exact installed6 files/current4 templates/patch bind binary SourceIdentity; missing
+or drifted binding refuses reuse without automatic rebuild/retry. Verified copies
+save their receipt via CreateNew. Author verification only, no re-review.
+Image/liveness conflation remains approved-policy blocker requiring bounded
+revision; old failures unchanged, five arms UNRUN, no main merge.
+See [review/dispositions](2026-10-14-isolated-fuzz-checkpoint-review.md).
+Final author verification:81 diagnostic PowerShell assertions PASS (31 runner,
+13 regression,8 materialization,7 provenance,4 preflight,18 isolation with real
+links). These do not override the actual trace-process completion failure or
+constitute independently reproduced tests/five-arm completion. Necessary checkpoint
+files target the existing development branch; remote identity requires push verification.

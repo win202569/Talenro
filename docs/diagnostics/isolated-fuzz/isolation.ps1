@@ -102,7 +102,12 @@ function New-IsolatedToolchain([string]$Source,[string]$RunRoot) {
     $after=@(Get-TreeManifest $src)
     $expected=ConvertTo-Json -InputObject $before -Compress
     if ($expected -cne (ConvertTo-Json -InputObject $copied -Compress) -or $expected -cne (ConvertTo-Json -InputObject $after -Compress)) { throw 'Source or copy manifest changed' }
-    [pscustomobject]@{ Source=$src; Toolchain=$toolchain; Cache=$cache; BeforeManifest=$before; CopyManifest=$copied }
+    $receipt=[pscustomobject]@{ Source=$src; Toolchain=$toolchain; Cache=$cache; BeforeManifest=$before; CopyManifest=$copied }
+    $receiptPath=Get-IsolatedFullPath (Join-Path $root 'copy-receipt.json')
+    $bytes=[Text.Encoding]::UTF8.GetBytes(($receipt|ConvertTo-Json -Depth 6))
+    $stream=[IO.File]::Open($receiptPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+    try{$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
+    return $receipt
 }
 function Install-DiagnosticPatch([string]$Toolchain) {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')

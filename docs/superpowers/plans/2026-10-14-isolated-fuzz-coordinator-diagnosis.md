@@ -8,7 +8,7 @@
 
 **Tech Stack:** Windows PowerShell, existing Go1.26.5 windows/amd64, standard library only; no installs or downloads.
 
-**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. The user approved Native execution by choosing1. Tasks1–2 verified; approved retry-001 baseline passed, but Task3 model process-group completion now blocks later arms. Final review remains pending; see the execution record.
+**Spec:** [Approved design](../specs/2026-10-14-isolated-fuzz-coordinator-diagnosis-design.md), approved after commit05e5a17c. Native execution selected. Baseline and new natural-shutdown model passed; five-arm preparation now stops on an exited member's missing image metadata. One independent unfinished-checkpoint review completed; source/binary binding and recovery fixes verified, shutdown-policy revision still pending. See the execution record.
 
 ## Global Constraints
 
@@ -38,6 +38,8 @@ Tracked files, all under docs/diagnostics/isolated-fuzz/ unless noted:
 - isolation.tests.ps1: standalone behavioral assertions; no Pester dependency.
 - run.ps1: bounded processes, per-arm directories, recording and result validation.
 - run.tests.ps1: runner tests with harmless local child-process fixtures.
+- provenance.ps1 / provenance.tests.ps1: current-template/complete installed-source identity and binary binding; stale receipts refuse reuse, no automatic rebuild.
+- preflight.ps1 / preflight.tests.ps1: readonly static prerequisite checks, not a full copy/origin substitute; test source path configurable for another PC.
 - context-diag.go.txt / context-diag_test.go.txt: diagnostic-only context registry/gate and tests, materialized inside copied src/context.
 - coordinator.patch: exact minimal patch for copied src/internal/fuzz/fuzz.go and src/context/context.go; source hash must match before applying.
 - fixture_test.go.txt: independent standard-library fuzz fixture; materialized in run root.
@@ -137,7 +139,7 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 | cancel | Patched copy/cancel | selected parent early cancellation500ms; trace distinguishes cancellation from deadline; preserves original decision outcome, releases gate and workers finish |
 
 - [x] Create verified real isolated copy using Task1; retain pristine manifest and baseline toolchain version/source evidence. Run baseline once before patch. If baseline cannot launch correctly, stop all later arms. Approved retry-001 fresh build and actual baseline passed; original failed preparation remains preserved. Later arms still stopped by Task3 model process-group gate.
-- [ ] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch.
+- [x] Apply verified Task2 patch and run its gate/trace tests; record any failures before proceeding. Do not rerun completed baseline after patch. Context5 logic/completion PASS; trace3 logic PASS but process completion FAIL on ImageError31 of an owned exited member. STOP five later arms, no retry.
 - [ ] Execute observe once, recording outcome without treating its possible deadline failure as product failure or passing acceptance.
 - [ ] Execute parent-first and synchronized once each; reject false success if trace does not establish the prescribed state or watchdog expired. Mechanism reproduced means actual original stop/return path reached, not merely model assertion passed.
 - [ ] Execute crash and cancel once each; require complete worker shutdown. Unexpected outcome stops that arm; safety/provenance/cleanup failure stops subsequent arms. A controlled nonzero expected result may count as a valid diagnostic control only after full trace checks.
@@ -147,7 +149,7 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 
 **Files:** README.md, execution report, current-status; update this plan's checkboxes from actual evidence only.
 
-- [ ] Verify committed scripts/templates independently materialize all required files without old receipts/cache; readonly preflight mode checks prerequisites without executing/copying. Record any real integration test still unrun.
+- [x] Verify committed scripts/templates independently materialize all required files without old receipts/cache; readonly preflight mode checks prerequisites without executing/copying. Record any real integration test still unrun. Materialization8 + preflight4 + provenance7 + real-link isolation18 assertions PASS; five actual arms remain UNRUN.
 - [ ] Self-review spec coverage: isolation Task1; deadlock/trace Task2; bounded processes Task3; six finite arms Task4; recovery/limits Task5. Distinguish real-worker failure, model material fixtures, forced scheduling and natural observations throughout.
 - [ ] Use chosen execution method's final review gate. Do not create reviewers until that method is selected. Fix scoped findings with tests; no repeated fuzz arms to hide a failure—rerunning an arm requires a new bounded authorization and fresh receipt identity.
 - [ ] Confirm exact staged file list excludes binaries/toolchain/cache/receipts; verify source unchanged and documentation checks; commit/push and confirm remote SHA. If blocked, preserve/report local-only checkpoint without claiming remote recovery.
@@ -156,3 +158,4 @@ Arm order is fixed; use separate empty arm corpus/cache directories, no old inpu
 ## Plan self-review and approval gate
 
 Original plan self-review covered all seven spec sections and five Review Focus risks. Execution is partial: component tests do not close real integration risk. Baseline compilation exit0 was rejected by a remaining-process gate; actual fuzz arms were not launched and will not be retried without new bounded authorization. No product fix, acceptance clearance or main merge.
+Latest checkpoint: approved new baseline did execute/PASS; historical failed preparation is immutable. Source-pinned patch/component runs completed, but trace-process shutdown failed despite three logic tests passing. Single independent review0C/2I/1M (recovery re-graded Important) produced two tested fixes and one unresolved approved-policy issue. No remaining actual arm ran or was retried; full plan completion is not claimed.

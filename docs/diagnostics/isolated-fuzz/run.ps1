@@ -1,5 +1,6 @@
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'isolation.ps1')
+. (Join-Path $PSScriptRoot 'provenance.ps1')
 if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'process-native.cs') }
 function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds,[bool]$CaptureLiveMembers=$false) {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
@@ -122,10 +123,12 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAtt
     if($Arm -eq 'baseline') {
         foreach($path in $sourcePins.Keys) {if((Get-FileHash -LiteralPath (Join-Path $tool $path)).Hash -ne $sourcePins[$path]) {throw 'Baseline source is instrumented or drifted'}}
         if(Test-Path -LiteralPath (Join-Path $root 'patch-receipt.json')) {throw 'Baseline cannot run after instrumentation'}
+        $sourceIdentity='plain:'+$goPin[0].SHA256+':'+$sourcePins['src/context/context.go']+':'+$sourcePins['src/internal/fuzz/fuzz.go']
     } else {
         $patchRecord=Get-Content -Raw -LiteralPath (Join-Path $root 'patch-receipt.json') | ConvertFrom-Json
         if($patchRecord.Toolchain -ne $tool -or $patchRecord.PatchHash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'coordinator.patch')).Hash) {throw 'Patch provenance drift'}
         foreach($row in $patchRecord.InstalledHashes.PSObject.Properties) {if((Get-FileHash -LiteralPath (Join-Path $tool $row.Name)).Hash -ne $row.Value) {throw 'Instrumented source drift'}}
+        $sourceIdentity=Get-DiagnosticSourceIdentity $tool $patchRecord
     }
     $armDir=Get-IsolatedFullPath $paths.ArmDir
     New-Item -ItemType Directory -Path $armDir -ErrorAction Stop | Out-Null
@@ -154,9 +157,10 @@ function Invoke-DiagnosticArm([string]$RunRoot,[string]$Arm,[string]$BaselineAtt
         if($build.ExitCode -ne 0) {throw 'Fixture build failed; do not retry arm'}
         $buildLog=Get-Content -Raw -LiteralPath $build.StderrPath
         Assert-CopiedCompileEvidence $buildLog $tool
-        [pscustomobject]@{FixtureHash=$fixtureHash;BinaryHash=(Get-FileHash -LiteralPath $binary).Hash;Variant=$variant;GOROOT=$tool;CompilerEvidence=$build.StderrPath} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $buildDir 'binary-receipt.json')
+        [pscustomobject]@{FixtureHash=$fixtureHash;BinaryHash=(Get-FileHash -LiteralPath $binary).Hash;Variant=$variant;GOROOT=$tool;CompilerEvidence=$build.StderrPath;SourceIdentity=$sourceIdentity} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $buildDir 'binary-receipt.json')
     }
     $binaryRecord=Get-Content -Raw -LiteralPath (Join-Path $buildDir 'binary-receipt.json') | ConvertFrom-Json
+    Assert-DiagnosticBinarySource $binaryRecord $sourceIdentity
     if($binaryRecord.FixtureHash -ne $fixtureHash -or $binaryRecord.BinaryHash -ne (Get-FileHash -LiteralPath $binary).Hash -or $binaryRecord.GOROOT -ne $tool -or $binaryRecord.Variant -ne $variant) {throw 'Binary provenance invalid'}
     $arguments=@('-test.run=^$','-test.fuzz=^FuzzDiagnostic$','-test.fuzztime=5s','-test.parallel=1','-test.timeout=30s','-test.count=1',('-test.fuzzcachedir='+(Join-Path $armDir 'fuzz-cache')))
     $receipt=Invoke-RecordedProcess $binary $arguments $environment (Join-Path $armDir 'execute') 60

@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Current checkpoint2026-10-14: baseline passed once; framework copy now instrumented.
+Context5 tests/completion passed; trace3 logic passed but completion failed on an
+exited owned member's missing image metadata. Five remaining fuzz arms are UNRUN.
+Independent checkpoint review found an unresolved shutdown-policy issue; source/
+binary binding and copy-receipt recovery gaps were fixed by regressions. No old
+failure reclassification/main merge. [Review/dispositions](../../roadmap/2026-10-14-isolated-fuzz-checkpoint-review.md).
+Entries below preserve historical checkpoints, not the latest state.
+
 Use PowerShell on Windows. Read the approved2026-10-14 spec/plan and AGENTS.md.
 This directory currently contains the verified isolation utility, not a complete
 framework reproducer. Never run scripts against a project/cache root as target.
@@ -99,6 +107,29 @@ explain console-host creation/historical fuzz failure. Baseline was not rerun;
 later five arms and final review still pending. Necessary source/report files
 are recovery artifacts; machine receipts/caches/binaries remain excluded.
 
+Fresh-computer static prerequisite check (no toolchain execution, copying,
+downloads or generated receipts): dot-source preflight.ps1, then call
+`Test-DiagnosticPrerequisites <absolute-source-toolchain-path>`. It checks Windows,
+independent pinned go.exe/context.go/fuzz.go, VERSION and portable materials.
+Ready only means these prerequisites match; full manifest/link validation during
+New-IsolatedToolchain and actual version/GOROOT/compiler evidence remain required.
+preflight.tests.ps1 passed4 behavioral assertions, including no generated files.
+On another PC, pass its pinned toolchain location with `preflight.tests.ps1 -Source
+<absolute-path>`; the test does not require a Lenovo user profile.
+The test uses a tiny source fixture; it is not a complete11536-file toolchain.
+
+Current framework continuation stopped before observe: patch installed only in
+framework-001. Context5 and trace3 logic tests passed; both compiles passed. The
+trace test process exited0 but its shutdown gate failed because a verified owned
+member was already signaled/exited with code0, while image lookup returned31.
+Current policy treats that missing evidence as failure and forced owned cleanup
+then verified0/empty. Image was not captured; do not infer conhost from previous
+runs. All five actual diagnostic fuzz arms remain UNRUN; no gate/arm retry or
+baseline rerun. Full original11536-file manifest and701 product hashes unchanged.
+Resolving known exit state versus missing image identity requires a bounded
+policy/design decision, not bypassing the guard. Independent checkpoint review
+does not turn these unrun arms into acceptance.
+
 Windows API references: [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
 [AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),
 [job limits](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information).
@@ -131,9 +162,18 @@ directory and a nonexistent unique RunRoot beneath
 .superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator/. The function checks
 paths, links and independent source/copy manifests before returning. It does not
 run or patch the copy. Do not substitute another toolchain or download dependencies.
+It now saves copy-receipt.json in the new RunRoot after verification, via CreateNew.
+Do not manually overwrite it. Saved/returned Source/Toolchain/Cache and manifests
+match; Invoke-DiagnosticArm consumes that receipt. An incomplete copy is unusable.
 The fixed version is Go1.26.5 windows/amd64, independently prepared on a fresh PC.
 
 Generated copies, caches, fixtures and receipts are not recovery artifacts and
 must not be committed. Rebuild from tracked scripts/templates; source hashes,
 actual executable/GOROOT and runtime results still require verification. Original
 matrix3 failure and Pair-unrun remain open; no product acceptance or main merge.
+
+provenance.ps1 requires the exact installed6-file set/current4 templates/patch and
+binds binary receipts to canonical source identity. Missing/stale identity refuses
+reuse without rebuilding or retrying an existing arm.7 provenance assertions PASS
+including template-only drift. Old baseline results remain historical facts, not
+permission to reuse unbound binaries.
