@@ -14,6 +14,12 @@ wait loop checks it; instrumentation does not add a hard-deadline guarantee.
 No retry/Go/fuzz/acceptance upgrade; original tests and readiness payload unchanged.
 See [six boundaries, actual failure and recovery](2026-10-15-launch-timing-diagnostic.md).
 
+Readonly follow-up found no matching Defender/CodeIntegrity/AppLocker/PowerShell
+event in002's narrow time window; absence does not exonerate those components.
+WPR/WPAExporter are present, and WPR status reported no recording at the check.
+No trace or new sample ran. A short local trace is proposed, not yet approved;
+raw system traces must stay local/uncommitted and existing recordings untouched.
+
 ## Latest independent fixture — readiness blocked, cleanup verified
 
 Approved additive child-readiness fixture is implemented without modifying old

@@ -95,6 +95,25 @@ AD73295A7CBBEC9D2900F1749C98E97DFD1F4D62EA26E1F17AE2CECFEE34C6B5.
 
 ## Recovery and next boundary
 
+### Subsequent readonly checks, no new sample
+
+Queried Defender/Operational, CodeIntegrity/Operational, AppLocker/EXE and DLL,
+and PowerShell/Operational from one second before002 StartUTC to one second after
+EndUTC. Each query returned no matching event, not an access error. This is not
+proof that scanning, policy checks or scheduling played no part: these logs do
+not provide a complete creation-latency trace. Receipt/result hashes above were
+rechecked unchanged. No security configuration, recording or process sample ran.
+
+Readonly application discovery found the built-in WPR and installed Windows
+Performance Toolkit WPR/WPAExporter, plus tracerpt. WPR reported version10.0.26100
+and no recording active at this check; its profile inventory included GeneralProfile,
+CPU, DiskIO, FileIO and Minifilter. Only status/profile queries ran, not recording.
+This is a prerequisite check, not assurance that no session will be active later.
+A proposed single short local performance-trace experiment needs its own approval;
+it may include system process names/paths and must not upload/commit raw traces
+or interfere with another recording. It must not repeat old identities or relax
+the2s sample budget. No cause-specific fix is established by the available logs.
+
 Recover the latest codex/c12-b01-task9-coordinator checkpoint, not automatically
 main; read current-status.md and repository-recovery.md. Necessary diagnostic
 source/tests and this report are tracked; raw receipts, tool caches and live state
