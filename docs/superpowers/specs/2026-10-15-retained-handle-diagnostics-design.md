@@ -1,8 +1,10 @@
 # Retained-handle lifetime diagnostics — proposed design
 
 Date:2026-10-15. Base:26bb962a1c7c17aebe12f3e0b9774212f9682d92.
-Status:written design for user review; NOT approved for planning, implementation,
-live execution, matrix replay, acceptance or main merge.
+Status:user approved this written design after checkpoint8c81feb3. Planning is
+authorized; implementation, live execution, matrix replay, acceptance and main
+merge are NOT authorized by that approval. The plan needs review and an execution
+method choice before implementation.
 
 ## 1. Intent and evidence boundary
 

@@ -1,14 +1,24 @@
 # Project status — updated 2026-10-15
 
-## Latest retained-handle diagnostics spec — awaiting user review
+## Latest retained-handle implementation plan — awaiting approval/method choice
 
-User approved writing the proposed diagnostic-only retained-handle design, not
+User approved written spec after8c81feb3. Three-task plan is written:portable
+registry/ownership, opt-in native lifecycle wiring, optional receipt refusal and
+fake-only regression/recovery. Explicit suite allowlist excludes live-process
+tests; no code/test/native/PID query/matrix execution. Recommended inline execution
+with one fresh final reviewer, or per-task subagents if chosen. Plan approval and
+execution-method choice precede implementation; live experiment remains separate.
+See [written plan](../superpowers/plans/2026-10-15-retained-handle-diagnostics.md).
+
+## Retained-handle diagnostics spec — approved for planning only
+
+User approved the written diagnostic-only retained-handle spec for planning, not
 implementation. Spec defines explicit default-off mode,32 total admission attempts/
 at most32 retained owned-child handles, same-entry observations, bounded polling,
 unchanged rights/runtime/shutdown budgets, separate non-acceptance receipts and
 finally-based disposal. Missing/failed/ambiguous samples never become success;
 retention observer effects and partial-on-exception persistence limits are explicit.
-No code/test/native/PID query/matrix run. Written-spec approval precedes planning;
+No code/test/native/PID query/matrix run. Written-spec approval is now recorded;
 plan approval/execution-method choice and live experiment approval are separate.
 See [proposed spec](../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
 

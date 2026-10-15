@@ -1,6 +1,11 @@
 # Isolated fuzz diagnosis
 
-Proposed retained-handle diagnostic design is written for user review only:
+Retained-handle written spec approved for planning. The [three-task implementation
+plan](../../superpowers/plans/2026-10-15-retained-handle-diagnostics.md) awaits user
+approval and execution-method choice; fake-only suites are explicitly bounded.
+No implementation or live experiment yet.
+
+Approved retained-handle diagnostic design authorizes planning only:
 explicit default-off entry,32 admission attempts, owned-handle lifetime/teardown,
 sampled non-acceptance evidence and process-free test requirements. No implementation
 or experiment yet. Read [written spec](../../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
