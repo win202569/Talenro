@@ -36,7 +36,8 @@ function Assert-EnvelopeCompileEvidence([string]$Log,[string]$Toolchain,[string]
     }
     throw 'Original Envelope test/parser compile evidence missing'
 }
-function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]$ModuleCache,[switch]$PreparationOnly) {
+function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]$ModuleCache,[switch]$PreparationOnly,[switch]$CompileOnly) {
+    if($PreparationOnly -and $CompileOnly){throw 'Preparation-only and compile-only modes are mutually exclusive'}
     $plan=Get-EnvelopeObservationPlan $RunRoot $Toolchain $ModuleCache
     $identity=Assert-EnvelopeRunProvenance $plan
     $before=@(Get-EnvelopeProductManifest)
@@ -45,6 +46,7 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
     foreach($dir in @('go-cache','fuzz-cache','tmp')){New-Item -ItemType Directory -Path (Join-Path $plan.RunRoot $dir)|Out-Null}
     $stage='version'
     $prepared=$null
+    $compiled=$null
     try {
         $version=Invoke-RecordedProcess $plan.Executable @('version') $plan.Environment (Join-Path $plan.RunRoot 'version') 60
         Assert-ProcessCompletion $version
@@ -71,6 +73,10 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
         if((Assert-EnvelopeRunProvenance $plan) -cne $identity){throw 'Copied diagnostic source changed during build'}
         $binaryHash=(Get-FileHash -LiteralPath $plan.Binary).Hash
         [pscustomobject]@{SourceIdentity=$identity;BinaryHash=$binaryHash;OriginalFuzzHash='318CF8DE04BA5D95E71E625ABF6AAED8DFD54B854A9A925B7A3004D4132D989E';ProductBefore=(Join-Path $plan.RunRoot 'before-product.json');CompilerEvidence=$build.StderrPath;GOROOT=$plan.Toolchain;Project=$plan.Project}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'binary-receipt.json')
+        if($CompileOnly) {
+            $compiled=[pscustomobject]@{Scope='Envelope compilation only';CompileOnly=$true;BuildPassed=$true;BuildExecuted=$true;SamplingExecuted=$false;Acceptance=$false;SourceIdentity=$identity;BinaryHash=$binaryHash;RunRoot=$plan.RunRoot;Binary=$plan.Binary;BinaryReceipt=(Join-Path $plan.RunRoot 'binary-receipt.json');CompilerEvidence=$build.StderrPath}
+            return
+        }
         $stage='execute'
         $receipt=Invoke-RecordedProcess $plan.Binary $plan.ExecuteArguments $plan.Environment (Join-Path $plan.RunRoot 'execute') $plan.ExecuteLimitSeconds
         $trace=@(Get-Content $receipt.StderrPath|Where-Object {$_.StartsWith('TALENRO_FUZZ_DIAG ')}|ForEach-Object {$_.Substring(18)|ConvertFrom-Json})
@@ -83,16 +89,21 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
         if((Get-FileHash -LiteralPath $plan.Binary).Hash -cne $binaryHash -or (Assert-EnvelopeRunProvenance $plan) -cne $identity){throw 'Source/binary drift after observation'}
         return [pscustomobject]@{Outcome=$result.Outcome;ObservationValidationPassed=$result.ObservationValidationPassed;Failure=$failure;Acceptance=$false;ExitCode=$receipt.ExitCode;TraceCount=$trace.Count;ResultPath=(Join-Path $plan.RunRoot 'sample-result.json')}
     } catch {
-        [pscustomobject]@{Stage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=[bool]$PreparationOnly;BuildExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'build'));SamplingExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'execute'));Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')
+        [pscustomobject]@{Stage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=[bool]$PreparationOnly;CompileOnly=[bool]$CompileOnly;BuildExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'build'));SamplingExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'execute'));Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')
         throw
     } finally {
         try {
             $after=@(Get-EnvelopeProductManifest)
             $after|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'after-product.json')
             Assert-EnvelopeProductUnchanged $before $after
+            if($CompileOnly -and $null -ne $compiled) {
+                if((Get-FileHash -LiteralPath $plan.Binary).Hash -cne $binaryHash -or (Assert-EnvelopeRunProvenance $plan) -cne $identity){throw 'Source/binary drift during compile finalization'}
+                $compiled|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'compile-result.json') -ErrorAction Stop
+                Write-Output $compiled
+            }
             if($PreparationOnly -and $null -ne $prepared){$prepared|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'preparation-result.json');Write-Output $prepared}
         } catch {
-            if($PreparationOnly){[pscustomobject]@{Stage='finalize';PriorStage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=$true;BuildExecuted=$false;SamplingExecuted=$false;Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')}
+            if($PreparationOnly -or $CompileOnly){[pscustomobject]@{Stage='finalize';PriorStage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=[bool]$PreparationOnly;CompileOnly=[bool]$CompileOnly;BuildExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'build'));SamplingExecuted=$false;Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')}
             throw
         }
     }

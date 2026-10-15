@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-15
 
+## Latest Envelope compile-only — PASS, original sampling still UNRUN
+
+Approved -CompileOnly mode is mutually exclusive with preparation-only and stops
+before executing the binary. New19+existing19 preparation+21 planning assertions
+PASS on PowerShell5.1/7 (59 per host); independent review found no blocking defect.
+One fresh envelope-observe-003 attempt passed version/origin and one compilation,
+exit0, no timeout; build111914.362ms, natural complete shutdown, final0/empty.
+Compiler/source/parser evidence and binary binding verified;701 product hashes
+unchanged. BuildPassed/BuildExecuted=true; SamplingExecuted/Acceptance=false.
+No generated program/fuzz execution, retry, security change, WPR or main merge.
+The local binary/raw evidence are ignored, not Git recovery artifacts. Next
+proposed work is a bounded single-observation design with fresh identity and
+artifact revalidation; no observation/reuse is authorized yet. Original001/87
+and all wider acceptance gates remain open. See
+[scope, tests, compile evidence and recovery](2026-10-15-envelope-compile-only.md).
+
 ## Latest Envelope preparation-only — version/origin PASS, no build or fuzz
 
 Approved -PreparationOnly mode stops before compilation, preserving provenance,

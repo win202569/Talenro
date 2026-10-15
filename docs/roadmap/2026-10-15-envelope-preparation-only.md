@@ -1,5 +1,10 @@
 # Envelope version/origin preparation only — 2026-10-15
 
+Later separately approved work added compile-only mode and ran fresh003 once:
+version/origin and compilation passed, no binary/fuzz execution. See the
+[compile-only record](2026-10-15-envelope-compile-only.md). The statements below
+describe002's preparation-only scope and do not authorize sampling or replay.
+
 ## Approved bounded change
 
 After the diagnostic runner's31/31 regression checkpoint0c03b373, the user

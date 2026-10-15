@@ -1,5 +1,15 @@
 # Isolated fuzz diagnosis
 
+Latest Envelope compile-only2026-10-15: optional -CompileOnly conflicts with
+-PreparationOnly before planning. It verifies version/origin, compiles once with
+the existing offline readonly600s bound and stops before executing any test
+binary. Final product/source/binary checks precede success JSON and output.
+59 scoped checks PASS per5.1/7 host. One authorized003 build PASS in111914ms,
+natural shutdown/final0/empty, compiler/source evidence verified,701 hashes
+unchanged. No fuzz/retry/acceptance/main merge. Generated binary remains local and
+ignored; recover source/progress from the dev checkpoint, not the old binary.
+See [compile evidence, limits and proposed next gate](../../roadmap/2026-10-15-envelope-compile-only.md).
+
 Latest Envelope preparation-only2026-10-15: Invoke-EnvelopeObservation accepts
 optional -PreparationOnly and stops after version/origin, before build/fuzz.
 Default remains auto-build/observation and must not be used under preparation-only
