@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest2026-10-15: one final-exit diagnostic observation did not reproduce the prior
+failure. The fixture now saves returned rows before assertions and separately
+records cleanup requests, without changing native policy or time limits. Fresh
+scoped coverage184 PASS (173 distinct); the old cause remains unknown. No Go or
+original Envelope build/fuzz ran. See [diagnostic evidence and recovery](../../roadmap/2026-10-15-final-exit-diagnostic.md).
+
 Original-project Envelope continuation: the user approved one observation sample,
 not Pair or full matrix. `envelope-observe.ps1` provides readonly planning and a
 fresh-identity, offline, source-bound one-shot build/run entry point. Preparation

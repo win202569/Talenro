@@ -1,4 +1,25 @@
-# Project status — updated 2026-10-14
+# Project status — updated 2026-10-15
+
+## Latest continuation — final-exit evidence captured, old failure not reproduced
+
+One instrumented final-exit diagnostic returned0/52 PASS. The short owned child
+was signaled/exited with code7 by213ms; the long child remained rejected at500ms.
+Complete rows and cleanup-request diagnostics now survive a later assertion
+failure. Production native code, safety predicates and500ms/5000ms windows are
+unchanged. The historical failed row was unavailable; its cause remains unknown.
+
+Fresh scoped coverage184 PASS (173 distinct); actual executions199 include15
+isolation checks repeated only to obtain real junction/hardlink coverage outside
+the sandbox's link-creation restriction. The supplemental18 checks passed without
+installation or security changes. No timing-test retry, Go execution, original
+Envelope build/fuzz, Pair or full product matrix. No new independent review.
+Envelope sampling remains UNRUN; this diagnostic result does not clear product,
+matrix3/Pair, C11/C12/Task10/B01 or main gates. Necessary progress/recovery files
+are preserved to the existing development branch; remote equality is checked at
+handoff. See [current evidence, limits and recovery](2026-10-15-final-exit-diagnostic.md).
+
+The sections below retain earlier checkpoints; their failures stay historical
+failures and their old UNRUN/test counts are not the latest scoped-run status.
 
 ## Latest continuation — Envelope preparation stopped before Go launch
 

@@ -9,6 +9,7 @@ function New-PendingFinalRow {
 $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
 $root=Join-Path $workspace ('.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator/final-exit-tests-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $root | Out-Null
+Write-Output ('DIAGNOSTIC_ROOT: '+$root)
 function Test-RealFinalExit([bool]$Short) {
     $label=if($Short){'short'}else{'long'}
     $ready=Join-Path $root ($label+'-ready');$release=Join-Path $root ($label+'-release')
@@ -31,6 +32,9 @@ function Test-RealFinalExit([bool]$Short) {
         $row=New-PendingFinalRow;$row.Id=$process.Id;$row.Owned=$owned
         $clock=[Diagnostics.Stopwatch]::StartNew();[IO.File]::WriteAllText($release,'release')
         [IsolatedFuzzProcess]::VerifyMemberFinalExit($handle,$row,$clock)
+        # Persist the returned evidence before a compound assertion can discard it.
+        # Serialization happens after the native wait; it cannot enlarge its budget.
+        [pscustomobject]@{Case=$label;UTC=[DateTime]::UtcNow.ToString('o');PowerShell=$PSVersionTable.PSVersion.ToString();ChildSleepMs=$ms;SharedWindowMs=500;ClockAfterCallMs=$clock.ElapsedMilliseconds;Row=$row;DiagnosticOnly=$true;Acceptance=$false}|ConvertTo-Json -Depth 7|Set-Content -LiteralPath (Join-Path $root ($label+'-final.json'))
         Check-FinalExit ($row.State -eq 'running' -and $row.InitialState -eq 'running' -and $row.ConfirmationState -eq 'running' -and $row.ExitCode -eq 0 -and $row.ImageError -eq 5) 'final exit evidence preserves core first and confirming reads'
         Check-FinalExit ($row.FinalShutdown.Attempted -and $row.FinalShutdown.WaitBudgetMs -gt 0 -and $row.FinalShutdown.WaitBudgetMs -le 500 -and $null -eq $row.DiagnosticShutdown) 'final evidence uses one bounded same-handle wait not diagnostic data'
         if($Short) {
@@ -48,8 +52,12 @@ function Test-RealFinalExit([bool]$Short) {
         Check-FinalExit $refused 'same final evidence cannot be overwritten by retry'
     } finally {
         if($handle -ne [IntPtr]::Zero -and -not $assigned){[ConfirmationTestJob]::TerminateProcess($handle,0xE003) | Out-Null}
-        [ConfirmationTestJob]::TerminateJobObject($job,0xE003) | Out-Null
-        [ConfirmationTestJob]::CloseHandle($job) | Out-Null;$process.Dispose()
+        $terminationReported=[ConfirmationTestJob]::TerminateJobObject($job,0xE003)
+        try {
+            [pscustomobject]@{Case=$label;UTC=[DateTime]::UtcNow.ToString('o');Assigned=$assigned;TerminationRequested=$true;TerminationApiReportedSuccess=$terminationReported;EmptyJobVerified=$false;Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root ($label+'-cleanup.json'))
+        } finally {
+            [ConfirmationTestJob]::CloseHandle($job) | Out-Null;$process.Dispose()
+        }
     }
 }
 Test-RealFinalExit $true

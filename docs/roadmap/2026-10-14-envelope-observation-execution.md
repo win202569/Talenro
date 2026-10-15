@@ -1,5 +1,12 @@
 # Original Envelope observation — bounded diagnostic continuation
 
+Continuation2026-10-15: the user requested the bounded final-exit diagnosis. One
+instrumented observation did not reproduce the old failure; fresh scoped coverage
+is184 PASS after permission-bound link coverage was supplemented. The historical
+failure's cause remains unknown, and original Envelope build/sample are still
+UNRUN. See [retained evidence and limits](2026-10-15-final-exit-diagnostic.md).
+The stopped2026-10-14 run below is preserved, not retrospectively passed.
+
 ## Approved scope
 
 After the six minimal actual-framework diagnostic arms completed, the user approved
