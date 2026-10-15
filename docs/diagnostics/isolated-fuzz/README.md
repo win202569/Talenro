@@ -1,14 +1,20 @@
 # Isolated fuzz diagnosis
 
-Retained-handle written spec approved for planning. The [three-task implementation
-plan](../../superpowers/plans/2026-10-15-retained-handle-diagnostics.md) awaits user
-approval and execution-method choice; fake-only suites are explicitly bounded.
-No implementation or live experiment yet.
+Retained-handle implementation now has explicit opt-in native entry, bounded
+registry, optional receipt fields and unconditional diagnostic-mode refusal.
+Scoped verification PASS:11 suites/298 checks perPS7/5.1 plus2 PS7 supplemental
+checks; two review blockers fixed through RED/GREEN, one nonblocking nested-receipt
+test enhancement deferred. No real native Run/probe or matrix rerun/acceptance.
+Read [implementation and limits](../../roadmap/2026-10-15-retained-lifetime-implementation.md).
+
+Retained-handle written spec and [three-task implementation
+plan](../../superpowers/plans/2026-10-15-retained-handle-diagnostics.md) were approved
+for inline fake-only implementation. No live experiment is approved by that scope.
 
 Approved retained-handle diagnostic design authorizes planning only:
 explicit default-off entry,32 admission attempts, owned-handle lifetime/teardown,
-sampled non-acceptance evidence and process-free test requirements. No implementation
-or experiment yet. Read [written spec](../../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
+sampled non-acceptance evidence and process-free test requirements. Read
+[written spec](../../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
 
 Latest read-only matrix003 analysis separates empty-list success, successful
 owned-member acquisition/final waiting and failed initial OpenProcess87. No root

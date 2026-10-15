@@ -1,13 +1,30 @@
 # Project status — updated 2026-10-15
 
-## Latest retained-handle implementation plan — awaiting approval/method choice
+## Latest retained-handle implementation — scoped checks PASS, not native acceptance
 
-User approved written spec after8c81feb3. Three-task plan is written:portable
+User approved inline implementation afterc4069cc6. Portable registry and opt-in
+native wiring committed bf0c8376/658571f5; receipt isolation/final review fixes
+are verified. New suites after one review fix pass:27 registry+12 integration
++9 receipt checks PASS perPS7/5.1; four integration checks are static, not native
+behavioral proof. Two Important findings (contradictory observations/query overrun)
+fixed with RED/GREEN; one Minor populated-roundtrip enhancement deferred. Eight
+allowed old synthetic suites also PASS:11 suites/298 checks perPS7/5.1 plus2 PS7
+supplemental checks. Exact pre/post-fix verification sequence is recorded, not a
+claim that every command restarted after each fix. Eight final source pins and
+34-file local unit evidence manifest retained.
+No native Run/Go/matrix/PID query/SDK audit;701 recorded product hashes unchanged.
+Historical matrix003 remains2PASS/1FAIL/23UNRUN; no87 fix/acceptance/main claim.
+See [implementation evidence and limits](2026-10-15-retained-lifetime-implementation.md).
+
+## Retained-handle implementation plan — approved for inline fake-only execution
+
+User approved written spec after8c81feb3 and plan afterc4069cc6, selecting inline
+execution. Three-task plan:portable
 registry/ownership, opt-in native lifecycle wiring, optional receipt refusal and
 fake-only regression/recovery. Explicit suite allowlist excludes live-process
-tests; no code/test/native/PID query/matrix execution. Recommended inline execution
-with one fresh final reviewer, or per-task subagents if chosen. Plan approval and
-execution-method choice precede implementation; live experiment remains separate.
+tests. Implementation/unit verification is summarized above; the independent final
+review is complete and its blocking findings have RED/GREEN fixes. Live experiment
+remains separate from this approval.
 See [written plan](../superpowers/plans/2026-10-15-retained-handle-diagnostics.md).
 
 ## Retained-handle diagnostics spec — approved for planning only

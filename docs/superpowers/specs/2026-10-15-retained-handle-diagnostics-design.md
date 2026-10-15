@@ -1,10 +1,10 @@
 # Retained-handle lifetime diagnostics — proposed design
 
 Date:2026-10-15. Base:26bb962a1c7c17aebe12f3e0b9774212f9682d92.
-Status:user approved this written design after checkpoint8c81feb3. Planning is
-authorized; implementation, live execution, matrix replay, acceptance and main
-merge are NOT authorized by that approval. The plan needs review and an execution
-method choice before implementation.
+Status:user approved this written design after checkpoint8c81feb3, then approved
+the plan afterc4069cc6 and selected inline implementation. That fake-only
+implementation has passed scoped fake/synthetic regression; live execution, matrix replay, acceptance
+and main merge remain outside authorization. See the implementation report.
 
 ## 1. Intent and evidence boundary
 

@@ -7,6 +7,10 @@ function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stder
     foreach($field in @('MemberEvidence','LaunchBoundaries','MemberEvidenceTruncated','LiveSampling','MembersDuringRun','ShutdownSchema','ShutdownStatePolicy','ShutdownImageEvidenceComplete','ShutdownDiagnosticOnly','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence','InitialAccountingQuery','InitialMemberQueries')) {
         $result | Add-Member -NotePropertyName $field -NotePropertyValue $native.$field
     }
+    foreach($field in @('LifetimeDiagnosticOnly','LifetimeDiagnostics')) {
+        $optional=$native.PSObject.Properties[$field]
+        if($null -ne $optional){$result|Add-Member -NotePropertyName $field -NotePropertyValue $optional.Value}
+    }
     return $result
 }
 function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds,[bool]$CaptureLiveMembers=$false,[bool]$CaptureShutdownDiagnostic=$false) {
@@ -52,6 +56,8 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
     }
 }
 function Assert-ProcessCompletion([object]$Receipt) {
+    $lifetime=$Receipt.PSObject.Properties['LifetimeDiagnosticOnly']
+    if($null -ne $lifetime -and $lifetime.Value){throw 'Lifetime diagnostics are not acceptance'}
     $diagnostic=$Receipt.PSObject.Properties['ShutdownDiagnosticOnly']
     if($null -ne $diagnostic -and $diagnostic.Value) {throw 'Diagnostic-only observation is not acceptance'}
     if($Receipt.TimedOut -or -not $Receipt.CleanupVerified -or $Receipt.ActiveAfterCleanup -ne 0) {throw 'Unfinished or timed-out process group'}

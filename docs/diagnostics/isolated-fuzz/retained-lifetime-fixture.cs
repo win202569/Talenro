@@ -9,11 +9,11 @@ public sealed class FakeLifetimeApi : IRetainedLifetimeApi {
     public ulong[] Ids=new ulong[]{2}; public int OpenError,MembershipError,ReadError;
     public uint FailPid; public bool Owned=true,ThrowMembership,ThrowRead,ThrowClose,CloseFails,Partial,Exited,MissingExit,MissingImage;
     public int QueryCalls,OpenCalls,MembershipCalls,ReadCalls,ReleaseCalls,DoubleCloseCalls,ReopenedHandles,PositiveWaitCalls;
-    public long AdvanceOnOpen; public FakeLifetimeClock Clock;
+    public long AdvanceOnOpen,AdvanceOnQuery; public FakeLifetimeClock Clock;
     public readonly List<string> Calls=new List<string>();
     readonly HashSet<long> closed=new HashSet<long>(); readonly HashSet<uint> opened=new HashSet<uint>();
     public LifetimeCandidates QueryMembers(IntPtr job,long deadline) {
-        QueryCalls++;Calls.Add("list");return new LifetimeCandidates{Succeeded=!Partial,Error=Partial?234:0,Ids=Ids,Assigned=(uint)Ids.Length,Returned=(uint)Ids.Length};
+        QueryCalls++;Calls.Add("list");if(Clock!=null)Clock.Now+=AdvanceOnQuery;return new LifetimeCandidates{Succeeded=!Partial,Error=Partial?234:0,Ids=Ids,Assigned=(uint)Ids.Length,Returned=(uint)Ids.Length};
     }
     public LifetimeOpen Open(uint pid,uint access,bool inherit) {
         if(access!=0x101000 || inherit)throw new Exception("wrong access/inheritance");

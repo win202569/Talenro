@@ -3,6 +3,9 @@ Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScr
 function Check-Integration([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTION FAILED: '+$Name)};Write-Output ('PASS: '+$Name)}
 Check-Integration ($null -ne [IsolatedFuzzProcess].GetMethod('RunWithRetainedHandleDiagnostics')) 'NewEntryExists'
 Check-Integration (@([IsolatedFuzzProcess].GetMethods()|Where-Object Name -eq 'Run').Count -eq 2) 'LegacyOverloadsRemain'
+$close=[IsolatedFuzzProcess].GetMethod('CloseHandle',[Reflection.BindingFlags]'NonPublic,Static')
+$import=@($close.GetCustomAttributes([Runtime.InteropServices.DllImportAttribute],$false))[0]
+Check-Integration $import.SetLastError 'CloseFailureErrorNotStale'
 $r=New-Object 'IsolatedFuzzProcess+Result'
 Check-Integration (-not $r.LifetimeDiagnosticOnly -and $null -eq $r.LifetimeDiagnostics -and $r.ShutdownSchema -eq 3) 'LegacyDefaultNoRegistry'
 $clock=New-Object FakeLifetimeClock;$api=New-Object FakeLifetimeApi;$api.Clock=$clock;$api.Ids=[uint64[]]@(2,3)

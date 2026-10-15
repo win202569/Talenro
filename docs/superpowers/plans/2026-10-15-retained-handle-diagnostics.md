@@ -10,6 +10,14 @@
 
 **Spec:** [Approved written design](../specs/2026-10-15-retained-handle-diagnostics-design.md).
 
+**Execution record:** User approved inline execution afterc4069cc6. Tasks1/2 are
+committed bf0c8376/658571f5; Task3, the one review fix pass and final scoped checks
+are complete pending ordinary checkpoint preservation. The original checklist
+below is the approved work definition; actual RED/GREEN, coverage limits, deferred
+Minor and verification sequence are in the
+[implementation record](../../roadmap/2026-10-15-retained-lifetime-implementation.md).
+No live experiment or acceptance is authorized by these completed unit steps.
+
 ## Global Constraints
 
 - Working directory:D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator; existing branch codex/c12-b01-task9-coordinator. Planning base8c81feb30be99ac09a0be0a17519b2ce6d4728e1.

@@ -1,3 +1,4 @@
+param([switch]$QueryOverrunOnly)
 $ErrorActionPreference='Stop'
 $source=Join-Path $PSScriptRoot 'retained-lifetime.cs'
 if(-not(Test-Path -LiteralPath $source)){throw 'ASSERTION FAILED: retained lifetime registry contract missing'}
@@ -19,6 +20,21 @@ Check-Lifetime ($f.Api.ReadCalls -eq $before) 'SnapshotAfterDispose'
 $f=New-LifetimeFixture;$f.Api.OpenError=87;$f.Registry.Poll(1000);$f.Registry.Poll(1000)
 Check-Lifetime ($f.Registry.Report.Attempts -eq 1 -and $f.Api.MembershipCalls -eq 0 -and $f.Registry.Report.Entries[0].Open.Error -eq 87 -and $f.Api.OpenCalls -eq 1 -and $f.Registry.Report.Incomplete) 'Open87StopsBeforeMembership DiagnosticErrorStopsAdmission'
 $f.Registry.Dispose()
+if(-not $QueryOverrunOnly){
+$f=New-LifetimeFixture;$f.Api.Exited=$true;$f.Registry.Poll(1000);$f.Api.Exited=$false;$f.Registry.Snapshot('root-wait-end',1000,$true,$false,$false);$f.Registry.Snapshot('post-cleanup',1000,$true,$false,$false)
+$entry=$f.Registry.Report.Entries[0]
+Check-Lifetime ($entry.Admission.State -ceq 'exited' -and $entry.RootWaitEnd.Ambiguous -and $entry.Final.Ambiguous -and $f.Registry.Report.Incomplete -and $f.Api.OpenCalls -eq 1) 'ExitedThenRunningExplicitAmbiguity'
+$f.Registry.Dispose();Check-Lifetime ($f.Api.ReleaseCalls -eq 1) 'AmbiguousEntryReleasedOnce'
+}
+foreach($case in @('empty','root','seen')){
+    $f=New-LifetimeFixture
+    if($case -eq 'seen'){$f.Registry.Poll(1000)}
+    $reads=$f.Api.ReadCalls;$opens=$f.Api.OpenCalls;$queries=$f.Api.QueryCalls
+    switch($case){'empty'{$f.Api.Ids=[uint64[]]@()};'root'{$f.Api.Ids=[uint64[]]@(1)};'seen'{$f.Api.Ids=[uint64[]]@(2)}}
+    $f.Api.AdvanceOnQuery=1000;$f.Registry.Poll(1000);$f.Registry.Poll(1000)
+    Check-Lifetime ($f.Registry.Report.Incomplete -and $f.Registry.Report.Errors -contains 'list-overrun:-1' -and $f.Api.QueryCalls -eq $queries+1 -and $f.Api.OpenCalls -eq $opens -and $f.Api.ReadCalls -eq $reads) ('QueryOverrunExplicit '+$case)
+    $f.Registry.Dispose()
+}
 $f=New-LifetimeFixture;$f.Registry.Poll(1000);$f.Clock.Now=99;$f.Registry.Poll(1000)
 Check-Lifetime ($f.Registry.Report.Incomplete -and $f.Registry.Report.Errors -contains 'clock:-1' -and $f.Api.QueryCalls -eq 1) 'StaleClockStopsQueries'
 $f.Registry.Dispose()

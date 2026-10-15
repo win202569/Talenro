@@ -19,7 +19,7 @@ public sealed class LifetimeCandidates:LifetimeQueryEvidence {public ulong[] Ids
 public sealed class LifetimeOpen:LifetimeApiEvidence {public IntPtr Handle;}
 public sealed class LifetimeMembership:LifetimeApiEvidence {public bool Owned;}
 public sealed class LifetimeRead {
-    public bool Attempted,ExitCodeRead,TerminationRequested,SameEntry;
+    public bool Attempted,ExitCodeRead,TerminationRequested,SameEntry,Ambiguous;
     public uint ExitCode;public int Error,ImageError;public string State="unknown",ImagePath,SkipReason,StartUTC,EndUTC;
     public long StartTimestamp,EndTimestamp,Frequency;
 }
@@ -69,6 +69,10 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
             var r=api.Read(value.Handle,deadline);
             if(r==null){Error("read-null",-1);return new LifetimeRead{SameEntry=true,TerminationRequested=termination,SkipReason="missing-read"};}
             r.SameEntry=true;r.TerminationRequested=termination;
+            foreach(var prior in new LifetimeRead[]{value.Entry.Admission,value.Entry.RootWaitEnd}) {
+                if(prior!=null && (prior.Ambiguous || (prior.State=="exited" && (r.State=="running" || (r.State=="exited" && prior.ExitCodeRead && r.ExitCodeRead && prior.ExitCode!=r.ExitCode)))))r.Ambiguous=true;
+            }
+            if(r.Ambiguous)Error("ambiguous-lifetime",-1);
             if(!r.Attempted || r.Error!=0 || !r.ExitCodeRead || (r.State!="running" && r.State!="exited"))Error("read",r.Error);
             if(clock.Ticks>=deadline)Error("read-overrun",-1);
             return r;
@@ -80,6 +84,9 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
             if(!Budget(runtimeDeadlineTicks))return;
             var list=api.QueryMembers(job,runtimeDeadlineTicks);Report.QueryCount++;
             Report.LastQuery=QueryEvidence(list);if(Report.FirstQuery==null)Report.FirstQuery=QueryEvidence(list);
+            long afterQuery=clock.Ticks;
+            if(afterQuery>=runtimeDeadlineTicks){Error("list-overrun",-1);return;}
+            if(afterQuery<lastTick){Error("clock",-1);return;}lastTick=afterQuery;
             if(list==null || !list.Succeeded || list.Error!=0 || list.Ids==null || list.Assigned!=list.Returned || list.Returned!=list.Ids.Length){Error("list",list==null?-1:list.Error);return;}
             foreach(ulong id in list.Ids) {
                 if(Report.Attempts>=32){Report.AdmissionBudgetExhausted=true;break;}
