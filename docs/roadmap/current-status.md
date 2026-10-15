@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-15
 
+## Latest separate Pair short observation — PASS, only5 executions
+
+Approved Pair-only entry reuses the validated uninstrumented005 binary, with
+fresh pair-observe-001/cache and unchanged5s/parallel1/test30s/native60s limits.
+New45+existing109 scoped assertions PASS on PowerShell5.1/7 (154 per host);
+independent review found no Critical/Important issue. One actual invocation PASS,
+6097.5363ms, no timeout, natural verified final0/empty;4/4 baseline, one worker,
+only5 reported executions, no new interesting inputs. Coverage is very limited;
+no throughput cause or broad correctness conclusion is inferred. No copy/build,
+version/list/Envelope invocation, retry, matrix or main merge. All eight bound005
+artifacts and701 product hashes unchanged; copied-source/binary gates passed.
+Final original-toolchain11536-file postcheck passed without source changes.
+Target=FuzzIssuerPair; ObservationValidationPassed=true; Acceptance=false.
+Historical matrix3/001 and C11/C12/Task10/B01/production/main gates remain open.
+See [implementation, evidence, coverage limits and recovery](2026-10-15-pair-single-observation.md).
+
 ## Latest uninstrumented Envelope short validation — PASS, not acceptance
 
 Approved independent original-toolchain copy11536 files/218649457 bytes matched

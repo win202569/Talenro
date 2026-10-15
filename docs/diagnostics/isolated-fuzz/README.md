@@ -1,5 +1,18 @@
 # Isolated fuzz diagnosis
 
+Latest separate Pair observation2026-10-15: pair-sample.ps1 validates the retained
+uninstrumented005 compile bundle and invokes only FuzzIssuerPair once with a
+fresh identity/cache. No copy/recompile/version/list/Envelope process.154 scoped
+assertions PASS perPowerShell5.1/7 host; review found no blocking defect. One
+actual pair-observe-001 PASS,6097.5363ms, natural final0/empty, no timeout/retry.
+Only5 executions were reported after4/4 baseline; coverage is very limited, not
+full fuzz/product acceptance. All eight retained artifacts and701 product hashes
+unchanged; Acceptance=false. Historical matrix3 and wider gates remain open.
+Read [evidence, review limits and recovery](../../roadmap/2026-10-15-pair-single-observation.md).
+New pair-sample.tests.ps1 synthesizes its own prerequisites and never launches its
+unit executable. Actual sampling requires a separately approved fresh identity
+and independently prepared bound compile; do not replay pair-observe-001.
+
 Latest uninstrumented validation2026-10-15: separate envelope-uninstrumented.ps1
 uses one independent unpatched fixed toolchain with full11536-file pin/manifest
 binding, fresh offline caches, unchanged budgets and native cleanup gates.
