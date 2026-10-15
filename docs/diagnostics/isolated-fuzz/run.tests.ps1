@@ -1,6 +1,7 @@
+param([switch]$DescendantTimeoutOnly)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-. (Join-Path $PSScriptRoot 'run.ps1')
+. (Join-Path $PSScriptRoot 'descendant-timeout.ps1')
 function Assert-True([bool]$Value,[string]$Name) {if(-not $Value){throw "ASSERTION FAILED: $Name"};Write-Output "PASS: $Name"}
 function Assert-Throws([scriptblock]$Action,[string]$Name) {$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert-True $caught $Name}
 $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
@@ -8,6 +9,12 @@ $root=Join-Path $workspace ('.superpowers/diagnostics/2026-10-14-isolated-fuzz-c
 New-Item -ItemType Directory -Path $root | Out-Null
 $shell=Join-Path ([Environment]::GetFolderPath('System')) 'WindowsPowerShell/v1.0/powershell.exe'
 function Encoded([string]$Code) {return [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Code))}
+if($DescendantTimeoutOnly) {
+    $selected=Invoke-DescendantTimeoutRegression (Join-Path $root 'file-child-readiness-001')
+    Assert-True $selected.RegressionPassed 'real owned descendant cleaned on timeout'
+    Write-Output "Selected descendant fixture retained: $root"
+    return
+}
 $nonzero=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded '[Console]::Out.WriteLine("out-marker");[Console]::Error.WriteLine("err-marker");exit 7')) @{} (Join-Path $root 'nonzero') 10
 Assert-True ($nonzero.ExitCode -eq 7) 'nonzero exit preserved'
 Assert-True ((Get-Content -Raw -LiteralPath $nonzero.StdoutPath).Contains('out-marker')) 'stdout preserved'
@@ -41,8 +48,8 @@ $missingWorker=@($valid[0],$valid[2]);$missingWorker[1].seq=2
 Assert-Throws {Assert-ArmResult 'parent-first' $receipt $missingWorker} 'worker shutdown evidence required'
 $childCode=Encoded 'Start-Sleep -Seconds 20'
 $parentCode='Start-Process -FilePath "'+$shell+'" -ArgumentList "-NoProfile -EncodedCommand '+$childCode+'" -WindowStyle Hidden; Start-Sleep -Seconds 20'
-$tree=Invoke-RecordedProcess $shell @('-NoProfile','-EncodedCommand',(Encoded $parentCode)) @{} (Join-Path $root 'tree-timeout') 2
-Assert-True ($tree.TotalProcesses -ge 2 -and $tree.TimedOut -and $tree.CleanupVerified -and $tree.ActiveAfterCleanup -eq 0) 'real owned descendant cleaned on timeout'
+$tree=Invoke-DescendantTimeoutRegression (Join-Path $root 'file-child-readiness-001')
+Assert-True $tree.RegressionPassed 'real owned descendant cleaned on timeout'
 $envName='TALENRO_DIAG_ENV_TEST'
 $beforeEnv=[Environment]::GetEnvironmentVariable($envName)
 $wrappedEnv=[System.Management.Automation.PSObject]::AsPSObject('child-only')

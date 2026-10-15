@@ -1,5 +1,15 @@
 # Isolated fuzz diagnosis
 
+Latest revised descendant case2026-10-15: approved migration of only the original
+timeout case to explicit readable-file mode retains2s/count/cleanup gates and adds
+intended-child nonce/owned-running proof. `run.tests.ps1 -DescendantTimeoutOnly`
+returns before all other actual fixtures. One approved WindowsPowerShell5.1 run
+PASS, verified empty cleanup;137 helper checks PASS per5.1/7 host. No full suite,
+Go/fuzz, retry or acceptance upgrade. The16 later checks remain UNRUN. Read
+[scope, selected-run evidence and recovery](../../roadmap/2026-10-15-descendant-timeout-regression.md).
+This command launches a real timed fixture; another run/full suite needs separate
+approval. Do not replay the consumed runner-tests identity in that report.
+
 Latest readable-file diagnostic2026-10-15: explicit UseScriptFiles=true on the
 child-readiness helper requires fresh file-child-readiness-NNN, materializes
 exclusive UTF8-BOM scripts and uses normal -NoProfile -File arguments. Default

@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-15
 
+## Latest revised descendant single case — PASS, full suite still UNRUN
+
+Approved migration changes only the original descendant-timeout case to readable
+scripts and adds -DescendantTimeoutOnly. Original count/timeout/cleanup gates and
+2s budget remain, with strict intended-child nonce/owned-running proof added.
+New19 plus existing118 helper assertions PASS on PowerShell5.1/7 (137 each);
+independent review found no blocking defect. One selected WindowsPowerShell5.1
+execution passed: child marker UTC offset1140.1194ms, native TotalProcesses4,
+timeout and verified final accounting0/empty members. Only that case directory
+was generated; no retry/full suite/Go/fuzz/WPR/security change or main merge.
+RegressionPassed=true is this revised case only; global acceptance labels false.
+Historical encoded failure is not erased;16 subsequent checks remain UNRUN.
+Original origin87/Envelope/Pair and product acceptance gates stay open. Next
+proposed work requires approval for a full runner regression, stop on failure.
+See [implementation, one-run evidence and recovery](2026-10-15-descendant-timeout-regression.md).
+
 ## Latest independent file-mode fixture — PASS, original acceptance still blocked
 
 Approved additive readable-file mode keeps the encoded default, readiness/owned

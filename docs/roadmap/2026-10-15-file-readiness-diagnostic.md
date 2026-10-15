@@ -1,5 +1,11 @@
 # One readable-script readiness diagnostic — 2026-10-15
 
+Later separately approved work migrated only the original descendant-timeout
+case and validated it once through a new single-case selector. See the
+[revised-case record](2026-10-15-descendant-timeout-regression.md). This document
+records the earlier independent sample; its no-replacement statements describe
+that earlier scope, not the later approved migration. Full acceptance stays open.
+
 ## Approved bounded change
 
 The user approved adding an independent script-file mode to the existing helper,
