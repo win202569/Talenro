@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest one real nodeissuermapping check — PASS, not full matrix acceptance
+
+Approved mapping-check-001 completed one offline fresh-cache build92022.2894ms
+and one package runtime8511.0269ms;35 top-level/65 subtests PASS. Both native
+receipts naturally clean/final0/empty, no timeout/termination/retry. New query
+metadata retained. Runtime initial member list is empty: this run did not exercise
+the failed OpenProcess branch or prove error87 fixed.36 new+19 existing no-process
+checks PASS perPS7/5.1 host; independent review no actionable finding. Final
+copied11536-file SDK,701 product hashes and seven compile/runtime bound artifacts
+unchanged; ten tooling source pins matched. Acceptance=false; no matrix/main merge.
+Matrix002 remains0PASS/1FAIL/25UNRUN. See
+[scope, actual results, evidence limits and recovery](2026-10-15-mapping-single-check.md).
+
 ## Latest one short-child observation — PASS, not matrix002 resolution
 
 Approved short-child-observe-001 ran once,3387.5754ms: parent/root exit0, intended

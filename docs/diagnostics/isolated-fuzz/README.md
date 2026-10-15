@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Latest mapping-check-001: one approved fixed nodeissuermapping build/run PASS,
+35 top-level/65 subtests; native natural cleanup/final0, no timeout/termination.
+Runtime initial members empty, so no residual-member OpenProcess path was tested
+and historical87 is not resolved.36+19 no-process checks PASS perPS7/5.1 host;
+review found no actionable finding; copied SDK/product/seven artifacts unchanged.
+No matrix rerun/main merge. Read
+[single-package results and recovery](../../roadmap/2026-10-15-mapping-single-check.md).
+
 Latest short-child-observe-001: one approved20s-bounded observation PASS in3388ms.
 Ready/release markers matched the intended native owned running child; same-handle
 final exit and empty natural job verified within existing500ms/shared5s gates.
