@@ -1,5 +1,10 @@
 # One tree-timeout stage probe — 2026-10-15
 
+Subsequent approved minimal-entry probe observed flushed stdout plus file marker
+and completed naturally within2s. Its payload explicitly launches no child and is
+not this longer-script fixture; it does not explain or retroactively pass this
+timeout. See [new single-entry evidence and limits](2026-10-15-entry-startup-probe.md).
+
 ## Approved scope
 
 The user approved exactly one diagnostic with parent-entry, before-child-start,

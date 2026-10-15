@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest minimal-entry diagnostic2026-10-15: one2s probe observed both flushed stdout
+and file marker, naturally completed in265.4917ms with verified empty job. It has
+no explicit child launch, and its native TotalProcesses2 does not prove the old
+descendant scenario. Original failures/acceptance stay open. Twelve unit checks
+pass on5.1/7; no Go/fuzz or retry. See [entry observation and recovery](../../roadmap/2026-10-15-entry-startup-probe.md).
+
 Latest diagnostic2026-10-15: one approved2s stage probe timed out with one recorded
 process and no markers, including no first parent-script marker. Cleanup verified
 empty; exact cause remains unknown. Nine non-launching checks pass on5.1/7; no

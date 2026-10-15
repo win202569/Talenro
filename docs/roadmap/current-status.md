@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest diagnostic — minimal entry observed, old cause still unknown
+
+One approved entry-startup-probe-001 completed naturally in265.4917ms within the
+unchanged2s budget: exact flushed stdout marker and timestamp file present, exit0,
+no timeout/forced termination, verified empty job. It explicitly starts no child;
+native TotalProcesses2 alone does not identify another process or prove the old
+intended descendant scenario. This different minimal payload does not explain or
+erase the earlier longer-script failure. Original test/acceptance labels stay false.
+Twelve unit checks passed on PowerShell5.1/7, including a real buffered-stream
+flush check without another timed child. Independent read-only review found no
+blocking code defect; coverage limits remain explicit. No Go/fuzz or retry.
+See [single observation, limits and recovery](2026-10-15-entry-startup-probe.md).
+
 ## Latest diagnostic — one two-second stage probe, no markers observed
 
 The approved tree-timeout-probe-001 ran once, retaining the original2s budget.
