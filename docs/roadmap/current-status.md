@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-15
 
+## Latest limited matrix003 — STOPPED,2PASS/1FAIL/23UNRUN
+
+One separately approved matrix-check-003 attempt passed nodeissuermapping35/65
+and nodeissuerbinding39/128 top-level/subtests. Check03/nodeleafbinding build root
+exit0/no timeout, but one successfully listed job member OpenProcess87 left
+ownership/exit/image unknown; natural completion refused, termination requested,
+final cleanup verified0/empty. No check03 runtime/check04/fuzz/retry. Initial
+accounting/list/API timing retained; list-end to open-start0.1961ms is not proof
+of member exit or underlying OS cause. Error87 is not fixed. Final copied11536-file
+SDK audit,701 product files,14 bound artifacts and ten tooling pins unchanged;
+25-file local evidence manifest retained. MatrixPassed/Acceptance=false,
+FinalizationFailed=false. No code/gate changes or main merge. See
+[results, evidence limits and recovery](2026-10-15-limited-matrix-003.md).
+
 ## Latest one real nodeissuermapping check — PASS, not full matrix acceptance
 
 Approved mapping-check-001 completed one offline fresh-cache build92022.2894ms

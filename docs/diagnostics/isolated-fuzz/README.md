@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest matrix-check-003:2PASS/1FAIL/23UNRUN. First two packages PASS; check03
+nodeleafbinding compile root exit0, but listed-member OpenProcess87 caused the
+unchanged natural-completion gate to refuse it. Final cleanup verified0/empty;
+no runtime03/later checks/fuzz/retry/main merge. Copied SDK/product/artifact/source
+checks unchanged; cause unresolved, Acceptance=false. Read
+[matrix003 evidence and recovery](../../roadmap/2026-10-15-limited-matrix-003.md).
+
 Latest mapping-check-001: one approved fixed nodeissuermapping build/run PASS,
 35 top-level/65 subtests; native natural cleanup/final0, no timeout/termination.
 Runtime initial members empty, so no residual-member OpenProcess path was tested
