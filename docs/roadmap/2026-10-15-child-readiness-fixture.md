@@ -93,6 +93,43 @@ are retained, not silently promoted to success.
 
 ## Recovery and remaining blockers
 
+### Read-only event-log follow-up
+
+No new fixture or process ran for this follow-up. Queried Windows PowerShell and
+Microsoft-Windows-PowerShell/Operational only from one second before the saved
+child-readiness001 StartUTC to one second after EndUTC. Ordinary access was
+denied; the same bounded readonly query succeeded with approved sandbox escalation.
+No logging/security configuration was changed. The classic log returned no
+matching events; the operational log returned three, all matching the saved root
+process ID. No matching intended-child startup event was found in this window.
+This is not proof that its engine or script never started: event coverage/delivery
+is not a complete execution trace. No historical process handles were reopened.
+
+Operational event40961 described console startup at10:14:01.8665331Z
+(record3367984), event53504 described IPC listener startup at10:14:01.9078139Z
+(record3367985), and event40962 described console ready at10:14:01.9313207Z
+(record3367986). Offsets from saved native StartUTC are1269.9845,1311.2653 and
+1334.7721ms, respectively. These are local provider messages and UTC differences,
+not proof of encoded-command/child readiness or monotonic phase measurements.
+
+The same bounded root-ID-only operational query on two earlier saved samples
+produced the following comparison; it did not replay those samples:
+
+| Saved sample | Console-start event40961 offset | Console-ready event40962 offset | Record IDs (40961 / 53504 / 40962) |
+| --- | ---: | ---: | --- |
+| entry-startup-probe-001 | 86.3687ms | 151.8186ms | 3367906 / 3367907 / 3367908 |
+| full-parent-probe-001 | 1323.9237ms | 1400.0098ms | 3367938 / 3367939 / 3367940 |
+| child-readiness-001 | 1269.9845ms | 1334.7721ms | 3367984 / 3367985 / 3367986 |
+
+Full-parent console-start/IPC/ready event timestamps are10:05:10.4162555Z /
+10:05:10.4686522Z /10:05:10.4923416Z.
+Minimal-entry counterparts are09:55:10.3898471Z /09:55:10.4310082Z /
+09:55:10.4552970Z. The varying elapsed time is observational, not a controlled
+payload-size, cold-start, scanning or scheduling experiment. Native setup/create/
+resume phase times were not saved, so none of those causes can be isolated yet.
+Original native/result hashes above were rechecked unchanged. Event record IDs
+are local lookup aids, not portable event logs; raw system logs were not committed.
+
 Recover the latest codex/c12-b01-task9-coordinator checkpoint, not automatically
 main, then read current-status.md and repository-recovery.md. Scripts/tests and
 this report are portable tracked artifacts; raw receipts, caches and live process

@@ -12,6 +12,13 @@ Independent read-only review found no blocking implementation defect, with UTC/
 readiness and coverage limits explicit. Original failures remain unresolved.
 See [approved design, failed run and recovery](2026-10-15-child-readiness-fixture.md).
 
+Readonly system-event follow-up found the failed fixture root's console-start/
+console-ready events1269.9845/1334.7721ms after saved native StartUTC. The earlier
+minimal entry sample was86.3687/151.8186ms; full parent1323.9237/1400.0098ms.
+These are provider-event UTC offsets, not causal startup measurements or proof
+of child readiness. No new run/config change; original receipts unchanged.
+Native create/resume phases are not recorded, so the delay source remains open.
+
 ## Latest diagnostic — full parent reached launch boundary, still unaccepted
 
 One approved full-parent-probe-001 emitted exact flushed ENTRY/BEFORE_START stdout
