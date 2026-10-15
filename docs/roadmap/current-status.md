@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-15
 
+## Latest local trace — antimalware path participates in observed creation wait
+
+One approved local WPR experiment/new child-readiness-003 sample completed. The
+fixture still FAILED readiness, cleanup verified empty; native creation bracket
+2082.4830ms exhausted the unchanged2s budget. Offline precise-CPU leaf evidence
+correlates2061.2177ms waiting (~98.98% of that bracket) with runner/WdFilter stack,
+readied by MsMpEng/MpRtp. This supports filtering-path participation in this sample,
+not exact scan mechanism, a security defect or every historical failure's cause.
+No security changes/retry/Go/fuzz/main merge or acceptance upgrade.
+
+Recording stop was requested after10019ms but stop/merge took77477ms; ETL header
+actually covers46.0027s, NOT10s. Final own session/collectors verified absent.
+Raw310378496-byte ETL/exports remain local/ignored, not uploaded or committed.
+Export warnings, limited symbols, stop overrun and failed readiness are explicit.
+See [single experiment, focused evidence and recovery](2026-10-15-local-launch-performance-trace.md).
+
 ## Latest diagnostic — native creation interval consumed the sample budget
 
 Approved launch timing instrumentation preserves API/error-handling order, rights,

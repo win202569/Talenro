@@ -95,6 +95,11 @@ AD73295A7CBBEC9D2900F1749C98E97DFD1F4D62EA26E1F17AE2CECFEE34C6B5.
 
 ## Recovery and next boundary
 
+The subsequent separately approved single local performance experiment is in
+[its own report](2026-10-15-local-launch-performance-trace.md). It correlates a
+dominant creation wait with antimalware filtering stacks, with actual trace-duration
+overrun and symbol/export limits explicit. No earlier result is changed or accepted.
+
 ### Subsequent readonly checks, no new sample
 
 Queried Defender/Operational, CodeIntegrity/Operational, AppLocker/EXE and DLL,

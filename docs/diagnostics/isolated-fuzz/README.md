@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Latest local trace2026-10-15: one approved recording/new child-readiness-003 run
+still FAILED readiness with verified cleanup. Offline runner/WdFilter waiting
+stack and MsMpEng/MpRtp readier evidence cover ~98.98% of the2082.4830ms creation
+bracket. This is sample-specific participation evidence, not a security defect or
+exact scan attribution. Stop requested at10s, but ETL actually covers46s; own
+session/collectors ended. Raw ETL/CSVs stay local/ignored; no retry, security change,
+Go/fuzz or acceptance upgrade. See [trace evidence and limits](../../roadmap/2026-10-15-local-launch-performance-trace.md).
+
 Latest native launch timing2026-10-15: additive LaunchBoundaries records UTC,
 monotonic ticks/frequency and original budget-watch position around creation,
 job assignment and thread resume. No API/security/timeout/acceptance change.
