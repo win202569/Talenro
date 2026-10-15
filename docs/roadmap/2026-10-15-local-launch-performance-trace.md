@@ -108,6 +108,12 @@ security change is neither justified nor authorized by this experiment.
 
 ## Evidence, recovery and remaining work
 
+Subsequently the user separately approved an independent readable-file diagnostic
+and one new sample; see [its report](2026-10-15-file-readiness-diagnostic.md). That
+sample passed readiness/timeout/cleanup without another recording or security
+change. It does not change this trace, establish the exact scan mechanism or
+retrospectively pass the original regression.
+
 Ignored worktree-relative trace directory:
 .superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator/launch-trace-001/.
 Related sample directory: child-readiness-003 under the same diagnostic scope.

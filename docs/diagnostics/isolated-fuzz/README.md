@@ -1,5 +1,16 @@
 # Isolated fuzz diagnosis
 
+Latest readable-file diagnostic2026-10-15: explicit UseScriptFiles=true on the
+child-readiness helper requires fresh file-child-readiness-NNN, materializes
+exclusive UTF8-BOM scripts and uses normal -NoProfile -File arguments. Default
+encoded mode and native2s/security/acceptance rules remain unchanged. One approved
+file-child-readiness-001 sample passed diagnostic readiness/timeout/cleanup; creation
+bracket21.2584ms and child marker UTC offset615.7873ms. Not an original-test pass or
+causal security conclusion.118 helper checks pass on5.1/7; no policy bypass, retry,
+WPR or Go/fuzz. See [scope, evidence and recovery](../../roadmap/2026-10-15-file-readiness-diagnostic.md).
+Planning writes nothing; invocation requires a separately approved fresh identity.
+Do not replay consumed001 or silently switch old tests to file mode.
+
 Latest local trace2026-10-15: one approved recording/new child-readiness-003 run
 still FAILED readiness with verified cleanup. Offline runner/WdFilter waiting
 stack and MsMpEng/MpRtp readier evidence cover ~98.98% of the2082.4830ms creation

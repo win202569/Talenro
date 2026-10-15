@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest independent file-mode fixture — PASS, original acceptance still blocked
+
+Approved additive readable-file mode keeps the encoded default, readiness/owned
+cleanup proof, native runner and2s budget. One file-child-readiness-001 sample
+passed its diagnostic conjunction: matching child nonce/PID record at UTC offset
+615.7873ms, owned/running non-root member, timeout and verified empty forced cleanup.
+Native creation bracket21.2584ms, versus the earlier separately observed encoded
+2082.4830ms; not a controlled causal comparison or proof scanning disappeared.
+Acceptance/OriginalTestPassed remain false. No policy override/security change,
+retry/WPR/Go/fuzz or original test replacement/main merge. New19 and existing99
+helper checks PASS on5.1/7 (118 each); independent review found no blocking defect.
+Original failures/full acceptance remain open. See [one-run evidence and recovery](2026-10-15-file-readiness-diagnostic.md).
+
 ## Latest local trace — antimalware path participates in observed creation wait
 
 One approved local WPR experiment/new child-readiness-003 sample completed. The
