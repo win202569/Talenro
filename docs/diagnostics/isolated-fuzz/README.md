@@ -1,5 +1,14 @@
 # Isolated fuzz diagnosis
 
+Latest fresh matrix0022026-10-15:0PASS/1FAIL/25UNRUN, stopped at check01 completion
+gate. Tests output35 top-level/65 subtest PASS and exit0, but one listed member's
+OpenProcess error87 leaves state/ownership unverified. Natural shutdown refused,
+termination requested, final cleanup0/empty, no timeout. No retry/check02/fuzz.
+701 source hashes/four compile artifacts unchanged; copied and final original
+SDK11536-file audits passed.
+No root-cause or broad acceptance claim. Read
+[result, evidence limits and recovery](../../roadmap/2026-10-15-limited-matrix-002.md).
+
 Latest bounded scanner repair2026-10-15: only repository-root
 .superpowers/diagnostics is excluded by the test-only contract consumer scan.
 RED reproduced two false positives; GREEN entire statecontract package33 tests/

@@ -80,6 +80,10 @@ are accepted as outside this bounded test-scanner repair, not as passing results
 
 ## Recovery and remaining gates
 
+Subsequent separately approved [matrix002](2026-10-15-limited-matrix-002.md) stopped
+at check01's process-completion evidence gate, before statecontract. It does not
+erase this package's scoped result or establish full matrix acceptance.
+
 Clone the existing development branch and read current-status.md together with
 docs/runbooks/repository-recovery.md. Tracked tests recreate their own fixtures;
 ignored toolchains, caches, binaries and raw receipts are not restored by Git.

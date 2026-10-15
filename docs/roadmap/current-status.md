@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-15
 
+## Latest new matrix002 — STOPPED,0PASS/1FAIL/25UNRUN
+
+Separately approved fresh matrix-check-002 stopped at check01/nodeissuermapping.
+Compile exit0; runtime35 top-level/65 subtests PASS and exit0, but completion
+evidence refused: one listed member OpenProcess error87/state unknown, no verified
+ownership/exit/image; natural shutdown unverified, termination requested. Final
+cleanup active0/empty, no timeout. No check02/retry/later fuzz. This is a failed
+process-evidence gate, not an assertion failure or proven surviving product child;
+underlying cause remains undetermined. No code/gate changes were made.
+Finalization PASS:701 source hashes and four compile artifacts unchanged;
+copied11536-file SDK audit matched. MatrixPassed/Acceptance=false. Final original
+SDK11536-file postcheck also matched. See [result, limits, evidence and recovery](2026-10-15-limited-matrix-002.md).
+Historical001 remains12PASS/1FAIL/13UNRUN; wider acceptance/main gates stay open.
+
 ## Latest bounded scan-scope repair — package PASS, matrix not rerun
 
 The test-only boundary scanner now excludes exactly root .superpowers/diagnostics,
