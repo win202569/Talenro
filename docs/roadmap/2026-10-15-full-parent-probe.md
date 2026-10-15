@@ -104,6 +104,11 @@ evidence instead of aggregate count alone. This is a proposal, not an approved
 replacement or permission to extend/reset the current2s budget. Further one-off
 probes without a discriminating hypothesis are not the next default action.
 
+Subsequently the user approved an additive independent readiness/cleanup fixture
+and one actual run; see [its report](2026-10-15-child-readiness-fixture.md). That
+run lacked target-child readiness while cleanup was verified. Old tests, this
+sample and the original2s runner policy were not changed or retrospectively passed.
+
 The original origin87, descendant-timeout regression/16 unrun checks, Envelope
 sampling and Pair remain unresolved. C11/C12/Task10/B01/production/main gates stay
 open. This diagnostic does not authorize new Go sampling or relaxation of gates.

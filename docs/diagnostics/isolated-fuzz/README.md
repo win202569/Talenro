@@ -1,5 +1,16 @@
 # Isolated fuzz diagnosis
 
+Latest independent readiness/cleanup fixture2026-10-15: child-readiness.ps1 keeps
+the original2s runner bound and separately correlates a unique nonce/child PID
+record with non-root owned-running evidence. One actual child-readiness-001 run
+FAILED readiness (no record), while owned cleanup verified empty. No retry or
+original-test acceptance. New28 and existing33 helper checks pass on5.1/7. Read
+[design, actual failure, timing limits and recovery](../../roadmap/2026-10-15-child-readiness-fixture.md).
+Dot-source the helper for non-launching planning/evaluation; Invoke-ChildReadinessFixture
+is the explicit process-launch entry and requires a separately authorized fresh
+identity. FixturePassed is diagnostic only and must be checked by its caller;
+it is not the original test/product acceptance. Do not replay consumed001.
+
 Latest full-parent diagnostic2026-10-15: one2s probe observed flushed ENTRY and
 BEFORE_START plus their files, but no AFTER_START or child-entry marker. It timed
 out with native accounting3; owned cleanup verified empty. Process presence alone

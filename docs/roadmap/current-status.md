@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-15
 
+## Latest independent fixture — readiness blocked, cleanup verified
+
+Approved additive child-readiness fixture is implemented without modifying old
+run.tests/native runner or the2s budget. One actual child-readiness-001 run timed
+out: no nonce/PID readiness record, ChildReady=false, FixturePassed=false (exit1).
+Owned-job cleanup verified accounting0/list empty; native process count3 cannot
+substitute for target-child readiness. No retry/Go/fuzz or acceptance upgrade.
+New28 plus existing33 helper checks passed separately on PowerShell5.1/7 (61 each).
+Independent read-only review found no blocking implementation defect, with UTC/
+readiness and coverage limits explicit. Original failures remain unresolved.
+See [approved design, failed run and recovery](2026-10-15-child-readiness-fixture.md).
+
 ## Latest diagnostic — full parent reached launch boundary, still unaccepted
 
 One approved full-parent-probe-001 emitted exact flushed ENTRY/BEFORE_START stdout
