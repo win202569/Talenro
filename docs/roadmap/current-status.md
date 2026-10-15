@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-15
 
+## Latest full diagnostic runner regression — 31/31 PASS
+
+One approved default run.tests.ps1 execution on WindowsPowerShell5.1 exited0 with
+31 PASS assertions. The16 checks after the historical descendant failure all
+executed and passed, including live-owned sampling and natural/forced shutdown
+gates. All seven actual fixture receipts show verified final accounting0/empty
+members. No source/security/budget change, retry, Go/fuzz, WPR or main merge.
+This clears the revised diagnostic runner script's local regression blocker only;
+historical failures and original origin87/Envelope/Pair/product gates stay open.
+Earlier137-per-host helper results were not rerun in this documentation-only step.
+Next proposed work is a bounded plan for fresh Envelope preparation; no new
+preparation is authorized by this full-runner approval. See
+[full results, hashes and recovery](2026-10-15-full-runner-regression.md).
+
 ## Latest revised descendant single case — PASS, full suite still UNRUN
 
 Approved migration changes only the original descendant-timeout case to readable

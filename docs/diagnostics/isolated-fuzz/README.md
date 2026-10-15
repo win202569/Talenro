@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest full runner regression2026-10-15: one approved default run.tests.ps1 run
+on WindowsPowerShell5.1 passed31/31 assertions, exit0. Previously unrun16 checks
+passed; seven actual fixtures all ended with verified final0/empty owned jobs.
+No retry/source/security change/Go/fuzz/main merge. This is the diagnostic runner
+script only, not full project acceptance; origin87/Envelope/Pair remain open.
+See [full run, evidence hashes and recovery](../../roadmap/2026-10-15-full-runner-regression.md).
+
 Latest revised descendant case2026-10-15: approved migration of only the original
 timeout case to explicit readable-file mode retains2s/count/cleanup gates and adds
 intended-child nonce/owned-running proof. `run.tests.ps1 -DescendantTimeoutOnly`

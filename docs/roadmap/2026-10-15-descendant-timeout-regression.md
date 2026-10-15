@@ -1,5 +1,10 @@
 # Revised descendant timeout case — 2026-10-15
 
+Subsequent separately approved work ran the complete revised diagnostic runner
+once:31/31 PASS on WindowsPowerShell5.1. See the [full-run record](2026-10-15-full-runner-regression.md).
+UNRUN/full-suite-pending statements below describe this earlier single-case
+checkpoint; they are superseded only for the diagnostic runner, not product gates.
+
 ## Approved implementation and limits
 
 The user approved migrating only the original `real owned descendant cleaned on
