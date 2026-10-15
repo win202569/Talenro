@@ -1,5 +1,19 @@
 # Isolated fuzz diagnosis
 
+Latest new limited matrix2026-10-15: matrix-check.ps1 provides a separate26-check
+flow,24 builds/25 runs maximum, preserving package cwd and strict native gates.
+214 scoped assertions PASS perPowerShell5.1/7 host; review closed a runtime-evidence
+binding gap before execution. One actual matrix-check-001 stopped12PASS/1FAIL/
+13UNRUN at TestContractBoundary: its whole-repository scan includes .superpowers
+and parses an intentional-invalid SDK syntax fixture. No timeout/retry/old guard
+change/main merge. All26 native attempts cleaned naturally;701 product hashes and
+88 bound files unchanged. MatrixPassed=false, Acceptance=false. Do not delete SDK
+evidence or replay001 to bypass this gate. Next proposed work is a separately
+approved precise scanning-boundary fix. Read
+[scope, failure, actual hashes and recovery](../../roadmap/2026-10-15-limited-matrix-validation.md).
+New matrix-check.tests.ps1 uses portable process-free fixtures; optional
+-RuntimeEvidenceOnly selects a synthetic integrity regression, not a real matrix.
+
 Latest separate Pair observation2026-10-15: pair-sample.ps1 validates the retained
 uninstrumented005 compile bundle and invokes only FuzzIssuerPair once with a
 fresh identity/cache. No copy/recompile/version/list/Envelope process.154 scoped

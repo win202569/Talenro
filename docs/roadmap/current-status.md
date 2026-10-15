@@ -1,5 +1,24 @@
 # Project status — updated 2026-10-15
 
+## Latest new limited matrix — STOPPED,12PASS/1FAIL/13UNRUN
+
+New matrix-only driver separates compile/runtime with package cwd, fixed offline
+cache and unchanged test limits. New60+existing154 scoped assertions PASS on both
+PowerShell5.1/7 (214 per host). Independent review's runtime-evidence binding issue
+was fixed through RED/GREEN and re-review; no outstanding blocking code finding.
+One actual matrix-check-001 attempt stopped at13/statecontract: TestContractBoundary
+scanned the copied SDK's intentional invalid-syntax fixture under .superpowers.
+The scanner excludes .git/.worktrees/vendor, not diagnostic output. Failure is
+not a timeout: exit1, natural verified cleanup/final0. First12 checks PASS;14–26,
+including authority/store/dedicated fuzz, UNRUN. No retry or old guard modification.
+All26 native receipts clean/non-timeout;88 bound files and701 product hashes
+unchanged; final copied-toolchain audit passed. MatrixPassed/Acceptance=false.
+Final original-toolchain11536-file postcheck also passed without changes.
+Next proposed work: precise diagnostic-root exclusion with retained unauthorized-
+consumer negative controls, requiring new bounded approval. Historical matrix3/
+origin001 and C11/C12/Task10/B01/production/main gates stay open. See
+[failure diagnosis, evidence and recovery](2026-10-15-limited-matrix-validation.md).
+
 ## Latest separate Pair short observation — PASS, only5 executions
 
 Approved Pair-only entry reuses the validated uninstrumented005 binary, with
