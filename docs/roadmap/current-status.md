@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-15
 
+## Latest readonly comparison — same product bytes, different runtime/cache
+
+Historical matrix3 and004 inventories each contain701 unique files; after slash
+normalization all Path/SHA256 pairs match case-sensitively.004 directly captured
+incoming deadline/child deadline -> nil; the controlled parent-first fixture had
+deadline/child nil -> deadline. Historical matrix3 lacks those operand records,
+so the candidate framework ordering is not exact attribution or a product fix.
+Runtime instrumentation, initial corpus10 vs5, caching and launch mechanisms
+differ; throughput12 vs73921 is not a causal performance comparison. Origin001/87
+is a different pre-build completion failure, not a recorded fuzz cause. No code,
+tests/build/fuzz/new capture or old-PID query ran in this documentation-only step.
+Next proposed work is a separately scoped uninstrumented short validation; no new
+execution/Pair/matrix/main authority is inferred. All acceptance gates remain.
+See [comparison, branch evidence and limits](2026-10-15-envelope-evidence-comparison.md).
+
 ## Latest original Envelope diagnostic observation — one PASS, not acceptance
 
 Approved independent envelope-sample entry validates the compiled003 artifact,

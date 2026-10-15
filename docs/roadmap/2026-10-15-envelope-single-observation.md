@@ -1,5 +1,10 @@
 # One Envelope observation from a validated compile — 2026-10-15
 
+Subsequent readonly comparison confirmed all701 historical/current product hashes
+match, but runtime/cache differences and missing old operand records prevent
+exact historical attribution. See [old/new comparison](2026-10-15-envelope-evidence-comparison.md).
+No additional observation or code change occurred in that follow-up.
+
 ## Approved scope
 
 The user approved an independent single-observation entry, tests/review, then

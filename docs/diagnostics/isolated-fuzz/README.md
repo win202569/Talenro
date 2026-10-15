@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest readonly comparison2026-10-15: historical matrix3 and004 share all701
+product hashes after separator normalization.004 captured child deadline and
+suppressed the budget error; controlled parent-first captured child nil and kept
+it. Historical operands are absent. Different runtime hooks/corpus/cache/entry
+prevent causal or repair claims.001/87 is pre-build evidence, not a fuzz trace.
+No new run or code change. See [comparison and next authorization boundary](../../roadmap/2026-10-15-envelope-evidence-comparison.md).
+
 Latest original Envelope observation2026-10-15: new envelope-sample.ps1 validates
 compiled inputs/source/product and invokes once without rebuilding.81 scoped
 checks PASS per5.1/7 host; one authorized004 sample from003 PASS,73921 executions,
