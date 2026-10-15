@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest implementation2026-10-15: optional ProcessOpen/JobMembership API/timing/error
+records diagnose initial acquisition without changing acceptance or cleanup.
+New12-check isolated suite passes on PowerShell5.1/7. Related regression is not
+green: run.tests stopped on the descendant-timeout fixture, recording only one
+process despite verified cleanup. No Go/fuzz or preparation retry. See [diagnostics,
+independent review and coverage limits](../../roadmap/2026-10-15-member-query-diagnostics.md).
+
 Latest actual preparation2026-10-15: Envelope001 stopped at the origin command's
 natural-completion gate before build/fuzz. A listed member lacked initial
 ownership/state proof (QueryError87); owned cleanup succeeded but is not acceptance.

@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-15
 
+## Latest implementation — member API diagnostics, regression still blocked
+
+Approved diagnostic-only ProcessOpen/JobMembership records preserve API,
+UTC/monotonic before-after timing, success and original last-error. No rights,
+ownership/exit predicate, timeout or cleanup-policy change.12 new assertions
+RED→GREEN, passing on PowerShell5.1/7. No Go/fuzz or preparation retry.
+
+Related regression stopped in run.tests.ps1 after14 PASS at `real owned descendant
+cleaned on timeout`: TotalProcesses1 despite verified empty owned-job cleanup.
+The required descendant scenario was absent; its cause is unknown. No failed
+fixture retry or extra time. Remaining independent suites passed separately, not
+an overall green suite. Independent read-only review found no blocking code defect;
+coverage/fixture-cleanup limits remain explicit. Historical origin87 is still
+unattributed and its receipt rejected. See [current evidence and recovery](2026-10-15-member-query-diagnostics.md).
+
 ## Latest actual preparation — Envelope001 stopped at origin
 
 The approved single continuation invoked the existing Envelope driver once.

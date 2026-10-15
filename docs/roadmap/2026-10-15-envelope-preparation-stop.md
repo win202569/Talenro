@@ -1,5 +1,10 @@
 # Original Envelope preparation001 — stopped before build
 
+Subsequent approved work adds per-API acquisition diagnostics, not a preparation
+retry or fix for this87. New tests pass, but a related descendant-fixture regression
+remains blocked. See [current diagnostic increment](2026-10-15-member-query-diagnostics.md).
+No new fields were retroactively added to the failed receipt below.
+
 ## Authorized execution and outcome
 
 The user requested continuation of the previously approved single original-project

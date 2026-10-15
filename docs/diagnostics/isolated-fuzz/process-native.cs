@@ -91,7 +91,8 @@ public static class IsolatedFuzzProcess {
         uint count=0;foreach(ulong id in members)if(id!=root)count++;return count;
     }
     public class ShutdownObservation {public bool Attempted,ExitCodeRead,SameHandleVerified;public ulong MemberId;public uint ExitCode;public int QueryError;public long WaitBudgetMs,StartElapsedMs,EndElapsedMs;public string State="unknown",SkipReason,StartUTC,EndUTC;}
-    public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead,InitialExitCodeRead,ConfirmationAttempted;public uint ExitCode,InitialExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC,CoreObservedUTC,InitialState,ConfirmationState,ConfirmationUTC;public ShutdownObservation DiagnosticShutdown,FinalShutdown;}
+    public class MemberQueryObservation {public string API,StartUTC,EndUTC;public long StartTimestamp,EndTimestamp,Frequency=Stopwatch.Frequency;public bool Succeeded;public int Error;}
+    public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead,InitialExitCodeRead,ConfirmationAttempted;public uint ExitCode,InitialExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC,CoreObservedUTC,InitialState,ConfirmationState,ConfirmationUTC;public ShutdownObservation DiagnosticShutdown,FinalShutdown;public MemberQueryObservation ProcessOpen,JobMembership;}
     public static void VerifyMemberFinalExit(IntPtr handle,MemberObservation row,Stopwatch shutdownClock) {
         if(row==null || shutdownClock==null || !shutdownClock.IsRunning || row.FinalShutdown!=null || row.DiagnosticShutdown!=null)
             throw new InvalidOperationException("Final exit requires unused final evidence, never diagnostic data");
@@ -175,9 +176,20 @@ public static class IsolatedFuzzProcess {
             IntPtr handle=IntPtr.Zero;
             try {
                 if(row.Id==0 || row.Id>UInt32.MaxValue)throw new InvalidOperationException("Invalid live job member ID");
+                var open=new MemberQueryObservation{API="OpenProcess",StartUTC=DateTime.UtcNow.ToString("o"),StartTimestamp=Stopwatch.GetTimestamp()};
+                row.ProcessOpen=open;
                 handle=OpenProcess(0x101000,false,(uint)row.Id); // QUERY_LIMITED_INFORMATION | SYNCHRONIZE only.
-                Check(handle!=IntPtr.Zero);
-                bool owned;Check(IsProcessInJob(handle,job,out owned));row.Owned=owned;
+                // Capture last-error before timing or serialization can overwrite it.
+                int openError=handle!=IntPtr.Zero?0:Marshal.GetLastWin32Error();
+                open.EndTimestamp=Stopwatch.GetTimestamp();open.EndUTC=DateTime.UtcNow.ToString("o");open.Succeeded=handle!=IntPtr.Zero;open.Error=openError;
+                if(!open.Succeeded)throw new System.ComponentModel.Win32Exception(openError);
+                var membership=new MemberQueryObservation{API="IsProcessInJob",StartUTC=DateTime.UtcNow.ToString("o"),StartTimestamp=Stopwatch.GetTimestamp()};
+                row.JobMembership=membership;
+                bool owned;bool membershipOK=IsProcessInJob(handle,job,out owned);
+                int membershipError=membershipOK?0:Marshal.GetLastWin32Error();
+                membership.EndTimestamp=Stopwatch.GetTimestamp();membership.EndUTC=DateTime.UtcNow.ToString("o");membership.Succeeded=membershipOK;membership.Error=membershipError;
+                if(!membershipOK)throw new System.ComponentModel.Win32Exception(membershipError);
+                row.Owned=owned;
                 if(!owned){row.State="ownership-lost";continue;}
                 // Identity/state are read only after this exact handle is verified
                 // against our live job. Never query a PID from an archived receipt.
