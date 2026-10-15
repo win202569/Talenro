@@ -1,5 +1,13 @@
 # Original Envelope observation — bounded diagnostic continuation
 
+Latest actual continuation2026-10-15: preparation001 was invoked once and stopped
+at the origin command's natural-completion gate, before build/fuzz. Version passed;
+origin root exited0 but a listed member lacked initial ownership/state proof
+(QueryError87). Owned cleanup was verified but does not pass the gate.701 product
+hashes unchanged; sampling remains UNRUN, preparation001 is consumed. See [new
+actual-stop report](2026-10-15-envelope-preparation-stop.md). Earlier readiness
+observations below are historical, not permission to repeat this preparation.
+
 Continuation2026-10-15: the user requested the bounded final-exit diagnosis. One
 instrumented observation did not reproduce the old failure; fresh scoped coverage
 is184 PASS after permission-bound link coverage was supplemented. The historical

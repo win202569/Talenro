@@ -1,5 +1,11 @@
 # Final-exit diagnostic continuation — 2026-10-15
 
+Subsequent actual preparation001 stopped at origin before build/fuzz: initial
+member ownership/state could not be proved (QueryError87). This later result is
+not fixed by the passing tests below. See [current preparation-stop evidence](2026-10-15-envelope-preparation-stop.md).
+The former unconsumed-identity/readiness statements below retain the earlier
+checkpoint's state; preparation001 is now consumed and must not be repeated.
+
 ## Scope and result
 
 The user requested continuation after checkpoint8d6d95f1. This step adds diagnostic

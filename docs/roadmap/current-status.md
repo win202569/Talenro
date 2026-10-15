@@ -1,5 +1,25 @@
 # Project status — updated 2026-10-15
 
+## Latest actual preparation — Envelope001 stopped at origin
+
+The approved single continuation invoked the existing Envelope driver once.
+Copied-Go version passed; origin/env exited0 with expected paths but failed the
+natural-completion safety gate. One listed member had unknown ownership/state,
+QueryError87 and no exit-code/final-handle proof. Exact failing API was not recorded;
+do not assert a vanished process, conhost identity, timeout or common old root cause.
+Only the owned job was forcibly cleaned; final accounting0/member list empty was
+verified. Forced cleanup remains failure, not a natural-completion success.
+
+The driver stopped before build/fuzz, saved stopped/receipt records and701-file
+before/after inventories with zero differences. No product binary or sample result,
+Pair, matrix, downloads, installs, source/policy changes or automatic retry.
+Preparation001 now exists and is consumed; original Envelope sampling remains UNRUN.
+Earlier184 passing scoped checks do not erase this new actual-preparation failure.
+Next work should distinguish handle-open versus ownership-query errors before any
+acquisition-policy change or separately authorized preparation attempt. Necessary
+reports are preserved on the existing development branch; remote SHA is verified
+at handoff. See [exact outcome, evidence limits and recovery](2026-10-15-envelope-preparation-stop.md).
+
 ## Latest continuation — final-exit evidence captured, old failure not reproduced
 
 One instrumented final-exit diagnostic returned0/52 PASS. The short owned child

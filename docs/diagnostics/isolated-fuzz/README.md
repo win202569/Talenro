@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest actual preparation2026-10-15: Envelope001 stopped at the origin command's
+natural-completion gate before build/fuzz. A listed member lacked initial
+ownership/state proof (QueryError87); owned cleanup succeeded but is not acceptance.
+Sampling remains UNRUN; preparation001 must not be replayed. See [current stop and
+recovery report](../../roadmap/2026-10-15-envelope-preparation-stop.md).
+
 Latest2026-10-15: one final-exit diagnostic observation did not reproduce the prior
 failure. The fixture now saves returned rows before assertions and separately
 records cleanup requests, without changing native policy or time limits. Fresh
