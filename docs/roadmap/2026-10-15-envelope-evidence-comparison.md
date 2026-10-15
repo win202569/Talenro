@@ -109,6 +109,10 @@ No saved receipt, cache or source file was modified in this comparison.
 
 ## Next decision and recovery
 
+Subsequent separately approved work completed one uninstrumented005 short
+validation successfully; that does not rewrite this earlier readonly scope or
+the historical failure. See [new scope, evidence and limits](2026-10-15-envelope-uninstrumented-validation.md).
+
 Do not change product logic, suppress deadline errors or lengthen limits based
 on this comparison. The next proposed validation is a separately designed,
 explicitly authorized single uninstrumented fixed-toolchain short check with

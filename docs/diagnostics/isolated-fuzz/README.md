@@ -1,5 +1,18 @@
 # Isolated fuzz diagnosis
 
+Latest uninstrumented validation2026-10-15: separate envelope-uninstrumented.ps1
+uses one independent unpatched fixed toolchain with full11536-file pin/manifest
+binding, fresh offline caches, unchanged budgets and native cleanup gates.
+109 scoped assertions PASS perPowerShell5.1/7 host; independent review found no
+blocking issue. One actual005 build and short fuzz validation PASS:74867
+executions, natural verified final0/empty, no timeout/retry,701 product hashes
+unchanged. Acceptance=false; old deadline/origin87/Pair/wider gates remain open.
+Read [implementation, measured evidence, limits and recovery](../../roadmap/2026-10-15-envelope-uninstrumented-validation.md).
+Unit tests accept explicit -Toolchain/-ModuleCache; independently prepare those
+prerequisites on another computer. Tests synthesize the native boundary and never
+execute the unit binary. Do not replay consumed uninstrumented-001/observe-005,
+infer another real invocation, or upload the ignored local toolchain/cache/binary.
+
 Latest readonly comparison2026-10-15: historical matrix3 and004 share all701
 product hashes after separator normalization.004 captured child deadline and
 suppressed the budget error; controlled parent-first captured child nil and kept

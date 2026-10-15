@@ -1,5 +1,22 @@
 # Project status — updated 2026-10-15
 
+## Latest uninstrumented Envelope short validation — PASS, not acceptance
+
+Approved independent original-toolchain copy11536 files/218649457 bytes matched
+the frozen original manifest; no diagnostic patch or original-source write.
+New28+existing81 scoped assertions PASS on PowerShell5.1/7 (109 per host), with
+independent review finding no Critical/Important issue. One actual005 attempt
+passed version/origin, one build98141ms and one short execution7045ms:74867
+executions, one worker, PASS, natural verified final0/empty, no timeout or retry.
+Full copied-tree/binary checks and final original11536-file postcheck passed;
+701 product hashes unchanged.
+Uninstrumented/SamplingExecuted/ObservationValidationPassed=true; Acceptance=false.
+Copy preparation was slow; readonly diagnosis did not identify its exact cause.
+This passing fresh short run does not resolve historical matrix3/001 or clear
+Pair/C11/C12/Task10/B01/production/main gates. Necessary source/tests and evidence
+report are preserved; raw toolchains/caches/binaries remain local and ignored.
+See [scope, tests, actual hashes and recovery](2026-10-15-envelope-uninstrumented-validation.md).
+
 ## Latest readonly comparison — same product bytes, different runtime/cache
 
 Historical matrix3 and004 inventories each contain701 unique files; after slash
