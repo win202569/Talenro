@@ -1,5 +1,14 @@
 # Isolated fuzz diagnosis
 
+Latest diagnostic-only increment: process-native records the existing initial
+post-root-wait accounting/member-list API clocks and raw result/error, without
+new queries/retries or predicate changes. New initial-job-query.tests.ps1 uses
+only an empty job and invalid job handles, no child/process probes;19 assertions
+plus214 existing process-free checks PASS on each PS7/5.1 host (233 each).
+Independent review found no blocker;701 recorded product hashes unchanged.
+No Go/matrix retry or underlying failure fix. Read
+[implementation, persistence limits and recovery](../../roadmap/2026-10-15-initial-job-query-diagnostics.md).
+
 Latest fresh matrix0022026-10-15:0PASS/1FAIL/25UNRUN, stopped at check01 completion
 gate. Tests output35 top-level/65 subtest PASS and exit0, but one listed member's
 OpenProcess error87 leaves state/ownership unverified. Natural shutdown refused,

@@ -63,7 +63,8 @@ public static class IsolatedFuzzProcess {
         }
         b.Append('\\',slashes*2);b.Append('"');return b.ToString();
     }
-    static ulong[] Members(IntPtr job) {
+    static ulong[] Members(IntPtr job) {return MembersWithEvidence(job,null);}
+    static ulong[] MembersWithEvidence(IntPtr job,List<MemberListQueryObservation> evidence) {
         int capacity=16;
         for(int attempt=0;attempt<8;attempt++) {
             int size=checked(8+capacity*IntPtr.Size);
@@ -71,11 +72,15 @@ public static class IsolatedFuzzProcess {
             try {
                 // Initialize the header so a failed query never reads garbage.
                 Marshal.WriteInt32(buffer,0,0);Marshal.WriteInt32(buffer,4,0);
+                var query=evidence==null?null:new MemberListQueryObservation{API="QueryInformationJobObject/ProcessIdList",Attempt=attempt+1,Capacity=capacity,BufferBytes=size,StartUTC=DateTime.UtcNow.ToString("o"),StartTimestamp=Stopwatch.GetTimestamp()};
+                if(query!=null)evidence.Add(query);
                 bool ok=QueryInformationJobObject(job,3,buffer,size,IntPtr.Zero);
-                int error=Marshal.GetLastWin32Error();
+                int error=ok?0:Marshal.GetLastWin32Error();
+                if(query!=null){query.EndTimestamp=Stopwatch.GetTimestamp();query.EndUTC=DateTime.UtcNow.ToString("o");query.Succeeded=ok;query.Error=error;}
                 if(!ok && error!=234)throw new System.ComponentModel.Win32Exception(error);
                 uint assigned=unchecked((uint)Marshal.ReadInt32(buffer,0));
                 uint count=unchecked((uint)Marshal.ReadInt32(buffer,4));
+                if(query!=null){query.HeaderRead=true;query.Assigned=assigned;query.Returned=count;}
                 if(ok && assigned==count && count<=capacity) {
                     var ids=new ulong[count];
                     for(int i=0;i<ids.Length;i++)ids[i]=unchecked((ulong)Marshal.ReadIntPtr(buffer,8+i*IntPtr.Size).ToInt64());
@@ -92,6 +97,20 @@ public static class IsolatedFuzzProcess {
     }
     public class ShutdownObservation {public bool Attempted,ExitCodeRead,SameHandleVerified;public ulong MemberId;public uint ExitCode;public int QueryError;public long WaitBudgetMs,StartElapsedMs,EndElapsedMs;public string State="unknown",SkipReason,StartUTC,EndUTC;}
     public class MemberQueryObservation {public string API,StartUTC,EndUTC;public long StartTimestamp,EndTimestamp,Frequency=Stopwatch.Frequency;public bool Succeeded;public int Error;}
+    public class AccountingQueryObservation:MemberQueryObservation {public bool ValuesRead;public uint TotalProcesses,ActiveProcesses,TotalTerminatedProcesses;}
+    public class MemberListQueryObservation:MemberQueryObservation {public int Attempt,Capacity,BufferBytes;public bool HeaderRead;public uint Assigned,Returned;}
+    static Accounting ReadInitialJobQueries(IntPtr job,Result result) {
+        var query=new AccountingQueryObservation{API="QueryInformationJobObject/Accounting",StartUTC=DateTime.UtcNow.ToString("o"),StartTimestamp=Stopwatch.GetTimestamp()};
+        result.InitialAccountingQuery=query;
+        Accounting accounting;
+        bool ok=QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero);
+        int error=ok?0:Marshal.GetLastWin32Error();
+        query.EndTimestamp=Stopwatch.GetTimestamp();query.EndUTC=DateTime.UtcNow.ToString("o");query.Succeeded=ok;query.Error=error;
+        if(!ok)throw new System.ComponentModel.Win32Exception(error);
+        query.ValuesRead=true;query.TotalProcesses=accounting.Total;query.ActiveProcesses=accounting.Active;query.TotalTerminatedProcesses=accounting.Terminated;
+        result.MembersAtRootWait=MembersWithEvidence(job,result.InitialMemberQueries);
+        return accounting;
+    }
     public class MemberObservation {public ulong Id;public bool Owned,ExitCodeRead,InitialExitCodeRead,ConfirmationAttempted;public uint ExitCode,InitialExitCode;public int QueryError,ImageError;public string ImagePath,State,ObservedUTC,CoreObservedUTC,InitialState,ConfirmationState,ConfirmationUTC;public ShutdownObservation DiagnosticShutdown,FinalShutdown;public MemberQueryObservation ProcessOpen,JobMembership;}
     public static void VerifyMemberFinalExit(IntPtr handle,MemberObservation row,Stopwatch shutdownClock) {
         if(row==null || shutdownClock==null || !shutdownClock.IsRunning || row.FinalShutdown!=null || row.DiagnosticShutdown!=null)
@@ -220,7 +239,7 @@ public static class IsolatedFuzzProcess {
         } finally {foreach(IntPtr handle in handles)Close(handle);}
     }
     public class LaunchBoundary {public string Name,UTC;public long Timestamp,ElapsedTicks,Frequency;}
-    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;public List<LaunchBoundary> LaunchBoundaries=new List<LaunchBoundary>();}
+    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;public List<LaunchBoundary> LaunchBoundaries=new List<LaunchBoundary>();public AccountingQueryObservation InitialAccountingQuery;public List<MemberListQueryObservation> InitialMemberQueries=new List<MemberListQueryObservation>();}
     public static void RecordLaunchBoundary(Result result,string name,Stopwatch watch) {
         result.LaunchBoundaries.Add(new LaunchBoundary{Name=name,UTC=DateTime.UtcNow.ToString("o"),Timestamp=Stopwatch.GetTimestamp(),ElapsedTicks=watch.ElapsedTicks,Frequency=Stopwatch.Frequency});
     }
@@ -292,11 +311,10 @@ public static class IsolatedFuzzProcess {
             // One shared five-second shutdown clock includes evidence gathering,
             // natural observation (at most500ms) and any forced-job cleanup.
             var cleanup=Stopwatch.StartNew();
-            Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
+            accounting=ReadInitialJobQueries(job,result);
             result.TotalProcesses=accounting.Total;
             result.MembersDuringRun=live.ToArray();
             result.RootExited=rootExited;result.ActiveAtRootWait=accounting.Active;
-            result.MembersAtRootWait=Members(job);
             result.DescendantsRemaining=CountDescendants(pi.Id,result.MembersAtRootWait);
             result.MemberEvidence=InspectMembers(job,result.MembersAtRootWait,captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null,!captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null);
             result.MemberEvidenceTruncated=result.MembersAtRootWait.Length>result.MemberEvidence.Length;

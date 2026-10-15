@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-15
 
+## Latest initial-query metadata increment — scoped checks PASS, not a failure fix
+
+Approved diagnostic-only change records existing first post-root-wait accounting/
+member-list query times and raw counts/error. No added native query/retry/wait,
+rights/predicate/budget change or live-child/Go/matrix invocation.19 new empty-job/
+invalid-handle/serialization/gate checks plus214 existing process-free regressions
+PASS on each PS7.6.5/5.1 host (233 each);701 recorded product source hashes unchanged.
+Independent review and documentation follow-up: no blocker; timeout snapshot and native
+exception persistence limitations documented. No matrix failure fix/acceptance.
+See [implementation, limits, tests and recovery](2026-10-15-initial-job-query-diagnostics.md).
+
 ## Latest read-only matrix002 diagnosis — failed open localized, cause unresolved
 
 Confirmed OpenProcess87 before membership/core/final-handle reads; no evidence of
