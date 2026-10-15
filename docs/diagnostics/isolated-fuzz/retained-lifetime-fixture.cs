@@ -35,3 +35,8 @@ public sealed class FakeLifetimeApi : IRetainedLifetimeApi {
         if(ThrowClose)throw new Exception("close fixture");return new LifetimeRelease{Succeeded=!CloseFails,Error=CloseFails?6:0};
     }
 }
+public static class LifetimeCoreFixture {
+    public static Exception Expected;public static FakeLifetimeApi Api;
+    public static void ThrowCore(){throw Expected;}
+    public static void MarkCleanup(){Api.Calls.Add("cleanup");}
+}

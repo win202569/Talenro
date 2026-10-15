@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'isolation.ps1')
 . (Join-Path $PSScriptRoot 'provenance.ps1')
-if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'process-native.cs') }
+if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs')) }
 function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stderr,[string]$exe,[string[]]$Arguments,[hashtable]$Environment) {
     $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
     foreach($field in @('MemberEvidence','LaunchBoundaries','MemberEvidenceTruncated','LiveSampling','MembersDuringRun','ShutdownSchema','ShutdownStatePolicy','ShutdownImageEvidenceComplete','ShutdownDiagnosticOnly','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence','InitialAccountingQuery','InitialMemberQueries')) {

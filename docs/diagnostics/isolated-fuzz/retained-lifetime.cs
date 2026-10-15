@@ -13,7 +13,8 @@ public class LifetimeApiEvidence {
     public bool Succeeded; public int Error; public long StartTimestamp,EndTimestamp,Frequency;
     public string StartUTC,EndUTC;
 }
-public sealed class LifetimeCandidates:LifetimeApiEvidence {public ulong[] Ids=new ulong[0];public uint Assigned,Returned;}
+public class LifetimeQueryEvidence:LifetimeApiEvidence {public uint Assigned,Returned;public int Capacity,BufferBytes;}
+public sealed class LifetimeCandidates:LifetimeQueryEvidence {public ulong[] Ids=new ulong[0];}
 // Transient adapter reply only. Never attach this object to a report.
 public sealed class LifetimeOpen:LifetimeApiEvidence {public IntPtr Handle;}
 public sealed class LifetimeMembership:LifetimeApiEvidence {public bool Owned;}
@@ -24,7 +25,7 @@ public sealed class LifetimeRead {
 }
 public sealed class LifetimeRelease {public bool Succeeded;public int Error;}
 public sealed class LifetimeEntry {
-    public int EntryId;public ulong Pid;public int SourceQuery;
+    public int EntryId;public ulong Pid;public int SourceQuery;public LifetimeQueryEvidence SourceQueryEvidence;
     public LifetimeApiEvidence Open;public LifetimeMembership Membership;
     public LifetimeRead Admission,RootWaitEnd,Final;
 }
@@ -33,7 +34,7 @@ public sealed class LifetimeReport {
     public string Coverage="sampled";
     public bool AdmissionBudgetExhausted,Incomplete,RootExited,TimedOut,TeardownAttempted;
     public List<string> Errors=new List<string>();public List<LifetimeEntry> Entries=new List<LifetimeEntry>();
-    public LifetimeApiEvidence FirstQuery,LastQuery;
+    public LifetimeQueryEvidence FirstQuery,LastQuery;
 }
 public sealed class RetainedLifetimeRegistry:IDisposable {
     readonly IntPtr job;readonly uint root;readonly IRetainedLifetimeApi api;readonly IRetainedLifetimeClock clock;
@@ -52,6 +53,9 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
     }
     static LifetimeApiEvidence Evidence(LifetimeApiEvidence v) {
         return v==null?null:new LifetimeApiEvidence{Succeeded=v.Succeeded,Error=v.Error,StartTimestamp=v.StartTimestamp,EndTimestamp=v.EndTimestamp,Frequency=v.Frequency,StartUTC=v.StartUTC,EndUTC=v.EndUTC};
+    }
+    static LifetimeQueryEvidence QueryEvidence(LifetimeCandidates v) {
+        return v==null?null:new LifetimeQueryEvidence{Succeeded=v.Succeeded,Error=v.Error,StartTimestamp=v.StartTimestamp,EndTimestamp=v.EndTimestamp,Frequency=v.Frequency,StartUTC=v.StartUTC,EndUTC=v.EndUTC,Assigned=v.Assigned,Returned=v.Returned,Capacity=v.Capacity,BufferBytes=v.BufferBytes};
     }
     void Release(Owned value) {
         if(value.Released)return;value.Released=true;Report.ReleaseAttempts++;
@@ -75,7 +79,7 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
         try {
             if(!Budget(runtimeDeadlineTicks))return;
             var list=api.QueryMembers(job,runtimeDeadlineTicks);Report.QueryCount++;
-            Report.LastQuery=Evidence(list);if(Report.FirstQuery==null)Report.FirstQuery=Evidence(list);
+            Report.LastQuery=QueryEvidence(list);if(Report.FirstQuery==null)Report.FirstQuery=QueryEvidence(list);
             if(list==null || !list.Succeeded || list.Error!=0 || list.Ids==null || list.Assigned!=list.Returned || list.Returned!=list.Ids.Length){Error("list",list==null?-1:list.Error);return;}
             foreach(ulong id in list.Ids) {
                 if(Report.Attempts>=32){Report.AdmissionBudgetExhausted=true;break;}
@@ -83,7 +87,7 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
                 if(id==0 || id>UInt32.MaxValue){Report.Incomplete=true;continue;}
                 if(!seen.Add(id))continue;
                 if(!Budget(runtimeDeadlineTicks))break;
-                var row=new LifetimeEntry{EntryId=Report.Attempts+1,Pid=id,SourceQuery=Report.QueryCount};
+                var row=new LifetimeEntry{EntryId=Report.Attempts+1,Pid=id,SourceQuery=Report.QueryCount,SourceQueryEvidence=QueryEvidence(list)};
                 Report.Attempts++;Report.Entries.Add(row);if(Report.Attempts==32)Report.AdmissionBudgetExhausted=true;
                 Owned temporary=null;
                 try {
@@ -113,5 +117,10 @@ public sealed class RetainedLifetimeRegistry:IDisposable {
     public void Dispose() {
         if(disposed)return;disposed=true;Report.TeardownAttempted=true;
         foreach(var value in owned)Release(value);
+    }
+}
+public static class RetainedLifetimeTeardown {
+    public static void Run(Action coreCleanup,RetainedLifetimeRegistry registry) {
+        try{coreCleanup();}finally{if(registry!=null)registry.Dispose();}
     }
 }
