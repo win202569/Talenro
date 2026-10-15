@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Latest short-child-observe-001: one approved20s-bounded observation PASS in3388ms.
+Ready/release markers matched the intended native owned running child; same-handle
+final exit and empty natural job verified within existing500ms/shared5s gates.
+New query boundaries retained; no timeout/termination/retry/Go/matrix.23 new+19
+existing no-process checks PASS perPS7/5.1 host; independent review no blocker.
+It does not explain or fix historical matrix002/OpenProcess87. Read
+[actual evidence, interpretation and recovery](../../roadmap/2026-10-15-short-child-observation.md).
+
 Latest diagnostic-only increment: process-native records the existing initial
 post-root-wait accounting/member-list API clocks and raw result/error, without
 new queries/retries or predicate changes. New initial-job-query.tests.ps1 uses

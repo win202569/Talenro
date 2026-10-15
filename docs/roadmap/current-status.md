@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest one short-child observation — PASS, not matrix002 resolution
+
+Approved short-child-observe-001 ran once,3387.5754ms: parent/root exit0, intended
+child matched an owned running powershell.exe member after root exit, then exited0
+on the same retained handle within original shared500ms window. Owned conhost also
+exited naturally; final active0/empty, no timeout/termination/retry. First accounting
+and member-list API clocks/raw counts successfully retained.23 new +19 existing
+no-process checks PASS perPS7/5.1 host; independent review found no blocker.
+701 recorded product hashes and reviewed tooling unchanged across invocation.
+This validates a controlled acquisition/final-wait path, not the cause/fix of old
+OpenProcess87. Matrix002 remains0PASS/1FAIL/25UNRUN; no Go/matrix or main merge.
+See [scope, actual native evidence, limits and recovery](2026-10-15-short-child-observation.md).
+
 ## Latest initial-query metadata increment — scoped checks PASS, not a failure fix
 
 Approved diagnostic-only change records existing first post-root-wait accounting/
