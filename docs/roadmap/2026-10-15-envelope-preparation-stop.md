@@ -1,5 +1,10 @@
 # Original Envelope preparation001 — stopped before build
 
+Later separately approved work introduced -PreparationOnly and executed a new002
+identity once. Version/origin and final inventories passed, with no build/fuzz;
+see [bounded preparation002 evidence](2026-10-15-envelope-preparation-only.md).
+This does not repair or reattribute001's saved unknown-ownership failure below.
+
 Subsequent approved work adds per-API acquisition diagnostics, not a preparation
 retry or fix for this87. New tests pass, but a related descendant-fixture regression
 remains blocked. See [current diagnostic increment](2026-10-15-member-query-diagnostics.md).

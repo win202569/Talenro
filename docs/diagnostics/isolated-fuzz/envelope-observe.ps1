@@ -36,7 +36,7 @@ function Assert-EnvelopeCompileEvidence([string]$Log,[string]$Toolchain,[string]
     }
     throw 'Original Envelope test/parser compile evidence missing'
 }
-function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]$ModuleCache) {
+function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]$ModuleCache,[switch]$PreparationOnly) {
     $plan=Get-EnvelopeObservationPlan $RunRoot $Toolchain $ModuleCache
     $identity=Assert-EnvelopeRunProvenance $plan
     $before=@(Get-EnvelopeProductManifest)
@@ -44,6 +44,7 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
     $before|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'before-product.json')
     foreach($dir in @('go-cache','fuzz-cache','tmp')){New-Item -ItemType Directory -Path (Join-Path $plan.RunRoot $dir)|Out-Null}
     $stage='version'
+    $prepared=$null
     try {
         $version=Invoke-RecordedProcess $plan.Executable @('version') $plan.Environment (Join-Path $plan.RunRoot 'version') 60
         Assert-ProcessCompletion $version
@@ -53,6 +54,12 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
         Assert-ProcessCompletion $origin
         $lines=@(Get-Content $origin.StdoutPath)
         if($origin.ExitCode -ne 0 -or $lines.Count -ne 3 -or $lines[0] -cne $plan.Toolchain -or -not $lines[1].StartsWith($plan.Toolchain+'\',[StringComparison]::OrdinalIgnoreCase) -or $lines[2] -ine (Join-Path $plan.Project 'go.mod')){throw 'Original project/copied compiler origin not verified'}
+        if($PreparationOnly) {
+            Assert-EnvelopeProductUnchanged $before @(Get-EnvelopeProductManifest)
+            if((Assert-EnvelopeRunProvenance $plan) -cne $identity){throw 'Copied diagnostic source changed during preparation'}
+            $prepared=[pscustomobject]@{Scope='Envelope version and origin preparation only';PreparationOnly=$true;PreparationPassed=$true;BuildExecuted=$false;SamplingExecuted=$false;Acceptance=$false;SourceIdentity=$identity;RunRoot=$plan.RunRoot;VersionReceipt=(Join-Path $plan.RunRoot 'version/receipt.json');OriginReceipt=(Join-Path $plan.RunRoot 'origin/receipt.json')}
+            return
+        }
         $stage='build'
         $build=Invoke-RecordedProcess $plan.Executable $plan.BuildArguments $plan.Environment (Join-Path $plan.RunRoot 'build') $plan.BuildLimitSeconds
         Assert-ProcessCompletion $build
@@ -76,12 +83,18 @@ function Invoke-EnvelopeObservation([string]$RunRoot,[string]$Toolchain,[string]
         if((Get-FileHash -LiteralPath $plan.Binary).Hash -cne $binaryHash -or (Assert-EnvelopeRunProvenance $plan) -cne $identity){throw 'Source/binary drift after observation'}
         return [pscustomobject]@{Outcome=$result.Outcome;ObservationValidationPassed=$result.ObservationValidationPassed;Failure=$failure;Acceptance=$false;ExitCode=$receipt.ExitCode;TraceCount=$trace.Count;ResultPath=(Join-Path $plan.RunRoot 'sample-result.json')}
     } catch {
-        [pscustomobject]@{Stage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;SamplingExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'execute'));Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')
+        [pscustomobject]@{Stage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=[bool]$PreparationOnly;BuildExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'build'));SamplingExecuted=(Test-Path -LiteralPath (Join-Path $plan.RunRoot 'execute'));Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')
         throw
     } finally {
-        $after=@(Get-EnvelopeProductManifest)
-        $after|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'after-product.json')
-        Assert-EnvelopeProductUnchanged $before $after
+        try {
+            $after=@(Get-EnvelopeProductManifest)
+            $after|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'after-product.json')
+            Assert-EnvelopeProductUnchanged $before $after
+            if($PreparationOnly -and $null -ne $prepared){$prepared|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'preparation-result.json');Write-Output $prepared}
+        } catch {
+            if($PreparationOnly){[pscustomobject]@{Stage='finalize';PriorStage=$stage;UTC=[DateTime]::UtcNow.ToString('o');Error=$_.Exception.Message;PreparationOnly=$true;BuildExecuted=$false;SamplingExecuted=$false;Acceptance=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $plan.RunRoot 'stopped.json')}
+            throw
+        }
     }
 }
 function Assert-EnvelopeRunProvenance([object]$Plan) {

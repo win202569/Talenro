@@ -1,5 +1,15 @@
 # Isolated fuzz diagnosis
 
+Latest Envelope preparation-only2026-10-15: Invoke-EnvelopeObservation accepts
+optional -PreparationOnly and stops after version/origin, before build/fuzz.
+Default remains auto-build/observation and must not be used under preparation-only
+approval. Success JSON/output publish only after final inventory validation.
+New19+existing21 scoped checks PASS on5.1/7; one approved envelope-observe-002
+preparation PASS, natural exits, final0/empty,701 product hashes unchanged.
+No build/fuzz/retry/acceptance/main merge.001/002 remain consumed; source and
+progress recover from the dev branch, not ignored local artifacts. See
+[scope, finalization tests, actual evidence and next gate](../../roadmap/2026-10-15-envelope-preparation-only.md).
+
 Latest full runner regression2026-10-15: one approved default run.tests.ps1 run
 on WindowsPowerShell5.1 passed31/31 assertions, exit0. Previously unrun16 checks
 passed; seven actual fixtures all ended with verified final0/empty owned jobs.

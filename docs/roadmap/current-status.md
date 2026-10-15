@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-15
 
+## Latest Envelope preparation-only — version/origin PASS, no build or fuzz
+
+Approved -PreparationOnly mode stops before compilation, preserving provenance,
+offline readonly environment and all native completion/cleanup gates. New19 and
+existing21 scoped checks PASS on PowerShell5.1/7 (40 per host). Review caught and
+verified fixes for premature success file/stream publication; no blocking finding
+remains. One actual envelope-observe-002 invocation passed version and origin,
+natural exit and final0/empty cleanup. Product inventories701/701 match exactly.
+PreparationPassed=true only; BuildExecuted/SamplingExecuted/Acceptance=false.
+No build/binary/sample artifact, retry, security change, WPR or main merge.
+Original001/origin87 remains unresolved historical evidence; Envelope/Pair fuzz
+and wider product acceptance stay open. Next proposed work is a bounded
+compile-only mode, not running the default auto-sampling driver. See
+[implementation, review, one-run evidence and recovery](2026-10-15-envelope-preparation-only.md).
+
 ## Latest full diagnostic runner regression — 31/31 PASS
 
 One approved default run.tests.ps1 execution on WindowsPowerShell5.1 exited0 with
