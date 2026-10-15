@@ -73,6 +73,37 @@ it includes launch execution and any intervening scheduling. Do not conclude a
 deadlock, permanent command failure, startup latency cause or repaired old test.
 Different payload/instrumentation/timing is not a controlled causal A/B comparison.
 
+### Subsequent read-only timing analysis
+
+No new probe was run for this analysis. Recomputed the saved result timestamps
+and independently cross-checked the two raw marker files against the native
+receipt. Both inputs give runner-StartUTC to entry1487.2336ms, entry to
+before-start4.9980ms, and runner-StartUTC to before-start1492.2316ms. Subtracting
+from the nominal2000ms budget leaves507.7684ms. Before-start to receipt EndUTC is
+547.5240ms; the whole recorded interval is2039.7556ms, including shutdown work.
+
+These are UTC timestamp differences, not monotonic phase measurements or an exact
+remaining timer reading. StartUTC is assigned just before the Stopwatch starts;
+the budget includes native setup, process creation/resume and parent work. There
+is no saved per-phase creation/resume clock, nor proof that the wall clock stayed
+unchanged. Do not label1487ms pure PowerShell startup or547ms Start-Process duration.
+Preserve fractional UTC by using DateTimeOffset values directly after PowerShell7
+JSON date conversion, or parsing raw marker-file strings, not implicit DateTime
+string formatting. Raw receipt/result hashes above remain unchanged.
+
+The original run.tests.ps1 descendant assertion combines TotalProcesses>=2,
+timeout and empty cleanup; it does not prove intended-child script entry. The
+minimal-entry sample already demonstrated that accounting can exceed1 without an
+explicit script child launch. This weakens that assertion as a readiness witness;
+it neither repairs the historical failure nor establishes cleanup correctness for
+the intended descendant scenario. No assertion or acceptance predicate was changed.
+
+Recommended next decision: review the fixture design to distinguish bounded
+startup/readiness from timed descendant cleanup, with explicit intended-child
+evidence instead of aggregate count alone. This is a proposal, not an approved
+replacement or permission to extend/reset the current2s budget. Further one-off
+probes without a discriminating hypothesis are not the next default action.
+
 The original origin87, descendant-timeout regression/16 unrun checks, Envelope
 sampling and Pair remain unresolved. C11/C12/Task10/B01/production/main gates stay
 open. This diagnostic does not authorize new Go sampling or relaxation of gates.

@@ -11,6 +11,12 @@ test pass or acceptance upgrade. New12 and existing9+12 helper checks pass on5.1
 the full runner regression and original origin87 remain unresolved.
 See [single full-parent observation and recovery](2026-10-15-full-parent-probe.md).
 
+Read-only follow-up: saved timestamps place BEFORE_START1492.2316ms after native
+StartUTC, leaving nominal507.7684ms of2s; not exact monotonic remaining time or a
+pure startup measurement. Original aggregate process-count assertion does not
+prove intended-child readiness. Next proposed work is fixture-design review,
+not another probe or a relaxed timeout. No code/test/acceptance change was made.
+
 ## Latest diagnostic — minimal entry observed, old cause still unknown
 
 One approved entry-startup-probe-001 completed naturally in265.4917ms within the
