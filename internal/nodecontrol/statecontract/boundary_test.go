@@ -308,11 +308,23 @@ func TestContractBoundary(t *testing.T) {
 		}
 	}
 	root := filepath.Clean("../../..")
-	e = filepath.WalkDir(root, func(p string, d fs.DirEntry, e error) error {
+	e = walkContractConsumers(root, func(p string) { t.Errorf("production consumer: %s", p) })
+	if e != nil {
+		t.Fatal(e)
+	}
+}
+
+func walkContractConsumers(root string, reject func(string)) error {
+	return filepath.WalkDir(root, func(p string, d fs.DirEntry, e error) error {
 		if e != nil {
 			return e
 		}
 		if d.IsDir() {
+			// Retained diagnostic SDKs contain intentional invalid-Go fixtures.
+			// Exclude only this root-owned artifact tree, not nested namesakes.
+			if p == filepath.Join(filepath.Clean(root), ".superpowers", "diagnostics") {
+				return filepath.SkipDir
+			}
 			switch d.Name() {
 			case ".git", ".worktrees", "vendor":
 				return filepath.SkipDir
@@ -336,13 +348,53 @@ func TestContractBoundary(t *testing.T) {
 				return relErr
 			}
 			if !contractConsumerAllowed(rel, f.Name.Name, s) {
-				t.Errorf("production consumer: %s", p)
+				reject(p)
 			}
 		}
 		return nil
 	})
-	if e != nil {
-		t.Fatal(e)
+}
+
+func TestContractConsumerScanScope(t *testing.T) {
+	const forbidden = `package serving; import "talenro.local/platform/internal/nodecontrol/statecontract"`
+	const malformed = `package sample; import "math",`
+	for _, tc := range []struct {
+		name, path, source   string
+		parseError, rejected bool
+	}{
+		{"diagnostic syntax fixture", ".superpowers/diagnostics/sdk/sample.go", malformed, false, false},
+		{"diagnostic import fixture", ".superpowers/diagnostics/sdk/sample.go", forbidden, false, false},
+		{"ordinary source", "internal/serving/x.go", `package serving; import "fmt"`, false, false},
+		{"ordinary malformed", "internal/serving/x.go", malformed, true, false},
+		{"ordinary forbidden", "internal/serving/x.go", forbidden, false, true},
+		{"nested diagnostic malformed", "internal/.superpowers/diagnostics/x.go", malformed, true, false},
+		{"nested diagnostic forbidden", "internal/.superpowers/diagnostics/x.go", forbidden, false, true},
+		{"similar root malformed", ".superpowers-other/diagnostics/x.go", malformed, true, false},
+		{"similar root forbidden", ".superpowers-other/diagnostics/x.go", forbidden, false, true},
+		{"other private source", ".superpowers/source/x.go", forbidden, false, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			path := filepath.Join(root, filepath.FromSlash(tc.path))
+			if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, []byte(tc.source), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var rejected []string
+			err := walkContractConsumers(root, func(p string) { rejected = append(rejected, p) })
+			if (err != nil) != tc.parseError {
+				t.Fatalf("parse error = %v, want error %v", err, tc.parseError)
+			}
+			if tc.rejected {
+				if len(rejected) != 1 || rejected[0] != path {
+					t.Fatalf("rejected = %v, want [%s]", rejected, path)
+				}
+			} else if len(rejected) != 0 {
+				t.Fatalf("unexpected rejected consumers: %v", rejected)
+			}
+		})
 	}
 }
 func TestContractIssuerBindingBoundary(t *testing.T) {

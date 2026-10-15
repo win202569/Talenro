@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-15
 
+## Latest bounded scan-scope repair — package PASS, matrix not rerun
+
+The test-only boundary scanner now excludes exactly root .superpowers/diagnostics,
+retaining all other parse/import checks and the existing consumer allowlist.
+New real-walker temp-tree regression RED reproduced two diagnostic false positives
+with eight controls PASS. GREEN: entire statecontract package33 top-level tests/
+96 subtests PASS, including the actual repository scan and all ten new cases.
+All four build/runtime native receipts naturally clean, no timeout, final0.
+Final copied-toolchain11536-file audit PASS;701-entry inventory differs only in
+the authorized test file, other700 unchanged. Independent review: no blocking
+finding. No full matrix/fuzz rerun or
+main merge; matrix-check-001 remains12PASS/1FAIL/13UNRUN, Acceptance=false.
+See [bounded repair, evidence and recovery](2026-10-15-statecontract-scan-scope.md).
+
 ## Latest new limited matrix — STOPPED,12PASS/1FAIL/13UNRUN
 
 New matrix-only driver separates compile/runtime with package cwd, fixed offline
@@ -14,8 +28,8 @@ including authority/store/dedicated fuzz, UNRUN. No retry or old guard modificat
 All26 native receipts clean/non-timeout;88 bound files and701 product hashes
 unchanged; final copied-toolchain audit passed. MatrixPassed/Acceptance=false.
 Final original-toolchain11536-file postcheck also passed without changes.
-Next proposed work: precise diagnostic-root exclusion with retained unauthorized-
-consumer negative controls, requiring new bounded approval. Historical matrix3/
+The separately approved bounded scanner repair is recorded above; this historical
+matrix result is unchanged and has not been rerun. Historical matrix3/
 origin001 and C11/C12/Task10/B01/production/main gates stay open. See
 [failure diagnosis, evidence and recovery](2026-10-15-limited-matrix-validation.md).
 

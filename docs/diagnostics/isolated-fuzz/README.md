@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+Latest bounded scanner repair2026-10-15: only repository-root
+.superpowers/diagnostics is excluded by the test-only contract consumer scan.
+RED reproduced two false positives; GREEN entire statecontract package33 tests/
+96 subtests PASS, including ten portable scope cases. Copied-toolchain audit PASS;
+other700 source inventory entries unchanged; independent review found no blocker.
+No full matrix rerun or main merge; the stopped001 result below is unchanged.
+Read [bounded repair and recovery](../../roadmap/2026-10-15-statecontract-scan-scope.md).
+
 Latest new limited matrix2026-10-15: matrix-check.ps1 provides a separate26-check
 flow,24 builds/25 runs maximum, preserving package cwd and strict native gates.
 214 scoped assertions PASS perPowerShell5.1/7 host; review closed a runtime-evidence
@@ -8,8 +16,8 @@ binding gap before execution. One actual matrix-check-001 stopped12PASS/1FAIL/
 and parses an intentional-invalid SDK syntax fixture. No timeout/retry/old guard
 change/main merge. All26 native attempts cleaned naturally;701 product hashes and
 88 bound files unchanged. MatrixPassed=false, Acceptance=false. Do not delete SDK
-evidence or replay001 to bypass this gate. Next proposed work is a separately
-approved precise scanning-boundary fix. Read
+evidence or replay001 to bypass this gate. The separately approved scanner repair
+is recorded above and does not change this historical result. Read
 [scope, failure, actual hashes and recovery](../../roadmap/2026-10-15-limited-matrix-validation.md).
 New matrix-check.tests.ps1 uses portable process-free fixtures; optional
 -RuntimeEvidenceOnly selects a synthetic integrity regression, not a real matrix.

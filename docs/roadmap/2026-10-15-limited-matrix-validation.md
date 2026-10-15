@@ -142,6 +142,10 @@ progress.json reflects the last pre-failure stage and is not a final count summa
 
 ## Recovery and remaining boundaries
 
+Subsequent separately approved [bounded scan-scope repair](2026-10-15-statecontract-scan-scope.md)
+validates the affected package only. It does not replay001, update this matrix's
+counts or provide any result for the13 unrun checks.
+
 Necessary source/tests and this status record are saved to the existing development
 branch, not main. Read current-status.md and docs/runbooks/repository-recovery.md.
 Raw receipts, caches, toolchains and binaries remain ignored, not restored by Git.
