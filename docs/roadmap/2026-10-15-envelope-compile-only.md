@@ -1,5 +1,10 @@
 # Envelope compile-only checkpoint — 2026-10-15
 
+Later separately approved work reused003 readonly under fresh004 for exactly one
+Envelope diagnostic observation, which passed without rebuilding. See the
+[single-observation record](2026-10-15-envelope-single-observation.md). This report
+describes the earlier compile-only scope; it does not itself authorize sampling.
+
 ## Approved scope and implementation
 
 The user approved a bounded compile-only option and, after helper checks/review,

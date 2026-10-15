@@ -1,5 +1,16 @@
 # Isolated fuzz diagnosis
 
+Latest original Envelope observation2026-10-15: new envelope-sample.ps1 validates
+compiled inputs/source/product and invokes once without rebuilding.81 scoped
+checks PASS per5.1/7 host; one authorized004 sample from003 PASS,73921 executions,
+one worker, no watchdog/timeout, natural final0/empty,701 product hashes unchanged.
+ObservationValidationPassed is diagnostic only; Acceptance=false. Old deadline/
+origin87 and Pair/wider gates remain unresolved. No replay/retry/main merge.
+Read [binding, evidence and recovery](../../roadmap/2026-10-15-envelope-single-observation.md).
+Tests accept -Toolchain/-ModuleCache for independently prepared prerequisites;
+they synthesize records and never run their unit binary. Real sample invocation
+requires separate authorization; cloning does not restore the local003 artifact.
+
 Latest Envelope compile-only2026-10-15: optional -CompileOnly conflicts with
 -PreparationOnly before planning. It verifies version/origin, compiles once with
 the existing offline readonly600s bound and stops before executing any test

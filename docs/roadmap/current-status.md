@@ -1,5 +1,22 @@
 # Project status — updated 2026-10-15
 
+## Latest original Envelope diagnostic observation — one PASS, not acceptance
+
+Approved independent envelope-sample entry validates the compiled003 artifact,
+source/product binding and inputs before and after exactly one native invocation.
+New22+existing59 scoped assertions PASS perPowerShell5.1/7 host (81 each); final
+new22 rerun passed after adding portable prerequisite parameters. Independent
+review found no blocking defect, with failure-label/coverage/race limits recorded.
+One actual004 observation passed: exit0, no timeout/watchdog, natural complete
+shutdown, final0/empty,7101.6999ms. Runtime reported73921 executions, one worker;
+three ordered trace records end with workers0/error nil. No rebuild or retry.
+All seven003 artifacts unchanged;701 product hashes unchanged. SamplingExecuted
+and ObservationValidationPassed=true; Acceptance=false. This short instrumented-
+runtime sample did not reproduce the old deadline, but does not resolve it or
+original001/87. Pair/full matrix/product/main gates remain open. Next proposed
+work is readonly old/new evidence comparison, not another run. See
+[design, tests, actual evidence and recovery](2026-10-15-envelope-single-observation.md).
+
 ## Latest Envelope compile-only — PASS, original sampling still UNRUN
 
 Approved -CompileOnly mode is mutually exclusive with preparation-only and stops
