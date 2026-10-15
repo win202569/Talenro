@@ -1,5 +1,14 @@
 # Isolated fuzz diagnosis
 
+Latest full-parent diagnostic2026-10-15: one2s probe observed flushed ENTRY and
+BEFORE_START plus their files, but no AFTER_START or child-entry marker. It timed
+out with native accounting3; owned cleanup verified empty. Process presence alone
+does not prove child-script readiness or explain prior failures. New12 checks and
+existing9+12 pass on5.1/7; no Go/fuzz, retry or acceptance upgrade. See
+[full-parent evidence and recovery](../../roadmap/2026-10-15-full-parent-probe.md).
+Explicit SynchronousStdout mode on the existing tree helper requires a fresh
+full-parent-probe-NNN identity; default tree identity cannot be reused for it.
+
 Latest minimal-entry diagnostic2026-10-15: one2s probe observed both flushed stdout
 and file marker, naturally completed in265.4917ms with verified empty job. It has
 no explicit child launch, and its native TotalProcesses2 does not prove the old

@@ -74,6 +74,11 @@ preparation001, clear matrix3/Pair/C11/C12/Task10/B01/production gates or merge 
 
 ## Next work and recovery
 
+Subsequent separately approved full-parent probe001 is recorded in
+[its own report](2026-10-15-full-parent-probe.md): ENTRY/BEFORE_START observed,
+AFTER_START/child-entry absent, timeout with verified forced cleanup. This does
+not change the minimal-entry observation or clear any earlier failure.
+
 Next diagnosis should examine the full parent path and prove the intended child
 actually starts, rather than treating aggregate process count alone as readiness.
 Any new probe or fixture change needs its distinct approved scope; do not enlarge

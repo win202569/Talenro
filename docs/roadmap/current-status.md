@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-15
 
+## Latest diagnostic — full parent reached launch boundary, still unaccepted
+
+One approved full-parent-probe-001 emitted exact flushed ENTRY/BEFORE_START stdout
+and both corresponding stage files, but no AFTER_START/child-entry marker. Same2s
+budget timed out; native accounting3, saved owned/running images include two
+PowerShell processes and conhost. Process presence is not child-script readiness.
+Forced owned cleanup verified accounting0/list empty. No retry, Go/fuzz, original
+test pass or acceptance upgrade. New12 and existing9+12 helper checks pass on5.1/7;
+the full runner regression and original origin87 remain unresolved.
+See [single full-parent observation and recovery](2026-10-15-full-parent-probe.md).
+
 ## Latest diagnostic — minimal entry observed, old cause still unknown
 
 One approved entry-startup-probe-001 completed naturally in265.4917ms within the
