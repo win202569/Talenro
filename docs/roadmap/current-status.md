@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-15
 
+## Latest retained-handle diagnostics spec — awaiting user review
+
+User approved writing the proposed diagnostic-only retained-handle design, not
+implementation. Spec defines explicit default-off mode,32 total admission attempts/
+at most32 retained owned-child handles, same-entry observations, bounded polling,
+unchanged rights/runtime/shutdown budgets, separate non-acceptance receipts and
+finally-based disposal. Missing/failed/ambiguous samples never become success;
+retention observer effects and partial-on-exception persistence limits are explicit.
+No code/test/native/PID query/matrix run. Written-spec approval precedes planning;
+plan approval/execution-method choice and live experiment approval are separate.
+See [proposed spec](../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
+
 ## Latest matrix003 read-only acquisition analysis — no fix or rerun
 
 Compared saved empty-job successes, owned short-child acquisition/final waits,

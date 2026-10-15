@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Proposed retained-handle diagnostic design is written for user review only:
+explicit default-off entry,32 admission attempts, owned-handle lifetime/teardown,
+sampled non-acceptance evidence and process-free test requirements. No implementation
+or experiment yet. Read [written spec](../../superpowers/specs/2026-10-15-retained-handle-diagnostics-design.md).
+
 Latest read-only matrix003 analysis separates empty-list success, successful
 owned-member acquisition/final waiting and failed initial OpenProcess87. No root
 cause/fix established; no test/process/PID query/gate change. Existing live sampling
