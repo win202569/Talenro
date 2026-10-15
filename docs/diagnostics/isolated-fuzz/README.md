@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest diagnostic2026-10-15: one approved2s stage probe timed out with one recorded
+process and no markers, including no first parent-script marker. Cleanup verified
+empty; exact cause remains unknown. Nine non-launching checks pass on5.1/7; no
+Go/fuzz or retry. See [one-run evidence and recovery](../../roadmap/2026-10-15-tree-timeout-stage-probe.md).
+Do not replay probe001 or treat its safely cleaned timeout as original-test success.
+
 Latest implementation2026-10-15: optional ProcessOpen/JobMembership API/timing/error
 records diagnose initial acquisition without changing acceptance or cleanup.
 New12-check isolated suite passes on PowerShell5.1/7. Related regression is not

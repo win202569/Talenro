@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest diagnostic — one two-second stage probe, no markers observed
+
+The approved tree-timeout-probe-001 ran once, retaining the original2s budget.
+It timed out with TotalProcesses1; no parent-entry/before/after/child-entry marker
+was observed, stdout/stderr empty. Owned-job cleanup was verified empty. This
+narrows investigation to reaching/completing the first observable parent statement,
+not proof of startup latency, marker-write failure or a cleanup bug. No retry.
+Nine non-launching helper checks passed on PowerShell5.1/7; independent read-only
+review found no blocking code issue, with coverage limits recorded. No Go/fuzz,
+production/native policy change, original-test pass or acceptance upgrade.
+Original origin87 and descendant-fixture failure remain open; probe001 is consumed.
+See [one-run evidence, limits and recovery](2026-10-15-tree-timeout-stage-probe.md).
+
 ## Latest implementation — member API diagnostics, regression still blocked
 
 Approved diagnostic-only ProcessOpen/JobMembership records preserve API,

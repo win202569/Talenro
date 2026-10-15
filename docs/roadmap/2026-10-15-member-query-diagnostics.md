@@ -1,5 +1,9 @@
 # Member-acquisition API diagnostics — 2026-10-15
 
+Subsequent approved stage probe001 retained2s and observed no markers, including
+the first parent-script marker; cleanup was verified. This is not a fix for the
+failed descendant scenario or origin87. See [single-probe evidence and limits](2026-10-15-tree-timeout-stage-probe.md).
+
 ## Approved scope and implementation
 
 The user approved recording the exact API, before/after timing and original error,
