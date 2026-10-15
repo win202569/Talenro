@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest read-only matrix002 diagnosis — failed open localized, cause unresolved
+
+Confirmed OpenProcess87 before membership/core/final-handle reads; no evidence of
+foreign ownership or a surviving product child. Matrix001/002 check01's25 package
+files and toolchain identities match, but001 has no initial members to inspect;
+its success does not validate the failed acquisition path. Existing batch-before-
+wait fix is already present;002 has only one listed member, so earlier-member wait
+is not this trigger. Missing member-enumeration/accounting timestamps prevent exact
+lifetime attribution. No tests/capture/retry/PID query/code or guard change.
+Next bounded decision: add timing/raw-result diagnostics without changing gates,
+then separately consider a controlled fixture. Approval needed before that work.
+See [trace, comparisons, official API references and recovery](2026-10-15-matrix002-member-open-diagnosis.md).
+
 ## Latest new matrix002 — STOPPED,0PASS/1FAIL/25UNRUN
 
 Separately approved fresh matrix-check-002 stopped at check01/nodeissuermapping.

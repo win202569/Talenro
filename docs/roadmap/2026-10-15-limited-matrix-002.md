@@ -76,6 +76,10 @@ also passed:11536 files/218649457 bytes matched the frozen original manifest,
 
 ## Next bounded investigation
 
+The subsequent [read-only diagnosis](2026-10-15-matrix002-member-open-diagnosis.md)
+localizes the failed open, compares passing/failed evidence and records why existing
+batch acquisition and saved snapshots do not establish its underlying cause.
+
 Use saved receipts and collector source to examine the member-open failure and
 its evidence limitations. No current PID lookup can recover historical identity.
 If additional controlled fixtures or new live capture are necessary, specify and
