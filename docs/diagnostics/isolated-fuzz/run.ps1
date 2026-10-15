@@ -19,6 +19,7 @@ function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashta
         $native=[IsolatedFuzzProcess]::Run($exe,$Arguments,$Environment,(Split-Path -Parent $receipt),$stdout,$stderr,$LimitSeconds,$CaptureLiveMembers,$CaptureShutdownDiagnostic)
         $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
         $result | Add-Member -NotePropertyName MemberEvidence -NotePropertyValue $native.MemberEvidence
+        $result | Add-Member -NotePropertyName LaunchBoundaries -NotePropertyValue $native.LaunchBoundaries
         $result | Add-Member -NotePropertyName MemberEvidenceTruncated -NotePropertyValue $native.MemberEvidenceTruncated
         $result | Add-Member -NotePropertyName LiveSampling -NotePropertyValue $native.LiveSampling
         $result | Add-Member -NotePropertyName MembersDuringRun -NotePropertyValue $native.MembersDuringRun

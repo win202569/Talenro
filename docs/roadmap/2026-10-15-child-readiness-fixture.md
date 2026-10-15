@@ -93,6 +93,11 @@ are retained, not silently promoted to success.
 
 ## Recovery and remaining blockers
 
+Subsequently approved timing instrumentation and one fresh002 sample are recorded
+in [the native timing report](2026-10-15-launch-timing-diagnostic.md). That sample
+measured creation consuming the original budget before resume; it also failed
+readiness with verified empty cleanup. This neither changes001 nor retries it.
+
 ### Read-only event-log follow-up
 
 No new fixture or process ran for this follow-up. Queried Windows PowerShell and

@@ -1,5 +1,14 @@
 # Isolated fuzz diagnosis
 
+Latest native launch timing2026-10-15: additive LaunchBoundaries records UTC,
+monotonic ticks/frequency and original budget-watch position around creation,
+job assignment and thread resume. No API/security/timeout/acceptance change.
+One approved child-readiness-002 sample FAILED readiness: creation bracket2097.7060ms,
+resume ended at2105.4985ms on the original2s clock. Owned cleanup verified empty.
+No retry/Go/fuzz;99 helper checks pass on5.1/7, not the full blocked suite. Read
+[timing evidence, failure-path limits and recovery](../../roadmap/2026-10-15-launch-timing-diagnostic.md).
+Neither a phase record nor empty forced cleanup is acceptance. Do not replay002.
+
 Latest independent readiness/cleanup fixture2026-10-15: child-readiness.ps1 keeps
 the original2s runner bound and separately correlates a unique nonce/child PID
 record with non-root owned-running evidence. One actual child-readiness-001 run

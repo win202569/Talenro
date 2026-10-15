@@ -219,7 +219,11 @@ public static class IsolatedFuzzProcess {
         return observations.ToArray();
         } finally {foreach(IntPtr handle in handles)Close(handle);}
     }
-    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;}
+    public class LaunchBoundary {public string Name,UTC;public long Timestamp,ElapsedTicks,Frequency;}
+    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;public List<LaunchBoundary> LaunchBoundaries=new List<LaunchBoundary>();}
+    public static void RecordLaunchBoundary(Result result,string name,Stopwatch watch) {
+        result.LaunchBoundaries.Add(new LaunchBoundary{Name=name,UTC=DateTime.UtcNow.ToString("o"),Timestamp=Stopwatch.GetTimestamp(),ElapsedTicks=watch.ElapsedTicks,Frequency=Stopwatch.Frequency});
+    }
     public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers) {
         return Run(executable,args,overrides,cwd,stdout,stderr,limitSeconds,captureLiveMembers,false);
     }
@@ -257,10 +261,16 @@ public static class IsolatedFuzzProcess {
             var command=new StringBuilder(Quote(executable));foreach(string arg in args)command.Append(' ').Append(Quote(arg));
             var startup=new StartupEx();startup.Info.Size=Marshal.SizeOf(typeof(StartupEx));startup.Info.Flags=0x101;startup.Info.Show=0;
             startup.Info.Input=input;startup.Info.Output=output;startup.Info.Error=error;startup.Attributes=attributes;
+            RecordLaunchBoundary(result,"BeforeCreateProcess",watch);
             Check(CreateProcess(executable,command,IntPtr.Zero,IntPtr.Zero,true,0x08080404,environment,cwd,ref startup,out pi));
+            RecordLaunchBoundary(result,"AfterCreateProcess",watch);
             result.RootId=pi.Id;
+            RecordLaunchBoundary(result,"BeforeAssignProcessToJobObject",watch);
             Check(AssignProcessToJobObject(job,pi.Process));assigned=true;
+            RecordLaunchBoundary(result,"AfterAssignProcessToJobObject",watch);
+            RecordLaunchBoundary(result,"BeforeResumeThread",watch);
             Check(ResumeThread(pi.Thread)!=UInt32.MaxValue);
+            RecordLaunchBoundary(result,"AfterResumeThread",watch);
             bool rootExited=false;Accounting accounting;
             var live=new List<MemberObservation>();var seen=new HashSet<ulong>();
             result.LiveSampling=captureLiveMembers;

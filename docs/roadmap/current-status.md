@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-15
 
+## Latest diagnostic — native creation interval consumed the sample budget
+
+Approved launch timing instrumentation preserves API/error-handling order, rights,
+existing stopwatch,2s budget and acceptance. New8 and existing91 helper checks
+passed on PowerShell5.1/7 (99 each); independent review found no blocking defect.
+One fresh child-readiness-002 sample recorded CreateProcess bracket2097.7060ms;
+root thread resume ended at budget position2105.4985ms, already beyond2s. No target
+readiness record; fixture FAILED (exit1). Owned forced cleanup verified empty.
+This localizes this sample's dominant interval, not its system-level cause or
+older failures. Synchronous startup can overrun the nominal budget before the
+wait loop checks it; instrumentation does not add a hard-deadline guarantee.
+No retry/Go/fuzz/acceptance upgrade; original tests and readiness payload unchanged.
+See [six boundaries, actual failure and recovery](2026-10-15-launch-timing-diagnostic.md).
+
 ## Latest independent fixture — readiness blocked, cleanup verified
 
 Approved additive child-readiness fixture is implemented without modifying old
