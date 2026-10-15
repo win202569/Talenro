@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest read-only matrix003 analysis separates empty-list success, successful
+owned-member acquisition/final waiting and failed initial OpenProcess87. No root
+cause/fix established; no test/process/PID query/gate change. Existing live sampling
+is not a retained-handle registry; notification-only evidence is insufficient.
+Next scope is lifecycle-evidence design review, not matrix repetition. Read
+[comparison and recovery](../../roadmap/2026-10-15-matrix003-acquisition-analysis.md).
+
 Latest matrix-check-003:2PASS/1FAIL/23UNRUN. First two packages PASS; check03
 nodeleafbinding compile root exit0, but listed-member OpenProcess87 caused the
 unchanged natural-completion gate to refuse it. Final cleanup verified0/empty;

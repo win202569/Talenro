@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-15
 
+## Latest matrix003 read-only acquisition analysis — no fix or rerun
+
+Compared saved empty-job successes, owned short-child acquisition/final waits,
+and matrix002/003 failed opens. Matrix003's first four successes have no member
+open; they do not validate the failed branch. Complete one-ID list and immediate
+last-error capture localize failure before ownership/state evidence, not a final
+wait timeout. Live sampling currently closes observation handles, so enabling it
+alone would not guarantee retained same-handle proof. Notification-only fallback
+also lacks authority. No process/test/PID query/code/gate change; matrix003 remains
+2PASS/1FAIL/23UNRUN. Recommend bounded lifecycle/handle-evidence design review,
+not another matrix retry. See
+[comparison, source trace, documentation and recovery](2026-10-15-matrix003-acquisition-analysis.md).
+
 ## Latest limited matrix003 — STOPPED,2PASS/1FAIL/23UNRUN
 
 One separately approved matrix-check-003 attempt passed nodeissuermapping35/65
