@@ -1,9 +1,9 @@
 # Task11 C1 局部澄清提案：请求认证与证据签名分离
 
-状态：**提案，待用户审阅批准**。用户批准的是编写本文，不是本文尚未展示的
-角色字面值、信任策略或协议实施。基线29f35563ac3d103aafdddd2b3af8268853cd9262。
-本轮仅新增本文及进度/恢复说明，不改 canonical approved spec-set、产品代码、
-配置、密钥、数据库、向量或测试；不运行 Go/native/Docker/DB。
+状态：用户在247f1f41后以“是”批准本文作为C1局部澄清依据，允许继续对照/规划。
+本文未纳入canonical approved spec-set，不授权代码、信任配置、密钥或协议部署变更。
+原提案基线29f35563ac3d103aafdddd2b3af8268853cd9262；新增角色是本地已批契约补充，
+不是原规格已有规则。对象数更正为146（旧147误计表头），其余对象为145项。
 
 ## 1. 目的、依据及非目标
 
@@ -15,11 +15,11 @@ security-admin request signer policy 认证，但未明确该请求采用通用 
 
 依据：[v7 §4.1/§4.3](2026-08-24-nodecontrol-authority-v7-upgrade-design.md) 与
 [已批准注册表设计 §4–5](2026-10-16-authority-v7-registry-design.md)。本文拟补充
-这个请求的契约，不声称原规格已经包含以下新增角色，也不泛化到其余146项。
+这个请求的契约，不声称原规格已经包含以下新增角色，也不泛化到其余145项。
 保留 schema、body 字段、body digest 域、响应字段及其签名角色。
 
 不实现验签器、provider、请求路由、生产 trust bundle、策略发布、证据验证器或
-注册表，不迁移已有消费者，不宣称完成147项对照或完整 Task11。
+注册表，不迁移已有消费者，不宣称完成146项对照或完整 Task11。
 
 ## 2. 方案比较与推荐
 
@@ -31,7 +31,7 @@ metadata 签名输入、算法和严格编码规则；以 schema/role/trusted po
 但必须另冻结 transcript、传输和错误契约，当前没有可直接引用的完整定义，
 会扩大本切片。仅把请求登记为 null/空证据集合而不明确如何认证，不是解决方案。
 
-以下各节只描述推荐方案；书面批准前不生效。
+以下各节已获本地设计批准；canonical登记与部署生效仍须各自的显式流程。
 
 ## 3. 请求与响应的精确分离
 
@@ -39,7 +39,7 @@ metadata 签名输入、算法和严格编码规则；以 schema/role/trusted po
 | --- | --- | --- |
 | Object | PublishClaimV1CredentialPolicyRequestV1 | ClaimV1CredentialPolicyV1 |
 | Schema | publish-claim-v1-credential-policy-request.v1 | claim-v1-credential-policy.v1 |
-| 通用 envelope signer_role | **拟新增 claim_v1_security_admin_request** | 保留 claim_v1_security_policy |
+| 通用 envelope signer_role | **本地批准新增 claim_v1_security_admin_request** | 保留 claim_v1_security_policy |
 | 信任归属 | provider 固定的、独立管理的 security-admin request signer policy | 原有响应签名策略 |
 | Bundle EvidenceKinds | 显式空集合，不作可复用 bundle evidence | 保持 external_signed_envelope，不改既有响应要求 |
 
@@ -81,19 +81,19 @@ policy_update_id/body 规则处理，本提案不扩张重放或权限生命周�
 
 ## 5. 对注册表设计的局部澄清
 
-若本文获批，注册表 descriptor 的 SignerRoleOrNull 明确表示“该 schema 使用
+依本地批准，注册表 descriptor 的 SignerRoleOrNull 明确表示“该 schema 使用
 通用 envelope 时允许的唯一角色”，而非“只要有角色就能作 bundle evidence”。
 它与 EvidenceKinds 是独立轴：本请求可为非 null 角色而 EvidenceKinds 为空。
 这不新增运行时字段或公共验证接口，也不让目录查找替代请求认证。
 
-拟冻结本请求的单行元数据为：
+本地批准的本请求单行元数据为：
 
 ```text
 Schema: publish-claim-v1-credential-policy-request.v1
 ObjectName: PublishClaimV1CredentialPolicyRequestV1
 EvidenceKinds: []
 SignerRoleOrNull: claim_v1_security_admin_request
-Source: v7 §4.3 + 本澄清附录（仅获批后可作为依据）
+Source: v7 §4.3 + 本澄清附录（已本地批准，未完成canonical集合登记）
 ```
 
 后续 bundle verifier 对本请求必须拒绝 external_signed_envelope 和
@@ -102,7 +102,7 @@ database_immutable_body 两种包装，即便通用验签器认定其签名有�
 bundle evidence。已有响应证据资格、request_digest 引用和存储义务不变。
 
 其余请求、嵌入对象和 container 的角色/证据资格仍须各自明示，不能把本行规则
-复制给所有 RequestV1，也不能把本次批准当作整张147项策略表的认证。
+复制给所有 RequestV1，也不能把本次批准当作整张146项策略表的认证。
 
 ## 6. 未来验收要求（本轮未实施/未运行）
 
@@ -134,8 +134,8 @@ bundle evidence。已有响应证据资格、request_digest 引用和存储义�
 的显式流程，不能因为存在此文件就改变 canonical 集合。本附录获批也不关闭
 该集合的登记/部署兼容门槛。
 
-当前C1保持 OPEN / clarification proposed。请先审阅批准本附录；之后再恢复
-147项对照和局部计划编写，发现其他歧义仍须停下。计划及其执行方式另行批准，
+当前C1为 LOCALLY CLARIFIED；canonical登记/部署兼容仍开放。已恢复的146项
+对照遇到分组疑点C2；见恢复记录，不以C1批准推定全表完成。计划及执行方式另行批准，
 不得直接写产品代码/运行测试；完整 Task11、物理/C12/生产/main 门槛不变。
 
 自检：请求与响应角色没有复用，认证和 evidence 资格独立，没有用 null 取消

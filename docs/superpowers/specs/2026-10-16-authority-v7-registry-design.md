@@ -1,10 +1,8 @@
 # Task11 第一切片：v7 注册表与独立字面量向量设计
 
-状态：用户在59bb7226后以“是”批准本文，允许编写局部实施计划；逐项对照现已
-遇到[请求认证/证据签名契约阻塞C1](../../roadmap/2026-10-16-task11-registry-planning-blocker.md)。
-本文的停止规则生效；没有可执行计划或实施批准，不得猜测角色继续编码。
-现有[C1 局部澄清提案](2026-10-16-authority-v7-request-auth-clarification.md)待审阅；
-其中新角色及 SignerRoleOrNull 语义澄清尚未生效，不视为本文已获批内容。
+状态：书面设计已批准；C1附录随后在247f1f41后获用户批准，作为本地对照依据。
+当前计划对照停在[分组元数据疑点C2及计数更正](../../roadmap/2026-10-16-task11-registry-reconciliation.md)，
+没有可执行计划或实施批准。此前147误计表头，正确为146个V1对象；协议表本身不变。
 基线：21b55a99b6f625e88fa8ca42c4cea8de68622b76，现有开发分支
 codex/c12-b01-task9-coordinator。本文不是已批准实施计划，不授权代码、测试、
 fuzz、数据库、Docker、诊断或 main 合并操作。
@@ -17,11 +15,11 @@ Task11 的规范化、验签和 evidence-bundle 引擎。
 
 权威依据是已批准 [v7 修订 §4.1 及各 object 定义小节](2026-08-24-nodecontrol-authority-v7-upgrade-design.md)。
 [原 Batch01 Task11](../plans/2026-08-23-node-pop-control-plane-01-contracts-schema-authority.md)
-是实施分解，不得覆盖规格。当前只读提取 §4.1 表得到 **147 行、147 个唯一
-object 名称、147 个唯一 schema**。实现时须把这份完整固定集合写成独立字面量，
+是实施分解，不得覆盖规格。当前只读提取 §4.1 表得到 **146 行、146 个唯一
+object 名称、146 个唯一 schema**。实现时须把这份完整固定集合写成独立字面量，
 不在运行时读取 Markdown、不通过大小写转换或 object 名称推导 schema。
 
-成功仅表示完整目录/元数据及其正反向向量一致。它不表示147个 Go DTO、codec、
+成功仅表示完整目录/元数据及其正反向向量一致。它不表示146个 Go DTO、codec、
 签名验证器或生产调用路径已实现，不表示 Task11/Batch01/C12 整体验收通过。
 
 ## 2. 已确认冲突与兼容性决定
@@ -38,7 +36,7 @@ wire protocol、既有摘要、私有 helper、历史向量或 approved spec-set
 原计划只加醒目冲突提示，保留旧文字供追溯；后续局部实施计划必须引用正确式。
 
 三个历史 object：AuthorityEffectCommitmentV1、AuthorityEffectResolutionV1、
-ActivationDecisionEvidenceV1 不进入147项 v7 目录；其已有 Abort/serving transcript
+ActivationDecisionEvidenceV1 不进入146项 v7 目录；其已有 Abort/serving transcript
 保持原样，不能把“未登记为新 v7 schema”解释为删除历史协议支持。
 
 签名 metadata 的 domain 仍是 talenro.c12.signature-envelope.v1 加 NUL 与
@@ -46,7 +44,7 @@ JCS(metadata)，不与 body digest domain 混用。本切片不实现或修改�
 
 ## 3. 方案比较和选择
 
-采用**完整名称集合、限元数据能力的独立注册表**：所有147项一次精确登记，明确
+采用**完整名称集合、限元数据能力的独立注册表**：所有146项一次精确登记，明确
 哪些只是对象名、允许的证据形式与外部签名角色，不提供认证成功值。代价是后续
 codec 还需逐项接线；好处是不会把部分私有 fixture 的支持范围冒充全体协议。
 
@@ -68,7 +66,9 @@ Schema/ObjectName 是 §4.1 精确字面量。ObjectName 是**协议 object 标�
 reflect.Type 或已经实现的 Go 类型凭据，不提供 NewBody/Decode/Verify/Sign 方法。
 EvidenceKinds 仅可包含规格允许的 database_immutable_body、external_signed_envelope；
 不作为 bundle evidence 的 request/container 使用显式空集合，而非默认赋予一种。
-外部签名对象须有其定义小节唯一指定的角色；非外部签名项使用显式 null。
+依已批准C1澄清，SignerRoleOrNull表示通用envelope角色，与EvidenceKinds独立；
+外部签名对象须有其定义小节唯一指定的角色；非通用envelope项使用显式null。
+C1请求使用claim_v1_security_admin_request且EvidenceKinds=[]；空集合不免除请求认证。
 
 证据形式、存储位置和签名角色不是同一概念：外部 envelope 可存入 DB，但这不
 赋予 DB 自签权，也不允许把它换成裸 database_immutable_body。request 经鉴权
@@ -91,14 +91,14 @@ descriptor 为零值；错误文本不回显 caller 输入。已知条目也只�
 
 ## 5. 完整元数据对照与停止规则
 
-后续实施计划必须将147项名称、各自 evidence kind/role 及规格小节来源逐行对照，
+后续实施计划必须将146项名称、各自 evidence kind/role 及规格小节来源逐行对照，
 冻结为 schema-registry.v1.json 的字面量 rows，并在计划中列出完整审查清单。
 来源记录只作审查依据，不进入 body/envelope wire 格式或摘要。
 
 每个角色/证据形式只能来自对应 object 定义的明示契约。若角色、签名资格或
 证据形式存在未明示/冲突，必须报告具体 schema/小节并暂停该交付，取得书面
 契约澄清后再继续；不得用 unknown、通配 role、fallback、猜测值或“将来补齐”
-条目使全表校验通过。**本设计不宣称已完成147项角色和证据资格的逐项认证**。
+条目使全表校验通过。**本设计不宣称已完成146项角色和证据资格的逐项认证**。
 它冻结完整覆盖和不猜测的准入规则；完整对照是实施前计划的必需交付，不能留到
 写产品代码时决定。若对照发现需要改动原协议，另行提请批准，不在本设计中默改。
 
@@ -119,7 +119,7 @@ ParseCanonicalBody、VerifySignatureEnvelope、VerifyCanonicalEvidenceBundle 已
 authority/v7_migration_grant.go 的 domain helper、strict JSON、私有 signer policy，
 v7_down_authorization.go、v7_staging_import.go 及 stateformat/stateverify 均保持原样；
 不得从 contracts 反向 import authority，也不为了复用而导出 fixture signer。
-已有私有 role 映射仅作为差异核对资料，不能用作147项期望值的自动 oracle。
+已有私有 role 映射仅作为差异核对资料，不能用作146项期望值的自动 oracle。
 后续统一 codec 迁移须单独列出调用方、兼容向量和迁移前后证据，本切片不接线。
 
 不改 SQL、schema、生成物、OpenAPI、provider、reader/readiness、权限、安全设置或
@@ -129,8 +129,8 @@ canonical approved spec-set；不创建 Batch01 集成清单以绕过 Task18。
 
 本节规定未来测试，不代表本轮已运行，具体离线命令和工具边界由后续计划冻结。
 
-1. 精确覆盖147项 schema/object 集合，正反向一对一；元数据逐条与独立期望字面量
-   比较。测试不得调用生产查询函数生成自己的 expected，也不以“各147项”代替
+1. 精确覆盖146项 schema/object 集合，正反向一对一；元数据逐条与独立期望字面量
+   比较。测试不得调用生产查询函数生成自己的 expected，也不以“各146项”代替
    内容比较；missing+extra 即使抵消总数仍须失败。
 2. 对 role/evidence kind 的每种实际类别给出正例和单字段变异反例；覆盖未知 schema、
    大小写/空白/别名、重复 schema、重复 object、漏项、多项、错误 role、证据形式
@@ -161,6 +161,5 @@ canonical approved spec-set；不创建 Batch01 集成清单以绕过 Task18。
 matrix/fuzz/超时、Task9/10/15/18、物理 PITR、Batch01、C12、生产及 main 门槛不变。
 保留现有工作区/开发分支，按 AGENTS.md 保存文档；Git 不恢复本机缓存和原始回执。
 
-本文随后已获批准，但实施计划编写停在C1澄清关卡；先取得相应书面契约澄清，
-再继续完整147项对照。计划冻结对照、验证命令与执行方式后，还须另行批准实施。
-设计批准不越过契约未决或实施批准边界。
+本文及C1局部附录已获批准；完整策略对照仍停在C2。先完成分组契约裁决，
+再继续146项对照和实施计划。canonical集合登记、部署兼容和实施批准均未完成。

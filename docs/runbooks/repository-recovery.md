@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[146-row reconciliation/C2 report](../roadmap/2026-10-16-task11-registry-reconciliation.md).
+C1 is locally approved after247f1f41,but canonical-set registration/deployment
+compatibility stay open. Earlier147 count included the Markdown header;146 is
+the corrected literal object set,no protocol object removed. All names/reference
+locations are indexed,not all metadata certified. Resume at grouped C2 admission
+clarification (or explicitly approved smaller name-only design),not coding/tests.
+Older C1-open/147-count paragraphs are historical and superseded here.
+
 Latest C1 work is a [written clarification proposal](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md),
 not approval of its new request role or trust-policy rules. No canonical spec-set,
 production/source/key/config/test changes. Resume at written review;C1 remains

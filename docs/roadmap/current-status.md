@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-16
 
+## Task11 reconciliation — C1 locally approved,count corrected,C2 grouped
+
+User approved C1 after247f1f41:dedicated request envelope role with no bundle
+evidence eligibility;canonical-set/deployment gates remain open. A complete
+[source index and grouped C2 report](2026-10-16-task11-registry-reconciliation.md)
+now lists146 exact V1 pairs and reference locations. Earlier147 was executor
+error counting the object/schema table header,not a protocol-set change.
+Design/clarification counts corrected;historical147 mentions below superseded.
+Role/evidence metadata is not certified by name/reference indexing. Requests,
+embedded/aggregate objects and transient projections need consolidated explicit
+admission rules before a full registry plan can be implementation-ready.
+Next:one grouped metadata clarification or explicitly approve name-only re-scope;
+do not guess policy defaults. No code/test/native/DB operation or acceptance.
+
 ## Task11 C1 — written clarification proposal awaiting approval
 
 User approved preparing the [request-auth/evidence clarification](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md).

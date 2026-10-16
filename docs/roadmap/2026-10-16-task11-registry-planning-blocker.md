@@ -1,5 +1,11 @@
 # Task11 registry planning — stopped at request-authentication contract gap
 
+Latest:C1 clarification was locally approved after247f1f41. Resume from the
+[complete source index/C2 report](2026-10-16-task11-registry-reconciliation.md),
+not the historical C1-open recommendations below. Correct object count is146;
+earlier147 incorrectly included the table header. No protocol object removed.
+Canonical-set registration/deployment gates remain open;no executable plan.
+
 Follow-up: user approved preparing the [C1 clarification proposal](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md).
 The proposal suggests a dedicated request role/common envelope with no bundle
 evidence eligibility,not a retroactive claim about the old spec. Written approval
