@@ -1,0 +1,590 @@
+{
+  "schema": "talenro.c12.authority-v7.schema-name-registry.v1",
+  "coverage": "name-directory",
+  "entries": [
+    {
+      "schema": "abort-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "AbortFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "acquire-database-commit-challenge-request.v1",
+      "object_name": "AcquireDatabaseCommitChallengeRequestV1"
+    },
+    {
+      "schema": "acquire-database-incarnation-proof-request.v1",
+      "object_name": "AcquireDatabaseIncarnationProofRequestV1"
+    },
+    {
+      "schema": "acquire-database-incarnation-registration-challenge-request.v1",
+      "object_name": "AcquireDatabaseIncarnationRegistrationChallengeRequestV1"
+    },
+    {
+      "schema": "acquire-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "AcquireFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "acquire-staging-database-commit-challenge-request.v1",
+      "object_name": "AcquireStagingDatabaseCommitChallengeRequestV1"
+    },
+    {
+      "schema": "authority-epoch-transition-application.v1",
+      "object_name": "AuthorityEpochTransitionApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-cancellation.v1",
+      "object_name": "AuthorityEpochTransitionCancellationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-intent.v1",
+      "object_name": "AuthorityEpochTransitionIntentV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-application.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-intent.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryIntentV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-prefix-decision.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryPrefixDecisionV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryV1"
+    },
+    {
+      "schema": "authority-epoch-transition-resolution-receipt.v1",
+      "object_name": "AuthorityEpochTransitionResolutionReceiptV1"
+    },
+    {
+      "schema": "authority-epoch-transition-resolution.v1",
+      "object_name": "AuthorityEpochTransitionResolutionV1"
+    },
+    {
+      "schema": "authority-epoch-transition-terminal-application.v1",
+      "object_name": "AuthorityEpochTransitionTerminalApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition.v1",
+      "object_name": "AuthorityEpochTransitionV1"
+    },
+    {
+      "schema": "authority-genesis-epoch-evidence.v1",
+      "object_name": "AuthorityGenesisEpochEvidenceV1"
+    },
+    {
+      "schema": "authority-protocol-activation-completion.v1",
+      "object_name": "AuthorityProtocolActivationCompletionV1"
+    },
+    {
+      "schema": "authority-protocol-activation-release.v1",
+      "object_name": "AuthorityProtocolActivationReleaseV1"
+    },
+    {
+      "schema": "authority-protocol-activation.v1",
+      "object_name": "AuthorityProtocolActivationV1"
+    },
+    {
+      "schema": "authority-protocol-context.v1",
+      "object_name": "AuthorityProtocolContextV1"
+    },
+    {
+      "schema": "authority-protocol-downgrade-authorization.v1",
+      "object_name": "AuthorityProtocolDowngradeAuthorizationV1"
+    },
+    {
+      "schema": "authority-protocol-migration-latch.v1",
+      "object_name": "AuthorityProtocolMigrationLatchV1"
+    },
+    {
+      "schema": "authority-protocol-upgrade-attempt.v1",
+      "object_name": "AuthorityProtocolUpgradeAttemptV1"
+    },
+    {
+      "schema": "authority-protocol-upgrade-intent.v1",
+      "object_name": "AuthorityProtocolUpgradeIntentV1"
+    },
+    {
+      "schema": "authority-runtime-rebind-result.v1",
+      "object_name": "AuthorityRuntimeRebindResultV1"
+    },
+    {
+      "schema": "authority-runtime-registration-result.v1",
+      "object_name": "AuthorityRuntimeRegistrationResultV1"
+    },
+    {
+      "schema": "canonical-evidence-bundle.v1",
+      "object_name": "CanonicalEvidenceBundleV1"
+    },
+    {
+      "schema": "claim-v1-abort-request.v1",
+      "object_name": "ClaimV1AbortRequestV1"
+    },
+    {
+      "schema": "claim-v1-credential-policy.v1",
+      "object_name": "ClaimV1CredentialPolicyV1"
+    },
+    {
+      "schema": "claim-v1-finalize-request.v1",
+      "object_name": "ClaimV1FinalizeRequestV1"
+    },
+    {
+      "schema": "claim-v1-genesis-completion.v1",
+      "object_name": "ClaimV1GenesisCompletionV1"
+    },
+    {
+      "schema": "claim-v1-genesis-open.v1",
+      "object_name": "ClaimV1GenesisOpenV1"
+    },
+    {
+      "schema": "claim-v1-genesis-preparation.v1",
+      "object_name": "ClaimV1GenesisPreparationV1"
+    },
+    {
+      "schema": "claim-v1-genesis-release-preparation.v1",
+      "object_name": "ClaimV1GenesisReleasePreparationV1"
+    },
+    {
+      "schema": "claim-v1-provider-head.v1",
+      "object_name": "ClaimV1ProviderHeadV1"
+    },
+    {
+      "schema": "claim-v1-receipt.v1",
+      "object_name": "ClaimV1ReceiptV1"
+    },
+    {
+      "schema": "claim-v1-record.v1",
+      "object_name": "ClaimV1RecordV1"
+    },
+    {
+      "schema": "claim-v1-reservation.v1",
+      "object_name": "ClaimV1ReservationV1"
+    },
+    {
+      "schema": "claim-v1-reserve-request.v1",
+      "object_name": "ClaimV1ReserveRequestV1"
+    },
+    {
+      "schema": "claim-v1-runtime-instance-rebind.v1",
+      "object_name": "ClaimV1RuntimeInstanceRebindV1"
+    },
+    {
+      "schema": "claim-v1-serving-lease-revocation.v1",
+      "object_name": "ClaimV1ServingLeaseRevocationV1"
+    },
+    {
+      "schema": "claim-v1-serving-lease.v1",
+      "object_name": "ClaimV1ServingLeaseV1"
+    },
+    {
+      "schema": "complete-claim-v1-genesis-request.v1",
+      "object_name": "CompleteClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "database-authority-head-attestation.v1",
+      "object_name": "DatabaseAuthorityHeadAttestationV1"
+    },
+    {
+      "schema": "database-authority-head.v1",
+      "object_name": "DatabaseAuthorityHeadV1"
+    },
+    {
+      "schema": "database-authority-post-recovery-rebind-attestation.v1",
+      "object_name": "DatabaseAuthorityPostRecoveryRebindAttestationV1"
+    },
+    {
+      "schema": "database-authority-rebind-gap-attestation.v1",
+      "object_name": "DatabaseAuthorityRebindGapAttestationV1"
+    },
+    {
+      "schema": "database-commit-archive-fence-semantic-id-journal-record.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveSemanticIDJournalRecordV1"
+    },
+    {
+      "schema": "database-commit-attestation.v1",
+      "object_name": "DatabaseCommitAttestationV1"
+    },
+    {
+      "schema": "database-commit-challenge.v1",
+      "object_name": "DatabaseCommitChallengeV1"
+    },
+    {
+      "schema": "database-incarnation-attestation.v1",
+      "object_name": "DatabaseIncarnationAttestationV1"
+    },
+    {
+      "schema": "database-incarnation-proof.v1",
+      "object_name": "DatabaseIncarnationProofV1"
+    },
+    {
+      "schema": "database-incarnation-rebinding-registration.v1",
+      "object_name": "DatabaseIncarnationRebindingRegistrationV1"
+    },
+    {
+      "schema": "database-incarnation-registration-challenge.v1",
+      "object_name": "DatabaseIncarnationRegistrationChallengeV1"
+    },
+    {
+      "schema": "database-incarnation-registration.v1",
+      "object_name": "DatabaseIncarnationRegistrationV1"
+    },
+    {
+      "schema": "database-legacy-absence-observation.v1",
+      "object_name": "DatabaseLegacyAbsenceObservationV1"
+    },
+    {
+      "schema": "database-legacy-absence-projection.v1",
+      "object_name": "DatabaseLegacyAbsenceProjectionV1"
+    },
+    {
+      "schema": "database-runtime-instance-binding.v1",
+      "object_name": "DatabaseRuntimeInstanceBindingV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease-descendant-chain.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseDescendantChainV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease-termination.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseTerminationV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseV1"
+    },
+    {
+      "schema": "database-runtime-rebind-authorization.v1",
+      "object_name": "DatabaseRuntimeRebindAuthorizationV1"
+    },
+    {
+      "schema": "database-timeline-lineage-attestation.v1",
+      "object_name": "DatabaseTimelineLineageAttestationV1"
+    },
+    {
+      "schema": "deployment-environment-attestation.v1",
+      "object_name": "DeploymentEnvironmentAttestationV1"
+    },
+    {
+      "schema": "empty-database-inventory.v1",
+      "object_name": "EmptyDatabaseInventoryV1"
+    },
+    {
+      "schema": "environment-inventory-anchor-set.v1",
+      "object_name": "EnvironmentInventoryAnchorSetV1"
+    },
+    {
+      "schema": "environment-inventory-anchor.v1",
+      "object_name": "EnvironmentInventoryAnchorV1"
+    },
+    {
+      "schema": "environment-inventory-membership-retirement.v1",
+      "object_name": "EnvironmentInventoryMembershipRetirementV1"
+    },
+    {
+      "schema": "environment-inventory-record.v1",
+      "object_name": "EnvironmentInventoryRecordV1"
+    },
+    {
+      "schema": "environment-inventory.v1",
+      "object_name": "EnvironmentInventoryV1"
+    },
+    {
+      "schema": "fence-database-commit-attestation-archive-request.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveRequestV1"
+    },
+    {
+      "schema": "fence-database-commit-attestation-archive-response.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveResponseV1"
+    },
+    {
+      "schema": "fresh-import-topology-projection.v1",
+      "object_name": "FreshImportTopologyProjectionV1"
+    },
+    {
+      "schema": "fresh-restore-import-application.v1",
+      "object_name": "FreshRestoreImportApplicationV1"
+    },
+    {
+      "schema": "fresh-restore-import-manifest.v1",
+      "object_name": "FreshRestoreImportManifestV1"
+    },
+    {
+      "schema": "fresh-restore-requirement.v1",
+      "object_name": "FreshRestoreRequirementV1"
+    },
+    {
+      "schema": "fresh-target-inventory.v1",
+      "object_name": "FreshTargetInventoryV1"
+    },
+    {
+      "schema": "fresh-v7-staging-evidence.v1",
+      "object_name": "FreshV7StagingEvidenceV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-abort.v1",
+      "object_name": "FreshV7StagingExclusionAbortV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-lease.v1",
+      "object_name": "FreshV7StagingExclusionLeaseV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-release.v1",
+      "object_name": "FreshV7StagingExclusionReleaseV1"
+    },
+    {
+      "schema": "indeterminate-source-seal.v1",
+      "object_name": "IndeterminateSourceSealV1"
+    },
+    {
+      "schema": "inspect-authority-epoch-transition-request.v1",
+      "object_name": "InspectAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "inspect-authority-epoch-transition-response.v1",
+      "object_name": "InspectAuthorityEpochTransitionResponseV1"
+    },
+    {
+      "schema": "inspect-claim-v1-genesis-request.v1",
+      "object_name": "InspectClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "inspect-claim-v1-genesis-response.v1",
+      "object_name": "InspectClaimV1GenesisResponseV1"
+    },
+    {
+      "schema": "inspect-database-commit-attestation-archive-request.v1",
+      "object_name": "InspectDatabaseCommitAttestationArchiveRequestV1"
+    },
+    {
+      "schema": "inspect-database-commit-attestation-archive-response.v1",
+      "object_name": "InspectDatabaseCommitAttestationArchiveResponseV1"
+    },
+    {
+      "schema": "legacy-database-source-retirement-commit-attestation.v1",
+      "object_name": "LegacyDatabaseSourceRetirementCommitAttestationV1"
+    },
+    {
+      "schema": "legacy-database-source-retirement.v1",
+      "object_name": "LegacyDatabaseSourceRetirementV1"
+    },
+    {
+      "schema": "legacy-deployment-epoch-manifest.v1",
+      "object_name": "LegacyDeploymentEpochManifestV1"
+    },
+    {
+      "schema": "legacy-environment-retirement.v1",
+      "object_name": "LegacyEnvironmentRetirementV1"
+    },
+    {
+      "schema": "legacy-epoch-maximum-evidence.v1",
+      "object_name": "LegacyEpochMaximumEvidenceV1"
+    },
+    {
+      "schema": "legacy-epoch-source-observation.v1",
+      "object_name": "LegacyEpochSourceObservationV1"
+    },
+    {
+      "schema": "legacy-epoch-source-set.v1",
+      "object_name": "LegacyEpochSourceSetV1"
+    },
+    {
+      "schema": "legacy-provider-epoch-transcript.v1",
+      "object_name": "LegacyProviderEpochTranscriptV1"
+    },
+    {
+      "schema": "legacy-provider-namespace-retirement.v1",
+      "object_name": "LegacyProviderNamespaceRetirementV1"
+    },
+    {
+      "schema": "legacy-runtime-shutdown-set.v1",
+      "object_name": "LegacyRuntimeShutdownSetV1"
+    },
+    {
+      "schema": "legacy-runtime-shutdown.v1",
+      "object_name": "LegacyRuntimeShutdownV1"
+    },
+    {
+      "schema": "legacy-source-archive-evidence.v1",
+      "object_name": "LegacySourceArchiveEvidenceV1"
+    },
+    {
+      "schema": "legacy-source-inventory.v1",
+      "object_name": "LegacySourceInventoryV1"
+    },
+    {
+      "schema": "legacy-source-membership-retirement.v1",
+      "object_name": "LegacySourceMembershipRetirementV1"
+    },
+    {
+      "schema": "legacy-source-post-seal-exact-cover.v1",
+      "object_name": "LegacySourcePostSealExactCoverV1"
+    },
+    {
+      "schema": "legacy-source-post-seal-observation.v1",
+      "object_name": "LegacySourcePostSealObservationV1"
+    },
+    {
+      "schema": "legacy-source-retirement-authorization.v1",
+      "object_name": "LegacySourceRetirementAuthorizationV1"
+    },
+    {
+      "schema": "legacy-source-retirement-set.v1",
+      "object_name": "LegacySourceRetirementSetV1"
+    },
+    {
+      "schema": "legacy-source-seal-commit-attestation.v1",
+      "object_name": "LegacySourceSealCommitAttestationV1"
+    },
+    {
+      "schema": "legacy-source-seal.v1",
+      "object_name": "LegacySourceSealV1"
+    },
+    {
+      "schema": "local-runtime-isolation.v1",
+      "object_name": "LocalRuntimeIsolationV1"
+    },
+    {
+      "schema": "open-claim-v1-genesis-request.v1",
+      "object_name": "OpenClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "prepare-claim-v1-genesis-release-request.v1",
+      "object_name": "PrepareClaimV1GenesisReleaseRequestV1"
+    },
+    {
+      "schema": "prepare-claim-v1-genesis-request.v1",
+      "object_name": "PrepareClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "pristine-downgrade-authorized-state.v1",
+      "object_name": "PristineDowngradeAuthorizedStateV1"
+    },
+    {
+      "schema": "pristine-downgrade-consume-receipt.v1",
+      "object_name": "PristineDowngradeConsumeReceiptV1"
+    },
+    {
+      "schema": "pristine-downgrade-inventory.v1",
+      "object_name": "PristineDowngradeInventoryV1"
+    },
+    {
+      "schema": "provider-namespace-absence.v1",
+      "object_name": "ProviderNamespaceAbsenceV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement-authorization.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementAuthorizationV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement-set.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementSetV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementV1"
+    },
+    {
+      "schema": "provider-protocol-history-zero-projection.v1",
+      "object_name": "ProviderProtocolHistoryZeroProjectionV1"
+    },
+    {
+      "schema": "publish-claim-v1-credential-policy-request.v1",
+      "object_name": "PublishClaimV1CredentialPolicyRequestV1"
+    },
+    {
+      "schema": "rebind-claim-v1-runtime-instance-request.v1",
+      "object_name": "RebindClaimV1RuntimeInstanceRequestV1"
+    },
+    {
+      "schema": "recover-authority-epoch-transition-request.v1",
+      "object_name": "RecoverAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "recover-staging-import-capability-request.v1",
+      "object_name": "RecoverStagingImportCapabilityRequestV1"
+    },
+    {
+      "schema": "register-database-incarnation-request.v1",
+      "object_name": "RegisterDatabaseIncarnationRequestV1"
+    },
+    {
+      "schema": "release-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "ReleaseFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "renew-claim-v1-serving-lease-request.v1",
+      "object_name": "RenewClaimV1ServingLeaseRequestV1"
+    },
+    {
+      "schema": "renew-database-runtime-instance-lease-request.v1",
+      "object_name": "RenewDatabaseRuntimeInstanceLeaseRequestV1"
+    },
+    {
+      "schema": "request-authority-epoch-transition.v1",
+      "object_name": "RequestAuthorityEpochTransitionV1"
+    },
+    {
+      "schema": "resolve-authority-epoch-transition-request.v1",
+      "object_name": "ResolveAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "retire-environment-inventory-membership-request.v1",
+      "object_name": "RetireEnvironmentInventoryMembershipRequestV1"
+    },
+    {
+      "schema": "retire-legacy-environment-request.v1",
+      "object_name": "RetireLegacyEnvironmentRequestV1"
+    },
+    {
+      "schema": "retire-legacy-provider-namespace-request.v1",
+      "object_name": "RetireLegacyProviderNamespaceRequestV1"
+    },
+    {
+      "schema": "retire-legacy-source-membership-request.v1",
+      "object_name": "RetireLegacySourceMembershipRequestV1"
+    },
+    {
+      "schema": "retire-provider-protocol-for-downgrade-request.v1",
+      "object_name": "RetireProviderProtocolForDowngradeRequestV1"
+    },
+    {
+      "schema": "revoke-claim-v1-serving-lease-request.v1",
+      "object_name": "RevokeClaimV1ServingLeaseRequestV1"
+    },
+    {
+      "schema": "staging-database-commit-attestation.v1",
+      "object_name": "StagingDatabaseCommitAttestationV1"
+    },
+    {
+      "schema": "staging-database-commit-challenge.v1",
+      "object_name": "StagingDatabaseCommitChallengeV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery-application.v1",
+      "object_name": "StagingImportCapabilityRecoveryApplicationV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery-intent.v1",
+      "object_name": "StagingImportCapabilityRecoveryIntentV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery.v1",
+      "object_name": "StagingImportCapabilityRecoveryV1"
+    },
+    {
+      "schema": "staging-import-capability-revocation-application.v1",
+      "object_name": "StagingImportCapabilityRevocationApplicationV1"
+    },
+    {
+      "schema": "staging-import-capability-revocation.v1",
+      "object_name": "StagingImportCapabilityRevocationV1"
+    },
+    {
+      "schema": "staging-import-capability.v1",
+      "object_name": "StagingImportCapabilityV1"
+    }
+  ]
+}

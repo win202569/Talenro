@@ -1,0 +1,1473 @@
+{
+  "schema": "talenro.c12.authority-v7.schema-name-registry-golden.v1",
+  "coverage": "name-directory",
+  "expected_entries": [
+    {
+      "schema": "abort-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "AbortFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "acquire-database-commit-challenge-request.v1",
+      "object_name": "AcquireDatabaseCommitChallengeRequestV1"
+    },
+    {
+      "schema": "acquire-database-incarnation-proof-request.v1",
+      "object_name": "AcquireDatabaseIncarnationProofRequestV1"
+    },
+    {
+      "schema": "acquire-database-incarnation-registration-challenge-request.v1",
+      "object_name": "AcquireDatabaseIncarnationRegistrationChallengeRequestV1"
+    },
+    {
+      "schema": "acquire-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "AcquireFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "acquire-staging-database-commit-challenge-request.v1",
+      "object_name": "AcquireStagingDatabaseCommitChallengeRequestV1"
+    },
+    {
+      "schema": "authority-epoch-transition-application.v1",
+      "object_name": "AuthorityEpochTransitionApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-cancellation.v1",
+      "object_name": "AuthorityEpochTransitionCancellationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-intent.v1",
+      "object_name": "AuthorityEpochTransitionIntentV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-application.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-intent.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryIntentV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery-prefix-decision.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryPrefixDecisionV1"
+    },
+    {
+      "schema": "authority-epoch-transition-recovery.v1",
+      "object_name": "AuthorityEpochTransitionRecoveryV1"
+    },
+    {
+      "schema": "authority-epoch-transition-resolution-receipt.v1",
+      "object_name": "AuthorityEpochTransitionResolutionReceiptV1"
+    },
+    {
+      "schema": "authority-epoch-transition-resolution.v1",
+      "object_name": "AuthorityEpochTransitionResolutionV1"
+    },
+    {
+      "schema": "authority-epoch-transition-terminal-application.v1",
+      "object_name": "AuthorityEpochTransitionTerminalApplicationV1"
+    },
+    {
+      "schema": "authority-epoch-transition.v1",
+      "object_name": "AuthorityEpochTransitionV1"
+    },
+    {
+      "schema": "authority-genesis-epoch-evidence.v1",
+      "object_name": "AuthorityGenesisEpochEvidenceV1"
+    },
+    {
+      "schema": "authority-protocol-activation-completion.v1",
+      "object_name": "AuthorityProtocolActivationCompletionV1"
+    },
+    {
+      "schema": "authority-protocol-activation-release.v1",
+      "object_name": "AuthorityProtocolActivationReleaseV1"
+    },
+    {
+      "schema": "authority-protocol-activation.v1",
+      "object_name": "AuthorityProtocolActivationV1"
+    },
+    {
+      "schema": "authority-protocol-context.v1",
+      "object_name": "AuthorityProtocolContextV1"
+    },
+    {
+      "schema": "authority-protocol-downgrade-authorization.v1",
+      "object_name": "AuthorityProtocolDowngradeAuthorizationV1"
+    },
+    {
+      "schema": "authority-protocol-migration-latch.v1",
+      "object_name": "AuthorityProtocolMigrationLatchV1"
+    },
+    {
+      "schema": "authority-protocol-upgrade-attempt.v1",
+      "object_name": "AuthorityProtocolUpgradeAttemptV1"
+    },
+    {
+      "schema": "authority-protocol-upgrade-intent.v1",
+      "object_name": "AuthorityProtocolUpgradeIntentV1"
+    },
+    {
+      "schema": "authority-runtime-rebind-result.v1",
+      "object_name": "AuthorityRuntimeRebindResultV1"
+    },
+    {
+      "schema": "authority-runtime-registration-result.v1",
+      "object_name": "AuthorityRuntimeRegistrationResultV1"
+    },
+    {
+      "schema": "canonical-evidence-bundle.v1",
+      "object_name": "CanonicalEvidenceBundleV1"
+    },
+    {
+      "schema": "claim-v1-abort-request.v1",
+      "object_name": "ClaimV1AbortRequestV1"
+    },
+    {
+      "schema": "claim-v1-credential-policy.v1",
+      "object_name": "ClaimV1CredentialPolicyV1"
+    },
+    {
+      "schema": "claim-v1-finalize-request.v1",
+      "object_name": "ClaimV1FinalizeRequestV1"
+    },
+    {
+      "schema": "claim-v1-genesis-completion.v1",
+      "object_name": "ClaimV1GenesisCompletionV1"
+    },
+    {
+      "schema": "claim-v1-genesis-open.v1",
+      "object_name": "ClaimV1GenesisOpenV1"
+    },
+    {
+      "schema": "claim-v1-genesis-preparation.v1",
+      "object_name": "ClaimV1GenesisPreparationV1"
+    },
+    {
+      "schema": "claim-v1-genesis-release-preparation.v1",
+      "object_name": "ClaimV1GenesisReleasePreparationV1"
+    },
+    {
+      "schema": "claim-v1-provider-head.v1",
+      "object_name": "ClaimV1ProviderHeadV1"
+    },
+    {
+      "schema": "claim-v1-receipt.v1",
+      "object_name": "ClaimV1ReceiptV1"
+    },
+    {
+      "schema": "claim-v1-record.v1",
+      "object_name": "ClaimV1RecordV1"
+    },
+    {
+      "schema": "claim-v1-reservation.v1",
+      "object_name": "ClaimV1ReservationV1"
+    },
+    {
+      "schema": "claim-v1-reserve-request.v1",
+      "object_name": "ClaimV1ReserveRequestV1"
+    },
+    {
+      "schema": "claim-v1-runtime-instance-rebind.v1",
+      "object_name": "ClaimV1RuntimeInstanceRebindV1"
+    },
+    {
+      "schema": "claim-v1-serving-lease-revocation.v1",
+      "object_name": "ClaimV1ServingLeaseRevocationV1"
+    },
+    {
+      "schema": "claim-v1-serving-lease.v1",
+      "object_name": "ClaimV1ServingLeaseV1"
+    },
+    {
+      "schema": "complete-claim-v1-genesis-request.v1",
+      "object_name": "CompleteClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "database-authority-head-attestation.v1",
+      "object_name": "DatabaseAuthorityHeadAttestationV1"
+    },
+    {
+      "schema": "database-authority-head.v1",
+      "object_name": "DatabaseAuthorityHeadV1"
+    },
+    {
+      "schema": "database-authority-post-recovery-rebind-attestation.v1",
+      "object_name": "DatabaseAuthorityPostRecoveryRebindAttestationV1"
+    },
+    {
+      "schema": "database-authority-rebind-gap-attestation.v1",
+      "object_name": "DatabaseAuthorityRebindGapAttestationV1"
+    },
+    {
+      "schema": "database-commit-archive-fence-semantic-id-journal-record.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveSemanticIDJournalRecordV1"
+    },
+    {
+      "schema": "database-commit-attestation.v1",
+      "object_name": "DatabaseCommitAttestationV1"
+    },
+    {
+      "schema": "database-commit-challenge.v1",
+      "object_name": "DatabaseCommitChallengeV1"
+    },
+    {
+      "schema": "database-incarnation-attestation.v1",
+      "object_name": "DatabaseIncarnationAttestationV1"
+    },
+    {
+      "schema": "database-incarnation-proof.v1",
+      "object_name": "DatabaseIncarnationProofV1"
+    },
+    {
+      "schema": "database-incarnation-rebinding-registration.v1",
+      "object_name": "DatabaseIncarnationRebindingRegistrationV1"
+    },
+    {
+      "schema": "database-incarnation-registration-challenge.v1",
+      "object_name": "DatabaseIncarnationRegistrationChallengeV1"
+    },
+    {
+      "schema": "database-incarnation-registration.v1",
+      "object_name": "DatabaseIncarnationRegistrationV1"
+    },
+    {
+      "schema": "database-legacy-absence-observation.v1",
+      "object_name": "DatabaseLegacyAbsenceObservationV1"
+    },
+    {
+      "schema": "database-legacy-absence-projection.v1",
+      "object_name": "DatabaseLegacyAbsenceProjectionV1"
+    },
+    {
+      "schema": "database-runtime-instance-binding.v1",
+      "object_name": "DatabaseRuntimeInstanceBindingV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease-descendant-chain.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseDescendantChainV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease-termination.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseTerminationV1"
+    },
+    {
+      "schema": "database-runtime-instance-lease.v1",
+      "object_name": "DatabaseRuntimeInstanceLeaseV1"
+    },
+    {
+      "schema": "database-runtime-rebind-authorization.v1",
+      "object_name": "DatabaseRuntimeRebindAuthorizationV1"
+    },
+    {
+      "schema": "database-timeline-lineage-attestation.v1",
+      "object_name": "DatabaseTimelineLineageAttestationV1"
+    },
+    {
+      "schema": "deployment-environment-attestation.v1",
+      "object_name": "DeploymentEnvironmentAttestationV1"
+    },
+    {
+      "schema": "empty-database-inventory.v1",
+      "object_name": "EmptyDatabaseInventoryV1"
+    },
+    {
+      "schema": "environment-inventory-anchor-set.v1",
+      "object_name": "EnvironmentInventoryAnchorSetV1"
+    },
+    {
+      "schema": "environment-inventory-anchor.v1",
+      "object_name": "EnvironmentInventoryAnchorV1"
+    },
+    {
+      "schema": "environment-inventory-membership-retirement.v1",
+      "object_name": "EnvironmentInventoryMembershipRetirementV1"
+    },
+    {
+      "schema": "environment-inventory-record.v1",
+      "object_name": "EnvironmentInventoryRecordV1"
+    },
+    {
+      "schema": "environment-inventory.v1",
+      "object_name": "EnvironmentInventoryV1"
+    },
+    {
+      "schema": "fence-database-commit-attestation-archive-request.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveRequestV1"
+    },
+    {
+      "schema": "fence-database-commit-attestation-archive-response.v1",
+      "object_name": "FenceDatabaseCommitAttestationArchiveResponseV1"
+    },
+    {
+      "schema": "fresh-import-topology-projection.v1",
+      "object_name": "FreshImportTopologyProjectionV1"
+    },
+    {
+      "schema": "fresh-restore-import-application.v1",
+      "object_name": "FreshRestoreImportApplicationV1"
+    },
+    {
+      "schema": "fresh-restore-import-manifest.v1",
+      "object_name": "FreshRestoreImportManifestV1"
+    },
+    {
+      "schema": "fresh-restore-requirement.v1",
+      "object_name": "FreshRestoreRequirementV1"
+    },
+    {
+      "schema": "fresh-target-inventory.v1",
+      "object_name": "FreshTargetInventoryV1"
+    },
+    {
+      "schema": "fresh-v7-staging-evidence.v1",
+      "object_name": "FreshV7StagingEvidenceV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-abort.v1",
+      "object_name": "FreshV7StagingExclusionAbortV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-lease.v1",
+      "object_name": "FreshV7StagingExclusionLeaseV1"
+    },
+    {
+      "schema": "fresh-v7-staging-exclusion-release.v1",
+      "object_name": "FreshV7StagingExclusionReleaseV1"
+    },
+    {
+      "schema": "indeterminate-source-seal.v1",
+      "object_name": "IndeterminateSourceSealV1"
+    },
+    {
+      "schema": "inspect-authority-epoch-transition-request.v1",
+      "object_name": "InspectAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "inspect-authority-epoch-transition-response.v1",
+      "object_name": "InspectAuthorityEpochTransitionResponseV1"
+    },
+    {
+      "schema": "inspect-claim-v1-genesis-request.v1",
+      "object_name": "InspectClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "inspect-claim-v1-genesis-response.v1",
+      "object_name": "InspectClaimV1GenesisResponseV1"
+    },
+    {
+      "schema": "inspect-database-commit-attestation-archive-request.v1",
+      "object_name": "InspectDatabaseCommitAttestationArchiveRequestV1"
+    },
+    {
+      "schema": "inspect-database-commit-attestation-archive-response.v1",
+      "object_name": "InspectDatabaseCommitAttestationArchiveResponseV1"
+    },
+    {
+      "schema": "legacy-database-source-retirement-commit-attestation.v1",
+      "object_name": "LegacyDatabaseSourceRetirementCommitAttestationV1"
+    },
+    {
+      "schema": "legacy-database-source-retirement.v1",
+      "object_name": "LegacyDatabaseSourceRetirementV1"
+    },
+    {
+      "schema": "legacy-deployment-epoch-manifest.v1",
+      "object_name": "LegacyDeploymentEpochManifestV1"
+    },
+    {
+      "schema": "legacy-environment-retirement.v1",
+      "object_name": "LegacyEnvironmentRetirementV1"
+    },
+    {
+      "schema": "legacy-epoch-maximum-evidence.v1",
+      "object_name": "LegacyEpochMaximumEvidenceV1"
+    },
+    {
+      "schema": "legacy-epoch-source-observation.v1",
+      "object_name": "LegacyEpochSourceObservationV1"
+    },
+    {
+      "schema": "legacy-epoch-source-set.v1",
+      "object_name": "LegacyEpochSourceSetV1"
+    },
+    {
+      "schema": "legacy-provider-epoch-transcript.v1",
+      "object_name": "LegacyProviderEpochTranscriptV1"
+    },
+    {
+      "schema": "legacy-provider-namespace-retirement.v1",
+      "object_name": "LegacyProviderNamespaceRetirementV1"
+    },
+    {
+      "schema": "legacy-runtime-shutdown-set.v1",
+      "object_name": "LegacyRuntimeShutdownSetV1"
+    },
+    {
+      "schema": "legacy-runtime-shutdown.v1",
+      "object_name": "LegacyRuntimeShutdownV1"
+    },
+    {
+      "schema": "legacy-source-archive-evidence.v1",
+      "object_name": "LegacySourceArchiveEvidenceV1"
+    },
+    {
+      "schema": "legacy-source-inventory.v1",
+      "object_name": "LegacySourceInventoryV1"
+    },
+    {
+      "schema": "legacy-source-membership-retirement.v1",
+      "object_name": "LegacySourceMembershipRetirementV1"
+    },
+    {
+      "schema": "legacy-source-post-seal-exact-cover.v1",
+      "object_name": "LegacySourcePostSealExactCoverV1"
+    },
+    {
+      "schema": "legacy-source-post-seal-observation.v1",
+      "object_name": "LegacySourcePostSealObservationV1"
+    },
+    {
+      "schema": "legacy-source-retirement-authorization.v1",
+      "object_name": "LegacySourceRetirementAuthorizationV1"
+    },
+    {
+      "schema": "legacy-source-retirement-set.v1",
+      "object_name": "LegacySourceRetirementSetV1"
+    },
+    {
+      "schema": "legacy-source-seal-commit-attestation.v1",
+      "object_name": "LegacySourceSealCommitAttestationV1"
+    },
+    {
+      "schema": "legacy-source-seal.v1",
+      "object_name": "LegacySourceSealV1"
+    },
+    {
+      "schema": "local-runtime-isolation.v1",
+      "object_name": "LocalRuntimeIsolationV1"
+    },
+    {
+      "schema": "open-claim-v1-genesis-request.v1",
+      "object_name": "OpenClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "prepare-claim-v1-genesis-release-request.v1",
+      "object_name": "PrepareClaimV1GenesisReleaseRequestV1"
+    },
+    {
+      "schema": "prepare-claim-v1-genesis-request.v1",
+      "object_name": "PrepareClaimV1GenesisRequestV1"
+    },
+    {
+      "schema": "pristine-downgrade-authorized-state.v1",
+      "object_name": "PristineDowngradeAuthorizedStateV1"
+    },
+    {
+      "schema": "pristine-downgrade-consume-receipt.v1",
+      "object_name": "PristineDowngradeConsumeReceiptV1"
+    },
+    {
+      "schema": "pristine-downgrade-inventory.v1",
+      "object_name": "PristineDowngradeInventoryV1"
+    },
+    {
+      "schema": "provider-namespace-absence.v1",
+      "object_name": "ProviderNamespaceAbsenceV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement-authorization.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementAuthorizationV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement-set.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementSetV1"
+    },
+    {
+      "schema": "provider-protocol-downgrade-retirement.v1",
+      "object_name": "ProviderProtocolDowngradeRetirementV1"
+    },
+    {
+      "schema": "provider-protocol-history-zero-projection.v1",
+      "object_name": "ProviderProtocolHistoryZeroProjectionV1"
+    },
+    {
+      "schema": "publish-claim-v1-credential-policy-request.v1",
+      "object_name": "PublishClaimV1CredentialPolicyRequestV1"
+    },
+    {
+      "schema": "rebind-claim-v1-runtime-instance-request.v1",
+      "object_name": "RebindClaimV1RuntimeInstanceRequestV1"
+    },
+    {
+      "schema": "recover-authority-epoch-transition-request.v1",
+      "object_name": "RecoverAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "recover-staging-import-capability-request.v1",
+      "object_name": "RecoverStagingImportCapabilityRequestV1"
+    },
+    {
+      "schema": "register-database-incarnation-request.v1",
+      "object_name": "RegisterDatabaseIncarnationRequestV1"
+    },
+    {
+      "schema": "release-fresh-v7-staging-exclusion-request.v1",
+      "object_name": "ReleaseFreshV7StagingExclusionRequestV1"
+    },
+    {
+      "schema": "renew-claim-v1-serving-lease-request.v1",
+      "object_name": "RenewClaimV1ServingLeaseRequestV1"
+    },
+    {
+      "schema": "renew-database-runtime-instance-lease-request.v1",
+      "object_name": "RenewDatabaseRuntimeInstanceLeaseRequestV1"
+    },
+    {
+      "schema": "request-authority-epoch-transition.v1",
+      "object_name": "RequestAuthorityEpochTransitionV1"
+    },
+    {
+      "schema": "resolve-authority-epoch-transition-request.v1",
+      "object_name": "ResolveAuthorityEpochTransitionRequestV1"
+    },
+    {
+      "schema": "retire-environment-inventory-membership-request.v1",
+      "object_name": "RetireEnvironmentInventoryMembershipRequestV1"
+    },
+    {
+      "schema": "retire-legacy-environment-request.v1",
+      "object_name": "RetireLegacyEnvironmentRequestV1"
+    },
+    {
+      "schema": "retire-legacy-provider-namespace-request.v1",
+      "object_name": "RetireLegacyProviderNamespaceRequestV1"
+    },
+    {
+      "schema": "retire-legacy-source-membership-request.v1",
+      "object_name": "RetireLegacySourceMembershipRequestV1"
+    },
+    {
+      "schema": "retire-provider-protocol-for-downgrade-request.v1",
+      "object_name": "RetireProviderProtocolForDowngradeRequestV1"
+    },
+    {
+      "schema": "revoke-claim-v1-serving-lease-request.v1",
+      "object_name": "RevokeClaimV1ServingLeaseRequestV1"
+    },
+    {
+      "schema": "staging-database-commit-attestation.v1",
+      "object_name": "StagingDatabaseCommitAttestationV1"
+    },
+    {
+      "schema": "staging-database-commit-challenge.v1",
+      "object_name": "StagingDatabaseCommitChallengeV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery-application.v1",
+      "object_name": "StagingImportCapabilityRecoveryApplicationV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery-intent.v1",
+      "object_name": "StagingImportCapabilityRecoveryIntentV1"
+    },
+    {
+      "schema": "staging-import-capability-recovery.v1",
+      "object_name": "StagingImportCapabilityRecoveryV1"
+    },
+    {
+      "schema": "staging-import-capability-revocation-application.v1",
+      "object_name": "StagingImportCapabilityRevocationApplicationV1"
+    },
+    {
+      "schema": "staging-import-capability-revocation.v1",
+      "object_name": "StagingImportCapabilityRevocationV1"
+    },
+    {
+      "schema": "staging-import-capability.v1",
+      "object_name": "StagingImportCapabilityV1"
+    }
+  ],
+  "rejected_schemas": [
+    "",
+    " abort-fresh-v7-staging-exclusion-request.v1",
+    " acquire-database-commit-challenge-request.v1",
+    " acquire-database-incarnation-proof-request.v1",
+    " acquire-database-incarnation-registration-challenge-request.v1",
+    " acquire-fresh-v7-staging-exclusion-request.v1",
+    " acquire-staging-database-commit-challenge-request.v1",
+    " authority-epoch-transition-application.v1",
+    " authority-epoch-transition-cancellation.v1",
+    " authority-epoch-transition-intent.v1",
+    " authority-epoch-transition-recovery-application.v1",
+    " authority-epoch-transition-recovery-intent.v1",
+    " authority-epoch-transition-recovery-prefix-decision.v1",
+    " authority-epoch-transition-recovery.v1",
+    " authority-epoch-transition-resolution-receipt.v1",
+    " authority-epoch-transition-resolution.v1",
+    " authority-epoch-transition-terminal-application.v1",
+    " authority-epoch-transition.v1",
+    " authority-genesis-epoch-evidence.v1",
+    " authority-protocol-activation-completion.v1",
+    " authority-protocol-activation-release.v1",
+    " authority-protocol-activation.v1",
+    " authority-protocol-context.v1",
+    " authority-protocol-downgrade-authorization.v1",
+    " authority-protocol-migration-latch.v1",
+    " authority-protocol-upgrade-attempt.v1",
+    " authority-protocol-upgrade-intent.v1",
+    " authority-runtime-rebind-result.v1",
+    " authority-runtime-registration-result.v1",
+    " canonical-evidence-bundle.v1",
+    " claim-v1-abort-request.v1",
+    " claim-v1-credential-policy.v1",
+    " claim-v1-finalize-request.v1",
+    " claim-v1-genesis-completion.v1",
+    " claim-v1-genesis-open.v1",
+    " claim-v1-genesis-preparation.v1",
+    " claim-v1-genesis-release-preparation.v1",
+    " claim-v1-provider-head.v1",
+    " claim-v1-receipt.v1",
+    " claim-v1-record.v1",
+    " claim-v1-reservation.v1",
+    " claim-v1-reserve-request.v1",
+    " claim-v1-runtime-instance-rebind.v1",
+    " claim-v1-serving-lease-revocation.v1",
+    " claim-v1-serving-lease.v1",
+    " complete-claim-v1-genesis-request.v1",
+    " database-authority-head-attestation.v1",
+    " database-authority-head.v1",
+    " database-authority-post-recovery-rebind-attestation.v1",
+    " database-authority-rebind-gap-attestation.v1",
+    " database-commit-archive-fence-semantic-id-journal-record.v1",
+    " database-commit-attestation.v1",
+    " database-commit-challenge.v1",
+    " database-incarnation-attestation.v1",
+    " database-incarnation-proof.v1",
+    " database-incarnation-rebinding-registration.v1",
+    " database-incarnation-registration-challenge.v1",
+    " database-incarnation-registration.v1",
+    " database-legacy-absence-observation.v1",
+    " database-legacy-absence-projection.v1",
+    " database-runtime-instance-binding.v1",
+    " database-runtime-instance-lease-descendant-chain.v1",
+    " database-runtime-instance-lease-termination.v1",
+    " database-runtime-instance-lease.v1",
+    " database-runtime-rebind-authorization.v1",
+    " database-timeline-lineage-attestation.v1",
+    " deployment-environment-attestation.v1",
+    " empty-database-inventory.v1",
+    " environment-inventory-anchor-set.v1",
+    " environment-inventory-anchor.v1",
+    " environment-inventory-membership-retirement.v1",
+    " environment-inventory-record.v1",
+    " environment-inventory.v1",
+    " fence-database-commit-attestation-archive-request.v1",
+    " fence-database-commit-attestation-archive-response.v1",
+    " fresh-import-topology-projection.v1",
+    " fresh-restore-import-application.v1",
+    " fresh-restore-import-manifest.v1",
+    " fresh-restore-requirement.v1",
+    " fresh-target-inventory.v1",
+    " fresh-v7-staging-evidence.v1",
+    " fresh-v7-staging-exclusion-abort.v1",
+    " fresh-v7-staging-exclusion-lease.v1",
+    " fresh-v7-staging-exclusion-release.v1",
+    " indeterminate-source-seal.v1",
+    " inspect-authority-epoch-transition-request.v1",
+    " inspect-authority-epoch-transition-response.v1",
+    " inspect-claim-v1-genesis-request.v1",
+    " inspect-claim-v1-genesis-response.v1",
+    " inspect-database-commit-attestation-archive-request.v1",
+    " inspect-database-commit-attestation-archive-response.v1",
+    " legacy-database-source-retirement-commit-attestation.v1",
+    " legacy-database-source-retirement.v1",
+    " legacy-deployment-epoch-manifest.v1",
+    " legacy-environment-retirement.v1",
+    " legacy-epoch-maximum-evidence.v1",
+    " legacy-epoch-source-observation.v1",
+    " legacy-epoch-source-set.v1",
+    " legacy-provider-epoch-transcript.v1",
+    " legacy-provider-namespace-retirement.v1",
+    " legacy-runtime-shutdown-set.v1",
+    " legacy-runtime-shutdown.v1",
+    " legacy-source-archive-evidence.v1",
+    " legacy-source-inventory.v1",
+    " legacy-source-membership-retirement.v1",
+    " legacy-source-post-seal-exact-cover.v1",
+    " legacy-source-post-seal-observation.v1",
+    " legacy-source-retirement-authorization.v1",
+    " legacy-source-retirement-set.v1",
+    " legacy-source-seal-commit-attestation.v1",
+    " legacy-source-seal.v1",
+    " local-runtime-isolation.v1",
+    " open-claim-v1-genesis-request.v1",
+    " prepare-claim-v1-genesis-release-request.v1",
+    " prepare-claim-v1-genesis-request.v1",
+    " pristine-downgrade-authorized-state.v1",
+    " pristine-downgrade-consume-receipt.v1",
+    " pristine-downgrade-inventory.v1",
+    " provider-namespace-absence.v1",
+    " provider-protocol-downgrade-retirement-authorization.v1",
+    " provider-protocol-downgrade-retirement-set.v1",
+    " provider-protocol-downgrade-retirement.v1",
+    " provider-protocol-history-zero-projection.v1",
+    " publish-claim-v1-credential-policy-request.v1",
+    " rebind-claim-v1-runtime-instance-request.v1",
+    " recover-authority-epoch-transition-request.v1",
+    " recover-staging-import-capability-request.v1",
+    " register-database-incarnation-request.v1",
+    " release-fresh-v7-staging-exclusion-request.v1",
+    " renew-claim-v1-serving-lease-request.v1",
+    " renew-database-runtime-instance-lease-request.v1",
+    " request-authority-epoch-transition.v1",
+    " resolve-authority-epoch-transition-request.v1",
+    " retire-environment-inventory-membership-request.v1",
+    " retire-legacy-environment-request.v1",
+    " retire-legacy-provider-namespace-request.v1",
+    " retire-legacy-source-membership-request.v1",
+    " retire-provider-protocol-for-downgrade-request.v1",
+    " revoke-claim-v1-serving-lease-request.v1",
+    " staging-database-commit-attestation.v1",
+    " staging-database-commit-challenge.v1",
+    " staging-import-capability-recovery-application.v1",
+    " staging-import-capability-recovery-intent.v1",
+    " staging-import-capability-recovery.v1",
+    " staging-import-capability-revocation-application.v1",
+    " staging-import-capability-revocation.v1",
+    " staging-import-capability.v1",
+    "ABORT-FRESH-V7-STAGING-EXCLUSION-REQUEST.V1",
+    "ACQUIRE-DATABASE-COMMIT-CHALLENGE-REQUEST.V1",
+    "ACQUIRE-DATABASE-INCARNATION-PROOF-REQUEST.V1",
+    "ACQUIRE-DATABASE-INCARNATION-REGISTRATION-CHALLENGE-REQUEST.V1",
+    "ACQUIRE-FRESH-V7-STAGING-EXCLUSION-REQUEST.V1",
+    "ACQUIRE-STAGING-DATABASE-COMMIT-CHALLENGE-REQUEST.V1",
+    "AUTHORITY-EPOCH-TRANSITION-APPLICATION.V1",
+    "AUTHORITY-EPOCH-TRANSITION-CANCELLATION.V1",
+    "AUTHORITY-EPOCH-TRANSITION-INTENT.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RECOVERY-APPLICATION.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RECOVERY-INTENT.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RECOVERY-PREFIX-DECISION.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RECOVERY.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RESOLUTION-RECEIPT.V1",
+    "AUTHORITY-EPOCH-TRANSITION-RESOLUTION.V1",
+    "AUTHORITY-EPOCH-TRANSITION-TERMINAL-APPLICATION.V1",
+    "AUTHORITY-EPOCH-TRANSITION.V1",
+    "AUTHORITY-GENESIS-EPOCH-EVIDENCE.V1",
+    "AUTHORITY-PROTOCOL-ACTIVATION-COMPLETION.V1",
+    "AUTHORITY-PROTOCOL-ACTIVATION-RELEASE.V1",
+    "AUTHORITY-PROTOCOL-ACTIVATION.V1",
+    "AUTHORITY-PROTOCOL-CONTEXT.V1",
+    "AUTHORITY-PROTOCOL-DOWNGRADE-AUTHORIZATION.V1",
+    "AUTHORITY-PROTOCOL-MIGRATION-LATCH.V1",
+    "AUTHORITY-PROTOCOL-UPGRADE-ATTEMPT.V1",
+    "AUTHORITY-PROTOCOL-UPGRADE-INTENT.V1",
+    "AUTHORITY-RUNTIME-REBIND-RESULT.V1",
+    "AUTHORITY-RUNTIME-REGISTRATION-RESULT.V1",
+    "ActivationDecisionEvidenceV1",
+    "AuthorityEffectCommitmentV1",
+    "AuthorityEffectResolutionV1",
+    "CANONICAL-EVIDENCE-BUNDLE.V1",
+    "CLAIM-V1-ABORT-REQUEST.V1",
+    "CLAIM-V1-CREDENTIAL-POLICY.V1",
+    "CLAIM-V1-FINALIZE-REQUEST.V1",
+    "CLAIM-V1-GENESIS-COMPLETION.V1",
+    "CLAIM-V1-GENESIS-OPEN.V1",
+    "CLAIM-V1-GENESIS-PREPARATION.V1",
+    "CLAIM-V1-GENESIS-RELEASE-PREPARATION.V1",
+    "CLAIM-V1-PROVIDER-HEAD.V1",
+    "CLAIM-V1-RECEIPT.V1",
+    "CLAIM-V1-RECORD.V1",
+    "CLAIM-V1-RESERVATION.V1",
+    "CLAIM-V1-RESERVE-REQUEST.V1",
+    "CLAIM-V1-RUNTIME-INSTANCE-REBIND.V1",
+    "CLAIM-V1-SERVING-LEASE-REVOCATION.V1",
+    "CLAIM-V1-SERVING-LEASE.V1",
+    "COMPLETE-CLAIM-V1-GENESIS-REQUEST.V1",
+    "DATABASE-AUTHORITY-HEAD-ATTESTATION.V1",
+    "DATABASE-AUTHORITY-HEAD.V1",
+    "DATABASE-AUTHORITY-POST-RECOVERY-REBIND-ATTESTATION.V1",
+    "DATABASE-AUTHORITY-REBIND-GAP-ATTESTATION.V1",
+    "DATABASE-COMMIT-ARCHIVE-FENCE-SEMANTIC-ID-JOURNAL-RECORD.V1",
+    "DATABASE-COMMIT-ATTESTATION.V1",
+    "DATABASE-COMMIT-CHALLENGE.V1",
+    "DATABASE-INCARNATION-ATTESTATION.V1",
+    "DATABASE-INCARNATION-PROOF.V1",
+    "DATABASE-INCARNATION-REBINDING-REGISTRATION.V1",
+    "DATABASE-INCARNATION-REGISTRATION-CHALLENGE.V1",
+    "DATABASE-INCARNATION-REGISTRATION.V1",
+    "DATABASE-LEGACY-ABSENCE-OBSERVATION.V1",
+    "DATABASE-LEGACY-ABSENCE-PROJECTION.V1",
+    "DATABASE-RUNTIME-INSTANCE-BINDING.V1",
+    "DATABASE-RUNTIME-INSTANCE-LEASE-DESCENDANT-CHAIN.V1",
+    "DATABASE-RUNTIME-INSTANCE-LEASE-TERMINATION.V1",
+    "DATABASE-RUNTIME-INSTANCE-LEASE.V1",
+    "DATABASE-RUNTIME-REBIND-AUTHORIZATION.V1",
+    "DATABASE-TIMELINE-LINEAGE-ATTESTATION.V1",
+    "DEPLOYMENT-ENVIRONMENT-ATTESTATION.V1",
+    "EMPTY-DATABASE-INVENTORY.V1",
+    "ENVIRONMENT-INVENTORY-ANCHOR-SET.V1",
+    "ENVIRONMENT-INVENTORY-ANCHOR.V1",
+    "ENVIRONMENT-INVENTORY-MEMBERSHIP-RETIREMENT.V1",
+    "ENVIRONMENT-INVENTORY-RECORD.V1",
+    "ENVIRONMENT-INVENTORY.V1",
+    "FENCE-DATABASE-COMMIT-ATTESTATION-ARCHIVE-REQUEST.V1",
+    "FENCE-DATABASE-COMMIT-ATTESTATION-ARCHIVE-RESPONSE.V1",
+    "FRESH-IMPORT-TOPOLOGY-PROJECTION.V1",
+    "FRESH-RESTORE-IMPORT-APPLICATION.V1",
+    "FRESH-RESTORE-IMPORT-MANIFEST.V1",
+    "FRESH-RESTORE-REQUIREMENT.V1",
+    "FRESH-TARGET-INVENTORY.V1",
+    "FRESH-V7-STAGING-EVIDENCE.V1",
+    "FRESH-V7-STAGING-EXCLUSION-ABORT.V1",
+    "FRESH-V7-STAGING-EXCLUSION-LEASE.V1",
+    "FRESH-V7-STAGING-EXCLUSION-RELEASE.V1",
+    "INDETERMINATE-SOURCE-SEAL.V1",
+    "INSPECT-AUTHORITY-EPOCH-TRANSITION-REQUEST.V1",
+    "INSPECT-AUTHORITY-EPOCH-TRANSITION-RESPONSE.V1",
+    "INSPECT-CLAIM-V1-GENESIS-REQUEST.V1",
+    "INSPECT-CLAIM-V1-GENESIS-RESPONSE.V1",
+    "INSPECT-DATABASE-COMMIT-ATTESTATION-ARCHIVE-REQUEST.V1",
+    "INSPECT-DATABASE-COMMIT-ATTESTATION-ARCHIVE-RESPONSE.V1",
+    "LEGACY-DATABASE-SOURCE-RETIREMENT-COMMIT-ATTESTATION.V1",
+    "LEGACY-DATABASE-SOURCE-RETIREMENT.V1",
+    "LEGACY-DEPLOYMENT-EPOCH-MANIFEST.V1",
+    "LEGACY-ENVIRONMENT-RETIREMENT.V1",
+    "LEGACY-EPOCH-MAXIMUM-EVIDENCE.V1",
+    "LEGACY-EPOCH-SOURCE-OBSERVATION.V1",
+    "LEGACY-EPOCH-SOURCE-SET.V1",
+    "LEGACY-PROVIDER-EPOCH-TRANSCRIPT.V1",
+    "LEGACY-PROVIDER-NAMESPACE-RETIREMENT.V1",
+    "LEGACY-RUNTIME-SHUTDOWN-SET.V1",
+    "LEGACY-RUNTIME-SHUTDOWN.V1",
+    "LEGACY-SOURCE-ARCHIVE-EVIDENCE.V1",
+    "LEGACY-SOURCE-INVENTORY.V1",
+    "LEGACY-SOURCE-MEMBERSHIP-RETIREMENT.V1",
+    "LEGACY-SOURCE-POST-SEAL-EXACT-COVER.V1",
+    "LEGACY-SOURCE-POST-SEAL-OBSERVATION.V1",
+    "LEGACY-SOURCE-RETIREMENT-AUTHORIZATION.V1",
+    "LEGACY-SOURCE-RETIREMENT-SET.V1",
+    "LEGACY-SOURCE-SEAL-COMMIT-ATTESTATION.V1",
+    "LEGACY-SOURCE-SEAL.V1",
+    "LOCAL-RUNTIME-ISOLATION.V1",
+    "OPEN-CLAIM-V1-GENESIS-REQUEST.V1",
+    "PREPARE-CLAIM-V1-GENESIS-RELEASE-REQUEST.V1",
+    "PREPARE-CLAIM-V1-GENESIS-REQUEST.V1",
+    "PRISTINE-DOWNGRADE-AUTHORIZED-STATE.V1",
+    "PRISTINE-DOWNGRADE-CONSUME-RECEIPT.V1",
+    "PRISTINE-DOWNGRADE-INVENTORY.V1",
+    "PROVIDER-NAMESPACE-ABSENCE.V1",
+    "PROVIDER-PROTOCOL-DOWNGRADE-RETIREMENT-AUTHORIZATION.V1",
+    "PROVIDER-PROTOCOL-DOWNGRADE-RETIREMENT-SET.V1",
+    "PROVIDER-PROTOCOL-DOWNGRADE-RETIREMENT.V1",
+    "PROVIDER-PROTOCOL-HISTORY-ZERO-PROJECTION.V1",
+    "PUBLISH-CLAIM-V1-CREDENTIAL-POLICY-REQUEST.V1",
+    "REBIND-CLAIM-V1-RUNTIME-INSTANCE-REQUEST.V1",
+    "RECOVER-AUTHORITY-EPOCH-TRANSITION-REQUEST.V1",
+    "RECOVER-STAGING-IMPORT-CAPABILITY-REQUEST.V1",
+    "REGISTER-DATABASE-INCARNATION-REQUEST.V1",
+    "RELEASE-FRESH-V7-STAGING-EXCLUSION-REQUEST.V1",
+    "RENEW-CLAIM-V1-SERVING-LEASE-REQUEST.V1",
+    "RENEW-DATABASE-RUNTIME-INSTANCE-LEASE-REQUEST.V1",
+    "REQUEST-AUTHORITY-EPOCH-TRANSITION.V1",
+    "RESOLVE-AUTHORITY-EPOCH-TRANSITION-REQUEST.V1",
+    "RETIRE-ENVIRONMENT-INVENTORY-MEMBERSHIP-REQUEST.V1",
+    "RETIRE-LEGACY-ENVIRONMENT-REQUEST.V1",
+    "RETIRE-LEGACY-PROVIDER-NAMESPACE-REQUEST.V1",
+    "RETIRE-LEGACY-SOURCE-MEMBERSHIP-REQUEST.V1",
+    "RETIRE-PROVIDER-PROTOCOL-FOR-DOWNGRADE-REQUEST.V1",
+    "REVOKE-CLAIM-V1-SERVING-LEASE-REQUEST.V1",
+    "STAGING-DATABASE-COMMIT-ATTESTATION.V1",
+    "STAGING-DATABASE-COMMIT-CHALLENGE.V1",
+    "STAGING-IMPORT-CAPABILITY-RECOVERY-APPLICATION.V1",
+    "STAGING-IMPORT-CAPABILITY-RECOVERY-INTENT.V1",
+    "STAGING-IMPORT-CAPABILITY-RECOVERY.V1",
+    "STAGING-IMPORT-CAPABILITY-REVOCATION-APPLICATION.V1",
+    "STAGING-IMPORT-CAPABILITY-REVOCATION.V1",
+    "STAGING-IMPORT-CAPABILITY.V1",
+    "abort-fresh-v7-staging-exclusion-request.v0",
+    "abort-fresh-v7-staging-exclusion-request.v1\u0000",
+    "abort-fresh-v7-staging-exclusion-request.v1 ",
+    "abort-fresh-v7-staging-exclusion-request.v2",
+    "acquire-database-commit-challenge-request.v0",
+    "acquire-database-commit-challenge-request.v1\u0000",
+    "acquire-database-commit-challenge-request.v1 ",
+    "acquire-database-commit-challenge-request.v2",
+    "acquire-database-incarnation-proof-request.v0",
+    "acquire-database-incarnation-proof-request.v1\u0000",
+    "acquire-database-incarnation-proof-request.v1 ",
+    "acquire-database-incarnation-proof-request.v2",
+    "acquire-database-incarnation-registration-challenge-request.v0",
+    "acquire-database-incarnation-registration-challenge-request.v1\u0000",
+    "acquire-database-incarnation-registration-challenge-request.v1 ",
+    "acquire-database-incarnation-registration-challenge-request.v2",
+    "acquire-fresh-v7-staging-exclusion-request.v0",
+    "acquire-fresh-v7-staging-exclusion-request.v1\u0000",
+    "acquire-fresh-v7-staging-exclusion-request.v1 ",
+    "acquire-fresh-v7-staging-exclusion-request.v2",
+    "acquire-staging-database-commit-challenge-request.v0",
+    "acquire-staging-database-commit-challenge-request.v1\u0000",
+    "acquire-staging-database-commit-challenge-request.v1 ",
+    "acquire-staging-database-commit-challenge-request.v2",
+    "authority-epoch-transition-application.v0",
+    "authority-epoch-transition-application.v1\u0000",
+    "authority-epoch-transition-application.v1 ",
+    "authority-epoch-transition-application.v2",
+    "authority-epoch-transition-cancellation.v0",
+    "authority-epoch-transition-cancellation.v1\u0000",
+    "authority-epoch-transition-cancellation.v1 ",
+    "authority-epoch-transition-cancellation.v2",
+    "authority-epoch-transition-intent.v0",
+    "authority-epoch-transition-intent.v1\u0000",
+    "authority-epoch-transition-intent.v1 ",
+    "authority-epoch-transition-intent.v2",
+    "authority-epoch-transition-recovery-application.v0",
+    "authority-epoch-transition-recovery-application.v1\u0000",
+    "authority-epoch-transition-recovery-application.v1 ",
+    "authority-epoch-transition-recovery-application.v2",
+    "authority-epoch-transition-recovery-intent.v0",
+    "authority-epoch-transition-recovery-intent.v1\u0000",
+    "authority-epoch-transition-recovery-intent.v1 ",
+    "authority-epoch-transition-recovery-intent.v2",
+    "authority-epoch-transition-recovery-prefix-decision.v0",
+    "authority-epoch-transition-recovery-prefix-decision.v1\u0000",
+    "authority-epoch-transition-recovery-prefix-decision.v1 ",
+    "authority-epoch-transition-recovery-prefix-decision.v2",
+    "authority-epoch-transition-recovery.v0",
+    "authority-epoch-transition-recovery.v1\u0000",
+    "authority-epoch-transition-recovery.v1 ",
+    "authority-epoch-transition-recovery.v2",
+    "authority-epoch-transition-resolution-receipt.v0",
+    "authority-epoch-transition-resolution-receipt.v1\u0000",
+    "authority-epoch-transition-resolution-receipt.v1 ",
+    "authority-epoch-transition-resolution-receipt.v2",
+    "authority-epoch-transition-resolution.v0",
+    "authority-epoch-transition-resolution.v1\u0000",
+    "authority-epoch-transition-resolution.v1 ",
+    "authority-epoch-transition-resolution.v2",
+    "authority-epoch-transition-terminal-application.v0",
+    "authority-epoch-transition-terminal-application.v1\u0000",
+    "authority-epoch-transition-terminal-application.v1 ",
+    "authority-epoch-transition-terminal-application.v2",
+    "authority-epoch-transition.v0",
+    "authority-epoch-transition.v1\u0000",
+    "authority-epoch-transition.v1 ",
+    "authority-epoch-transition.v2",
+    "authority-genesis-epoch-evidence.v0",
+    "authority-genesis-epoch-evidence.v1\u0000",
+    "authority-genesis-epoch-evidence.v1 ",
+    "authority-genesis-epoch-evidence.v2",
+    "authority-protocol-activation-completion.v0",
+    "authority-protocol-activation-completion.v1\u0000",
+    "authority-protocol-activation-completion.v1 ",
+    "authority-protocol-activation-completion.v2",
+    "authority-protocol-activation-release.v0",
+    "authority-protocol-activation-release.v1\u0000",
+    "authority-protocol-activation-release.v1 ",
+    "authority-protocol-activation-release.v2",
+    "authority-protocol-activation.v0",
+    "authority-protocol-activation.v1\u0000",
+    "authority-protocol-activation.v1 ",
+    "authority-protocol-activation.v2",
+    "authority-protocol-context.v0",
+    "authority-protocol-context.v1\u0000",
+    "authority-protocol-context.v1 ",
+    "authority-protocol-context.v2",
+    "authority-protocol-downgrade-authorization.v0",
+    "authority-protocol-downgrade-authorization.v1\u0000",
+    "authority-protocol-downgrade-authorization.v1 ",
+    "authority-protocol-downgrade-authorization.v2",
+    "authority-protocol-migration-latch.v0",
+    "authority-protocol-migration-latch.v1\u0000",
+    "authority-protocol-migration-latch.v1 ",
+    "authority-protocol-migration-latch.v2",
+    "authority-protocol-upgrade-attempt.v0",
+    "authority-protocol-upgrade-attempt.v1\u0000",
+    "authority-protocol-upgrade-attempt.v1 ",
+    "authority-protocol-upgrade-attempt.v2",
+    "authority-protocol-upgrade-intent.v0",
+    "authority-protocol-upgrade-intent.v1\u0000",
+    "authority-protocol-upgrade-intent.v1 ",
+    "authority-protocol-upgrade-intent.v2",
+    "authority-runtime-rebind-result.v0",
+    "authority-runtime-rebind-result.v1\u0000",
+    "authority-runtime-rebind-result.v1 ",
+    "authority-runtime-rebind-result.v2",
+    "authority-runtime-registration-result.v0",
+    "authority-runtime-registration-result.v1\u0000",
+    "authority-runtime-registration-result.v1 ",
+    "authority-runtime-registration-result.v2",
+    "canonical-evidence-bundle.v0",
+    "canonical-evidence-bundle.v1\u0000",
+    "canonical-evidence-bundle.v1 ",
+    "canonical-evidence-bundle.v2",
+    "claim-v1-abort-request.v0",
+    "claim-v1-abort-request.v1\u0000",
+    "claim-v1-abort-request.v1 ",
+    "claim-v1-abort-request.v2",
+    "claim-v1-credential-policy.v0",
+    "claim-v1-credential-policy.v1\u0000",
+    "claim-v1-credential-policy.v1 ",
+    "claim-v1-credential-policy.v2",
+    "claim-v1-finalize-request.v0",
+    "claim-v1-finalize-request.v1\u0000",
+    "claim-v1-finalize-request.v1 ",
+    "claim-v1-finalize-request.v2",
+    "claim-v1-genesis-completion.v0",
+    "claim-v1-genesis-completion.v1\u0000",
+    "claim-v1-genesis-completion.v1 ",
+    "claim-v1-genesis-completion.v2",
+    "claim-v1-genesis-open.v0",
+    "claim-v1-genesis-open.v1\u0000",
+    "claim-v1-genesis-open.v1 ",
+    "claim-v1-genesis-open.v2",
+    "claim-v1-genesis-preparation.v0",
+    "claim-v1-genesis-preparation.v1\u0000",
+    "claim-v1-genesis-preparation.v1 ",
+    "claim-v1-genesis-preparation.v2",
+    "claim-v1-genesis-release-preparation.v0",
+    "claim-v1-genesis-release-preparation.v1\u0000",
+    "claim-v1-genesis-release-preparation.v1 ",
+    "claim-v1-genesis-release-preparation.v2",
+    "claim-v1-provider-head.v0",
+    "claim-v1-provider-head.v1\u0000",
+    "claim-v1-provider-head.v1 ",
+    "claim-v1-provider-head.v2",
+    "claim-v1-receipt.v0",
+    "claim-v1-receipt.v1\u0000",
+    "claim-v1-receipt.v1 ",
+    "claim-v1-receipt.v2",
+    "claim-v1-record.v0",
+    "claim-v1-record.v1\u0000",
+    "claim-v1-record.v1 ",
+    "claim-v1-record.v2",
+    "claim-v1-reservation.v0",
+    "claim-v1-reservation.v1\u0000",
+    "claim-v1-reservation.v1 ",
+    "claim-v1-reservation.v2",
+    "claim-v1-reserve-request.v0",
+    "claim-v1-reserve-request.v1\u0000",
+    "claim-v1-reserve-request.v1 ",
+    "claim-v1-reserve-request.v2",
+    "claim-v1-runtime-instance-rebind.v0",
+    "claim-v1-runtime-instance-rebind.v1\u0000",
+    "claim-v1-runtime-instance-rebind.v1 ",
+    "claim-v1-runtime-instance-rebind.v2",
+    "claim-v1-serving-lease-revocation.v0",
+    "claim-v1-serving-lease-revocation.v1\u0000",
+    "claim-v1-serving-lease-revocation.v1 ",
+    "claim-v1-serving-lease-revocation.v2",
+    "claim-v1-serving-lease.v0",
+    "claim-v1-serving-lease.v1\u0000",
+    "claim-v1-serving-lease.v1 ",
+    "claim-v1-serving-lease.v2",
+    "complete-claim-v1-genesis-request.v0",
+    "complete-claim-v1-genesis-request.v1\u0000",
+    "complete-claim-v1-genesis-request.v1 ",
+    "complete-claim-v1-genesis-request.v2",
+    "database-authority-head-attestation.v0",
+    "database-authority-head-attestation.v1\u0000",
+    "database-authority-head-attestation.v1 ",
+    "database-authority-head-attestation.v2",
+    "database-authority-head.v0",
+    "database-authority-head.v1\u0000",
+    "database-authority-head.v1 ",
+    "database-authority-head.v2",
+    "database-authority-post-recovery-rebind-attestation.v0",
+    "database-authority-post-recovery-rebind-attestation.v1\u0000",
+    "database-authority-post-recovery-rebind-attestation.v1 ",
+    "database-authority-post-recovery-rebind-attestation.v2",
+    "database-authority-rebind-gap-attestation.v0",
+    "database-authority-rebind-gap-attestation.v1\u0000",
+    "database-authority-rebind-gap-attestation.v1 ",
+    "database-authority-rebind-gap-attestation.v2",
+    "database-commit-archive-fence-semantic-id-journal-record.v0",
+    "database-commit-archive-fence-semantic-id-journal-record.v1\u0000",
+    "database-commit-archive-fence-semantic-id-journal-record.v1 ",
+    "database-commit-archive-fence-semantic-id-journal-record.v2",
+    "database-commit-attestation.v0",
+    "database-commit-attestation.v1\u0000",
+    "database-commit-attestation.v1 ",
+    "database-commit-attestation.v2",
+    "database-commit-challenge.v0",
+    "database-commit-challenge.v1\u0000",
+    "database-commit-challenge.v1 ",
+    "database-commit-challenge.v2",
+    "database-incarnation-attestation.v0",
+    "database-incarnation-attestation.v1\u0000",
+    "database-incarnation-attestation.v1 ",
+    "database-incarnation-attestation.v2",
+    "database-incarnation-proof.v0",
+    "database-incarnation-proof.v1\u0000",
+    "database-incarnation-proof.v1 ",
+    "database-incarnation-proof.v2",
+    "database-incarnation-rebinding-registration.v0",
+    "database-incarnation-rebinding-registration.v1\u0000",
+    "database-incarnation-rebinding-registration.v1 ",
+    "database-incarnation-rebinding-registration.v2",
+    "database-incarnation-registration-challenge.v0",
+    "database-incarnation-registration-challenge.v1\u0000",
+    "database-incarnation-registration-challenge.v1 ",
+    "database-incarnation-registration-challenge.v2",
+    "database-incarnation-registration.v0",
+    "database-incarnation-registration.v1\u0000",
+    "database-incarnation-registration.v1 ",
+    "database-incarnation-registration.v2",
+    "database-legacy-absence-observation.v0",
+    "database-legacy-absence-observation.v1\u0000",
+    "database-legacy-absence-observation.v1 ",
+    "database-legacy-absence-observation.v2",
+    "database-legacy-absence-projection.v0",
+    "database-legacy-absence-projection.v1\u0000",
+    "database-legacy-absence-projection.v1 ",
+    "database-legacy-absence-projection.v2",
+    "database-runtime-instance-binding.v0",
+    "database-runtime-instance-binding.v1\u0000",
+    "database-runtime-instance-binding.v1 ",
+    "database-runtime-instance-binding.v2",
+    "database-runtime-instance-lease-descendant-chain.v0",
+    "database-runtime-instance-lease-descendant-chain.v1\u0000",
+    "database-runtime-instance-lease-descendant-chain.v1 ",
+    "database-runtime-instance-lease-descendant-chain.v2",
+    "database-runtime-instance-lease-termination.v0",
+    "database-runtime-instance-lease-termination.v1\u0000",
+    "database-runtime-instance-lease-termination.v1 ",
+    "database-runtime-instance-lease-termination.v2",
+    "database-runtime-instance-lease.v0",
+    "database-runtime-instance-lease.v1\u0000",
+    "database-runtime-instance-lease.v1 ",
+    "database-runtime-instance-lease.v2",
+    "database-runtime-rebind-authorization.v0",
+    "database-runtime-rebind-authorization.v1\u0000",
+    "database-runtime-rebind-authorization.v1 ",
+    "database-runtime-rebind-authorization.v2",
+    "database-timeline-lineage-attestation.v0",
+    "database-timeline-lineage-attestation.v1\u0000",
+    "database-timeline-lineage-attestation.v1 ",
+    "database-timeline-lineage-attestation.v2",
+    "deployment-environment-attestation.v0",
+    "deployment-environment-attestation.v1\u0000",
+    "deployment-environment-attestation.v1 ",
+    "deployment-environment-attestation.v2",
+    "empty-database-inventory.v0",
+    "empty-database-inventory.v1\u0000",
+    "empty-database-inventory.v1 ",
+    "empty-database-inventory.v2",
+    "environment-inventory-anchor-set.v0",
+    "environment-inventory-anchor-set.v1\u0000",
+    "environment-inventory-anchor-set.v1 ",
+    "environment-inventory-anchor-set.v2",
+    "environment-inventory-anchor.v0",
+    "environment-inventory-anchor.v1\u0000",
+    "environment-inventory-anchor.v1 ",
+    "environment-inventory-anchor.v2",
+    "environment-inventory-membership-retirement.v0",
+    "environment-inventory-membership-retirement.v1\u0000",
+    "environment-inventory-membership-retirement.v1 ",
+    "environment-inventory-membership-retirement.v2",
+    "environment-inventory-record.v0",
+    "environment-inventory-record.v1\u0000",
+    "environment-inventory-record.v1 ",
+    "environment-inventory-record.v2",
+    "environment-inventory.v0",
+    "environment-inventory.v1\u0000",
+    "environment-inventory.v1 ",
+    "environment-inventory.v2",
+    "fence-database-commit-attestation-archive-request.v0",
+    "fence-database-commit-attestation-archive-request.v1\u0000",
+    "fence-database-commit-attestation-archive-request.v1 ",
+    "fence-database-commit-attestation-archive-request.v2",
+    "fence-database-commit-attestation-archive-response.v0",
+    "fence-database-commit-attestation-archive-response.v1\u0000",
+    "fence-database-commit-attestation-archive-response.v1 ",
+    "fence-database-commit-attestation-archive-response.v2",
+    "fresh-import-topology-projection.v0",
+    "fresh-import-topology-projection.v1\u0000",
+    "fresh-import-topology-projection.v1 ",
+    "fresh-import-topology-projection.v2",
+    "fresh-restore-import-application.v0",
+    "fresh-restore-import-application.v1\u0000",
+    "fresh-restore-import-application.v1 ",
+    "fresh-restore-import-application.v2",
+    "fresh-restore-import-manifest.v0",
+    "fresh-restore-import-manifest.v1\u0000",
+    "fresh-restore-import-manifest.v1 ",
+    "fresh-restore-import-manifest.v2",
+    "fresh-restore-requirement.v0",
+    "fresh-restore-requirement.v1\u0000",
+    "fresh-restore-requirement.v1 ",
+    "fresh-restore-requirement.v2",
+    "fresh-target-inventory.v0",
+    "fresh-target-inventory.v1\u0000",
+    "fresh-target-inventory.v1 ",
+    "fresh-target-inventory.v2",
+    "fresh-v7-staging-evidence.v0",
+    "fresh-v7-staging-evidence.v1\u0000",
+    "fresh-v7-staging-evidence.v1 ",
+    "fresh-v7-staging-evidence.v2",
+    "fresh-v7-staging-exclusion-abort.v0",
+    "fresh-v7-staging-exclusion-abort.v1\u0000",
+    "fresh-v7-staging-exclusion-abort.v1 ",
+    "fresh-v7-staging-exclusion-abort.v2",
+    "fresh-v7-staging-exclusion-lease.v0",
+    "fresh-v7-staging-exclusion-lease.v1\u0000",
+    "fresh-v7-staging-exclusion-lease.v1 ",
+    "fresh-v7-staging-exclusion-lease.v2",
+    "fresh-v7-staging-exclusion-release.v0",
+    "fresh-v7-staging-exclusion-release.v1\u0000",
+    "fresh-v7-staging-exclusion-release.v1 ",
+    "fresh-v7-staging-exclusion-release.v2",
+    "indeterminate-source-seal.v0",
+    "indeterminate-source-seal.v1\u0000",
+    "indeterminate-source-seal.v1 ",
+    "indeterminate-source-seal.v2",
+    "inspect-authority-epoch-transition-request.v0",
+    "inspect-authority-epoch-transition-request.v1\u0000",
+    "inspect-authority-epoch-transition-request.v1 ",
+    "inspect-authority-epoch-transition-request.v2",
+    "inspect-authority-epoch-transition-response.v0",
+    "inspect-authority-epoch-transition-response.v1\u0000",
+    "inspect-authority-epoch-transition-response.v1 ",
+    "inspect-authority-epoch-transition-response.v2",
+    "inspect-claim-v1-genesis-request.v0",
+    "inspect-claim-v1-genesis-request.v1\u0000",
+    "inspect-claim-v1-genesis-request.v1 ",
+    "inspect-claim-v1-genesis-request.v2",
+    "inspect-claim-v1-genesis-response.v0",
+    "inspect-claim-v1-genesis-response.v1\u0000",
+    "inspect-claim-v1-genesis-response.v1 ",
+    "inspect-claim-v1-genesis-response.v2",
+    "inspect-database-commit-attestation-archive-request.v0",
+    "inspect-database-commit-attestation-archive-request.v1\u0000",
+    "inspect-database-commit-attestation-archive-request.v1 ",
+    "inspect-database-commit-attestation-archive-request.v2",
+    "inspect-database-commit-attestation-archive-response.v0",
+    "inspect-database-commit-attestation-archive-response.v1\u0000",
+    "inspect-database-commit-attestation-archive-response.v1 ",
+    "inspect-database-commit-attestation-archive-response.v2",
+    "legacy-database-source-retirement-commit-attestation.v0",
+    "legacy-database-source-retirement-commit-attestation.v1\u0000",
+    "legacy-database-source-retirement-commit-attestation.v1 ",
+    "legacy-database-source-retirement-commit-attestation.v2",
+    "legacy-database-source-retirement.v0",
+    "legacy-database-source-retirement.v1\u0000",
+    "legacy-database-source-retirement.v1 ",
+    "legacy-database-source-retirement.v2",
+    "legacy-deployment-epoch-manifest.v0",
+    "legacy-deployment-epoch-manifest.v1\u0000",
+    "legacy-deployment-epoch-manifest.v1 ",
+    "legacy-deployment-epoch-manifest.v2",
+    "legacy-environment-retirement.v0",
+    "legacy-environment-retirement.v1\u0000",
+    "legacy-environment-retirement.v1 ",
+    "legacy-environment-retirement.v2",
+    "legacy-epoch-maximum-evidence.v0",
+    "legacy-epoch-maximum-evidence.v1\u0000",
+    "legacy-epoch-maximum-evidence.v1 ",
+    "legacy-epoch-maximum-evidence.v2",
+    "legacy-epoch-source-observation.v0",
+    "legacy-epoch-source-observation.v1\u0000",
+    "legacy-epoch-source-observation.v1 ",
+    "legacy-epoch-source-observation.v2",
+    "legacy-epoch-source-set.v0",
+    "legacy-epoch-source-set.v1\u0000",
+    "legacy-epoch-source-set.v1 ",
+    "legacy-epoch-source-set.v2",
+    "legacy-provider-epoch-transcript.v0",
+    "legacy-provider-epoch-transcript.v1\u0000",
+    "legacy-provider-epoch-transcript.v1 ",
+    "legacy-provider-epoch-transcript.v2",
+    "legacy-provider-namespace-retirement.v0",
+    "legacy-provider-namespace-retirement.v1\u0000",
+    "legacy-provider-namespace-retirement.v1 ",
+    "legacy-provider-namespace-retirement.v2",
+    "legacy-runtime-shutdown-set.v0",
+    "legacy-runtime-shutdown-set.v1\u0000",
+    "legacy-runtime-shutdown-set.v1 ",
+    "legacy-runtime-shutdown-set.v2",
+    "legacy-runtime-shutdown.v0",
+    "legacy-runtime-shutdown.v1\u0000",
+    "legacy-runtime-shutdown.v1 ",
+    "legacy-runtime-shutdown.v2",
+    "legacy-source-archive-evidence.v0",
+    "legacy-source-archive-evidence.v1\u0000",
+    "legacy-source-archive-evidence.v1 ",
+    "legacy-source-archive-evidence.v2",
+    "legacy-source-inventory.v0",
+    "legacy-source-inventory.v1\u0000",
+    "legacy-source-inventory.v1 ",
+    "legacy-source-inventory.v2",
+    "legacy-source-membership-retirement.v0",
+    "legacy-source-membership-retirement.v1\u0000",
+    "legacy-source-membership-retirement.v1 ",
+    "legacy-source-membership-retirement.v2",
+    "legacy-source-post-seal-exact-cover.v0",
+    "legacy-source-post-seal-exact-cover.v1\u0000",
+    "legacy-source-post-seal-exact-cover.v1 ",
+    "legacy-source-post-seal-exact-cover.v2",
+    "legacy-source-post-seal-observation.v0",
+    "legacy-source-post-seal-observation.v1\u0000",
+    "legacy-source-post-seal-observation.v1 ",
+    "legacy-source-post-seal-observation.v2",
+    "legacy-source-retirement-authorization.v0",
+    "legacy-source-retirement-authorization.v1\u0000",
+    "legacy-source-retirement-authorization.v1 ",
+    "legacy-source-retirement-authorization.v2",
+    "legacy-source-retirement-set.v0",
+    "legacy-source-retirement-set.v1\u0000",
+    "legacy-source-retirement-set.v1 ",
+    "legacy-source-retirement-set.v2",
+    "legacy-source-seal-commit-attestation.v0",
+    "legacy-source-seal-commit-attestation.v1\u0000",
+    "legacy-source-seal-commit-attestation.v1 ",
+    "legacy-source-seal-commit-attestation.v2",
+    "legacy-source-seal.v0",
+    "legacy-source-seal.v1\u0000",
+    "legacy-source-seal.v1 ",
+    "legacy-source-seal.v2",
+    "local-runtime-isolation.v0",
+    "local-runtime-isolation.v1\u0000",
+    "local-runtime-isolation.v1 ",
+    "local-runtime-isolation.v2",
+    "open-claim-v1-genesis-request.v0",
+    "open-claim-v1-genesis-request.v1\u0000",
+    "open-claim-v1-genesis-request.v1 ",
+    "open-claim-v1-genesis-request.v2",
+    "prepare-claim-v1-genesis-release-request.v0",
+    "prepare-claim-v1-genesis-release-request.v1\u0000",
+    "prepare-claim-v1-genesis-release-request.v1 ",
+    "prepare-claim-v1-genesis-release-request.v2",
+    "prepare-claim-v1-genesis-request.v0",
+    "prepare-claim-v1-genesis-request.v1\u0000",
+    "prepare-claim-v1-genesis-request.v1 ",
+    "prepare-claim-v1-genesis-request.v2",
+    "pristine-downgrade-authorized-state.v0",
+    "pristine-downgrade-authorized-state.v1\u0000",
+    "pristine-downgrade-authorized-state.v1 ",
+    "pristine-downgrade-authorized-state.v2",
+    "pristine-downgrade-consume-receipt.v0",
+    "pristine-downgrade-consume-receipt.v1\u0000",
+    "pristine-downgrade-consume-receipt.v1 ",
+    "pristine-downgrade-consume-receipt.v2",
+    "pristine-downgrade-inventory.v0",
+    "pristine-downgrade-inventory.v1\u0000",
+    "pristine-downgrade-inventory.v1 ",
+    "pristine-downgrade-inventory.v2",
+    "provider-namespace-absence.v0",
+    "provider-namespace-absence.v1\u0000",
+    "provider-namespace-absence.v1 ",
+    "provider-namespace-absence.v2",
+    "provider-protocol-downgrade-retirement-authorization.v0",
+    "provider-protocol-downgrade-retirement-authorization.v1\u0000",
+    "provider-protocol-downgrade-retirement-authorization.v1 ",
+    "provider-protocol-downgrade-retirement-authorization.v2",
+    "provider-protocol-downgrade-retirement-set.v0",
+    "provider-protocol-downgrade-retirement-set.v1\u0000",
+    "provider-protocol-downgrade-retirement-set.v1 ",
+    "provider-protocol-downgrade-retirement-set.v2",
+    "provider-protocol-downgrade-retirement.v0",
+    "provider-protocol-downgrade-retirement.v1\u0000",
+    "provider-protocol-downgrade-retirement.v1 ",
+    "provider-protocol-downgrade-retirement.v2",
+    "provider-protocol-history-zero-projection.v0",
+    "provider-protocol-history-zero-projection.v1\u0000",
+    "provider-protocol-history-zero-projection.v1 ",
+    "provider-protocol-history-zero-projection.v2",
+    "publish-claim-v1-credential-policy-request.v0",
+    "publish-claim-v1-credential-policy-request.v1\u0000",
+    "publish-claim-v1-credential-policy-request.v1 ",
+    "publish-claim-v1-credential-policy-request.v2",
+    "rebind-claim-v1-runtime-instance-request.v0",
+    "rebind-claim-v1-runtime-instance-request.v1\u0000",
+    "rebind-claim-v1-runtime-instance-request.v1 ",
+    "rebind-claim-v1-runtime-instance-request.v2",
+    "recover-authority-epoch-transition-request.v0",
+    "recover-authority-epoch-transition-request.v1\u0000",
+    "recover-authority-epoch-transition-request.v1 ",
+    "recover-authority-epoch-transition-request.v2",
+    "recover-staging-import-capability-request.v0",
+    "recover-staging-import-capability-request.v1\u0000",
+    "recover-staging-import-capability-request.v1 ",
+    "recover-staging-import-capability-request.v2",
+    "register-database-incarnation-request.v0",
+    "register-database-incarnation-request.v1\u0000",
+    "register-database-incarnation-request.v1 ",
+    "register-database-incarnation-request.v2",
+    "release-fresh-v7-staging-exclusion-request.v0",
+    "release-fresh-v7-staging-exclusion-request.v1\u0000",
+    "release-fresh-v7-staging-exclusion-request.v1 ",
+    "release-fresh-v7-staging-exclusion-request.v2",
+    "renew-claim-v1-serving-lease-request.v0",
+    "renew-claim-v1-serving-lease-request.v1\u0000",
+    "renew-claim-v1-serving-lease-request.v1 ",
+    "renew-claim-v1-serving-lease-request.v2",
+    "renew-database-runtime-instance-lease-request.v0",
+    "renew-database-runtime-instance-lease-request.v1\u0000",
+    "renew-database-runtime-instance-lease-request.v1 ",
+    "renew-database-runtime-instance-lease-request.v2",
+    "request-authority-epoch-transition.v0",
+    "request-authority-epoch-transition.v1\u0000",
+    "request-authority-epoch-transition.v1 ",
+    "request-authority-epoch-transition.v2",
+    "resolve-authority-epoch-transition-request.v0",
+    "resolve-authority-epoch-transition-request.v1\u0000",
+    "resolve-authority-epoch-transition-request.v1 ",
+    "resolve-authority-epoch-transition-request.v2",
+    "retire-environment-inventory-membership-request.v0",
+    "retire-environment-inventory-membership-request.v1\u0000",
+    "retire-environment-inventory-membership-request.v1 ",
+    "retire-environment-inventory-membership-request.v2",
+    "retire-legacy-environment-request.v0",
+    "retire-legacy-environment-request.v1\u0000",
+    "retire-legacy-environment-request.v1 ",
+    "retire-legacy-environment-request.v2",
+    "retire-legacy-provider-namespace-request.v0",
+    "retire-legacy-provider-namespace-request.v1\u0000",
+    "retire-legacy-provider-namespace-request.v1 ",
+    "retire-legacy-provider-namespace-request.v2",
+    "retire-legacy-source-membership-request.v0",
+    "retire-legacy-source-membership-request.v1\u0000",
+    "retire-legacy-source-membership-request.v1 ",
+    "retire-legacy-source-membership-request.v2",
+    "retire-provider-protocol-for-downgrade-request.v0",
+    "retire-provider-protocol-for-downgrade-request.v1\u0000",
+    "retire-provider-protocol-for-downgrade-request.v1 ",
+    "retire-provider-protocol-for-downgrade-request.v2",
+    "revoke-claim-v1-serving-lease-request.v0",
+    "revoke-claim-v1-serving-lease-request.v1\u0000",
+    "revoke-claim-v1-serving-lease-request.v1 ",
+    "revoke-claim-v1-serving-lease-request.v2",
+    "staging-database-commit-attestation.v0",
+    "staging-database-commit-attestation.v1\u0000",
+    "staging-database-commit-attestation.v1 ",
+    "staging-database-commit-attestation.v2",
+    "staging-database-commit-challenge.v0",
+    "staging-database-commit-challenge.v1\u0000",
+    "staging-database-commit-challenge.v1 ",
+    "staging-database-commit-challenge.v2",
+    "staging-import-capability-recovery-application.v0",
+    "staging-import-capability-recovery-application.v1\u0000",
+    "staging-import-capability-recovery-application.v1 ",
+    "staging-import-capability-recovery-application.v2",
+    "staging-import-capability-recovery-intent.v0",
+    "staging-import-capability-recovery-intent.v1\u0000",
+    "staging-import-capability-recovery-intent.v1 ",
+    "staging-import-capability-recovery-intent.v2",
+    "staging-import-capability-recovery.v0",
+    "staging-import-capability-recovery.v1\u0000",
+    "staging-import-capability-recovery.v1 ",
+    "staging-import-capability-recovery.v2",
+    "staging-import-capability-revocation-application.v0",
+    "staging-import-capability-revocation-application.v1\u0000",
+    "staging-import-capability-revocation-application.v1 ",
+    "staging-import-capability-revocation-application.v2",
+    "staging-import-capability-revocation.v0",
+    "staging-import-capability-revocation.v1\u0000",
+    "staging-import-capability-revocation.v1 ",
+    "staging-import-capability-revocation.v2",
+    "staging-import-capability.v0",
+    "staging-import-capability.v1\u0000",
+    "staging-import-capability.v1 ",
+    "staging-import-capability.v2",
+    "talenro.c12.unknown.v1"
+  ]
+}
