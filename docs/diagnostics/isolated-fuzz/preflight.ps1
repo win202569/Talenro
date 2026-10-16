@@ -14,7 +14,7 @@ function Test-DiagnosticPrerequisites([string]$Source) {
         if($pins.ContainsKey($path) -and (Get-FileHash -LiteralPath $file).Hash -ne $pins[$path]){throw 'Pinned prerequisite drift'}
     }
     if(@(Get-Content -LiteralPath (Join-Path $root 'VERSION'))[0] -cne 'go1.26.5'){throw 'Static version mismatch'}
-    foreach($name in @('isolation.ps1','run.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','coordinator.patch','context-diag.go.txt','context-diag_test.go.txt','fuzz-diag.go.txt','fuzz-diag_test.go.txt','fixture_test.go.txt')) {
+    foreach($name in @('isolation.ps1','run.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','coordinator.patch','context-diag.go.txt','context-diag_test.go.txt','fuzz-diag.go.txt','fuzz-diag_test.go.txt','fixture_test.go.txt')) {
         if(-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $name) -PathType Leaf)){throw 'Portable diagnostic material missing'}
     }
     [pscustomobject]@{Ready=$true;Source=$root;StaticVersion='go1.26.5';GoHash=$pins['bin/go.exe'];Scope='Prerequisites only; full copy manifest and actual version/origin checks still required'}

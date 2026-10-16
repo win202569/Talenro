@@ -135,8 +135,8 @@ public sealed class CompileStageTrigger:IDisposable {
     public bool ResolveCandidate(CompileStageRootCheck rootCheck,long runtimeDeadlineTicks){
         if(!HasCandidate)return false;
         if(!Budget(runtimeDeadlineTicks))return false;
+        if(rootCheck!=null)Report.RootCheck=new CompileStageRootCheck{Succeeded=rootCheck.Succeeded,Error=rootCheck.Error,WaitResult=rootCheck.WaitResult,StartTimestamp=rootCheck.StartTimestamp,EndTimestamp=rootCheck.EndTimestamp,Frequency=rootCheck.Frequency,StartUTC=rootCheck.StartUTC,EndUTC=rootCheck.EndUTC};
         if(rootCheck==null || !rootCheck.Succeeded || rootCheck.Error!=0 || rootCheck.Frequency!=frequency || rootCheck.StartTimestamp<Report.CandidateObserved.EndTimestamp || rootCheck.EndTimestamp<rootCheck.StartTimestamp || rootCheck.EndTimestamp>clock.Ticks){Fail("root-check-incomplete");return false;}
-        Report.RootCheck=new CompileStageRootCheck{Succeeded=rootCheck.Succeeded,Error=rootCheck.Error,WaitResult=rootCheck.WaitResult,StartTimestamp=rootCheck.StartTimestamp,EndTimestamp=rootCheck.EndTimestamp,Frequency=rootCheck.Frequency,StartUTC=rootCheck.StartUTC,EndUTC=rootCheck.EndUTC};
         if(rootCheck.WaitResult==0){RootExited();return false;}
         if(rootCheck.WaitResult!=258){Fail("root-check-state");return false;}
         var activation=Begin();End(activation);if(!Budget(runtimeDeadlineTicks))return false;

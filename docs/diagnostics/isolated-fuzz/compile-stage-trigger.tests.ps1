@@ -2,7 +2,7 @@ $ErrorActionPreference='Stop'
 function Check-Stage([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTION FAILED: '+$Name)};Write-Output ('PASS: '+$Name)}
 $source=Join-Path $PSScriptRoot 'compile-stage-trigger.cs'
 Check-Stage (Test-Path $source) 'CompileStageTrigger exists'
-Add-Type -Path @((Join-Path $PSScriptRoot 'retained-lifetime.cs'),$source,(Join-Path $PSScriptRoot 'compile-stage-fixture.cs'))
+Add-Type -Path @((Join-Path $PSScriptRoot 'retained-lifetime.cs'),$source,(Join-Path $PSScriptRoot 'compile-stage-session.cs'),(Join-Path $PSScriptRoot 'retained-lifetime-fixture.cs'),(Join-Path $PSScriptRoot 'compile-stage-fixture.cs'))
 $compiler='C:/Fixed SDK/pkg/tool/windows_amd64/compile.exe';$directory='C:/Repo Space/internal/nodecontrol/nodeleafbinding'
 $line='"C:/Fixed SDK/pkg/tool/windows_amd64/compile.exe" -o "$WORK/b127/_pkg_.a" -p talenro.local/platform/internal/nodecontrol/nodeleafbinding -pack "C:/Repo Space/internal/nodecontrol/nodeleafbinding/a.go" "C:/Repo Space/internal/nodecontrol/nodeleafbinding/a_test.go"'
 function New-Stage([string]$Text=''){$b=New-Object FakeCompileStageBytes;$c=New-Object FakeCompileStageClock;$b.Append([Text.Encoding]::UTF8.GetBytes($Text));[pscustomobject]@{Bytes=$b;Clock=$c;Trigger=(New-Object CompileStageTrigger($b,$c,$compiler,$directory))}}

@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'isolation.ps1')
 . (Join-Path $PSScriptRoot 'provenance.ps1')
-if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs')) }
+if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs')) }
 function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stderr,[string]$exe,[string[]]$Arguments,[hashtable]$Environment) {
     $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
     foreach($field in @('MemberEvidence','LaunchBoundaries','MemberEvidenceTruncated','LiveSampling','MembersDuringRun','ShutdownSchema','ShutdownStatePolicy','ShutdownImageEvidenceComplete','ShutdownDiagnosticOnly','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence','InitialAccountingQuery','InitialMemberQueries')) {
@@ -11,6 +11,8 @@ function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stder
         $optional=$native.PSObject.Properties[$field]
         if($null -ne $optional){$result|Add-Member -NotePropertyName $field -NotePropertyValue $optional.Value}
     }
+    $trigger=$native.PSObject.Properties['CompileStageTrigger']
+    if($null -ne $trigger -and $null -ne $trigger.Value){$result|Add-Member CompileStageTrigger $trigger.Value}
     return $result
 }
 function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds,[bool]$CaptureLiveMembers=$false,[bool]$CaptureShutdownDiagnostic=$false) {
@@ -56,6 +58,7 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
     }
 }
 function Assert-ProcessCompletion([object]$Receipt) {
+    if($null -ne $Receipt.PSObject.Properties['CompileStageTrigger']){throw 'Compile-stage diagnostics are not acceptance'}
     $lifetime=$Receipt.PSObject.Properties['LifetimeDiagnosticOnly']
     if($null -ne $lifetime -and $lifetime.Value){throw 'Lifetime diagnostics are not acceptance'}
     $diagnostic=$Receipt.PSObject.Properties['ShutdownDiagnosticOnly']

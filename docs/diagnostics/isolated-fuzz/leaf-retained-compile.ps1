@@ -12,7 +12,7 @@ function Get-LeafRetainedCompilePlan([string]$RunRoot,[string]$Toolchain,[string
     if(-not(Test-IsolatedWithin $reference $scope)){throw 'Owned reference required'}
     $go=Get-EnvelopeSampleFile (Join-Path $tool 'bin/go.exe')
     $null=Get-EnvelopeSampleFile (Join-Path $modules 'github.com/google/uuid@v1.6.0/go.mod')
-    $binding=@(foreach($name in @('leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs')){
+    $binding=@(foreach($name in @('leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')){
         $path=Get-EnvelopeSampleFile (Join-Path $PSScriptRoot $name)
         [pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop).Hash}
     })

@@ -55,7 +55,7 @@ Write-Stage 'release.json'
 Write-Stage 'parent-exit.json'
 '@
     $parent=$parent.Replace('__SHELL__',$shell.Replace("'","''")).Replace('__CHILD__',$encoded)
-    $binding=@(foreach($name in @('retained-child-observation.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs')){
+    $binding=@(foreach($name in @('retained-child-observation.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')){
         $path=Get-IsolatedFullPath (Join-Path $PSScriptRoot $name)
         if([IsolatedFuzzFileInfo]::Links($path) -ne 1){throw 'Source link not independent'}
         [pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}
