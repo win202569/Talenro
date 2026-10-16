@@ -17,10 +17,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 ## Standing preservation rule and latest development work
 
 Latest next-step document:[build-only001 single-run proposal](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
-The user approved preparing it;real execution is still awaiting its separate
-approval. It freezes four local input hashes and a66-source aggregate at tested
-baseline4afc6baa;output identity was absent during planner-only inspection.
-No real audit/build,output/cache root or native attempt was made for this proposal.
+The user subsequently approved execution;one controller call entered12:28:17Z
+after four local input hashes and the66-source aggregate were checked against
+tested baseline4afc6baa. It is still outstanding in this preservation checkpoint;
+the last completed12:42:31Z probe found no attempt/receipt/result. Read the
+[in-flight record](../roadmap/2026-10-16-leaf-stage-build-only-001.md) before resuming.
+No verified final native start/exit/cleanup/outcome exists yet;do not replay001
+or treat this checkpoint as completion. Inspect the original invocation's saved
+files when available;cloning cannot reconnect a running local tool session.
 These paths are machine-bound:cloning does not restore SDK/modules/raw receipts;
 on another machine stop and prepare new bindings/approval rather than replay001.
 

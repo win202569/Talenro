@@ -1,14 +1,14 @@
 # Project status — updated 2026-10-16
 
-## Build-only001 real diagnostic — proposal prepared, execution awaiting approval
+## Build-only001 real diagnostic — approved, original call outstanding
 
-User approved preparing the next specific single-run proposal,not running it.
-The [execution proposal](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md)
-freezes the tested4afc6baa baseline,four existing input hashes and a deterministic
-66-source aggregate. Planner-only checks confirmed unused leaf-stage-build-only-001,
-16 helper bindings and fixed9 arguments. No output/cache root was created,no
-full SDK/product audit or Go/native Run/PID query occurred. Next:review and approve
-that specific one-call plan. It permits no binary runtime,retry or main acceptance.
+User subsequently approved the [specific execution plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
+One controller call entered12:28:17.6736379Z in a fresh64-bit PS5.1 host after
+frozen66-source/four-input checks. Pre-audit wait is unusually long;latest confirmed
+probe12:42:31Z had no attempt/receipt/result. Final outcome is not yet verified.
+Read the [in-flight preservation record](2026-10-16-leaf-stage-build-only-001.md).
+Do not replay001,claim native compilation started,or infer acceptance. Continue
+only the original invocation/saved outcome;no binary runtime,retry or main merge.
 
 ## Build-only diagnostic option1 — fake implementation and full regression complete
 
