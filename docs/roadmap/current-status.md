@@ -1,14 +1,16 @@
 # Project status — updated 2026-10-16
 
-## Build-only001 real diagnostic — approved, original call outstanding
+## Build-only001 real diagnostic — completed, ordinary acceptance still open
 
-User subsequently approved the [specific execution plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
-One controller call entered12:28:17.6736379Z in a fresh64-bit PS5.1 host after
-frozen66-source/four-input checks. Pre-audit wait is unusually long;latest confirmed
-probe12:42:31Z had no attempt/receipt/result. Final outcome is not yet verified.
-Read the [in-flight preservation record](2026-10-16-leaf-stage-build-only-001.md).
-Do not replay001,claim native compilation started,or infer acceptance. Continue
-only the original invocation/saved outcome;no binary runtime,retry or main merge.
+User approved the [specific execution plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
+Exactly one real compile returned0 in331.219s;5 retained admissions,uncapped.
+Scope/trigger/core/lifetime evidence and final SDK/product/artifact audits complete;
+completed marker and10 artifact bindings verified,ordinary guard still refuses.
+Full11536-file SDK checks and701 product comparisons unchanged;66 source/test
+pins,16 helpers and4 inputs matched. Outer24m17s includes15m45s pre-native and
+3m1s post-native work,not a24-minute compiler run. Read the
+[actual result and recovery](2026-10-16-leaf-stage-build-only-001.md).
+No binary runtime,retry or main merge;vet/test/error87/broader gates remain open.
 
 ## Build-only diagnostic option1 — fake implementation and full regression complete
 

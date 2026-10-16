@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:separately approved build-only001 completed one real compile,exit0/
+331.219s,5 retained admissions below32,scope/trigger/core/lifetime and final
+audits complete. Completed marker/10 artifacts verified;11536-file SDK/701
+product comparisons unchanged,66 source/test+16 helper+4 input pins matched.
+Outer24m17s includes15m45s pre-native work;no binary runtime,retry or ordinary
+vet/test/main acceptance,error87 remains unresolved. Read the
+[actual result and recovery](../../roadmap/2026-10-16-leaf-stage-build-only-001.md).
+
 2026-10-16:user selected separate build-only diagnostic option1 (fixed -vet=off
 only in the new separate entry,ordinary vet gates unchanged). The
 [written spec](../../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)

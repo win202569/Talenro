@@ -16,15 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest next-step document:[build-only001 single-run proposal](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
-The user subsequently approved execution;one controller call entered12:28:17Z
-after four local input hashes and the66-source aggregate were checked against
-tested baseline4afc6baa. It is still outstanding in this preservation checkpoint;
-the last completed12:42:31Z probe found no attempt/receipt/result. Read the
-[in-flight record](../roadmap/2026-10-16-leaf-stage-build-only-001.md) before resuming.
-No verified final native start/exit/cleanup/outcome exists yet;do not replay001
-or treat this checkpoint as completion. Inspect the original invocation's saved
-files when available;cloning cannot reconnect a running local tool session.
+Latest real diagnostic:[build-only001](../roadmap/2026-10-16-leaf-stage-build-only-001.md),
+separately approved under the [single-run plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
+One compile exit0/331.219s,5 admissions below32,scope/trigger/core/lifetime and
+final audits complete;completed marker and10 manifest artifacts verified.
+Full11536-file SDK/701 product comparisons unchanged;66 source/test+16 helper+4
+input pins verified. This supersedes the earlier in-flight65e54c54 checkpoint.
+It is diagnostic-only:ordinary vet/test/production/main acceptance still open,
+error87 unexplained,no binary runtime or retry. Read the report before resuming;
+do not replay001,run its binary or silently rebuild its environment on a new PC.
 These paths are machine-bound:cloning does not restore SDK/modules/raw receipts;
 on another machine stop and prepare new bindings/approval rather than replay001.
 
