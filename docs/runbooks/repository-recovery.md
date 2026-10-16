@@ -16,12 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest design checkpoint:user selected option1 for a separate build-only
+Latest implementation checkpoint:user selected option1 for a separate build-only
 diagnostic with fixed -vet=off;ordinary vet acceptance and32-attempt budget remain.
 The [written spec](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
 was approved after b8e7956d. Its [three-task plan](../superpowers/plans/2026-10-16-leaf-stage-build-only.md)
-awaits user review and execution-method selection. No code/new execution exists
-for this scope. Resume with plan review,not by launching a diagnostic or replaying001.
+was approved for Native/inline fake-only execution after8a25712f. Tasks1/2 are
+committed as1c13f5fb/4bd4054f;controller/final repair checkpoint is
+a4bfe80ab898e0b6ada5a033a44534d0ff05a9e6. One fresh review/two Important repairs
+are complete;final21 suites passed884 checks per host (11 static included each),
+all42 commands exit0;66 source/test hashes matched. Read the [implementation record](../roadmap/2026-10-16-leaf-stage-build-only-implementation.md)
+and current status before resuming. No real execution or replay of001 is approved.
 
 Latest saved-only [stage budget analysis](../roadmap/2026-10-16-compile-stage-budget-analysis.md)
 explains27 vet admissions/32 cumulative slots and225 subsequent logged vet

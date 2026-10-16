@@ -1,11 +1,16 @@
 # Isolated fuzz diagnosis
 
 2026-10-16:user selected separate build-only diagnostic option1 (fixed -vet=off
-only in the new proposed entry,ordinary vet gates unchanged). The
+only in the new separate entry,ordinary vet gates unchanged). The
 [written spec](../../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
 is approved;the [three-task plan](../../superpowers/plans/2026-10-16-leaf-stage-build-only.md)
-awaits plan review and execution-method selection. No implementation or new real
-execution is authorized/performed by those documentation approvals.
+was approved for Native/inline fake-only implementation. Planner/scope/refusal
+and the separate single-call controller are implemented. One fresh review/two
+Important repairs and final21-suite fake regressions are complete:884 checks per
+PS7/5.1 host (11 static included each),all42 commands exit0;66 source/test hashes
+matched. Controller checkpoint:a4bfe80a;no deferred minors. Read the
+[implementation record](../../roadmap/2026-10-16-leaf-stage-build-only-implementation.md).
+Implementation does not authorize a real diagnostic or grant ordinary acceptance.
 
 2026-10-16:saved-only stage compile001 budget analysis confirms cumulative32
 slots,27 vet admissions in about0.95s,and225 logged vet command/config pairs

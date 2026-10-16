@@ -1,6 +1,6 @@
 # Project status — updated 2026-10-16
 
-## Build-only diagnostic option1 — spec approved, implementation plan awaiting review
+## Build-only diagnostic option1 — fake implementation and full regression complete
 
 User selected a separate compile/link diagnostic that alone requests -vet=off,
 preserving ordinary/default/matrix vet acceptance and32 cumulative attempts.
@@ -8,9 +8,15 @@ The [approved written design](../superpowers/specs/2026-10-16-leaf-stage-build-o
 defines distinct identity/scope metadata,existing trigger/collector/cleanup,audits,
 strict ordinary refusal and fake compatibility tests. User approved it after
 b8e7956d. The [three-task plan](../superpowers/plans/2026-10-16-leaf-stage-build-only.md)
-covers planner,scope/guard and controller/regression;awaits plan review and method
-selection. No implementation/tests/real diagnostic ran this increment. Next:review
-the plan and choose execution method,not another real compile.
+covers planner,scope/guard and controller/regression;user approved Native/inline
+execution after8a25712f. Planner and scope/ordinary-refusal tasks are committed
+(1c13f5fb and4bd4054f);controller and portable fake scenarios are committed as
+a4bfe80ab898e0b6ada5a033a44534d0ff05a9e6. One fresh review found two Important
+issues;one repair pass and named RED/GREEN tests addressed both,no deferred minors.
+Final21-suite regressions passed884 checks per PS7/5.1 host (11 static included
+each),all42 commands exit0;all66 source/test hashes matched. Preservation is in
+progress. Read the [implementation record](2026-10-16-leaf-stage-build-only-implementation.md).
+No real diagnostic,Go build,binary runtime or main merge is authorized here.
 
 ## Stage compile001 budget analysis — saved-only, no new execution
 

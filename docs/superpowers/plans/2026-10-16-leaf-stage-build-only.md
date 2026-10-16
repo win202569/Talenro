@@ -11,8 +11,11 @@
 **Spec:** [Approved written design](../specs/2026-10-16-leaf-stage-build-only-design.md).
 
 **Status:** User approved the written spec after b8e7956dafd54fe884e0ad2ac1554d97944942fe.
-This new plan awaits review and execution-method selection;no implementation or
-real attempt is authorized by written-spec approval alone.
+User approved this plan and selected option1 Native/inline after8a25712f.
+All implementation/review repairs are committed througha4bfe80a. Final21 suites
+per host passed884 checks (11 static included),all42 commands exit0;66 source/test
+pins matched. Final documentation/push preservation is in progress.
+No real attempt is authorized by implementation approval.
 
 ## Global Constraints
 
@@ -85,7 +88,7 @@ leaf-stage-build-only-plan.tests.ps1.
 - Test-only New-BuildOnlyTestFiles([string]FixtureRoot) -> object {Root,Toolchain,ReferenceReceipt,ModuleCache}. Root is an uncreated leaf-stage-build-only-901 directory;Toolchain lives at FixtureRoot/uninstrumented-901/toolchain;reference and tiny module/go files stay inside FixtureRoot.
 - Test-only Check-BuildOnly([bool]Value,[string]Name) throws ASSERTION FAILED:<Name>,otherwise writes PASS:<Name>. Importing the fixture creates no run or process.
 
-- [ ] **Step1: Write planner RED tests and tiny file factory.** Import the new
+- [x] **Step1: Write planner RED tests and tiny file factory.** Import the new
   production file only if present,then assert a named missing-entry failure.
   Pin the complete argument array and20-key environment,not substring presence:
 
@@ -104,19 +107,19 @@ Check-BuildOnly ($plan.SourceBinding.Count -eq 16 -and -not(Test-Path $f.Root) -
   uses existing safe-path primitives;do not change Windows settings/create privileged
   links merely for a test. Check the old eager/full-stage plans keep their exact
   vet-enabled argument arrays using the same tiny inputs and separate old root names.
-- [ ] **Step2: Observe RED.** Run
+- [x] **Step2: Observe RED.** Run
   `pwsh.exe -NoProfile -NonInteractive -File docs/diagnostics/isolated-fuzz/leaf-stage-build-only-plan.tests.ps1`.
   Expected:exit1,ASSERTION FAILED:
   BuildOnlyPlannerExists,not a syntax/import error or attempted executable launch.
-- [ ] **Step3: Implement the fixed planner/source verifier.** Import the existing
+- [x] **Step3: Implement the fixed planner/source verifier.** Import the existing
   stage helper,validate the actual new identity,produce the spec's constants and
   flat typed values. Freeze go.exe and the16 named paths;do not call the old planner
   with a synthetic root. Keep extra private helpers inside this new file only.
-- [ ] **Step4: Observe GREEN on both hosts.** Set
+- [x] **Step4: Observe GREEN on both hosts.** Set
   $testFiles=@('leaf-stage-build-only-plan.tests.ps1') and use the two-host loop.
   Expected:exit0,all named assertions PASS,no native
   runner/SDK-product audit calls,no new Root/cache directories from planning.
-- [ ] **Step5: Inspect and commit only Task1's three files.** Run staged whitespace
+- [x] **Step5: Inspect and commit only Task1's three files.** Run staged whitespace
   and explicit file-list checks;commit diagnostics: add fixed build-only diagnostic plan.
   Record actual RED/GREEN commands,counts,source pins and commit in the plan ledger.
 
@@ -132,7 +135,7 @@ run.ps1:Assert-ProcessCompletion;create leaf-stage-build-only-scope.tests.ps1.
 - Test-only New-BuildOnlyNativeFixture([object]Plan) -> object {Native,Log}. Native is an IsolatedFuzzProcess+Result with root17,entry/PID23,one admitted/released entry,query100–110ms,open120–130ms,membership140–150ms,admission160–170ms,root-wait300–310ms,final500–510ms,frequency1000 and UTC epoch2026-10-16T00:00:00Z. Receipt spans0–1000ms;candidate10–20ms,root-check30–40ms with WaitResult258,activation50–60ms precede query1. Preserve existing valid core row/accounting/list fixture patterns. Log starts with the copied compiler,-p exact target,-pack and an absolute budget_test.go in Plan.Trigger.SourceDirectory,then copied context/context.go and internal/fuzz/fuzz.go compile-token lines. Quote Windows paths using existing doubled-backslash rules;hash only the first eligible raw LF record for trigger provenance. No live PID/handle or installed SDK required.
 - Scope test file accepts [ValidateSet('all','scope','guard')][string]Focus='all' so both missing scope and missing guard can have separate observed REDs.
 
-- [ ] **Step1: Write independent scope/guard RED tests.** For the scope fixture,
+- [x] **Step1: Write independent scope/guard RED tests.** For the scope fixture,
   explicitly create Root/build,save the synthetic log,convert the fake native
   receipt with the production converter,add WorkingDirectory and only then add
   the exact BuildOnlyDiagnostic marker. Test fresh and JSON-roundtripped copies:
@@ -158,23 +161,23 @@ foreach($value in @($null,$false,'bad',[pscustomobject]@{Schema=1;Policy='leaf-s
   snapshots saved file hashes before/after validation and forbids planner invocation.
   MissingTrigger,cap32,zero entries,core87,source-query chronology and missing core
   rows must stay incomplete even with valid scope. Never repair a receipt to pass.
-- [ ] **Step2: Observe both REDs.** Run
+- [x] **Step2: Observe both REDs.** Run
   `pwsh.exe -NoProfile -NonInteractive -File docs/diagnostics/isolated-fuzz/leaf-stage-build-only-scope.tests.ps1 -Focus scope`,
   then the same command with -Focus guard. Expected:exit1 for BuildOnlyScopeExists and
   MarkerOnlyRefusal respectively. Legacy guards must otherwise still pass.
-- [ ] **Step3: Implement scope composition and the guard.** Validate plan against
+- [x] **Step3: Implement scope composition and the guard.** Validate plan against
   fixed constants/current16 source names/pins/go hash as well as receipt bindings;
   two altered records agreeing is insufficient. Existing-root saved validation
   must not rerun the unused-root planner. Keep errors per fact;ObservationPassed
   is scope AND existing helper's ObservationPassed. Add the BuildOnlyDiagnostic
   property-presence refusal first in run.ps1 with the exact message above;do not
   introduce a native DTO/default-null marker or alter other serializers/guards.
-- [ ] **Step4: Observe GREEN.** Set $testFiles=@('leaf-stage-build-only-plan.tests.ps1',
+- [x] **Step4: Observe GREEN.** Set $testFiles=@('leaf-stage-build-only-plan.tests.ps1',
   'leaf-stage-build-only-scope.tests.ps1','compile-stage-receipt.tests.ps1',
   'retained-lifetime-receipt.tests.ps1') and use the two-host loop.
   Expected:all exit0,new scope/guard positives and negatives PASS;
   old native signatures/ordinary JSON/legacy refusal messages unchanged.
-- [ ] **Step5: Inspect four explicit task files and commit** diagnostics: bind build-only scope and refusal.
+- [x] **Step5: Inspect four explicit task files and commit** diagnostics: bind build-only scope and refusal.
   Record actual scoped evidence and commit in the ledger;do not claim live vet
   absence or future capture completeness from synthetic metadata.
 
@@ -192,19 +195,21 @@ docs/diagnostics/isolated-fuzz/README.md and this plan/spec execution status onl
 - State preserves existing stage-controller fields and adds DiagnosticPolicy,VetMode,VetEvidenceComplete,ScopeEvidenceComplete;Evidence is Task2's result. Both marker schema1/policy and vet-off/false evidence remain in receipt/result/completion records. NativeAttempts is0 before launch,then1;all acceptance/runtime flags stay false.
 - Test-only Invoke-BuildOnlyTestCase([string]Scenario) -> object {Root,Plan,NativeCalls,ToolAuditCalls,SourceAuditCalls,Failure,Saved,Output};local fake native/tool/product boundaries use New-BuildOnlyNativeFixture,real source/hash/log validators and persistence code. Restore no global state;each test file runs in a fresh shell.
 
-- [ ] **Step1: Write controller RED and scenario tests.** Replace only full SDK
+- [x] **Step1: Write controller RED and scenario tests.** Replace only full SDK
   audit/product inventory/native boundaries in test scope. Spy checks exact exe,
   arguments,environment and600s budget before writing synthetic streams/binary:
 
 ```powershell
 Check-BuildOnly ($null -ne (Get-Command Invoke-LeafStageBuildOnly -ErrorAction SilentlyContinue)) 'BuildOnlyControllerExists'
 $good=Invoke-BuildOnlyTestCase 'success'
-Check-BuildOnly ($good.NativeCalls -eq 1 -and $good.ToolAuditCalls -eq 2 -and $good.SourceAuditCalls -eq 3 -and $good.Output.Count -eq 1 -and $good.Saved.ObservationPassed -and -not $good.Saved.VetEvidenceComplete -and -not $good.Saved.PackagePassed -and -not $good.Saved.RuntimeAttempted) 'ScopedCompletion'
+Check-BuildOnly ($good.NativeCalls -eq 1 -and $good.ToolAuditCalls -eq 2 -and $good.SourceAuditCalls -eq 4 -and $good.Output.Count -eq 1 -and $good.Saved.ObservationPassed -and -not $good.Saved.VetEvidenceComplete -and -not $good.Saved.PackagePassed -and -not $good.Saved.RuntimeAttempted) 'ScopedCompletion'
 Check-BuildOnly ((Test-Path (Join-Path $good.Root 'completed.json')) -and -not(Test-Path (Join-Path $good.Root 'stopped.json'))) 'BoundCompletionMarker'
 $bad=Invoke-BuildOnlyTestCase 'multi-audit'
-Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad.SourceAuditCalls -eq 3 -and $bad.Saved.AuditErrors.Count -eq 3 -and -not $bad.Saved.ObservationPassed) 'IndependentFinalAudits'
+Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad.SourceAuditCalls -eq 4 -and $bad.Saved.AuditErrors.Count -eq 3 -and -not $bad.Saved.ObservationPassed) 'IndependentFinalAudits'
 ```
 
+  Execution correction:four source checks include the three lifecycle audits
+  plus fixed-current-pin validation inside the saved scope validator.
   Add Existing/WrongRoot/PreTool cases(no native call),NativeThrow(no fabricated
   receipt;launch-error cleanup unverified),Exit/Timeout/Forced/Core87/MissingCore,
   MissingTrigger/BadPrefix/BadClock,Cap32/ZeroEntry/ReleaseFailure,ScopeDrift,
@@ -223,11 +228,11 @@ Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad
   be removed to force success. Missing result.json means Saved may be null.
   STATIC routing checks mark code inspection separately;never call the real native
   seam. Inspect routing before running tests to prevent an accidental live boundary.
-- [ ] **Step2: Observe controller RED.** Run
+- [x] **Step2: Observe controller RED.** Run
   `pwsh.exe -NoProfile -NonInteractive -File docs/diagnostics/isolated-fuzz/leaf-stage-build-only.tests.ps1`.
   Expected:exit1,ASSERTION FAILED:BuildOnlyControllerExists,not native
   launch or a fixture parser error. No placeholder native implementation to fake GREEN.
-- [ ] **Step3: Implement the separate lifecycle.** Follow spec6 using established
+- [x] **Step3: Implement the separate lifecycle.** Follow spec6 using established
   primitives:plan/source check/full pre-audits,one attempt,normal conversion plus
   marker,artifact binding,independent scope/trigger/core/lifetime/compile facts,
   all applicable final audits and stopped/provisional/manifest/completion protocol.
@@ -236,7 +241,7 @@ Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad
   Freeze scope in all final records;do not infer vet absence or reuse ordinary
   acceptance guards. Keep primary errors alongside final audit errors. No collector,
   old-controller dispatch or arbitrary override refactor. Add no new profile to matrix.
-- [ ] **Step4: Run GREEN and final fake-only batch on both fresh hosts.** Run the
+- [x] **Step4: Run GREEN and final fake-only batch on both fresh hosts.** Run the
   three new test files and these18 existing files,one fresh child host per file:
   compile-stage-trigger,compile-stage-session,compile-stage-receipt,
   leaf-stage-retained-compile,matrix-check,pair-sample,envelope-uninstrumented,
@@ -253,7 +258,7 @@ Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad
   missing dependencies. New fixtures must be portable;disclose any legacy planning
   checks that depend on local SDK/module paths. Verify changed PS syntax,staged
   whitespace and local doc links separately;freeze source hashes for final log binding.
-- [ ] **Step5: Request one fresh whole-increment review after inline execution**
+- [x] **Step5: Request one fresh whole-increment review after inline execution**
   against this spec/plan,Review Focus,interfaces,old-mode isolation and exclusions;
   use the chosen execution skill's review flow if subagent-driven instead.
   Resolve Important/Critical findings with named RED/GREEN and rerun the complete
