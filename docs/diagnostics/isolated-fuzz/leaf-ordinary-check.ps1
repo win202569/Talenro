@@ -77,6 +77,68 @@ function Assert-LeafOrdinaryReceipt([object]$Receipt,[object]$Plan,[bool]$Build)
     foreach($pair in @(@('Executable',$(if($Build){$Plan.Executable}else{$Plan.Binary})),@('WorkingDirectory',$(if($Build){$Plan.Project}else{$Plan.WorkingDirectory})),@('Arguments',$(if($Build){$Plan.BuildArguments}else{$Plan.Arguments})),@('Environment',$Plan.Environment),@('StdoutPath',(Join-Path $Plan.RunRoot $(if($Build){'build/stdout.txt'}else{'execute/stdout.txt'}))),@('StderrPath',(Join-Path $Plan.RunRoot $(if($Build){'build/stderr.txt'}else{'execute/stderr.txt'}))))){Assert-LeafOrdinaryEqual $Receipt.($pair[0]) $pair[1]}
     Assert-MappingQueryEvidence $Receipt
 }
+function Assert-LeafOrdinaryFinalArtifacts([object]$Plan,[object[]]$Bindings){
+    Assert-LeafOrdinaryCheckPlan $Plan $false
+    foreach($binding in $Bindings){Assert-LeafOrdinaryBinding $binding}
+}
+function Get-LeafOrdinaryRequiredFiles {
+    @('plan.json','source-binding.json','input-binding.json','progress.json','before-product.json','after-product.json','artifact-binding.json','result.json','package.test.exe','build/receipt.json','build/stdout.txt','build/stderr.txt','execute/receipt.json','execute/stdout.txt','execute/stderr.txt')
+}
+function Read-LeafOrdinaryJSON([string]$Path){Get-Content -LiteralPath (Get-EnvelopeSampleFile $Path) -Raw -ErrorAction Stop|ConvertFrom-Json -ErrorAction Stop}
+function Assert-LeafOrdinarySavedCore([string]$RunRoot,[object]$Marker){
+    $root=Get-IsolatedFullPath $RunRoot
+    $plan=Read-LeafOrdinaryJSON (Join-Path $root 'plan.json')
+    Assert-LeafOrdinaryCheckPlan $plan $false
+    Assert-LeafOrdinaryEqual $plan.RunRoot $root
+    $manifestPath=Get-EnvelopeSampleFile (Join-Path $root 'evidence-manifest.json')
+    $hash=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
+    Assert-LeafOrdinaryEqual $Marker @{Schema=1;Policy='leaf-ordinary-check-v1';Package='internal/nodecontrol/nodeleafbinding';VetMode='default';NoRetry=$true;Acceptance=$false;PackagePassed=$true;FinalizationRequired=$false;ManifestSHA256=$hash}
+    $manifest=Read-LeafOrdinaryJSON $manifestPath
+    Assert-LeafOrdinaryEqual $manifest.Schema 1
+    Assert-LeafOrdinaryEqual $manifest.Policy 'leaf-ordinary-check-v1'
+    Assert-LeafOrdinaryEqual $manifest.Package 'internal/nodecontrol/nodeleafbinding'
+    $required=@(Get-LeafOrdinaryRequiredFiles)
+    if($manifest.Files -isnot [array] -or $manifest.Files.Count -ne 15){throw 'Complete explicit15-file manifest required'}
+    $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    foreach($row in $manifest.Files){
+        if($row.Path -isnot [string] -or $row.Path -cnotin $required -or -not $seen.Add($row.Path) -or ($row.Length -isnot [int] -and $row.Length -isnot [long]) -or $row.Length -lt 0 -or $row.SHA256 -isnot [string] -or $row.SHA256 -cnotmatch '^[A-F0-9]{64}$'){throw 'Invalid/duplicate/escaped artifact row'}
+        $file=Get-EnvelopeSampleFile (Join-Path $root $row.Path)
+        if((Get-Item -LiteralPath $file).Length -ne $row.Length -or (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -cne $row.SHA256){throw 'Saved artifact drift'}
+    }
+    Assert-LeafOrdinaryEqual (Read-LeafOrdinaryJSON (Join-Path $root 'source-binding.json')) $plan.SourceBinding
+    Assert-LeafOrdinaryEqual (Read-LeafOrdinaryJSON (Join-Path $root 'input-binding.json')) $plan.InputBinding
+    $state=Read-LeafOrdinaryJSON (Join-Path $root 'result.json')
+    foreach($key in @('CompilePassed','DefaultVetBuildPassed','ExecutionAttempted','OriginalTestPassed','ProductUnchanged','ToolchainUnchanged','ArtifactsUnchanged','FinalizationRequired')){Assert-LeafOrdinaryEqual $state.$key $true}
+    foreach($key in @('Acceptance','PackagePassed')){Assert-LeafOrdinaryEqual $state.$key $false}
+    foreach($key in @('Schema','Policy','Package','VetMode','NoRetry')){Assert-LeafOrdinaryEqual $state.$key $plan.$key}
+    if($null -ne $state.Failure -or $state.AuditErrors -isnot [array] -or $state.AuditErrors.Count -ne 0 -or $state.ToolchainReference -isnot [string] -or [string]::IsNullOrEmpty($state.ToolchainReference)){throw 'Saved successful audit facts missing'}
+    $progress=Read-LeafOrdinaryJSON (Join-Path $root 'progress.json')
+    if($progress.Attempts -isnot [array] -or $progress.Attempts.Count -ne 2){throw 'Two ordered attempts required'}
+    for($i=0;$i -lt 2;$i++){
+        $phase=if($i -eq 0){'build'}else{'execute'}
+        Assert-LeafOrdinaryEqual $progress.Attempts[$i].Phase $phase
+        Assert-LeafOrdinaryEqual $progress.Attempts[$i].Receipt (Join-Path $root ($phase+'/receipt.json'))
+        $null=[DateTimeOffset]::Parse($progress.Attempts[$i].UTC)
+        $receipt=Read-LeafOrdinaryJSON (Join-Path $root ($phase+'/receipt.json'))
+        Assert-LeafOrdinaryReceipt $receipt $plan ($i -eq 0)
+    }
+    $before=Read-LeafOrdinaryJSON (Join-Path $root 'before-product.json');$after=Read-LeafOrdinaryJSON (Join-Path $root 'after-product.json')
+    Assert-EnvelopeProductUnchanged @($before) @($after)
+    $actualBindings=@((Get-LeafOrdinaryBinding @((Join-Path $root 'build/receipt.json'),(Join-Path $root 'build/stdout.txt'),(Join-Path $root 'build/stderr.txt'),$plan.Binary)),(Get-LeafOrdinaryBinding @((Join-Path $root 'execute/receipt.json'),(Join-Path $root 'execute/stdout.txt'),(Join-Path $root 'execute/stderr.txt'))))
+    Assert-LeafOrdinaryEqual (Read-LeafOrdinaryJSON (Join-Path $root 'artifact-binding.json')) $actualBindings
+    $log=Get-Content -LiteralPath (Get-EnvelopeSampleFile (Join-Path $root 'build/stderr.txt')) -Raw
+    Assert-MatrixCompileEvidence $log $plan.Toolchain $plan.Project $plan.Package
+    Assert-CopiedCompileEvidence $log $plan.Toolchain
+    $output=Get-LeafOrdinaryTestOutput (Join-Path $root 'execute/stdout.txt') (Join-Path $root 'execute/stderr.txt')
+    Assert-LeafOrdinaryEqual $state.TestOutput $output
+    [pscustomobject]@{PackagePassed=$true;Acceptance=$false;Policy=$plan.Policy;VetMode='default';ManifestSHA256=$hash;TestOutput=$output}
+}
+function Get-LeafOrdinarySavedEvidence([string]$RunRoot){
+    $root=Get-IsolatedFullPath $RunRoot
+    foreach($name in @('stopped.json','completed.pending.json','build/launch-error.json','execute/launch-error.json')){if(Test-Path -LiteralPath (Join-Path $root $name)){throw 'Contradictory or incomplete completion records'}}
+    $marker=Read-LeafOrdinaryJSON (Join-Path $root 'completed.json')
+    Assert-LeafOrdinarySavedCore $root $marker
+}
 function Invoke-LeafOrdinaryCheck([string]$RunRoot,[string]$Toolchain,[string]$ReferenceReceipt,[string]$ModuleCache){
     $plan=Get-LeafOrdinaryCheckPlan $RunRoot $Toolchain $ReferenceReceipt $ModuleCache
     $root=$plan.RunRoot
@@ -124,10 +186,39 @@ function Invoke-LeafOrdinaryCheck([string]$RunRoot,[string]$Toolchain,[string]$R
         }
     }catch{$pending=$_;$state.Failure=$_.Exception.Message}
     finally{
+        $postClock=[Diagnostics.Stopwatch]::StartNew()
+        $checks=@(
+            @{Name='product';Action={if($before.Count -gt 0){$after=@(Get-EnvelopeProductManifest);Write-LeafOrdinaryJSON (Join-Path $root 'after-product.json') $after;Assert-EnvelopeProductUnchanged $before $after;$state.ProductUnchanged=$true}}},
+            @{Name='toolchain';Action={if($null -ne $identity){if((Assert-UninstrumentedEnvelopeToolchain $plan.Toolchain $plan.ReferenceReceipt) -cne $identity){throw 'Ordinary SDK identity drift'};$state.ToolchainUnchanged=$true}}},
+            @{Name='artifacts';Action={Assert-LeafOrdinaryFinalArtifacts $plan @($bindings.ToArray());$state.ArtifactsUnchanged=$true}}
+        )
+        foreach($check in $checks){try{& $check.Action}catch{$state.AuditErrors+=@($check.Name+': '+$_.Exception.Message);if($null -eq $pending){$pending=$_;$state.Failure=$_.Exception.Message}}}
+        $state.PhaseTimings+=@([pscustomobject]@{Phase='post-audit';ElapsedMs=$postClock.Elapsed.TotalMilliseconds})
         $state.EndUTC=[DateTime]::UtcNow.ToString('o')
-        if($null -ne $pending){try{Write-LeafOrdinaryJSON (Join-Path $root 'stopped.json') @{Phase=$phase;Error=$state.Failure;Acceptance=$false;NoRetry=$true}}catch{$state.AuditErrors+=@('stopped-persistence: '+$_.Exception.Message)}}
-        try{Write-LeafOrdinaryJSON (Join-Path $root 'result.json') $state}catch{if($null -eq $pending){throw};throw $pending}
+        if($null -ne $pending){try{Write-LeafOrdinaryJSON (Join-Path $root 'stopped.json') @{Phase=$phase;Error=$state.Failure;AuditErrors=$state.AuditErrors;Acceptance=$false;NoRetry=$true}}catch{$state.AuditErrors+=@('stopped-persistence: '+$_.Exception.Message)}}
+        try{
+            Write-LeafOrdinaryJSON (Join-Path $root 'artifact-binding.json') @($bindings.ToArray())
+            Write-LeafOrdinaryJSON (Join-Path $root 'result.json') $state
+            if($null -eq $pending){
+                if(-not($state.CompilePassed -and $state.DefaultVetBuildPassed -and $state.OriginalTestPassed -and $state.ProductUnchanged -and $state.ToolchainUnchanged -and $state.ArtifactsUnchanged)){throw 'Ordinary successful facts incomplete'}
+                $rows=@(foreach($name in (Get-LeafOrdinaryRequiredFiles)){$file=Get-EnvelopeSampleFile (Join-Path $root $name);[pscustomobject]@{Path=$name;Length=(Get-Item -LiteralPath $file).Length;SHA256=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash}})
+                $manifest=Join-Path $root 'evidence-manifest.json'
+                Write-LeafOrdinaryJSON $manifest @{Schema=1;Policy=$plan.Policy;Package=$plan.Package;Files=$rows}
+                $marker=[pscustomobject]@{Schema=1;Policy=$plan.Policy;Package=$plan.Package;VetMode='default';NoRetry=$true;Acceptance=$false;PackagePassed=$true;FinalizationRequired=$false;ManifestSHA256=(Get-FileHash -LiteralPath (Get-EnvelopeSampleFile $manifest) -Algorithm SHA256).Hash}
+                $stage=Join-Path $root 'completed.pending.json'
+                Write-LeafOrdinaryJSON $stage $marker
+                Assert-LeafOrdinaryEqual (Read-LeafOrdinaryJSON $stage) $marker
+                $null=Assert-LeafOrdinarySavedCore $root $marker
+                foreach($name in @('stopped.json','build/launch-error.json','execute/launch-error.json')){if(Test-Path -LiteralPath (Join-Path $root $name)){throw 'Contradictory completion record'}}
+                [IO.File]::Move((Get-EnvelopeSampleFile $stage),(Get-IsolatedFullPath (Join-Path $root 'completed.json')))
+            }
+        }catch{
+            $persistence=$_;$state.AuditErrors+=@('persistence: '+$_.Exception.Message)
+            if($null -eq $pending){$pending=$persistence;$state.Failure=$_.Exception.Message}
+            try{Write-LeafOrdinaryJSON (Join-Path $root 'stopped.json') @{Phase='finalization';Error=$pending.Exception.Message;AuditErrors=$state.AuditErrors;Acceptance=$false;NoRetry=$true}}catch{$state.AuditErrors+=@('stopped-persistence: '+$_.Exception.Message)}
+            try{Write-LeafOrdinaryJSON (Join-Path $root 'result.json') $state}catch{}
+        }
     }
     if($null -ne $pending){throw $pending}
-    return $state
+    Get-LeafOrdinarySavedEvidence $root
 }

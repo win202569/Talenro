@@ -1,5 +1,13 @@
 # Project status — updated 2026-10-16
 
+## Fixed ordinary leaf check — approved Native/inline implementation in progress
+
+User selected1 after8fa1363c. Planner2240adbe passed44 fake assertions per host;
+ordinary flowb3a0b52f passed31 per host, with planner44 per host rerun. Task3
+final audit/marker/saved-reader implementation is undergoing verification;final
+regression and independent review are not yet complete. Read the [implementation record](2026-10-16-leaf-ordinary-check-implementation.md).
+No real Go/native/binary/SDK/Docker execution or acceptance/main approval.
+
 ## Fixed ordinary leaf check — design approved, implementation plan pending
 
 User approved the written design after9fdda6ff. The [three-task fake-only plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)

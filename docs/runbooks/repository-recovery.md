@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Ordinary leaf-check plan was approved for Native/inline with1 after8fa1363c.
+Its [implementation record](../roadmap/2026-10-16-leaf-ordinary-check-implementation.md)
+currently closes planner/flow fake tests;final audit/saved evidence/regression
+and review remain in progress. Earlier pending-plan paragraphs are historical.
+Resume from the actual record,not from an assumption that a real run is approved.
+
 Latest stage:ordinary leaf-check written design is approved after9fdda6ff;
 its [fake-only implementation plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
 awaits plan approval/execution-method selection. Resume there,not at a real run.

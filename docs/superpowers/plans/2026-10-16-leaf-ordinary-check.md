@@ -8,7 +8,7 @@
 
 **Tech Stack:** Existing Windows PowerShell7 and Windows PowerShell5.1, existing C# result types and safe-file helpers; no new dependencies.
 
-**Spec:** [Approved ordinary leaf design](../specs/2026-10-16-leaf-ordinary-check-design.md). User approved the written spec after `9fdda6ff`; this implementation plan is awaiting approval and execution-method selection.
+**Spec:** [Approved ordinary leaf design](../specs/2026-10-16-leaf-ordinary-check-design.md). User approved the written spec after `9fdda6ff` and selected Native/inline with1 after8fa1363c. Execution is fake-only;see the [actual implementation record](../../roadmap/2026-10-16-leaf-ordinary-check-implementation.md).
 
 ## Global Constraints
 
@@ -66,7 +66,7 @@ a pipeline's last command as proof of the child exit code.
 - Produce `Assert-LeafOrdinaryCheckPlan([object]$Plan,[bool]$RequireNew) -> void`; independently reconstruct constants and safe paths, never trust two matching altered records. RequireNew=false permits owned existing-root saved reads without invoking the planner.
 - Fixture `New-LeafOrdinaryTestFiles([string]$FixtureRoot) -> {Root,Toolchain,ReferenceReceipt,ModuleCache}` uses fake data files only. `Check-LeafOrdinary([bool]$Value,[string]$Name)` throws on false and emits one PASS assertion on true.
 
-- [ ] **Step1: Write named planner assertions.** Include `PlannerExists`, `PlanningLaunchesZero`, `FixedScope`, `FixedArguments`, `FixedEnvironment20`, `TypedFlags`, `BindingsPresent`, `WrongOrExistingRoot`, `OverlapRejected`, `UnsafeInputRejected`, `TamperedPlanRejected`, `InputOrSourceDriftRejected`. Set SDK/product/native seams to throw if planning calls them. Representative exact assertions:
+- [x] **Step1: Write named planner assertions.** Include `PlannerExists`, `PlanningLaunchesZero`, `FixedScope`, `FixedArguments`, `FixedEnvironment20`, `TypedFlags`, `BindingsPresent`, `WrongOrExistingRoot`, `OverlapRejected`, `UnsafeInputRejected`, `TamperedPlanRejected`, `InputOrSourceDriftRejected`. Set SDK/product/native seams to throw if planning calls them. Representative exact assertions:
 
 ```powershell
 Check-LeafOrdinary ($p.BuildLimitSeconds -eq 600 -and $p.ExecuteLimitSeconds -eq 150) 'FixedBudgets'
@@ -76,10 +76,10 @@ Check-LeafOrdinary ($p.Environment.Count -eq 20 -and $p.BuildArguments -cnotcont
 Check-LeafOrdinary (-not (Test-Path -LiteralPath $f.Root)) 'PlannerDoesNotCreateRoot'
 ```
 
-- [ ] **Step2: Run `leaf-ordinary-check-plan.tests.ps1`.** Expected RED at missing planner or an exact missing behavior; fake scaffolding/path errors are not valid behavioral RED. Record actual assertion/exit.
-- [ ] **Step3: Implement planner/fixed validator and fixture factories.** Bind exactly13 production helpers: `leaf-ordinary-check.ps1`, `mapping-single-check.ps1`, `matrix-check.ps1`, `envelope-uninstrumented.ps1`, `envelope-sample.ps1`, `envelope-observe.ps1`, `run.ps1`, `isolation.ps1`, `provenance.ps1`, `process-native.cs`, `retained-lifetime.cs`, `compile-stage-trigger.cs`, `compile-stage-session.cs`. Bind four inputs: reference receipt, `copy-receipt.json` beside the toolchain directory, `toolchain/bin/go.exe`, and `GOMODCACHE/github.com/google/uuid@v1.6.0/go.mod`, with safe file/hash checks. This is not a full SDK audit. Keep current bindings reproducible without old ignored data. Hash rechecks belong to controller boundaries and saved validation as well.
-- [ ] **Step4: Rerun planner suite.** Expected GREEN in both hosts, every required assertion, launch0, no output root. Record actual counts and static-only checks separately.
-- [ ] **Step5: Commit Task1.** Explicitly stage only these three files; message `feat: add fixed ordinary leaf planner and fake controls`. Expected commit with frozen old helper/source files unchanged.
+- [x] **Step2: Run `leaf-ordinary-check-plan.tests.ps1`.** Expected RED at missing planner or an exact missing behavior; fake scaffolding/path errors are not valid behavioral RED. Record actual assertion/exit.
+- [x] **Step3: Implement planner/fixed validator and fixture factories.** Bind exactly13 production helpers: `leaf-ordinary-check.ps1`, `mapping-single-check.ps1`, `matrix-check.ps1`, `envelope-uninstrumented.ps1`, `envelope-sample.ps1`, `envelope-observe.ps1`, `run.ps1`, `isolation.ps1`, `provenance.ps1`, `process-native.cs`, `retained-lifetime.cs`, `compile-stage-trigger.cs`, `compile-stage-session.cs`. Bind four inputs: reference receipt, `copy-receipt.json` beside the toolchain directory, `toolchain/bin/go.exe`, and `GOMODCACHE/github.com/google/uuid@v1.6.0/go.mod`, with safe file/hash checks. This is not a full SDK audit. Keep current bindings reproducible without old ignored data. Hash rechecks belong to controller boundaries and saved validation as well.
+- [x] **Step4: Rerun planner suite.** Expected GREEN in both hosts, every required assertion, launch0, no output root. Record actual counts and static-only checks separately.
+- [x] **Step5: Commit Task1.** Explicitly stage only these three files; message `feat: add fixed ordinary leaf planner and fake controls`. Expected commit with frozen old helper/source files unchanged.
 
 ### Task2: Ordinary build/runtime flow and output evidence
 
@@ -91,7 +91,7 @@ Check-LeafOrdinary (-not (Test-Path -LiteralPath $f.Root)) 'PlannerDoesNotCreate
 - Produce `Get-LeafOrdinaryTestOutput([string]$Stdout,[string]$Stderr) -> {TopLevelRun,TopLevelPass,TopLevelSkip,SubtestRun,SubtestPass,SubtestSkip}` arrays of observed names, not a source-inventory coverage claim; reject invalid PASS/FAIL/instrumentation conditions.
 - Fixture `Invoke-LeafOrdinaryTestCase([string]$Scenario) -> {Root,NativeCalls,Calls,Result,Error,Saved,AuditCalls}` captures errors and actual saved provisional state. Replace `Invoke-MatrixNative` in fixture scope, never `[IsolatedFuzzProcess]::Run` itself; calls record executable/args/env/cwd/limit/order and write fake receipt streams.
 
-- [ ] **Step1: Write flow/output RED cases.** Scenarios: `success`, `preflight`, `build-exit`, `build-timeout`, `build-error87`, `build-diagnostic`, `build-schema`, `build-query`, `missing-binary`, `missing-compile-evidence`, `binary-before-run`, `source-before-run`, `runtime-exit`, `runtime-timeout`, `runtime-forced`, `runtime-query`, `no-tests`, `no-final-pass`, `fail-line`, `diagnostic-stdout`, `diagnostic-stderr`, `skip-and-subtest`, `native-throw`, `native-throw-persist`. Use both build/runtime sides for diagnostic/truncated/unknown-member controls. Exact assertions include:
+- [x] **Step1: Write flow/output RED cases.** Scenarios: `success`, `preflight`, `build-exit`, `build-timeout`, `build-error87`, `build-diagnostic`, `build-schema`, `build-query`, `missing-binary`, `missing-compile-evidence`, `binary-before-run`, `source-before-run`, `runtime-exit`, `runtime-timeout`, `runtime-forced`, `runtime-query`, `no-tests`, `no-final-pass`, `fail-line`, `diagnostic-stdout`, `diagnostic-stderr`, `skip-and-subtest`, `native-throw`, `native-throw-persist`. Use both build/runtime sides for diagnostic/truncated/unknown-member controls. Exact assertions include:
 
 ```powershell
 Check-LeafOrdinary ((Invoke-LeafOrdinaryTestCase 'preflight').NativeCalls -eq 0) 'PreflightLaunchesZero'
@@ -101,10 +101,10 @@ Check-LeafOrdinary ((Invoke-LeafOrdinaryTestCase 'binary-before-run').NativeCall
 
 For `success`, assert two calls with exact global constants, launch progress already saved at each seam entry, no diagnostics and provisional PackagePassed=false. For `skip-and-subtest`, assert names/counts in separate arrays, one skip is disclosed and not counted as an executed test body. For persistence failure, require original native exception plus secondary persistence error and no retry.
 
-- [ ] **Step2: Run `leaf-ordinary-check.tests.ps1 -ReviewFocus flow`.** Expected behavioral RED on missing controller/flow/output gate, no real native entry. Capture failure before implementing.
-- [ ] **Step3: Implement fixed controller flow and output reader.** Record each attempt durably, check constants/source/input/executable bindings immediately before the seam, require both ordinary guards and initial-query evidence for each phase. Bind build receipts/streams/binary before considering runtime; no downstream launch after any failed check. Use result fields from spec; missing/unknown evidence remains false/error, not fabricated.
-- [ ] **Step4: Run planner and flow suites.** Expected GREEN in both hosts; success2, failed-build1, preflight0; source/binary drift prevents runtime. Audit/finalization may remain explicitly provisional until Task3, never passed.
-- [ ] **Step5: Commit Task2.** Explicit helper/fixture/controller-test paths only; message `feat: add ordinary leaf flow with fail-closed fake tests`. Expected no old guard/collector/product changes.
+- [x] **Step2: Run `leaf-ordinary-check.tests.ps1 -ReviewFocus flow`.** Expected behavioral RED on missing controller/flow/output gate, no real native entry. Capture failure before implementing.
+- [x] **Step3: Implement fixed controller flow and output reader.** Record each attempt durably, check constants/source/input/executable bindings immediately before the seam, require both ordinary guards and initial-query evidence for each phase. Bind build receipts/streams/binary before considering runtime; no downstream launch after any failed check. Use result fields from spec; missing/unknown evidence remains false/error, not fabricated.
+- [x] **Step4: Run planner and flow suites.** Expected GREEN in both hosts; success2, failed-build1, preflight0; source/binary drift prevents runtime. Audit/finalization may remain explicitly provisional until Task3, never passed.
+- [x] **Step5: Commit Task2.** Explicit helper/fixture/controller-test paths only; message `feat: add ordinary leaf flow with fail-closed fake tests`. Expected no old guard/collector/product changes.
 
 ### Task3: Independent audits, durable saved evidence and final verification
 

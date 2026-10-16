@@ -24,6 +24,12 @@ function Invoke-LeafOrdinaryTestCase([string]$Scenario){
     $audit=@{Product=0;SDK=0;Artifact=0}
     $originalWrite=(Get-Command Write-LeafOrdinaryJSON).ScriptBlock
     $originalPlan=(Get-Command Assert-LeafOrdinaryCheckPlan).ScriptBlock
+    $originalArtifacts=(Get-Command Assert-LeafOrdinaryFinalArtifacts).ScriptBlock
+    function Assert-LeafOrdinaryFinalArtifacts($Plan,$Bindings){
+        $audit.Artifact++
+        if($Scenario -cin @('post-artifact','all-audits-fail','native-throw-all-audits-fail')){throw 'controlled artifact audit'}
+        & $originalArtifacts $Plan $Bindings
+    }
     function Get-EnvelopeProductManifest {
         $audit.Product++
         if($audit.Product -gt 1 -and $Scenario -cin @('post-product','all-audits-fail','native-throw-all-audits-fail')){throw 'controlled product audit'}

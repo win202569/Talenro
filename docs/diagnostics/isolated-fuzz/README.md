@@ -637,3 +637,12 @@ binds binary receipts to canonical source identity. Missing/stale identity refus
 reuse without rebuilding or retrying an existing arm.7 provenance assertions PASS
 including template-only drift. Old baseline results remain historical facts, not
 permission to reuse unbound binaries.
+# Ordinary leaf verification entry — implementation verification in progress
+
+The [approved design](../../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md)
+and [fake-only implementation plan](../../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
+introduce a fixed default-vet ordinary nodeleafbinding entry. Read the
+[actual implementation record](../../roadmap/2026-10-16-leaf-ordinary-check-implementation.md)
+for current fake checks,limitations and remaining review/regression gates.
+No real invocation is authorized;never reuse the build-only binary.
+
