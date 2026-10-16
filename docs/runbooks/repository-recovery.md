@@ -18,13 +18,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 Current resume point: [name-directory implementation result](../roadmap/2026-10-16-task11-name-directory-implementation.md).
 Plan/Native approved after6c5ec277; fixtures90dc0e2a and read-only API990d6683.
-All five phases verified, full contracts package55 top-level/423 subtest PASS,
-0 SKIP/FAIL, but final review Important1 remains OPEN: first negative-vector JSON
-null is accepted as empty string by test-only decoding. Slice NOT accepted.
-Resume at [bounded fix addendum review](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md),
-not another reviewer or native workload; original budget consumed. No fix or
-new workload executed. Source/tests/fixtures are portable, raw local SDK/cache/
-evidence is not cloned. Do not redo completed implementation,
+Original five phases verified; approved [null-vector fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md)
+also completed its3 builds/3 runtimes once. Important1 CLOSED by observed
+first-null RED→GREEN, then full contracts55 top-level/429 subtest PASS,0 SKIP/FAIL
+and all final audits. Original RED parser-order stop was retained, not rewritten;
+user-approved saved-only correction added0 native runs before two remaining
+phases. Only private test decoding and six cases changed; production/fixtures
+are byte-identical. No second reviewer or main merge. Resume at separately
+scoped deferred metadata/codec work, not completed implementation or old workloads.
+Source/tests/fixtures are portable; raw local SDK/cache/evidence is not cloned.
+Do not redo completed implementation,
 retarget/replay consumed leaf001/name-directory phases or equate cloning with
 machine readiness. Metadata93/53 and broader gates stay open. Read current status;
 older "Latest" paragraphs below are history, not new execution authority.

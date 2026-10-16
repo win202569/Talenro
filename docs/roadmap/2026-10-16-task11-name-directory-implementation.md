@@ -1,12 +1,13 @@
 # Task11 name-directory implementation — scoped evidence
 
-Status: UNACCEPTED DEVELOPMENT CHECKPOINT. Implementation at90dc0e2a/990d6683
-has verified RED/GREEN and full final audits; full contracts regression55
-top-level/423 subtest PASS,0 SKIP/FAIL. Final independent review found Important1:
-test-only negative-vector null handling remains OPEN. Existing test PASS does
-not close this missing-case gap. No fix/additional workload has run. Original
-five-build/four-runtime budget consumed; await approval of the bounded fix
-addendum below. Not complete Task11/name-directory/C12 acceptance.
+Status: NAME-DIRECTORY SLICE VERIFIED. The approved one-pass addendum resolved
+final review Important1 through observed first-null RED, fixture GREEN and full
+contracts regression55 top-level/429 subtest PASS,0 SKIP/FAIL; all final audits
+passed. Only the private test decoder and six mutation cases changed; production
+API/table and both literal fixtures remain byte-identical. One independent
+review plus covering fix tests, not a second review. Necessary checkpoint
+preservation follows the standing rule; final handoff confirms actual remote SHA.
+Full Task11/C12/security/production/main acceptance remains OPEN.
 
 ## Delivered scope and independent oracle
 
@@ -100,6 +101,8 @@ these once-only phase identities must not be replayed.
 
 ## Final independent review — Important1 OPEN
 
+Historical finding at checkpoint4845d50f; resolved by the verified fix pass below.
+
 One fresh read-only reviewer, /root/name_directory_final_review, inspected the
 whole slice6c5ec277..990d6683, original146-pair sources, current result/rulings
 and saved evidence. No edits/workloads were performed by the reviewer. It
@@ -107,7 +110,7 @@ independently confirmed all146 pairs across five representations, ordering,
 exclusions, exact lookup, copied ownership, four declarations, no consumer wiring
 and observed55/423 PASS counts. Critical:0; Important:1; Minor:0.
 
-Important1: nameGoldenFixture.RejectedSchemas is []string. Replacing its first
+Important1 at review: nameGoldenFixture.RejectedSchemas was []string. Replacing its first
 valid empty string with JSON null loses the distinction during typed decoding.
 strictjson's primitive-token pass-through plus encoding/json's documented-in-code
 primitive-null ignore leaves the element as ""; membership/order checks and the
@@ -118,21 +121,74 @@ prevents claiming the strict fixture contract complete.
 
 Executor independently traced schema_names_test.go's wire type/decode/validation,
 strictjson/decode.go walkValue, and copied SDK encoding/json/decode.go null branch
-(primitive/string null is ignored, pointers can preserve nil). Finding remains
-Important. This is source confirmation, not an extra runtime reproduction.
+(primitive/string null is ignored, pointers can preserve nil). The finding was
+graded Important; runtime reproduction/fix verification are recorded below.
 Do not alter shared strictjson or remove the legitimate empty rejection string.
 
 The [bounded fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md)
-proposes test-only nil-preserving decoding plus first/last null and other typed
-element mutations, then at most three additional builds/three runtimes for RED,
-fixture GREEN and whole-package GREEN. Same Native/inline method, one fix pass,
-no second reviewer. Await user approval before modifying tests/decoder or running
-those workloads. The old five phases are neither retried nor invalidated as
-observations; their coverage was insufficient for the new finding.
+was approved after4845d50f: test-only nil-preserving decoding plus six typed/null
+mutations and three builds/three runtimes for RED, fixture GREEN and full package
+GREEN. Native/inline method preserved, one fix pass, no second reviewer. The old
+five phases were not retried or retroactively changed; their coverage had been
+insufficient for this finding.
 
 Reviewer exclusions were deferred metadata/codec/authority behavior and older
 C12/security/production/physical acceptance. Rulings5–6 above explicitly preserve
 those approved exclusions and their costs rather than treating them as passed.
+
+## Important1 fix pass — verified
+
+Only schema_names_test.go changed: private wire RejectedSchemas is []*string,
+nil elements reject before extraction to the unchanged []string return type.
+Genuine empty strings remain valid negative-vector data. Added first/last null
+and numeric/boolean/object/array element mutations using in-memory copies only.
+Production schema_names.go and both fixtures retain their exact baseline hashes:
+
+| Frozen file | SHA256 |
+| --- | --- |
+| schema_names.go | 2428B95DCF01560B36661799D8EDD354ABC25000DD82EF55107C7CCFC724348A |
+| schema-name-registry.v1.json | F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1 |
+| schema-name-registry-golden.v1.json | FA1586826F876991B2B4F142650F9D8970F7CA07A4015482E5713CF6CE3B3EE8 |
+
+New owned identity name-directory-null-vector-fix-001, same offline/PS5.1/default
+vet/ordinary schema3/type/query/completion budgets and pre/post full audits.
+
+| Phase | Build exit / seconds | Runtime exit / seconds | Actual result |
+| --- | --- | --- | --- |
+| null-red | 0 / 75.055 | 1 / 1.540 | First-null leaf fails as expected; saved-only reporting correction below |
+| null-green | 0 / 71.716 | 0 / 1.444 |2 top-level/98 subtest PASS,0 SKIP/FAIL; full audits verified |
+| contracts-final | 0 / 69.885 | 0 / 2.826 |55 top-level/429 subtest PASS,0 SKIP/FAIL; full audits verified |
+
+RED initially stopped in the operational wrapper: it expected leaf-first failure
+rows, but Go printed parent-first. Native completion/type/query/cleanup checks
+and every final audit passed; the only leaf failure was null-rejected-schema-first
+(plus two parent FAIL rows). Original result.json/STOPPED.json and verify.ps1
+remain unchanged with Verified=false, Failure="Fixed value/type differs".
+
+The user explicitly approved saved-only correction and then continuing only the
+two remaining phases, with no RED replay or weaker security check. evaluate-red.ps1
+revalidated exact scope,20 environment keys, arguments/cwd, typed ordinary
+receipts, copied compiler/source proof, exact parent-first failure tree, saved
+product/fixture/artifact bindings and original wrapper hash. Separate
+control/red-correction.json records OriginalVerified=false,
+CorrectedTDDRedVerified=true, NativeExecutionsAdded=0 and binds all original
+records. The continuation entry revalidates this correction and accepts only
+null-green/contracts-final. No original evidence was rewritten or relabelled as
+original-controller success; this was a reporting correction, not native87 or a
+timeout exemption. Extra cost was saved-file inspection, not another native run.
+
+Exactly three additional builds/three test runtimes ran, each once. First-null
+regression was observed failing before the private wire fix, then passed along
+with all six new cases, complete inventory/ownership/API tests and full contracts
+package. Important1 is CLOSED by that RED→GREEN/full-suite evidence. No second
+reviewer, extra fix pass, new dependency or broader workload. No Minor findings
+were deferred. Native phase seconds exclude full audit time.
+
+The addendum uses the same PowerShell bookkeeping/saved-run completion adaptation
+as Rulings1–2; bookkeeping omission risk is mitigated by this tracked record and
+actual saved evidence, and other packages are not newly certified. Existing
+shared-helper exceptional-persistence limitations and all broader gates remain
+unchanged. SDK/cache/raw/control/binary artifacts remain ignored locally.
 
 ## Remaining gates and recovery
 
@@ -146,9 +202,10 @@ Resume from the latest codex/c12-b01-task9-coordinator development tip, not main
 Read current status and this result before acting on historical plan checkboxes.
 Do not replay attempted phase identities, manually run their binaries or treat
 Git cloning as restoration of private toolchain/cache/raw evidence/live data.
-Current resume point is Important1/addendum approval, not another review or old
-phase replay. Both proposed fix root/control paths were absent when written;
-recheck them only after approval. If verification stops, preserve its exact stage
-and request the bounded next decision; do not silently reset pins, retry or relax
-safety checks. All necessary source/tests/fixtures and this open finding are
-included in the development checkpoint; final handoff verifies actual remote SHA.
+Current resume point: name-directory slice and Important1 fix are verified; do
+not reimplement, request a second reviewer or replay any of the consumed eight
+build/seven-runtime phase identities. Next substantive work requires separate
+scope for deferred metadata/codec responsibilities, not treating them as solved.
+New-machine SDK/cache/module/evidence preparation remains separate. All necessary
+source/tests/fixtures, outcomes, correction history and remaining gates are in
+this development checkpoint; final handoff verifies its actual remote SHA.

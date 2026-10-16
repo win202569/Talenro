@@ -31,7 +31,7 @@ type nameGoldenFixture struct {
 	Schema          string            `json:"schema"`
 	Coverage        string            `json:"coverage"`
 	ExpectedEntries []nameFixturePair `json:"expected_entries"`
-	RejectedSchemas []string          `json:"rejected_schemas"`
+	RejectedSchemas []*string         `json:"rejected_schemas"`
 }
 
 const nameFixtureBase = "../../../testdata/c12/authority-v7/"
@@ -83,12 +83,17 @@ func decodeNameGolden(body []byte) ([]nameFixturePair, []string, error) {
 	for _, p := range f.ExpectedEntries {
 		valid[p.Schema] = true
 	}
+	rejected := make([]string, len(f.RejectedSchemas))
 	for i, s := range f.RejectedSchemas {
-		if valid[s] || (i > 0 && f.RejectedSchemas[i-1] >= s) {
+		if s == nil {
+			return nil, nil, errors.New("null negative schema")
+		}
+		rejected[i] = *s
+		if valid[rejected[i]] || (i > 0 && rejected[i-1] >= rejected[i]) {
 			return nil, nil, errors.New("invalid negative set")
 		}
 	}
-	return f.ExpectedEntries, f.RejectedSchemas, nil
+	return f.ExpectedEntries, rejected, nil
 }
 func readNameRegistryFixture() ([]nameFixturePair, error) {
 	b, err := os.ReadFile(nameFixtureBase + "schema-name-registry.v1.json")
@@ -314,6 +319,16 @@ func TestAuthorityV7NameFixtureRejectsMalformed(t *testing.T) {
 			mutate("extra-root", func(v map[string]any) { v["unexpected"] = true })
 			mutate("wrong-marker", func(v map[string]any) { v["schema"] = "wrong" })
 			mutate("wrong-coverage", func(v map[string]any) { v["coverage"] = "metadata" })
+			if kind == "golden" {
+				mutate("null-rejected-schema-first", func(v map[string]any) { v["rejected_schemas"].([]any)[0] = nil })
+				mutate("null-rejected-schema-last", func(v map[string]any) {
+					a := v["rejected_schemas"].([]any)
+					a[len(a)-1] = nil
+				})
+				for name, value := range map[string]any{"number": 42, "bool": true, "object": map[string]any{}, "array": []any{}} {
+					mutate("negative-element-"+name, func(v map[string]any) { v["rejected_schemas"].([]any)[0] = value })
+				}
+			}
 			for _, key := range []string{"schema", "object_name"} {
 				key := key
 				mutate("missing-pair-"+key, func(v map[string]any) { delete(v[pairsField].([]any)[0].(map[string]any), key) })

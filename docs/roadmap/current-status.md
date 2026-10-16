@@ -1,20 +1,23 @@
 # Project status — updated 2026-10-16
 
-## Task11 — name directory checkpoint, final review Important1 open
+## Task11 — name-directory slice verified, null-vector review fix closed
 
 User approved [plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md)
 and Native/inline after6c5ec277. Independent146-pair fixtures committed at90dc0e2a;
 read-only API/ownership tests at990d6683. All five bounded phases verified with
 ordinary completion and full pre/post audits; complete contracts package55
 top-level/423 subtest PASS,0 SKIP/FAIL. [Factual result and rulings](2026-10-16-task11-name-directory-implementation.md).
-One fresh final reviewer found a test-only strictness gap: JSON null in the first
-negative-vector element decodes as a legitimate empty string. Source trace
-confirmed; Important1 remains OPEN despite existing test PASS. Slice NOT accepted.
-Original five-build/four-runtime budget is consumed, no fix/extra workload run.
-Next: approve the [bounded null-vector fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md)
-for one Native fix pass and at most3 builds/3 runtimes; no second reviewer/main
-merge. Metadata93/53 and broader Task11/C12 gates remain open. Older pending-plan/
-revision entries below are historical; resume from this section.
+The one fresh reviewer found Important1 (null negative element decoding as empty
+string). User approved the [bounded fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md),
+now verified by first-null RED→GREEN and complete contracts55 top-level/429
+subtest PASS,0 SKIP/FAIL, all final audits passed. Production/fixtures unchanged;
+only test-only wire decoder plus six mutations changed. Original RED output-order
+parser stop remains intact; user-approved saved-only correction added0 native
+runs, followed by only the two remaining phases. Total addendum3 builds/3 runtimes,
+no retries or second reviewer. Important1 CLOSED; name-directory slice verified,
+not full Task11/C12/main acceptance. Metadata93/53 and broader gates remain open.
+Next work is separately scoped deferred metadata/codec responsibility, not replay
+of completed implementation/phase identities. Older entries below are history.
 
 ## Task11 — name-only first-slice scope selected,written revision pending
 

@@ -1,6 +1,6 @@
 # Authority V7 Null Negative-Vector Fix Implementation Plan Addendum
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans with the user's preserved Native/inline method. This is the original final review's ONE fix pass, not a second implementation/review cycle. Steps use checkbox (`- [ ]`) syntax. Await user approval of this additional bounded verification before tests or fixes.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:executing-plans was used with the approved Native/inline method for the original review's ONE fix pass. This addendum is complete; its budget is consumed. Steps record observed work, not permission to replay tests, fixes or reviews. Read current status before any new work.
 
 **Goal:** Reject JSON null negative-vector elements while preserving legitimate empty-string rejection and all existing directory behavior.
 
@@ -10,7 +10,7 @@
 
 **Spec:** [Approved name-only design §4](../specs/2026-10-16-authority-v7-name-directory-design.md), [original plan](2026-10-16-authority-v7-name-directory.md) Task3 stop rule and [Important1/source trace](../../roadmap/2026-10-16-task11-name-directory-implementation.md#final-independent-review--important1-open).
 
-**Status:** Proposed after the original five-build/four-runtime budget was consumed. Source-traced defect, not yet runtime-reproduced or fixed. Native/inline execution method is preserved; only this additional fix/verification scope needs approval.
+**Status:** COMPLETED scoped fix pass after user approval following4845d50f and explicit saved-only parser-order correction approval. First-null regression observed RED→GREEN; full contracts55 top-level/429 subtest PASS,0 SKIP/FAIL, final audits passed. Exactly3 builds/3 runtimes, no RED replay or second reviewer. Important1 CLOSED; production/fixtures unchanged. Not full Task11/C12/main acceptance.
 
 ## Global Constraints
 
@@ -34,17 +34,19 @@
 
 **Interfaces:** Keep decodeNameGolden([]byte) ([]nameFixturePair,[]string,error), readNameGoldenFixture() ([]nameFixturePair,[]string,error), all public APIs and marker/64KiB contracts unchanged. Only private nameGoldenFixture.RejectedSchemas changes from []string to []*string to retain primitive null information. No exported helper or runtime JSON import API.
 
-- [ ] Add six in-memory golden-only mutations to TestAuthorityV7NameFixtureRejectsMalformed: null-rejected-schema-first (replace element0 with nil), null-rejected-schema-last (replace final element with nil), and negative-element-number/bool/object/array (replace element0 with42/true/empty map/empty array). Keep tracked fixture files unchanged. Existing TestAuthorityV7NameFixtureInventory pins the valid empty string and entire881-vector set.
-- [ ] Run new null-red phase below with unchanged decoder. Expected verified build0/runtime1, specifically the null-rejected-schema-first subtest's "malformed fixture accepted" failure. Other failures, native errors, timeout or audit uncertainty stop; this is not evidence of the production directory failing.
-- [ ] Change only nameGoldenFixture.RejectedSchemas to []*string. In decodeNameGolden, reject every nil element, then construct []string preserving exact values/order; perform existing membership/strict ordering checks on that slice and return it. Preserve nonnil pointer-to-empty-string as ""; no default, trim, coercion or global strictjson change.
-- [ ] Format only the modified test file with the existing copied SDK gofmt tool. Run null-green phase, selector ^TestAuthorityV7NameFixture; require all existing/new fixture tests PASS, exit0 and all ordinary/full audit guards.
-- [ ] Run contracts-final phase with selector . on the complete contracts package; require default-vet build0/runtime0, final PASS, observed top-level tests, no SKIP/FAIL/instrumentation and all independent audits/bindings. Record actual names/counts/times, not a guessed new count. Confirm production file and both fixtures are byte-identical to the pre-fix commit.
-- [ ] Mark Important1 resolved only after the named regression's observed RED→GREEN and full package verification. Record the existing reviewer and its two scoped exclusions/rulings; do not request another review or expand into metadata/codec work. If any phase is unexpected, save an explicitly unfinished checkpoint and stop; no second fix pass/retry under this addendum.
+- [x] Add six in-memory golden-only mutations to TestAuthorityV7NameFixtureRejectsMalformed: null-rejected-schema-first (replace element0 with nil), null-rejected-schema-last (replace final element with nil), and negative-element-number/bool/object/array (replace element0 with42/true/empty map/empty array). Keep tracked fixture files unchanged. Existing TestAuthorityV7NameFixtureInventory pins the valid empty string and entire881-vector set.
+- [x] Run new null-red phase below with unchanged decoder. Expected verified build0/runtime1, specifically the null-rejected-schema-first subtest's "malformed fixture accepted" failure. Other failures, native errors, timeout or audit uncertainty stop; this is not evidence of the production directory failing.
+- [x] Change only nameGoldenFixture.RejectedSchemas to []*string. In decodeNameGolden, reject every nil element, then construct []string preserving exact values/order; perform existing membership/strict ordering checks on that slice and return it. Preserve nonnil pointer-to-empty-string as ""; no default, trim, coercion or global strictjson change.
+- [x] Format only the modified test file with the existing copied SDK gofmt tool. Run null-green phase, selector ^TestAuthorityV7NameFixture; require all existing/new fixture tests PASS, exit0 and all ordinary/full audit guards.
+- [x] Run contracts-final phase with selector . on the complete contracts package; require default-vet build0/runtime0, final PASS, observed top-level tests, no SKIP/FAIL/instrumentation and all independent audits/bindings. Record actual names/counts/times, not a guessed new count. Confirm production file and both fixtures are byte-identical to the pre-fix commit.
+- [x] Mark Important1 resolved only after the named regression's observed RED→GREEN and full package verification. Record the existing reviewer and its two scoped exclusions/rulings; do not request another review or expand into metadata/codec work. If any phase is unexpected, save an explicitly unfinished checkpoint and stop; no second fix pass/retry under this addendum.
 - [ ] Review explicit file list, commit the test-only fix plus necessary result/recovery documents, push normally to the existing development branch and verify remote SHA=local/clean. Keep raw evidence/control/SDK/cache/binary ignored. No main merge or overall acceptance.
 
-## Additional bounded verification — proposed, not yet authorized
+## Additional bounded verification — approved and consumed
 
-Let S=W/.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator and new R=S/name-directory-null-vector-fix-001; control R-control. Both were absent when this proposal was written; recheck safe paths/absence after approval. Do not create either while awaiting approval. The old original phase records remain untouched and consumed.
+Execution correction: the original null-red wrapper expected leaf-first failure rows, whereas actual Go output is parent-first. Its result/STOPPED and original wrapper remain byte-identical with Verified=false, Failure="Fixed value/type differs" and0 audit errors. Under the user's explicit asynchronous approval, a saved-only reader rechecked exact fixed scope/arguments/environment/cwd, typed native completion/query guards, compiler/source proof and all saved bindings, accepting only the actual first-null failure tree. Separate control/red-correction.json records OriginalVerified=false, CorrectedTDDRedVerified=true, NativeExecutionsAdded=0. A separate continuation entry accepts only null-green/contracts-final and revalidates this correction before GREEN. No old record is rewritten, no native retry or relaxed safety predicate.
+
+S=W/.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator; R=S/name-directory-null-vector-fix-001 and control R-control were absent at approved preflight and are now consumed. Preserve both; no replay/recreation. The old original phase records remain untouched and consumed. The following protocol records the completed bounded run, not future execution authority.
 
 After approval only, create ignored control/verify.ps1 via apply_patch with frozen entry Invoke-NameDirectoryNullFixPhase([string]Phase). Adapt the prior operational wrapper to these three fixed phases, not its old identity; parse in PS7 and fresh64-bit Windows PowerShell5.1 before any workload. Keep the unchanged shared ordinary collector/guards and independently revalidate fixed arguments/cwd/environment/path/source/tool bindings. No fixed leaf controller or saved reader/15-file marker reuse.
 
@@ -70,4 +72,4 @@ At most three builds/three runtimes, each once, in new phase receipt directories
 
 ## Self-review and handoff
 
-All five focus cases belong to Task1; private wire pointer representation preserves null without changing outward signatures or genuine empty-string behavior. Literal sets/public production file remain frozen. Three phases supply regression RED, fixture GREEN and complete package GREEN within explicit budgets; no hidden retry or second reviewer. This addendum closes only Important1 if verified, not other deferred C12 gates. Await user approval; no new test/fix/native workload has run under it.
+All five focus cases were exercised. Private nil preservation rejects null while retaining genuine empty strings; signatures, production and fixture bytes are unchanged. Three builds/three runtimes consumed; separately authorized saved-only parser correction added0 native runs and preserved all original failures. Important1 is closed by observed RED→GREEN/full-suite and final audits, no second reviewer. Final commit/push/remote comparison is confirmed by the actual handoff, not this checklist. Do not replay these identities; broader gates remain open.
