@@ -21,6 +21,10 @@ is user-approved. Its [three-task implementation plan](../superpowers/plans/2026
 was approved for Native/inline fake-only implementation, now complete with one
 review fix pass. Final18-suite regressions passed698 checks per PS7/5.1 host
 (10 static included each), all36 commands exit0;61 source/test hashes matched.
+Implementation checkpoint:642363131d46906b49dd52ea84c5ee366b7b4e96 and its
+prerequisites; select the latest branch tip for the subsequent evidence/recovery
+documentation. The local56-file raw verification archive is deliberately ignored;
+its manifest digest and limitations are preserved in the implementation record.
 Read the [implementation record](../roadmap/2026-10-16-compile-stage-retained-implementation.md)
 for actual results and remaining gates. Recover all three from this branch;
 implementation approval is not automatic real execution on a fresh PC, and fake

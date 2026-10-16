@@ -13,6 +13,9 @@ User approved Native/inline implementation. Parser/session/controller and one
 independent review fix pass are complete. Final18-suite fake regressions passed
 on PS7/5.1:698 checks per host (10 static included each), all36 commands exit0.
 All61 post-fix source/test hashes matched; no deferred minor review findings.
+Implementation checkpoint:642363131d46906b49dd52ea84c5ee366b7b4e96, including
+prerequisite trigger/session commits. Resume from the latest development-branch
+tip, which also carries the documentation-only preservation record.
 Read the [implementation record](2026-10-16-compile-stage-retained-implementation.md).
 No real compile, generated binary runtime or acceptance is approved by this work.
 

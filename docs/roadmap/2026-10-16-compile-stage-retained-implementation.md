@@ -138,6 +138,21 @@ generated binary automatically.
 
 ## Recovery
 
+Implementation commits:e0e971b21cee810f25bafce70d44ce6e301745ba (trigger),
+b3c42aa26dcbad05fb4d5bde47d458f21d47363a (session/native wiring),
+642363131d46906b49dd52ea84c5ee366b7b4e96 (controller/review fixes).
+The subsequent documentation-only preservation commit records this evidence.
+
+Local ignored archive:.superpowers/diagnostics/2026-10-16-compile-stage/validation-001.
+Its explicit manifest binds56 files:36 final logs,10 focused RED/GREEN logs,
+2 host summaries,2 source-pin snapshots,review,ledger,3 task briefs and owner marker.
+Manifest SHA256:534AEC5FE3433464C22DA1D166AA017A6827667E6DD272C0952A073D7F23755E.
+All56 archived lengths/hashes were verified; the manifest excludes itself.
+This archive is not committed or restored by cloning. The plan-specific temporary
+execution workspace can be removed after preserving these records; the development
+worktree and other diagnostic histories must remain. Portable source/tests and this
+report carry the recovery state, not a promise to recover local raw evidence.
+
 Final suite totals per host:trigger47, session15, receipt16 (6 static), stage123,
 matrix60, pair45, uninstrumented28, sample22, compile19, preparation19, observe21,
 mapping36, lifetime27, integration12 (4 static), lifetime receipt16, child70,
