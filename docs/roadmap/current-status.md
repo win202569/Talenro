@@ -1,15 +1,20 @@
 # Project status — updated 2026-10-16
 
-## Task11 — written name-directory scope approved, implementation plan pending
+## Task11 — name directory checkpoint, final review Important1 open
 
-User approved the written revision after a4af66ca. The [three-task plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md)
-fixes independent146-pair fixtures, exact read-only API/ownership tests, and full
-contracts-package regression/final review. Its proposed offline verification
-protocol is new scoped work, not reuse of consumed leaf001 authority.
-Next: review plan including verification appendix and select Native/inline
-(recommended) or subagent-driven. No product/fixture/test/native execution yet.
-Metadata93/53 and all broader gates remain open. Older pending-revision entries
-below are historical; this section controls resumption.
+User approved [plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md)
+and Native/inline after6c5ec277. Independent146-pair fixtures committed at90dc0e2a;
+read-only API/ownership tests at990d6683. All five bounded phases verified with
+ordinary completion and full pre/post audits; complete contracts package55
+top-level/423 subtest PASS,0 SKIP/FAIL. [Factual result and rulings](2026-10-16-task11-name-directory-implementation.md).
+One fresh final reviewer found a test-only strictness gap: JSON null in the first
+negative-vector element decodes as a legitimate empty string. Source trace
+confirmed; Important1 remains OPEN despite existing test PASS. Slice NOT accepted.
+Original five-build/four-runtime budget is consumed, no fix/extra workload run.
+Next: approve the [bounded null-vector fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md)
+for one Native fix pass and at most3 builds/3 runtimes; no second reviewer/main
+merge. Metadata93/53 and broader Task11/C12 gates remain open. Older pending-plan/
+revision entries below are historical; resume from this section.
 
 ## Task11 — name-only first-slice scope selected,written revision pending
 

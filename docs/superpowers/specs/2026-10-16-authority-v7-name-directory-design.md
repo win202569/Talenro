@@ -1,7 +1,8 @@
 # Task11 首切片范围修订：146项名称只读目录
 
 状态：用户在7c6194bb后批准缩小首切片范围，并在a4af66ca后批准本书面修订。
-[实施计划](../plans/2026-10-16-authority-v7-name-directory.md)已编写，待审阅及选择执行方式，尚未实施。
+[实施计划](../plans/2026-10-16-authority-v7-name-directory.md)已获批准，按Native/inline执行；
+实现与验证状态以[结果记录](../../roadmap/2026-10-16-task11-name-directory-implementation.md)为准。
 仅提供精确schema/object名称目录与独立目录向量，角色及证据策略整体后置。
 本轮没有产品代码、向量、测试或负载执行，不修改原批准规格集。
 
