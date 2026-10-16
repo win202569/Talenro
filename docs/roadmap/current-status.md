@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Fixed ordinary leaf check — written design awaiting approval
+
+User requested the [ordinary nodeleafbinding verification design](../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md).
+It proposes a fixed dedicated controller over the unchanged ordinary runner:
+default vet build600s, original tests120s/native150s, first unverified outcome
+stops, no retry or diagnostic-binary reuse. Source/audit/artifact bindings and a
+durable completion marker gate scoped PackagePassed;overall Acceptance stays
+false. This is a proposal only:no implementation, native/test run or main merge.
+Next:review this written spec before a fake-only implementation plan;real execution
+requires its own later concrete single-run approval.
+
 ## Next acceptance boundary — read-only triage, no new execution
 
 The [post-build-only triage](2026-10-16-post-build-only-acceptance-triage.md)

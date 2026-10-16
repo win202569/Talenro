@@ -16,6 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest proposed work:[fixed ordinary leaf-check design](../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md).
+Written-spec review is pending;no controller or test implementation and no real
+execution is authorized by that document. Preserve default vet/ordinary completion
+gates and do not execute the old build-only binary. Resume at spec review,not a run.
+
 Latest follow-up:[acceptance triage](../roadmap/2026-10-16-post-build-only-acceptance-triage.md)
 is read-only. It identifies the next design decision and current source/path
 checks;it grants no new run, matrix replay or acceptance waiver. Read it before
