@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-16
 
+## Build-only diagnostic option1 — written spec awaiting user review
+
+User selected a separate compile/link diagnostic that alone requests -vet=off,
+preserving ordinary/default/matrix vet acceptance and32 cumulative attempts.
+The [proposed written design](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
+defines distinct identity/scope metadata,existing trigger/collector/cleanup,audits,
+strict ordinary refusal and fake compatibility tests. This approval permits the
+spec,not implementation or another real run. No code/tests/diagnostic executed
+in this increment. Next:user reviews the written spec,then a separate plan/method.
+
 ## Stage compile001 budget analysis — saved-only, no new execution
 
 Confirmed why delayed activation still reaches32 cumulative attempts:5 recorded

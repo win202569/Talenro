@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest design checkpoint:user selected option1 for a separate build-only
+diagnostic with fixed -vet=off;ordinary vet acceptance and32-attempt budget remain.
+The [written spec](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
+awaits user review. No implementation plan/code or new execution exists for this
+scope. Resume with that review,not by launching a diagnostic or replaying001.
+
 Latest saved-only [stage budget analysis](../roadmap/2026-10-16-compile-stage-budget-analysis.md)
 explains27 vet admissions/32 cumulative slots and225 subsequent logged vet
 command/config pairs. No new Run or policy change; no exact command/PID join.
