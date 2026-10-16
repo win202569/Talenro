@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Ordinary leaf check001 — concrete run proposal awaiting execution approval
+
+User approved preparation of the [single-run proposal](../superpowers/plans/2026-10-16-leaf-ordinary-check-001.md), not live execution.
+At53dd9c2d read-only planner checks found proposed output/control roots absent,
+four input hashes matching and71-source aggregate unchanged. No Go/native/test
+workload, output-root creation or full SDK/product audit occurred. Proposed scope:
+one default-vet build600s, conditional original test120s/native150s, unchanged
+ordinary evidence gates, first failure stops/no retry. Next:review and explicitly
+approve this concrete run;do not infer execution authority from preparation.
+Existing fake results and historical real failures remain separate;main stays open.
+
 ## Fixed ordinary leaf check — fake implementation and final regression complete
 
 User selected1 after8fa1363c. Planner2240adbe passed44 fake assertions per host;

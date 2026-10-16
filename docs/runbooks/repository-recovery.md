@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest handoff is the [ordinary check001 concrete proposal](../superpowers/plans/2026-10-16-leaf-ordinary-check-001.md).
+Preparation only was approved;real execution still awaits approval. Proposed
+roots were absent and four inputs/71-source aggregate matched at53dd9c2d.
+No new real build/test or full SDK/product readiness evidence exists. Resume at
+proposal review,not controller invocation. A different computer must prepare new
+machine bindings/approval;never replay001 or use the historical build-only binary.
+
 Ordinary leaf-check plan was approved for Native/inline with1 after8fa1363c.
 Its [implementation record](../roadmap/2026-10-16-leaf-ordinary-check-implementation.md)
 currently records planner/flow and initial saved/controller fake checks. Fresh
