@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-16
 
+## Task11 C1 — written clarification proposal awaiting approval
+
+User approved preparing the [request-auth/evidence clarification](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md).
+Proposal:common envelope,proposed claim_v1_security_admin_request role,separate
+request/response trust and keys,empty request bundle-evidence eligibility.
+This is new proposed contract,not an existing approved role or deployed policy.
+No canonical spec-set/product/config/key/test change or native execution.
+C1 remains OPEN pending written review;then resume147-row planning,not coding.
+Compatibility and canonical-set registration remain independently gated.
+
 ## Task11 registry — design approved, planning stopped at contract C1
 
 User approved written design after59bb7226. Reconciliation found

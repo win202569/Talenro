@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest C1 work is a [written clarification proposal](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md),
+not approval of its new request role or trust-policy rules. No canonical spec-set,
+production/source/key/config/test changes. Resume at written review;C1 remains
+OPEN and147-row registry planning incomplete. Do not treat the proposed role as
+an installed provider capability or start old Task11 commands.
+
 Task11 written design was approved after59bb7226;local plan preparation is now
 stopped at [request-authentication/evidence-signing gap C1](../roadmap/2026-10-16-task11-registry-planning-blocker.md).
 Do not infer a request role from its response or treat null evidence metadata

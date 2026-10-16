@@ -3,6 +3,8 @@
 状态：用户在59bb7226后以“是”批准本文，允许编写局部实施计划；逐项对照现已
 遇到[请求认证/证据签名契约阻塞C1](../../roadmap/2026-10-16-task11-registry-planning-blocker.md)。
 本文的停止规则生效；没有可执行计划或实施批准，不得猜测角色继续编码。
+现有[C1 局部澄清提案](2026-10-16-authority-v7-request-auth-clarification.md)待审阅；
+其中新角色及 SignerRoleOrNull 语义澄清尚未生效，不视为本文已获批内容。
 基线：21b55a99b6f625e88fa8ca42c4cea8de68622b76，现有开发分支
 codex/c12-b01-task9-coordinator。本文不是已批准实施计划，不授权代码、测试、
 fuzz、数据库、Docker、诊断或 main 合并操作。

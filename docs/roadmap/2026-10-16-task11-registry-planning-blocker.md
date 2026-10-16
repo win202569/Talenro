@@ -1,5 +1,10 @@
 # Task11 registry planning — stopped at request-authentication contract gap
 
+Follow-up: user approved preparing the [C1 clarification proposal](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md).
+The proposal suggests a dedicated request role/common envelope with no bundle
+evidence eligibility,not a retroactive claim about the old spec. Written approval
+is pending;C1 remains OPEN and no implementation-ready plan exists.
+
 Baseline:59bb7226277b04510aeb0068fe45e5be3573c2b2. User approved the
 [written design](../superpowers/specs/2026-10-16-authority-v7-registry-design.md)
 and authorized scoped plan preparation. This report is not an executable
