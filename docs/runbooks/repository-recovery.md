@@ -18,9 +18,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 Latest [compile-stage trigger spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
 is user-approved. Its [three-task implementation plan](../superpowers/plans/2026-10-16-compile-stage-retained.md)
-is pending user review/execution-method selection. No implementation or live rerun
-exists. Recover both from this branch; plan approval is not automatic real
-execution on a fresh PC, and fake verification cannot grant acceptance.
+was approved for Native/inline fake-only implementation, now complete with one
+review fix pass. Final18-suite regressions passed698 checks per PS7/5.1 host
+(10 static included each), all36 commands exit0;61 source/test hashes matched.
+Read the [implementation record](../roadmap/2026-10-16-compile-stage-retained-implementation.md)
+for actual results and remaining gates. Recover all three from this branch;
+implementation approval is not automatic real execution on a fresh PC, and fake
+verification cannot grant acceptance.
 
 Latest saved-only [cap/chronology analysis](../roadmap/2026-10-16-leaf-retained-cap-analysis.md)
 explains the cumulative32-attempt limit was reached at23.42s of a74.94s receipt.

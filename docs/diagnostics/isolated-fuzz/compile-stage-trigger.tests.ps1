@@ -1,3 +1,4 @@
+param([ValidateSet('all','line-bound','compiler-token')][string]$ReviewFocus='all')
 $ErrorActionPreference='Stop'
 function Check-Stage([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTION FAILED: '+$Name)};Write-Output ('PASS: '+$Name)}
 $source=Join-Path $PSScriptRoot 'compile-stage-trigger.cs'
@@ -8,6 +9,19 @@ $line='"C:/Fixed SDK/pkg/tool/windows_amd64/compile.exe" -o "$WORK/b127/_pkg_.a"
 function New-Stage([string]$Text=''){$b=New-Object FakeCompileStageBytes;$c=New-Object FakeCompileStageClock;$b.Append([Text.Encoding]::UTF8.GetBytes($Text));[pscustomobject]@{Bytes=$b;Clock=$c;Trigger=(New-Object CompileStageTrigger($b,$c,$compiler,$directory))}}
 function Stage-Hash([byte[]]$Bytes){$sha=[Security.Cryptography.SHA256]::Create();try{([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-','')}finally{$sha.Dispose()}}
 function Stage-Root($s,[uint32]$Status=258){$r=New-Object CompileStageRootCheck;$r.Succeeded=$true;$r.WaitResult=$Status;$r.Frequency=1000;$r.StartTimestamp=$s.Clock.Now;$r.EndTimestamp=$s.Clock.Now;$r.StartUTC=$s.Clock.UtcNow;$r.EndUTC=$s.Clock.UtcNow;return $r}
+if($ReviewFocus -cin @('all','line-bound')){
+    $s=New-Stage (('x'*65535)+"`n"+$line+"`n");$s.Trigger.Observe(100000)
+    Check-Stage ($s.Trigger.Report.State -ceq 'Failed' -and -not $s.Trigger.HasCandidate) 'review line-bound complete nonmatch fails'
+    $calls=$s.Bytes.ReadCalls;$s.Trigger.Observe(100000);Check-Stage ($s.Bytes.ReadCalls -eq $calls) 'review line-bound never reads later candidate';$s.Trigger.Dispose()
+    if($ReviewFocus -ceq 'line-bound'){return}
+}
+if($ReviewFocus -cin @('all','compiler-token')){
+    foreach($badToken in @(('"'+$compiler+"`n"),($compiler+([string][char]11)+'-p "'+"`n"),($compiler+([string][char]12)+'-p "'+"`n"))){
+        $s=New-Stage ($badToken+$line+"`n");$s.Trigger.Observe(100000);Check-Stage ($s.Trigger.Report.State -ceq 'Failed' -and -not $s.Trigger.HasCandidate) 'review malformed compiler first token fails';$s.Trigger.Dispose()
+    }
+    $s=New-Stage ('"'+$compiler+'-other'+"`n");$s.Trigger.Observe(100000);Check-Stage ($s.Trigger.Report.State -ceq 'Waiting') 'review compiler path boundary is exact';$s.Trigger.Dispose()
+    if($ReviewFocus -ceq 'compiler-token'){return}
+}
 $s=New-Stage $line;$s.Trigger.Observe(100000)
 Check-Stage (-not $s.Trigger.HasCandidate) 'FragmentedLine before LF'
 $s.Bytes.Append([byte[]]@(10));$s.Trigger.Observe(100000)

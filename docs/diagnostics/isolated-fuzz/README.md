@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:approved compile-stage retained diagnostic implementation passed final
+fake-only verification after one independent review/fix pass:18 suites/698 checks
+per PS7/5.1 host (10 static included each), all36 commands exit0. It adds a bounded
+target-package log trigger and a separate fixed controller, not default/matrix
+enablement or live execution. Read the
+[implementation record](../../roadmap/2026-10-16-compile-stage-retained-implementation.md).
+
 2026-10-16:saved-only compile001 chronology explains cumulative32 admissions
 stop new queries at23.42s; retained root-wait/final reads still occur. No new
 execution/cap change; the sample remains stopped and error87 unexplained. Read

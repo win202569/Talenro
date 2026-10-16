@@ -11,8 +11,12 @@
 **Spec:** [Approved written design](../specs/2026-10-16-compile-stage-retained-design.md).
 
 **Status:** User approved the written spec after54dc50188c23a885fd5f1ba4a7d2ba90b17f0bcb.
-This plan is pending user review and execution-method selection. All boxes below
-are future work, not executed checks or implementation approval.
+User then approved this plan and selected Native/inline execution. Tasks1/2
+are committed e0e971b2/b3c42aa2; Task3 and one review fix pass are complete.
+Post-fix fake verification passed18 suites/698 checks per PS7/5.1 host
+(10 static included per host), all36 commands exit0. Read the
+[implementation record](../../roadmap/2026-10-16-compile-stage-retained-implementation.md)
+for actual evidence/limits; no real execution is authorized by these steps.
 
 ## Global Constraints
 
@@ -91,7 +95,7 @@ Report fields hold no byte-source/clock/handles. Production FileCompileStageByte
 constructor(string path) opens once with read access/FileShare.ReadWrite (not Delete),
 implements this interface and closes once. Fixed package is internal, not an input.
 
-- [ ] **Step 1: Write named failing parser/provenance tests.** Add fake clock and
+- [x] **Step 1: Write named failing parser/provenance tests.** Add fake clock and
   appendable byte-source with read/dispose counters; no OS process adapters.
   Encode these assertions in executable tests:
 
@@ -111,20 +115,20 @@ length regression/read exception,16MiB/64KiB/60000 limits, backwards clock/deadl
 error truncation16x512, duplicate observations after terminal state and dispose-once.
 Unsupported escaping fails candidates rather than falling back to shell semantics.
 
-- [ ] **Step 2: Observe named RED.** Run
+- [x] **Step 2: Observe named RED.** Run
   `pwsh -NoProfile -File docs/diagnostics/isolated-fuzz/compile-stage-trigger.tests.ps1`.
   Expected:named missing CompileStageTrigger assertion, not a syntax/load accident.
-- [ ] **Step 3: Implement the interfaces/DTO/production reader.** Strict UTF-8,
+- [x] **Step 3: Implement the interfaces/DTO/production reader.** Strict UTF-8,
   narrow quoted tokenizer, exact grammar from spec section4; no variable expansion.
   Keep bounded line and read buffers; incremental prefix digest ends at candidate
   LF even with read-ahead. Do not finalize/invent activation in Observe.
   ResolveCandidate accepts only a successful unsignaled258 root check, ordered
   clocks and remaining deadline; signaled0 becomes RootExitedWithoutActivation,
   failures become Failed. Capture candidate/root-check/activation intervals.
-- [ ] **Step 4: Observe GREEN on both hosts in fresh processes.** Run the command
+- [x] **Step 4: Observe GREEN on both hosts in fresh processes.** Run the command
   above, then `& 'C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' -NoProfile -NonInteractive -File docs/diagnostics/isolated-fuzz/compile-stage-trigger.tests.ps1`.
   Require exit0/all named assertions PASS, no live calls; publish actual counts only.
-- [ ] **Step 5: Inspect the explicit file list before commit.** This task has
+- [x] **Step 5: Inspect the explicit file list before commit.** This task has
   exactly three new files listed above; stage those only and commit
   `diagnostics: add bounded compile-stage log trigger`. Correct any accidental
   source/test dependency or fixture coupling before moving to Task2.
@@ -168,7 +172,7 @@ The new native signature is Result RunWithCompileStageRetainedDiagnostics(string
 executable,string[] args,IDictionary overrides,string cwd,string stdout,string
 stderr,int limitSeconds); production controller always supplies600.
 
-- [ ] **Step 1: Write named failing fake session/receipt tests.** Assert:
+- [x] **Step 1: Write named failing fake session/receipt tests.** Assert:
 
 ```text
 WaitingCreatesNothing: factory/query/open counts all0 across unmatched/partial reads.
@@ -186,16 +190,16 @@ supervision/cleanup, no late activation, cap snapshots/releases, zero samples,
 native mode signature/selection static checks and LoaderInventoryCompatibility.
 Use fake session/root/API for dynamic ordering; do not call a real Run entry.
 
-- [ ] **Step 2: Run RED.** Execute each new session/receipt test file in a fresh
+- [x] **Step 2: Run RED.** Execute each new session/receipt test file in a fresh
   pwsh process; require named missing-session/optional-report assertions.
-- [ ] **Step 3: Implement session and explicit native wiring.** Keep old RunCore
+- [x] **Step 3: Implement session and explicit native wiring.** Keep old RunCore
   branches eager/default as today. Only the new mode defers registry allocation,
   opens stderr reader after native stream creation and uses session Tick/Snapshot.
   Waiting at root exit must be terminal. A root-check native failure records its
   original error; do not convert it into unsignaled success or mask core failures.
   Teardown tries core cleanup, reader disposal and every registry release; collect
   secondary disposal errors without replacing a primary core exception.
-- [ ] **Step 4: Update all four-source loaders/inventories/pins and receipt guard.**
+- [x] **Step 4: Update all four-source loaders/inventories/pins and receipt guard.**
   Production Add-Type and old integration loader include process-native.cs,
   retained-lifetime.cs, compile-stage-trigger.cs, compile-stage-session.cs.
   Converter omits a missing or null native CompileStageTrigger (the new typed
@@ -207,13 +211,13 @@ Use fake session/root/API for dynamic ordering; do not call a real Run entry.
   Include
   both new C# dependencies in preflight and existing child/leaf source bindings;
   leave eager entry algorithms and registry source unchanged.
-- [ ] **Step 5: Run GREEN/new and adjacent fake regressions on both fresh hosts.**
+- [x] **Step 5: Run GREEN/new and adjacent fake regressions on both fresh hosts.**
   Use Task1's host commands for compile-stage-session.tests.ps1,
   compile-stage-receipt.tests.ps1, retained-lifetime.tests.ps1,
   retained-lifetime-integration.tests.ps1, retained-lifetime-receipt.tests.ps1,
   retained-child-observation.tests.ps1 and leaf-retained-compile.tests.ps1.
   Require exit0/all assertions PASS; label static checks separately.
-- [ ] **Step 6: Review explicit task diff and commit**
+- [x] **Step 6: Review explicit task diff and commit**
   `diagnostics: wire isolated compile-stage retained mode`. No real process test,
   historical receipt reclassification or product/SDK edits.
 
@@ -234,7 +238,7 @@ Invoke-LeafStageRetainedCompileNative(plan,string Stdout,string Stderr) -> nativ
 Result (only external boundary); Invoke-LeafStageRetainedCompile with planner's
 four inputs -> finalized diagnostic state or stopped throw.
 
-- [ ] **Step 1: Write named controller RED tests with tiny portable SDK/module
+- [x] **Step 1: Write named controller RED tests with tiny portable SDK/module
   fixtures and fake native/SDK-audit/product inventory boundaries.** Assert:
 
 ```text
@@ -255,10 +259,10 @@ failure all stop. Reuse ordinary validator without clearing flags or mutating
 the receipt. Test product/SDK/source/artifact drift, primary plus multiple audit
 errors, result/manifest/marker persistence failures, consumed identity/no retry.
 
-- [ ] **Step 2: Run RED in fresh pwsh.** Command:
+- [x] **Step 2: Run RED in fresh pwsh.** Command:
   `pwsh -NoProfile -File docs/diagnostics/isolated-fuzz/leaf-stage-retained-compile.tests.ps1`;
   require named missing stage-controller assertion.
-- [ ] **Step 3: Implement the fixed independent controller.** Keep eager leaf
+- [x] **Step 3: Implement the fixed independent controller.** Keep eager leaf
   controller's policy/identity unchanged. Bind trigger compiler/package/source
   directory, fixed limits and full transitive source inventory in the new plan.
   Verify prefix/line from a bounded streaming read of at most16MiB, not a second
@@ -267,7 +271,7 @@ errors, result/manifest/marker persistence failures, consumed identity/no retry.
   Compose independent evidence results; source/core/lifetime failures remain
   distinct. Persist all original fixed-controller audits/manifest semantics and
   raw optional trigger metadata, never cache/tmp inventories or repeated native calls.
-- [ ] **Step 4: Run GREEN and final fake-only batch on both hosts.** One fresh
+- [x] **Step 4: Run GREEN and final fake-only batch on both hosts.** One fresh
   process per suite; use Task1's two host command forms for these18 files:
   compile-stage-trigger, compile-stage-session, compile-stage-receipt,
   leaf-stage-retained-compile, matrix-check, pair-sample, envelope-uninstrumented,
@@ -278,11 +282,11 @@ errors, result/manifest/marker persistence failures, consumed identity/no retry.
   fake/default modes; inspect any changed mode before running. Require all commands
   exit0; record exact host/suite/assertion/static counts and failures, not estimated
   or historical counts. Verify parsing/whitespace/local document links separately.
-- [ ] **Step 5: Request independent whole-change review.** Follow requesting-code-review;
+- [x] **Step 5: Request independent whole-change review.** Follow requesting-code-review;
   review against spec, interfaces, limits, default isolation, error precedence,
   fake-only coverage and source provenance. Address findings with focused RED/GREEN
   and scoped regression reruns; disclose review/test exclusions and unresolved gaps.
-- [ ] **Step 6: Record actual evidence/limits and preserve checkpoint.** Save raw
+- [x] **Step 6: Record actual evidence/limits and preserve checkpoint.** Save raw
   logs/source bindings only in a new ignored evidence identity; commit necessary
   production/test files and portable report/current-status/recovery updates.
   Check explicit staged file list; commit `diagnostics: prepare compile-stage retained controller`,

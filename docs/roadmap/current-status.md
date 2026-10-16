@@ -1,6 +1,6 @@
 # Project status — updated 2026-10-16
 
-## Compile-stage retained sampling — spec approved, plan pending review
+## Compile-stage retained sampling — fake implementation and regression complete
 
 User selected target-package compiler-log triggering over fixed elapsed delay.
 The [approved spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
@@ -9,8 +9,12 @@ evidence and fake-only tests;32 attempts/600s/cleanup and non-acceptance stay fi
 Log emission is not OS identity or a guaranteed end-phase capture. The
 [three-task plan](../superpowers/plans/2026-10-16-compile-stage-retained.md) covers
 parser, deferred native/session wiring, fixed controller and fake-only verification.
-No code/test/real-run change. Next:plan review and execution-method selection;
-neither implementation nor another compile is approved at this checkpoint.
+User approved Native/inline implementation. Parser/session/controller and one
+independent review fix pass are complete. Final18-suite fake regressions passed
+on PS7/5.1:698 checks per host (10 static included each), all36 commands exit0.
+All61 post-fix source/test hashes matched; no deferred minor review findings.
+Read the [implementation record](2026-10-16-compile-stage-retained-implementation.md).
+No real compile, generated binary runtime or acceptance is approved by this work.
 
 ## Leaf compile001 saved-only cap analysis — no new execution
 

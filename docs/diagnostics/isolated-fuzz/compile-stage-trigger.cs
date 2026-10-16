@@ -76,17 +76,40 @@ public sealed class CompileStageTrigger:IDisposable {
         }
         return result;
     }
-    bool LooksLikeCompiler(string text){
+    static bool LooksLikeCompiler(string text,string compiler){
         // Only a classification for fail-closed malformed candidates, never a match.
         string normalized=PathKey(text.TrimStart(' ','\t','\r','\v','\f').Replace("\\\\","\\"));
-        return normalized.StartsWith("\""+compiler+"\"",StringComparison.OrdinalIgnoreCase) || normalized.StartsWith(compiler+" ",StringComparison.OrdinalIgnoreCase) || normalized.StartsWith(compiler+"\t",StringComparison.OrdinalIgnoreCase);
+        string quoted="\""+compiler;
+        if(normalized.StartsWith(quoted,StringComparison.OrdinalIgnoreCase)){
+            int at=quoted.Length;return at==normalized.Length || normalized[at]=='"' || Space(normalized[at]);
+        }
+        if(normalized.StartsWith(compiler,StringComparison.OrdinalIgnoreCase)){
+            int at=compiler.Length;return at==normalized.Length || Space(normalized[at]);
+        }
+        return false;
     }
     bool MatchLine(){
+        int disposition=Disposition(line,lineLength,compiler,directory);
+        if(disposition<0)Fail("candidate-grammar-or-utf8");return disposition==1;
+    }
+    static int Disposition(byte[] raw,int count,string compiler,string directory){
         string text;
-        try{text=new UTF8Encoding(false,true).GetString(line,0,lineLength);}
-        catch(DecoderFallbackException){if(LooksLikeCompiler(Encoding.UTF8.GetString(line,0,lineLength)))Fail("candidate-utf8");return false;}
+        try{text=new UTF8Encoding(false,true).GetString(raw,0,count);}
+        catch(DecoderFallbackException){return count==Chunk || LooksLikeCompiler(Encoding.UTF8.GetString(raw,0,count),compiler)?-1:0;}
         List<string> tokens;
-        try{tokens=Tokens(text);}catch(FormatException e){if(LooksLikeCompiler(text))Fail("candidate-grammar:"+e.Message);return false;}
+        try{tokens=Tokens(text);}catch(FormatException){return count==Chunk || LooksLikeCompiler(text,compiler)?-1:0;}
+        if((tokens.Count==0 || !String.Equals(PathKey(tokens[0]),compiler,StringComparison.OrdinalIgnoreCase)) && LooksLikeCompiler(text,compiler))return -1;
+        return Eligible(tokens,compiler,directory)?1:(count==Chunk?-1:0);
+    }
+    // The saved-evidence consumer reuses the exact production grammar.
+    public static bool IsEligibleCommand(byte[] raw,string expectedCompiler,string sourceDirectory){
+        return GetCommandDisposition(raw,expectedCompiler,sourceDirectory)==1;
+    }
+    public static int GetCommandDisposition(byte[] raw,string expectedCompiler,string sourceDirectory){
+        if(raw==null || raw.Length==0 || raw.Length>Chunk || raw[raw.Length-1]!=10)return -1;
+        return Disposition(raw,raw.Length,PathKey(expectedCompiler),PathKey(sourceDirectory));
+    }
+    static bool Eligible(List<string> tokens,string compiler,string directory){
         if(tokens.Count<1 || !String.Equals(PathKey(tokens[0]),compiler,StringComparison.OrdinalIgnoreCase))return false;
         int p=-1,pack=-1;
         for(int i=1;i<tokens.Count;i++){

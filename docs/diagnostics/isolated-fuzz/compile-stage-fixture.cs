@@ -16,7 +16,7 @@ public sealed class FakeCompileStageBytes : ICompileStageByteSource {
     public void Append(byte[] bytes){long at=data.Position;data.Position=data.Length;data.Write(bytes,0,bytes.Length);data.Position=at;}
     public int Read(byte[] buffer,int offset,int count){ReadCalls++;if(ThrowRead)throw new IOException("fixture read");return data.Read(buffer,offset,Math.Min(count,MaxRead));}
     public void Dispose(){DisposeCalls++;if(ThrowDispose)throw new IOException("fixture dispose");data.Dispose();}
-    public static byte[] Padding(int length){var bytes=new byte[length];for(int i=0;i<length;i++)bytes[i]=(byte)((i%65536==65535 || i==length-1)?10:120);return bytes;}
+    public static byte[] Padding(int length){var bytes=new byte[length];for(int i=0;i<length;i++)bytes[i]=(byte)((i%32768==32767 || i==length-1)?10:120);return bytes;}
 }
 public sealed class FakeCompileStageRoot:ICompileStageRootProbe {
     public FakeCompileStageClock Clock;public uint WaitResult=258;public int Error,Calls;

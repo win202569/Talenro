@@ -2,9 +2,12 @@
 
 Date:2026-10-16. Base:5b6f6d1084b2bff076e71aa1c9eab0fd6f15a74f.
 Status:the user approved this written spec after54dc50188c23a885fd5f1ba4a7d2ba90b17f0bcb.
-The [implementation plan](../plans/2026-10-16-compile-stage-retained.md) is pending
-user review and execution-method selection. No code changes, fake-test execution,
-real compile or acceptance is authorized by this design approval alone.
+The user subsequently approved the [implementation plan](../plans/2026-10-16-compile-stage-retained.md)
+and selected Native/inline fake-only execution. Implementation and one review fix
+pass are complete; final fake verification passed18 suites/698 checks per
+PS7/5.1 host (10 static included each), all36 commands exit0. See the
+[implementation record](../../roadmap/2026-10-16-compile-stage-retained-implementation.md).
+No real compile or acceptance is authorized by those approvals.
 
 ## 1. Intent and non-goals
 
@@ -228,5 +231,6 @@ Task10/B01/production/main gates remain open.
 Save this spec with progress/recovery links on the existing development branch;
 do not include raw logs/receipts/SDK/cache/binaries. Git restores the proposed
 design and source/tests, not the previous computer's environment or live state.
-Written-spec review is complete; the next gate is implementation-plan review
-and execution-method choice. No implementation or live rerun has started.
+Written-spec/plan review and execution-method selection are complete; fake-only
+implementation and post-fix regression are complete. Any real rerun still
+requires separate approval.
