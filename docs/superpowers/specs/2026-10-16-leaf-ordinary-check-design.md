@@ -1,7 +1,9 @@
 # Fixed nodeleafbinding ordinary verification — proposed design
 
-Status: written proposal requested by the user; NOT yet approved for
-implementation or real execution. Baseline development checkpoint: `ffbb842b`.
+Status: written design approved by user “确认” after `9fdda6ff`.
+The [fake-only implementation plan](../plans/2026-10-16-leaf-ordinary-check.md)
+awaits approval and execution-method selection; real execution is not approved.
+Baseline development checkpoint: `ffbb842b`.
 
 ## 1. Intent and scope
 
@@ -13,8 +15,8 @@ original test binary. This addresses missing ordinary package evidence after
 whole C12 acceptance backlog. Windows PowerShell only; no downloads, security
 changes, product edits, matrix replay or diagnostic binary reuse.
 
-The user's current approval permits writing this proposal only. Written-spec
-approval permits an implementation plan; implementation requires plan approval.
+The written-spec approval permits an implementation plan only; implementation
+requires plan approval and execution-method selection.
 A later real invocation requires a separate, concrete single-run approval after
 fake-only implementation verification. None of these approvals is implied here.
 

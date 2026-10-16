@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest stage:ordinary leaf-check written design is approved after9fdda6ff;
+its [fake-only implementation plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
+awaits plan approval/execution-method selection. Resume there,not at a real run.
+The earlier pending-design paragraph below is historical;no implementation or
+new test result exists yet.
+
 Latest proposed work:[fixed ordinary leaf-check design](../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md).
 Written-spec review is pending;no controller or test implementation and no real
 execution is authorized by that document. Preserve default vet/ordinary completion

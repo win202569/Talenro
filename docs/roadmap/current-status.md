@@ -1,5 +1,13 @@
 # Project status — updated 2026-10-16
 
+## Fixed ordinary leaf check — design approved, implementation plan pending
+
+User approved the written design after9fdda6ff. The [three-task fake-only plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
+covers fixed planner, ordinary flow and durable final evidence;its final explicit
+allowlist is eight scripts per PS7/5.1 host. No implementation or test run yet.
+Next:approve the plan and select Native/inline (recommended) or subagent-driven.
+This does not approve a real Go/native/binary run, matrix replay or main merge.
+
 ## Fixed ordinary leaf check — written design awaiting approval
 
 User requested the [ordinary nodeleafbinding verification design](../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md).
