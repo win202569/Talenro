@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:ordinary check001 was approved but stopped before preflight execution
+because the executor's command failed PowerShell parsing. No controller/build/
+runtime call or output/control root creation occurred;no retry or acceptance.
+Read the [stopped preparation record](../../roadmap/2026-10-16-leaf-ordinary-check-001.md)
+before any new execution decision. Historical diagnostics below stay separate.
+
 2026-10-16:separately approved build-only001 completed one real compile,exit0/
 331.219s,5 retained admissions below32,scope/trigger/core/lifetime and final
 audits complete. Completed marker/10 artifacts verified;11536-file SDK/701

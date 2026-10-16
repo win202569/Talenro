@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Ordinary check001 — approved, stopped before preflight execution
+
+User approved the concrete run after2734cad9. The executor's first preflight
+command failed PowerShell parsing on a Bash-style brace path list;command body
+did not execute. Controller/build/runtime calls0;output/control roots confirmed
+absent. No real package result or new SDK/product readiness evidence. No retry
+was made,as the plan requires a new decision even after failed preflight.
+See the [stopped preparation and recovery](2026-10-16-leaf-ordinary-check-001.md).
+Next:approve corrected PowerShell preflight with parser validation and explicitly
+decide whether the still-absent001 identity may be retained. Main remains open.
+
 ## Ordinary leaf check001 — concrete run proposal awaiting execution approval
 
 User approved preparation of the [single-run proposal](../superpowers/plans/2026-10-16-leaf-ordinary-check-001.md), not live execution.

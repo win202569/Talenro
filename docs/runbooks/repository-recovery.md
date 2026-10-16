@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Ordinary check001 execution was approved after2734cad9 but stopped before
+preflight command execution due to the executor's PowerShell syntax error.
+Read the [stopped preparation record](../roadmap/2026-10-16-leaf-ordinary-check-001.md).
+No controller/build/test call or root creation occurred;no retry was made.
+Resume at a new corrected-preflight decision,not automatic controller invocation;
+earlier awaiting-approval proposal paragraphs below are historical.
+
 Latest handoff is the [ordinary check001 concrete proposal](../superpowers/plans/2026-10-16-leaf-ordinary-check-001.md).
 Preparation only was approved;real execution still awaits approval. Proposed
 roots were absent and four inputs/71-source aggregate matched at53dd9c2d.

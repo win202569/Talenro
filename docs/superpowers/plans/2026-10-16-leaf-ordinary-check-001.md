@@ -10,7 +10,7 @@
 
 **Spec:** [Approved ordinary design](../specs/2026-10-16-leaf-ordinary-check-design.md); [verified fake-only implementation](../../roadmap/2026-10-16-leaf-ordinary-check-implementation.md).
 
-**Status:** PROPOSAL ONLY. User approved preparing this concrete plan, not its live execution. Preparation imported the existing entry and called only Get-LeafOrdinaryCheckPlan; no Go/build/test/native workload, output-root creation or full SDK/product audit occurred. Execution checkboxes remain open.
+**Status:** Specific execution approved by user “是” after2734cad9, then STOPPED before preflight execution: the executor's command had a PowerShell ParserError. No controller/native/build/test call or output/control root creation occurred. No retry was made;execution checkboxes remain open because the planned work was not performed. See the [stopped preparation record](../../roadmap/2026-10-16-leaf-ordinary-check-001.md). A new decision is required before corrected preflight;do not replay this approval.
 
 **Baseline:** 53dd9c2da88203ece6f849d13095963d8b36b5bd on codex/c12-b01-task9-coordinator. Prior fake-only evidence:407 checks per PS7/5.1 host, including1 static each;16 commands exit0. This proposal supplies no new test result and no real package acceptance.
 
@@ -95,4 +95,4 @@ After the attempt create docs/roadmap/2026-10-16-leaf-ordinary-check-001.md and 
 
 ## Approval handoff
 
-Review this concrete proposal before live execution. Native/inline is retained; no extra execution-method choice is needed. This preparation approval does not authorize its controller call. Successful scoped package evidence, if obtained later, does not establish whole-project/main/production acceptance or explain historical error87/timeouts/fuzz failures.
+Execution was subsequently approved, but the first preflight command failed during PowerShell parsing. The explicit stop rule was followed without retry. Native/inline remains the method;any corrected preflight/controller call needs a new decision, including explicit permission if retaining the still-absent001 identity. No package/main/production acceptance or historical error87/timeouts/fuzz explanation follows from this stopped preparation.
