@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-16
 
+## Leaf retained compile001 — exit0, diagnostic STOPPED at cap
+
+One approved real compile-only invocation on0453f31f returned root0 in74944.8801ms,
+no timeout/termination; compiler-source evidence and core natural cleanup pass.
+Retained sampling reached32 attempts/admissions/releases,0 release failures;
+AdmissionBudgetExhausted=true, so lifetime/observation remain incomplete/false.
+No test binary execution or retry.701 product files/fixed SDK/source/artifacts
+unchanged;11 artifact hashes and stopped marker verified, no completed marker.
+Acceptance/PackagePassed/RuntimeAttempted false; ordinary guard still refuses.
+No code changes or broad test rerun. Next: saved-only cap/chronology analysis,
+not a larger cap or automatic rerun. See
+[actual outcome, evidence limits and recovery](2026-10-16-leaf-retained-compile-001.md).
+
 ## Fixed nodeleafbinding retained compile entry — fake-only preparation
 
 User approved independent compile-only diagnostic wrapper/tests, not real Go.

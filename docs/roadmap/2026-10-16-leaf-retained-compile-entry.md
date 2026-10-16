@@ -1,5 +1,10 @@
 # Fixed leaf retained compile entry — 2026-10-16
 
+Later separately approved real use:compile001 returned compiler exit0 but STOPPED
+at the unchanged32-attempt diagnostic cap. No generated binary execution or retry;
+read [actual outcome](2026-10-16-leaf-retained-compile-001.md). The fake-only scope
+and historical test counts below describe preparation, not that later live run.
+
 ## Approved scope
 
 User approved a bounded independent diagnostic compile entry for the package at

@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:separately approved leaf-retained-compile-001 real compile returned0
+but diagnostic observation STOPPED at32 admissions. No timeout/forced cleanup;
+compiler evidence/core cleanup verified, lifetime sampling incomplete. All final
+audits unchanged,11 artifacts verified, stopped/no completed marker. No binary
+execution/retry/acceptance. Read [actual result and recovery](../../roadmap/2026-10-16-leaf-retained-compile-001.md).
+
 2026-10-16:fixed nodeleafbinding retained-only compile wrapper prepared with
 portable fake tests. No real Go compile authorized/executed in this increment;
 never runs the generated binary and cannot grant package/ordinary acceptance.

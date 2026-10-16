@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest separately approved leaf-retained-compile-001 returned compiler exit0 but
+STOPPED on the32-attempt retained sampling cap; no runtime/retry/acceptance.
+Read [actual result and next scope](../roadmap/2026-10-16-leaf-retained-compile-001.md).
+Recover source/tests and portable progress from this branch, not ignored SDK/
+cache/raw evidence. Do not reuse001, increase caps or start a full matrix.
+
 Latest prepared diagnostic entry targets only nodeleafbinding compilation, not
 test execution; see [scope and portable checks](../roadmap/2026-10-16-leaf-retained-compile-entry.md).
 Real Go invocation is not approved by its fake-only implementation. On another
