@@ -1,5 +1,11 @@
 # Retained-handle diagnostics — implementation checkpoint
 
+Follow-up2026-10-16:the deferred M1 populated nested-receipt test is now covered.
+Receipt checks increase9 to16; three portable suites55 PASS per host. No product
+implementation change or rerun of the historical298-per-host suite is implied.
+See [coverage and recovery](2026-10-16-retained-receipt-coverage.md). The result and
+review narrative below describe the original2026-10-15 checkpoint.
+
 ## Approved scope and actual changes
 
 User approved the written spec and plan, choosing inline implementation. Base

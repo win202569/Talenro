@@ -1,4 +1,14 @@
-# Project status — updated 2026-10-15
+# Project status — updated 2026-10-16
+
+## Latest nested receipt coverage — prior nonblocking M1 covered
+
+Test-only populated32-entry diagnostic receipt now exercises cap/query/phase/
+ambiguity/null/error metadata at writer JSON depth6. Four in-memory loss/injection
+controls validate assertion sensitivity, not new production guard behavior.
+Receipt16+registry27+integration12 PASS perPS7/5.1 (55 each); seven other source
+pins unchanged. No native Run/Go/matrix/PID query or production code change.
+Older298-per-host evidence is not rerun. See
+[new coverage, fixture corrections and recovery](2026-10-16-retained-receipt-coverage.md).
 
 ## Latest retained-handle implementation — scoped checks PASS, not native acceptance
 

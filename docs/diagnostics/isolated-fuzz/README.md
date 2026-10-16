@@ -1,10 +1,17 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:test-only populated nested receipt coverage closes the prior M1 gap.
+Writer-depth6 roundtrip preserves32-entry metadata and nulls; in-memory corruption
+controls verify test sensitivity. Three portable suites55 PASS perPS7/5.1, no
+collector/guard change or real process run. Read
+[coverage and recovery](../../roadmap/2026-10-16-retained-receipt-coverage.md).
+
 Retained-handle implementation now has explicit opt-in native entry, bounded
 registry, optional receipt fields and unconditional diagnostic-mode refusal.
 Scoped verification PASS:11 suites/298 checks perPS7/5.1 plus2 PS7 supplemental
-checks; two review blockers fixed through RED/GREEN, one nonblocking nested-receipt
-test enhancement deferred. No real native Run/probe or matrix rerun/acceptance.
+checks at the2026-10-15 checkpoint; two review blockers fixed through RED/GREEN.
+Its deferred nested-receipt enhancement is covered by the2026-10-16 test increment
+above. No real native Run/probe or matrix rerun/acceptance.
 Read [implementation and limits](../../roadmap/2026-10-15-retained-lifetime-implementation.md).
 
 Retained-handle written spec and [three-task implementation
