@@ -58,6 +58,7 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
     }
 }
 function Assert-ProcessCompletion([object]$Receipt) {
+    if($null -ne $Receipt.PSObject.Properties['BuildOnlyDiagnostic']){throw 'Build-only diagnostics are not acceptance'}
     if($null -ne $Receipt.PSObject.Properties['CompileStageTrigger']){throw 'Compile-stage diagnostics are not acceptance'}
     $lifetime=$Receipt.PSObject.Properties['LifetimeDiagnosticOnly']
     if($null -ne $lifetime -and $lifetime.Value){throw 'Lifetime diagnostics are not acceptance'}

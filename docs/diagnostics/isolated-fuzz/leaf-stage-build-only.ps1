@@ -43,3 +43,51 @@ function Assert-LeafStageBuildOnlySources([object]$Plan) {
     }
     if($Plan.Executable -cne (Join-Path $Plan.Toolchain 'bin/go.exe') -or $Plan.ExecutableSHA256 -isnot [string] -or $Plan.ExecutableSHA256 -cnotmatch '^[A-F0-9]{64}$' -or (Get-FileHash -LiteralPath (Get-EnvelopeSampleFile $Plan.Executable) -Algorithm SHA256 -ErrorAction Stop).Hash -cne $Plan.ExecutableSHA256){throw 'Build-only executable drift'}
 }
+function Assert-LeafStageBuildOnlyValue($Actual,$Expected) {
+    $equal=$false
+    if($Expected -is [string]){$equal=$Actual -is [string] -and $Actual -ceq $Expected}
+    elseif($Expected -is [bool]){$equal=$Actual -is [bool] -and $Actual -eq $Expected}
+    else{$equal=($Actual -is [int] -or $Actual -is [long]) -and $Actual -eq $Expected}
+    if(-not $equal){throw 'Build-only fixed value or type mismatch'}
+}
+function Assert-LeafStageBuildOnlyMap($Actual,[hashtable]$Expected) {
+    if($null -eq $Actual){throw 'Build-only map missing'}
+    $map=New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
+    if($Actual -is [System.Collections.IDictionary]){foreach($pair in $Actual.GetEnumerator()){$map.Add([string]$pair.Key,$pair.Value)}}
+    else{foreach($property in $Actual.PSObject.Properties){$map.Add($property.Name,$property.Value)}}
+    if($map.Count -ne $Expected.Count){throw 'Build-only map keys differ'}
+    foreach($key in $Expected.Keys){if(-not $map.ContainsKey($key)){throw 'Build-only fixed key missing'};Assert-LeafStageBuildOnlyValue $map[$key] $Expected[$key]}
+}
+function Assert-LeafStageBuildOnlyArguments($Actual,[object[]]$Expected) {
+    if($Actual -is [string] -or @($Actual).Count -ne $Expected.Count){throw 'Build-only argument count/type mismatch'}
+    for($i=0;$i -lt $Expected.Count;$i++){Assert-LeafStageBuildOnlyValue $Actual[$i] $Expected[$i]}
+}
+function Get-LeafStageBuildOnlyEvidence([object]$Receipt,[object]$Plan,[string]$StderrPath) {
+    $scope=$false;$scopeError=$null
+    try {
+        # Validate constants independently of both records; two altered records
+        # agreeing with each other are not a fixed diagnostic plan.
+        $paths=Get-LeafStageBuildOnlyPaths $Plan.RunRoot $Plan.Toolchain $Plan.ReferenceReceipt $Plan.Environment.GOMODCACHE $false
+        $fixed=Get-LeafStageBuildOnlyFixedFields $paths
+        $values=@{Schema=1;RunRoot=$paths.RunRoot;Toolchain=$paths.Toolchain;ReferenceReceipt=$paths.ReferenceReceipt;Project=$paths.Project;Executable=$paths.Executable;Package='internal/nodecontrol/nodeleafbinding';Binary=$fixed.Binary;BuildLimitSeconds=600;DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;DiagnosticOnly=$true;Coverage='sampled';NoRetry=$true;Acceptance=$false;PackagePassed=$false;OriginalTestPassed=$false;RuntimeAttempted=$false}
+        foreach($key in $values.Keys){Assert-LeafStageBuildOnlyValue $Plan.$key $values[$key]}
+        Assert-LeafStageBuildOnlyArguments $Plan.BuildArguments $fixed.BuildArguments
+        Assert-LeafStageBuildOnlyMap $Plan.Environment $fixed.Environment
+        $trigger=@{};foreach($property in $fixed.Trigger.PSObject.Properties){$trigger[$property.Name]=$property.Value}
+        Assert-LeafStageBuildOnlyMap $Plan.Trigger $trigger
+        Assert-LeafStageBuildOnlySources $Plan
+        Assert-LeafStageBuildOnlyMap $Receipt.BuildOnlyDiagnostic @{Schema=1;Policy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false}
+        Assert-LeafStageBuildOnlyValue $Receipt.Executable $paths.Executable
+        Assert-LeafStageBuildOnlyValue $Receipt.WorkingDirectory $paths.Project
+        Assert-LeafStageBuildOnlyArguments $Receipt.Arguments $fixed.BuildArguments
+        Assert-LeafStageBuildOnlyMap $Receipt.Environment $fixed.Environment
+        $stdout=Get-EnvelopeSampleFile (Join-Path $paths.RunRoot 'build/stdout.txt')
+        $stderr=Get-EnvelopeSampleFile (Join-Path $paths.RunRoot 'build/stderr.txt')
+        Assert-LeafStageBuildOnlyValue $Receipt.StdoutPath $stdout
+        Assert-LeafStageBuildOnlyValue $Receipt.StderrPath $stderr
+        Assert-LeafStageBuildOnlyValue $StderrPath $stderr
+        $scope=$true
+    }catch{$scopeError=$_.Exception.Message}
+    $base=Get-LeafStageRetainedCompileEvidence $Receipt $Plan $StderrPath
+    [pscustomobject]@{DiagnosticOnly=$true;Coverage='sampled';Acceptance=$false;VetEvidenceComplete=$false;ScopeEvidenceComplete=$scope;ScopeError=$scopeError;TriggerEvidenceComplete=$base.TriggerEvidenceComplete;TriggerError=$base.TriggerError;CoreNaturalComplete=$base.CoreNaturalComplete;CoreError=$base.CoreError;LifetimeEvidenceComplete=$base.LifetimeEvidenceComplete;LifetimeError=$base.LifetimeError;ObservationPassed=($scope -and $base.ObservationPassed)}
+}
