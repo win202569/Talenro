@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:separately approved leaf-stage-retained-compile-001 compiled once,
+exit0/66.574s,trigger/core complete and final audits unchanged; deferred registry
+still capped at32 admissions (27 recorded vet.exe). Diagnostic STOPPED,no binary
+runtime/retry/acceptance. Read [actual result and saved-only next scope](../../roadmap/2026-10-16-leaf-stage-retained-compile-001.md).
+
 2026-10-16:approved compile-stage retained diagnostic implementation passed final
 fake-only verification after one independent review/fix pass:18 suites/698 checks
 per PS7/5.1 host (10 static included each), all36 commands exit0. It adds a bounded

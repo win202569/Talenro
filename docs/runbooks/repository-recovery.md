@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest real diagnostic:separately approved leaf-stage-retained-compile-001,
+base d04baca3,compile exit0/66.574s but STOPPED at32 sampled admissions,27 recorded
+vet.exe. Trigger/core evidence and final audits verified; lifetime sampling still
+incomplete,no binary runtime,retry or acceptance. Recover the
+[actual result and next boundary](../roadmap/2026-10-16-leaf-stage-retained-compile-001.md)
+from the latest development tip. The used identity and ignored SDK/cache/raw
+artifacts are not restored by cloning; never replay it automatically.
+
 Latest [compile-stage trigger spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
 is user-approved. Its [three-task implementation plan](../superpowers/plans/2026-10-16-compile-stage-retained.md)
 was approved for Native/inline fake-only implementation, now complete with one

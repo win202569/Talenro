@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-16
 
+## Compile-stage retained compile001 — compile succeeded, diagnostic STOPPED
+
+Separately approved one real compile-only attempt at base d04baca3. Native exit0
+in66.5742322s,trigger/core evidence complete and cleanup verified. Deferred
+activation at49.846s still filled32 admissions (27 recorded vet.exe); lifetime
+evidence/ObservationPassed false. No binary runtime,retry,cap change or main merge.
+Full copied SDK11536-file audits and701 product-file comparisons unchanged;
+all11 artifacts,15 helper bindings and61 source/test pins verified. STOPPED marker
+present; no completed marker. Read the [actual result and recovery](2026-10-16-leaf-stage-retained-compile-001.md).
+Next:saved-only budget/chronology analysis, not another real attempt. Wider gates
+and historical error87 remain open; prior fake results are not new acceptance.
+
 ## Compile-stage retained sampling — fake implementation and regression complete
 
 User selected target-package compiler-log triggering over fixed elapsed delay.

@@ -1,5 +1,10 @@
 # Compile-stage retained diagnostics — implementation record
 
+Later separately approved follow-up:[one real stage-triggered compile001](2026-10-16-leaf-stage-retained-compile-001.md)
+returned0 with trigger/core evidence verified, but remained STOPPED at32 admissions.
+That later execution does not change the fake-only implementation scope below or
+grant acceptance; do not reuse its identity or infer a retry authorization.
+
 ## Approved scope and execution
 
 User approved the [written design](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
