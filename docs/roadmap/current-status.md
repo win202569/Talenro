@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-16
 
+## Task11 — C2 approved,146-row initial audit recorded
+
+User approved C2 afterf6814efa. The [full audit](2026-10-16-task11-registry-metadata-audit.md)
+records146 exact pairs:93 locally source-backed classifications,53 unclosed
+reviews (4 known request roles/evidence pending). These are executor initial
+review states,not53 proven protocol defects or independent certification.
+All exceptions are listed together;no guessed defaults/partial production table
+or implementation-ready metadata plan. Next:consolidated resolution,or explicit
+name/object-only first-slice re-scope. No code/tests/native/canonical-set change.
+
 ## Task11 C2 — unified admission clarification awaiting review
 
 The [C2 written proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md)

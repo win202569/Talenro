@@ -1,5 +1,10 @@
 # Task11 registry reconciliation — corrected 146-row source index
 
+Latest:C2 method locally approved afterf6814efa. The
+[complete initial metadata audit](2026-10-16-task11-registry-metadata-audit.md)
+records93 source-backed classifications and53 unclosed reviews,including4
+known-request-role/evidence-pending rows. No executable full metadata plan yet.
+
 Follow-up:[consolidated C2 admission proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md)
 is written and awaiting approval. No row is certified merely by that proposal;
 the146-row metadata reconciliation and executable plan remain incomplete.

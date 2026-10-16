@@ -1,6 +1,8 @@
 # Task11 C2：元数据准入统一澄清附录
 
-状态：**书面提案待批准**。用户在6c9bbb99后批准编写本文，不等于批准以下新规则。
+状态：用户在f6814efa后以“是”批准本文作为本地对照依据，未授权实施或部署。
+现有[完整初审表](../../roadmap/2026-10-16-task11-registry-metadata-audit.md)记录93项有据、
+53项未闭合；批准统一方法不等于认证全表。canonical登记及兼容性仍开放。
 依据：[注册表设计](2026-10-16-authority-v7-registry-design.md)、
 [已本地批准C1](2026-10-16-authority-v7-request-auth-clarification.md)、
 [146项来源索引](../../roadmap/2026-10-16-task11-registry-reconciliation.md)。
@@ -74,7 +76,8 @@ message-specific bundle exact-cover、动态trust policy、可信时间、签名
 本提案只澄清本地目录准入，不登记canonical spec-set、不部署策略、不推断现有
 provider兼容性。兼容性UNKNOWN；原批准规格及摘要保持不动。
 批准本文后，下一步是按统一规则完成146项审查附表并集中报告例外，再写可执行
-计划；实施仍需计划及执行方式批准。当前C2保持待批准，全部生产/main门槛不变。
+计划；实施仍需计划及执行方式批准。当前C2方法已本地批准，全表仍有53项待闭合，
+全部生产/main门槛不变。
 
 自检：没有把absence当作null的充分依据，没有把签名等同evidence资格，没有
 请求免认证路径，没有把统一规则冒称全表认证，没有实现占位或虚构测试结果。

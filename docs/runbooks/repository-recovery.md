@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[146-row initial metadata audit](../roadmap/2026-10-16-task11-registry-metadata-audit.md).
+C2 approved afterf6814efa;93 classifications source-backed by executor,53
+reviews unclosed,not53 demonstrated defects. Full exceptions are portable.
+No executable metadata plan;resume consolidated resolution or explicit re-scope.
+Do not publish partial metadata,fill defaults or equate indexing with authority.
+
 Latest:[C2 admission clarification proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md),
 awaiting written approval. Resume at review,then complete146-row source-backed
 metadata decisions and a consolidated exception list. No executable plan or
