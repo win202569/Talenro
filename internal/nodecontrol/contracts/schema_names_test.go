@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -129,6 +133,121 @@ func TestAuthorityV7NameFixtureInventory(t *testing.T) {
 		t.Fatal("negative vector set incomplete")
 	}
 }
+func TestAuthorityV7NameDirectoryExactPairs(t *testing.T) {
+	expected, _, err := readNameGoldenFixture()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := AuthorityV7SchemaNames()
+	if len(got) != len(expected) {
+		t.Fatalf("list length=%d", len(got))
+	}
+	for i, want := range expected {
+		pair, err := LookupAuthorityV7SchemaName(want.Schema)
+		if err != nil || pair.Schema != want.Schema || pair.ObjectName != want.ObjectName {
+			t.Errorf("lookup %q=%+v, %v; want %+v", want.Schema, pair, err, want)
+		}
+		if got[i].Schema != want.Schema || got[i].ObjectName != want.ObjectName {
+			t.Errorf("list[%d]=%+v; want %+v", i, got[i], want)
+		}
+	}
+}
+func TestAuthorityV7NameDirectoryRejectsUnknown(t *testing.T) {
+	_, rejected, err := readNameGoldenFixture()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, schema := range rejected {
+		got, err := LookupAuthorityV7SchemaName(schema)
+		if got != (AuthorityV7SchemaName{}) || err != ErrUnknownAuthorityV7SchemaName || !errors.Is(err, ErrUnknownAuthorityV7SchemaName) {
+			t.Fatalf("unknown lookup returned value or non-sentinel")
+		}
+		if err.Error() != ErrUnknownAuthorityV7SchemaName.Error() {
+			t.Fatal("error echoes caller input")
+		}
+	}
+}
+func TestAuthorityV7NameDirectoryOwnsResults(t *testing.T) {
+	first, second := AuthorityV7SchemaNames(), AuthorityV7SchemaNames()
+	if len(first) != 146 || len(second) != 146 {
+		t.Fatal("wrong baseline list length")
+	}
+	pristine := append([]AuthorityV7SchemaName(nil), second...)
+	lookup, err := LookupAuthorityV7SchemaName(second[0].Schema)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lookup.Schema, lookup.ObjectName = "changed", "changed"
+	first[0].Schema, first[0].ObjectName = "changed", "changed"
+	first[0], first[1] = first[1], first[0]
+	first = append(first, AuthorityV7SchemaName{Schema: "extra", ObjectName: "ExtraV1"})
+	if !reflect.DeepEqual(second, pristine) || !reflect.DeepEqual(AuthorityV7SchemaNames(), pristine) {
+		t.Fatal("caller mutation leaked to another list")
+	}
+	for _, want := range pristine {
+		got, err := LookupAuthorityV7SchemaName(want.Schema)
+		if err != nil || got != want {
+			t.Fatal("caller mutation changed lookup")
+		}
+	}
+}
+func TestAuthorityV7NameDirectoryPublicBoundary(t *testing.T) {
+	var _ func(string) (AuthorityV7SchemaName, error) = LookupAuthorityV7SchemaName
+	var _ func() []AuthorityV7SchemaName = AuthorityV7SchemaNames
+	typ := reflect.TypeFor[AuthorityV7SchemaName]()
+	if typ.NumField() != 2 || typ.NumMethod() != 0 || reflect.PointerTo(typ).NumMethod() != 0 {
+		t.Fatal("name label gained state or methods")
+	}
+	for i, want := range []string{"Schema", "ObjectName"} {
+		f := typ.Field(i)
+		if f.Name != want || f.Type.Kind() != reflect.String || !f.IsExported() {
+			t.Fatal("name label field boundary changed")
+		}
+	}
+	file, err := parser.ParseFile(token.NewFileSet(), "schema_names.go", nil, parser.AllErrors)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, imp := range file.Imports {
+		path, err := strconv.Unquote(imp.Path.Value)
+		if err != nil || path != "errors" {
+			t.Fatal("directory acquired runtime dependency")
+		}
+	}
+	var exports []string
+	for _, decl := range file.Decls {
+		switch d := decl.(type) {
+		case *ast.FuncDecl:
+			if d.Name.IsExported() {
+				exports = append(exports, d.Name.Name)
+			}
+			if d.Recv != nil {
+				t.Fatal("directory gained a method")
+			}
+		case *ast.GenDecl:
+			for _, spec := range d.Specs {
+				switch s := spec.(type) {
+				case *ast.TypeSpec:
+					if s.Name.IsExported() {
+						exports = append(exports, s.Name.Name)
+					}
+				case *ast.ValueSpec:
+					for _, n := range s.Names {
+						if n.IsExported() {
+							exports = append(exports, n.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+	sort.Strings(exports)
+	want := []string{"AuthorityV7SchemaName", "AuthorityV7SchemaNames", "ErrUnknownAuthorityV7SchemaName", "LookupAuthorityV7SchemaName"}
+	if !reflect.DeepEqual(exports, want) {
+		t.Fatalf("unexpected public directory declarations: %v", exports)
+	}
+}
+
 func TestAuthorityV7NameFixtureRejectsMalformed(t *testing.T) {
 	expected, _, err := readNameGoldenFixture()
 	if err != nil {
