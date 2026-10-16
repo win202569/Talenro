@@ -638,11 +638,12 @@ reuse without rebuilding or retrying an existing arm.7 provenance assertions PAS
 including template-only drift. Old baseline results remain historical facts, not
 permission to reuse unbound binaries.
 
-# Ordinary leaf verification entry — implementation verification in progress
+# Ordinary leaf verification entry — fake implementation verified
 
 The [approved design](../../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md)
 and [fake-only implementation plan](../../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
 introduce a fixed default-vet ordinary nodeleafbinding entry. Read the
 [actual implementation record](../../roadmap/2026-10-16-leaf-ordinary-check-implementation.md)
-for current fake checks,limitations and remaining review/regression gates.
+for final8-suite407 checks per PS7/5.1 host (1 static included each),all16 commands
+exit0,71 source/test pins,one review/two verified repairs and remaining real gates.
 No real invocation is authorized;never reuse the build-only binary.

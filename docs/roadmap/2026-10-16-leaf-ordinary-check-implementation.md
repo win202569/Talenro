@@ -1,4 +1,4 @@
-# Ordinary leaf check — implementation in progress, fake-only
+# Ordinary leaf check — implementation verified, fake-only
 
 User approved the [written design](../superpowers/specs/2026-10-16-leaf-ordinary-check-design.md)
 and selected Native/inline execution of the [three-task plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
@@ -26,15 +26,16 @@ but replace native execution and expensive SDK/product inventory. Their data-onl
 executables are never run. Boundary source drift is modeled by altering the
 captured binding, not mutating a production helper in place.
 
-## Task3 status
+## Task3 execution and review repairs
 
 Saved-reader RED failed `SavedReaderExists`; full controller RED failed
 `SuccessHasDurableCompletedMarker`, on both hosts. Independent final audits,
 explicit15-file manifest, completion marker and saved-only evaluator are now
 implemented. Saved suite passed22 assertions per host and full controller passed45
 per host, exit0. Verified hosts:PS7.6.5 and Windows PS5.1.26100.9711, both64-bit.
-Final compatibility regression/review remain in progress; no completed
-implementation or overall acceptance is claimed by this checkpoint.
+These were initial Task3 results,not the final repaired-source regression below.
+The implementation is now verified in the approved fake-only scope;overall
+acceptance remains false and real execution has not occurred.
 
 The first final-regression orchestration stopped after planner PS7 exit0/44 and
 Windows PS5.1 exit1/1 because Get-FileHash was unavailable. A controlled host
@@ -44,9 +45,8 @@ defect or gate failure was suppressed:the failed logs remain, and the corrected
 serial launcher uses a new log identity with unchanged production source.
 
 The final allowlist is exactly eight scripts per PS7/Windows PS5.1 host, as named
-in the plan. Current results/counts, source pins, final review and remote checkpoint
-will be recorded only after they are actually verified. Historical build-only
-or matrix totals are not substituted for this increment.
+in the plan. Historical build-only or matrix totals are not substituted for this
+increment;the complete post-fix results are recorded below.
 
 One fresh read-only review of8fa1363c..ab30df3c found0 Critical,2 Important and
 1 Minor status-document issue. Important1:leaf receipt validation delegated to
@@ -57,8 +57,8 @@ Set-Content error persistence fails,before the leaf controller receives it.
 Both were independently reproduced with fake inputs:the string-flag refusal
 assertion failed,and the native-preservation assertion observed the inner
 persistence error instead of the original native error. The one repair pass has
-now produced covering RED/GREEN evidence;fresh final compatibility verification
-remains pending. No second reviewer substitutes for those tests. The minor
+now produced covering RED/GREEN evidence and a fresh complete final compatibility
+batch. No second reviewer substitutes for those tests. The minor
 stale-footer issue was updated in already-planned status/recovery closeout.
 
 Important1:the tracked receipt-flag test first failed on both hosts after a
@@ -78,13 +78,46 @@ exit0,with one native seam attempt and all eligible final audits. This is not
 an independent rereview of the fixes;the executor verified RED/GREEN.
 Repair checkpoint:`b54a2c6be899714f656f713b432862041a2b0a1a`. Use the latest
 development tip for subsequent preservation/final verification metadata;this
-hash alone does not certify the pending final compatibility batch.
+hash alone does not certify a regression batch;the measured final results below do.
 
 The pre-fix corrected serial final batch was interrupted after the findings,
 with8 completed commands exit0 (planner44/controller45/saved22/mapping36 per host).
 Its interrupted legacy-matrix execution is not a completed result. The next
 full final batch uses a new identity and pins the repaired source;old/partial
 results are preserved,not presented as post-fix verification.
+
+## Final repaired-source verification
+
+Frozen implementation:`b54a2c6be899714f656f713b432862041a2b0a1a`.
+Exactly16 fresh child commands completed,all exit0,with empty stderr;8 suites
+per host. Hosts:PS7.6.5 and Windows PS5.1.26100.9711,both64-bit. Each host passed
+407 assertions,including1 explicitly labelled static check (not407 native tests).
+
+| Script | PS7 assertions | PS5.1 assertions | Static included per host |
+| --- | ---: | ---: | ---: |
+| leaf-ordinary-check-plan.tests.ps1 |44|44|0|
+| leaf-ordinary-check.tests.ps1 |46|46|0|
+| leaf-ordinary-check-saved.tests.ps1 |35|35|0|
+| mapping-single-check.tests.ps1 |36|36|0|
+| matrix-check.tests.ps1 |60|60|0|
+| leaf-stage-build-only-plan.tests.ps1 |60|60|0|
+| leaf-stage-build-only-scope.tests.ps1 |41|41|0|
+| leaf-stage-build-only.tests.ps1 |85|85|1|
+
+All71 immediate .ps1/.cs source/test fingerprints matched after the batch.
+Aggregate SHA256:`AF83F1057EA2B71E31BCB38BD59F6518C2C68424BE77F1B1FD62A04D17340869`.
+Definition:form `Name|UPPERCASE_SHA256`,sort with StringComparer.Ordinal,join LF
+with one final LF,hash UTF8 without BOM. This binds current worktree bytes,not a
+promise of identical checkout line endings on another computer.
+Raw outcomes SHA256:`3418EF20B6E8F67F57B3BE441FA59D0A72F986BC7ADFA92D34419DA739E50730`;
+raw source-pin JSON SHA256:`CAF56008B22B28DDE5B2D1F7E82042470C2E4127BEE6397F2B25C33453D084A1`.
+Raw records remain local/ignored;this portable report carries the measured facts.
+
+One fresh review found the two Important issues above;one fix pass reproduced
+each RED then GREEN and passed the final16-command batch. Fixes were verified by
+the executor,not independently rereviewed. The minor status-document finding was
+closed as planned recovery housekeeping;no deferred minors. Existing shared
+guard/collector/matrix/mapping/build-only and product sources were not changed.
 
 ## Decisions and remaining gates
 

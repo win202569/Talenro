@@ -1,15 +1,19 @@
 # Project status — updated 2026-10-16
 
-## Fixed ordinary leaf check — approved Native/inline implementation in progress
+## Fixed ordinary leaf check — fake implementation and final regression complete
 
 User selected1 after8fa1363c. Planner2240adbe passed44 fake assertions per host;
 ordinary flowb3a0b52f passed31 per host, with planner44 per host rerun. Task3
 ab30df3c passed new saved22/controller45 per host. Fresh review found2 Important
 issues (receipt types/mode and inner-wrapper primary-error preservation),both
 reproduced RED and repaired in one pass. Expanded saved35 and targeted
-preservation2 assertions per host pass;fresh post-fix full compatibility checking
-is pending. This remains an unfinished,unaccepted checkpoint until then. Read the [implementation record](2026-10-16-leaf-ordinary-check-implementation.md).
+preservation2 assertions per host pass. Final8-suite regression passed407 checks
+per PS7/5.1 host (1 static included each),all16 commands exit0;all71 source/test
+fingerprints unchanged. One review/two Important repairs verified,no deferred
+minors and no independent rereview. Read the [implementation record](2026-10-16-leaf-ordinary-check-implementation.md).
 No real Go/native/binary/SDK/Docker execution or acceptance/main approval.
+Next:prepare a separately approved concrete single-run proposal if real ordinary
+package evidence is wanted;do not invoke the new entry automatically.
 
 ## Fixed ordinary leaf check — design approved, implementation plan pending
 

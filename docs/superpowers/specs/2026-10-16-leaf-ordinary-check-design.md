@@ -3,7 +3,8 @@
 Status: written design approved by user “确认” after `9fdda6ff`.
 The [fake-only implementation plan](../plans/2026-10-16-leaf-ordinary-check.md)
 was approved for Native/inline execution with1 after8fa1363c; implementation
-verification is in progress. Real execution is not approved.
+verification is complete in the approved fake-only scope (final407 checks per
+host,16 commands exit0,one review/two repairs). Real execution is not approved.
 Baseline development checkpoint: `ffbb842b`.
 
 ## 1. Intent and scope
