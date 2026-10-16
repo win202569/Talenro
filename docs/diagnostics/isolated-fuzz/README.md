@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:fixed nodeleafbinding retained-only compile wrapper prepared with
+portable fake tests. No real Go compile authorized/executed in this increment;
+never runs the generated binary and cannot grant package/ordinary acceptance.
+Counter32 stays capped; independent final audits and persisted SDK identity are
+required. Read [entry and recovery](../../roadmap/2026-10-16-leaf-retained-compile-entry.md)
+before any separately approved live compile.
+
 2026-10-16:separately approved retained-child-observe-002 single real observation
 PASS as sampled diagnostics only. Preserved root-wait descendants2, final0/empty;
 3 admissions/releases,0 failures, no timeout/forced cleanup. Completion marker

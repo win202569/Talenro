@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-16
 
+## Fixed nodeleafbinding retained compile entry — fake-only preparation
+
+User approved independent compile-only diagnostic wrapper/tests, not real Go.
+New owned leaf-retained-compile-NNN identity, fixed copied SDK/offline environment,
+600s native compile/unchanged cleanup and32-attempt cap. Never executes generated
+binary; Acceptance/PackagePassed/RuntimeAttempted stay false. Three review findings
+have focused RED/GREEN fixes:counter cap, independent final audits, persisted SDK
+receipt identity. Final7 scoped suites/283 checks PASS perPS7/5.1 (leaf99);
+four integration checks static.19 final source pins/23-file local evidence binding
+verified. Reviewer did not re-review fixes; coordinator verified RED/GREEN and
+final regressions. Earlier148/389 totals are not current full-suite results.
+No real Go/native experiment/SDK audit/matrix/PID query or default-gate change. See
+[entry, evidence limits and recovery](2026-10-16-leaf-retained-compile-entry.md).
+
 ## Retained-child observation002 — sampled observation PASS, not acceptance
 
 One separately approved fresh-host observation afterd0973dde ran once:2921.5231ms,

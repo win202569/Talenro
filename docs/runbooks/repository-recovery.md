@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest prepared diagnostic entry targets only nodeleafbinding compilation, not
+test execution; see [scope and portable checks](../roadmap/2026-10-16-leaf-retained-compile-entry.md).
+Real Go invocation is not approved by its fake-only implementation. On another
+PC prepare/approve the concrete fixed SDK/reference/cache inputs separately; do
+not infer live readiness from cloning this development checkpoint.
+
 Latest controlled observation002 after the phase fix passes sampled diagnostic
 checks only; see [evidence and limits](../roadmap/2026-10-16-retained-child-observation-002.md).
 It does not clear the historical matrix/error87 or production/main gates.001
