@@ -1,11 +1,16 @@
-param([ValidateSet('flow','all')][string]$ReviewFocus='all')
+param([ValidateSet('flow','all','review')][string]$ReviewFocus='all')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'leaf-ordinary-check-fixture.ps1')
 . (Join-Path $PSScriptRoot 'leaf-ordinary-check.ps1')
 Check-LeafOrdinary ($null -ne (Get-Command Invoke-LeafOrdinaryCheck -ErrorAction SilentlyContinue)) 'ControllerExists'
+function Test-LeafReviewPrimary {
+    $x=Invoke-LeafOrdinaryTestCase 'native-throw-inner-persist'
+    Check-LeafOrdinary ($x.NativeCalls -eq 1 -and $x.Error -match 'controlled native exception' -and $x.Saved.AuditErrors -match 'controlled phase error persistence' -and $x.AuditCalls.Product -eq 2 -and $x.AuditCalls.SDK -eq 2 -and $x.AuditCalls.Artifact -eq 1) 'OriginalNativeSurvivesInnerWrapperPersistenceAndAudits'
+}
+if($ReviewFocus -ceq 'review'){Test-LeafReviewPrimary;return}
 $s=Invoke-LeafOrdinaryTestCase 'success'
 Check-LeafOrdinary ($null -eq $s.Error -and $s.NativeCalls -eq 2 -and $s.Saved.CompilePassed -and $s.Saved.OriginalTestPassed -and -not $s.Saved.PackagePassed -and $s.Saved.FinalizationRequired) 'FixedOrdinaryFlowProvisional'
-if($ReviewFocus -ceq 'all'){Check-LeafOrdinary (Test-Path -LiteralPath (Join-Path $s.Root 'completed.json') -PathType Leaf) 'SuccessHasDurableCompletedMarker'}
+if($ReviewFocus -ceq 'all'){Check-LeafOrdinary (Test-Path -LiteralPath (Join-Path $s.Root 'completed.json') -PathType Leaf) 'SuccessHasDurableCompletedMarker';Test-LeafReviewPrimary}
 foreach($scenario in @('preflight','build-exit','build-timeout','build-error87','build-diagnostic','build-schema','build-query','build-truncated','build-unknown','missing-binary','missing-compile-evidence','binary-before-run','source-before-run','runtime-exit','runtime-timeout','runtime-forced','runtime-query','runtime-diagnostic','runtime-truncated','runtime-unknown','no-tests','no-final-pass','fail-line','diagnostic-stdout','diagnostic-stderr','native-throw','native-throw-persist')){
     $r=Invoke-LeafOrdinaryTestCase $scenario
     $want=if($scenario -ceq 'preflight'){0}elseif($scenario -like 'runtime-*' -or $scenario -cin @('no-tests','no-final-pass','fail-line','diagnostic-stdout','diagnostic-stderr')){2}else{1}

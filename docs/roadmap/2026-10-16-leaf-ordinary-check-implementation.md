@@ -56,10 +56,32 @@ shared recorded-process wrapper can replace a native exception if its own
 Set-Content error persistence fails,before the leaf controller receives it.
 Both were independently reproduced with fake inputs:the string-flag refusal
 assertion failed,and the native-preservation assertion observed the inner
-persistence error instead of the original native error. Neither is yet claimed
-fixed here. One repair pass and fresh final covering verification are required;
-no second reviewer will substitute for those tests. The minor stale-footer issue
-is part of already-planned status/recovery closeout.
+persistence error instead of the original native error. The one repair pass has
+now produced covering RED/GREEN evidence;fresh final compatibility verification
+remains pending. No second reviewer substitutes for those tests. The minor
+stale-footer issue was updated in already-planned status/recovery closeout.
+
+Important1:the tracked receipt-flag test first failed on both hosts after a
+positive populated nested receipt. Native-model field/collection type validation
+and typed-false ordinary-mode checks are leaf-local;shared guards are unchanged.
+PS7 default JSON parsing promotes ISO strings to DateTime,a behavior reproduced
+with a controlled parser probe. The leaf reader preserves JSON strings through
+DateKind=String where supported rather than weakening native-field checks.
+The resulting saved suite passed35 assertions per host,exit0,covering nested
+flags,scalar collections,nonordinary mode and timestamp strings.
+
+Important2:the tracked inner-wrapper-persistence test failed on both hosts.
+A leaf-owned recorded adapter now calls the unchanged ordinary
+Invoke-MatrixNative boundary and independently preserves native primary and
+secondary recording errors. The targeted test passed2 assertions per host,
+exit0,with one native seam attempt and all eligible final audits. This is not
+an independent rereview of the fixes;the executor verified RED/GREEN.
+
+The pre-fix corrected serial final batch was interrupted after the findings,
+with8 completed commands exit0 (planner44/controller45/saved22/mapping36 per host).
+Its interrupted legacy-matrix execution is not a completed result. The next
+full final batch uses a new identity and pins the repaired source;old/partial
+results are preserved,not presented as post-fix verification.
 
 ## Decisions and remaining gates
 
@@ -72,6 +94,11 @@ is part of already-planned status/recovery closeout.
 4. Overlap one read-only implementation review with final frozen-source
    verification:independent activities,not a test-result certification;cost is
    that any review fix still requires fresh final covering verification.
+5. Use a leaf-owned recorded adapter rather than change the shared wrapper:
+   primary-error preservation conflicts with its unguarded persistence;cost is
+   one local conversion/persistence path requiring covering fake tests.
+6. Update stale plan text as required status/recovery closeout,not optional code
+   polish;cost if missed is duplicate approval/execution during recovery.
 
 No real Go compile, generated-binary runtime, native workload, PID query,
 SDK inventory, Docker, matrix replay, security change or main merge occurred.

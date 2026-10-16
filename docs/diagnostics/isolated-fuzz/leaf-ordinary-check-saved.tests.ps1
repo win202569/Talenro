@@ -26,10 +26,40 @@ function Update-LeafTestSeal {
     $c=Get-Content -LiteralPath (Join-Path $root 'completed.json') -Raw|ConvertFrom-Json
     $c.ManifestSHA256=(Get-FileHash -LiteralPath (Join-Path $root 'evidence-manifest.json')).Hash;Write-LeafTestValue 'completed.json' $c
 }
-foreach($case in @('ProvisionalRefused','PendingRefused','ContradictionRefused','ManifestHashMutation','ArtifactMutation','UnsafeRow','DuplicateRow','MissingRequiredRow','AlteredPlanAndReceipt','SourceDrift','InputDrift','TypedBooleanMutation','ResultBooleanMutation','QueryMutation','AttemptMutation','TestOutputMutation')){
+$populated=Get-Content -LiteralPath (Join-Path $root 'build/receipt.json') -Raw|ConvertFrom-Json
+$row=New-Object 'IsolatedFuzzProcess+MemberObservation';$row.Id=23;$row.Owned=$true;$row.ExitCodeRead=$true;$row.State='running';$row.ConfirmationAttempted=$true;$row.ConfirmationState='running'
+$row.FinalShutdown=New-Object 'IsolatedFuzzProcess+ShutdownObservation'
+foreach($entry in @{MemberId=23;SameHandleVerified=$true;Attempted=$true;State='exited';ExitCodeRead=$true;WaitBudgetMs=100;StartElapsedMs=0;EndElapsedMs=1}.GetEnumerator()){$row.FinalShutdown.($entry.Key)=$entry.Value}
+$row.ProcessOpen=New-Object 'IsolatedFuzzProcess+MemberQueryObservation';$row.ProcessOpen.API='OpenProcess';$row.ProcessOpen.Succeeded=$true
+$row.JobMembership=New-Object 'IsolatedFuzzProcess+MemberQueryObservation';$row.JobMembership.API='IsProcessInJob';$row.JobMembership.Succeeded=$true
+$populated.MembersAtRootWait=@(23);$populated.ActiveAtRootWait=1;$populated.DescendantsRemaining=1;$populated.TotalProcesses=2
+$populated.MemberEvidence=@($row);$populated.ShutdownMemberEvidence=@($row)
+$populated.InitialAccountingQuery.ActiveProcesses=1;$populated.InitialAccountingQuery.TotalProcesses=2
+$populated.InitialMemberQueries[0].Assigned=1;$populated.InitialMemberQueries[0].Returned=1
+Write-LeafTestValue 'build/receipt.json' $populated;Update-LeafTestSeal
+Check-LeafOrdinary ((Get-LeafOrdinarySavedEvidence $root).PackagePassed) 'PopulatedNestedReceiptPasses'
+foreach($name in $backup.Keys.Clone()){ $backup[$name]=[IO.File]::ReadAllBytes((Join-Path $root $name)) }
+foreach($case in @('ReceiptRootFlag','ReceiptCleanupFlag','ReceiptQueryFlag','ReceiptValuesFlag','LiveSampling','ScalarQueries','ScalarMembers','ScalarIDs','MemberOwnedFlag','FinalSameHandleFlag','NestedQueryFlag','ProvisionalRefused','PendingRefused','ContradictionRefused','ManifestHashMutation','ArtifactMutation','UnsafeRow','DuplicateRow','MissingRequiredRow','AlteredPlanAndReceipt','SourceDrift','InputDrift','TypedBooleanMutation','ResultBooleanMutation','QueryMutation','AttemptMutation','TestOutputMutation')){
     foreach($name in $backup.Keys){[IO.File]::WriteAllBytes((Join-Path $root $name),$backup[$name])}
     $extra=$null;$inputPath=$null;$inputBytes=$null
     switch($case){
+        {$_ -cin @('ReceiptRootFlag','ReceiptCleanupFlag','ReceiptQueryFlag','ReceiptValuesFlag','LiveSampling','ScalarQueries','ScalarMembers','ScalarIDs','MemberOwnedFlag','FinalSameHandleFlag','NestedQueryFlag')} {
+            $r=Get-Content -LiteralPath (Join-Path $root 'build/receipt.json') -Raw|ConvertFrom-Json
+            switch($case){
+                'ReceiptRootFlag' {$r.RootExited='false'}
+                'ReceiptCleanupFlag' {$r.CleanupVerified='false'}
+                'ReceiptQueryFlag' {$r.InitialAccountingQuery.Succeeded='false'}
+                'ReceiptValuesFlag' {$r.InitialAccountingQuery.ValuesRead='false'}
+                'LiveSampling' {$r.LiveSampling=$true}
+                'ScalarQueries' {$r.InitialMemberQueries=$r.InitialMemberQueries[0]}
+                'ScalarMembers' {$r.ShutdownMemberEvidence=$r.ShutdownMemberEvidence[0]}
+                'ScalarIDs' {$r.MembersAtRootWait=23}
+                'MemberOwnedFlag' {$r.ShutdownMemberEvidence[0].Owned='false'}
+                'FinalSameHandleFlag' {$r.ShutdownMemberEvidence[0].FinalShutdown.SameHandleVerified='false'}
+                'NestedQueryFlag' {$r.ShutdownMemberEvidence[0].ProcessOpen.Succeeded='false'}
+            }
+            Write-LeafTestValue 'build/receipt.json' $r;Update-LeafTestSeal
+        }
         'ProvisionalRefused' {$c=Get-Content -LiteralPath (Join-Path $root 'completed.json') -Raw|ConvertFrom-Json;$c.PackagePassed=$false;Write-LeafTestValue 'completed.json' $c}
         'PendingRefused' {$extra=Join-Path $root 'completed.pending.json';[IO.File]::WriteAllText($extra,'{}')}
         'ContradictionRefused' {$extra=Join-Path $root 'stopped.json';[IO.File]::WriteAllText($extra,'{}')}
@@ -54,4 +84,5 @@ foreach($case in @('ProvisionalRefused','PendingRefused','ContradictionRefused',
 foreach($name in $backup.Keys){[IO.File]::WriteAllBytes((Join-Path $root $name),$backup[$name])}
 $r=Get-Content -LiteralPath (Join-Path $root 'build/receipt.json') -Raw|ConvertFrom-Json
 Check-LeafOrdinary ($r.MembersAtRootWait -is [array] -and $r.InitialMemberQueries -is [array] -and $r.CleanupVerified -is [bool] -and $r.InitialMemberQueries.Count -eq 1) 'PS51Roundtrip'
+Check-LeafOrdinary ((Read-LeafOrdinaryJSON (Join-Path $root 'build/receipt.json')).StartUTC -is [string]) 'NativeTimestampRemainsJSONString'
 Check-LeafOrdinary ((Get-LeafOrdinarySavedEvidence $root).PackagePassed) 'RestoredFixturePasses'

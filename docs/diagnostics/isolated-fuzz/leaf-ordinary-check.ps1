@@ -70,7 +70,33 @@ function Get-LeafOrdinaryTestOutput([string]$Stdout,[string]$Stderr){
     if($values.TopLevelPass.Count -lt 1){throw 'No original top-level test PASS'}
     [pscustomobject]$values
 }
+function Assert-LeafOrdinaryNativeShape($Value,[type]$Model){
+    if($Model -eq [bool]){if($Value -isnot [bool]){throw 'Receipt Boolean type missing'};return}
+    if($Model -eq [string]){if($null -ne $Value -and $Value -isnot [string]){throw 'Receipt string type differs'};return}
+    if($Model -in @([int],[long],[uint32],[uint64])){
+        if($null -eq $Value -or $Value.GetType() -notin @([int],[long],[uint32],[uint64])){throw 'Receipt integral type missing'}
+        if(($Model -in @([uint32],[uint64]) -and $Value -lt 0) -or ($Model -eq [uint32] -and $Value -gt [uint32]::MaxValue) -or ($Model -eq [int] -and ($Value -lt [int]::MinValue -or $Value -gt [int]::MaxValue))){throw 'Receipt numeric range differs'}
+        return
+    }
+    if($Model.IsArray -or ($Model.IsGenericType -and $Model.GetGenericTypeDefinition() -eq [System.Collections.Generic.List``1])){
+        if($Value -isnot [System.Collections.IList]){throw 'Receipt collection must retain its array/list shape'}
+        $element=if($Model.IsArray){$Model.GetElementType()}else{$Model.GetGenericArguments()[0]}
+        foreach($item in $Value){Assert-LeafOrdinaryNativeShape $item $element};return
+    }
+    # Nullable native observation objects remain nullable. Predicates below
+    # decide which of those observations the ordinary success path requires.
+    if($null -eq $Value){return}
+    foreach($field in $Model.GetFields()){
+        if($field.Name -ceq 'CompileStageTrigger'){continue}
+        $property=$Value.PSObject.Properties[$field.Name]
+        if($null -eq $property){throw ('Receipt field missing: '+$field.Name)}
+        Assert-LeafOrdinaryNativeShape $property.Value $field.FieldType
+    }
+}
 function Assert-LeafOrdinaryReceipt([object]$Receipt,[object]$Plan,[bool]$Build){
+    Assert-LeafOrdinaryNativeShape $Receipt ([IsolatedFuzzProcess+Result])
+    foreach($field in @('LiveSampling','ShutdownDiagnosticOnly','LifetimeDiagnosticOnly')){Assert-LeafOrdinaryEqual $Receipt.$field $false}
+    if($null -ne $Receipt.LifetimeDiagnostics -or $Receipt.MembersDuringRun.Count -ne 0){throw 'Nonordinary live/retained metadata rejected'}
     Assert-ProcessCompletion $Receipt
     if($Receipt.ShutdownSchema -isnot [int] -and $Receipt.ShutdownSchema -isnot [long]){throw 'Typed ordinary schema missing'}
     if($Receipt.ShutdownSchema -ne 3 -or $Receipt.ExitCode -ne 0){throw 'Ordinary schema3/exit0 required'}
@@ -84,7 +110,14 @@ function Assert-LeafOrdinaryFinalArtifacts([object]$Plan,[object[]]$Bindings){
 function Get-LeafOrdinaryRequiredFiles {
     @('plan.json','source-binding.json','input-binding.json','progress.json','before-product.json','after-product.json','artifact-binding.json','result.json','package.test.exe','build/receipt.json','build/stdout.txt','build/stderr.txt','execute/receipt.json','execute/stdout.txt','execute/stderr.txt')
 }
-function Read-LeafOrdinaryJSON([string]$Path){Get-Content -LiteralPath (Get-EnvelopeSampleFile $Path) -Raw -ErrorAction Stop|ConvertFrom-Json -ErrorAction Stop}
+function Read-LeafOrdinaryJSON([string]$Path){
+    $text=Get-Content -LiteralPath (Get-EnvelopeSampleFile $Path) -Raw -ErrorAction Stop
+    $options=@{ErrorAction='Stop'}
+    # New PS7 releases otherwise promote native ISO string fields to DateTime.
+    # Preserve the JSON/native field types rather than weakening their checks.
+    if((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')){$options.DateKind='String'}
+    ConvertFrom-Json -InputObject $text @options
+}
 function Assert-LeafOrdinarySavedCore([string]$RunRoot,[object]$Marker){
     $root=Get-IsolatedFullPath $RunRoot
     $plan=Read-LeafOrdinaryJSON (Join-Path $root 'plan.json')
@@ -139,6 +172,37 @@ function Get-LeafOrdinarySavedEvidence([string]$RunRoot){
     $marker=Read-LeafOrdinaryJSON (Join-Path $root 'completed.json')
     Assert-LeafOrdinarySavedCore $root $marker
 }
+function Invoke-LeafOrdinaryRecordedProcess([object]$Plan,[bool]$Build,[object]$State){
+    # The shared matrix recorder can mask the native exception if its own
+    # catch-block persistence fails. Own recording here,not the native policy.
+    Assert-LeafOrdinaryCheckPlan $Plan $false
+    $phase=if($Build){'build'}else{'execute'}
+    $dir=Get-IsolatedFullPath (Join-Path $Plan.RunRoot $phase)
+    if(Test-Path -LiteralPath $dir){throw 'New owned phase directory required'}
+    $exe=Get-EnvelopeSampleFile $(if($Build){$Plan.Executable}else{$Plan.Binary})
+    $arguments=if($Build){$Plan.BuildArguments}else{$Plan.Arguments}
+    $cwd=if($Build){$Plan.Project}else{$Plan.WorkingDirectory}
+    $limit=if($Build){600}else{150}
+    New-Item -ItemType Directory -Path $dir -ErrorAction Stop|Out-Null
+    $stdout=Join-Path $dir 'stdout.txt';$stderr=Join-Path $dir 'stderr.txt'
+    try{
+        $native=Invoke-MatrixNative $exe $arguments $Plan.Environment $cwd $stdout $stderr $limit
+        $fields=@{}
+        foreach($property in $native.PSObject.Properties){
+            if($property.Name -ceq 'CompileStageTrigger' -and $null -eq $property.Value){continue}
+            $fields[$property.Name]=$property.Value
+        }
+        foreach($pair in @(@('Executable',$exe),@('Arguments',$arguments),@('Environment',$Plan.Environment),@('WorkingDirectory',$cwd),@('StdoutPath',$stdout),@('StderrPath',$stderr))){$fields[$pair[0]]=$pair[1]}
+        $receipt=[pscustomobject]$fields
+        Write-LeafOrdinaryJSON (Join-Path $dir 'receipt.json') $receipt
+        return $receipt
+    }catch{
+        $primary=$_
+        try{Write-LeafOrdinaryJSON (Join-Path $dir 'launch-error.json') @{Error=$primary.Exception.Message;Acceptance=$false;NoRetry=$true}}
+        catch{$State.AuditErrors+=@('launch-error-persistence: '+$_.Exception.Message)}
+        throw $primary
+    }
+}
 function Invoke-LeafOrdinaryCheck([string]$RunRoot,[string]$Toolchain,[string]$ReferenceReceipt,[string]$ModuleCache){
     $plan=Get-LeafOrdinaryCheckPlan $RunRoot $Toolchain $ReferenceReceipt $ModuleCache
     $root=$plan.RunRoot
@@ -164,12 +228,8 @@ function Invoke-LeafOrdinaryCheck([string]$RunRoot,[string]$Toolchain,[string]$R
             if(-not $build){$state.ExecutionAttempted=$true}
             Write-LeafOrdinaryJSON (Join-Path $root 'progress.json') @{Attempts=@($attempts.ToArray())}
             $clock=[Diagnostics.Stopwatch]::StartNew()
-            try{$receipt=Invoke-MatrixRecordedProcess $(if($build){$plan.Executable}else{$plan.Binary}) $(if($build){$plan.BuildArguments}else{$plan.Arguments}) $plan.Environment $(if($build){$plan.Project}else{$plan.WorkingDirectory}) $dir $(if($build){600}else{150})}
-            catch{
-                $primary=$_
-                try{Write-LeafOrdinaryJSON (Join-Path $dir 'launch-error.json') @{Error=$primary.Exception.Message;Acceptance=$false;NoRetry=$true}}catch{$state.AuditErrors+=@('launch-error-persistence: '+$_.Exception.Message)}
-                throw $primary
-            }finally{$state.PhaseTimings+=@([pscustomobject]@{Phase=$phase;ElapsedMs=$clock.Elapsed.TotalMilliseconds})}
+            try{$receipt=Invoke-LeafOrdinaryRecordedProcess $plan $build $state}
+            finally{$state.PhaseTimings+=@([pscustomobject]@{Phase=$phase;ElapsedMs=$clock.Elapsed.TotalMilliseconds})}
             $files=@((Join-Path $dir 'receipt.json'),$receipt.StdoutPath,$receipt.StderrPath)
             if($build -and $receipt.ExitCode -eq 0){$files+=@($plan.Binary)}
             $bindings.Add((Get-LeafOrdinaryBinding $files))

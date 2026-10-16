@@ -25,6 +25,10 @@ function Invoke-LeafOrdinaryTestCase([string]$Scenario){
     $originalWrite=(Get-Command Write-LeafOrdinaryJSON).ScriptBlock
     $originalPlan=(Get-Command Assert-LeafOrdinaryCheckPlan).ScriptBlock
     $originalArtifacts=(Get-Command Assert-LeafOrdinaryFinalArtifacts).ScriptBlock
+    function Set-Content {
+        [CmdletBinding()]param([string]$LiteralPath,[Parameter(ValueFromPipeline=$true)]$Value)
+        process{if($Scenario -ceq 'native-throw-inner-persist' -and $LiteralPath.EndsWith('launch-error.json')){throw 'controlled inner Set-Content failure'};Microsoft.PowerShell.Management\Set-Content -LiteralPath $LiteralPath -Value $Value -ErrorAction Stop}
+    }
     function Assert-LeafOrdinaryFinalArtifacts($Plan,$Bindings){
         $audit.Artifact++
         if($Scenario -cin @('post-artifact','all-audits-fail','native-throw-all-audits-fail')){throw 'controlled artifact audit'}
@@ -47,6 +51,7 @@ function Invoke-LeafOrdinaryTestCase([string]$Scenario){
     }
     function Write-LeafOrdinaryJSON($Path,$Value){
         $name=[IO.Path]::GetFileName($Path)
+        if($Scenario -ceq 'native-throw-inner-persist' -and $name -ceq 'launch-error.json'){throw 'controlled phase error persistence'}
         if(($Scenario -ceq 'native-throw-persist' -and $name -ceq 'launch-error.json') -or ($Scenario -ceq 'result-write' -and $name -ceq 'result.json') -or ($Scenario -ceq 'manifest-write' -and $name -ceq 'evidence-manifest.json') -or ($Scenario -ceq 'pending-write' -and $name -ceq 'completed.pending.json') -or ($Scenario -ceq 'stopped-write' -and $name -ceq 'stopped.json')){throw 'controlled persistence error'}
         & $originalWrite $Path $Value
         if($Scenario -ceq 'marker-publish' -and $name -ceq 'completed.pending.json'){New-Item -ItemType Directory -Path (Join-Path $f.Root 'completed.json')|Out-Null}

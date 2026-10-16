@@ -46,7 +46,8 @@ Create under `docs/diagnostics/isolated-fuzz/`:
 
 Documentation: update diagnostic README/current-status/recovery and this plan; create
 `docs/roadmap/2026-10-16-leaf-ordinary-check-implementation.md` with actual evidence.
-No implementation is present while this plan is awaiting review.
+Implementation subsequently began after approval;the actual record,not this
+original file checklist alone,identifies current commits/results and open repairs.
 
 For each named test script run both fresh hosts with `-NoProfile -NonInteractive
 -File <script>`, preserving output/exit in this plan's ignored workflow directory.
@@ -138,10 +139,16 @@ not just whatever subset a mutated manifest happens to list.
 Coverage: spec inputs/constants→Task1; ordinary policy/launch/output→Task2;
 audits/manifest/marker/saved reader→Task3; process-free compatibility and recovery
 →Task3 final allowlist/docs. Five Review Focus risks have named tests above.
-Execution has not begun; test counts are to be measured,not promised totals.
+User selected Native/inline with1 after8fa1363c. Planner/flow and initial Task3
+fake suites ran;one fresh review identified two Important repairs,now in the
+single fix pass. Resume from the actual implementation record,not by repeating
+the original approval or running an old identity. No real execution is approved.
 
-Please review this plan and select an execution method. Recommended: Native/inline,
-because the three tasks share fixed planner/state interfaces and can use one final
-fresh review. Subagent-driven execution remains an alternative with a separate
-implementer/reviewer per task and higher coordination cost. Do not start either
-method without the user's plan approval and selection.
+Review repair clarification:Task2's shared recorded wrapper can lose the primary
+native exception during its own error persistence. To meet the approved spec
+without changing shared helpers,use a leaf-owned
+`Invoke-LeafOrdinaryRecordedProcess(Plan,Build,State)` adapter over the unchanged
+`Invoke-MatrixNative` ordinary call. Keep its typed native fields/record paths,
+safe persistence and one-call boundary covered by the new inner-persistence
+regression. Add leaf-local native-model shape validation before unchanged shared
+predicates;receipt truthiness or scalar collections must not establish success.
