@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-16
 
+## Next acceptance boundary — read-only triage, no new execution
+
+The [post-build-only triage](2026-10-16-post-build-only-acceptance-triage.md)
+orders remaining ordinary vet/test, collector87, historical validation,
+physical/Batch01 and broader C12 gates. Source inspection confirms the matrix
+has no public single-check selector and the Batch01 manifest is still absent.
+Historical Task10 absence statements below are superseded by its later private
+bound-read implementation;that is still not production acceptance.
+Recommended next decision:a bounded ordinary nodeleafbinding verification design,
+not matrix replay or reuse of the build-only binary. No new tests/process runs,
+source changes or acceptance changes occurred in this triage.
+
 ## Build-only001 real diagnostic — completed, ordinary acceptance still open
 
 User approved the [specific execution plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).

@@ -16,6 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest follow-up:[acceptance triage](../roadmap/2026-10-16-post-build-only-acceptance-triage.md)
+is read-only. It identifies the next design decision and current source/path
+checks;it grants no new run, matrix replay or acceptance waiver. Read it before
+interpreting older chronological status paragraphs as current implementation gaps.
+
 Latest real diagnostic:[build-only001](../roadmap/2026-10-16-leaf-stage-build-only-001.md),
 separately approved under the [single-run plan](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
 One compile exit0/331.219s,5 admissions below32,scope/trigger/core/lifetime and
