@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-16
 
+## Post-ordinary triage — next product boundary is Task11 foundation
+
+The [remaining-gate triage](2026-10-16-post-ordinary-acceptance-triage.md) separates
+real leaf package PASS from failed historical matrix003 and broader acceptance.
+Statecontract scan repair/full diagnostic runner already have scoped PASS
+evidence;do not repeat them as unfixed blockers. Task10 private bound read exists.
+Current source lacks Task11's specified public registry/canonical-envelope APIs
+and literal registry/golden files;Task15 exact-epoch Head/readiness named files
+are absent,ordinary fence query still uses MAX(authority_epoch). Existing private
+v7/canonical code is acknowledged,not relabelled absent. Task18 Batch01 manifest
+still absent. Planned-path counts are not completion percentages.
+Next recommended scope:written Task11 registry/literal-vector design,reconciling
+existing private helpers and historical schemas,before implementation approval.
+No new Go/test/native/Docker/DB/SDK workload or gate relaxation in this triage;
+87/old timeout/fuzz/physical/production/main remain open. No automatic matrix run.
+
 ## Ordinary check001 — real single-package evidence complete
 
 After62395f01 user explicitly approved corrected syntax/preflight and retaining

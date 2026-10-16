@@ -1,5 +1,10 @@
 # Post-build-only acceptance triage — read-only, not a new execution approval
 
+Historical triage:its priority1 was subsequently addressed only by the scoped
+[ordinary leaf001](2026-10-16-leaf-ordinary-check-001.md). For current ordering,
+read the [post-ordinary triage](2026-10-16-post-ordinary-acceptance-triage.md).
+Do not repeat this old recommendation as permission for another leaf/matrix run.
+
 Baseline: `ecb05db3212fcd4af420aec78a7d4ab98bccc509`, existing development
 branch `codex/c12-b01-task9-coordinator`. The user requested continuing after
 build-only001 preservation. This increment reads tracked reports and source;

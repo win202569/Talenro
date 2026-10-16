@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest follow-up is the [post-ordinary remaining-gate triage](../roadmap/2026-10-16-post-ordinary-acceptance-triage.md),
+source/report inspection only,no new workload. Leaf ordinary001 is consumed and
+passed only its scoped gate. Resume with a proposed Task11 registry/literal-vector
+design;do not replay matrices/leaf binaries or infer implementation authority.
+Task10 private bound read and several private v7/canonical helpers already exist;
+Task11 public layer/Task15 exact-epoch/Task18 manifest and physical gates remain
+unfinished. Planned-path inventory is not a completion score or assertion that
+all equivalent mechanisms are absent. Prior post-build-only priority1 is outdated.
+
 Latest ordinary check001 completed after renewed approval following62395f01:
 one default-vet build73.927s and one original runtime7.287s,exit0;33 top-level/
 135 subtest PASS,no SKIP. Full SDK/product audits and15-file completion binding
