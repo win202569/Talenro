@@ -91,3 +91,103 @@ function Get-LeafStageBuildOnlyEvidence([object]$Receipt,[object]$Plan,[string]$
     $base=Get-LeafStageRetainedCompileEvidence $Receipt $Plan $StderrPath
     [pscustomobject]@{DiagnosticOnly=$true;Coverage='sampled';Acceptance=$false;VetEvidenceComplete=$false;ScopeEvidenceComplete=$scope;ScopeError=$scopeError;TriggerEvidenceComplete=$base.TriggerEvidenceComplete;TriggerError=$base.TriggerError;CoreNaturalComplete=$base.CoreNaturalComplete;CoreError=$base.CoreError;LifetimeEvidenceComplete=$base.LifetimeEvidenceComplete;LifetimeError=$base.LifetimeError;ObservationPassed=($scope -and $base.ObservationPassed)}
 }
+function Invoke-LeafStageBuildOnlyNative([object]$Plan,[string]$Stdout,[string]$Stderr) {
+    [IsolatedFuzzProcess]::RunWithCompileStageRetainedDiagnostics($Plan.Executable,$Plan.BuildArguments,$Plan.Environment,$Plan.Project,$Stdout,$Stderr,600)
+}
+function Invoke-LeafStageBuildOnly([string]$RunRoot,[string]$Toolchain,[string]$ReferenceReceipt,[string]$ModuleCache) {
+    $plan=Get-LeafStageBuildOnlyPlan $RunRoot $Toolchain $ReferenceReceipt $ModuleCache
+    New-Item -ItemType Directory -Path $plan.RunRoot -ErrorAction Stop|Out-Null
+    $state=[pscustomobject]@{Schema=1;Scope='Fixed nodeleafbinding build-only compile-stage diagnostic';Package=$plan.Package;DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;DiagnosticOnly=$true;Coverage='sampled';Acceptance=$false;PackagePassed=$false;OriginalTestPassed=$false;RuntimeAttempted=$false;NoRetry=$true;NativeAttempts=0;CompileExitZero=$false;CompileEvidenceComplete=$false;ScopeEvidenceComplete=$false;TriggerEvidenceComplete=$false;Evidence=$null;ToolchainReference=$null;ProductUnchanged=$false;ToolchainUnchanged=$false;ArtifactsUnchanged=$false;ObservationPassed=$false;FinalizationRequired=$true;Failure=$null;FinalizationError=$null;AuditErrors=(New-Object 'System.Collections.Generic.List[string]')}
+    $before=@();$identity=$null;$binding=$null;$pending=$null
+    try {
+        Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'plan.json') $plan
+        Assert-LeafStageBuildOnlySources $plan
+        $identity=Assert-UninstrumentedEnvelopeToolchain $plan.Toolchain $plan.ReferenceReceipt
+        if($identity -cnotmatch '^[A-F0-9]{64}:[A-F0-9]{64}$'){throw 'Toolchain identity incomplete'}
+        $state.ToolchainReference=$identity
+        $before=@(Get-EnvelopeProductManifest);if($before.Count -eq 0){throw 'Product inventory empty'}
+        Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'before-product.json') $before
+        foreach($name in @('go-cache','tmp','build')){New-Item -ItemType Directory -Path (Join-Path $plan.RunRoot $name) -ErrorAction Stop|Out-Null}
+        $stdout=Join-Path $plan.RunRoot 'build/stdout.txt';$stderr=Join-Path $plan.RunRoot 'build/stderr.txt'
+        Assert-LeafStageBuildOnlySources $plan
+        $state.NativeAttempts=1
+        Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'attempt.json') ([pscustomobject]@{Phase='compile-only';DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;NativeAttempts=1;RuntimeAttempted=$false;Acceptance=$false;NoRetry=$true})
+        try{$native=Invoke-LeafStageBuildOnlyNative $plan $stdout $stderr}catch{
+            $launchError=$_
+            try{Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'build/launch-error.json') ([pscustomobject]@{Error=$launchError.Exception.Message;CleanupVerified=$false;Acceptance=$false})}
+            catch{$state.AuditErrors.Add('launch-error-persistence:'+$_.Exception.Message)}
+            throw $launchError
+        }
+        $receipt=ConvertTo-RecordedProcessReceipt $native $stdout $stderr $plan.Executable $plan.BuildArguments $plan.Environment
+        $receipt|Add-Member WorkingDirectory $plan.Project
+        $receipt|Add-Member BuildOnlyDiagnostic ([pscustomobject]@{Schema=1;Policy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false})
+        Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'build/receipt.json') $receipt
+        $files=@((Join-Path $plan.RunRoot 'build/receipt.json'),$stdout,$stderr)
+        if(Test-Path -LiteralPath $plan.Binary -PathType Leaf){$files+=@(Get-EnvelopeSampleFile $plan.Binary)}
+        $binding=Get-MappingEvidenceBinding $files
+        Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'artifact-binding.json') $binding
+        $state.CompileExitZero=$receipt.ExitCode -eq 0
+        $state.Evidence=Get-LeafStageBuildOnlyEvidence $receipt $plan $stderr
+        $state.ScopeEvidenceComplete=$state.Evidence.ScopeEvidenceComplete
+        $state.TriggerEvidenceComplete=$state.Evidence.TriggerEvidenceComplete
+        if(-not $state.CompileExitZero){throw 'Diagnostic compile root exit nonzero'}
+        $null=Get-EnvelopeSampleFile $plan.Binary
+        $log=Get-Content -LiteralPath $stderr -Raw -ErrorAction Stop
+        Assert-MatrixCompileEvidence $log $plan.Toolchain $plan.Project $plan.Package
+        Assert-CopiedCompileEvidence $log $plan.Toolchain
+        if($log -match '(?m)^TALENRO_FUZZ_DIAG '){throw 'Unexpected instrumentation output'}
+        $state.CompileEvidenceComplete=$true
+        if(-not $state.Evidence.ObservationPassed){throw 'Diagnostic compile sample incomplete; no retry'}
+    }catch{$state.Failure=$_.Exception.Message;$pending=$_}finally{
+        # Audit blocks are independent: preserve the primary error and every
+        # later failure, including persistence failures inside an audit.
+        $postChecks=@(
+            @{Name='product';Check={if($before.Count -gt 0){$after=@(Get-EnvelopeProductManifest);Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'after-product.json') $after;Assert-EnvelopeProductUnchanged $before $after;$state.ProductUnchanged=$true}}},
+            @{Name='toolchain';Check={if($null -ne $identity){if((Assert-UninstrumentedEnvelopeToolchain $plan.Toolchain $plan.ReferenceReceipt) -cne $identity){throw 'Toolchain drift during compile'};$state.ToolchainUnchanged=$true}}},
+            @{Name='sources';Check={Assert-LeafStageBuildOnlySources $plan}},
+            @{Name='artifacts';Check={if($null -ne $binding){Assert-MatrixBinding $binding;$state.ArtifactsUnchanged=$true}}}
+        )
+        foreach($check in $postChecks){try{$action=$check.Check;& $action}catch{$state.AuditErrors.Add($check.Name+':'+$_.Exception.Message);if($null -eq $pending){$pending=$_}}}
+        if($state.AuditErrors.Count -gt 0){$state.FinalizationError=$state.AuditErrors -join '; '}
+        $state.ObservationPassed=$null -eq $pending -and $state.CompileEvidenceComplete -and $state.ScopeEvidenceComplete -and $state.Evidence.ObservationPassed -and $state.ProductUnchanged -and $state.ToolchainUnchanged -and $state.ArtifactsUnchanged
+        if($null -ne $pending){
+            try{Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'stopped.json') ([pscustomobject]@{Error=$pending.Exception.Message;FinalizationError=$state.FinalizationError;NoRetry=$true;Acceptance=$false})}
+            catch{$state.AuditErrors.Add('stopped-persistence:'+$_.Exception.Message);$state.FinalizationError=$state.AuditErrors -join '; '}
+        }
+        try {
+            Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'result.json') $state
+            # Only explicit artifacts: generated cache/tmp are never inventoried.
+            $manifestFiles=@(foreach($name in @('plan.json','attempt.json','before-product.json','after-product.json','build/receipt.json','build/stdout.txt','build/stderr.txt','build/launch-error.json','package.test.exe','artifact-binding.json','result.json','stopped.json')){
+                $path=Join-Path $plan.RunRoot $name
+                if(Test-Path -LiteralPath $path -PathType Leaf){$file=Get-EnvelopeSampleFile $path;[pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $file -Algorithm SHA256 -ErrorAction Stop).Hash;Length=(Get-Item -LiteralPath $file).Length}}
+            })
+            $manifest=Join-Path $plan.RunRoot 'evidence-manifest.json'
+            Write-RetainedChildObservationJSON $manifest ([pscustomobject]@{Schema=1;DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;Acceptance=$false;NoRetry=$true;Files=$manifestFiles})
+            if($state.ObservationPassed){
+                $completion=[pscustomobject]@{Finalized=$true;ObservationPassed=$true;DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;Acceptance=$false;PackagePassed=$false;OriginalTestPassed=$false;RuntimeAttempted=$false;ManifestSHA256=(Get-FileHash -LiteralPath $manifest -Algorithm SHA256 -ErrorAction Stop).Hash}
+                # Never create the final path until writing,closing and verifying
+                # the staged bytes succeeded. Move is same-directory,no overwrite.
+                $staged=Join-Path $plan.RunRoot 'completed.pending.json'
+                Write-RetainedChildObservationJSON $staged $completion
+                $safe=Get-EnvelopeSampleFile $staged
+                $expected=[Text.Encoding]::UTF8.GetBytes(($completion|ConvertTo-Json -Depth 8 -WarningAction Stop))
+                if([Convert]::ToBase64String([IO.File]::ReadAllBytes($safe)) -cne [Convert]::ToBase64String($expected)){throw 'Staged completion bytes differ'}
+                [IO.File]::Move($safe,(Get-IsolatedFullPath (Join-Path $plan.RunRoot 'completed.json')))
+            }
+        }catch{
+            $persistenceError=$_
+            $state.ObservationPassed=$false
+            $state.AuditErrors.Add('persistence:'+$persistenceError.Exception.Message)
+            $state.FinalizationError=$state.AuditErrors -join '; '
+            $stopped=Join-Path $plan.RunRoot 'stopped.json'
+            $cause=if($null -ne $pending){$pending}else{$persistenceError}
+            try{if(-not(Test-Path -LiteralPath $stopped)){Write-RetainedChildObservationJSON $stopped ([pscustomobject]@{Stage='persistence';Error=$cause.Exception.Message;FinalizationError=$state.FinalizationError;NoRetry=$true;Acceptance=$false})}}
+            catch{$state.AuditErrors.Add('stopped-persistence:'+$_.Exception.Message);$state.FinalizationError=$state.AuditErrors -join '; '}
+            throw [Exception]::new(($cause.Exception.Message+'; '+$state.FinalizationError),$cause.Exception)
+        }
+    }
+    if($null -ne $pending){throw $pending}
+    if(-not $state.ObservationPassed){throw 'No verified diagnostic observation'}
+    $state|Add-Member Finalized $true
+    return $state
+}
