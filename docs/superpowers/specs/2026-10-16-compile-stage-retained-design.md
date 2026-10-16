@@ -1,9 +1,10 @@
 # Compile-stage-triggered retained diagnostics — proposed written design
 
 Date:2026-10-16. Base:5b6f6d1084b2bff076e71aa1c9eab0fd6f15a74f.
-Status:the user approved the conversational direction and writing this spec.
-This written spec is pending user review. No implementation plan, code changes,
-fake-test execution, real compile or acceptance is authorized by this document.
+Status:the user approved this written spec after54dc50188c23a885fd5f1ba4a7d2ba90b17f0bcb.
+The [implementation plan](../plans/2026-10-16-compile-stage-retained.md) is pending
+user review and execution-method selection. No code changes, fake-test execution,
+real compile or acceptance is authorized by this design approval alone.
 
 ## 1. Intent and non-goals
 
@@ -227,5 +228,5 @@ Task10/B01/production/main gates remain open.
 Save this spec with progress/recovery links on the existing development branch;
 do not include raw logs/receipts/SDK/cache/binaries. Git restores the proposed
 design and source/tests, not the previous computer's environment or live state.
-Next gate:user reviews and approves this written spec. Only then write an
-implementation plan; code work waits for plan review and execution-method choice.
+Written-spec review is complete; the next gate is implementation-plan review
+and execution-method choice. No implementation or live rerun has started.

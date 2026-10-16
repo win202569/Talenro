@@ -16,10 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest proposed [compile-stage trigger spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
-records the user's chosen direction, pending written-spec review. No implementation
-or live rerun exists. Recover it from this branch; next is spec approval, then a
-separately reviewed implementation plan, not automatic execution on a fresh PC.
+Latest [compile-stage trigger spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
+is user-approved. Its [three-task implementation plan](../superpowers/plans/2026-10-16-compile-stage-retained.md)
+is pending user review/execution-method selection. No implementation or live rerun
+exists. Recover both from this branch; plan approval is not automatic real
+execution on a fresh PC, and fake verification cannot grant acceptance.
 
 Latest saved-only [cap/chronology analysis](../roadmap/2026-10-16-leaf-retained-cap-analysis.md)
 explains the cumulative32-attempt limit was reached at23.42s of a74.94s receipt.
