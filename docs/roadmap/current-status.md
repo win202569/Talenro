@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-16
 
+## Compile-stage retained sampling — written design pending review
+
+User selected target-package compiler-log triggering over fixed elapsed delay.
+The [proposed spec](../superpowers/specs/2026-10-16-compile-stage-retained-design.md)
+defines bounded incremental parsing, one delayed registry, provenance/clock
+evidence and fake-only tests;32 attempts/600s/cleanup and non-acceptance stay fixed.
+Log emission is not OS identity or a guaranteed end-phase capture. No code/test/
+real-run change. Next:user reviews this written spec, then implementation planning;
+neither implementation nor another compile is approved at this checkpoint.
+
 ## Leaf compile001 saved-only cap analysis — no new execution
 
 The32 limit is cumulative admissions, not simultaneous processes. It stops new
