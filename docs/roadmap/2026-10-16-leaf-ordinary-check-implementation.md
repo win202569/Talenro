@@ -48,6 +48,19 @@ in the plan. Current results/counts, source pins, final review and remote checkp
 will be recorded only after they are actually verified. Historical build-only
 or matrix totals are not substituted for this increment.
 
+One fresh read-only review of8fa1363c..ab30df3c found0 Critical,2 Important and
+1 Minor status-document issue. Important1:leaf receipt validation delegated to
+truthiness-based shared predicates,allowing string flags/scalar collections or
+nonordinary live-sampling metadata in resealed saved evidence. Important2:the
+shared recorded-process wrapper can replace a native exception if its own
+Set-Content error persistence fails,before the leaf controller receives it.
+Both were independently reproduced with fake inputs:the string-flag refusal
+assertion failed,and the native-preservation assertion observed the inner
+persistence error instead of the original native error. Neither is yet claimed
+fixed here. One repair pass and fresh final covering verification are required;
+no second reviewer will substitute for those tests. The minor stale-footer issue
+is part of already-planned status/recovery closeout.
+
 ## Decisions and remaining gates
 
 1. Use PowerShell bookkeeping instead of Bash skill scripts:Windows-only user

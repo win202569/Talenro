@@ -4,8 +4,10 @@
 
 User selected1 after8fa1363c. Planner2240adbe passed44 fake assertions per host;
 ordinary flowb3a0b52f passed31 per host, with planner44 per host rerun. Task3
-final audit/marker/saved-reader implementation is undergoing verification;final
-regression and independent review are not yet complete. Read the [implementation record](2026-10-16-leaf-ordinary-check-implementation.md).
+ab30df3c passed new saved22/controller45 per host. Fresh review found2 Important
+issues (receipt types/mode and inner-wrapper primary-error preservation),both
+reproduced RED and still awaiting the one fix pass. Final compatibility checking
+is ongoing;this remains an unfinished,unaccepted checkpoint. Read the [implementation record](2026-10-16-leaf-ordinary-check-implementation.md).
 No real Go/native/binary/SDK/Docker execution or acceptance/main approval.
 
 ## Fixed ordinary leaf check — design approved, implementation plan pending

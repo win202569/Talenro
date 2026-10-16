@@ -18,8 +18,9 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 Ordinary leaf-check plan was approved for Native/inline with1 after8fa1363c.
 Its [implementation record](../roadmap/2026-10-16-leaf-ordinary-check-implementation.md)
-currently closes planner/flow fake tests;final audit/saved evidence/regression
-and review remain in progress. Earlier pending-plan paragraphs are historical.
+currently records planner/flow and initial saved/controller fake checks. Fresh
+review found2 Important issues,reproduced RED;the one repair pass and final
+covering regressions remain pending. Earlier pending-plan paragraphs are historical.
 Resume from the actual record,not from an assumption that a real run is approved.
 
 Latest stage:ordinary leaf-check written design is approved after9fdda6ff;
