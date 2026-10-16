@@ -16,6 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[C2 admission clarification proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md),
+awaiting written approval. Resume at review,then complete146-row source-backed
+metadata decisions and a consolidated exception list. No executable plan or
+implementation approval;do not treat proposed classification as deployed policy.
+
 Latest:[146-row reconciliation/C2 report](../roadmap/2026-10-16-task11-registry-reconciliation.md).
 C1 is locally approved after247f1f41,but canonical-set registration/deployment
 compatibility stay open. Earlier147 count included the Markdown header;146 is

@@ -1,5 +1,14 @@
 # Project status — updated 2026-10-16
 
+## Task11 C2 — unified admission clarification awaiting review
+
+The [C2 written proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md)
+separates request authentication,envelope role and standalone evidence eligibility.
+It proposes source-backed per-row decisions and one consolidated exception list;
+unresolved rows block complete publication,not guessed null/empty defaults.
+Next:written review,then146-row policy reconciliation and scoped planning.
+No code/tests/native/config/canonical-set change;C2 and broader gates stay open.
+
 ## Task11 reconciliation — C1 locally approved,count corrected,C2 grouped
 
 User approved C1 after247f1f41:dedicated request envelope role with no bundle

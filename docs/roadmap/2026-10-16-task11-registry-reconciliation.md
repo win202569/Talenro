@@ -1,5 +1,9 @@
 # Task11 registry reconciliation — corrected 146-row source index
 
+Follow-up:[consolidated C2 admission proposal](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md)
+is written and awaiting approval. No row is certified merely by that proposal;
+the146-row metadata reconciliation and executable plan remain incomplete.
+
 Baseline:247f1f41c8bc1e8a0d8600133dae556e1489b38e. User approved the
 [C1 local clarification](../superpowers/specs/2026-10-16-authority-v7-request-auth-clarification.md)
 and further reconciliation/planning. No implementation,test,Go/native,SDK audit,
