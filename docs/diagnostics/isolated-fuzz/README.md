@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:separately approved retained-child-observe-002 single real observation
+PASS as sampled diagnostics only. Preserved root-wait descendants2, final0/empty;
+3 admissions/releases,0 failures, no timeout/forced cleanup. Completion marker
+and9 artifact hashes verified. No acceptance/error87 fix/matrix claim;001 remains
+stopped. Read [actual sample and recovery](../../roadmap/2026-10-16-retained-child-observation-002.md).
+
 2026-10-16:bounded observer phase fix removes the mistaken schema3 root-wait count
 zero requirement, without changing final cleanup/acceptance gates. New realistic
 fixture and negative final-residual controls:70 entry checks; five adjacent suites

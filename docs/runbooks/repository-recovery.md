@@ -16,6 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest controlled observation002 after the phase fix passes sampled diagnostic
+checks only; see [evidence and limits](../roadmap/2026-10-16-retained-child-observation-002.md).
+It does not clear the historical matrix/error87 or production/main gates.001
+remains failed and must not be replayed or relabeled.
+
 Latest2026-10-16 diagnostic preparation adds a dedicated retained-child wrapper
 and portable fake-only tests. Start with
 [its scope and continuation](../roadmap/2026-10-16-retained-child-entry.md) and

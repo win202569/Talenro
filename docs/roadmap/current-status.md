@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Retained-child observation002 — sampled observation PASS, not acceptance
+
+One separately approved fresh-host observation afterd0973dde ran once:2921.5231ms,
+root0/no timeout/termination. Root-wait descendant count2 preserved, final active0/
+empty; natural208ms/shared cleanup214ms. Intended child retained running-to-exited0;
+68 queries,3 admissions/releases,0 failures/errors. All evidence checks pass;
+completed marker/hash and9 artifact hashes verified, no stopped marker. Ordinary
+guard still rejects diagnostics, Acceptance=false. No code change/retry/Go/Docker/
+matrix/PID query;001 stays historically stopped and error87 is not resolved. See
+[sample facts, limits and recovery](2026-10-16-retained-child-observation-002.md).
+
 ## Retained-child observer phase fix — fake-only verification PASS
 
 User approved the bounded fix, not a live rerun. Removed only the schema3

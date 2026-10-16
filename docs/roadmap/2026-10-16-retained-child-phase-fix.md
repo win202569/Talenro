@@ -1,5 +1,10 @@
 # Retained-child observer phase fix — 2026-10-16
 
+Subsequent separately approved [real observation002](2026-10-16-retained-child-observation-002.md)
+passes sampled diagnostic checks after this fix, not original/product acceptance.
+It does not relabel001 or establish an error87 fix. Details below record the
+earlier fake-only implementation checkpoint.
+
 ## Approved scope and change
 
 User approved only a bounded observer field-semantic fix with fake regressions;
