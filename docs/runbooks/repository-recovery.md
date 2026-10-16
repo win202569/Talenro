@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest handoff:[Task11 registry/vector written design](../superpowers/specs/2026-10-16-authority-v7-registry-design.md),
+awaiting user review. The user approved its conversational boundary and retained
+digest prefix,not implementation. Original plan's missing-prefix formula is
+explicitly flagged;approved protocol/spec-set and product source are unchanged.
+Resume at written-design review,then scoped planning with complete147-row
+role/evidence reconciliation;do not run old Task11 test/fuzz commands or expose
+existing private signer policies. No new environment or package acceptance.
+
 Latest follow-up is the [post-ordinary remaining-gate triage](../roadmap/2026-10-16-post-ordinary-acceptance-triage.md),
 source/report inspection only,no new workload. Leaf ordinary001 is consumed and
 passed only its scoped gate. Resume with a proposed Task11 registry/literal-vector

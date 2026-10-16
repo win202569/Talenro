@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-16
 
+## Task11 registry — written design awaiting review
+
+User approved the in-chat minimal boundary and preserving the talenro.c12.
+body-digest prefix. The [written registry/vector design](../superpowers/specs/2026-10-16-authority-v7-registry-design.md)
+now proposes147 exact schema/object entries,read-only metadata,independent
+registry/framing vectors and no consumer/codec/production wiring. Original
+Batch01 plan has a visible prefix-conflict notice;approved spec-set untouched.
+147-row role/evidence eligibility reconciliation is still a mandatory pre-code
+planning deliverable,not certified complete by this design;ambiguity must stop.
+No implementation/tests/native/Docker/DB execution. Next:review written design,
+then approve writing a scoped implementation plan;not direct implementation.
+
 ## Post-ordinary triage — next product boundary is Task11 foundation
 
 The [remaining-gate triage](2026-10-16-post-ordinary-acceptance-triage.md) separates

@@ -1,5 +1,12 @@
 # Talenro C1.2 Batch 01 Contracts, Schema, and Authority Implementation Plan
 
+> 2026-10-16 契约冲突提示：本计划 Global Constraints 与 Task11 Step2 的 v7 body
+> digest 式漏写 `talenro.c12.` 前缀。已批准 v7 规格 §4.1 及现有私有实现使用
+> `SHA-256(ASCII("talenro.c12." + schema) || 0x00 || JCS(body))`，须以其为准。
+> 用户已确认保留前缀；旧计划文字保留供追溯，不授权按漏前缀式实现。
+> [Task11 第一切片书面设计](../specs/2026-10-16-authority-v7-registry-design.md)
+> 尚待审阅，只覆盖注册表/局部向量，不代表完整 Task11 已实施或获准运行本计划。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 交付三份隔离的 node OpenAPI、nodecontrol Protobuf event、Abort/serving 原语，以及 v7 全部 canonical body/envelope/evidence/golden、typed verifier、base 25 + additive 26 的 51-table PostgreSQL catalog、registered Go 00007/Down guard、exact-epoch repository/readiness、`BoundAuthorityReadSource` 与 catalog/crash/PITR 证据。
