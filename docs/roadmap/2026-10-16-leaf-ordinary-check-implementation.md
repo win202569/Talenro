@@ -76,6 +76,9 @@ Invoke-MatrixNative boundary and independently preserves native primary and
 secondary recording errors. The targeted test passed2 assertions per host,
 exit0,with one native seam attempt and all eligible final audits. This is not
 an independent rereview of the fixes;the executor verified RED/GREEN.
+Repair checkpoint:`b54a2c6be899714f656f713b432862041a2b0a1a`. Use the latest
+development tip for subsequent preservation/final verification metadata;this
+hash alone does not certify the pending final compatibility batch.
 
 The pre-fix corrected serial final batch was interrupted after the findings,
 with8 completed commands exit0 (planner44/controller45/saved22/mapping36 per host).
@@ -99,6 +102,30 @@ results are preserved,not presented as post-fix verification.
    one local conversion/persistence path requiring covering fake tests.
 6. Update stale plan text as required status/recovery closeout,not optional code
    polish;cost if missed is duplicate approval/execution during recovery.
+7. Executor verifies final compatibility outcomes after review;reviewer did not
+   certify future results;cost if wrong is a false regression claim.
+8. Initial counts/host exits use executor-read preserved logs,not reviewer reruns;
+   cost if wrong is an incorrect evidence summary.
+9. Real Go/default-vet/package success remains unjudged under fake-only scope;
+   cost is no real package acceptance.
+10. Actual SDK/reference/module readiness remains separately gated without real
+    inventories here;cost is no environment-readiness conclusion.
+11. Windows native shutdown/error87 cause remains unresolved;synthetic receipts
+    do not establish OS behavior;cost is no historical root-cause claim.
+12. Full-repository regressions and unchanged internals beyond directly reused
+    contracts remain outside the allowlist;cost is possible unexercised bugs.
+13. Do not infer exhaustive test-body/analyzer/process coverage from observed
+    finite metadata;cost is remaining coverage limits.
+14. Bounded file checks do not promise hostile-writer atomicity or power-loss
+    guarantees;cost is that these external threats remain unproved.
+15. Hashes bind integrity,not the authenticity of arbitrarily fabricated audit
+    history;cost is that untrusted raw records alone cannot prove execution.
+16. Cross-machine replay needs new preparation/bindings because raw state is not
+    cloned;cost is that cloning restores progress,not a ready environment.
+17. Remote synchronization/final documents are executor handoff checks;cost if
+    missed is a false preservation claim.
+18. Main/security/production/C11/C12/Task9/Task10/Batch01 acceptance stays open
+    with overall Acceptance=false;cost is no deployment/main-ready conclusion.
 
 No real Go compile, generated-binary runtime, native workload, PID query,
 SDK inventory, Docker, matrix replay, security change or main merge occurred.
