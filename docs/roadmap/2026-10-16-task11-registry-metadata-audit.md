@@ -1,5 +1,9 @@
 # Task11：146项元数据逐项初审与集中例外
 
+范围后续：用户在7c6194bb后批准先交付独立名称目录，元数据整体后置。
+见[待审阅的书面范围修订](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md)。
+以下93/53初审记录没有因此变成完整策略认证或已解决问题。
+
 基线f6814efacad1cd7fe3787068611ab26f86976b39。用户随后批准
 [C2统一准入规则](../superpowers/specs/2026-10-16-authority-v7-metadata-admission-clarification.md)，
 本轮按该规则逐项登记现有证据与未决问题。这里只是计划审查附表，**不是产品注册表、

@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[name-only first-slice written revision](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md),
+awaiting review after user approved scope reduction following7c6194bb. No policy
+fields,authorization capability or product implementation. Metadata93/53 audit
+remains later work. Resume at revision review,then a name-directory plan;do not
+execute original full-metadata/Task11 commands or treat postponed gates as passed.
+
 Latest:[146-row initial metadata audit](../roadmap/2026-10-16-task11-registry-metadata-audit.md).
 C2 approved afterf6814efa;93 classifications source-backed by executor,53
 reviews unclosed,not53 demonstrated defects. Full exceptions are portable.

@@ -1,5 +1,14 @@
 # Project status — updated 2026-10-16
 
+## Task11 — name-only first-slice scope selected,written revision pending
+
+User approved re-scope after7c6194bb. The [written revision](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md)
+limits first delivery to146 exact schema/object names,read-only lookup/list,
+independent directory vectors and no policy/authorization fields. Metadata93/53
+audit remains intact and unresolved responsibilities are postponed,not passed.
+Next:approve written revision,then prepare name-directory implementation plan.
+No source/tests/native/canonical-set change or broader acceptance.
+
 ## Task11 — C2 approved,146-row initial audit recorded
 
 User approved C2 afterf6814efa. The [full audit](2026-10-16-task11-registry-metadata-audit.md)
