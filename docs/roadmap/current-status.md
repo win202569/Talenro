@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-16
 
+## Task11 — consolidated metadata reassessment, decisions pending
+
+User requested continuing the source-backed metadata review afterbdebb846.
+The [consolidated report](2026-10-16-task11-metadata-consolidated-reassessment.md)
+covers all53 original exceptions:27 request-contract questions,4 known-role
+requests with evidence eligibility pending,and22 other objects. It proposes5
+source-backed candidate classifications and lists48 remaining questions,including
+a grouped proposal for the4 known-role requests. Candidates are not approved
+policy;original93/53 audit remains intact. No product/tests/fixtures/canonical-set
+change or native workload. Next:review the grouped direction/candidates,then write
+the unified clarification;no executable metadata plan or main acceptance yet.
+
 ## Task11 — name-directory slice verified, null-vector review fix closed
 
 User approved [plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md)

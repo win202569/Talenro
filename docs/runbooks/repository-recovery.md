@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest metadata work: [53-item consolidated reassessment](../roadmap/2026-10-16-task11-metadata-consolidated-reassessment.md),
+based onbdebb846. All53 original exceptions are accounted for as27 request,4
+known-role request and22 other-object questions. Five source-backed candidates
+are proposed,not approved;48 questions remain after those candidates. Preserve
+the original93/53 audit. Resume at grouped direction/candidate review before
+writing a unified clarification or implementation plan. This document checkpoint
+does not authorize product changes,new request roles,tests or old-workload replay.
+
 Current resume point: [name-directory implementation result](../roadmap/2026-10-16-task11-name-directory-implementation.md).
 Plan/Native approved after6c5ec277; fixtures90dc0e2a and read-only API990d6683.
 Original five phases verified; approved [null-vector fix addendum](../superpowers/plans/2026-10-16-authority-v7-name-directory-null-vector-fix.md)
