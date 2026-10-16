@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Task11 written design was approved after59bb7226;local plan preparation is now
+stopped at [request-authentication/evidence-signing gap C1](../roadmap/2026-10-16-task11-registry-planning-blocker.md).
+Do not infer a request role from its response or treat null evidence metadata
+as permission to skip authentication. No complete147-row policy map or executable
+plan exists. Resume at a narrowly scoped clarification proposal,then finish
+reconciliation/planning;do not implement or execute old Task11 commands.
+
 Latest handoff:[Task11 registry/vector written design](../superpowers/specs/2026-10-16-authority-v7-registry-design.md),
 awaiting user review. The user approved its conversational boundary and retained
 digest prefix,not implementation. Original plan's missing-prefix formula is

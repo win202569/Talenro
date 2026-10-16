@@ -5,7 +5,8 @@
 > `SHA-256(ASCII("talenro.c12." + schema) || 0x00 || JCS(body))`，须以其为准。
 > 用户已确认保留前缀；旧计划文字保留供追溯，不授权按漏前缀式实现。
 > [Task11 第一切片书面设计](../specs/2026-10-16-authority-v7-registry-design.md)
-> 尚待审阅，只覆盖注册表/局部向量，不代表完整 Task11 已实施或获准运行本计划。
+> 已获批准，但局部计划对照停在请求认证/证据签名角色澄清；只覆盖注册表/局部
+> 向量，不代表完整 Task11 已实施或获准运行本计划。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

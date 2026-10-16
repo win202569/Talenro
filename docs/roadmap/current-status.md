@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-16
 
+## Task11 registry — design approved, planning stopped at contract C1
+
+User approved written design after59bb7226. Reconciliation found
+PublishClaimV1CredentialPolicyRequestV1 requires fixed security-admin request
+authentication,but v7 §4.3 does not unambiguously define its common-envelope
+eligibility/exact signer role. Response role claim_v1_security_policy cannot
+be assigned to the request. Read the [C1 evidence and next decision](2026-10-16-task11-registry-planning-blocker.md).
+No147-row policy reconciliation or executable implementation plan is complete.
+Design §5 requires stopping rather than guessed defaults. Recommended next:
+narrow written clarification separating request authentication from evidence
+signing,then resume planning. No product/code/fixture/test/native/DB execution;
+approved canonical spec-set unchanged,all broader gates remain open.
+
 ## Task11 registry — written design awaiting review
 
 User approved the in-chat minimal boundary and preserving the talenro.c12.
