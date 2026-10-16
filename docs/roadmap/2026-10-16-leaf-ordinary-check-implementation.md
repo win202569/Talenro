@@ -169,3 +169,19 @@ Recover from the latest `codex/c12-b01-task9-coordinator` tip, not automatically
 main. Necessary source/tests/plans/progress are portable; fake/raw evidence and
 machine SDK/module/cache/binary data stay ignored. A real run requires a later
 separate concrete approval, even after all fake tests pass.
+
+## Preservation and workflow archive
+
+Completed implementation/report checkpoint
+`224780a3dc741984ec2384942f68b8e5a962e3a1` was pushed with remote SHA=local and
+clean worktree. The latest tip also carries this follow-up preservation metadata.
+Only this plan's SDD scratch was removed after copying and hash/length-verifying
+all106 files into the ignored local archive
+`.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator/leaf-ordinary-implementation-records-001`.
+The worktree,other plans,diagnostic histories and fake fixture outputs remain.
+The archive retains the failed launcher,interrupted pre-fix batch,RED/GREEN logs,
+review,briefs and final records;its manifest excludes itself and all SDK/cache/tmp
+or separately preserved fake fixture directories. Manifest SHA256:
+`1DF76E06DED1C8D8ED824D8ADDA054AF1839AA84A501C3EE45FA02052C4C9C61`.
+The deleted scratch is locally recoverable from that verified copy,not cloned
+from Git. All18 execution rulings/costs are above;no deferred minors remain.

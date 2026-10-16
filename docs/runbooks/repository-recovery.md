@@ -24,6 +24,11 @@ and final8-suite407-check results per host (1 static included each),all16 comman
 exit0,71 source/test pins unchanged. Fixes were not independently rereviewed;
 no deferred minors. Earlier pending-plan paragraphs are historical.
 Resume from the actual record,not from an assumption that a real run is approved.
+Completed checkpoint224780a3dc741984ec2384942f68b8e5a962e3a1 was pushed with
+remote SHA=local and clean worktree. Use the latest tip,including follow-up
+preservation metadata. The report records the106-file local workflow archive
+and seal digest;only the copied/verified plan scratch was removed. Raw archives,
+fake outputs,SDKs and caches are not cloned and must not be replayed as acceptance.
 
 Latest stage:ordinary leaf-check written design is approved after9fdda6ff;
 its [fake-only implementation plan](../superpowers/plans/2026-10-16-leaf-ordinary-check.md)
