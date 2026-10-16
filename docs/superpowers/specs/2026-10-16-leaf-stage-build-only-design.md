@@ -1,10 +1,12 @@
 # Stage-triggered build-only diagnostics — proposed written design
 
 Date:2026-10-16. Base:9119d076f534bd712f25f3bc4c01f721df35392c.
-Status:user selected option1 and approved writing this spec. This written spec
-still requires review/approval before an implementation plan is prepared.
-No implementation,fake verification or real execution is authorized by that
-conceptual approval; none is performed in this documentation increment.
+Status:user selected option1,then approved this written spec after
+b8e7956dafd54fe884e0ad2ac1554d97944942fe. The
+[implementation plan](../plans/2026-10-16-leaf-stage-build-only.md) now awaits
+review and execution-method selection. No implementation,fake verification or
+real execution is authorized by written-spec approval alone;none is performed
+in this documentation increment.
 
 ## 1. Intent, evidence and success criteria
 

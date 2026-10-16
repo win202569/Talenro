@@ -1,14 +1,16 @@
 # Project status — updated 2026-10-16
 
-## Build-only diagnostic option1 — written spec awaiting user review
+## Build-only diagnostic option1 — spec approved, implementation plan awaiting review
 
 User selected a separate compile/link diagnostic that alone requests -vet=off,
 preserving ordinary/default/matrix vet acceptance and32 cumulative attempts.
-The [proposed written design](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
+The [approved written design](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
 defines distinct identity/scope metadata,existing trigger/collector/cleanup,audits,
-strict ordinary refusal and fake compatibility tests. This approval permits the
-spec,not implementation or another real run. No code/tests/diagnostic executed
-in this increment. Next:user reviews the written spec,then a separate plan/method.
+strict ordinary refusal and fake compatibility tests. User approved it after
+b8e7956d. The [three-task plan](../superpowers/plans/2026-10-16-leaf-stage-build-only.md)
+covers planner,scope/guard and controller/regression;awaits plan review and method
+selection. No implementation/tests/real diagnostic ran this increment. Next:review
+the plan and choose execution method,not another real compile.
 
 ## Stage compile001 budget analysis — saved-only, no new execution
 

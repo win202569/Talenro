@@ -3,7 +3,9 @@
 2026-10-16:user selected separate build-only diagnostic option1 (fixed -vet=off
 only in the new proposed entry,ordinary vet gates unchanged). The
 [written spec](../../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
-awaits review;no implementation or real execution is authorized/performed yet.
+is approved;the [three-task plan](../../superpowers/plans/2026-10-16-leaf-stage-build-only.md)
+awaits plan review and execution-method selection. No implementation or new real
+execution is authorized/performed by those documentation approvals.
 
 2026-10-16:saved-only stage compile001 budget analysis confirms cumulative32
 slots,27 vet admissions in about0.95s,and225 logged vet command/config pairs
