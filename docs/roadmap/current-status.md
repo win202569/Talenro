@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Task11 — written name-directory scope approved, implementation plan pending
+
+User approved the written revision after a4af66ca. The [three-task plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md)
+fixes independent146-pair fixtures, exact read-only API/ownership tests, and full
+contracts-package regression/final review. Its proposed offline verification
+protocol is new scoped work, not reuse of consumed leaf001 authority.
+Next: review plan including verification appendix and select Native/inline
+(recommended) or subagent-driven. No product/fixture/test/native execution yet.
+Metadata93/53 and all broader gates remain open. Older pending-revision entries
+below are historical; this section controls resumption.
+
 ## Task11 — name-only first-slice scope selected,written revision pending
 
 User approved re-scope after7c6194bb. The [written revision](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md)

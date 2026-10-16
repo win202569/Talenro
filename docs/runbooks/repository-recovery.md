@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Current resume point: [name-directory implementation plan](../superpowers/plans/2026-10-16-authority-v7-name-directory.md),
+awaiting user plan review and execution-method selection. Written scope revision
+approved after a4af66ca; no product code/fixtures/tests/native workload executed.
+Read the plan/design before implementation. Its proposed new bounded verification
+requires intact local pins/audits; do not retarget/replay consumed leaf001 or
+interpret a clone as SDK/module readiness. Metadata93/53 and wider gates remain
+postponed/open, not accepted. Older "Latest" paragraphs below are history.
+
 Latest:[name-only first-slice written revision](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md),
 awaiting review after user approved scope reduction following7c6194bb. No policy
 fields,authorization capability or product implementation. Metadata93/53 audit
