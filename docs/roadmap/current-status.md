@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-16
 
+## Retained-child observation entry — fake-only preparation, no live run
+
+User approved a bounded dedicated wrapper and tests, not live execution. New
+retained-child-observe-NNN identity fixes one20s retained-mode invocation and
+the existing marker fixture, preserves both diagnostic flags, refuses missing/
+ambiguous/forced/release-failed evidence, and saves plan/source/shell bindings,
+receipts/results/stopped state and artifact hashes. Acceptance always false.
+Two Important review findings (core row coverage/finalization failure) fixed with
+RED/GREEN in one pass.13 scoped suites/389 checks PASS perPS7/5.1; four integration
+checks static. Final new suite61,12 source pins and34-file local evidence binding
+verified. Reviewer did not re-review fixes; coordinator verified regressions.
+No real observation/Go/Docker/matrix/PID query. Provisional result requires a
+separate hash-bound completion marker, and is never product acceptance. See
+[entry, limits and fresh-machine continuation](2026-10-16-retained-child-entry.md).
+
 ## Latest nested receipt coverage — prior nonblocking M1 covered
 
 Test-only populated32-entry diagnostic receipt now exercises cap/query/phase/

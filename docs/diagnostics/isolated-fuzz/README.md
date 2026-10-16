@@ -1,5 +1,15 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:dedicated retained-child observation entry prepared with fake-only
+tests. Dot-sourcing/planning does not launch; explicit controller consumes one
+new retained-child-observe-NNN identity, fixes20s and preserves diagnostic-only
+refusal. No live observation is approved/executed by this increment.
+Scoped fake-only verification:13 suites/389 assertions perPS7/5.1, including61
+new wrapper checks; two review findings fixed with RED/GREEN. Read
+[entry, evidence checks and recovery](../../roadmap/2026-10-16-retained-child-entry.md)
+before any separately approved real execution. Existing short-child helper and
+normal acceptance remain unchanged.
+
 2026-10-16:test-only populated nested receipt coverage closes the prior M1 gap.
 Writer-depth6 roundtrip preserves32-entry metadata and nulls; in-memory corruption
 controls verify test sensitivity. Three portable suites55 PASS perPS7/5.1, no
