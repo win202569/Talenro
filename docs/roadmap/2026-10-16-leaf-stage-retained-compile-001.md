@@ -1,5 +1,9 @@
 # Compile-stage retained compile001 — compile exit0, diagnostic STOPPED
 
+Follow-up:[saved-only budget/chronology analysis](2026-10-16-compile-stage-budget-analysis.md)
+finds27 vet admissions within about0.95s and225 logged vet command/config pairs
+after the trigger. No new execution or policy change; this outcome remains STOPPED.
+
 ## Approved single execution
 
 After the fake-only implementation checkpoint, the user separately approved one

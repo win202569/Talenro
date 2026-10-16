@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:saved-only stage compile001 budget analysis confirms cumulative32
+slots,27 vet admissions in about0.95s,and225 logged vet command/config pairs
+after the trigger. No new Run/PID lookup/filter/cap or gate change. Read the
+[analysis and next design boundary](../../roadmap/2026-10-16-compile-stage-budget-analysis.md).
+
 2026-10-16:separately approved leaf-stage-retained-compile-001 compiled once,
 exit0/66.574s,trigger/core complete and final audits unchanged; deferred registry
 still capped at32 admissions (27 recorded vet.exe). Diagnostic STOPPED,no binary

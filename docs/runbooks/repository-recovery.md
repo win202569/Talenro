@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest saved-only [stage budget analysis](../roadmap/2026-10-16-compile-stage-budget-analysis.md)
+explains27 vet admissions/32 cumulative slots and225 subsequent logged vet
+command/config pairs. No new Run or policy change; no exact command/PID join.
+Resume by agreeing a diagnostic design goal,not replaying compile001 or turning
+off required vet acceptance. Raw analysis JSON is ignored and not cloned.
+
 Latest real diagnostic:separately approved leaf-stage-retained-compile-001,
 base d04baca3,compile exit0/66.574s but STOPPED at32 sampled admissions,27 recorded
 vet.exe. Trigger/core evidence and final audits verified; lifetime sampling still

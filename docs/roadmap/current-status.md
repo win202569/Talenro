@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Stage compile001 budget analysis — saved-only, no new execution
+
+Confirmed why delayed activation still reaches32 cumulative attempts:5 recorded
+non-vet entries followed by27 vet admissions in about0.95s (84.375% of budget).
+The saved log has225 paired vet command/config records after the trigger; fixed
+SDK source confirms go test -c still schedules vet and import dependencies.
+Commands cannot be joined to sampled PIDs or subtracted to count missed identities.
+Read the [budget/chronology analysis](2026-10-16-compile-stage-budget-analysis.md).
+No policy,cap,arguments or acceptance changed; stage compile001 remains STOPPED.
+Next:agree a written diagnostic objective/design,not another compile or vet bypass.
+
 ## Compile-stage retained compile001 — compile succeeded, diagnostic STOPPED
 
 Separately approved one real compile-only attempt at base d04baca3. Native exit0
