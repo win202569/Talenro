@@ -1,5 +1,10 @@
 # Retained-child controlled observation entry — 2026-10-16
 
+Subsequent separately approved live observation001 STOPPED on a wrapper
+root-wait-versus-final-count defect. No code fix/retry or reclassification.
+See [actual result and localization](2026-10-16-retained-child-observation-001.md).
+The preparation/verification account below remains historical.
+
 ## Scope and approval
 
 User approved the bounded in-chat design: prepare a dedicated retained-handle

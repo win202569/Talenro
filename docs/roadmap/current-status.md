@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-16
 
+## Retained-child observation001 — STOPPED on wrapper phase-confusion defect
+
+One separately approved real observation ran once on4d5f6e1e:2520.257ms, root0,
+no timeout/termination; final active0/empty, natural216ms/shared cleanup219ms.
+Stages and retained child evidence complete;3 admitted/release attempts,0 failures.
+Observer refused because DescendantsRemaining=2 is a root-wait snapshot, wrongly
+required to be0 at final cleanup. Saved-only replay isolates that single clause;
+two original core rows pass the pure same-handle predicate. ObservationPassed and
+Acceptance remain false; stopped exists/no completed marker. No retry/code fix/
+Go/Docker/matrix/PID query. Next: approve a bounded observer semantic fix and
+realistic fake regression, not another live attempt. See
+[evidence, localization and recovery](2026-10-16-retained-child-observation-001.md).
+
 ## Retained-child observation entry — fake-only preparation, no live run
 
 User approved a bounded dedicated wrapper and tests, not live execution. New

@@ -19,7 +19,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 Latest2026-10-16 diagnostic preparation adds a dedicated retained-child wrapper
 and portable fake-only tests. Start with
 [its scope and continuation](../roadmap/2026-10-16-retained-child-entry.md) and
-current status. No live observation is included. A provisional result alone is
+current status. The later separately approved single live observation STOPPED
+on a wrapper phase-confusion defect; read
+[its evidence and unresolved fix](../roadmap/2026-10-16-retained-child-observation-001.md).
+Do not retry that identity or treat native cleanup facts as observation acceptance.
+A provisional result alone is
 not completion: later observations require completed.json, matching artifact/
 manifest hashes and no stopped record. Recover source/tests from the development
 branch; ignored receipts, caches and live process state are not cloned.

@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:one separately approved retained-child-observe-001 live observation
+STOPPED. Retained child/core natural cleanup facts are complete, but the new
+observer mistakes the root-wait DescendantsRemaining2 for a final residual and
+refuses it. Final active0/empty; saved result remains false/no completion marker.
+No retry/fix/Go/matrix. Read
+[actual evidence and bounded next step](../../roadmap/2026-10-16-retained-child-observation-001.md).
+
 2026-10-16:dedicated retained-child observation entry prepared with fake-only
 tests. Dot-sourcing/planning does not launch; explicit controller consumes one
 new retained-child-observe-NNN identity, fixes20s and preserves diagnostic-only
