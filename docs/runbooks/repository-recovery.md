@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest ordinary check001 completed after renewed approval following62395f01:
+one default-vet build73.927s and one original runtime7.287s,exit0;33 top-level/
+135 subtest PASS,no SKIP. Full SDK/product audits and15-file completion binding
+verified,PackagePassed=true via final marker,Acceptance=false. Read the
+[actual result](../roadmap/2026-10-16-leaf-ordinary-check-001.md) for timings,
+bindings,prior parser failure and remaining gates. Do not replay001 or manually
+run its binary. Raw output/control/SDK/cache stay local and are not cloned.
+Resume from latest development tip at saved-only remaining-gate triage;older
+stopped/awaiting-approval paragraphs below are history,not current instructions.
+
 Ordinary check001 execution was approved after2734cad9 but stopped before
 preflight command execution due to the executor's PowerShell syntax error.
 Read the [stopped preparation record](../roadmap/2026-10-16-leaf-ordinary-check-001.md).

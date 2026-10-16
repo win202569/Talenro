@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:after renewed approval,ordinary check001 completed one default-vet
+build exit0/73.927s and original runtime exit0/7.287s;33 top-level/135 subtest
+PASS,no SKIP. Ordinary guards/full SDK/product audits and15-file completion
+binding pass;PackagePassed=true,Acceptance=false. No retry or source changes.
+Read the [actual result](../../roadmap/2026-10-16-leaf-ordinary-check-001.md).
+Earlier stopped-preflight entry below is historical;001 must not be replayed.
+
 2026-10-16:ordinary check001 was approved but stopped before preflight execution
 because the executor's command failed PowerShell parsing. No controller/build/
 runtime call or output/control root creation occurred;no retry or acceptance.

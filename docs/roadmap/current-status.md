@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-16
 
+## Ordinary check001 — real single-package evidence complete
+
+After62395f01 user explicitly approved corrected syntax/preflight and retaining
+absent001. Full wrapper parsed on PS7/5.1;one controller invocation completed on
+Windows PS5.1x64:default-vet build exit0/73.927s,original runtime exit0/7.287s.
+Observed33 top-level and135 subtests PASS,no SKIP;ordinary schema3 guards and
+final SDK11536/product701 audits pass,71/four pins unchanged,15-file completed
+binding accepted by saved reader. Outer458.676s includes322.904s prepare and
+45.441s post-audit,not a458s compile. PackagePassed=true only via final marker;
+overall Acceptance=false. No retry,source edit or main merge.
+Read the [actual result and recovery](2026-10-16-leaf-ordinary-check-001.md).
+001 is consumed;next:saved-only remaining-gate triage,not automatic execution.
+Historical errors/matrix/fuzz/physical/C12/production/main gates remain open.
+One independent saved-evidence/report review found0 Critical/Important/Minor;
+no fixes or deferred minors. Reviewer did not rerun workloads/full inventories.
+
 ## Ordinary check001 — approved, stopped before preflight execution
 
 User approved the concrete run after2734cad9. The executor's first preflight
