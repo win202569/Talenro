@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest next-step document:[build-only001 single-run proposal](../superpowers/plans/2026-10-16-leaf-stage-build-only-001.md).
+The user approved preparing it;real execution is still awaiting its separate
+approval. It freezes four local input hashes and a66-source aggregate at tested
+baseline4afc6baa;output identity was absent during planner-only inspection.
+No real audit/build,output/cache root or native attempt was made for this proposal.
+These paths are machine-bound:cloning does not restore SDK/modules/raw receipts;
+on another machine stop and prepare new bindings/approval rather than replay001.
+
 Latest implementation checkpoint:user selected option1 for a separate build-only
 diagnostic with fixed -vet=off;ordinary vet acceptance and32-attempt budget remain.
 The [written spec](../superpowers/specs/2026-10-16-leaf-stage-build-only-design.md)
