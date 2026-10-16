@@ -11,6 +11,10 @@ pins,16 helpers and4 inputs matched. Outer24m17s includes15m45s pre-native and
 3m1s post-native work,not a24-minute compiler run. Read the
 [actual result and recovery](2026-10-16-leaf-stage-build-only-001.md).
 No binary runtime,retry or main merge;vet/test/error87/broader gates remain open.
+Result checkpoint `9ed03735ee9ac6f1a8755e223b8c16f5e9d1b999` was pushed with
+remote=local and clean state;use the latest development tip for follow-up
+preservation metadata. Seven workflow files were verified/copied before removing
+only this plan's scratch;the19-file local control seal is recorded in the report.
 
 ## Build-only diagnostic option1 — fake implementation and full regression complete
 

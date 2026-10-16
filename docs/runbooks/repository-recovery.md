@@ -22,6 +22,12 @@ One compile exit0/331.219s,5 admissions below32,scope/trigger/core/lifetime and
 final audits complete;completed marker and10 manifest artifacts verified.
 Full11536-file SDK/701 product comparisons unchanged;66 source/test+16 helper+4
 input pins verified. This supersedes the earlier in-flight65e54c54 checkpoint.
+Result checkpoint `9ed03735ee9ac6f1a8755e223b8c16f5e9d1b999` was pushed with
+remote SHA=local and clean state;select the latest development tip,including
+follow-up preservation metadata. Seven workflow files were verified/copied into
+the ignored control archive before removing only this plan's SDD scratch.
+The report records its19-file seal digest;neither this archive nor raw diagnostic
+output is cloned. The worktree and diagnostic history remain intact locally.
 It is diagnostic-only:ordinary vet/test/production/main acceptance still open,
 error87 unexplained,no binary runtime or retry. Read the report before resuming;
 do not replay001,run its binary or silently rebuild its environment on a new PC.

@@ -96,6 +96,18 @@ are not in Git and are not restored by cloning. Necessary report/status/plan/
 recovery documents travel on the latest development tip,not automatically main.
 Never replay/delete/reuse001 or run its generated binary to “finish” this record.
 
+Result checkpoint `9ed03735ee9ac6f1a8755e223b8c16f5e9d1b999` was pushed to
+the existing development branch with remote SHA=local and a clean worktree.
+The latest tip also carries this follow-up preservation metadata. Seven owned
+workflow scratch files were copied and hash/length verified into the control
+directory's `execution-records` before removing only this plan's SDD scratch.
+They remain recoverable locally;the worktree,other plans and live diagnostic
+history were preserved. The bounded control manifest seals19 files,excluding
+itself and all live output/cache/tmp/SDK contents. Its SHA256 is
+`0D2174683B0062A5D3F9D011AFAF45338C1C2B1630C6879BFABF43A56AB8B97E`.
+This ignored archive/seal is not restored by cloning and is not a portability
+or ordinary-acceptance certificate.
+
 Prior fake884-per-host checks remain earlier implementation evidence;no new fake
 or whole-product test batch ran here. Historical eager/stage compile001 remain
 STOPPED,matrix003 remains2PASS/1FAIL/23UNRUN,error87 unresolved. Required ordinary
