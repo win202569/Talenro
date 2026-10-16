@@ -1,5 +1,9 @@
 # Retained-child observation001 — STOPPED, not accepted
 
+Later separately approved [observer phase fix](2026-10-16-retained-child-phase-fix.md)
+corrects the code with fake-only tests. This observation's result, bytes and
+stopped status remain historical and unchanged; no live rerun or relabeling.
+
 ## Approval and execution
 
 User separately approved exactly one real retained-child-observe-001 observation

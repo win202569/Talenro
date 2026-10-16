@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:bounded observer phase fix removes the mistaken schema3 root-wait count
+zero requirement, without changing final cleanup/acceptance gates. New realistic
+fixture and negative final-residual controls:70 entry checks; five adjacent suites
+148 PASS perPS7/5.1. No live rerun;001 stays stopped. Read
+[fix and recovery](../../roadmap/2026-10-16-retained-child-phase-fix.md).
+
 2026-10-16:one separately approved retained-child-observe-001 live observation
 STOPPED. Retained child/core natural cleanup facts are complete, but the new
 observer mistakes the root-wait DescendantsRemaining2 for a final residual and

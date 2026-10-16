@@ -43,6 +43,9 @@ function New-RetainedChildNative {
     $n.RootId=17;$n.StartUTC='2026-10-16T00:00:00Z';$n.EndUTC='2026-10-16T00:00:10Z'
     $n.RootExited=$true;$n.CleanupVerified=$true;$n.NaturalShutdownVerified=$true;$n.ShutdownEvidenceComplete=$true
     $n.ShutdownDiagnosticOnly=$true;$n.LifetimeDiagnosticOnly=$true;$n.NaturalObservationMs=200;$n.ShutdownElapsedMs=210
+    # Root-wait facts are intentionally nonzero; final accounting/list are empty.
+    # A schema3 receipt must not confuse these distinct lifecycle phases.
+    $n.TotalProcesses=2;$n.ActiveAtRootWait=1;$n.DescendantsRemaining=1
     $n.MembersAtRootWait=[uint64[]]@(23);$n.MembersBeforeTermination=[uint64[]]@();$n.MembersAfterCleanup=[uint64[]]@();$n.MemberEvidence=@();$n.ShutdownMemberEvidence=@()
     $coreRow=New-Object 'IsolatedFuzzProcess+MemberObservation';$coreRow.Id=23;$coreRow.Owned=$true;$coreRow.ExitCodeRead=$true;$coreRow.State='exited'
     $n.MemberEvidence=@($coreRow);$n.ShutdownMemberEvidence=@($coreRow)
@@ -72,12 +75,15 @@ Write-RetainedStages $plan
 $native=New-RetainedChildNative
 $receipt=ConvertTo-RecordedProcessReceipt $native 'out' 'err' 'fixture' @() @{}
 $goodJSON=$receipt|ConvertTo-Json -Depth 6 -WarningAction Stop
-$good=Get-RetainedChildObservationEvidence $plan ($goodJSON|ConvertFrom-Json)
+$observedReceipt=$goodJSON|ConvertFrom-Json
+$good=Get-RetainedChildObservationEvidence $plan $observedReceipt
+Check-RetainedChild ($good.ObservationPassed -and $good.CoreNaturalComplete) 'root wait descendants do not imply final residual'
+Check-RetainedChild ($observedReceipt.DescendantsRemaining -eq 1 -and $observedReceipt.ActiveAtRootWait -eq 1 -and $observedReceipt.MembersAtRootWait[0] -eq 23 -and $observedReceipt.ActiveAfterCleanup -eq 0 -and $observedReceipt.MembersAfterCleanup.Count -eq 0) 'observation preserves distinct root wait and final facts'
 Check-RetainedChild ($good.ObservationPassed -and $good.StageEvidenceComplete -and $good.LifetimeEvidenceComplete -and $good.CoreNaturalComplete -and $good.ChildEntryId -eq 1 -and -not $good.Acceptance -and -not $good.OriginalTestPassed -and $good.Coverage -ceq 'sampled') 'complete same-entry fixture stays sampled and non acceptance'
 $refused=$false;try{Assert-ProcessCompletion ($goodJSON|ConvertFrom-Json)}catch{$refused=$true}
 Check-RetainedChild $refused 'ordinary guard still refuses observed diagnostic receipt'
 # Each mutation names a wrong success branch the real observer must reject.
-foreach($mutation in @('missing','wrong-child','duplicate','ambiguous','budget','close','forced','timeout','open87','source','clock','phase','final-code','flags','core87','core-missing','core-unowned','core-raw87','core-duplicate','core-running','cap','error','raw-handle')){
+foreach($mutation in @('missing','wrong-child','duplicate','ambiguous','budget','close','forced','timeout','open87','source','clock','phase','final-code','flags','core87','core-missing','core-unowned','core-raw87','core-duplicate','core-running','cap','error','raw-handle','final-active','final-list','pretermination-active','pretermination-list','natural-overrun','cleanup-overrun','cleanup-unverified')){
     $bad=$goodJSON|ConvertFrom-Json;$d=$bad.LifetimeDiagnostics;$e=$d.Entries[0]
     switch($mutation){
         missing{$d.Entries=@();$d.Attempts=0;$d.Admitted=0;$d.ReleaseAttempts=0}
@@ -103,6 +109,13 @@ foreach($mutation in @('missing','wrong-child','duplicate','ambiguous','budget',
         cap{$d.Attempts=33}
         error{$d.Incomplete=$true;$d.Errors=@('list-overrun:-1')}
         raw-handle{$e|Add-Member Handle 99}
+        final-active{$bad.ActiveAfterCleanup=1}
+        final-list{$bad.MembersAfterCleanup=@(23)}
+        pretermination-active{$bad.ActiveBeforeTermination=1}
+        pretermination-list{$bad.MembersBeforeTermination=@(23)}
+        natural-overrun{$bad.NaturalObservationMs=501}
+        cleanup-overrun{$bad.ShutdownElapsedMs=5001}
+        cleanup-unverified{$bad.CleanupVerified=$false}
     }
     $observed=Get-RetainedChildObservationEvidence $plan $bad
     Check-RetainedChild (-not $observed.ObservationPassed -and -not $observed.Acceptance) ('observer refuses '+$mutation)
@@ -139,7 +152,7 @@ function Test-RetainedController([string]$Mode,[int]$Suffix){
     if($Mode -ceq 'pass'){
         $saved=Get-Content (Join-Path $controllerRoot 'result.json') -Raw|ConvertFrom-Json
         $savedReceipt=Get-Content (Join-Path $controllerRoot 'process/receipt.json') -Raw|ConvertFrom-Json
-        Check-RetainedChild ($null -eq $failure -and $returned.ObservationPassed -and $saved.ObservationPassed -and $savedReceipt.LifetimeDiagnosticOnly -and $savedReceipt.LifetimeDiagnostics.Entries[0].Final.State -ceq 'exited' -and -not $saved.Acceptance) 'controller persists native diagnostic metadata without acceptance'
+        Check-RetainedChild ($null -eq $failure -and $returned.ObservationPassed -and $saved.ObservationPassed -and $savedReceipt.DescendantsRemaining -eq 1 -and $savedReceipt.LifetimeDiagnosticOnly -and $savedReceipt.LifetimeDiagnostics.Entries[0].Final.State -ceq 'exited' -and -not $saved.Acceptance) 'controller persists native diagnostic metadata without acceptance'
         $completed=Get-Content (Join-Path $controllerRoot 'completed.json') -Raw|ConvertFrom-Json
         Check-RetainedChild ($saved.FinalizationRequired -and $returned.Finalized -and $completed.Finalized -and $completed.ObservationPassed -and -not $completed.Acceptance -and $completed.ManifestSHA256 -ceq (Get-FileHash -LiteralPath (Join-Path $controllerRoot 'evidence-manifest.json') -Algorithm SHA256).Hash) 'durable completion separately binds finalized artifact manifest'
     }else{

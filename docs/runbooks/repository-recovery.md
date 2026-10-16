@@ -23,6 +23,8 @@ current status. The later separately approved single live observation STOPPED
 on a wrapper phase-confusion defect; read
 [its evidence and unresolved fix](../roadmap/2026-10-16-retained-child-observation-001.md).
 Do not retry that identity or treat native cleanup facts as observation acceptance.
+The later [observer phase fix](../roadmap/2026-10-16-retained-child-phase-fix.md)
+corrects that wrapper check with portable fake-only tests, not a live rerun.
 A provisional result alone is
 not completion: later observations require completed.json, matching artifact/
 manifest hashes and no stopped record. Recover source/tests from the development

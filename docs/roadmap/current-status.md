@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Retained-child observer phase fix — fake-only verification PASS
+
+User approved the bounded fix, not a live rerun. Removed only the schema3
+DescendantsRemaining root-wait zero requirement; preserve that count and all
+final cleanup/core-row/diagnostic refusal gates. Realistic nonzero-root-wait/
+final-empty fixture reproduced RED then GREEN; seven new negative cleanup/budget
+controls remain refused. Five adjacent suites148 PASS perPS7/5.1 (new entry70).
+Earlier13-suite389 results are not rerun. Observation001 remains stopped and
+unmodified; no new native/Go/Docker/matrix/PID query or main acceptance. See
+[fix, verification scope and recovery](2026-10-16-retained-child-phase-fix.md).
+
 ## Retained-child observation001 — STOPPED on wrapper phase-confusion defect
 
 One separately approved real observation ran once on4d5f6e1e:2520.257ms, root0,

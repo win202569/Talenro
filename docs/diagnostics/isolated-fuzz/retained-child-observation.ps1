@@ -94,7 +94,9 @@ function Get-RetainedChildObservationEvidence([object]$Plan,[object]$Receipt) {
         # Never clear mode flags, merge registry evidence, or repair core rows.
         if($Receipt.LifetimeDiagnosticOnly -isnot [bool] -or -not $Receipt.LifetimeDiagnosticOnly -or $Receipt.ShutdownDiagnosticOnly -isnot [bool] -or -not $Receipt.ShutdownDiagnosticOnly -or $Receipt.LiveSampling){throw 'Wrong diagnostic mode'}
         if($Receipt.ShutdownSchema -ne 3 -or $Receipt.ShutdownStatePolicy -cne 'owned-final-signaled-exit-image-optional-v2' -or $Receipt.RootId -le 0 -or $Receipt.ExitCode -ne 0 -or $Receipt.TimedOut -or -not $Receipt.RootExited -or $Receipt.TerminationRequested -or -not $Receipt.CleanupVerified -or -not $Receipt.NaturalShutdownVerified -or -not $Receipt.ShutdownEvidenceComplete -or $Receipt.MemberEvidenceTruncated){throw 'Core natural completion incomplete'}
-        if($Receipt.ActiveBeforeTermination -ne 0 -or $Receipt.ActiveAfterCleanup -ne 0 -or $Receipt.DescendantsRemaining -ne 0 -or $Receipt.MembersBeforeTermination.Count -ne 0 -or $Receipt.MembersAfterCleanup.Count -ne 0 -or $Receipt.NaturalObservationMs -lt 0 -or $Receipt.NaturalObservationMs -gt 500 -or $Receipt.ShutdownElapsedMs -lt 0 -or $Receipt.ShutdownElapsedMs -gt 5000){throw 'Core cleanup bounds incomplete'}
+        # Schema3 DescendantsRemaining is a root-wait snapshot, not a final
+        # residual. Keep it untouched; completion uses the later accounting/list.
+        if($Receipt.ActiveBeforeTermination -ne 0 -or $Receipt.ActiveAfterCleanup -ne 0 -or $Receipt.MembersBeforeTermination.Count -ne 0 -or $Receipt.MembersAfterCleanup.Count -ne 0 -or $Receipt.NaturalObservationMs -lt 0 -or $Receipt.NaturalObservationMs -gt 500 -or $Receipt.ShutdownElapsedMs -lt 0 -or $Receipt.ShutdownElapsedMs -gt 5000){throw 'Core cleanup bounds incomplete'}
         $coreRows=@($Receipt.ShutdownMemberEvidence)
         if($coreRows.Count -gt 32){throw 'Core member evidence exceeds bound'}
         $coreIds=New-Object 'System.Collections.Generic.HashSet[UInt64]'
