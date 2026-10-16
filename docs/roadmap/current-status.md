@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-16
 
+## Leaf compile001 saved-only cap analysis — no new execution
+
+The32 limit is cumulative admissions, not simultaneous processes. It stops new
+registry queries at23.42s; receipt ends74.94s, leaving51.53s without new-member
+queries (including cleanup), but root-wait/final reads of retained entries still
+occur. Saved images:17 asm/14 compile/1 conhost; raw states all running then
+exited0. This does not validate the capped sample or explain historical error87.
+Original11 artifacts/12 source pins verified unchanged; no code/tests/live run.
+Next: agree an end-phase-targeted bounded diagnostic design, not raise the cap
+or retry. See [chronology, source explanation and limits](2026-10-16-leaf-retained-cap-analysis.md).
+
 ## Leaf retained compile001 — exit0, diagnostic STOPPED at cap
 
 One approved real compile-only invocation on0453f31f returned root0 in74944.8801ms,

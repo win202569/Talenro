@@ -1,5 +1,9 @@
 # Leaf retained compile001 — compile exit0, diagnostic sample STOPPED
 
+Follow-up:[saved-only cap and chronology analysis](2026-10-16-leaf-retained-cap-analysis.md)
+explains the cumulative cap and late-new-member coverage gap, without changing
+this outcome or performing another real execution.
+
 ## Approved execution
 
 After preparing the fixed entry, the user approved continuation to one real

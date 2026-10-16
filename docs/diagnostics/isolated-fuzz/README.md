@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+2026-10-16:saved-only compile001 chronology explains cumulative32 admissions
+stop new queries at23.42s; retained root-wait/final reads still occur. No new
+execution/cap change; the sample remains stopped and error87 unexplained. Read
+[analysis and bounded next decision](../../roadmap/2026-10-16-leaf-retained-cap-analysis.md).
+
 2026-10-16:separately approved leaf-retained-compile-001 real compile returned0
 but diagnostic observation STOPPED at32 admissions. No timeout/forced cleanup;
 compiler evidence/core cleanup verified, lifetime sampling incomplete. All final

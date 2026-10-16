@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest saved-only [cap/chronology analysis](../roadmap/2026-10-16-leaf-retained-cap-analysis.md)
+explains the cumulative32-attempt limit was reached at23.42s of a74.94s receipt.
+No late new-member queries follow, although retained snapshots still occur.
+No new execution/code change/acceptance; next is a separately agreed diagnostic
+design, not cap expansion or a warm-cache rerun.
+
 Latest separately approved leaf-retained-compile-001 returned compiler exit0 but
 STOPPED on the32-attempt retained sampling cap; no runtime/retry/acceptance.
 Read [actual result and next scope](../roadmap/2026-10-16-leaf-retained-compile-001.md).
