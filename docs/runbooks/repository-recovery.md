@@ -25,7 +25,14 @@ committed as1c13f5fb/4bd4054f;controller/final repair checkpoint is
 a4bfe80ab898e0b6ada5a033a44534d0ff05a9e6. One fresh review/two Important repairs
 are complete;final21 suites passed884 checks per host (11 static included each),
 all42 commands exit0;66 source/test hashes matched. Read the [implementation record](../roadmap/2026-10-16-leaf-stage-build-only-implementation.md)
-and current status before resuming. No real execution or replay of001 is approved.
+and current status before resuming. Full code/test/document checkpoint
+ce484a0afc12f5ad4504f4550e43f4370cfbcd9d was pushed with remote SHA=local and
+clean state;the latest tip also carries follow-up preservation metadata.
+The98-file raw verification archive is deliberately ignored and is not restored
+by cloning;the report preserves its manifest digest and all progress/limitations.
+Only this plan's temporary SDD directory was removed after a verified archive
+copy;the worktree,other plans and diagnostic histories remain. No real execution
+or replay of001 is approved.
 
 Latest saved-only [stage budget analysis](../roadmap/2026-10-16-compile-stage-budget-analysis.md)
 explains27 vet admissions/32 cumulative slots and225 subsequent logged vet

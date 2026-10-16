@@ -14,7 +14,9 @@
 User approved this plan and selected option1 Native/inline after8a25712f.
 All implementation/review repairs are committed througha4bfe80a. Final21 suites
 per host passed884 checks (11 static included),all42 commands exit0;66 source/test
-pins matched. Final documentation/push preservation is in progress.
+pins matched. Complete code/test/doc checkpointce484a0a was pushed and remotely
+confirmed clean;latest tip includes follow-up preservation metadata. All98 raw
+verification files were archived locally and only this plan's scratch removed.
 No real attempt is authorized by implementation approval.
 
 ## Global Constraints
@@ -264,7 +266,7 @@ Check-BuildOnly ($bad.NativeCalls -eq 1 -and $bad.ToolAuditCalls -eq 2 -and $bad
   Resolve Important/Critical findings with named RED/GREEN and rerun the complete
   approved batch on fixed sources. Record deferred minors/rulings/test/live limits;
   no repeated review dispatch solely to declare a tested repair addressed.
-- [ ] **Step6: Record evidence and preserve only necessary files.** Write actual
+- [x] **Step6: Record evidence and preserve only necessary files.** Write actual
   implementation report/status/recovery with suite counts,commits,remaining gates;
   archive raw logs/bindings in a new ignored evidence identity,not Git. Review the
   explicit staged file list and commit diagnostics: add isolated build-only controller.

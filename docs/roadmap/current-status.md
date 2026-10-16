@@ -14,8 +14,10 @@ execution after8a25712f. Planner and scope/ordinary-refusal tasks are committed
 a4bfe80ab898e0b6ada5a033a44534d0ff05a9e6. One fresh review found two Important
 issues;one repair pass and named RED/GREEN tests addressed both,no deferred minors.
 Final21-suite regressions passed884 checks per PS7/5.1 host (11 static included
-each),all42 commands exit0;all66 source/test hashes matched. Preservation is in
-progress. Read the [implementation record](2026-10-16-leaf-stage-build-only-implementation.md).
+each),all42 commands exit0;all66 source/test hashes matched. Complete checkpoint
+ce484a0afc12f5ad4504f4550e43f4370cfbcd9d was pushed and remotely confirmed clean.
+Use the latest development tip,including follow-up preservation metadata. The98
+raw verification files are archived locally,not cloned. Read the [implementation record](2026-10-16-leaf-stage-build-only-implementation.md).
 No real diagnostic,Go build,binary runtime or main merge is authorized here.
 
 ## Stage compile001 budget analysis — saved-only, no new execution

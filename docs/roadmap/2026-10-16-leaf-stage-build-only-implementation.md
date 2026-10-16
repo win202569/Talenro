@@ -1,8 +1,8 @@
 # Leaf stage build-only implementation — 2026-10-16
 
 Status: approved Native/inline fake-only implementation,one fresh review/two
-Important repairs and final full regression complete. Final preservation in
-progress;not live/ordinary acceptance.
+Important repairs,final full regression and checkpoint preservation complete.
+Not live/ordinary acceptance.
 
 ## Implemented boundary
 
@@ -61,8 +61,20 @@ targets exist;Git whitespace checks passed. Run each listed test in a fresh
 NoProfile/NonInteractive host,with no focus/live switches,using the plan's exact
 21-file list. No whole-product Go baseline or live test is represented by these counts.
 
-Raw verification logs/bindings remain ignored locally;archive finalization and
-remote checkpoint verification are the remaining preservation work.
+Full source/test/document checkpointce484a0afc12f5ad4504f4550e43f4370cfbcd9d
+was ordinary-pushed to the existing development branch;remote SHA=local and clean
+state were verified. Use the latest tip for follow-up preservation metadata.
+
+The98 raw verification files,including pre-review partial logs,named RED/GREEN
+logs,final42 logs/two summaries,source pins,ledger/briefs and the fresh review
+record,were copied and individually hash/length verified in the ignored local
+archive `.superpowers/diagnostics/2026-10-16-leaf-stage-build-only-implementation-001`.
+Its additional archive-manifest.json SHA256 is
+`B938819758BBDB1E51AC5E8011EB2C55E8DB1665011136C8A452C1ACFA56BA3B`.
+Only this plan's temporary SDD directory was removed after ownership/path/reparse
+checks and verified copying;it can be recovered from that archive. Other plans,
+the worktree and diagnostic histories were preserved. Raw evidence is not in Git
+and will not be restored by cloning;necessary code/tests/progress/recovery are.
 All tests use fake native/SDK/product boundaries;portable new fixtures
 are tiny files and synthetic DTO/logs,not ignored prior receipts or caches.
 Legacy planning tests may depend on this machine's existing SDK/module paths.
