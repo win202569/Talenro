@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [raw-capture limited offline acceptance recommendation](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
+is saved but NOT approved. Fixed code object isd7d8d939, productFB48642D and
+test2D44F9C9. Later documentation commits do not change that code object.
+This handoff only reconciles saved evidence, including original slot5false and
+its exception; it runs no new tests/reviewer. Final I1/M1 changes have parent
+verification, not independent rereview. User decision on those explicit limits
+is still needed before recording acceptance. Recover from the development
+branch; all budgets remain spent, ignored raw remains local, no main/live/
+security/Stage B/full C12 authority follows. Do not prefill an approval record.
+
 Latest: [M1 event-oracle follow-up](../roadmap/2026-10-17-offline-raw-capture-event-oracle.md)
 adds eight hand-derived complete event sequences and alteration-rejection
 tests only. Four approved NEW hosts completed: both targeted groups passed,

@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — raw-capture limited offline acceptance recommendation awaits approval
+
+[Proposed decision and disclosed limits](2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
+targets code deliveryd7d8d939, productFB48642D/test2D44F9C9. This documents
+an evidence-based recommendation, NOT acceptance or approval of live work.
+Readonly reconciliation matched all19 receipt pairs/three indices,12 dependency
+pins and final two30-label inventories; no new tests/imports/reviewer/repair.
+Original slot5 false verdict and explicit exception remain; final I1/M1 closure
+is parent evidence, without independent rereview. User must decide whether to
+adopt that evidence/limitation for this narrow module/version only. All budgets
+remain spent; no main/security/Stage B/real collector/watchdog/full C12 clearance.
+If approved, record the actual approval separately; do not prefill acceptance.
+
 ## Latest — M1 complete-event expectations added and verified
 
 [M1 evidence and limits](2026-10-17-offline-raw-capture-event-oracle.md):
