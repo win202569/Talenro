@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — raw capture/outer control written design awaits review
+
+User approved writing the offline-first [new subsystem design](../superpowers/specs/2026-10-17-raw-capture-outer-control-design.md).
+The written spec proposes an in-memory raw-byte transfer coordinator reusing
+existing lifecycle/record contracts; real pipes and independent owned-host
+supervision remain separate future work, not implemented or authorized.
+No source/tests, launches, security queries or reviewer calls this turn.
+The existing synthetic archive's limited acceptance remains valid only for
+its recorded version/scope. Stage B/I2/I3/full C12/main gates stay open.
+Next: user reviews this written spec; only then prepare a finite implementation
+plan and execution-method decision. No test/runtime allowance is granted yet.
+
 ## Latest — final limited offline acceptance approved by user
 
 User explicitly answered yes to the final verdict and its limits from

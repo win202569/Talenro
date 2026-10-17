@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [raw capture and outer-control design](../superpowers/specs/2026-10-17-raw-capture-outer-control-design.md)
+is written but not yet approved. Writing approval is not implementation or
+execution authority. The first proposed unit uses synthetic bytes and owned
+memory streams only; real pipes/process ownership and independent supervision
+require separate design and approval. No fresh test/runtime/reviewer budget,
+nonce, real input packet or security clearance is issued. Resume by reviewing
+the written spec before any plan/execution. Existing limited offline acceptance
+and all historical failures/frozen budgets remain unchanged.
+
 Latest: user approved the [final limited offline verdict and its limits](../roadmap/2026-10-17-synthetic-capture-limited-acceptance-approval.md)
 for delivery d5b547e484633f40a8339bcc48797e503139e69d. This module/version has
 completed limited offline functional acceptance, not release/security/main or
