@@ -29,7 +29,8 @@ function Contract-Refusal($Packet,[string]$Name){
 # Break caught: ETS length/rank shadows must never clip bytes or bypass bounds.
 # Fixtures call the public APIs;literal refusal is independent of implementation.
 function Contract-Shadow($Value,[string]$Name,$Shadow){
-    Add-Member -InputObject $Value -MemberType NoteProperty -Name $Name -Value $Shadow -Force
+    # Retain the returned ETS wrapper;immutable strings do not keep an in-place addition.
+    $Value=Add-Member -InputObject $Value -MemberType NoteProperty -Name $Name -Value $Shadow -Force -PassThru
     if($Value.PSObject.Properties[$Name].MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty -or $Value.$Name -ne $Shadow){throw 'Shadow fixture not attached'}
     return ,$Value
 }

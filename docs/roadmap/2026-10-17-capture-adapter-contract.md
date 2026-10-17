@@ -1,6 +1,46 @@
 # Synthetic capture contract — bounded execution and review
 
-## Latest correction attempt — stopped at fixture error; UNFINISHED
+## Latest continuation — normal-case failure; UNFINISHED
+
+User explicitly approved continuation after3d7d22b2:correct fixture attachment,
+keep call1 unexpected result/six failures without replay,and use remaining3.
+Test helper now retains Add-Member -PassThru wrapper. Parent bookkeeping admits
+only saved call1's exact host/phase/exit/2280ms/sixFAIL/fixture-error context;
+original ExpectedResult=false remains intact,not reclassified as clean RED.
+
+Call2 PS5RED exited1/2274ms,ExpectedResult=true on5.1.26100.9711Desktop x64.
+All13 public constructor/verifier shadow assertions printedFAIL and the named
+aggregate assertion failed as expected;string fixtures now attached. Production
+change then added a shared descriptor check:Length/Rank must be intrinsic CLR
+Property descriptors,not Note/Alias/etc,before caller-visible bounds are read.
+No dependency or culture-token changes.
+
+Call3 PS7GREEN exited1/1108ms,ExpectedResult=false on7.6.5Core x64. API guard,
+13 shadow cases and aggregate passed(15PASS total),then the normal minimal
+record failed ConsistentIncompleteIsNotRuntimeSuccess. Original78-check suite
+did NOT complete. Stop applied immediately;call4PS5GREEN unstarted/frozen.
+Repair3/4 spent,no retry/second correction/review. Current source is NOT the
+historical78PASS version and is NOT accepted as fixed. String fixture residue
+versus descriptor-validation regression remains undetermined;no diagnostic
+execution was made after this failure.
+
+Current source SHA256:
+`E5B600EF138C7B1F4AF0E4A698B2FEE4023436757950CE247D848E230574206A`.
+Tests:`76E2A74E4D96A2B93B7A85AD6BE4411CA5C8AB59BF977944C5B3DC62B0350127`.
+Three-entry repair index:
+`19BABFCEF1F970B5EB56EE233639DD8BBCDD980A7A4BFCFA4170EFB6BC90170F`.
+All original and repair receipts retained;no raw capture or runtime evidence.
+
+Proposed next authority,not yet granted:new cap3,one bounded PS7 memory-only
+diagnostic to inspect verifier reason and passive member descriptors before/
+after shadow fixtures,then a cause-backed correction and full PS7/PS5 suites.
+Each host120s,no retries or second review;unused repair fourth stays frozen,
+not reassigned. Preserve call3 as the observed normal-case regression RED;
+no additional independent reproduction run implied. If diagnostic is inconclusive
+or GREEN fails,stop rather than guess. No real byte acquisition,security
+query/change,Stage B,I2/I3,main merge or wider acceptance.
+
+## Earlier correction attempt — stopped at fixture error; historical
 
 After75a6cabdc93ba33940af19ede69e8433226232a1,user approved correction plus
 four NEW hosts,PS7RED/PS5RED/PS7GREEN/PS5GREEN,120s each,no retries. Existing

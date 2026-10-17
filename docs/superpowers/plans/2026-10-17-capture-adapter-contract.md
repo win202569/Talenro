@@ -6,6 +6,19 @@
 
 ### Approved Important-finding correction after75a6cabd
 
+Latest disposition:continuation used call2PS5RED(13FAIL,expected aggregate),then
+descriptor guard implemented. Call3PS7GREEN15PASS then failed normal minimal
+record ConsistentIncompleteIsNotRuntimeSuccess(exit1/1108ms). STOPPED,source
+not verified fixed,call4 frozen. Repair3/4 spent,no additional correction/test.
+Proposed separate3-host memory diagnosis/full two-host verification awaits
+approval. All preceding statuses below retained as historical transitions.
+
+Continuation APPROVED after3d7d22b2:retain call1/ExpectedResult=false and all six
+API failures without replay;correct fixture wrapper retention using PassThru,
+allow only that exact saved failure in parent phase bookkeeping,then remaining
+PS5RED/PS7GREEN/PS5GREEN. Same4 total,120s each,no retry or second review. A new
+unexpected result stops. Status below records the earlier stop historically.
+
 Disposition:call1 PS7RED exited1/2280ms;6 API regressions failed,then test helper
 errored Shadow fixture not attached before aggregate assertion. ExpectedResult
 false;STOPPED. Source unchanged,revised tests NOT GREEN. Repair1/4 used,remaining

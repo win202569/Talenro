@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[normal-case regression after shadow guard](../roadmap/2026-10-17-capture-adapter-contract.md).
+Recover current source/tests/report as UNFINISHED,not prior78PASS version.
+Approved continuation retained call1;PassThru corrected fixture attachment.
+PS5RED13FAIL expected;PS7GREEN15PASS then normal minimal record assertion failed,
+exit1/1108ms. Current suite NOT GREEN;repair3/4 spent,unused fourth frozen.
+No automatic rerun or index reset. Need separate authority for proposed3 hosts:
+one memory-only diagnostic,then cause-backed correction/PS7andPS5 full suites.
+No second review,retry,live capture/security change,Stage B or main merge.
+Raw ignored receipts remain local;tracked evidence sufficient to resume scope.
+
 Latest:[shadow-fix attempt stopped](../roadmap/2026-10-17-capture-adapter-contract.md).
 Recover revised tests and repair plan;production helper remains75a6cabd version
 with known Important defect. PS7 call1 reproduced6 public-API shadow failures,

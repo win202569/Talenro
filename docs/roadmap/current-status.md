@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — shadow cases pass; normal record fails; correction unfinished
+
+[Continuation evidence](2026-10-17-capture-adapter-contract.md):approved fixture
+correction/remaining3 after3d7d22b2. PS5RED13FAIL/exit1 as expected. Shared
+descriptor guard added;PS7GREEN15PASS then normal minimal record failed
+ConsistentIncompleteIsNotRuntimeSuccess(exit1/1108ms). Stopped,noPS5GREEN or
+post-failure correction. Repair3/4 used,unused fourth frozen. Source NOT earlier
+78PASS version;current suite NOT GREEN. Cause undetermined(fixture residue vs
+validation regression). Proposed separate cap3:one pure-memory diagnosis then
+PS7/PS5 full suites after cause-backed correction,no retries/second review.
+Original failures/budgets preserved;no live/security/Stage B/I2/I3 acceptance.
+
 ## Latest — shadow fix reproduction stopped; source unchanged
 
 [Repair record](2026-10-17-capture-adapter-contract.md):user approved4 new hosts.

@@ -4,6 +4,8 @@ function Assert-ContractPassiveProperties($Value){
     if($null -eq $Value){return}
     foreach($p in $Value.PSObject.Properties){
         if($p.MemberType -in @([Management.Automation.PSMemberTypes]::ScriptProperty,[Management.Automation.PSMemberTypes]::CodeProperty)){throw 'Executable property rejected'}
+        # Only CLR properties may supply intrinsic bounds;ETS notes/aliases can clip bytes.
+        if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Intrinsic bound shadow rejected'}
     }
 }
 function Assert-ContractShape($Value,[string[]]$Names){
