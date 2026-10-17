@@ -30,7 +30,7 @@ public sealed class OrdinaryLedgerSession {
             r.InitialAccounting=api.QueryAccounting(job,deadline);
             if(!ledger.Budget(deadline) || !OrdinaryMemberLedger.ValidApi(r.InitialAccounting)){Reject(r,"initial-accounting");return r;}
             ledger.Poll(deadline);
-            r.InitialMemberQuery=ledger.Report.LastQuery;
+            r.InitialMemberQuery=ledger.CurrentPollQuery;
             r.InitialMembers=(ulong[])ledger.LastMembers.Clone();
             while(!ledger.Report.Incomplete){
                 ledger.ObserveFinal(deadline,false);

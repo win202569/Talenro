@@ -1,5 +1,24 @@
 # Ordinary Member Identity Ledger Implementation Plan
 
+## Approved snapshot-provenance follow-up after776f2d3e
+
+Completed in approved fake scope:RED1/2 matched NoStaleInitialMembers-error234,
+GREEN3/4 passed21 each;final5..18 passed350.18/18,combined47/47 used. New
+per-invocation query/member slots prevent runtime fact reuse. See portable
+initial-snapshot-fix report;no native/acceptance/main gate cleared.
+
+User approved18 additional fake invocations,total47 repair calls. Freeze the
+existing29-call repair index;new snapshot-invocations.json records18 calls.
+Use ordinary-ledger-initial-snapshot.tests.ps1 RED on PS7/5 (expected assertion
+NoStaleInitialMembers-error234),then minimal current-poll snapshot correction,
+GREEN on both hosts,then original seven-suite final allowlist on both hosts.
+The test seeds runtime PID2,then shutdown PID3 with234/truncation/501ms overrun,
+requires current raw query facts/no stale member list/sticky refusal/no retry,
+single release of retained owner;success preserves initial PID3 even after
+final empty polls. Initial-accounting failure leaves the member query unattempted.
+Keep120s/fresh hosts/PS5 child-only inbox modules,stop on unexpected failure.
+No native workload,rights/retry/window expansion,metadata/acceptance/main change.
+
 Closeout:author readonly check identified stale InitialMembers after failed
 initial shutdown query following runtime polling. Completion blocked;no fix/tests
 after29/29. Proposed18 additional fake calls,total47,pending user approval.

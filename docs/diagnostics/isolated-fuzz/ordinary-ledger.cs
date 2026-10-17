@@ -41,6 +41,7 @@ public sealed class OrdinaryMemberLedger:IDisposable {
     sealed class Owner {public IntPtr Handle;public OrdinaryEntry Entry;public bool Released;}
     public OrdinaryLedgerReport Report {get;private set;}
     internal ulong[] LastMembers=new ulong[0];
+    internal LifetimeQueryEvidence CurrentPollQuery;
     public OrdinaryMemberLedger(string runIdentity,IntPtr job,uint rootId,IOrdinaryLedgerApi api,IRetainedLifetimeClock clock){
         if(String.IsNullOrWhiteSpace(runIdentity) || job==IntPtr.Zero || job==new IntPtr(-1) || rootId==0 || api==null || clock==null || clock.Frequency<=0 || clock.Ticks<0)throw new ArgumentException("Own job, run, root, API and clock required");
         this.job=job;root=rootId;this.api=api;this.clock=clock;lastTick=clock.Ticks;
@@ -75,11 +76,14 @@ public sealed class OrdinaryMemberLedger:IDisposable {
         }catch(Exception){Fail("read-exception",-1);return unknown;}
     }
     public void Poll(long deadlineTicks){
+        // These are facts for this invocation only, not the last successful poll.
+        LastMembers=new ulong[0];CurrentPollQuery=null;
         if(disposed || Report.Sealed || Report.Incomplete)return;
         try{
             if(!Budget(deadlineTicks))return;
             var list=api.QueryMembers(job,deadlineTicks);Report.QueryCount++;
             Report.LastQuery=CopyQuery(list);if(Report.FirstQuery==null)Report.FirstQuery=CopyQuery(list);
+            CurrentPollQuery=Report.LastQuery;
             if(!Budget(deadlineTicks))return;
             if(!ValidList(list)){Fail("list",list==null?-1:list.Error);return;}
             LastMembers=(ulong[])list.Ids.Clone();

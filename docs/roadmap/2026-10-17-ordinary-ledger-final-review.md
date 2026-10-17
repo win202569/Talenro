@@ -1,5 +1,10 @@
 # Ordinary ledger — independent readonly final review: fixes required
 
+Latest:[author snapshot follow-up](2026-10-17-ordinary-ledger-initial-snapshot-fix.md)
+resolved the additional provenance gap in fake scope;final14 regressions green.
+This is not a second independent review or native acceptance. Earlier open
+closeout blocker and original findings below are retained historical evidence.
+
 Author closeout found an additional failed-initial-snapshot provenance gap in B;
 see linked repair report. Implementation remains incomplete despite scoped green
 regressions. No second independent review or native validation is claimed.

@@ -1,5 +1,10 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
+Latest:[initial snapshot correction verified](2026-10-17-ordinary-ledger-initial-snapshot-fix.md).
+Both hosts passed21 new checks and final350 regression assertions. The following
+snapshot source blocker is historical;remaining native/acceptance gates unchanged.
+No claim of full project/controller testing or real Error87 repair.
+
 Current blocker:author source check found failed initial query may reuse prior
 runtime members in InitialMembers. Sticky refusal remains;no correction/tests
 after29/29. See repair report's closeout finding before continuing.

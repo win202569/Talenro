@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Latest:[initial snapshot follow-up](../../roadmap/2026-10-17-ordinary-ledger-initial-snapshot-fix.md)
+fixed the provenance gap below,21 new fake checks per host and final350 passed.
+Review repairs47/47 used. No native/workload or acceptance authority;historical
+blocker statements below remain as the record of the pre-fix checkpoint.
+
 Closeout blocker:failed initial shutdown queries can reuse runtime member facts
 in InitialMembers;sticky refusal remains,but provenance is inaccurate. No fix or
 rerun after29/29. The green scope below is not implementation completion.

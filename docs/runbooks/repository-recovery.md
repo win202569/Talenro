@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[initial snapshot provenance fix](../roadmap/2026-10-17-ordinary-ledger-initial-snapshot-fix.md).
+Recover tracked source/new fake suite and evidence summary from the development
+branch. Follow-up18 calls complete,total47;21 checks per host plus final350
+passed. The old source blocker below is historical. No more tests/native calls
+authorized;native/metadata/main/production gates unchanged. No ignored runner,
+raw receipt or prior-machine cache needed to read/resume the source checkpoint.
+
 Closeout blocker:despite green scoped regressions,a failed initial shutdown
 query may copy a prior runtime member list as initial facts. Sticky refusal
 remains,so no acceptance claim. Read the latest repair report's closeout finding;

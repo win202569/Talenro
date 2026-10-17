@@ -1,5 +1,11 @@
 # Ordinary ledger review repair — scoped regressions green, rollout blocked
 
+Latest:[initial snapshot follow-up verified](2026-10-17-ordinary-ledger-initial-snapshot-fix.md).
+User approved18 extra calls after776f2d3e. Both hosts RED→GREEN21 checks each;
+final14 runs/350 assertions green. The closeout provenance finding below is
+resolved in fake scope;47/47 consumed. Native/workload acceptance still blocked.
+Historical stop/proposed/unapproved statements below do not describe current state.
+
 ## Author closeout finding:failed initial snapshot can reuse runtime members
 
 After final tests,readonly source inspection found an additional provenance gap

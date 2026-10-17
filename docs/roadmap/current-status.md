@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — snapshot provenance follow-up verified;native acceptance still blocked
+
+The additional snapshot issue is fixed and fake-verified on PS7/5.1:21 checks
+per host after expected RED. Final14 allowed regressions passed350 assertions,
+empty stderr. See [follow-up evidence](2026-10-17-ordinary-ledger-initial-snapshot-fix.md).
+Follow-up18/18 used;combined review repairs47/47. Prior29/34 records frozen.
+No additional known source blocker in this narrow follow-up;not full-project,
+controller/native validation or Error87 repair. No metadata continuation,main
+merge,acceptance activation or workload authority. Next:separately plan bounded
+native/environment evidence. Earlier blocker/current states below historical.
+
 ## Closeout blocker — failed initial snapshot may reuse runtime list
 
 Author readonly check found a new B provenance gap after green regression:

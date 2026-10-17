@@ -10,7 +10,7 @@ for public consumption.
 
 For a new computer, follow [repository recovery](docs/runbooks/repository-recovery.md).
 The ordinary-ledger review repairs passed scoped fake/static regressions;
-an additional failed-snapshot provenance issue leaves implementation incomplete.
+the failed-snapshot provenance follow-up also passed its bounded fake regressions.
 Native/workload acceptance remains blocked. Do not replay ordinary workflows
 without separate authorization. See [repair status](docs/roadmap/2026-10-17-ordinary-ledger-review-repair.md).
 Development-tool entrypoints require Windows and **PowerShell Core 7.6.5**.
