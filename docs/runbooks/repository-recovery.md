@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [offline raw capture execution](../roadmap/2026-10-17-offline-raw-capture-execution.md)
+is STOPPED after5/10 calls. New portable module/test exist; both first full
+engines passed28 labels, but the ownership mutation gate was rejected by a
+single-label scalar/array controller bug. Intended assertion was observed;
+original ExpectedResult=false remains, mutation restored and12 prior pins
+unchanged. Slots6..10 frozen, reviewer not dispatched. Clone restores the
+incomplete code/report, not ignored receipts or continuation authority. No
+automatic controller fix/retest, old run replay, real collector/watchdog or
+main/security/full C12 approval. User direction is required before continuation.
+
 Latest: the raw-capture written design was approved after92af8224 for planning
 only. Its [new implementation plan](../superpowers/plans/2026-10-17-offline-raw-capture.md)
 awaits user review, execution-method choice and finite-budget approval.

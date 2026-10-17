@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline raw capture implemented; stopped at mutation controller gate
+
+[Execution and readonly assessment](2026-10-17-offline-raw-capture-execution.md):
+Native approved, new module/test only. Two expected API REDs, then PS7/PS5
+each28PASS/exit0/53686ms,111570ms/no stderr. Slot5 ownership mutation produced
+the exact expected assertion, but controller single-label array unrolling made
+the verdict false. Original false record retained; mutation restored to tested
+baseline, test and12 dependency pins unchanged.5/10 consumed;6..10 frozen,
+review0/1 unstarted. No product/test/controller correction or retry after stop.
+Propose explicit readonly-assessment admission exception and future controller
+array correction before using only remaining5 calls/conditional1review; not yet
+authorized. No real collector/watchdog/Stage B/I2/I3/full C12/main clearance.
+Save as incomplete development checkpoint, not new module acceptance.
+
 ## Latest — raw-capture written spec approved; implementation plan awaits decision
 
 User approved the written design after92af8224, for planning only. The
