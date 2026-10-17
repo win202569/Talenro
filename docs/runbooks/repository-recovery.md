@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest unfinished candidate: [ordinal shape lookup](../roadmap/2026-10-17-p1-shape-lookup.md).
+Afterd292fc87 approvals,candidate953CC2A8 uses fixed schema name sets local to each
+evaluation/kind;per-value defenses retained,no input-result cache. New6 baseline
+PASS1045ms;candidate PS7 full flow timed out30071ms,CPU38796.875ms,new6/reflection3/
+fixture8/original35/ownership7 PASS,remaining3 incomplete. PS5 never launched.
+New2/3/one frozen;prior full1/2/one frozen,reflection3/4/one frozen,old3/7/four
+frozen/review ineligible remain.173 pins/seal held;candidate NOT accepted,I1/P1
+unresolved. Clone portable source/new tests/wrapper/report from dev branch,not
+main;ignored raw/controller/runtime and replay authority do not clone. Next
+review this change/residual performance design,no automatic replay,old-slot use,
+further product tweak,timeout increase or acceptance promotion.
+
 Latest verification blocker: [independent full original flow](../roadmap/2026-10-17-p1-independent-full-verification.md).
 Aftera7017a47 approval,PS7 unchanged complete test entry timed out30055ms total/
 30000 cap,CPU37500ms,exit-1,stderr empty,owned-host-exited. New3/fixture8/original35/

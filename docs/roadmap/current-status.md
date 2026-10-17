@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — per-evaluation ordinal shape sets implemented; full PS7 still times out
+
+Afterd292fc87 approvals,[shape lookup candidate](2026-10-17-p1-shape-lookup.md)
+953CC2A8 caches only fixed field-name sets,per evaluation/kind,not input admission;
+all member/count/type/value defenses retained. Expected-RED exemption explicit.
+New6 baseline PS7 PASS exit0/1045ms;candidate new6 +existing full flow timed out
+30071ms/configured30000,CPU38796.875ms,exit-1,stderr empty,owned-host-exited.
+Saved77 lines/59 PASS:new6,reflection3,fixture8,original35,ownership first7 through
+PassiveDescriptors. Remaining ownership3/final markers incomplete;PS5 unlaunched.
+No controlled speedup or acceptance claim.173 immutable pins/candidate seal held,
+old suites unchanged. New2/3/one frozen;prior full1/2/one frozen,reflection3/4/one
+frozen,old3/7/four frozen/review ineligible remain. I1/P1 unresolved. Next review
+change and residual performance/verification design before more optimization,
+not automatic old-slot use,rerun,limit increase or main acceptance.
+
 ## Latest — independent original full verification times out; PS5 frozen
 
 Aftera7017a47,[independent full verification](2026-10-17-p1-independent-full-verification.md):

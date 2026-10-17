@@ -5,6 +5,8 @@ function New-SupervisionPolicyMetadata {
     [pscustomobject]@{
         TypeMethod=[object].GetMethod('GetType')
         MembersProperty=[Management.Automation.PSMemberSet].GetProperty('Members')
+        # Keys and field lists come only from fixed schemas, never input member names.
+        ShapeSets=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
     }
 }
 function Get-SupervisionPolicyType($Value,$Metadata=$null){
@@ -27,13 +29,21 @@ function Assert-SupervisionPolicyPassive($Value,$Metadata=$null){
         if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Shadow bound'}
     }
 }
-function Assert-SupervisionPolicyShape($Value,[string[]]$Names,$Metadata=$null){
+function Assert-SupervisionPolicyShape($Value,[string[]]$Names,$Metadata=$null,[string]$ShapeKey=''){
     if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
     $type=Get-SupervisionPolicyType $Value -Metadata $Metadata
     if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain object required'}
     $props=@($Value.PSObject.Properties);if($props.Count -ne $Names.Count){throw 'Exact fields required'}
+    # Only the fixed allowlist is reused. Every member/value is checked below.
+    if($ShapeKey.Length -gt 0 -and $Metadata.ShapeSets.ContainsKey($ShapeKey)){
+        $allowed=$Metadata.ShapeSets[$ShapeKey]
+    }else{
+        $allowed=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach($name in $Names){$null=$allowed.Add($name)}
+        if($ShapeKey.Length -gt 0){$Metadata.ShapeSets.Add($ShapeKey,$allowed)}
+    }
     foreach($p in $props){
-        $found=$false;foreach($name in $Names){if([string]::Equals($p.Name,$name,[StringComparison]::Ordinal)){$found=$true;break}}
+        $found=$allowed.Contains($p.Name)
         if(-not $found -or $p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Exact passive fields required'}
         Assert-SupervisionPolicyPassive $p.Value -Metadata $Metadata
     }
@@ -95,7 +105,7 @@ function Get-OfflineSupervisionDecision([object]$Scenario){
     $result=[pscustomobject]@{Schema=1;Mode='policy-only';EvidenceClass='synthetic';Evaluated=$false;Reason='invalid-scenario';State='Refused';FailureObservationIndex=$null;Decision=$null;OriginVerified=$false;Acceptance=$false;RuntimeApproved=$false;LiveActionsPerformed=$false;CleanupStatus='unknown'}
     try{
         $Metadata=New-SupervisionPolicyMetadata
-        Assert-SupervisionPolicyShape $Scenario @('Schema','Mode','SessionLabel','ClockLabel','StartMs','Observations') -Metadata $Metadata
+        Assert-SupervisionPolicyShape $Scenario @('Schema','Mode','SessionLabel','ClockLabel','StartMs','Observations') -Metadata $Metadata -ShapeKey root
         Assert-SupervisionPolicyInteger $Scenario.Schema 1 1 -Metadata $Metadata;Assert-SupervisionPolicyToken $Scenario.Mode @('policy-only') -Metadata $Metadata
         Assert-SupervisionPolicyToken $Scenario.ClockLabel @('synthetic-ms') -Metadata $Metadata
         if((Get-SupervisionPolicyType $Scenario.SessionLabel -Metadata $Metadata) -ne [string]){throw 'Label string required'}
@@ -121,7 +131,7 @@ function Get-OfflineSupervisionDecision([object]$Scenario){
                 control{'SummaryCount';'MaxSummaryBytes';'QueueDepth'}
                 fault{'Fault'} cleanup{'Verified';'NaturalCompletion';'CountsReconciled'} persist{'ReadbackMatches';'Classification'}
             })
-            Assert-SupervisionPolicyShape $o (@('Sequence','SessionLabel','ClockLabel','AtMs','Actor','Kind')+$extra) -Metadata $Metadata
+            Assert-SupervisionPolicyShape $o (@('Sequence','SessionLabel','ClockLabel','AtMs','Actor','Kind')+$extra) -Metadata $Metadata -ShapeKey $o.Kind
             Assert-SupervisionPolicyInteger $o.Sequence -Metadata $Metadata;Assert-SupervisionPolicyInteger $o.AtMs -Metadata $Metadata
             foreach($name in @('SessionLabel','ClockLabel')){if((Get-SupervisionPolicyType $o.$name -Metadata $Metadata) -ne [string] -or $o.$name.Length -gt 64){throw 'Bounded declaration required'}}
             Assert-SupervisionPolicyToken $o.Actor @('L','W','C') -Metadata $Metadata
