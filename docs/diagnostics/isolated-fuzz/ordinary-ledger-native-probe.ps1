@@ -1,5 +1,57 @@
 # Explicit diagnostic probe preparation. Importing this file starts no workload.
-. (Join-Path $PSScriptRoot 'run.ps1')
+function Assert-OrdinaryLedgerProbeFreshTypes {
+    if('IsolatedFuzzProcess' -as [type]){throw 'Unverified preloaded native types refused'}
+}
+function Open-OrdinaryLedgerProbeFileBinding([string]$Path,[string]$ExpectedSHA256=''){
+    if(-not [IO.Path]::IsPathRooted($Path)){throw 'Absolute binding path required'}
+    $safe=[IO.Path]::GetFullPath($Path)
+    if($safe.Length -lt 4 -or $safe.StartsWith('\\') -or $safe.Substring(2).Contains(':')){throw 'Invalid binding path'}
+    $cursor=$safe
+    while($cursor -and $cursor.Length -gt 3){
+        $item=Get-Item -LiteralPath $cursor -Force -ErrorAction Stop
+        if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'Reparse binding refused'}
+        $cursor=Split-Path -Parent $cursor
+    }
+    $stream=[IO.File]::Open($safe,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+    try{
+        $sha=[Security.Cryptography.SHA256]::Create()
+        try{$hash=([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-','')}finally{$sha.Dispose()}
+        $stream.Position=0
+        if($ExpectedSHA256 -cne '' -and $hash -cne $ExpectedSHA256){throw 'Locked binding hash mismatch'}
+        [pscustomobject]@{Path=$safe;SHA256=$hash;Stream=$stream}
+    }catch{$stream.Dispose();throw}
+}
+function Initialize-OrdinaryLedgerProbe([string]$OwnParsedText){
+    Assert-OrdinaryLedgerProbeFreshTypes
+    $locks=New-Object 'System.Collections.Generic.List[object]'
+    try{
+        foreach($name in (Get-OrdinaryLedgerProbeSourceNames)){$locks.Add((Open-OrdinaryLedgerProbeFileBinding (Join-Path $PSScriptRoot $name)))}
+        $self=@($locks|Where-Object {[IO.Path]::GetFileName($_.Path) -ceq 'ordinary-ledger-native-probe.ps1'})[0]
+        if([IO.File]::ReadAllText($self.Path) -cne $OwnParsedText){throw 'Parsed helper differs from locked source'}
+        . (Join-Path $PSScriptRoot 'run.ps1')
+        # Dot-sourced dependency functions must survive this initializer scope.
+        foreach($name in @('Get-IsolatedFullPath','Test-IsolatedWithin','ConvertTo-RecordedProcessReceipt','Assert-ProcessCompletion','Test-OrdinaryLedgerEvidence')){
+            $command=Get-Command $name -CommandType Function -ErrorAction Stop
+            Set-Item -Path ('Function:script:'+ $name) -Value $command.ScriptBlock
+        }
+        $script:OrdinaryProbeLoadedSources=@(foreach($file in $locks){[pscustomobject]@{Path=[IO.Path]::GetFileName($file.Path);SHA256=$file.SHA256}})
+        $script:OrdinaryProbeLoadedType='IsolatedFuzzProcess' -as [type]
+    }finally{foreach($file in $locks){$file.Stream.Dispose()}}
+}
+function Assert-OrdinaryLedgerProbeLoadedSources {
+    if($null -eq $script:OrdinaryProbeLoadedType -or ('IsolatedFuzzProcess' -as [type]) -ne $script:OrdinaryProbeLoadedType){throw 'Unverified loaded native type'}
+    foreach($row in $script:OrdinaryProbeLoadedSources){
+        if((Get-OrdinaryLedgerProbeFile (Join-Path $PSScriptRoot $row.Path)).SHA256 -cne $row.SHA256){throw 'Source drift after verified load'}
+    }
+}
+function Open-OrdinaryLedgerProbeBindings($Plan){
+    $locks=New-Object 'System.Collections.Generic.List[object]'
+    try{
+        foreach($row in $script:OrdinaryProbeLoadedSources){$locks.Add((Open-OrdinaryLedgerProbeFileBinding (Join-Path $PSScriptRoot $row.Path) $row.SHA256))}
+        $locks.Add((Open-OrdinaryLedgerProbeFileBinding $Plan.Executable $Plan.ExecutableSHA256))
+        return ,$locks
+    }catch{foreach($file in $locks){$file.Stream.Dispose()};throw}
+}
 function Get-OrdinaryLedgerProbeScope {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
     Get-IsolatedFullPath (Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator')
@@ -22,6 +74,7 @@ function Get-OrdinaryLedgerProbeRoot([string]$RunRoot,[string]$Case){
     return $root
 }
 function Get-OrdinaryLedgerProbePlan([string]$RunRoot,[string]$Case='Root',[string]$Nonce='', [bool]$RequireNew=$true){
+    Assert-OrdinaryLedgerProbeLoadedSources
     $root=Get-OrdinaryLedgerProbeRoot $RunRoot $Case
     $control=Get-IsolatedFullPath ($root+'-control')
     if($RequireNew -and ((Test-Path -LiteralPath $root) -or (Test-Path -LiteralPath $control))){throw 'Probe identity already consumed;no replay'}
@@ -142,7 +195,7 @@ function Get-OrdinaryLedgerProbeEvidence($Plan,$Receipt){
         }
         $stages=$true
     }catch{$errors+=('markers: '+$_.Exception.Message)}
-    [pscustomobject]@{Schema=1;Case=$Plan.Case;RunRoot=$Plan.RunRoot;RunIdentity=$identity;Coverage='sampled';NoRetry=$true;Acceptance=$false;OriginalTestPassed=$false;EvidenceComplete=$core;StageEvidenceComplete=$stages;ChildEntryId=$childEntry;Errors=[string[]]$errors;ObservationPassed=($core -and $stages);FinalizationRequired=$true;Finalized=$false}
+    [pscustomobject]@{Schema=1;Case=$Plan.Case;RunRoot=$Plan.RunRoot;RunIdentity=$identity;Coverage='sampled';ObservationClaim='same-run-owned-handle-natural-completion';ChildOutlivedRootVerified=$false;NoRetry=$true;Acceptance=$false;OriginalTestPassed=$false;EvidenceComplete=$core;StageEvidenceComplete=$stages;ChildEntryId=$childEntry;Errors=[string[]]$errors;ObservationPassed=($core -and $stages);FinalizationRequired=$true;Finalized=$false}
 }
 function Get-OrdinaryLedgerProbeManifest([string]$RunRoot){
     function Walk-Probe([string]$Directory){
@@ -183,6 +236,7 @@ function Get-OrdinaryLedgerProbeSaved([string]$RunRoot){
     if(-not $result.ObservationPassed -or ($savedResult|ConvertTo-Json -Depth 8 -Compress) -cne ($result|ConvertTo-Json -Depth 8 -Compress)){throw 'Saved result disagrees with raw evidence'}
     $result.Finalized=$true;return $result
 }
+if(-not (Get-Command Invoke-OrdinaryLedgerProbeNative -CommandType Function -ErrorAction SilentlyContinue)){
 function Invoke-OrdinaryLedgerProbeNative($Plan,[string]$Stdout,[string]$Stderr){
     if(-not [Environment]::Is64BitProcess -or $PSVersionTable.PSEdition -cne 'Desktop' -or $PSVersionTable.PSVersion.Major -ne 5){throw 'Fresh64-bit Windows PowerShell5.1 control host required'}
     $native=[IsolatedFuzzProcess]::RunWithOrdinaryIdentityLedger($Plan.Executable,[string[]]$Plan.Arguments,@{},$Plan.RunRoot,$Stdout,$Stderr,$Plan.LimitSeconds)
@@ -190,10 +244,13 @@ function Invoke-OrdinaryLedgerProbeNative($Plan,[string]$Stdout,[string]$Stderr)
     $receipt|Add-Member WorkingDirectory $Plan.RunRoot
     return $receipt
 }
+}
 function Invoke-OrdinaryLedgerProbe($Plan,[switch]$RuntimeApproved,[string]$ApprovedPlanSHA256=''){
     # These caller safeguards do not grant approval or attest security readiness.
     # Stage B requires separately reviewed current safety evidence before calling.
     if(-not $RuntimeApproved){throw 'Stage B runtime approval required'}
+    $bindings=Open-OrdinaryLedgerProbeBindings $Plan
+    try{
     Assert-OrdinaryLedgerProbePlan $Plan $true
     $planHash=Get-OrdinaryLedgerProbePlanHash $Plan
     if($ApprovedPlanSHA256 -cnotmatch '^[A-F0-9]{64}$' -or $ApprovedPlanSHA256 -cne $planHash){throw 'Exact approved plan hash required'}
@@ -222,4 +279,6 @@ function Invoke-OrdinaryLedgerProbe($Plan,[switch]$RuntimeApproved,[string]$Appr
         try{Write-OrdinaryLedgerProbeJSON (Join-Path $stopRoot 'stopped.json') ([pscustomobject]@{Error=$primary.Exception.Message;CleanupVerified=$false;Acceptance=$false;NoRetry=$true})}catch{}
         throw $primary
     }
+    }finally{foreach($file in $bindings){$file.Stream.Dispose()}}
 }
+Initialize-OrdinaryLedgerProbe $MyInvocation.MyCommand.ScriptBlock.Ast.Extent.Text

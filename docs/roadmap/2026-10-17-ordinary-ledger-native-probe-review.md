@@ -1,5 +1,16 @@
 # Native probe Stage A — independent review blocks completion
 
+Latest:[approved covering repair verified in fake scope](2026-10-17-ordinary-ledger-native-probe-repair.md).
+Binding/test-protection fixes pass47 per host and final350;child observation
+narrowed with user approval. Stage A36/36 used,Stage B unapproved. Findings below
+are retained original evidence,not a second review of the repair.
+
+User decision after2feca69b:approved one covering repair pass with18 extra fake
+calls,fixing bindings/test protection and narrowing the child observation to
+same-run owned-handle natural completion. No OS exit-ordering claim,Stage B or
+new reviewer authorized. Repair execution will be recorded separately;original
+findings/range and18-call records below remain historical evidence.
+
 Date:2026-10-17. Range6a9ade2e5fbb961e826233430df9485107f40f3c..
 636e489092051d9f8523215da55cce978adbc79e;two added files. One fresh-context
 independent reviewer,readonly;no edits,index/branch mutations,tests,native calls,

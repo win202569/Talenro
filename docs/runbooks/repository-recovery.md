@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[Stage A covering repair verified](../roadmap/2026-10-17-ordinary-ledger-native-probe-repair.md).
+Tracked helper,pure PS fixture,tests and report support new-machine recovery.
+Stage A36/36 used;47 checks per host/final350 passed. Prior review findings have
+covering regressions/explicitly narrower child claim;no second review or native
+acceptance. Do not run the helper:Stage B safety/exact inputs/runtime allowance
+remain unapproved. Old consumed identities/raw records unchanged.
+
 Latest:[Stage A independent review,fixes required](../roadmap/2026-10-17-ordinary-ledger-native-probe-review.md).
 Do not run the native probe. Loaded-code and executable binding gaps plus child
 ordering claim mismatch block completion despite scoped GREEN39 per host/final350.

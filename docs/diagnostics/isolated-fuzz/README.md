@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+Latest:[native-probe Stage A review fixes fake-verified](../../roadmap/2026-10-17-ordinary-ledger-native-probe-repair.md).
+Load snapshot,held executable binding and fail-closed fake protections pass47
+checks per host/final350.36/36 Stage A calls used. Child result explicitly does
+not prove exit ordering. Stage B remains unapproved:do not invoke real probes
+without current prerequisites/exact-input approval. Earlier review blockers below
+describe the pre-repair source,not a new native clearance.
+
 Latest:new ordinary-ledger-native-probe.ps1 is an unfinished Stage A checkpoint.
 [Independent review](../../roadmap/2026-10-17-ordinary-ledger-native-probe-review.md)
 found source/executable binding gaps and an overstrong child-ordering scenario.

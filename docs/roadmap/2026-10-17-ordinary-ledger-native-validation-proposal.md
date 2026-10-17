@@ -1,5 +1,15 @@
 # Ordinary ledger native validation — proposal, no execution authorized
 
+Latest:[approved Stage A repair fake-verified](2026-10-17-ordinary-ledger-native-probe-repair.md).
+47 checks per host/final350 passed,Stage A36/36 used. The narrower child question
+is now authoritative;Stage B still needs separate prerequisites/input approval.
+No actual probe or security clearance follows from this preparation.
+
+Approved repair after2feca69b:loaded-source/executable binding and test protection,
+18 additional fake calls,Stage A total36. User also approved narrowing the child
+question to same-run owned-handle natural completion,NOT proof of exit ordering.
+Stage B remains unapproved. No second independent review loop is planned.
+
 Review follow-up:[Stage A blocked](2026-10-17-ordinary-ledger-native-probe-review.md).
 Source/executable binding fixes and agreement on narrower child observation are
 needed before completion;18/18 consumed,no post-review fix/run. Stage B remains
@@ -46,7 +56,8 @@ suite was invoked for this proposal. Only source/docs and file metadata were rea
    launch/root accounting/cleanup,but not controlled child ownership.
 2. Recommended:that probe followed by one controlled parent/child workload,
    only if the first result and all safety gates are satisfactory. Covers a
-   child outliving root and retained final exit within the existing500ms window.
+   controlled child's same-run retained final exit within the existing500ms
+   window;it does not prove whether the child or root exited first.
 3. Defer native work and retain fake-only status. No scheduling/handle evidence
    gained,but no new runtime exposure.
 

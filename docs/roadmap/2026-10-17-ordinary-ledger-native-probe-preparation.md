@@ -1,5 +1,9 @@
 # Ordinary ledger native probe — Stage A execution record
 
+Latest:[covering review-fix pass complete in fake scope](2026-10-17-ordinary-ledger-native-probe-repair.md).
+47 checks per host/final350 passed;Stage A36/36 used. Prior blocked/pending states
+below are historical. No Stage B/native/acceptance authority or second review.
+
 Final disposition:[independent review found binding/claim gaps](2026-10-17-ordinary-ledger-native-probe-review.md).
 Stage A NOT complete;Stage B not ready/unapproved.Three Important findings
 accepted,one Minor deferred,no repairs/tests after review.18/18 consumed.

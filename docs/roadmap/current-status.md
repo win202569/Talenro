@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — Stage A review fixes fake-verified;Stage B still unapproved
+
+Approved covering repair completed18/18 additional calls,Stage A36/36 total.
+Both hosts passed47 probe checks;final14 allowlist runs passed350,empty stderr.
+Core load snapshot/source drift,held executable binding and fail-closed fake
+protections added;child claim explicitly excludes exit-ordering proof.
+See [repair evidence and remaining gates](2026-10-17-ordinary-ledger-native-probe-repair.md).
+Stage A complete only in bounded fake scope,no second review/native certification.
+No native probe,Go/Docker workload,metadata continuation,main merge or acceptance.
+Next:readonly Stage B prerequisite preparation and separate runtime decision.
+Earlier blocked/pending/proposed states below historical.
+
 ## Latest — probe Stage A review blocks completion
 
 [Independent review](2026-10-17-ordinary-ledger-native-probe-review.md) accepted:
