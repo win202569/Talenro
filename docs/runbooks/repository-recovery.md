@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[hardlink context guard stop](../roadmap/2026-10-17-synthetic-capture-hardlink-context-guard.md).
+Approved non-admin comparison could not start:tool channel supplied admin parent
+token,guard rejected before child/fixture/link. One request recorded,no automatic
+retry or spare-child permission. No source/tests/probe/security changes. Await
+user choice of manual normal-user execution or separate explicit admin-token
+minimal probe;do not bypass the guard after cloning. Old native5 remains the
+only observed link result;all frozen slots/reviews/acceptance/main gates stay.
+
 Latest:pending [single execution-context comparison](../roadmap/2026-10-17-synthetic-capture-hardlink-probe.md).
 Proposal only:one tool-approved outside-sandbox run of unchanged minimal probe,
 120s/no retry,normal-user/non-admin guard before child/fixture. No RunAs or ACL/

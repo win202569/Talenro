@@ -1,5 +1,9 @@
 # One hardlink attempt — structured access-denial evidence
 
+Follow-up:[approved context request stopped by non-admin guard](2026-10-17-synthetic-capture-hardlink-context-guard.md).
+The approval channel supplied an admin parent token;no diagnostic child/fixture
+or second link attempt ran. Pending comparison text below is historical.
+
 ## Authority and method
 
 After6fb486f1,user approved the [minimal probe](2026-10-17-synthetic-capture-hardlink-readonly.md):

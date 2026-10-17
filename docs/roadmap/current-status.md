@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — approved context request stopped before diagnostic by non-admin guard
+
+[Guard disposition](2026-10-17-synthetic-capture-hardlink-context-guard.md):one
+tool-approved context request supplied expected username but admin token=true.
+The required non-admin guard stopped:ChildLaunched=false,no fixture/link attempt,
+no paired result. Tool-parent exit1 is not a child failure;child fields null.
+No guard removal/retry/RunAs/ACL/security change. Need user direction for manual
+normal-user execution or a separately bounded explicit admin-token diagnostic.
+Product/tests/probe and old indexes unchanged;frozen partitions/regressions,
+unstarted reviews and all acceptance/security/main gates remain intact.
+
 ## Latest — one outside-sandbox context comparison proposed,awaiting approval
 
 [Pending comparison](2026-10-17-synthetic-capture-hardlink-probe.md) proposes
