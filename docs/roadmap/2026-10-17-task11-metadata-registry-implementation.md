@@ -119,3 +119,81 @@ No new native workload,helper repair,revised policy or new run is implied.
 Any eventual repair/test/run must receive its own bounded decision. On a new
 computer resume from this unaccepted development checkpoint and these portable
 facts,not a replay of ignored controls or an assumption that main is current.
+
+## Readonly follow-up — approved after45a14dbf
+
+Scope:read the saved metadata001 records,ordinary observer/guard source and
+existing test definitions only. No Go/native/helper tests were executed,no
+historical PID reopened,no source/fixture/control/receipt modified. The code
+references below are from the unchanged files at45a14dbf.
+
+### Confirmed rejection chain
+
+1. Initial job accounting and member-list calls succeeded,each reporting one
+   active/listed non-root member. Buffer capacity16/bytes136,Assigned=Returned=1,
+   no evidence truncation. The listed identifier was16616,not0 and within UInt32.
+2. process-native.cs:200 calls OpenProcess(0x101000,false,(uint)row.Id).
+   Line202 saves GetLastWin32Error immediately,prior to timing/serialization;
+   saved ProcessOpen.Succeeded=false/Error87 matches that branch. This is NOT a
+   failure of IsProcessInJob,WaitForSingleObject,GetExitCodeProcess or image lookup:
+   none of those member operations was reached after the failed open.
+3. The catch leaves the observation unknown. JobMembership/CoreObservedUTC/
+   FinalShutdown are null;there is no retained,job-verified member handle.
+   IsFinalShutdownStateVerified rejects it. Lines424–427 then set incomplete
+   shutdown evidence and skip the natural-observation loop altogether.
+4. Lines449 onward request forced job cleanup. The final empty group is verified,
+   but run.ps1:73 deliberately refuses incomplete/non-natural/forced results.
+   Assert-MetaReceipt reaches this unchanged guard before any old-name RED-output
+   predicate. Thus fixing the latent wrapper predicate cannot unblock this run.
+
+### What the saved fields do and do not establish
+
+| Saved field | Correct interpretation |
+| --- | --- |
+| Owned=false,JobMembership=null | Ownership was never established;not proof of a foreign process. |
+| ExitCode=0,ExitCodeRead=false | Default unread value;not a successful member exit. |
+| ImageError=0,ImagePath=null | Image API was not reached;not a successful image read or an image-loss-only case. |
+| NaturalObservationMs=6,TimedOut=false | Fast rejection of unknown state;not exhaustion of the500ms observation cap or120s Go timeout.500ms is a maximum,not permission to wait/requery an unverified PID. |
+| CleanupVerified=true,TerminationRequested=true | Forced empty-group cleanup succeeded;natural shutdown remains unverified. |
+| TotalProcesses=2 | Job accounting counted two processes over the run;no image,parent or creation trace identifies the additional member. |
+
+Using the recorded monotonic ticks/Frequency=10000000,the list-query end to
+OpenProcess start gap is0.2196ms,and the failed open bracket is0.3658ms.
+These measurements locate the acquisition window;they do not prove the process
+exited during it. Wall-clock stamps are not substituted for monotonic intervals.
+
+Microsoft documents [87 as ERROR_INVALID_PARAMETER](https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-),
+distinct from5/ERROR_ACCESS_DENIED. Its [OpenProcess documentation](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess)
+describes opening an existing local process and a specific PID0 invalid-parameter
+case;this receipt's nonzero identifier does not match that case. The [job member
+list structure](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_process_id_list)
+provides identifiers,not retained process handles or this member's image/exit
+history. These documents do not establish the exact cause of this nonzero-ID87.
+Do not prescribe elevation or disabling security software from this error alone.
+
+### Existing tests read,not run
+
+run.tests.ps1:78–88 explicitly rejects forced cleanup,incomplete member evidence,
+non-natural shutdown and residual members. shutdown-state.tests.ps1 rejects
+unknown ownership/unread exit state/unknown wait state. member-query.tests.ps1
+distinguishes a successful open from a failing membership API and rejects foreign
+job membership;it retains a live child handle and does not reproduce this failed
+open window. These are source-reviewed contracts,not fresh passing test results.
+
+### Diagnostic limit and next decision
+
+Direct rejection cause is established;the underlying Windows/process-lifetime
+cause is not. A listed-member disappearance/acquisition race is a hypothesis,
+not a verified explanation. No evidence identifies a Go-created child,console
+helper,security product,privilege issue or common cause with prior Error87 runs.
+With LiveSampling=false and LifetimeDiagnostics=null,this saved ordinary receipt
+has no earlier identity/handle observation capable of closing that gap.
+
+Safe next step is to design a minimal acquisition-window evidence proposal before
+another workload:not another metadata-test replay. It must specify what earlier
+identity/lifetime evidence is missing,how any prospective handle is bound to the
+owned job,diagnostic-only versus acceptance use,and a separate bounded approval
+for any source changes/tests/run. Existing retained-handle diagnostic modes are
+not automatically ordinary acceptance and are not invoked under this follow-up.
+No implementation fix or revised safety policy is justified by this readonly
+finding alone. Metadata Task1/2 remain stopped;used budget stays1 build/1 runtime.

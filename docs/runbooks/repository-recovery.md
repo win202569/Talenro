@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:readonly investigation approved after45a14dbf is recorded in the
+[failure report follow-up](../roadmap/2026-10-17-task11-metadata-registry-implementation.md#readonly-follow-up--approved-after45a14dbf).
+The failed OpenProcess precedes ownership/exit/image checks;the natural-wait
+loop is skipped by design,not timed out. Native defaults are not positive proof.
+Underlying process-lifetime/Windows cause remains unknown;no source/receipt/control
+change or additional tests/runs. Used budget still1 build/1 runtime. Resume with
+a separate minimal acquisition-window evidence proposal,not metadata GREEN,
+replay,elevation/security changes or a diagnostic-mode acceptance substitution.
+
 Latest:[metadata implementation stopped checkpoint](../roadmap/2026-10-17-task11-metadata-registry-implementation.md).
 Native/inline was approved afterc549a519. First RED used1 build/1 runtime;build
 passed,but runtime's natural-shutdown gate failed (unknown job member/OpenProcess87,

@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Task11 — readonly shutdown investigation completed; root cause still open
+
+After45a14dbf,the user approved readonly investigation only. The
+[saved-evidence/source trace](2026-10-17-task11-metadata-registry-implementation.md#readonly-follow-up--approved-after45a14dbf)
+confirms OpenProcess87 occurs before ownership/state/image reads. Unknown member
+evidence prevents entering the natural-wait loop;the6ms observation is not a500ms
+timeout. Forced cleanup succeeds but cannot authorize TDD RED. Default Owned=false,
+ExitCode=0 and ImageError=0 are not foreign-process/normal-exit/image-success proof.
+The list→open acquisition window is measured,but process disappearance remains
+only a hypothesis;no saved member identity/lifetime trace establishes the cause.
+No source/control/receipt changes or native/helper tests;budget remains1 build/1
+runtime. Next recommendation:design a narrowly scoped acquisition-window evidence
+proposal before seeking any new workload/repair approval. Metadata remains stopped.
+
 ## Task11 — metadata implementation stopped at first RED safety gate
 
 User approved Native/inline afterc549a519. The [actual unaccepted result](2026-10-17-task11-metadata-registry-implementation.md)
