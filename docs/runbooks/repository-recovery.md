@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest static finding: [complete-flow audit](../roadmap/2026-10-17-p1-complete-flow-readonly-audit.md).
+After8ae4f271, zero test processes/product edits. Shape lookup leaves18 type and10
+scalar-member checks per valid time record;4096-row source counts explain retained
+work, not unique cause or measured current cost. Targeted passes exclude original35;
+latest full timeout completed original35 before entering ownership.183 pins/raw
+held. All budgets/frozen slots/review eligibility and full30s/I1/P1 blockers unchanged.
+Next requires separately scoped current complete-order group wall/CPU collection,
+not another speculative fix, unchanged retry, limit increase or main acceptance.
+This report clones with source; ignored evidence/runtime and replay authority do not.
+
 Latest targeted evidence: [PS7/PS5 shape and ownership](../roadmap/2026-10-17-p1-targeted-semantic-verification.md).
 After57a58651 approval, exactly2/2 ordinary-token hosts completed unchanged
 shape6 + fixture8 + ownership10; PS7 wall5492ms/CPU8109.375ms, PS5 wall9419ms/

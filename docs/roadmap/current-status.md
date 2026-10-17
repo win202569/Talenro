@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — complete-flow static audit accounts for retained defensive work
+
+After8ae4f271, [read-only flow audit](2026-10-17-p1-complete-flow-readonly-audit.md)
+used ZERO test processes/no product or test edits. Passing targeted flow excludes
+original35/4096 boundary and cannot accept combined timing. Source accounting for
+4096 valid time rows retains73728 type calls/40960 scalar member checks plus root
+setup; shape sets reduce name scans, not these defenses. Counts are NOT fresh
+timings or a unique cause. Current full timeout DID finish original35, so prior
+large-case dominance must not be assigned as its exact timeout statement.
+183 pins/targeted receipts rechecked; candidate953CC2A8 unchanged/unaccepted.
+All budgets, frozen slots, review ineligibility and I1/P1 blockers unchanged.
+Next separately scope current complete-order per-group wall/CPU diagnostics,
+keeping original helpers/assertions and30s gate; no automatic run or product fix.
+
 ## Latest — targeted shape and full ownership semantics pass on PS7 and PS5
 
 After57a58651 approval, [targeted verification](2026-10-17-p1-targeted-semantic-verification.md)
