@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only handoff: [timing audit](../roadmap/2026-10-17-p1-timing-readonly-audit.md).
+After247a64bb,no test process or product/tool changes. Sources and138/147 pins
+held. New helper's3 conditions run even before boundary,an unmeasured variable;
+earlier group slowdown is nonuniform and no unique root cause is proved.
+Historical CPU/load/memory/power data unavailable;current CIM blocked,Balanced
+snapshot not historical evidence. Preserve all completed/partial/failed verdicts,
+candidate6CF0D354 unaccepted,prior3/4/one frozen and3/7/four frozen/review ineligible.
+Next requires separately scoped paired instrumentation control with CPU/wall
+records,no automatic tooling edit,rerun,old-budget spend or acceptance. This
+audit/report recovers from development branch;ignored raw/runtime and rerun
+authority do not come with clone.
+
 Latest partial diagnostic: [combined boundary subphase timing](../roadmap/2026-10-17-p1-combined-boundary-timing.md).
 After813a8c76 approval,sole PS7 child timed out30080ms total/configured30000;
 owned-host-exited,stderr empty. Invalid checks355.331ms,construction1288.686ms;

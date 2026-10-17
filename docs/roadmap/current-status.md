@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — read-only audit finds uncontrolled instrumentation variable, no unique cause
+
+After247a64bb,[read-only audit](2026-10-17-p1-timing-readonly-audit.md) ran ZERO
+test processes. Product/original suites unchanged;historical138/147 pins/raw held.
+New subphase helper adds3 mode checks to every P1-Check,including before the
+boundary;overhead unknown. No new subphase markers had emitted during earlier
+slowdowns. Matched31 groups vary1.184–28.394x;pre-boundary span4.235s vs15.911s.
+Neither helper/host/JIT nor4096 uniquely explains differences. Historical CPU/
+memory/power data absent;current CIM blocked,no elevated retry. Current Balanced
+scheme/basic versions cannot establish past load. All budgets/verdicts frozen
+unchanged,candidate6CF0D354 unaccepted,I1/P1 unresolved. Next separately approved
+paired control should isolate helper instrumentation and record CPU/wall time,
+not more product edits,automatic replay/old-slot use or a larger timeout.
+
 ## Latest — combined boundary subphase diagnostic timed out; evaluation duration unknown
 
 Approved one-host subphase timing after813a8c76.
