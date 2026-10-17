@@ -1,5 +1,11 @@
 # Independent readonly readiness review — complete, acceptance blocked
 
+Subsequent evidence: user approved the bounded test extension after fe77ddeb.
+Its [four-run results](2026-10-17-synthetic-capture-supplemental.md) now directly
+exercise the targeted Important2/3 cases on both engines. This historical review
+is unchanged; the new test file has no second independent review. Important1
+and other recorded limitations remain; no acceptance or gate promotion follows.
+
 ## Authority, identity and snapshot
 
 After 562ec07e, the user approved the proposed NEW one-review readonly scope.

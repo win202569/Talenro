@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[supplemental tests and four-run evidence](../roadmap/2026-10-17-synthetic-capture-supplemental.md).
+Recover the new standalone supplemental test, with explicit event-decoder and
+writer-failure groups. Normal-user PS7/PS5 each passed9/6 labels, no retry or
+timeout; four-host allowance spent. Product/original tests unchanged. Local
+collision forwarding exercises real I/O without ACL/security changes, and
+fixtures/raw receipts remain ignored/local. Targeted review gaps now have
+dynamic evidence, not a second review or full acceptance. Dependency regressions
+and all remaining frozen/security/main gates stay open; cloning grants no rerun
+authority. Next proposed work is a separately bounded dependency packet.
+
 Latest:[NEW readonly review completed](../roadmap/2026-10-17-synthetic-capture-readonly-review.md).
 One review spent; no confirmed product defect, three Important validation gaps
 remain (acceptance/regressions, malformed-event decoder cases, post-creation

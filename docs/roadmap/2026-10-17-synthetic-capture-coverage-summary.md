@@ -1,5 +1,11 @@
 # Synthetic capture store — cross-packet evidence and remaining gates
 
+Later coverage extension: [supplemental tests](2026-10-17-synthetic-capture-supplemental.md)
+add direct malformed-event and writer-failure evidence (new9/6 PASS groups on
+each engine, four normal-user children). Original table below remains the
+five-group historical map; new tests do not rewrite failed receipts or review
+gates. Dependency regressions and remaining limitations stay open.
+
 Subsequent disposition: user approved the NEW one-review scope below after
 562ec07e; that review is now complete. See [review findings](2026-10-17-synthetic-capture-readonly-review.md).
 Three Important validation gaps remain, no confirmed product defect; no tests,

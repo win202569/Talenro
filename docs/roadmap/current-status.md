@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — approved supplemental coverage complete; dependencies still pending
+
+[Supplemental evidence](2026-10-17-synthetic-capture-supplemental.md):new portable
+test file only, product/original tests unchanged. NEW4/4 normal-user children
+spent: event decoder PS7/PS5 each9PASS (4140/2602ms), writer failure each6PASS
+(2175/2871ms), all exit0/no timeout/retry. Prior progress policy accepts two
+PS5 progress records per run. Direct invalid-event refusals and real file
+collision preservation, including failed stopped publication, now have evidence
+for review Important2/3; no second review or retrospective gate promotion.
+Important1 dependency/acceptance gaps and other limits remain. Next propose
+NEW bounded dependency regressions, not automatic execution. Old frozen slots,
+main/security/Stage B/I2/I3/full C12 acceptance remain unchanged.
+
 ## Latest — NEW independent readonly review complete; three validation gaps open
 
 [Independent report](2026-10-17-synthetic-capture-readonly-review.md):one fresh
