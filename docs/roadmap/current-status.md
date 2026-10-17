@@ -1,4 +1,17 @@
-# Project status — updated 2026-10-16
+# Project status — updated 2026-10-17
+
+## Task11 — nine-item clarification written, awaiting review
+
+After4fa0e16b,user confirmed the5 source-backed candidates and4 known-role
+request evidence restrictions. The [written clarification](../superpowers/specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md)
+records those9 exact mappings,distinguishes existing-contract interpretation
+from new request-use restrictions,and preserves authenticated archive expansion.
+Written review is pending;original93/53 audit and5+48 reassessment remain historical.
+If the written clarification is approved,the local reconciliation can record102
+classifications/44 unresolved items(27 request contracts+17 other objects),not
+independent certification. Next:review this appendix,then consolidate the44
+remaining contracts;no implementation-ready full metadata plan until all146 close.
+Documentation only,no product/fixture/test/canonical-set change or workloads.
 
 ## Task11 — consolidated metadata reassessment, decisions pending
 

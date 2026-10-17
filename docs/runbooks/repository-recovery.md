@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest(2026-10-17): [nine-item written clarification](../superpowers/specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md),
+based on4fa0e16b. User confirmed5 interpretations+4 known-role request-use
+restrictions;the written appendix itself awaits review. Preserve original93/53
+and5+48 historical records. Only after written approval may a new local audit
+record102 classifications/44 unresolved(27 request+17 other objects);this is not
+independent certification. Resume at written review,then grouped clarification
+of44 remaining contracts,not metadata implementation or completed-test replay.
+No new roles,wire/consumer changes,canonical-set registration or deployment.
+
 Latest metadata work: [53-item consolidated reassessment](../roadmap/2026-10-16-task11-metadata-consolidated-reassessment.md),
 based onbdebb846. All53 original exceptions are accounted for as27 request,4
 known-role request and22 other-object questions. Five source-backed candidates
