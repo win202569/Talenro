@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[standalone evidence package boundary correction](../roadmap/2026-10-17-evidence-package-boundary.md).
+Recover package/tests and report;bothPS7/PS5 complete package suites74PASS,
+exit0/empty stderr after18 observedRED failures each. Ordinal labels/fields,
+non-dispatching outer/nested type checks and passive bound guards now exercised;
+raw bytes/Unicode origin/schema unchanged. Readonly review0Critical/0Important/
+0Minor accepts standalone checkpoint only,new4/4 spent,no automatic
+replay. Store/simulator/contract code unchanged but shared helpers changed;their
+prior results are NOT current integration certification. Typed byte[] prebinding
+conversions not newly hardened. No format migration/live/security/Stage B/main
+merge authority,all old/frozen budgets retained;ignored receipts remain local.
+
 Latest:[classifier XML/encoding exact-marker correction](../roadmap/2026-10-17-classifier-exact-markers.md).
 Recover classifier/tests and evidence report;bothPS7/PS5 full classifier suites
 87PASS,exit0/empty stderr after22 observedRED failures per host. Unicode display

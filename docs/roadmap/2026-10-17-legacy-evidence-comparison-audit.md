@@ -5,8 +5,11 @@ reproduced classifier XML/encoding concerns and passed87 classifier checks per
 host;readonly review0Critical/0Important/0Minor accepts bounded checkpoint only.
 Sources/hash/static status below describe the
 original audit checkpoint,not the new classifier. Package/store remain unchanged;
-package exact-label/callerGetType concerns still unresolved. No integration or
-runtime acceptance follows from classifier-only results.
+package follow-up now available:[exact/passive boundary correction](2026-10-17-evidence-package-boundary.md)
+reproduced18 failures per host and passed74package checks per host;readonly
+review0Critical/0Important/0Minor accepts standalone checkpoint only. Original
+audit classifications/hashes below remain historical.
+Consumer integration suites not rerun;no runtime acceptance follows.
 
 ## Scope and evidence level
 

@@ -1,5 +1,12 @@
 # Offline output evidence objects — synthetic verification complete
 
+Latest:[exact/passive package input boundary correction](2026-10-17-evidence-package-boundary.md).
+Separate4-host allowance completed;18failuresRED per host,then74package checks
+GREEN per host,exit0/empty stderr;readonly review0Critical/0Important/0Minor
+accepts standalone checkpoint only. Previous49-check
+result/history below retained,not fresh dependent integration evidence. No
+store/schema change,real capture or wider acceptance.
+
 User approved the short design and separate4-host allowance after development
 checkpoint `7e311f6480e3ae74f54955d789d1466e1839b3a0`. New standalone helper/tests:
 `docs/diagnostics/isolated-fuzz/output-evidence-package.ps1` and `.tests.ps1`.

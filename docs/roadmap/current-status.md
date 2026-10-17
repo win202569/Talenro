@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — evidence package boundary74PASS per host;scoped review accepted
+
+[Bounded package correction](2026-10-17-evidence-package-boundary.md):bothREDs
+reproduced18 label/callback/bound failures;GREEN7/5 each74PASS,exit0,empty stderr
+(1667/1305ms). Safe local base-type query,passive descriptor-before-bound checks
+and ordinal metadata/shape matching;bytes/Unicode/schema retained.4/4 spent,
+readonly review0Critical/0Important/0Minor accepts standalone checkpoint only,
+no fix reserve. Only package/tests changed;consumer
+store/simulation/contract suites NOT rerun,old results historical. Classifier
+unchanged. No pre-binding hostile-object/sandbox guarantee or real collection/
+security/Stage B/I2/I3/full C12 acceptance/main merge. Old/frozen budgets intact.
+
 ## Latest — classifier exact markers87PASS per host;scoped review accepted
 
 [Bounded correction](2026-10-17-classifier-exact-markers.md):approved4 new hosts

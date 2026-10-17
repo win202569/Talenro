@@ -3,6 +3,91 @@ function Check-Evidence([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSE
 $helper=Join-Path $PSScriptRoot 'output-evidence-package.ps1'
 if(Test-Path -LiteralPath $helper){. $helper}
 Check-Evidence ($null -ne (Get-Command New-OfflineOutputEvidencePackage -CommandType Function -ErrorAction SilentlyContinue)) 'OfflineEvidencePackageRequired'
+Write-Output ('HOST: '+$PSVersionTable.PSVersion+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)
+# Breaks caught:non-exact labels,caller GetType dispatch,executable/length shadows.
+$script:evidenceBoundaryFailures=0;$script:evidenceBoundaryCallbacks=0
+function Check-EvidenceBoundary([bool]$Value,[string]$Name){
+    if($Value){Write-Output ('PASS: '+$Name)}else{$script:evidenceBoundaryFailures++;Write-Output ('FAIL: '+$Name)}
+}
+function New-BoundaryEvidencePackage{New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@()) -ExitCode 0 -EncodingName 'utf-8' -OriginDeclaration 'boundary-fixture'}
+function Check-BoundaryEvidenceRefusal($Value,[string]$Name){
+    $actual=Test-OfflineOutputEvidencePackage $Value
+    Check-EvidenceBoundary (-not $actual.Verified -and -not $actual.OriginVerified -and -not $actual.Acceptance -and -not $actual.RuntimeApproved) $Name
+}
+function Check-BoundaryConstructionRefusal($OutBytes,$Encoding,$Origin,[string]$Name){
+    $rejected=$false
+    try{$null=New-OfflineOutputEvidencePackage -StdoutBytes $OutBytes -StderrBytes ([byte[]]@()) -ExitCode 0 -EncodingName $Encoding -OriginDeclaration $Origin}catch{$rejected=$true}
+    Check-EvidenceBoundary $rejected $Name
+}
+function Add-BoundaryLength($Value,$Length){
+    $wrapped=Add-Member -InputObject $Value -MemberType NoteProperty -Name Length -Value $Length -Force -PassThru
+    if($wrapped.PSObject.Properties['Length'].MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Boundary length fixture not attached'}
+    return ,$wrapped
+}
+$boundaryNul=[string][char]0;$boundaryIgnorable=[string][char]0x00AD
+foreach($mutation in @('policy-null','policy-ignorable','classification-null','encoding-null-refused')){
+    $bad=New-BoundaryEvidencePackage
+    switch($mutation){
+        policy-null{$bad.Policy+=''+$boundaryNul}
+        policy-ignorable{$bad.Policy='offline-output-'+$boundaryIgnorable+'evidence-v1'}
+        classification-null{$bad.Classification='em'+$boundaryNul+'pty'}
+        encoding-null-refused{$bad.EncodingName='utf'+$boundaryNul+'-8';$bad.Classification='refused'}
+    }
+    Check-BoundaryEvidenceRefusal $bad ('BoundaryExactLabel-'+$mutation)
+}
+$bad=New-BoundaryEvidencePackage;$bad.PSObject.Properties.Remove('Policy');Add-Member -InputObject $bad -NotePropertyName ('Policy'+$boundaryNul) -NotePropertyValue 'offline-output-evidence-v1'
+Check-BoundaryEvidenceRefusal $bad 'BoundaryExactFieldName'
+foreach($token in @(('utf'+$boundaryNul+'-8'),('utf'+$boundaryIgnorable+'-8'),'UTF-8')){
+    Check-BoundaryConstructionRefusal ([byte[]]@()) $token 'fixture' 'BoundaryConstructorExactEncoding'
+}
+foreach($target in @('package','stdout','stderr')){
+    $bad=New-BoundaryEvidencePackage;$script:evidenceBoundaryCallbacks=0
+    $object=if($target -eq 'package'){$bad}elseif($target -eq 'stdout'){$bad.Stdout}else{$bad.Stderr}
+    Add-Member -InputObject $object -MemberType ScriptMethod -Name GetType -Force -Value {$script:evidenceBoundaryCallbacks++;[Management.Automation.PSCustomObject]}
+    $actual=Test-OfflineOutputEvidencePackage $bad
+    Check-EvidenceBoundary ($actual.Verified -and $script:evidenceBoundaryCallbacks -eq 0) ('BoundaryUnusedGetTypeNeverCalled-'+$target)
+}
+$script:evidenceBoundaryCallbacks=0;$fake=@{}
+Add-Member -InputObject $fake -MemberType ScriptMethod -Name GetType -Force -Value {$script:evidenceBoundaryCallbacks++;[Management.Automation.PSCustomObject]}
+$actual=Test-OfflineOutputEvidencePackage $fake
+Check-EvidenceBoundary (-not $actual.Verified -and $script:evidenceBoundaryCallbacks -eq 0) 'BoundaryWrongContainerCannotDispatchGetType'
+foreach($target in @('package','stdout','stderr')){
+    $bad=New-BoundaryEvidencePackage;$script:evidenceBoundaryCallbacks=0
+    if($target -eq 'package'){$bad.PSObject.Properties.Remove('Policy');Add-Member -InputObject $bad -MemberType ScriptProperty -Name Policy -Value {$script:evidenceBoundaryCallbacks++;'offline-output-evidence-v1'}}
+    elseif($target -eq 'stdout'){$bad.Stdout.PSObject.Properties.Remove('Base64');Add-Member -InputObject $bad.Stdout -MemberType ScriptProperty -Name Base64 -Value {$script:evidenceBoundaryCallbacks++;'YWJj'}}
+    else{$bad.Stderr.PSObject.Properties.Remove('SHA256');Add-Member -InputObject $bad.Stderr -MemberType ScriptProperty -Name SHA256 -Value {$script:evidenceBoundaryCallbacks++;'unused'}}
+    $actual=Test-OfflineOutputEvidencePackage $bad
+    Check-EvidenceBoundary (-not $actual.Verified -and $script:evidenceBoundaryCallbacks -eq 0) ('BoundaryExecutableObjectPropertyRefused-'+$target)
+}
+$bad=New-BoundaryEvidencePackage;$script:evidenceBoundaryCallbacks=0
+$bad.Stdout.Base64=Add-Member -InputObject $bad.Stdout.Base64 -MemberType ScriptProperty -Name Length -Force -PassThru -Value {$script:evidenceBoundaryCallbacks++;4}
+$actual=Test-OfflineOutputEvidencePackage $bad
+Check-EvidenceBoundary (-not $actual.Verified -and $script:evidenceBoundaryCallbacks -eq 0) 'BoundaryScalarLengthGetterNeverCalled'
+$bad.Stdout.Base64.PSObject.Properties.Remove('Length')
+$bad=New-BoundaryEvidencePackage;$script:evidenceBoundaryCallbacks=0
+$bad.Policy=Add-Member -InputObject $bad.Policy -MemberType ScriptProperty -Name Extra -PassThru -Value {$script:evidenceBoundaryCallbacks++;'unused'}
+$actual=Test-OfflineOutputEvidencePackage $bad
+Check-EvidenceBoundary (-not $actual.Verified -and $script:evidenceBoundaryCallbacks -eq 0) 'BoundaryUnusedExecutableScalarPropertyRefused'
+$bad.Policy.PSObject.Properties.Remove('Extra')
+Check-BoundaryConstructionRefusal (Add-BoundaryLength ([byte[]]@(97,98,99)) 0) 'utf-8' 'fixture' 'BoundaryByteLengthShadowRefused-small'
+Check-BoundaryConstructionRefusal (Add-BoundaryLength (New-Object byte[] 1048577) 0) 'utf-8' 'fixture' 'BoundaryByteLengthShadowRefused-oversized'
+Check-BoundaryConstructionRefusal ([byte[]]@()) 'utf-8' (Add-BoundaryLength ('x'*1025) 1) 'BoundaryOriginLengthShadowRefused'
+foreach($target in @('base64','hash')){
+    $bad=New-BoundaryEvidencePackage
+    if($target -eq 'base64'){$bad.Stdout.Base64=Add-BoundaryLength $bad.Stdout.Base64 1}
+    else{$bad.Stdout.SHA256=Add-BoundaryLength $bad.Stdout.SHA256 64}
+    Check-BoundaryEvidenceRefusal $bad ('BoundarySnapshotLengthShadowRefused-'+$target)
+    if($target -eq 'base64'){$bad.Stdout.Base64.PSObject.Properties.Remove('Length')}else{$bad.Stdout.SHA256.PSObject.Properties.Remove('Length')}
+}
+$script:evidenceBoundaryCallbacks=0
+$scriptedBytes=Add-Member -InputObject ([byte[]]@(97,98,99)) -MemberType ScriptProperty -Name Length -Force -PassThru -Value {$script:evidenceBoundaryCallbacks++;0}
+$rejected=$false;try{$null=New-OfflineOutputEvidencePackage -StdoutBytes $scriptedBytes -StderrBytes ([byte[]]@()) -ExitCode 0 -EncodingName 'utf-8' -OriginDeclaration 'fixture'}catch{$rejected=$true}
+Check-EvidenceBoundary ($rejected -and $script:evidenceBoundaryCallbacks -eq 0) 'BoundaryByteLengthGetterNeverCalled'
+$scriptedBytes.PSObject.Properties.Remove('Length')
+$unicodeOrigin=([string][char]0x00E9)+'e'+[char]0x0301+[char]0x6A21
+$good=New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@(0,255,13,10)) -ExitCode ([int]-1) -EncodingName 'utf-8' -OriginDeclaration $unicodeOrigin
+Check-EvidenceBoundary ((Test-OfflineOutputEvidencePackage $good).Verified -and [string]::Equals($good.OriginDeclaration,$unicodeOrigin,[StringComparison]::Ordinal) -and [string]::Equals($good.Stdout.Base64,'YWJj',[StringComparison]::Ordinal) -and [string]::Equals($good.Stderr.Base64,'AP8NCg==',[StringComparison]::Ordinal)) 'BoundaryUnicodeOriginAndOriginalBytesPreserved'
+Check-Evidence ($script:evidenceBoundaryFailures -eq 0) 'EvidenceBoundaryRequired'
 $source=[byte[]]@(97,98,99);$empty=[byte[]]@()
 $package=New-OfflineOutputEvidencePackage -StdoutBytes $source -StderrBytes $empty -ExitCode 0 -EncodingName 'utf-8' -OriginDeclaration 'synthetic-only'
 Check-Evidence ($package.Stdout.Base64 -ceq 'YWJj' -and $package.Stdout.ByteLength -eq 3 -and $package.Stdout.SHA256 -ceq 'BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD' -and $package.Stderr.Base64 -ceq '' -and $package.Stderr.ByteLength -eq 0) 'LosslessIndependentKnownBytes'
