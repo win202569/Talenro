@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — fixture input identity corrected; fixture-only validation passed
+
+User approved bounded correction afterf7f7ee50. [Evidence](2026-10-17-p1-fixture-input-revision.md):
+new identity guard failed as expected in PS7 RED (819ms/exit1). Fresh typed-array
+boxing for isolation Int32/Int64/Boolean factories then passed all six fixture
+groups on PS7/PS5.1 (1771/2376ms,exit0,stderr empty); independent string construction
+and all original assertions retained. Candidate nowA476AB51; historicalCF81 before
+snapshot preserved, old manifests/raw untouched,49 historical pins verified.
+New3/3 allowance spent, no retry/reviewer/product import or test. This clears the
+tested fixture-isolation construction failure only, not I1/P1 or product ownership.
+ProductFE23DF3B/original35 suite unchanged. Old F1=false/F2 frozen, original six
+product slots/review ineligible preserved; proposed product R1–R7 still unapproved.
+Next scope product repair and its full verification separately. Earlier entries
+are historical and do not override this fixture result or renew any allowance.
+
 ## Latest — Int32 identity comparison completed; no repair
 
 User approved two-host spike after69cc7688. [Comparison record](2026-10-17-p1-input-identity-comparison.md):

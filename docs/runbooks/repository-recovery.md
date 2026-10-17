@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest bounded correction: [fixture input identity](../roadmap/2026-10-17-p1-fixture-input-revision.md).
+Approved afterf7f7ee50: current ownership suiteA476AB51 adds input identity checks
+and fresh Int32/Int64/Boolean isolation input factories; original string factory,
+metadata/reference assertions and product paths retained. PS7 expected RED then
+PS7/PS5.1 all-six-group fixture GREEN captured (819/1771/2376ms,stderr empty).
+Only -Group fixture was run, no product import/tests/repair or review. Budget3/3
+spent. CF81 predecessor remains atf7f7ee50 and ignored local before snapshot;
+clone recovers current tests/report, not raw/controller/runtime or run authority.
+I1/P1 unfinished, old false verdicts/F2/six product slots/review frozen. Scope
+product repair and fresh complete validation before any regression/all-mode run;
+no main/full acceptance. Prior entries below are historical.
+
 Latest diagnostic handoff: [Int32 independent/shared comparison](../roadmap/2026-10-17-p1-input-identity-comparison.md).
 Approved after69cc7688, two PS7 hosts completed688/686ms,exit0,stderr empty;
 identity preconditions held, three stages each. Independent metadata stayed

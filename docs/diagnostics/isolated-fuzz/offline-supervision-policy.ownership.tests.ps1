@@ -69,6 +69,14 @@ function P1I1-FixtureMetadata($Value,$Reference){
     $p=$Value.PSObject.Properties['Metadata'];P1I1-Need ($null -ne $p -and $p.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty)
     P1I1-Need ([object]::ReferenceEquals($p.Value,$Reference))
 }
+function P1I1-IsolationVectors {
+    @(
+        @{Make={ $storage=[Array]::CreateInstance([int],1);return ,($storage.GetValue(0)) };Type=[int];Want=[int]0},
+        @{Make={ $storage=[Array]::CreateInstance([long],1);return ,($storage.GetValue(0)) };Type=[long];Want=[long]0},
+        @{Make={ $storage=[Array]::CreateInstance([bool],1);$storage.SetValue($true,0);return ,($storage.GetValue(0)) };Type=[bool];Want=$true},
+        @{Make={ [string]::new([char[]]@('c','l','e','a','n')) };Type=[string];Want='clean'}
+    )
+}
 function P1I1-FixtureChecks {
     P1I1-Case FixtureConstructor {
         $ctor=[Management.Automation.PSObject].GetConstructor([type[]]@([object]));P1I1-Need ($null -ne $ctor -and $ctor.IsPublic)
@@ -109,8 +117,18 @@ function P1I1-FixtureChecks {
             P1I1-Need ($script:p1i1FixtureCallbacks -eq 0)
         }
     }
+    P1I1-Case FixtureInputIdentity {
+        foreach($v in (P1I1-IsolationVectors)){
+            $a=[pscustomobject]@{Value=(& $v.Make)};$b=[pscustomobject]@{Value=(& $v.Make)};$c=[pscustomobject]@{Value=(& $v.Make)}
+            P1I1-FixtureScalar $a.Value $v.Type $v.Want;P1I1-FixtureScalar $b.Value $v.Type $v.Want;P1I1-FixtureScalar $c.Value $v.Type $v.Want
+            P1I1-Need (-not [object]::ReferenceEquals($a.Value.PSObject.BaseObject,$b.Value.PSObject.BaseObject))
+            P1I1-Need (-not [object]::ReferenceEquals($a.Value.PSObject.BaseObject,$c.Value.PSObject.BaseObject))
+            P1I1-Need (-not [object]::ReferenceEquals($b.Value.PSObject.BaseObject,$c.Value.PSObject.BaseObject))
+        }
+    }
     P1I1-Case FixtureIsolation {
-        foreach($make in @({ [int]0 },{ [long]0 },{ $true },{ [string]::new([char[]]@('c','l','e','a','n')) })){
+        foreach($v in (P1I1-IsolationVectors)){
+            $make=$v.Make
             $a=[pscustomobject]@{Value=(& $make)};$b=[pscustomobject]@{Value=(& $make)}
             $am=P1I1-Decorate $a Value;$bm=P1I1-Decorate $b Value
             P1I1-Need (-not [object]::ReferenceEquals($am,$bm));$am[0]='changed'
