@@ -1,5 +1,24 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline output-classifier design proposed;implementation pending
+
+User agreed to design offline output handling. Proposed bounded first step is
+an isolated byte-input classifier,not a process launcher or live collector.
+Proposed files:docs/diagnostics/isolated-fuzz/output-channel-classifier.ps1 and
+output-channel-classifier.tests.ps1;no existing runner integration in this step.
+Keep caller bytes unchanged;report original lengths/SHA256 and explicit encoding.
+Limit parsing to1MiB per stream,use strict decoding/XML with DTD/external
+resolution prohibited,and recognize only an explicit CLIXML progress subset.
+Error/unknown channel,malformed/truncated/oversized input or trailing data
+refuses;nonzero child exit also refuses. Empty/progress-only classification
+never grants runtime approval or acceptance. No broad CLIXML deserialization.
+Only synthetic fixtures;no original byte archive exists to replay. Proposed4
+fresh test hosts:PS7/5.1 RED then GREEN,120s each,sequential/no retry. No helper
+import,OS adapter/real diagnostic/native workload or existing-suite rerun.
+This4-call allowance and short in-chat design await approval;70/70 stays frozen.
+Live raw-byte capture/watchdog/security/exact-input packet remain separate gaps.
+No implementation or new test ran this turn. Historical states follow.
+
 ## Latest — Stage B decision checklist saved;NOT READY/NOT APPROVED
 
 [Readiness/decision checklist](2026-10-17-ordinary-ledger-stageb-readiness.md)

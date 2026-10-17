@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:offline byte-classifier design proposed in current status,not implemented.
+Synthetic fixtures only;strict bounded decoding/XML and progress allowlist;
+retain byte hashes/lengths,refuse errors/unknown/malformed/nonzero exit. This is
+not live raw capture or a launcher. Proposed4 RED/GREEN test-host calls need
+approval;old70/70 frozen. No source/test/OS diagnostic execution this turn.
+Stage B,security disposition,live collection and exact packet remain pending.
+
 Latest:[Stage B readiness checklist](../roadmap/2026-10-17-ordinary-ledger-stageb-readiness.md).
 Status NOT READY/NOT APPROVED. Preserve real readonly facts and strict parent
 failure;do not infer launch permission. Security disposition,channel/raw capture
