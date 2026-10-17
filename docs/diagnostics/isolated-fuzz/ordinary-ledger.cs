@@ -106,7 +106,20 @@ public sealed class OrdinaryMemberLedger:IDisposable {
             }
         }catch(Exception){Fail("admission-exception",-1);}
     }
-    public void ObserveFinal(long naturalDeadlineTicks,bool terminationRequested){Fail("final-unavailable",-1);}
+    public void ObserveFinal(long naturalDeadlineTicks,bool terminationRequested){
+        if(disposed || Report.Sealed || Report.Incomplete)return;
+        foreach(var owner in owners){
+            if(owner.Entry.Final!=null)continue;
+            if(!Budget(naturalDeadlineTicks))break;
+            long left=naturalDeadlineTicks-clock.Ticks;
+            uint wait=(uint)Math.Min(500,Math.Max(0,left*1000.0/clock.Frequency));
+            owner.Entry.Final=Read(owner,owner.Entry.Initial!=null && owner.Entry.Initial.State=="exited"?0:wait,naturalDeadlineTicks,terminationRequested);
+            if(terminationRequested)Fail("post-termination",-1);
+            var final=owner.Entry.Final;
+            if(!final.Attempted || !final.Signaled || final.State!="exited" || !final.ExitCodeRead || final.Error!=0)Fail("final-exit",final.Error);
+            if(Report.Incomplete)break;
+        }
+    }
     public void SealAndRelease(){Report.Sealed=true;Dispose();}
     public void Dispose(){if(disposed)return;disposed=true;Report.TeardownAttempted=true;foreach(var owner in owners)Release(owner);}
 }
