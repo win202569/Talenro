@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — synthetic archive design approved;implementation plan awaits review
+
+User approved written design afterb33e04bd. [Implementation plan](../superpowers/plans/2026-10-17-synthetic-capture-store.md)
+now proposes one isolated store deliverable,format/boundary groups,12 NEW finite
+hosts(2 expected RED+4 new GREEN+6 existing consumer regressions),120s each,
+one readonly review,no retry/fix reserve. Native/inline recommended;method and
+plan/allowance require user approval before source/tests. No implementation,
+new test host or review dispatched this turn. Old format/production unchanged;
+all old/frozen slots and live/security/Stage B/I2/I3/full C12/main gates retained.
+
 ## Latest — full synthetic record archive written design awaits review
 
 [Written design](../superpowers/specs/2026-10-17-synthetic-capture-store-design.md)

@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[synthetic capture archive implementation plan](../superpowers/plans/2026-10-17-synthetic-capture-store.md).
+Written design approved afterb33e04bd;plan and proposed12-host/one-review/no-fix
+packet await user approval and execution-method choice. Native/inline recommended.
+This is documents only:proposed APIs/codecs/tests are not implemented. Resume by
+reading spec+plan,not by running nonexistent commands or automatically reusing
+any spent/frozen allowance. No tests/review executed this turn;oldstore unchanged.
+Source/plan/report preservation on dev branch does not authorize live capture,
+security changes,Stage B/full C12/main acceptance or archive-data transfer.
+
 Latest:[full synthetic record archive design](../superpowers/specs/2026-10-17-synthetic-capture-store-design.md).
 Written proposal only,awaiting user review. New separate format/API/root with
 full20-field record recovery,8MiB bounded payload,52-byte completion marker and
