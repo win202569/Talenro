@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-17
 
+## Latest — combined boundary subphase diagnostic timed out; evaluation duration unknown
+
+Approved one-host subphase timing after813a8c76.
+[Partial record](2026-10-17-p1-combined-boundary-timing.md): PS7 configured30000ms,
+total30080ms,TimedOut=true,exit-1,stderr empty,owned-host-exited,CaptureValid=true
+but Complete/FormalAcceptance=false. InvalidInputs355.331ms,Build4096=1288.686ms;
+Evaluate4096 began at19878.997ms relative to Run but has no end marker.4096
+assertion/4097 checks not reached. New3/fixture8/original first31 PASS;remaining
+original4 and ownership10 incomplete. Pre-boundary work was already much slower
+(group start18181.547ms versus prior5823.606ms);instrumentation/host effects not
+separated,no unique cause or product regression inferred.147 pins held,no product/
+original-suite edits,retry or verdict overwrite. New1/1 spent;prior3/4/one frozen,
+old3/7/four frozen,review ineligible,I1/P1 unresolved unchanged. Next read-only
+instrumentation/measurement audit before separately scoped paired measurement,
+not another speculative product edit,automatic remaining-slot use or larger cap.
+
 ## Latest — combined timing diagnostic completed just below30s; boundary group dominates
 
 Approved one-host copy-only timing afterf7b0a7e3.

@@ -16,6 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest partial diagnostic: [combined boundary subphase timing](../roadmap/2026-10-17-p1-combined-boundary-timing.md).
+After813a8c76 approval,sole PS7 child timed out30080ms total/configured30000;
+owned-host-exited,stderr empty. Invalid checks355.331ms,construction1288.686ms;
+4096 evaluation started19.879s into Run but no completed result/duration/assertion.
+4097 not reached. New3/fixture8/original31 PASS,remaining groups incomplete.
+Pre-boundary slowdown versus previous copy prevents unique attribution to4096;
+instrumentation/host effects unmeasured. Product6CF0D354/original suites unchanged,
+147 pins fixed,new1/1 spent;prior3/4/one frozen,old3/7/four frozen/review ineligible
+remain. Portable copies/report on development branch recover partial progress,
+not acceptance;ignored raw/controller/runtime and rerun authority do not clone.
+Next read-only measurement/instrumentation audit,then explicitly bounded paired
+scope if needed. No retry,automatic old-slot use,timeout increase or I1/P1 closure.
+
 Latest diagnostic: [combined regression timing](../roadmap/2026-10-17-p1-combined-timing.md).
 Afterf7b0a7e3 approval,one PS7 child ran instrumented copies preserving original
 bodies/assertions/order:exit0/29783ms,59 complete pairs,all copied assertions PASS.
