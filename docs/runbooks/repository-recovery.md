@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:bounded inbox-executable policy design proposed in current status.
+Not implemented or approved. Keep source/evidence single-link checks;proposed
+executable-specific replacement pins signature/hash/file identity/link count,
+retains read binding and refuses drift. Proposed18 additional fake-only calls
+need approval;old36/36 remain consumed. No helper/test/native execution this turn.
+Do not interpret design discussion as Stage B or security-gate clearance.
+
 Latest:[native prerequisites blocked](../roadmap/2026-10-17-ordinary-ledger-native-prerequisites.md).
 The inspected inbox PowerShell has two hardlinks;current planner requires one.
 No helper/native/test execution or identity consumption. Do not modify system

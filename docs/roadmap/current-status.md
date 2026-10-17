@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — scoped executable-policy design proposed, not implemented
+
+User approved designing a compatibility approach,not runtime execution.
+Recommended bounded change:keep single-link policy for all source/evidence
+files;use a separate fixed inbox-executable validator with valid Microsoft
+Windows signature,pinned hash/signer,file identity and link count. Hold the
+read-only/no-write-or-delete-sharing binding through finalization;recheck the
+fixed path against the held identity before native entry. Any missing/drifting
+fact refuses. This explicitly replaces only the executable's single-link rule;
+it is not a generic multi-link exception or a hostile-admin security boundary.
+Proposal remains unapproved;no source edits,helper imports or tests performed.
+Proposed new18 fake-only calls:RED2,GREEN2,seven existing suites on two hosts14;
+no retries/native/system-file writes. Old36/36 consumed and Stage B gates remain.
+Next:user decision on the short in-chat design and this separate test allowance.
+
 ## Latest — Stage B prerequisites blocked by inbox executable hardlinks
 
 [Read-only prerequisite evidence](2026-10-17-ordinary-ledger-native-prerequisites.md)
