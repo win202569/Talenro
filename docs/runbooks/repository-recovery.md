@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[unfinished test partition implementation](../roadmap/2026-10-17-synthetic-capture-partitions.md).
+Recover updated suite selectors admission/byte-bound/event-bound/reader-paths;
+legacy format/boundary/default all retained. No product change. Six new runs
+complete,including PS5 4096-event archive roundtrip80.106s. New slot7 reader-paths
+failed creating first hardlink fixture(access denied),38 partialPASS,not accepted.
+New7/10 spent,8..10 frozen,review not started;do not resume/retry/elevate/skip checks
+or change ACLs on clone. Cause needs separate bounded investigation. New test
+hash406C7C66,original content preserved;raw receipts/expected labels/fixture
+state remain ignored/local. Original timeout/frozen dependent regressions,
+unstarted implementation review and all acceptance/live/security/main gates stay.
+
 Latest:pending [bounded grouping scope](../roadmap/2026-10-17-synthetic-capture-boundary-workload.md).
 Proposal only:four new test selectors preserve71 content checks,legacy entrypoints
 and120s per child;proposed10 new runs plus one post-success readonly coverage

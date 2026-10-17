@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — test partitions implemented;hardlink fixture failure stops new packet
+
+[Partition evidence](2026-10-17-synthetic-capture-partitions.md):test-only guards
+preserve original71 content bodies/order and legacy entries,product unchanged.
+New admission7/5 each28PASS,byte-bound7/5 each3PASS,event-bound7/5 each3PASS;
+PS5 event roundtrip completed80106ms. New slot7 PS7 reader-paths exit1/2948ms,
+38 partialPASS,328 childstderr chars:hardlink creation denied access before first
+hardlink assertion. Cause not established by readonly ACL view. STOPPED,no retry,
+elevated test/ACL change/skip;new7/10 spent,8..10 FROZEN,new review unstarted.
+No new format runs or old dependent regressions. New tests hash406C7C66;all
+original bodies recover exactly by removing selector additions. Save unfinished
+checkpoint only;old monolithic timeout/original7..12/original review and all
+acceptance/live/security/main gates unchanged. Separate bounded diagnosis needed.
+
 ## Latest — bounded grouping proposal awaits approval;no test change yet
 
 [Pending grouping scope](2026-10-17-synthetic-capture-boundary-workload.md):retain

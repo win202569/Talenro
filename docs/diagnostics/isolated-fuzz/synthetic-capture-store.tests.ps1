@@ -1,4 +1,4 @@
-param([ValidateSet('format','boundary','all')][string]$Group='all')
+param([ValidateSet('format','boundary','all','admission','byte-bound','event-bound','reader-paths')][string]$Group='all')
 $ErrorActionPreference='Stop'
 function Check-CaptureStore([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTION FAILED: '+$Name)};Write-Output ('PASS: '+$Name)}
 $module=Join-Path $PSScriptRoot 'synthetic-capture-store.ps1'
@@ -76,8 +76,9 @@ if($Group -in @('format','all')){
     Check-CaptureStore ($r.Verified -and $r.Record.ExecutableDeclaration -ceq 'throw must-not-run' -and $r.Record.OriginDeclaration -ceq '$(throw must-not-evaluate)') 'ArchiveTextNeverExecuted'
     Check-CaptureStore $true 'SyntheticCaptureStoreFormatComplete'
 }
-if($Group -in @('boundary','all')){
+if($Group -in @('boundary','all','admission','byte-bound','event-bound','reader-paths')){
     if(-not (Test-Path -LiteralPath $root)){New-Item -ItemType Directory -Path $root -ErrorAction Stop|Out-Null}
+    if($Group -in @('boundary','all','admission')){ # PARTITION admission
     foreach($bad in @($null,(New-SyntheticCaptureRecord $null),@{},'record')){Fixture-Refuse $bad 'PreflightCreatesNoDirectory'}
     $p=Fixture-Packet;$p.EndedUTC='2026-10-16T23:59:59.9999999Z';Fixture-Refuse (New-SyntheticCaptureRecord $p) 'ClockReversalAndDescriptorRefused'
     foreach($mutation in @('policy-null','origin-over','mode','flag','shape','derived','binding','snapshot','event-count','event-byte-bound','whole-trace-bound')){
@@ -102,13 +103,19 @@ if($Group -in @('boundary','all')){
         else{$r.Policy=Add-Member -InputObject $r.Policy -MemberType ScriptProperty -Name Extra -Value {$script:fixtureCallbacks++;'unused'} -PassThru;$obj=$r.Policy;$member='Extra'}
         try{Fixture-Refuse $r ('LengthRankShadowsRefused-'+$target)}finally{$obj.PSObject.Properties.Remove($member)}
     }
+    } # PARTITION admission end
+    if($Group -in @('boundary','all','byte-bound')){ # PARTITION byte-bound
     # Exact large trace/channel/argument/text bounds;one roundtrip,not a performance test.
     $p=Fixture-Packet;$p.SessionLabel='s'*80;$p.ExecutableDeclaration='x'*1024;$p.OriginDeclaration='o'*1024;$p.ArgumentBytes=New-Object byte[] 65536
     $chunks=New-Object 'System.Collections.Generic.List[object]';for($i=0;$i -lt 16;$i++){foreach($c in @('stdout','stderr')){$chunks.Add((Fixture-Chunk $c (New-Object byte[] 65536)))}}
     $p.Events=[object[]]$chunks.ToArray();$r=(Fixture-Write (New-SyntheticCaptureRecord $p)).Result.Record
     Check-CaptureStore ($r.Arguments.ByteLength -eq 65536 -and $r.Events.Count -eq 32 -and $r.Lifecycle.Stdout.ByteLength -eq 1048576 -and $r.Lifecycle.Stderr.ByteLength -eq 1048576 -and $r.SessionLabel.Length -eq 80 -and $r.OriginDeclaration.Length -eq 1024) 'ExactFieldAndTraceBounds'
+    } # PARTITION byte-bound end
+    if($Group -in @('boundary','all','event-bound')){ # PARTITION event-bound
     $p=Fixture-Packet;$p.Events=[object[]]@(for($i=0;$i -lt 4096;$i++){Fixture-Tick});$r=(Fixture-Write (New-SyntheticCaptureRecord $p)).Result.Record
     Check-CaptureStore ($r.Events.Count -eq 4096 -and $r.Lifecycle.AcceptedEventCount -eq 4096) 'ExactEventCountBound'
+    } # PARTITION event-bound end
+    if($Group -in @('boundary','all','reader-paths')){ # PARTITION reader-paths
     # Byte offsets derived from fixed hand-encoded prefix,not production encoder.
     $utcBool=$baseHead.Length-5;$eventCount=$baseHead.Length-4;$lc=$baseHead.Length
     foreach($mutation in @('magic','version','negative-text','huge-text','utf8','bool','count','count-overflow','presence','snapshot-negative','snapshot-oversize','tail','truncate','binding','derived','authority','total-over','total-exact-invalid')){
@@ -136,6 +143,11 @@ if($Group -in @('boundary','all')){
     $old=[byte[]]$literal.Clone();[Array]::Copy((Fixture-Hex '544C524F45563031'),0,$old,0,8);Fixture-ReadRefuse (Fixture-Put $old (Fixture-Marker $old)) 'OldNewFormatCrossReadRefused-new-reader'
     . (Join-Path $PSScriptRoot 'output-evidence-store.ps1');$oldResult=Read-OfflineOutputEvidenceStore $d
     Check-CaptureStore (-not $oldResult.Verified -and $null -eq $oldResult.Package) 'OldNewFormatCrossReadRefused-old-reader-path'
+    } # PARTITION reader-paths end
+    if($Group -in @('boundary','all')){ # PARTITION legacy completion
     Check-CaptureStore $true 'SyntheticCaptureStoreBoundaryComplete'
+    }else{ # PARTITION selected completion
+        Check-CaptureStore $true ('SyntheticCaptureStorePartitionComplete-'+$Group) # PARTITION selected completion label
+    } # PARTITION completion end
 }
 Write-Output 'LIMIT: synthetic local archive only;no live capture,origin trust,atomicity,power-loss guarantee or acceptance.'

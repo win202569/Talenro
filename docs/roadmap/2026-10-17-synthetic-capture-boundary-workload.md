@@ -1,5 +1,9 @@
 # Synthetic archive boundary workload and budget — readonly inventory
 
+Follow-up:[approved partition implementation/results](2026-10-17-synthetic-capture-partitions.md).
+New7/10 spent;slot7 hardlink fixture denied access,8..10 frozen,review unstarted.
+The proposal/status statements below are historical,not current launch authority.
+
 ## Scope and evidence
 
 Aftere99d0b8a,user requested readonly workload/budget accounting. No test,
