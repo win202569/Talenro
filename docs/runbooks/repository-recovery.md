@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic handoff: [two-host fixture results](../roadmap/2026-10-17-p1-ownership-fixture-diagnosis.md).
+Approved afteraa026ba0; both receipts met transport expectations, no product/test
+import or repair. PS7 first diverged at wrapper construction (Int32 to custom
+object); PS5.1 preserved the primitive. Both frozen verdicts Inconclusive, no
+unique-cause/fix claim. Diagnostic2/2 spent; failed repair slot1 remains false,
+six repair slots frozen, review ineligible. Recover new portable probe/plan/report
+from latest dev branch, not main; ignored raw remains local. A separate fixture
+correction/revised-sequence approval is needed. Prior entries are historical.
+
 Latest planning handoff: [fixture diagnosis plan](../superpowers/plans/2026-10-17-p1-ownership-fixture-diagnosis.md)
 written after user yes following25bc3b3a. Proposed separate2 hosts<=30000ms each,
 no product/test import or fixture correction, no frozen-budget reuse. It has NOT

@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — two fixture-only diagnostics captured; no repair authority
+
+User approved afteraa026ba0. D1 PS7/D2 PS5.1 completed exact diagnostic transport
+expectations: exit0,687/686ms,stderr empty,9 rows each. [Results/limits](2026-10-17-p1-ownership-fixture-diagnosis.md):
+PS7's wrapper construction changed Int32 to PSCustomObject; type/value predicates
+false, metadata/array identity retained. PS5.1 retained Int32 and all predicates
+true. Original/instrumented paths agree per host. Frozen verdict remains
+Inconclusive, not unique root cause or I1 closure. Diagnostic2/2 spent; no product/
+test imports, corrections, retries or reviewer. Original failed repair slot stays
+false,6 repair slots frozen/review ineligible. Source/tests/protected21 unchanged.
+Next requires a narrow fixture-correction/revised-sequence decision. Entries below
+are historical; no implicit product verification or P2/P3/main approval.
+
 ## Latest — fixture diagnosis plan written; no new execution approved
 
 User yes after25bc3b3a requested only a [fixture diagnosis plan](../superpowers/plans/2026-10-17-p1-ownership-fixture-diagnosis.md).
