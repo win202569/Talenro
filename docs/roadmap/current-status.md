@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — readonly loop audit identifies repeated method lookup;probe awaits approval
+
+[Type lookup audit](2026-10-17-synthetic-capture-type-lookup-audit.md) statically
+counts at least36864 resolutions of the same Object.GetType MethodInfo in the
+two measured4096tick paths. Its actual time contribution is NOT measured.
+Recommend single-variable exploratory baseline/cached-metadata comparison,
+NEW2 hosts PS7/PS5,120s each,no retry;proposal awaits approval,no code/hosts yet.
+Retain per-value safe Invoke/type checks,do not cache caller data/verdicts or
+also change pipeline extraction. Product/tests unchanged;old timeout/frozen
+regression/review and all live/security/main gates remain unresolved.
+
 ## Latest — internal timing locates two costly phases;no product fix
 
 [Internal probe](2026-10-17-synthetic-capture-internal-timing.md) completed2/2 NEW

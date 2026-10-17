@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[readonly repeated-type-lookup audit](../roadmap/2026-10-17-synthetic-capture-type-lookup-audit.md).
+Documents only:two4096tick paths statically imply36864 repeated fixed method
+lookups;no primitive timing or confirmed fix. New proposed2-host metadata-only
+A/B probe awaits explicit approval,not an automatic launch on clone. Product
+and original tests unchanged,no new hosts. All previous spent/frozen allowances,
+unstarted review and live/security/main gates remain. Read pending probe scope
+before any execution;do not cache caller values or remove admission checks.
+
 Latest:[internal verifier timing](../roadmap/2026-10-17-synthetic-capture-internal-timing.md).
 New diagnostic script retained for probe reproducibility only,not runtime/API
 acceptance or automatic rerun. New2/2 hosts completed PS7/PS5,exit0/empty stderr,
