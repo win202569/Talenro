@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[structured one-attempt hardlink probe](../roadmap/2026-10-17-synthetic-capture-hardlink-probe.md).
+Portable exploratory script/report retained,new1/1 consumed. PS7 normal role
+created ordinary file,but one hardlink attempt returned native5/Win32Exception,
+HResult0x80004005. Diagnostic exit0 is not archive acceptance. Denying layer not
+established;no automatic retry/context switch/privilege or security change.
+Product/tests unchanged,frozen partition8..10/original7..12 and unstarted reviews
+remain. Raw records/source fixture stay local;clone does not grant launch authority.
+
 Latest:[readonly hardlink denial findings](../roadmap/2026-10-17-synthetic-capture-hardlink-readonly.md).
 Retained source exists,destination absent,NTFS/ordinary attributes and no explicit
 DACL Deny observed;not a definitive permission/sandbox diagnosis. No new host,

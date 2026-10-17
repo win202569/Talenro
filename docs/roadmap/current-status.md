@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — one-attempt probe captures native5 at hardlink creation
+
+[Structured hardlink probe](2026-10-17-synthetic-capture-hardlink-probe.md) used
+NEW1/1 PS7 host,exit0/745ms/empty stderr,normal role. Ordinary four-byte file
+created;one New-Item HardLink attempt refused:Win32Exception,native5,HResult
+0x80004005,message intact. Source retained,link absent. Diagnostic completion
+is NOT hardlink creation/archive acceptance. Denying layer still unknown;no
+elevation/ACL/security change,alternate API,retry or suite replay. Product/tests
+and partition/original indexes unchanged. Next needs separate execution-context
+investigation authority;new8..10/original7..12 and reviews remain frozen/unstarted.
+
 ## Latest — readonly hardlink investigation finds no definitive denial source
 
 [Readonly findings](2026-10-17-synthetic-capture-hardlink-readonly.md):correlated

@@ -1,5 +1,9 @@
 # Hardlink fixture denial — readonly findings and pending minimal probe
 
+Follow-up:[approved single-attempt result](2026-10-17-synthetic-capture-hardlink-probe.md).
+New1/1 consumed;link creation refused with native5/Win32Exception. The proposal
+below is historical,not permission to launch again or resume frozen tests.
+
 ## Readonly scope
 
 Afterf99ec699,user requested continued investigation. This turn read existing
