@@ -1,6 +1,9 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Date:2026-10-17. Base89cb1ad09bf831216c5999ddcb4409e4cea4d18d.
+Current:after8dafbfe3,user approved script UInt64 aliases/budget32. Invocation6
+GREEN5 exit0/1196ms,9 PASS assertions. Task1 is now complete against scoped
+fake tests;Task2 next. Earlier stops below are historical,not current.
 Latest:the follow-up below records5/31 calls and a new PS5.1 compatibility stop;
 the earlier3/30 stop and its proposed next step are historical,not current.
 User approved the [plan](../superpowers/plans/2026-10-17-ordinary-member-identity-ledger.md),

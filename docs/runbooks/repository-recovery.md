@@ -16,6 +16,11 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:ledger Task1 fake checks complete after approved UInt64 aliases/budget32.
+Invocation6 GREEN5 passed9 assertions;earlier GREEN7 also passed9. Used6/32.
+Resume Task2 of the approved plan,not Task1 replay;native rollout/metadata gates
+remain blocked. Earlier stop/proposal statements below are historical.
+
 Latest:[ledger PS5.1 compatibility stop](../roadmap/2026-10-17-ordinary-ledger-implementation.md#approved-capacity-correctionnew-ps51-stop-after557c2249).
 Capacity correction/budget31 approved after557c2249;GREEN7 passed9 assertions,
 then GREEN5 failed test-script [ulong] lookup before assertions. Total5/31 used.

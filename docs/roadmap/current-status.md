@@ -1,5 +1,13 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ledger Task1 fake checks complete;Task2 next,6/32 used
+
+After8dafbfe3,user approved UInt64 script aliases/budget32. Replacement GREEN5
+passed all9 assertions;GREEN7 had already passed9 after capacity correction.
+Task1 is scoped fake-test complete,not native/metadata acceptance. Task2 next;
+remaining final regression will cover the compatible test text on both hosts.
+Existing observer/callers remain unchanged. Earlier stop statements are historical.
+
 ## Task11 — capacity fixture corrected;PS5.1 alias failure stops Task1 at5/31
 
 After557c2249,user approved fixture-only correction and budget31. Replacement

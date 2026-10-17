@@ -19,7 +19,9 @@ and total budget31. Replacement GREEN7 passed;first GREEN5 stopped at unsupporte
 script type [ulong],5/31 used. No further fix/run authorized yet. Original30-call
 arithmetic below is historical;remaining plan is unchanged. Proposal:script-only
 UInt64 compatibility correction and total32,then replacement GREEN5 and remaining
-12 task RED/GREEN +14 final calls. This new proposal awaits approval.
+12 task RED/GREEN +14 final calls. User approved this correction/budget32 after
+8dafbfe3;replacement GREEN5 passed9 assertions at invocation6. Task1 complete,
+Task2 next. The earlier stop/proposal statements above are historical.
 
 ## Global Constraints
 
