@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [isolated ObservationScalars timing](../roadmap/2026-10-17-p1-observation-timing.md).
+After64e6872a approval, one fresh PS7 host completed65 copied-path assertions,
+exit0/1691ms,stderr0; item median10.887/max103.598ms. No preflight/full suite/R3
+replay or product/test edits. Standalone completion does not explain old mixed-
+suite timeout or finish other ownership groups. New1/1 spent; old repair3/7,
+four frozen/review ineligible and R3=false preserved. Source-only4096-observation
+case candidate needs separate measured scope, not an automatic limit increase.
+Probe/report portable, ignored raw/controller/runtime not restored by clone;
+do not repeat by cloning. ProductCF4C/suiteC490 still unaccepted; no I1/main or
+full-project/runtime acceptance. Start from current development branch report.
+
 Latest actual R3 handoff: [extended-view timeout](../roadmap/2026-10-17-p1-extended-view-resume.md).
 User permitted parameter correction after2a882111; same frozen candidateCF4C and
 suiteC490 ran once, no repeated REDs. R3 timed out30079ms total (limit30000),exit-1,

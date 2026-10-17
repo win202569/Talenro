@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — isolated ObservationScalars timing completed65 checks in1.691s
+
+Approved one-host spike after64e6872a. [Timing record](2026-10-17-p1-observation-timing.md):
+fresh PS7 exit0/1691ms,stderr0,CaptureValid=true,Complete;65 starts/ends, original
+copied assertions PASS, item median10.887ms/max103.598ms, no active/truncated item.
+No full-suite/preflight/old R3 replay, candidate/test edits or retry. Fresh isolated
+path has no observed long stall; old mixed-suite timeout cause remains unproved.
+Original4096-observation bounds case is only a source-derived timing candidate,
+not measured bottleneck. Diagnostic1/1 spent;102 pins fixed. Old R3=false and
+extended-view3/7/four frozen/review ineligible unchanged. CF4C/C490 remain unaccepted,
+other four uncompleted ownership groups not covered. Next scope phase timing,
+not automatic optimization/limit increase or R4 continuation. Earlier entries
+historical; isolated diagnostic does not close I1/P1 or complete full regression.
+
 ## Latest — corrected R3 resume timed out; original35 pass, ownership incomplete
 
 User approved parameter-only resume after2a882111. [Timeout record](2026-10-17-p1-extended-view-resume.md):
