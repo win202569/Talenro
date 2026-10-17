@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — readonly boundary workload confirms cumulative budget,not per-case limit
+
+[Workload inventory](2026-10-17-synthetic-capture-boundary-workload.md) confirms
+one120s whole-child budget covers setup/all71 content checks+2 sentinels. Slot6
+lastPASS28 follows large-byte roundtrip;4096 case then needs construction,codec,
+TWO public verifications and publication/readback beforePASS29. No subphase time
+proves its interrupted operation. Intended full path static counts:31 constructors,
+34 writer attempts,41 new-reader calls,15 public verifier entries;not runtime
+counts/timing predictions. Cumulative workload/grouping hypothesis credible,
+not established root cause. No new host/code/test edit. Next recommend separate
+coverage-preserving grouping design/new finite allowance,not a product speedup,
+retroactive pass or reuse of frozen7..12. All existing acceptance/security gates stay.
+
 ## Latest — in-context four-child diagnosis complete;timing is intrusive/inconclusive
 
 [Context observations](2026-10-17-synthetic-capture-context-profile.md) used4/4

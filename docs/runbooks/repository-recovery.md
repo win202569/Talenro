@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[readonly boundary workload/budget inventory](../roadmap/2026-10-17-synthetic-capture-boundary-workload.md).
+Documents only,no new hosts/source/tests.120s applies to the whole boundary
+child,not each case. The4096 case requires two full verifiers plus codec/I/O,
+after earlier tests;original28PASS cannot locate the interrupted subphase.
+Static intended call counts are not newly measured results or time estimates.
+Next recommended grouping design must preserve all71 content checks/sentinels
+and120s per child,with a new explicitly approved finite allowance. No grouping
+implemented or original monolithic timeout cleared. Original frozen regression,
+unstarted review and all live/security/main gates remain. Clone is not launch authority.
+
 Latest:[in-context verifier diagnosis](../roadmap/2026-10-17-synthetic-capture-context-profile.md).
 Portable mechanical preparer/probe/report preserved;new4/4 children consumed,
 all exit0/empty stderr,expected public verdict and identical binding. PS5 ordinary
