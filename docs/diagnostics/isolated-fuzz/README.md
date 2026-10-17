@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Latest:[offline numeric strictness repair](../../roadmap/2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence).
+Three anchors repaired,eight LF cases added;52 checks per host passed after
+expected RED. Offline8/8 consumed,ledger70/70 separate. No live capture,runner
+integration or Stage B approval;older deferred state below is historical.
+
 Latest:[offline classifier synthetic checkpoint](../../roadmap/2026-10-17-offline-output-classifier.md).
 Standalone byte classification only,44 checks per host,offline4/4 used. One
 Minor numeric-end strictness edge deferred. No real capture/runner integration,

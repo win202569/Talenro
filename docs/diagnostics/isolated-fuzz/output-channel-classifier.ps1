@@ -17,7 +17,7 @@ function Assert-OfflineOutputText([Xml.XmlNode]$Node){
 }
 function Assert-OfflineOutputReference([string]$Value){
     $number=[uint32]0
-    if($Value -cnotmatch '^(0|[1-9][0-9]{0,9})$' -or -not [uint32]::TryParse($Value,[ref]$number)){throw 'Invalid XML reference'}
+    if($Value -cnotmatch '^(0|[1-9][0-9]{0,9})\z' -or -not [uint32]::TryParse($Value,[ref]$number)){throw 'Invalid XML reference'}
 }
 function Assert-OfflineOutputProgress([Xml.XmlNode]$Node){
     Assert-OfflineOutputElement $Node 'MS'
@@ -26,7 +26,7 @@ function Assert-OfflineOutputProgress([Xml.XmlNode]$Node){
     Assert-OfflineOutputElement $members[0] 'I64' @('N')
     Assert-OfflineOutputText $members[0]
     $source=[long]0
-    if($members[0].GetAttribute('N') -cne 'SourceId' -or $members[0].InnerText -cnotmatch '^(0|[1-9][0-9]{0,18})$' -or -not [long]::TryParse($members[0].InnerText,[ref]$source)){throw 'Invalid progress source'}
+    if($members[0].GetAttribute('N') -cne 'SourceId' -or $members[0].InnerText -cnotmatch '^(0|[1-9][0-9]{0,18})\z' -or -not [long]::TryParse($members[0].InnerText,[ref]$source)){throw 'Invalid progress source'}
     Assert-OfflineOutputElement $members[1] 'PR' @('N')
     if($members[1].GetAttribute('N') -cne 'Record'){throw 'Unexpected progress record'}
     $fields=@($members[1].ChildNodes);$names=@('AV','AI','Nil','PI','PC','T','SR','SD')
@@ -39,7 +39,7 @@ function Assert-OfflineOutputProgress([Xml.XmlNode]$Node){
     if($fields[5].InnerText -cnotin @('Completed','Processing')){throw 'Unknown progress type'}
     foreach($index in @(1,3,4,6)){
         $value=[int]0;$text=$fields[$index].InnerText
-        if($text -cnotmatch '^-?(0|[1-9][0-9]*)$' -or -not [int]::TryParse($text,[ref]$value)){throw 'Invalid progress integer'}
+        if($text -cnotmatch '^-?(0|[1-9][0-9]*)\z' -or -not [int]::TryParse($text,[ref]$value)){throw 'Invalid progress integer'}
         if(($index -eq 1 -and $value -lt 0) -or ($index -ne 1 -and $value -lt -1) -or ($index -eq 4 -and $value -gt 100)){throw 'Out of range progress integer'}
     }
 }

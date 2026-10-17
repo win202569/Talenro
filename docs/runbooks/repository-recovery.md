@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline numeric strictness repaired](../roadmap/2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence).
+Recover the three anchor changes and eight new synthetic LF fixtures. Both
+hosts52 checks passed after expected RED;repair4/4 used,offline8/8 cumulative,
+ledger70/70 separate/exhausted. Prior Minor author-disposed with regressions,
+not second-review certification. No live integration/raw archive/runtime
+approval;next is separately scoped raw-byte retention preparation. Old failure
+records,consumed budgets and security/acceptance gates remain unchanged.
+
 Latest:[offline classifier synthetic checkpoint](../roadmap/2026-10-17-offline-output-classifier.md).
 Recover the new standalone classifier and inline synthetic tests;no existing
 runner integration.44 per host passed,offline4/4 used;ledger70/70 unchanged.

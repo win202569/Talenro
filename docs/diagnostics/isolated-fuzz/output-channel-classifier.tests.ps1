@@ -26,6 +26,14 @@ foreach($encoding in @('utf-8','utf-16le')){
     Check-Output ($result.Classification -ceq 'progress-only' -and $result.EncodingName -ceq $encoding -and $result.Stderr.ByteLength -eq $encoded.Length) ('ExplicitStrictEncoding-'+$encoding)
 }
 $cases=[ordered]@{
+    terminalLfActivity=$text.Replace('<AI>0</AI>','<AI>0&#10;</AI>')
+    terminalLfParent=$text.Replace('<PI>-1</PI>','<PI>-1&#10;</PI>')
+    terminalLfPercent=$text.Replace('<PC>-1</PC>','<PC>-1&#10;</PC>')
+    terminalLfSeconds=$text.Replace('<SR>-1</SR>','<SR>-1&#10;</SR>')
+    terminalLfSource=$text.Replace('<I64 N="SourceId">1</I64>','<I64 N="SourceId">1&#10;</I64>')
+    terminalLfObjectId=$text.Replace('<Obj S="progress" RefId="0">','<Obj S="progress" RefId="0&#10;">')
+    terminalLfTypeId=$text.Replace('<TN RefId="0">','<TN RefId="0&#10;">')
+    terminalLfTypeReference=$prefix+$record.Replace('<TN RefId="0">','<TN RefId="0&#10;">')+$record2.Replace('<TNRef RefId="0"','<TNRef RefId="0&#10;"')+'</Objs>'
     error=$text.Replace('S="progress"','S="error"')
     warning=$text.Replace('S="progress"','S="warning"')
     unknown=$text.Replace('S="progress"','S="other"')

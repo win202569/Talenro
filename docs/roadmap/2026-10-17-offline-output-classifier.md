@@ -1,4 +1,11 @@
-# Offline output classifier — synthetic GREEN,one Minor deferred
+# Offline output classifier — numeric strictness repaired,synthetic only
+
+Latest:the user approved the bounded numeric-end repair and4 additional
+synthetic hosts after24b98a06. Both REDs reproduced the terminal-LF acceptance;
+three absolute-end anchors now reject it,and both GREENs passed52 checks.
+See [numeric strictness repair evidence](#numeric-strictness-repair-evidence).
+The original deferred/proposed state below is historical. No live integration,
+second independent review or runtime/security clearance follows.
 
 User approved the bounded design and separate4-host synthetic allowance after
 `62d0eacfadb8ed34d224b4221662e878b283461d`. New files:
@@ -108,3 +115,52 @@ hosts:PS7/5.1 RED on terminal-LF fixtures,then GREEN after replacing the three
 numeric/reference end anchors with absolute-end anchors;120s,sequential,no retry.
 This proposal is not approved and no such test has run. Do not treat this offline component
 as approval to rerun a diagnostic host,integrate a launcher or begin Stage B.
+
+## Numeric strictness repair evidence
+
+Approved base:`24b98a06fd4a44d9219e715d894c243a5cbe6553`.
+The observed cause matches the review:terminal LF can satisfy regex `$` and
+TryParse then accepts whitespace. Added eight synthetic XML character-reference
+fixtures for Activity,Parent,Percent,Seconds,SourceId,object RefId,type-definition
+RefId and a definition/reference pair. Both RED hosts passed the initial8
+positive checks,then failed specifically at
+`UnsafeOutputRefused-terminalLfActivity`. This dynamically reproduces that
+consumer-visible misclassification;the seven later new cases did not separately
+run in RED and are not claimed to have individually reproduced there.
+
+Only the three numeric/reference end anchors changed from `$` to `\z`. No
+decoding,XML shape,stream handling,result/metadata fields or integration changed.
+After static parsing,both GREEN hosts ran the whole updated synthetic suite:
+original44 checks plus8 LF cases,52 per host/104 total. The positive referenced
+and multilingual cases still pass. No source/test edit after GREEN.
+
+| Repair call | Host/phase | Exit | ms | PASS | stderr bytes |
+| --- | --- | --- | --- | --- | --- |
+| 1 | PS7 RED | 1 | 943 | 8 | 377,expected assertion |
+| 2 | PS5.1 RED | 1 | 869 | 8 | 575,expected assertion |
+| 3 | PS7 GREEN | 0 | 964 | 52 | 0 |
+| 4 | PS5.1 GREEN | 0 | 852 | 52 | 0 |
+
+All4 records completed sequentially with the existing120s/fresh64-bit host
+policy and child-local inbox modules on PS5. No retries or extra suites.
+Repair4/4 exhausted;offline cumulative8/8 exhausted. Ledger Stage A70/70 remains
+separate/exhausted. The new index is offline-repair-invocations.json under the
+same ignored preparation directory;SHA256:
+`867EC0CD822474CA10CDA923E7F31BB11A89FCC8C250284F849A8D26F0DA47EE`.
+Saved-file reads verified original offline index remains
+`DF4D38E57F6118F3FB3AD6589724EFB3B21B70F099B4E6B6E36505E7F58CA13F`,
+and timing/policy hashes match their previous reports. Older anomalies remain
+documented and untouched;no raw logs/indices are committed.
+
+Author disposition:the prior Minor numeric-end issue is addressed by this
+minimal source repair and covering synthetic regressions. This is one approved
+fix pass,not a second independent review or a claim of universal parser safety.
+Original review limitations remain:restricted subset,XML formatting whitespace,
+no live capture/archive,unknown actual transport encoding and no runtime gate.
+No full-project/ledger suite was run or newly claimed passing under this scope.
+
+Actual ledger-native run/control identities remain absent. No real diagnostic,
+OS adapter,probe,Go/Docker workload,security-setting change,main merge or
+acceptance activation. Next safe preparation is the raw-byte retention design
+and offline capture-interface fixtures,with separate scope/allowance;do not
+immediately rerun the real host or treat existing byte hashes as an archive.

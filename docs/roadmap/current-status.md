@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline numeric-end Minor repaired;52 synthetic checks per host
+
+[Repair evidence](2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence):
+both REDs reproduced terminal-LF activity acceptance;three '$' anchors changed
+to absolute-end anchors,then both hosts52 checks/empty stderr. Repair4/4 used,
+offline8/8 cumulative,separate from ledger70/70. Eight new fixtures cover
+progress numeric fields/source/object/type references. Author disposition:
+prior Minor addressed by covering regressions,no second independent review.
+No live capture/runner integration,real diagnostic replay or safety clearance.
+Next:raw-byte retention design/offline capture-interface fixtures under separate
+scope;Stage B/security/I2/I3 remain unresolved. Earlier deferred state historical.
+
 ## Latest — offline classifier implemented;synthetic44 per host,Minor deferred
 
 [Classifier contract/evidence/review](2026-10-17-offline-output-classifier.md):
