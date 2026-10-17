@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [4096/4097 boundary timing](../roadmap/2026-10-17-p1-array-boundary-timing.md).
+After19ef2fe1 approval, sole PS7 host completed two boundary calls/all six timed
+phases,exit0/22447ms,stderr0. Evaluate4096=21253.172ms versus4097 refusal47.721ms;
+original literal assertions retained and PASS. This measures a large evaluation
+cost, not its internal cause or whole-suite timeout attribution. No candidate/
+test edit, full suite/preflight/retry. New1/1 spent; old R3 false/repair3/7/four
+frozen/review ineligible unchanged. ProductCF4C/suiteC490 unaccepted; inspect probe/
+report from latest dev branch, not main. Raw/controller/runtime ignored/local,
+not restored or authorized by clone. Next scope attribution/optimization with
+original assertions and30s gate retained; no automatic budget renewal or R4.
+
 Latest diagnostic: [isolated ObservationScalars timing](../roadmap/2026-10-17-p1-observation-timing.md).
 After64e6872a approval, one fresh PS7 host completed65 copied-path assertions,
 exit0/1691ms,stderr0; item median10.887/max103.598ms. No preflight/full suite/R3

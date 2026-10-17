@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — boundary timing measured4096 evaluation at21.253s
+
+Approved one-host/two-call spike after19ef2fe1. [Boundary timing](2026-10-17-p1-array-boundary-timing.md):
+PS7 exit0/22447ms,stderr empty,Complete; six phases and both original boundary
+assertions PASS. Build4096=161.528ms,evaluate4096=21253.172ms,assert=158.405ms;
+build4097=54.802ms,refusal=47.721ms,assert=42.582ms. Large valid evaluation is a
+measured major cost in this path, not unique attribution for old R3 or a measured
+internal-function bottleneck. No full suite/preflight/warmup/old R3 replay, edits
+or retry. Diagnostic1/1 spent,108 protected pins fixed. ProductCF4C/suiteC490 still
+unaccepted; old3/7/four frozen/review ineligible unchanged. Next scope performance
+attribution or bounded semantic-preserving optimization, not automatic limit
+increase/R4 continuation or acceptance. Earlier entries historical.
+
 ## Latest — isolated ObservationScalars timing completed65 checks in1.691s
 
 Approved one-host spike after64e6872a. [Timing record](2026-10-17-p1-observation-timing.md):
