@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — fixture-construction revision plan written; edits/runs not approved
+
+User yes after535c54da requested only the [new fixture revision plan](../superpowers/plans/2026-10-17-p1-fixture-construction-revision.md).
+Candidate explicitly selects PSObject(Object), keeping all type/value/descriptor/
+identity guards. Proposed fixture-only group has five checks and two separate
+30-second hosts; no product import/edit/test or reviewer. Native preserved,
+fixture edits/new allowance await written plan approval. Six frozen repair slots
+cannot cover the required seven product runs; future R1–R7/review are documented
+as separately gated proposals, not budget reuse. Original false verdict and
+diagnostic2/2 remain unchanged. No test/source/raw edits or execution this turn.
+
 ## Latest — two fixture-only diagnostics captured; no repair authority
 
 User approved afteraa026ba0. D1 PS7/D2 PS5.1 completed exact diagnostic transport

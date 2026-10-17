@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest plan-only handoff: [fixture-construction revision](../superpowers/plans/2026-10-17-p1-fixture-construction-revision.md)
+proposes selecting the one-object constructor, preserving guards and adding a
+fixture-only group. Two new30-second hosts/fixture edits NOT approved or started;
+no product or old-test import. Review plan first; Native method preserved.
+Proposed future product R1–R7/source repair/conditional reviewer require separate
+approval; six old frozen slots are not silently reused. Old false verdict,
+diagnostics2/2 and all existing source/tests/raw remain unchanged this turn.
+Recover latest dev branch/plan, not main or presumed restored ignored evidence.
+
 Latest diagnostic handoff: [two-host fixture results](../roadmap/2026-10-17-p1-ownership-fixture-diagnosis.md).
 Approved afteraa026ba0; both receipts met transport expectations, no product/test
 import or repair. PS7 first diverged at wrapper construction (Int32 to custom
