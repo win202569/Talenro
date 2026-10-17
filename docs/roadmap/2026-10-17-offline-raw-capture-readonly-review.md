@@ -8,6 +8,14 @@ This is the original review disposition. Later explicit user approval and the
 separate [bounded repair record](2026-10-17-offline-raw-capture-empty-ownership-fix.md)
 govern subsequent I1 work. They do not rewrite this review or grant a new review.
 
+Later M1 follow-up after81afee10: the user approved a tests-only design and
+four NEW hosts. Eight literal complete event sequences plus alteration-rejection
+cases now pass targeted and full30-label suites on both engines, product and
+dependencies unchanged. Parent marks M1 addressed within that bounded evidence;
+the independent reviewer did not rereview this delivery. See the separate
+[M1 record](2026-10-17-offline-raw-capture-event-oracle.md). Original findings,
+severity and limitations below remain the historical review, not rewritten green.
+
 One fresh reviewer, offline_raw_capture_review, read actual source/tests,
 approved spec/plan, continuation and saved evidence. Range:
 5915bc732a658973b368b40a681250388911854e..a54fe96f7eb6c9573918f4c878df1aa67de95d2f,

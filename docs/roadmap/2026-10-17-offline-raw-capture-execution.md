@@ -1,5 +1,11 @@
 # Offline raw capture coordinator — execution record
 
+Latest follow-up: [M1 independent event oracle](2026-10-17-offline-raw-capture-event-oracle.md)
+was separately approved after81afee10 and completed four NEW hosts, targeted
+and full30-label suites on both engines. Parent marks M1 addressed, without
+another independent review or broader acceptance. This does not replace any
+original result, source/test hash or budget below.
+
 Subsequent status: the separately approved [bounded I1 repair](2026-10-17-offline-raw-capture-empty-ownership-fix.md)
 closes the ownership blocker by parent RED/GREEN evidence, with M1 deferred and
 no new independent review. Five NEW slots are complete; none of the ten below

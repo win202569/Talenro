@@ -12,7 +12,15 @@
 
 Status: **APPROVED FOR NATIVE EXECUTION.** User selected1 after5915bc732a658973b368b40a681250388911854e, explicitly choosing parent implementation, up to10 synthetic tests and one conditional readonly review. No real runtime/Stage B authority. Progress is recorded in the execution report/checked steps below; historical proposal wording describes the approved scope, not extra budget.
 
-Latest follow-up: **I1 CLOSED BY SEPARATELY APPROVED BOUNDED REPAIR; M1 DEFERRED.**
+Latest follow-up: **I1 CLOSED; SEPARATELY APPROVED M1 TEST FOLLOW-UP VERIFIED.**
+After81afee10 the user approved tests-only literal event expectations and
+alteration-rejection cases. Four NEW hosts completed: targeted and full30/30
+on both engines, with product/dependencies unchanged. See the
+[M1 record](../../roadmap/2026-10-17-offline-raw-capture-event-oracle.md).
+Parent bounded evidence addresses M1; no independent rereview/acceptance follows.
+New4/4 are spent; original budgets/history below are not reopened.
+
+Earlier I1 disposition: **I1 CLOSED BY SEPARATELY APPROVED BOUNDED REPAIR; M1 DEFERRED AT THAT CHECKPOINT.**
 After f8657855 the user approved two clones, one regression and five NEW hosts.
 The [repair record](../../roadmap/2026-10-17-offline-raw-capture-empty-ownership-fix.md)
 records precise PS7 RED, targeted GREEN on both engines and full29/29 each,

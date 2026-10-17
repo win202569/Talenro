@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [M1 event-oracle follow-up](../roadmap/2026-10-17-offline-raw-capture-event-oracle.md)
+adds eight hand-derived complete event sequences and alteration-rejection
+tests only. Four approved NEW hosts completed: both targeted groups passed,
+full30/30 on PS7/PS5.1, no timeout/retry/stderr. Product remains FB48642D;
+test is2D44F9C9;12 dependency pins unchanged. M1 is addressed by parent
+evidence, not a new independent review or acceptance decision. All original10,
+reviewer1, I1-fix5 and M1-test4 budgets are spent. Recover ordinary source/test/
+reports on codex/c12-b01-task9-coordinator; ignored raw directories are not a
+fresh-computer prerequisite. No replay/main/live/security permission follows.
+Next scoped decision: limited offline acceptance; old entries remain historical.
+
 Latest: [bounded I1 repair](../roadmap/2026-10-17-offline-raw-capture-empty-ownership-fix.md)
 was explicitly approved after f8657855 and completed within five NEW hosts:
 precise PS7 RED, targeted GREEN on PS7/PS5.1 and full29/29 on both, no timeout

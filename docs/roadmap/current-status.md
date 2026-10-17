@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-17
 
+## Latest — M1 complete-event expectations added and verified
+
+[M1 evidence and limits](2026-10-17-offline-raw-capture-event-oracle.md):
+user approved tests-only follow-up after81afee10. Eight independent literal
+event sequences now cover the four statuses and refusal mappings; negative
+snapshots detect order/count/field/time/channel/exit/byte-info alterations.
+Four NEW hosts all matched: targeted4 labels per engine, full30/30 on PS7 and
+PS5.1 (15402/115437ms), no stderr/timeout/retry/elevation. Product FB48642D and
+all12 dependencies unchanged; test2D44F9C9. M1 addressed by parent bounded
+evidence, not an additional independent review or new module acceptance.
+Original10/reviewer1, I1-fix5 and M1-test4 are all spent. Old records retained;
+no extra tests are authorized by their existence. Recover from the development
+branch, not main. Next decision is limited offline acceptance, not real
+collection/watchdog, Stage B/security/full C12/release/main clearance.
+Earlier entries below retain historical deferred/blocked states.
+
 ## Latest — bounded I1 repair verified; M1 still deferred
 
 [Repair evidence and scope](2026-10-17-offline-raw-capture-empty-ownership-fix.md):

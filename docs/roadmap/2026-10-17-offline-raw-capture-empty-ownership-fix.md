@@ -1,5 +1,10 @@
 # Offline raw capture — bounded empty-array ownership repair
 
+Subsequent M1 status: a separately approved tests-only follow-up adds independent
+complete event expectations and passes four new hosts. See the
+[M1 evidence](2026-10-17-offline-raw-capture-event-oracle.md). Deferred-M1 wording
+below describes this earlier I1 checkpoint; its receipts/budget are unchanged.
+
 ## Authority and scope
 
 After checkpoint f8657855722927630d17a0b23c04f8e8767dc66a, the user explicitly

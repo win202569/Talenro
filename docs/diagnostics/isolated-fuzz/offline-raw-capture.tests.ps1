@@ -1,9 +1,10 @@
-param([ValidateSet('all','ownership-mutation','stop-mutation','empty-ownership')][string]$Group='all')
+param([ValidateSet('all','ownership-mutation','stop-mutation','empty-ownership','event-oracle')][string]$Group='all')
 $ErrorActionPreference='Stop'
 # Tests name the breaks: wrong byte count/EOF, bad stop mapping, coercion, and shared mutable inputs.
 function Assert-Raw([bool]$Value,[string]$Label){if(-not $Value){throw ('ASSERTION FAILED: '+$Label)}}
 function Need([bool]$Value){Assert-Raw $Value $script:rawCase}
 function Raw-Case([string]$Name,[scriptblock]$Body){
+    if($Group -eq 'event-oracle' -and $Name -cnotin @('ApiRequired','DerivedConsistency','EventOracleRejectsAlterations','Complete')){return}
     if($Group -eq 'empty-ownership' -and $Name -cnotin @('ApiRequired','EmptyOwnership','Complete')){return}
     if($Group -eq 'ownership-mutation' -and $Name -cnotin @('ApiRequired','CopyOwnership','Complete')){return}
     if($Group -eq 'stop-mutation' -and $Name -cnotin @('ApiRequired','DeadlineEdges','Complete')){return}
@@ -33,6 +34,83 @@ function Raw-Bad($Scenario,[string]$Reason){$r=New-OfflineRawCaptureRecord $Scen
 function Raw-Hash([byte[]]$Bytes){$s=[Security.Cryptography.SHA256]::Create();try{return [BitConverter]::ToString($s.ComputeHash($Bytes)).Replace('-','')}finally{$s.Dispose()}}
 function Raw-Hex([string]$Text){$b=New-Object byte[] ($Text.Length/2);for($i=0;$i -lt $b.Length;$i++){$b[$i]=[Convert]::ToByte($Text.Substring(2*$i,2),16)};return ,$b}
 function Raw-Shadow($Value,[string]$Name,$Data){$Value=Add-Member -InputObject $Value -MemberType NoteProperty -Name $Name -Value $Data -Force -PassThru;Need ($Value.PSObject.Properties[$Name].MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty);return ,$Value}
+# Independent stored-event oracle: exact shape, ordered arrays and ordinal text.
+# Breaks caught: wrong channel/time/kind/exit/bytes, omitted or extra events/fields,
+# and an invalid read mapped to a real read rather than the prescribed marker.
+function Test-RawOracleValue($Actual,$Expected,[int]$Depth=0){
+    if($Depth -gt 4){return $false}
+    if($null -eq $Expected){return ($null -eq $Actual)}
+    if($Expected -is [array]){
+        if($Actual -isnot [array] -or $Actual.Rank -ne 1 -or $Actual.Length -ne $Expected.Length){return $false}
+        for($i=0;$i -lt $Expected.Length;$i++){if(-not (Test-RawOracleValue $Actual[$i] $Expected[$i] ($Depth+1))){return $false}}
+        return $true
+    }
+    if($Expected -is [pscustomobject]){
+        if($Actual -isnot [pscustomobject] -or @($Actual.PSObject.Properties).Count -ne @($Expected.PSObject.Properties).Count){return $false}
+        foreach($p in $Expected.PSObject.Properties){
+            $matches=@($Actual.PSObject.Properties|Where-Object {[string]::Equals($_.Name,$p.Name,[StringComparison]::Ordinal)})
+            if($matches.Count -ne 1 -or $matches[0].MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){return $false}
+            if(-not (Test-RawOracleValue $matches[0].Value $p.Value ($Depth+1))){return $false}
+        }
+        return $true
+    }
+    if($Expected -is [string]){return ($Actual -is [string] -and [string]::Equals($Actual,$Expected,[StringComparison]::Ordinal))}
+    if($Expected -is [int] -or $Expected -is [long]){return (($Actual -is [int] -or $Actual -is [long]) -and $Actual -eq $Expected)}
+    return $false
+}
+function Copy-RawOracleEvents([object[]]$Events){
+    $copy=New-Object 'System.Collections.Generic.List[object]'
+    foreach($event in $Events){
+        $fields=[ordered]@{}
+        foreach($p in $event.PSObject.Properties){
+            if($p.Name -ceq 'Data'){$fields[$p.Name]=[pscustomobject]@{Base64=$p.Value.Base64;ByteLength=$p.Value.ByteLength;SHA256=$p.Value.SHA256}}
+            else{$fields[$p.Name]=$p.Value}
+        }
+        $copy.Add([pscustomobject]$fields)
+    }
+    return ,([object[]]$copy.ToArray().Clone())
+}
+function Get-RawOracleFixtures {
+    # Expected snapshots are literal, not constructed by any product helper.
+    $one=[pscustomobject]@{Base64='AQ==';ByteLength=1;SHA256='4BF5122F344554C53BDE2EBB8CD2B7E3D1600AD631C385A5D7CCE23C7785459A'}
+    $two=[pscustomobject]@{Base64='Ag==';ByteLength=1;SHA256='DBC1B4C900FFE48D575B5DA5C638040125F65DB0FE3E24494B76EA986457D986'}
+    $zero=[pscustomobject]@{Base64='';ByteLength=0;SHA256='E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855'}
+    [pscustomobject]@{Name='complete';Scenario=(New-RawTestScenario ([byte[]]@(1)) ([byte[]]@(2)) @((New-RawReadAction stdout 1 1),(New-RawReadAction stderr 1 2),(New-RawReadAction stdout 1 3),(New-RawReadAction stderr 1 4),(Raw-Exit 0 5)));Status='complete';Reason='complete';Index=$null;Intent='none';Events=[object[]]@(
+        [pscustomobject]@{Kind='chunk';ElapsedMs=1;Channel='stdout';Data=$one}
+        [pscustomobject]@{Kind='chunk';ElapsedMs=2;Channel='stderr';Data=$two}
+        [pscustomobject]@{Kind='eof';ElapsedMs=3;Channel='stdout'}
+        [pscustomobject]@{Kind='eof';ElapsedMs=4;Channel='stderr'}
+        [pscustomobject]@{Kind='exit';ElapsedMs=5;ExitCode=0}
+    )}
+    [pscustomobject]@{Name='incomplete';Scenario=(New-RawTestScenario ([byte[]]@(1,2)) ([byte[]]@(2)) @((New-RawReadAction stdout 1 1),(Raw-Tick 2),(Raw-Exit 7 3)));Status='incomplete';Reason='incomplete';Index=$null;Intent='none';Events=[object[]]@(
+        [pscustomobject]@{Kind='chunk';ElapsedMs=1;Channel='stdout';Data=$one}
+        [pscustomobject]@{Kind='tick';ElapsedMs=2}
+        [pscustomobject]@{Kind='exit';ElapsedMs=3;ExitCode=7}
+    )}
+    [pscustomobject]@{Name='deadline-read';Scenario=(New-RawTestScenario ([byte[]]@(1)) ([byte[]]@(2)) @((New-RawReadAction stdout 1 1),(New-RawReadAction stderr 1 120000),(Raw-Exit 0 120001)));Status='timed-out';Reason='deadline-reached';Index=1;Intent='would-request-owned-stop';Events=[object[]]@(
+        [pscustomobject]@{Kind='chunk';ElapsedMs=1;Channel='stdout';Data=$one}
+        [pscustomobject]@{Kind='tick';ElapsedMs=120000}
+    )}
+    [pscustomobject]@{Name='backward-read';Scenario=(New-RawTestScenario ([byte[]]@(1)) ([byte[]]@(2)) @((New-RawReadAction stdout 1 2),(New-RawReadAction stderr 1 1)));Status='refused';Reason='time-went-backward';Index=1;Intent='would-refuse-and-stop-if-owned';Events=[object[]]@(
+        [pscustomobject]@{Kind='chunk';ElapsedMs=2;Channel='stdout';Data=$one}
+        [pscustomobject]@{Kind='tick';ElapsedMs=1}
+    )}
+    [pscustomobject]@{Name='after-eof-read';Scenario=(New-RawTestScenario -Actions @((New-RawReadAction stdout 1 1),(New-RawReadAction stdout 1 2),(Raw-Exit 0 3)));Status='refused';Reason='chunk-after-eof';Index=1;Intent='would-refuse-and-stop-if-owned';Events=[object[]]@(
+        [pscustomobject]@{Kind='eof';ElapsedMs=1;Channel='stdout'}
+        [pscustomobject]@{Kind='chunk';ElapsedMs=2;Channel='stdout';Data=$zero}
+    )}
+    [pscustomobject]@{Name='duplicate-exit';Scenario=(New-RawTestScenario -Actions @((Raw-Exit 0 1),(Raw-Exit 7 2),(Raw-Tick 3)));Status='refused';Reason='duplicate-exit';Index=1;Intent='would-refuse-and-stop-if-owned';Events=[object[]]@(
+        [pscustomobject]@{Kind='exit';ElapsedMs=1;ExitCode=0}
+        [pscustomobject]@{Kind='exit';ElapsedMs=2;ExitCode=7}
+    )}
+    [pscustomobject]@{Name='trailing-read';Scenario=(New-RawTestScenario -Actions @((New-RawReadAction stdout 1 1),(New-RawReadAction stderr 1 2),(Raw-Exit 0 3),(New-RawReadAction stdout 1 4),(Raw-Tick 5)));Status='refused';Reason='trailing-after-complete';Index=3;Intent='would-refuse-and-stop-if-owned';Events=[object[]]@(
+        [pscustomobject]@{Kind='eof';ElapsedMs=1;Channel='stdout'}
+        [pscustomobject]@{Kind='eof';ElapsedMs=2;Channel='stderr'}
+        [pscustomobject]@{Kind='exit';ElapsedMs=3;ExitCode=0}
+        [pscustomobject]@{Kind='tick';ElapsedMs=4}
+    )}
+    [pscustomobject]@{Name='empty';Scenario=(New-RawTestScenario);Status='incomplete';Reason='incomplete';Index=$null;Intent='none';Events=[object[]]@()}
+}
 try{
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent();$principal=New-Object Security.Principal.WindowsPrincipal($identity)
     Write-Output ('CONTEXT: '+$identity.Name+' admin='+$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
@@ -157,11 +235,51 @@ try{
     }
     Raw-Case RefusedClassification {$r=Raw-Good (New-RawTestScenario -Actions @((New-RawReadAction stdout),(New-RawReadAction stderr),(Raw-Exit (-1))));Need ($r.Record.Lifecycle.Status -ceq 'complete' -and $r.Record.Lifecycle.Package.Classification -ceq 'refused' -and -not $r.Acceptance)}
     Raw-Case DerivedConsistency {
-        foreach($kind in @('complete','incomplete','timed-out','refused')){
-            $a=switch($kind){complete{@((New-RawReadAction stdout),(New-RawReadAction stderr),(Raw-Exit))} incomplete{@((Raw-Tick))} timed-out{@((Raw-Tick 120000))} refused{@((Raw-Exit),(Raw-Exit))}}
-            $r=Raw-Good (New-RawTestScenario -Actions ([object[]]$a));Need ($r.Record.Lifecycle.Status -ceq $kind)
-            if($kind -eq 'timed-out'){Need ($r.Record.StopIntent -ceq 'would-request-owned-stop' -and $r.FailureActionIndex -eq 0)}
-            if($kind -eq 'refused'){Need ($r.Record.StopIntent -ceq 'would-refuse-and-stop-if-owned' -and $r.FailureActionIndex -eq 1)}
+        foreach($fixture in @(Get-RawOracleFixtures)){
+            $r=New-OfflineRawCaptureRecord $fixture.Scenario
+            Raw-Shape $r;Need $r.Created
+            Need (Test-RawOracleValue $r.Record.Events $fixture.Events)
+            Assert-RawRecord $r
+            Need ($r.Record.Lifecycle.Status -ceq $fixture.Status -and $r.Record.Lifecycle.Reason -ceq $fixture.Reason -and $r.Record.StopIntent -ceq $fixture.Intent)
+            Need ($r.FailureActionIndex -eq $fixture.Index -and $r.Record.Lifecycle.FailureEventIndex -eq $fixture.Index)
+        }
+    }
+    Raw-Case EventOracleRejectsAlterations {
+        foreach($fixture in @(Get-RawOracleFixtures)){
+            $r=Raw-Good $fixture.Scenario;$actual=$r.Record.Events
+            Need (Test-RawOracleValue $actual $fixture.Events)
+            $extra=[object[]]@($actual)+@([pscustomobject]@{Kind='tick';ElapsedMs=9})
+            Need (-not (Test-RawOracleValue $extra $fixture.Events))
+            if($actual.Length -eq 0){Need (-not (Test-RawOracleValue $null $fixture.Events));continue}
+            $short=[object[]]@();if($actual.Length -gt 1){$short=[object[]]$actual[0..($actual.Length-2)]}
+            Need (-not (Test-RawOracleValue $short $fixture.Events))
+            if($actual.Length -gt 1){
+                $bad=Copy-RawOracleEvents $actual;$swap=$bad[0];$bad[0]=$bad[1];$bad[1]=$swap
+                Need (-not (Test-RawOracleValue $bad $fixture.Events))
+            }
+            for($i=0;$i -lt $actual.Length;$i++){
+                foreach($change in @('kind','time','missing','extra')){
+                    $bad=Copy-RawOracleEvents $actual
+                    switch($change){kind{$bad[$i].Kind='wrong'} time{$bad[$i].ElapsedMs++} missing{$bad[$i].PSObject.Properties.Remove('Kind')} extra{$bad[$i]|Add-Member NoteProperty Extra 1}}
+                    Need (-not (Test-RawOracleValue $bad $fixture.Events))
+                }
+                if($null -ne $actual[$i].PSObject.Properties['Channel']){
+                    $bad=Copy-RawOracleEvents $actual;$bad[$i].Channel=$bad[$i].Channel.ToUpperInvariant()
+                    Need (-not (Test-RawOracleValue $bad $fixture.Events))
+                }
+                if($null -ne $actual[$i].PSObject.Properties['ExitCode']){
+                    $bad=Copy-RawOracleEvents $actual;$bad[$i].ExitCode++
+                    Need (-not (Test-RawOracleValue $bad $fixture.Events))
+                }
+                if($null -ne $actual[$i].PSObject.Properties['Data']){
+                    foreach($change in @('bytes','length','hash','missing','extra')){
+                        $bad=Copy-RawOracleEvents $actual
+                        switch($change){bytes{$bad[$i].Data.Base64='Aw=='} length{$bad[$i].Data.ByteLength++} hash{$bad[$i].Data.SHA256='0'*64} missing{$bad[$i].Data.PSObject.Properties.Remove('SHA256')} extra{$bad[$i].Data|Add-Member NoteProperty Extra 1}}
+                        Need (-not (Test-RawOracleValue $bad $fixture.Events))
+                    }
+                }
+            }
+            Need (Test-RawOracleValue $actual $fixture.Events)
         }
     }
     Raw-Case EmptyOwnership {
