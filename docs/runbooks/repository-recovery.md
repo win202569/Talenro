@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:offline persistence design proposed in current status,not implemented.
+Fresh bounded binary evidence plus last-written length/hash completion marker;
+re-read/reconstruct/verify,never overwrite/auto-delete/retry. Owned diagnostic
+fixture files only;strict paths/link checks,no live collector or origin trust.
+Proposed4 synthetic/local-file RED/GREEN calls need approval;old budgets frozen.
+No durability/hostile-admin guarantee or new execution authority. Stage B and
+safety disposition remain unresolved;real raw payloads must not be committed.
+
 Latest:[offline evidence objects verified](../roadmap/2026-10-17-offline-output-evidence-package.md).
 Recover standalone helper/tests plus unchanged classifier.49 per host passed,
 package4/4 exhausted;classifier8/8 and ledger70/70 are separate/frozen. Readonly

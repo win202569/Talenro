@@ -1,5 +1,26 @@
 # Project status — updated 2026-10-17
 
+## Latest — bounded offline persistence design proposed;not implemented
+
+Recommended next step extends evidence objects with output-evidence-store.ps1
+and .tests.ps1. Fixture/file I/O only,no process collector. Under a fixed owned
+project diagnostics scope,use fresh destinations/CreateNew,no overwrite/reuse;
+reject escapes,UNC/ADS,reparse paths and linked input artifacts. Write a bounded
+primitive binary payload,close/re-read it,and publish completion marker last.
+Payload:magic8,integer exit/encoding enum,bounded strict-UTF8 origin length/data,
+then bounded lengths/raw bytes for both streams,exact EOF. Each stream<=1MiB,
+origin<=1024 characters/4096 bytes,payload<=3MiB. No generic JSON deserialization.
+Marker:magic8,payload length(Int64),SHA256 raw32 bytes,exact48-byte EOF. Reader
+requires both files,no stopped state,held read bindings,matching marker/hash/
+length,strict bounded parsing,and reconstruction/verification with existing
+package/classifier. Always no origin/runtime/acceptance authority. Self-contained
+hashes aren't authenticity. Failure returns no success,preserves partial files
+and best-effort stopped state;no delete/retry or power-loss durability claim.
+Proposed4 fresh synthetic-data/local-fixture test hosts:PS7/5.1 RED then GREEN,
+120s each,sequential/no retry. No existing-suite replay,real host capture or
+probe identity. Concrete design/new4 allowance await approval;package4/4,
+classifier8/8 and ledger70/70 remain frozen. No implementation/test this turn.
+
 ## Latest — offline evidence objects implemented;49 synthetic checks per host
 
 [Contract/evidence/review](2026-10-17-offline-output-evidence-package.md):lossless
