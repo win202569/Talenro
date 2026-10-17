@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[full synthetic record archive design](../superpowers/specs/2026-10-17-synthetic-capture-store-design.md).
+Written proposal only,awaiting user review. New separate format/API/root with
+full20-field record recovery,8MiB bounded payload,52-byte completion marker and
+independent lifecycle/integrity/authority semantics;old package storage unchanged.
+No new codec/module/tests implemented or executed. Do not try proposed APIs or
+formats as available features. Next gate:approve written design,then write/review
+implementation plan and finite execution packet. Existing source/tests/checkpoint
+remain recoverable from dev branch;ignored raw files/caches remain local.
+No real collection/security/Stage B/main authority or reset of spent/frozen slots.
+
 Latest:[store writer boundary tests](../roadmap/2026-10-17-store-writer-boundary.md).
 Recover expanded store suite81 checks (old54+26 boundary cases+completion).
 BothPS7/PS5 complete suites passed,exit0/empty stderr,10782/13905ms;new2/2

@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — full synthetic record archive written design awaits review
+
+[Written design](../superpowers/specs/2026-10-17-synthetic-capture-store-design.md)
+created after user approved independent versioned full-record storage direction.
+Design only:separate TLRSYN01/TLRSYC01,20-field record/ordered byte trace and
+stored derived facts,8MiB cap,52-byte completion marker,strict reader/new-only
+publication. Old store unchanged. Archive completion is not lifecycle success;
+consistent incomplete/timed-out/refused records allowed,invalid clock-order
+records still refused. No product/test changes or test hosts. Await written-spec
+approval before implementation planning;no implementation/finite allowance yet.
+All prior/frozen budgets and live/security/Stage B/I2/I3/full C12/main gates retained.
+
 ## Latest — store writer boundary coverage81PASS per host;production unchanged
 
 [Test-only writer coverage](2026-10-17-store-writer-boundary.md):approved2 NEW
