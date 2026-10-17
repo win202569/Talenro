@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ledger stopped Task1 implementation](../roadmap/2026-10-17-ordinary-ledger-implementation.md).
+Plan/budget/Native approved after89cb1ad0;only3/30 suite calls used. Both missing-
+implementation REDs expected;first GREEN7 failed Cap32 due fake33-ID/32-capacity
+envelope mismatch. No fix/retry,Task1 incomplete,Tasks2–4 and final review pending.
+Portable unfinished acquisition/tests are saved;existing native runner/callers
+unchanged. Resume only after bounded fixture-correction and budget31 decision;
+do not automatically rerun or resume metadata. Raw logs remain ignored and are
+not restored by cloning;this report carries counts/failure and recovery state.
+Earlier latest/pending entries below are historical.
+
 Latest:[ordinary ledger proposed implementation plan](../superpowers/plans/2026-10-17-ordinary-member-identity-ledger.md).
 Written spec approved aftera3abff33;plan/budget/execution method still pending.
 Four tasks propose at most30 fake/static suite invocations on PowerShell7/5.1,

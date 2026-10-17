@@ -10,8 +10,9 @@
 
 **Spec:** [Approved written design](../specs/2026-10-17-ordinary-member-identity-ledger-design.md), approved after a3abff3305248df151d0357a75d0aba7d5923b7c.
 
-Status: proposed plan, not yet approved; execution method not selected for this plan.
-No source/tests/workload executed during plan preparation.
+Status: user approved plan/30-invocation budget and selected Native/inline after
+89cb1ad0. Task1 stopped on unexpected Cap32 test failure after3 invocations;
+Tasks2–4 pending. See the execution report. Planning itself ran no tests/workload.
 
 ## Global Constraints
 

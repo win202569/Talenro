@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ledger Task1 stopped on malformed fake list;3/30 calls used
+
+User approved plan/budget and Native/inline after89cb1ad0. The
+[unfinished execution report](2026-10-17-ordinary-ledger-implementation.md)
+records expected RED on both hosts,then PowerShell7 GREEN attempt failed Cap32
+after5 PASS lines. Fake returned33 IDs but Capacity32;production rejects that
+malformed list before the intended admission-cap test. No correction or rerun.
+Task1 incomplete,Tasks2–4/final review unstarted;no native target/Go workload.
+Next:approve fixture-only envelope correction and budget30→31 (one added call),
+then replacement GREEN7/first GREEN5 and remaining plan. Further unexpected
+failure stops again. No code acceptance,ordinary rollout or metadata continuation.
+All earlier next-step statements below are historical.
+
 ## Task11 — ledger spec approved;implementation plan awaiting approval
 
 User approved the written spec aftera3abff33. The
