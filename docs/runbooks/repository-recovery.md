@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[readonly reader receipt assessment](../roadmap/2026-10-17-synthetic-capture-reader-receipt-assessment.md).
+Saved PS5 stderr contains two Completed progress objects; both engines' full
+45-label assertion evidence is confirmed. Original strict gate still fails
+for PS5 and is not rewritten. All five raw receipt hashes unchanged; no new
+child or source/test/runner changes. Git preserves the derived finding, not
+ignored raw files. Do not rerun readers just for clean stderr. Next proposed
+format-only verification needs its own scope and prior stream policy; frozen
+slots, reviews and all acceptance/main/security boundaries remain unchanged.
+
 Latest:[administrator reader-paths packet](../roadmap/2026-10-17-synthetic-capture-reader-admin.md).
 Two approved children spent. Both child exit0/45 orderedPASS;PS7 receipt passes,
 PS5 receipt fails strict empty-stderr gate on two serialized progress records

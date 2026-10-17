@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — readonly reader receipt assessment completed; original gate retained
+
+[Separate assessment](2026-10-17-synthetic-capture-reader-receipt-assessment.md)
+confirms saved PS5 stderr has exactly two Completed progress objects, not error
+stream objects. Both engines have all 45 ordered PASS labels and child exit0.
+Parent failure is the strict empty-stderr gate; original ExpectedResult=false
+and packet unaccepted disposition remain unchanged. Five receipt hashes match
+before/after; no new child, parser/runner change, rerun or product/test edit.
+Do not rerun reader tests merely for empty stderr. Next proposed behavioral
+work is a separately scoped format-only packet with stream policy set before
+launch. Old frozen slots, pending regressions/reviews and all main/security/
+acceptance gates remain. Earlier assessment proposal below is now completed.
+
 ## Latest — new administrator reader packet stopped on PS5 progress stderr
 
 [Reader packet](2026-10-17-synthetic-capture-reader-admin.md):NEW2/2 children
