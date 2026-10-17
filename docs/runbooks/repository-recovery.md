@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline acceptance addendum APPROVED AS SCOPE](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md).
+User approved the written addendum and section5 limits after7d453b66. Earlier
+draft notices below describe history. File-reparse evidence is still required;
+scope approval is not launch permission or final acceptance. No code/tests/raw
+records changed. Proposed next packet has not been approved/implemented; do
+not create links, elevate tests or dispatch a reviewer merely after cloning.
+Old failed/frozen records and all main/security/full C12 boundaries remain.
+
 Latest:[offline-only acceptance addendum DRAFT](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md).
 It is not approved/effective. Read its evidence map, proposed procedural
 replacement, explicit proposed limit-acceptance terms and retained file-reparse

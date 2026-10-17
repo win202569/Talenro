@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — written offline acceptance scope approved; reparse evidence still blocks
+
+User explicitly approved the [addendum and section5 limits](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md)
+after7d453b66. New evidence-adoption route is effective as acceptance scope,
+NOT an accepted result. Historical failures/frozen slots/old reviews unchanged.
+No new test/reviewer/repair authority from this approval. File-level payload/
+marker reparse refusal and a normal control remain required under section6.
+Next proposed bounded packet: separate real-file fixtures, two admin-engine
+runs plus one readonly review only after both succeed; not yet approved or
+implemented. No code/test/receipt changes, no launches. Final limited verdict
+and main/security/Stage B/I2/I3/full C12 still require their own authority.
+
 ## Latest — offline acceptance addendum drafted, not approved or effective
 
 [Written draft](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md)
