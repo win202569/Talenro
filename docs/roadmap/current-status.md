@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — reverse-order PS5 B/A diagnostics both complete; original gate remains
+
+After334c2aa2 approval,[new B-then-A pair](2026-10-18-p1-ps5-reverse-pair.md)
+used two ordinary fresh hosts,each cap30000ms: B13280ms/CPU14828.125ms,
+A13425ms/CPU14890.625ms,both exit0,no timeout,empty stderr. Each245 lines,
+64 PASS/76 closed pairs/nine snapshots;262 pins and raw-derived timers held.
+At1536 validation B2635.680/A2779.913ms;historical A slowdown not reproduced,
+not unique cause,product fix or original-entry PASS. Unlaunched controller draft
+retained;v2 guard correction consumed no extra host. New2/2 spent,old budgets/
+frozen slots/review ineligibility and PS5/I1/P1 blockers unchanged. No code edits.
+Next recommend separately approved unchanged-original PS5 full-entry run,
+existing30s/safety/output checks,no automatic execution or frozen-slot reuse.
+
 ## Latest — read-only matched-count audit leaves instrumentation/conditions confounded
 
 After2e565651,[PS5 A/B source/evidence audit](2026-10-18-p1-ps5-instrumentation-readonly-comparison.md)

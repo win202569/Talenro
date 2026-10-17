@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest paired diagnostic:[reverse-order PS5 B/A](../roadmap/2026-10-18-p1-ps5-reverse-pair.md).
+After334c2aa2 approval,new2/2 spent: B13280ms,A13425ms,both ordinary PS5,
+exit0,no timeout,empty stderr,each64 PASS/76 pairs/nine snapshots;262 pins held.
+Historical A slowdown not reproduced,not root-cause proof or original acceptance.
+Unlaunched draft retained;corrected v2 controller launched only approved B/A.
+Original product/tests unchanged;PS5/I1/P1 blockers,old frozen budgets and review
+ineligibility persist. Recover committed report/probes,not ignored raw/controllers
+or runtime caches. Next original-entry30s verification requires a separately
+approved fresh allowance;no automatic retry,limit increase or main acceptance.
+
 Latest read-only comparison:[instrumentation vs conditions](../roadmap/2026-10-18-p1-ps5-instrumentation-readonly-comparison.md).
 After2e565651,zero tests/source edits. Six shared scripts/engine/launch setup
 match;copied product only adds region instrumentation. Matched1536 CPU-window
