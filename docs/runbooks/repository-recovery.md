@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[native prerequisites blocked](../roadmap/2026-10-17-ordinary-ledger-native-prerequisites.md).
+The inspected inbox PowerShell has two hardlinks;current planner requires one.
+No helper/native/test execution or identity consumption. Do not modify system
+files,relax the guard or run Stage B. Current Defender status is not historical
+security clearance. Recheck machine-specific facts after recovery;next decision
+is a separate file-policy design,not runtime approval. Stage A36/36 unchanged.
+
 Latest:[Stage A covering repair verified](../roadmap/2026-10-17-ordinary-ledger-native-probe-repair.md).
 Tracked helper,pure PS fixture,tests and report support new-machine recovery.
 Stage A36/36 used;47 checks per host/final350 passed. Prior review findings have

@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — Stage B prerequisites blocked by inbox executable hardlinks
+
+[Read-only prerequisite evidence](2026-10-17-ordinary-ledger-native-prerequisites.md)
+found two hardlinks for the fixed system PowerShell executable;the planner
+requires exactly one. No helper import,probe,test or workload occurred.
+Defender enabled/running status was observed,but a capped event-metadata query
+does not clear historical security gates. Stage A36/36 remains consumed.
+Stage B is unapproved and blocked;do not relax the guard or modify system files.
+Next:separate design decision on this file-policy incompatibility and security
+gate resolution,not native execution. Earlier next-step states below historical.
+
 ## Latest — Stage A review fixes fake-verified;Stage B still unapproved
 
 Approved covering repair completed18/18 additional calls,Stage A36/36 total.
