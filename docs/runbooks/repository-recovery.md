@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[review repair stopped3/26](../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
+Partial A changes are saved but not verified;B/C unstarted and all findings open.
+Two producer assertions passed, then a fake receipt's missing original arrays
+failed the unchanged collection check. Do not run ordinary matrix/leaf workflows.
+Resume at the bounded fixture-only correction/cap27 decision, not a test replay.
+Tracked report records results/hashes and remaining work without ignored logs.
+Earlier latest statements below are historical.
+
 Latest:[ordinary ledger final review,fixes required](../roadmap/2026-10-17-ordinary-ledger-final-review.md).
 Six accepted blocking findings remain,including broken existing ordinary matrix/
 leaf receipt paths from null new-mode fields. Do not execute those workflows.

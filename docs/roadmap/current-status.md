@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — review repair stopped3/26, unfinished checkpoint
+
+The approved six-finding repair pass began, but A GREEN7 stopped after two
+producer checks on an incomplete fake receipt (two original arrays left null).
+No correction or rerun after stop. Findings remain open;B/C unstarted.
+See [repair evidence and next decision](2026-10-17-ordinary-ledger-review-repair.md).
+Proposed fixture-only correction/cap27 needs approval. Do not run ordinary
+matrix/leaf workflows;no native/metadata acceptance or main merge.
+Earlier current/proposed states below are historical.
+
 ## Task11 — independent review blocks ledger completion;6 fixes pending
 
 The [independent final review](2026-10-17-ordinary-ledger-final-review.md) found

@@ -38,11 +38,7 @@ function Invoke-MatrixRecordedProcess([string]$Executable,[string[]]$Arguments,[
     $stdout=Join-Path $receipt 'stdout.txt';$stderr=Join-Path $receipt 'stderr.txt'
     try{
         $native=Invoke-MatrixNative $exe $Arguments $Environment $cwd $stdout $stderr $LimitSeconds
-        $fields=@{};foreach($property in $native.PSObject.Properties){
-            # A default-null typed field is not stage metadata on legacy runs.
-            if($property.Name -ceq 'CompileStageTrigger' -and $null -eq $property.Value){continue}
-            $fields[$property.Name]=$property.Value
-        }
+        $fields=Get-IsolatedNativeReceiptFields $native
         foreach($pair in @(@('Executable',$exe),@('Arguments',$Arguments),@('Environment',$Environment),@('WorkingDirectory',$cwd),@('StdoutPath',$stdout),@('StderrPath',$stderr))){$fields[$pair[0]]=$pair[1]}
         $result=[pscustomobject]$fields
         $result|ConvertTo-Json -Depth 9|Set-Content -LiteralPath (Join-Path $receipt 'receipt.json') -ErrorAction Stop

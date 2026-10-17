@@ -3,6 +3,26 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'provenance.ps1')
 if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger-session.cs')) }
 . (Join-Path $PSScriptRoot 'ordinary-ledger-receipt.ps1')
+function Get-IsolatedNativeReceiptFields($Native) {
+    $new=$Native.ShutdownSchema -eq 4 -or $Native.ShutdownStatePolicy -ceq 'ordinary-owned-ledger-final-exit-v1'
+    foreach($name in @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity')){$p=$Native.PSObject.Properties[$name];if($null -ne $p -and $null -ne $p.Value){$new=$true}}
+    $assigned=$Native.PSObject.Properties['RootAssigned'];if($null -ne $assigned -and $assigned.Value){$new=$true}
+    $fields=@{}
+    foreach($property in $Native.PSObject.Properties){
+        if($property.Name -ceq 'CompileStageTrigger' -and $null -eq $property.Value){continue}
+        if(-not $new -and $property.Name -cin @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity','RootAssigned')){continue}
+        $fields[$property.Name]=$property.Value
+    }
+    return $fields
+}
+function Get-OrdinaryLedgerSourceNames { @('ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1') }
+function Assert-OrdinaryLedgerSources([object[]]$Bindings) {
+    foreach($name in (Get-OrdinaryLedgerSourceNames)){
+        $rows=@($Bindings|Where-Object {$_.Path -ceq $name})
+        if($rows.Count -ne 1 -or $rows[0].SHA256 -isnot [string] -or $rows[0].SHA256 -cnotmatch '^[A-F0-9]{64}$'){throw 'Loaded ledger dependency missing/duplicate/hash invalid'}
+        if((Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name) -Algorithm SHA256 -ErrorAction Stop).Hash -cne $rows[0].SHA256){throw 'Loaded ledger dependency drift'}
+    }
+}
 function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stderr,[string]$exe,[string[]]$Arguments,[hashtable]$Environment) {
     $ledger=$native.PSObject.Properties['MemberIdentityLedger'];$ordinary=$null -ne $ledger -and $null -ne $ledger.Value
     $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}

@@ -55,7 +55,7 @@ Write-Stage 'release.json'
 Write-Stage 'parent-exit.json'
 '@
     $parent=$parent.Replace('__SHELL__',$shell.Replace("'","''")).Replace('__CHILD__',$encoded)
-    $binding=@(foreach($name in @('retained-child-observation.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')){
+    $binding=@(foreach($name in @('retained-child-observation.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')){
         $path=Get-IsolatedFullPath (Join-Path $PSScriptRoot $name)
         if([IsolatedFuzzFileInfo]::Links($path) -ne 1){throw 'Source link not independent'}
         [pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}
@@ -162,6 +162,7 @@ function Invoke-RetainedChildObservation([string]$RunRoot) {
     $readyToFinalize=$false
     try {
         Write-RetainedChildObservationJSON (Join-Path $plan.RunRoot 'plan.json') $plan
+        Assert-OrdinaryLedgerSources $plan.SourceBinding
         foreach($row in $plan.SourceBinding){if((Get-FileHash -LiteralPath (Get-IsolatedFullPath (Join-Path $PSScriptRoot $row.Path)) -Algorithm SHA256).Hash -cne $row.SHA256){throw 'Source drift before launch'}}
         if((Get-FileHash -LiteralPath (Get-IsolatedFullPath $plan.Executable) -Algorithm SHA256).Hash -cne $plan.ExecutableSHA256){throw 'Shell drift before launch'}
         $process=Join-Path $plan.RunRoot 'process';New-Item -ItemType Directory -Path $process -ErrorAction Stop|Out-Null

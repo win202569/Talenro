@@ -1,5 +1,9 @@
 # Ordinary ledger — independent readonly final review: fixes required
 
+Follow-up:[approved repair stopped3/26](2026-10-17-ordinary-ledger-review-repair.md).
+Partial A changes are not verified;all six findings remain open. Earlier
+no-repair statements below describe the original review checkpoint.
+
 Date:2026-10-17. Reviewed89cb1ad09bf831216c5999ddcb4409e4cea4d18d through
 36367122d5e7254238efc7f81baaf9ddcd77a5eb. One fresh-context independent reviewer,
 as authorized for Native/inline execution. No reviewer edits,tests,native calls,

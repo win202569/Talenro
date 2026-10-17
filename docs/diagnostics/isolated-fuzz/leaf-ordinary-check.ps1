@@ -29,7 +29,7 @@ function Get-LeafOrdinaryFixedPlan([string]$RunRoot,[string]$Toolchain,[string]$
     if(-not(Test-IsolatedWithin $reference $scope) -or (Test-IsolatedWithin $reference $root)){throw 'Owned non-output reference required'}
     $inputs=@($reference,(Join-Path (Split-Path -Parent $tool) 'copy-receipt.json'),(Join-Path $tool 'bin/go.exe'),(Join-Path $modules 'github.com/google/uuid@v1.6.0/go.mod'))
     $inputRows=@(foreach($file in $inputs){$safe=Get-EnvelopeSampleFile $file;[pscustomobject]@{Path=$safe;SHA256=(Get-FileHash -LiteralPath $safe -Algorithm SHA256).Hash}})
-    $sourceNames=@('leaf-ordinary-check.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')
+    $sourceNames=@('leaf-ordinary-check.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')
     $sources=@(foreach($name in $sourceNames){$file=Get-EnvelopeSampleFile (Join-Path $PSScriptRoot $name);[pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash}})
     $binary=Join-Path $root 'package.test.exe'
     $envMap=@{GOROOT=$tool;GOCACHE=(Join-Path $root 'go-cache');GOMODCACHE=$modules;GOTOOLCHAIN='local';GOENV='off';GOPROXY='off';GOSUMDB='off';GOAUTH='off';GOVCS='all:off';GO111MODULE='on';GOWORK='off';GOFLAGS='-mod=readonly';GOOS='windows';GOARCH='amd64';TEMP=(Join-Path $root 'tmp');TMP=(Join-Path $root 'tmp');GOTMPDIR=(Join-Path $root 'tmp');TALENRO_FUZZ_DIAG_MODE='';TALENRO_FUZZ_FIXTURE='';GODEBUG=''}
@@ -39,6 +39,7 @@ function Get-LeafOrdinaryCheckPlan([string]$RunRoot,[string]$Toolchain,[string]$
     Get-LeafOrdinaryFixedPlan $RunRoot $Toolchain $ReferenceReceipt $ModuleCache $true
 }
 function Assert-LeafOrdinaryCheckPlan([object]$Plan,[bool]$RequireNew){
+    Assert-OrdinaryLedgerSources $Plan.SourceBinding
     $fixed=Get-LeafOrdinaryFixedPlan $Plan.RunRoot $Plan.Toolchain $Plan.ReferenceReceipt $Plan.ModuleCache $RequireNew
     Assert-LeafOrdinaryEqual $Plan $fixed
 }
@@ -88,6 +89,7 @@ function Assert-LeafOrdinaryNativeShape($Value,[type]$Model){
     if($null -eq $Value){return}
     foreach($field in $Model.GetFields()){
         if($field.Name -ceq 'CompileStageTrigger'){continue}
+        if($Model -eq [IsolatedFuzzProcess+Result] -and $Value.ShutdownSchema -in @(2,3) -and $field.Name -cin @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity','RootAssigned')){continue}
         $property=$Value.PSObject.Properties[$field.Name]
         if($null -eq $property){throw ('Receipt field missing: '+$field.Name)}
         Assert-LeafOrdinaryNativeShape $property.Value $field.FieldType
@@ -187,11 +189,7 @@ function Invoke-LeafOrdinaryRecordedProcess([object]$Plan,[bool]$Build,[object]$
     $stdout=Join-Path $dir 'stdout.txt';$stderr=Join-Path $dir 'stderr.txt'
     try{
         $native=Invoke-MatrixNative $exe $arguments $Plan.Environment $cwd $stdout $stderr $limit
-        $fields=@{}
-        foreach($property in $native.PSObject.Properties){
-            if($property.Name -ceq 'CompileStageTrigger' -and $null -eq $property.Value){continue}
-            $fields[$property.Name]=$property.Value
-        }
+        $fields=Get-IsolatedNativeReceiptFields $native
         foreach($pair in @(@('Executable',$exe),@('Arguments',$arguments),@('Environment',$Plan.Environment),@('WorkingDirectory',$cwd),@('StdoutPath',$stdout),@('StderrPath',$stderr))){$fields[$pair[0]]=$pair[1]}
         $receipt=[pscustomobject]$fields
         Write-LeafOrdinaryJSON (Join-Path $dir 'receipt.json') $receipt

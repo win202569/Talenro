@@ -1,7 +1,7 @@
 . (Join-Path $PSScriptRoot 'leaf-stage-retained-compile.ps1')
 # Explicit diagnostic entry only; importing this file never launches a workload.
 function Get-LeafStageBuildOnlySourceNames {
-    @('leaf-stage-build-only.ps1','leaf-stage-retained-compile.ps1','leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')
+    @('leaf-stage-build-only.ps1','leaf-stage-retained-compile.ps1','leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')
 }
 function Get-LeafStageBuildOnlyPaths([string]$RunRoot,[string]$Toolchain,[string]$ReferenceReceipt,[string]$ModuleCache,[bool]$RequireNew) {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\','/')
@@ -32,9 +32,10 @@ function Get-LeafStageBuildOnlyPlan([string]$RunRoot,[string]$Toolchain,[string]
     [pscustomobject]@{Schema=1;RunRoot=$paths.RunRoot;Toolchain=$paths.Toolchain;ReferenceReceipt=$paths.ReferenceReceipt;Project=$paths.Project;Package='internal/nodecontrol/nodeleafbinding';Executable=$paths.Executable;ExecutableSHA256=(Get-FileHash -LiteralPath $paths.Executable -Algorithm SHA256 -ErrorAction Stop).Hash;SourceBinding=$binding;Trigger=$fixed.Trigger;Binary=$fixed.Binary;Environment=$fixed.Environment;BuildLimitSeconds=600;BuildArguments=$fixed.BuildArguments;DiagnosticPolicy='leaf-stage-build-only-v1';VetMode='off';VetEvidenceComplete=$false;RuntimeAttempted=$false;DiagnosticOnly=$true;Acceptance=$false;PackagePassed=$false;OriginalTestPassed=$false;NoRetry=$true;Coverage='sampled'}
 }
 function Assert-LeafStageBuildOnlySources([object]$Plan) {
+    Assert-OrdinaryLedgerSources $Plan.SourceBinding
     $expected=@(Get-LeafStageBuildOnlySourceNames)
     $rows=@($Plan.SourceBinding)
-    if($rows.Count -ne 16){throw 'Build-only source binding incomplete'}
+    if($rows.Count -ne 19){throw 'Build-only source binding incomplete'}
     $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
     foreach($row in $rows){
         if($row.Path -isnot [string] -or $row.Path -cnotin $expected -or -not $seen.Add($row.Path) -or $row.SHA256 -isnot [string] -or $row.SHA256 -cnotmatch '^[A-F0-9]{64}$'){throw 'Build-only source name/hash incomplete or duplicate'}

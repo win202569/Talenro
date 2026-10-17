@@ -12,7 +12,7 @@ function Get-LeafRetainedCompilePlan([string]$RunRoot,[string]$Toolchain,[string
     if(-not(Test-IsolatedWithin $reference $scope)){throw 'Owned reference required'}
     $go=Get-EnvelopeSampleFile (Join-Path $tool 'bin/go.exe')
     $null=Get-EnvelopeSampleFile (Join-Path $modules 'github.com/google/uuid@v1.6.0/go.mod')
-    $binding=@(foreach($name in @('leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')){
+    $binding=@(foreach($name in @('leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')){
         $path=Get-EnvelopeSampleFile (Join-Path $PSScriptRoot $name)
         [pscustomobject]@{Path=$name;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop).Hash}
     })
@@ -21,6 +21,7 @@ function Get-LeafRetainedCompilePlan([string]$RunRoot,[string]$Toolchain,[string
     [pscustomobject]@{Schema=1;RunRoot=$root;Toolchain=$tool;ReferenceReceipt=$reference;Project=$workspace;Package='internal/nodecontrol/nodeleafbinding';Executable=$go;ExecutableSHA256=(Get-FileHash -LiteralPath $go -Algorithm SHA256 -ErrorAction Stop).Hash;SourceBinding=$binding;Binary=$binary;Environment=$environment;BuildLimitSeconds=600;BuildArguments=@('test','-c','-x','-p=1','-count=1','-timeout=120s',('-o='+$binary),'talenro.local/platform/internal/nodecontrol/nodeleafbinding');RuntimeAttempted=$false;DiagnosticOnly=$true;Acceptance=$false;NoRetry=$true;Coverage='sampled'}
 }
 function Assert-LeafRetainedCompileSources($Plan) {
+    Assert-OrdinaryLedgerSources $Plan.SourceBinding
     foreach($row in $Plan.SourceBinding){if((Get-FileHash -LiteralPath (Get-EnvelopeSampleFile (Join-Path $PSScriptRoot $row.Path)) -Algorithm SHA256 -ErrorAction Stop).Hash -cne $row.SHA256){throw 'Leaf compile helper source drift'}}
     if((Get-FileHash -LiteralPath (Get-EnvelopeSampleFile $Plan.Executable) -Algorithm SHA256 -ErrorAction Stop).Hash -cne $Plan.ExecutableSHA256){throw 'Leaf compile executable drift'}
 }

@@ -37,6 +37,77 @@ remains open. See ../../roadmap/2026-10-17-ordinary-ledger-final-review.md.
 Proposed26-call fake-only repair round awaits approval/exact fixture scope;
 none of the original34 calls may be replayed or extended automatically.
 
+## Approved corrective pass after9c89149e
+
+User approved all six review fixes and26 additional fake/static calls,Native
+inline preserved. This refines that approved corrective pass,not a new feature,
+live allowance or acceptance rollout. Original34 records remain frozen. Use a
+separate repair-invocations.json index in the same ignored execution directory.
+
+H remains docs/diagnostics/isolated-fuzz. Three grouped suites (fresh PS7 and
+Windows PowerShell5.1 for each RED/GREEN),then seven original final suites on
+both hosts:12+14=26 calls. Each call120s;unexpected error/timeout stops,no retry.
+Run commands retain the original host flags with only the exact suite substituted.
+No second independent review;the existing six findings are resolved by covering
+RED→GREEN plus the approved final allowlist,not by a new review cycle.
+
+### Repair A: compatibility/source binding (findings1/6)
+
+- [ ] Create H/ordinary-ledger-compatibility.tests.ps1. Exercise actual writer
+  property-copy code using AST-extracted blocks/functions and typed fake Result,
+  without invoking wrappers/native workloads. Assert MatrixLegacyReceipt and
+  LeafLegacyReceipt omit null new fields and still pass the existing gate;
+  LegacyShape accepts schema3 without new fields;NewMarkersStillRefused rejects
+  real ledger data. Test required source-name/hash coverage and changed/missing
+  ledger-source rejection using Get-FileHash/current portable files only.
+- [ ] Run that suite RED once per host;expected legacy null-marker refusal.
+- [ ] In run.ps1 add Get-IsolatedNativeReceiptFields($Native):hashtable and
+  Get-OrdinaryLedgerSourceNames():string[] plus
+  Assert-OrdinaryLedgerSources([object[]]$Bindings):void. Filter only default-null
+  ordinary fields/false RootAssigned for genuine legacy mode;preserve real markers.
+  Use shared writer helper in matrix-check.ps1 and leaf-ordinary-check.ps1;skip
+  additive new fields only in legacy Result shape validation,not arbitrary types.
+  Add all3 dependencies to the5 active source producers:leaf-ordinary-check,
+  retained-child-observation,leaf-retained-compile,leaf-stage-retained-compile,
+  leaf-stage-build-only. Their source consumers require the3 named/hash-bound
+  rows before running. Update matching named/count fixtures mechanically (+3),
+  but do not execute those old controller suites outside the approved allowlist.
+- [ ] Run GREEN once per host;checkpoint explicit affected files and evidence.
+
+### Repair B: bounded shutdown/final timestamps (findings2/3)
+
+- [ ] Create H/ordinary-ledger-boundaries.tests.ps1. Fake session tests cover
+  initial query234/truncation/overrun refusal without retry and initial fact
+  recording;static native branch assertion prevents ordinary-mode calls to
+  ReadInitialJobQueries. Build valid root-only receipt and mutate final query
+  starts before shutdown independently;both must refuse. No native entry call.
+- [ ] Run RED once per host;expected stale root-only final query accepted.
+- [ ] Move initial shutdown list/accounting into deadline-aware ordinary session,
+  preserving raw initial facts for native result without calling the legacy
+  retrying helper. Keep legacy modes unchanged. Require final accounting/list
+  start>=ShutdownStartTimestamp in the pure evaluator regardless of entry count.
+- [ ] Run GREEN once per host;checkpoint exact code/test/report files.
+
+### Repair C: explicit mode isolation (findings4/5)
+
+- [ ] Create H/ordinary-ledger-mode-isolation.tests.ps1. New policy-only marker
+  under absent/schema2/schema3 must refuse at the gate;genuine legacy must pass.
+  Inject DiagnosticShutdown rows in each old observation container of a valid
+  schema4 envelope;pure evaluation must refuse. Empty containers remain valid.
+- [ ] Run RED once per host;expected policy-only receipt reaches legacy return.
+- [ ] Reject the new policy marker before schema dispatch in run.ps1. In the
+  schema4 evaluator require legacy observation containers empty when present,
+  while retaining all existing flag/object contamination checks.
+- [ ] Run GREEN once per host;then original7-suite final allowlist once per host.
+  Record all26 outcomes and whether every finding's regression passed. Do not
+  silently count the three repair suites as part of the old seven-suite total.
+- [ ] Self-check spec/finding coverage and diff,save portable recovery/status,
+  push existing branch and verify remote SHA=local. No merge/native acceptance.
+
+Self-review:all6 findings mapped above;strict marker refusal remains distinct
+from omission of genuine legacy null defaults. Binding expansion does not edit
+old receipts. Assertions exercise producer blocks/validators,not live drivers.
+
 ## Global Constraints
 
 - Use existing0x101000 rights,inherit=false; capture last-error immediately.
@@ -312,3 +383,10 @@ Next gate: user reviews this plan, approves its proposed30-invocation envelope
 and selects Native/inline or Subagent-driven. Approval of the spec did not approve
 this plan/budget. Later live experiments, ordinary acceptance activation, metadata
 resumption and main/production integration each remain outside this plan.
+
+## Execution follow-up — corrective pass stopped
+
+Approved26-call pass stopped at call3 (A GREEN7) after two producer assertions;
+the fake receipt omitted two original arrays. No correction or rerun after stop.
+See [portable repair report](../../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
+Proposed fixture-only correction/cap27 is pending a new user decision.
