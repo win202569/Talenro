@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — joint raw-capture/independent-supervision design written, awaiting review
+
+After4fbc6cd1 the user approved writing the joint architecture, not its future
+implementation or runtime. See the [new written design](../superpowers/specs/2026-10-17-raw-capture-supervision-design.md).
+It separates launcher fallback, independent supervisor, controlled collector
+and target; specifies owned containment/arming, two bounded byte readers,
+one QPC deadline including startup and a6500ms in-budget stop/cleanup/publication
+reserve. OS capability/compatibility and real failure behavior are requirements,
+not proven facts. Next plan is restricted to P1 passive synthetic supervision
+decisions, not a third byte simulator; P2 live adapters/P3 persistence remain
+separately gated. Written-spec approval is still needed before any P1 plan.
+Documentation only: no code/test/import/compile/identity/security query/reviewer
+or live workload. Existing finite acceptance and spent budgets are unchanged;
+Stage B remains NOT READY/NOT APPROVED, no main/full C12/security clearance.
+
 ## Latest — raw-capture fixed-version limited offline acceptance approved
 
 After proposalc1ab2c16, the user explicitly approved the finite conclusion,

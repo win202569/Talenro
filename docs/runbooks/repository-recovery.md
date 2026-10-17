@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [joint raw-byte capture and independent-supervision design](../superpowers/specs/2026-10-17-raw-capture-supervision-design.md)
+was written after user approval of that writing direction, based on4fbc6cd1.
+The written spec itself awaits user approval; no implementation plan/execution
+authority follows yet. It fixes topology, owned containment, one120s total
+deadline with6500ms internal reserve and separate evidence/permission facts.
+Only P1 synthetic control-decision work may enter the next plan after written
+approval; real P2/P3 remain separate and security prerequisites unresolved.
+No code/tests/receipts/budgets changed or new runtime identities issued. Recover
+the design plus status on the existing development branch, not main or ignored
+session files. Do not treat proposed OS behavior as verified compatibility.
+
 Latest: user explicitly approved the [raw-capture finite decision](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
 after proposalc1ab2c16; the [actual approval record](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-approval.md)
 fixes code deliveryd7d8d939, productFB48642D/test2D44F9C9. This is limited

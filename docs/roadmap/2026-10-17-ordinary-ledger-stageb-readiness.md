@@ -8,6 +8,17 @@ diagnostic,test or workload ran while preparing it.
 
 ## Latest readonly reconciliation — after offline coverage checkpoint726e51a6
 
+Later documentation-only update based on4fbc6cd1: the synthetic memory raw
+coordinator now has [explicit limited offline acceptance](2026-10-17-offline-raw-capture-limited-acceptance-approval.md).
+The user subsequently approved writing a [joint real-capture/independent-supervision design](../superpowers/specs/2026-10-17-raw-capture-supervision-design.md);
+that written design is pending review, not implemented or approved for runtime.
+Its next possible plan is P1 passive synthetic supervision decisions only.
+This prepares the control contract but does not prove real pipe draining,
+containment/timeout/cleanup, command provenance or security disposition.
+Stage B remains NOT READY/NOT APPROVED. No security facts were refreshed,
+no exact experiment packet/nonces issued, no host/probe/test/reviewer launched.
+The726e51a6 observations below remain historical rather than current OS evidence.
+
 Reviewed committed source/docs at726e51a68b9bd8dcd70d595ce5017bd342b72633.
 No helper import,test,host diagnostic,security query,plan/nonce generation or
 native entry in this reconciliation. Machine-specific observations below remain
