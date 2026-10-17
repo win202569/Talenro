@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — internal timing locates two costly phases;no product fix
+
+[Internal probe](2026-10-17-synthetic-capture-internal-timing.md) completed2/2 NEW
+hosts PS7/PS5,exit0/empty stderr,18273/37274ms,no retry. PS5 packet rebuilding
+10698ms and recursive equivalence9889ms together account for67.70% of the
+30410ms internal-stage sum. Exact primitive/engine cause remains unmeasured.
+Manual helper path on trusted4096tick fixture,not public verifier or boundary
+suite acceptance;do not compare its lower duration to old runs as a speedup.
+Product/original tests/contract and prior indexes unchanged. Original6/12,
+frozen7..12 and unstarted review remain;coarse2/2 spent with PS5 timeout.
+Next:readonly audit of repeated work in those loops,then separate bounded
+unchanged-semantics optimization design and finite verification authorization.
+No dropped checks,raised cap,live/security/Stage B/I2/I3/full C12/main clearance.
+
 ## Latest — memory timing narrows PS5 bottleneck;no repair or acceptance
 
 [Authorized probe](2026-10-17-synthetic-capture-timing.md) used2/2 NEW hosts,

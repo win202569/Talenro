@@ -1,5 +1,8 @@
 # Synthetic capture 4096-event stage timing — exploratory diagnosis
 
+Follow-up:[separately approved internal timing](2026-10-17-synthetic-capture-internal-timing.md)
+narrows two costly phases without changing this probe's timeout or allowance.
+
 ## Authority and scope
 
 User approved the short probe after unfinished checkpoint

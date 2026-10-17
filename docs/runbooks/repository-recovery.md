@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[internal verifier timing](../roadmap/2026-10-17-synthetic-capture-internal-timing.md).
+New diagnostic script retained for probe reproducibility only,not runtime/API
+acceptance or automatic rerun. New2/2 hosts completed PS7/PS5,exit0/empty stderr,
+18.273/37.274s. PS5 packet rebuilding10.698s and recursive equivalence9.889s
+dominate the30.410s measured internal sum;individual primitive cause unknown.
+No product/original-test/contract edits or archive writes. Lower manual-path
+time is not a verified speedup or resolution of old public-suite timeout.
+Original6/12/frozen7..12/unstarted review and coarse2/2 spent remain intact.
+Next is readonly loop audit and separately approved bounded optimization/tests,
+not automatic continuation. Git restores script/report,not ignored raw receipts,
+caches or launch authority. All live/security/Stage B/full C12/main gates remain.
+
 Latest:[synthetic capture memory timing](../roadmap/2026-10-17-synthetic-capture-timing.md).
 New exploratory synthetic-capture-timing-diagnostic.ps1 is preserved only for
 reproducibility,not a test/runtime entry or automatic launch authorization.
