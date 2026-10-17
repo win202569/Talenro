@@ -1,6 +1,8 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Date:2026-10-17. Base89cb1ad09bf831216c5999ddcb4409e4cea4d18d.
+Latest:Task1/2 fake checks complete;Task3 stopped on NestedRoundtrip failure at
+invocation13/32. Detailed follow-up below supersedes earlier current/next states.
 Current:after8dafbfe3,user approved script UInt64 aliases/budget32. Invocation6
 GREEN5 exit0/1196ms,9 PASS assertions. Task1 is now complete against scoped
 fake tests;Task2 next. Earlier stops below are historical,not current.
@@ -146,3 +148,60 @@ All5 suite hosts completed. Raw records1–3 retained byte-identical;the invocat
 index appends new rows rather than rewriting earlier results. No old metadata/
 probe workload was started. Fresh-computer resume begins at this new approval
 decision,not the earlier Cap32 proposal or any automatic test replay.
+
+## UInt64 correction verified;Task2 complete;Task3 JSON stop
+
+User approved script-only aliases/budget32 after8dafbfe3. Invocation6 on PS5.1
+passed9 assertions (1196ms). Task1 checkpoint442053bf preserves that correction;
+production acquisition checks were not weakened. Task2 checkpointeb610080 adds
+same-handle finalization/shared clocks/conservative accounting with fake tests.
+
+| Calls | Scope | Actual result |
+| --- | --- | --- |
+|6 |Task1 GREEN5 |exit0/1196ms;9 PASS |
+|7/8 |Task2 RED7/RED5 |exit1/1448ms and986ms;expected missing session |
+|9/10 |Task2 GREEN7/GREEN5 |exit0/1317ms and1112ms;14 PASS each |
+|11/12 |Task3 RED7/RED5 |exit1/1351ms and1020ms;expected missing evaluator |
+|13 |Task3 first GREEN7 |exit1/1756ms;2 PASS then NestedRoundtrip failure |
+
+Task2 tests cover absent-at-root entries,late admission,running/unknown exit,
+count mismatch,release before final accounting,new member after sealing,shared
+500ms deadline,overflow/backward clocks,forced exit,lifetime regression,failed
+release and optional image loss. These are simulated adapter results only.
+Ruling:the shared budget measures actual elapsed wait,not the sum of maximum
+wait arguments when a prior wait returns early;the next member gets200ms after
+300ms elapsed. Cost if wrong:timing interpretation needs review. Ruling:added
+shutdown start/end/frequency to the outcome so receipt validation can check time
+bounds. Cost:extra serialized fields,not acceptance activation.
+
+Task3 created ordinary-ledger-receipt.ps1 and its tests,and added only an early
+new-ledger-marker refusal to Assert-ProcessCompletion. In invocation13,the
+direct typed fake envelope passed pure evaluation with Acceptance=false,and
+the existing acceptance gate correctly rejected it. JSON conversion/readback
+then failed the NestedRoundtrip assertion. No malformed-input test below that
+assertion,Task3 GREEN5,Task4 wiring,final allowlist or independent review ran.
+
+The evaluator returns Errors,but this test's failing assertion did not print
+that value. Saved output does not establish the specific serialized field/type
+that was rejected. Do not guess a correction,relax type validation,or call
+Task3 verified. No change/retry followed this unexpected failure.
+
+Current use13/32;19 calls unused. Proposed next decision:one pure simulated
+diagnostic call that emits the rejection reason (no native API/target),then a
+cause-specific roundtrip correction and replacement GREEN7/GREEN5,with total
+cap34. Arithmetic:13 used +1 diagnostic +2 Task3 GREEN +4 Task4 RED/GREEN +14
+final allowlist=34. Preserve all refusal rules/old records;any additional
+unexpected failure stops. This proposal has not been approved or executed.
+
+Saved-only SHA256 at this stop:
+
+| Artifact | SHA256 |
+| --- | --- |
+| invocations.json at13 calls |987401123D16C51ACDC48F81AF0808D7090AEBBB5E7AE9D1DA5E3C6B3CF6C2A1 |
+| run-13.stdout.txt |DFCD4BC2B26D9A6BE399ACAD641E8DAAC5BA84F114B27006B64A8D20CBBC33A0 |
+| run-13.stderr.txt |48E865F366FC512963EB4EC14033620793C4DA3934AD1D563ABEFD8E44D235B4 |
+
+All13 suite hosts completed. The checkpoint includes unfinished Task3 code and
+is not green or accepted. Existing native runner/SDK/Go/callers unchanged;
+schema4 still refused and no real target ran. Git carries portable progress
+through Tasks1/2 and this Task3 stop,not raw logs/SDK/cache or acceptance.

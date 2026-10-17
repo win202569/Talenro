@@ -22,6 +22,10 @@ UInt64 compatibility correction and total32,then replacement GREEN5 and remainin
 12 task RED/GREEN +14 final calls. User approved this correction/budget32 after
 8dafbfe3;replacement GREEN5 passed9 assertions at invocation6. Task1 complete,
 Task2 next. The earlier stop/proposal statements above are historical.
+Latest execution state:Task2 completed on both hosts (14 assertions each);
+Task3 expected REDs completed,but first GREEN7 failed NestedRoundtrip after2
+PASS lines at invocation13. Stopped13/32;Task4/final review unstarted. The JSON
+rejection reason was not emitted;no repair/retry after the stop. See report.
 
 ## Global Constraints
 

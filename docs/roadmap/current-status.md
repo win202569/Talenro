@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ledger Tasks1/2 fake-verified;Task3 JSON roundtrip stopped13/32
+
+Task1 compatibility correction passed PS5.1;Task2 passed14 fake checks on each
+host. Task3 expected REDs passed their missing-feature criterion,but first
+GREEN7 failed NestedRoundtrip after2 PASS lines. Its rejection details were
+not emitted;cause remains unresolved. No repair/retry,Task3 GREEN5 or Task4.
+See [execution follow-up](2026-10-17-ordinary-ledger-implementation.md#uint64-correction-verifiedtask2-completetask3-json-stop).
+Proposed next approval:one pure simulated reason-capture then cause-specific
+roundtrip correction/replacement GREENs,cap34. All refusal rules stay intact;
+no native target,acceptance rollout or metadata continuation. Earlier states historical.
+
 ## Task11 — ledger Task1 fake checks complete;Task2 next,6/32 used
 
 After8dafbfe3,user approved UInt64 script aliases/budget32. Replacement GREEN5

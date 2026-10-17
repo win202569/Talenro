@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ledger Task3 JSON stop](../roadmap/2026-10-17-ordinary-ledger-implementation.md#uint64-correction-verifiedtask2-completetask3-json-stop).
+Task1 scoped fake checks complete;Task2 passed14 on both hosts. Task3 first
+GREEN7 failed JSON NestedRoundtrip after2 PASS lines;13/32 used. The exact
+rejection reason is not captured. No fix/retry or Task4/final review yet.
+Resume at proposed pure-diagnostic/cause-specific repair/cap34 approval,not
+automatic test replay. All code is a development checkpoint,not acceptance;
+existing native runner/callers and metadata/probe consumed identities remain.
+Earlier latest/pending entries below are historical.
+
 Latest:ledger Task1 fake checks complete after approved UInt64 aliases/budget32.
 Invocation6 GREEN5 passed9 assertions;earlier GREEN7 also passed9. Used6/32.
 Resume Task2 of the approved plan,not Task1 replay;native rollout/metadata gates

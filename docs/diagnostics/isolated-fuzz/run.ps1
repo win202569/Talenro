@@ -58,6 +58,9 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
     }
 }
 function Assert-ProcessCompletion([object]$Receipt) {
+    foreach($marker in @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity')) {
+        if($null -ne $Receipt.PSObject.Properties[$marker]){throw 'Ordinary identity ledger is not enabled for acceptance'}
+    }
     if($null -ne $Receipt.PSObject.Properties['BuildOnlyDiagnostic']){throw 'Build-only diagnostics are not acceptance'}
     if($null -ne $Receipt.PSObject.Properties['CompileStageTrigger']){throw 'Compile-stage diagnostics are not acceptance'}
     $lifetime=$Receipt.PSObject.Properties['LifetimeDiagnosticOnly']
