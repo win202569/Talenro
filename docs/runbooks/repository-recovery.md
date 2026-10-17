@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest completed diagnostic:[PS5 validation regions](../roadmap/2026-10-18-p1-ps5-validation-regions.md).
+After8800cbd7 approval,new ordinary PS5 region1/1 spent:wall18993ms/
+CPU21015.625ms,exit0,no timeout,all62 groups +2 markers.4096 rows validation
+8381.018ms (record1457.368/shape4275.431/field2648.219),copy156.168ms.
+Shape51.0133% includes nested checks,not name membership alone. Same-count
+timings differ strongly from prior run;not repair or original-entry acceptance.
+255 pins/76 pairs/nine samples held,original product/tests unchanged.
+All old budgets/frozen slots/review ineligibility and PS5/I1/P1 blockers unchanged.
+Recover copies/report,not ignored raw/runtime or replay authority. Next read-only
+measurement comparison,no automatic run,defense removal,limit increase or main.
+
 Latest progress evidence:[validation vs copy](../roadmap/2026-10-18-p1-ps5-validation-copy-progress.md).
 After57df3287 approval,new ordinary PS5 progress diagnostic1/1 spent,cap30000ms,
 actual30062ms/CPU31828.125ms,exit-1,stderr empty,owned exit. Four snapshots show

@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — PS5 region diagnostic completes18.993s; shape region51%,variability unresolved
+
+After8800cbd7 approval,[disjoint validation regions](2026-10-18-p1-ps5-validation-regions.md)
+ran one ordinary PS5 host,exit0,wall18993ms/CPU21015.625ms,stderr empty,no timeout.
+All62 groups +2 wrappers complete in diagnostic copy;245 lines/152 events/
+9 snapshots/84 ordinary/64 PASS,76 closed pairs,255 pins held. At4096 rows:
+record1457.368ms,shape4275.431ms,field2648.219ms sum validation8381.018ms;
+copy156.168ms. Shape51.0133% includes nested scalar/type/member checks,NOT just
+name lookup. Same1536 count now validation3058.176ms vs prior16490.836ms:
+large uncontrolled variability,not optimization/cause proof or original PS5 PASS.
+Original product/tests unchanged;new1/1 spent,all old budgets/frozen slots/
+review ineligibility and I1/P1/candidate acceptance blockers remain.
+Next read-only compare measurement changes before new scope;no automatic
+original replay,guard deletion,timeout increase or main.
+
 ## Latest — PS5 progress confirms validation dominates completed1536-row prefix
 
 After57df3287 approval,[progress/cost diagnostic](2026-10-18-p1-ps5-validation-copy-progress.md)
