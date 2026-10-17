@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — cross-packet coverage consolidated; new readonly review proposed
+
+[Coverage and gaps](2026-10-17-synthetic-capture-coverage-summary.md): five
+groups have complete assertion sequences on both engines across ten selected
+children, 87 content occurrences +10 sentinels per engine, NOT a unified pass.
+Reader evidence is administrator-context; PS5 reader's original strict gate
+still fails. Dependent81/106/110-target regressions and reviews remain unrun.
+Historical PS7 missing-root branch was covered; PS5 missing-root was not.
+No test or reviewer launched this turn. Proposed NEW one-review readonly scope
+is documented, awaits approval, and would not clear old failures or acceptance.
+Source/tests and saved indexes unchanged; all frozen slots/main/security gates
+retained. Resume from this map instead of treating historical proposals as
+permission to rerun work.
+
 ## Latest — format-only verification complete on both normal-user engines
 
 [Format results](2026-10-17-synthetic-capture-format.md):NEW2/2 spent, PS7

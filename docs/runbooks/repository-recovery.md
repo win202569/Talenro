@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[cross-packet coverage and proposed review](../roadmap/2026-10-17-synthetic-capture-coverage-summary.md).
+Five groups have complete ordered assertion evidence on both engines, but
+contexts and receipt policies differ; no unified acceptance. Pending dependency
+regressions, PS5 missing-root dynamic evidence and independent reviews are
+explicitly listed. Historical PS7 missing-root evidence must not be discarded.
+NEW one-review readonly scope is proposed, not launched/approved. Git restores
+this evidence map and limits, not ignored raw state or permission to resume
+frozen slots. All main/security/full-acceptance gates remain unchanged.
+
 Latest:[format-only verification](../roadmap/2026-10-17-synthetic-capture-format.md).
 New normal-user PS7/PS5.1 runs each passed all18 ordered labels, exit0, no
 timeout. Prior-approved stream policy accepts structured progress only; PS5
