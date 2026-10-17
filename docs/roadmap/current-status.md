@@ -1,6 +1,17 @@
 # Project status — updated 2026-10-17
 
-## Latest — raw capture/outer control written design awaits review
+## Latest — raw-capture written spec approved; implementation plan awaits decision
+
+User approved the written design after92af8224, for planning only. The
+[implementation plan](../superpowers/plans/2026-10-17-offline-raw-capture.md)
+proposes one coupled in-memory implementation task, up to10 new sequential
+synthetic test hosts and one conditional scoped readonly review. Native is
+recommended but not selected. No code/tests/hosts/reviewer launched, and no
+allowance consumed or implicitly granted by writing. Next: user reviews plan
+and confirms execution method and finite budget. Existing archive acceptance,
+historical failures/frozen slots, Stage B/I2/I3/full C12/main gates unchanged.
+
+## Historical checkpoint — raw capture/outer control written design awaited review
 
 User approved writing the offline-first [new subsystem design](../superpowers/specs/2026-10-17-raw-capture-outer-control-design.md).
 The written spec proposes an in-memory raw-byte transfer coordinator reusing

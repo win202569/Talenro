@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: the raw-capture written design was approved after92af8224 for planning
+only. Its [new implementation plan](../superpowers/plans/2026-10-17-offline-raw-capture.md)
+awaits user review, execution-method choice and finite-budget approval.
+Proposed Native route: up to10 synthetic test hosts plus one conditional
+readonly reviewer, no retries or real workloads. No product/test implementation
+or new execution occurred while writing. Recover the plan and approved spec
+from Git, not authority to launch; old acceptance/failures/gates remain intact.
+
 Latest: [raw capture and outer-control design](../superpowers/specs/2026-10-17-raw-capture-outer-control-design.md)
 is written but not yet approved. Writing approval is not implementation or
 execution authority. The first proposed unit uses synthetic bytes and owned
