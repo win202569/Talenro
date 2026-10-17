@@ -1,9 +1,10 @@
 # Offline capture simulation — execution and scoped review
 
-Latest:approved callback fix attempt is **INCOMPLETE / REGRESSED**. Both REDs
-reproduced callback failure;PS7 attemptedGREEN passed that check but failed normal
-event acceptance after3PASS. No retry/PS5GREEN. Current source is not the earlier
-100PASS revision. Latest continuation below supersedes earlier source results.
+Latest:approved type-diagnostic continuation fixed the wrapper regression;
+PS7/PS5 each106PASS,exit0,empty stderr. Identified callback finding fixed within
+regression tests,no second independent review. Scoped pure simulation only,
+not real capture/security certification/Stage B acceptance. Failed attempts below
+remain preserved history;latest continuation supersedes their source verdicts.
 
 User approved [spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md),
 [plan](../superpowers/plans/2026-10-17-offline-capture-simulation.md),inline
@@ -178,3 +179,43 @@ Total proposed cap3,120s each,sequential,no retry,all failures retained. Current
 normal-event failure supplies RED evidence;no old RED replay. No real collector,
 security changes,Stage B or acceptance. Both full corrected suites,including
 callback assertions,must pass before claiming completion.
+
+## Approved type diagnostic/correction — scoped fix verified
+
+After3d8fa50f,user approved cap3:one memory diagnostic,smallest supported fix,
+thenPS7/PS5 full suites. Independent TypeFix index3/3 spent,120s each,sequential,
+no retry. Original and repair index hashes unchanged;unused repair fourth frozen.
+
+|Call|Host/purpose|Child exit|Elapsed ms|PASS|Decoded stderr artifact bytes|
+|---|---|---|---|---|---|
+|1|PS7 memory diagnostic|0|775|0|0|
+|2|PS7 full GREEN|0|2307|106|0|
+|3|PS5 full GREEN|0|1793|106|0|
+
+Diagnostic plain/extended tick fixtures:direct reflected runtime typePSObject,
+BaseObject reflected typePSCustomObject;array and base array bothSystem.Object[].
+Original validator refused both ticks,accepted0,counter0. Thus wrapper/base
+mismatch confirmed,not guessed. Diagnostic uses only synthetic memory objects;
+its enclosing verification host is counted,no secondary process/OS query.
+
+One-line correction unwraps Value.PSObject.BaseObject before direct reflective
+Object.GetType invocation. Non-ETS dispatch/local exact field checks retained;
+no caller event forwarded to dependency's unsafe shape path,no type relaxation.
+Tests unchanged from failed candidate. Previous normal-event failure is this
+compatibility fix's RED(PS7 only);callback REDs were observed on both versions.
+New full GREENs include outer/event/trailing GetType counters0,normal tick
+admission,exact string[] refusal,and original100 checks. No post-GREEN source/
+test changes. No second review or whole-project suite;prior exclusions still apply.
+
+Source SHA256:`9DA8A74B984A3111F00B54AA160490DF327BE17A5A07A044B510946EB26A2A13`.
+Tests SHA256:`B6E7E342A76FB6BD2AEE6641BAF65305846071A2562F0CD97AC4ECD1806CE7FE`.
+Diagnostic SHA256:`EB23F4B50C829D1AC28A5643DB5D8674D870BA3519E30E139BC82C955158CD8C`.
+TypeFix index SHA256:`B1D6604D95CE3E02C16CF9D07312377206A4635BA445484FBB1C843AD287E42B`.
+
+Disposition:the one Important finding and introduced wrapper regression fixed
+within these tests;Task1 scoped delivery COMPLETE. No claim of hostile-process
+sandboxing/universal callback security. All prior rulings/exclusions remain;all
+budgets spent/frozen,history retained. No real collector,OS watchdog,command/UTC
+provenance,historical security disposition or Stage B authority;I2/I3/full C12
+acceptance remainOPEN,no main merge. Recover tracked source/tests,not ignored
+receipts;diagnostic is an audit artifact,not permission to rerun on a new machine.

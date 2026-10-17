@@ -1,6 +1,6 @@
 # Offline Capture Simulation Implementation Plan
 
-> **For agentic workers:** User approved this plan,inline execution and4 hosts after88d623d3. Use superpowers:executing-plans. Execution reached100PASS/host but independent review found1Important;overall INCOMPLETE. No retry/fix allowance remains.
+> **For agentic workers:** User approved plan/inline execution and4 hosts after88d623d3,then separate repair/diagnostic allowances. Latest106PASS/host verifies identified Important fix and wrapper regression;scoped delivery COMPLETE. All allowances spent/frozen,no real runtime authority. Historical states below retained.
 
 **Goal:** Implement and verify a deterministic supplied-event capture model without real capture or runtime authority.
 **Architecture:** A pure evaluator validates a bounded event array,accumulates owned channel bytes,and derives lifecycle status from virtual times,EOFs and exit. Reuse unchanged pure package/classifier helpers only;do not connect the file store or native diagnostics.
@@ -149,3 +149,10 @@ after3PASS at normal tick assertion. No retry/PS5GREEN/second review;repair3/4
 spent,unused fourth frozen. Candidate regressed,Task1 stillINCOMPLETE. Actual
 wrapper/base mismatch unconfirmed. New cap3 diagnostic/correction/two suites
 proposed in report,not authorized by earlier approvals. Old GREEN not transferable.
+
+Latest cap3 approved after3d8fa50f:PS7diagnostic exit0/775ms confirmed reflection
+PSObject/basePSCustomObject difference,counter0. BaseObject unwrap correction,
+unchanged tests thenPS7exit0/2307ms/106PASS andPS5exit0/1793ms/106PASS,empty stderr.
+Task1 scoped COMPLETE;Important/compatibility regression verified by previous
+REDs/new GREEN,no second review or whole-project claim. No source/test edit
+afterward;cap3/3 spent,old unused slot frozen. Prior rulings/exclusions preserved.

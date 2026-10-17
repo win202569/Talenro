@@ -2,8 +2,8 @@
 . (Join-Path $PSScriptRoot 'output-evidence-package.ps1')
 function Get-OfflineCaptureValueType([object]$Value){
     if($null -eq $Value){return $null}
-    # Invoke Object.GetType directly,not PowerShell ETS dispatch on caller input.
-    return [object].GetMethod('GetType').Invoke($Value,$null)
+    # Unwrap the PSObject layer;invoke Object.GetType without caller ETS dispatch.
+    return [object].GetMethod('GetType').Invoke($Value.PSObject.BaseObject,$null)
 }
 function Assert-OfflineCaptureEvent($Event){
     $type=Get-OfflineCaptureValueType $Event

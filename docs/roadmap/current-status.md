@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — simulation callback/type fixes verified;106 checks per host
+
+[Evidence/history](2026-10-17-offline-capture-simulation.md):approved cap3 used
+for memory diagnostic andPS7/PS5GREEN. Confirmed PSObject wrapper/basePSCustomObject
+mismatch;unwrap fixed it while retaining CLR type/local field checks. Both
+suites106PASS,exit0,empty stderr(2307/1793ms);callback counters0. Important fix
+verified within tests,no second review/full-project claim. Old failures/indexes
+preserved,unused repair fourth frozen,no new allowance. Pure memory delivery
+complete only;no real capture/watchdog/Stage B/security/I2/I3 acceptance.
+
 ## Latest — callback fix regressed normal event handling;stopped
 
 [Continuation](2026-10-17-offline-capture-simulation.md):fix allowance3/4 used.

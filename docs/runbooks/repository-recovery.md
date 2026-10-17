@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[simulation scoped fix verified](../roadmap/2026-10-17-offline-capture-simulation.md).
+Memory diagnostic confirmed PSObject/base mismatch;unwrap before direct CLR type
+query fixed normal events without ETS callbacks. PS7/5.1 each106PASS,exit0,empty
+stderr;no second reviewer/full-project run. Recover tracked helper/tests and
+audit diagnostic,not ignored receipts. New3/3 spent;all old failures/budgets
+preserved,unused repair fourth frozen. Do not automatically rerun. Still pure
+memory,not real capture/watchdog/provenance/security clearance/Stage B acceptance.
+
 Latest:[callback fix regressed](../roadmap/2026-10-17-offline-capture-simulation.md).
 Current source UNFINISHED,not prior100PASS revision. Both repair REDs reproduced
 callback issue;PS7GREEN passed counter then normal-event assertion failed.
