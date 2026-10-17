@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest original-entry result: [PS7 PASS / PS5 timeout](../roadmap/2026-10-17-p1-original-full-verification.md).
+After48db896f approval,unchanged entry/candidate953CC2A8:PS7 completes62 groups
++2 markers,wall10528ms/CPU13968.75ms,exit0. PS5 cap30000ms,actual30079ms/
+CPU30281.25ms,exit-1,48 groups through original PassiveDescriptors; boundary/
+remaining original/ownership regression/final wrappers incomplete. Empty stderr/
+owned exit both.201 pins/raw held. New2/2 spent;previous frozen slots/review
+ineligibility unchanged. Partial success,not candidate/I1/P1/project acceptance;
+no main. Clone source/original tests/report,not ignored raw/engines or replay
+authority. Next separately scope PS5 boundary timing in complete order,no
+unchanged retry,timeout increase or speculative fix.
+
 Latest diagnostic: [complete-order wall/CPU](../roadmap/2026-10-17-p1-complete-flow-cpu-timing.md).
 After148c3d51 approval, one ordinary PS7 child completed62 groups plus2 wrapper
 markers: wall10226ms/CPU12625ms, exit0, no timeout, stderr empty. Largest boundary

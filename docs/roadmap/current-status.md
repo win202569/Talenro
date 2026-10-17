@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — original complete regression PASS on PS7; PS5 times out
+
+After48db896f approval, [original-entry verification](2026-10-17-p1-original-full-verification.md)
+ran PS7 then PS5, ordinary token,30000ms cap, no markers/copies or product/test edits.
+PS7 exit0,wall10528ms/CPU13968.75ms,83 lines/64 PASS(all62 groups +2 wrappers).
+PS5 timeout,exit-1,wall30079ms/CPU30281.25ms,65 lines/48 completed groups through
+original35 PassiveDescriptors; boundary/last3 original/ownership10/final markers
+incomplete. Stderr empty/owned-host-exited both; valid prefix is NOT PS5 PASS.
+201 pins/engines/controller/raw rechecked. New2/2 spent, no retries; prior frozen
+slots unchanged. New PS7 evidence does not erase historical timeouts.
+Candidate953CC2A8 UNACCEPTED/I1/P1 unresolved;review0/1 unused/ineligible.
+Next separately design PS5 complete-order boundary timing attribution, not
+automatic full rerun,old-slot use,speculative product fix,larger limit or main.
+
 ## Latest — current complete-order wall/CPU diagnostic completes in10.226s
 
 After148c3d51 approval, [one-shot group CPU diagnostic](2026-10-17-p1-complete-flow-cpu-timing.md)
