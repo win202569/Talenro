@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Task11 — 27-request auth matrix written, awaiting substantive review
+
+User allowed writing the contract-specific mixed matrix afterec2f55b5.
+The [written proposal](../superpowers/specs/2026-10-17-authority-v7-request-auth-matrix-design.md)
+covers all27 request identities and proposes11 exact request roles,explicit empty
+independent-evidence eligibility,receiver/scope binding and request-auth archiving.
+No complete existing request envelope was established for these27,so their common
+envelope choices are all marked new proposals;existing channels and credentials
+remain mandatory,not replaced. This is not approval of the27 choices or roles.
+Local review remains103/43;only if the whole written proposal is approved could
+the local metadata count become130/16,not implementation or independent acceptance.
+Next:review the27-row proposal,then resolve the16 data-path items;no code/tests,
+canonical-set change,live workloads or implementation-ready full metadata plan.
+
 ## Task11 — nine-item appendix approved; updated local review103/43
 
 User approved the written nine-item appendix after8a8fc234. Approval-time local

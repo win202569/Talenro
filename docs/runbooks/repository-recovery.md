@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [27-request authentication matrix proposal](../superpowers/specs/2026-10-17-authority-v7-request-auth-matrix-design.md),
+based onec2f55b5. Direction to write it was approved;the27 common request-envelope
+choices,11 new roles,empty evidence sets,receiver/profile and archive requirements
+are still awaiting written review. Keep current local metadata103/43;130/16 is
+conditional on approving that proposal,not present acceptance. Resume at substantive
+matrix review,then16 remaining data-path contracts;do not implement,provision keys,
+alter canonical specs or replay completed verification identities from this document.
+
 Latest: [current metadata reconciliation](../roadmap/2026-10-17-task11-metadata-current-reconciliation.md).
 User approved the nine-item written appendix after8a8fc234,establishing local
 102/44 at that approval point. One subsequent executor source review closes#93

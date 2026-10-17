@@ -1,5 +1,10 @@
 # Task11：更新元数据对照与剩余契约分组
 
+后续：用户在ec2f55b5后允许按混合方向继续编写矩阵。
+[27项请求书面提案](../superpowers/specs/2026-10-17-authority-v7-request-auth-matrix-design.md)
+现已写出，建议的27项envelope、11角色及用途限制仍待书面审阅；当前103/43不变。
+下文§7保留当时方向提案，不再代表“是否允许写矩阵”仍未回答。
+
 基线：8a8fc234a1a8db17193dbff843aeaab3f2220870；用户随后确认
 [九项书面澄清](../superpowers/specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md)。
 本轮只做本地设计记账与来源复核；没有代码、fixture、build/test、Docker、DB、
