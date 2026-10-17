@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — read-only evaluation trace separates root,validation/copy,decision
+
+Afterffe3735e,[source trace](2026-10-17-p1-ps5-evaluation-readonly-trace.md)
+used ZERO test processes/no code edits. Current4096 time input is fully validated
+and snapshot-copied before a separate neutral decision loop;synthetic deadlines
+are not the external30s cap. Source shows bounded loops,no explicit external wait;
+not runtime stall exclusion. Shape cache has root/time keys,not per-input growth.
+H1 validation/copy active before cutoff is testable but UNPROVEN;older PS7 profile
+does not establish current PS5 phase. Root/validation/decision markers would
+distinguish it;none added/run.219 pins/raw/product953CC2A8 unchanged.
+All budgets/frozen slots/review ineligibility,I1/P1/PS5 acceptance blockers remain.
+Next approve a discriminating diagnostic scope before execution,no defensive
+check removal,automatic suite replay,synthetic-deadline tweak or main acceptance.
+
 ## Latest — PS5 construction completes; evaluation phase remains open at timeout
 
 After683edfa4 approval,[boundary subphase diagnostic](2026-10-17-p1-ps5-boundary-subphase-timing.md)

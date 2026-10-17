@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only trace:[PS5 evaluation internals](../roadmap/2026-10-17-p1-ps5-evaluation-readonly-trace.md).
+Afterffe3735e,no tests/code edits. Root setup precedes full validation/copy and
+then neutral4096-time decisions. H1 validation/copy unfinished is unproven;
+current PS5 phase boundaries absent,old PS7 profiling cannot substitute.
+Synthetic clock/deadline is not external30s.219 pins/raw/current product held.
+All budgets/frozen slots/review ineligibility and PS5/I1/P1 blockers unchanged.
+Recover report/source,not ignored raw/runtime or replay authority. Next scope
+root/validation/decision discrimination,no automatic run,check deletion or main.
+
 Latest subphase result:[PS5 evaluation phase open](../roadmap/2026-10-17-p1-ps5-boundary-subphase-timing.md).
 After683edfa4 approval,new ordinary PS5 diagnostic1/1 spent,cap30000ms,
 actual30069ms/CPU31296.875ms,exit-1,stderr empty,owned exit. Invalid checks
