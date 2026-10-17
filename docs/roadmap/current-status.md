@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — corrected R3 resume timed out; original35 pass, ownership incomplete
+
+User approved parameter-only resume after2a882111. [Timeout record](2026-10-17-p1-extended-view-resume.md):
+same frozen code/tests/controller, no RED replay. PS7 R3 all hit30000ms limit,
+saved total30079ms,TimedOut=true,exit-1,owned-host-exited,stderr empty,ExpectedResult
+false. Exact54/60 lines: eight fixture groups and original35 PASS, then ownership
+ApiRequired/DecoratedInteger/Boolean/String/RootScalars PASS (5/10). Remaining five
+ownership groups have no completed PASS; no exact timeout statement/per-case
+timings. CandidateCF4CB4B5/suiteC4905925 unchanged and NOT accepted. New3/7 spent,
+R4–R7 four frozen,review0/1 ineligible; no retry/mutant/reviewer.86 historical pins
+and all raw matched. Next scope timing localization; no automatic timeout increase,
+R4 continuation or I1 closure. Older separate budgets/false verdicts unchanged.
+
 ## Latest — extended-view candidate prepared; stopped on pre-launch argument error
 
 Approved bounded repair after3f09208e. [Resume record](2026-10-17-p1-extended-view-repair.md):

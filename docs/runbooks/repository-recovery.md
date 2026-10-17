@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest actual R3 handoff: [extended-view timeout](../roadmap/2026-10-17-p1-extended-view-resume.md).
+User permitted parameter correction after2a882111; same frozen candidateCF4C and
+suiteC490 ran once, no repeated REDs. R3 timed out30079ms total (limit30000),exit-1,
+owned-host-exited,stderr empty. Fixture8/original35/ownership first5 groups PASS;
+remaining5 ownership groups lack completion, so I1/P1 not closed. Current3/7
+spent,R4–R7 four frozen,review ineligible. Earlier PLACEHOLDER rejection and old
+IsInstance false R3 remain separate records. No source/test edit, retry/mutant/
+reviewer;86 pins held. Clone recovers code/reports, not ignored raw/controller or
+authority to rerun. Scope timing localization before more execution; do not raise
+limit/continue R4 automatically. No main or full-project/runtime acceptance.
+
 Latest stopped handoff: [extended-view repair resume](../roadmap/2026-10-17-p1-extended-view-repair.md).
 After3f09208e approval, new PS7/PS5 expected REDs plus extended-view fixture checks
 completed1738/2129ms. Candidate CF4CB4B5/ownershipC4905925 prepared but no GREEN
