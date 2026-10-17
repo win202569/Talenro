@@ -16,9 +16,19 @@ function Test-OrdinaryLedgerEvidence([object]$Receipt) {
     function Text($o,[string]$n,[string]$want){Need $o $n 'text';if($o.$n -cne $want){throw ('Value '+$n)}}
     function Obj($o,[string]$n){Need $o $n 'object';foreach($raw in @('Handle','ProcessHandle','JobHandle')){if($null -ne $o.$n.PSObject.Properties[$raw]){throw 'Raw handle field'}}}
     function Empty($o,[string]$n){Need $o $n 'array';if($o.$n.Count -ne 0){throw ('Nonempty '+$n)}}
+    function Utc-Metadata($o,[string]$n){
+        if($null -eq $o.PSObject.Properties[$n]){throw ('Missing '+$n)}
+        $v=$o.$n
+        # ConvertFrom-Json on newer hosts materializes ISO dates as DateTime.
+        # Only UTC metadata permits this representation; identity/flags stay strict.
+        if($v -is [DateTime]){if($v.Kind -ne [DateTimeKind]::Utc){throw ('Non-UTC '+$n)};return}
+        if($v -is [DateTimeOffset]){if($v.Offset -ne [TimeSpan]::Zero){throw ('Non-UTC '+$n)};return}
+        Need $o $n 'text';$parsed=[DateTimeOffset]::MinValue
+        if(-not [DateTimeOffset]::TryParse($v,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$parsed) -or $parsed.Offset -ne [TimeSpan]::Zero){throw ('UTC metadata '+$n)}
+    }
     function Bounds($o){
         Num $o 'StartTimestamp';Num $o 'EndTimestamp';Num $o 'Frequency' 1
-        Need $o 'StartUTC' 'text';Need $o 'EndUTC' 'text'
+        Utc-Metadata $o 'StartUTC';Utc-Metadata $o 'EndUTC'
         if($o.Frequency -ne $frame.Frequency -or $o.EndTimestamp -lt $o.StartTimestamp -or $o.EndTimestamp -gt $frame.EndTimestamp){throw 'API timing'}
     }
     function Api($o){Flag $o 'Succeeded' $true;Num $o 'Error' 0 0;Bounds $o}

@@ -1,3 +1,4 @@
+param([switch]$DiagnoseRoundtrip)
 # Breaks caught: coercion/default evidence, version stripping, forged identity joins,
 # contradictory timing, diagnostic contamination and accidental acceptance rollout.
 . (Join-Path $PSScriptRoot 'ordinary-ledger-fixture.ps1')
@@ -14,7 +15,13 @@ function Must-RefuseOrdinary($r,$name){$e=Test-OrdinaryLedgerEvidence $r;Check-O
 function Must-RefuseGate($r,$name){$refused=$false;try{Assert-ProcessCompletion $r}catch{$refused=$true};Check-Ordinary $refused $name}
 $good=New-OrdinaryEnvelope;$e=Test-OrdinaryLedgerEvidence $good
 Check-Ordinary ($e.EvidenceComplete -and -not $e.Acceptance -and $e.Errors.Count -eq 0) 'CompleteButNotAccepted';Must-RefuseGate $good 'Schema4GateRefuses'
-$round=Copy-OrdinaryEnvelope $good;$e=Test-OrdinaryLedgerEvidence $round;Check-Ordinary ($e.EvidenceComplete -and -not $e.Acceptance) 'NestedRoundtrip'
+$round=Copy-OrdinaryEnvelope $good;$e=Test-OrdinaryLedgerEvidence $round
+if($DiagnoseRoundtrip){
+    Write-Output ('ROUNDTRIP RESULT: '+($e|ConvertTo-Json -Compress))
+    Write-Output ('ROUNDTRIP JSON: '+($round|ConvertTo-Json -Depth 16 -Compress))
+    return
+}
+Check-Ordinary ($e.EvidenceComplete -and -not $e.Acceptance) ('NestedRoundtrip: '+($e.Errors -join '; '))
 foreach($field in @('RootAssigned','RootExited','TimedOut','TerminationRequested','CleanupVerified','LifetimeDiagnosticOnly','ShutdownDiagnosticOnly','LiveSampling','MemberEvidenceTruncated','NaturalShutdownVerified','ShutdownEvidenceComplete')){
     foreach($bad in @($null,0,1,'true','false')){$r=Copy-OrdinaryEnvelope $good;$r.$field=$bad;Must-RefuseOrdinary $r ('StrictTypes-'+$field)}
 }
@@ -29,6 +36,7 @@ $r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.Entries[0].Final.EndTimes
 foreach($field in @('Frequency','TotalProcesses','ActiveProcesses','TotalTerminatedProcesses')){$r=Copy-OrdinaryEnvelope $good;$r.LedgerFinalOutcome.FinalAccounting.$field=-1;Must-RefuseOrdinary $r ('BadAccounting-'+$field)}
 foreach($field in @('LifetimeDiagnostics','CompileStageTrigger','BuildOnlyDiagnostic')){$r=Copy-OrdinaryEnvelope $good;$r|Add-Member $field ([pscustomobject]@{});Must-RefuseOrdinary $r 'DiagnosticContamination'}
 $r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.Entries[0]|Add-Member Handle 900002;Must-RefuseOrdinary $r 'RawHandleRefused'
+$r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.FirstQuery.StartUTC='not-a-time';Must-RefuseOrdinary $r 'InvalidUtcMetadata'
 $r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.Entries[0].Final.TerminationRequested=$true;Must-RefuseOrdinary $r 'ForcedExitRefused'
 $r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.Entries[0].Membership.Owned='true';Must-RefuseOrdinary $r 'NestedStrictTypes'
 $r=Copy-OrdinaryEnvelope $good;$r.MemberIdentityLedger.QueryCount='3';Must-RefuseOrdinary $r 'NumericCoercionRefused'
