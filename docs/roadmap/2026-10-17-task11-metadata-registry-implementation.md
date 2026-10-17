@@ -200,6 +200,12 @@ finding alone. Metadata Task1/2 remain stopped;used budget stays1 build/1 runtim
 
 ## Probe proposal discussed after68c2ef90 — not yet approved
 
+Subsequent result:the user approved this probe after72022bfe;the independent
+0-build/1-runtime allowance is now consumed. See [actual retained-probe001](2026-10-17-metadata-runtime-retained-probe-001.md).
+It captured an owned conhost.exe entry in the new job,not an identity proof for
+the old unknown member or ordinary/TDD acceptance. Original metadata001 remains
+stopped. The following pending/proposed wording is the earlier proposal snapshot.
+
 The user requested a minimal evidence proposal,not execution. Classified as a
 diagnostic spike:an answer/evidence sample,not a new product feature or an Error87
 repair. Existing source was read;no helper/test/Go/native entry was invoked.

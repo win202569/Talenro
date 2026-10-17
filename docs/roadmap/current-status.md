@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-17
 
+## Task11 — one runtime diagnostic captured conhost.exe;no acceptance
+
+User approved the probe after72022bfe. The [actual result](2026-10-17-metadata-runtime-retained-probe-001.md)
+records0 builds/1 runtime,no retry. One job-owned retained entry reported
+C:/Windows/System32/conhost.exe while running,then the same handle read exited0
+at root-wait/final snapshots. Core natural cleanup true,no force/timeout;sample
+1 admission/release,0 errors,cap not reached. Native0.0895975s;audits+wrapper107.956s.
+Saved artifact bindings/source/tool/old-record audits verified;Acceptance=false.
+This shows earlier capture worked in this sampled run,NOT that old unknown16616
+was conhost,Error87 is fixed,or metadata RED passed. Retention changes timing.
+No product/helper/test/security change;metadata still1 build/1 runtime used and
+stopped;the independent0-build/1-runtime probe allowance is now consumed.
+Next:readonly timeline comparison before deciding on any observer redesign;
+no replay,conhost whitelist,diagnostic-to-acceptance substitution or main merge.
+Earlier proposed/pending statements below are historical.
+
 ## Task11 — runtime-only evidence probe proposed,not executed
 
 After68c2ef90,user requested the minimal proposal. The

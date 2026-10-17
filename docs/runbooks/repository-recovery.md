@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[runtime retained-probe001 result](../roadmap/2026-10-17-metadata-runtime-retained-probe-001.md).
+Approved after72022bfe and consumed:0 builds/1 runtime,no retry. Captured one
+job-owned conhost.exe image path and same-handle running→exited0 history;natural
+cleanup and final audits verified. Diagnostic-only/Acceptance=false remains.
+It does not identify the old unknown process,fix87 or accept metadata RED.
+No source/helper/security change. Preserve both consumed identities;next step
+is readonly timeline comparison,not another run or ordinary-policy relaxation.
+Git has portable facts/hashes only;ignored binary/receipts are not restored.
+
 Latest:[pending runtime-only evidence probe](../roadmap/2026-10-17-task11-metadata-registry-implementation.md#probe-proposal-discussed-after68c2ef90--not-yet-approved).
 Question/probe approval is still pending. Proposed0-build/one-runtime diagnostic
 would start the same locally bound inventory-test binary in a new diagnostic job;
