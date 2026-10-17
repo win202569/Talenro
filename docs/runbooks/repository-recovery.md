@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline store coverage completed](../roadmap/2026-10-17-offline-output-evidence-store.md).
+Recover updated tests plus unchanged store/package/classifier/isolation sources.
+Both former review minors now covered:isolated empty-origin guard and nonempty
+UTF16LE bytes/classification. PS7/5.1 each54PASS,exit0,empty stderr;coverage2/2
+spent. No fresh independent review or wider acceptance claim. Preserve old
+failure history and frozen budgets. Next step is readonly Stage B readiness
+planning,not automatic execution. Local link/junction permission is still needed
+for this fixture suite;no ignored audit artifact required for source imports.
+
+### Earlier verified checkpoint (superseded by 54-check coverage above)
+
 Latest:[offline store scoped verification green](../roadmap/2026-10-17-offline-output-evidence-store.md).
 Recover unchanged portable store/package/classifier/isolation helpers and tests.
 Elevated PS7/5.1 each50 PASS,exit0,empty stderr;allowance2/2 consumed. All older

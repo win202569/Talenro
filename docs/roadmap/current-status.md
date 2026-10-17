@@ -1,6 +1,17 @@
 # Project status — updated 2026-10-17
 
-## Latest — offline store scoped verification green;50 checks per host
+## Latest — offline store coverage gaps addressed;54 checks per host
+
+[Coverage evidence](2026-10-17-offline-output-evidence-store.md):only tests
+changed. Empty-origin case now preserves valid following fields,has a valid
+single-character control,and checks origin-specific refusal. NonemptyUTF16
+byte/encoding/classification roundtrip added. PS7/5.1 each54PASS,exit0,empty
+stderr(4839/1746ms);new elevated coverage2/2 consumed,no retry or source change.
+Both previous review minors addressed by assertions,no second review/full-suite
+claim. Historical failures/limits preserved;no merge/Stage B/origin/durability
+acceptance. Next:readonly Stage B readiness review;no live probes/renewed budgets.
+
+## History — offline store scoped verification green;50 checks per host
 
 [Evidence/history](2026-10-17-offline-output-evidence-store.md):approved elevated
 PS7/5.1 runs each exit0,50 PASS,empty stderr(3433/1853ms). Hardlink,reparse and

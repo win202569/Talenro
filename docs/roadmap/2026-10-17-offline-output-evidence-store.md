@@ -4,11 +4,12 @@
 
 User approved the bounded persistence design and at most four fresh synthetic/local-file test hosts after commit6ce0bbd6. No live collector, ordinary ledger identity, Stage B, original suite replay or wider acceptance was authorized. Existing package4/4,classifier8/8,ledger70/70 budgets remain separate/frozen.
 
-Latest approved elevated continuation:PS7 and PS5 each passed50 checks,exit0,
-empty stderr,with unchanged source/tests. This is scoped synthetic/local-file
-verification,not origin authentication,Stage B or full-project acceptance.
-Two review minors remain deferred. Earlier failed and partial runs below are
-preserved history,not overwritten or converted into passes.
+Latest approved coverage continuation:PS7 and PS5 each passed54 checks,exit0,
+empty stderr,with unchanged production source and strengthened tests. This is
+scoped synthetic/local-file verification,not origin authentication,Stage B or
+full-project acceptance. Both prior minor coverage gaps are now addressed by
+executed assertions,not a second independent review. Earlier failed and partial
+runs below are preserved history,not overwritten or converted into passes.
 
 ## Implemented behavior (scoped offline verification only)
 
@@ -137,3 +138,46 @@ nonempty UTF16 persistence is not exercised. No full-project suite,live capture,
 historical raw-byte reconstruction,crash durability/authenticity,Stage B,I2/I3
 or security-disposition acceptance. Next bounded improvement would address the
 two minor coverage gaps with its own approved verification allowance.
+
+## Approved coverage continuation — 54 checks per host passed
+
+User approved the short bounded design plus at most2 new elevated local-fixture
+hosts,PS7 thenPS5,120s each,stop on failure. Only tests changed;production store,
+package,classifier and isolation helpers unchanged. No new subsystem/plan or
+review loop. Separate ignored StoreCoverage index/budget2;old indexes untouched.
+
+Empty-origin correction removes all origin bytes while retaining valid stream
+lengths/data and a matching hash/marker. A paired one-character `x` origin
+control successfully rebuilds the known abc/binary/nonzero-exit package. The
+empty counterpart must refuse with `Bounded origin declaration required`,so
+generic failure in a malformed following field cannot satisfy the assertion.
+
+Nonempty UTF16LE fixture uses stdout bytes41 00 2D 4E (literal expected Base64
+QQAtTg==),and a nonempty UTF16LE progress XML stderr. It verifies explicit
+encoding,exact bytes/lengths on both streams and recomputed progress-only/count1.
+Expectations come from input/literal data,not the production serialization helper.
+
+| Call | Host | Exit | Elapsed ms | PASS | Decoded stderr artifact bytes |
+|---|---|---|---|---|---|
+|1|PowerShell7|0|4839|54|0|
+|2|Windows PowerShell5.1|0|1746|54|0|
+
+Both Completed=true;child exit checked before starting the second host. New
+allowance2/2 consumed,no extra RED/mutation/full-suite run or retries. These
+characterization assertions cover existing behavior;no new production fix or
+individual RED-to-GREEN proof is claimed. Runtime-safety checks were not relaxed.
+
+Coverage index SHA256:
+`1E5742C7B85F857A70EDD6CB5F7D201FA5D09C77A65F5A51AB2F833787B764B7`.
+Updated test SHA256:
+`B7A49A0F0FB2D91B7968115F8FEEAFA523564C0582AA0DD905A762BE7CAA0159`.
+Unchanged source SHA256:
+`7710A1149B42CFD0C2505988CEE6748F399C3FB5E8C34D795B35FBCB8558BB81`.
+
+Both source-review minors addressed in this bounded scope. All broader limits
+remain:non-hostile local namespace only,no authenticity/ACL ownership or crash
+durability guarantee,no real collection/full-project tests/Stage B acceptance,
+historical security disposition and I2/I3 still open. Committed tests remain
+portable;ignored receipts/fixtures are local audit data,not source dependencies.
+Next work should revisit the Stage B readiness checklist as a readonly planning
+step,not automatically launch probes or renew spent validation allowances.

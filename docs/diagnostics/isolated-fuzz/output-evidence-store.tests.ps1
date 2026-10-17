@@ -43,6 +43,12 @@ $xml='#< CLIXML'+"`n"+'<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.c
 $q=New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@()) -StderrBytes ([Text.Encoding]::UTF8.GetBytes($xml)) -ExitCode 0 -EncodingName 'utf-8' -OriginDeclaration 'progress'
 $r=Write-OfflineOutputEvidenceStore (New-StorePath) $q
 Check-Store ($r.Verified -and $r.Package.Classification -ceq 'progress-only' -and $r.Package.ProgressCount -eq 1) 'ClassificationRebuiltFromFileBytes'
+# Catch byte loss/transcoding or ignoring the explicit UTF16 encoding on reread.
+$utf16Stderr=[Text.Encoding]::Unicode.GetBytes($xml)
+$q=New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(65,0,45,78)) -StderrBytes $utf16Stderr -ExitCode 0 -EncodingName 'utf-16le' -OriginDeclaration 'nonempty-utf16'
+$r=Write-OfflineOutputEvidenceStore (New-StorePath) $q
+Check-Store ($r.Verified -and $r.Package.EncodingName -ceq 'utf-16le' -and $r.Package.Stdout.Base64 -ceq 'QQAtTg==' -and $r.Package.Stdout.ByteLength -eq 4 -and $r.Package.Stderr.Base64 -ceq [Convert]::ToBase64String($utf16Stderr) -and $r.Package.Stderr.ByteLength -eq ($xml.Length*2)) 'NonemptyUtf16ExactBytesSurvivePersistence'
+Check-Store ($r.Verified -and $r.Package.Classification -ceq 'progress-only' -and $r.Package.ProgressCount -eq 1) 'NonemptyUtf16ProgressClassificationRebuilt'
 foreach($kind in @('missing-payload','missing-marker','stopped','truncated-marker','marker-tail','marker-magic','marker-length','marker-hash','payload-hash')){
     $d=New-StorePath;New-Item -ItemType Directory -Path $d -ErrorAction Stop|Out-Null
     $b=[byte[]]$bytes.Clone();$m=[byte[]]$marker.Clone()
@@ -57,13 +63,18 @@ foreach($kind in @('missing-payload','missing-marker','stopped','truncated-marke
     Check-StoreRefusal $d ('IncompleteOrMismatchRefused-'+$kind)
 }
 # Correctly recomputed hashes must not let malformed primitive fields through.
+# Paired control: identical stream fields with one valid origin character.
+$originControl=[byte[]]($bytes[0..15]+[byte[]]@(1,0,0,0,120)+$bytes[34..48])
+$controlPath=New-StorePath;Put-StoreFixture $controlPath $originControl (Make-StoreMarker $originControl)
+$control=Read-OfflineOutputEvidenceStore $controlPath
+Check-Store ($control.Verified -and $control.Package.OriginDeclaration -ceq 'x' -and $control.Package.Stdout.Base64 -ceq 'YWJj' -and $control.Package.Stderr.Base64 -ceq 'AP8NCg==' -and $control.Package.ExitCode -eq -1) 'SingleCharacterOriginControlOtherwiseValid'
 foreach($kind in @('magic','encoding','negative-origin','huge-origin','empty-origin','invalid-utf8','origin-char-bound','negative-stdout','huge-stdout','huge-stderr','truncated','tail','oversized-payload')){
     $b=[byte[]]$bytes.Clone()
     switch($kind){
         magic{$b[0]=0} encoding{$b[12]=3}
         negative-origin{[Array]::Copy([BitConverter]::GetBytes([int]-1),0,$b,16,4)}
         huge-origin{[Array]::Copy([BitConverter]::GetBytes([int]4097),0,$b,16,4)}
-        empty-origin{[Array]::Clear($b,16,4)} invalid-utf8{$b[20]=255}
+        empty-origin{$b=[byte[]]($bytes[0..15]+[byte[]]@(0,0,0,0)+$bytes[34..48])} invalid-utf8{$b[20]=255}
         origin-char-bound{$b=[byte[]]($b[0..15]+[BitConverter]::GetBytes([int]1025)+([Text.Encoding]::UTF8.GetBytes(('x'*1025)))+$b[34..48])}
         negative-stdout{[Array]::Copy([BitConverter]::GetBytes([int]-1),0,$b,34,4)}
         huge-stdout{[Array]::Copy([BitConverter]::GetBytes([int]1048577),0,$b,34,4)}
@@ -73,6 +84,10 @@ foreach($kind in @('magic','encoding','negative-origin','huge-origin','empty-ori
     }
     $d=New-StorePath;Put-StoreFixture $d $b (Make-StoreMarker $b)
     Check-StoreRefusal $d ('ValidHashMalformedPayloadRefused-'+$kind)
+    if($kind -eq 'empty-origin'){
+        $emptyOriginResult=Read-OfflineOutputEvidenceStore $d
+        Check-Store (-not $emptyOriginResult.Verified -and $emptyOriginResult.Reason -ceq 'Bounded origin declaration required') 'EmptyOriginRefusedByOriginGuardNotMalformedFollowingField'
+    }
 }
 $q=New-OfflineOutputEvidencePackage -StdoutBytes (New-Object byte[] 1048576) -StderrBytes (New-Object byte[] 1048576) -ExitCode 0 -EncodingName 'utf-8' -OriginDeclaration ('x'*1024)
 $r=Write-OfflineOutputEvidenceStore (New-StorePath) $q
