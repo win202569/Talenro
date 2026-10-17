@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[remaining offline acceptance scope](../roadmap/2026-10-17-synthetic-capture-remaining-acceptance-scope.md).
+Read this classification before proposing more tests. Old gate failures remain;
+missing-root disclosure is permitted by the original plan, while file-level
+reparse direct evidence remains open. Proposed next deliverable is an offline-
+only acceptance addendum, not a launch/waiver or main/security clearance. No
+source/tests/receipts changed and no new budget granted; cloning restores the
+proposal and evidence map, not authority to resume frozen work.
+
 Latest:[independent closing review completed](../roadmap/2026-10-17-synthetic-capture-closing-review.md).
 Supplemental tests and final evidence have no confirmed new defects in review;
 targeted malformed-event/writer-collision gaps and named dependency regressions

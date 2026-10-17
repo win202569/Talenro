@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — remaining acceptance scope classified; no gates changed
+
+[Scope proposal](2026-10-17-synthetic-capture-remaining-acceptance-scope.md)
+separates active procedural gates, explicit file-reparse evidence gap, disclosed
+environment/coverage limits, historical failures and offline non-goals. Original
+plan allows truthful missing-root disclosure for review; this is not an automatic
+unconditional PS5 retest requirement. No limit is accepted or waived here.
+Recommend next a written offline-only acceptance addendum mapping separate
+hash-matched evidence to requirements, for user review before taking effect.
+No tests/reviewer/code/old-plan changes; all current gates and budgets retained.
+
 ## Latest — independent closing review complete; reviewed checkpoint, not release
 
 [Closing report](2026-10-17-synthetic-capture-closing-review.md):one fresh
