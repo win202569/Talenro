@@ -6,13 +6,30 @@ requirements,not a launch plan,approval request with finalized inputs,security
 disposition or authority to create/consume identities. No helper import,host
 diagnostic,test or workload ran while preparing it.
 
+## Latest readonly reconciliation — after offline coverage checkpoint726e51a6
+
+Reviewed committed source/docs at726e51a68b9bd8dcd70d595ce5017bd342b72633.
+No helper import,test,host diagnostic,security query,plan/nonce generation or
+native entry in this reconciliation. Machine-specific observations below remain
+historical,not refreshed. Stage B remains **NOT READY / NOT APPROVED**.
+
+Offline progress is real but partial:strict classifier,lossless evidence objects
+and bounded file persistence now exist. Latest store suite54 per host passed on
+PS7/5.1 in its separately approved allowance;both review coverage gaps addressed.
+See [store evidence and preserved failure history](2026-10-17-offline-output-evidence-store.md).
+These helpers consume supplied bytes;they do not collect original host streams,
+bind command identity/UTC provenance,own an outer watchdog or authorize a probe.
+The ignored test harness decodes/re-encodes text,not a raw-byte collector,so it
+cannot be promoted into the Stage B capture path by calling it evidence storage.
+No missing bytes from the earlier diagnostic can be reconstructed by these APIs.
+
 ## Evidence and current disposition
 
 | Area | Current evidence | What remains |
 | --- | --- | --- |
 | Source/fake preparation | [Inbox policy](2026-10-17-ordinary-ledger-inbox-policy.md),[timing coverage](2026-10-17-ordinary-ledger-timing-coverage.md);source/evidence single-link policy retained,two timing mutants caught | Bounded fake scope only;70/70 calls exhausted,no new allowance |
 | Real file adapters | [Read-only observations](2026-10-17-ordinary-ledger-readonly-adapters.md);PS7/5.1 returned matching signature/hash/identity;system shell Links2 and all11 sources Links1 | Point-in-time read bindings,not workload/cleanup proof;refresh facts for a later exact-input decision |
-| Diagnostic output | Both child hosts exit0;Desktop emitted progress CLIXML;strict parent exit1 | Overall diagnostic remains non-clean;no approved channel-aware collector/raw-byte retention implementation |
+| Diagnostic output | Earlier child hosts exit0;Desktop progress CLIXML;strict parent exit1 preserved. Offline strict classifier/evidence package/store now implemented;latest store54 checks per host passed | Overall old diagnostic remains non-clean;no integrated raw-byte host collector/command-and-time provenance or workload watchdog. Offline consistency is not origin authentication |
 | Host protection | [Earlier status check](2026-10-17-ordinary-ledger-native-prerequisites.md) reported protection enabled/services running | Historical,capped event metadata was not clearance;current relevant safety evidence/disposition missing |
 | Historical Defender finding | [September25 evidence](2026-09-25-prepared-worker-baseline-diagnostics.md),events1116/17273 and1117/17280 | No owner/vendor disposition clearing a specific new experiment;false positive not established;account-based vendor review remains deferred |
 | Exact experiment packet | Root/Child scenario intent exists in [original proposal](2026-10-17-ordinary-ledger-native-validation-proposal.md) | No current schema2 plan,nonces,exact script/argument bytes or approved plan hashes issued |
@@ -20,10 +37,11 @@ diagnostic,test or workload ran while preparing it.
 | Runtime authority | None | Separate explicit decision on concrete packet and finite allowance;generic continue/fake approval/caller flags are insufficient |
 | Full acceptance | I2:13 physical gates not executed;I3:historical validation causes unproved | Remain OPEN;small sampled probe results cannot close either or enable main/production |
 
-The three immediate preparation gaps are historical safety disposition,proper
-output/evidence collection,and an exact bounded experiment packet with outer
-control. This is not a finding that another code repair or a repeat run would
-clear the safety issue. Unreadable/unknown facts remain unknown,not PASS.
+The three immediate preparation gaps remain historical safety disposition,
+integrated raw-byte output/evidence collection with outer control,and an exact
+bounded experiment packet. Offline classification/storage partially prepares
+the second gap but does not close it. This is not a finding that another code
+repair or repeat run would clear the safety issue. Unknown facts remain unknown.
 
 ## Safety evidence required before a runtime decision
 
@@ -46,7 +64,7 @@ clear the safety issue. Unreadable/unknown facts remain unknown,not PASS.
   do not require the sample itself to satisfy all13 physical gates or use its
   success to claim those gates closed.
 
-## Output/evidence collection requirements — not implemented here
+## Output/evidence collection requirements — offline pieces done,integration missing
 
 - Preserve child exit code and raw stdout/stderr bytes separately before any
   interpretation;record byte lengths/hashes,host/command identity and UTC bounds.
@@ -62,6 +80,20 @@ clear the safety issue. Unreadable/unknown facts remain unknown,not PASS.
 - The transient diagnostic wrapper is not the native receipt evaluator. Define
   their responsibilities separately;changing output classification cannot
   override failed ownership,cleanup,signature or security checks.
+
+Current implementation mapping:
+
+| Requirement | Prepared offline component | Unresolved integration |
+|---|---|---|
+| Separate byte identity,strict progress/error disposition | output-channel-classifier.ps1 | Real stream byte acquisition,explicit host encoding and bounded simultaneous draining |
+| Lossless snapshot,recompute classification | output-evidence-package.ps1 | Provenance binds child exit,exact command and UTC bounds to that captured stream pair |
+| Fresh files,completion marker,length/hash,re-read | output-evidence-store.ps1 | Workload lifecycle,timeout/cleanup disposition and native receipt finalization |
+
+Reader Verified=true means internal byte consistency only,including retained
+refused classifications. OriginVerified,Acceptance and RuntimeApproved stay
+false. Best-effort stopped records are not guaranteed crash-atomicity;no hostile
+namespace/ACL ownership or power-loss guarantee. A Stage B packet must not assume
+the offline store alone meets any stronger runtime/durable-finalization contract.
 
 ## Required exact-input packet — currently unissued
 
@@ -114,9 +146,13 @@ Error87,prove universal scheduling/full trace,clear I2/I3 or certify C12.
 
 ## Next safe action
 
-First prepare an offline-only channel/raw-capture design and resolve the safety
-disposition path with the owner;do not seek native launch approval yet. If the
-owner/vendor path is unavailable,retain this blocked runtime state and continue
-only separately scoped non-live work. No implementation,new tests or new runtime
-budget is granted by saving this checklist. Recover from the development branch,
-not main,and recheck machine-specific facts on another computer.
+Resolve the historical safety disposition path with the security owner/vendor;
+the agent cannot supply that conclusion. In parallel,a separately approved
+design may address raw-byte acquisition,command/time binding and owned-host
+outer watchdog/timeout evidence,starting with synthetic streams and no real
+process collection. Do not seek native launch approval yet or issue fresh
+nonces/exact runtime packet before remaining prerequisites are deliberately
+prepared. If the owner/vendor path is unavailable,retain blocked runtime state.
+No implementation,new tests,security query or runtime budget is granted by this
+readonly checklist update. Recover from development branch,not main,and recheck
+machine-specific facts only under the relevant separate authority.

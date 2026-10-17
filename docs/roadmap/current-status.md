@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-17
 
-## Latest — offline store coverage gaps addressed;54 checks per host
+## Latest — Stage B readonly reconciliation;still NOT READY / NOT APPROVED
+
+[Updated checklist](2026-10-17-ordinary-ledger-stageb-readiness.md) reconciled
+against726e51a6 using source/docs only. Offline classifier/package/store and
+54-per-host coverage are prepared components,not an integrated raw collector,
+command/time provenance or outer watchdog. Historical diagnostic parent exit1
+unchanged. Remaining three gaps:safety-owner/vendor disposition,raw-byte capture
+with outer control,and exact bounded runtime packet. No nonce/plan issued,no
+host/security query/test/probe run,no renewed budget,no merge or acceptance.
+I2/I3 remain OPEN. Next:owner supplies safety disposition;technical capture/
+watchdog work needs its own separately approved non-live design.
+
+## History — offline store coverage gaps addressed;54 checks per host
 
 [Coverage evidence](2026-10-17-offline-output-evidence-store.md):only tests
 changed. Empty-origin case now preserves valid following fields,has a valid

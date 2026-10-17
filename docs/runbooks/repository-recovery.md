@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[Stage B readonly reconciliation](../roadmap/2026-10-17-ordinary-ledger-stageb-readiness.md).
+Still NOT READY/NOT APPROVED. Offline54-check suite does not provide real raw
+capture,host/command/time provenance or owned-host watchdog;old strict parent
+failure preserved. Safety disposition and exact runtime packet remain missing.
+No test/security refresh/probe/nonce generation in this update;all spent/frozen
+allowances unchanged. Do not infer runtime authority from continue or successful
+offline verification. Owner/vendor disposition is external;further technical
+work starts with separately scoped non-live capture/watchdog design.
+
+### Previous offline coverage checkpoint
+
 Latest:[offline store coverage completed](../roadmap/2026-10-17-offline-output-evidence-store.md).
 Recover updated tests plus unchanged store/package/classifier/isolation sources.
 Both former review minors now covered:isolated empty-origin guard and nonempty
