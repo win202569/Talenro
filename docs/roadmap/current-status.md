@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — shadow fix reproduction stopped; source unchanged
+
+[Repair record](2026-10-17-capture-adapter-contract.md):user approved4 new hosts.
+PS7RED call1 exited1/2280ms;API guard passed and6 shadow regressions failed,
+confirming boundary defects. String fixture attachment then errored before the
+expected aggregate assertion;runner ExpectedResult=false. Stopped without
+source fix,retry,PS5 or GREEN. Revised tests NOT GREEN;repair1/4 spent,remaining
+3 frozen. Original4/4 and78PASS historical evidence preserved,not current-suite
+acceptance. Proposed next approval:correct fixture/bookkeeping,retain call1 as
+reproduction evidence,use remainingPS5RED/PS7GREEN/PS5GREEN without replay.
+Necessary unfinished checkpoint portable;no real collection/security change or
+Stage B/I2/I3/main acceptance.
+
 ## Latest — synthetic capture contract implemented; review-blocked checkpoint
 
 [Evidence and next action](2026-10-17-capture-adapter-contract.md):approved inline

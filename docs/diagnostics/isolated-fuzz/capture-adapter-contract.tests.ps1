@@ -26,6 +26,52 @@ function Contract-Refusal($Packet,[string]$Name){
     $r=New-SyntheticCaptureRecord $Packet
     Check-Contract (@($r.PSObject.Properties).Count -eq 7 -and $r.Created -is [bool] -and -not $r.Created -and $r.SourceMode -ceq 'synthetic' -and $r.Reason -ceq 'invalid-packet' -and -not $r.OriginVerified -and -not $r.Acceptance -and -not $r.RuntimeApproved -and $null -eq $r.PSObject.Properties['BindingSHA256']) $Name
 }
+# Break caught: ETS length/rank shadows must never clip bytes or bypass bounds.
+# Fixtures call the public APIs;literal refusal is independent of implementation.
+function Contract-Shadow($Value,[string]$Name,$Shadow){
+    Add-Member -InputObject $Value -MemberType NoteProperty -Name $Name -Value $Shadow -Force
+    if($Value.PSObject.Properties[$Name].MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty -or $Value.$Name -ne $Shadow){throw 'Shadow fixture not attached'}
+    return ,$Value
+}
+$script:shadowFailures=0
+function Check-ContractShadow([bool]$Value,[string]$Name){
+    if($Value){Write-Output ('PASS: '+$Name)}else{$script:shadowFailures++;Write-Output ('FAIL: '+$Name)}
+}
+function Contract-ShadowRefusal($Packet,[string]$Name){
+    $value=New-SyntheticCaptureRecord $Packet
+    Check-ContractShadow (@($value.PSObject.Properties).Count -eq 7 -and $value.Created -is [bool] -and -not $value.Created -and $value.Reason -ceq 'invalid-packet' -and $null -eq $value.PSObject.Properties['BindingSHA256'] -and -not $value.OriginVerified -and -not $value.Acceptance -and -not $value.RuntimeApproved) $Name
+}
+$p=Contract-Packet;$p.ArgumentBytes=Contract-Shadow ([byte[]]@(65,0)) 'Length' 0
+Contract-ShadowRefusal $p 'ShadowArgumentBytesNotClippedToEmpty'
+$p=Contract-Packet;$p.ArgumentBytes=Contract-Shadow (New-Object byte[] 65538) 'Length' 0
+Contract-ShadowRefusal $p 'ShadowOversizedArgumentsRefused'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Chunk 'stdout' (Contract-Shadow ([byte[]]@(97,98,99)) 'Length' 0)))
+Contract-ShadowRefusal $p 'ShadowChunkBytesNotClippedToEmpty'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Chunk 'stdout' (Contract-Shadow (New-Object byte[] 65537) 'Length' 0)))
+Contract-ShadowRefusal $p 'ShadowOversizedChunkRefused'
+$p=Contract-Packet;$many=New-Object object[] 4097;for($i=0;$i -lt 4097;$i++){$many[$i]=Contract-Tick}
+$p.Events=Contract-Shadow $many 'Length' 0
+Contract-ShadowRefusal $p 'ShadowEventCountCannotBypassPreflight'
+$p=Contract-Packet;$p.Events=Contract-Shadow ([object[]]@((Contract-Tick))) 'Rank' 1
+Contract-ShadowRefusal $p 'ShadowRankRefusedEvenWhenValueMatches'
+$p=Contract-Packet;$p.ExecutableDeclaration=Contract-Shadow ('x'*1025) 'Length' 1
+Contract-ShadowRefusal $p 'ShadowExecutableCharacterBoundRefused'
+$p=Contract-Packet;$p.OriginDeclaration=Contract-Shadow ('o'*1025) 'Length' 1
+Contract-ShadowRefusal $p 'ShadowOriginCharacterBoundRefused'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Tick 120000),(Contract-Chunk 'stdout' (Contract-Shadow ([byte[]]@(97)) 'Length' 0) 120000))
+Contract-ShadowRefusal $p 'ShadowBytesAfterTimeoutStillRefused'
+$r=Contract-Good (Contract-Packet);$r.Events=Contract-Shadow $r.Events 'Length' 0
+Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowStoredEventArrayRefused'
+$r=Contract-Good (Contract-Packet);$r.Arguments.Base64=Contract-Shadow ([string]::Empty) 'Length' 0
+Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowArgumentBase64RefusedBeforeDecode'
+$r.Arguments.Base64.PSObject.Properties.Remove('Length')
+$r=Contract-Good (Contract-Packet);$r.Lifecycle.Stdout.Base64=Contract-Shadow ([string]::Empty) 'Length' 0
+Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowDerivedSnapshotStringRefused'
+$r.Lifecycle.Stdout.Base64.PSObject.Properties.Remove('Length')
+$r=Contract-Good (Contract-Packet);$r.Lifecycle.Status=Contract-Shadow 'incomplete' 'Length' 10
+Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowDerivedStatusStringRefused'
+$r.Lifecycle.Status.PSObject.Properties.Remove('Length')
+Check-Contract ($script:shadowFailures -eq 0) 'PassiveShadowInputsMustBeRefused'
 $p=Contract-Packet;$r=Contract-Good $p
 Check-Contract ((Contract-Verify $r).Verified -and $r.Lifecycle.Status -ceq 'incomplete' -and $r.Arguments.Base64 -ceq '' -and $r.CleanupStatus -ceq 'unknown' -and $r.StopIntent -ceq 'none') 'ConsistentIncompleteIsNotRuntimeSuccess'
 $hex='544C524341503031010000000100000001000000730100000078010000006F1C000000323032362D31302D31375430303A30303A30302E303030303030305A1C000000323032362D31302D31375430303A30303A30302E303030303030305A0000000000000000'

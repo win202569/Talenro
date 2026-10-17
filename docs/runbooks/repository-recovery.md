@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[shadow-fix attempt stopped](../roadmap/2026-10-17-capture-adapter-contract.md).
+Recover revised tests and repair plan;production helper remains75a6cabd version
+with known Important defect. PS7 call1 reproduced6 public-API shadow failures,
+then string fixture setup errored;aggregate RED not reached. Current tests NOT
+GREEN. New repair1/4 used,remaining3 frozen;do not rerun or reset index. Explicit
+continuation approval needed for fixture correction/remainingPS5RED and twoGREEN
+hosts while retaining original call1. Local raw receipts ignored,tracked report
+has evidence/hashes. Original4/4 remains spent;no source fix,second review,main
+merge,live collector,security clearance or Stage B/full acceptance.
+
 Latest:[synthetic capture contract unfinished checkpoint](../roadmap/2026-10-17-capture-adapter-contract.md).
 Recover new constructor/verifier and78-check tests from the development branch,
 not main. Four approved hosts consumed:expectedRED7/5,GREEN7/5 each78PASS with

@@ -4,6 +4,29 @@
 
 ## Execution disposition — 2026-10-17
 
+### Approved Important-finding correction after75a6cabd
+
+Disposition:call1 PS7RED exited1/2280ms;6 API regressions failed,then test helper
+errored Shadow fixture not attached before aggregate assertion. ExpectedResult
+false;STOPPED. Source unchanged,revised tests NOT GREEN. Repair1/4 used,remaining
+3 frozen. Proposed fixture/bookkeeping correction and remaining3 continuation
+requires new explicit approval;no call1 replay. See execution report latest.
+
+User approved length-shadow correction and four NEW synthetic verification
+hosts,not renewal of original allowance:PS7 RED,PS5 RED,PS7 GREEN,PS5 GREEN,
+sequential120s each,no retry. Tests first exercise public constructor/verifier
+with passive Length/Rank shadows on arguments,chunks,event arrays,metadata and
+nested snapshots. RED must fail the named aggregate assertion after collecting
+individual outcomes,not fixture errors. Then reject shadowing descriptors before
+caller-visible intrinsic member reads;keep all original78 assertions. GREEN
+must finish full updated contract suite with exit0/empty stderr. No unrelated
+culture-token change;that candidate stays unverified/deferred. Stop on any
+unexpected result;no second review or extra fix pass. Save separate repair index
+under this plan's ignored workspace,retain original index/receipts unchanged.
+Update report/status/recovery and commit/push necessary files at handoff.
+Pre-flight:one cohesive correction,no shared task interfaces. No dependency or
+live/runtime/security scope change. Original execution record below is historical.
+
 Implementation/tests written. RED7/5 missing API as expected;GREEN7/5 each78PASS,
 exit0,empty stderr. Approved cap4/4 spent,no source/test edits after GREEN.
 One readonly review found Important passive ETS Length-shadow handling defect;

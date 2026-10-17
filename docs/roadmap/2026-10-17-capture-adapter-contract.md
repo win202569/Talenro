@@ -1,5 +1,50 @@
 # Synthetic capture contract — bounded execution and review
 
+## Latest correction attempt — stopped at fixture error; UNFINISHED
+
+After75a6cabdc93ba33940af19ede69e8433226232a1,user approved correction plus
+four NEW hosts,PS7RED/PS5RED/PS7GREEN/PS5GREEN,120s each,no retries. Existing
+original4/4 remains consumed. Repair call1 PS7 exited1 after2280ms on7.6.5Core
+x64. It printed1PASS(API guard) and6FAIL public-API regressions:nonempty arguments
+clipped,oversized arguments accepted,nonempty chunks clipped,oversized chunks
+accepted,4097-event preflight bypass and passive Rank shadow accepted. These
+reproduce the Important boundary problem;no production source change was made.
+
+The run then failed at tests:33,Shadow fixture not attached,while preparing the
+ExecutableDeclaration string fixture. The expected aggregate assertion was not
+reached;runner recorded ExpectedResult=false and stopped. Do NOT call this a
+clean expected RED or a green78-check suite. The new helper's Add-Member call
+does not use PassThru;string wrapper/attachment handling is a candidate test
+harness cause,not yet proven. No fixture correction,replay or second host ran.
+Current revised tests are NOT GREEN. Repair1/4 used;unused2-4 FROZEN pending
+explicit continuation authority. All original logs/indexes retained unchanged.
+
+Source SHA256 unchanged:
+`09D2AF7970D67780526988A0B1409F862E12E2185B22AC7FA4F8718864A349D2`.
+Revised tests:`2F016B10DAD68883FE701A5C80EFE5F75E9731E776C6523C9904E977D6C20C5E`.
+One-entry repair index:
+`2E6398EE4C95A6495C106E514A2E7E639AC4E1F2EDE5CDB38DDC1EB5A2C56DF5`.
+Repair receipts remain local ignored artifacts under this plan's workspace
+`length-shadow-fix`;tracked tests use no ignored runner/cache dependency.
+
+Next proposed authority:preserve call1 and accept its six actual API failures as
+the PS7 reproduction evidence;correct only fixture attachment/parent phase
+continuation bookkeeping,then use remaining3 hosts for PS5RED,PS7GREEN,PS5GREEN
+with the approved production correction. No first-call replay,no extra slot,
+no second review,no retries. This continuation is NOT approved yet. Any unexpected
+result stops again;do not silently renew or reset the index.
+
+Rulings carried:PowerShell-native audit instead of Bash helpers;no additional
+baseline/full-project/task-done run,install or receipt deletion because finite
+authority/preservation prevails(cost:no whole-project regression certificate).
+Reject shadow descriptors rather than normalize them in the proposed fix
+(cost:extended values with Length/Rank are refused);no production fix executed.
+No second review for the original review's single fix pass,and unverified
+culture-token concern stays deferred(cost:no re-review/culture certification).
+No runtime,security,Stage B,I2/I3 or broader acceptance changed.
+
+## Original implementation and review — historical record
+
 User approved written spec/plan,inline method and4 synthetic hosts after
 30aa84f9. This report covers pure New-/Test-SyntheticCaptureRecord only,not a
 real collector,watchdog,security clearance or Stage B/ordinary/C12 acceptance.
