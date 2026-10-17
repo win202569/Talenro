@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [16-item data-path review](../roadmap/2026-10-17-task11-data-path-review.md).
+User approved the27-request written matrix aftera40c7b45. Current local review
+is130/16,not implemented or independently certified. Reconstruct it from original
+146-row audit + approved9 + source-backed#93 + approved27 request/profile mappings;
+do not turn document deltas into a partial runtime registry. Remaining16 proposals
+are grouped5 immutable preimages/3 provider envelopes/8 local trusted paths and
+await direction approval. Resume there,then write the16-item clarification;#108
+publication must precede epoch source-set signing,not depend on the later seal.
+No product/SQL/manifest/key changes,workloads,canonical registration or main merge.
+
 Latest: [27-request authentication matrix proposal](../superpowers/specs/2026-10-17-authority-v7-request-auth-matrix-design.md),
 based onec2f55b5. Direction to write it was approved;the27 common request-envelope
 choices,11 new roles,empty evidence sets,receiver/profile and archive requirements

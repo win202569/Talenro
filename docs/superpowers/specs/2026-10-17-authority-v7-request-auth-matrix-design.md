@@ -1,16 +1,18 @@
 # Task11：27项请求认证与封装矩阵提案
 
-状态：用户在ec2f55b5后允许按混合方向继续编写矩阵；**本书面提案待审阅**。
+状态：用户在ec2f55b5后允许按混合方向继续编写矩阵，并在a40c7b45后确认
+本书面矩阵；**27项及11个请求角色已获本地设计批准，未授权实施或部署**。
 基线：ec2f55b5ad2b0f4abae046c9e54dfb5fdcbc20ac。
-本提案建议新增11个请求角色与27项明确用途限制，不声称原规格已有这些规则，
-也不将“继续写矩阵”解释为这些角色、限制或部署已获批准。
+本文新增11个请求角色与27项明确用途限制，不声称原规格已有这些规则。
+原方向批准仅允许写矩阵；随后书面确认才批准这些局部设计，不批准部署或其余16项。
 
 ## 1. 目的、已知事实与选择
 
 目的：让每个请求有明确的调用方、接收方、body认证与独立证据边界，防止把
 response signer、caller传来的proof或目录查找当作请求授权。
 范围只含[更新对照](../../roadmap/2026-10-17-task11-metadata-current-reconciliation.md)
-中R组27项，不修改其余119项。当前局部审查仍为103/43，本提案不自动关闭27项。
+中R组27项，不修改其余119项。矩阵批准前为103/43，书面批准后当前局部审查为
+130/16；不是27项代码已实现、独立认证或canonical集合批准。
 
 依据：[原v7规格](2026-08-24-nodecontrol-authority-v7-upgrade-design.md)（下文L编号
 以本基线为准）、[已批C1](2026-10-16-authority-v7-request-auth-clarification.md)、
@@ -27,8 +29,9 @@ bundle/response保存，L639规定特殊archive展开，L659要求attestor与liv
 共用一个角色。原有明确的channel、credential、attestor可信连接与业务检查全部
 保留并叠加，不被请求签名替代；例如原初审#16的mutually-authenticated local
 holder续租通道不在本矩阵内，继续保持原分类。混合方向是保留已明确通道、逐项
-补足缺失契约，不承诺在这27项内必有null。上述27项签名选择本身也是新的待批
-设计选择，若不接受则整份矩阵返回修订，不以未签名/响应角色作为自动备选。
+补足缺失契约，不承诺在这27项内必有null。上述27项签名选择是此次本地批准的
+新增设计，不是原规格已有事实；后续若需改变须显式修订，不以未签名/响应角色
+作为自动备选。
 
 替代方案：只使用既有proof/连接身份而不冻结请求body绑定，不能关闭当前缺口；
 为所有请求新建另一种认证wire协议则必须另定义transcript/传输/profile，会扩大
@@ -57,13 +60,13 @@ algorithm→canonical bytes和签名→调用方身份及scope→原有proof/bun
 phase、single-use nonce、commit attestation、held状态或业务authorization。
 任何认证不确定结果在provider mutation或archive Fence前拒绝，不扩权重试。
 
-## 3. 十一个精确角色与调用方责任（全部新增提案）
+## 3. 十一个精确角色与调用方责任（新增本地设计，非原规格已有角色）
 
 调用方是未来可信policy绑定的主体，不是可从body或role字符串自报的身份。
 同一主体可以承担多个明确授权的请求角色，但不能因某角色被信任而取得另一个
 角色；每个role/key的schema允许集必须是下表精确集合的受限子集，不允许通配。
 
-| Profile | 拟议唯一signer_role | 原编号允许集 | 主体与接收方；授权来源 |
+| Profile | 本地已批唯一signer_role | 原编号允许集 | 主体与接收方；授权来源 |
 | --- | --- | --- | --- |
 | U | claim_v1_upgrade_request | 12,20,52,66,68,69 | exact activation/namespace的upgrade coordinator→provider；既有credential policy中的coordinator key＋独立预置的请求role/schema ACL，不能用待发布policy自授权。 |
 | E | claim_v1_epoch_request | 34,38,45 | 已授权epoch coordinator→provider；current credential policy的coordinator身份＋请求ACL，仍验证各自intent、lease、gap/commit proof。 |
@@ -192,14 +195,14 @@ operation；不改nonce/expiry/terminal CAS规则。换签名key不改变body di
 
 本提案是27项请求wire/role及archive认证记账的补充，不是无行为变更的文档更名。
 11个role、27个[]限制、recipient/scope绑定、主体恢复规则和额外请求envelope保存
-均须作为新增内容审阅。现有provider/attestor是否使用其他请求认证方式未核实，
+已作为新增内容获本地书面确认。现有provider/attestor是否使用其他请求认证方式未核实，
 兼容性UNKNOWN。不能上线新旧格式双路径、legacy unsigned fallback或响应role别名。
 即使本地设计获批，接线前仍须冻结各接收方实际profile/版本、compatibility vectors、
 caller/consumer清单及拒绝旧格式边界；无法唯一绑定recipient则继续阻塞。
 
-当前仍103项局部分类、43项未决，不能将本提案计作已批准27项。若书面提案完整
-获批，可在新的本地metadata对照中记录130/16；剩余P组16项仍须各自明确数据
-通道，不能因为请求规则清楚就默认通过。这个条件计数不是27项已实现或独立认证。
+本矩阵现已获书面确认，新的本地metadata对照记为130/16；剩余P组16项仍须各自
+明确数据通道，不能因为请求规则清楚就默认通过。这个局部分类计数不是27项
+已实现或独立认证；canonical登记、实际profile/兼容性及runtime验收仍开放。
 
 不改canonical approved spec-set及摘要，不改变C1和已批九项角色，不创建产品
 registry/fixture/codec/provider，不运行Go/build/test/fuzz/Docker/DB，不合并main。
@@ -231,7 +234,7 @@ registry/fixture/codec/provider，不运行Go/build/test/fuzz/Docker/DB，不合
 设计自检须确认新增规则标记清晰、没有null兜底、没有请求/响应能力混用、没有把
 candidate互认证当作编排方身份、没有新增body字段或改变摘要/accepted key集合。
 
-下一步是审阅整份27项矩阵，尤其是否接受27项通用请求envelope、11个请求角色及
-新增信任/用途限制；方向批准不替代这次书面审阅。获批后继续剩余16项数据通道，
-不是直接写产品代码。必要设计/恢复文件随现有开发分支保存；新电脑从
+整份27项矩阵及新增信任/用途限制现已获本地书面确认；继续剩余16项数据通道，
+不是直接写产品代码。最新来源核对见[16项数据通道审查](../../roadmap/2026-10-17-task11-data-path-review.md)。
+必要设计/恢复文件随现有开发分支保存；新电脑从
 [恢复记录](../../runbooks/repository-recovery.md)继续，不重跑已消耗的旧验证阶段。

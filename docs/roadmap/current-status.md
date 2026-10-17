@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Task11 — request matrix locally approved; data-path review130/16
+
+User confirmed the written27-request matrix aftera40c7b45,including its11 roles
+and explicit evidence-use restrictions;no deployment or implementation authority.
+Current local review is130 classified/16 unresolved,not independent certification.
+The [data-path review](2026-10-17-task11-data-path-review.md)accounts for all16 and
+proposes5 immutable-preimage paths,3 provider-envelope clarifications and8 local
+trusted-read/recompute-only uses. These16 classifications are not approved.
+In particular,#108 needs a durable publication owner before epoch source-set
+issuance;deferring its first storage until full source seal would be circular.
+Next:confirm the three-way direction,then write the full16-item clarification,
+including storage ownership/DAG before claiming any row closed. No code,fixtures,
+SQL/manifest/canonical-set changes or workloads;full metadata planning stays blocked.
+Older counts and pending-approval statements below are historical.
+
 ## Task11 — 27-request auth matrix written, awaiting substantive review
 
 User allowed writing the contract-specific mixed matrix afterec2f55b5.
