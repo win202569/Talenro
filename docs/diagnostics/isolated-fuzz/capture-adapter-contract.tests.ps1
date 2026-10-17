@@ -63,6 +63,9 @@ $p=Contract-Packet;$p.Events=[object[]]@((Contract-Tick 120000),(Contract-Chunk 
 Contract-ShadowRefusal $p 'ShadowBytesAfterTimeoutStillRefused'
 $r=Contract-Good (Contract-Packet);$r.Events=Contract-Shadow $r.Events 'Length' 0
 Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowStoredEventArrayRefused'
+$independent=Contract-Good (Contract-Packet)
+Check-ContractShadow ((Contract-Verify $independent).Verified -and $independent.Lifecycle.Status -ceq 'incomplete') 'ReturnedEmptyEventsDoNotPoisonNextRecord'
+$r.Events.PSObject.Properties.Remove('Length')
 $r=Contract-Good (Contract-Packet);$r.Arguments.Base64=Contract-Shadow ([string]::Empty) 'Length' 0
 Check-ContractShadow (-not (Contract-Verify $r).Verified) 'ShadowArgumentBase64RefusedBeforeDecode'
 $r.Arguments.Base64.PSObject.Properties.Remove('Length')

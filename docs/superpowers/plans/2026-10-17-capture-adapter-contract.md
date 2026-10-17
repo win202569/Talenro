@@ -1,8 +1,29 @@
 # Synthetic Capture Adapter Contract Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended inline execution,or superpowers:subagent-driven-development only if selected by the user. Approved after30aa84f9 for inline execution and4 hosts;executed but review-blocked. Original planning checkboxes below are not acceptance evidence. See execution disposition.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended inline execution,or superpowers:subagent-driven-development only if selected by the user. Original execution plus separately approved correction verified within synthetic scope;93PASS onPS7andPS5. Original planning checkboxes/status transitions below are historical,not wider acceptance evidence. See latest execution disposition.
 
 ## Execution disposition — 2026-10-17
+
+### Approved normal-case diagnosis/correction after5ac3a476
+
+Final disposition:diagnosticexit0/1043ms;fullPS7exit0/24997ms/93PASS andPS5exit0/
+34289ms/93PASS,both empty stderr. New3/3 spent,source/tests unchanged afterGREEN.
+Confirmed original Important finding fixed in scoped tests;owned-array correction
+restored normal records. No second review/full-project claim;culture-token
+candidate deferred. Original4/4,repair3/4 and unusedfourthfrozen unchanged. See
+execution report for hashes/limitations/rulings. Completion is synthetic contract
+only,not runtime/security/Stage B/C12 acceptance. Development checkpoint preserved.
+
+Separate cap3 approved:PS7 memory diagnostic then complete contract suitesPS7/5,
+120s each,no retry/second review. Original4/4 and repair3/4 unchanged;unused
+fourth frozen. Diagnostic showed normal records verify before/after the three
+string fixtures. Static trace instead found returned empty List.ToArray may
+share its backing empty array;stored-event shadow fixture left that shared
+array annotated. Correct ownership with cloned packet/stored arrays and test
+that a new normal record verifies while the old empty event array is shadowed.
+Prior normal-case assertion failure is regression RED;no extra RED host granted.
+Full updated suite must pass both remaining hosts;otherwise stop. No changes to
+dependencies,live/runtime/security gates or culture-token comparison.
 
 ### Approved Important-finding correction after75a6cabd
 

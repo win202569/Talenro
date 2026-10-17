@@ -75,7 +75,7 @@ function Get-ContractPacket($Packet){
             tick{$events.Add([pscustomobject]@{Kind='tick';ElapsedMs=[long]$e.ElapsedMs})}
         }
     }
-    return [pscustomobject]@{Schema=1;SourceMode='synthetic';SessionLabel=[string]$Packet.SessionLabel;ExecutableDeclaration=[string]$Packet.ExecutableDeclaration;ArgumentBytes=$argsCopy;EncodingName=[string]$Packet.EncodingName;OriginDeclaration=[string]$Packet.OriginDeclaration;StartedUTC=[string]$Packet.StartedUTC;EndedUTC=[string]$Packet.EndedUTC;Events=[object[]]$events.ToArray()}
+    return [pscustomobject]@{Schema=1;SourceMode='synthetic';SessionLabel=[string]$Packet.SessionLabel;ExecutableDeclaration=[string]$Packet.ExecutableDeclaration;ArgumentBytes=$argsCopy;EncodingName=[string]$Packet.EncodingName;OriginDeclaration=[string]$Packet.OriginDeclaration;StartedUTC=[string]$Packet.StartedUTC;EndedUTC=[string]$Packet.EndedUTC;Events=[object[]]$events.ToArray().Clone()}
 }
 function Get-ContractBindingHash($Packet){
     $memory=New-Object IO.MemoryStream;$writer=New-Object IO.BinaryWriter($memory)
@@ -107,7 +107,8 @@ function New-ContractStoredEvents($Events){
             tick{$stored.Add([pscustomobject]@{Kind='tick';ElapsedMs=$e.ElapsedMs})}
         }
     }
-    return ,([object[]]$stored.ToArray())
+    # List<T>.ToArray may share its empty array;the returned record must own it.
+    return ,([object[]]$stored.ToArray().Clone())
 }
 function New-ContractValidatedRecord($Packet){
     $lifecycle=Get-OfflineCaptureSimulation -Events $Packet.Events -EncodingName $Packet.EncodingName -OriginDeclaration $Packet.OriginDeclaration

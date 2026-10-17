@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[synthetic capture contract scoped fix verified](../roadmap/2026-10-17-capture-adapter-contract.md).
+Recover development-branch tip with constructor/verifier,updated93-check suite,
+portable memory diagnostic and report. PS7/PS5 each93PASS,exit0/empty stderr;
+original Important shadow finding fixed in scoped tests. Owned empty arrays now
+cloned;annotating an old record does not poison a new normal one. No second
+review/full-project run;culture-token concern unverified/deferred. New3/3 spent,
+original4/4 andrepair3/4 preserved;unused repair fourth frozen. No automatic
+replay/new budget on another machine. Ignored raw receipts/cache not restored or
+required by tracked source/tests. Keep original failures as history. No main
+merge,real collector/watchdog,durability,security/Stage B/I2/I3 acceptance.
+
 Latest:[normal-case regression after shadow guard](../roadmap/2026-10-17-capture-adapter-contract.md).
 Recover current source/tests/report as UNFINISHED,not prior78PASS version.
 Approved continuation retained call1;PassThru corrected fixture attachment.

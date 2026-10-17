@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — synthetic capture contract correction verified;93PASS per host
+
+[Final scoped evidence](2026-10-17-capture-adapter-contract.md):approved new3 hosts
+completed(memory diagnosis,PS7/PS5 full contract suites). Each GREEN93PASS,
+exit0,empty stderr(24997/34289ms). Length/Rank shadow rejection retained;cloned
+event arrays eliminate shared-empty-array residue. New independent-record test
+passes while old array is still annotated;normal minimal record restored.
+Original Important finding verified fixed in tests,no second review/full-project
+claim. Unverified culture-token concern deferred. Original4/4,repair3/4 unused
+fourth frozen,new3/3 all preserved. Portable source/tests/diagnostic/report,not
+ignored receipts. Still synthetic-only;no collector/watchdog/durable format,
+Stage B/security/I2/I3/full C12 acceptance or main merge.
+
 ## Latest — shadow cases pass; normal record fails; correction unfinished
 
 [Continuation evidence](2026-10-17-capture-adapter-contract.md):approved fixture

@@ -1,6 +1,73 @@
 # Synthetic capture contract — bounded execution and review
 
-## Latest continuation — normal-case failure; UNFINISHED
+## Latest — scoped correction verified;93 checks per host
+
+User approved new cap3 after5ac3a476:one memory-only diagnosis then cause-backed
+correction and two full contract suites. All3 consumed without retry. Original
+implementation4/4 and earlier repair3/4 remain unchanged;unused repair fourth
+stays frozen. No original failure was erased or replayed.
+
+|Call|Host/phase|Exit|Elapsed ms|PASS|Stderr artifact bytes|
+|---|---|---|---|---|---|
+|1|PS7 memory diagnosis|0|1043|diagnostic,not suite|0|
+|2|PS7 full contract GREEN|0|24997|93|0|
+|3|PS5 full contract GREEN|0|34289|93|0|
+
+Observed7.6.5Core x64 and5.1.26100.9711Desktop x64. Actual saved child results
+and complete outputs checked;source/tests unchanged between GREEN hosts and
+after verification. Original78 assertions plus13 shadow assertions,aggregate
+and one independent-record ownership check all passed on each host.
+
+Diagnosis showed normal records verify and20 fields compare before/after each
+of the three string fixtures;string-only residue was NOT reproduced. Static
+trace found the stored-event array shadow fixture annotated an empty array
+returned through List<object>.ToArray,without removal before the next record.
+[The official .NET implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/List.cs#L1051-L1060)
+returns a cached array for empty lists. That mechanism explained cross-record
+ETS property residue;it was code-traced rather than separately dynamically
+measured in the diagnostic. Final code clones normalized and returned event
+arrays even empty. New regression verifies a fresh record WHILE the old record's
+array remains shadowed,before fixture cleanup,so cleanup alone cannot explain
+the passing ownership check. Normal minimal record now passes both suites.
+
+Important finding disposition:verified fixed within scoped synthetic tests.
+Shared descriptor validation rejects non-CLR Length/Rank members before bounds
+or copies;actual byte arrays cannot silently clip through a passive length
+override. Scripted-property/method counter protections and unchanged simulator
+semantics remain covered. Existing canonical hash oracle,whole-trace/post-timeout
+bounds,UTC reversal,derived-state tampering and false authority flags still pass.
+Earlier six cases observed RED onPS7andPS5;remaining seven observedRED onPS5.
+The normal-record regression observedRED onPS7 before ownership correction.
+New named ownership assertion was not independently runRED;no claim every new
+assertion had its own failing run. No extra reproduction or full-project run.
+
+Current source SHA256:
+`8F07D3FF4B29CDA355B8C003B17BFA36CD27F030BE6FE11170BFC9918A90173E`.
+Tests:`A93937FA2C21F35E49E55B05667B5ABD2881E02691BD6350DE1593D95E75D883`.
+Portable memory diagnostic:
+`5914083F7AD5511B720044916630A0D6AC1DE8648841000F9906179EB0AC4F49`.
+New three-entry index:
+`E5F3D98DEFDF65B37741A40EC4E4DDBE39BB840A3E2D716FD8712F24249E9417`.
+Local ignored receipts under this plan's normal-case-fix folder retained;cloning
+restores source/tests/diagnostic/report,not private caches or raw audit files.
+Do not automatically rerun any diagnostic/suite with a spent allowance.
+
+Rulings and costs:PowerShell-native bookkeeping,finite hosts instead of extra
+Bash/task-done/baseline/full-project runs,and retained audit workspace follow
+approved authority/preservation(no whole-project regression certificate).
+Reject shadowing typed values instead of normalizing them(extended Length/Rank
+inputs refused). Clone owned arrays rather than merely masking test residue
+(one additional bounded shallow array copy). No second review for original
+review's fix pass(no independent re-review). Culture-dependent token comparison
+candidate remains unverified/deferred,not a confirmed minor or fixed issue(no
+ordinal/culture correctness certification). Keep/push existing development
+branch under standing preservation rule;no PR/main merge/worktree deletion.
+
+Pure synthetic delivery only:NOT live collection,watchdog,command/clock origin
+authentication,durable record persistence,security/vendor clearance,Stage B,
+I2/I3 or full C12 acceptance. All original review exclusions below still stand.
+
+## Earlier continuation — normal-case failure; historical
 
 User explicitly approved continuation after3d7d22b2:correct fixture attachment,
 keep call1 unexpected result/six failures without replay,and use remaining3.
