@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — fixture diagnosis plan written; no new execution approved
+
+User yes after25bc3b3a requested only a [fixture diagnosis plan](../superpowers/plans/2026-10-17-p1-ownership-fixture-diagnosis.md).
+It proposes two separate30000ms diagnostic hosts, PS7 thenPS5.1, owned fixture
+construction only: no product/test import, original-slot replay or fixture fix.
+Named guard predicates/boundary rows distinguish facts from hypotheses; observer
+disagreement yields inconclusive. Native preserved, new allowance awaits written
+plan approval. Original failed slot remains false;6 repair slots frozen, review
+ineligible, I1 unresolved. This turn changed documents only. Earlier entries below
+are historical; do not treat their approval as permission for this new probe.
+
 ## Latest — approved I1 repair stopped at first fixture check
 
 Native/new7-host/1-review plan was approved after ad0b5652. Slot1 PS7 exited1

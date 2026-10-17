@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest planning handoff: [fixture diagnosis plan](../superpowers/plans/2026-10-17-p1-ownership-fixture-diagnosis.md)
+written after user yes following25bc3b3a. Proposed separate2 hosts<=30000ms each,
+no product/test import or fixture correction, no frozen-budget reuse. It has NOT
+been executed or approved for execution. Review the written plan/new allowance
+first; Native method preserved. Original failure/old raw/source/tests unchanged,
+six repair slots frozen and review ineligible. Clone restores this document, not
+ignored receipts. Recover latest development branch, not main. Entries below are
+historical.
+
 Latest execution handoff: user approved Native repair after ad0b5652, but slot1
 failed fixture fidelity before the planned decorated-scalar product assertion.
 Read [stopped evidence](../roadmap/2026-10-17-p1-scalar-ownership-repair-execution.md).
