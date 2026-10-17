@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [approved continuation](../roadmap/2026-10-17-offline-raw-capture-continuation.md)
+and [completed finite verification](../roadmap/2026-10-17-offline-raw-capture-execution.md)
+preserve original slot5 false verdict and stopped index, adopting only its
+readonly assessment for later admission. Slots6..10 matched; final new suite28
+each engine and unchanged contract regression110 each, no retry/timeout.
+All10 slots spent, source/tests unchanged after restoration. One conditional
+scoped readonly reviewer remains for this exact delivery; no new tests or
+automatic acceptance/live execution follows cloning. Older stopped/pending
+entries below are history, not fresh budgets or current permission.
+
 Latest: [offline raw capture execution](../roadmap/2026-10-17-offline-raw-capture-execution.md)
 is STOPPED after5/10 calls. New portable module/test exist; both first full
 engines passed28 labels, but the ownership mutation gate was rejected by a

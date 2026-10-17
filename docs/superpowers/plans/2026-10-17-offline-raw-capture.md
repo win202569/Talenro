@@ -1,6 +1,6 @@
 # Offline Raw Capture Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Native execution is recommended here; method and this plan still require user confirmation.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for the selected Native execution. Steps use checkbox (`- [ ]`) syntax for tracking. Method and finite scope are approved; do not repeat completed or consumed steps.
 
 **Goal:** Build only the synthetic, in-memory byte-transfer coordinator from the approved design, preserving bytes and conservative lifecycle/authority semantics.
 
@@ -12,11 +12,12 @@
 
 Status: **APPROVED FOR NATIVE EXECUTION.** User selected1 after5915bc732a658973b368b40a681250388911854e, explicitly choosing parent implementation, up to10 synthetic tests and one conditional readonly review. No real runtime/Stage B authority. Progress is recorded in the execution report/checked steps below; historical proposal wording describes the approved scope, not extra budget.
 
-Current disposition: **STOPPED at slot5 controller label-comparison failure.**
+Current disposition: **ALL10 SLOTS CONSUMED; REVIEW PENDING under explicit continuation approval.**
 See [execution/readonly assessment](../../roadmap/2026-10-17-offline-raw-capture-execution.md).
-5/10 consumed, slots6..10 frozen, review0/1. Both first GREEN engines had28PASS;
-the ownership mutation's intended assertion fired, but original ExpectedResult=false
-is preserved. Mutation restored; no correction/retest/continuation authorized.
+The user approved the [specific slot5 admission exception and remaining-budget continuation](../../roadmap/2026-10-17-offline-raw-capture-continuation.md) after3243d55b. All five remaining calls matched;
+original slot5 ExpectedResult=false is preserved. Both first and final new-suite
+engines had28PASS; unchanged contract regression110 each. Review0/1 pending.
+No test allowance remains; no permanent product/test correction or extra run.
 
 ## Global Constraints
 
@@ -51,7 +52,7 @@ Scenario fields/types are exactly spec§5, including Header's seven fields and o
 
 Consumes `New-SyntheticCaptureRecord -Packet <object>` and `Test-SyntheticCaptureRecord -Record <object>`. Record remains the existing20-field object, not a wrapper extension. Preserve canonical argument bytes and UTC strings without normalization. The new Actions snapshot belongs to the returned coordinator result, not the existing archive format.
 
-## Finite Verification Proposal — approval required
+## Approved Finite Verification — consumed, no renewal
 
 At most10 fresh child test hosts, sequential,120000ms each, no automatic retry/repair/timeout extension. Expected TDD/mutation failures count as consumed calls and permit continuation only for their exact frozen assertion. Any other failure stops all remaining slots and the review. No separate exploratory imports/test invocations outside this list; static parsing, hashing and receipt inspection do not invoke product code.
 
@@ -76,7 +77,7 @@ Host commands are `& $engine -NoProfile -NonInteractive -File $testPath -Group $
 
 Freeze test source/hash and ordered labels before slot1. Freeze implementation and all12 prior dependency pins before slot3. Preserve stdout/stderr separately with lengths/hashes, actual engine/version/role, exit, elapsed and timeout; never rewrite receipts. For GREEN stderr accept empty or exclusively structurally recognized CLIXML Completed progress objects under the already approved progress policy: DTD/external resolution disabled, no object deserialization, reject Error/unknown/trailing data. RED must match its exact assertion and expected engine error envelope; any unrelated stderr record fails. Do not suppress progress/errors or retroactively relax the policy.
 
-Only after all10 results match the table and source pins reconcile: ONE fresh independent read-only reviewer, scoped to the new increment, relevant dependencies and saved evidence. No reviewer tests, edits, network or further delegation. No automatic second review/fix cycle and no whole-branch/main approval. This seat is part of this proposed plan, not already dispatched.
+Original prerequisite was all10 results matching the table. The explicit later approval adopts the readonly slot5 assessment as that specific admission exception while retaining its false verdict; all remaining results and pins must still match. Those conditions now hold: ONE fresh independent read-only reviewer is allowed, scoped to the new increment, relevant dependencies and saved evidence. No reviewer tests, edits, network or further delegation. No automatic second review/fix cycle and no whole-branch/main approval.
 
 ### Task1: Implement and verify the offline coordinator
 
@@ -148,9 +149,9 @@ ownership-mutation runs only ApiRequired,CopyOwnership,Complete; stop-mutation r
 - [x] **Step3 — implement `New-OfflineRawCaptureRecord([object]$Scenario)` minimally.** Use passive exact-shape checks and original CLR types, validate Scenario then Header via a zero-event public packet then all Actions. Snapshot inputs before owned MemoryStream construction. Validate source byte limits in Scenario preflight; Header failure maps invalid-header; action shape failure maps invalid-action. Preserve only admitted plain scalars in returned Actions. Use direct byte Read once per allowed action; copy exactly returned count and Dispose/clear temporary holders in finally. No StreamReader/PowerShell pipeline text conversions or public runtime seam.
 - [x] **Step4 — implement stop mapping and public reconciliation in the same module.** Apply spec§5/6 priorities. Maintain only position/EOF/exit/completion bookkeeping needed to avoid invalid reads; do not implement a second full lifecycle validator. Offending read becomes the specified empty chunk/tick. Construct the derived packet once after stopping, call the existing public constructor and verifier, check failure index/status against bookkeeping; inconsistency returns adapter-inconsistent, not a favorable result. Unknown exit stays null and source tails are never implicitly drained. Unexpected catch returns adapter-error with Record=null, retained validated Actions and no exception content; process-level failures have no recovery promise. Static review must trace all disposal/error paths because real I/O/resource failures cannot be truthfully exercised by exact MemoryStream success fixtures without broadening the interface.
 - [x] **Step5 — run GREEN slots3/4.** Exact28 labels, exit0 and stream policy required. No product/test repair after an unexpected failure under this allowance.
-- [ ] **Step6 — run the two prescribed sensitivity checks, restoring immediately.** Slot5 temporarily replace the owned Actions snapshot assignment with the original Scenario.Actions reference; CopyOwnership must fail. Restore via apply_patch and verify baseline hash. Slot6 temporarily replace deadline-read-to-tick handling with the actual read/chunk branch; DeadlineEdges must fail on expected Events kind. Restore immediately even if a call fails; record diff and before/mutant/restored hashes. Failed-to-detect mutation stops, not an excuse to weaken the test. No git reset/checkout or dependency changes.
-- [ ] **Step7 — final new-suite and dependency verification slots7..10.** Exact restored implementation/test hashes and all12 prior pins must match before/after. No store or simulator full rerun added: unchanged public-contract regression is the explicit dependency scope. Capture all actual results, including limitations of memory-only reads and virtual time.
-- [ ] **Step8 — checkpoint.** Review explicit source/test/report/status/recovery/plan file list, whitespace/parse checks and receipts; preserve a clearly labelled implementation checkpoint on the existing branch. No acceptance/main claim before the separate review and no untracked raw receipts committed.
+- [x] **Step6 — run the two prescribed sensitivity checks, restoring immediately.** Slot5 temporarily replace the owned Actions snapshot assignment with the original Scenario.Actions reference; CopyOwnership must fail. Restore via apply_patch and verify baseline hash. Slot6 temporarily replace deadline-read-to-tick handling with the actual read/chunk branch; DeadlineEdges must fail on expected Events kind. Restore immediately even if a call fails; record diff and before/mutant/restored hashes. Slot5 completion uses the explicit readonly-admission exception, not a rewritten verdict. No git reset/checkout or dependency changes.
+- [x] **Step7 — final new-suite and dependency verification slots7..10.** Exact restored implementation/test hashes and all12 prior pins must match before/after. No store or simulator full rerun added: unchanged public-contract regression is the explicit dependency scope. Capture all actual results, including limitations of memory-only reads and virtual time.
+- [x] **Step8 — checkpoint.** Review explicit source/test/report/status/recovery/plan file list, whitespace/parse checks and receipts; preserve a clearly labelled implementation checkpoint on the existing branch. No acceptance/main claim before the separate review and no untracked raw receipts committed.
 
 ### Task2: Independent review and durable handoff
 
@@ -167,4 +168,4 @@ ownership-mutation runs only ApiRequired,CopyOwnership,Complete; stop-mutation r
 
 Spec§1..4 map to scope/file/import boundaries;§5/6 to Task1;§7/8 remain explicit unimplemented future contracts, not missing Task1 work;§9 to the finite table and review;§10 to global constraints and Task2. All case labels map to a defined helper/interface; 28 labels include API/completion sentinels, not coverage percentage. Static disposal checks are not claimed runtime-fault proof.
 
-Recommended execution is **Native**: one coupled module and suite, implemented by the parent, then one fresh scoped read-only review. Subagent-driven execution is an alternative only if the user selects it; that requires a revised review/delegation budget before dispatch, not silent extra reviewers. No execution method is selected by the present writing approval. Ask the user to review this plan and explicitly choose the method/finite budget before any code or tests.
+Selected execution is **Native**: one coupled module and suite, implemented by the parent, then one fresh scoped read-only review. The original writing approval did not grant execution; the later option1 selection did, followed by the specific slot5 continuation. No unselected Subagent-driven implementation or extra review/repair budget follows.

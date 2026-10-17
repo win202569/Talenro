@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline raw capture finite verification complete; scoped review pending
+
+[Explicit continuation](2026-10-17-offline-raw-capture-continuation.md) approved
+after3243d55b: original slot5 false verdict/raw index retained, readonly assertion
+assessment accepted only for later admission; future controller label array
+handling corrected. No slot5 replay. All remaining five calls matched:
+stop mutation caught, final new suite28/28 on each engine, unchanged contract
+regression110 each.10/10 consumed, no timeout/retry/permanent source/test change.
+All12 prior pins and restored module/test match. One scoped readonly reviewer
+now permitted under that specific exception; not yet completed. See
+[full execution evidence](2026-10-17-offline-raw-capture-execution.md).
+No new module acceptance, real pipes/watchdog, Stage B/I2/I3/full C12/main or
+security clearance. Old archive's limited acceptance remains separately scoped.
+
 ## Latest — offline raw capture implemented; stopped at mutation controller gate
 
 [Execution and readonly assessment](2026-10-17-offline-raw-capture-execution.md):
