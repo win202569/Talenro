@@ -31,6 +31,11 @@ representation corrected;Task3 passed both hosts. Task4 GREEN and all14 final
 allowlist runs passed;350 final assertions.34/34 consumed. Independent readonly
 review pending;further repair/reverification needs a new bounded decision.
 Earlier stop/budget statements above and original30-call arithmetic are historical.
+Final independent review of36367122 is complete and NOT clean:6 accepted
+blocking findings;no corrective implementation/test run. Task4 completion
+remains open. See ../../roadmap/2026-10-17-ordinary-ledger-final-review.md.
+Proposed26-call fake-only repair round awaits approval/exact fixture scope;
+none of the original34 calls may be replayed or extended automatically.
 
 ## Global Constraints
 

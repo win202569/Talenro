@@ -1,5 +1,12 @@
 # Isolated fuzz diagnosis
 
+2026-10-17 current warning:ordinary ledger final review found6 blocking defects,
+including null new-mode fields causing existing matrix/leaf ordinary receipts to
+be rejected. Do not execute those workflows from this unfinished checkpoint.
+No repairs/tests after review;34/34 calls consumed. See the
+[blocking review](../../roadmap/2026-10-17-ordinary-ledger-final-review.md).
+The350 fake/static assertions below are not an implementation-complete claim.
+
 2026-10-17:ordinary identity ledger adds an explicit isolated native entry and
 schema4 evidence evaluator. Existing Run overloads/callers and diagnostic modes
 remain unchanged;Assert-ProcessCompletion refuses schema4 and new-mode markers.

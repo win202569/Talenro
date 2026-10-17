@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ordinary ledger final review,fixes required](../roadmap/2026-10-17-ordinary-ledger-final-review.md).
+Six accepted blocking findings remain,including broken existing ordinary matrix/
+leaf receipt paths from null new-mode fields. Do not execute those workflows.
+Fake/static regression passed350 assertions but does not clear this review.
+Budget34/34 consumed;no post-review repairs/tests. Resume at approval and exact
+scope of the proposed26-call fake-only repair pass,not acceptance/native replay.
+All portable progress/review findings are tracked;raw records remain ignored.
+Earlier pending-review/latest statements below are historical.
+
 Latest:ordinary ledger explicit entry implemented;fake/static final allowlist
 passed14 runs/350 assertions on PS7/5.1. Total34/34 used after approved UTC
 roundtrip diagnosis/repair. Independent readonly review pending;do not run more

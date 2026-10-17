@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Task11 — independent review blocks ledger completion;6 fixes pending
+
+The [independent final review](2026-10-17-ordinary-ledger-final-review.md) found
+one P1 compatibility regression and5 P2 query/timing/isolation/binding gaps.
+Author verified/accepted all;no repair or rerun. Existing ordinary matrix/leaf
+writers copy new null fields and now fail the guard;do not run those drivers
+from this checkpoint before repair. Task4/whole slice NOT complete despite
+14 final fake/static runs/350 PASS.34/34 calls consumed. Proposed next step:
+approve one six-finding repair pass with at most26 extra fake/static calls,
+after exact repair fixtures/scope are written. No native workload or rollout.
+Metadata/main/production gates stay blocked. Earlier pending-review states historical.
+
 ## Task11 — ledger fake/static regression complete;independent review pending
 
 Approved diagnostic identified UTC date representation mismatch;Task3 now passes

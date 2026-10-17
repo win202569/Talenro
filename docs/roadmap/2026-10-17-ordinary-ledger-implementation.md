@@ -1,6 +1,10 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Date:2026-10-17. Base89cb1ad09bf831216c5999ddcb4409e4cea4d18d.
+Current final review:[six accepted blocking findings](2026-10-17-ordinary-ledger-final-review.md).
+NOT implementation complete;no fixes or tests after review. Existing ordinary
+matrix/leaf receipt workflows are broken by new null fields:do not run them.
+Earlier fake-PASS/pending-review/current statements below are historical.
 Current:all approved fake/static regression passed;34/34 used,independent review
 pending. The following stop/current histories are superseded by the final
 regression section at the end. No native/metadata acceptance is claimed.
@@ -259,3 +263,13 @@ Independent whole-change readonly review is next and still pending. This is
 not the final implementation completion declaration. No additional execution
 is authorized;review findings needing repairs/tests require a bounded decision.
 Original metadata RED and consumed runtime identities remain unaccepted/frozen.
+
+Final independent review returned one P1/five P2 findings;all accepted after
+author source checks. Task4 and the overall slice remain incomplete. No Critical
+or Minor reported. No post-review corrective code/test was authorized/performed.
+The review report contains exact paths/effects,all declined-area rulings and a
+proposed26-invocation fake-only repair pass awaiting user approval/specific scope.
+Current34-row invocation index SHA256:
+38F718E5D7BABA66B8D55AB6630EA2F5543C91A7CA951390E4E8B769092D0340.
+No review re-run or extra workload. Preserve this plan's ignored evidence directory
+because final review is not clean;do not apply the clean-finish deletion step.
