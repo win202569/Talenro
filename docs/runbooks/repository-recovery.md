@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:offline-store negative fixture argument corrected;PS7 continuation45
+checks passed then first HardLink setup failed(access denied). New allowance1/2
+consumed,PS5 unstarted and remaining frozen;original records unchanged. Read
+checkpoint continuation for exact hashes/limits. No clean suite claim. Propose
+fresh scoped elevated verification only after authorization;do not skip links,
+change ACL/security settings,or reuse old budgets. Source unchanged;2 minors
+remain deferred. Fixtures are ignored local audit data,not required imports.
+
 Latest:[unfinished offline store](../roadmap/2026-10-17-offline-output-evidence-store.md).
 Source/tests/plan are portable but no persistence behavior passed execution.
 3/4 host calls consumed;first GREEN failed on bare negative fixture argument

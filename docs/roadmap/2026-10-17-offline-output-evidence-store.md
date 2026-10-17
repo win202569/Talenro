@@ -4,7 +4,7 @@
 
 User approved the bounded persistence design and at most four fresh synthetic/local-file test hosts after commit6ce0bbd6. No live collector, ordinary ledger identity, Stage B, original suite replay or wider acceptance was authorized. Existing package4/4,classifier8/8,ledger70/70 budgets remain separate/frozen.
 
-The new store source and tests exist, but **no persistence behavior has passed execution**. First GREEN failed before entering the store. Do not use this checkpoint as accepted evidence storage.
+Initial f2c562a4 checkpoint: no persistence behavior had passed execution because first GREEN failed before entering the store. Latest approved continuation below has45 PS7 assertions passed but stops at a hardlink fixture access denial;still no complete green suite or PS5 verification. Do not use this checkpoint as accepted evidence storage.
 
 ## Implemented but not runtime-verified
 
@@ -52,3 +52,48 @@ Reviewed tests SHA256:`C6B399D5B517226A15A9F45AB9F13391E269755176E921D27DC96A09A
 Saved decoded stderr artifact sizes for calls1/2/3:363/551/337 bytes (runner text re-encoding,not raw child byte capture).
 
 Formal Stage B/safety disposition and I2/I3 full acceptance remain OPEN. This offline persistence extension cannot resolve missing original raw bytes or historical security disposition.
+
+## Approved numeric-fixture continuation — partial, blocked on hardlink creation
+
+After f2c562a4,the user approved numeric fixture correction plus at most2 new
+sequential hosts,PS7 thenPS5,120s each,no retry. Applied only bare `-1` to
+`([int]-1)` at New-StorePackage;production source/validators and two deferred
+minor coverage gaps remain unchanged. No repeat independent review for this
+single known correction;prior source review/limitations still apply.
+
+Separate ignored `store-repair-invocations.json` contains1 completed call:
+PS7 GREEN attempted,exit1,7373ms,45 PASS lines,decoded stderr artifact338 bytes.
+PS5 was not launched after first-host failure;remaining repair slot frozen.
+Original Store index still exactly3 calls and unchanged SHA83839B575F5A80490ECBF1D43696D78AAA2B710B2243268BD63D4BE6E151D033;
+the original unused fourth remains frozen too. No retries or cleanup.
+
+New index SHA256:`514F1512188C77376657E4FFB518ACA22B32B9C3BBD23E7C3D5A0B072890725F`.
+Unchanged source SHA256:`7710A1149B42CFD0C2505988CEE6748F399C3FB5E8C34D795B35FBCB8558BB81`.
+Corrected tests SHA256:`E54BE44B09391A02068CF2E4B203B1908C019766217AA4CDF368DB40A1821072`.
+
+Executed PS7 checks reached full binary roundtrip (including nonzero exit/raw
+binary),independent literal layout,marker layout,non-authentication flags,
+caller-object independence,no overwrite,empty UTF8/UTF16,UTF8 progress,
+missing/partial/stopped/hash mismatch refusal,valid-hash malformed fields,
+both1MiB streams/origin1024 bound,bad package/surrogate rejection,and unsafe
+path read/write refusal. This verifies those45 assertions on PS7 only,not the
+whole suite. Prior numeric fixture blocker no longer reproduces.
+
+Failure at tests line94: `New-Item -ItemType HardLink` reported access denied
+while creating the first hardlink fixture. Neither hardlink rejection assertion,
+junction/reparse checks,nor final exclusive-writer check ran. No implementation
+bug is established by failed fixture setup;the access-denial cause is not yet
+proven to be sandbox versus filesystem/ACL policy. Do not silently skip it.
+
+Readonly inspection retained `fixture-678f75e7f1634263b9049353073823ae-30`,with
+evidence.bin49 bytes and complete.bin48 bytes,ordinary Archive attributes.
+Directory owner BUILTIN\\Administrators,inherited ACL (AreAccessRulesProtected
+false);these observations alone do not establish why link creation was denied.
+All fixtures remain ignored/local;no real raw output was collected/committed.
+
+Next proposal: obtain new authority for at most2 fresh bounded local-fixture
+hosts (PS7 thenPS5),executed with scoped sandbox elevation to permit hardlink
+fixture creation. Preserve checks and all failure artifacts;no ACL/security
+changes,no outside-project links,no automatic retries. Elevation may still
+fail and is not a guarantee of a green run. Full-project/Stage B authority and
+old budgets remain unchanged. No further source/test fixes in this continuation.

@@ -8,7 +8,7 @@ $null=Get-IsolatedFullPath $root
 if(-not (Test-Path -LiteralPath $root)){New-Item -ItemType Directory -Path $root -ErrorAction Stop|Out-Null}
 $script:storePrefix='fixture-'+[Guid]::NewGuid().ToString('N');$script:storeCounter=0
 function New-StorePath{$script:storeCounter++;return (Join-Path $root ($script:storePrefix+'-'+$script:storeCounter))}
-function New-StorePackage{New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@(0,255,13,10)) -ExitCode -1 -EncodingName 'utf-8' -OriginDeclaration 'synthetic-only'}
+function New-StorePackage{New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@(0,255,13,10)) -ExitCode ([int]-1) -EncodingName 'utf-8' -OriginDeclaration 'synthetic-only'}
 function Put-StoreFixture([string]$Path,[byte[]]$Payload,[byte[]]$Marker){
     New-Item -ItemType Directory -Path $Path -ErrorAction Stop|Out-Null
     [IO.File]::WriteAllBytes((Join-Path $Path 'evidence.bin'),$Payload)

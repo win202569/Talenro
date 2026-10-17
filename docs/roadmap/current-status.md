@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — numeric fixture corrected;PS7 partial45,hardlink setup denied
+
+[Continuation](2026-10-17-offline-output-evidence-store.md):approved two-host
+allowance used1/2. PS7 ran45 PASS checks then exit1 at first HardLink fixture
+creation(access denied),7373ms. Integer fixture blocker resolved;source unchanged.
+PS5 not started,no retry,remaining slot frozen. Original Store3/4 and all older
+budgets unchanged/frozen. Hardlink/reparse/lock checks and PS5 remain unverified;
+not a clean suite,merge or acceptance. Failure cause(sandbox vs ACL/filesystem)
+not proven. Next proposal:2 new scoped elevated fixture hosts,no security/ACL
+changes,no skipped checks. Deferred empty-origin/nonemptyUTF16 coverage remains.
+
 ## Latest — offline persistence implementation checkpoint;verification blocked
 
 [Checkpoint](2026-10-17-offline-output-evidence-store.md):design and4-host cap

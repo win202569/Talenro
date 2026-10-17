@@ -43,3 +43,21 @@ Ruling: use native PowerShell bookkeeping instead of Bash skill helper scripts; 
 Task1: INCOMPLETE. Tests written first;RED hosts1/2 matched missing API. Implementation written;GREEN3 failed before store entry on fixture negative exit string. Readonly AST confirmed StringConstantExpressionAst;no code correction or rerun. Fourth call unstarted/frozen. Source/test parse clean only;this is not behavioral verification. Evidence/next authority: `docs/roadmap/2026-10-17-offline-output-evidence-store.md`.
 
 Final checkpoint review: one fresh readonly reviewer;0Critical,1Important(same unresolved fixture type failure),2Minor. No fix pass claimed;execution stopped before correction. Deferred minors: empty-origin mutation isolation and nonemptyUTF16 persistence coverage. Ruling on review exclusions: hostile namespace/concurrent mutation/ACL authenticity/mid-write faults/crash durability/real collection/runtime/wider correctness/acceptance remain unsupported or unverified,as detailed in checkpoint;cost if relied upon is false trust/unsafe runtime evidence. No stronger completion guarantee inferred from best-effort stopped marker. No second review or additional run.
+
+## Approved fixture correction continuation
+
+After f2c562a4,user approved the explicitly numeric negative fixture argument
+and at most2 new sequential hosts,PS7 thenPS5,120s each,no retry. Original3
+records preserved,original unused fourth frozen;no additional production fix
+or minor-coverage changes in this continuation. Separate ignored StoreRepair
+index/budget2. Apply only `-ExitCode ([int]-1)` in New-StorePackage,then run
+suite once per host,stopping if the first fails. Prior failed GREEN plus AST
+provides the fixture defect evidence;no new RED replay or full-suite authority.
+Expected result:50 PASS/host,exit0,empty stderr;actual result must be recorded.
+
+Continuation result:INCOMPLETE. Only the approved numeric fixture cast applied;
+unchanged store source. New call1 PS7 exit1/7373ms after45 PASS at first
+HardLink setup(access denied). No retries orPS5;remaining slot frozen. Old
+index SHA unchanged;repair index SHA514F1512188C77376657E4FFB518ACA22B32B9C3BBD23E7C3D5A0B072890725F.
+Prior fixture issue no longer occurs;hardlink/reparse/lock/PS5 unverified. No
+second review or minor fixes. Exact audit and next elevation proposal in report.
