@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[legacy comparison readonly findings](../roadmap/2026-10-17-legacy-evidence-comparison-audit.md).
+Documentation-only continuation after17c52edf;no modules/tests/real capture ran,
+no implementation changes. Classifier XML/encoding and standalone package label
+risks mapped;package caller GetType noted separately. Store read-enum/path/hash
+guards distinguished from upstream writer risk. Legacy effects not dynamically
+reproduced;existing110-check result is unchanged,not coverage for these variants.
+Proposed next classifier-only bounded correction/four fresh hosts/one review is
+NOT approved yet. No automatic reruns,budget renewal,format migration,live/
+security/Stage B authority or main merge. Resume by reviewing audit/approving
+next finite scope,not by treating static candidates as passed or already fixed.
+
 Latest:[exact-string boundary correction](../roadmap/2026-10-17-capture-contract-ordinal.md).
 Recover updated contract/tests and bounded evidence report;bothPS7/PS5 suites
 110PASS,exit0/empty stderr after6 observedRED failures each. Prior unverified

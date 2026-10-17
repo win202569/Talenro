@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — legacy comparison inventory complete;no implementation or tests
+
+[Readonly audit](2026-10-17-legacy-evidence-comparison-audit.md) traces remaining
+classifier XML/encoding and standalone package label comparisons. Legal XML
+attribute/text equivalence is a reachable static risk even through complete
+capture records;not dynamically reproduced this turn. Store paths already
+ordinal-ignore-case;read encoding comes from Int32 enum and magic/hash inputs
+are constrained. Writer inherits package admission. Adjacent package caller
+GetType dispatch flagged separately,not fixed. Existing tests lack focused
+ignorable-character fixtures. Next proposed bounded classifier fix/four NEW
+hosts/one review awaits approval;no allowance granted. Sources/tests unchanged,
+110-check evidence remains scoped/historical. All safety/Stage B/I2/I3 gates
+and frozen budgets unchanged;only audit/recovery docs saved.
+
 ## Latest — exact-string correction110PASS per host;scoped review accepted
 
 [Ordinal boundary evidence](2026-10-17-capture-contract-ordinal.md):approved
