@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[readonly property-traversal audit](../roadmap/2026-10-17-synthetic-capture-property-audit.md).
+Documents only,no product/tests/new hosts. Static4096 field-name pipelines are
+a candidate,not a measured cause;passive/shape/value guards remain necessary.
+Separate proposed2-host pipeline/foreach diagnostic awaits approval. Clone is
+not launch authority. No metadata-cache implementation,old regression unfreeze,
+acceptance/security/live/Stage B/full C12/main clearance follows.
+
 Latest:[fixed type-method lookup comparison](../roadmap/2026-10-17-synthetic-capture-type-lookup-comparison.md).
 New exploratory diagnostic/report preserved;new2/2 slots spent,both hosts exit0,
 empty stderr,type fixtures match,callback0. PS5 candidate808.549ms versus

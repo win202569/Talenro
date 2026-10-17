@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — property audit separates candidate pipeline cost from safety checks
+
+[Readonly property audit](2026-10-17-synthetic-capture-property-audit.md) confirms
+at least4096 per-event field-name pipelines in recursive equivalence. Their
+specific time is unmeasured. Other descriptor traversals enforce pre-read
+passivity,exact shape and shadow/type/bound guards;do not delete/merge them.
+Next proposed spike:isolated pipeline/foreach name-extraction comparison,
+NEW2 hosts PS7/PS5,120s each,no retry;awaiting approval,no script/hosts yet.
+No product/test change or new verification. All spent/frozen allowances,
+original timeout/unstarted review and live/security/main gates stay intact.
+
 ## Latest — metadata-only comparison does not support PS5 cache optimization
 
 [Lookup comparison](2026-10-17-synthetic-capture-type-lookup-comparison.md) used2/2
