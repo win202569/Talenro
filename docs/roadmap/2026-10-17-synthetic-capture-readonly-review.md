@@ -1,5 +1,11 @@
 # Independent readonly readiness review — complete, acceptance blocked
 
+Later dependency evidence: the user-approved [six-run regression packet](2026-10-17-synthetic-capture-dependency-regression.md)
+completed81/106/110 on each engine, with administrator old-store and ordinary
+simulation/contract contexts. This supplies the dependency component of
+Important1, not closure of all acceptance gaps or either old conditional review.
+Historical findings below remain as reviewed; no second reviewer dispatched.
+
 Subsequent evidence: user approved the bounded test extension after fe77ddeb.
 Its [four-run results](2026-10-17-synthetic-capture-supplemental.md) now directly
 exercise the targeted Important2/3 cases on both engines. This historical review

@@ -1,5 +1,11 @@
 # Synthetic capture store — cross-packet evidence and remaining gates
 
+Later dependency regressions: [six-run results](2026-10-17-synthetic-capture-dependency-regression.md)
+now provide81/106/110 PASS per engine in the separately approved contexts.
+The historical unrun-dependency statement below describes the earlier snapshot;
+remaining acceptance/context/coverage limits and old failed receipts persist.
+No source/test change or automatic old-review promotion follows.
+
 Later coverage extension: [supplemental tests](2026-10-17-synthetic-capture-supplemental.md)
 add direct malformed-event and writer-failure evidence (new9/6 PASS groups on
 each engine, four normal-user children). Original table below remains the

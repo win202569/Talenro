@@ -1,5 +1,10 @@
 # Supplemental synthetic-store coverage — four approved runs complete
 
+Subsequent work: [new dependency regressions](2026-10-17-synthetic-capture-dependency-regression.md)
+completed all six separately approved runs. The next-work proposal below is
+historical, not an unused allowance. Supplemental source remains unchanged
+and has not received another independent review; all acceptance limits remain.
+
 ## Approved boundary
 
 After fe77ddeb, the user approved a separate bounded coverage extension: add an

@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — six newly approved dependency regressions complete
+
+[Dependency evidence](2026-10-17-synthetic-capture-dependency-regression.md):
+NEW6/6 spent, old-store PS7/PS5 each81PASS (admin), simulation each106PASS and
+contract each110PASS (ordinary). All exit0, no timeout/retry; contract34628/
+55175ms. PS5 progress-only stderr accepted by prior policy, exact labels verified.
+All12 source/test hashes and old indexes unchanged. Dependency component of
+review Important1 now evidenced, not full acceptance. Supplemental test's
+closing readonly review is proposed only, not dispatched; old conditional
+reviews/failures and other limits remain. No main/security/Stage B/I2/I3/full
+C12 clearance or new execution authority. Earlier dependency proposals below
+are historical, not spare slots.
+
 ## Latest — approved supplemental coverage complete; dependencies still pending
 
 [Supplemental evidence](2026-10-17-synthetic-capture-supplemental.md):new portable

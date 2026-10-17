@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[six dependency regressions complete](../roadmap/2026-10-17-synthetic-capture-dependency-regression.md).
+Old store81/admin, simulation106/ordinary, contract110/ordinary passed on both
+PS7/PS5.1, no timeout/retry. New6/6 spent; all12 source/test pins unchanged.
+PS5 progress remains raw and classified under prior policy, not ignored.
+Report preserves exact contexts, timings and hashes for a new computer; raw
+receipts/inventories/fixtures stay local/ignored. Dependency evidence is now
+available, but old gate failures, conditional reviews and other acceptance
+limits remain. Proposed supplemental/evidence closing review is not launched;
+cloning grants no rerun or main/security/full-acceptance authority.
+
 Latest:[supplemental tests and four-run evidence](../roadmap/2026-10-17-synthetic-capture-supplemental.md).
 Recover the new standalone supplemental test, with explicit event-decoder and
 writer-failure groups. Normal-user PS7/PS5 each passed9/6 labels, no retry or
