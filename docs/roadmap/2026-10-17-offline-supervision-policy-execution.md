@@ -1,6 +1,10 @@
 # P1 offline supervision policy — finite execution record
 
-Status: **IMPLEMENTED/FINITELY VERIFIED; SCOPED INDEPENDENT REVIEW PENDING.**
+Status: **UNFINISHED / IMPORTANT I1; REVIEW COMPLETE.** Decorated scalar metadata
+can preserve mutable input references in results. Parent static reconciliation
+retains Important, without reproduction or repair. See
+[review and all limit dispositions](2026-10-17-offline-supervision-policy-readonly-review.md).
+Tests8/8 and review1/1 spent; further repair needs new bounded authority.
 User selected Native1 afterc2fd4b5063e97fc1eebb46a6279d3ba24848b184, approving
 the [P1 plan](../superpowers/plans/2026-10-17-offline-supervision-policy.md):
 eight sequential synthetic hosts and one conditional scoped readonly reviewer.
@@ -10,7 +14,7 @@ real supervision/cleanup proof, whole-project verification, main or C12 clearanc
 ## Scope and frozen bytes
 
 New standalone offline-supervision-policy.ps1 exposes Get-OfflineSupervisionDecision:
-passive full preflight, fresh scalar snapshots, absolute synthetic-ms budget,
+passive full preflight, intended scalar snapshots (I1 ownership gap), absolute synthetic-ms budget,
 arm/release/actor direction, bounded metadata, sticky first failure and Would*
 cleanup/persistence decisions. It imports nothing and performs no process/Job/
 pipe/Stream/clock/timer/file/network/security operation. Root actual flags remain
@@ -101,7 +105,7 @@ Would* never changes actual root authority. Stage B/security/owner disposition/
 exact runtime packet/P2/P3/I2/I3/full C12/main/release remain open. Old raw
 coordinator limited acceptance is independent, not inherited by this P1 module.
 
-One scoped fresh readonly review is now eligible, not complete at this checkpoint;
-no reviewer tests/edits/security/network/delegation or automatic fixes/re-review.
-Confirmed Important/Critical leaves this unfinished. Recover portable source/
+One scoped fresh readonly review completed and found Important I1; this remains
+unfinished. No reviewer tests/edits/security/network/delegation or automatic
+fixes/re-review occurred. Recover portable source/
 test/report/plan from codex/c12-b01-task9-coordinator, not main; no replay of8 slots.

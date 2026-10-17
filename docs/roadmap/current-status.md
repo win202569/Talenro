@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — P1 stopped on Important I1; finite tests and review spent
+
+Decorated scalar metadata can preserve mutable input references in returned
+decisions, violating snapshot ownership. Parent static tracing retains Important;
+no dynamic reproduction or repair. See [review/dispositions](2026-10-17-offline-supervision-policy-readonly-review.md).
+All8 approved test outcomes matched (final35/35 per engine), but do not cover I1
+or establish acceptance. Tests8/8 and reviewer1/1 spent. Source/test/protected14
+and raw preserved. Next requires a narrow repair plan and new finite allowance.
+Recover latest codex/c12-b01-task9-coordinator, not main. P2/P3/live/security/
+Stage B/full C12/main remain unapproved. Entries below are historical.
+
 ## Latest — P1 policy implemented; all finite tests matched, review pending
 
 User selected Native1 afterc2fd4b50. New standalone policy/test only; eight

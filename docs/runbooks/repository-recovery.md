@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: **P1 UNFINISHED on Important I1**, decorated-scalar snapshot aliasing.
+Read [review and all limits](../roadmap/2026-10-17-offline-supervision-policy-readonly-review.md).
+All8 expected outcomes matched, but tests8/8 and review1/1 are spent. No repair
+or dynamic reproduction occurred. Preserve frozen source/tests/protected14/raw;
+new narrow repair plan and finite allowance required. Recover latest development
+branch, not main. Git restores portable files, not ignored raw or historical
+execution attestation. Earlier review-pending entries below are historical.
+
 Latest: Native P1 implementation selected afterc2fd4b50 has completed all eight
 exact approved host outcomes. New standalone moduleFE23DF3B/test61A3BACF;
 final35/35 per engine, no stderr/timeout/retry, both prescribed mutants caught

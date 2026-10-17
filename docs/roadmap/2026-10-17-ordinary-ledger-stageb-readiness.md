@@ -1,5 +1,11 @@
 # Stage B readiness and decision checklist — NOT READY / NOT APPROVED
 
+Latest: P1 scoped review found Important I1 (decorated-scalar snapshot aliasing).
+See [review/dispositions](2026-10-17-offline-supervision-policy-readonly-review.md).
+P1 unfinished despite8 expected test outcomes; tests8/8 and review1/1 spent.
+No automatic repair/retest or real capability/security/runtime approval follows.
+Earlier review-pending updates below are historical.
+
 Prepared by read-only source/document reconciliation at
 `9e107335080b573f92024739db102506f83d7e78`. This document is a checklist of existing
 requirements,not a launch plan,approval request with finalized inputs,security

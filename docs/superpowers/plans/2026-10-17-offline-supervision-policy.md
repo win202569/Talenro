@@ -10,7 +10,7 @@
 
 **Spec:** [Joint capture/supervision design](../specs/2026-10-17-raw-capture-supervision-design.md), written atd9dcd740113ad2f7c8eacf48e3c043ae6e92e099 and explicitly approved by the user's yes to written-design approval/P1-plan writing.
 
-Status: **NATIVE EXECUTION APPROVED; ALL8 HOSTS MATCHED, SCOPED REVIEW PENDING.** User selected1 afterc2fd4b5063e97fc1eebb46a6279d3ba24848b184, approving parent implementation, eight sequential synthetic hosts and one conditional scoped readonly reviewer. All8 consumed, no tests remain. See [execution evidence](../../roadmap/2026-10-17-offline-supervision-policy-execution.md). P2/P3/live runtime excluded. Earlier proposal wording is historical, not extra allowance.
+Status: **UNFINISHED / STOPPED ON IMPORTANT I1.** Native execution was approved afterc2fd4b50. All8 host expectations matched; the sole readonly review found decorated scalar metadata can preserve mutable input references. Parent retains Important after static tracing; no reproduction/fix/retest/re-review. Tests8/8 and review1/1 spent. See [execution evidence](../../roadmap/2026-10-17-offline-supervision-policy-execution.md) and [review/dispositions](../../roadmap/2026-10-17-offline-supervision-policy-readonly-review.md). P2/P3/live runtime excluded; earlier proposal wording grants no extra allowance.
 
 ## Global Constraints
 
@@ -146,12 +146,12 @@ These selected lines do not replace the complete13+22-field literal comparisons 
 
 **Interfaces:** consumes Task1's frozen module/tests/pins/receipts/spec/plan; produces a bounded review disposition, not runtime authority.
 
-- [ ] **Step1 — after all eight precise expectations hold, request ONE fresh independent readonly reviewer.** Scope only this P1 increment and relevant evidence; inspect passive checks, first-failure latch, absolute/phase arithmetic, complete literal expectations, both mutants, flags and pins. Reviewer may not import/run tests, edit, query security/network or delegate. Use a currently available most-capable reviewer configuration, not an unverified hardcoded model name. No whole historical-branch audit or main review is authorized by this allowance.
-- [ ] **Step2 — reconcile every finding and declined-to-judge limit.** Important/Critical means unfinished/stopped, not a repair cycle; retain Minor explicitly and request direction if material. Do not call parent checks independent review. Declare real QPC/process containment/concurrent pipes/termination/durability/catastrophic/concurrent caller or hostile runspace behavior unproved; named synthetic tests are not a project-wide test pass.
-- [ ] **Step3 — save final recovery state and ordinary commit/push.** Include source/tests/approved documents and portable reports, not raw/controller/cache/binaries/secrets. Preserve old and new receipts even on stop. Verify expected origin/branch, explicit stage list, remote SHA=local and clean worktree. Next work needs its own decision.
+- [x] **Step1 — after all eight precise expectations hold, request ONE fresh independent readonly reviewer.** Completed1/1 within the P1-only readonly scope; no reviewer execution, edit, query, delegation or historical audit.
+- [x] **Step2 — reconcile every finding and declined-to-judge limit.** Important I1 retained after parent static tracing. All18 declined judgments explicitly dispositioned in the review report. P1 unfinished/stopped; no repair, reproduction or extra review authorized. No Minor/Critical finding.
+- [x] **Step3 — save final recovery state and ordinary commit/push.** Documentation-only stopped handoff, explicit7-file stage list and parent Git checks; final SHA/remote equality are recorded in the user handoff after the operation. Raw/controller/cache/binaries/secrets excluded and all packets retained. A checked handoff task is not P1 acceptance.
 
 ## Self-Review and Execution Handoff
 
 Spec§1..3/4..8 are architecture context and exclusion boundaries; this plan implements only§9 P1 and respects§10 gates. No task implements P2/P3, QPC adapters, real arming/readers/control queues, recording or cleanup. Normalized virtual-ms snapshots only exercise the new control-decision policy, not a new byte simulator. All five Review Focus classes map to named Task1 assertions;35 labels include API/completion sentinels, not coverage percentage. Full-suite means this new suite only; old protected tests are not rerun with spent budgets.
 
-Selected **Native** afterc2fd4b50: parent implementation, eight hosts, one conditional scoped fresh reviewer. All8 expected results now hold; review remains. No Subagent-driven implementation or historical whole-branch audit is selected, and no automatic extra review/fix cycle follows.
+Selected **Native** afterc2fd4b50: all8 expected results hold and one scoped review completed. Important I1 leaves P1 unfinished. No implementation delegation, historical whole-branch audit or automatic extra repair/review cycle is authorized.
