@@ -12,12 +12,15 @@
 
 Status: **APPROVED FOR NATIVE EXECUTION.** User selected1 after5915bc732a658973b368b40a681250388911854e, explicitly choosing parent implementation, up to10 synthetic tests and one conditional readonly review. No real runtime/Stage B authority. Progress is recorded in the execution report/checked steps below; historical proposal wording describes the approved scope, not extra budget.
 
-Current disposition: **ALL10 SLOTS CONSUMED; REVIEW PENDING under explicit continuation approval.**
+Current disposition: **ALL10 SLOTS AND REVIEW1/1 CONSUMED; IMPORTANT OWNERSHIP DEFECT OPEN, INCREMENT UNFINISHED.**
 See [execution/readonly assessment](../../roadmap/2026-10-17-offline-raw-capture-execution.md).
 The user approved the [specific slot5 admission exception and remaining-budget continuation](../../roadmap/2026-10-17-offline-raw-capture-continuation.md) after3243d55b. All five remaining calls matched;
 original slot5 ExpectedResult=false is preserved. Both first and final new-suite
-engines had28PASS; unchanged contract regression110 each. Review0/1 pending.
-No test allowance remains; no permanent product/test correction or extra run.
+engines had28PASS; unchanged contract regression110 each. The
+[completed review](../../roadmap/2026-10-17-offline-raw-capture-readonly-review.md)
+found Important1 empty-array ownership and Minor1 incomplete independent event
+expectations. Important1 blocks completion; Minor1 is disclosed/deferred.
+No test/review allowance remains; no product/test repair or additional run followed review.
 
 ## Global Constraints
 
@@ -159,10 +162,10 @@ ownership-mutation runs only ApiRequired,CopyOwnership,Complete; stop-mutation r
 
 **Interfaces:** consumes frozen Task1 source/tests, receipts and this spec/plan; produces a bounded review disposition and portable recovery state, not new runtime or acceptance authority.
 
-- [ ] **Step1 — review only after every earlier prerequisite.** One fresh independent reviewer checks byte copying, exact mapping/indices, passive preflight, ownership/disposal, two mutations, dependency pins and actual output policies. Include the five Review Focus classes; explicitly decline real-pipe scheduling, real timeout/cleanup and whole-branch security/acceptance claims. Reviewer must not import scripts or run tests.
-- [ ] **Step2 — reconcile findings.** Parent checks citations and source pins. Any confirmed Critical/Important issue leaves the increment unfinished and stops; no automatic repair/review/retest budget. Deferred minors are recorded, not hidden. No generic review pass converts synthetic facts into origin/cleanup proof.
-- [ ] **Step3 — save evidence and recoverability.** Record all10 consumed slots, expected versus actual outcomes and reviewer disposition in the execution report; preserve old failures and budgets unchanged. State whether new increment is verified/reviewed or incomplete. Full new module acceptance is not inherited from the old archive's approved verdict.
-- [ ] **Step4 — commit and push necessary files.** Verify expected origin and branch, stage explicit files, push ordinarily, confirm remote SHA=local and clean worktree. No main merge, force push, branch deletion, secret/cache/binary/raw receipt inclusion.
+- [x] **Step1 — review only after every earlier prerequisite.** One fresh independent reviewer checks byte copying, exact mapping/indices, passive preflight, ownership/disposal, two mutations, dependency pins and actual output policies. Include the five Review Focus classes; explicitly decline real-pipe scheduling, real timeout/cleanup and whole-branch security/acceptance claims. Reviewer must not import scripts or run tests.
+- [x] **Step2 — reconcile findings.** Parent checks citations and source pins. Confirmed Important1 leaves the increment unfinished and stops; no automatic repair/review/retest budget. Minor1 is disclosed/deferred. No generic review pass converts synthetic facts into origin/cleanup proof.
+- [x] **Step3 — save evidence and recoverability.** Record all10 consumed slots, expected versus actual outcomes and reviewer disposition in the execution report; preserve old failures and budgets unchanged. State whether new increment is verified/reviewed or incomplete. Full new module acceptance is not inherited from the old archive's approved verdict.
+- [x] **Step4 — commit and push necessary files.** Verify expected origin and branch, stage explicit files, push ordinarily, confirm remote SHA=local and clean worktree. No main merge, force push, branch deletion, secret/cache/binary/raw receipt inclusion.
 
 ## Self-Review and User Handoff
 

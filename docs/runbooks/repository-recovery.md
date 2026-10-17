@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [raw-capture readonly review](../roadmap/2026-10-17-offline-raw-capture-readonly-review.md)
+completed with Important1 empty-array ownership defect and Minor1 independent
+event-oracle gap. New increment is unfinished despite the saved28/110 results.
+All10 tests and sole reviewer consumed; no repair/reproduction/additional review
+ran after findings. Source/test remain4C0E6C10/7010CBCF; old slot5 false record
+and explicit admission exception are retained. The proposed bounded array-clone
+repair and five NEW test hosts are NOT authorized yet. Recover this blocker and
+proposal, not a green acceptance or permission to rerun old slots. Earlier
+pending-review entries below are historical. No main/security/live clearance.
+
 Latest: [approved continuation](../roadmap/2026-10-17-offline-raw-capture-continuation.md)
 and [completed finite verification](../roadmap/2026-10-17-offline-raw-capture-execution.md)
 preserve original slot5 false verdict and stopped index, adopting only its

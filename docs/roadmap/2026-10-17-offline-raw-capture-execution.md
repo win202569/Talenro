@@ -1,6 +1,6 @@
 # Offline raw capture coordinator — execution record
 
-Status: **FINITE VERIFICATION COMPLETE WITH EXPLICIT SLOT5 EXCEPTION; REVIEW PENDING, NOT ACCEPTED.** User selected Native option1 after
+Status: **FINITE EVIDENCE REVIEWED; BLOCKED BY IMPORTANT EMPTY-ARRAY OWNERSHIP DEFECT, NOT ACCEPTED.** User selected Native option1 after
 5915bc732a658973b368b40a681250388911854e, approving the
 [plan](../superpowers/plans/2026-10-17-offline-raw-capture.md)'s at most10
 sequential synthetic test hosts and one conditional readonly reviewer.
@@ -31,9 +31,10 @@ matched before execution. Existing source/tests were not edited.
 At the initial stop5/10 slots were consumed and6..10 frozen. The
 [explicit continuation approval](2026-10-17-offline-raw-capture-continuation.md)
 now permits only those remaining slots, with the original slot5 verdict retained.
-All10/10 slots now consumed; no remaining test allowance. Review0/1 pending;
-its prerequisite is now met under that explicit exception, not by changing
-the old verdict. All ten children used
+All10/10 slots consumed; no remaining test allowance. Review1/1 completed under
+the explicit exception, not by changing the old verdict; it found Important1
+and Minor1. See [review and parent dispositions](2026-10-17-offline-raw-capture-readonly-review.md).
+No Critical finding confirmed. Increment remains unfinished. All ten children used
 DESKTOP-H4SVCLU\Lenovo, admin=false. No timeout/elevation or automatic retry.
 PS5 first GREEN111570ms remained within120000ms, with no deadline extension.
 
@@ -71,8 +72,10 @@ C823F2893F511C3B2ABBA9521561F3B16379F76BA499AE44FD7F5447562B702F.
 Slot6's sole temporary mutation replaced deadline-read-to-tick with an actual
 read/chunk path; mutant67FC764E9C9946D838D528901B6F2D4BBF386464075D5BCBD23FC16898A51773
 was caught by the exact frozen DeadlineEdges assertion. Source was immediately
-restored to4C0E6C10, with no permanent product/test change. Conditional reviewer
-may now proceed because slots7..10 met expectations and all source pins reconcile.
+restored to4C0E6C10, with no permanent product/test change. Conditional review
+completed after slots7..10 met expectations and source pins reconciled. It
+identified a static empty-array cross-call ownership defect; no post-review
+repair or reproduction ran, and the disclosed Minor test gap remains deferred.
 
 Final invocation index SHA256:
 8EB29C6E95ADBF0D1491833303E970FF1A55C6619AC932514F065B6BE084F4D6.

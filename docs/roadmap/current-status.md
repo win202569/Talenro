@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — readonly review complete; Important empty-array defect blocks increment
+
+[Independent review and parent disposition](2026-10-17-offline-raw-capture-readonly-review.md):
+Critical0, Important1 confirmed statically, Minor1 deferred. Empty returned
+Actions can share PS7/Core List<object>'s cached array; ETS bound decoration
+can invalidate later valid captures through zero-event header verification.
+No dynamic reproduction or PS5 manifestation claimed. Nonempty ownership tests
+miss this case. Minor1 is the missing full independent mapped-event comparison.
+Final finite evidence remains28/28 new-suite per engine and110 contract each;
+slot5 original false verdict/admission exception unchanged.10/10 test slots and
+review1/1 spent; no code/test repair, reproduction or new review after findings.
+Save as reviewed BUT UNFINISHED checkpoint. A proposed bounded clone/empty-case
+repair with five NEW tests awaits user approval; Minor1 stays deferred.
+Real collection/watchdog, security/Stage B/I2/I3/full C12/main remain unapproved.
+
 ## Latest — offline raw capture finite verification complete; scoped review pending
 
 [Explicit continuation](2026-10-17-offline-raw-capture-continuation.md) approved
