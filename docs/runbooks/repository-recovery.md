@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: user approved the [final limited offline verdict and its limits](../roadmap/2026-10-17-synthetic-capture-limited-acceptance-approval.md)
+for delivery d5b547e484633f40a8339bcc48797e503139e69d. This module/version has
+completed limited offline functional acceptance, not release/security/main or
+whole-project/full C12 acceptance. This documentation-only approval update
+grants no new tests, review seats, repairs or execution budget. Historical
+failures and frozen routes remain unchanged. Recover from the existing dev
+branch; raw receipts/fixtures remain local and ignored. Older entries below
+are historical checkpoints, not the current approval state.
+
 Latest:[file-level reparse packet/review](../roadmap/2026-10-17-synthetic-capture-file-reparse.md)
 complete: two admin engines each7PASS and one readonly reviewer, no new defects.
 Recover the new standalone reparse test from Git; all prior12 pins unchanged.

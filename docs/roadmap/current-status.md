@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-17
 
-## Latest — file-level reparse evidence/review complete; limited verdict proposed
+## Latest — final limited offline acceptance approved by user
+
+User explicitly answered yes to the final verdict and its limits from
+`d5b547e484633f40a8339bcc48797e503139e69d`. See the
+[approval record](2026-10-17-synthetic-capture-limited-acceptance-approval.md).
+This version of the synthetic capture archive has completed limited offline
+functional acceptance in the recorded environments and approved scope only.
+No product/test changes or new executions accompany this status update.
+Historical failures/frozen routes remain unchanged. No main merge, release,
+security, Stage B/I2/I3/full C12 or whole-project acceptance is granted.
+No further work starts automatically; preserve this decision on the existing
+development branch for recovery on another computer.
+
+## Historical checkpoint — file-level reparse evidence/review complete; limited verdict proposed
 
 [Packet report](2026-10-17-synthetic-capture-file-reparse.md):NEW2/2 admin
 children spent, PS7/PS5 each7PASS,exit0/1781/1424ms,no timeout/retry. Real
