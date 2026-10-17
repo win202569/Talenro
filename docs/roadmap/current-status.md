@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — NEW independent readonly review complete; three validation gaps open
+
+[Independent report](2026-10-17-synthetic-capture-readonly-review.md):one fresh
+reviewer, no tests/edits/network/further delegation. No confirmed product defect;
+three Important gaps: incomplete acceptance/regressions, absent direct malformed
+event-decoder cases, and unexercised post-creation writer failure preservation.
+Parent verified cited source/test locations; all retained, no repair/retest.
+Additional oracle/reparse/max-package limits are documented. Ready to merge=No.
+NEW one-review allowance spent; neither old conditional review is completed by
+this diagnostic review. Product/tests/indexes unchanged. Next propose bounded
+test-extension design, not automatic implementation. Frozen slots, security,
+Stage B/I2/I3/full C12/main acceptance remain unchanged.
+
 ## Latest — cross-packet coverage consolidated; new readonly review proposed
 
 [Coverage and gaps](2026-10-17-synthetic-capture-coverage-summary.md): five

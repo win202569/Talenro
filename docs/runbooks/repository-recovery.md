@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[NEW readonly review completed](../roadmap/2026-10-17-synthetic-capture-readonly-review.md).
+One review spent; no confirmed product defect, three Important validation gaps
+remain (acceptance/regressions, malformed-event decoder cases, post-creation
+writer-failure preservation). No fixes/tests/second review were performed. Read
+this report for exact source references, evidence limits and declined judgments.
+Old reviews and frozen slots stay gated; source/tests/indexes unchanged. Next
+is proposed bounded test-extension design, not execution permission. Portable
+report is in Git; ignored raw receipts/fixtures remain local. No main/security/
+full-acceptance clearance follows from cloning or this static review.
+
 Latest:[cross-packet coverage and proposed review](../roadmap/2026-10-17-synthetic-capture-coverage-summary.md).
 Five groups have complete ordered assertion evidence on both engines, but
 contexts and receipt policies differ; no unified acceptance. Pending dependency

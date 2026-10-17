@@ -1,5 +1,11 @@
 # Synthetic capture store — cross-packet evidence and remaining gates
 
+Subsequent disposition: user approved the NEW one-review scope below after
+562ec07e; that review is now complete. See [review findings](2026-10-17-synthetic-capture-readonly-review.md).
+Three Important validation gaps remain, no confirmed product defect; no tests,
+repairs or acceptance promotion. Proposal text below records the historical
+pre-dispatch scope, not another unused review allowance. Old reviews stay gated.
+
 ## Scope of this consolidation
 
 After a841f997, the user requested the recommended coverage/gap consolidation
