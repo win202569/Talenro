@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline acceptance addendum drafted, not approved or effective
+
+[Written draft](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md)
+maps fixed-version separate evidence to original requirements and proposes an
+explicit alternative offline-only acceptance route. Historical failures/old
+reviews/frozen budgets remain unchanged. PS5 missing-root, oracle and context
+limits are explicit terms for user review, NOT already accepted waivers.
+File-level reparse direct evidence stays a required blocker. Draft approval
+would not launch tests or grant acceptance; future packet and final limited
+verdict require separate approval. No code/test/receipt/old-plan changes or
+new execution. Current reviewed checkpoint remains unaccepted; main/security/
+Stage B/I2/I3/full C12 gates intact. Await review of the written addendum.
+
 ## Latest — remaining acceptance scope classified; no gates changed
 
 [Scope proposal](2026-10-17-synthetic-capture-remaining-acceptance-scope.md)

@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline-only acceptance addendum DRAFT](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md).
+It is not approved/effective. Read its evidence map, proposed procedural
+replacement, explicit proposed limit-acceptance terms and retained file-reparse
+blocker. Approval of drafting is not acceptance of those terms or permission
+for new tests/reviews; an execution packet and final limited verdict still need
+their own approval. Source/tests/old plan/receipts unchanged, no launches this
+turn. Clone restores the draft and limits, not raw state or new authority.
+
 Latest:[remaining offline acceptance scope](../roadmap/2026-10-17-synthetic-capture-remaining-acceptance-scope.md).
 Read this classification before proposing more tests. Old gate failures remain;
 missing-root disclosure is permitted by the original plan, while file-level
