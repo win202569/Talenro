@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest plan-only handoff: [one-host isolation diagnosis](../superpowers/plans/2026-10-17-p1-fixture-isolation-diagnosis.md)
+written after user continuation followingc6a94949. Proposed one PS7<=30000ms,
+four categories/11 named checks, no test/product import/edit or originalF1/warmup
+replay. Written plan/new allowance NOT yet approved; Native preserved. No probe
+created or run. CandidateCF81 and all raw/pins unchanged. Prior false verdicts,
+frozenF2/six repair slots/review ineligible remain. Review plan before any new
+execution; clone does not unfreeze allowances or restore ignored evidence.
+
 Latest stopped handoff: [fixture revision F1 evidence](../roadmap/2026-10-17-p1-fixture-construction-revision.md).
 Approved afterb98251f4; F1 passed constructor/matrix/descriptors, failed isolation
 group (specific condition unknown). F2 frozen, no product call or retry. Current

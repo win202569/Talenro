@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — isolation-localization plan written; one host not approved
+
+Following user request afterc6a94949, the [new isolation diagnosis plan](../superpowers/plans/2026-10-17-p1-fixture-isolation-diagnosis.md)
+proposes one separate PS7 host<=30000ms, copied owned fixture path only, four
+ordered category rows and11 named original checks. No current test/product edit
+or import, originalF1/warmup replay, alternate construction or automatic repair.
+New allowance awaits written approval; no code/run this turn. Clean-host success
+would mean NotReproduced, not fixture acceptance. F1=false/F2 frozen, original6
+repair slots/review ineligible and I1 remain unchanged. Prior entries historical.
+
 ## Latest — fixture revision F1 stopped on isolation assertion
 
 User approved fixture-only revision afterb98251f4. F1 PS7 exit1/973ms,stderr0,
