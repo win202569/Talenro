@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ledger PS5.1 compatibility stop](../roadmap/2026-10-17-ordinary-ledger-implementation.md#approved-capacity-correctionnew-ps51-stop-after557c2249).
+Capacity correction/budget31 approved after557c2249;GREEN7 passed9 assertions,
+then GREEN5 failed test-script [ulong] lookup before assertions. Total5/31 used.
+No compatibility fix/retry yet;Task1 incomplete,remaining tasks/review pending.
+Resume at approval for script-only UInt64 aliases and cap32,not automatic replay.
+Production observer/callers and original metadata/probe gates remain unchanged.
+Earlier latest/pending entries below are historical.
+
 Latest:[ledger stopped Task1 implementation](../roadmap/2026-10-17-ordinary-ledger-implementation.md).
 Plan/budget/Native approved after89cb1ad0;only3/30 suite calls used. Both missing-
 implementation REDs expected;first GREEN7 failed Cap32 due fake33-ID/32-capacity

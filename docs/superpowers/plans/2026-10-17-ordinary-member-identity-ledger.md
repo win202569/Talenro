@@ -14,6 +14,13 @@ Status: user approved plan/30-invocation budget and selected Native/inline after
 89cb1ad0. Task1 stopped on unexpected Cap32 test failure after3 invocations;
 Tasks2–4 pending. See the execution report. Planning itself ran no tests/workload.
 
+Execution addendum after557c2249: user approved fixture-only capacity correction
+and total budget31. Replacement GREEN7 passed;first GREEN5 stopped at unsupported
+script type [ulong],5/31 used. No further fix/run authorized yet. Original30-call
+arithmetic below is historical;remaining plan is unchanged. Proposal:script-only
+UInt64 compatibility correction and total32,then replacement GREEN5 and remaining
+12 task RED/GREEN +14 final calls. This new proposal awaits approval.
+
 ## Global Constraints
 
 - Use existing0x101000 rights,inherit=false; capture last-error immediately.

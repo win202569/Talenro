@@ -1,6 +1,8 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Date:2026-10-17. Base89cb1ad09bf831216c5999ddcb4409e4cea4d18d.
+Latest:the follow-up below records5/31 calls and a new PS5.1 compatibility stop;
+the earlier3/30 stop and its proposed next step are historical,not current.
 User approved the [plan](../superpowers/plans/2026-10-17-ordinary-member-identity-ledger.md),
 maximum30 suite invocations,and Native/inline with one final independent review.
 Status:Task1 incomplete;stopped under the approved unexpected-failure rule.
@@ -93,3 +95,47 @@ incomplete and Task2–4 unstarted;final independent review still required.
 Original metadata remains1 build/1 runtime used,RED unaccepted;retained probe
 remains0 builds/1 runtime consumed. No ordinary rollout,metadata/main/production
 acceptance or merge. Preserve all original failure gates and consumed identities.
+
+## Approved capacity correction;new PS5.1 stop after557c2249
+
+User approved correcting the fake list envelope and increasing the maximum30→31,
+then continuing the original plan. Only fake QueryMembers changed:capacity is
+max(32,returned IDs),buffer bytes8+8*capacity. Candidate set,assertions and
+ordinary-ledger.cs production checks remained unchanged.
+
+| Invocation | Host/intent | Result | Elapsed |
+| --- | --- | --- | --- |
+|4 |PowerShell7/replacement GREEN |exit0;all9 PASS lines,including Cap32 and remaining cases |1344ms |
+|5 |Windows PowerShell5.1/first GREEN |exit1,TypeNotFound [ulong] at line4 Candidates cast |1155ms |
+
+The PS5.1 host loaded/compiled the source and reached the first test body,but
+its script type name [ulong] could not be resolved. No PASS assertion was emitted
+there. This is an author-introduced test-script compatibility error,not evidence
+of a production cap defect. No fix/retry followed the failure;Task1 remains
+incomplete,Tasks2–4/final regression/review have not started. Total5/31 used.
+
+Readonly comparison finds the affected aliases only in ordinary-ledger.tests.ps1;
+existing run.ps1/member-query.tests.ps1 use [UInt64]. Proposed correction is
+script casts [ulong]/[ulong[]]→[UInt64]/[UInt64[]],without changing values,
+assertions or production C# types. No additional baseline/native probe is needed.
+
+Proposed next approval:that script-only compatibility correction and cap31→32,
+then one replacement GREEN5 and the remaining original plan. Budget arithmetic:
+5 used +1 Task1 replacement +12 Task2–4 RED/GREEN +14 final allowlist=32.
+PowerShell7 will cover the compatible test text again in the planned final run;
+its present9-PASS result belongs to the pre-alias-correction script. A new
+unexpected failure still stops. Nothing authorizes native target execution,
+ordinary rollout or metadata acceptance.
+
+Current saved-only SHA256 fingerprints:
+
+| Ignored artifact | SHA256 |
+| --- | --- |
+| invocations.json at5 calls |9E23462EA0BAB7F2BCF0753979614AD9DF120B992AC66165096B4466BE79B0D4 |
+| run-4.stdout.txt |0B6F42053070FAB01451739266263589DD1D71B822078F63C7A2C4BF8E37CD94 |
+| run-5.stderr.txt |2C302415CB8E51EAA1E88F99340D87BD246C65AB07CC77CDF13298FABF3BE892 |
+
+All5 suite hosts completed. Raw records1–3 retained byte-identical;the invocation
+index appends new rows rather than rewriting earlier results. No old metadata/
+probe workload was started. Fresh-computer resume begins at this new approval
+decision,not the earlier Cap32 proposal or any automatic test replay.

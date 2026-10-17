@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Task11 — capacity fixture corrected;PS5.1 alias failure stops Task1 at5/31
+
+After557c2249,user approved fixture-only correction and budget31. Replacement
+PowerShell7 GREEN passed9 assertions;Windows PowerShell5.1 then failed to resolve
+the test script's [ulong] type before its first assertion. The
+[follow-up report](2026-10-17-ordinary-ledger-implementation.md#approved-capacity-correctionnew-ps51-stop-after557c2249)
+preserves both results. No fix/retry after that stop;production file unchanged.
+Task1 incomplete,Tasks2–4/final review pending. Next proposal:script-only UInt64
+alias correction,budget32,and replacement GREEN5 before remaining original plan.
+No native target/Go workload,acceptance rollout or metadata continuation.
+Earlier next-step statements below are historical.
+
 ## Task11 — ledger Task1 stopped on malformed fake list;3/30 calls used
 
 User approved plan/budget and Native/inline after89cb1ad0. The
