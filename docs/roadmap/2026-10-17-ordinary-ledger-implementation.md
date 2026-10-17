@@ -1,5 +1,14 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
+Current blocker:author source check found failed initial query may reuse prior
+runtime members in InitialMembers. Sticky refusal remains;no correction/tests
+after29/29. See repair report's closeout finding before continuing.
+
+Latest:[review corrective pass complete in fake/static scope](2026-10-17-ordinary-ledger-review-repair.md).
+Six findings covered;A/B/C94 successful assertions plus final350.29/29 repair
+calls used,no native/metadata acceptance. Earlier stopped/current statements
+below are historical. No main merge,full project test or Error87 repair claim.
+
 Latest:[review repair execution](2026-10-17-ordinary-ledger-review-repair.md)
 stopped5/27 after approved array correction;PS7 passed28,PS5 command discovery
 failed after5. No correction/rerun after this new unexpected failure.

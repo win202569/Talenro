@@ -1,8 +1,13 @@
 # Ordinary ledger — independent readonly final review: fixes required
 
-Follow-up:[approved repair stopped5/27](2026-10-17-ordinary-ledger-review-repair.md).
-Partial A changes are not verified;all six findings remain open. Earlier
-no-repair statements below describe the original review checkpoint.
+Author closeout found an additional failed-initial-snapshot provenance gap in B;
+see linked repair report. Implementation remains incomplete despite scoped green
+regressions. No second independent review or native validation is claimed.
+
+Follow-up:[single corrective pass verified in fake/static scope](2026-10-17-ordinary-ledger-review-repair.md).
+All six findings have grouped regression coverage;final14 runs/350 assertions
+green.29/29 repair calls used. This is not a second independent review,native
+acceptance or merge readiness. Original findings/verdict below are historical.
 
 Date:2026-10-17. Reviewed89cb1ad09bf831216c5999ddcb4409e4cea4d18d through
 36367122d5e7254238efc7f81baaf9ddcd77a5eb. One fresh-context independent reviewer,

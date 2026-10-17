@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public sealed class OrdinaryFinalOutcome {
     public bool EvidenceComplete,NaturalShutdownVerified,CountReconciled;
     public OrdinaryAccounting FinalAccounting;public ulong[] FinalMembers;
+    public OrdinaryAccounting InitialAccounting;public ulong[] InitialMembers=new ulong[0];
+    public LifetimeQueryEvidence InitialMemberQuery;
     public LifetimeQueryEvidence FinalMemberQuery;
     public long NaturalObservationMs,ShutdownStartTimestamp,EndTimestamp,Frequency;
     public List<string> Errors=new List<string>();
@@ -25,7 +27,11 @@ public sealed class OrdinaryLedgerSession {
             if(shutdownStartTicks<0 || clock.Ticks<shutdownStartTicks){Reject(r,"shutdown-clock");return r;}
             if(!rootExited || timedOut){Reject(r,"root-unfinished");return r;}
             if(!ledger.Budget(deadline) || ledger.Report.Incomplete)return r;
+            r.InitialAccounting=api.QueryAccounting(job,deadline);
+            if(!ledger.Budget(deadline) || !OrdinaryMemberLedger.ValidApi(r.InitialAccounting)){Reject(r,"initial-accounting");return r;}
             ledger.Poll(deadline);
+            r.InitialMemberQuery=ledger.Report.LastQuery;
+            r.InitialMembers=(ulong[])ledger.LastMembers.Clone();
             while(!ledger.Report.Incomplete){
                 ledger.ObserveFinal(deadline,false);
                 if(ledger.Report.Incomplete)return r;

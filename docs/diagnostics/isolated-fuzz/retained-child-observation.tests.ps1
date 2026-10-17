@@ -10,7 +10,7 @@ $unit=Join-Path $scope ('retained-child-unit-'+[guid]::NewGuid().ToString('N'))
 $root=Join-Path $unit 'retained-child-observe-901'
 $plan=Get-RetainedChildObservationPlan $root
 Check-RetainedChild (-not (Test-Path -LiteralPath $root) -and $plan.LimitSeconds -eq 20 -and $plan.ChildDelayMs -eq 150 -and $plan.ReadyLimitMs -eq 10000 -and $plan.DiagnosticOnly -and -not $plan.Acceptance) 'planning is read only with fixed diagnostic limits'
-Check-RetainedChild ($plan.SourceBinding.Count -eq 8 -and @($plan.SourceBinding.Path) -contains 'compile-stage-trigger.cs' -and @($plan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and $plan.ExecutableSHA256 -match '^[A-F0-9]{64}$') 'plan binds eight transitive production sources and existing shell'
+Check-RetainedChild ($plan.SourceBinding.Count -eq 11 -and @($plan.SourceBinding.Path) -contains 'compile-stage-trigger.cs' -and @($plan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and $plan.ExecutableSHA256 -match '^[A-F0-9]{64}$') 'plan binds eleven transitive production sources and existing shell'
 Check-RetainedChild (($plan.Arguments[0..2] -join '|') -ceq '-NoProfile|-NonInteractive|-EncodedCommand' -and [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($plan.Arguments[3])) -ceq $plan.ParentScript) 'fixed encoded parent body survives argument construction'
 foreach($invalid in @((Join-Path $unit 'short-child-observe-901'),(Join-Path $workspace 'retained-child-observe-901'))){
     $caught=$false;try{Get-RetainedChildObservationPlan $invalid|Out-Null}catch{$caught=$true}
@@ -148,7 +148,7 @@ function Test-RetainedController([string]$Mode,[int]$Suffix){
     foreach($row in $manifest.Files){$path=Join-Path $controllerRoot $row.Path;if((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne $row.SHA256 -or (Get-Item -LiteralPath $path).Length -ne $row.Length){$hashesOK=$false}}
     Check-RetainedChild ($hashesOK -and -not $manifest.Acceptance -and $manifest.NoRetry) ('persisted artifact hashes match bytes: '+$Mode)
     $savedPlan=Get-Content (Join-Path $controllerRoot 'plan.json') -Raw|ConvertFrom-Json
-    Check-RetainedChild ($savedPlan.SourceBinding.Count -eq 8 -and @($savedPlan.SourceBinding.Path) -contains 'compile-stage-trigger.cs' -and @($savedPlan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and -not $savedPlan.Acceptance) ('recoverable source binding saved: '+$Mode)
+    Check-RetainedChild ($savedPlan.SourceBinding.Count -eq 11 -and @($savedPlan.SourceBinding.Path) -contains 'compile-stage-trigger.cs' -and @($savedPlan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and -not $savedPlan.Acceptance) ('recoverable source binding saved: '+$Mode)
     if($Mode -ceq 'pass'){
         $saved=Get-Content (Join-Path $controllerRoot 'result.json') -Raw|ConvertFrom-Json
         $savedReceipt=Get-Content (Join-Path $controllerRoot 'process/receipt.json') -Raw|ConvertFrom-Json

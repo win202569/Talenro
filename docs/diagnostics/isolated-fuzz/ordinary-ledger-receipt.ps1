@@ -46,6 +46,7 @@ function Test-OrdinaryLedgerEvidence([object]$Receipt) {
     try{
         if($null -eq $Receipt){throw 'Missing envelope'}
         foreach($name in @('LifetimeDiagnostics','CompileStageTrigger','BuildOnlyDiagnostic','Handle')){if($null -ne $Receipt.PSObject.Properties[$name]){throw 'Diagnostic/raw contamination'}}
+        foreach($name in @('MemberEvidence','ShutdownMemberEvidence')){if($null -ne $Receipt.PSObject.Properties[$name]){Empty $Receipt $name}}
         Num $Receipt 'ShutdownSchema' 4 4;Text $Receipt 'ShutdownStatePolicy' 'ordinary-owned-ledger-final-exit-v1';Need $Receipt 'RunIdentity' 'text';Num $Receipt 'RootId' 1 4294967295
         foreach($n in @('RootAssigned','RootExited','CleanupVerified','NaturalShutdownVerified','ShutdownEvidenceComplete')){Flag $Receipt $n $true}
         foreach($n in @('TimedOut','TerminationRequested','LifetimeDiagnosticOnly','ShutdownDiagnosticOnly','LiveSampling','MemberEvidenceTruncated')){Flag $Receipt $n $false}
@@ -79,10 +80,11 @@ function Test-OrdinaryLedgerEvidence([object]$Receipt) {
             Flag $entry 'ReleaseAttempted' $true;Flag $entry 'ReleaseSucceeded' $true;Num $entry 'ReleaseError' 0 0
         }
         Obj $frame 'FinalAccounting';$a=$frame.FinalAccounting;Api $a
+        if($a.StartTimestamp -lt $frame.ShutdownStartTimestamp){throw 'Final accounting before shutdown'}
         foreach($n in @('TotalProcesses','ActiveProcesses','TotalTerminatedProcesses')){Num $a $n 0 4294967295}
         if($a.TotalProcesses -ne 1+$ledger.Admitted -or $a.ActiveProcesses -ne 0 -or $a.TotalTerminatedProcesses -ne 0){throw 'Accounting mismatch'}
         Obj $frame 'FinalMemberQuery';Query $frame.FinalMemberQuery
-        if($frame.FinalMemberQuery.Returned -ne 0 -or $frame.FinalMemberQuery.StartTimestamp -lt $a.EndTimestamp){throw 'Final list mismatch'}
+        if($frame.FinalMemberQuery.Returned -ne 0 -or $frame.FinalMemberQuery.StartTimestamp -lt $frame.ShutdownStartTimestamp -or $frame.FinalMemberQuery.StartTimestamp -lt $a.EndTimestamp){throw 'Final list mismatch'}
         foreach($entry in $ledger.Entries){if($a.StartTimestamp -lt $entry.Final.EndTimestamp){throw 'Final accounting order'}}
         $complete=$true
     }catch{$errors=@($_.Exception.Message)}

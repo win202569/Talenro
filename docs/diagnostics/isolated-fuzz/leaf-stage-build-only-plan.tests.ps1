@@ -17,14 +17,14 @@ Check-BuildOnly ($plan.Environment.Count -eq 20) 'FixedEnvironmentKeyCount'
 foreach($pair in $envExpected.GetEnumerator()){Check-BuildOnly ($plan.Environment[$pair.Key] -ceq $pair.Value) ('FixedEnvironment '+$pair.Key)}
 Check-BuildOnly ($plan.BuildLimitSeconds -eq 600 -and $plan.DiagnosticPolicy -ceq 'leaf-stage-build-only-v1' -and $plan.VetMode -ceq 'off' -and $plan.NoRetry -and $plan.DiagnosticOnly -and $plan.Coverage -ceq 'sampled') 'FixedScopePolicy'
 foreach($name in @('VetEvidenceComplete','Acceptance','PackagePassed','OriginalTestPassed','RuntimeAttempted')){Check-BuildOnly ($plan.$name -is [bool] -and -not $plan.$name) ('TypedFalse '+$name)}
-$names=@('leaf-stage-build-only.ps1','leaf-stage-retained-compile.ps1','leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs')
-Check-BuildOnly ($plan.SourceBinding.Count -eq 16 -and @(Compare-Object $names @($plan.SourceBinding.Path)).Count -eq 0) 'CompleteNamedPins'
+$names=@('leaf-stage-build-only.ps1','leaf-stage-retained-compile.ps1','leaf-retained-compile.ps1','retained-child-observation.ps1','mapping-single-check.ps1','matrix-check.ps1','envelope-uninstrumented.ps1','envelope-sample.ps1','envelope-observe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')
+Check-BuildOnly ($plan.SourceBinding.Count -eq 19 -and @(Compare-Object $names @($plan.SourceBinding.Path)).Count -eq 0) 'CompleteNamedPins'
 foreach($row in $plan.SourceBinding){Check-BuildOnly ($row.SHA256 -ceq (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $row.Path)).Hash) ('SourceHash '+$row.Path)}
 Check-BuildOnly ($plan.Trigger.Schema -eq 1 -and $plan.Trigger.Policy -ceq 'leaf-test-compile-log-v1' -and $plan.Trigger.TotalByteLimit -eq 16777216 -and $plan.Trigger.IterationByteLimit -eq 65536 -and $plan.Trigger.LineByteLimit -eq 65536 -and $plan.Trigger.PollLimit -eq 60000 -and $plan.Trigger.Compiler -ceq (Join-Path $f.Toolchain 'pkg/tool/windows_amd64/compile.exe')) 'FixedTriggerUnchanged'
 Assert-LeafStageBuildOnlySources $plan
 Check-BuildOnly (-not(Test-Path -LiteralPath $f.Root)) 'PlanningCreatesNoRunRoot'
 $round=$plan|ConvertTo-Json -Depth 8 -WarningAction Stop|ConvertFrom-Json
-Check-BuildOnly (@($round.BuildArguments).Count -eq 9 -and @($round.SourceBinding).Count -eq 16 -and $round.Environment.GODEBUG -ceq '' -and $round.VetEvidenceComplete -is [bool]) 'FlatPlanRoundtrip'
+Check-BuildOnly (@($round.BuildArguments).Count -eq 9 -and @($round.SourceBinding).Count -eq 19 -and $round.Environment.GODEBUG -ceq '' -and $round.VetEvidenceComplete -is [bool]) 'FlatPlanRoundtrip'
 Assert-LeafStageBuildOnlySources $round
 foreach($case in @('duplicate','missing','bad-hash')){
     $bad=$plan|ConvertTo-Json -Depth 8|ConvertFrom-Json

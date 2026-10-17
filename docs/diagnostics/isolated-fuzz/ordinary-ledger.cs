@@ -40,6 +40,7 @@ public sealed class OrdinaryMemberLedger:IDisposable {
     readonly List<Owner> owners=new List<Owner>();long lastTick;bool disposed;
     sealed class Owner {public IntPtr Handle;public OrdinaryEntry Entry;public bool Released;}
     public OrdinaryLedgerReport Report {get;private set;}
+    internal ulong[] LastMembers=new ulong[0];
     public OrdinaryMemberLedger(string runIdentity,IntPtr job,uint rootId,IOrdinaryLedgerApi api,IRetainedLifetimeClock clock){
         if(String.IsNullOrWhiteSpace(runIdentity) || job==IntPtr.Zero || job==new IntPtr(-1) || rootId==0 || api==null || clock==null || clock.Frequency<=0 || clock.Ticks<0)throw new ArgumentException("Own job, run, root, API and clock required");
         this.job=job;root=rootId;this.api=api;this.clock=clock;lastTick=clock.Ticks;
@@ -81,6 +82,7 @@ public sealed class OrdinaryMemberLedger:IDisposable {
             Report.LastQuery=CopyQuery(list);if(Report.FirstQuery==null)Report.FirstQuery=CopyQuery(list);
             if(!Budget(deadlineTicks))return;
             if(!ValidList(list)){Fail("list",list==null?-1:list.Error);return;}
+            LastMembers=(ulong[])list.Ids.Clone();
             foreach(ulong id in list.Ids){
                 if(id==root)continue;
                 if(id==0 || id>UInt32.MaxValue){Fail("candidate",-1);break;}

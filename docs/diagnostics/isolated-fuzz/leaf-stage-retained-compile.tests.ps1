@@ -55,7 +55,7 @@ function Test-LeafCase([string]$Scenario){
     $plan=Get-LeafStageRetainedCompilePlan $root $tool $reference $modules
     if($Scenario -ceq 'plan'){
         Check-Leaf (-not(Test-Path $root) -and $plan.Package -ceq 'internal/nodecontrol/nodeleafbinding' -and $plan.BuildLimitSeconds -eq 600 -and -not $plan.RuntimeAttempted -and -not $plan.Acceptance) 'planning fixes compile only target and creates nothing'
-        Check-Leaf ($plan.SourceBinding.Count -eq 15 -and @($plan.SourceBinding.Path) -contains 'leaf-stage-retained-compile.ps1' -and @($plan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and $plan.Trigger.Compiler -ceq (Join-Path $tool 'pkg/tool/windows_amd64/compile.exe') -and $plan.Trigger.TotalByteLimit -eq 16777216) 'CompleteSourcePins and fixed trigger policy'
+        Check-Leaf ($plan.SourceBinding.Count -eq 18 -and @($plan.SourceBinding.Path) -contains 'leaf-stage-retained-compile.ps1' -and @($plan.SourceBinding.Path) -contains 'compile-stage-session.cs' -and $plan.Trigger.Compiler -ceq (Join-Path $tool 'pkg/tool/windows_amd64/compile.exe') -and $plan.Trigger.TotalByteLimit -eq 16777216) 'CompleteSourcePins and fixed trigger policy'
         return
     }
     if($Scenario -ceq 'existing'){New-Item -ItemType Directory -Path $root|Out-Null}

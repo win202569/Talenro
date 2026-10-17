@@ -1,5 +1,27 @@
 # Project status — updated 2026-10-17
 
+## Closeout blocker — failed initial snapshot may reuse runtime list
+
+Author readonly check found a new B provenance gap after green regression:
+LastMembers survives a failed shutdown query and can be copied as InitialMembers.
+Sticky refusal still prevents natural acceptance,but initial fact labeling is
+wrong. No fix or new tests after29/29. See [closeout finding/proposal](2026-10-17-ordinary-ledger-review-repair.md).
+Implementation remains incomplete. Proposed new18-call fake-only correction
+(total47) needs approval;no native/full suite/main/rollout authority.
+The next-step environment suggestion below is superseded by this blocker.
+
+## Latest — six review repairs fake/static verified;live gates unchanged
+
+The single approved corrective pass completed29/29 repair calls. PS5 failure
+was Core-module shadowing;child-only inbox module path fixed it,no system edits.
+A/B/C passed28/9/10 checks per host;final14 allowed runs passed350 assertions,
+empty stderr. See [full evidence and limits](2026-10-17-ordinary-ledger-review-repair.md).
+All six findings have scoped regression coverage;no second review or full project
+suite. Controller count fixtures updated but not executed. No native/Go workload,
+Error87 proof,metadata continuation,main merge or acceptance activation.
+Next:separately scope remaining native/environment evidence;do not replay prior
+identities or run more tests on the consumed allowance. Earlier states historical.
+
 ## Latest — array fixture corrected;PS5 command discovery stopped5/27
 
 Approved fixture-only correction passed all28 A assertions on PS7. PS5 passed

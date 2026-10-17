@@ -1,5 +1,16 @@
 # Ordinary Member Identity Ledger Implementation Plan
 
+Closeout:author readonly check identified stale InitialMembers after failed
+initial shutdown query following runtime polling. Completion blocked;no fix/tests
+after29/29. Proposed18 additional fake calls,total47,pending user approval.
+
+Latest:after5b4dc515,user approved one readonly host diagnostic and
+cause-supported test-host correction,cap29. Diagnostic confirmed Core Utility
+shadowed Desktop Utility;PS5 child-only inbox module path restored hash discovery.
+A/B/C GREEN28/9/10 per host;final14 runs/350 assertions passed.29/29 used.
+All six review findings scoped-regression covered,no native/workload acceptance,
+second review or main merge. See portable repair report;earlier states historical.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build an isolated, fake-testable ordinary identity-ledger path without enabling workload acceptance or changing existing callers.

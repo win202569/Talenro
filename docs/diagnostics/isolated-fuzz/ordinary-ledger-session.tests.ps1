@@ -8,7 +8,7 @@ function New-ExitFixture {
 }
 $f=New-ExitFixture;$r=Finish-Ordinary $f
 Check-Ordinary ($r.EvidenceComplete -and $r.NaturalShutdownVerified -and $f.Ledger.Report.Entries[0].Final.Signaled -and $f.Api.OpenCalls -eq 1) 'AbsentAtRootStillVerified'
-Check-Ordinary ($f.Api.Calls.IndexOf('close:900002') -lt $f.Api.Calls.IndexOf('accounting') -and $f.Api.ReleaseCalls -eq 1) 'ReleaseBeforeAccounting'
+Check-Ordinary ($f.Api.Calls.IndexOf('close:900002') -lt $f.Api.Calls.LastIndexOf('accounting') -and $f.Api.ReleaseCalls -eq 1) 'ReleaseBeforeAccounting'
 $f=New-ExitFixture;$f.Api.Total=3;$f.Api.Lists.Enqueue([UInt64[]]@(2,3));$r=Finish-Ordinary $f
 Check-Ordinary ($r.EvidenceComplete -and $f.Ledger.Report.Admitted -eq 2 -and $f.Api.OpenCalls -eq 2) 'LateCandidate'
 $f=New-ExitFixture;$f.Api.Exited=$false;$r=Finish-Ordinary $f

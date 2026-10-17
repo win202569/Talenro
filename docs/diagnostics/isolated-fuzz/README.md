@@ -1,5 +1,15 @@
 # Isolated fuzz diagnosis
 
+Closeout blocker:failed initial shutdown queries can reuse runtime member facts
+in InitialMembers;sticky refusal remains,but provenance is inaccurate. No fix or
+rerun after29/29. The green scope below is not implementation completion.
+
+2026-10-17 latest:the six review findings now have scoped corrective regressions;
+A/B/C passed94 checks across two hosts and final14 allowlisted runs passed350.
+29/29 repair calls used. No native/workload acceptance or replay authorization;
+earlier broken-writer warning below describes the pre-repair checkpoint.
+See [corrective-pass evidence/PS5 host setup](../../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
+
 2026-10-17 current warning:ordinary ledger final review found6 blocking defects,
 including null new-mode fields causing existing matrix/leaf ordinary receipts to
 be rejected. Do not execute those workflows from this unfinished checkpoint.

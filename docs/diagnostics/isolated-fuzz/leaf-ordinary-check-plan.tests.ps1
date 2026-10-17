@@ -17,7 +17,7 @@ Check-LeafOrdinary (($p.BuildArguments -join '|') -ceq ($build -join '|') -and (
 $envWant=@{GOROOT=$f.Toolchain;GOCACHE=(Join-Path $f.Root 'go-cache');GOMODCACHE=$f.ModuleCache;TEMP=(Join-Path $f.Root 'tmp');TMP=(Join-Path $f.Root 'tmp');GOTMPDIR=(Join-Path $f.Root 'tmp');GOTOOLCHAIN='local';GOENV='off';GOPROXY='off';GOSUMDB='off';GOAUTH='off';GOVCS='all:off';GO111MODULE='on';GOWORK='off';GOFLAGS='-mod=readonly';GOOS='windows';GOARCH='amd64';TALENRO_FUZZ_DIAG_MODE='';TALENRO_FUZZ_FIXTURE='';GODEBUG=''}
 Check-LeafOrdinary ($p.Environment.Count -eq 20) 'FixedEnvironment20'
 foreach($key in $envWant.Keys){Check-LeafOrdinary ($p.Environment[$key] -ceq $envWant[$key]) ('Environment '+$key)}
-Check-LeafOrdinary ($p.SourceBinding.Count -eq 13 -and $p.InputBinding.Count -eq 4) 'BindingsPresent'
+Check-LeafOrdinary ($p.SourceBinding.Count -eq 16 -and $p.InputBinding.Count -eq 4) 'BindingsPresent'
 foreach($field in @('Policy','Package','VetMode','BuildLimitSeconds','Arguments','BuildArguments','Acceptance','Environment','SourceBinding','InputBinding')){
     $q=$p|ConvertTo-Json -Depth 20|ConvertFrom-Json
     switch($field){

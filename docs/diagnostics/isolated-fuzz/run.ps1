@@ -82,6 +82,8 @@ function Assert-CopiedCompileEvidence([string]$Log,[string]$Toolchain) {
     }
 }
 function Assert-ProcessCompletion([object]$Receipt) {
+    $ordinaryPolicy=$Receipt.PSObject.Properties['ShutdownStatePolicy']
+    if($null -ne $ordinaryPolicy -and $ordinaryPolicy.Value -ceq 'ordinary-owned-ledger-final-exit-v1'){throw 'Ordinary identity ledger is not enabled for acceptance'}
     foreach($marker in @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity')) {
         if($null -ne $Receipt.PSObject.Properties[$marker]){throw 'Ordinary identity ledger is not enabled for acceptance'}
     }

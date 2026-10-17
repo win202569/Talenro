@@ -9,8 +9,10 @@ for public consumption.
 ## Getting started
 
 For a new computer, follow [repository recovery](docs/runbooks/repository-recovery.md).
-The current development checkpoint contains an unfinished ordinary-ledger repair;
-do not run ordinary matrix/leaf workflows. See [repair status](docs/roadmap/2026-10-17-ordinary-ledger-review-repair.md).
+The ordinary-ledger review repairs passed scoped fake/static regressions;
+an additional failed-snapshot provenance issue leaves implementation incomplete.
+Native/workload acceptance remains blocked. Do not replay ordinary workflows
+without separate authorization. See [repair status](docs/roadmap/2026-10-17-ordinary-ledger-review-repair.md).
 Development-tool entrypoints require Windows and **PowerShell Core 7.6.5**.
 Windows PowerShell 5.1 and other PowerShell 7 versions are not supported by those
 entrypoints. The separate C12/smoke host requirements are unchanged.

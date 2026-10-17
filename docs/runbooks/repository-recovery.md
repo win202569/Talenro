@@ -16,6 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Closeout blocker:despite green scoped regressions,a failed initial shutdown
+query may copy a prior runtime member list as initial facts. Sticky refusal
+remains,so no acceptance claim. Read the latest repair report's closeout finding;
+do not treat the following completed-execution summary as implementation closure.
+No more tests authorized after29/29;proposed18-call correction pending.
+
+Latest:[ordinary ledger review repair final result](../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
+Six findings covered by scoped fake/static regressions;29/29 repair calls used.
+Final14 runs/350 assertions green;A/B/C add94. No full controller/native or
+production acceptance. PS5 tests require child-only inbox PSModulePath to avoid
+Core-module shadowing;exact setup and all outcomes are in that report. Recover
+tracked fixtures/sources,not ignored runners/caches. No extra test/native allowance.
+Keep the development branch;no main merge. Earlier latest entries historical.
+
 Latest:repair stopped5/27;approved two-array fixture correction passed PS7
 28 assertions,PS5 failed command discovery after5. Read the
 [latest repair section](../roadmap/2026-10-17-ordinary-ledger-review-repair.md)

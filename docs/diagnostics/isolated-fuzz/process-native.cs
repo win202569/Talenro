@@ -450,13 +450,20 @@ public static class IsolatedFuzzProcess {
             long cleanupDeadline=retainLifetime?LifetimeDeadline(cleanupStart,5000,Stopwatch.Frequency):0;
             if(registry!=null)registry.Snapshot("root-wait-end",cleanupDeadline,rootExited,result.TimedOut,false);
             if(stageSession!=null)stageSession.Snapshot("root-wait-end",cleanupDeadline,rootExited,result.TimedOut,false);
-            accounting=ReadInitialJobQueries(job,result);
+            if(ordinaryMode){
+                result.LedgerFinalOutcome=new OrdinaryLedgerSession(ordinaryLedger,job,ordinaryApi,new RetainedLifetimeClock()).Finish(rootExited,result.TimedOut,cleanupStart);
+                var initial=result.LedgerFinalOutcome.InitialAccounting;
+                accounting=initial==null?new Accounting():new Accounting{Total=initial.TotalProcesses,Active=initial.ActiveProcesses,Terminated=initial.TotalTerminatedProcesses};
+                if(initial!=null)result.InitialAccountingQuery=new AccountingQueryObservation{API="QueryInformationJobObject/Accounting",Succeeded=initial.Succeeded,Error=initial.Error,ValuesRead=initial.Succeeded,TotalProcesses=initial.TotalProcesses,ActiveProcesses=initial.ActiveProcesses,TotalTerminatedProcesses=initial.TotalTerminatedProcesses,StartTimestamp=initial.StartTimestamp,EndTimestamp=initial.EndTimestamp,Frequency=initial.Frequency,StartUTC=initial.StartUTC,EndUTC=initial.EndUTC};
+                result.MembersAtRootWait=result.LedgerFinalOutcome.InitialMembers;
+                var query=result.LedgerFinalOutcome.InitialMemberQuery;
+                if(query!=null)result.InitialMemberQueries.Add(new MemberListQueryObservation{API="QueryInformationJobObject/ProcessIdList",Attempt=1,Succeeded=query.Succeeded,Error=query.Error,HeaderRead=query.Succeeded,Assigned=query.Assigned,Returned=query.Returned,Capacity=query.Capacity,BufferBytes=query.BufferBytes,StartTimestamp=query.StartTimestamp,EndTimestamp=query.EndTimestamp,Frequency=query.Frequency,StartUTC=query.StartUTC,EndUTC=query.EndUTC});
+            }else accounting=ReadInitialJobQueries(job,result);
             result.TotalProcesses=accounting.Total;
             result.MembersDuringRun=live.ToArray();
             result.RootExited=rootExited;result.ActiveAtRootWait=accounting.Active;
             result.DescendantsRemaining=CountDescendants(pi.Id,result.MembersAtRootWait);
             if(ordinaryMode){
-                result.LedgerFinalOutcome=new OrdinaryLedgerSession(ordinaryLedger,job,ordinaryApi,new RetainedLifetimeClock()).Finish(rootExited,result.TimedOut,cleanupStart);
                 result.MemberEvidence=new MemberObservation[0];
                 result.ShutdownEvidenceComplete=result.LedgerFinalOutcome.EvidenceComplete;
                 result.NaturalShutdownVerified=result.LedgerFinalOutcome.NaturalShutdownVerified;
