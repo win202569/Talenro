@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline evidence objects verified](../roadmap/2026-10-17-offline-output-evidence-package.md).
+Recover standalone helper/tests plus unchanged classifier.49 per host passed,
+package4/4 exhausted;classifier8/8 and ledger70/70 are separate/frozen. Readonly
+review found no scoped issue. Verified is consistency only;origin remains
+unverified,failed output can be preserved. No persistence/live capture/JSON-text
+validator or runtime approval;next is offline persistence design. Old PS5
+failure and security/acceptance gates remain unchanged;never commit real secrets.
+
 Latest:offline evidence-package design proposed in current status,not implemented.
 Lossless Base64 bytes plus hashes/lengths,encoding/exit and explicitly unverified
 origin;verify bytes and recompute labels. This returns a package object,not a

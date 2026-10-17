@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Latest:[offline evidence objects](../../roadmap/2026-10-17-offline-output-evidence-package.md).
+Base64 bytes/hash/length packages and classification reverification,49 checks
+per host;package4/4 consumed. No persistence/live collector,origin authentication
+or Stage B approval. Integrity verification does not imply output acceptance.
+
 Latest:[offline numeric strictness repair](../../roadmap/2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence).
 Three anchors repaired,eight LF cases added;52 checks per host passed after
 expected RED. Offline8/8 consumed,ledger70/70 separate. No live capture,runner

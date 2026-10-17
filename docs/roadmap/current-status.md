@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline evidence objects implemented;49 synthetic checks per host
+
+[Contract/evidence/review](2026-10-17-offline-output-evidence-package.md):lossless
+Base64 objects,original lengths/hashes,strict shape/bounds and classification
+recomputation. Verified means consistency,not successful output or origin trust.
+Both REDs expected;both GREENs49 checks/empty stderr. Package4/4 used,separate
+from classifier8/8 and ledger70/70. Readonly review:no findings in bounded scope.
+No file archive/live collector/OS adapter or runtime integration. Concurrent
+input mutation/JSON-text ingestion/authenticity/durable archival not promised.
+Next:bounded offline persistence design;Stage B/security gates unchanged.
+Earlier proposed state below historical;no real run follows from these objects.
+
 ## Latest — offline evidence-package design proposed;no implementation
 
 User asked to continue raw-byte retention design. Recommended bounded first
