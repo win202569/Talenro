@@ -1,5 +1,11 @@
 # Full synthetic capture archive — execution evidence
 
+Follow-up:[separately authorized memory-only timing](2026-10-17-synthetic-capture-timing.md)
+narrowed the PS5 bottleneck to full-record verification:original verification
+56.114s,encode19.444s,decode1.524s;second verification incomplete at120s.
+No fix/full-suite replay;2/2 new probes spent. Internal verifier hotspot remains
+unmeasured. Original6/12 and frozen7..12 below unchanged;not acceptance.
+
 ## Authority and current status
 
 User approved [written design](../superpowers/specs/2026-10-17-synthetic-capture-store-design.md)

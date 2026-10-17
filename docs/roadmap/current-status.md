@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — memory timing narrows PS5 bottleneck;no repair or acceptance
+
+[Authorized probe](2026-10-17-synthetic-capture-timing.md) used2/2 NEW hosts,
+memory-only,no product/original-test edits or archive writes. PS7 completed
+exit0/33514ms;PS5 timed out exit-1/120104ms with empty childstderr. PS5 setup
+71ms,construct7135ms,verify-original56114ms,encode19444ms,decode1524ms;entered
+verify-decoded at childTotal84834ms and never printed end. Full-record verifier
+is the main observed slow stage;its internal hotspot/engine cause unmeasured.
+Not a passing PS5 probe or fixed suite. Product/test hashes and original index
+unchanged;original6/12/frozen7..12/no review remain. Next proposed bounded
+internal-phase diagnosis/source audit needs separate scope,not skip checks,
+raise timeout or claim environment-only cause. All live/security/main gates stay.
+
 ## Latest — synthetic archive implementation saved;PS5 boundary timeout blocks acceptance
 
 [Execution evidence](2026-10-17-synthetic-capture-store.md):new module/tests

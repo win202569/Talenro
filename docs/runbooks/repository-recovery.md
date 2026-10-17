@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[synthetic capture memory timing](../roadmap/2026-10-17-synthetic-capture-timing.md).
+New exploratory synthetic-capture-timing-diagnostic.ps1 is preserved only for
+reproducibility,not a test/runtime entry or automatic launch authorization.
+New2/2 probes consumed:PS7 complete33.514s;PS5 timeout120.104s. PS5 original
+record verification56.114s,encoding19.444s,decoding1.524s;second verification
+did not finish. No product/original-test changes or archive writes. Original
+6/12/frozen7..12 and unstarted review remain intact. Internal verifier phases
+not yet timed;separate bounded diagnosis needed before cause-backed optimization.
+Clone restores diagnostic/report,not local receipts/caches or permission to rerun.
+
 Latest:[unfinished synthetic archive implementation](../roadmap/2026-10-17-synthetic-capture-store.md).
 New synthetic-capture-store.ps1/tests now exist;NOT accepted. Format suites
 PS7/PS5 each18PASS;PS7 boundary73PASS. PS5 boundary timed out at120s after28PASS,
