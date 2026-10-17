@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[store writer boundary tests](../roadmap/2026-10-17-store-writer-boundary.md).
+Recover expanded store suite81 checks (old54+26 boundary cases+completion).
+BothPS7/PS5 complete suites passed,exit0/empty stderr,10782/13905ms;new2/2
+spent without retry. No production source or store format change;only tests
+and preservation docs. Fixtures prove selected refusals before directory creation
+without executing callbacks,plus literal Unicode/raw-byte roundtrips. No fresh
+independent review/full-project/live/main acceptance. Previous540 consumer
+results remain separate;no automatic replay. Ignored files/links/receipts remain
+local,tracked tests portable. Next proposal:readonly complete capture-record
+persistence inventory before separately approved design;security gates unchanged.
+
 Latest:[dependent evidence-chain regression](../roadmap/2026-10-17-evidence-dependent-regression.md).
 After362075604b905ffc5662b1c2e3f4a989c37ccfd3,existing store/simulation/contract
 suites passed on PS7 andPS5:54/106/110 each,total540,all exit0/empty stderr.

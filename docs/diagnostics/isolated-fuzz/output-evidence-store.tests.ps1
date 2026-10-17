@@ -3,6 +3,7 @@ function Check-Store([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTI
 $helper=Join-Path $PSScriptRoot 'output-evidence-store.ps1'
 if(Test-Path -LiteralPath $helper){. $helper}
 Check-Store ($null -ne (Get-Command Write-OfflineOutputEvidenceStore -CommandType Function -ErrorAction SilentlyContinue)) 'OfflineEvidenceStoreRequired'
+Write-Output ('HOST: '+$PSVersionTable.PSVersion.ToString()+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)
 $root=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))) '.superpowers/diagnostics/offline-output-evidence-store'
 $null=Get-IsolatedFullPath $root
 if(-not (Test-Path -LiteralPath $root)){New-Item -ItemType Directory -Path $root -ErrorAction Stop|Out-Null}
@@ -117,4 +118,79 @@ Check-Store $rejected 'ReparseWriteRefused'
 $d=New-StorePath;Put-StoreFixture $d $bytes $marker
 $held=[IO.File]::Open((Join-Path $d 'evidence.bin'),[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::None)
 try{Check-StoreRefusal $d 'ExclusiveWriterPreventsReadVerification'}finally{$held.Dispose()}
+# Breaks caught:writer bypassing package admission,dispatching caller methods/
+# getters,or creating a directory before refusing malformed in-memory evidence.
+# Use the real public writer and filesystem;no replaced validators or source checks.
+$script:storeWriterCallbacks=0
+function Check-StoreWriterRefusal($Package,[string]$Name){
+    $destination=New-StorePath
+    if(Test-Path -LiteralPath $destination){throw 'Writer boundary fixture collision'}
+    $before=$script:storeWriterCallbacks;$rejected=$false;$reason=''
+    try{$null=Write-OfflineOutputEvidenceStore -Directory $destination -Package $Package}catch{$rejected=$true;$reason=$_.Exception.Message}
+    Check-Store ($rejected -and [string]::Equals($reason,'Consistent evidence package required',[StringComparison]::Ordinal) -and -not (Test-Path -LiteralPath $destination) -and $script:storeWriterCallbacks -eq $before) $Name
+}
+$writerNul=[string][char]0;$writerIgnorable=[string][char]0x00AD
+foreach($mutation in @('policy-null','policy-ignorable','classification-null','classification-ignorable','encoding-null','encoding-ignorable','encoding-case','field-null')){
+    $bad=New-StorePackage
+    switch($mutation){
+        policy-null{$bad.Policy+=''+$writerNul}
+        policy-ignorable{$bad.Policy='offline-output-'+$writerIgnorable+'evidence-v1'}
+        classification-null{$bad.Classification='re'+$writerNul+'fused'}
+        classification-ignorable{$bad.Classification='re'+$writerIgnorable+'fused'}
+        encoding-null{$bad.EncodingName='utf'+$writerNul+'-8'}
+        encoding-ignorable{$bad.EncodingName='utf'+$writerIgnorable+'-8'}
+        encoding-case{$bad.EncodingName='UTF-8'}
+        field-null{$bad.PSObject.Properties.Remove('Policy');Add-Member -InputObject $bad -NotePropertyName ('Policy'+$writerNul) -NotePropertyValue 'offline-output-evidence-v1'}
+    }
+    Check-StoreWriterRefusal $bad ('WriterExactAdmissionBeforeDirectory-'+$mutation)
+}
+foreach($target in @('package','stdout','stderr')){
+    $bad=New-StorePackage;$script:storeWriterCallbacks=0
+    $fake=if($target -eq 'package'){@{}}elseif($target -eq 'stdout'){@{Base64='YWJj';ByteLength=3;SHA256='BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD'}}else{@{Base64='AP8NCg==';ByteLength=4;SHA256=$bad.Stderr.SHA256}}
+    Add-Member -InputObject $fake -MemberType ScriptMethod -Name GetType -Force -Value {$script:storeWriterCallbacks++;[Management.Automation.PSCustomObject]}
+    if($target -eq 'package'){$bad=$fake}elseif($target -eq 'stdout'){$bad.Stdout=$fake}else{$bad.Stderr=$fake}
+    Check-StoreWriterRefusal $bad ('WriterFakeTypeNeverDispatched-'+$target)
+}
+# Valid unused methods must not be invoked or cause loss/rejection on publication.
+foreach($target in @('package','stdout','stderr')){
+    $good=New-StorePackage;$script:storeWriterCallbacks=0
+    $decorated=if($target -eq 'package'){$good}elseif($target -eq 'stdout'){$good.Stdout}else{$good.Stderr}
+    Add-Member -InputObject $decorated -MemberType ScriptMethod -Name GetType -Force -Value {$script:storeWriterCallbacks++;[string]}
+    $actual=Write-OfflineOutputEvidenceStore -Directory (New-StorePath) -Package $good
+    Check-Store ($actual.Verified -and $script:storeWriterCallbacks -eq 0 -and [string]::Equals($actual.Package.Stdout.Base64,'YWJj',[StringComparison]::Ordinal) -and [string]::Equals($actual.Package.Stderr.Base64,'AP8NCg==',[StringComparison]::Ordinal) -and -not $actual.OriginVerified -and -not $actual.Acceptance -and -not $actual.RuntimeApproved) ('WriterUnusedGetTypeRetainsBytes-'+$target)
+}
+foreach($target in @('package','stdout','stderr')){
+    $bad=New-StorePackage;$script:storeWriterCallbacks=0
+    if($target -eq 'package'){$bad.PSObject.Properties.Remove('Policy');Add-Member -InputObject $bad -MemberType ScriptProperty -Name Policy -Value {$script:storeWriterCallbacks++;'offline-output-evidence-v1'}}
+    elseif($target -eq 'stdout'){$bad.Stdout.PSObject.Properties.Remove('Base64');Add-Member -InputObject $bad.Stdout -MemberType ScriptProperty -Name Base64 -Value {$script:storeWriterCallbacks++;'YWJj'}}
+    else{$bad.Stderr.PSObject.Properties.Remove('SHA256');Add-Member -InputObject $bad.Stderr -MemberType ScriptProperty -Name SHA256 -Value {$script:storeWriterCallbacks++;'unused'}}
+    Check-StoreWriterRefusal $bad ('WriterExecutableObjectPropertyNeverRead-'+$target)
+}
+foreach($target in @('policy-extra','base64-length')){
+    $bad=New-StorePackage;$script:storeWriterCallbacks=0
+    if($target -eq 'policy-extra'){$bad.Policy=Add-Member -InputObject $bad.Policy -MemberType ScriptProperty -Name Extra -PassThru -Value {$script:storeWriterCallbacks++;'unused'};$decorated=$bad.Policy;$member='Extra'}
+    else{$bad.Stdout.Base64=Add-Member -InputObject $bad.Stdout.Base64 -MemberType ScriptProperty -Name Length -Force -PassThru -Value {$script:storeWriterCallbacks++;4};$decorated=$bad.Stdout.Base64;$member='Length'}
+    try{Check-StoreWriterRefusal $bad ('WriterExecutableScalarPropertyNeverRead-'+$target)}finally{$decorated.PSObject.Properties.Remove($member)}
+}
+foreach($target in @('origin-length','base64-length','hash-length','base64-rank')){
+    $bad=New-StorePackage;$member=if($target -eq 'base64-rank'){'Rank'}else{'Length'}
+    if($target -eq 'origin-length'){$bad.OriginDeclaration=Add-Member -InputObject ('x'*1025) -MemberType NoteProperty -Name $member -Value 1 -Force -PassThru;$decorated=$bad.OriginDeclaration}
+    elseif($target -eq 'hash-length'){$bad.Stderr.SHA256=Add-Member -InputObject $bad.Stderr.SHA256 -MemberType NoteProperty -Name $member -Value 64 -Force -PassThru;$decorated=$bad.Stderr.SHA256}
+    else{$bad.Stdout.Base64=Add-Member -InputObject $bad.Stdout.Base64 -MemberType NoteProperty -Name $member -Value 1 -Force -PassThru;$decorated=$bad.Stdout.Base64}
+    if($decorated.PSObject.Properties[$member].MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Writer bound shadow fixture missing'}
+    try{Check-StoreWriterRefusal $bad ('WriterBoundShadowBeforeDirectory-'+$target)}finally{$decorated.PSObject.Properties.Remove($member)}
+}
+$bad=New-StorePackage;$script:storeWriterCallbacks=0;$fakeEncoding=[pscustomobject]@{}
+Add-Member -InputObject $fakeEncoding -MemberType ScriptMethod -Name ToString -Force -Value {$script:storeWriterCallbacks++;'utf-8'}
+$bad.EncodingName=$fakeEncoding
+Check-StoreWriterRefusal $bad 'WriterEncodingObjectNeverCoerced'
+# Breaks caught:normalizing origin text,transcoding raw streams,wrong encoding enum,
+# or converting integrity-only publication into authentication/runtime approval.
+$writerUnicodeOrigin=([string][char]0x00E9)+'e'+[char]0x0301+[char]0x6A21
+foreach($encoding in @('utf-8','utf-16le')){
+    $good=New-OfflineOutputEvidencePackage -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@(0,255,13,10)) -ExitCode ([int]-1) -EncodingName $encoding -OriginDeclaration $writerUnicodeOrigin
+    $actual=Write-OfflineOutputEvidenceStore -Directory (New-StorePath) -Package $good
+    Check-Store ($actual.Verified -and [string]::Equals($actual.Package.OriginDeclaration,$writerUnicodeOrigin,[StringComparison]::Ordinal) -and [string]::Equals($actual.Package.EncodingName,$encoding,[StringComparison]::Ordinal) -and [string]::Equals($actual.Package.Stdout.Base64,'YWJj',[StringComparison]::Ordinal) -and [string]::Equals($actual.Package.Stderr.Base64,'AP8NCg==',[StringComparison]::Ordinal) -and $actual.Package.ExitCode -eq -1 -and [string]::Equals($actual.Package.Classification,'refused',[StringComparison]::Ordinal) -and -not $actual.OriginVerified -and -not $actual.Acceptance -and -not $actual.RuntimeApproved -and -not $actual.Package.OriginVerified -and -not $actual.Package.Acceptance -and -not $actual.Package.RuntimeApproved) ('WriterUnicodeOriginRawBytesUnchanged-'+$encoding)
+}
+Check-Store ($script:storeWriterCallbacks -eq 0) 'WriterBoundaryCoverageComplete'
 Write-Output 'LIMIT: synthetic local fixtures retained;no live collection,origin trust,power-loss guarantee or acceptance.'

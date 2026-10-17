@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — store writer boundary coverage81PASS per host;production unchanged
+
+[Test-only writer coverage](2026-10-17-store-writer-boundary.md):approved2 NEW
+hosts completedPS7/PS5,81PASS each,exit0/empty stderr(10782/13905ms),no retry.
+Existing54+26 boundary cases+completion;malformed labels/fields,fake types,
+executable properties and bound shadows refused before destination creation,
+callbacks0;positive unused methods/Unicode/raw bytes retained. No production
+change or new RED/GREEN fix,format migration or independent review.2/2 spent.
+Prior540 consumer checks remain separate scoped evidence. Next proposal:readonly
+full capture-record persistence inventory/design,not automatic implementation.
+No live/security/Stage B/I2/I3/full C12/main acceptance;old/frozen budgets retained.
+
 ## Latest — dependent store/simulation/contract regression passed on both hosts
 
 [Finite dependent regression](2026-10-17-evidence-dependent-regression.md) after
