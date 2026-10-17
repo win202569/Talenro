@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest planning handoff: [I1 scalar-ownership repair plan](../superpowers/plans/2026-10-17-p1-scalar-ownership-repair.md)
+was written after user1 following d2021dc6. It proposes strict decorated-scalar
+refusal, unchanged original35 tests plus a new portable10-case regression suite,
+seven newly budgeted hosts and one conditional review. None is approved or
+started. Next: review the plan and explicitly choose/approve Native or revise
+the scope/method/budget; do not infer repair authority from plan writing. No
+source/test/pins/raw changed; old budgets spent and P1 Important I1 remains open.
+Recover this plan with latest development branch, not main or ignored sessions.
+
 Latest: **P1 UNFINISHED on Important I1**, decorated-scalar snapshot aliasing.
 Read [review and all limits](../roadmap/2026-10-17-offline-supervision-policy-readonly-review.md).
 All8 expected outcomes matched, but tests8/8 and review1/1 are spent. No repair

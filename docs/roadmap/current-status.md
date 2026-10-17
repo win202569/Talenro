@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — I1 narrow repair plan written; execution not approved
+
+User selected1 after d2021dc6 to request a plan, not repair execution. The
+[new plan](../superpowers/plans/2026-10-17-p1-scalar-ownership-repair.md) proposes
+rejecting extended primitive metadata before evaluation, a separate10-label
+regression suite and the unchanged35-case suite. Proposed new budget: seven
+sequential hosts and one conditional scoped readonly reviewer; none launched.
+Recommend Native; written plan, admission narrowing, budget and method await
+approval. P1 remains unfinished on Important I1; old8/8 and1/1 remain spent.
+No source/test/import/reproduction/reviewer/security change this turn. Necessary
+plan/status/recovery files are preserved on the existing development branch.
+
 ## Latest — P1 stopped on Important I1; finite tests and review spent
 
 Decorated scalar metadata can preserve mutable input references in returned
