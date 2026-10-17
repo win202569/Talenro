@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — ordinary-control diagnosis found IsInstance false positive
+
+Approved two-host spike after8364f1a0. [Record](2026-10-17-p1-empty-control-diagnosis.md):
+PS7 clean/preflight hosts exit0,932/1882ms,stderr0; both decisions invalid-scenario,
+direct strict root validation throws Decorated scalar at module line8. Ordinary
+Int32's28/String's56 descriptors all report IsInstance=true in these hosts; saved
+five field lists/results equal across modes. Candidate predicate misclassifies
+ordinary members; preflight not necessary for rejection. Not an old R3 internal
+trace or proof of all preflight effects. New diagnostic2/2 spent, no product/test
+edit, original test script import/run, retry or reviewer. ProductA38C1EE2 remains
+unaccepted; ownership86FD5C12/original35 unchanged. Old R3=false,repair3/7/four
+frozen/review ineligible unchanged. Next scope replacement member discriminator
+and controls; no automatic fix or test-budget renewal. Earlier entries historical.
+
 ## Latest — product scalar rejection candidate STOPPED at ordinary control
 
 Approved seven-run bounded repair after589a1d04. [Stopped record](2026-10-17-p1-scalar-rejection-repair.md):

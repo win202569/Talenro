@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic handoff: [empty-control comparison](../roadmap/2026-10-17-p1-empty-control-diagnosis.md).
+After8364f1a0 approval, two PS7 hosts (clean/copy-preflight) completed932/1882ms,
+exit0,stderr empty. Both return invalid-scenario and direct shape throws Decorated
+scalar at candidate line8. Ordinary primitive descriptors report IsInstance=true;
+that predicate alone is unsuitable. Preflight not necessary; no blanket absence
+of side effects or PS5 claim. Probe/report are portable, ignored raw/controller
+are not restored by clone. Diagnostic2/2 spent; no candidate fix/test changes or
+original suite run. ProductA38C1EE2 unaccepted, ownership86FD5C12 unchanged; old
+R3 false/remaining4 frozen/review ineligible. Scope a corrected discriminator and
+fresh validation before execution; do not remove protection or run by cloning.
+
 Latest STOPPED product checkpoint: [scalar rejection repair](../roadmap/2026-10-17-p1-scalar-rejection-repair.md).
 After589a1d04 approval, dual-engine REDs matched; first candidate PS7 complete
 run failed original P1EmptyPrepared after successful fixture preflight, exit1,
