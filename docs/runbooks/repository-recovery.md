@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest self-audit: [shape lookup review](../roadmap/2026-10-17-p1-shape-readonly-audit.md).
+Afterb3e662b1,no tests or code/tool changes. Current public callers preserve fixed
+schema-per-key,count/member/value checks;no confirmed runtime regression found,
+not independent review or acceptance.173 pins/receipts/candidate953CC2A8 fixed.
+Missing decorated SequentialIsolation,PlainControls,Complete and PS5 remain;
+performance gain/cause unproved. Shape2/3/one frozen,prior full1/2/one frozen,
+reflection3/4/one frozen,old3/7/four frozen/review ineligible unchanged. Next may
+separately scope targeted original ownership/PS5 evidence without code changes;
+that cannot waive full30s completion or permit automatic old-slot use. Recover
+portable reports/code from dev branch,not ignored raw/runtime/replay authority.
+
 Latest unfinished candidate: [ordinal shape lookup](../roadmap/2026-10-17-p1-shape-lookup.md).
 Afterd292fc87 approvals,candidate953CC2A8 uses fixed schema name sets local to each
 evaluation/kind;per-value defenses retained,no input-result cache. New6 baseline

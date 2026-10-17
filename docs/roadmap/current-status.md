@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — read-only shape self-audit finds no confirmed public-path defect; gaps remain
+
+Afterb3e662b1,[read-only self-audit](2026-10-17-p1-shape-readonly-audit.md) used ZERO
+test processes,no product/tool edits.13-function comparison confirms only context/
+shape helper and two key arguments differ;count/member/value checks retained.
+Current callers satisfy fixed-schema-per-key invariant;future helper key reuse
+for different fields would require review. Header SDK-only wording is stale,
+not a runtime defect.173 pins/seal/receipts held. No unique timeout cause or net
+speedup proved. SequentialIsolation/PlainControls/Complete and PS5 remain absent;
+new6 do not replace that matrix. Candidate953CC2A8 still unaccepted,I1/P1 unresolved.
+All frozen budgets/review eligibility unchanged. Next separately scope targeted
+original ownership/PS5 semantic proof,no candidate changes;subset PASS cannot
+replace full30s gate,justify automatic replay/old-budget use or main acceptance.
+
 ## Latest — per-evaluation ordinal shape sets implemented; full PS7 still times out
 
 Afterd292fc87 approvals,[shape lookup candidate](2026-10-17-p1-shape-lookup.md)
