@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [16-item written data-path appendix](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md),
+based on399f3d21. A/B/C direction approved;this written contract awaits review.
+Current local metadata remains130/16. Proposed atomic attempt/activation companions
+and per-source retirement-set publication precede dependent epoch signing;storage,
+journal,guard and trusted-read integration are not implemented. No new commit
+row kind or missing-row restore power. Resume at written review,then final146-row
+reconciliation and scoped planning,not SQL changes or consumed-workload replay.
+
 Latest: [16-item data-path review](../roadmap/2026-10-17-task11-data-path-review.md).
 User approved the27-request written matrix aftera40c7b45. Current local review
 is130/16,not implemented or independently certified. Reconstruct it from original

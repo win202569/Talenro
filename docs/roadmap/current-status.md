@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Task11 — 16-item data-path appendix written, awaiting review
+
+User approved the5/3/8 direction after399f3d21. The [written appendix](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md)
+now gives16 exact mappings and concrete owner/transaction/read/use boundaries.
+Attempt/activation preimages are atomic typed companions;#108 has per-source
+publication owners committed/read before epoch source-set issuance,not after
+the later seal. These are new proposed storage/journal/guard responsibilities,
+not existing SQL or a new commit-proof kind;missing-row recovery is not granted.
+Three provider schemas and eight local-only uses are separately constrained.
+Written review pending;local metadata remains130/16. Next:review appendix,then
+final146-row reconciliation before scoped implementation planning. No code,
+SQL/manifest/key/canonical-set changes,tests,live workloads or main acceptance.
+
 ## Task11 — request matrix locally approved; data-path review130/16
 
 User confirmed the written27-request matrix aftera40c7b45,including its11 roles

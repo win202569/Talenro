@@ -1,5 +1,10 @@
 # Task11：27项矩阵获批后的16项数据通道审查
 
+后续：用户在399f3d21后确认A/B/C方向。
+[完整16项书面附录](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md)
+已写出，明确attempt/activation companion及先于epoch签发的逐source publication owner，
+正文仍待审阅；当前130/16不变。以下“方向未批”文字保留为本次来源审查时点。
+
 基线：a40c7b45736197a41b4a96415eb840f4f9aaef25。用户随后确认
 [27项请求矩阵](../superpowers/specs/2026-10-17-authority-v7-request-auth-matrix-design.md)，
 本地设计状态更新为130项已有局部分类、16项未决；不是实现/验收数量。
