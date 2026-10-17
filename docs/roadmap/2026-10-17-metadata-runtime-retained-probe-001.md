@@ -113,10 +113,71 @@ Metadata Task1/2 remain stopped:product registry and both metadata fixtures abse
 Metadata plan usage stays1 build/1 runtime;this independent diagnostic adds
 0 builds/1 runtime. Neither identity may replay;no remaining diagnostic run.
 
-Next recommendation is a readonly comparison of the saved ordinary and sampled
-timelines before deciding whether any ordinary observer redesign is justified.
+The readonly comparison recommended here was subsequently authorized and completed
+below. No further run or observer change followed.
 Do not promote retained diagnostic evidence into an acceptance path,whitelist
 conhost.exe,ignore87,increase rights/waits or rewrite the old receipt.
 Any change to ordinary identity acquisition or its acceptance policy requires a
 separate explicit design/approval and covering tests;none is authorized here.
 Source/codecs/storage/canonical registration/DB/PITR/main/production gates stay open.
+
+## Authorized readonly timeline comparison
+
+Compared the original ordinary runtime with this diagnostic from saved receipts
+and unchanged process-native.cs. No binary/test/controller was executed and no
+historical PID lookup was made. Times below use each run's own AfterResumeThread
+monotonic timestamp as zero,at frequency10000000;they are API-call brackets,
+not exact process birth/death times. A dash means no corresponding observation.
+
+| Stage,ms after that run's resume boundary | Ordinary runtime | Retained diagnostic |
+| --- | --- | --- |
+| Early source member list | — |17.3817–17.3918 |
+| Early member open | — |20.6200–20.9504;success |
+| Same-handle job membership | — |21.5265–21.8009;owned |
+| Admission snapshot | — |26.5924–29.0974;running,image observed |
+| Root-wait-end retained snapshot | — |40.5880–40.6137;exited0 |
+| Initial core member-list query |57.1611–57.1633;one member |43.4741–43.4840;empty |
+| Core member open |57.3829–57.7487;Error87 | —;no core member row |
+| Final retained snapshot | — |61.5759–61.6157;exited0 |
+
+CreateProcess itself took1329.9032ms in the ordinary run versus15.7386ms in the
+diagnostic,before the zero points above. This explains most of the overall
+1.3960109s versus0.0895975s interval difference as a measured launch-stage
+difference,not an established observer performance benefit. Its cause is unknown.
+Root-wait-end is a snapshot after the root wait returned,not an exact root exit
+timestamp. The retained entry's running→exited transition is bounded only by its
+observations;there is no complete lifetime/event trace.
+
+The diagnostic source-list-end→open-start gap was3.2282ms,whereas the ordinary
+gap was0.2196ms. The longer gap succeeded in a different run and earlier stage;
+this cannot establish a safe gap,prove a disappearance race,or identify PID16616.
+The diagnostic's post-exit image Error31 is a later,different API operation from
+the ordinary OpenProcess87 and cannot explain it.
+
+Source ordering matters:diagnostic polling occurs before root waits,with10ms
+wait slices versus ordinary100ms slices. The retained root-wait-end snapshot also
+runs before the core accounting/member query. Here that later core query found
+no members;the diagnostic did not exercise a successful replacement for the
+ordinary failed core-open row. Keeping a handle can itself change object lifetime.
+In the original run,incomplete member evidence skipped the natural-wait loop;
+its6ms observation is not a500ms timeout. Increasing that window alone does not
+address the failed acquisition that precedes the loop.
+
+The executable binding,arguments,working directory and stdout match. Fresh
+readonly hashing matched both receipt fingerprints above and both stdout hashes.
+Parsed product snapshots have704 Path/SHA256 rows each,zero differences;different
+raw JSON hashes reflect serialization,not source changes. Modes,polling,handle
+retention,tmp/cache override paths,launch timing and uncontrolled inherited host
+state differ. Two observations are not an A/B experiment or a reliability rate.
+
+Decision:there is a concrete reason to investigate earlier identity acquisition
+as a separately approved ordinary-observer design,but no demonstrated fix or
+reason to relax the existing fail-closed gate. Do not simply enable diagnostic
+mode for acceptance or join retained/core rows by PID. A future design would
+need explicit identity/ownership,coverage and failure semantics with tests;
+this comparison neither specifies nor authorizes that implementation.
+
+Next recommendation:seek approval for design-only work on ordinary identity
+acquisition. No new workload is currently authorized. Metadata Task1/2 remain
+blocked,the original RED remains unaccepted,and both consumed identities stay
+frozen. This follow-up changes documentation only;run counts remain unchanged.

@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Task11 — readonly timeline comparison complete;observer design decision next
+
+The authorized [comparison](2026-10-17-metadata-runtime-retained-probe-001.md#authorized-readonly-timeline-comparison)
+normalizes both runs to their own resume boundary. Original core list/open were
+at about57ms;diagnostic acquired its entry around21ms and read exited0 around41ms,
+before an empty core list around43ms. Different stages/modes are not an A/B fix.
+Creation took1329.9032ms versus15.7386ms;overall speedup cannot be credited to the
+observer. Original Error87 cause/identity remain unproven;no timeout relaxation.
+Receipt/stdout hashes and704 parsed product rows rechecked;zero source differences.
+Documentation only,no workload/source/helper change. Both run identities consumed,
+metadata RED unaccepted and Task1/2 stopped. Next recommendation:separately approve
+design-only ordinary identity-acquisition work;no implementation/new run authorized.
+All earlier next-step statements below are historical.
+
 ## Task11 — one runtime diagnostic captured conhost.exe;no acceptance
 
 User approved the probe after72022bfe. The [actual result](2026-10-17-metadata-runtime-retained-probe-001.md)

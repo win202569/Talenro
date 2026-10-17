@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[authorized readonly timeline comparison](../roadmap/2026-10-17-metadata-runtime-retained-probe-001.md#authorized-readonly-timeline-comparison).
+Comparison is complete;no rerun or observer change. Earlier retained acquisition
+was observed,but different modes/stages and launch times prevent causal claims.
+Original unknown identity/Error87 and metadata acceptance remain unresolved.
+Resume with a separately approved design-only ordinary acquisition discussion,
+not metadata GREEN or another probe. Both consumed roots stay frozen;Git carries
+the normalized comparison and fingerprints,not the ignored evidence/binary.
+Earlier latest/pending/next-step entries below are historical.
+
 Latest:[runtime retained-probe001 result](../roadmap/2026-10-17-metadata-runtime-retained-probe-001.md).
 Approved after72022bfe and consumed:0 builds/1 runtime,no retry. Captured one
 job-owned conhost.exe image path and same-handle running→exited0 history;natural
