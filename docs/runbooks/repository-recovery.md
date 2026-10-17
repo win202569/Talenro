@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[pending runtime-only evidence probe](../roadmap/2026-10-17-task11-metadata-registry-implementation.md#probe-proposal-discussed-after68c2ef90--not-yet-approved).
+Question/probe approval is still pending. Proposed0-build/one-runtime diagnostic
+would start the same locally bound inventory-test binary in a new diagnostic job;
+it cannot accept/rewrite metadata001. No probe control/root or new workload exists.
+On a new computer the ignored binary is not restored by Git;missing inputs require
+a new preparation decision,not an automatic build. Original budget stays1/1 used.
+
 Latest:readonly investigation approved after45a14dbf is recorded in the
 [failure report follow-up](../roadmap/2026-10-17-task11-metadata-registry-implementation.md#readonly-follow-up--approved-after45a14dbf).
 The failed OpenProcess precedes ownership/exit/image checks;the natural-wait

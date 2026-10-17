@@ -197,3 +197,44 @@ for any source changes/tests/run. Existing retained-handle diagnostic modes are
 not automatically ordinary acceptance and are not invoked under this follow-up.
 No implementation fix or revised safety policy is justified by this readonly
 finding alone. Metadata Task1/2 remain stopped;used budget stays1 build/1 runtime.
+
+## Probe proposal discussed after68c2ef90 — not yet approved
+
+The user requested a minimal evidence proposal,not execution. Classified as a
+diagnostic spike:an answer/evidence sample,not a new product feature or an Error87
+repair. Existing source was read;no helper/test/Go/native entry was invoked.
+
+Recommended question:can a separately authorized runtime-only retained-handle
+sample capture an additional own-job member's identity/state before root exit?
+Reuse existing RunWithRetainedHandleDiagnostics,not the synthetic PowerShell-child
+entry or the fixed nodeleafbinding compiler entry. Proposed extra allowance is
+zero builds and at most one native runtime,150s limit,selector exactly
+^TestAuthorityV7MetadataFixtureInventory$,test timeout120s;no automatic retry.
+The150s is a native runtime limit,not a bound on full pre/post-audit wall time.
+This WOULD start the same existing test binary again in a new diagnostic job.
+It is not readonly execution,not a replay/repair of metadata001,and cannot establish
+the old TDD RED or spend the stopped metadata plan's remaining phases.
+
+Candidate binary remains bound by the accepted build artifact manifest:
+SHA256=18A77B83455F4429B254627401D16D20D4004549F989728FA93E632DBE5FC93C,
+length20043264. No copy/execution occurred. Missing/changed binary or source/input
+drift stops preparation;do not rebuild/download automatically on a new computer.
+Candidate new output/control identities metadata-runtime-retained-probe-001 and
+its -control suffix were absent during this read-only check,not created/reserved.
+
+Keep the existing32-admission cap,10ms-class sampling cadence,500ms natural window
+and shared5000ms cleanup bound;no higher rights,new timing rule,PID reopens or
+cross-path PID-only identity joins. Record original core and sampled lifetime
+facts separately,including acquisition errors,teardown and forced-cleanup flags.
+Both diagnostic-only flags and Acceptance=false remain mandatory. Capture gaps,
+cap/error or observer effects remain explicit;retention changes lifetime/timing
+and even a successful new sample cannot explain the previous run retroactively.
+No diagnostic result is an ordinary/package/metadata acceptance result.
+
+Alternatives considered:another synthetic-child run would not identify the
+metadata member;another compile sample includes unrelated compiler/vet processes
+and has a known cap risk. Neither is recommended. Staying saved-only adds no
+missing historical identity. User approval of this question/probe is still needed
+before preparing/entering a real one-call diagnostic,with frozen scope/bindings,
+safe output paths and independent SDK/product/artifact final audits. No new
+implementation spec or executable controller was created in this proposal turn.

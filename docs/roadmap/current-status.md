@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Task11 — runtime-only evidence probe proposed,not executed
+
+After68c2ef90,user requested the minimal proposal. The
+[pending diagnostic-spike question/scope](2026-10-17-task11-metadata-registry-implementation.md#probe-proposal-discussed-after68c2ef90--not-yet-approved)
+reuses existing retained-handle diagnostics for the fixed inventory-test runtime,
+not another synthetic child or compile. Proposed new allowance:0 builds/at most1
+runtime150s;this is an additional diagnostic execution requiring approval,not a
+readonly action or permission to advance metadata001. No code/control/root was
+created,no test/native run. Existing binary hash matches its build binding;new
+candidate paths absent. Diagnostic/Acceptance=false and all original gates remain.
+Retention may miss short-lived members or change timing;old cause stays unproven.
+
 ## Task11 — readonly shutdown investigation completed; root cause still open
 
 After45a14dbf,the user approved readonly investigation only. The
