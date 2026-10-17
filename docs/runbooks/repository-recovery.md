@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest STOPPED product checkpoint: [scalar rejection repair](../roadmap/2026-10-17-p1-scalar-rejection-repair.md).
+After589a1d04 approval, dual-engine REDs matched; first candidate PS7 complete
+run failed original P1EmptyPrepared after successful fixture preflight, exit1,
+1796ms,stderr252chars. No actual result fields/internal exception were captured;
+cause not yet determined. ProductA38C1EE2/ownership86FD5C12 are UNACCEPTED, not
+the earlier FE23/A476 bytes; original35 unchanged. Prior fixture-only checkpoint
+589a1d04 is in history. Clone current dev branch to inspect progress, not to
+assume working product or start tests. Raw/snapshots/controller remain local
+ignored evidence, not restored by clone. New3/7 spent,remaining4 frozen,review
+ineligible. No R4/mutant/retry/main; scope a separate P1EmptyPrepared diagnostic
+before more execution. All prior budgets/false verdicts remain unchanged.
+
 Latest bounded correction: [fixture input identity](../roadmap/2026-10-17-p1-fixture-input-revision.md).
 Approved afterf7f7ee50: current ownership suiteA476AB51 adds input identity checks
 and fresh Int32/Int64/Boolean isolation input factories; original string factory,

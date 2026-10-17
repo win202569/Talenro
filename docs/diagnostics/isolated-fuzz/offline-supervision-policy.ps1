@@ -2,6 +2,11 @@
 function Get-SupervisionPolicyType($Value){if($null -eq $Value){return $null};return [object].GetMethod('GetType').Invoke($Value.PSObject.BaseObject,$null)}
 function Assert-SupervisionPolicyPassive($Value){
     if($null -eq $Value){return}
+    $type=Get-SupervisionPolicyType $Value
+    if($type -eq [int] -or $type -eq [long] -or $type -eq [bool] -or $type -eq [string]){
+        # Inspect descriptors only: never evaluate an added property or method.
+        foreach($member in $Value.PSObject.Members){if($member.IsInstance){throw 'Decorated scalar'}}
+    }
     foreach($p in $Value.PSObject.Properties){
         if($p.MemberType -in @([Management.Automation.PSMemberTypes]::ScriptProperty,[Management.Automation.PSMemberTypes]::CodeProperty)){throw 'Executable descriptor'}
         if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Shadow bound'}

@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — product scalar rejection candidate STOPPED at ordinary control
+
+Approved seven-run bounded repair after589a1d04. [Stopped record](2026-10-17-p1-scalar-rejection-repair.md):
+R1 PS7/R2 PS5.1 expected RED at DecoratedInteger,1958/2643ms,stderr0. Candidate
+R3 PS7 complete-module run exit1/1796ms,ExpectedResult=false: seven fixture
+preflight groups pass, original P1ApiRequired pass, P1EmptyPrepared fails; stderr
+252chars reports Prior P1 suite failed. Actual decision/internal exception absent
+from saved output, so unique cause unknown. Other33 original/ten ownership cases
+not reached. Current productA38C1EE2/suite86FD5C12 are UNACCEPTED checkpoint bytes;
+original35 suite unchanged. Old FE23/A476 snapshots/past raw preserved,62 pins
+verified. New budget3/7 used,R4–R7 frozen,review0/1 ineligible; no mutant, retry,
+diagnostic replay or reviewer. I1/P1 unresolved; next needs bounded ordinary-
+control diagnosis, not automatic continuation or main acceptance. Earlier entries
+are historical; prior fixture-only success does not accept this product candidate.
+
 ## Latest — fixture input identity corrected; fixture-only validation passed
 
 User approved bounded correction afterf7f7ee50. [Evidence](2026-10-17-p1-fixture-input-revision.md):

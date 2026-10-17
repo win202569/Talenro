@@ -43,11 +43,17 @@ function P1I1-Refusal([string]$Reason='invalid-observation',$Index=2){
 function P1I1-Type($Value){[object].GetMethod('GetType').Invoke($Value.PSObject.BaseObject,$null)}
 function P1I1-WrapPrimitive([object]$Value){
     if($null -eq $Value){throw 'FIXTURE ERROR: null is not a wrapped primitive'}
+    # Decorate owned copies, never cached literals used by plain control scenarios.
+    $type=P1I1-Type $Value
+    if($type -eq [string]){$fresh=[string]::Copy($Value.PSObject.BaseObject)}
+    elseif($type -eq [int] -or $type -eq [long] -or $type -eq [bool]){
+        $storage=[Array]::CreateInstance($type,1);$storage.SetValue($Value.PSObject.BaseObject,0);$fresh=$storage.GetValue(0)
+    }else{throw 'FIXTURE ERROR: unsupported primitive'}
     $ctor=[Management.Automation.PSObject].GetConstructor([type[]]@([object]))
     if($null -eq $ctor -or -not $ctor.IsPublic){throw 'FIXTURE ERROR: object constructor unavailable'}
     $parameters=@($ctor.GetParameters())
     if($parameters.Count -ne 1 -or $parameters[0].ParameterType -ne [object]){throw 'FIXTURE ERROR: exact object signature required'}
-    return ,($ctor.Invoke([object[]]@($Value)))
+    return ,($ctor.Invoke([object[]]@($fresh)))
 }
 function P1I1-Decorate($Owner,[string]$Name){
     $original=$Owner.$Name;$type=P1I1-Type $original
@@ -138,6 +144,16 @@ function P1I1-FixtureChecks {
             P1I1-FixtureMetadata $c.Value $cm
         }
     }
+    P1I1-Case FixtureWrappedInputIdentity {
+        foreach($v in (P1I1-IsolationVectors)){
+            $inputValue=& $v.Make;$w=P1I1-WrapPrimitive $inputValue
+            P1I1-FixtureScalar $w $v.Type $v.Want
+            P1I1-Need (-not [object]::ReferenceEquals($inputValue.PSObject.BaseObject,$w.PSObject.BaseObject))
+            $metadata=[object[]]@('owned');$w.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Metadata',$metadata))
+            P1I1-FixtureMetadata $w $metadata
+            P1I1-Need ($null -eq $inputValue.PSObject.Properties['Metadata'])
+        }
+    }
     P1I1-Case FixtureComplete {P1I1-Need ($null -eq (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
     Write-Output 'LIMIT: fixture construction only; no product import, product assertions, I1 closure or repair-budget renewal.'
 }
@@ -146,6 +162,7 @@ try{
     Write-Output ('CONTEXT: '+$identity.Name+' admin='+$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
     Write-Output ('HOST: '+$PSVersionTable.PSVersion.ToString()+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)
     if($Group -ceq 'fixture'){P1I1-FixtureChecks;return}
+    P1I1-FixtureChecks
     if($Group -ceq 'all'){& (Join-Path $PSScriptRoot 'offline-supervision-policy.tests.ps1') -Group all;if(-not $?){throw 'Prior P1 suite failed'}}
     . (Join-Path $PSScriptRoot 'offline-supervision-policy.ps1')
     P1I1-Case ApiRequired {P1I1-Need ($null -ne (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
