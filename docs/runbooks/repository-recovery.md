@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[classifier XML/encoding exact-marker correction](../roadmap/2026-10-17-classifier-exact-markers.md).
+Recover classifier/tests and evidence report;bothPS7/PS5 full classifier suites
+87PASS,exit0/empty stderr after22 observedRED failures per host. Unicode display
+content retained,protocol markers exact;readonly review0Critical/0Important/
+0Minor accepts bounded checkpoint only. New4/4 spent,no retries
+or automatic replay. Package/store/contract code unchanged and suites not rerun
+against new classifier;prior110-check contract record is historical,not current
+integration acceptance. Standalone package label/callerGetType findings unresolved.
+Raw ignored receipts local,tracked fixtures portable. No main merge,real
+collector/security/Stage B/full C12 clearance or renewal of old frozen slots.
+
 Latest:[legacy comparison readonly findings](../roadmap/2026-10-17-legacy-evidence-comparison-audit.md).
 Documentation-only continuation after17c52edf;no modules/tests/real capture ran,
 no implementation changes. Classifier XML/encoding and standalone package label

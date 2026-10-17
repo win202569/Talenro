@@ -1,5 +1,13 @@
 # Legacy evidence comparison audit — readonly source findings
 
+Follow-up:[classifier-only correction](2026-10-17-classifier-exact-markers.md)
+reproduced classifier XML/encoding concerns and passed87 classifier checks per
+host;readonly review0Critical/0Important/0Minor accepts bounded checkpoint only.
+Sources/hash/static status below describe the
+original audit checkpoint,not the new classifier. Package/store remain unchanged;
+package exact-label/callerGetType concerns still unresolved. No integration or
+runtime acceptance follows from classifier-only results.
+
 ## Scope and evidence level
 
 User requested continuation of readonly comparison inventory after17c52edf282ded32fc366a36247e6db4283f9d1c.

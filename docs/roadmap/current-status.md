@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — classifier exact markers87PASS per host;scoped review accepted
+
+[Bounded correction](2026-10-17-classifier-exact-markers.md):approved4 new hosts
+completed. BothREDs reproduced22 legalXML/encoding false acceptances;GREEN7/5
+each87PASS,exit0,empty stderr(1013/998ms). XML protocol markers and encoding names
+now ordinal;normal Unicode display bytes/states preserved. Only classifier/tests
+changed;package/store/contract suites NOT rerun,prior110checks historical against
+old dependency.4/4 spent,readonly review0Critical/0Important/0Minor;bounded
+checkpoint accepted,not merge readiness. No fix reserve. Standalone
+package labels/GetType concerns remain open. No real capture/security/Stage B/
+I2/I3/full C12 acceptance or main merge;all old/frozen budgets retained.
+
 ## Latest — legacy comparison inventory complete;no implementation or tests
 
 [Readonly audit](2026-10-17-legacy-evidence-comparison-audit.md) traces remaining

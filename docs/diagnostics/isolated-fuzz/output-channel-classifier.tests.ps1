@@ -9,6 +9,60 @@ $prefix='#< CLIXML'+"`r`n"+'<Objs Version="1.1.0.1" xmlns="http://schemas.micros
 $record='<Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>preparing module</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj>'
 $record2=$record.Replace('RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN>','RefId="1"><TNRef RefId="0" />')
 $text=$prefix+$record+'</Objs>'
+# Break caught:legal XML may contain ignorable characters in protocol values.
+# Literal expected labels/counts;independent SHA calculation also checks byte retention.
+$script:classifierExactFailures=0
+function Check-ClassifierExact([bool]$Value,[string]$Name){
+    if($Value){Write-Output ('PASS: '+$Name)}else{$script:classifierExactFailures++;Write-Output ('FAIL: '+$Name)}
+}
+function Check-ClassifierExactResult($Actual,[byte[]]$FixtureBytes,[string]$Expected,[int]$Count,[string]$Name){
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try{$digest=[BitConverter]::ToString($sha.ComputeHash($FixtureBytes)).Replace('-','')}finally{$sha.Dispose()}
+    Check-ClassifierExact ([string]::Equals($Actual.Classification,$Expected,[StringComparison]::Ordinal) -and $Actual.ProgressCount -eq $Count -and -not $Actual.Acceptance -and -not $Actual.RuntimeApproved -and $Actual.Stderr.ByteLength -eq $FixtureBytes.Length -and [string]::Equals($Actual.Stderr.SHA256,$digest,[StringComparison]::Ordinal)) $Name
+}
+$exactXmlCases=[ordered]@{
+    channelIgnorable=$text.Replace('S="progress"','S="pro&#173;gress"')
+    sourceNameIgnorable=$text.Replace('N="SourceId"','N="Sou&#173;rceId"')
+    recordNameIgnorable=$text.Replace('N="Record"','N="Rec&#173;ord"')
+    completedIgnorable=$text.Replace('<T>Completed</T>','<T>Com&#173;pleted</T>')
+    processingIgnorable=$text.Replace('<T>Completed</T>','<T>Proce&#173;ssing</T>')
+    customTypeIgnorable=$text.Replace('System.Management.Automation.PSCustomObject','System.Management.Automation.PSCustomOb&#173;ject')
+    baseTypeIgnorable=$text.Replace('System.Object','System.Ob&#173;ject')
+    versionIgnorable=$text.Replace('Version="1.1.0.1"','Version="1.1.0.&#173;1"')
+    namespaceIgnorable=$text.Replace('http://schemas.microsoft.com/powershell/2004/04','http://schemas.microsoft.com/powershell/2004/0&#173;4')
+    channelCase=$text.Replace('S="progress"','S="Progress"')
+    progressCase=$text.Replace('<T>Completed</T>','<T>completed</T>')
+    nonProgressIgnorable=$text.Replace('S="progress"','S="e&#173;rror"')
+}
+foreach($exactEncoding in @('utf-8','utf-16le')){
+    $exactCodec=if($exactEncoding -eq 'utf-8'){$utf8}else{$utf16}
+    foreach($exactName in $exactXmlCases.Keys){
+        $fixtureBytes=$exactCodec.GetBytes($exactXmlCases[$exactName])
+        $exactResult=Get-OfflineOutputClassification -StdoutBytes ([byte[]]@()) -StderrBytes $fixtureBytes -ExitCode 0 -EncodingName $exactEncoding
+        Check-ClassifierExactResult $exactResult $fixtureBytes 'refused' 0 ('ExactClassifierRefusal-'+$exactName+'-'+$exactEncoding)
+    }
+    foreach($exactState in @('Completed','Processing')){
+        $display=([string][char]0x00E9)+'e'+[char]0x0301+[char]0x00AD+[char]0x6A21+[char]0x5757
+        $displayXml=$text.Replace('preparing module',$display).Replace('<T>Completed</T>',('<T>'+$exactState+'</T>'))
+        $fixtureBytes=$exactCodec.GetBytes($displayXml);$originalFixture=[Convert]::ToBase64String($fixtureBytes)
+        $exactResult=Get-OfflineOutputClassification -StdoutBytes ([byte[]]@()) -StderrBytes $fixtureBytes -ExitCode 0 -EncodingName $exactEncoding
+        Check-ClassifierExactResult $exactResult $fixtureBytes 'progress-only' 1 ('ExactUnicodeDisplayAndStatePreserved-'+$exactState+'-'+$exactEncoding)
+        if(-not [string]::Equals([Convert]::ToBase64String($fixtureBytes),$originalFixture,[StringComparison]::Ordinal)){throw 'Classifier changed fixture bytes'}
+    }
+}
+$nul=[string][char]0;$softHyphen=[string][char]0x00AD
+foreach($encodingCase in @(
+    @{Token=('utf'+$nul+'-8');Codec=$utf8;Name='utf8-null'},
+    @{Token=('utf-16'+$nul+'le');Codec=$utf16;Name='utf16-null'},
+    @{Token=('utf'+$softHyphen+'-8');Codec=$utf8;Name='utf8-ignorable'},
+    @{Token=('utf-16'+$softHyphen+'le');Codec=$utf16;Name='utf16-ignorable'},
+    @{Token='UTF-8';Codec=$utf8;Name='utf8-case'},
+    @{Token='UTF-16LE';Codec=$utf16;Name='utf16-case'})){
+    $fixtureBytes=$encodingCase.Codec.GetBytes($text)
+    $exactResult=Get-OfflineOutputClassification -StdoutBytes ([byte[]]@()) -StderrBytes $fixtureBytes -ExitCode 0 -EncodingName $encodingCase.Token
+    Check-ClassifierExactResult $exactResult $fixtureBytes 'refused' 0 ('ExactClassifierEncodingRefusal-'+$encodingCase.Name)
+}
+Check-Output ($script:classifierExactFailures -eq 0) 'ExactClassifierMarkersRequired'
 $bytes=$utf8.GetBytes($text);$copy=[Convert]::ToBase64String($bytes)
 $empty=Get-OfflineOutputClassification -StdoutBytes ([byte[]]@(97,98,99)) -StderrBytes ([byte[]]@()) -ExitCode 0 -EncodingName 'utf-8'
 Check-Output ($empty.Classification -ceq 'empty' -and -not $empty.Acceptance -and -not $empty.RuntimeApproved) 'EmptyIsClassificationNotAcceptance'

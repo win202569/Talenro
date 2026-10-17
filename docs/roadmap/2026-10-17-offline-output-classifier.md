@@ -1,5 +1,12 @@
 # Offline output classifier — numeric strictness repaired,synthetic only
 
+Latest follow-up:[exact XML/encoding marker correction](2026-10-17-classifier-exact-markers.md).
+New separate4-host allowance completed;22false acceptancesRED per host,then
+87classifier checksGREEN per host,exit0/empty stderr;readonly review completed
+with0Critical/0Important/0Minor,accepts bounded checkpoint only.
+Numeric strictness/old budgets/failures below retained. Package/store/contract
+integration suites not rerun;no real collection or wider acceptance.
+
 Latest:the user approved the bounded numeric-end repair and4 additional
 synthetic hosts after24b98a06. Both REDs reproduced the terminal-LF acceptance;
 three absolute-end anchors now reject it,and both GREENs passed52 checks.
