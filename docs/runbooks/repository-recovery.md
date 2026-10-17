@@ -16,6 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic handoff: [Int32 independent/shared comparison](../roadmap/2026-10-17-p1-input-identity-comparison.md).
+Approved after69cc7688, two PS7 hosts completed688/686ms,exit0,stderr empty;
+identity preconditions held, three stages each. Independent metadata stayed
+separate. Shared A.Metadata matched am after A returned, bm after B decoration
+and after A-array mutation. The recorded sequence narrows fixture-isolation
+behavior, not a unique runtime cause or product fix. Probe/report are portable;
+ignored raw/controller are retained only locally, not restored by clone. Budget
+2/2 spent; no automatic rerun, fixture edit, product repair or R1–R7/review.
+CF81 unaccepted/I1 unfinished, prior F1 false/F2 and six repair slots frozen.
+Resume from latest dev-branch commit and scope a guarded identity correction;
+do not weaken original assertions or assume main/full acceptance. Prior entries
+below are historical, not renewed authority.
+
 Latest diagnostic handoff: [Int32 reference-mismatch localization](../roadmap/2026-10-17-p1-fixture-isolation-diagnosis.md).
 Approved after81871cf9, sole PS7 host completed690ms/exit0; first observed false
 check is AFieldMatchesAArray (arrays distinct, A Metadata NoteProperty). Other

@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — Int32 identity comparison completed; no repair
+
+User approved two-host spike after69cc7688. [Comparison record](2026-10-17-p1-input-identity-comparison.md):
+fresh PS7 independent/shared hosts exit0,688/686ms,stderr0; actual identity
+preconditions held and all six snapshots reached. Independent metadata remains
+separate; shared A.Metadata=am at AfterA, then A.Metadata=bm at AfterB, before
+A-array mutation. This is direct controlled-path evidence, not a unique-runtime-
+cause proof or product acceptance. Static helper copies are prefix-only; all41
+protected pins and raw/tooling hashes held. New allowance2/2 spent, no retries,
+product/test imports/edits or reviewer. CF81 candidate unaccepted, I1/P1 unfinished,
+F1 false/F2 frozen and six original product slots/review ineligible unchanged.
+Next direction is a narrowly scoped fixture-input identity correction, not a
+blanket fix or automatic R1–R7 run. All earlier status entries are historical.
+
 ## Latest — isolation diagnostic localized Int32/AFieldMatchesAArray
 
 User approved one host after81871cf9. PS7 diagnostic exit0/690ms,stderr0, exact
