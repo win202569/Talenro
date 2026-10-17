@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[dependent evidence-chain regression](../roadmap/2026-10-17-evidence-dependent-regression.md).
+After362075604b905ffc5662b1c2e3f4a989c37ccfd3,existing store/simulation/contract
+suites passed on PS7 andPS5:54/106/110 each,total540,all exit0/empty stderr.
+New6/6 spent without retry;implementation/tests and dependency hashes unchanged.
+This supersedes older NOT-rerun notes only for these existing consumer suites;
+it does not expand standalone review or claim exhaustive store input coverage.
+PS5 contract took102530ms under120000ms cap;do not infer a timing guarantee or
+auto-replay allowance. Source/tests/reports remain portable;ignored fixture
+files,links and text receipts stay local. Next:separately scoped store writer
+admission cases. No full capture-record format/live/security/Stage B/main merge.
+
 Latest:[standalone evidence package boundary correction](../roadmap/2026-10-17-evidence-package-boundary.md).
 Recover package/tests and report;bothPS7/PS5 complete package suites74PASS,
 exit0/empty stderr after18 observedRED failures each. Ordinal labels/fields,

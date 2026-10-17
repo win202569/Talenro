@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — dependent store/simulation/contract regression passed on both hosts
+
+[Finite dependent regression](2026-10-17-evidence-dependent-regression.md) after
+36207560 completed6/6 NEW hosts,no retry or source/test changes. Store54,
+simulation106,contract110 PASS per PS7/PS5 host,total540,all exit0/empty stderr.
+Contract PS7/PS5 took37850/102530ms,within120000ms caps;not a timing guarantee.
+Hashes unchanged. This closes the existing-consumer-suite rerun gap below,
+not exhaustive writer hostile-input coverage/full-project or live acceptance.
+No fresh independent review or main merge. Next scoped work:store writer
+inherited-admission cases,not format migration. All old/frozen budgets and
+security/Stage B/I2/I3/full C12 blockers retained;new6/6 spent,no repair reserve.
+
 ## Latest — evidence package boundary74PASS per host;scoped review accepted
 
 [Bounded package correction](2026-10-17-evidence-package-boundary.md):bothREDs
