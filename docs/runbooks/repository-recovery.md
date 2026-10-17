@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[pure-memory capture simulation proposed spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md)
+written under design-only approval;awaiting human review. No simulation source,
+tests,implementation plan or new verification allowance yet. No OS process,
+stream,clock,file or watchdog operation;not actual Stage B capture integration.
+Resume at written-spec review,then plan/method decision,not implementation.
+Prior offline54-check result and blocked runtime/security gates unchanged.
+
 Latest:[Stage B readonly reconciliation](../roadmap/2026-10-17-ordinary-ledger-stageb-readiness.md).
 Still NOT READY/NOT APPROVED. Offline54-check suite does not provide real raw
 capture,host/command/time provenance or owned-host watchdog;old strict parent

@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — pure-memory capture simulation spec written;awaiting review
+
+[Proposed spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md)
+records approved design-writing scope only. Pure supplied event array,virtual
+120000ms boundary,separate bounded bytes/EOF/exit,timed-out/refused prefix retained;
+no real streams/processes/clocks/files/watchdog. Existing package only for
+complete simulation;all authority flags false. No implementation/tests/plan or
+fresh allowance granted. Written-spec review precedes planning/method decision.
+Existing54-check offline store result unchanged;Stage B/I2/I3 still blocked.
+
 ## Latest — Stage B readonly reconciliation;still NOT READY / NOT APPROVED
 
 [Updated checklist](2026-10-17-ordinary-ledger-stageb-readiness.md) reconciled
