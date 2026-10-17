@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — readonly hardlink investigation finds no definitive denial source
+
+[Readonly findings](2026-10-17-synthetic-capture-hardlink-readonly.md):correlated
+fixture source308B/marker52B exist,destination absent,ordinary attributes,D NTFS;
+inspected ACLs inherited,no explicit Deny. Current token non-admin. These do NOT
+prove effective child access or attribute denial to ownership/sandbox/security.
+Old stderr decoding lacks reliable native code. No new host/write/link/ACL change.
+Proposed NEW1 PS7 normal-context minimal same-operation link diagnostic,120s,
+one file/one attempt,structured UTF8 exception codes,no retry/elevation/cleanup;
+awaiting approval. Partitions7/10,new8..10 frozen/review unstarted and all old
+failure/acceptance/security/main gates unchanged.
+
 ## Latest — test partitions implemented;hardlink fixture failure stops new packet
 
 [Partition evidence](2026-10-17-synthetic-capture-partitions.md):test-only guards

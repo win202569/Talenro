@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[readonly hardlink denial findings](../roadmap/2026-10-17-synthetic-capture-hardlink-readonly.md).
+Retained source exists,destination absent,NTFS/ordinary attributes and no explicit
+DACL Deny observed;not a definitive permission/sandbox diagnosis. No new host,
+link creation or security/ACL change. Proposed one-host structured-error minimal
+probe awaits approval;not available code or automatic launch on clone. Keep new
+8..10/original7..12 frozen and reviews unstarted. No admin/alternate API retry,
+skip or acceptance/security/main clearance follows.
+
 Latest:[unfinished test partition implementation](../roadmap/2026-10-17-synthetic-capture-partitions.md).
 Recover updated suite selectors admission/byte-bound/event-bound/reader-paths;
 legacy format/boundary/default all retained. No product change. Six new runs
