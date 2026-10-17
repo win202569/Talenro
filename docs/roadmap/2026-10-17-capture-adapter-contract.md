@@ -1,5 +1,12 @@
 # Synthetic capture contract — bounded execution and review
 
+Follow-up:[bounded ordinal correction](2026-10-17-capture-contract-ordinal.md)
+reproduced/corrected the previously unverified linguistic-comparison concern.
+Latest full contract suites110PASS per host,one scoped readonly review completed
+with0Critical/0Important/0Minor;bounded checkpoint accepted,not main readiness.
+The93-check results/deferred status below are historical for970a5e2c;all original
+budgets/failures retained. No runtime/security/Stage B or wider acceptance.
+
 ## Latest — scoped correction verified;93 checks per host
 
 User approved new cap3 after5ac3a476:one memory-only diagnosis then cause-backed

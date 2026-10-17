@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[exact-string boundary correction](../roadmap/2026-10-17-capture-contract-ordinal.md).
+Recover updated contract/tests and bounded evidence report;bothPS7/PS5 suites
+110PASS,exit0/empty stderr after6 observedRED failures each. Prior unverified
+linguistic-comparison concern now reproduced/corrected in contract boundary;
+Unicode metadata kept exact,not normalized. Readonly review0Critical/0Important/
+0Minor accepts bounded checkpoint only;legacy standalone/XML comparisons remain
+unmeasured,no wider acceptance. New4/4 spent;old budgets/frozen slots preserved. No automatic rerun,
+live collector,security/runtime/Stage B authority or main merge. Source/tests
+portable without ignored receipts/private cache;review disposition in report.
+
 Latest:[synthetic capture contract scoped fix verified](../roadmap/2026-10-17-capture-adapter-contract.md).
 Recover development-branch tip with constructor/verifier,updated93-check suite,
 portable memory diagnostic and report. PS7/PS5 each93PASS,exit0/empty stderr;

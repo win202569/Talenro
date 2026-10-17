@@ -26,6 +26,51 @@ function Contract-Refusal($Packet,[string]$Name){
     $r=New-SyntheticCaptureRecord $Packet
     Check-Contract (@($r.PSObject.Properties).Count -eq 7 -and $r.Created -is [bool] -and -not $r.Created -and $r.SourceMode -ceq 'synthetic' -and $r.Reason -ceq 'invalid-packet' -and -not $r.OriginVerified -and -not $r.Acceptance -and -not $r.RuntimeApproved -and $null -eq $r.PSObject.Properties['BindingSHA256']) $Name
 }
+# Break caught:linguistically equivalent protocol text is not byte-exact text.
+$script:ordinalFailures=0
+function Check-ContractOrdinal([bool]$Value,[string]$Name){
+    if($Value){Write-Output ('PASS: '+$Name)}else{$script:ordinalFailures++;Write-Output ('FAIL: '+$Name)}
+}
+function Contract-OrdinalRefusal($Packet,[string]$Name){
+    $value=New-SyntheticCaptureRecord $Packet
+    Check-ContractOrdinal (@($value.PSObject.Properties).Count -eq 7 -and $value.Created -is [bool] -and -not $value.Created -and [string]::Equals($value.Reason,'invalid-packet',[StringComparison]::Ordinal) -and $null -eq $value.PSObject.Properties['BindingSHA256'] -and -not $value.OriginVerified -and -not $value.Acceptance -and -not $value.RuntimeApproved) $Name
+}
+$nul=[string][char]0;$softHyphen=[string][char]0x00AD
+$p=Contract-Packet;$p.EncodingName='utf'+$nul+'-8'
+Contract-OrdinalRefusal $p 'OrdinalEncodingTokenRejectsEmbeddedNull'
+$p=Contract-Packet;$p.EncodingName='utf'+$softHyphen+'-8'
+Contract-OrdinalRefusal $p 'OrdinalEncodingTokenRejectsIgnorableCharacter'
+$p=Contract-Packet;$p.EncodingName='UTF-8';Contract-OrdinalRefusal $p 'OrdinalEncodingTokenRejectsCaseChange'
+$p=Contract-Packet;$p.SourceMode='synthe'+$nul+'tic';Contract-OrdinalRefusal $p 'OrdinalSourceModeRejectsEmbeddedNull'
+$p=Contract-Packet;$p.Events=[object[]]@([pscustomobject]@{Kind=('ti'+$nul+'ck');ElapsedMs=0})
+Contract-OrdinalRefusal $p 'OrdinalRawEventKindRejectsEmbeddedNull'
+$p=Contract-Packet;$p.Events=[object[]]@([pscustomobject]@{Kind='Tick';ElapsedMs=0})
+Contract-OrdinalRefusal $p 'OrdinalRawEventKindRejectsCaseChange'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Chunk ('std'+$nul+'out') ([byte[]]@(97))))
+Contract-OrdinalRefusal $p 'OrdinalRawChannelRejectsEmbeddedNull'
+$p=Contract-Packet;$p.PSObject.Properties.Remove('Schema');Add-Member -InputObject $p -NotePropertyName ('Schema'+$nul) -NotePropertyValue 1
+Contract-OrdinalRefusal $p 'OrdinalPacketFieldRejectsEmbeddedNull'
+$p=Contract-Packet;$p.Events=[object[]]@([pscustomobject]@{Kind='tick';('ElapsedM'+$nul+'s')=0})
+Contract-OrdinalRefusal $p 'OrdinalRawEventFieldRejectsEmbeddedNull'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Tick));$r=Contract-Good $p;$r.Events[0].Kind='ti'+$nul+'ck'
+Check-ContractOrdinal (-not (Contract-Verify $r).Verified) 'OrdinalStoredEventKindRejectsEmbeddedNull'
+$p=Contract-Packet;$p.Events=[object[]]@((Contract-Chunk 'stdout' ([byte[]]@(97))));$r=Contract-Good $p;$r.Events[0].Channel='std'+$nul+'out'
+Check-ContractOrdinal (-not (Contract-Verify $r).Verified) 'OrdinalStoredChannelRejectsEmbeddedNull'
+$r=Contract-Good (Contract-Packet);$r.PSObject.Properties.Remove('Policy');Add-Member -InputObject $r -NotePropertyName ('Policy'+$nul) -NotePropertyValue 'synthetic-capture-contract-v1'
+Check-ContractOrdinal (-not (Contract-Verify $r).Verified) 'OrdinalRecordFieldRejectsEmbeddedNull'
+$pre=([string][char]0x00E9)+'e'+[char]0x0301;$post='e'+[char]0x0301+[char]0x00E9
+$p=Contract-Packet;$p.OriginDeclaration=$pre;$p.Events=[object[]]@((Contract-Exit),(Contract-EOF 'stdout'),(Contract-EOF 'stderr'))
+$r=Contract-Good $p;$r.Lifecycle.Package.OriginDeclaration=$post
+Check-ContractOrdinal (-not (Contract-Verify $r).Verified) 'OrdinalDerivedTextRejectsEqualLengthCanonicalEquivalent'
+$p1=Contract-Packet;$p1.OriginDeclaration=$pre;$p2=Contract-Packet;$p2.OriginDeclaration=$post
+$r1=Contract-Good $p1;$r2=Contract-Good $p2
+Check-ContractOrdinal ((Contract-Verify $r1).Verified -and (Contract-Verify $r2).Verified -and [string]::Equals($r1.OriginDeclaration,$pre,[StringComparison]::Ordinal) -and [string]::Equals($r2.OriginDeclaration,$post,[StringComparison]::Ordinal) -and -not [string]::Equals($r1.BindingSHA256,$r2.BindingSHA256,[StringComparison]::Ordinal)) 'OrdinalUnicodeDeclarationsRemainDistinctWithoutNormalization'
+$script:ordinalCallbacks=0;$invalidKind=[pscustomobject]@{}
+Add-Member -InputObject $invalidKind -MemberType ScriptMethod -Name ToString -Force -Value {$script:ordinalCallbacks++;'tick'}
+$p=Contract-Packet;$p.Events=[object[]]@([pscustomobject]@{Kind=$invalidKind;ElapsedMs=0})
+Contract-OrdinalRefusal $p 'OrdinalInvalidTokenNeverCoerced'
+Check-ContractOrdinal ($script:ordinalCallbacks -eq 0) 'OrdinalTokenToStringCallbackNotInvoked'
+Check-Contract ($script:ordinalFailures -eq 0) 'OrdinalContractMustRejectNonExactText'
 # Break caught: ETS length/rank shadows must never clip bytes or bypass bounds.
 # Fixtures call the public APIs;literal refusal is independent of implementation.
 function Contract-Shadow($Value,[string]$Name,$Shadow){

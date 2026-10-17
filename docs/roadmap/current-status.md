@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — exact-string correction110PASS per host;scoped review accepted
+
+[Ordinal boundary evidence](2026-10-17-capture-contract-ordinal.md):approved
+bounded design and4 new hosts. RED7/5 each reproduced6 non-exact token/derived
+text admissions. GREEN7/5 each110PASS,exit0,empty stderr(12580/50924ms),including
+all prior93 checks. Exact field/token/derived comparisons now ordinal;valid
+Unicode declarations remain distinct without normalization. Dependencies and
+interfaces unchanged. One readonly review0Critical/0Important/0Minor;accepted
+bounded development checkpoint,not merge readiness.4/4 consumed,no extra fix
+reserve;unchanged standalone/XML comparisons not certified. Old/frozen budgets
+unchanged. No real capture/Stage B/security/
+I2/I3/full C12 acceptance or main merge.
+
 ## Latest — synthetic capture contract correction verified;93PASS per host
 
 [Final scoped evidence](2026-10-17-capture-adapter-contract.md):approved new3 hosts

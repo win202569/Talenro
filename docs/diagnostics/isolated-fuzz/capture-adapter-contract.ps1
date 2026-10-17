@@ -1,5 +1,15 @@
 # Pure synthetic manifest/trace contract. No live adapter or persistence path.
 . (Join-Path $PSScriptRoot 'output-capture-simulation.ps1')
+function Test-ContractOrdinalEqual($Left,$Right){
+    # Never let overload binding coerce a caller object via ToString.
+    if($Left -isnot [string] -or $Right -isnot [string]){return $false}
+    return [string]::Equals($Left,$Right,[StringComparison]::Ordinal)
+}
+function Test-ContractOrdinalMember($Value,[string[]]$Names){
+    if($Value -isnot [string]){return $false}
+    foreach($name in $Names){if([string]::Equals($Value,$name,[StringComparison]::Ordinal)){return $true}}
+    return $false
+}
 function Assert-ContractPassiveProperties($Value){
     if($null -eq $Value){return}
     foreach($p in $Value.PSObject.Properties){
@@ -13,7 +23,7 @@ function Assert-ContractShape($Value,[string[]]$Names){
     if($null -eq $t -or $t.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain object required'}
     $props=@($Value.PSObject.Properties)
     if($props.Count -ne $Names.Count){throw 'Wrong field count'}
-    foreach($p in $props){if($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty -or $p.Name -cnotin $Names){throw 'Exact passive fields required'}}
+    foreach($p in $props){if($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty -or -not (Test-ContractOrdinalMember $p.Name $Names)){throw 'Exact passive fields required'}}
 }
 function Assert-ContractString($Value,[int]$Minimum,[int]$Maximum){
     if((Get-OfflineCaptureValueType $Value) -ne [string]){throw 'String required'}
@@ -47,12 +57,12 @@ function Get-ContractPacket($Packet){
     Assert-ContractShape $Packet @('Schema','SourceMode','SessionLabel','ExecutableDeclaration','ArgumentBytes','EncodingName','OriginDeclaration','StartedUTC','EndedUTC','Events')
     Assert-OfflineEvidenceInteger $Packet.Schema 1 1
     Assert-ContractString $Packet.SourceMode 9 9
-    if($Packet.SourceMode -cne 'synthetic'){throw 'Synthetic only'}
+    if(-not (Test-ContractOrdinalEqual $Packet.SourceMode 'synthetic')){throw 'Synthetic only'}
     Assert-ContractString $Packet.SessionLabel 1 80
     if($Packet.SessionLabel -cnotmatch '^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\z'){throw 'Invalid session label'}
     Assert-ContractText $Packet.ExecutableDeclaration;Assert-ContractText $Packet.OriginDeclaration
     Assert-ContractString $Packet.EncodingName 1 8
-    if($Packet.EncodingName -cnotin @('utf-8','utf-16le')){throw 'Explicit encoding required'}
+    if(-not (Test-ContractOrdinalMember $Packet.EncodingName @('utf-8','utf-16le'))){throw 'Explicit encoding required'}
     $null=Get-ContractUTC $Packet.StartedUTC;$null=Get-ContractUTC $Packet.EndedUTC
     $argsCopy=Copy-ContractBytes $Packet.ArgumentBytes 65536
     if(($argsCopy.Length%2) -ne 0 -or ($argsCopy.Length -ge 2 -and $argsCopy[0] -eq 255 -and $argsCopy[1] -eq 254)){throw 'UTF16LE arguments without BOM required'}
@@ -64,6 +74,15 @@ function Get-ContractPacket($Packet){
         if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain event required'}
         foreach($prop in $e.PSObject.Properties){if($prop.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Passive event required'}}
         foreach($prop in $e.PSObject.Properties){Assert-ContractPassiveProperties $prop.Value}
+        # Establish exact names/tokens before the unchanged simulator validator.
+        Assert-ContractString $e.Kind 1 5
+        if(-not (Test-ContractOrdinalMember $e.Kind @('chunk','eof','exit','tick'))){throw 'Exact event kind required'}
+        $names=switch -CaseSensitive ($e.Kind){chunk{@('Kind','ElapsedMs','Channel','Bytes')} eof{@('Kind','ElapsedMs','Channel')} exit{@('Kind','ElapsedMs','ExitCode')} tick{@('Kind','ElapsedMs')}}
+        Assert-ContractShape $e $names
+        if(Test-ContractOrdinalMember $e.Kind @('chunk','eof')){
+            Assert-ContractString $e.Channel 6 6
+            if(-not (Test-ContractOrdinalMember $e.Channel @('stdout','stderr'))){throw 'Exact event channel required'}
+        }
         Assert-OfflineCaptureEvent $e
         switch($e.Kind){
             chunk{
@@ -127,7 +146,7 @@ function Read-ContractSnapshot($Value,[int]$Maximum){
     Assert-ContractString $Value.Base64 0 $maxEncoded;Assert-ContractString $Value.SHA256 64 64
     if($Value.Base64 -cnotmatch '^[A-Za-z0-9+/]*={0,2}\z' -or $Value.SHA256 -cnotmatch '^[A-F0-9]{64}\z'){throw 'Invalid snapshot'}
     $bytes=[Convert]::FromBase64String($Value.Base64)
-    if($bytes.Length -gt $Maximum -or $bytes.Length -ne $Value.ByteLength -or [Convert]::ToBase64String($bytes) -cne $Value.Base64 -or (Get-OfflineOutputByteInfo $bytes).SHA256 -cne $Value.SHA256){throw 'Snapshot mismatch'}
+    if($bytes.Length -gt $Maximum -or $bytes.Length -ne $Value.ByteLength -or -not (Test-ContractOrdinalEqual ([Convert]::ToBase64String($bytes)) $Value.Base64) -or -not (Test-ContractOrdinalEqual (Get-OfflineOutputByteInfo $bytes).SHA256 $Value.SHA256)){throw 'Snapshot mismatch'}
     return ,$bytes
 }
 function Read-ContractStoredEvents($Events){
@@ -138,6 +157,7 @@ function Read-ContractStoredEvents($Events){
         if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain stored event required'}
         foreach($p in $e.PSObject.Properties){if($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Passive stored event required'}}
         Assert-ContractString $e.Kind 1 5
+        if(-not (Test-ContractOrdinalMember $e.Kind @('chunk','eof','exit','tick'))){throw 'Exact stored event kind required'}
         switch -CaseSensitive ($e.Kind){
             chunk{
                 Assert-ContractShape $e @('Kind','ElapsedMs','Channel','Data');$bytes=Read-ContractSnapshot $e.Data 65536
@@ -156,7 +176,7 @@ function Assert-ContractEquivalent($Actual,$Expected,[int]$Depth=0){
     if($Depth -gt 8){throw 'Nested bound exceeded'}
     if($null -eq $Expected){if($null -ne $Actual){throw 'Expected null'};return}
     $type=Get-OfflineCaptureValueType $Expected
-    if($type -eq [string]){Assert-ContractString $Actual $Expected.Length $Expected.Length;if($Actual -cne $Expected){throw 'String mismatch'};return}
+    if($type -eq [string]){Assert-ContractString $Actual $Expected.Length $Expected.Length;if(-not (Test-ContractOrdinalEqual $Actual $Expected)){throw 'String mismatch'};return}
     if($type -eq [bool]){if((Get-OfflineCaptureValueType $Actual) -ne [bool] -or $Actual -ne $Expected){throw 'Boolean mismatch'};return}
     if($type -in @([int],[long])){Assert-OfflineEvidenceInteger $Actual ([long]::MinValue) ([long]::MaxValue);if($Actual -ne $Expected){throw 'Integer mismatch'};return}
     if($type -eq [object[]]){
@@ -173,13 +193,13 @@ function Test-SyntheticCaptureRecord([object]$Record){
         Assert-ContractShape $Record @('Schema','Policy','SourceMode','SessionLabel','ExecutableDeclaration','Arguments','EncodingName','OriginDeclaration','StartedUTC','EndedUTC','UtcOrderConsistent','Events','Lifecycle','StopIntent','CleanupStatus','LiveActionsPerformed','BindingSHA256','OriginVerified','Acceptance','RuntimeApproved')
         Assert-OfflineEvidenceInteger $Record.Schema 1 1
         Assert-ContractString $Record.Policy 29 29
-        if($Record.Policy -cne 'synthetic-capture-contract-v1'){throw 'Unknown policy'}
+        if(-not (Test-ContractOrdinalEqual $Record.Policy 'synthetic-capture-contract-v1')){throw 'Unknown policy'}
         foreach($flag in @('LiveActionsPerformed','OriginVerified','Acceptance','RuntimeApproved')){if((Get-OfflineCaptureValueType $Record.$flag) -ne [bool] -or $Record.$flag){throw 'No action or authority allowed'}}
         $arguments=Read-ContractSnapshot $Record.Arguments 65536;$events=Read-ContractStoredEvents $Record.Events
         $packet=[pscustomobject]@{Schema=1;SourceMode=$Record.SourceMode;SessionLabel=$Record.SessionLabel;ExecutableDeclaration=$Record.ExecutableDeclaration;ArgumentBytes=$arguments;EncodingName=$Record.EncodingName;OriginDeclaration=$Record.OriginDeclaration;StartedUTC=$Record.StartedUTC;EndedUTC=$Record.EndedUTC;Events=$events}
         $clean=Get-ContractPacket $packet;$expected=New-ContractValidatedRecord $clean
         Assert-ContractString $Record.BindingSHA256 64 64
-        if($Record.BindingSHA256 -cnotmatch '^[A-F0-9]{64}\z' -or $Record.BindingSHA256 -cne $expected.BindingSHA256){$v.Reason='binding-mismatch';throw 'Binding mismatch'}
+        if($Record.BindingSHA256 -cnotmatch '^[A-F0-9]{64}\z' -or -not (Test-ContractOrdinalEqual $Record.BindingSHA256 $expected.BindingSHA256)){$v.Reason='binding-mismatch';throw 'Binding mismatch'}
         $v.Reason='derived-state-mismatch';Assert-ContractEquivalent $Record $expected
         if(-not $expected.UtcOrderConsistent){$v.Reason='clock-order-inconsistent';throw 'Clock reversal'}
         $v.Verified=$true;$v.Reason='consistent-synthetic-only'
