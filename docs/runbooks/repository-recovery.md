@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest verification blocker: [independent full original flow](../roadmap/2026-10-17-p1-independent-full-verification.md).
+Aftera7017a47 approval,PS7 unchanged complete test entry timed out30055ms total/
+30000 cap,CPU37500ms,exit-1,stderr empty,owned-host-exited. New3/fixture8/original35/
+ownership first6 PASS;remaining4 ownership/final completion missing. PS5 unlaunched,
+new1/2 spent/one frozen. Product6CF0D354/original suites fixed,166 pins held.
+Prior3/4/one frozen,old3/7/four frozen/review ineligible and I1/P1 unresolved remain.
+Recover existing source/test entry plus report from dev branch,not main;ignored
+raw/controller/runtime and replay authority do not clone. Next needs bounded
+semantic-preserving validation optimization design and explicit full verification
+scope,no automatic unchanged rerun,PS5/R4,larger timeout or acceptance promotion.
+
 Latest diagnostic: [paired prefix](../roadmap/2026-10-17-p1-paired-prefix-timing.md).
 Aftercf9590b0 approval,A/B ordinary PS7 both completed same reflection3/fixture8/
 original31 prefix. A wall6.615s/CPU9.656s;B with3 conditions wall4.407s/CPU5.469s.

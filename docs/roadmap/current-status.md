@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — independent original full verification times out; PS5 frozen
+
+Aftera7017a47,[independent full verification](2026-10-17-p1-independent-full-verification.md):
+unchanged existing entry,NOT diagnostic copies. PS7 TimedOut=true,exit-1,total
+30055ms/configured30000,CPU37500ms,stderr empty,owned-host-exited,CaptureValid=true
+but ExpectedResult=false. Saved63 lines/52 PASS:new3,fixture8,original35,ownership
+first6 through ObservationScalars. Remaining ownership4/final wrapper incomplete;
+no exact timeout statement or unique cause. PS5 NOT launched. New1/2 spent/one
+frozen;prior3/4/one frozen,old3/7/four frozen,review ineligible unchanged.166 pins
+held,product6CF0D354/original tests unchanged,I1/P1 unresolved. Prior prefix/full-
+copy diagnostic PASS cannot override failure. Next bounded validation-hotspot
+optimization design with defenses retained and separately scoped complete
+verification,not automatic replay,PS5/R4,limit increase or main acceptance.
+
 ## Latest — paired prefix completes; added branches do not reproduce prior slowdown
 
 Aftercf9590b0,[paired diagnostic](2026-10-17-p1-paired-prefix-timing.md): A then B,
