@@ -1,5 +1,25 @@
 # Project status — updated 2026-10-17
 
+## Latest — probe Stage A review blocks completion
+
+[Independent review](2026-10-17-ordinary-ledger-native-probe-review.md) accepted:
+disk hashes do not bind loaded code;executable not held invariant until launch;
+child natural completion does not prove it outlived root. One Minor fake-seam
+protection gap deferred.18/18 consumed,no repair/rerun. Stage A incomplete;
+Stage B/real probe forbidden pending fixes,separate approval and safety checks.
+Proposed18 extra fake calls plus narrower child claim need user decision.
+No source/helper calls after review;prior fake39 per host/final350 remain scoped.
+Earlier review-pending/completion/proposal states below historical.
+
+## Latest — Stage A probe implemented;fake checks green,review pending
+
+New explicit probe helper/tests saved at636e4890. Both hosts passed39 checks;
+final14 allowed runs passed350 assertions,empty stderr.18/18 Stage A calls used.
+See [execution evidence and limits](2026-10-17-ordinary-ledger-native-probe-preparation.md).
+Independent readonly review pending;not yet Stage A complete. No native entry,
+real child,Go/Docker workload or Stage B runtime. Prior47/34 budgets untouched;
+full suite/security/metadata/main/acceptance gates unchanged. Earlier states historical.
+
 ## Next-stage proposal — isolated native probe preparation, no new execution
 
 Saved [native-validation proposal](2026-10-17-ordinary-ledger-native-validation-proposal.md)

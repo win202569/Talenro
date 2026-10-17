@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest:new ordinary-ledger-native-probe.ps1 is an unfinished Stage A checkpoint.
+[Independent review](../../roadmap/2026-10-17-ordinary-ledger-native-probe-review.md)
+found source/executable binding gaps and an overstrong child-ordering scenario.
+Do not invoke its real/native boundary. Fake39 per host/final350 passed,but
+18/18 used and no fixes/retests after review;Stage B not authorized.
+
 Latest:[initial snapshot follow-up](../../roadmap/2026-10-17-ordinary-ledger-initial-snapshot-fix.md)
 fixed the provenance gap below,21 new fake checks per host and final350 passed.
 Review repairs47/47 used. No native/workload or acceptance authority;historical

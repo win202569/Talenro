@@ -1,5 +1,16 @@
 # Ordinary ledger native validation — proposal, no execution authorized
 
+Review follow-up:[Stage A blocked](2026-10-17-ordinary-ledger-native-probe-review.md).
+Source/executable binding fixes and agreement on narrower child observation are
+needed before completion;18/18 consumed,no post-review fix/run. Stage B remains
+unapproved. Do not treat caller flags or fake passes as clearance.
+
+Stage A update:user approved design/18 fake calls after6a9ade2e. Helper/tests
+implemented at636e4890;GREEN39 per host and final350 passed.18/18 consumed;
+independent readonly review pending. See [Stage A execution](2026-10-17-ordinary-ledger-native-probe-preparation.md).
+Stage B remains unapproved;original proposal/no-implementation statements below
+are historical. No native/runtime authority follows from Stage A approval.
+
 Date:2026-10-17. Source checkpoint:c6d6bf8a2ef533e688ce65fc89995025c750af78.
 This document prepares the next decision after scoped fake fixes. It does not
 implement a probe,run a test,clear a security gate or grant a runtime allowance.

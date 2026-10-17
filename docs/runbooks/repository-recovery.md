@@ -16,6 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[Stage A independent review,fixes required](../roadmap/2026-10-17-ordinary-ledger-native-probe-review.md).
+Do not run the native probe. Loaded-code and executable binding gaps plus child
+ordering claim mismatch block completion despite scoped GREEN39 per host/final350.
+18/18 used,no repair/test after review. Recover helper/tests/report as unfinished
+development work;next decision is bounded fake-only repair and claim scope,not
+Stage B or acceptance. Old indices and native identities remain consumed/frozen.
+
+Latest:[native-probe Stage A execution](../roadmap/2026-10-17-ordinary-ledger-native-probe-preparation.md).
+Tracked helper/tests implemented,fake39 per host and final350 green;18/18 used.
+Independent readonly review pending. Recover development branch,not ignored
+test roots. No actual probe roots/Stage B allowance created;caller switch/hash
+is not security clearance. Read review disposition before further preparation.
+
 Next-stage design:[ordinary ledger native-validation proposal](../roadmap/2026-10-17-ordinary-ledger-native-validation-proposal.md).
 No new tests/workloads or helper implementation. Proposed18 fake calls require
 Stage A approval;two native probes require separate later approval. Do not infer
