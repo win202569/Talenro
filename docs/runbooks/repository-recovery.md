@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[simulation implemented but review-blocked](../roadmap/2026-10-17-offline-capture-simulation.md).
+New helper/tests portable;PS7/5.1 each100PASS,exit0,empty stderr. Four-host cap
+spent,all old budgets unchanged. Preserve first outer stale-exit error;no RED
+replay. Review0Critical/1Important/0Minor:caller GetType() ScriptMethod can run
+before validation;static finding accepted,not reproduced/fixed. Do not trust
+this as complete. Next proposal:new counter fixtures/non-dispatching validation
+and4 separately approved RED/GREEN hosts,no second review loop or retries.
+No post-GREEN source/test edits. No collector/watchdog,Stage B,main merge or
+acceptance. Recover exact report/review and seek new bounded fix authority.
+
 Latest:[simulation implementation plan proposed](../superpowers/plans/2026-10-17-offline-capture-simulation.md).
 Written spec approved for planning after3e9808c2. One cohesive pure-memory task,
 inline recommended,one scoped review. Await plan/method/proposed4-host allowance

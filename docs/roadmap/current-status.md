@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — simulation100 checks per host;1Important review blocker
+
+[Execution/evidence](2026-10-17-offline-capture-simulation.md):approved inline
+implementation and4-host allowance executed. RED7/5 expected missingAPI;
+GREEN7/5 each100PASS,exit0,empty stderr(2394/1936ms). No source/test edits after
+GREEN. Initial outer stale LASTEXITCODE error preserved;readonly child-record
+check confirmed valid RED,no replay. Independent review0Critical/1Important/
+0Minor:unvalidated caller GetType() dispatch permits an ETS ScriptMethod callback
+before rejection;static finding,no reproduction/fix yet. 4/4 consumed,no hidden
+reserve. Overall INCOMPLETE;next proposal counter-only RED fixtures and safe
+non-dispatching validation,4 new PS7/PS5 RED/GREEN hosts after approval. No second
+review loop or real capture/Stage B/merge/acceptance. All exclusions in report.
+
 ## Latest — simulation spec approved;implementation plan awaits decision
 
 [Plan](../superpowers/plans/2026-10-17-offline-capture-simulation.md) transcribes

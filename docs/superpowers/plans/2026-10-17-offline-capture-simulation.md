@@ -1,6 +1,6 @@
 # Offline Capture Simulation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended inline execution,or superpowers:subagent-driven-development only if the user selects delegation. Steps use checkbox syntax. This plan is awaiting approval and execution-method selection.
+> **For agentic workers:** User approved this plan,inline execution and4 hosts after88d623d3. Use superpowers:executing-plans. Execution reached100PASS/host but independent review found1Important;overall INCOMPLETE. No retry/fix allowance remains.
 
 **Goal:** Implement and verify a deterministic supplied-event capture model without real capture or runtime authority.
 **Architecture:** A pure evaluator validates a bounded event array,accumulates owned channel bytes,and derives lifecycle status from virtual times,EOFs and exit. Reuse unchanged pure package/classifier helpers only;do not connect the file store or native diagnostics.
@@ -127,3 +127,18 @@ review at the end. Alternative:subagent-driven implementation if explicitly
 selected. Ask user to approve this written plan,select execution method,and
 grant the proposed4-host synthetic allowance before beginning. Approval of
 the earlier written spec alone does not grant execution or tests.
+
+## Execution checkpoint (authoritative continuation state)
+
+Approved inline/4 hosts after88d623d3. RED PS7exit1/1730ms andPS5exit1/2323ms
+expected missingAPI;GREEN PS7exit0/2394ms/100PASS andPS5exit0/1936ms/100PASS,
+both empty stderr. Initial stale parent LASTEXITCODE error preserved;readonly
+saved-child check confirmed correct RED,no replay. PowerShell-native ledger/
+runner honored cap;no extra task-done/full-suite/install/scratch deletion.
+
+One fresh readonly review0Critical/1Important/0Minor:input GetType() ScriptMethod
+dispatch before validation. Accepted static finding,not reproduced/fixed. No
+post-GREEN source/test edits. Overall Task1 INCOMPLETE,4/4 spent;follow Step4
+required-fix stop,not a hidden fix pass. Full report/rulings/recovery:
+`docs/roadmap/2026-10-17-offline-capture-simulation.md`. Separate authority needed
+for counter-only RED fixtures,non-dispatching type/shape fix,and4 new hosts.
