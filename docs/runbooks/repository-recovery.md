@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest PS5 diagnostic:[boundary group open at timeout](../roadmap/2026-10-17-p1-ps5-complete-flow-cpu-timing.md).
+Afterb78a2a5b approval,unchanged complete-order probe,ordinary PS5,cap30000ms;
+actual30085ms/CPU31859.375ms,exit-1,stderr empty,owned exit. ArrayAndIntegerBounds
+START at9268.150ms,no END;48 groups complete,50 pairs,four open scopes.
+Earlier small-group slowdown also observed;no exact boundary phase/unique cause.
+208 pins and raw held,product/probe unchanged. New1/1 spent,all earlier budgets/
+frozen slots/review ineligibility unchanged;PS7 original PASS does not clear PS5
+full timeout/I1/P1/candidate acceptance. Recover existing probe/report/source,
+not ignored raw/runtime or replay authority. Next separately scope subphase
+diagnostic outside hot helpers,no automatic run,larger limit or speculative fix.
+
 Latest original-entry result: [PS7 PASS / PS5 timeout](../roadmap/2026-10-17-p1-original-full-verification.md).
 After48db896f approval,unchanged entry/candidate953CC2A8:PS7 completes62 groups
 +2 markers,wall10528ms/CPU13968.75ms,exit0. PS5 cap30000ms,actual30079ms/

@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — PS5 group diagnostic enters boundary at9.268s, times out without END
+
+Afterb78a2a5b approval,[PS5 complete-order timing](2026-10-17-p1-ps5-complete-flow-cpu-timing.md)
+reused existing probe unchanged. One ordinary PS5 host timed out at30000ms;
+actual30085ms,CPU31859.375ms,exit-1,stderr empty,owned-host-exited.
+169 lines/104 events/65 ordinary/48 PASS;50 closed pairs,four open scopes.
+ArrayAndIntegerBounds START9268.150ms,no END;exact internal phase unknown.
+First31 original-group span6805.106ms vs earlier PS7 diagnostic1915.322ms:
+slowdown/headroom loss already precedes boundary,not unique cause proof.
+208 pins/raw/closed wall-CPU pairs rechecked;product953CC2A8/probes unchanged.
+New1/1 spent;prior original-full2/2 (PS7 PASS,PS5 timeout),all frozen budgets/
+review ineligibility unchanged. I1/P1/candidate acceptance still blocked.
+Next separately design boundary subphase markers outside hot helpers,not
+automatic rerun,product tweak,timeout increase,old-slot use or main.
+
 ## Latest — original complete regression PASS on PS7; PS5 times out
 
 After48db896f approval, [original-entry verification](2026-10-17-p1-original-full-verification.md)
