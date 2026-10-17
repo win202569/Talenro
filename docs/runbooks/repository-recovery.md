@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest progress evidence:[validation vs copy](../roadmap/2026-10-18-p1-ps5-validation-copy-progress.md).
+After57df3287 approval,new ordinary PS5 progress diagnostic1/1 spent,cap30000ms,
+actual30062ms/CPU31828.125ms,exit-1,stderr empty,owned exit. Four snapshots show
+at least1536 rows completed;last validation16490.836ms/copy258.662ms,98.4557%
+validation share of accounted wall only,not cutoff totals or extrapolated4096.
+243 pins/53 pairs/four samples held,original product/tests unchanged.
+All earlier budgets/frozen slots/review ineligibility/PS5/I1/P1 blockers unchanged.
+Recover copies/report,not ignored raw/runtime or replay authority. Next inspect
+validation internals,no copying-only fix,defense removal,automatic run or main.
+
 Latest phase evidence:[PS5 validation/copy open](../roadmap/2026-10-17-p1-ps5-evaluation-phase-timing.md).
 Afterd7ea8aed approval,new ordinary PS5 phase diagnostic1/1 spent,cap30000ms,
 actual30063ms/CPU33234.375ms,exit-1,stderr empty,owned exit. RootSetup32.407ms

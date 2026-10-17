@@ -1,4 +1,17 @@
-# Project status — updated 2026-10-17
+# Project status — updated 2026-10-18
+
+## Latest — PS5 progress confirms validation dominates completed1536-row prefix
+
+After57df3287 approval,[progress/cost diagnostic](2026-10-18-p1-ps5-validation-copy-progress.md)
+ran one ordinary PS5 host,cap30000ms,actual30062ms/CPU31828.125ms,exit-1,
+stderr empty,owned exit. Four snapshots at1/512/1024/1536 completed rows;
+last validation16490.836ms,copy258.662ms,validation98.4557% of accounted regions.
+Not cutoff totals,CPU share,all4096 timings or uninstrumented cost;probe overhead
+unmeasured. Exact cutoff row count unknown.243 pins/53 pairs/four samples held.
+Original product/tests unchanged. New1/1 spent,all prior budgets/frozen slots/
+review ineligibility unchanged;PS5/I1/P1/candidate acceptance remains blocked.
+Next inspect validation type/member/shape/scalar costs,not copying-only fixes,
+defense deletion,automatic full replay,timeout increase or main.
 
 ## Latest — PS5 phase probe completes root setup; validation/copy still open
 
