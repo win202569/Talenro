@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest stopped handoff: [fixture revision F1 evidence](../roadmap/2026-10-17-p1-fixture-construction-revision.md).
+Approved afterb98251f4; F1 passed constructor/matrix/descriptors, failed isolation
+group (specific condition unknown). F2 frozen, no product call or retry. Current
+ownership suiteCF81BD28 is an unaccepted candidate, not historical9AA7. Original
+bytes remain in Git history/new ignored snapshot; old raw/manifests unchanged.
+Product source/original35 suite fixed. Do not run candidate or future R1–R7 by
+cloning/continuing implicitly; bounded isolation investigation/disposition needs
+new direction. Preserve all packets, original failed repair slot and frozen six
+slots/review ineligible. Prior entries below are historical.
+
 Latest plan-only handoff: [fixture-construction revision](../superpowers/plans/2026-10-17-p1-fixture-construction-revision.md)
 proposes selecting the one-object constructor, preserving guards and adding a
 fixture-only group. Two new30-second hosts/fixture edits NOT approved or started;

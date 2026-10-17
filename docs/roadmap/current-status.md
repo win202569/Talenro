@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — fixture revision F1 stopped on isolation assertion
+
+User approved fixture-only revision afterb98251f4. F1 PS7 exit1/973ms,stderr0,
+ExpectedResult=false. Constructor, scalar matrix and descriptors passed, but
+FixtureIsolation failed; category/subcondition unknown. [Stopped report](2026-10-17-p1-fixture-construction-revision.md).
+F2 unrun/frozen; no retry/fix/product import/test/reviewer. Current ownership test
+is authorized unaccepted versionCF81BD28; pre-edit9AA7 bytes retained, old pins
+unchanged as historical records. AST confirms original helper/product assertions
+unchanged except two wrapper expressions. ProductFE23DF3B/original35 suite fixed.
+Original repair false verdict/six frozen slots/review ineligible and diagnostic
+2/2 spent unchanged. Future R1–R7 still unapproved. Next needs bounded isolation
+investigation or candidate disposition, not an automatic continuation.
+
 ## Latest — fixture-construction revision plan written; edits/runs not approved
 
 User yes after535c54da requested only the [new fixture revision plan](../superpowers/plans/2026-10-17-p1-fixture-construction-revision.md).

@@ -1,4 +1,4 @@
-param([ValidateSet('regression','all')][string]$Group='regression')
+param([ValidateSet('regression','all','fixture')][string]$Group='regression')
 $ErrorActionPreference='Stop'
 # Catches scalar metadata admission, callback evaluation and cross-call aliasing.
 function P1I1-Need([bool]$Value){if(-not $Value){throw ('ASSERTION FAILED: '+$script:p1i1Case)}}
@@ -41,9 +41,17 @@ function P1I1-Refusal([string]$Reason='invalid-observation',$Index=2){
     [pscustomobject]@{Schema=1;Mode='policy-only';EvidenceClass='synthetic';Evaluated=$false;Reason=$Reason;State='Refused';FailureObservationIndex=$Index;Decision=$null;OriginVerified=$false;Acceptance=$false;RuntimeApproved=$false;LiveActionsPerformed=$false;CleanupStatus='unknown'}
 }
 function P1I1-Type($Value){[object].GetMethod('GetType').Invoke($Value.PSObject.BaseObject,$null)}
+function P1I1-WrapPrimitive([object]$Value){
+    if($null -eq $Value){throw 'FIXTURE ERROR: null is not a wrapped primitive'}
+    $ctor=[Management.Automation.PSObject].GetConstructor([type[]]@([object]))
+    if($null -eq $ctor -or -not $ctor.IsPublic){throw 'FIXTURE ERROR: object constructor unavailable'}
+    $parameters=@($ctor.GetParameters())
+    if($parameters.Count -ne 1 -or $parameters[0].ParameterType -ne [object]){throw 'FIXTURE ERROR: exact object signature required'}
+    return ,($ctor.Invoke([object[]]@($Value)))
+}
 function P1I1-Decorate($Owner,[string]$Name){
     $original=$Owner.$Name;$type=P1I1-Type $original
-    $wrapped=[Management.Automation.PSObject]::new($original)
+    $wrapped=P1I1-WrapPrimitive $original
     $metadata=[object[]]@('initial')
     $wrapped.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Metadata',$metadata))
     $Owner.$Name=$wrapped;$field=$Owner.$Name;$property=$field.PSObject.Properties['Metadata']
@@ -54,10 +62,72 @@ function P1I1-CheckDecorated($Scenario,$Owner,[string]$Field,[string]$Reason='in
     $null=P1I1-Decorate $Owner $Field
     $result=Get-OfflineSupervisionDecision $Scenario;P1I1-Need (P1I1-Equal $result (P1I1-Refusal $Reason $Index))
 }
+function P1I1-FixtureScalar($Value,$Type,$Expected){
+    P1I1-Need ((P1I1-Type $Value) -eq $Type -and $Value.PSObject.BaseObject -ceq $Expected)
+}
+function P1I1-FixtureMetadata($Value,$Reference){
+    $p=$Value.PSObject.Properties['Metadata'];P1I1-Need ($null -ne $p -and $p.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty)
+    P1I1-Need ([object]::ReferenceEquals($p.Value,$Reference))
+}
+function P1I1-FixtureChecks {
+    P1I1-Case FixtureConstructor {
+        $ctor=[Management.Automation.PSObject].GetConstructor([type[]]@([object]));P1I1-Need ($null -ne $ctor -and $ctor.IsPublic)
+        $parameters=@($ctor.GetParameters());P1I1-Need ($parameters.Count -eq 1 -and $parameters[0].ParameterType -eq [object])
+        P1I1-FixtureScalar (P1I1-WrapPrimitive ([int]0)) ([int]) ([int]0)
+    }
+    P1I1-Case FixturePrimitiveMatrix {
+        $vectors=@(
+            @{Make={ [int]0 };Type=[int];Want=[int]0},@{Make={ [int]1 };Type=[int];Want=[int]1},@{Make={ [int]-1 };Type=[int];Want=[int]-1},
+            @{Make={ [int]::MinValue };Type=[int];Want=[int]::MinValue},@{Make={ [int]::MaxValue };Type=[int];Want=[int]::MaxValue},
+            @{Make={ [long]0 };Type=[long];Want=[long]0},@{Make={ [long]::MinValue };Type=[long];Want=[long]::MinValue},@{Make={ [long]::MaxValue };Type=[long];Want=[long]::MaxValue},
+            @{Make={ $true };Type=[bool];Want=$true},@{Make={ $false };Type=[bool];Want=$false},
+            @{Make={ [string]::new([char[]]@()) };Type=[string];Want=''},@{Make={ [string]::new([char[]]@('c','l','e','a','n')) };Type=[string];Want='clean'},
+            @{Make={ [string]::new([char[]]@('r','e','f','u','s','e','d')) };Type=[string];Want='refused'},@{Make={ [string]::new([char[]]@('u','n','k','n','o','w','n')) };Type=[string];Want='unknown'}
+        )
+        foreach($v in $vectors){
+            $value=& $v.Make;P1I1-FixtureScalar $value $v.Type $v.Want
+            $w=P1I1-WrapPrimitive $value;P1I1-FixtureScalar $w $v.Type $v.Want
+            $meta=[object[]]@('initial');$w.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('Metadata',$meta))
+            P1I1-FixtureScalar $w $v.Type $v.Want;P1I1-FixtureMetadata $w $meta
+            $owner=[pscustomobject]@{Value=$null};$owner.Value=$w;P1I1-FixtureScalar $owner.Value $v.Type $v.Want;P1I1-FixtureMetadata $owner.Value $meta
+            $retrieved=$owner.Value;P1I1-FixtureScalar $retrieved $v.Type $v.Want;P1I1-FixtureMetadata $retrieved $meta
+            $other=[pscustomobject]@{Value=(& $v.Make)};$returned=P1I1-Decorate $other Value
+            P1I1-FixtureScalar $other.Value $v.Type $v.Want;P1I1-FixtureMetadata $other.Value $returned
+        }
+    }
+    P1I1-Case FixtureDescriptors {
+        $script:p1i1FixtureCallbacks=0
+        foreach($kind in @('ScriptProperty','AliasProperty','ScriptMethod')){
+            $w=P1I1-WrapPrimitive ([int]0)
+            switch($kind){
+                ScriptProperty {$member=[Management.Automation.PSScriptProperty]::new('Probe',{ $script:p1i1FixtureCallbacks++;return 'called' })}
+                AliasProperty {$member=[Management.Automation.PSAliasProperty]::new('Probe','MissingTarget')}
+                ScriptMethod {$member=[Management.Automation.PSScriptMethod]::new('Probe',{ $script:p1i1FixtureCallbacks++;return 'called' })}
+            }
+            $w.PSObject.Members.Add($member);$owner=[pscustomobject]@{Value=$w};P1I1-FixtureScalar $owner.Value ([int]) ([int]0)
+            $descriptor=$owner.Value.PSObject.Members['Probe'];P1I1-Need ($null -ne $descriptor -and $descriptor.Name -ceq 'Probe' -and $descriptor.MemberType.ToString() -ceq $kind)
+            P1I1-Need ($script:p1i1FixtureCallbacks -eq 0)
+        }
+    }
+    P1I1-Case FixtureIsolation {
+        foreach($make in @({ [int]0 },{ [long]0 },{ $true },{ [string]::new([char[]]@('c','l','e','a','n')) })){
+            $a=[pscustomobject]@{Value=(& $make)};$b=[pscustomobject]@{Value=(& $make)}
+            $am=P1I1-Decorate $a Value;$bm=P1I1-Decorate $b Value
+            P1I1-Need (-not [object]::ReferenceEquals($am,$bm));$am[0]='changed'
+            P1I1-FixtureMetadata $a.Value $am;P1I1-FixtureMetadata $b.Value $bm;P1I1-Need ($bm[0] -ceq 'initial')
+            $c=[pscustomobject]@{Value=(& $make)};$cm=P1I1-Decorate $c Value
+            P1I1-Need ($cm[0] -ceq 'initial' -and -not [object]::ReferenceEquals($cm,$am) -and -not [object]::ReferenceEquals($cm,$bm))
+            P1I1-FixtureMetadata $c.Value $cm
+        }
+    }
+    P1I1-Case FixtureComplete {P1I1-Need ($null -eq (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
+    Write-Output 'LIMIT: fixture construction only; no product import, product assertions, I1 closure or repair-budget renewal.'
+}
 try{
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent();$principal=New-Object Security.Principal.WindowsPrincipal($identity)
     Write-Output ('CONTEXT: '+$identity.Name+' admin='+$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
     Write-Output ('HOST: '+$PSVersionTable.PSVersion.ToString()+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)
+    if($Group -ceq 'fixture'){P1I1-FixtureChecks;return}
     if($Group -ceq 'all'){& (Join-Path $PSScriptRoot 'offline-supervision-policy.tests.ps1') -Group all;if(-not $?){throw 'Prior P1 suite failed'}}
     . (Join-Path $PSScriptRoot 'offline-supervision-policy.ps1')
     P1I1-Case ApiRequired {P1I1-Need ($null -ne (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
@@ -85,7 +155,7 @@ try{
     P1I1-Case PassiveDescriptors {
         $script:p1i1Callbacks=0
         foreach($member in @('ScriptProperty','AliasProperty','ScriptMethod')){
-            $s=P1I1-Normal;$w=[Management.Automation.PSObject]::new([int]0)
+            $s=P1I1-Normal;$w=P1I1-WrapPrimitive ([int]0)
             switch($member){
                 ScriptProperty {$m=[Management.Automation.PSScriptProperty]::new('Probe',{ $script:p1i1Callbacks++;return 'called' })}
                 AliasProperty {$m=[Management.Automation.PSAliasProperty]::new('Probe','MissingTarget')}
