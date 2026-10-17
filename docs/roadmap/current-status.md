@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ordinary identity-ledger written design awaiting review
+
+After5f5da3a0,the user selected the unified-ledger direction and confirmed the
+failure/budget/version/test boundaries,then approved writing the
+[formal spec](../superpowers/specs/2026-10-17-ordinary-member-identity-ledger-design.md).
+This is documentation only,no observer/source/test changes and no new execution.
+The proposal uses one owned identity path,sticky refusal,bounded sampling and
+conservative count reconciliation;it does not claim full event coverage or fix87.
+Schema4 stays isolated from existing acceptance/callers pending a later rollout.
+Next:user reviews the written spec;approval permits plan preparation only,not
+implementation or live runs. Metadata Task1/2 remain stopped,RED unaccepted;
+metadata1-build/1-runtime and independent probe0-build/1-runtime usage unchanged.
+All earlier next-step statements below are historical.
+
 ## Task11 — readonly timeline comparison complete;observer design decision next
 
 The authorized [comparison](2026-10-17-metadata-runtime-retained-probe-001.md#authorized-readonly-timeline-comparison)

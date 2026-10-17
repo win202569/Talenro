@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ordinary identity-ledger proposed written design](../superpowers/specs/2026-10-17-ordinary-member-identity-ledger-design.md).
+Conversational direction/boundaries approved;written spec awaits user review.
+Design-only checkpoint,no code/test/run or acceptance activation. The proposal
+keeps one retained identity authority and refuses incomplete/count-mismatched
+evidence;sampling is not a full event trace. Existing callers/diagnostics remain
+isolated. Resume at written-spec review,then separately approved plan/execution
+and live/rollout gates;do not resume metadata001 or replay the retained probe.
+Both used budgets and original failures stay unchanged. Git carries the proposed
+design/status,not raw evidence. Earlier latest/pending entries are historical.
+
 Latest:[authorized readonly timeline comparison](../roadmap/2026-10-17-metadata-runtime-retained-probe-001.md#authorized-readonly-timeline-comparison).
 Comparison is complete;no rerun or observer change. Earlier retained acquisition
 was observed,but different modes/stages and launch times prevent causal claims.
