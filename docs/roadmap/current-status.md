@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — bounded grouping proposal awaits approval;no test change yet
+
+[Pending grouping scope](2026-10-17-synthetic-capture-boundary-workload.md):retain
+all71 content checks in four explicit new groups(26/1/1/43),expected PASS28/3/3/45
+including group sentinels. Legacy format/boundary/default all bodies/order stay.
+Proposed NEW10 children:four groups PS7/5 then formatPS7/5,120s each,no retry,
+stop on abnormal;one new readonly coverage review only after all10 complete.
+No repair reserve,product edit,legacy whole-group replay or frozen-slot reuse.
+Await chat design/allowance approval before modifying tests. Old timeout and
+dependent regression/original review/acceptance/live/security/main gates remain.
+
 ## Latest — readonly boundary workload confirms cumulative budget,not per-case limit
 
 [Workload inventory](2026-10-17-synthetic-capture-boundary-workload.md) confirms

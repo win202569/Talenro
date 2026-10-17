@@ -123,6 +123,42 @@ or new runner was created this turn.
 
 ## Preservation and boundaries
 
+### Pending bounded test-organization proposal
+
+Following this audit,user asked to continue with design. Short design is being
+presented in chat for approval;no test edits/new runner/hosts yet. Add explicit
+Group choices admission,byte-bound,event-bound,reader-paths to the existing suite.
+Guard the four original contiguous sections without changing fixture/assertion
+bodies or their internal ordering. Retain format,boundary and default all;legacy
+boundary still runs the complete original sequence with73PASS,default all retains
+its combined sequence(expected90PASS). These legacy full runs are NOT proposed
+for rerun and preservation of code is not new runtime verification of them.
+
+Map original71 content checks exactly once across groups:admission26,byte-bound1,
+event-bound1,reader-paths43. Each new group retains the required API sentinel and
+gets its own distinctly named partition completion sentinel,NOT the full boundary
+completion label. Expected PASS28/3/3/45 respectively,total79 per host;the extra6
+versus73 are duplicated sentinels only,not extra coverage. Root/literal/hash setup
+and fixture/result/passivity/ownership guards remain. Reader-paths owns its offset
+and destination initialization;no dependence on another group's process state.
+
+Propose NEW10 fresh hosts in order:admission7/5,byte-bound7/5,event-bound7/5,
+reader-paths7/5,then existing format7/5(expected18 each). Every child120000ms,
+no retries or repair reserve,stop on first abnormal/timeout and retain all records.
+Before launch,static source/coverage comparison must establish all original test
+bodies/ordered labels preserved and product hashes unchanged. This is a test-only
+organization refactor,not a new product RED/GREEN repair claim. One NEW independent
+readonly test-organization/coverage review only after all10 complete;findings stop
+handoff without an automatic fix/retest reserve. Save source/mapping/evidence and
+recovery docs to the existing development branch,not main.
+
+This proposal needs user approval before changing the previously frozen test
+source. Original six-entry index/raw outputs and frozen7..12 remain untouched.
+No old dependent regressions or original implementation review are resumed.
+Separate-process results do not prove original same-process state interactions,
+clear the monolithic timeout or establish a product speedup. Even all proposed
+groups passing would be scoped coverage evidence only,not full acceptance.
+
 Store/original tests unchanged SHA256:
 `508F853F23EB84CB2CFC54D57D94BEE6635000E7D03D3A97994660722173BA3C` /
 `185FA2569A3364CD8DC4E894490794A5B6C6799F84B323F6BB6D66B94468335F`.

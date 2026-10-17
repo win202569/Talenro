@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:pending [bounded grouping scope](../roadmap/2026-10-17-synthetic-capture-boundary-workload.md).
+Proposal only:four new test selectors preserve71 content checks,legacy entrypoints
+and120s per child;proposed10 new runs plus one post-success readonly coverage
+review await approval. No test/runner change or new host yet. Do not run proposed
+selectors before implementation/approval or repurpose frozen original slots.
+Partition evidence would not certify original same-process interactions or clear
+the old timeout/product performance/full-project acceptance/main gates.
+
 Latest:[readonly boundary workload/budget inventory](../roadmap/2026-10-17-synthetic-capture-boundary-workload.md).
 Documents only,no new hosts/source/tests.120s applies to the whole boundary
 child,not each case. The4096 case requires two full verifiers plus codec/I/O,
