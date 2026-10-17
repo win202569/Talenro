@@ -8,6 +8,13 @@ diagnostic,test or workload ran while preparing it.
 
 ## Latest readonly reconciliation — after offline coverage checkpoint726e51a6
 
+Subsequent planning update: written joint designd9dcd740 was approved only for
+[P1 policy-plan writing](../superpowers/plans/2026-10-17-offline-supervision-policy.md).
+That plan's eight hosts/one conditional review are proposed, not approved or
+started. P1 consumes passive synthetic declarations, not QPC/Job/pipe evidence;
+it cannot satisfy the real capture/outer-control/security prerequisites below.
+No new runtime identities or probes were issued. Stage B remains NOT READY.
+
 Later documentation-only update based on4fbc6cd1: the synthetic memory raw
 coordinator now has [explicit limited offline acceptance](2026-10-17-offline-raw-capture-limited-acceptance-approval.md).
 The user subsequently approved writing a [joint real-capture/independent-supervision design](../superpowers/specs/2026-10-17-raw-capture-supervision-design.md);

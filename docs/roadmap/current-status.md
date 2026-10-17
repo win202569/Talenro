@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — joint design approved; P1 policy plan written, execution not approved
+
+User approved the written designd9dcd740 and only P1 plan writing. The
+[new plan](../superpowers/plans/2026-10-17-offline-supervision-policy.md) freezes
+a standalone passive Scenario→decision API, synthetic absolute milliseconds,
+sticky first failure, deadline/phase priority and conservative actual flags.
+It proposes35 named cases, eight fresh sequential hosts (RED/GREEN/mutants/final)
+and one conditional scoped readonly review, NOT authorized or started yet.
+Recommend Native for the coupled module/suite; execution method still unselected.
+P2 live OS/pipe/QPC adapters and P3 persistence remain separate; no policy-only
+outcome can become cleanup/runtime proof. No product/test/import/compile/nonce/
+security query/reviewer ran this turn; prior acceptance/pins/raw/budgets unchanged.
+Next: user review of the plan and explicit execution-method/budget selection.
+
 ## Latest — joint raw-capture/independent-supervision design written, awaiting review
 
 After4fbc6cd1 the user approved writing the joint architecture, not its future

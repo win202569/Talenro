@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: user approved written joint designd9dcd740 for P1-plan writing only.
+The [P1 supervision-policy plan](../superpowers/plans/2026-10-17-offline-supervision-policy.md)
+is saved but NOT approved for execution. Proposed scope: one standalone passive
+model/test suite, synthetic-ms absolute deadline,35 cases, eight sequential
+hosts and one conditional scoped reviewer. None consumed/launched; method not
+chosen. Native is recommended; a Subagent-driven choice needs a revised review
+budget before starting. No existing code/test/pins/raw/acceptance changed.
+Recover plan/spec/status on the existing development branch. Ask for plan review
+and execution choice, not generic permission to run P2/P3 or reuse old budgets.
+Live adapters, QPC/Job/pipe/cleanup proof, safety/main/full C12 gates remain open.
+
 Latest: [joint raw-byte capture and independent-supervision design](../superpowers/specs/2026-10-17-raw-capture-supervision-design.md)
 was written after user approval of that writing direction, based on4fbc6cd1.
 The written spec itself awaits user approval; no implementation plan/execution
