@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — current complete-order wall/CPU diagnostic completes in10.226s
+
+After148c3d51 approval, [one-shot group CPU diagnostic](2026-10-17-p1-complete-flow-cpu-timing.md)
+ran one ordinary-token PS7 host: exit0, wall10226ms, CPU12625ms, stderr empty,
+no timeout. All62 test groups plus2 wrapper markers completed in copied full
+shape/reflection/fixture/original35/ownership order.218 lines,134 events,67 closed
+wall/CPU pairs;196 pins/source reversibility held, product953CC2A8 unchanged.
+ArrayAndIntegerBounds largest: wall4932.728ms/CPU6406.25ms, not API evaluation alone.
+CPU includes runtime threads/coarse sampling; markers add unmeasured overhead.
+This is NOT original-entry acceptance or controlled speedup/cause proof; previous
+full30s timeout remains. New diagnostic1/1 spent, all frozen budgets/review0/1
+ineligible unchanged; I1/P1 unresolved. Portable copies/report/recovery saved.
+Next separately scope original-entry verification or controlled condition/marker
+comparison, not automatic retry, speculative product fix, timeout increase or main.
+
 ## Latest — complete-flow static audit accounts for retained defensive work
 
 After8ae4f271, [read-only flow audit](2026-10-17-p1-complete-flow-readonly-audit.md)

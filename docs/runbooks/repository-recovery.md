@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [complete-order wall/CPU](../roadmap/2026-10-17-p1-complete-flow-cpu-timing.md).
+After148c3d51 approval, one ordinary PS7 child completed62 groups plus2 wrapper
+markers: wall10226ms/CPU12625ms, exit0, no timeout, stderr empty. Largest boundary
+group wall4932.728ms/CPU6406.25ms includes more than API evaluation. All67 pairs
+recomputed;196 pins and six-copy reversibility held; product953CC2A8 unchanged.
+Portable throwaway copies under complete-flow-cpu-timing are NOT original-entry
+acceptance. Prior30s full timeout/candidate unaccepted/I1/P1 blockers remain.
+New1/1 spent; all frozen slots/review eligibility unchanged. Clone restores
+copies/report, not ignored raw/runtime or replay authority. Next requires separate
+original-entry verification/controlled-comparison scope; no automatic rerun,
+old-slot use, timeout increase, speculative product fix or main acceptance.
+
 Latest static finding: [complete-flow audit](../roadmap/2026-10-17-p1-complete-flow-readonly-audit.md).
 After8ae4f271, zero test processes/product edits. Shape lookup leaves18 type and10
 scalar-member checks per valid time record;4096-row source counts explain retained
