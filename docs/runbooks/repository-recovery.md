@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic handoff: [Int32 reference-mismatch localization](../roadmap/2026-10-17-p1-fixture-isolation-diagnosis.md).
+Approved after81871cf9, sole PS7 host completed690ms/exit0; first observed false
+check is AFieldMatchesAArray (arrays distinct, A Metadata NoteProperty). Other
+types/checks NotReached; no unique-cause or pointer-switched-to-B claim. Diagnosis
+1/1 spent, candidateCF81/product/tests/raw unchanged, F1 false/F2 and original6
+product slots frozen/review ineligible. Recover probe/report/plan from latest dev
+branch, not main. No repeat, identity comparison, fix or R1–R7 without separate
+bounded approval; cloned portable records do not restore ignored raw/runtime.
+
 Latest plan-only handoff: [one-host isolation diagnosis](../superpowers/plans/2026-10-17-p1-fixture-isolation-diagnosis.md)
 written after user continuation followingc6a94949. Proposed one PS7<=30000ms,
 four categories/11 named checks, no test/product import/edit or originalF1/warmup

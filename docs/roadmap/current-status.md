@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — isolation diagnostic localized Int32/AFieldMatchesAArray
+
+User approved one host after81871cf9. PS7 diagnostic exit0/690ms,stderr0, exact
+schema/integrity held; Disposition=ObservedFailure, not test acceptance. [Record](2026-10-17-p1-fixture-isolation-diagnosis.md):
+Int32 A/B share observed base identity; returned arrays distinct; A Metadata is
+NoteProperty but Value is not A's returned array. Only3/44 original checks reached,
+other41 null/NotReached. No proof of when/why mismatch arose or A.Metadata=bm.
+No product/test import/change, warmup, retry or reviewer. One-host budget1/1 spent;
+CF81 candidate/product/original35/old raw unchanged. F1 false/F2 frozen and six
+product slots/review ineligible preserved. Further identity-control comparison
+requires new bounded direction; no fixture/product fix or R1–R7 approval follows.
+
 ## Latest — isolation-localization plan written; one host not approved
 
 Following user request afterc6a94949, the [new isolation diagnosis plan](../superpowers/plans/2026-10-17-p1-fixture-isolation-diagnosis.md)
