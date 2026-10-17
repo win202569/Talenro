@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-17
 
-## Latest — numeric fixture corrected;PS7 partial45,hardlink setup denied
+## Latest — offline store scoped verification green;50 checks per host
+
+[Evidence/history](2026-10-17-offline-output-evidence-store.md):approved elevated
+PS7/5.1 runs each exit0,50 PASS,empty stderr(3433/1853ms). Hardlink,reparse and
+exclusive-writer checks executed;source/tests unchanged from fa4f2094. Elevated
+2/2 consumed,no retries;old Store3/4,repair1/2 unused slots remain frozen and
+failed records preserved. Existing offline persistence suite green only,not
+full-project/Stage B acceptance or origin/durability guarantee. Two deferred
+minors:isolated empty-origin fixture and nonemptyUTF16 persistence coverage.
+No real capture,security changes or merge. Next bounded improvement:those two
+coverage gaps,with separate verification authority;do not replay spent budgets.
+
+## History — numeric fixture corrected;PS7 partial45,hardlink setup denied
 
 [Continuation](2026-10-17-offline-output-evidence-store.md):approved two-host
 allowance used1/2. PS7 ran45 PASS checks then exit1 at first HardLink fixture
@@ -11,7 +23,7 @@ not a clean suite,merge or acceptance. Failure cause(sandbox vs ACL/filesystem)
 not proven. Next proposal:2 new scoped elevated fixture hosts,no security/ACL
 changes,no skipped checks. Deferred empty-origin/nonemptyUTF16 coverage remains.
 
-## Latest — offline persistence implementation checkpoint;verification blocked
+## History — offline persistence implementation checkpoint;verification blocked
 
 [Checkpoint](2026-10-17-offline-output-evidence-store.md):design and4-host cap
 approved;new store source/tests/portable plan written. RED1/2 expected missing
@@ -26,7 +38,7 @@ validators or consume old suite budgets. Scoped readonly review:0Critical,
 coverage);no additional confirmed source defect,but no functioning-store claim.
 No real collector/ledger identities/Stage B/full-project suite execution.
 
-## Latest — bounded offline persistence design proposed;not implemented
+## History — bounded offline persistence design proposed;not implemented
 
 Recommended next step extends evidence objects with output-evidence-store.ps1
 and .tests.ps1. Fixture/file I/O only,no process collector. Under a fixed owned

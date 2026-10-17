@@ -16,6 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline store scoped verification green](../roadmap/2026-10-17-offline-output-evidence-store.md).
+Recover unchanged portable store/package/classifier/isolation helpers and tests.
+Elevated PS7/5.1 each50 PASS,exit0,empty stderr;allowance2/2 consumed. All older
+failed receipts preserved and unused slots frozen. No source/test change this
+continuation. No full-project,Stage B,origin or crash-durability acceptance.
+Two deferred minor coverage gaps remain;new verification needs new authority.
+Tests prepare their fixed local root and fresh GUID fixture directories,retain
+files,and need project-local link/junction creation permission. Ignored runner
+indexes/raw fixtures are audit artifacts,not required source dependencies. Do
+not automatically rerun this spent allowance when recovering on a new computer.
+
+### Historical checkpoints (superseded by latest verification above)
+
 Latest:offline-store negative fixture argument corrected;PS7 continuation45
 checks passed then first HardLink setup failed(access denied). New allowance1/2
 consumed,PS5 unstarted and remaining frozen;original records unchanged. Read

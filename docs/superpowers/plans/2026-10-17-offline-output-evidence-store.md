@@ -28,11 +28,11 @@ Files: create `docs/diagnostics/isolated-fuzz/output-evidence-store.ps1` and `.t
 
 Interfaces: `Write-OfflineOutputEvidenceStore -Directory <absolute direct child> -Package <existing package>` throws on failure, otherwise returns reader result. `Read-OfflineOutputEvidenceStore -Directory <path>` returns `{Verified,Reason,Package,OriginVerified=false,Acceptance=false,RuntimeApproved=false}`. No caller-selected root.
 
-- [ ] Write tests first: literal abc/raw binary roundtrip, empty/UTF16/nonzero exit/progress reconstruction, missing/partial/stopped/hash mismatch, valid-hash malformed binary, limits, existing destination preservation, path/link refusal.
-- [ ] RED: approved runner with new Store allowance, host7 then5; expected missing store API assertion, not syntax/dependency failure.
-- [ ] Implement strict bounded parser and marker protocol; use isolation metadata only, no runtime helper.
-- [ ] GREEN: same suite host7 then5; expected exit0, all assertions, empty stderr. Never replay a failed GREEN without new authority.
-- [ ] One scoped fresh review; preserve any findings and verification limitations. Update status/recovery/report, explicitly stage necessary files, commit/push existing branch and compare remote/local SHA.
+- [x] Write tests first: literal abc/raw binary roundtrip, empty/UTF16/nonzero exit/progress reconstruction, missing/partial/stopped/hash mismatch, valid-hash malformed binary, limits, existing destination preservation, path/link refusal.
+- [x] RED: approved runner with new Store allowance, host7 then5; expected missing store API assertion, not syntax/dependency failure.
+- [x] Implement strict bounded parser and marker protocol; use isolation metadata only, no runtime helper.
+- [x] GREEN: achieved only in separately approved elevated continuation below;earlier failed GREEN records preserved,not silently replayed.
+- [x] One scoped fresh source review;findings/limits preserved. Necessary files/checkpoints already committed/pushed;final verification documentation follows standing preservation rule.
 
 ## Execution ledger
 
@@ -61,3 +61,19 @@ HardLink setup(access denied). No retries orPS5;remaining slot frozen. Old
 index SHA unchanged;repair index SHA514F1512188C77376657E4FFB518ACA22B32B9C3BBD23E7C3D5A0B072890725F.
 Prior fixture issue no longer occurs;hardlink/reparse/lock/PS5 unverified. No
 second review or minor fixes. Exact audit and next elevation proposal in report.
+
+## Approved elevated verification continuation
+
+User approved at most2 new scoped elevated verification hosts after fa4f2094,
+PS7 thenPS5,120s each,no retry/skip/security-setting change. Separate ignored
+StoreElevated index/budget2;unchanged source/tests. Prior indexes and unused
+slots remain frozen. Run sequentially and check actual child exit before the
+second host. Preserve failures and fixture files;no new implementation scope.
+
+Task1 scoped verification:COMPLETE under latest elevated authority only.
+PS7 exit0/3433ms/50PASS/empty stderr;PS5 exit0/1853ms/50PASS/empty stderr.
+No source/test changes since fa4f2094. Elevated2/2 consumed;index
+SHAC9D7AE456A7DF8F8FD685B6C6EC7F5DE9C57F1B492CA17A223CCBF0F6AFE4701;
+older index hashes unchanged. Numeric fixture Important fixed;2 minor coverage
+gaps remain deferred,no second reviewer/fix loop. No wider acceptance or merge,
+no scratch deletion. Prior rulings/limits remain;recorded history is not erased.

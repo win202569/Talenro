@@ -1,12 +1,16 @@
-# Offline evidence persistence — unfinished development checkpoint
+# Offline evidence persistence — scoped verification and preserved history
 
 ## Authority and outcome
 
 User approved the bounded persistence design and at most four fresh synthetic/local-file test hosts after commit6ce0bbd6. No live collector, ordinary ledger identity, Stage B, original suite replay or wider acceptance was authorized. Existing package4/4,classifier8/8,ledger70/70 budgets remain separate/frozen.
 
-Initial f2c562a4 checkpoint: no persistence behavior had passed execution because first GREEN failed before entering the store. Latest approved continuation below has45 PS7 assertions passed but stops at a hardlink fixture access denial;still no complete green suite or PS5 verification. Do not use this checkpoint as accepted evidence storage.
+Latest approved elevated continuation:PS7 and PS5 each passed50 checks,exit0,
+empty stderr,with unchanged source/tests. This is scoped synthetic/local-file
+verification,not origin authentication,Stage B or full-project acceptance.
+Two review minors remain deferred. Earlier failed and partial runs below are
+preserved history,not overwritten or converted into passes.
 
-## Implemented but not runtime-verified
+## Implemented behavior (scoped offline verification only)
 
 `output-evidence-store.ps1` exposes Write-/Read-OfflineOutputEvidenceStore. Fixed worktree-local `.superpowers/diagnostics/offline-output-evidence-store`, fresh direct child only. Caller prepares the root. Writer checks an existing package, constructs bounded primitive fields, creates fresh files, closes/reopens payload, checks bytes, and publishes completion marker last. Reader holds single-link read bindings, checks marker length/hash, parses strict bounded fields/exact EOF, then rebuilds and verifies the package. A refused classification can still be retained as internally consistent evidence, never authenticity or successful acceptance.
 
@@ -97,3 +101,39 @@ fixture creation. Preserve checks and all failure artifacts;no ACL/security
 changes,no outside-project links,no automatic retries. Elevation may still
 fail and is not a guarantee of a green run. Full-project/Stage B authority and
 old budgets remain unchanged. No further source/test fixes in this continuation.
+
+## Approved elevated continuation — 50 checks per host passed
+
+After fa4f2094,the user approved at most2 new sandbox-elevated local-fixture
+hosts,PS7 thenPS5,120s each,no retry or security-setting/ACL change. An independent
+StoreElevated index/budget2 was added to the ignored runner. No source or test
+changes occurred in this continuation;no extra review loop was dispatched.
+
+| Call | Host | Exit | Elapsed ms | PASS | Decoded stderr artifact bytes |
+|---|---|---|---|---|---|
+|1|PowerShell7|0|3433|50|0|
+|2|Windows PowerShell5.1|0|1853|50|0|
+
+Both saved records Completed=true;parent checked the child's exit before the
+next host. All existing assertions ran,including both multiply-linked file
+refusals,reparse directory read/write refusal,and exclusive-writer refusal.
+No checks skipped,no automatic retry,no fixture deletion. This demonstrates
+the hardlink setup succeeded under scoped sandbox elevation;it does not by
+itself prove the exact cause of the earlier access denial or Windows UAC state.
+
+Elevated index SHA256:
+`C9D7AE456A7DF8F8FD685B6C6EC7F5DE9C57F1B492CA17A223CCBF0F6AFE4701`.
+Source remains SHA7710A1149B42CFD0C2505988CEE6748F399C3FB5E8C34D795B35FBCB8558BB81;
+tests remain SHAE54BE44B09391A02068CF2E4B203B1908C019766217AA4CDF368DB40A1821072.
+Readonly hash checks confirm both older Store/StoreRepair indexes unchanged.
+Elevated2/2 consumed;older3/4 and1/2 unused slots stay frozen,not reusable.
+
+Scope verdict:existing offline storage suite green on both hosts;known numeric
+fixture blocker fixed;no unresolved Important finding from the single source
+review. Not a claim that every assertion was individually observed RED:original
+RED stopped at the missing API guard,and earlier GREEN stopped at fixture setup.
+Deferred minors still apply:empty-origin refusal fixture is not isolated and
+nonempty UTF16 persistence is not exercised. No full-project suite,live capture,
+historical raw-byte reconstruction,crash durability/authenticity,Stage B,I2/I3
+or security-disposition acceptance. Next bounded improvement would address the
+two minor coverage gaps with its own approved verification allowance.
