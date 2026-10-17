@@ -154,6 +154,26 @@ function P1I1-FixtureChecks {
             P1I1-Need ($null -eq $inputValue.PSObject.Properties['Metadata'])
         }
     }
+    P1I1-Case FixtureExtendedView {
+        $getter=[Management.Automation.PSMemberSet].GetProperty('Members');P1I1-Need ($null -ne $getter)
+        $script:p1i1ViewCallbacks=0
+        foreach($v in (P1I1-IsolationVectors)){
+            foreach($kind in @('NoteProperty','ScriptProperty','AliasProperty','ScriptMethod')){
+                $plain=P1I1-WrapPrimitive (& $v.Make)
+                $before=@($getter.GetValue($plain.psextended.PSObject.BaseObject,$null));P1I1-Need ($before.Count -eq 0)
+                switch($kind){
+                    NoteProperty {$member=[Management.Automation.PSNoteProperty]::new('Members',[object[]]@('owned'))}
+                    ScriptProperty {$member=[Management.Automation.PSScriptProperty]::new('Members',{ $script:p1i1ViewCallbacks++;return 'called' })}
+                    AliasProperty {$member=[Management.Automation.PSAliasProperty]::new('Members','MissingTarget')}
+                    ScriptMethod {$member=[Management.Automation.PSScriptMethod]::new('Members',{ $script:p1i1ViewCallbacks++;return 'called' })}
+                }
+                $plain.PSObject.Members.Add($member)
+                $after=@($getter.GetValue($plain.psextended.PSObject.BaseObject,$null))
+                P1I1-Need ($after.Count -eq 1 -and $after[0].Name -ceq 'Members' -and $after[0].MemberType.ToString() -ceq $kind)
+                P1I1-Need ($script:p1i1ViewCallbacks -eq 0)
+            }
+        }
+    }
     P1I1-Case FixtureComplete {P1I1-Need ($null -eq (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
     Write-Output 'LIMIT: fixture construction only; no product import, product assertions, I1 closure or repair-budget renewal.'
 }
@@ -163,7 +183,7 @@ try{
     Write-Output ('HOST: '+$PSVersionTable.PSVersion.ToString()+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)
     if($Group -ceq 'fixture'){P1I1-FixtureChecks;return}
     P1I1-FixtureChecks
-    if($Group -ceq 'all'){& (Join-Path $PSScriptRoot 'offline-supervision-policy.tests.ps1') -Group all;if(-not $?){throw 'Prior P1 suite failed'}}
+    if($Group -ceq 'all'){& (Join-Path $PSScriptRoot 'offline-supervision-policy.tests.ps1') -Group all;if(-not $?){exit 1}}
     . (Join-Path $PSScriptRoot 'offline-supervision-policy.ps1')
     P1I1-Case ApiRequired {P1I1-Need ($null -ne (Get-Command Get-OfflineSupervisionDecision -CommandType Function -ErrorAction SilentlyContinue))}
     P1I1-Case DecoratedInteger {

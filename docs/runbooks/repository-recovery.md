@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest stopped handoff: [extended-view repair resume](../roadmap/2026-10-17-p1-extended-view-repair.md).
+After3f09208e approval, new PS7/PS5 expected REDs plus extended-view fixture checks
+completed1738/2129ms. Candidate CF4CB4B5/ownershipC4905925 prepared but no GREEN
+host: coordinator passed PLACEHOLDER instead of saved green seal hash; controller
+stopped before R3 row/child. New2/7 spent,five slots frozen,review ineligible.
+Explicit permission may correct just that parameter and continue unchanged
+R3–R7 (no RED replay); do not silently retry. Exact source/suite/seal hashes in
+report; local ignored packet retained, not recovered by clone. If that packet is
+unavailable on another machine, do not fabricate invocation records or assume
+same-packet resume is possible. Product remains UNEXECUTED/unaccepted, I1/P1 open,
+no main merge or older-budget renewal. Earlier IsInstance four frozen separate.
+
 Latest diagnostic handoff: [empty-control comparison](../roadmap/2026-10-17-p1-empty-control-diagnosis.md).
 After8364f1a0 approval, two PS7 hosts (clean/copy-preflight) completed932/1882ms,
 exit0,stderr empty. Both return invalid-scenario and direct shape throws Decorated

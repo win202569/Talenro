@@ -4,8 +4,10 @@ function Assert-SupervisionPolicyPassive($Value){
     if($null -eq $Value){return}
     $type=Get-SupervisionPolicyType $Value
     if($type -eq [int] -or $type -eq [long] -or $type -eq [bool] -or $type -eq [string]){
-        # Inspect descriptors only: never evaluate an added property or method.
-        foreach($member in $Value.PSObject.Members){if($member.IsInstance){throw 'Decorated scalar'}}
+        # Use the fixed SDK getter so an added member named Members cannot shadow it.
+        $view=$Value.psextended
+        $members=[Management.Automation.PSMemberSet].GetProperty('Members').GetValue($view.PSObject.BaseObject,$null)
+        foreach($member in $members){throw 'Decorated scalar'}
     }
     foreach($p in $Value.PSObject.Properties){
         if($p.MemberType -in @([Management.Automation.PSMemberTypes]::ScriptProperty,[Management.Automation.PSMemberTypes]::CodeProperty)){throw 'Executable descriptor'}

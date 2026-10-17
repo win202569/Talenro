@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — extended-view candidate prepared; stopped on pre-launch argument error
+
+Approved bounded repair after3f09208e. [Resume record](2026-10-17-p1-extended-view-repair.md):
+PS7/PS5 REDs at P1EmptyPrepared matched (1738/2129ms,exit1,stderr0); new extended
+view fixture characterization passed both hosts, including Members-name collision
+and zero callbacks. Product then changed only scalar discriminator, candidate
+CF4CB4B5/suiteC4905925. Before R3 child launch, coordinator mistakenly supplied
+PLACEHOLDER as seal digest; controller rejected GREEN seal drift before consuming
+slot. No R3 child/result or retry. Current product candidate UNEXECUTED/unaccepted.
+New2/7 spent,R3–R7 five frozen,review0/1 ineligible;86 historical pins verified.
+Next needs explicit permission to correct only seal argument and resume those
+five slots with identical artifacts; do not repeat REDs. No new design needed.
+Older IsInstance repair's four frozen slots/false R3 remain separate and unchanged.
+
 ## Latest — ordinary-control diagnosis found IsInstance false positive
 
 Approved two-host spike after8364f1a0. [Record](2026-10-17-p1-empty-control-diagnosis.md):
