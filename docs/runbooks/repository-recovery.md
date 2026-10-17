@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[callback fix regressed](../roadmap/2026-10-17-offline-capture-simulation.md).
+Current source UNFINISHED,not prior100PASS revision. Both repair REDs reproduced
+callback issue;PS7GREEN passed counter then normal-event assertion failed.
+Repair3/4 spent,unused fourth frozen,noPS5GREEN/retry. Wrapper/base type cause
+unconfirmed;do not relax contract or trust candidate. Proposed new cap3 requires
+approval:one memory type diagnostic,correction andPS7/PS5 suites. No collector,
+security changes,Stage B or acceptance. All original failure records preserved.
+
 Latest:[simulation implemented but review-blocked](../roadmap/2026-10-17-offline-capture-simulation.md).
 New helper/tests portable;PS7/5.1 each100PASS,exit0,empty stderr. Four-host cap
 spent,all old budgets unchanged. Preserve first outer stale-exit error;no RED

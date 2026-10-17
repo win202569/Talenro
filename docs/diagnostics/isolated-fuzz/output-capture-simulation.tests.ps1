@@ -26,12 +26,30 @@ function Invoke-Capture($Events,$Encoding='utf-8',$Origin='synthetic-only'){
 function Check-CaptureState($R,$Status,$Reason,$Count,$Index,$Time,$OutEOF=$false,$ErrEOF=$false,$ExitSeen=$false,$Code=$null){
     Check-Capture ($R.Status -ceq $Status -and $R.Reason -ceq $Reason -and $R.AcceptedEventCount -eq $Count -and $R.FailureEventIndex -eq $Index -and $R.LastObservedElapsedMs -eq $Time -and $R.StdoutEOF -eq $OutEOF -and $R.StderrEOF -eq $ErrEOF -and $R.ExitObserved -eq $ExitSeen -and $R.ExitCode -eq $Code) ('State-'+$Reason+'-'+$Count+'-'+$Index)
 }
+# Counter-only reproduction:ETS dispatch must not invoke caller GetType methods.
+$script:captureOuterTypeCalls=0;$script:captureEventTypeCalls=0
+$outerWithMethod=[pscustomobject]@{Label='not-an-array'}
+$outerWithMethod|Add-Member -MemberType ScriptMethod -Name GetType -Force -Value {$script:captureOuterTypeCalls++;[object[]]}
+$eventWithMethod=Capture-Tick
+$eventWithMethod|Add-Member -MemberType ScriptMethod -Name GetType -Force -Value {$script:captureEventTypeCalls++;[System.Management.Automation.PSCustomObject]}
+$outerResult=Invoke-Capture $outerWithMethod
+$eventResult=Invoke-Capture ([object[]]@($eventWithMethod))
+Check-Capture ($script:captureOuterTypeCalls -eq 0 -and $script:captureEventTypeCalls -eq 0) 'InputGetTypeScriptMethodsNeverInvoked'
+Check-CaptureState $outerResult 'refused' 'invalid-input' 0 $null 0
+Check-CaptureState $eventResult 'incomplete' 'incomplete' 1 $null 0
+# Exact outer runtime type must still refuse covariant string[] rather than coerce.
+Check-CaptureState (Invoke-Capture ([string[]]@('tick'))) 'refused' 'invalid-input' 0 $null 0
 $abc=[byte[]]@(97,98,99);$empty=[byte[]]@()
 $base=[object[]]@((Capture-Chunk 'stdout' $abc),(Capture-Exit 0 1),(Capture-EOF 'stdout' 2),(Capture-EOF 'stderr' 3))
 $r=Invoke-Capture $base
 Check-CaptureState $r 'complete' 'complete' 4 $null 3 $true $true $true 0
 Check-Capture ($r.Stdout.Base64 -ceq 'YWJj' -and $r.Stdout.ByteLength -eq 3 -and $r.Stdout.SHA256 -ceq 'BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD') 'LiteralAbcSnapshot'
 Check-Capture (-not $r.Package.Acceptance -and -not $r.Package.OriginVerified -and -not $r.Package.RuntimeApproved) 'PackageNeverGrantsAuthority'
+$trailingMethod=Capture-Tick 4
+$trailingMethod|Add-Member -MemberType ScriptMethod -Name GetType -Force -Value {$script:captureEventTypeCalls++;[System.Management.Automation.PSCustomObject]}
+$trailingResult=Invoke-Capture ([object[]]($base+@($trailingMethod)))
+Check-CaptureState $trailingResult 'refused' 'trailing-after-complete' 4 4 4 $true $true $true 0
+Check-Capture ($script:captureEventTypeCalls -eq 0 -and $trailingResult.Stdout.Base64 -ceq 'YWJj') 'TrailingTypeValidationNeverInvokesCallerMethod'
 Check-CaptureState (Invoke-Capture ([object[]]@())) 'incomplete' 'incomplete' 0 $null 0
 $items=@((Capture-Exit 0 3),(Capture-EOF 'stdout' 3),(Capture-EOF 'stderr' 3))
 foreach($order in @('012','021','102','120','201','210')){

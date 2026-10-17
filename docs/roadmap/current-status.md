@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — callback fix regressed normal event handling;stopped
+
+[Continuation](2026-10-17-offline-capture-simulation.md):fix allowance3/4 used.
+RED7/5 reproduced GetType callback issue;candidate passed counter check onPS7
+but normal tick assertion failed after3PASS(exit1/981ms). PS5GREEN unstarted,
+unused fourth frozen,no retry/correction/second review. Current source NOT old
+100PASS revision;overall INCOMPLETE. Wrapper/base type mismatch unconfirmed.
+Propose new cap3:one memory diagnostic,then correction/two full-suite hosts.
+No collector/security query/Stage B/merge/acceptance or old allowance reuse.
+
 ## Latest — simulation100 checks per host;1Important review blocker
 
 [Execution/evidence](2026-10-17-offline-capture-simulation.md):approved inline

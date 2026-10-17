@@ -1,9 +1,16 @@
 # Pure supplied-event model. No OS clock,external streams,files or process API.
 . (Join-Path $PSScriptRoot 'output-evidence-package.ps1')
+function Get-OfflineCaptureValueType([object]$Value){
+    if($null -eq $Value){return $null}
+    # Invoke Object.GetType directly,not PowerShell ETS dispatch on caller input.
+    return [object].GetMethod('GetType').Invoke($Value,$null)
+}
 function Assert-OfflineCaptureEvent($Event){
-    if($null -eq $Event -or $Event.GetType().FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'invalid-event'}
+    $type=Get-OfflineCaptureValueType $Event
+    if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'invalid-event'}
     # Inspect all descriptors before reading any value;never invoke ScriptProperty.
-    foreach($property in $Event.PSObject.Properties){if($property.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'invalid-event'}}
+    $properties=@($Event.PSObject.Properties)
+    foreach($property in $properties){if($property.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'invalid-event'}}
     if($null -eq $Event.PSObject.Properties['Kind'] -or $Event.Kind -isnot [string] -or $Event.Kind -cnotin @('chunk','eof','exit','tick')){throw 'invalid-event'}
     $names=switch($Event.Kind){
         chunk{@('Kind','ElapsedMs','Channel','Bytes')}
@@ -11,7 +18,9 @@ function Assert-OfflineCaptureEvent($Event){
         exit{@('Kind','ElapsedMs','ExitCode')}
         tick{@('Kind','ElapsedMs')}
     }
-    Assert-OfflineEvidenceShape $Event $names
+    # Do not forward caller objects to the package helper's ETS GetType check.
+    if($properties.Count -ne $names.Count){throw 'invalid-event'}
+    foreach($property in $properties){if($property.Name -cnotin $names){throw 'invalid-event'}}
     Assert-OfflineEvidenceInteger $Event.ElapsedMs 0 ([long]::MaxValue)
     if($Event.Kind -cin @('chunk','eof')){
         if($Event.Channel -isnot [string] -or $Event.Channel -cnotin @('stdout','stderr')){throw 'invalid-event'}
@@ -33,7 +42,7 @@ function Get-OfflineCaptureSimulation([object]$Events,[object]$EncodingName,[obj
     try{
         $headerValid=$true
         try{
-            if($null -eq $Events -or $Events.GetType() -ne [object[]] -or $Events.Rank -ne 1 -or $Events.Length -gt 4096){throw 'invalid-input'}
+            if((Get-OfflineCaptureValueType $Events) -ne [object[]] -or $Events.Rank -ne 1 -or $Events.Length -gt 4096){throw 'invalid-input'}
             Assert-OfflineEvidenceMetadata 0 $EncodingName $OriginDeclaration
             $utf8=New-Object Text.UTF8Encoding($false,$true)
             if($utf8.GetByteCount($OriginDeclaration) -gt 4096){throw 'invalid-input'}

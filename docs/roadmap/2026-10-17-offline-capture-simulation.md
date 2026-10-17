@@ -1,5 +1,10 @@
 # Offline capture simulation — execution and scoped review
 
+Latest:approved callback fix attempt is **INCOMPLETE / REGRESSED**. Both REDs
+reproduced callback failure;PS7 attemptedGREEN passed that check but failed normal
+event acceptance after3PASS. No retry/PS5GREEN. Current source is not the earlier
+100PASS revision. Latest continuation below supersedes earlier source results.
+
 User approved [spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md),
 [plan](../superpowers/plans/2026-10-17-offline-capture-simulation.md),inline
 implementation and4 fresh synthetic-only verification hosts after88d623d3.
@@ -129,3 +134,47 @@ authority. No second independent review loop planned for the one fix pass.
 
 No main merge or Stage B authority follows from100PASS. Historical safety
 disposition,actual collector/watchdog,exact runtime packet and I2/I3 unresolved.
+
+## Approved callback-fix attempt — compatibility regression,stopped
+
+User approved specific fix plus4 new synthetic RED/GREEN hosts after71b3358c.
+Counter-only ETS GetType fixtures added for invalid outer object and normal tick,
+plus trailing-event callback/exact string[] refusal checks. Callback effects are
+only in-memory counters,no OS or destructive actions. Separate repair index:
+
+|Call|Host/phase|Child exit|Elapsed ms|PASS|Decoded stderr artifact bytes|
+|---|---|---|---|---|---|
+|1|PS7 RED|1|961|1|376|
+|2|PS5 RED|1|804|1|573|
+|3|PS7 GREEN attempted|1|981|3|358|
+|4|PS5 GREEN|—|—|—|—|
+
+REDs both failed InputGetTypeScriptMethodsNeverInvoked as expected,now reproducing
+the formerly static finding. Then source changed to reflective Object.GetType
+and local exact event fields rather than forwarding caller objects to the unsafe
+package shape check. Pure dependencies unchanged. PS7GREEN passed API guard,
+callback counter and outer refused-state checks,then State-incomplete-1- failed
+for an otherwise valid tick. Candidate avoids those callbacks in this PS7 sample
+but regresses normal-event handling;overall fix NOT verified.
+
+Saved child exit enforced stop;PS5GREEN never started,unused fourth frozen.
+No postfailure source/test changes,retries,second review or extra diagnostics.
+Original index still SHA F4FEA30F1728D27A48ED446BFAA88BAB9633E640938E02DC5403F4E07B4BF3BD.
+Repair3/4 consumed;all prior allowances unchanged. Original raw records retained.
+
+Readonly hypothesis:reflection may return a PowerShell wrapper type rather than
+the required event base type. Saved output has no actual type/status tuple;
+root cause UNCONFIRMED. Do not guess,relax exact type/field guards,or return to
+caller method dispatch. Current source is an unfinished development checkpoint.
+
+Current source SHA256:`6137E39CF6F005E8E7F57D8ED5DFE2F2CC4A2582698017799C774CBDDFAB9D68`.
+Updated tests SHA256:`B6E7E342A76FB6BD2AEE6641BAF65305846071A2562F0CD97AC4ECD1806CE7FE`.
+Repair index SHA256:`6E01199F81AC1C1DE39C1BFE8F60D0BFF931CE16E1FC6C649E3B48112C38E9EC`.
+
+Next proposal requires new authority:one minimal pure-memory diagnostic host
+inspects wrapper/base types and returned state with counter-only callbacks;
+then smallest supported correction and2 fresh full-suite hosts(PS7 thenPS5).
+Total proposed cap3,120s each,sequential,no retry,all failures retained. Current
+normal-event failure supplies RED evidence;no old RED replay. No real collector,
+security changes,Stage B or acceptance. Both full corrected suites,including
+callback assertions,must pass before claiming completion.

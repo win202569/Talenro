@@ -142,3 +142,10 @@ post-GREEN source/test edits. Overall Task1 INCOMPLETE,4/4 spent;follow Step4
 required-fix stop,not a hidden fix pass. Full report/rulings/recovery:
 `docs/roadmap/2026-10-17-offline-capture-simulation.md`. Separate authority needed
 for counter-only RED fixtures,non-dispatching type/shape fix,and4 new hosts.
+
+Latest fix authority(after71b3358c):RED7/5 counter assertion failed as expected
+(961/804ms). Reflection/local shape correction applied;PS7GREENexit1/981ms
+after3PASS at normal tick assertion. No retry/PS5GREEN/second review;repair3/4
+spent,unused fourth frozen. Candidate regressed,Task1 stillINCOMPLETE. Actual
+wrapper/base mismatch unconfirmed. New cap3 diagnostic/correction/two suites
+proposed in report,not authorized by earlier approvals. Old GREEN not transferable.
