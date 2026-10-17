@@ -1,8 +1,8 @@
 # Ordinary member identity ledger — proposed written design
 
 Date: 2026-10-17. Base: 5f5da3a0d5ebf5f4f43c4cd292a699a26d459eb5.
-Status: conversational direction and boundaries approved; written spec awaiting
-user review. This is design only, not implementation or execution authority.
+Status: user approved this written spec after checkpoint a3abff33. Approval
+permits implementation-plan preparation only, not implementation or execution.
 
 ## 1. Purpose and evidence boundary
 

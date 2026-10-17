@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ledger spec approved;implementation plan awaiting approval
+
+User approved the written spec aftera3abff33. The
+[proposed4-task plan](../superpowers/plans/2026-10-17-ordinary-member-identity-ledger.md)
+covers acquisition,shared-budget finalization,strict schema4 evaluation and isolated
+native wiring. Proposed budget:at most30 fake/static suite invocations across
+PowerShell7/5.1,0 Go builds/0 native target workloads,no retries. Existing live
+suites are excluded. Recommend Native/inline with one final independent review.
+Next:user reviews plan/budget and selects execution method. No implementation,
+tests or live runs occurred;schema4 acceptance remains disabled and metadata
+Task1/2 remain blocked. Existing consumed identities/budgets unchanged.
+All earlier next-step statements below are historical.
+
 ## Task11 — ordinary identity-ledger written design awaiting review
 
 After5f5da3a0,the user selected the unified-ledger direction and confirmed the

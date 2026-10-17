@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ordinary ledger proposed implementation plan](../superpowers/plans/2026-10-17-ordinary-member-identity-ledger.md).
+Written spec approved aftera3abff33;plan/budget/execution method still pending.
+Four tasks propose at most30 fake/static suite invocations on PowerShell7/5.1,
+no Go builds or native target workloads. Do not invoke existing live suites or
+controllers. Resume at user plan review/method selection,not implementation.
+Schema4 rollout and metadata/main acceptance stay blocked;old identities and
+budgets remain frozen. This checkpoint changes documentation only.
+Earlier latest/pending entries below are historical.
+
 Latest:[ordinary identity-ledger proposed written design](../superpowers/specs/2026-10-17-ordinary-member-identity-ledger-design.md).
 Conversational direction/boundaries approved;written spec awaits user review.
 Design-only checkpoint,no code/test/run or acceptance activation. The proposal
