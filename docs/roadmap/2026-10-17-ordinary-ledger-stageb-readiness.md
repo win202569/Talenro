@@ -8,6 +8,13 @@ diagnostic,test or workload ran while preparing it.
 
 ## Latest readonly reconciliation — after offline coverage checkpoint726e51a6
 
+P1 execution update: user selected Native1 afterc2fd4b50; eight synthetic policy
+hosts matched (final35/35 per engine, both mutants caught/restored),14 prior
+pins unchanged. [Execution record](2026-10-17-offline-supervision-policy-execution.md)
+awaits one conditional scoped readonly review. No actual QPC/Job/pipe/clock/
+cleanup/persistence or safety prerequisite is proven. P2/P3 remain unapproved;
+no exact runtime packet/nonces/security refresh were issued. Still NOT READY.
+
 Subsequent planning update: written joint designd9dcd740 was approved only for
 [P1 policy-plan writing](../superpowers/plans/2026-10-17-offline-supervision-policy.md).
 That plan's eight hosts/one conditional review are proposed, not approved or

@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: Native P1 implementation selected afterc2fd4b50 has completed all eight
+exact approved host outcomes. New standalone moduleFE23DF3B/test61A3BACF;
+final35/35 per engine, no stderr/timeout/retry, both prescribed mutants caught
+and restored. [Portable execution record](../roadmap/2026-10-17-offline-supervision-policy-execution.md)
+contains full pins/hashes/rulings. All14 old protected files unchanged. One
+conditional scoped readonly reviewer remains; no extra tests/repair or new P1
+acceptance is implied. Recover source/test/plan/report on the development
+branch, not main or ignored raw. Existing accepted byte coordinator is separate.
+Real P2/P3/clock/pipe/OS cleanup/security/Stage B/full C12/main remain unapproved.
+
 Latest: user approved written joint designd9dcd740 for P1-plan writing only.
 The [P1 supervision-policy plan](../superpowers/plans/2026-10-17-offline-supervision-policy.md)
 is saved but NOT approved for execution. Proposed scope: one standalone passive

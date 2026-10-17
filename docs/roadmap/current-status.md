@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — P1 policy implemented; all finite tests matched, review pending
+
+User selected Native1 afterc2fd4b50. New standalone policy/test only; eight
+approved hosts all matched: two precise API REDs, first/full35 on each engine,
+two exact sensitivity failures with immediate restoration, final35/35 on each.
+No stderr/timeout/retry/elevation; protected14 unchanged. See
+[execution evidence](2026-10-17-offline-supervision-policy-execution.md).
+ModuleFE23DF3B/test61A3BACF, final indexE14CCDCA. All8 tests spent; one conditional
+scoped independent readonly review remains, not yet completed. No code/test
+repair after unexpected results (none occurred). New P1 is not accepted yet;
+old raw coordinator's finite acceptance is separate. No real clock/Job/pipe/
+process/cleanup/persistence capability or Stage B/security/full C12/main clearance.
+
 ## Latest — joint design approved; P1 policy plan written, execution not approved
 
 User approved the written designd9dcd740 and only P1 plan writing. The
