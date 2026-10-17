@@ -10,7 +10,7 @@
 
 **Spec:** [Approved registry design](../specs/2026-10-16-authority-v7-registry-design.md),[C1](../specs/2026-10-16-authority-v7-request-auth-clarification.md),[C2](../specs/2026-10-16-authority-v7-metadata-admission-clarification.md),[nine-item appendix](../specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md),[27-request matrix](../specs/2026-10-17-authority-v7-request-auth-matrix-design.md),[16-item appendix](../specs/2026-10-17-authority-v7-data-path-clarification-design.md),and the complete literal checklist in [final146-row reconciliation](../../roadmap/2026-10-17-task11-final-metadata-reconciliation.md). Read all before implementation;do not use the superseded147 header count.
 
-**Status:** PROPOSED,not executed. Written16-item appendix confirmed after0ec812cd;local reconciliation146/0,not independent certification. No product files,fixtures or native controls were created for this plan. Implementation,method and the new bounded verification budget await confirmation.
+**Status:** APPROVED BUT STOPPED / UNACCEPTED after user confirmation following c549a519. Native/inline. Exactly1 build/1 runtime consumed in fixture-red:build0;runtime1 with expected missing-fixture output but failed ordinary natural-shutdown gate (unknown member/OpenProcess87,forced cleanup). Final audits0 errors. No accepted TDD RED,no GREEN,metadata API or fixture implementation. See [actual result](../../roadmap/2026-10-17-task11-metadata-registry-implementation.md). Remaining4 builds/3 runtimes do not authorize continuation past this safety stop. Final review not reached.
 
 ## Global Constraints
 
@@ -117,7 +117,7 @@ Role key is required even when null;non-null roles must be nonempty exact string
 Kinds key is required and nonnull;[] or a single approved nonnull string only.
 Golden vector exact keys:schema,canonical_body,preimage_hex,sha256_hex.
 
-- [ ] Write TestAuthorityV7MetadataFixtureInventory first. It opens both absent new paths,requires the exact markers and146 sorted unique schema/object pairs,all four fields matching each other and unchanged name golden;assert71 EXT/non-null,27 DB/null,32 []/non-null,16 []/null,37 distinct roles and three framing vectors. At this point use no new product API.
+- [x] Write TestAuthorityV7MetadataFixtureInventory first. It opens both absent new paths,requires the exact markers and146 sorted unique schema/object pairs,all four fields matching each other and unchanged name golden;assert71 EXT/non-null,27 DB/null,32 []/non-null,16 []/null,37 distinct roles and three framing vectors. At this point use no new product API.
 
 The inventory test's core size/required-shape assertions are:
 
@@ -184,7 +184,7 @@ if err != ErrUnknownAuthorityV7Schema || !reflect.DeepEqual(bad, AuthorityV7Sche
 - [ ] If the selected method is Native/inline,request one fresh readonly whole-slice review after scoped regression,using the current session's model unless the user explicitly selects another. If Subagent-driven is selected,follow that skill's task/review gates instead. Any important finding stops acceptance;no new implementation fix or native retry budget is silently granted. No additional review of consumed old attempts.
 - [ ] Write actual scoped results and remaining exclusions,verify four name-only files unchanged,review explicit file list and commit as feat: add readonly authority v7 schema metadata registry. Push necessary completed/explicitly unfinished checkpoint normally to current branch and verify remote SHA=local/clean. Do not merge main or equate metadata-only verification with full Task11/C12 acceptance.
 
-## New bounded verification protocol — proposed,not authorized yet
+## New bounded verification protocol — approved after c549a519
 
 S=W/.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator.
 R=S/metadata-registry-implementation-001;control=R-control.
@@ -305,8 +305,10 @@ runtime ceiling and no consumed replay. No storage/auth/codec scope is implied.
 Fixture/body canonical validity and actual source/transaction enforcement remain
 deliberate exclusions,not missing tasks inside this metadata-only deliverable.
 
-Please review this plan and confirm the execution approach before any product
-or native-control edits. Recommend Native/inline:the two tasks share one small
-test/oracle contract,and I can implement them directly with one final fresh
-readonly review. Subagent-driven remains an alternative with per-task gates.
-No implementation,Go command or native workload ran while writing this plan.
+The planning handoff above was confirmed with Native/inline after c549a519.
+Only the initial inventory test was written and the sole fixture-red attempted;
+neither task is complete. User later allowed saved-only predicate
+correction without relaxed safety guards. The actual failure is the ordinary
+runtime guard,so that correction cannot accept RED or unlock later stages.
+The run identity is consumed;preserve all records. Resume with a separately
+scoped decision about readonly native-failure investigation,not replay or GREEN.

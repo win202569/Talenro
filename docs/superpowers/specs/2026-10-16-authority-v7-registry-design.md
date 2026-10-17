@@ -1,5 +1,10 @@
 # Task11 第一切片：v7 注册表与独立字面量向量设计
 
+最新实施：[metadata计划](../plans/2026-10-17-authority-v7-metadata-registry.md)在c549a519后
+获Native/inline批准，但首轮在普通runtime退出检查失败后停止，见[未验收记录](../../roadmap/2026-10-17-task11-metadata-registry-implementation.md)。
+只新增第一条inventory测试，未交付metadata API/fixture；不得重跑或视为TDD RED通过。
+以下计划待批准等描述保留为更早时点。
+
 最新进展：名称切片已完成；九项/27项/16项附录均书面确认后，
 [最终146项本地metadata对照](../../roadmap/2026-10-17-task11-final-metadata-reconciliation.md)
 为146/0。[metadata-only实施计划](../plans/2026-10-17-authority-v7-metadata-registry.md)

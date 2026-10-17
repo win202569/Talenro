@@ -16,6 +16,21 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[metadata implementation stopped checkpoint](../roadmap/2026-10-17-task11-metadata-registry-implementation.md).
+Native/inline was approved afterc549a519. First RED used1 build/1 runtime;build
+passed,but runtime's natural-shutdown gate failed (unknown job member/OpenProcess87,
+forced cleanup). Final audits0 errors;not accepted TDD RED or metadata acceptance.
+Only the initial inventory test is tracked;its two required metadata fixtures
+and the product API intentionally remain absent. This is an unfinished development
+checkpoint,not a green-test checkout. Do not create GREEN/code on stdout alone.
+The saved-only predicate-correction permission cannot waive the native failure;
+no correction/continuation occurred. Preserve consumed metadata001 and all old
+identities;unused4-build/3-runtime slots are not automatic retry permission.
+Resume with a separately scoped readonly observer/evidence investigation. Git
+preserves portable failure facts and code/plan,not ignored receipts/SDK/cache.
+Do not run old controls or assume their records exist on another computer.
+All prior latest/pending entries below are historical.
+
 Latest:the16-item written appendix was confirmed after0ec812cd,and the
 [final literal146-row reconciliation](../roadmap/2026-10-17-task11-final-metadata-reconciliation.md)
 records local146/0,not independent certification or implemented storage/auth.

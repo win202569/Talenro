@@ -1,5 +1,25 @@
 # Project status — updated 2026-10-17
 
+## Task11 — metadata implementation stopped at first RED safety gate
+
+User approved Native/inline afterc549a519. The [actual unaccepted result](2026-10-17-task11-metadata-registry-implementation.md)
+records exactly1 build/1 runtime:default-vet build exit0/100.698s;inventory test
+exit1/1.396s with expected missing-fixture output,but runtime natural shutdown
+was NOT verified. One job member had OpenProcess87/unknown identity/exit state;
+forced cleanup verified empty afterward. Final audit errors0,Verified=false.
+The earlier immediate build-stage description was corrected from saved receipts:
+build succeeded;runtime shutdown failed. This is NOT accepted TDD RED.
+
+Only the initial inventory test was added;metadata product API and both fixtures
+remain absent. Task1/2 incomplete,no final review. Four name-only files unchanged.
+The user's saved-only predicate-correction permission does not waive this native
+gate;no correction/continuation/retry occurred. Four build/three runtime slots
+remain unused,not permission to advance past the stop. Preserve consumed001.
+Next:separately scope a readonly investigation of saved runtime evidence and
+observer source/tests. No new workload,helper repair,safety change or main merge.
+Local design146/0 and all broader production/physical/Task11 gates remain as before.
+The following planning-only statuses are historical.
+
 ## Task11 — final local metadata146/0; implementation plan proposed
 
 User confirmed the entire16-item written appendix after0ec812cd. The
