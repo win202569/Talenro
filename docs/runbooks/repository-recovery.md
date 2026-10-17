@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[ordered property-name comparison](../roadmap/2026-10-17-synthetic-capture-property-names-comparison.md).
+New exploratory script/report retained,new2/2 hosts consumed,both exit0/empty
+stderr,exact array/order/text checks and getter0. PS5 foreach423.076ms versus
+pipeline392.122ms does not support replacement as repair;PS7 opposite result
+is not a stable guarantee. Product/tests unchanged;old timeout/frozen regression
+and unstarted review remain. Next is separately scoped in-context profiling
+design,not another automatic micro-test,profiler install or original-suite replay.
+Clone restores definition/report,not ignored receipts/caches or launch authority.
+No acceptance/live/security/Stage B/full C12/main clearance follows.
+
 Latest:[readonly property-traversal audit](../roadmap/2026-10-17-synthetic-capture-property-audit.md).
 Documents only,no product/tests/new hosts. Static4096 field-name pipelines are
 a candidate,not a measured cause;passive/shape/value guards remain necessary.

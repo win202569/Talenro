@@ -1,5 +1,9 @@
 # Verifier property traversal — readonly audit and pending diagnostic
 
+Follow-up:[approved extraction comparison](2026-10-17-synthetic-capture-property-names-comparison.md).
+The proposal below is historical;new2/2 slots are spent. PS5 showed no candidate
+improvement;no product pipeline replacement is recommended on these results.
+
 ## Findings
 
 After8b31282c,user requested continued readonly review of per-object pipeline

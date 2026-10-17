@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — name-extraction comparison does not establish PS5 benefit
+
+[Property names comparison](2026-10-17-synthetic-capture-property-names-comparison.md)
+used2/2 NEW hosts,PS7/PS5 exit0/empty stderr,total1781/1450ms. Pipeline/foreach:
+PS7 650.010/324.852ms,PS5 392.122/423.076ms. All fixture and4096-object group
+arrays matched type/order/text,getter calls0. One sample/opposite host orders,
+not a stable benchmark/public verifier result. Do NOT implement pipeline rewrite
+as timeout repair on this evidence. No product/test edits or original rerun.
+Recommend in-context full-verifier profiling design before more micro-optimization;
+no new host/profiler install authorized. Original timeout/frozen regression,
+unstarted review and all live/security/main gates unchanged;new2/2 spent.
+
 ## Latest — property audit separates candidate pipeline cost from safety checks
 
 [Readonly property audit](2026-10-17-synthetic-capture-property-audit.md) confirms
