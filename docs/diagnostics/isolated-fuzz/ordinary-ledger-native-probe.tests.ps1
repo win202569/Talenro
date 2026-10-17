@@ -1,3 +1,4 @@
+param([switch]$SetupOnly)
 # Real planner/runner/saved validator with fake workload and file-link boundaries.
 . (Join-Path $PSScriptRoot 'ordinary-ledger-native-probe-fixture.ps1')
 $helper=Join-Path $PSScriptRoot 'ordinary-ledger-native-probe.ps1'
@@ -84,6 +85,7 @@ function Invoke-ProbeTestRun($Plan){
     $script:ProbeArmed=$true
     try{Invoke-OrdinaryLedgerProbe $Plan -RuntimeApproved -ApprovedPlanSHA256 (Get-OrdinaryLedgerProbePlanHash $Plan)}finally{$script:ProbeArmed=$false}
 }
+if($SetupOnly){return}
 Check-Ordinary ($null -ne (Get-Command Assert-OrdinaryLedgerProbeFreshTypes -ErrorAction SilentlyContinue)) 'FreshTypeGuardExists'
 Refuse-Probe {Assert-OrdinaryLedgerProbeFreshTypes} 'UnverifiedPreloadedTypesRefused'
 Refuse-Probe {Invoke-OrdinaryLedgerProbeNative $null 'unused' 'unused'} 'UnarmedBoundaryRefused'

@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Latest:[timing coverage completed](../../roadmap/2026-10-17-ordinary-ledger-timing-coverage.md).
+Test-only late-drift/finalization-lock checks catch both in-memory regressions;
+21 per host/final350 passed,70/70 cumulative calls consumed. Product unchanged;
+real adapters,Stage B and security gates are not certified or authorized.
+
 Latest:[fixed inbox policy implemented/fake-verified](../../roadmap/2026-10-17-ordinary-ledger-inbox-policy.md).
 Schema2 pins shell signature/hash/identity/link count under held read binding;
 source/evidence still require one link.64 checks per host/final350;54/54 calls

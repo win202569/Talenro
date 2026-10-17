@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[timing regressions covered](../roadmap/2026-10-17-ordinary-ledger-timing-coverage.md).
+Recover the new focused timing test and SetupOnly bootstrap with existing
+production scripts unchanged.21 per host/final350 passed;16/16 used,70/70 total.
+Both in-memory regressions caught;prior Minor coverage gaps closed in fake
+scope. New sequential index complete;older anomaly remains frozen/documented.
+No real probe identities consumed. Next is readonly OS-adapter evidence,not
+Stage B execution,security clearance or acceptance. Do not rerun consumed budgets.
+
 Latest:timing-test follow-up scoped in current status,not implemented/run.
 Proposed test-only suite checks late identity drift and finalization write locks,
 with two in-memory regression mutants;no disk product mutation or real runtime.

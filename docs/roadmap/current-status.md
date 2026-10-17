@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — both timing-regression gaps covered;production unchanged
+
+[Timing coverage/evidence](2026-10-17-ordinary-ledger-timing-coverage.md):both
+in-memory regressions caught,normal scenarios passed on PS7/5.1 (21 each),
+final14 allowlist runs350 assertions.16/16 sequential calls used,all exit0/
+empty stderr;Stage A70/70 cumulative. New index complete,older anomaly preserved.
+Readonly review:no blocking/actionable findings;prior Minor coverage gap closed
+only in fake stage-boundary scope. No real adapter/native or full-project
+certification. Next:readonly OS adapter/prerequisite evidence,separately scoped;
+Stage B and historical security/acceptance gates remain unapproved/unresolved.
+Earlier pending/proposed states below historical.
+
 ## Latest — timing coverage follow-up scoped;new allowance pending
 
 User agreed to continue with the two timing-regression gaps. Readonly source
