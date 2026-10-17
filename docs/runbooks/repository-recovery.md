@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:timing-test follow-up scoped in current status,not implemented/run.
+Proposed test-only suite checks late identity drift and finalization write locks,
+with two in-memory regression mutants;no disk product mutation or real runtime.
+New16 host calls proposed (focused2+allowlist14),sequential/no retry/120s,
+awaiting concrete design/allowance confirmation. Existing54/54 stay consumed;
+original anomalous index unchanged. Stage B and security gates are not cleared.
+
 Latest:[inbox-shell policy fake-verified](../roadmap/2026-10-17-ordinary-ledger-inbox-policy.md).
 Recover updated helper,isolation adapter,tests and this portable evidence report.
 Plan schema2 deliberately refuses old plans;no actual probe identities consumed.

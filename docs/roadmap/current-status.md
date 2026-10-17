@@ -1,5 +1,22 @@
 # Project status — updated 2026-10-17
 
+## Latest — timing coverage follow-up scoped;new allowance pending
+
+User agreed to continue with the two timing-regression gaps. Readonly source
+inspection confirms current runner implements entry recheck and finally-held
+binding;this is a test-only bounded follow-up,not a product behavior repair.
+Proposed focused fake suite injects identity drift after plan/control writes
+but before entry,and observes fixture write denial during final record writing
+and saved-result validation. In-memory test-only mutants separately remove
+entry recheck or release bindings early;each must be caught by the assertions.
+No on-disk product mutation,real executable write,native call or real probe ID.
+Proposed new16 host invocations:focused suite with both mutation controls on
+PS7/5.1 (2),then existing seven-suite allowlist on both hosts (14),sequentially,
+120s each,no retries. Stop on unexpected failure;record before launching each
+host and retain its output. Existing54/54 and anomalous raw index stay frozen.
+Short in-chat design/new16-call allowance await confirmation. No new tests or
+helper imports this turn;real readonly adapter evidence is a later separate step.
+
 ## Latest — inbox executable policy implemented;fake validation complete
 
 [Implementation/evidence/review](2026-10-17-ordinary-ledger-inbox-policy.md):
