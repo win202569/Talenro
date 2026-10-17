@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[synthetic capture contract unfinished checkpoint](../roadmap/2026-10-17-capture-adapter-contract.md).
+Recover new constructor/verifier and78-check tests from the development branch,
+not main. Four approved hosts consumed:expectedRED7/5,GREEN7/5 each78PASS with
+exit0/empty stderr. Required static review finding remains UNFIXED:passive ETS
+Length shadows can clip actual bytes or bypass bounds. Do not treat green tests
+as contract acceptance or automatically rerun. Separate fix/test authority next;
+proposed four new RED/GREEN PS7/5 hosts,120s each,no retries. Preserve original
+hashes/results;ignored local receipts are not cloned or required by source.
+All old budgets/frozen slots and Stage B/security/I2/I3 gates remain unchanged;
+no real capture,watchdog,provenance or runtime authorization.
+
 Latest:[synthetic capture contract plan proposed](../superpowers/plans/2026-10-17-capture-adapter-contract.md).
 Spec approved after9fbf8bf4;plan/inline-or-delegated method/proposed4-host budget
 await decision. No implementation/tests/live collector or watchdog. New task

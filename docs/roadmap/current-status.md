@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — synthetic capture contract implemented; review-blocked checkpoint
+
+[Evidence and next action](2026-10-17-capture-adapter-contract.md):approved inline
+four-host sequence completed;RED7/5 expected missing API,GREEN7/5 each78PASS,
+exit0,empty stderr. Independent readonly review found an Important passive ETS
+Length-shadow defect:byte inputs may be clipped to empty;count/string bounds
+can be bypassed. Static source finding accepted,not reproduced/fixed. Overall
+UNFINISHED;4/4 exhausted,no extra run or second review. Next requires separately
+approved shadow-regression/intrinsic-validation correction and fresh bounded
+verification. Source/tests/report portable;raw audit artifacts remain ignored.
+No live collector/watchdog,main merge,Stage B/security/I2/I3 acceptance.
+
 ## Latest — capture contract spec approved;plan awaits execution decision
 
 [Plan](../superpowers/plans/2026-10-17-capture-adapter-contract.md) prepares one

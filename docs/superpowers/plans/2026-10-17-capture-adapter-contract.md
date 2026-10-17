@@ -1,6 +1,17 @@
 # Synthetic Capture Adapter Contract Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended inline execution,or superpowers:subagent-driven-development only if selected by the user. This written plan awaits approval,execution-method selection and finite verification authority. Checkboxes are not completed work.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended inline execution,or superpowers:subagent-driven-development only if selected by the user. Approved after30aa84f9 for inline execution and4 hosts;executed but review-blocked. Original planning checkboxes below are not acceptance evidence. See execution disposition.
+
+## Execution disposition — 2026-10-17
+
+Implementation/tests written. RED7/5 missing API as expected;GREEN7/5 each78PASS,
+exit0,empty stderr. Approved cap4/4 spent,no source/test edits after GREEN.
+One readonly review found Important passive ETS Length-shadow handling defect;
+parent confirmed static path,not reproduced/fixed. Overall UNFINISHED,not task
+acceptance. Report/status/recovery preserve this development checkpoint and
+propose separately approved regression/fix/four-host verification. No extra run,
+second review or allowance reuse. Full evidence and limitations:
+[execution report](../../roadmap/2026-10-17-capture-adapter-contract.md).
 
 **Goal:** Build a pure synthetic record binding declared command/time metadata to a bounded event trace and rederived lifecycle,without live collection.
 **Architecture:** Validate/snapshot a synthetic packet,derive the existing simulator result,and hash canonical manifest/trace bytes. A separate verifier reconstructs from validated snapshots and rejects altered claims;no runtime action or persistence adapter.
