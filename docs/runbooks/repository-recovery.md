@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [independent evaluation profile](../roadmap/2026-10-17-p1-evaluation-profile.md).
+After30b5cabd approval,sole PS7 child evaluated one instrumented independent copy:
+exit0/19296ms,46 snapshots,4096 rows,original equality assertion PASS. Validation
+17480.582ms versus decision670.873ms;inclusive helper times overlap. No original
+product/test import/run or changes,no full suite/preflight/retry/optimization.
+Not a before/after benchmark or whole-suite acceptance.114 pins fixed,new1/1
+spent;old3/7/four frozen/review ineligible and I1/P1 unresolved remain. Clone
+portable probe/report from current development branch,not main;ignored raw/
+controller/runtime not restored or authorized by clone. Next scope bounded
+semantic-preserving validation optimization design with separate verification;
+retain security checks/assertions/30s limit,no automatic R4 or larger budget.
+
 Latest diagnostic: [4096/4097 boundary timing](../roadmap/2026-10-17-p1-array-boundary-timing.md).
 After19ef2fe1 approval, sole PS7 host completed two boundary calls/all six timed
 phases,exit0/22447ms,stderr0. Evaluate4096=21253.172ms versus4097 refusal47.721ms;

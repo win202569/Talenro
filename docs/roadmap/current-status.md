@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — independent evaluation profile localizes validation cost
+
+Approved one-host/one-call copy-only spike after30b5cabd.
+[Profile record](2026-10-17-p1-evaluation-profile.md): exit0/19296ms,stderr empty,
+46 snapshots,4096 validation/decision rows,original equality assertion PASS.
+Evaluation18235.314ms;validation loop17480.582ms,decision670.873ms. Repeated type,
+extended-member,shape and residual validation costs contribute; inclusive times
+overlap. Instrumentation/single-host variability preclude product speedup claims
+or unique old R3 attribution. No product/original-test edits/import/run,full suite,
+preflight,retry or optimization.114 pins fixed,new1/1 spent. Old R3=false,repair3/7,
+four frozen,review ineligible,I1/P1 unfinished unchanged. Next scope bounded
+semantic-preserving validation optimization design and separately approved
+verification,retaining defenses/assertions/30s gate. Earlier entries historical.
+
 ## Latest — boundary timing measured4096 evaluation at21.253s
 
 Approved one-host/two-call spike after19ef2fe1. [Boundary timing](2026-10-17-p1-array-boundary-timing.md):
