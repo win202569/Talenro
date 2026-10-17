@@ -28,7 +28,7 @@ function Invoke-OrdinaryLedgerProbeNative($Plan,[string]$Stdout,[string]$Stderr)
     $script:ProbeArmed=$false
     $script:ProbeCalls++
     if($script:ProbeCheckLock){
-        try{$attempt=[IO.File]::Open($Plan.Executable,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::Read);$attempt.Dispose()}catch [IO.IOException]{$script:ProbeLockObserved=$true}
+        try{$attempt=[IO.File]::Open($script:ProbeExecutableOverride,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::Read);$attempt.Dispose()}catch [IO.IOException]{$script:ProbeLockObserved=$true}
     }
     if($script:ProbeMode -ceq 'throw'){throw 'planned fake boundary failure'}
     if($script:ProbeMode -ceq 'missing'){return $null}
@@ -45,9 +45,40 @@ $expectedBoundary=(Get-Command Invoke-OrdinaryLedgerProbeNative).ScriptBlock.ToS
 $expectedFileBoundary=(Get-Command Get-OrdinaryLedgerProbeFile).ScriptBlock
 $expectedScopeBoundary=(Get-Command Get-OrdinaryLedgerProbeScope).ScriptBlock
 if(Test-Path -LiteralPath $helper){. $helper}
+$productionIndependentBoundary=(Get-Command Get-OrdinaryLedgerProbeFile).ScriptBlock
 Check-Ordinary ((Get-Command Invoke-OrdinaryLedgerProbeNative).ScriptBlock.ToString() -ceq $expectedBoundary) 'ImportMustPreserveFailClosedBoundary'
 Set-Item Function:Get-OrdinaryLedgerProbeFile -Value $expectedFileBoundary
 Set-Item Function:Get-OrdinaryLedgerProbeScope -Value $expectedScopeBoundary
+Check-Ordinary ($null -ne (Get-Command Get-OrdinaryLedgerProbeShell -ErrorAction SilentlyContinue)) 'DedicatedInboxShellValidatorRequired'
+$script:ShellMetadataMode='pass';$script:ShellSignatureMode='pass'
+function Get-OrdinaryLedgerProbeIdentity($Stream){
+    if($script:ShellMetadataMode -ceq 'throw'){throw 'fake metadata unavailable'}
+    [pscustomobject]@{Volume=7;IndexHigh=0;IndexLow=$(if($script:ShellMetadataMode -ceq 'identity'){99}else{42});Links=$(if($script:ShellMetadataMode -ceq 'links'){3}else{2})}
+}
+function Get-OrdinaryLedgerProbeSignature([string]$Path){
+    [pscustomobject]@{Valid=($script:ShellSignatureMode -cne 'invalid');Subject=$(if($script:ShellSignatureMode -ceq 'subject'){'CN=Other'}else{'CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'});CertificateSHA256=$(if($script:ShellSignatureMode -ceq 'certificate'){'B'*64}else{'A'*64})}
+}
+$realBinding=(Get-Command Open-OrdinaryLedgerProbeFileBinding).ScriptBlock
+function Open-OrdinaryLedgerProbeFileBinding([string]$Path,[string]$ExpectedSHA256=''){
+    $actual=$Path
+    if($script:ProbeExecutableOverride -and $Path -ieq (Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe')){$actual=$script:ProbeExecutableOverride}
+    $record=& $realBinding $actual $ExpectedSHA256
+    $record.Path=$Path;return $record
+}
+$shell=Get-OrdinaryLedgerProbeShell
+Check-Ordinary ($shell.Identity.Links -eq 2 -and $shell.Identity.IndexLow -eq 42 -and $shell.Signer.CertificateSHA256 -ceq ('A'*64)) 'InboxMultiLinkBoundInsteadOfRejected'
+foreach($mode in @('invalid','subject')){$script:ShellSignatureMode=$mode;Refuse-Probe {Get-OrdinaryLedgerProbeShell} ('UntrustedShellRefused-'+$mode)}
+$script:ShellSignatureMode='pass';$script:ShellMetadataMode='throw'
+Refuse-Probe {Get-OrdinaryLedgerProbeShell} 'MissingShellIdentityRefused'
+$script:ShellMetadataMode='pass'
+Refuse-Probe {Open-OrdinaryLedgerProbeShellBinding ([pscustomobject]@{Path='C:/wrong.exe'})} 'ShellExceptionCannotApplyToOtherPath'
+$realIndependent=(Get-Command Get-OrdinaryLedgerProbeFile).ScriptBlock
+# The general file boundary was already replaced above; test the saved production
+# function below using only its link-count OS seam, never P/Invoke in this suite.
+Set-Item Function:Get-OrdinaryLedgerProbeFile -Value $productionIndependentBoundary
+function Get-OrdinaryLedgerProbeLinkCount([string]$Path){return 2}
+Refuse-Probe {Get-OrdinaryLedgerProbeFile $helper} 'SourceMultiLinkStillRefused'
+Set-Item Function:Get-OrdinaryLedgerProbeFile -Value $realIndependent
 Check-Ordinary ($null -ne (Get-Command Get-OrdinaryLedgerProbePlan -ErrorAction SilentlyContinue)) 'NativeProbePlannerExists'
 function Invoke-ProbeTestRun($Plan){
     $script:ProbeArmed=$true
@@ -62,9 +93,9 @@ Check-Ordinary ($script:ProbeCalls -eq 0 -and -not(Test-Path -LiteralPath $plan.
 Check-Ordinary ($plan.Case -ceq 'Root' -and $plan.LimitSeconds -eq 5 -and $plan.Executable -ceq (Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe') -and $plan.Arguments.Count -eq 4 -and ($plan.Arguments[0..2] -join '|') -ceq '-NoProfile|-NonInteractive|-EncodedCommand') 'FixedRootShellArguments'
 $childPlan=New-ProbeTestPlan 'Child'
 Check-Ordinary ($childPlan.LimitSeconds -eq 20 -and $childPlan.Case -ceq 'Child' -and -not $plan.Acceptance -and $plan.NoRetry -and $plan.SourceBinding.Count -eq 11) 'FixedChildPolicyAndBindings'
-foreach($mutation in @('executable','arguments','limit','missing-source','source-hash','nonce','acceptance')){
+foreach($mutation in @('executable','arguments','limit','missing-source','source-hash','nonce','acceptance','shell-identity','shell-links','shell-signer')){
     $bad=$plan|ConvertTo-Json -Depth 12|ConvertFrom-Json
-    switch($mutation){executable{$bad.Executable='C:/wrong.exe'} arguments{$bad.Arguments[0]='-Command'} limit{$bad.LimitSeconds=600} missing-source{$bad.SourceBinding=@($bad.SourceBinding|Select-Object -Skip 1)} source-hash{$bad.SourceBinding[0].SHA256='0'*64} nonce{$bad.Nonce='invalid'} acceptance{$bad.Acceptance=$true}}
+    switch($mutation){executable{$bad.Executable='C:/wrong.exe'} arguments{$bad.Arguments[0]='-Command'} limit{$bad.LimitSeconds=600} missing-source{$bad.SourceBinding=@($bad.SourceBinding|Select-Object -Skip 1)} source-hash{$bad.SourceBinding[0].SHA256='0'*64} nonce{$bad.Nonce='invalid'} acceptance{$bad.Acceptance=$true} shell-identity{$bad.ShellBinding.Identity.IndexLow=99} shell-links{$bad.ShellBinding.Identity.Links=3} shell-signer{$bad.ShellBinding.Signer.CertificateSHA256='B'*64}}
     Refuse-Probe {Assert-OrdinaryLedgerProbePlan $bad $true} ('PlanMutationRefused-'+$mutation)
 }
 Refuse-Probe {Get-OrdinaryLedgerProbePlan (Join-Path $script:ProbeTestScope 'metadata-runtime-retained-probe-001') 'Root'} 'WrongIdentityRefused'
@@ -72,6 +103,14 @@ Refuse-Probe {Invoke-OrdinaryLedgerProbe $plan} 'RuntimeNotApprovedRefused'
 Refuse-Probe {Invoke-OrdinaryLedgerProbe $plan -RuntimeApproved -ApprovedPlanSHA256 ('0'*64)} 'WrongApprovalPinRefused'
 Check-Ordinary ($script:ProbeCalls -eq 0 -and -not(Test-Path -LiteralPath $plan.RunRoot)) 'NoBoundaryBeforeApproval'
 Refuse-Probe {Invoke-OrdinaryLedgerProbe $childPlan -RuntimeApproved -ApprovedPlanSHA256 (Get-OrdinaryLedgerProbePlanHash $childPlan)} 'ChildBeforeRootRefused'
+foreach($mode in @('identity','links','throw')){
+    $script:ShellMetadataMode=$mode
+    Refuse-Probe {Invoke-ProbeTestRun $plan} ('ShellMetadataDriftBeforeConsumption-'+$mode)
+    Check-Ordinary ($script:ProbeCalls -eq 0 -and -not(Test-Path -LiteralPath $plan.ControlRoot)) ('NoIdentityConsumedOnShellDrift-'+$mode)
+}
+$script:ShellMetadataMode='pass';$script:ShellSignatureMode='certificate'
+Refuse-Probe {Invoke-ProbeTestRun $plan} 'SignerDriftBeforeConsumptionRefused'
+$script:ShellSignatureMode='pass'
 $result=Invoke-ProbeTestRun $plan
 Check-Ordinary ($result.ObservationPassed -and $result.Finalized -and -not $result.Acceptance -and $script:ProbeCalls -eq 1) 'RootFakeRunFinalizedOnce'
 $saved=Get-OrdinaryLedgerProbeSaved $plan.RunRoot

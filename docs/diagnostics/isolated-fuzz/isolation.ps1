@@ -13,6 +13,12 @@ public static class IsolatedFuzzFileInfo {
     }
     [DllImport("kernel32.dll", SetLastError=true)]
     static extern bool GetFileInformationByHandle(SafeFileHandle handle, out Info info);
+    public static Info Snapshot(SafeFileHandle handle) {
+        Info info;
+        if (!GetFileInformationByHandle(handle, out info))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        return info;
+    }
     public static uint Links(string path) {
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
             Info info;

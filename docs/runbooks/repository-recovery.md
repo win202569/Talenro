@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[inbox-shell policy fake-verified](../roadmap/2026-10-17-ordinary-ledger-inbox-policy.md).
+Recover updated helper,isolation adapter,tests and this portable evidence report.
+Plan schema2 deliberately refuses old plans;no actual probe identities consumed.
+18/18 new calls used,54/54 cumulative;64 per host/final350. Preserve report's
+raw-index anomaly and deferred timing-regression gap;do not infer clean original
+bookkeeping or real OS integration. Stage B/security/full acceptance remain
+blocked/unapproved. Next requires a separately bounded verification allowance.
+
 Latest:bounded inbox-executable policy design proposed in current status.
 Not implemented or approved. Keep source/evidence single-link checks;proposed
 executable-specific replacement pins signature/hash/file identity/link count,

@@ -48,7 +48,8 @@ function Open-OrdinaryLedgerProbeBindings($Plan){
     $locks=New-Object 'System.Collections.Generic.List[object]'
     try{
         foreach($row in $script:OrdinaryProbeLoadedSources){$locks.Add((Open-OrdinaryLedgerProbeFileBinding (Join-Path $PSScriptRoot $row.Path) $row.SHA256))}
-        $locks.Add((Open-OrdinaryLedgerProbeFileBinding $Plan.Executable $Plan.ExecutableSHA256))
+        if($Plan.Executable -cne $Plan.ShellBinding.Path -or $Plan.ExecutableSHA256 -cne $Plan.ShellBinding.SHA256){throw 'Shell binding disagrees with executable'}
+        $locks.Add((Open-OrdinaryLedgerProbeShellBinding $Plan.ShellBinding))
         return ,$locks
     }catch{foreach($file in $locks){$file.Stream.Dispose()};throw}
 }
@@ -56,11 +57,48 @@ function Get-OrdinaryLedgerProbeScope {
     $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
     Get-IsolatedFullPath (Join-Path $workspace '.superpowers/diagnostics/2026-10-14-isolated-fuzz-coordinator')
 }
+function Get-OrdinaryLedgerProbeLinkCount([string]$Path){[IsolatedFuzzFileInfo]::Links($Path)}
 function Get-OrdinaryLedgerProbeFile([string]$Path){
     $safe=Get-IsolatedFullPath $Path
-    if(-not(Test-Path -LiteralPath $safe -PathType Leaf) -or [IsolatedFuzzFileInfo]::Links($safe) -ne 1){throw 'Independent probe file required'}
+    if(-not(Test-Path -LiteralPath $safe -PathType Leaf) -or (Get-OrdinaryLedgerProbeLinkCount $safe) -ne 1){throw 'Independent probe file required'}
     $item=Get-Item -LiteralPath $safe -ErrorAction Stop
     [pscustomobject]@{Path=$safe;SHA256=(Get-FileHash -LiteralPath $safe -Algorithm SHA256 -ErrorAction Stop).Hash;Length=$item.Length}
+}
+function Get-OrdinaryLedgerProbeIdentity($Stream){
+    $info=[IsolatedFuzzFileInfo]::Snapshot($Stream.SafeFileHandle)
+    [pscustomobject]@{Volume=$info.Volume;IndexHigh=$info.IndexHigh;IndexLow=$info.IndexLow;Links=$info.Links}
+}
+function Get-OrdinaryLedgerProbeSignature([string]$Path){
+    $signature=Get-AuthenticodeSignature -LiteralPath $Path -ErrorAction Stop
+    if($null -eq $signature.SignerCertificate){throw 'Shell signer unavailable'}
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try{$hash=([BitConverter]::ToString($sha.ComputeHash($signature.SignerCertificate.RawData))).Replace('-','')}finally{$sha.Dispose()}
+    [pscustomobject]@{Valid=($signature.Status -eq [System.Management.Automation.SignatureStatus]::Valid);Subject=$signature.SignerCertificate.Subject;CertificateSHA256=$hash}
+}
+function Open-OrdinaryLedgerProbeShellBinding($Expected=$null){
+    # Only the fixed inbox executable uses this policy; never source/evidence.
+    $fixed=Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
+    if($null -ne $Expected -and $Expected.Path -cne $fixed){throw 'Fixed inbox shell path required'}
+    $binding=Open-OrdinaryLedgerProbeFileBinding $fixed
+    try{
+        $identity=Get-OrdinaryLedgerProbeIdentity $binding.Stream
+        foreach($name in @('Volume','IndexHigh','IndexLow','Links')){
+            $value=$identity.$name
+            if($null -eq $value -or $value -is [bool] -or $value -is [string] -or [decimal]$value -lt 0 -or [decimal]$value -gt [uint32]::MaxValue -or [decimal]$value -ne [decimal][uint32]$value){throw 'Invalid shell identity'}
+        }
+        if($identity.Volume -eq 0 -or ($identity.IndexHigh -eq 0 -and $identity.IndexLow -eq 0) -or $identity.Links -eq 0){throw 'Missing shell identity'}
+        $signer=Get-OrdinaryLedgerProbeSignature $fixed
+        if($signer.Valid -isnot [bool] -or -not $signer.Valid -or $signer.Subject -cne 'CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US' -or $signer.CertificateSHA256 -cnotmatch '^[A-F0-9]{64}$'){throw 'Trusted Microsoft Windows shell signature required'}
+        $record=[pscustomobject]@{Policy='fixed-inbox-shell-binding-v1';Path=$fixed;SHA256=$binding.SHA256;Length=$binding.Stream.Length;Identity=$identity;Signer=$signer}
+        if($record.Length -le 0){throw 'Empty shell file'}
+        if($null -ne $Expected -and ($Expected|ConvertTo-Json -Depth 8 -Compress) -cne ($record|ConvertTo-Json -Depth 8 -Compress)){throw 'Shell identity/signature/hash/link drift'}
+        $binding|Add-Member Record $record
+        return $binding
+    }catch{$binding.Stream.Dispose();throw}
+}
+function Get-OrdinaryLedgerProbeShell {
+    $binding=Open-OrdinaryLedgerProbeShellBinding
+    try{return $binding.Record}finally{$binding.Stream.Dispose()}
 }
 function Get-OrdinaryLedgerProbeSourceNames {
     @('ordinary-ledger-native-probe.ps1','run.ps1','isolation.ps1','provenance.ps1','process-native.cs','retained-lifetime.cs','compile-stage-trigger.cs','compile-stage-session.cs','ordinary-ledger.cs','ordinary-ledger-session.cs','ordinary-ledger-receipt.ps1')
@@ -80,7 +118,7 @@ function Get-OrdinaryLedgerProbePlan([string]$RunRoot,[string]$Case='Root',[stri
     if($RequireNew -and ((Test-Path -LiteralPath $root) -or (Test-Path -LiteralPath $control))){throw 'Probe identity already consumed;no replay'}
     if($Nonce -ceq ''){$Nonce=[guid]::NewGuid().ToString('N')}
     if($Nonce -cnotmatch '^[a-f0-9]{32}$'){throw 'Invalid probe nonce'}
-    $shell=(Get-OrdinaryLedgerProbeFile (Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'))
+    $shell=Get-OrdinaryLedgerProbeShell
     $binding=@(foreach($name in (Get-OrdinaryLedgerProbeSourceNames)){
         $file=Get-OrdinaryLedgerProbeFile (Join-Path $PSScriptRoot $name)
         [pscustomobject]@{Path=$name;SHA256=$file.SHA256}
@@ -130,7 +168,7 @@ Write-Stage 'parent-exit.json'
 '@
         $parent=$parent.Replace('__SHELL__',$shell.Path.Replace("'","''")).Replace('__CHILD__',$encodedChild)
     }
-    [pscustomobject]@{Schema=1;Policy='ordinary-ledger-native-probe-v1';Case=$Case;RunRoot=$root;ControlRoot=$control;Nonce=$Nonce;Executable=$shell.Path;ExecutableSHA256=$shell.SHA256;SourceBinding=$binding;LimitSeconds=$limit;ParentScript=$parent;ChildScript=$child;Arguments=@('-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($parent)));Environment=@{};Acceptance=$false;NoRetry=$true;Coverage='sampled'}
+    [pscustomobject]@{Schema=2;Policy='ordinary-ledger-native-probe-v2';Case=$Case;RunRoot=$root;ControlRoot=$control;Nonce=$Nonce;Executable=$shell.Path;ExecutableSHA256=$shell.SHA256;ShellBinding=$shell;SourceBinding=$binding;LimitSeconds=$limit;ParentScript=$parent;ChildScript=$child;Arguments=@('-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($parent)));Environment=@{};Acceptance=$false;NoRetry=$true;Coverage='sampled'}
 }
 function Get-OrdinaryLedgerProbePlanHash($Plan){
     $bytes=[Text.Encoding]::UTF8.GetBytes(($Plan|ConvertTo-Json -Depth 12 -Compress -WarningAction Stop))
@@ -264,7 +302,12 @@ function Invoke-OrdinaryLedgerProbe($Plan,[switch]$RuntimeApproved,[string]$Appr
         New-Item -ItemType Directory -Path $Plan.RunRoot -ErrorAction Stop|Out-Null
         Write-OrdinaryLedgerProbeJSON (Join-Path $Plan.RunRoot 'plan.json') $Plan
         $process=Join-Path $Plan.RunRoot 'process';New-Item -ItemType Directory -Path $process -ErrorAction Stop|Out-Null
-        $receipt=Invoke-OrdinaryLedgerProbeNative $Plan (Join-Path $process 'stdout.txt') (Join-Path $process 'stderr.txt')
+        # Reopen fixed path while the original binding remains held, immediately
+        # before entry. Both observations must match the approved file identity.
+        $entryBinding=Open-OrdinaryLedgerProbeShellBinding $Plan.ShellBinding
+        try{
+            $receipt=Invoke-OrdinaryLedgerProbeNative $Plan (Join-Path $process 'stdout.txt') (Join-Path $process 'stderr.txt')
+        }finally{$entryBinding.Stream.Dispose()}
         Write-OrdinaryLedgerProbeJSON (Join-Path $process 'receipt.json') $receipt
         $result=Get-OrdinaryLedgerProbeEvidence $Plan $receipt
         Write-OrdinaryLedgerProbeJSON (Join-Path $Plan.RunRoot 'result.json') $result

@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — inbox executable policy implemented;fake validation complete
+
+[Implementation/evidence/review](2026-10-17-ordinary-ledger-inbox-policy.md):
+fixed-shell-specific signature/hash/identity/link-count binding replaces only
+its single-link requirement;source/evidence single-link rules unchanged.
+Both hosts64 checks;final14 runs350 assertions,all GREEN/final stderr empty.
+New18/18 used,Stage A54/54 cumulative. One raw index completion field was lost
+to concurrent bookkeeping;call3 exit0 separately captured,original records kept.
+Readonly review:no blocking source defect;Minor timing-regression gap deferred.
+No real adapter/native certification,Stage B approval or safety-gate clearance.
+Next:separate allowance for missing timing regressions and readonly OS evidence.
+Earlier proposed/blocked source states below are historical,not runtime clearance.
+
 ## Latest — scoped executable-policy design proposed, not implemented
 
 User approved designing a compatibility approach,not runtime execution.

@@ -1,5 +1,11 @@
 # Isolated fuzz diagnosis
 
+Latest:[fixed inbox policy implemented/fake-verified](../../roadmap/2026-10-17-ordinary-ledger-inbox-policy.md).
+Schema2 pins shell signature/hash/identity/link count under held read binding;
+source/evidence still require one link.64 checks per host/final350;54/54 calls
+used. See documented index anomaly and deferred timing-regression gap. Real OS
+adapters and Stage B remain unverified/unapproved;do not invoke native probes.
+
 Latest:[native-probe Stage A review fixes fake-verified](../../roadmap/2026-10-17-ordinary-ledger-native-probe-repair.md).
 Load snapshot,held executable binding and fail-closed fake protections pass47
 checks per host/final350.36/36 Stage A calls used. Child result explicitly does
