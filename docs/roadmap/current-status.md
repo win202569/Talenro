@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — paired prefix completes; added branches do not reproduce prior slowdown
+
+Aftercf9590b0,[paired diagnostic](2026-10-17-p1-paired-prefix-timing.md): A then B,
+both PS7 exit0,stderr empty,prefix assertions PASS,45 pairs each. A wall6615ms/
+CPU9656.250ms,original31 span4395.405ms;B wall4407ms/CPU5468.750ms,span1781.390ms.
+Only helper body differs;both mode=None. Engine pinned,158 immutable pins held.
+No4096/remaining original4/ownership10/full acceptance. Extra conditions did NOT
+reproduce large slowdown in this pair;not proof of zero cost or faster branches,
+order/runtime/host effects remain. No unique cause established. New2/2 spent,
+product6CF0D354/original suites unchanged. Prior3/4/one frozen,old3/7/four frozen,
+review ineligible,I1/P1 unresolved remain. Next plan separately authorized full
+PS7/PS5 verification under30s in controlled conditions,not branch-causality fixes,
+automatic old-slot use,larger limits or prefix-to-suite acceptance.
+
 ## Latest — read-only audit finds uncontrolled instrumentation variable, no unique cause
 
 After247a64bb,[read-only audit](2026-10-17-p1-timing-readonly-audit.md) ran ZERO

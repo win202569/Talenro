@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [paired prefix](../roadmap/2026-10-17-p1-paired-prefix-timing.md).
+Aftercf9590b0 approval,A/B ordinary PS7 both completed same reflection3/fixture8/
+original31 prefix. A wall6.615s/CPU9.656s;B with3 conditions wall4.407s/CPU5.469s.
+Single sequential pair did not reproduce large branch-related slowdown;not stable
+causality or zero-overhead proof.158 pins/engine fixed,product6CF0D354/original
+suites unchanged. No4096/ownership regression/full acceptance. New2/2 spent,
+prior3/4/one frozen,old3/7/four frozen/review ineligible and I1/P1 unresolved.
+Recover portable scripts/report from current dev branch,not main;ignored raw/
+controller/runtime and replay authority do not clone. Next plan explicit full
+PS7/PS5 verification under30s,not automatic replay,old-slot use,limit increase or
+promotion of prefix PASS. Preserve all older failed/incomplete verdicts.
+
 Latest read-only handoff: [timing audit](../roadmap/2026-10-17-p1-timing-readonly-audit.md).
 After247a64bb,no test process or product/tool changes. Sources and138/147 pins
 held. New helper's3 conditions run even before boundary,an unmeasured variable;
