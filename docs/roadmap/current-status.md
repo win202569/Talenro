@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — metadata-only comparison does not support PS5 cache optimization
+
+[Lookup comparison](2026-10-17-synthetic-capture-type-lookup-comparison.md) used2/2
+NEW hosts,PS7/PS5 exit0/empty stderr,total2374/2165ms. Equal36864-call groups:
+PS7 baseline1086.954/candidate597.417ms;PS5 baseline776.307/candidate808.549ms.
+Eight fixtures per variant and all timed types matched,forged GetType callbacks0.
+One sample/opposite orders across different engines,not a stable benchmark or
+full verifier result. PS5 did not improve;do NOT implement caching as the repair
+on this evidence. No product/test edits or extra hosts. Next:readonly audit of
+per-object pipeline/property-enumeration work before separately scoped probing.
+Original6/12/frozen7..12/unstarted review and all prior failures/gates unchanged.
+
 ## Latest — readonly loop audit identifies repeated method lookup;probe awaits approval
 
 [Type lookup audit](2026-10-17-synthetic-capture-type-lookup-audit.md) statically

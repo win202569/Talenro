@@ -1,5 +1,9 @@
 # Synthetic verifier repeated type lookup — readonly audit and pending probe
 
+Follow-up:[approved comparison results](2026-10-17-synthetic-capture-type-lookup-comparison.md).
+The proposal below is historical;its new2/2 slots are now spent. PS5 showed no
+candidate speedup;metadata caching is not recommended as the timeout repair.
+
 ## Evidence and scope
 
 After internal-timing checkpoint0d01d6f6,user requested continued readonly

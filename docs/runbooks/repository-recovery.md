@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[fixed type-method lookup comparison](../roadmap/2026-10-17-synthetic-capture-type-lookup-comparison.md).
+New exploratory diagnostic/report preserved;new2/2 slots spent,both hosts exit0,
+empty stderr,type fixtures match,callback0. PS5 candidate808.549ms versus
+baseline776.307ms did not improve;PS7 opposite result is not a stable guarantee.
+Do not implement metadata caching or claim timeout resolution from these data.
+Product/original tests unchanged,original frozen regression/review untouched.
+Resume with readonly pipeline/property audit,not automatic extra host or rerun.
+Clone restores probe definition,not ignored receipts/caches or launch authority.
+All acceptance/live/security/Stage B/full C12/main gates remain unresolved.
+
 Latest:[readonly repeated-type-lookup audit](../roadmap/2026-10-17-synthetic-capture-type-lookup-audit.md).
 Documents only:two4096tick paths statically imply36864 repeated fixed method
 lookups;no primitive timing or confirmed fix. New proposed2-host metadata-only
