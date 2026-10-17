@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — in-context four-child diagnosis complete;timing is intrusive/inconclusive
+
+[Context observations](2026-10-17-synthetic-capture-context-profile.md) used4/4
+NEW hosts,all exit0/empty stderr,one public verifier each,same binding and expected
+fixture facts. PS7 ordinary/instrumented verification15576/33535ms;PS5 28022/
+42398ms. Both instrumented runs count110811 entries/exits,max nesting5,balanced.
+Exact source restoration/public-body/copy-manifest guards pass. Instrumentation
+materially perturbs cost;inclusive recursive totals overlap,not original CPU
+percentages or an exact root cause. No product/tests changed or archive rerun.
+Next:readonly boundary workload/budget inventory before another probe or repair
+design. Original6/12/frozen7..12/unstarted review,old timeout and all live/security/
+main gates unchanged. No acceptance or frozen allowance renewal;new4/4 spent.
+
 ## Latest — in-context source-copy timing proposal awaits approval
 
 [Context profiling proposal](2026-10-17-synthetic-capture-context-profile-proposal.md)

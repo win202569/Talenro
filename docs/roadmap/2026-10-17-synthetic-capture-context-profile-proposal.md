@@ -1,5 +1,9 @@
 # In-context verifier timing — pending diagnostic proposal
 
+Follow-up:[approved four-child observations](2026-10-17-synthetic-capture-context-profile.md).
+The proposal below is historical;4/4 slots spent,all diagnostic children complete.
+Instrumentation materially perturbs timing;no product repair/acceptance follows.
+
 ## Why change measurement strategy
 
 Afterb4befe5f,user requested an in-context performance-location design. This

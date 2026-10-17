@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[in-context verifier diagnosis](../roadmap/2026-10-17-synthetic-capture-context-profile.md).
+Portable mechanical preparer/probe/report preserved;new4/4 children consumed,
+all exit0/empty stderr,expected public verdict and identical binding. PS5 ordinary
+28.022s/instrumented42.398s;timing disturbance is material,not an exact hotspot
+or fix. Counts match110811 with balanced stack on both hosts. Source pins/exact
+text restoration/public-body and copy manifests checked;product/tests unchanged.
+Generated copies/raw records stay ignored/local. Do not regenerate/launch merely
+on clone or ignore pinned hash mismatch. Next is readonly workload/budget audit,
+not automatic optimization/test regrouping. Original timeout/frozen regression,
+unstarted review and all acceptance/live/security/Stage B/full C12/main gates stay.
+
 Latest:[in-context timing proposal](../roadmap/2026-10-17-synthetic-capture-context-profile-proposal.md).
 Documents only,not available diagnostic code. Proposed4-host ordinary/copy-
 instrumented public-verifier comparison awaits user approval,120s each,no retry.
