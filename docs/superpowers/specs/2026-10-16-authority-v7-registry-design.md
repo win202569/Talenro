@@ -1,5 +1,11 @@
 # Task11 第一切片：v7 注册表与独立字面量向量设计
 
+最新进展：名称切片已完成；九项/27项/16项附录均书面确认后，
+[最终146项本地metadata对照](../../roadmap/2026-10-17-task11-final-metadata-reconciliation.md)
+为146/0。[metadata-only实施计划](../plans/2026-10-17-authority-v7-metadata-registry.md)
+已编写，待审阅和选择执行方法；尚未实施，不是独立认证或部署验收。
+下文早期范围决定、待审阅与93/53计数保留为历史过程，不代表最新状态。
+
 最新范围决定：用户在7c6194bb后批准首切片缩为名称/object只读目录。
 [书面范围修订](2026-10-16-authority-v7-name-directory-design.md)待审阅；下文完整
 元数据设计作为后续目标保留，不再据其API/文件清单自动启动首切片实施。

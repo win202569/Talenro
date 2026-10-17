@@ -1,5 +1,23 @@
 # Project status — updated 2026-10-17
 
+## Task11 — final local metadata146/0; implementation plan proposed
+
+User confirmed the entire16-item written appendix after0ec812cd. The
+[complete146-row reconciliation](2026-10-17-task11-final-metadata-reconciliation.md)
+found no local unresolved metadata cell:71 external-envelope forms,27 immutable
+DB-body forms and48 explicit empty evidence sets;37 distinct non-null roles.
+Exact canonical identities match the unchanged name directory/fixtures. This is
+source-backed local design reconciliation,not independent certification.
+
+The [new metadata-only plan](../superpowers/plans/2026-10-17-authority-v7-metadata-registry.md)
+awaits review,execution-method selection and its proposed5-build/4-runtime budget.
+Recommend Native/inline with one final fresh readonly review. No product/fixture/
+native-control implementation or Go/native test was run in this documentation
+turn. A-storage/journal/owner/consumer integration,real auth/codecs,canonical
+registration,physical DB/PITR and main/production acceptance remain separate.
+Resume with plan review,not a consumed leaf/name-directory/null-fix rerun.
+Earlier pending statements/counts below are historical and superseded here.
+
 ## Task11 — 16-item data-path appendix written, awaiting review
 
 User approved the5/3/8 direction after399f3d21. The [written appendix](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md)

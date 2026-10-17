@@ -1,5 +1,10 @@
 # Task11：27项矩阵获批后的16项数据通道审查
 
+最新：用户在0ec812cd后确认完整16项书面附录；
+[最终146项本地对照](2026-10-17-task11-final-metadata-reconciliation.md)为146/0。
+metadata-only实施计划已写出待审阅，存储和消费仍未实施。以下130/16、方向批准
+与书面待审阅描述均为历史时点，不是最新状态或独立认证。
+
 后续：用户在399f3d21后确认A/B/C方向。
 [完整16项书面附录](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md)
 已写出，明确attempt/activation companion及先于epoch签发的逐source publication owner，

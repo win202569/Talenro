@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:the16-item written appendix was confirmed after0ec812cd,and the
+[final literal146-row reconciliation](../roadmap/2026-10-17-task11-final-metadata-reconciliation.md)
+records local146/0,not independent certification or implemented storage/auth.
+The [metadata-only implementation plan](../superpowers/plans/2026-10-17-authority-v7-metadata-registry.md)
+is proposed,not executed. Review it and select execution method/new bounded
+verification budget before creating product files or native controls. Recommend
+Native/inline;maximum5 builds/4 runtimes under fresh metadata-only identities.
+No Go/native workload ran for this planning handoff. Existing name-only files
+stay unchanged;all previous attempts remain consumed. Storage/consumer/codec,
+canonical registration,DB/PITR and production/main gates remain open.
+The following earlier latest/pending entries are historical.
+
 Latest: [16-item written data-path appendix](../superpowers/specs/2026-10-17-authority-v7-data-path-clarification-design.md),
 based on399f3d21. A/B/C direction approved;this written contract awaits review.
 Current local metadata remains130/16. Proposed atomic attempt/activation companions
