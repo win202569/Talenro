@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Next-stage design:[ordinary ledger native-validation proposal](../roadmap/2026-10-17-ordinary-ledger-native-validation-proposal.md).
+No new tests/workloads or helper implementation. Proposed18 fake calls require
+Stage A approval;two native probes require separate later approval. Do not infer
+security clearance,metadata replay or acceptance from this document. Existing
+source checkpoint/fake results remain as recorded below.
+
 Latest:[initial snapshot provenance fix](../roadmap/2026-10-17-ordinary-ledger-initial-snapshot-fix.md).
 Recover tracked source/new fake suite and evidence summary from the development
 branch. Follow-up18 calls complete,total47;21 checks per host plus final350

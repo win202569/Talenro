@@ -1,5 +1,14 @@
 # Project status — updated 2026-10-17
 
+## Next-stage proposal — isolated native probe preparation, no new execution
+
+Saved [native-validation proposal](2026-10-17-ordinary-ledger-native-validation-proposal.md)
+after source/file-metadata inspection only. Recommended Stage A:prepare a new
+explicit helper with18 proposed fake calls;Stage B separately authorizes at most
+two small system-PowerShell native probes after A. Neither budget granted yet.
+No helper implementation/test/native workload this turn. Existing47/47 consumed,
+full ordinary/C11/C12/security/metadata/acceptance gates unchanged.
+
 ## Latest — snapshot provenance follow-up verified;native acceptance still blocked
 
 The additional snapshot issue is fixed and fake-verified on PS7/5.1:21 checks
