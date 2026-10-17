@@ -1,7 +1,8 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Latest:[review repair execution](2026-10-17-ordinary-ledger-review-repair.md)
-stopped3/26 after partial A edits;no correction/rerun after unexpected failure.
+stopped5/27 after approved array correction;PS7 passed28,PS5 command discovery
+failed after5. No correction/rerun after this new unexpected failure.
 All review findings remain open;do not execute ordinary matrix/leaf workflows.
 Earlier no-post-review-repair and current statements below are historical.
 

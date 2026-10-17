@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:repair stopped5/27;approved two-array fixture correction passed PS7
+28 assertions,PS5 failed command discovery after5. Read the
+[latest repair section](../roadmap/2026-10-17-ordinary-ledger-review-repair.md)
+before continuing. No host diagnostic/fix/retry yet;A incomplete,B/C unstarted.
+Ordinary workflows remain blocked. Earlier latest statements historical.
+
 Latest:[review repair stopped3/26](../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
 Partial A changes are saved but not verified;B/C unstarted and all findings open.
 Two producer assertions passed, then a fake receipt's missing original arrays

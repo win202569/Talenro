@@ -389,4 +389,9 @@ resumption and main/production integration each remain outside this plan.
 Approved26-call pass stopped at call3 (A GREEN7) after two producer assertions;
 the fake receipt omitted two original arrays. No correction or rerun after stop.
 See [portable repair report](../../roadmap/2026-10-17-ordinary-ledger-review-repair.md).
-Proposed fixture-only correction/cap27 is pending a new user decision.
+After53bca818,user approved fixture-only initialization of MemberEvidence and
+MembersDuringRun and cap27. Resume replacement A GREEN7/GREEN5,then original
+B/C and14 final calls. No RED replay;production collection checks unchanged.
+Replacement GREEN7 passed28;GREEN5 failed after5 on Get-FileHash discovery.
+Stopped5/27;no host diagnostic/fix/retry. Proposed cap29 host-only diagnostic
+and evidence-supported correction is pending;see portable repair report.

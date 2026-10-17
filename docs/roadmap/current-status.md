@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — array fixture corrected;PS5 command discovery stopped5/27
+
+Approved fixture-only correction passed all28 A assertions on PS7. PS5 passed
+five then could not find Get-FileHash;cause unconfirmed. Stopped,not rerun.
+See [repair report](2026-10-17-ordinary-ledger-review-repair.md). A incomplete,
+B/C unstarted;ordinary workflows and native/metadata/merge gates remain blocked.
+Next proposal:one readonly host diagnostic and evidence-supported test-host
+correction,cap29. No installed-module/security/production-hash changes.
+Earlier current states below historical.
+
 ## Latest — review repair stopped3/26, unfinished checkpoint
 
 The approved six-finding repair pass began, but A GREEN7 stopped after two

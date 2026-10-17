@@ -1,5 +1,37 @@
 # Ordinary ledger review repair — stopped, not accepted
 
+## Latest: approved fixture correction passed PS7, PS5 host lookup stopped5/27
+
+After53bca818,user approved only the two original array initializations and cap27.
+MemberEvidence/MembersDuringRun now initialize as empty arrays;production checks
+unchanged. Repair4 GREEN7 exited0 in1668ms,28 PASS,empty stderr. Repair5 GREEN5
+exited1 in1634ms after5 PASS: Get-FileHash was not recognized at fixture line34.
+The original shape failure is cleared on both hosts, but source-binding checks
+did not run on PS5. Group A is not complete;count-fixture updates still pending.
+B/C and final regression remain unstarted;all six findings remain open.
+
+Stopped immediately;no module import, host diagnostic, fix or rerun followed.
+Readonly inspection finds the Windows Utility manifest exports Get-FileHash and
+its psm1 defines it;the parent host resolves the command. Parent PSModulePath
+includes both Core and Desktop module directories. Why the child cannot resolve
+it is NOT established;module-path/loaded-module collision is only a hypothesis.
+No installed module, environment security setting or production helper changed.
+
+Saved-file SHA256:
+
+- repair4 stdout:03F70141055A3B9598BA0D1AB4606EA5A93B571A5767404E03205906E86D5BAB
+- repair5 stdout:25BE838E2929A6DDCEFBEA1C25C80136F06912F7DAF783677DFE91562EC33C06
+- repair5 stderr:8B2D91449613BAA1CE7EF51131DB71F79F49B8A7C3D09CF256A04A11FD744593
+- repair index after5:E9D7A9A9ACBA1A5D04E8543AABE6A8989A50562DF0D5F2CDB0A51C1CF2DD018A
+
+Proposed next bounded decision: one readonly fresh PS5 host diagnostic (module
+paths/loaded Utility/command discovery only, no native workload), then a
+cause-specific test-host setup correction only if supported by that evidence,
+replacement A GREEN5 and original remaining plan. Cap29:5 used +1 diagnostic
++1 replacement GREEN5 +8 B/C +14 final. If diagnosis does not support a scoped
+host-only correction, stop and report;no security changes/install or production
+hash fallback. This proposal is not approved. Earlier stop states below historical.
+
 Date:2026-10-17. Base9c89149efb12e8c95488501640c74c817008ee8f.
 User approved six-finding corrective pass A/B/C, Native/inline execution and
 26 additional fake/static invocations. Original34 records remain frozen.

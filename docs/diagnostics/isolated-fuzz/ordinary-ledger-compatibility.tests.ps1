@@ -21,6 +21,7 @@ function Test-LegacyWriter([string]$file,[string]$functionName,$native){
 $native=New-Object 'IsolatedFuzzProcess+Result'
 $native.RootId=1;$native.RootExited=$true;$native.CleanupVerified=$true;$native.NaturalShutdownVerified=$true;$native.ShutdownEvidenceComplete=$true
 $native.MembersAtRootWait=[UInt64[]]@();$native.MembersBeforeTermination=[UInt64[]]@();$native.MembersAfterCleanup=[UInt64[]]@();$native.ShutdownMemberEvidence=@()
+$native.MemberEvidence=@();$native.MembersDuringRun=[UInt64[]]@()
 $matrix=Test-LegacyWriter 'matrix-check.ps1' 'Invoke-MatrixRecordedProcess' $native
 $leaf=Test-LegacyWriter 'leaf-ordinary-check.ps1' 'Invoke-LeafOrdinaryRecordedProcess' $native
 $ast=Read-RepairAst 'leaf-ordinary-check.ps1'
