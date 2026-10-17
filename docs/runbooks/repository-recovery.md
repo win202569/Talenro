@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest subphase result:[PS5 evaluation phase open](../roadmap/2026-10-17-p1-ps5-boundary-subphase-timing.md).
+After683edfa4 approval,new ordinary PS5 diagnostic1/1 spent,cap30000ms,
+actual30069ms/CPU31296.875ms,exit-1,stderr empty,owned exit. Invalid checks
+258.672ms and4096 construction762.314ms completed;Evaluate4096 START9427.186ms,
+no END,result equality/4097 not reached. Exact product-internal cause unknown.
+219 pins/52 closed pairs held;product/original tests/common helper unchanged.
+All earlier budgets/frozen slots/review ineligibility and PS5/I1/P1 blockers remain.
+Portable new copies/report included;clone does not restore ignored raw/runtime
+or replay permission. Next read-only evaluation trace before any new hypothesis/
+process,no automatic full retry,limit increase,speculative fix or main acceptance.
+
 Latest PS5 diagnostic:[boundary group open at timeout](../roadmap/2026-10-17-p1-ps5-complete-flow-cpu-timing.md).
 Afterb78a2a5b approval,unchanged complete-order probe,ordinary PS5,cap30000ms;
 actual30085ms/CPU31859.375ms,exit-1,stderr empty,owned exit. ArrayAndIntegerBounds

@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — PS5 construction completes; evaluation phase remains open at timeout
+
+After683edfa4 approval,[boundary subphase diagnostic](2026-10-17-p1-ps5-boundary-subphase-timing.md)
+ran one ordinary PS5 child,cap30000ms,actual30069ms,CPU31296.875ms,exit-1,
+stderr empty,owned-host-exited. InvalidInputs258.672ms/CPU234.375ms;
+Build4096 762.314ms/CPU765.625ms completed. Evaluate4096 START9427.186ms,no END;
+Assert4096/Check4097 not reached. Evaluation phase narrowed,internal cause unknown.
+175 lines/110 events/65 ordinary/48 PASS;52 closed pairs,six open scopes.
+219 pins and durations rechecked;common P1-Check/product/original tests unchanged.
+New1/1 spent,all prior budgets/frozen slots/review ineligibility unchanged.
+PS7 original PASS retained;PS5 full acceptance/I1/P1/candidate still blocked.
+Next read-only trace evaluation internals before a testable hypothesis/new run,
+not construction tweaks,automatic full replay,timeout increase or main.
+
 ## Latest — PS5 group diagnostic enters boundary at9.268s, times out without END
 
 Afterb78a2a5b approval,[PS5 complete-order timing](2026-10-17-p1-ps5-complete-flow-cpu-timing.md)
