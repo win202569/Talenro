@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[simulation implementation plan proposed](../superpowers/plans/2026-10-17-offline-capture-simulation.md).
+Written spec approved for planning after3e9808c2. One cohesive pure-memory task,
+inline recommended,one scoped review. Await plan/method/proposed4-host allowance
+approval before source/tests. No new execution or allowance from this document;
+no fix/retry reserve. Old records/budgets and Stage B blocks unchanged.
+
 Latest:[pure-memory capture simulation proposed spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md)
 written under design-only approval;awaiting human review. No simulation source,
 tests,implementation plan or new verification allowance yet. No OS process,

@@ -1,5 +1,14 @@
 # Project status — updated 2026-10-17
 
+## Latest — simulation spec approved;implementation plan awaits decision
+
+[Plan](../superpowers/plans/2026-10-17-offline-capture-simulation.md) transcribes
+the approved pure-memory spec into one cohesive task/tests and one final scoped
+review. Recommend inline execution;user method selection and plan approval
+pending. Proposed4 fresh synthetic hosts(PS7/5.1 RED thenGREEN),120s each,no
+retry/extra fix reserve;not granted yet. Only docs changed,no implementation,
+tests,real collection or Stage B authority. All previous budgets stay frozen.
+
 ## Latest — pure-memory capture simulation spec written;awaiting review
 
 [Proposed spec](../superpowers/specs/2026-10-17-offline-capture-simulation-design.md)

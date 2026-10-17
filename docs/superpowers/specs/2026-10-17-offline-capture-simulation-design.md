@@ -1,9 +1,9 @@
 # Pure-memory capture lifecycle simulation — proposed design
 
-Status: **WRITTEN DESIGN AWAITING REVIEW**. User approved writing this design
-after834ace2f,not implementation,tests or runtime entry. Architecture path:
-written-spec approval precedes an implementation plan and execution-method
-selection. No new validation allowance is granted here.
+Status: **WRITTEN DESIGN APPROVED FOR PLANNING**. User approved this written
+spec after3e9808c2. Implementation plan/execution method and finite verification
+allowance await separate approval. No implementation,tests or runtime entry
+granted by spec approval. Original design-writing authority followed834ace2f.
 
 ## Intent and success criteria
 
