@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Task11 — nine-item appendix approved; updated local review103/43
+
+User approved the written nine-item appendix after8a8fc234. Approval-time local
+classification is102/44,not independent certification. The [updated reconciliation](2026-10-17-task11-metadata-current-reconciliation.md)
+preserves the original146-row audit and records9 approved deltas plus one newly
+source-backed executor classification:#93 LegacySourceInventoryV1,using v7
+L795/797/803/809/811 for immutable storage,trusted read and bundle consumption.
+Current local review is103 classified/43 unresolved(27 request+16 other objects).
+The extra source judgment is not a new contract or broader user approval.
+All27 requests are grouped into7 responsibility sets without inventing roles.
+Next design choice:contract-specific mixed authentication,then write the27-row
+request matrix and preserve separate data-path decisions;that choice is proposed,
+not approved. No implementation-ready metadata plan,code,tests or native workloads.
+Older approval/pending/count entries below are history,superseded by this section.
+
 ## Task11 — nine-item clarification written, awaiting review
 
 After4fa0e16b,user confirmed the5 source-backed candidates and4 known-role

@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [current metadata reconciliation](../roadmap/2026-10-17-task11-metadata-current-reconciliation.md).
+User approved the nine-item written appendix after8a8fc234,establishing local
+102/44 at that approval point. One subsequent executor source review closes#93
+using v7 L803/809/811,so current local review is103/43(27 request+16 other objects),
+not independent certification or full acceptance. Reconstruct document review
+from the original146-row audit plus the10 explicit deltas;do not load it as a
+partial product registry. Resume at choosing the proposed mixed request-auth
+direction,then writing/reviewing the27-row matrix;43 contracts still block full
+metadata implementation. Preserve original93/53 and all consumed workload records.
+Older "Latest" and pending-review statements below describe earlier handoffs.
+
 Latest(2026-10-17): [nine-item written clarification](../superpowers/specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md),
 based on4fa0e16b. User confirmed5 interpretations+4 known-role request-use
 restrictions;the written appendix itself awaits review. Preserve original93/53

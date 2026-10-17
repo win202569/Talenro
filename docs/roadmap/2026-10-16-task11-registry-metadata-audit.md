@@ -1,8 +1,9 @@
 # Task11：146项元数据逐项初审与集中例外
 
 后续（2026-10-17）：[九项统一书面附录](../superpowers/specs/2026-10-17-authority-v7-metadata-nine-item-clarification-design.md)
-记录用户确认的五项解释及四项请求用途限制，正文待审阅。本文93/53初审记录不回写；
-新附录若获书面批准，才在后续对照中记录102项局部分类/44项未决，不作全表认证。
+已获书面批准，对应批准时点102/44。随后补充#93的保存/消费来源，
+[更新对照](2026-10-17-task11-metadata-current-reconciliation.md)记录103项局部分类/43项未决，
+不是独立认证或全表批准。本文93/53原始初审记录不回写。
 
 范围后续：用户在7c6194bb后批准先交付独立名称目录，元数据整体后置。
 见[待审阅的书面范围修订](../superpowers/specs/2026-10-16-authority-v7-name-directory-design.md)。
