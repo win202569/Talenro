@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[explicit administrator minimal diagnostic](../roadmap/2026-10-17-synthetic-capture-hardlink-admin.md).
+NEW1/1 PS7 child used,admin guard confirmed,exit0/506ms,one4B file/one successful
+hardlink attempt,no ACL/security changes or suite replay. Prior normal-context
+native5 indicates context dependence,not exact cause or archive acceptance.
+Portable probe unchanged;raw ledgers/fixture remain local/ignored. Earlier
+non-admin request stays closed. Next needs a new bounded reader-paths packet;
+clone is not execution authority. Frozen slots,reviews and all main/acceptance/
+security gates unchanged. Pending proposals below are historical,not spare
+permissions or instructions to rerun.
+
 Latest:[hardlink context guard stop](../roadmap/2026-10-17-synthetic-capture-hardlink-context-guard.md).
 Approved non-admin comparison could not start:tool channel supplied admin parent
 token,guard rejected before child/fixture/link. One request recorded,no automatic

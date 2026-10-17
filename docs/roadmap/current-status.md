@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — separately approved administrator minimal probe created one hardlink
+
+[Admin diagnostic](2026-10-17-synthetic-capture-hardlink-admin.md):NEW1/1 PS7
+child,admin parent/child guards confirmed,exit0/506ms,stderr empty. One4B file,
+one hardlink attempt created;readonly content check matches. Earlier normal
+probe native5 contrasts with this result,but exact denying layer remains unknown.
+No product/test/probe change,ACL/security changes,retry or suite replay. Closed
+non-admin guard record untouched. All raw records/fixtures retained locally.
+Next requires a separately scoped reader-paths verification packet;do not
+automatically elevate/retry tests. Partition8..10/original7..12 remain frozen,
+reviews unstarted,all acceptance/security/main gates unchanged. Older pending
+proposals below are historical,superseded only by this one spent diagnostic.
+
 ## Latest — approved context request stopped before diagnostic by non-admin guard
 
 [Guard disposition](2026-10-17-synthetic-capture-hardlink-context-guard.md):one
