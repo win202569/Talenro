@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — PS5 phase probe completes root setup; validation/copy still open
+
+Afterd7ea8aed approval,[phase-localized diagnostic](2026-10-17-p1-ps5-evaluation-phase-timing.md)
+ran one ordinary PS5 host,cap30000ms,actual30063ms/CPU33234.375ms,exit-1,
+stderr empty,owned exit. Only dedicated4096 call locally loaded marked copy.
+RootSetup32.407ms/CPU46.875ms complete;ValidationCopy START11401.517ms,no END;
+Decision/result equality/4097 not started. H1 supported for this diagnostic,
+not unique internal cause or original-entry acceptance.178 lines/113 events/
+65 ordinary/48 PASS;53 closed pairs,seven open scopes;231 pins held.
+Original product953CC2A8/tests unchanged;local-return path not exercised.
+New1/1 spent,all old budgets/frozen slots/review ineligibility unchanged.
+Next inspect validation/copy internals before further diagnostic/fix scope;
+no defense removal,automatic full replay,timeout increase or main acceptance.
+
 ## Latest — read-only evaluation trace separates root,validation/copy,decision
 
 Afterffe3735e,[source trace](2026-10-17-p1-ps5-evaluation-readonly-trace.md)

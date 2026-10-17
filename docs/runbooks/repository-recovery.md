@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest phase evidence:[PS5 validation/copy open](../roadmap/2026-10-17-p1-ps5-evaluation-phase-timing.md).
+Afterd7ea8aed approval,new ordinary PS5 phase diagnostic1/1 spent,cap30000ms,
+actual30063ms/CPU33234.375ms,exit-1,stderr empty,owned exit. RootSetup32.407ms
+completed;ValidationCopy START11401.517ms,no END,decision not started.
+231 pins/53 closed pairs held. Only4096 call loaded local diagnostic product copy;
+original953CC2A8/tests unchanged. Timeout does not exercise local-return isolation.
+Candidate/PS5/I1/P1 acceptance still blocked;all earlier budgets/frozen slots/
+review ineligibility unchanged. Recover copies/report,not ignored raw/runtime
+or replay authority. Next inspect validation/copy costs before new scope,no
+automatic run,defense removal,limit increase or main acceptance.
+
 Latest read-only trace:[PS5 evaluation internals](../roadmap/2026-10-17-p1-ps5-evaluation-readonly-trace.md).
 Afterffe3735e,no tests/code edits. Root setup precedes full validation/copy and
 then neutral4096-time decisions. H1 validation/copy unfinished is unproven;
