@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-17
 
-## Latest — written offline acceptance scope approved; reparse evidence still blocks
+## Latest — file-level reparse evidence/review complete; limited verdict proposed
+
+[Packet report](2026-10-17-synthetic-capture-file-reparse.md):NEW2/2 admin
+children spent, PS7/PS5 each7PASS,exit0/1781/1424ms,no timeout/retry. Real
+payload/marker SymbolicLinks checked before refusal; normal source unchanged.
+One agreed fresh readonly review spent, no confirmed Critical/Important/Minor
+new defects; bounded addendum6 evidence adequate. All12 prior pins unchanged.
+Approved addendum's alternative evidence route now permits [final limited
+decision submission](2026-10-17-synthetic-capture-limited-acceptance-decision.md),
+NOT automatic acceptance. User final decision pending under addendum7.
+Product/original tests untouched; new portable reparse test included. Old failed
+records/frozen routes remain historical, not promoted; no main/security/Stage B/
+I2/I3/full C12 clearance or additional execution. No repeat-test work remains
+inside this completed packet.
+
+## Historical checkpoint — written offline acceptance scope approved; reparse evidence still blocked
 
 User explicitly approved the [addendum and section5 limits](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md)
 after7d453b66. New evidence-adoption route is effective as acceptance scope,

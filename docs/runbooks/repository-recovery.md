@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[file-level reparse packet/review](../roadmap/2026-10-17-synthetic-capture-file-reparse.md)
+complete: two admin engines each7PASS and one readonly reviewer, no new defects.
+Recover the new standalone reparse test from Git; all prior12 pins unchanged.
+The approved addendum's required evidence is now available; [final limited
+verdict](../roadmap/2026-10-17-synthetic-capture-limited-acceptance-decision.md)
+is submitted for user approval, not yet effective acceptance. Raw records/links
+stay local/ignored, source archives retained. New2/2 plus1/1 review spent;
+cloning grants no retry or main/security/full C12 permission. Old failed records
+remain unchanged; next action is user decision, not another automatic test.
+
 Latest:[offline acceptance addendum APPROVED AS SCOPE](../superpowers/specs/2026-10-17-synthetic-capture-store-acceptance-addendum.md).
 User approved the written addendum and section5 limits after7d453b66. Earlier
 draft notices below describe history. File-reparse evidence is still required;
