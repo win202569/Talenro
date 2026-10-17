@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-17
 
+## Latest — targeted shape and full ownership semantics pass on PS7 and PS5
+
+After57a58651 approval, [targeted verification](2026-10-17-p1-targeted-semantic-verification.md)
+used exactly two fresh ordinary-token hosts, PS7 then PS5, capped30000ms each.
+Both exit0, stderr empty, no timeout; wall5492/9419ms, CPU8109.375/11468.750ms.
+Each completed shape6, fixture8 and all ownership10, including previously missing
+SequentialIsolation/PlainControls/Complete; 37 exact lines,25 PASS markers
+(24 groups plus wrapper). Candidate953CC2A8 and original tests unchanged;
+183 pins/controller/raw rechecked. New budget2/2 spent, no retries.
+This closes targeted semantic gaps ONLY, not original35/full PS5 or combined
+30s acceptance. Prior full timeout remains; candidate UNACCEPTED, I1/P1 unresolved.
+All frozen budgets/review0/1 ineligible unchanged. New portable targeted wrapper
+and report are recovery artifacts, not permission to replay. Next scope a
+controlled investigation of complete-flow timing from existing evidence;
+no automatic rerun, old-slot use, timeout increase, review or main merge.
+
 ## Latest — read-only shape self-audit finds no confirmed public-path defect; gaps remain
 
 Afterb3e662b1,[read-only self-audit](2026-10-17-p1-shape-readonly-audit.md) used ZERO

@@ -16,6 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest targeted evidence: [PS7/PS5 shape and ownership](../roadmap/2026-10-17-p1-targeted-semantic-verification.md).
+After57a58651 approval, exactly2/2 ordinary-token hosts completed unchanged
+shape6 + fixture8 + ownership10; PS7 wall5492ms/CPU8109.375ms, PS5 wall9419ms/
+CPU11468.750ms, both exit0, no timeout, stderr empty. Previously missing ownership
+last3 now PASS on both. Candidate953CC2A8 and original tests unchanged;183 pins
+and raw receipts held. Portable targeted wrapper is included in the dev branch.
+This is NOT original35/full PS5 or combined30s acceptance: prior timeout persists,
+candidate unaccepted/I1/P1 unresolved. Shape2/3/one frozen, prior full1/2/one
+frozen, reflection3/4/one frozen, old3/7/four frozen/review ineligible unchanged.
+Cloning restores source/tests/wrapper/reports, not ignored raw/runtime or replay
+authority. Next plan controlled complete-flow timing investigation from existing
+evidence; no automatic old-slot use, unchanged retry, larger limit or main merge.
+
 Latest self-audit: [shape lookup review](../roadmap/2026-10-17-p1-shape-readonly-audit.md).
 Afterb3e662b1,no tests or code/tool changes. Current public callers preserve fixed
 schema-per-key,count/member/value checks;no confirmed runtime regression found,
