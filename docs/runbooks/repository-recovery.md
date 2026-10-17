@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest execution handoff: user approved Native repair after ad0b5652, but slot1
+failed fixture fidelity before the planned decorated-scalar product assertion.
+Read [stopped evidence](../roadmap/2026-10-17-p1-scalar-ownership-repair-execution.md).
+One new slot spent,6 frozen, review0/1 not eligible. No production edit or retry;
+new frozen ownership test is unfinished. Preserve all raw and ExpectedResult=false.
+Do not run it on another computer as implicit continuation; first obtain bounded
+fixture-investigation/revised-sequence direction. Product FE23DF3B/original test
+61A3BACF/protected15 unchanged. Prior planning entries below are historical.
+
 Latest planning handoff: [I1 scalar-ownership repair plan](../superpowers/plans/2026-10-17-p1-scalar-ownership-repair.md)
 was written after user1 following d2021dc6. It proposes strict decorated-scalar
 refusal, unchanged original35 tests plus a new portable10-case regression suite,

@@ -10,7 +10,7 @@
 
 **Spec:** [Approved joint design §9/10](../specs/2026-10-17-raw-capture-supervision-design.md), [P1 exact contract](2026-10-17-offline-supervision-policy.md), and [Important I1/dispositions](../../roadmap/2026-10-17-offline-supervision-policy-readonly-review.md).
 
-Status: **WRITING AUTHORIZED; REPAIR/TESTS/REVIEW NOT APPROVED.** User selected1 after the stopped handoff d2021dc6db451b555c8b86e94ff771cd5c78d484 to request this plan. Old8/8 hosts and1/1 review remain spent. No new source/test/import/reproduction/reviewer is authorized by writing this document.
+Status: **NATIVE APPROVED, THEN STOPPED ON SLOT1 FIXTURE FAILURE.** User yes after ad0b565250a2aacb35d47526368edbbabab976c9 approved this plan, seven hosts and one conditional scoped review. Slot1 consumed: exit1/927ms, fixture-fidelity error, not the required RED; ExpectedResult=false. Slots2–7 frozen, reviewer0/1 not eligible. No source edit or automatic repair/retest. See [stopped record](../../roadmap/2026-10-17-p1-scalar-ownership-repair-execution.md). Earlier proposal wording below grants no renewal; old8/8 and1/1 remain spent.
 
 ## Decision and alternatives
 
@@ -90,4 +90,4 @@ Freeze the complete new suite, expected inventories and protected15 before slot1
 
 Scope is only I1, not a new subsystem: existing written P1 ownership requirement supplies the design; this user-requested plan records the proposed stricter admission rule for explicit review. No separate design-writing or implementation is inferred. All five Review Focus classes map to named new tests; original35 expectations stay unchanged. New10 labels include sentinels, not ten independent guarantees. All commands/imports belong to a frozen slot; no hidden baseline/task-done/whole-repo rerun. Native is recommended for this coupled boundary/suite; Subagent-driven implementation would need a revised allowance before dispatch.
 
-Proposed selection: **Native parent implementation, seven synthetic hosts and one conditional scoped readonly review**. The user must approve this written plan/new budget and method before execution. Generic skill defaults for extra tests, whole-branch review, automatic fixes or scratch deletion do not override these explicit limits. Writing/preserving the plan itself spends zero test/review slots.
+Selected after ad0b5652: **Native parent implementation, seven synthetic hosts and one conditional scoped readonly review**. Slot1 failed unexpectedly in fixture preparation; stopped without source repair/retest/review. New bounded direction is required before any continuation. Generic extra tests, whole-branch review, automatic fixes or scratch deletion remain excluded.

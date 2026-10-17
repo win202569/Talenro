@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Latest — approved I1 repair stopped at first fixture check
+
+Native/new7-host/1-review plan was approved after ad0b5652. Slot1 PS7 exited1
+after927ms with FIXTURE ERROR: decorated scalar was not preserved, not the
+required P1I1DecoratedInteger RED. [Stopped record](2026-10-17-p1-scalar-ownership-repair-execution.md)
+retains false verdict/hashes. One slot consumed; remaining6 frozen, review0/1
+not eligible. No source edit, retry, automatic fixture fix or extra import.
+Original35 suite/protected15 unchanged; Important I1 remains open. New separate
+test is an unfinished checkpoint. Next needs bounded fixture investigation and
+explicit revised allowance/sequence. Entries below are historical.
+
 ## Latest — I1 narrow repair plan written; execution not approved
 
 User selected1 after d2021dc6 to request a plan, not repair execution. The
