@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[real readonly adapter observations](../roadmap/2026-10-17-ordinary-ledger-readonly-adapters.md).
+Both hosts returned matching real file identity/signature/reopen facts;no
+planner/workload entry or identity consumption. PS5 progress stderr made the
+strict parent stop with exit1;do not label the entire diagnostic clean/passed.
+No retries or code changes. Stage A70/70 stays exhausted;Stage B/security gates
+remain unresolved. Next is safety/exact-input evidence checklist,not execution.
+Captured byte-level raw output was not saved;portable report records its limits.
+
 Latest:[timing regressions covered](../roadmap/2026-10-17-ordinary-ledger-timing-coverage.md).
 Recover the new focused timing test and SetupOnly bootstrap with existing
 production scripts unchanged.21 per host/final350 passed;16/16 used,70/70 total.

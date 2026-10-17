@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — real readonly adapters returned matching facts;wrapper stopped
+
+[Read-only OS adapter evidence](2026-10-17-ordinary-ledger-readonly-adapters.md):
+fresh PS7/5.1 both child exit0,real identity/signature and reopened held binding
+matched;system shell Links2,all11 independent source files Links1. No mocks,
+plan creation or native workload. Actual probe run/control identities absent.
+PS5 emitted four CLIXML progress records on stderr;strict parent exited1 as
+designed. Preserve this non-clean diagnostic result,no suppression/retry/fix.
+These are2 diagnostic hosts,not new tests;Stage A70/70 unchanged. No security
+clearance or Stage B approval. Next:remaining safety/exact-input checklist,
+including channel disposition;do not interpret adapter facts as native readiness.
+
 ## Latest — both timing-regression gaps covered;production unchanged
 
 [Timing coverage/evidence](2026-10-17-ordinary-ledger-timing-coverage.md):both
