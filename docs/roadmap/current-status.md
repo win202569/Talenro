@@ -1,5 +1,24 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline evidence-package design proposed;no implementation
+
+User asked to continue raw-byte retention design. Recommended bounded first
+step extends the offline classification flow with a self-contained exportable
+evidence object,not a live collector or filesystem archive writer. New helper/
+test files proposed:output-evidence-package.ps1 and .tests.ps1 in the existing
+diagnostic directory. Preserve both supplied byte arrays losslessly as Base64,
+with schema,byte lengths,SHA256,explicit encoding,integer exit and caller origin
+declaration. OriginVerified=false;self-contained hashes do not authenticate the
+source. Reverification decodes bounded bytes,checks shape/length/hash and
+recomputes classification rather than trusting stored labels. Missing/unknown/
+corrupt/oversized data refuses;Acceptance/RuntimeApproved remain false.
+Per-stream1MiB bound and no byte rewriting. API returns an exportable object;
+durable serialization/file writing,atomicity,host launch,watchdog and genuine
+capture provenance remain separate,not delivered by an in-memory package.
+Proposed4 synthetic-only hosts:PS7/5.1 RED then GREEN,120s each,sequential/no retry.
+Concrete short in-chat design and this new allowance await approval. No tests,
+helper import or OS diagnostic this turn;offline8/8 and ledger70/70 stay frozen.
+
 ## Latest — offline numeric-end Minor repaired;52 synthetic checks per host
 
 [Repair evidence](2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence):

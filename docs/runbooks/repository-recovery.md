@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:offline evidence-package design proposed in current status,not implemented.
+Lossless Base64 bytes plus hashes/lengths,encoding/exit and explicitly unverified
+origin;verify bytes and recompute labels. This returns a package object,not a
+durable file archive or live collector. Proposed4 synthetic calls need approval;
+old offline8/8 and ledger70/70 remain exhausted. No new test/diagnostic execution.
+Safety disposition,live raw capture/archival and Stage B approval remain pending.
+
 Latest:[offline numeric strictness repaired](../roadmap/2026-10-17-offline-output-classifier.md#numeric-strictness-repair-evidence).
 Recover the three anchor changes and eight new synthetic LF fixtures. Both
 hosts52 checks passed after expected RED;repair4/4 used,offline8/8 cumulative,
