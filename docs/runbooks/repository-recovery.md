@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only comparison:[instrumentation vs conditions](../roadmap/2026-10-18-p1-ps5-instrumentation-readonly-comparison.md).
+After2e565651,zero tests/source edits. Six shared scripts/engine/launch setup
+match;copied product only adds region instrumentation. Matched1536 CPU-window
+17250 vs3453.125ms and copy timings also differ,not unique check/repair evidence.
+255 pins/raw held;all budgets/frozen slots/review eligibility/blockers unchanged.
+Next proposal is separately approved reverse-order B/A pair,no new allowance
+created here. Clone report/source,not ignored raw/runtime or replay authority;
+no automatic run,defense removal,larger timeout or main acceptance.
+
 Latest completed diagnostic:[PS5 validation regions](../roadmap/2026-10-18-p1-ps5-validation-regions.md).
 After8800cbd7 approval,new ordinary PS5 region1/1 spent:wall18993ms/
 CPU21015.625ms,exit0,no timeout,all62 groups +2 markers.4096 rows validation

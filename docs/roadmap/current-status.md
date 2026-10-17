@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — read-only matched-count audit leaves instrumentation/conditions confounded
+
+After2e565651,[PS5 A/B source/evidence audit](2026-10-18-p1-ps5-instrumentation-readonly-comparison.md)
+used ZERO test processes/no source edits. Six scripts byte-identical,engine/
+launch setup same;only copied product timing/counters/schema differ.
+At1536 rows:validation16490.836 vs3058.176ms,copy258.662 vs64.736ms;
+phase-start-to-snapshot process CPU17250 vs3453.125ms. Earlier31-group spans
+5534.513 vs5399.445ms close;not unique cause or demonstrated product fix.
+255 pins/A-B streams held. All budgets/frozen slots/review ineligibility and
+PS5/I1/P1 blockers unchanged. Next propose separately approved reverse-order
+B-then-A unchanged-probe pair,not automatic execution,optimization or main.
+
 ## Latest — PS5 region diagnostic completes18.993s; shape region51%,variability unresolved
 
 After8800cbd7 approval,[disjoint validation regions](2026-10-18-p1-ps5-validation-regions.md)
