@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline classifier implemented;synthetic44 per host,Minor deferred
+
+[Classifier contract/evidence/review](2026-10-17-offline-output-classifier.md):
+pure byte-input classifier,original hashes/lengths,explicit strict decoding and
+progress subset;errors/unknown/malformed inputs refuse,always no acceptance.
+RED2 expected,then GREEN44 each on PS7/5.1,empty stderr;offline4/4 exhausted,
+separate from ledger70/70. No real diagnostic/runner integration or OS adapter.
+Readonly review:no blocking defect;Minor numeric '$' terminal-LF edge deferred,
+not dynamically reproduced/fixed. Next:new bounded synthetic repair before
+live integration;proposed4 RED/GREEN terminal-LF calls need separate approval.
+Prior PS5 strict-parent failure and safety/runtime gates stay.
+Readonly audit's empty-stdout null error was corrected by rereading logs only;
+no test rerun/raw-index rewrite. Earlier proposed state below historical.
+
 ## Latest — offline output-classifier design proposed;implementation pending
 
 User agreed to design offline output handling. Proposed bounded first step is

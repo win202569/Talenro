@@ -1,5 +1,10 @@
 # Isolated fuzz diagnosis
 
+Latest:[offline classifier synthetic checkpoint](../../roadmap/2026-10-17-offline-output-classifier.md).
+Standalone byte classification only,44 checks per host,offline4/4 used. One
+Minor numeric-end strictness edge deferred. No real capture/runner integration,
+diagnostic replay or Stage B approval;previous failures remain as recorded.
+
 Latest:[timing coverage completed](../../roadmap/2026-10-17-ordinary-ledger-timing-coverage.md).
 Test-only late-drift/finalization-lock checks catch both in-memory regressions;
 21 per host/final350 passed,70/70 cumulative calls consumed. Product unchanged;

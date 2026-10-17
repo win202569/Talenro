@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[offline classifier synthetic checkpoint](../roadmap/2026-10-17-offline-output-classifier.md).
+Recover the new standalone classifier and inline synthetic tests;no existing
+runner integration.44 per host passed,offline4/4 used;ledger70/70 unchanged.
+One Minor numeric-terminal-LF strictness finding remains,needs scoped synthetic
+repair allowance before integration. Original raw-byte archive never existed;
+do not reconstruct/reaccept the old PS5 run. Stage B/security gates remain open.
+
 Latest:offline byte-classifier design proposed in current status,not implemented.
 Synthetic fixtures only;strict bounded decoding/XML and progress allowlist;
 retain byte hashes/lengths,refuse errors/unknown/malformed/nonzero exit. This is
