@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — bounded I1 repair verified; M1 still deferred
+
+[Repair evidence and scope](2026-10-17-offline-raw-capture-empty-ownership-fix.md):
+after f8657855 the user approved two owned-array clones, one empty-result
+regression and five NEW hosts. All five matched: PS7 precise RED before repair,
+then targeted GREEN on both engines and full29/29 on PS7/PS5.1, respectively
+48343/109628ms. No timeout/retry/stderr/elevation; all12 dependencies unchanged.
+I1 is closed by parent RED/GREEN evidence, without another independent review.
+M1's full independent mapped-event oracle remains disclosed/deferred; original28
+case bodies unchanged. Original10 slots/review1/1 and new5/5 are all spent;
+old slot5 false verdict/exception/raw records retained. Necessary source/tests
+and this recovery trail belong on existing development branch, not main.
+Real collector/watchdog, security/Stage B/I2/I3/full C12/release/main acceptance
+remain open and unapproved. Entries below describe historical checkpoint states.
+
 ## Latest — readonly review complete; Important empty-array defect blocks increment
 
 [Independent review and parent disposition](2026-10-17-offline-raw-capture-readonly-review.md):

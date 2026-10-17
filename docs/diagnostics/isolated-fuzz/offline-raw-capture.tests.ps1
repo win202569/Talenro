@@ -1,9 +1,10 @@
-param([ValidateSet('all','ownership-mutation','stop-mutation')][string]$Group='all')
+param([ValidateSet('all','ownership-mutation','stop-mutation','empty-ownership')][string]$Group='all')
 $ErrorActionPreference='Stop'
 # Tests name the breaks: wrong byte count/EOF, bad stop mapping, coercion, and shared mutable inputs.
 function Assert-Raw([bool]$Value,[string]$Label){if(-not $Value){throw ('ASSERTION FAILED: '+$Label)}}
 function Need([bool]$Value){Assert-Raw $Value $script:rawCase}
 function Raw-Case([string]$Name,[scriptblock]$Body){
+    if($Group -eq 'empty-ownership' -and $Name -cnotin @('ApiRequired','EmptyOwnership','Complete')){return}
     if($Group -eq 'ownership-mutation' -and $Name -cnotin @('ApiRequired','CopyOwnership','Complete')){return}
     if($Group -eq 'stop-mutation' -and $Name -cnotin @('ApiRequired','DeadlineEdges','Complete')){return}
     $script:rawCase='RawCapture'+$Name;& $Body;Write-Output ('PASS: '+$script:rawCase)
@@ -162,6 +163,28 @@ try{
             if($kind -eq 'timed-out'){Need ($r.Record.StopIntent -ceq 'would-request-owned-stop' -and $r.FailureActionIndex -eq 0)}
             if($kind -eq 'refused'){Need ($r.Record.StopIntent -ceq 'would-refuse-and-stop-if-owned' -and $r.FailureActionIndex -eq 1)}
         }
+    }
+    Raw-Case EmptyOwnership {
+        $empty=Raw-Good (New-RawTestScenario)
+        $originalVerified=$false;$fresh=$null
+        try{
+            $null=Add-Member -InputObject $empty.Actions -MemberType NoteProperty -Name Length -Value 17 -Force
+            $null=Add-Member -InputObject $empty.Actions -MemberType NoteProperty -Name Rank -Value 2 -Force
+            Need ($empty.Actions.PSObject.Properties['Length'].MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty)
+            Need ($empty.Actions.PSObject.Properties['Rank'].MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty)
+            $originalVerified=(Test-SyntheticCaptureRecord $empty.Record).Verified
+            $fresh=New-OfflineRawCaptureRecord (New-RawTestScenario ([byte[]]@(7)) ([byte[]]@()) @((New-RawReadAction stdout 1)))
+        }finally{
+            # Remove only decorations introduced above, including on the expected RED.
+            foreach($name in @('Length','Rank')){
+                if($empty.Actions.PSObject.Properties[$name].MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty){$empty.Actions.PSObject.Properties.Remove($name)}
+            }
+        }
+        Need ($originalVerified -and $fresh.Created)
+        Assert-RawRecord $fresh
+        Need ($fresh.Record.Lifecycle.Stdout.Base64 -ceq 'Bw==' -and $fresh.Actions.Count -eq 1)
+        $next=Raw-Good (New-RawTestScenario)
+        Need (-not [object]::ReferenceEquals($empty.Actions,$next.Actions))
     }
     Raw-Case Complete {Need $true}
     Write-Output 'LIMIT: synthetic memory byte transfer only;no real pipes,watchdog,origin or cleanup proof.'

@@ -80,7 +80,7 @@ function New-OfflineRawCaptureRecord([object]$Scenario){
             }
         }
         $result.FailureActionIndex=$null
-        $result.Actions=[object[]]$actions.ToArray()
+        $result.Actions=[object[]]$actions.ToArray().Clone()
         $result.Reason='adapter-error'
         $outCopy=Copy-RawCaptureBytes $Scenario.StdoutBytes;$errCopy=Copy-RawCaptureBytes $Scenario.StderrBytes
         $stdout=[IO.MemoryStream]::new($outCopy,$false);$stderr=[IO.MemoryStream]::new($errCopy,$false)
@@ -124,7 +124,7 @@ function New-OfflineRawCaptureRecord([object]$Scenario){
             $last=$time;$complete=$outEOF -and $errEOF -and $exitObserved
             if($complete){$expectedStatus='complete';$expectedReason='complete'}
         }
-        $packet.Events=[object[]]$events.ToArray()
+        $packet.Events=[object[]]$events.ToArray().Clone()
         $record=New-SyntheticCaptureRecord $packet
         $result.Reason='adapter-inconsistent'
         if(-not (Test-SyntheticCaptureRecord $record).Verified){return $result}

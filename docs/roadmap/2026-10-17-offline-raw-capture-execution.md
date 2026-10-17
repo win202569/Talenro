@@ -1,5 +1,11 @@
 # Offline raw capture coordinator — execution record
 
+Subsequent status: the separately approved [bounded I1 repair](2026-10-17-offline-raw-capture-empty-ownership-fix.md)
+closes the ownership blocker by parent RED/GREEN evidence, with M1 deferred and
+no new independent review. Five NEW slots are complete; none of the ten below
+were replayed or rewritten. The source/test hashes and findings below describe
+the original delivery, not the later fixed bytes. No broader acceptance follows.
+
 Status: **FINITE EVIDENCE REVIEWED; BLOCKED BY IMPORTANT EMPTY-ARRAY OWNERSHIP DEFECT, NOT ACCEPTED.** User selected Native option1 after
 5915bc732a658973b368b40a681250388911854e, approving the
 [plan](../superpowers/plans/2026-10-17-offline-raw-capture.md)'s at most10

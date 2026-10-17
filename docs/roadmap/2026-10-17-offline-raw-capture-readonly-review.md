@@ -1,8 +1,12 @@
-# Offline raw capture — independent readonly review, BLOCKED
+# Offline raw capture — independent readonly review, historical blocked disposition
 
-Status: **REVIEW1/1 COMPLETE; Important1 OPEN, Minor1 DEFERRED; INCREMENT UNFINISHED.**
+Status at review: **REVIEW1/1 COMPLETE; Important1 OPEN, Minor1 DEFERRED; INCREMENT UNFINISHED.**
 No Critical issue confirmed. All10 test slots and the sole review seat are spent.
 No automatic repair, reproduction, retest or additional review is authorized.
+
+This is the original review disposition. Later explicit user approval and the
+separate [bounded repair record](2026-10-17-offline-raw-capture-empty-ownership-fix.md)
+govern subsequent I1 work. They do not rewrite this review or grant a new review.
 
 One fresh reviewer, offline_raw_capture_review, read actual source/tests,
 approved spec/plan, continuation and saved evidence. Range:
@@ -93,7 +97,7 @@ Every limit remains explicit, never treated as a pass:
 |Actions persistence/crash/durability/archive acceptance|Wrapper/Actions not persisted here; old archive scope unchanged|
 |Command provenance/cleanup/security/Stage B/I2/I3/Task10/11/full C12/main/release/historical branch|Remain excluded and open; this review grants none|
 
-## Proposed bounded I1 repair — NOT APPROVED, DO NOT EXECUTE
+## Proposed bounded I1 repair — historical proposal, subsequently approved below
 
 Short design: explicitly clone the new module's returned Actions and outbound
 Events arrays, following the existing contract pattern, without changing any
@@ -117,3 +121,15 @@ No new reviewer proposed; the old seat remains consumed. This is only a pending
 bounded short design, not an implementation plan or approval. Code/tests may
 change only after explicit user approval. Preserve all old records/hashes,
 M1 and other limits. No protection changes or real collection.
+
+## Subsequent user approval after f8657855
+
+The user explicitly answered yes to the bounded proposal above after checkpoint
+f8657855722927630d17a0b23c04f8e8767dc66a. This authorizes only I1's two owned
+array clones, one EmptyOwnership regression and at most five NEW sequential
+synthetic test hosts as specified. The old ten slots and reviewer remain spent.
+No retries after an unexpected result, no new reviewer, no M1 implementation,
+no dependency edits or live/security/main authority. The historical proposal
+wording above records the pre-approval state, not the current authorization.
+Follow the [separate repair record](2026-10-17-offline-raw-capture-empty-ownership-fix.md)
+for actual execution and remaining limits; do not rewrite original receipts.

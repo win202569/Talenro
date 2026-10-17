@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: [bounded I1 repair](../roadmap/2026-10-17-offline-raw-capture-empty-ownership-fix.md)
+was explicitly approved after f8657855 and completed within five NEW hosts:
+precise PS7 RED, targeted GREEN on PS7/PS5.1 and full29/29 on both, no timeout
+or retry. Source/test local execution hashes are FB48642D/47808D6C (full hashes
+in report);12 dependencies unchanged. I1 is closed by parent evidence, not a
+new independent review. M1 remains deferred, not secretly fixed or claimed
+covered. Original10/review1 and new5 budgets are all spent; original slot5 false
+verdict/exception and all raw records remain intact. Recover portable source,
+tests and reports from this development branch, not ignored session caches.
+No further test budget, main merge, live collection or security acceptance is
+implied. Subsequent entries describe earlier historical states.
+
 Latest: [raw-capture readonly review](../roadmap/2026-10-17-offline-raw-capture-readonly-review.md)
 completed with Important1 empty-array ownership defect and Minor1 independent
 event-oracle gap. New increment is unfinished despite the saved28/110 results.
