@@ -1,10 +1,10 @@
 # Capture adapter contract and synthetic evidence record — proposed design
 
-Status: **WRITTEN DESIGN AWAITING REVIEW**. User approved writing/submitting this
-architecture after a23115d5. No implementation,tests,host diagnostics,real
-collector,watchdog or runtime allowance is approved. Written-spec approval must
-precede an implementation plan,execution method and fresh finite verification
-allowance. All prior spent/frozen budgets and failure history remain unchanged.
+Status: **WRITTEN DESIGN APPROVED FOR PLANNING** after9fbf8bf4. Original writing
+authority followeda23115d5. Plan approval,execution method and fresh finite
+verification allowance still required before implementation/tests. No host
+diagnostic,real collector,watchdog or runtime allowance granted. All prior
+spent/frozen budgets and failure history remain unchanged.
 
 ## Intent and staged delivery
 

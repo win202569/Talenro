@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[synthetic capture contract plan proposed](../superpowers/plans/2026-10-17-capture-adapter-contract.md).
+Spec approved after9fbf8bf4;plan/inline-or-delegated method/proposed4-host budget
+await decision. No implementation/tests/live collector or watchdog. New task
+must preserve strict callback-safe input validation,whole-trace bounds and false
+authority flags;existing106-check simulator unchanged. No spent allowance reuse,
+Stage B/security clearance or acceptance implied. Resume at plan review.
+
 Latest:[capture adapter contract proposed design](../superpowers/specs/2026-10-17-capture-adapter-contract-design.md).
 Only writing approved;await human review before plan/method/new finite test
 allowance. First delivery synthetic packet/command-time trace record/stop intent,

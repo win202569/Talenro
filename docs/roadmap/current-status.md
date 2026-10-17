@@ -1,5 +1,14 @@
 # Project status — updated 2026-10-17
 
+## Latest — capture contract spec approved;plan awaits execution decision
+
+[Plan](../superpowers/plans/2026-10-17-capture-adapter-contract.md) prepares one
+cohesive synthetic record constructor/verifier task. Inline recommended,one final
+readonly review;proposed4 fresh PS7/5.1 RED/GREEN hosts,120s each,no retries/fix
+reserve. Plan/method/allowance approval pending. No source/tests/real collector/
+watchdog implementation or execution this turn. Existing106-check simulation and
+old budgets unchanged;Stage B/security disposition/I2/I3 remain blocked.
+
 ## Latest — capture adapter contract spec written;awaiting review
 
 [Proposed spec](../superpowers/specs/2026-10-17-capture-adapter-contract-design.md):
