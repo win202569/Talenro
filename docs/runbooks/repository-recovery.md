@@ -16,6 +16,12 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:pending [single execution-context comparison](../roadmap/2026-10-17-synthetic-capture-hardlink-probe.md).
+Proposal only:one tool-approved outside-sandbox run of unchanged minimal probe,
+120s/no retry,normal-user/non-admin guard before child/fixture. No RunAs or ACL/
+security changes. Not yet approved/executed;clone does not authorize it or any
+full-test rerun. All old budgets/frozen slots and unstarted reviews remain.
+
 Latest:[structured one-attempt hardlink probe](../roadmap/2026-10-17-synthetic-capture-hardlink-probe.md).
 Portable exploratory script/report retained,new1/1 consumed. PS7 normal role
 created ordinary file,but one hardlink attempt returned native5/Win32Exception,

@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — one outside-sandbox context comparison proposed,awaiting approval
+
+[Pending comparison](2026-10-17-synthetic-capture-hardlink-probe.md) proposes
+NEW1 PS7 child through explicit tool permission,120s/no retry,unchanged pinned
+minimal probe,normal Windows user/non-admin precheck. No RunAs,ACL/security
+change,alternate API or suite replay. Compare with saved native5 normal-context
+result;no baseline rerun. No new host/code/context switch yet. Permission denial
+would stop,not trigger a workaround. Frozen partitions/regressions/reviews and
+all acceptance/main/security gates stay unchanged.
+
 ## Latest — one-attempt probe captures native5 at hardlink creation
 
 [Structured hardlink probe](2026-10-17-synthetic-capture-hardlink-probe.md) used

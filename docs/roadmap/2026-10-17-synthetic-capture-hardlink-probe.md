@@ -68,6 +68,26 @@ Frozen partition8..10/original7..12 and both unstarted reviews remain untouched.
 
 ## Preservation and gates
 
+### Pending bounded execution-context comparison
+
+User requested continuation;next short spike is presented in chat,NOT approved
+or executed yet. Propose NEW maximum1 PS7 child via the tool's separately approved
+outside-sandbox execution path,120000ms,no retry. Use the unchanged pinned probe
+above,new dedicated fixture and exactly one ordinary-file/one link attempt.
+Compare with the already retained normal-context native5 result;do not rerun it.
+Before any child/fixture,check the approved parent token is the expected current
+user and not in the Administrators role;otherwise stop without trying. No RunAs,
+Windows administrator launch,ACL/ownership/security change,alternate API,cleanup
+or original-test replay. If tool approval is denied/unavailable,stop:do not switch
+routes or retry. Record context/request outcome and keep a separate index.
+
+Created/refused outcomes are diagnostic only. A difference would support a
+context-dependent restriction,not isolate every token/policy difference or grant
+permission to run the full suite outside sandbox. If both refuse,cause remains
+unresolved. Product/tests and all frozen slots/reviews stay unchanged. This
+proposed1 slot is separate from the spent1/1 normal-context diagnostic;no new
+probe source or child has been created this turn.
+
 Probe SHA256 at launch/postrun:
 `56273A58C4E91ED7D1A41AFE8F97C198A1C829624C1C1521DF27FF5B2DB32407`.
 New one-entry index:
