@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[Stage B readiness checklist](../roadmap/2026-10-17-ordinary-ledger-stageb-readiness.md).
+Status NOT READY/NOT APPROVED. Preserve real readonly facts and strict parent
+failure;do not infer launch permission. Security disposition,channel/raw capture
+and exact packet/outer watchdog are not ready.70/70 remains consumed;I2/I3 open.
+Next is offline collector design plus legitimate safety assessment path,not
+native execution,new tests or a security-setting change. No product/helper/test
+execution occurred this turn.
+
 Latest:[real readonly adapter observations](../roadmap/2026-10-17-ordinary-ledger-readonly-adapters.md).
 Both hosts returned matching real file identity/signature/reopen facts;no
 planner/workload entry or identity consumption. PS5 progress stderr made the

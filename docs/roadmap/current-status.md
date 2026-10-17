@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — Stage B decision checklist saved;NOT READY/NOT APPROVED
+
+[Readiness/decision checklist](2026-10-17-ordinary-ledger-stageb-readiness.md)
+separates fake evidence,real readonly observations,strict diagnostic failure,
+historical security disposition and unissued exact inputs/watchdog/capture.
+Three immediate gaps:safety-owner disposition,channel/raw-evidence collection,
+and concrete bounded experiment packet. No native approval request is ready.
+I2/I3/full acceptance remain OPEN;small samples cannot clear them. Next:offline
+collector design and security disposition path,not a replay or protection change.
+No helper/diagnostic/test/workload this turn;70/70 unchanged. Earlier states
+below historical;this checklist is neither implementation nor execution approval.
+
 ## Latest — real readonly adapters returned matching facts;wrapper stopped
 
 [Read-only OS adapter evidence](2026-10-17-ordinary-ledger-readonly-adapters.md):
