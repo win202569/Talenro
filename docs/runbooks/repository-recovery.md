@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[format-only verification](../roadmap/2026-10-17-synthetic-capture-format.md).
+New normal-user PS7/PS5.1 runs each passed all18 ordered labels, exit0, no
+timeout. Prior-approved stream policy accepts structured progress only; PS5
+has two Completed progress records, not empty stderr. No old reader-gate rewrite,
+retry, source/test or security changes. Existing-root branch only. Raw receipts
+and fixtures stay local/ignored; portable result and recovery notes are in Git.
+Next consolidate coverage/gaps before a separately scoped review; old frozen
+slots/reviews and all full-acceptance/main/security gates stay unchanged.
+
 Latest:[readonly reader receipt assessment](../roadmap/2026-10-17-synthetic-capture-reader-receipt-assessment.md).
 Saved PS5 stderr contains two Completed progress objects; both engines' full
 45-label assertion evidence is confirmed. Original strict gate still fails

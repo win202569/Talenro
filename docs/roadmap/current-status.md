@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — format-only verification complete on both normal-user engines
+
+[Format results](2026-10-17-synthetic-capture-format.md):NEW2/2 spent, PS7
+exit0/8323ms/18PASS and PS5.1 exit0/2939ms/18PASS. Exact ordered labels and
+normal-user guards confirmed. PS7 stderr empty; PS5 has two Completed progress
+objects, accepted under the stream policy approved BEFORE launch. No retry,
+suppression, product/test/security changes or old receipt rewrites. Existing
+root=True on both; missing-root branch not exercised. Old reader strict-gate
+failure and frozen slots remain. Next consolidate cross-packet coverage and
+gaps before proposing a new independent review; none dispatched. Regressions,
+all acceptance/main/security gates remain open. Earlier format proposal is now
+completed only within this separate packet.
+
 ## Latest — readonly reader receipt assessment completed; original gate retained
 
 [Separate assessment](2026-10-17-synthetic-capture-reader-receipt-assessment.md)
