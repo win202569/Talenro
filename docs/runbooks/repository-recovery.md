@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[administrator reader-paths packet](../roadmap/2026-10-17-synthetic-capture-reader-admin.md).
+Two approved children spent. Both child exit0/45 orderedPASS;PS7 receipt passes,
+PS5 receipt fails strict empty-stderr gate on two serialized progress records
+(584 chars). Parent exit1 is not child exit1. Original failed gate and all raw
+records preserved,no rerun/parser change or acceptance promotion. Product/tests
+unchanged. Next is proposed readonly receipt disposition,not new execution.
+Raw files/fixtures stay local/ignored;clone recovers report and test definitions
+only. Old frozen slots,reviews and all acceptance/security/main gates unchanged.
+
 Latest:[explicit administrator minimal diagnostic](../roadmap/2026-10-17-synthetic-capture-hardlink-admin.md).
 NEW1/1 PS7 child used,admin guard confirmed,exit0/506ms,one4B file/one successful
 hardlink attempt,no ACL/security changes or suite replay. Prior normal-context

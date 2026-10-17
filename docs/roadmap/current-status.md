@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — new administrator reader packet stopped on PS5 progress stderr
+
+[Reader packet](2026-10-17-synthetic-capture-reader-admin.md):NEW2/2 children
+spent. PS7 exit0/2372ms/45PASS/empty stderr,receipt accepted. PS5 child
+exit0/2083ms/45PASS,but584 stderr characters containing two CLIXML progress
+records;strict empty-stderr gate failed,parent exit1,STOP. Readonly labels and
+XML checked;no receipt promotion,gate change,retry or progress suppression.
+All43 reader content assertions observed on both engines,not packet/full
+acceptance. Product/tests unchanged. Next recommend a separately authorized
+readonly disposition of saved progress receipt,no new child. Old frozen slots,
+unstarted reviews,format/regression and all security/main/acceptance gates stay.
+
 ## Latest — separately approved administrator minimal probe created one hardlink
 
 [Admin diagnostic](2026-10-17-synthetic-capture-hardlink-admin.md):NEW1/1 PS7
