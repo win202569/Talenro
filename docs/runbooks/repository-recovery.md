@@ -16,6 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic: [combined regression timing](../roadmap/2026-10-17-p1-combined-timing.md).
+Afterf7b0a7e3 approval,one PS7 child ran instrumented copies preserving original
+bodies/assertions/order:exit0/29783ms,59 complete pairs,all copied assertions PASS.
+ArrayAndIntegerBounds19568.840ms dominates;ObservationScalars2107.012ms,only217ms
+process margin. Group timing is not API-only timing or formal acceptance. Product
+6CF0D354/original suites unchanged,138 immutable pins matched;old timeouts and
+old parser retained. New diagnostic1/1 spent;prior3/4/one frozen,old3/7/four frozen,
+review ineligible,I1/P1 unresolved. Portable copies/report recover on dev branch,
+not main;ignored raw/controller/runtime do not. Clone grants no rerun authority.
+Next scope same-order boundary-group subphase timing with original checks/30s
+gate retained,no automatic remaining-slot use,limit increase or acceptance.
+
 Latest unfinished candidate: [reflection metadata reuse](../roadmap/2026-10-17-p1-reflection-reuse.md).
 After8b7294b1 approvals (including expected-RED exemption),fixed reflection
 metadata is local to each evaluation;all input checks remain. S1/S2 boundaries

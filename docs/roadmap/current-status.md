@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-17
 
+## Latest — combined timing diagnostic completed just below30s; boundary group dominates
+
+Approved one-host copy-only timing afterf7b0a7e3.
+[Record](2026-10-17-p1-combined-timing.md): PS7 exit0/29783ms,stderr empty,
+118 events/59 closed pairs/57 PASS markers,Complete=true,FormalAcceptance=false.
+Original35 span24070.298ms;ArrayAndIntegerBounds alone19568.840ms (group includes
+construction/assertions/invalid inputs,not API-only). Ownership span3674.007ms,
+ObservationScalars2107.012ms. Only217ms process margin: cumulative near-limit
+work measured,not a stable guarantee or unique old timeout attribution. Saved
+copies reverse exactly to originals;product6CF0D354/original tests unchanged,
+138 pins held. New parser handles actual ApiRequired/HOST order;old raw/controller/
+verdicts untouched. Diagnostic1/1 spent;prior3/4/one frozen,old3/7/four frozen,
+review ineligible,I1/P1 unresolved unchanged. Next separately scope dominant-group
+subphase timing in same combined order,not automatic rerun,PS5/R4,limit increase,
+new optimization or acceptance. Earlier entries historical.
+
 ## Latest — reflection reuse candidate improves one boundary run; regression times out
 
 Approved bounded optimization after8b7294b1;expected-RED exemption explicit.
