@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-17
 
+## Task11 — ledger fake/static regression complete;independent review pending
+
+Approved diagnostic identified UTC date representation mismatch;Task3 now passes
+both hosts without loosening identity/boolean/exit checks. Explicit schema4 entry
+and isolated serializer/loader wiring added;Task4 GREEN passed9 per host. Final
+7-suite ×2-host allowlist passed14 invocations/350 assertions,empty stderr.
+Used34/34;no more test calls authorized. Fresh readonly code review next;not yet
+implementation-complete or native acceptance. Existing callers do not switch,
+Assert-ProcessCompletion still refuses schema4. No native target,Go build,
+metadata continuation,main merge or production rollout. Earlier states historical.
+
 ## Task11 — ledger Tasks1/2 fake-verified;Task3 JSON roundtrip stopped13/32
 
 Task1 compatibility correction passed PS5.1;Task2 passed14 fake checks on each

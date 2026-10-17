@@ -30,3 +30,7 @@ public sealed class OrdinaryLedgerFixture {
     public OrdinaryFakeClock Clock;public OrdinaryFakeApi Api;public OrdinaryMemberLedger Ledger;
     public static OrdinaryLedgerFixture Create(){var f=new OrdinaryLedgerFixture();f.Clock=new OrdinaryFakeClock();f.Api=new OrdinaryFakeApi{Clock=f.Clock};f.Ledger=new OrdinaryMemberLedger("run-a",new IntPtr(1),1,f.Api,f.Clock);return f;}
 }
+public static class OrdinaryCleanupFixture {
+    public static Exception Expected;
+    public static void Throw(){throw Expected;}
+}

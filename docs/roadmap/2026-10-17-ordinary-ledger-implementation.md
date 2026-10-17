@@ -1,6 +1,9 @@
 # Ordinary identity ledger — stopped unfinished implementation checkpoint
 
 Date:2026-10-17. Base89cb1ad09bf831216c5999ddcb4409e4cea4d18d.
+Current:all approved fake/static regression passed;34/34 used,independent review
+pending. The following stop/current histories are superseded by the final
+regression section at the end. No native/metadata acceptance is claimed.
 Latest:Task1/2 fake checks complete;Task3 stopped on NestedRoundtrip failure at
 invocation13/32. Detailed follow-up below supersedes earlier current/next states.
 Latest follow-up:after468709b6,user approved pure diagnosis/cause-specific repair,
@@ -211,3 +214,48 @@ All13 suite hosts completed. The checkpoint includes unfinished Task3 code and
 is not green or accepted. Existing native runner/SDK/Go/callers unchanged;
 schema4 still refused and no real target ran. Git carries portable progress
 through Tasks1/2 and this Task3 stop,not raw logs/SDK/cache or acceptance.
+
+## Approved UTC diagnosis and final fake/static regression
+
+After468709b6,user approved one pure diagnostic,cause-specific repair and cap34.
+Invocation14 DIAGNOSTIC7 exit0/1589ms emitted rejection String type StartUTC.
+The JSON host can materialize ISO timestamps as UTC DateTime;validator expected
+string metadata. Corrected only UTC metadata validation to recognize UTC
+DateTime/DateTimeOffset or a valid UTC string. Other field types remain strict;
+invalid UTC is rejected. Added diagnostic output mode with Acceptance=false,
+not a workload or acceptance shortcut. No historical output was rewritten.
+
+Task3 replacement GREEN7 run15 exit0/1791ms and GREEN5 run16 exit0/1981ms passed
+all88 receipt assertions each. Task4 expected RED17/18 failed ExplicitEntryOnly;
+GREEN19/20 passed9 each (1464/1353ms). Native adapter/entry exists but was never
+invoked. Static/reflection hooks do not prove Windows adapter behavior.
+
+Final regression,each in a fresh64-bit host,one invocation per suite/host:
+
+| Suite | PS7 call/PASS/ms | PS5.1 call/PASS/ms |
+| --- | --- | --- |
+| ordinary-ledger.tests.ps1 |21/9/1448 |22/9/1144 |
+| ordinary-ledger-session.tests.ps1 |23/14/1290 |24/14/1402 |
+| ordinary-ledger-receipt.tests.ps1 |25/88/2508 |26/88/1869 |
+| ordinary-ledger-integration.tests.ps1 |27/9/1200 |28/9/1247 |
+| retained-lifetime.tests.ps1 |29/27/1094 |30/27/736 |
+| retained-lifetime-integration.tests.ps1 |31/12/1065 |32/12/981 |
+| retained-lifetime-receipt.tests.ps1 |33/16/1342 |34/16/1554 |
+
+All14 final invocations exit0,empty stderr,350 PASS assertions total. All34
+budgeted invocations consumed,including historical expected/unexpected failures
+and the one approved diagnostic. No Go build/native target/old controller run,
+SDK modification or metadata continuation. This is the exact allowlist only,
+not a full project or native integration acceptance claim.
+
+Task4 adds explicit RunWithOrdinaryIdentityLedger,conditional new-mode fields,
+ordinary adapter/shared clocks/finalization and guaranteed owning-ledger teardown.
+Existing Run/diagnostic modes retain their entry selection. New schema4 and
+new-marker downgrade attempts remain refused by Assert-ProcessCompletion.
+Preflight checks new portable files;legacy integration compile list expanded
+only to resolve new source dependencies. No caller/matrix driver adopts the entry.
+
+Independent whole-change readonly review is next and still pending. This is
+not the final implementation completion declaration. No additional execution
+is authorized;review findings needing repairs/tests require a bounded decision.
+Original metadata RED and consumed runtime identities remain unaccepted/frozen.

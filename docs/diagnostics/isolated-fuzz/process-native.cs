@@ -239,7 +239,7 @@ public static class IsolatedFuzzProcess {
         } finally {foreach(IntPtr handle in handles)Close(handle);}
     }
     public class LaunchBoundary {public string Name,UTC;public long Timestamp,ElapsedTicks,Frequency;}
-    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;public List<LaunchBoundary> LaunchBoundaries=new List<LaunchBoundary>();public AccountingQueryObservation InitialAccountingQuery;public List<MemberListQueryObservation> InitialMemberQueries=new List<MemberListQueryObservation>();public bool LifetimeDiagnosticOnly;public LifetimeReport LifetimeDiagnostics;public CompileStageTriggerReport CompileStageTrigger;}
+    public class Result {public long ExitCode,ShutdownElapsedMs,NaturalObservationMs;public int ShutdownSchema=3;public string ShutdownStatePolicy="owned-final-signaled-exit-image-optional-v2";public bool TimedOut,CleanupVerified,RootExited,TerminationRequested,MemberEvidenceTruncated,LiveSampling,NaturalShutdownVerified,ShutdownEvidenceComplete,ShutdownImageEvidenceComplete,ShutdownDiagnosticOnly;public uint RootId,DescendantsRemaining,ActiveAtRootWait,ActiveBeforeTermination,ActiveAfterCleanup,TotalProcesses;public ulong[] MembersAtRootWait,MembersBeforeTermination,MembersAfterCleanup;public MemberObservation[] MemberEvidence,MembersDuringRun,ShutdownMemberEvidence;public string StartUTC,EndUTC;public List<LaunchBoundary> LaunchBoundaries=new List<LaunchBoundary>();public AccountingQueryObservation InitialAccountingQuery;public List<MemberListQueryObservation> InitialMemberQueries=new List<MemberListQueryObservation>();public bool LifetimeDiagnosticOnly;public LifetimeReport LifetimeDiagnostics;public CompileStageTriggerReport CompileStageTrigger;public OrdinaryLedgerReport MemberIdentityLedger;public OrdinaryFinalOutcome LedgerFinalOutcome;public string RunIdentity;public bool RootAssigned;}
     public static void RecordLaunchBoundary(Result result,string name,Stopwatch watch) {
         result.LaunchBoundaries.Add(new LaunchBoundary{Name=name,UTC=DateTime.UtcNow.ToString("o"),Timestamp=Stopwatch.GetTimestamp(),ElapsedTicks=watch.ElapsedTicks,Frequency=Stopwatch.Frequency});
     }
@@ -307,6 +307,36 @@ public static class IsolatedFuzzProcess {
             r.Succeeded=r.WaitResult==0 || r.WaitResult==258;r.EndTimestamp=Stopwatch.GetTimestamp();r.EndUTC=DateTime.UtcNow.ToString("o");return r;
         }
     }
+    sealed class OrdinaryLedgerNativeApi:IOrdinaryLedgerApi {
+        readonly RetainedLifetimeNativeApi transport=new RetainedLifetimeNativeApi();
+        public LifetimeCandidates QueryMembers(IntPtr job,long deadline){return transport.QueryMembers(job,deadline);}
+        public LifetimeOpen Open(uint pid,uint access,bool inherit){return transport.Open(pid,access,inherit);}
+        public LifetimeMembership IsOwned(IntPtr handle,IntPtr job){return transport.IsOwned(handle,job);}
+        public LifetimeRelease Close(IntPtr handle){return transport.Close(handle);}
+        public OrdinaryAccounting QueryAccounting(IntPtr job,long deadline){
+            var r=new OrdinaryAccounting{StartTimestamp=Stopwatch.GetTimestamp(),StartUTC=DateTime.UtcNow.ToString("o"),Frequency=Stopwatch.Frequency};
+            if(r.StartTimestamp>=deadline){r.Error=-1;r.EndTimestamp=r.StartTimestamp;r.EndUTC=r.StartUTC;return r;}
+            Accounting info;bool ok=QueryInformationJobObject(job,1,out info,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero);int error=ok?0:Marshal.GetLastWin32Error();
+            r.Succeeded=ok;r.Error=error;r.TotalProcesses=info.Total;r.ActiveProcesses=info.Active;r.TotalTerminatedProcesses=info.Terminated;r.EndTimestamp=Stopwatch.GetTimestamp();r.EndUTC=DateTime.UtcNow.ToString("o");return r;
+        }
+        public OrdinaryRead Read(IntPtr handle,uint waitMs,long deadline){
+            var r=new OrdinaryRead{StartTimestamp=Stopwatch.GetTimestamp(),StartUTC=DateTime.UtcNow.ToString("o"),Frequency=Stopwatch.Frequency};
+            try{
+                long left=deadline-Stopwatch.GetTimestamp();if(left<=0){r.SkipReason="budget";return r;}
+                uint bounded=(uint)Math.Min(waitMs,Math.Max(0,left*1000.0/Stopwatch.Frequency));
+                r.Attempted=true;uint status=WaitForSingleObject(handle,bounded);int waitError=status==UInt32.MaxValue?Marshal.GetLastWin32Error():0;
+                if(waitError!=0 || (status!=0 && status!=258)){r.Error=waitError==0?-1:waitError;return r;}
+                r.Signaled=status==0;r.State=r.Signaled?"exited":"running";
+                if(Stopwatch.GetTimestamp()>=deadline){r.SkipReason="budget";return r;}
+                uint code;bool ok=GetExitCodeProcess(handle,out code);int error=ok?0:Marshal.GetLastWin32Error();r.ExitCodeRead=ok;r.ExitCode=code;r.Error=error;
+                if(ok && Stopwatch.GetTimestamp()<deadline){var path=new StringBuilder(32768);uint length=(uint)path.Capacity;bool image=QueryFullProcessImageName(handle,0,path,ref length);int imageError=image?0:Marshal.GetLastWin32Error();if(image)r.ImagePath=path.ToString();else r.ImageError=imageError;}
+                return r;
+            }finally{r.EndTimestamp=Stopwatch.GetTimestamp();r.EndUTC=DateTime.UtcNow.ToString("o");}
+        }
+    }
+    public static Result RunWithOrdinaryIdentityLedger(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds){
+        return RunCore(executable,args,overrides,cwd,stdout,stderr,limitSeconds,false,false,false,false,true);
+    }
     public static Result Run(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers) {
         return Run(executable,args,overrides,cwd,stdout,stderr,limitSeconds,captureLiveMembers,false);
     }
@@ -323,15 +353,21 @@ public static class IsolatedFuzzProcess {
         return RunCore(executable,args,overrides,cwd,stdout,stderr,limitSeconds,captureLiveMembers,captureShutdownDiagnostic,retainLifetime,false);
     }
     static Result RunCore(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers,bool captureShutdownDiagnostic,bool retainLifetime,bool compileStage) {
+        return RunCore(executable,args,overrides,cwd,stdout,stderr,limitSeconds,captureLiveMembers,captureShutdownDiagnostic,retainLifetime,compileStage,false);
+    }
+    static Result RunCore(string executable,string[] args,IDictionary overrides,string cwd,string stdout,string stderr,int limitSeconds,bool captureLiveMembers,bool captureShutdownDiagnostic,bool retainLifetime,bool compileStage,bool ordinaryMode) {
         if(retainLifetime && (captureLiveMembers || captureShutdownDiagnostic))throw new ArgumentException("Lifetime diagnostics cannot combine modes");
+        if(ordinaryMode && (captureLiveMembers || captureShutdownDiagnostic || retainLifetime || compileStage))throw new ArgumentException("Ordinary ledger cannot combine modes");
         IntPtr job=IntPtr.Zero,output=IntPtr.Zero,error=IntPtr.Zero,input=IntPtr.Zero,attributes=IntPtr.Zero,handles=IntPtr.Zero,environment=IntPtr.Zero;
         RetainedLifetimeRegistry registry=null;CompileStageRetainedSession stageSession=null;Stopwatch lifetimeCleanupClock=null;
+        OrdinaryMemberLedger ordinaryLedger=null;OrdinaryLedgerNativeApi ordinaryApi=null;
         ProcessInfo pi=new ProcessInfo();bool attributesReady=false,assigned=false;
         var result=new Result{StartUTC=DateTime.UtcNow.ToString("o")};
+        if(ordinaryMode){result.RunIdentity=Guid.NewGuid().ToString("N");result.ShutdownSchema=4;result.ShutdownStatePolicy="ordinary-owned-ledger-final-exit-v1";}
         result.ShutdownDiagnosticOnly=captureShutdownDiagnostic || retainLifetime;result.LifetimeDiagnosticOnly=retainLifetime;
         if(captureShutdownDiagnostic) {result.ShutdownSchema=2;result.ShutdownStatePolicy="owned-signaled-exit-image-optional-v1";}
-        long runtimeStart=retainLifetime?Stopwatch.GetTimestamp():0;var watch=Stopwatch.StartNew();
-        long runtimeDeadline=retainLifetime?LifetimeDeadline(runtimeStart,checked((long)limitSeconds*1000),Stopwatch.Frequency):0;
+        long runtimeStart=retainLifetime || ordinaryMode?Stopwatch.GetTimestamp():0;var watch=Stopwatch.StartNew();
+        long runtimeDeadline=retainLifetime || ordinaryMode?LifetimeDeadline(runtimeStart,checked((long)limitSeconds*1000),Stopwatch.Frequency):0;
         try {
             job=CreateJobObject(IntPtr.Zero,null);Check(job!=IntPtr.Zero);
             var limits=new ExtendedLimit();limits.Basic.Flags=0x2000; // KILL_ON_JOB_CLOSE, no breakaway permission.
@@ -369,6 +405,7 @@ public static class IsolatedFuzzProcess {
             RecordLaunchBoundary(result,"BeforeResumeThread",watch);
             Check(ResumeThread(pi.Thread)!=UInt32.MaxValue);
             RecordLaunchBoundary(result,"AfterResumeThread",watch);
+            if(ordinaryMode){ordinaryApi=new OrdinaryLedgerNativeApi();ordinaryLedger=new OrdinaryMemberLedger(result.RunIdentity,job,pi.Id,ordinaryApi,new RetainedLifetimeClock());result.MemberIdentityLedger=ordinaryLedger.Report;result.RootAssigned=assigned;}
             if(retainLifetime && !compileStage){registry=new RetainedLifetimeRegistry(job,pi.Id,new RetainedLifetimeNativeApi(),new RetainedLifetimeClock());result.LifetimeDiagnostics=registry.Report;}
             if(compileStage){
                 FileCompileStageByteSource reader=null;
@@ -391,6 +428,7 @@ public static class IsolatedFuzzProcess {
             while(true) {
                 double left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;
                 if(left<=0){result.TimedOut=true;break;}
+                if(ordinaryLedger!=null){ordinaryLedger.Poll(runtimeDeadline);left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;if(left<=0){result.TimedOut=true;break;}}
                 if(registry!=null){registry.Poll(runtimeDeadline);left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;if(left<=0){result.TimedOut=true;break;}}
                 if(stageSession!=null){stageSession.Tick(runtimeDeadline);result.LifetimeDiagnostics=stageSession.LifetimeReport;left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;if(left<=0){result.TimedOut=true;break;}}
                 if(captureLiveMembers && live.Count<32) {
@@ -400,15 +438,15 @@ public static class IsolatedFuzzProcess {
                     left=limitSeconds*1000-watch.Elapsed.TotalMilliseconds;
                     if(left<=0){result.TimedOut=true;break;}
                 }
-                uint status=WaitForSingleObject(pi.Process,(uint)Math.Min(captureLiveMembers || retainLifetime?10:100,Math.Ceiling(left)));
+                uint status=WaitForSingleObject(pi.Process,(uint)Math.Min(captureLiveMembers || retainLifetime || ordinaryMode?10:100,Math.Ceiling(left)));
                 Check(status!=UInt32.MaxValue);
                 Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
                 if(status==0){rootExited=true;break;}
             }
             // One shared five-second shutdown clock includes evidence gathering,
             // natural observation (at most500ms) and any forced-job cleanup.
-            long cleanupStart=retainLifetime?Stopwatch.GetTimestamp():0;var cleanup=Stopwatch.StartNew();
-            if(retainLifetime)lifetimeCleanupClock=cleanup;
+            long cleanupStart=retainLifetime || ordinaryMode?Stopwatch.GetTimestamp():0;var cleanup=Stopwatch.StartNew();
+            if(retainLifetime || ordinaryMode)lifetimeCleanupClock=cleanup;
             long cleanupDeadline=retainLifetime?LifetimeDeadline(cleanupStart,5000,Stopwatch.Frequency):0;
             if(registry!=null)registry.Snapshot("root-wait-end",cleanupDeadline,rootExited,result.TimedOut,false);
             if(stageSession!=null)stageSession.Snapshot("root-wait-end",cleanupDeadline,rootExited,result.TimedOut,false);
@@ -417,14 +455,21 @@ public static class IsolatedFuzzProcess {
             result.MembersDuringRun=live.ToArray();
             result.RootExited=rootExited;result.ActiveAtRootWait=accounting.Active;
             result.DescendantsRemaining=CountDescendants(pi.Id,result.MembersAtRootWait);
-            result.MemberEvidence=InspectMembers(job,result.MembersAtRootWait,captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null,!captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null);
-            result.MemberEvidenceTruncated=result.MembersAtRootWait.Length>result.MemberEvidence.Length;
+            if(ordinaryMode){
+                result.LedgerFinalOutcome=new OrdinaryLedgerSession(ordinaryLedger,job,ordinaryApi,new RetainedLifetimeClock()).Finish(rootExited,result.TimedOut,cleanupStart);
+                result.MemberEvidence=new MemberObservation[0];
+                result.ShutdownEvidenceComplete=result.LedgerFinalOutcome.EvidenceComplete;
+                result.NaturalShutdownVerified=result.LedgerFinalOutcome.NaturalShutdownVerified;
+                result.NaturalObservationMs=result.LedgerFinalOutcome.NaturalObservationMs;
+            }else result.MemberEvidence=InspectMembers(job,result.MembersAtRootWait,captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null,!captureShutdownDiagnostic && rootExited && !result.TimedOut?cleanup:null);
+            result.MemberEvidenceTruncated=!ordinaryMode && result.MembersAtRootWait.Length>result.MemberEvidence.Length;
             var shutdownEvidence=new List<MemberObservation>(result.MemberEvidence);
             var observed=new HashSet<ulong>(result.MembersAtRootWait);
-            result.ShutdownEvidenceComplete=!result.MemberEvidenceTruncated;
+            if(!ordinaryMode)result.ShutdownEvidenceComplete=!result.MemberEvidenceTruncated;
             foreach(var row in shutdownEvidence)if(row.Id!=pi.Id && !(captureShutdownDiagnostic?IsShutdownStateVerified(row):IsFinalShutdownStateVerified(row)))result.ShutdownEvidenceComplete=false;
             ulong[] remaining=result.MembersAtRootWait;
-            if(rootExited && !result.TimedOut && result.ShutdownEvidenceComplete) {
+            if(ordinaryMode && result.NaturalShutdownVerified){var final=result.LedgerFinalOutcome.FinalAccounting;accounting=new Accounting{Total=final.TotalProcesses,Active=final.ActiveProcesses,Terminated=final.TotalTerminatedProcesses};remaining=result.LedgerFinalOutcome.FinalMembers;result.TotalProcesses=final.TotalProcesses;}
+            if(!ordinaryMode && rootExited && !result.TimedOut && result.ShutdownEvidenceComplete) {
                 while(cleanup.ElapsedMilliseconds<=500) {
                     Check(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
                     remaining=Members(job);
@@ -441,7 +486,7 @@ public static class IsolatedFuzzProcess {
                     Thread.Sleep((int)Math.Min(10,left));
                 }
             }
-            result.NaturalObservationMs=cleanup.ElapsedMilliseconds;
+            if(!ordinaryMode)result.NaturalObservationMs=cleanup.ElapsedMilliseconds;
             result.ShutdownMemberEvidence=shutdownEvidence.ToArray();
             result.ShutdownImageEvidenceComplete=!result.MemberEvidenceTruncated;
             foreach(var row in shutdownEvidence)if(row.ImageError!=0 || String.IsNullOrEmpty(row.ImagePath))result.ShutdownImageEvidenceComplete=false;
@@ -464,7 +509,7 @@ public static class IsolatedFuzzProcess {
             uint code;Check(GetExitCodeProcess(pi.Process,out code));result.ExitCode=code;
             result.EndUTC=DateTime.UtcNow.ToString("o");return result;
         } finally {
-            try{RetainedLifetimeTeardown.Run(delegate {
+            try{OrdinaryLedgerTeardown.Run(delegate {RetainedLifetimeTeardown.Run(delegate {
             // If job assignment failed, terminate only the still-suspended root
             // through the exact creation handle. Never enumerate/kill other PIDs.
             if(pi.Process!=IntPtr.Zero && !assigned)TerminateProcess(pi.Process,0xE002);
@@ -473,7 +518,7 @@ public static class IsolatedFuzzProcess {
             if(attributes!=IntPtr.Zero)Marshal.FreeHGlobal(attributes);
             if(handles!=IntPtr.Zero)Marshal.FreeHGlobal(handles);
             if(environment!=IntPtr.Zero)Marshal.FreeHGlobal(environment);
-            },registry);}finally{try{if(stageSession!=null)stageSession.Dispose();}finally{if(retainLifetime){result.EndUTC=DateTime.UtcNow.ToString("o");if(lifetimeCleanupClock!=null)result.ShutdownElapsedMs=lifetimeCleanupClock.ElapsedMilliseconds;}}}
+            },registry);},ordinaryLedger);}finally{try{if(stageSession!=null)stageSession.Dispose();}finally{if(retainLifetime || ordinaryMode){result.EndUTC=DateTime.UtcNow.ToString("o");if(lifetimeCleanupClock!=null)result.ShutdownElapsedMs=lifetimeCleanupClock.ElapsedMilliseconds;}}}
         }
     }
 }

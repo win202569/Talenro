@@ -61,3 +61,8 @@ public sealed class OrdinaryLedgerSession {
         return r;
     }
 }
+public static class OrdinaryLedgerTeardown {
+    public static void Run(Action coreCleanup,OrdinaryMemberLedger ledger){
+        try{coreCleanup();}finally{if(ledger!=null)ledger.Dispose();}
+    }
+}

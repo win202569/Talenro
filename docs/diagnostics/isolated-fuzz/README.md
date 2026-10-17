@@ -1,5 +1,13 @@
 # Isolated fuzz diagnosis
 
+2026-10-17:ordinary identity ledger adds an explicit isolated native entry and
+schema4 evidence evaluator. Existing Run overloads/callers and diagnostic modes
+remain unchanged;Assert-ProcessCompletion refuses schema4 and new-mode markers.
+Verification scope is fake/reflection/static only,not native adapter validation
+or Error87 repair. No workload/rollout is enabled. See the
+[implementation record](../../roadmap/2026-10-17-ordinary-ledger-implementation.md)
+and [approved design](../../superpowers/specs/2026-10-17-ordinary-member-identity-ledger-design.md).
+
 2026-10-16:after renewed approval,ordinary check001 completed one default-vet
 build exit0/73.927s and original runtime exit0/7.287s;33 top-level/135 subtest
 PASS,no SKIP. Ordinary guards/full SDK/product audits and15-file completion

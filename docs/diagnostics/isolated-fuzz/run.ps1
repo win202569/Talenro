@@ -1,18 +1,22 @@
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'isolation.ps1')
 . (Join-Path $PSScriptRoot 'provenance.ps1')
-if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs')) }
+if(-not ('IsolatedFuzzProcess' -as [type])) { Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger-session.cs')) }
+. (Join-Path $PSScriptRoot 'ordinary-ledger-receipt.ps1')
 function ConvertTo-RecordedProcessReceipt($native,[string]$stdout,[string]$stderr,[string]$exe,[string[]]$Arguments,[hashtable]$Environment) {
+    $ledger=$native.PSObject.Properties['MemberIdentityLedger'];$ordinary=$null -ne $ledger -and $null -ne $ledger.Value
     $result=[pscustomobject]@{ExitCode=$native.ExitCode;TimedOut=$native.TimedOut;DescendantsRemaining=$native.DescendantsRemaining;CleanupVerified=$native.CleanupVerified;ActiveAfterCleanup=$native.ActiveAfterCleanup;TotalProcesses=$native.TotalProcesses;RootId=$native.RootId;RootExited=$native.RootExited;ActiveAtRootWait=$native.ActiveAtRootWait;MembersAtRootWait=$native.MembersAtRootWait;MembersAfterCleanup=$native.MembersAfterCleanup;TerminationRequested=$native.TerminationRequested;StartUTC=$native.StartUTC;EndUTC=$native.EndUTC;StdoutPath=$stdout;StderrPath=$stderr;Executable=$exe;Arguments=$Arguments;Environment=$Environment}
     foreach($field in @('MemberEvidence','LaunchBoundaries','MemberEvidenceTruncated','LiveSampling','MembersDuringRun','ShutdownSchema','ShutdownStatePolicy','ShutdownImageEvidenceComplete','ShutdownDiagnosticOnly','NaturalShutdownVerified','ShutdownEvidenceComplete','ShutdownElapsedMs','NaturalObservationMs','ActiveBeforeTermination','MembersBeforeTermination','ShutdownMemberEvidence','InitialAccountingQuery','InitialMemberQueries')) {
         $result | Add-Member -NotePropertyName $field -NotePropertyValue $native.$field
     }
     foreach($field in @('LifetimeDiagnosticOnly','LifetimeDiagnostics')) {
+        if($ordinary -and $field -ceq 'LifetimeDiagnostics'){continue}
         $optional=$native.PSObject.Properties[$field]
         if($null -ne $optional){$result|Add-Member -NotePropertyName $field -NotePropertyValue $optional.Value}
     }
     $trigger=$native.PSObject.Properties['CompileStageTrigger']
     if($null -ne $trigger -and $null -ne $trigger.Value){$result|Add-Member CompileStageTrigger $trigger.Value}
+    if($ordinary){foreach($field in @('MemberIdentityLedger','LedgerFinalOutcome','RunIdentity','RootAssigned')){$result|Add-Member -NotePropertyName $field -NotePropertyValue $native.$field}}
     return $result
 }
 function Invoke-RecordedProcess([string]$Executable,[string[]]$Arguments,[hashtable]$Environment,[string]$ReceiptDir,[int]$LimitSeconds,[bool]$CaptureLiveMembers=$false,[bool]$CaptureShutdownDiagnostic=$false) {

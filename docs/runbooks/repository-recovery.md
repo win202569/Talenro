@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:ordinary ledger explicit entry implemented;fake/static final allowlist
+passed14 runs/350 assertions on PS7/5.1. Total34/34 used after approved UTC
+roundtrip diagnosis/repair. Independent readonly review pending;do not run more
+tests,enable schema4 acceptance or resume metadata. Existing callers unchanged.
+Git preserves implementation/tests/report;native adapter and real OS behavior
+remain unverified. Earlier latest/pending entries below are historical.
+
 Latest:[ledger Task3 JSON stop](../roadmap/2026-10-17-ordinary-ledger-implementation.md#uint64-correction-verifiedtask2-completetask3-json-stop).
 Task1 scoped fake checks complete;Task2 passed14 on both hosts. Task3 first
 GREEN7 failed JSON NestedRoundtrip after2 PASS lines;13/32 used. The exact

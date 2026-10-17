@@ -1,5 +1,5 @@
 $ErrorActionPreference='Stop'
-Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs'),(Join-Path $PSScriptRoot 'retained-lifetime-fixture.cs'))
+Add-Type -Path @((Join-Path $PSScriptRoot 'process-native.cs'),(Join-Path $PSScriptRoot 'retained-lifetime.cs'),(Join-Path $PSScriptRoot 'compile-stage-trigger.cs'),(Join-Path $PSScriptRoot 'compile-stage-session.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger.cs'),(Join-Path $PSScriptRoot 'ordinary-ledger-session.cs'),(Join-Path $PSScriptRoot 'retained-lifetime-fixture.cs'))
 function Check-Integration([bool]$Value,[string]$Name){if(-not $Value){throw ('ASSERTION FAILED: '+$Name)};Write-Output ('PASS: '+$Name)}
 Check-Integration ($null -ne [IsolatedFuzzProcess].GetMethod('RunWithRetainedHandleDiagnostics')) 'NewEntryExists'
 Check-Integration (@([IsolatedFuzzProcess].GetMethods()|Where-Object Name -eq 'Run').Count -eq 2) 'LegacyOverloadsRemain'

@@ -26,6 +26,11 @@ Latest execution state:Task2 completed on both hosts (14 assertions each);
 Task3 expected REDs completed,but first GREEN7 failed NestedRoundtrip after2
 PASS lines at invocation13. Stopped13/32;Task4/final review unstarted. The JSON
 rejection reason was not emitted;no repair/retry after the stop. See report.
+Current:after468709b6,user approved diagnostic/repair,total34. UTC metadata
+representation corrected;Task3 passed both hosts. Task4 GREEN and all14 final
+allowlist runs passed;350 final assertions.34/34 consumed. Independent readonly
+review pending;further repair/reverification needs a new bounded decision.
+Earlier stop/budget statements above and original30-call arithmetic are historical.
 
 ## Global Constraints
 
