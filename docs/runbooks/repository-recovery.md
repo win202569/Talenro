@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[in-context timing proposal](../roadmap/2026-10-17-synthetic-capture-context-profile-proposal.md).
+Documents only,not available diagnostic code. Proposed4-host ordinary/copy-
+instrumented public-verifier comparison awaits user approval,120s each,no retry.
+Source-copy timing preserves original checks but perturbs execution;not a
+non-invasive profiler or end-to-end repair. No tool install/system-wide trace,
+product/tests/new children this turn. Read the scope before any copy generation
+or launch;clone does not authorize execution. Original timeout/frozen regression,
+unstarted review and all acceptance/live/security/main gates remain unresolved.
+
 Latest:[ordered property-name comparison](../roadmap/2026-10-17-synthetic-capture-property-names-comparison.md).
 New exploratory script/report retained,new2/2 hosts consumed,both exit0/empty
 stderr,exact array/order/text checks and getter0. PS5 foreach423.076ms versus

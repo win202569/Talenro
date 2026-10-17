@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-17
 
+## Latest — in-context source-copy timing proposal awaits approval
+
+[Context profiling proposal](2026-10-17-synthetic-capture-context-profile-proposal.md)
+is documents only,no new hosts/product edits or installs. Proposes NEW4 children:
+PS7 ordinary/instrumented,PS5 ordinary/instrumented,120s each,no retry/stop on
+abnormal. One actual public verification per child,diagnostic copies preserve
+all checks;seven function aggregates,explicit inclusive/nesting/overhead limits.
+This is intrusive timing,not non-invasive sampling or a verified repair. Copies
+and probe are not yet written;approval required. No system-wide tracing proposed.
+All previous spent/frozen allowances,original timeout/unstarted review and
+acceptance/live/security/main gates remain unchanged.
+
 ## Latest — name-extraction comparison does not establish PS5 benefit
 
 [Property names comparison](2026-10-17-synthetic-capture-property-names-comparison.md)
