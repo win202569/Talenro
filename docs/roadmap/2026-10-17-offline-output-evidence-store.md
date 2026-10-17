@@ -1,0 +1,54 @@
+# Offline evidence persistence — unfinished development checkpoint
+
+## Authority and outcome
+
+User approved the bounded persistence design and at most four fresh synthetic/local-file test hosts after commit6ce0bbd6. No live collector, ordinary ledger identity, Stage B, original suite replay or wider acceptance was authorized. Existing package4/4,classifier8/8,ledger70/70 budgets remain separate/frozen.
+
+The new store source and tests exist, but **no persistence behavior has passed execution**. First GREEN failed before entering the store. Do not use this checkpoint as accepted evidence storage.
+
+## Implemented but not runtime-verified
+
+`output-evidence-store.ps1` exposes Write-/Read-OfflineOutputEvidenceStore. Fixed worktree-local `.superpowers/diagnostics/offline-output-evidence-store`, fresh direct child only. Caller prepares the root. Writer checks an existing package, constructs bounded primitive fields, creates fresh files, closes/reopens payload, checks bytes, and publishes completion marker last. Reader holds single-link read bindings, checks marker length/hash, parses strict bounded fields/exact EOF, then rebuilds and verifies the package. A refused classification can still be retained as internally consistent evidence, never authenticity or successful acceptance.
+
+Format: `TLROEV01`,little-endian Int32 exit/encoding(1=utf8,2=utf16le),Int32 strictUTF8 origin length/bytes,Int32 stdout length/raw bytes,Int32 stderr length/raw bytes. Marker `TLROEC01`,Int64 payload length,raw SHA25632;exact48 bytes. Stream limit1MiB each,origin1..1024 chars/4096 bytes,payload<=3MiB. No generic text deserialization. File failures preserve partial state and best-effort `stopped`; no overwrite,delete or retry.
+
+Dependency: unchanged pure package/classifier and isolation.ps1 file metadata helpers; import defines other isolation functions but invokes none of their toolchain/patch operations. No runtime process helper is imported. File metadata P/Invoke is not a live process workload. No hostile-admin/concurrent namespace or power-loss durability guarantee.
+
+## Fresh execution record
+
+Ignored runner acquired a separate Store switch/index,budget4,only this test suite,120s sequential hosts. No earlier index rewritten.
+
+| Call | Host / phase | Exit | Elapsed ms | PASS lines | Result |
+|---|---|---|---|---|---|
+|1|PS7 RED|1|1582|0|Expected OfflineEvidenceStoreRequired assertion; missing API|
+|2|PS5 RED|1|2084|0|Same expected missing API assertion|
+|3|PS7 GREEN attempted|1|1402|1|Bounded integer required before store entry|
+|4|PS5 GREEN|—|—|—|Not started; remaining slot frozen at stop|
+
+Parent runner itself prints child errors and can exit0; recorded child exit is authoritative. The surrounding GREEN command checked the saved exit and threw on call3, so call4 did not start. No retry/cleanup or fixture/source correction followed. Root was created; readonly listing found it empty. Tests and source passed readonly PowerShell parser inspection, which is not execution or PS5 compatibility proof.
+
+Index `store-invocations.json` (three completed entries) SHA256:
+`83839B575F5A80490ECBF1D43696D78AAA2B710B2243268BD63D4BE6E151D033`.
+Saved stdout/stderr and index remain ignored under `.superpowers/sdd/2026-10-17-ordinary-ledger-native-probe-preparation`; they are local audit artifacts, not prerequisites for running the committed fixture suite on a fresh computer. No real raw payload is committed.
+
+## Readonly diagnosis and next step
+
+The parser AST for the first `New-OfflineOutputEvidencePackage` invocation in `New-StorePackage` shows bare `-ExitCode -1` as **StringConstantExpressionAst / System.String**. The unchanged package validator only accepts Int32/Int64 and throws `Bounded integer required`. This explains call3 before directory creation/store entry; it does not prove the unexecuted store implementation is correct. The earlier package tests used an integer loop variable for negative exit values.
+
+Proposed smallest correction: explicitly numeric `-ExitCode ([int]-1)` in the fixture. No production validator relaxation. Do not apply/retry under an assumption that the stopped allowance renews. Seek approval for fixture correction and two new sequential bounded verification hosts (PS7 thenPS5,120s each,no retry), while retaining all original three calls and freezing unused call4. Any new failure must remain visible; source/tests after correction need their own results.
+
+## Independent readonly review
+
+One fresh scoped reviewer reported0Critical,1Important,2Minor;no additional confirmed production correctness defect. Important is the same fixture integer-string failure above and remains unresolved. This is not a functioning-store or merge verdict.
+
+Deferred minors (no fixes/runs this turn): empty-origin mutation retains its original bytes,so generic refusal may test the following malformed length instead of isolating empty-origin validation;UTF16LE persistence fixtures contain only empty streams,so nonempty UTF16LE reconstruction/classification is untested. Future correction needs targeted assertions,not broader success claims.
+
+Ruling on declined-to-judge areas: hostile namespace/hardlink races,concurrent caller mutation,ACL ownership/authenticity,actual mid-write OS faults,crash/fsync durability,real collection/runtime authority,wider repository correctness and acceptance remain unsupported/unverified. File bindings protect opened files,not the whole namespace;the root is a dedicated local scope,not ACL ownership attestation. These exclusions match the approved scope,not evidence that the stronger properties hold. Cost if wrongly relied upon: false trust,readable completed artifacts after failed stop publication,or unsafe reuse as runtime evidence. Do not rely on them.
+
+Reviewer noted a complete marker surviving later OS failure plus failed stop-record creation is not guaranteed unreadable;best-effort stopped marking is intentionally weaker than guaranteed crash-failure atomicity. No source/test changes followed review.
+
+Reviewed source SHA256:`7710A1149B42CFD0C2505988CEE6748F399C3FB5E8C34D795B35FBCB8558BB81`.
+Reviewed tests SHA256:`C6B399D5B517226A15A9F45AB9F13391E269755176E921D27DC96A09AAF6B8B9`.
+Saved decoded stderr artifact sizes for calls1/2/3:363/551/337 bytes (runner text re-encoding,not raw child byte capture).
+
+Formal Stage B/safety disposition and I2/I3 full acceptance remain OPEN. This offline persistence extension cannot resolve missing original raw bytes or historical security disposition.

@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[unfinished offline store](../roadmap/2026-10-17-offline-output-evidence-store.md).
+Source/tests/plan are portable but no persistence behavior passed execution.
+3/4 host calls consumed;first GREEN failed on bare negative fixture argument
+being a string. No correction/retry;unused fourth frozen. Resume by reading
+checkpoint and obtaining approval for numeric fixture correction plus2 fresh
+bounded verification hosts,not by running old budgets or trusting this store.
+Raw local artifacts remain ignored;no Stage B or wider acceptance authority.
+
 Latest:offline persistence design proposed in current status,not implemented.
 Fresh bounded binary evidence plus last-written length/hash completion marker;
 re-read/reconstruct/verify,never overwrite/auto-delete/retry. Owned diagnostic

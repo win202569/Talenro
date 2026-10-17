@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — offline persistence implementation checkpoint;verification blocked
+
+[Checkpoint](2026-10-17-offline-output-evidence-store.md):design and4-host cap
+approved;new store source/tests/portable plan written. RED1/2 expected missing
+API;attempted GREEN3 PS7 failed after1 guard PASS, before persistence entry.
+Readonly parser confirmed bare fixture `-ExitCode -1` is a string;existing
+integer-only package validator correctly refuses it. No fixture correction or
+retry;PS5 call4 not started,remaining slot frozen. Store functionality and
+cross-version compatibility are UNVERIFIED,not accepted. Seek fixture numeric
+cast correction plus2 new sequential PS7/PS5 verification hosts;do not relax
+validators or consume old suite budgets. Scoped readonly review:0Critical,
+1Important(same fixture failure),2Minor(empty-origin isolation/nonemptyUTF16
+coverage);no additional confirmed source defect,but no functioning-store claim.
+No real collector/ledger identities/Stage B/full-project suite execution.
+
 ## Latest — bounded offline persistence design proposed;not implemented
 
 Recommended next step extends evidence objects with output-evidence-store.ps1
