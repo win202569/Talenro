@@ -1,12 +1,25 @@
 # Pure synthetic supervision decisions. No imports, I/O, clocks or live adapters.
-function Get-SupervisionPolicyType($Value){if($null -eq $Value){return $null};return [object].GetMethod('GetType').Invoke($Value.PSObject.BaseObject,$null)}
-function Assert-SupervisionPolicyPassive($Value){
+# Only fixed SDK metadata is reused. Every input is still checked on every call.
+# An evaluation owns this context; it is not stored in script/global state.
+function New-SupervisionPolicyMetadata {
+    [pscustomobject]@{
+        TypeMethod=[object].GetMethod('GetType')
+        MembersProperty=[Management.Automation.PSMemberSet].GetProperty('Members')
+    }
+}
+function Get-SupervisionPolicyType($Value,$Metadata=$null){
+    if($null -eq $Value){return $null}
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    return $Metadata.TypeMethod.Invoke($Value.PSObject.BaseObject,$null)
+}
+function Assert-SupervisionPolicyPassive($Value,$Metadata=$null){
     if($null -eq $Value){return}
-    $type=Get-SupervisionPolicyType $Value
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    $type=Get-SupervisionPolicyType $Value -Metadata $Metadata
     if($type -eq [int] -or $type -eq [long] -or $type -eq [bool] -or $type -eq [string]){
         # Use the fixed SDK getter so an added member named Members cannot shadow it.
         $view=$Value.psextended
-        $members=[Management.Automation.PSMemberSet].GetProperty('Members').GetValue($view.PSObject.BaseObject,$null)
+        $members=$Metadata.MembersProperty.GetValue($view.PSObject.BaseObject,$null)
         foreach($member in $members){throw 'Decorated scalar'}
     }
     foreach($p in $Value.PSObject.Properties){
@@ -14,28 +27,35 @@ function Assert-SupervisionPolicyPassive($Value){
         if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Shadow bound'}
     }
 }
-function Assert-SupervisionPolicyShape($Value,[string[]]$Names){
-    $type=Get-SupervisionPolicyType $Value
+function Assert-SupervisionPolicyShape($Value,[string[]]$Names,$Metadata=$null){
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    $type=Get-SupervisionPolicyType $Value -Metadata $Metadata
     if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain object required'}
     $props=@($Value.PSObject.Properties);if($props.Count -ne $Names.Count){throw 'Exact fields required'}
     foreach($p in $props){
         $found=$false;foreach($name in $Names){if([string]::Equals($p.Name,$name,[StringComparison]::Ordinal)){$found=$true;break}}
         if(-not $found -or $p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Exact passive fields required'}
-        Assert-SupervisionPolicyPassive $p.Value
+        Assert-SupervisionPolicyPassive $p.Value -Metadata $Metadata
     }
 }
-function Assert-SupervisionPolicyInteger($Value,[long]$Min=0,[long]$Max=[long]::MaxValue){
-    $type=Get-SupervisionPolicyType $Value;if($type -ne [int] -and $type -ne [long]){throw 'Exact integer required'}
-    Assert-SupervisionPolicyPassive $Value;if($Value -lt $Min -or $Value -gt $Max){throw 'Integer bound'}
+function Assert-SupervisionPolicyInteger($Value,[long]$Min=0,[long]$Max=[long]::MaxValue,$Metadata=$null){
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    $type=Get-SupervisionPolicyType $Value -Metadata $Metadata;if($type -ne [int] -and $type -ne [long]){throw 'Exact integer required'}
+    Assert-SupervisionPolicyPassive $Value -Metadata $Metadata;if($Value -lt $Min -or $Value -gt $Max){throw 'Integer bound'}
 }
 function Test-SupervisionPolicyToken($Value,[string[]]$Allowed){
     foreach($token in $Allowed){if([string]::Equals($Value,$token,[StringComparison]::Ordinal)){return $true}};return $false
 }
-function Assert-SupervisionPolicyToken($Value,[string[]]$Allowed){
-    if((Get-SupervisionPolicyType $Value) -ne [string]){throw 'Exact string required'}
-    Assert-SupervisionPolicyPassive $Value;if(-not (Test-SupervisionPolicyToken $Value $Allowed)){throw 'Ordinal token required'}
+function Assert-SupervisionPolicyToken($Value,[string[]]$Allowed,$Metadata=$null){
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    if((Get-SupervisionPolicyType $Value -Metadata $Metadata) -ne [string]){throw 'Exact string required'}
+    Assert-SupervisionPolicyPassive $Value -Metadata $Metadata;if(-not (Test-SupervisionPolicyToken $Value $Allowed)){throw 'Ordinal token required'}
 }
-function Assert-SupervisionPolicyBool($Value){if((Get-SupervisionPolicyType $Value) -ne [bool]){throw 'Exact bool required'};Assert-SupervisionPolicyPassive $Value}
+function Assert-SupervisionPolicyBool($Value,$Metadata=$null){
+    if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
+    if((Get-SupervisionPolicyType $Value -Metadata $Metadata) -ne [bool]){throw 'Exact bool required'}
+    Assert-SupervisionPolicyPassive $Value -Metadata $Metadata
+}
 function Get-SupervisionPolicyActors($Observation){
     switch -CaseSensitive ($Observation.Kind){
         progress{return @('C')}
@@ -74,25 +94,26 @@ function Get-OfflineSupervisionDecision([object]$Scenario){
     Set-StrictMode -Version Latest
     $result=[pscustomobject]@{Schema=1;Mode='policy-only';EvidenceClass='synthetic';Evaluated=$false;Reason='invalid-scenario';State='Refused';FailureObservationIndex=$null;Decision=$null;OriginVerified=$false;Acceptance=$false;RuntimeApproved=$false;LiveActionsPerformed=$false;CleanupStatus='unknown'}
     try{
-        Assert-SupervisionPolicyShape $Scenario @('Schema','Mode','SessionLabel','ClockLabel','StartMs','Observations')
-        Assert-SupervisionPolicyInteger $Scenario.Schema 1 1;Assert-SupervisionPolicyToken $Scenario.Mode @('policy-only')
-        Assert-SupervisionPolicyToken $Scenario.ClockLabel @('synthetic-ms')
-        if((Get-SupervisionPolicyType $Scenario.SessionLabel) -ne [string]){throw 'Label string required'}
+        $Metadata=New-SupervisionPolicyMetadata
+        Assert-SupervisionPolicyShape $Scenario @('Schema','Mode','SessionLabel','ClockLabel','StartMs','Observations') -Metadata $Metadata
+        Assert-SupervisionPolicyInteger $Scenario.Schema 1 1 -Metadata $Metadata;Assert-SupervisionPolicyToken $Scenario.Mode @('policy-only') -Metadata $Metadata
+        Assert-SupervisionPolicyToken $Scenario.ClockLabel @('synthetic-ms') -Metadata $Metadata
+        if((Get-SupervisionPolicyType $Scenario.SessionLabel -Metadata $Metadata) -ne [string]){throw 'Label string required'}
         if(-not [regex]::IsMatch($Scenario.SessionLabel,'\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\z',[Text.RegularExpressions.RegexOptions]::CultureInvariant)){throw 'Label bound'}
-        Assert-SupervisionPolicyInteger $Scenario.StartMs 0 ([long]::MaxValue-120000)
+        Assert-SupervisionPolicyInteger $Scenario.StartMs 0 ([long]::MaxValue-120000) -Metadata $Metadata
         $inputObservations=$Scenario.Observations
-        if((Get-SupervisionPolicyType $inputObservations) -ne [object[]]){throw 'Exact zero-based object array required'}
-        Assert-SupervisionPolicyPassive $inputObservations
+        if((Get-SupervisionPolicyType $inputObservations -Metadata $Metadata) -ne [object[]]){throw 'Exact zero-based object array required'}
+        Assert-SupervisionPolicyPassive $inputObservations -Metadata $Metadata
         foreach($p in $inputObservations.PSObject.Properties){if($p.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Decorated array'}}
         if($inputObservations.Length -gt 4096){throw 'Observation bound'}
         $start=[long]$Scenario.StartMs;$session=[string]$Scenario.SessionLabel;$clock=[string]$Scenario.ClockLabel
         $result.Reason='invalid-observation';$observations=New-Object 'System.Collections.Generic.List[object]'
         for($i=0;$i -lt $inputObservations.Length;$i++){
             $result.FailureObservationIndex=$i;$o=$inputObservations[$i]
-            $type=Get-SupervisionPolicyType $o;if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain observation required'}
+            $type=Get-SupervisionPolicyType $o -Metadata $Metadata;if($null -eq $type -or $type.FullName -cne 'System.Management.Automation.PSCustomObject'){throw 'Plain observation required'}
             foreach($p in $o.PSObject.Properties){if($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Passive observation required'}}
             if($null -eq $o.PSObject.Properties['Kind']){throw 'Missing kind'}
-            Assert-SupervisionPolicyToken $o.Kind @('arm','release','progress','control','time','fault','cleanup','persist')
+            Assert-SupervisionPolicyToken $o.Kind @('arm','release','progress','control','time','fault','cleanup','persist') -Metadata $Metadata
             $extra=@(switch -CaseSensitive ($o.Kind){
                 arm{'LauncherOwnsControl';'SupervisorOwnsControl';'ContainerBound';'HandleInheritanceBlocked';'ReadersReady'}
                 release{'InputBindingMatches'}
@@ -100,22 +121,22 @@ function Get-OfflineSupervisionDecision([object]$Scenario){
                 control{'SummaryCount';'MaxSummaryBytes';'QueueDepth'}
                 fault{'Fault'} cleanup{'Verified';'NaturalCompletion';'CountsReconciled'} persist{'ReadbackMatches';'Classification'}
             })
-            Assert-SupervisionPolicyShape $o (@('Sequence','SessionLabel','ClockLabel','AtMs','Actor','Kind')+$extra)
-            Assert-SupervisionPolicyInteger $o.Sequence;Assert-SupervisionPolicyInteger $o.AtMs
-            foreach($name in @('SessionLabel','ClockLabel')){if((Get-SupervisionPolicyType $o.$name) -ne [string] -or $o.$name.Length -gt 64){throw 'Bounded declaration required'}}
-            Assert-SupervisionPolicyToken $o.Actor @('L','W','C')
+            Assert-SupervisionPolicyShape $o (@('Sequence','SessionLabel','ClockLabel','AtMs','Actor','Kind')+$extra) -Metadata $Metadata
+            Assert-SupervisionPolicyInteger $o.Sequence -Metadata $Metadata;Assert-SupervisionPolicyInteger $o.AtMs -Metadata $Metadata
+            foreach($name in @('SessionLabel','ClockLabel')){if((Get-SupervisionPolicyType $o.$name -Metadata $Metadata) -ne [string] -or $o.$name.Length -gt 64){throw 'Bounded declaration required'}}
+            Assert-SupervisionPolicyToken $o.Actor @('L','W','C') -Metadata $Metadata
             switch -CaseSensitive ($o.Kind){
-                arm{foreach($name in $extra){Assert-SupervisionPolicyBool $o.$name}}
-                release{Assert-SupervisionPolicyBool $o.InputBindingMatches}
+                arm{foreach($name in $extra){Assert-SupervisionPolicyBool $o.$name -Metadata $Metadata}}
+                release{Assert-SupervisionPolicyBool $o.InputBindingMatches -Metadata $Metadata}
                 progress{
-                    foreach($name in @('StdoutRetainedBytes','StderrRetainedBytes','DataEventCount')){Assert-SupervisionPolicyInteger $o.$name}
-                    foreach($name in @('StdoutEOF','StderrEOF','ExitObserved')){Assert-SupervisionPolicyBool $o.$name}
-                    if($o.ExitObserved){Assert-SupervisionPolicyInteger $o.ExitCode ([int]::MinValue) ([int]::MaxValue)}elseif($null -ne $o.ExitCode){throw 'Unknown exit must be null'}
+                    foreach($name in @('StdoutRetainedBytes','StderrRetainedBytes','DataEventCount')){Assert-SupervisionPolicyInteger $o.$name -Metadata $Metadata}
+                    foreach($name in @('StdoutEOF','StderrEOF','ExitObserved')){Assert-SupervisionPolicyBool $o.$name -Metadata $Metadata}
+                    if($o.ExitObserved){Assert-SupervisionPolicyInteger $o.ExitCode ([int]::MinValue) ([int]::MaxValue) -Metadata $Metadata}elseif($null -ne $o.ExitCode){throw 'Unknown exit must be null'}
                 }
-                control{foreach($name in $extra){Assert-SupervisionPolicyInteger $o.$name}}
-                fault{Assert-SupervisionPolicyToken $o.Fault @('read-error','capacity-exceeded','control-overflow','identity-drift','control-lost','supervisor-lost','launcher-lost')}
-                cleanup{foreach($name in $extra){Assert-SupervisionPolicyBool $o.$name}}
-                persist{Assert-SupervisionPolicyBool $o.ReadbackMatches;Assert-SupervisionPolicyToken $o.Classification @('clean','refused','unknown')}
+                control{foreach($name in $extra){Assert-SupervisionPolicyInteger $o.$name -Metadata $Metadata}}
+                fault{Assert-SupervisionPolicyToken $o.Fault @('read-error','capacity-exceeded','control-overflow','identity-drift','control-lost','supervisor-lost','launcher-lost') -Metadata $Metadata}
+                cleanup{foreach($name in $extra){Assert-SupervisionPolicyBool $o.$name -Metadata $Metadata}}
+                persist{Assert-SupervisionPolicyBool $o.ReadbackMatches -Metadata $Metadata;Assert-SupervisionPolicyToken $o.Classification @('clean','refused','unknown') -Metadata $Metadata}
             }
             $copy=[ordered]@{};foreach($p in $o.PSObject.Properties){$copy[$p.Name]=$p.Value};$observations.Add([pscustomobject]$copy)
         }

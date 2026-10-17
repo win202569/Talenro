@@ -1,5 +1,22 @@
 # Project status — updated 2026-10-17
 
+## Latest — reflection reuse candidate improves one boundary run; regression times out
+
+Approved bounded optimization after8b7294b1;expected-RED exemption explicit.
+[Checkpoint](2026-10-17-p1-reflection-reuse.md): per-evaluation fixed reflection
+context only,no cached input/result acceptance;all per-value defenses retained.
+S1 PS7 boundary baseline exit0/14810ms,evaluate4096=13769.489ms;S2 candidate
+exit0/13315ms,evaluate4096=12314.290ms (one observed10.568% reduction). Both
+4096/4097 assertions PASS,not a stable performance guarantee. S3 PS7 regression
+timed out30068ms total/configured30000,exit-1,stderr empty,owned-host-exited.
+New3/fixture8/original35/ownership first5 PASS;remaining5 incomplete. S4 PS5 NOT
+launched. New3/4 spent/one frozen;old3/7/four frozen/review ineligible unchanged.
+Candidate6CF0D354 unaccepted,I1/P1 unresolved.123 immutable pins held. Read-only
+inspection also found original35 HOST/ApiRequired order wrong in controller's
+success inventory;raw/index/controller preserved,timeout verdict unchanged.
+Next separately scope combined-path phase timing and corrected parser,not more
+unmeasured optimization,automatic S4/R4,larger timeout or main acceptance.
+
 ## Latest — independent evaluation profile localizes validation cost
 
 Approved one-host/one-call copy-only spike after30b5cabd.

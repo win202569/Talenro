@@ -16,6 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest unfinished candidate: [reflection metadata reuse](../roadmap/2026-10-17-p1-reflection-reuse.md).
+After8b7294b1 approvals (including expected-RED exemption),fixed reflection
+metadata is local to each evaluation;all input checks remain. S1/S2 boundaries
+PASS:4096 evaluation13769.489ms baseline vs12314.290ms candidate,one-pair only.
+S3 PS7 combined regression timed out30068ms/configured30000: new3/fixture8/
+original35/ownership5 groups PASS,remaining5 incomplete. S4 PS5 unlaunched/frozen;
+new3/4 spent,old3/7/four frozen/review ineligible unchanged. Candidate6CF0D354
+NOT accepted. Inspect portable source/tests/wrapper/report on development branch,
+not main. Ignored packet/raw/runtime not restored or authorized by clone.
+Controller success inventory has original35 HOST/ApiRequired transposed;read-only
+inspection did not alter actual timeout failure. Next needs separately bounded
+combined-path timing and parser correction,no automatic rerun/remaining-slot use,
+timeout increase or I1/P1 closure. Preserve all old evidence and safety gates.
+
 Latest diagnostic: [independent evaluation profile](../roadmap/2026-10-17-p1-evaluation-profile.md).
 After30b5cabd approval,sole PS7 child evaluated one instrumented independent copy:
 exit0/19296ms,46 snapshots,4096 rows,original equality assertion PASS. Validation
