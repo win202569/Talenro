@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[unfinished synthetic archive implementation](../roadmap/2026-10-17-synthetic-capture-store.md).
+New synthetic-capture-store.ps1/tests now exist;NOT accepted. Format suites
+PS7/PS5 each18PASS;PS7 boundary73PASS. PS5 boundary timed out at120s after28PASS,
+exit-1/120180ms;4096event verdict and later cases did not complete. Source/tests
+unchanged,original receipts retained.6/12 consumed;7..12 frozen,dependent
+regression and independent review not started. Do not run remaining slots,
+raise timeout/drop checks or infer a cause/fix. Resume with report/spec/plan;
+separate bounded stage-timing authorization needed before more execution.
+Necessary source/tests/docs are portable;ignored receipts/fixture data stay local.
+No full acceptance/main/live/security clearance or automatic archive-data transfer.
+
 Latest:[synthetic capture archive implementation plan](../superpowers/plans/2026-10-17-synthetic-capture-store.md).
 Written design approved afterb33e04bd;plan and proposed12-host/one-review/no-fix
 packet await user approval and execution-method choice. Native/inline recommended.

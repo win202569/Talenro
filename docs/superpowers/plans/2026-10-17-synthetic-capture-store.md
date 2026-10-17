@@ -1,6 +1,6 @@
 # Full Synthetic Capture Store Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for recommended native/inline execution,or superpowers:subagent-driven-development only if the user chooses that method. Steps use checkbox syntax. This plan is not approved for execution yet.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for user-selected native/inline execution. User chose1 afteraeb6fe36,approving this plan/12-host packet/one readonly review/no retry or repair reserve. STOPPED at slot6 PS5 boundary timeout;not accepted.
 
 **Goal:** 保存并恢复20字段完整合成记录，验证原字节、事件顺序及派生事实一致性，不执行归档内容或提升权限声明。
 
@@ -10,9 +10,19 @@
 
 **Spec:** [已批准书面设计](../specs/2026-10-17-synthetic-capture-store-design.md)，批准基于b33e04bd。执行者先完整阅读设计及本计划。
 
+## Execution disposition — STOPPED / unfinished
+
+已消费6/12。RED7/5均缺失API断言；format7/5各18PASS、exit0/5080/5264ms；
+boundary7为73PASS、exit0/54429ms。boundary5在120000ms上限后终止，exit-1、
+实测120180ms、28PASS/空子stderr；4096事件用例未输出完成断言，内部耗时原因未定位。
+代码/测试从首GREEN起未变；7..12冻结、依赖回归未运行，最终独立审查未启动。
+步骤1..6实现/准备完成；步骤7不通过，8/9未执行，10仅保存未验收检查点。
+详细证据见[执行报告](../../roadmap/2026-10-17-synthetic-capture-store.md)。
+不得自动复测、修复、追加诊断或将剩余额度改作其他用途；下一步需另获有限诊断授权。
+
 ## Global Constraints
 
-- 当前仅计划写作权限；待用户批准计划、执行方式和下表有限验证包后才能写产品代码/运行测试。
+- 当前已获批准按native/inline及下表有限验证包执行；不扩大12主机/一次审查/无修复或重跑预算。
 - 复用当前隔离worktree及 `codex/c12-b01-task9-coordinator`，遵循AGENTS.md；不新建/删除worktree，不合并main、force-push、改历史或安全设置。
 - 新模块只导入 `capture-adapter-contract.ps1` 与 `isolation.ps1`；不改旧store、合同、模拟器、输出包、分类器及其测试或建立反向导入。
 - payload magic TLRSYN01，Int32存储版本1；marker magic TLRSYC01、精确52字节，8+4+8+32；payload上限8388608字节，所有整数小端，Bool/存在位只允许0/1。
@@ -84,9 +94,9 @@ all仅是便于将来显式使用的组合入口，本包不额外执行all。
 - Reader Reason：成功consistent-synthetic-archive-only；失败固定代码invalid-path/missing-archive/incomplete-archive/unsupported-format/invalid-payload/integrity-mismatch/invalid-record/io-error。失败Record=null，不返回异常/路径/原输入。
 - Test local：`Check-CaptureStore([bool]Value,[string]Name)`失败抛ASSERTION FAILED，成功打印PASS；`-Group format|boundary|all`选择字面用例表；不引入运行时测试开关。
 
-- [ ] **1. 只读执行前核对。** 阅读AGENTS/设计/计划，核对当前分支、干净状态、现有依赖hash与12槽位批准。复用已有worktree；任何范围/源漂移先停，不顺带处理。按选定方式读取执行技能。只在此后建立新ignored索引，不改旧receipt。
+- [x] **1. 只读执行前核对。** 阅读AGENTS/设计/计划，核对当前分支、干净状态、现有依赖hash与12槽位批准。复用已有worktree；任何范围/源漂移先停，不顺带处理。按选定方式读取执行技能。只在此后建立新ignored索引，不改旧receipt。
 
-- [ ] **2. 写format组固定fixtures和断言。** API guard名SyntheticCaptureStoreRequired先检查两函数存在；fixture内仅声明合成exe='x'、session='s'、origin='o'、UTC='2026-10-17T00:00:00.0000000Z'，不执行它们。预期payload与52字节marker采用手工编码的固定literal/oracle，不用生产encoder或生产hash helper生成预期。
+- [x] **2. 写format组固定fixtures和断言。** API guard名SyntheticCaptureStoreRequired先检查两函数存在；fixture内仅声明合成exe='x'、session='s'、origin='o'、UTC='2026-10-17T00:00:00.0000000Z'，不执行它们。预期payload与52字节marker采用手工编码的固定literal/oracle，不用生产encoder或生产hash helper生成预期。
 
   具名行为：PreflightPreservesRootState、IndependentWireLiteral、TwentyFieldsRoundtrip、FourLifecycleRoundtrips、NullableExitAndIndexDistinct、ExactInt64TimeRetained、RejectedLateTraceRetained、Utf8Utf16UnicodeAndBytes、IndependentEmptyEventOwnership、CallerMutationCannotChangeArchive、ArchiveTextNeverExecuted。
   Snapshot字面预期stdout='YWJj'/3、stderr='AP8NCg=='/4；参数字面Base64='QQAtTg=='；所有权限false；新结果字段数7、Record字段数20，reason精确consistent-synthetic-archive-only。
@@ -100,16 +110,16 @@ Check-CaptureStore ([string]::Equals($actual.Record.Arguments.Base64,'QQAtTg==',
   FourLifecycle分别空事件incomplete、exit+双EOF complete、tick120000 timed-out、重复EOF refused；末者必须仍可完整归档。Int64.MaxValue tick精确保留，不能以超时丢弃全量trace。
   PreflightPreservesRootState在任何建根fixture之前执行：坏Record不得创建目标目录，专用根存在性须等于调用前。缺根分支仅首次根确实不存在时动态证明；后续主机保留已存在根，不能假称再次证明缺根分支。若执行前根已存在，则报告缺根分支未动态覆盖并提交审查，不删除/移动根或额外启动host。
 
-- [ ] **3. 写boundary组真实输入/文件断言。** 具名行为：PreflightCreatesNoDirectory、ClockReversalAndDescriptorRefused、ExactTokensAndShapes、MethodsAndGettersNeverInvoked、LengthRankShadowsRefused、ExactFieldAndTraceBounds、MalformedPrimitiveRefused、ValidHashInvalidDerivedStateRefused、StoppedOverridesCompleteMarker、PartialArchiveNeverPublishesRecord、ExistingTargetNeverOverwritten、UnsafePathsAndLinksRefused、ExclusiveWriterRefused、OldNewFormatCrossReadRefused。
+- [x] **3. 写boundary组真实输入/文件断言。** 具名行为：PreflightCreatesNoDirectory、ClockReversalAndDescriptorRefused、ExactTokensAndShapes、MethodsAndGettersNeverInvoked、LengthRankShadowsRefused、ExactFieldAndTraceBounds、MalformedPrimitiveRefused、ValidHashInvalidDerivedStateRefused、StoppedOverridesCompleteMarker、PartialArchiveNeverPublishesRecord、ExistingTargetNeverOverwritten、UnsafePathsAndLinksRefused、ExclusiveWriterRefused、OldNewFormatCrossReadRefused。
   格式损坏用独立字节fixture及重算文件marker覆盖，不替换生产decoder/validator。针对bool2、存在位2、版本2、负/溢出/超限长度与计数、非法UTF8、截断与tail逐项断言Verified=false且Record=null。marker长度51/53与hash不符单独测试。边界8MiB总长不等于合法记录：合法字段/事件界限仍须分别断言。
   被动验证用真实调用计数器0、无新目录和反例后的正常记录；未调用GetType方法正例仍可往返。CodeProperty使用固定测试计数类的MethodInfo构造getter；只允许Add-Type编译测试中硬编码的无害fixture，不编译/执行归档输入。路径fixture仅在专用合成根及其已验证父目录，危险路径只送入拒绝检查，不实际访问UNC；保留所有创建文件/链接，不删除根。
   OldNewFormatCrossReadRefused具体覆盖：新根内旧magic payload配有效新marker，必须被新reader拒绝；旧reader对新根目录拒绝。旧格式自身可用由调用7/8完整回归证明；不在新suite写入旧根或声称路径拒绝已覆盖旧reader的所有新payload解析路径。
 
-- [ ] **4. 冻结测试目录与运行包。** 只读解析脚本，检查独立oracle、具名用例集合/计数、Group终结标记和不泄露数据；记录hash。准备顺序runner，不增加内部PowerShell测试子host或额外PS诊断host。没有实现时执行调用1、2，预期均为guard缺失；其他结果停止。
+- [x] **4. 冻结测试目录与运行包。** 只读解析脚本，检查独立oracle、具名用例集合/计数、Group终结标记和不泄露数据；记录hash。准备顺序runner，不增加内部PowerShell测试子host或额外PS诊断host。没有实现时执行调用1、2，预期均为guard缺失；其他结果停止。
 
-- [ ] **5. 实现本地被动校验与有界固定codec。** 仅在新模块，单向导入批准依赖；按设计第4/5节读取真实CLR类型、描述符/长度、精确字段及固定线格式。所有整数长度计算有界Int64；严格Bool/存在位；不泛化对象序列化或分发调用方方法。完整保存盘上Lifecycle/Binding等，不用重算值替换它们。这个步骤不运行额外host。
+- [x] **5. 实现本地被动校验与有界固定codec。** 仅在新模块，单向导入批准依赖；按设计第4/5节读取真实CLR类型、描述符/长度、精确字段及固定线格式。所有整数长度计算有界Int64；严格Bool/存在位；不泛化对象序列化或分发调用方方法。完整保存盘上Lifecycle/Binding等，不用重算值替换它们。这个步骤不运行额外host。
 
-- [ ] **6. 实现两个公开API及发布。** 按设计第6/7节在创建任何目录前冻结已验证payload；本地路径/安全句柄检查、CreateNew、重读核对、最后发布marker、最终公开reader验证；读取先检查总长/hash再解码/合同重算。错误只映射固定Reason，回收本调用打开的资源，不删现场。失败后写stopped尽力而为，不吞原错误；不把一致性标记为运行成功。
+- [x] **6. 实现两个公开API及发布。** 按设计第6/7节在创建任何目录前冻结已验证payload；本地路径/安全句柄检查、CreateNew、重读核对、最后发布marker、最终公开reader验证；读取先检查总长/hash再解码/合同重算。错误只映射固定Reason，回收本调用打开的资源，不删现场。失败后写stopped尽力而为，不吞原错误；不把一致性标记为运行成功。
 
 - [ ] **7. 有限GREEN。** 按表执行调用3..6，任何失败立即停止、保留记录，不修改代码重跑。两组每种host均完整通过才算新store得到本范围验证；不拿format通过替代boundary。代码/测试hash须在各次间和最后一致。运行表达式示例如下，必须由120000ms计数runner启动而非手动额外再跑：
 

@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-17
 
+## Latest — synthetic archive implementation saved;PS5 boundary timeout blocks acceptance
+
+[Execution evidence](2026-10-17-synthetic-capture-store.md):new module/tests
+implemented,not accepted. RED7/5 expected missing APIs;format7/5 each18PASS,
+exit0/5080/5264ms;boundary7 completed73PASS/exit0/54429ms. Boundary5 hit120s
+cap,terminated exit-1/120180ms after28PASS;lastExactFieldAndTraceBounds,next
+4096event verdict absent. No internal stage timing,root cause unresolved.
+6/12 spent,7..12 FROZEN,no dependent regression or independent review started.
+Source/tests unchanged afterGREEN. Save unfinished development checkpoint only;
+no retry/fix/drop-case/raised-timeout. Next proposal requires separate bounded
+timing diagnosis,not reuse frozen slots. Old source/format and all historical
+failures/security/Stage B/I2/I3/full C12/main gates unchanged.
+
 ## Latest — synthetic archive design approved;implementation plan awaits review
 
 User approved written design afterb33e04bd. [Implementation plan](../superpowers/plans/2026-10-17-synthetic-capture-store.md)
