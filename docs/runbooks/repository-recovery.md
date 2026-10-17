@@ -16,6 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[capture adapter contract proposed design](../superpowers/specs/2026-10-17-capture-adapter-contract-design.md).
+Only writing approved;await human review before plan/method/new finite test
+allowance. First delivery synthetic packet/command-time trace record/stop intent,
+not real byte acquisition,watchdog or durable record storage. No source/tests
+changed or run. Existing106-check simulator and all spent/frozen budgets intact.
+No runtime/security clearance,Stage B or full acceptance follows from this spec.
+
 Latest:[simulation scoped fix verified](../roadmap/2026-10-17-offline-capture-simulation.md).
 Memory diagnostic confirmed PSObject/base mismatch;unwrap before direct CLR type
 query fixed normal events without ETS callbacks. PS7/5.1 each106PASS,exit0,empty

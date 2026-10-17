@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-17
 
+## Latest — capture adapter contract spec written;awaiting review
+
+[Proposed spec](../superpowers/specs/2026-10-17-capture-adapter-contract-design.md):
+three responsibilities(byte source,manifest/trace record,outer control),first
+delivery synthetic-only. Declared command/UTC binding hash and rederived lifecycle
+are consistency,not actual provenance;cleanup remains unknown,stop only intent.
+No live adapter/persistence/runtime integration or tests implemented. Writing
+approved aftera23115d5;written-spec review then plan/method/finite allowance next.
+Existing106-check simulation result unchanged;Stage B/safety/I2/I3 still blocked.
+
 ## Latest — simulation callback/type fixes verified;106 checks per host
 
 [Evidence/history](2026-10-17-offline-capture-simulation.md):approved cap3 used
