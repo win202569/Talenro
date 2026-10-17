@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-17
 
+## Latest — independent closing review complete; reviewed checkpoint, not release
+
+[Closing report](2026-10-17-synthetic-capture-closing-review.md):one fresh
+readonly reviewer, no tests/edits/network/delegation. No confirmed Critical,
+Important or Minor defects in supplemental tests/final evidence. Earlier
+Important2/3 addressed for approved cases; dependency component of Important1
+supported. Overall acceptance remains open: historical failures, old conditional
+review prerequisites and other documented coverage limits persist. Ready to
+merge main=No. Parent verified citations and hashes; no repairs or extra runs.
+New closing-review seat spent. Work can be recovered as a reviewed development
+checkpoint; future work must explicitly settle remaining acceptance scope,
+not repeat passing packets or promote failed records. Security/Stage B/I2/I3/
+full C12/main clearance unchanged.
+
 ## Latest — six newly approved dependency regressions complete
 
 [Dependency evidence](2026-10-17-synthetic-capture-dependency-regression.md):

@@ -1,5 +1,10 @@
 # Synthetic-store dependency regressions — six approved runs complete
 
+Subsequent disposition: user approved the proposed [readonly closing review](2026-10-17-synthetic-capture-closing-review.md)
+after9952d414; it is now complete. It confirms the limited supplemental/dependency
+evidence and finds no new defects, but overall acceptance remains open. The
+proposal below is historical, not another unused reviewer allowance.
+
 ## Approved execution packet
 
 After cb5cb1ed, the user approved NEW six sequential children,120000ms each:

@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest:[independent closing review completed](../roadmap/2026-10-17-synthetic-capture-closing-review.md).
+Supplemental tests and final evidence have no confirmed new defects in review;
+targeted malformed-event/writer-collision gaps and named dependency regressions
+have bounded evidence. This is a reviewed development checkpoint, not accepted
+release/main approval. Read the report for remaining historical failures,
+conditional review prerequisites, environmental/coverage limits and exclusions.
+No tests, fixes or extra reviewer this turn; one new seat spent. Hashes/receipts
+unchanged. Clone restores portable reports/source, not ignored raw state or
+permission to reuse spent/frozen slots. Next requires explicit remaining
+acceptance scope; no automatic repeat tests or security/full C12 clearance.
+
 Latest:[six dependency regressions complete](../roadmap/2026-10-17-synthetic-capture-dependency-regression.md).
 Old store81/admin, simulation106/ordinary, contract110/ordinary passed on both
 PS7/PS5.1, no timeout/retry. New6/6 spent; all12 source/test pins unchanged.

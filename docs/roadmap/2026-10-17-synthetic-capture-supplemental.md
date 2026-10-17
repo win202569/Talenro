@@ -1,5 +1,11 @@
 # Supplemental synthetic-store coverage — four approved runs complete
 
+Closing disposition: the separately approved [independent closing review](2026-10-17-synthetic-capture-closing-review.md)
+is now complete. No confirmed supplemental/evidence defects; targeted Important2/3
+are addressed within the approved cases. Historical references below to no second
+review describe the earlier snapshot, not current review status. Overall
+acceptance and other listed limitations remain open.
+
 Subsequent work: [new dependency regressions](2026-10-17-synthetic-capture-dependency-regression.md)
 completed all six separately approved runs. The next-work proposal below is
 historical, not an unused allowance. Supplemental source remains unchanged
