@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest: user explicitly approved the [raw-capture finite decision](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
+after proposalc1ab2c16; the [actual approval record](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-approval.md)
+fixes code deliveryd7d8d939, productFB48642D/test2D44F9C9. This is limited
+offline functional acceptance of the synthetic memory coordinator, including
+the explicit no-independent-rereview limitation, not main/full C12/security or
+live collector/watchdog clearance. No code/test/receipt/authority-flag changes,
+new tests/reviewer or budget renewal. Recover necessary files from the existing
+development branch, not main; raw ignored data stays local. Original slot5false
+and exception remain historical facts. Next work does not auto-start from this
+approval. Subsequent pending-approval entries describe earlier checkpoints.
+
 Latest: [raw-capture limited offline acceptance recommendation](../roadmap/2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
 is saved but NOT approved. Fixed code object isd7d8d939, productFB48642D and
 test2D44F9C9. Later documentation commits do not change that code object.

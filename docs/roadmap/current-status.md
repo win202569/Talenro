@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-17
 
+## Latest — raw-capture fixed-version limited offline acceptance approved
+
+After proposalc1ab2c16, the user explicitly approved the finite conclusion,
+multi-batch evidence adoption and disclosed restrictions. See the
+[approval](2026-10-17-offline-raw-capture-limited-acceptance-approval.md) and
+[final decision](2026-10-17-offline-raw-capture-limited-acceptance-decision.md).
+Fixed code deliveryd7d8d939, productFB48642D/test2D44F9C9, is accepted only for
+the described synthetic memory coordinator on the recorded Windows/PS engines.
+Parent-only I1/M1 follow-ups without independent rereview and original slot5false
+plus its exception remain disclosed; no historical record is rewritten green.
+This documentation-only handoff adds no tests/reviewer/repair or budget renewal.
+Machine authority flags remain false, cleanup unknown. No main/live collector/
+watchdog/security/Stage B/I2/I3/full C12/release approval follows. Next work
+requires its own scoped decision; earlier pending entries below are historical.
+
 ## Latest — raw-capture limited offline acceptance recommendation awaits approval
 
 [Proposed decision and disclosed limits](2026-10-17-offline-raw-capture-limited-acceptance-decision.md)

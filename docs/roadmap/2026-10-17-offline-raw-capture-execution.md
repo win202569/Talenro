@@ -1,10 +1,12 @@
 # Offline raw capture coordinator — execution record
 
-Current decision stage: [limited offline acceptance recommendation](2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
-for fixed deliveryd7d8d939 is awaiting user approval. Readonly evidence
-reconciliation only; no new host/reviewer/repair. The proposed adoption of
-multi-version evidence and parent-only I1/M1 follow-ups is explicit, not an
-independent-review pass or approval already granted.
+Current decision stage: the user approved the [limited offline decision](2026-10-17-offline-raw-capture-limited-acceptance-decision.md)
+for fixed deliveryd7d8d939 after proposalc1ab2c16. See the separate
+[actual approval record](2026-10-17-offline-raw-capture-limited-acceptance-approval.md).
+Multi-version evidence and parent-only I1/M1 follow-ups without independent
+rereview are explicitly adopted for that narrow scope, not rewritten as an
+independent-review pass. Documentation only; no new host/reviewer/repair or
+broader runtime/security/main approval. Original execution facts below remain.
 
 Latest follow-up: [M1 independent event oracle](2026-10-17-offline-raw-capture-event-oracle.md)
 was separately approved after81afee10 and completed four NEW hosts, targeted
