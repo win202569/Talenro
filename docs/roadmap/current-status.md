@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — read-only scalar reserved comparison complete; revised design still required
+## Latest — first scalar SDK owner proof fails; new remaining two slots frozen
+
+[New stopped scope](2026-10-18-p2b-scalar-sdk-compatibility.md).
+Approved new3+1after4f67088e. First targetPID29852,1381ms,exit1,INCOMPLETE at
+SDKProof:literal.Byte BEFORE product API. psobject/psextended exact classes and
+hidden/reserved/instance flags match,but psextended instance/constructor owner
+comparisons to psobject owner are false. Root common-owner rule cannot simply
+transfer to this scalar. One partial proof,zero validated;history/matrix/negative
+cases0. Partial Counters/SDKCount/ApplicationCount null,not0. No fresh-output/
+array proof or baseline defect RED reached. ProductB468B564 unchanged,not repaired.
+1078pins intact,no timeout/stderr,owned exit/streams complete. New1/3spent,
+remaining2/3FROZEN,review0/1ineligible;old2/3spent+1frozen unchanged. No fix/retry/
+seal/full/reviewer after stop. Next reconsider scalar wrapper/base/metadata
+identity contract through read-only SDK analysis before another bounded design;
+not permission to relax owners or launch another probe. M1 OPEN,no acceptance/main.
+
+## Historical — read-only scalar reserved comparison complete; revised design still required
 
 [Read-only findings](2026-10-18-p2b-scalar-reserved-readonly.md).
 Saved35case matrix confirms clean raw2/nonreserved0 versus decorated raw3/

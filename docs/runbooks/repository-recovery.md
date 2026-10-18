@@ -1,6 +1,21 @@
 # Recover the project on a new computer
 
-Latest read-only findings:[scalar reserved metadata](../roadmap/2026-10-18-p2b-scalar-reserved-readonly.md).
+Latest stopped scope:[scalar SDK owner proof](../roadmap/2026-10-18-p2b-scalar-sdk-compatibility.md).
+New leaf p2b-scalar-sdk-compatibility copies unchangedB468B564 and adds structural
+proof tests. First target failed literal.Byte common-owner assertion BEFORE
+product API: saved psextended owner/constructor comparisons to psobject owner
+false,despite exact descriptor classes/flags. One partial proof,zero validated;
+matrix/history/negative cases0. No repaired product or fresh-output/array proof.
+1078pins intact,new1/3spent+remaining2FROZEN,review0/1ineligible. Old stopped
+scope2/3spent+last1FROZEN and all earlier budgets remain unchanged. No retry/fix/
+seal/full/reviewer. Next needs read-only analysis of scalar wrapper/base/member-
+collection identity contract before another design;do not ignore owner checks,
+assume shared-base identity,or spend frozen slots on probes. M1 OPEN;failed
+18DA24E1 must not be adopted and unchangedB468B564 is not a new repaired version.
+Recover latest devbranch,not main;clone excludes ignored raw/SDK/runtime/cache/
+mappings/session state and never resets budgets or grants replay/acceptance.
+
+Historical read-only findings:[scalar reserved metadata](../roadmap/2026-10-18-p2b-scalar-reserved-readonly.md).
 Saved clean raw2/nonreserved0 versus decorated raw3/nonreserved1 confirms the
 empty-raw rule is wrong. SDK mechanism/root structural checks provide context,
 NOT actual scalar owner/name/class proof;these were not saved. Fresh-output
