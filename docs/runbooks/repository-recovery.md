@@ -1,6 +1,21 @@
 # Recover the project on a new computer
 
-Latest unfinished repair:[raw scalar validation](../roadmap/2026-10-18-p2b-scalar-raw-repair.md).
+Latest failed repair:[scalar continuation](../roadmap/2026-10-18-p2b-scalar-raw-continuation.md).
+WARNING: p2b-scalar-raw-repair/control-frame.ps1 is sealed18DA24E1,KNOWN FAILING,
+not a usable repaired candidate. Historical structuralB468B564 remains unchanged
+with its open hidden-decoration gap. Saved RED reconciled read-only,old receipt
+unchanged,no RED replay. New continuation controller/UTF-8 wrapper then consumed
+focused host: first clean input failed New scalar decorated;34cases unreached.
+Raw2/nonreserved0 on clean inputs proves unconditional raw-entry rejection is
+too strict;fresh-output inner error/inventory not captured. Original2/3spent,
+last1/3FROZEN,review0/1ineligible. No retry/fix/full/reviewer.1056pins intact.
+Next readonly SDK-structure comparison and revised bounded design need further
+direction before any new candidate/execution;do not spend/relabel the last slot.
+Recover latest development branch,not main. Source/tests/report portable;clone
+does not restore ignored raw/SDK/runtime/cache/mappings/session state or reset
+budgets/replay rights. No main/acceptance/live/security grant.
+
+Historical unfinished repair:[raw scalar validation](../roadmap/2026-10-18-p2b-scalar-raw-repair.md).
 Portable new leaf p2b-scalar-raw-repair has unchangedB468B564baseline,new35case
 regression and original33full tests/fixtures. First target1/3spent,remaining2/3
 FROZEN,conditional review0/1ineligible. All35cases completed;expected refusal

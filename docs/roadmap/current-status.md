@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — raw scalar repair RED captured; strict UTF-8 decoding blocks continuation
+## Latest — scalar repair too strict; first clean control fails, last slot frozen
+
+[Continuation report](2026-10-18-p2b-scalar-raw-continuation.md).
+Approved saved-RED reconciliation succeeded without rewriting old INCOMPLETE
+receipt or rerunning RED. UTF-8 same-process wrapper works. New sealed product
+18DA24E1 rejects ANY raw scalar entry,including legitimate reserved metadata.
+Focused PID46732,1651ms,exit1 failed first clean encode input with New scalar
+decorated;one partial row,34unreached,no decorated API coverage. Saved clean
+input has raw2/nonreserved0;exact fresh-output cause/inventory not captured
+because copied-value catch masks inner error. Post-API fields are null,not0.
+1056pins intact,no timeout/stderr,owned exit/streams complete. Original budget
+2/3spent,last1/3FROZEN,review0/1ineligible. No further fix/retry/full/reviewer.
+Historical B468B564 unchanged,M1 UNFIXED;new18DA24E1 KNOWN FAILING,not accepted.
+Next readonly SDK-structure comparison/revised bounded design recommended;
+no new candidate/host allowance approved. Recover devbranch,not main.
+
+## Historical — raw scalar repair RED captured; strict UTF-8 decoding blocks continuation
 
 [Unfinished repair](2026-10-18-p2b-scalar-raw-repair.md).
 Approved new3+1scope: first target1/3spent,remaining2/3FROZEN,review0/1ineligible.

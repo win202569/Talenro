@@ -33,7 +33,14 @@ function Test-P2BCReference($Left,$Right,[object]$Metadata){
 function Assert-P2BCPlain([object]$Value,[type]$Required,[object]$Metadata){
     if($null -eq $Value -or $Metadata.TypeMethod.Invoke($Value.PSObject.BaseObject,$null) -ne $Required){throw 'P2BC_INVALID'}
     $extended=$Value.psextended
-    foreach($member in $Metadata.MembersProperty.GetValue($extended.PSObject.BaseObject,$null)){throw 'P2BC_INVALID'}
+    $extendedBase=$extended.PSObject.BaseObject
+    if($Metadata.TypeMethod.Invoke($extendedBase,$null) -ne [Management.Automation.PSMemberSet] -or
+       $null -eq $Metadata.RawMembersField -or $Metadata.RawMembersField.DeclaringType -ne [Management.Automation.PSMemberSet]){throw 'P2BC_INVALID'}
+    # The public Members view hides attached hidden descriptors. An exact SDK
+    # raw collection exposes every attachment without reading descriptor values.
+    $raw=$Metadata.RawMembersField.GetValue($extendedBase)
+    if($null -eq $raw -or $Metadata.TypeMethod.Invoke($raw.PSObject.BaseObject,$null) -ne $Metadata.RawMembersField.FieldType){throw 'P2BC_INVALID'}
+    foreach($member in $raw){throw 'P2BC_INVALID'}
 }
 function Copy-P2BCScalar([object]$Value,[object]$Metadata){
     if($null -eq $Value){return $null}
@@ -46,8 +53,7 @@ function Copy-P2BCScalar([object]$Value,[object]$Metadata){
         $storage=[Array]::CreateInstance($type,1);$storage.SetValue($base,0);$fresh=$storage.GetValue(0)
     }else{throw 'Unexpected scalar'}
     if($Metadata.TypeMethod.Invoke($fresh.PSObject.BaseObject,$null) -ne $type -or [object]::ReferenceEquals($base,$fresh.PSObject.BaseObject)){throw 'Scalar ownership'}
-    $extended=$fresh.psextended
-    foreach($member in $Metadata.MembersProperty.GetValue($extended.PSObject.BaseObject,$null)){throw 'New scalar decorated'}
+    try{Assert-P2BCPlain $fresh $type $Metadata}catch{throw 'New scalar decorated'}
     return ,$fresh
 }
 function Copy-P2BCMessage([object]$Message,[object]$Metadata){
