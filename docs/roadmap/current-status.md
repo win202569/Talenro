@@ -1,6 +1,27 @@
 # Project status — updated 2026-10-18
 
-## Latest — retention diagnostic INCOMPLETE;author instrumentation error
+## Latest — fixed-getter retention diagnostic COMPLETE;candidate still unverified
+
+After1749770d,user approved only getter correction/new one-host diagnostic.
+[Measured four-case result](2026-10-18-p1-string-retention-fixed-getter-result.md).
+New sibling probe adds fixed public BaseObject getter/helper and calibration
+call-site correction only;all4cases/guards/schema retained. Five portable files.
+Ordinary PS7:776ms/exit0,no timeout,empty stderr,complete owned exit/capture,
+6-line schema validated. Held String-view and raw Int32 controls retain metadata.
+Raw String field:same base/field descriptor,different views/collections,property
+absent on reread while held-view payload/mutation remain. Pre-stored PSObject
+String field:same views and retained property/payload/mutation. NOT isolation PASS.
+Dynamic public-view evidence supports prior fixture-loss explanation,not full
+binder trace/universal engine/candidate result. ZERO candidate imports/calls/edits;
+1971F808/all39cases still unverified/unrun. Int32 contamination evidence retained.
+566frozen entries/6lines/4facts/2stream hashes reconciled readonly. NEW diagnostic
+1/1SPENT;old failed diagnostic1/1 and repair1/3SPENT+2/3FROZEN unchanged. No
+review,promotion/main/wider acceptance. Next revise ownership regression DESIGN
+to distinguish pre-stored mutable wrappers,held views and actual field rereads;
+no post-mutation field replacement or candidate wrapping merely to force a pass.
+New test/candidate execution still requires separately agreed finite authority.
+
+## Previous — retention diagnostic INCOMPLETE;author instrumentation error
 
 After4b88ae0a,user approved preparation+one fixture-only host.
 [Failed result/confidence/next bounded design](2026-10-18-p1-string-retention-characterization-result.md).

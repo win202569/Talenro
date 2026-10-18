@@ -16,7 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[retention diagnostic instrumentation error](../roadmap/2026-10-18-p1-string-retention-characterization-result.md).
+Latest handoff:[fixed-getter retention diagnostic COMPLETE](../roadmap/2026-10-18-p1-string-retention-fixed-getter-result.md).
+After1749770d,new sibling getter-only correction kept4cases/schema/guards.
+One PS7 host776ms/exit0/no timeout/empty stderr/complete owned exit+capture.
+Both controls valid;raw String has same base but different reread views/no
+property retention,while pre-stored wrapped String retains metadata/mutation.
+These are fixture capability facts,not candidate isolation acceptance.566pins/
+6lines/4facts/2stream hashes held. Candidate imports/calls/edits0;1971F808 and
+all39cases unverified/unrun. NEW diagnostic1/1SPENT;old failed1/1 and repair2
+frozen slots unchanged. Next revise regression design before new implementation/
+validation scope;do not replace fields after mutation or wrap candidate outputs
+just to satisfy a test. Restore dev branch,not main;raw/runtimes/run authority
+do not clone or renew budgets. Source/report/progress portable,not acceptance.
+
+Previous handoff:[retention diagnostic instrumentation error](../roadmap/2026-10-18-p1-string-retention-characterization-result.md).
 After4b88ae0a,one approved host failed before any FACT record:probe calibration
 direct BaseObject read errored.12462ms/exit1,no timeout,complete owned exit/
 capture,stderr320bytes. Diagnostic1/1SPENT;four-case characterization incomplete,
