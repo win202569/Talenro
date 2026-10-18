@@ -1,0 +1,2 @@
+# Keep this isolated preparation byte-identical on Windows checkouts.
+* text eol=lf

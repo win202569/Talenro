@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded attribution design proposed, NOT PREPARED
+## Latest — validation/copy attribution PREPARED, NOT RUN
+
+After9ebfe9e4,user approved preparation only. [Prepared evidence and identities](2026-10-18-p1-validation-copy-attribution-prepared.md)
+records new isolated11-file copy (eight PS1,inventory,README,leaf LF attributes)
+plus separate classifier/synthetic tests/static checks. Six sources identical;
+clone adds eight local lines/unique entry,caller only command rename;removal/
+restoration exact.106 lines/64PASS/22 markers/11 pairs,one summary at76.
+160 new offline+21 static and unchanged122/20/47/63/76 checks passed,total509;
+26 staged checkout-filter byte identities passed with autocrlf=true.412 prior
+pins/index/raw held. No target import/run,controller,PS5 or allowance/review
+release. Author self-review only;not runtime ordering/performance/acceptance.
+Attribution is null until valid summary;exact row/Int64/sum<=parent/order gates;
+hypothesis assessed only on complete diagnostic.12288 added reads may exceed
+unchanged30s cap;no runtime result yet. Next controller/one ordinary PS7 run
+requires separate approval,no warmup/retry/fallback/frozen reuse. All prior
+budgets/PS5 freeze/review/I1/P1/main/C12/security/runtime/release gates persist.
+
+## Previous — bounded attribution design proposed, NOT PREPARED
 
 After590aaf0d,user requested design only. Bounded in-chat proposal,not an
 implementation/spec-plan handoff;no new source,probe,controller or test run.

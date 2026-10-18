@@ -16,7 +16,22 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:bounded attribution proposal in [current status](../roadmap/current-status.md),
+Latest preparation:[validation/copy attribution,PREPARED NOT RUN](../roadmap/2026-10-18-p1-validation-copy-attribution-prepared.md).
+After9ebfe9e4,user approved only new isolated copy/offline/static checks. Report
+pins14 new artifacts:11-file copy (including leaf LF attribute),classifier,
+synthetic tests and static fidelity. Six PS1 identical;two restore exactly after
+removing local instrumentation/entry routing.106 records/64PASS/22 markers/11
+pairs;summary at76,strict exact4096/Int64/sum<=parent/order and hypothesis gates.
+160+21 new and122/20/47/63/76 old checks passed,total509;26 staged Git filter byte
+checks passed with autocrlf=true. Old412 pins/manifest/controller/index/raw held.
+New utilities inherit existing LF name rule;only new folder gets leaf attribute.
+No target/controller run,PS5/frozen/review release. Existing PowerShell7 runs
+named offline utilities only;do not invoke copied target on recovery. Extra
+timing can exceed30s;no attribution/runtime acceptance yet. New controller and
+one fresh ordinary PS7 diagnostic require separate scoped approval. Git restores
+prepared files/report,not raw/runtime cache/credentials or execution authority.
+
+Previous handoff:bounded attribution proposal in [current status](../roadmap/current-status.md),
 after590aaf0d;NOT PREPARED. Three timestamps per row bracket original validation
 then unchanged copy/list Add;local sums/counter only,one summary after normal
 ValidationCopy END and before Decision START. No per-row output/guard/copy/order
