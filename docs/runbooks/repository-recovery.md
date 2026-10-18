@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest proposal:[three-phase timing,NOT PREPARED](../roadmap/2026-10-18-p1-three-phase-observation-proposal.md).
+Aftere3a1a8ee,design-only recommendation keeps candidate module unchanged and
+defines a4096-only evaluator clone at startup,with six root/validation-copy/
+decision markers. Fresh entry/history interference explicit,no local reload.
+No probe/controller/verifier/source or runtime changes.367 pins/index held.
+Next confirm design before preparation-only copies/new101-line inventory/
+offline tests. Old91/95 tools,budgets,PS5 freeze/review/I1/P1 gates persist.
+Git restores proposal,not ignored raw/cache/credentials/replay authority.
+
 Latest analysis:[candidate API internal paths,read-only](../roadmap/2026-10-18-p1-api-internal-readonly-analysis.md).
 Afterbab59d47,root/validation-copy/decision source phases traced;no new probe,
 source edit or target run.367 pins/index held. H-VC is untested:combined first

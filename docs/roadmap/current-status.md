@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — three-phase observation proposed, NOT PREPARED
+
+Aftere3a1a8ee,[bounded timing proposal](2026-10-18-p1-three-phase-observation-proposal.md)
+recommends a separate definition-only evaluator clone at test-script startup,
+used only by4096 helper;candidate13-function module stays byte-identical.
+Six sparse markers separate root,whole validation+copy loop,and decision setup/
+loop. New entry/body/history/source-path interference explicit,no local reload.
+Prospective101-line/64-PASS/18-marker/nine-pair depth-three inventory requires
+distinct offline tools;old91/95 tools unchanged. Confirm before preparation-only
+files/tests;no implementation/run this turn.367 pins/index held,PS5 FROZEN,
+old budgets/review/I1/P1 gates unchanged;root cause unresolved.
+
 ## Latest — candidate API internal paths inspected read-only
 
 Afterbab59d47,[source phase analysis](2026-10-18-p1-api-internal-readonly-analysis.md)
