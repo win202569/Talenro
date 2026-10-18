@@ -10,9 +10,10 @@
 
 **Spec:** [PS7 限定验收批准记录](../../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-approval.md)，原 [P1 合同](2026-10-17-offline-supervision-policy.md) 的被动输入/输出与预算规则不变。
 
-状态：PROPOSED_NOT_APPROVED；PromotionApproved=false。基线 eb7b3788737cd2989d729e410fe2fc8bed58bcae。
-用户“继续”仅据当前上下文用于准备下一步提案，尚未批准此源码替换或新执行预算。
-本次提交仅计划/current-status/recovery 文档，没有执行下列任务。
+现状：用户在 cca8c0c6 后明确批准 Native 替换/新最多两次验证/no-new-review/fail-stop。
+执行已在 Step2 baseline 字节校验失败处停止；PromotionCompleted=false，新宿主0/2已用，余项冻结。
+原提案基线 eb7b3788737cd2989d729e410fe2fc8bed58bcae，实际执行基线 cca8c0c6。
+见[停止结果及原因](../../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-result.md)。原入口尚未改动，未启动目标。
 
 ## Global Constraints
 
@@ -53,7 +54,7 @@
 
 **Interfaces:** 消费以上已批准候选字节、两份独立 literal 测试及已有 38/22 行 oracle；产出相同 public API 的原入口和一个独立 promotion 记录。无新 public 参数或 engine guard。
 
-- [ ] **Step 1 — preflight/freeze before any product write.** 核对当时 HEAD/干净工作区/分支/origin、批准实际回复、上表旧/新/测试身份及验收报告。完整核对现有 66 审查输入和 676 继承条目；任一异常停止，不用旧额度诊断执行。
+- [x] **Step 1 — preflight/freeze before any product write.** 核对当时 HEAD/干净工作区/分支/origin、批准实际回复、上表旧/新/测试身份及验收报告。完整核对现有 66 审查输入和 676 继承条目；任一异常停止，不用旧额度诊断执行。
 - [ ] **Step 2 — preserve baseline and prepare portable controller.** 通过可审阅补丁保存旧入口非可执行文本，校验旧 SHA 后才允许覆盖入口。新 packet 使用 .superpowers/sdd/2026-10-18-p1-owned-return-entrypoint-promotion-v1/，不覆盖旧文件。控制器仅允许 Prepare、full、ownership 三动作，只有后两者启动目标宿主。预期 oracle 从已冻结独立 38/22 行清单采用，仅预先解析 ordinary CONTEXT 占位符，不由产品输出生成。
 - [ ] **Step 3 — bind intentional identity transition.** 新 source-pins 分开记录旧 HEAD/旧原入口身份、baseline 文本、候选、新入口/测试/控制器/oracle/引擎身份，以及所有继承条目的原始路径/摘要。继承条目若且仅若路径精确等于被替换入口，标记 historical-destination，映射 baseline 文本校验旧 SHA；所有其他继承路径仍按原值校验。记录具体条目数，绝不全局忽略 hash mismatch、重写旧 manifest 或称全部旧 live-path pin 仍完整。
 - [ ] **Step 4 — exact source promotion.** 用 apply_patch 将原入口替换成候选同字节内容，不复制测试或改算法；按原换行策略核验新入口 SHA=1971F808…、baseline SHA=953CC2A8…、候选/测试不变。静态 parser 检查产品与新增控制器，无 dot-source/import/执行探测。差异只能是固定候选累计 Integer/Token/owned-return 改动和本计划列出的新记录文件。失败按下文停止。
@@ -61,7 +62,7 @@
 - [ ] **Step 6 — NEW slot 2: original-path ownership.** 仅 Step 5 全部成功后启动同引擎原目录 ownership.tests.ps1 -Group regression。成功要求 exit0、精确 22 行/8 fixture+10 regression 组，以及与 Step 5 相同的严格证据检查。不能放宽断言或排除慢项。
 - [ ] **Step 7 — read-only reconcile and handoff.** 逐项读取新回执、流和身份，记录实际路径、原/新 SHA、两个结果与所有保留门槛。满足才记 PROMOTED_ON_DEVELOPMENT_BRANCH_PS7_LIMITED，仍非 main/release/完整 P1；未满足记录 UNFINISHED_STOPPED。仅提交明确文件并普通推送开发分支，确认远端 SHA/clean 状态。
 
-## New finite allowance requested — NOT granted yet
+## Approved finite allowance — 0/2 consumed, both frozen after preparation failure
 
 最多两个顺序 fresh ordinary PS7 目标宿主，不启动 baseline/red/旧 focused/mutant/PS5/benchmark/全项目宿主。
 固定已有 PS7：C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe，
@@ -84,4 +85,4 @@ Git-only 提权若需要，单独受平台权限审核，不作为普通测试�
 
 本计划只处理已批准候选的原路径采用，不实现新功能。五类 Review Focus 由 Step 1–7 的身份/历史映射/API/ownership/范围检查分别约束；没有追加缺失 PS5、产品 mutation 或真实运行证明。
 当前只读检索发现原入口被既有诊断脚本/历史 pin 引用；这是潜在导入路由影响，不是这些脚本重新获准执行。候选未发现 PSScriptRoot/PSCommandPath/Join-Path/import 路径依赖；两对测试物理摘要相同。这些是文本/身份检查，不是新运行证据。
-当前所有执行勾选保持未选。推荐 Native：一个文件的固定字节采用，无需多代理拆分；使用已完成限定审查，不增新审查额度。请用户明确批准本计划的源码替换、历史 pin 映射、最多两次新宿主预算、无新复审证据采用方式和 fail-stop 边界后再实施。
+Native 已明确批准；Step1 完成，Step2 未完成且停止，Step3–7 未执行。不得从原批准推定准备失败后可自动修正、重跑或解冻两个未用名额；先取得新方向。

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest execution: [entrypoint promotion stopped during preparation](../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-result.md).
+User approved after cca8c0c6,but baseline exact-byte check failed before source
+replacement:parent converted LF to CRLF. Preserve erroneous backup54A07EB2 and
+prepared files,do not run them. Original953CC2A8/candidate1971F808/tests unchanged;
+all742old evidence pins intact. No target host or controller Prepare invoked.
+New0/2consumed,both unused slots frozen;candidate PS7 limited acceptance unchanged.
+Need explicit direction before baseline/preparation-only correction and bounded
+continuation. No automatic repair,source promotion,PS5/main/live or extra budget.
+
 Latest next-step preparation: [entrypoint promotion plan, NOT approved](../superpowers/plans/2026-10-18-p1-owned-return-entrypoint-promotion.md).
 After eb7b3788 only a plan was prepared. Original953CC2A8 is unchanged;candidate
 1971F808 remains PS7-limited accepted but not promoted. Proposed future writes,

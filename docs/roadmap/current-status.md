@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — original-entrypoint promotion plan prepared, NOT approved
+## Latest — approved entrypoint promotion STOPPED before source replacement
+
+After cca8c0c6,user explicitly approved Native fixed-byte promotion,max2 ordinary
+PS7 regressions,no new reviewer and fail-stop. Step1 passed;Step2 baseline byte
+check failed because parent incorrectly converted old LF backup to CRLF.
+See [actual stopped result](2026-10-18-p1-owned-return-entrypoint-promotion-result.md).
+Original953CC2A8/candidate1971F808/tests and all742old pins remain intact.
+No controller Prepare/target import/run/source replacement. New0/2spent,both unused
+slots frozen. Failed backup54A07EB2/preparation files preserved;not a runnable or
+passing delivery. Candidate limited acceptance unchanged;all23+9limits retained.
+Next requires explicit direction for baseline-format/preparation-only correction
+and bounded continuation;no automatic fix/retry/promotion/main.
+
+## Historical — original-entrypoint promotion plan prepared
 
 After eb7b3788,user asked to continue. Prepared the
 [fixed-byte promotion plan](../superpowers/plans/2026-10-18-p1-owned-return-entrypoint-promotion.md)
