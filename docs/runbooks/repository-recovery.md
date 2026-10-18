@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest proposal: [PS7 limited offline acceptance, pending decision](../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-proposal.md).
+Prepared after15064909;NOT approved. Candidate1971F808 remains isolated/unaccepted.
+Recommended A is only stated PS7 offline vectors,with explicit PS5/full-dual-engine
+exclusion and accepted new product-mutant evidence gap for that narrow profile.
+All23+9limits persist. Read sections1/4/5/6 before explicit decision. Approval would
+permit only a new documentary acceptance record/status update,not source replacement,
+promotion,new runs/reviewers,main or live work. No budget is renewed by this proposal.
+
 Latest review: [owned-return scoped review complete](../roadmap/2026-10-18-p1-owned-return-readonly-review.md).
 One approved fresh reviewer identified no Critical/Important/Minor within scope;
 I1/R1 AddressedWithinStatedPS7Vectors only. All23old+9new limits retained,including

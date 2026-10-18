@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-18
 
+## Latest — PS7 limited offline acceptance proposal prepared, NOT approved
+
+User requested the recommended proposal after15064909. Prepared
+[exact candidate/profile/evidence and all23+9limits](2026-10-18-p1-owned-return-ps7-limited-acceptance-proposal.md).
+Recommendation A:accept only stated PS7 offline vectors;PS5/full dual-engine gate
+stays open and new product-mutant gap is explicitly accepted only for this narrow
+decision,not mislabelled tested. Requires explicit user decision;FormalAcceptance=false,
+PromotionApproved=false. No source/test/run/reviewer/mutant/main work this turn.
+Next:review proposal sections1/4/5/6;approval permits only a documentary limited
+acceptance record,not replacement/promotion/runs. All old budgets remain unchanged.
+
 ## Latest — owned-return independent readonly review complete, no scoped blockers
 
 User explicitly approved plan after fda95cda. ONE fresh no-history reviewer
