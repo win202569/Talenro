@@ -1,0 +1,26 @@
+{
+  "Schema": 1,
+  "ApprovedAuditCommit": "f359f292f9bc21adf5e3fd7fbfd731e6244e0bb8",
+  "Candidate": {
+    "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.ps1",
+    "SHA256": "1971F808DAB0C0A520FC708BF240AF4367D21EE811FE9AEB8664E605E7E8BCE8"
+  },
+  "FullTest": {
+    "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.tests.ps1",
+    "SHA256": "61A3BACF26EDE1F8B137CBF77CC4DBC35E4D6E6FB8FE6365953CDA9F41CEDEA3"
+  },
+  "OwnershipTest": {
+    "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.ownership.tests.ps1",
+    "SHA256": "C4905925B309B00E94834B2FDA3EE8034265B23CDF274276C9ECA5511250C6E7"
+  },
+  "InheritedPins": 666,
+  "MaxHosts": 2,
+  "Order": [
+    "full",
+    "ownership"
+  ],
+  "MaxMs": 30000,
+  "ExitMs": 2000,
+  "DrainMs": 2000,
+  "FormalAcceptance": false
+}

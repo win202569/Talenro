@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — owned-return same-version API+ownership2/2passed
+
+NEW max2ordinary PS7 hosts both passed on candidate1971F808:full35groups/38lines
+in23290ms,ownership8fixture+10groups/22lines in6464ms. Each exit0,no timeout,
+stderr0,owned exit/streams complete,676pins intact,no controller error,exact
+independent inventories. No source/test edits,retry,warmup,old-slot reuse or review.
+These fill the audited same-version PS7 regression gaps,not I1/R1 formal closure.
+See [two-run result and limits](2026-10-18-p1-owned-return-regression-v2-result.md).
+New2/2spent;old failed/frozen slots unchanged. Next:prepare a NEW limited readonly
+independent-review proposal over current candidate/cumulative changes and saved
+39/39+45/45+API/ownership evidence. No reviewer authorized/launched yet. PS5/profile,
+mutant sensitivity,formal acceptance/promotion/main/P2/P3/C12 remain separate.
+
 ## Latest — remaining owned-return gates reconciled; no new run
 
 Read-only audit confirms candidate1971F808 matrix39/39 is scoped positive evidence,

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest result: [owned-return API/ownership2/2passed](../roadmap/2026-10-18-p1-owned-return-regression-v2-result.md).
+On exact candidate1971F808,PS7 full35groups/38lines passed in23.290s and ownership
+8fixture+10groups/22lines in6.464s,676pins intact,stderr0. New2/2spent,old slots
+remain frozen. No source/test edits or automatic review. Next is a NEW narrowly
+scoped independent-review proposal/package,not more repeated test runs or main
+merge. PS5/profile and I1/R1/promotion/acceptance still require explicit disposition.
+
 Latest roadmap: [owned-return gate reconciliation](../roadmap/2026-10-18-p1-owned-return-gate-reconciliation.md).
 The new candidate passed39focused cases,not yet its full35-group API or old
 ownership regression. Earlier full successes belong to TokenF9B4E408,not1971F808.
