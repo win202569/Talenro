@@ -1,6 +1,20 @@
 # Recover the project on a new computer
 
-Latest read-only explanation:[wrapper ownership](../roadmap/2026-10-18-p2b-scalar-wrapper-readonly.md).
+Latest completed diagnostic:[wrapper references](../roadmap/2026-10-18-p2b-wrapper-reference-diagnostic.md).
+Audit-only p2b-wrapper-reference-diagnostic includes portable-summary.json with
+12cases/36phases and87stable reference IDs,derived from hashed raw. Independent
+one-host allowance1/1spent. Controlled byte/array mixed owners CAN share base/
+key/table;string/custom same-base distinct wrappers do NOT share key/table.
+Equal-content independent byte/array/string controls stay distinct. Not proof
+of the historical failed instance,not a product repair. No product import/API/
+compile/edit/reviewer;1090pins intact. B468B564 and failed18DA24E1 unchanged,M1 OPEN.
+Old latest1/3spent+2FROZEN and earlier2/3spent+1FROZEN stay unchanged. Next revised
+ownership contract/repair design and finite new verification need approval;
+no blanket base equality,owner skipping or frozen-slot replay. Recover latest
+devbranch,not main. Clone preserves source/derived IDs/report,not actual object
+references,ignored raw/SDK/runtime/cache/mappings/sessions or reset rights.
+
+Historical read-only explanation:[wrapper ownership](../roadmap/2026-10-18-p2b-scalar-wrapper-readonly.md).
 Official SDK source allows distinct wrappers to share metadata for one boxed/
 reference base;custom/string/local-storage key rules differ. This is consistent
 with the saved byte-owner mismatch,but actual base/key/collection identities

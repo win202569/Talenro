@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — read-only wrapper sharing model identified; actual key/table relation unproven
+## Latest — controlled reference diagnostic complete; shared table with mixed wrapper owners confirmed
+
+[Evidence report](2026-10-18-p2b-wrapper-reference-diagnostic.md),portable-summary.json
+in p2b-wrapper-reference-diagnostic. New independent1/1host spent:PID48084,
+2960ms,exit0,DIAGNOSTIC_CAPTURED. All12cases/36phases,87reference IDs complete.
+Byte/array distinct wrappers over SAME base share key/table with different
+descriptor wrapper owners. Same-base string/custom wrappers do NOT share key/
+table;independent same-content byte/array/string controls stay distinct.
+132repeated descriptor observations preserve owner-key/table and own internal/
+constructor-owner consistency. This is controlled SDK evidence,NOT old-instance
+reconstruction,product verification or a repaired M1. No product import/API/
+compile/edit/reviewer;1090pins intact,no timeout/stderr,owned exit/streams.
+B468B564 and failed18DA24E1 unchanged. Old latest1/3spent+2FROZEN and earlier
+2/3spent+1FROZEN unchanged,review ineligible. Next revised type-sensitive scalar
+key/table ownership contract and bounded repair design require approval.
+No direct base-equality relaxation,frozen-slot reuse,main or acceptance grant.
+
+## Historical — read-only wrapper sharing model identified; actual key/table relation unproven
 
 [Wrapper investigation](2026-10-18-p2b-scalar-wrapper-readonly.md).
 SDK source permits distinct wrappers over the same boxed/reference base to
