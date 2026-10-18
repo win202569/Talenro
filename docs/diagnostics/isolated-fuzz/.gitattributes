@@ -1,0 +1,10 @@
+# Preserve physical byte identities for the ownership preparation and its
+# read-only fidelity/inventory dependencies on Windows and fresh checkouts.
+.gitattributes text eol=lf
+candidate-ownership-*.ps1 text eol=lf
+integer-candidate-ownership-markers/*.ps1 text eol=lf
+integer-candidate-ownership-markers/expected-output.json text eol=lf
+integer-candidate-three-phase/*.ps1 text eol=lf
+integer-candidate-three-phase/expected-output.json text eol=lf
+integer-candidate-api-equality/expected-output.json text eol=lf
+integer-candidate-boundary-markers/expected-output.json text eol=lf

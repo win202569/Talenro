@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — later ownership group markers proposed, NOT PREPARED
+## Latest — later ownership markers PREPARED, NOT RUN
+
+After3e58ecfc,user approved preparation only. [Preparation evidence and identities](2026-10-18-p1-ownership-markers-prepared.md)
+and [ledger](2026-10-18-p1-ownership-preparation-ledger.md) record a new ten-file
+isolated copy:seven sources identical,ownership adds only four body-edge records;
+removing them restores the entire original. Distinct105-line/64-PASS/22-marker/
+11-pair inventory,classifier,122 synthetic cases and20 fidelity cases prepared.
+Old tools47/63/76 regressions passed,total328;all103 supported partial prefixes
+checked. No target import/run/controller,PS5,review or allowance release.
+Scoped diagnostic LF attributes also preserve pinned files on fresh Windows
+checkout;25 staged Git checkout-filter byte checks passed with autocrlf=true.
+No old source bytes or root/global configuration changed.
+388 pins/manifest/controller/index unchanged. Author self-review only;runtime
+ordering/interference and original timeout unresolved. Next controller/one fresh
+PS7 30000ms run needs separate approval;no warmup/retry/fallback or frozen reuse.
+Candidate/I1/P1/main/C12/security/runtime/release remain UNACCEPTED.
+
+## Previous — later ownership group markers proposed, NOT PREPARED
 
 After5e6dc245,[bounded marker design](2026-10-18-p1-ownership-group-marker-proposal.md)
 adds only four proposed body START/END records for SequentialIsolation and

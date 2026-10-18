@@ -16,7 +16,24 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest proposal:[later group markers,NOT PREPARED](../roadmap/2026-10-18-p1-ownership-group-marker-proposal.md).
+Latest preparation:[ownership markers,PREPARED NOT RUN](../roadmap/2026-10-18-p1-ownership-markers-prepared.md).
+After3e58ecfc,approved independent ten-file copy plus separate offline classifier/
+tests/static checks. Seven source files identical;ownership adds only four body
+edge markers and restores exactly after removal.105 records/64PASS/22 markers/
+11 pairs;122 synthetic+20 static+47/63/76 old offline cases passed,total328.
+Report pins13 new preparation artifacts plus scoped .gitattributes.25 staged
+Git checkout-filter byte checks passed with autocrlf=true;LF rules protect new
+files and their named read-only fidelity/inventory dependencies,not the whole
+historical repository. No old source bytes/root/global settings changed.
+Five named offline scripts run with
+an existing PowerShell7 runtime;no old ignored receipts/credentials needed.
+388 old pins/manifest/controller/index intact. No target/controller run,PS5 or
+review release;author self-review only. Runtime order/timing unresolved;do not
+run copied target on clone. New controller/one ordinary PS7 30000ms diagnostic
+needs separate approval;all freezes/budgets/I1/P1/acceptance gates persist.
+Git restores portable source/tests/evidence,not ignored raw/cache/authority.
+
+Previous proposal:[later group markers,NOT PREPARED](../roadmap/2026-10-18-p1-ownership-group-marker-proposal.md).
 After5e6dc245,design only:four direct START/END body markers around ownership
 SequentialIsolation/PlainControls,no common-helper/API/fixture/assertion/order
 changes.105-line distinct inventory/classifier proposed;no new code/controller/
