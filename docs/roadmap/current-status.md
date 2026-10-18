@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — boundary diagnostic completes; frozen classifier defect retained
+
+After3fd072f1,[one PS7 diagnostic](2026-10-18-p1-candidate-boundary-marker-result.md)
+spent new1/1:28437ms/CPU36312.5ms,exit0,no timeout,ordinary,empty stderr,
+owned exit,91 lines/64 PASS. Read-only audit against prepared inventory confirms
+eight markers/four closed pairs;Check4096 longest16860.926ms,Build646.361ms.
+Frozen controller has overescaped Host regex,false CaptureValid/ExpectedResult
+at line2;preserved unchanged,not a target assertion failure.344 pins held.
+H-boundary supported for this diagnostic,not API-only cost,stable latency or
+original timeout fix. Next separate offline verifier correction/synthetic tests,
+NO product replay. Old full1/2 spent/PS5 FROZEN,review/I1/P1 gates unchanged.
+
 ## Latest — candidate outer boundary markers PREPARED, NOT RUN
 
 After56a7df4d,[preparation-only approval](2026-10-18-p1-candidate-boundary-markers-prepared.md)

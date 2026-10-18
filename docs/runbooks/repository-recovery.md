@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest execution:[boundary diagnostic result and classifier defect](../roadmap/2026-10-18-p1-candidate-boundary-marker-result.md).
+After3fd072f1,new1/1 spent:ordinary PS7 exit0/28437ms,91 lines/64 PASS,
+eight markers/four closed pairs;Check4096=16860.926ms. Frozen Host-regex defect
+left classifier false at line2;separate read-only audit confirms complete output
+without rewriting records.344 pins held;original product unchanged. Historical
+NOT RUN source headers are superseded only for this observed diagnostic,not
+acceptance. Next separate offline verifier and synthetic checks,not target rerun.
+Old PS5 remains FROZEN;budgets/review/I1/P1 gates persist. Git carries portable
+sources/reports,not raw/controller/caches/credentials or replay authority.
+
 Latest preparation:[candidate outer boundary markers,NOT RUN](../roadmap/2026-10-18-p1-candidate-boundary-markers-prepared.md).
 After56a7df4d,nine portable files in integer-candidate-boundary-markers preserve
 seven source copies plus README and91-line expected output/64 PASS. Six sources
