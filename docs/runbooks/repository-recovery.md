@@ -16,7 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[independent P1 review COMPLETE;Important R1 STOP](../roadmap/2026-10-18-p1-token-readonly-review.md).
+Latest handoff:[initially plain scalar ownership proposal](../roadmap/2026-10-18-p1-plain-scalar-ownership-proposal.md).
+Afterbf1740cb,design only:no executable fixture/controller or target prepared/run.
+Proposed18 finite cases(normal/sticky,six field/type rows,three mutation directions),
+max38 candidate calls in ONE fresh PS7 host,30s+2s exit+2s drain. Full literals
+and persistent direct attachment checks distinguish isolation from invalid fixture.
+NEW host0/1UNAPPROVED_UNUSED;approval would cover preparation plus one attempt
+together,not fix/review/promotion. Prior R1 evidence gap and all spent/frozen
+budgets remain. Restore latest dev branch,not main;ignored packets/engines and
+run authority do not clone. Preserve historical records and read stop conditions.
+
+Previous handoff:[independent P1 review COMPLETE;Important R1 STOP](../roadmap/2026-10-18-p1-token-readonly-review.md).
 Afterca32f2d9,one fresh no-history reviewer completed source/saved-data review:
 0Critical/1Important/0Minor,I1InsufficientEvidence. Accepted scalar-leaf isolation
 after later metadata attachment is unestablished;not a reproduced runtime defect.

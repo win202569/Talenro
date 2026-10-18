@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — independent P1 review COMPLETE;Important R1 STOP
+## Latest — initially plain scalar ownership proposal;NOT PREPARED/RUN
+
+Afterbf1740cb,user requested the recommended design only.
+[Bounded ownership proposal](2026-10-18-p1-plain-scalar-ownership-proposal.md):
+six path/field/type rows x three post-return mutation directions =18 cases;
+two accepted evaluations per case plus two controls,max38 candidate calls.
+Normal and sticky results,full independent literal oracles,actual descriptor/
+payload visibility and attachment-fidelity checks;no field replacement that
+could hide aliasing. Invalid fixture is not isolation success.
+Proposed ONE ordinary fresh PS7 host,30s+2s exit+2s drain,fail-stop/no retry.
+NEW0/1UNAPPROVED_UNUSED;no executable fixture/controller,target,source fix or
+reviewer this turn. Prior review0C/1I/0M and InsufficientEvidence unchanged;
+all spent/frozen budgets and wider gates retained. Next approval can cover
+preparation AND one attempt together;no automatic correction or promotion.
+
+## Previous — independent P1 review COMPLETE;Important R1 STOP
 
 Afterca32f2d9,user approved ONE new fresh readonly reviewer. [Review/dispositions](2026-10-18-p1-token-readonly-review.md)
 and [frozen package](2026-10-18-p1-token-review-package.md).
