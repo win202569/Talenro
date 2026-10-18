@@ -1,6 +1,26 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B exact validation evidence, but readonly review BLOCKED
+## Latest — descriptor-passivity bounded design awaiting approval; blocker retained
+
+After9488907f,user requested continuing the recommended descriptor-ingress
+repair. Readonly source/SDK exploration only:PSNoteProperty has a public SDK
+subclass PSVariableProperty;InstanceMembers metadata getter is nonvirtual but
+nonpublic. No safe enumeration route is yet dynamically established;do not
+claim an exact-type check alone proves callback-free collection access.
+Proposed short in-chat bounded design:one counter-only managed descriptor
+fixture compiled in memory inside the ordinary test host;one original-candidate
+RED/ingress probe;only if it establishes a callback-free metadata route,make a
+new candidate with exact descriptor-type checks before overridable access;
+one focused GREEN then one full GREEN,one conditional readonly review.
+Proposed3NEW hosts+1conditional review are NOT yet approved/started (0/3,0/1).
+The new managed fixture compilation must be explicitly included in approval;
+no fixture/code/controller/new packet,compilation,product import or target run
+created in this preparation. No main/acceptance/real capability or slot reset.
+Design-clarification skill requires approval of this bounded in-chat design
+before implementation;no new architectural spec/plan document is required.
+Keep Minor comparator issue deferred,all previous consumed/frozen scopes intact.
+
+## Historical — P2-B exact validation evidence, but readonly review BLOCKED
 
 User approved the proposed three NEW hosts and one conditional readonly review
 after07269905. [Execution report](2026-10-18-p2b-codec-negative-controls.md):

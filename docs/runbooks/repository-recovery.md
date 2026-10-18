@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest validation: [P2-B negative controls/restored full](../roadmap/2026-10-18-p2b-codec-negative-controls.md).
+Latest preparation:descriptor-passivity bounded in-chat design after9488907f,
+awaiting approval. Read current-status for proposed3NEW ordinary hosts and1
+conditional readonly review,including explicit permission for an in-memory
+counter-only managed test subtype. Proposed0/3,0/1,unapproved/unstarted.
+Readonly source/SDK reflection only;no new source/fixture/controller/packet,
+compiler invocation,product import or target run. Important blocker remains;
+Minor comparator hardening deferred. No automatic implementation or replay.
+Restore latest devbranch,not main;old consumed/frozen allowances unchanged.
+An exact-type-check patch cannot be declared safe until collection ingress
+itself is shown not to invoke overridable descriptor code.
+
+Historical validation: [P2-B negative controls/restored full](../roadmap/2026-10-18-p2b-codec-negative-controls.md).
 Two specified mutants each hit their exact assertion;module restored after
 each;final full32PASS/35exact lines. New hosts3/3spent,one conditional fresh
 readonly reviewer1/1complete:1Important passive-descriptor defect,1Minor
