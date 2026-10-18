@@ -1,5 +1,13 @@
 # Project status — updated 2026-10-18
 
+Latest readonly follow-up after c3e56d5b: official PS7.6.5 source explains why
+constant default/primitive assignment need not allocate independent backing,and
+numeric instance metadata can follow base identity. This supports fixture-reuse
+hypothesis,not exact historical attribution. No new execution or repair;
+790pins+4latest anchors intact. [Fixture-only one-host proposal,NOT approved](../superpowers/plans/2026-10-18-p2a-fixture-origin-probe.md)
+uses5constructor calls andfresh controls,NO product import/call. Old budgets stay
+spent/frozen. Further approval needed before this new characterization.
+
 ## Latest — one diagnostic captured InputMutation fixture-precondition failure
 
 After f5549619,user approved ONE new ordinary PS7 diagnostic host,now1/1spent.

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest proposal: [fixture-origin probe,NOT approved](../superpowers/plans/2026-10-18-p2a-fixture-origin-probe.md).
+Readonly official version-tag source supports default/backing reuse as a possible
+metadata pathway,but exact prior attribution remains unresolved. Proposes ONE
+new fixture-only ordinary host,5constructor calls,shared-default versus fresh
+Int32 controls;NO product import/call/fix. No probe code/packet/host created yet.
+Do not reuse spent diagnostic or old frozen slots;recover source-evidence rationale
+and proposed boundary from dev branch,not automatic execution/acceptance.
+
 Latest result: [one-shot InputMutation diagnostic](../roadmap/2026-10-18-p2a-input-mutation-diagnostic.md).
 User approved after f5549619;new1/1host spent,site captured at input Schema
 initially-plain check (original55,caller160),before mutation/result comparisons.
