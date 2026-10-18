@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — ownership-marker PS7 diagnostic complete; acceptance still blocked
+## Latest — ValidationCopy field/call paths analyzed READ-ONLY
+
+After0874e244,[read-only source/cost ledger](2026-10-18-p1-validation-copy-field-analysis.md)
+maps the17515.183ms combined loop to its clean4096 time-row fixture. Both clone/
+candidate loop texts identical. CONDITIONAL per row:16 type queries,10 SDK
+Members reads,31 helper entries,six copied fields;not dynamic counters or latency
+attribution. Exact type/passivity/shape/token/descriptor and ownership duties
+remain distinct. No unique helper/copy/engine root cause or safe speedup proved.
+Next recommend minimal attribution DESIGN only,no preparation/run/guard changes.
+412 pins/latest single-invocation index held;no target/offline-suite execution,
+source/controller changes or slot/review release. All freezes/budgets/I1/P1/
+main/C12/security/runtime/release gates persist. Original timeout unresolved.
+
+## Previous — ownership-marker PS7 diagnostic complete; acceptance still blocked
 
 Afterd7e7eaa2,user approved one ordinary fresh PS7 run,30000ms,no warmup/retry/
 PS5. [Result and pinned evidence](2026-10-18-p1-ownership-markers-result.md):

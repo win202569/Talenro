@@ -16,7 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest result:[ownership-marker diagnostic complete,NOT acceptance](../roadmap/2026-10-18-p1-ownership-markers-result.md).
+Latest analysis:[ValidationCopy fields/call paths,READ-ONLY](../roadmap/2026-10-18-p1-validation-copy-field-analysis.md).
+After0874e244,no source/probe/controller/test execution. Combined17515.183ms loop
+includes validation plus snapshot/copy. Conditional time-row ledger16 type/
+10 Members/31 helper entries per row does NOT establish their actual latency.
+Both evaluator loop texts match;all guards/ownership remain.412 pins/latest
+single-invocation index intact. Next minimal attribution design only,not a new
+run,optimization or timeout increase. All spent/frozen/review/acceptance gates
+persist. Git carries analysis,not raw/controller/cache/credentials/replay rights.
+
+Previous result:[ownership-marker diagnostic complete,NOT acceptance](../roadmap/2026-10-18-p1-ownership-markers-result.md).
 Afterd7e7eaa2,one newly approved ordinary PS7 run finished28983ms/exit0/no timeout:
 105 records/64PASS/22 markers/11 closed pairs,both later ownership groups passed.
 412 pins and saved raw/order/tick/rounding audit held;report preserves hashes and
