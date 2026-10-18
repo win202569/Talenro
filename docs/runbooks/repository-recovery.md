@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest checkpoint:[descriptor-ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-descriptor-ingress.md).
+Latest diagnostic:[RawIngress receiver mismatch](../roadmap/2026-10-18-p2b-rawingress-diagnostic.md).
+One separately approved evidence-only host1/1spent. Frozen helper receives
+PSInternalMemberSet where PSObject getter requires PSObject;TargetException
+at line21 before collection/enumeration,counters0. Product not imported or
+called;no correction/alternate-path probe/reviewer.924pins intact. Product
+still baselineFA6047A4;Important passivity issue unresolved. Descriptor route
+1/3used+2frozen,review0/1ineligible;no reset or automatic unfreeze/replay.
+Recover latest devbranch and report;clone excludes raw/cache/mappings/sessions.
+Next needs new-candidate receiver correction/path verification authorization,
+not immediate product patch or acceptance/main merge.
+
+Historical checkpoint:[descriptor-ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-descriptor-ingress.md).
 Approved3+1route used1host:counter fixture compilation/observability succeeded,
 RawIngress probe failed unexpectedly before original encoder call. No fix,
 focused/full run or reviewer. New leaf p2b-descriptor-ingress contains baseline

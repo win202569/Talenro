@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — approved descriptor-ingress route STOPPED at RawIngress probe
+## Latest — RawIngress diagnostic identifies reflection receiver mismatch
+
+User approved one separately bounded evidence-only diagnostic after1d183dce.
+[Diagnostic report](2026-10-18-p2b-rawingress-diagnostic.md):PID21488,1304ms,
+exit0 diagnostic capture,no timeout,stderr0,924pins intact. Frozen helper
+DG-RawMembers:21 throws TargetException:PSObject getter receives actual
+PSInternalMemberSet from `$Value.PSObject`. No raw collection or enumeration;
+all counters0. Probe failure is now explained,not a usable safe-ingress proof.
+No product import/API call,helper/product repair,alternate route or reviewer.
+New diagnostic1/1spent. Descriptor route1/3used+2FROZEN,review0/1ineligible;
+all earlier consumed/frozen scopes unchanged. Important product defect remains.
+Next:separate new test-candidate receiver correction and bounded path validation
+before product patch. Not approved/run here;no main/acceptance or slot reset.
+
+## Historical — approved descriptor-ingress route STOPPED at RawIngress probe
 
 User approved the bounded in-chat3NEW-host/1conditional-review design after
 45b62ca4,including in-memory managed counter fixture compilation.
