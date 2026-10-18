@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-18
 
+## Latest — remaining owned-return gates reconciled; no new run
+
+Read-only audit confirms candidate1971F808 matrix39/39 is scoped positive evidence,
+but complete API35groups and old ownership8fixture+10groups have not run on THIS
+candidate. Historical full38/ownership22line successes used TokenF9B4E408. Old
+owned-return slots2/3 remain frozen,not renewed by the new focused success.
+Current source953CC2A8 unchanged;candidate adds3helpers plus cumulative Integer,
+Token and entrypoint changes. New-candidate independent review/I1/R1 disposition
+is still absent;PS5 and formal promotion remain unverified/unapproved.
+See [gate map and two-run proposal](2026-10-18-p1-owned-return-gate-reconciliation.md).
+Next recommendation:NEW max2ordinary PS7 hosts,full then ownership,each30s+2s+2s,
+strict38/22inventories,fail-stop,no retry/repair/reviewer/old-slot reuse. This audit
+does not launch or authorize them. No focused rerun,main/P2/P3/C12 clearance.
+
 ## Latest — optimized actual ownership matrix39/39 in19.954s
 
 ONE separately approved ordinary PS7 candidate timing host completed all39cases,

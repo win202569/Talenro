@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest roadmap: [owned-return gate reconciliation](../roadmap/2026-10-18-p1-owned-return-gate-reconciliation.md).
+The new candidate passed39focused cases,not yet its full35-group API or old
+ownership regression. Earlier full successes belong to TokenF9B4E408,not1971F808.
+Old stopped slots/review seats stay frozen/spent. Proposed next:two NEW bounded
+PS7 regressions(full then ownership),not a focused rerun or automatic promotion.
+No new execution/controller/reviewer in this audit. Independent review,PS5/profile
+decision and explicit acceptance/source promotion remain separate gates.
+
 Latest milestone: [optimized ownership matrix39/39](../roadmap/2026-10-18-p1-inline-ownership-timing-result.md).
 One approved actual candidate diagnostic completed in19.954s under30s, all80/29/1
 calls complete,666pins intact,stderr0. Strict output complete:1340TIME,153base
