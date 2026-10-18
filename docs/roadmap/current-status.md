@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — candidate outer boundary markers PREPARED, NOT RUN
+
+After56a7df4d,[preparation-only approval](2026-10-18-p1-candidate-boundary-markers-prepared.md)
+added isolated integer-candidate-boundary-markers folder:seven source copies,
+README and91-line expected inventory/64 PASS. Six sources byte-identical;only
+original35 copy adds eight outer markers,exactly reversible;all original helper
+definitions/product/assertions/loading unchanged. AST/static fidelity checks
+held plus327 prior pins;zero target runs,no controller. Behavior/timing/hypothesis
+UNVERIFIED. Next separately approve ONE fresh ordinary PS7/30s/no retry or warmup,
+not frozen PS5 reuse. Full1/2 spent,PS5 FROZEN;old budgets/review/I1/P1 gates
+unchanged;no acceptance or main merge.
+
 ## Latest — read-only candidate boundary comparison; root cause NOT established
 
 After8b7eb852,[read-only comparison](2026-10-18-p1-candidate-boundary-readonly-comparison.md)

@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest preparation:[candidate outer boundary markers,NOT RUN](../roadmap/2026-10-18-p1-candidate-boundary-markers-prepared.md).
+After56a7df4d,nine portable files in integer-candidate-boundary-markers preserve
+seven source copies plus README and91-line expected output/64 PASS. Six sources
+unchanged;remaining test adds eight reversible outer markers. Static AST/fidelity
+checks only;327 prior pins held,zero target execution,no controller. Do NOT run
+directly:next one-host PS7/30s diagnostic needs separate execution approval.
+Existing PS5 remains FROZEN,full1/2 spent,old budgets/review/I1/P1 gates persist.
+Git recovers prepared files/reports,not raw/runtime caches or replay authority.
+
 Latest analysis:[candidate boundary read-only comparison](../roadmap/2026-10-18-p1-candidate-boundary-readonly-comparison.md).
 After8b7eb852,zero target launches/source changes;327 pins held. Saved outcomes
 do not isolate cause or candidate active statement. Next preparation-only design
