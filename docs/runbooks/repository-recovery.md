@@ -16,7 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[bounded PS7 direct validation proposal](../superpowers/plans/2026-10-18-token-direct-bounded-validation.md).
+Latest handoff:[direct baseline FAILED;candidate NOT RUN](../roadmap/2026-10-18-p1-token-direct-result.md).
+Afterf7e43a26,the approved baseline host exited1 after3060ms without timeout.
+Target stdout empty,stderr missing Members property. Static trace points to
+clean-owner fixture precheck,not candidate evidence;no source fix or replay.
+New baseline1/1SPENT,candidate0/1UNUSED/FROZEN.449 frozen pins held.
+Restore portable report/source/plan from latest dev-branch commit,not main.
+Ignored packet/controller/raw not restored by Git;their absence cannot reset
+budgets. All prior acceptance/review gates persist. Next source-only fixture
+repair and any NEW verification require separate authorization.
+
+Previous handoff:[bounded PS7 direct validation proposal](../superpowers/plans/2026-10-18-token-direct-bounded-validation.md).
 After95360155,draft only was approved. No controller or target execution this
 turn. NEW proposed baseline1/candidate1 slots remain UNAPPROVED/UNUSED.
 Read exact limits/oracle/fail-stop terms before seeking execution approval.

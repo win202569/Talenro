@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — direct validation proposal saved; NO RUN
+## Latest — direct baseline FAILED;candidate NOT RUN
+
+Afterf7e43a26,user approved the bounded proposal. One ordinary PS7 baseline
+attempt at2026-10-18T10:25:24.3016388Z failed:wall3060ms,CPU2437.5ms,
+exit1,no timeout,owned-host-exited,complete streams,stdout0/429lines,
+stderr113bytes:property 'Members' cannot be found.
+[Result and frozen identities](2026-10-18-p1-token-direct-result.md).
+Read-only source trace points to fixture clean-owner precheck47 before Token53;
+raw lacks source-line stack,so exact site is inferred,no helper-entry evidence.
+No source fix/retry/probe. Candidate never launched;baseline1/1SPENT,
+candidate0/1UNUSED/FROZEN.449 pins including434 historical held;all source and
+original raw/controller records unchanged. Direct/full acceptance remains false.
+Next recommend separate fixture-only source repair/static approval,then NEW
+bounded execution approval;no reuse of failed/frozen slots. No timeout increase,
+warmup,PS5,review launch,full API/performance run or main merge.
+Git carries portable failed-checkpoint report/progress,not raw/cache/replay rights.
+
+## Previous — direct validation proposal saved; NO RUN
 
 After95360155,user approved drafting the next bounded proposal:
 [PS7 direct validation plan](../superpowers/plans/2026-10-18-token-direct-bounded-validation.md).
