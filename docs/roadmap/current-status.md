@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-19
 
-## Latest — handshake seam review blocked by Important I1; unfinished
+## Latest — I1 controller repair plan proposed; no new execution approval
+
+[Repair plan](../superpowers/plans/2026-10-19-p2b-controller-exception-containment.md).
+User agreed to plan-writing after229dd2a5,not implementation. New-directory
+controller-only lifecycle repair proposed;old frozen inputs/raw/review unchanged.
+Recommended Native;proposed NEW3verification hosts+5ownedchildren=8newPS7processes
+andconditional1readonlyreview. NOT approved/spent. RED known failure,one planned
+repair,GREEN5checks,FINAL1fixed seam invocation;unknown/nonexact stops.
+This turn only documentation/self-review/preservation:0code/targets/tests/compiles/
+reviewers. I1 remains Important/unfinished;no real handshake/capability acceptance.
+Next:user review written plan,choose method andexplicitly approve new finite budget.
+
+## Historical — handshake seam review blocked by Important I1; unfinished
 
 [Execution](2026-10-19-p2b-handshake-seam-verification.md).
 User approved Native/NEW2+conditional1 afterc1b87ccc. Prepared5inputs/1378pins.

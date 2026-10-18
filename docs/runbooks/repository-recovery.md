@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Newest proposal:[I1 controller exception-containment repair plan](../superpowers/plans/2026-10-19-p2b-controller-exception-containment.md).
+After229dd2a5,user authorized plan-writing only. No new controller/code/packet/run/
+test/compile/reviewer. Proposed Native/3verification hosts+5ownedchildren=8newPS7
+processes+conditional1readonlyreview is NOT approved. Read plan before any work;
+method/newbudget still need explicit approval. Old frozen leaf/summary/review/raw
+andall spent/frozen allowances unchanged;I1 remains unfinished. Clone restores
+documents/source,not raw/host dependencies/credentials/execution rights. No replay,
+main merge,real handshake/capability or live acceptance follows from this proposal.
+
 Latest:[handshake seam review-blocked unfinished checkpoint](../roadmap/2026-10-19-p2b-handshake-seam-verification.md).
 Native/NEW2+conditional1 approved afterc1b87ccc. Frozen5inputs/1378pins;full
 PID26732 andfinalPID29608 each15lines12PASS/exit0,identical stdout/complete trace.
