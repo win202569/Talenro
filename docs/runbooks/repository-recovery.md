@@ -1,6 +1,14 @@
 # Recover the project on a new computer
 
-Latest preparation: [P2 written design, pending approval](../superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md).
+Latest preparation: [P2-A implementation plan, NOT approved](../superpowers/plans/2026-10-18-p2a-timebase-plan.md).
+User approved written design after7e555097 for plan writing only. New plan proposes
+one pure integer module,max5ordinary PS7 targets and one conditional fresh readonly
+review;0/5and0/1unapproved. No new code/tests/controller/raw packet or execution.
+Recommend Native;confirm plan/method/finite budget before implementing. A cannot
+read real clocks/processes/streams or grant B/C/P3/StageB/C12/main/live authority.
+Original allowances and P1 PS7-only acceptance/promotion/limits remain unchanged.
+
+Historical design preparation (approval now recorded above): [P2 written design](../superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md).
 Only documents prepared after a662ba37;P2 not implemented/tested/runtime-approved.
 Design splits pure timebase A,owned-session B,raw-capture C,and separate P3.
 Next written-spec approval permits only A implementation-plan writing;the plan

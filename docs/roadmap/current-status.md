@@ -1,8 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2 boundary design written, pending approval; no implementation
+## Latest — P2 design approved for A-plan writing; implementation plan pending
 
-User explicitly approved P2 written-design preparation only after a662ba37.
+After7e555097,user explicitly approved written P2 design only for P2-A plan writing.
+[Pure integer timebase implementation plan](../superpowers/plans/2026-10-18-p2a-timebase-plan.md)
+prepared:standalone New-OfflineTimebasePlan,strict5input/8root/8Plan fields,
+24independent test groups;proposes max5ordinary PS7 targets(RED,GREEN,two exact
+mutants,restored GREEN) plus one conditional readonly fresh review. All UNAPPROVED,
+0/5and0/1;no code/test/controller/raw packet/run/reviewer created. Recommend Native;
+user must review plan,choose method and approve finite budget before execution.
+No real clocks/processes/streams,P2-B/C/P3/security queries or runtime authority.
+Old allowances and all P1 limits remain unchanged. Design itself stays immutable.
+
+## Historical — P2 boundary design written before approval
+
+At that checkpoint,user explicitly approved P2 written-design preparation only after a662ba37.
 [P2 prerequisites,interfaces and failure evidence](../superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md)
 separates A:pure integer timebase conversion,B:owned-session supervision,C:raw
 dual-channel capture,with P3 persistence separate. Recommend next plan ONLY A,
