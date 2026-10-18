@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — attribution diagnostic TIMEOUT;partial totals retained,UNACCEPTED
+## Latest — Token local-type contract analyzed READ-ONLY;no candidate prepared
+
+Aftere512bb80,[Token/Passive contract analysis](2026-10-18-p1-token-local-type-contract-analysis.md)
+confirms duplicate exact-type query but not safe deletion or unique latency root
+cause. Keep fixed SDK type/member getters,all decoration/descriptor/shadow/ordinal
+checks,untyped Value/refusal order and owned outputs. Removing Passive's call
+also removes a binding boundary;PSObject/extended-view equivalence unverified.
+Decorated Actor can refuse earlier in Shape,so full-API refusal tests alone do
+not prove a Token-local replacement;direct helper-boundary cases needed later.
+Conditional time-row model16→14 type queries,31→27 helper entries IF equivalent;
+Members reads stay10,not a12.5% latency saving. Bool excluded (zero calls here).
+Next bounded Token-only DESIGN plus fixture obligations,not implementation/run.
+434 pins/latest index/raw held;no source/test/probe/controller changes or target/
+offline-suite launch,slot/review release. All budgets/freezes/I1/P1/main/C12/
+security/runtime/release acceptance gates persist;original timeout unresolved.
+
+## Previous — attribution diagnostic TIMEOUT;partial totals retained,UNACCEPTED
 
 After7bb53651,user approved one fresh ordinary PS7/30000ms/no warmup/retry/PS5.
 [Failed diagnostic and identities](2026-10-18-p1-validation-copy-attribution-result.md):

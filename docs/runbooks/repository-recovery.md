@@ -16,7 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest result:[attribution TIMEOUT,UNACCEPTED](../roadmap/2026-10-18-p1-validation-copy-attribution-result.md).
+Latest analysis:[Token-local type contract,READ-ONLY](../roadmap/2026-10-18-p1-token-local-type-contract-analysis.md).
+Aftere512bb80,source/AST inspection only:Token repeats type lookup through Passive,
+but removing its call changes a parameter-binding boundary. Full passive guards,
+untyped Value,ordinal/refusal order/ownership must stay. Direct decorated-string
+helper fixtures needed;Actor may already refuse in earlier Shape. IF equivalent,
+type queries16→14 per time row,Members10 unchanged;not a latency prediction.
+Next Token-only bounded design,exclude Bool/cache/timer changes;no source/test/
+candidate/controller preparation or execution now.434 pins/latest index/raw held;
+all spent/frozen/review/acceptance gates persist. Git restores analysis,not raw/
+runtime cache/credentials/execution authority.
+
+Previous result:[attribution TIMEOUT,UNACCEPTED](../roadmap/2026-10-18-p1-validation-copy-attribution-result.md).
 After7bb53651,one newly approved ordinary PS7 diagnostic timed out at30s:
 wall30085ms/exit-1/owned-host-exited,95 records/58PASS/18 markers/nine closed
 pairs. LastPASS ObservationScalars;next expected PassiveDescriptors PASS is not
