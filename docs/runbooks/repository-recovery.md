@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Pending decision: [P2-A limited offline acceptance recommendation](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-proposal.md).
+Latest decision: [P2-A limited PS7 offline acceptance APPROVED](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-approval.md).
+User explicitly approved after0228e7eb:LimitedAcceptanceApproved=true for
+candidatecc764dba/product350CAB1A/testsB5C4E0CE/fixtureC720E247,ordinary Windows
+PS7.6.5 Core x64 specified declared-integer vectors only. Proposal remains
+historical;read approval andits inherited limitations. No new target/review/
+source edit or product import during registration. Restore latest dev branch,
+not main. Clone does not recover raw receipts/cache/mappings/sessions or reset
+consumed/frozen allowances. No PS5/live/P2-B/C/P3/C12/security/main grant,
+automatic rerun,promotion or next-stage implementation. Product authority flags
+remain false. Further work needs its own explicitly scoped decision.
+
+Historical proposal: [P2-A limited offline acceptance recommendation](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-proposal.md).
 Candidatecc764dba/product350CAB1A/testsB5C4E0CE/fixtureC720E247,reconciled against
 approved contract andsaved five-outcome/review evidence. NOT accepted yet:
 LimitedAcceptanceApproved=false. This documentation-only pass added0hosts,

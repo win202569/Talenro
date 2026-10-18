@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-A limited acceptance recommendation ready, NOT approved
+## Latest — P2-A limited PS7 offline acceptance APPROVED
+
+User answered yes to the exact limited acceptance question after0228e7eb.
+[Approval record](2026-10-18-p2a-ps7-limited-acceptance-approval.md):
+LimitedAcceptanceApproved=true for fixed candidatecc764dba,product350CAB1A,
+corrected testsB5C4E0CE andfixtureC720E247;ordinary Windows PS7.6.5 Core x64,
+specified declared-integer vectors only. Prior24group/full+mutant/final evidence
+andone readonly review support this decision;no fresh test/review/import/source
+change in this registration. Product authority flags remain false.
+No PS5/whole-project/P2-B/C/P3/C12/live/security/main grant. All spent/frozen
+budgets andold failures retained. Necessary approval/status/recovery documents
+preserved on existing dev branch. Next-stage work requires a separate scope;
+this approval itself launches nothing.
+
+## Historical — P2-A limited acceptance recommendation ready, NOT approved
 
 [Pending user decision](2026-10-18-p2a-ps7-limited-acceptance-proposal.md)
 binds candidatecc764dba,product350CAB1A,corrected testsB5C4E0CE andfixtureC720E247.
