@@ -1,6 +1,75 @@
 # Project status — updated 2026-10-18
 
-## Latest — first plain-scalar case observed descriptor contamination;STOP
+## Latest — bounded scalar-return repair design presented;NOT IMPLEMENTED
+
+After29b49473,user requested the recommended minimal repair/regression design
+only. Bounded existing-return-flow change;short in-chat design,not a new subsystem
+or formal implementation-plan artifact. Goal:post-return metadata cannot cross
+input/results;retain13root/22Decision fields,exact scalar types/values and refusal
+guards. Original R1 witness and all535 frozen entries remain unchanged.
+
+Recommend a NEW isolated scalar-owned-return candidate copied from TokenF9B4E408,
+leaving all old modules/tests/raw frozen. Add closed-type ownership helpers and
+route every normal/sticky/refused return through a common owned-result boundary:
+fresh enclosing objects plus independently stored Int32/Int64/Boolean/String
+leaves,including root Reason and internally generated/default constants. Null
+remains null. Full preflight/reduction order,admission guards,flags and public
+entry signature unchanged;no copied input metadata/no serialization/global cache.
+Do not cleanse decorated inputs to make them admissible. Only already validated
+or internally constructed output values reach the ownership builder.
+
+Proposed mechanism:typed one-element storage for primitive reboxing;fresh char
+storage plus exact String constructor for nonempty output strings. Fixed SDK
+type/method metadata only,no caller-selected methods/converters. Exact-type/value,
+clean extended-member and independent backing-object assertions guard the helper.
+This is an unverified candidate mechanism,NOT proof of isolation after PowerShell
+binding. Do not substitute bare casts/new wrappers/PSObject.Copy/String.Clone
+and assume ownership. If isolation fails,stop rather than changing the oracle.
+Preserve existing internal-error/refused shape;no favorable or unisolated fallback.
+If copy-error handling cannot preserve that contract,stop before widening behavior.
+
+Alternatives rejected for this increment:patching only direct ExitCode/Boolean/
+Classification assignments misses other returned leaves such as input-derived
+Reason;generic shallow clone or serialization does not establish exact passive
+scalar ownership/types. Common return ownership adds bounded allocations;no
+performance claim or restructuring of the policy reducer is proposed.
+Primary-source rationale:PowerShell7.6.5 MshObject.cs Copy1442-1473 handles
+ValueType/ICloneable specially;Microsoft String.Clone docs state it retains the
+same string instance. These source/docs reads are not runtime reproduction:
+https://github.com/PowerShell/PowerShell/blob/v7.6.5/src/System.Management.Automation/engine/MshObject.cs
+https://learn.microsoft.com/en-us/dotnet/api/system.string.clone?view=net-10.0
+
+Proposed NEW ordered max3 ordinary fresh PS7 hosts,each30s+2s exit+2s drain:
+1. Fixed scalar-copy fixture checks(null,Int32/Int64 0/min/max,Boolean true/false,
+   six nonempty strings clean/refused/unknown/policy-only/supervisor-lost/internal-error:
+   15 vectors),then39 ownership cases,max80 product calls including two controls.
+   Cases:old18 matrix vectors plus sticky input Fault->Reason in3directions,
+   plus9 output-leaf representatives in A/B directions(18cases). Representatives:
+   normal Schema,Mode,Reason,OriginVerified,Decision.DeadlineMs,DataEventCount,
+   WouldStopOwnedSession;prepared WouldClassification;refused FailureObservationIndex
+   (invalid observation0,Decision=null). Each case uses fresh inputs/two saved
+   results;literal full objects/exact types/direct descriptor+payload identity and
+   mutation-retention oracle. Preserve old failing case semantics;new names only
+   prevent earlier selected metadata confusing later checks. No test-only seam.
+2. Exact existing full API source(all,35PASS groups/38lines),new candidate routing.
+3. Exact existing ownership source(regression,18PASS groups/22lines),new routing.
+   Routing copies byte-equal except separate module path/directory selection;
+   expected semantic oracles/refusal indices/4096-4097/callback checks unchanged.
+No old baseline rerun:retained first-case RED is historical evidence,not a fresh
+RED for new assertions. Any new tests that pass are finite regression evidence,
+not independently proven mutant sensitivity. Freeze exact expanded inventories,
+new source/controller pins and old535 entries before first host;preconsume slots,
+save raw/exit/drain facts. Any failure stops later slots;no fix/retry/warmup/extra
+host. No reviewer,PS5,main or promotion follows even if all3 pass.
+
+Current NEW0/3UNAPPROVED_UNUSED;no candidate/test/controller prepared or executed
+this turn. Old1/1ownership/review/direct/full budgets and all broader blockers
+unchanged. Next approval may cover this design,isolated implementation/preparation
+AND the three ordered attempts together;not another drafting/prep-only cycle.
+Remaining risk:binding may still share scalar state;helper fixtures and behavioral
+ownership checks must decide. Partial representatives are not exhaustive proof.
+
+## Previous — first plain-scalar case observed descriptor contamination;STOP
 
 Afterae21a085,user approved preparation plus ONE bounded host.
 [Result/limits](2026-10-18-p1-plain-scalar-ownership-result.md).

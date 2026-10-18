@@ -16,7 +16,21 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[plain-scalar ownership first-case failure](../roadmap/2026-10-18-p1-plain-scalar-ownership-result.md).
+Latest handoff:[bounded scalar-return repair design](../roadmap/current-status.md).
+After29b49473,design/source inspection only;no new module/test/controller or host.
+Recommend NEW isolated candidate with common owned-result boundary for every
+scalar leaf,including root Reason/constants;retain exact schema/types/refusal
+guards. Primitive reboxing/fresh String construction is proposed,not verified.
+No shallow clone/cast or input sanitization claim;old failure/raw/source preserved.
+Proposed NEWmax3 ordered ordinary PS7 hosts:15scalar helper vectors+39ownership
+cases(max80product calls),existing full API,existing ownership suite. Each30s+
+2s exit+2s drain,fail-stop/no retry. NEW0/3UNAPPROVED_UNUSED. Approval would cover
+design plus isolated implementation/preparation/three attempts together;not
+review,promotion or merge. Old535pins/failing1/1 and all prior budgets unchanged.
+Restore latest dev branch,not main. Source/docs rationale and exact representatives
+are in current-status;cloning does not restore raw/runtimes or renew authority.
+
+Previous handoff:[plain-scalar ownership first-case failure](../roadmap/2026-10-18-p1-plain-scalar-ownership-result.md).
 Afterae21a085,one approved ordinary PS7 host observed a NoteProperty added through
 initially plain input Int32 ExitCode become visible on saved A.WouldExitCode.
 3calls;first case stopped before payload-content mutation,17later cases/final
