@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest preparation: [stage timing code, not run](../roadmap/2026-10-18-p1-stage-timing-preparation.md).
+Seven portable instrumentation/checklist files are prepared; only parser/data/
+static-preservation checks ran. Logger/checker behavior and all runtime results
+remain unverified. No launch controller/new allowance; old slots stay frozen.
+Do not launch the instrumented test merely because its source is available.
+
 Latest analysis: [observer cost and coverage](../roadmap/2026-10-18-p1-observer-cost-analysis.md).
 Read-only arithmetic confirms growing history-scan work, not measured timeout
 attribution. No new test run or code change; all frozen slots remain frozen.

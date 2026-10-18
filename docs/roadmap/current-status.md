@@ -1,5 +1,26 @@
 # Project status — updated 2026-10-18
 
+## Latest — stage-boundary timing code PREPARED ONLY / NOT RUN
+
+Afterfb38f5b8,user approved the bounded design for code/checklist preparation
+ONLY. Seven portable files now contain independent instrumented test,ordered
+inventory,offline text checker,anchors and checklist. No launch controller,
+new raw packet,execution allowance,target host or candidate/helper call.
+Original candidate1971F808 and all582frozen entries unchanged;old remaining
+slots stay frozen. No retries,scan reductions,timeout changes or acceptance.
+
+Static checks:both scripts parse;original4910significant tokens preserved
+after removing timing additions;original153base-line/53fact oracle unchanged.
+Prepared670stage pairs/1340TIMErecords with19fields(max1493total success lines).
+No runtime RED/GREEN or logger/checker behavior proof. Timing overhead is partly
+recorded with one-emission lag;unclassified work/final emission remain unknown.
+Open entry means ANNOUNCED,not confirmed body start. No measured timeout cause.
+
+See [preparation and remaining gates](2026-10-18-p1-stage-timing-preparation.md).
+Next suggested scope:separately approve offline fixture validation of logger/
+checker without candidate imports,before proposing a new bounded diagnostic.
+No new budget/unfreeze/main/I1/security/runtime/C12/release acceptance.
+
 ## Latest — observer cost/coverage analysis ONLY; no new run
 
 After753960b7,user approved the recommended read-only analysis. Rechecked582
