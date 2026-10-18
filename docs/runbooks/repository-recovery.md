@@ -16,7 +16,21 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[fixed-getter retention diagnostic COMPLETE](../roadmap/2026-10-18-p1-string-retention-fixed-getter-result.md).
+Latest handoff:[view-aware ownership regression design](../roadmap/current-status.md).
+After726a1f66,design only;no new test/controller/oracle or execution. Keep module
+1971F808 frozen. Proposed String inputs pre-wrapped before evaluations;outputs
+never replaced. Check effective mutation on held views and separately field
+rereads/cross-owner views;raw String reread loss alone is not isolation success.
+Two known-sharing fixture controls precede15scalar/39behavioral vectors;full
+literal/type/storage/identity/refusal guards retained. NEWmax3 ordered PS7 hosts:
+focused(max80decision+29directscalar+1directmetadata calls),existing full API,
+existing ownership. Each30s+2s+2s/fail-stop,no retry/repair/review/promotion.
+NEW0/3UNAPPROVED_UNUSED;approval would cover new test preparation plus3attempts
+together,not candidate changes. Old566pins,diagnostic1/1 and repair2frozen slots
+unchanged. Historical RED only,no fresh product-mutant sensitivity claim.
+Restore latest dev branch,not main;raw/runtimes/run authority do not clone/reset.
+
+Previous handoff:[fixed-getter retention diagnostic COMPLETE](../roadmap/2026-10-18-p1-string-retention-fixed-getter-result.md).
 After1749770d,new sibling getter-only correction kept4cases/schema/guards.
 One PS7 host776ms/exit0/no timeout/empty stderr/complete owned exit+capture.
 Both controls valid;raw String has same base but different reread views/no

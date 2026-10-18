@@ -1,6 +1,79 @@
 # Project status — updated 2026-10-18
 
-## Latest — fixed-getter retention diagnostic COMPLETE;candidate still unverified
+## Latest — view-aware ownership regression design;NOT PREPARED/RUN
+
+After726a1f66,user requested the recommended design revision only. Bounded
+existing-test change,short in-chat design;no new subsystem/formal plan artifact.
+Goal:valid post-return mutation evidence without treating raw String view loss
+as isolation success. Candidate1971F808 stays byte-identical;no guard/reducer/
+return change,promotion or acceptance. All566prior frozen entries remain.
+
+Recommend NEW standalone view-aware focused test/controller/oracles,referring
+to the existing tracked1971F808 module and exact existing full/ownership test
+sources. No edits to frozen leaves or module copies to accommodate a test.
+Keep15direct scalar vectors and39behavioral cases/full independent13+22field
+literal oracles/exact CLR base types. Preserve original primitive input->saved
+result witness semantics;new String input fields are explicitly wrapped and
+stored BEFORE both evaluations,initially undecorated. Never replace any selected
+input/result field after evaluation or after metadata attachment.
+
+Use the fixed-public-getter/reference/type observation functions established by
+the completed four-case diagnostic;copy only their helper definitions,never
+dot-source that executing probe. Retain strong per-field views/member collections
+for input,A andB BEFORE mutation,alongside field descriptors/raw storage types/
+base references. Public-view identity is proxy evidence,not a full binder trace.
+For all non-null copied scalar vectors require fresh backing objects and exact
+values/types;for behavioral outputs require fresh result/Decision containers and
+full unchanged literal results. Independent expectations never use candidate
+helpers/results. Candidate direct scalar calls are tested,not oracle builders.
+
+Mutation rules:
+- Primitive or actually stored PSObject leaves:attach via the existing selected
+  field view;require held AND field-reread descriptor/payload/mutation retention.
+- Actual raw String leaves:attach through the retained view of the existing
+  field;require real held-view descriptor/payload identity and mutable retention,
+  then inspect field reread independently. Reread loss is a capability fact,
+  NOT a sufficient pass condition. Never wrap/reassign the returned scalar.
+- In BOTH branches verify no metadata on every other PRE-RETAINED owner view
+  AND its fresh field reread,before/after payload mutation;retain base/field/type/
+  value invariants. Fresh String bases plus effective held-view mutation plus
+  cross-owner checks are required together;absence on a transient reread alone
+  proves nothing. Unknown storage,failed attachment/observer or inconsistent
+  facts is FIXTURE_INVALID/INCOMPLETE,not a skipped case or relaxed expectation.
+
+Before candidate calls,two fixed fixture-only positive contamination controls
+must show deliberately shared pre-stored String wrapper and shared boxed Int32
+metadata/payload visibility across two owners. Fresh independent counterparts
+must stay clean. Use distinct fresh bases/property names and fixed public SDK
+operations;no product proxy/global type-data. Controls validate the observer can
+see known sharing;they are NOT candidate-mutant sensitivity or admission proofs.
+Retain full value/type/refusal/index/callback/4096-4097 guards in old suites.
+
+Proposed NEWmax3 ordered ordinary fresh PS7 hosts,each30s+2s exit+2s drain:
+1. Two fixture controls,15scalar vectors,39ownership cases(two evaluations each)
+   and2normal controls. Max80 DECISION calls plus29 DIRECT scalar-copy helper
+   calls(14nonnull x2+null x1) and1 direct ownership-metadata helper call;internal
+   calls inside evaluations are not claimed to be counted by those bounds.
+   Same original39matrix/representative vectors,not additional product scenarios.
+   Emit fixed ordered labels plus fixed-schema facts for storage/capability and
+   actual mutation/cross-owner evidence;freeze complete inventory before launch.
+2. Existing full API -Group all,unchanged35PASSgroups/38lines,on1971F808.
+3. Existing ownership -Group regression,unchanged18PASSgroups/22lines,same module.
+New scope is separate from the two OLD frozen repair slots;do not reuse them.
+No old baseline rerun or new product mutant:historical Int32 RED retained,and
+new positive contamination controls prove observer capability only. New/revised
+assertions have no fresh product-negative-control proof;report that limit.
+Preconsume each slot,pin566old entries/raw anchors+new files/ordered schemas and
+capture original streams. Any failure stops later slots,without retry,repair,
+warmup,extra probe/host,review or promotion. Even3passed does not close I1 or
+grant main/security/runtime/C12/release/PS5/performance acceptance.
+
+Current NEW0/3UNAPPROVED_UNUSED;no test/controller/oracle prepared,no candidate
+or helper executed this turn. Old diagnostics1/1spent,repair1/3SPENT+2/3FROZEN
+and all broader limits unchanged. Next approval may cover only test revision/
+preparation AND these3ordered attempts together;candidate source changes excluded.
+
+## Previous — fixed-getter retention diagnostic COMPLETE;candidate still unverified
 
 After1749770d,user approved only getter correction/new one-host diagnostic.
 [Measured four-case result](2026-10-18-p1-string-retention-fixed-getter-result.md).
