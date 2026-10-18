@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — owned-return candidate implemented;String fixture INVALID;STOP
+## Latest — readonly String retention analysis;wrapper hypothesis,NOT FIXED
+
+Aftere5e1a956,user requested readonly diagnosis only.
+[Source trace/confidence](2026-10-18-p1-string-retention-readonly-analysis.md).
+PowerShell7.6.5 upstream source keys String extended members by wrapping PSObject,
+not merely String base identity. Fixture attaches through one field access then
+rereads through another without recording/persisting that wrapper identity.
+Temporary/changed wrapper is a source-supported explanation for retention loss,
+NOT a dynamically proven exact binding path or candidate String defect/isolation.
+Old predecorated-wrapper replacement tests exercise a different path.
+No module/helper/import/probe/test or code change;548frozen entries and old receipt
+hashes held. Candidate1971F808 remains UNVERIFIED/UNACCEPTED;prior9scalar passes,
+String FIXTURE_INVALID,calls0/all39unrun and repair1/3SPENT+2/3UNUSED_FROZEN
+unchanged. Old Int32 contamination remains real evidence,not explained away.
+Next define a NEW fixture-only wrapper-identity/retention characterization before
+candidate revisions;preserve actual field semantics/no post-attachment replacement
+or relaxed fidelity. Exact probe/budget approval pending,no automatic execution.
+
+## Previous — owned-return candidate implemented;String fixture INVALID;STOP
 
 After7bbaf3a6,user approved isolated implementation plus three ordered bounded
 hosts. [Result and precise limits](2026-10-18-p1-owned-return-repair-result.md).

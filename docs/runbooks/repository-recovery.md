@@ -16,7 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[owned-return candidate String fixture failure](../roadmap/2026-10-18-p1-owned-return-repair-result.md).
+Latest handoff:[readonly String retention source analysis](../roadmap/2026-10-18-p1-string-retention-readonly-analysis.md).
+Aftere5e1a956,no code/probe/helper/test executions. Upstream7.6.5 source supports
+wrapper-specific String metadata identity;fixture's two field accesses do not
+record/persist the same wrapper. This is a hypothesis consistent with the saved
+failure,not a runtime-confirmed binding trace or candidate success/defect verdict.
+548pins/old receipts held;candidate1971F808 unaccepted,repair1/3SPENT+2/3FROZEN,
+all39cases unrun and old Int32 contamination evidence unchanged. Next separately
+design a fixture-only wrapper-identity/retention probe,not candidate wrapping to
+force a pass. No post-attachment field replacement or oracle relaxation.
+Restore latest dev branch,not main;no run allowance follows from cloning.
+
+Previous handoff:[owned-return candidate String fixture failure](../roadmap/2026-10-18-p1-owned-return-repair-result.md).
 After7bbaf3a6,isolated candidate1971F808 implemented with3ownership helpers/two
 return reroutes;old source/tests untouched. First of3approved PS7 hosts stopped
 after9scalar PASS vectors:first String attachment not retained,FIXTURE_INVALID.
