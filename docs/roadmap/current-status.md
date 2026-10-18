@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — confirmed local reload still times out; inherited slot frozen
+
+After9feeab1b/design approval,[loading-context diagnostic](2026-10-18-p1-loading-context-comparison.md)
+spent new1/2:Local ordinary PS5 cap30000ms,actual30081ms/CPU31546.875ms,
+exit-1,empty stderr,owned exit.75 lines/48 PASS,eight events/two bindings;
+Evaluate4096 open. All13 active functions resolve original file/same bodies,
+different FunctionInfo/ScriptBlock references. Reload alone not sufficient;
+Inherited unrun/FROZEN,no completed pair or relative-speed claim.283 pins held;
+six copied scripts+README portable,original product/tests unchanged. Caller-after
+not reached,restoration unverified. All older budgets/review ineligibility/
+PS5-I1-P1 blockers unchanged. Next read-only hot-loop reflection/member cost model;
+no automatic retry,unfreeze,guard removal,limit increase or main acceptance.
+
 ## Latest — read-only audit identifies loading-context confound, not root cause
 
 After2697b28e,[loading/scope audit](2026-10-18-p1-loading-scope-readonly-audit.md)

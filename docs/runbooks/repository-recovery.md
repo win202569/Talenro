@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest diagnostic:[local reload timeout](../roadmap/2026-10-18-p1-loading-context-comparison.md).
+After9feeab1b and design approval,new1/2 spent:Local30081ms/CPU31546.875ms,
+exit-1,48 PASS,Evaluate4096 open.13 reloaded function/scriptblock references
+differ while original source/body hashes match;reload alone not sufficient.
+Inherited remaining slot FROZEN,no completed pair;caller-after isolation unverified.
+283 pins held. Recover seven ps5-loading-context files/report/status,not ignored
+controller/raw/runtime or replay authority. Original source/tests unchanged;
+old budgets/review ineligibility/PS5-I1-P1 blockers persist. Next read-only cost
+model,no automatic extra run,unfreeze,larger timeout or main acceptance.
+
 Latest read-only finding:[loading/scope confound](../roadmap/2026-10-18-p1-loading-scope-readonly-audit.md).
 After2697b28e,zero tests/source edits;270 pins held. Diagnostic4096 reloads whole
 product inside helper;original uses previously script-loaded functions. Original
