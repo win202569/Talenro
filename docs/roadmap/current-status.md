@@ -1,5 +1,30 @@
 # Project status — updated 2026-10-18
 
+## Latest — view-aware ownership: TIMEOUT / EXECUTION_INCOMPLETE
+
+User approved the d10d39ee design and NEW max-three ordered hosts. Prepared
+six standalone portable files; candidate1971F808 and all old frozen leaves
+unchanged. Frozen582pin entries. NEW1/3consumed:focused hit30s wall limit,
+elapsed30093ms/exit-1;owned host exited,streams complete,stderr0,pins intact,
+no controller error. No retry/repair/reviewer. NEWremaining2/3FROZEN_UNRUN:
+full API and old ownership were NOT launched. Old frozen budgets unchanged.
+
+Saved103/153ordered lines,37/53schema-valid facts,41PASSlabels. Read-only
+prefix reconciliation confirms2sharing controls,all15scalar vectors,
+control-before,and23/39behavioral cases(all21input/A/B rows +root-schemaA/B).
+Next root-mode-A began withoutFACT/PASS;no finalRESULT/control-after.
+29directscalar+1directmetadata calls completed;at least47decisioncalls
+completed,next case exact interrupted count unknown(max49attempts from order).
+No reported ownership gap in prefix;NOT full pass or candidate acceptance.
+12rawString facts have effective held mutation but no reread retention;
+3pre-storedString wrappers retain both. Absence alone did not earn a pass.
+
+See [bounded result and recovery](2026-10-18-p1-view-aware-ownership-result.md).
+Timeout attribution is unproven;repeated prior-view/reflection scans are only
+a static cost hypothesis. Next:read-only cost/coverage analysis,then separately
+approve any bounded redesign. Do not retry/unfreeze later slots automatically.
+No I1/main/security/runtime/C12/release/PS5/performance acceptance.
+
 ## Latest — view-aware ownership regression design;NOT PREPARED/RUN
 
 After726a1f66,user requested the recommended design revision only. Bounded

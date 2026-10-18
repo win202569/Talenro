@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest execution: [view-aware ownership timeout checkpoint](../roadmap/2026-10-18-p1-view-aware-ownership-result.md).
+NEW first slot consumed: 30s timeout, 23/39 behavioral cases completed, no full
+pass. Remaining full API/ownership slots frozen and unrun; do not retry them.
+Six new portable source/oracle files are tracked; candidate 1971F808 unchanged.
+Read the result report and current status before older historical handoffs below.
+A clone restores source/progress, not ignored raw packets or execution allowance.
+
 Clone `https://github.com/win202569/Talenro.git` and select the branch/commit named
 in the latest handoff; do not assume `main` contains an unaccepted checkpoint.
 For the latest development work, use `codex/c12-b01-task9-coordinator` and verify

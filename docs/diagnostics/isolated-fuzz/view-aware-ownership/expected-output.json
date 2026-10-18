@@ -1,0 +1,658 @@
+{
+  "Schema": 1,
+  "focused": [
+    "HOST: 7.6.5 Core x64=True admin=False",
+    "PASS: control-shared-string",
+    "PASS: control-shared-int32",
+    "PASS: scalar-null",
+    "{Fact:scalar-int32-zero}",
+    "PASS: scalar-int32-zero",
+    "{Fact:scalar-int32-min}",
+    "PASS: scalar-int32-min",
+    "{Fact:scalar-int32-max}",
+    "PASS: scalar-int32-max",
+    "{Fact:scalar-int64-zero}",
+    "PASS: scalar-int64-zero",
+    "{Fact:scalar-int64-min}",
+    "PASS: scalar-int64-min",
+    "{Fact:scalar-int64-max}",
+    "PASS: scalar-int64-max",
+    "{Fact:scalar-bool-true}",
+    "PASS: scalar-bool-true",
+    "{Fact:scalar-bool-false}",
+    "PASS: scalar-bool-false",
+    "{Fact:scalar-string-clean}",
+    "PASS: scalar-string-clean",
+    "{Fact:scalar-string-refused}",
+    "PASS: scalar-string-refused",
+    "{Fact:scalar-string-unknown}",
+    "PASS: scalar-string-unknown",
+    "{Fact:scalar-string-mode}",
+    "PASS: scalar-string-mode",
+    "{Fact:scalar-string-fault}",
+    "PASS: scalar-string-fault",
+    "{Fact:scalar-string-error}",
+    "PASS: scalar-string-error",
+    "PASS: control-before",
+    "BEGIN: normal-exit-int32-input",
+    "{Fact:normal-exit-int32-input}",
+    "PASS: normal-exit-int32-input",
+    "BEGIN: normal-exit-int32-A",
+    "{Fact:normal-exit-int32-A}",
+    "PASS: normal-exit-int32-A",
+    "BEGIN: normal-exit-int32-B",
+    "{Fact:normal-exit-int32-B}",
+    "PASS: normal-exit-int32-B",
+    "BEGIN: normal-exit-int64-input",
+    "{Fact:normal-exit-int64-input}",
+    "PASS: normal-exit-int64-input",
+    "BEGIN: normal-exit-int64-A",
+    "{Fact:normal-exit-int64-A}",
+    "PASS: normal-exit-int64-A",
+    "BEGIN: normal-exit-int64-B",
+    "{Fact:normal-exit-int64-B}",
+    "PASS: normal-exit-int64-B",
+    "BEGIN: normal-observed-input",
+    "{Fact:normal-observed-input}",
+    "PASS: normal-observed-input",
+    "BEGIN: normal-observed-A",
+    "{Fact:normal-observed-A}",
+    "PASS: normal-observed-A",
+    "BEGIN: normal-observed-B",
+    "{Fact:normal-observed-B}",
+    "PASS: normal-observed-B",
+    "BEGIN: normal-natural-input",
+    "{Fact:normal-natural-input}",
+    "PASS: normal-natural-input",
+    "BEGIN: normal-natural-A",
+    "{Fact:normal-natural-A}",
+    "PASS: normal-natural-A",
+    "BEGIN: normal-natural-B",
+    "{Fact:normal-natural-B}",
+    "PASS: normal-natural-B",
+    "BEGIN: normal-classification-input",
+    "{Fact:normal-classification-input}",
+    "PASS: normal-classification-input",
+    "BEGIN: normal-classification-A",
+    "{Fact:normal-classification-A}",
+    "PASS: normal-classification-A",
+    "BEGIN: normal-classification-B",
+    "{Fact:normal-classification-B}",
+    "PASS: normal-classification-B",
+    "BEGIN: sticky-classification-input",
+    "{Fact:sticky-classification-input}",
+    "PASS: sticky-classification-input",
+    "BEGIN: sticky-classification-A",
+    "{Fact:sticky-classification-A}",
+    "PASS: sticky-classification-A",
+    "BEGIN: sticky-classification-B",
+    "{Fact:sticky-classification-B}",
+    "PASS: sticky-classification-B",
+    "BEGIN: sticky-reason-input",
+    "{Fact:sticky-reason-input}",
+    "PASS: sticky-reason-input",
+    "BEGIN: sticky-reason-A",
+    "{Fact:sticky-reason-A}",
+    "PASS: sticky-reason-A",
+    "BEGIN: sticky-reason-B",
+    "{Fact:sticky-reason-B}",
+    "PASS: sticky-reason-B",
+    "BEGIN: root-schema-A",
+    "{Fact:root-schema-A}",
+    "PASS: root-schema-A",
+    "BEGIN: root-schema-B",
+    "{Fact:root-schema-B}",
+    "PASS: root-schema-B",
+    "BEGIN: root-mode-A",
+    "{Fact:root-mode-A}",
+    "PASS: root-mode-A",
+    "BEGIN: root-mode-B",
+    "{Fact:root-mode-B}",
+    "PASS: root-mode-B",
+    "BEGIN: root-reason-A",
+    "{Fact:root-reason-A}",
+    "PASS: root-reason-A",
+    "BEGIN: root-reason-B",
+    "{Fact:root-reason-B}",
+    "PASS: root-reason-B",
+    "BEGIN: root-origin-A",
+    "{Fact:root-origin-A}",
+    "PASS: root-origin-A",
+    "BEGIN: root-origin-B",
+    "{Fact:root-origin-B}",
+    "PASS: root-origin-B",
+    "BEGIN: decision-deadline-A",
+    "{Fact:decision-deadline-A}",
+    "PASS: decision-deadline-A",
+    "BEGIN: decision-deadline-B",
+    "{Fact:decision-deadline-B}",
+    "PASS: decision-deadline-B",
+    "BEGIN: decision-events-A",
+    "{Fact:decision-events-A}",
+    "PASS: decision-events-A",
+    "BEGIN: decision-events-B",
+    "{Fact:decision-events-B}",
+    "PASS: decision-events-B",
+    "BEGIN: decision-stop-A",
+    "{Fact:decision-stop-A}",
+    "PASS: decision-stop-A",
+    "BEGIN: decision-stop-B",
+    "{Fact:decision-stop-B}",
+    "PASS: decision-stop-B",
+    "BEGIN: prepared-classification-A",
+    "{Fact:prepared-classification-A}",
+    "PASS: prepared-classification-A",
+    "BEGIN: prepared-classification-B",
+    "{Fact:prepared-classification-B}",
+    "PASS: prepared-classification-B",
+    "BEGIN: refused-index-A",
+    "{Fact:refused-index-A}",
+    "PASS: refused-index-A",
+    "BEGIN: refused-index-B",
+    "{Fact:refused-index-B}",
+    "PASS: refused-index-B",
+    "PASS: control-after",
+    "RESULT: ISOLATED_WITHIN_MATRIX cases=39 calls=80 scalarCalls=29 metadataCalls=1",
+    "LIMIT: stated PS7 vectors only; no I1 closure, repair, promotion or runtime acceptance."
+  ],
+  "full": [
+    "{Context}",
+    "PASS: P1ApiRequired",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P1EmptyPrepared",
+    "PASS: P1NormalStages",
+    "PASS: P1AbsoluteDeadline",
+    "PASS: P1StopBoundary",
+    "PASS: P1TotalDeadline",
+    "PASS: P1StartupConsumesBudget",
+    "PASS: P1EqualTimeSequence",
+    "PASS: P1BackwardTime",
+    "PASS: P1SequenceRefusal",
+    "PASS: P1SessionClockRefusal",
+    "PASS: P1ActorDirection",
+    "PASS: P1ArmPrerequisites",
+    "PASS: P1ReleaseOnce",
+    "PASS: P1ProgressMonotonic",
+    "PASS: P1ExitBeforeEOF",
+    "PASS: P1UnknownExit",
+    "PASS: P1NonzeroExit",
+    "PASS: P1DataBounds",
+    "PASS: P1ControlBounds",
+    "PASS: P1ReadFault",
+    "PASS: P1SupervisorLost",
+    "PASS: P1LauncherLost",
+    "PASS: P1FailureSticky",
+    "PASS: P1PhaseBudgets",
+    "PASS: P1CleanupUnknown",
+    "PASS: P1PersistRefused",
+    "PASS: P1TerminalTrailing",
+    "PASS: P1InvalidScenario",
+    "PASS: P1InvalidObservation",
+    "PASS: P1PassiveDescriptors",
+    "PASS: P1ArrayAndIntegerBounds",
+    "PASS: P1CallerMutation",
+    "PASS: P1ConservativeFlags",
+    "PASS: P1Complete",
+    "LIMIT: synthetic supervision policy only;no OS,real clock,pipes,containment or cleanup proof."
+  ],
+  "ownership": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P1I1FixtureConstructor",
+    "PASS: P1I1FixturePrimitiveMatrix",
+    "PASS: P1I1FixtureDescriptors",
+    "PASS: P1I1FixtureInputIdentity",
+    "PASS: P1I1FixtureIsolation",
+    "PASS: P1I1FixtureWrappedInputIdentity",
+    "PASS: P1I1FixtureExtendedView",
+    "PASS: P1I1FixtureComplete",
+    "LIMIT: fixture construction only; no product import, product assertions, I1 closure or repair-budget renewal.",
+    "PASS: P1I1ApiRequired",
+    "PASS: P1I1DecoratedInteger",
+    "PASS: P1I1DecoratedBoolean",
+    "PASS: P1I1DecoratedString",
+    "PASS: P1I1RootScalars",
+    "PASS: P1I1ObservationScalars",
+    "PASS: P1I1PassiveDescriptors",
+    "PASS: P1I1SequentialIsolation",
+    "PASS: P1I1PlainControls",
+    "PASS: P1I1Complete",
+    "LIMIT: decorated-scalar refusal and sequential isolation only; no live supervision, concurrency or runtime acceptance."
+  ],
+  "FactProperties": [
+    "Case",
+    "StoredType",
+    "BaseType",
+    "HeldDescriptorRetained",
+    "HeldPayloadSame",
+    "HeldMutationRetained",
+    "RereadDescriptorRetained",
+    "RereadMutationRetained",
+    "FieldBaseUnchanged",
+    "CrossOwnerClean",
+    "IndependentBase"
+  ],
+  "Facts": [
+    {
+      "Case": "scalar-int32-zero",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-int32-min",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-int32-max",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-int64-zero",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-int64-min",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-int64-max",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-bool-true",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-bool-false",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-clean",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-refused",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-unknown",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-mode",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-fault",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "scalar-string-error",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int32-input",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int32-A",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int32-B",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int64-input",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int64-A",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-exit-int64-B",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-observed-input",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-observed-A",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-observed-B",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-natural-input",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-natural-A",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-natural-B",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-classification-input",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-classification-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "normal-classification-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-classification-input",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-classification-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-classification-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-reason-input",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-reason-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "sticky-reason-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-schema-A",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-schema-B",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-mode-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-mode-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-reason-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-reason-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-origin-A",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "root-origin-B",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-deadline-A",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-deadline-B",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-events-A",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-events-B",
+      "BaseType": "System.Int64",
+      "StoredTypes": [
+        "System.Int64",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-stop-A",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "decision-stop-B",
+      "BaseType": "System.Boolean",
+      "StoredTypes": [
+        "System.Boolean",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "prepared-classification-A",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "prepared-classification-B",
+      "BaseType": "System.String",
+      "StoredTypes": [
+        "System.String",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "refused-index-A",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    },
+    {
+      "Case": "refused-index-B",
+      "BaseType": "System.Int32",
+      "StoredTypes": [
+        "System.Int32",
+        "System.Management.Automation.PSObject"
+      ]
+    }
+  ]
+}
