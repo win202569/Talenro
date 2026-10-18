@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest failed repair:[scalar continuation](../roadmap/2026-10-18-p2b-scalar-raw-continuation.md).
+Latest read-only findings:[scalar reserved metadata](../roadmap/2026-10-18-p2b-scalar-reserved-readonly.md).
+Saved clean raw2/nonreserved0 versus decorated raw3/nonreserved1 confirms the
+empty-raw rule is wrong. SDK mechanism/root structural checks provide context,
+NOT actual scalar owner/name/class proof;these were not saved. Fresh-output
+inner error/inventory remains unknown. Next needs an approved bounded revised
+design with scalar/array/fresh-output identity proof and finite new verification
+scope;do not reuse the last frozen full slot or assume implementation approval.
+No product/test/controller/fixture changes or execution,new host/reviewer here.
+1056pins intact;failed18DA24E1 and historicalB468B564 unchanged;M1 remains OPEN.
+Original2/3spent,last1/3FROZEN,review0/1ineligible. Recover latest devbranch,
+not main;failed candidate must not be adopted. Clone restores portable report/
+source,not ignored raw/SDK/runtime/cache/mappings/session state or budget resets.
+
+Historical failed repair:[scalar continuation](../roadmap/2026-10-18-p2b-scalar-raw-continuation.md).
 WARNING: p2b-scalar-raw-repair/control-frame.ps1 is sealed18DA24E1,KNOWN FAILING,
 not a usable repaired candidate. Historical structuralB468B564 remains unchanged
 with its open hidden-decoration gap. Saved RED reconciled read-only,old receipt

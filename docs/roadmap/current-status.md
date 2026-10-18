@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — scalar repair too strict; first clean control fails, last slot frozen
+## Latest — read-only scalar reserved comparison complete; revised design still required
+
+[Read-only findings](2026-10-18-p2b-scalar-reserved-readonly.md).
+Saved35case matrix confirms clean raw2/nonreserved0 versus decorated raw3/
+nonreserved1. SDK source explains shared instance metadata/materialization,
+but actual scalar reserved names/classes/owner references were NOT saved.
+Existing root structural checks validate exact types/flags/owner/code references;
+root proof does not transfer to scalar/array/fresh-output instances. Empty-raw,
+count-only,Reserved-flag-only and blanket hidden skipping are insufficient.
+Fresh-output inner failure remains masked/missing;do not invent its inventory.
+No product/test/fixture/controller change or execution,new host or reviewer.
+1056pins intact;failed18DA24E1 and historicalB468B564 unchanged,M1 OPEN.
+Original2/3spent,last1/3FROZEN,review0/1ineligible. Next bounded revised design
+and new finite verification scope need approval;no new allowance implied.
+Only findings/status/recovery preserved on development branch,not main.
+
+## Historical — scalar repair too strict; first clean control fails, last slot frozen
 
 [Continuation report](2026-10-18-p2b-scalar-raw-continuation.md).
 Approved saved-RED reconciliation succeeded without rewriting old INCOMPLETE
