@@ -1,4 +1,15 @@
-# Parent dispositions — 2026-10-18
+# Authorized evidence-only correction after19c567a1
+
+The user explicitly approved lossless derived-summary correction and readonly
+comparison only. Historical Important1 below is now resolved:8integer tokens
+restored;all9embedded evidence subtrees match unchanged raw files,including
+exact numeric lexemes. All26packet files/1326pins/product unchanged. Zero new
+targets,compiles or reviewers. Minor2 remains accepted/deferred;all5scope
+qualifications remain. This is parent verification,not a new reviewer verdict.
+[Correction record](../../../roadmap/2026-10-18-p2b-inbox-evidence-correction.md).
+Original parent dispositions and independent review below remain unaltered.
+
+# Parent dispositions — 2026-10-18 (historical before authorized correction)
 
 The text below the verbatim-review heading is the complete independent response,
 not a parent rewrite. Parent reviewed every finding against unchanged sources

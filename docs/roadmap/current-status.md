@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — inbox tree-copy five exact; portable UInt64 evidence blocks completion
+## Latest — inbox tree-copy evidence corrected; bounded checkpoint complete
+
+[Correction record](2026-10-18-p2b-inbox-evidence-correction.md).
+User authorized evidence-only correction after19c567a1. Exactly8rounded integer
+tokens restored losslessly;readonly comparison of all9embedded evidence subtrees
+with raw records gives0differences. All26rawpacketfiles/1326pins/product unchanged.
+Important1 resolved by parent verification;original review/verdict preserved,
+no re-review. Minor2 scalar ETS assertion gap remains accepted/deferred.
+Five saved runs remain exact(two44PASS),new5hosts+1reviewer exhausted;
+oldoriginal2spent+3FROZEN/diagnostic1spent unchanged. This turn0targets/compiles/
+reviewers,no frozen input edits. No main/formal/runtime/fullC12 acceptance.
+Next work must respect recorded scope limits;do not automatically replay tests.
+
+## Historical — inbox tree-copy five exact; portable UInt64 evidence blocked completion
 
 [Execution record](2026-10-18-p2b-inbox-tree-copy-repair.md).
 After8f0d8ba2 user released only3unlaunched slots+conditionalreview. NoRED/full

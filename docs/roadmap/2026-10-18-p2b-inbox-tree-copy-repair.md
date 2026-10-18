@@ -1,6 +1,19 @@
 # P2-B inbox tree-copy repair — bounded verification and review
 
-## Continuation after8f0d8ba2 — five exact; evidence defect blocks completion
+## Latest — authorized evidence correction complete, limited checkpoint only
+
+[Lossless correction record](2026-10-18-p2b-inbox-evidence-correction.md).
+After19c567a1 the user approved only derived-summary correction and readonly
+comparison. Eight JSON integer tokens were restored without floating-point
+conversion. All9embedded evidence subtrees now match unchanged raw records,
+including exact numeric lexemes;26packet files/1326pins/product unchanged.
+Important1 resolved by parent verification,no new reviewer or verdict rewrite.
+Minor2 remains accepted/deferred;no frozen test change. All five saved runs
+remain exact. No new targets,compiles,reviews,main merge or formal acceptance.
+Status:BOUNDED_VERIFIED_EVIDENCE_CORRECTED. Historical stops/findings below
+are preserved,not the current unresolved status.
+
+## Historical continuation after8f0d8ba2 — five exact; evidence defect blocked completion
 
 The user explicitly released only the three unlaunched capacity/sequence/final
 slots and the existing conditional reviewer. RED and the completed full were

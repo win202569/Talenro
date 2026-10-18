@@ -7,14 +7,16 @@
 **Tech Stack:** 普通Windows PS7.6.5Corex64、固定PowerShell SDK、原模块/固定CLR元数据；无产品编译、真实I/O或新依赖。
 **Spec:** [已批准inbox设计](../specs/2026-10-18-p2b-bounded-inbox-design.md)§3所有权/§6快照/§7验证；SHA43036F17E712CA2AA57F51CA09BAFF874DB53F954FADF82CBCD6388763B2585B。
 
-状态：UNFINISHED_REVIEW_BLOCKED_PORTABLE_UINT64。用户在8f0d8ba2后批准只释放未启动3轮
+状态：BOUNDED_VERIFIED_EVIDENCE_CORRECTED。用户在8f0d8ba2后批准只释放未启动3轮
 及条件审查，不重跑RED/full、不改冻结输入。此前容量缩进错误已精确还原，
 历史前置拒绝记录保留。容量/序号mutants均指定断言，随后最终组合49行/
 44PASS，与原full一致。ImplementationApproved=true；RuntimeApproved=false。
 NEW5/5SPENT，0remaining；只读review1/1完成，Critical0/Important1/Minor1。
-Important：可携带摘要的UInt64边界值被代理JSON转换舍入；原始记录与哈希
-正确不变，但证据交付未完成。Minor：Count.Probe隔离未直接断言，接受延期。
-未自动修复/补测/更换reviewer；完整审查及5项declined处置已保存。
+历史Important：摘要UInt64舍入；用户在19c567a1后明确批准仅无损校正及只读核对。
+8处整数原文已恢复，9份嵌入记录与原始文件零差异；26原始文件/1326pins/
+产品均不变。本轮0目标/编译/审查，未重写原审查结论。Important1已按授权
+校正并由父代理核对；Minor的Count.Probe直接断言缺口仍接受延期。
+限定开发检查点完成，非正式验收；完整原审查及5项declined处置继续保留。
 原2/5SPENT+3FROZEN及独立诊断1/1SPENT不变。
 实测/处置见[执行记录](../../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md)。
 
@@ -218,7 +220,8 @@ Task2只读审查已完成，证据精度Important阻塞，Minor延期，5项dec
 必要源码、结果、完整审查和恢复文档作为明确unfinished检查点保存。
 
 用户已批准Native/新5+1及停止后的3轮/条件审查续行，现五轮均精确。
-唯一只读review的Important已触发停止；不自动修复/补测/更换审查者。
-下一步建议显式批准仅无损校正派生摘要并只读逐字比较，0目标/编译/审查，
-不改冻结产品/测试/预期/控制器，也不把该校正当成Minor修复或正式验收。
+唯一只读review的Important曾触发停止；之后经显式批准仅无损校正派生摘要，
+并只读逐字核对完成，0目标/编译/审查。记录见
+[校正报告](../../roadmap/2026-10-18-p2b-inbox-evidence-correction.md)。
+冻结产品/测试/预期/控制器不变；Minor延期，未获得正式验收/运行/main许可。
 原2/5SPENT+3FROZEN和诊断1/1SPENT始终不变。

@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Current continuation:[inbox tree-copy verification](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
+Latest:[authorized inbox evidence correction](../roadmap/2026-10-18-p2b-inbox-evidence-correction.md).
+After19c567a1 approval,8summary integer tokens corrected by exact text,all9
+embedded evidence subtrees match unchanged raw files. Important1 resolved by
+parent readonly comparison;not a new review verdict. Minor2 remains deferred.
+All26packetfiles/1326pins/product unchanged;0new targets/compiles/reviewers.
+The specified bounded development checkpoint is complete,not formal acceptance,
+main merge or live/fullC12 approval. Five saved runs and one reviewer exhausted;
+old budgets unchanged. Recover current existingdevbranch,retain history and
+all review qualifications. Never roundtrip large JSON integers through JS Number.
+Clone does not restore raw packets,dependencies,credentials,CLR identity or rights.
+
+Historical continuation:[inbox tree-copy verification](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
 After8f0d8ba2 explicit approval,only capacity/sequence/final ran. All5rows exact,
 both mutants' intended assertions observed,each restored exactgood47BABFED... .
 Final49lines44PASS matches firstfull stdout andbothtraces. NoRED/fullreplay.

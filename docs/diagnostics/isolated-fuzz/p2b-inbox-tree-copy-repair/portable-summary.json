@@ -1,7 +1,7 @@
 {
   "Schema": 1,
   "Mode": "p2b-inbox-tree-copy-repair-portable-summary",
-  "Status": "UNFINISHED_REVIEW_BLOCKED_PORTABLE_UINT64",
+  "Status": "BOUNDED_VERIFIED_EVIDENCE_CORRECTED",
   "BaseCommit": "131fee8584a1b308d28152abff3151da3ab41554",
   "ImplementationApproved": true,
   "Method": "Native",
@@ -11,7 +11,7 @@
     "RemainingFrozen": 0,
     "ReviewerConsumed": 1,
     "ReviewerEligible": false,
-    "ReviewerStatus": "COMPLETE_BLOCKING_FINDING"
+    "ReviewerStatus": "COMPLETE_FINDING_RESOLVED_BY_AUTHORIZED_EVIDENCE_CORRECTION"
   },
   "HistoricalBudget": {
     "OriginalSpent": 2,
@@ -370,22 +370,22 @@
     "Synthetic": [
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 18446744073709552000,
+        "After": 18446744073709551614,
         "Last": 0
       }
     ],
@@ -524,7 +524,7 @@
     "The representation probe observes its own controlled test object, not the vanished historical diagnostic object.",
     "No full repository, Docker, Go, PS5, live, main, full C12 or formal acceptance.",
     "Portable JSON is a derived record; it does not restore CLR identity, live tokens, ignored raw packets, dependencies, credentials or execution rights.",
-    "Embedded OriginalTrace/FinalOriginalTrace Synthetic UInt64 values are known rounded and are NOT exact boundary evidence; raw trace hashes are correct. Handoff remains unfinished."
+    "The eight rounded UInt64 tokens were corrected under explicit authority and all nine embedded evidence subtrees match unchanged raw records, including exact number lexemes. Consumers must not roundtrip these JSON integers through JavaScript Number. No new review or formal acceptance."
   ],
   "RuntimeApproved": false,
   "SourceVerified": false,
@@ -764,22 +764,22 @@
     "Synthetic": [
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 9223372036854776000,
+        "After": 9223372036854775808,
         "Last": 0
       },
       {
         "Before": 1,
-        "After": 18446744073709552000,
+        "After": 18446744073709551614,
         "Last": 0
       }
     ],
@@ -871,12 +871,12 @@
     "Critical": 0,
     "Important": 1,
     "Minor": 1,
-    "ImportantDisposition": "ACCEPTED/BLOCKING: derived UInt64 integers rounded; raw traces/hashes correct. Do not use embedded Synthetic values as exact evidence. No automatic correction.",
+    "ImportantDisposition": "ACCEPTED/RESOLVED_BY_AUTHORIZED_EVIDENCE_CORRECTION after19c567a1: eight integer tokens restored losslessly; nine evidence subtrees compared directly with unchanged raw files, zero differences. Original review preserved; no re-review or new test.",
     "MinorDisposition": "ACCEPTED/DEFERRED: Count.Probe scalar ETS isolation is not directly asserted; frozen tests unchanged.",
     "DeclinedToJudgeItems": 5,
     "AllParentDispositionsPreserved": true,
     "ProductionDefectIdentified": false,
-    "ScopedCheckpointComplete": false,
+    "ScopedCheckpointComplete": true,
     "NewReviewersAllowed": 0
   },
   "KnownDefects": [
@@ -886,14 +886,32 @@
         "OriginalTrace.Synthetic[].After",
         "FinalOriginalTrace.Synthetic[].After"
       ],
-      "Problem": "UInt64 integer precision lost through JavaScript Number JSON roundtrip. Embedded values are inaccurate; consult unchanged raw trace/hash and verbatim review. Correction requires explicit disposition.",
+      "Problem": "Historical UInt64 precision loss through JavaScript Number JSON roundtrip; corrected only after explicit user approval following19c567a1.",
+      "Status": "RESOLVED_BY_AUTHORIZED_LOSSLESS_CORRECTION",
       "RawEvidenceChanged": false,
-      "AutomaticFixPerformed": false
+      "AutomaticFixPerformed": false,
+      "AuthorizedFixPerformed": true
     },
     {
       "ID": "review-minor-2",
       "Problem": "New scalar Count.Probe decorations not directly checked for retained/absent metadata across snapshots.",
       "Disposition": "Deferred; no frozen suite modification or new execution."
     }
-  ]
+  ],
+  "EvidenceCorrection": {
+    "ApprovalAfterCommit": "19c567a18dfbe6490bc77cdd46ad1d48cdadf3a7",
+    "Record": "docs/roadmap/2026-10-18-p2b-inbox-evidence-correction.md",
+    "Representation": "Exact original JSON integer lexemes; no field-type conversion and no JavaScript Number serialization.",
+    "ChangedIntegerTokens": 8,
+    "ComparedEvidenceSubtrees": 9,
+    "DifferencesBefore": 8,
+    "DifferencesAfter": 0,
+    "RawPacketFilesUnchanged": 26,
+    "FrozenPinsIntact": 1326,
+    "AdditionalTargets": 0,
+    "AdditionalCompiles": 0,
+    "AdditionalReviewers": 0,
+    "Verification": "Parent readonly comparison of JSON kinds, property names/order, arrays, decoded strings and exact number/bool/null tokens; not a replacement reviewer.",
+    "FormalAcceptance": false
+  }
 }
