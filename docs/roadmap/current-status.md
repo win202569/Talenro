@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — strict descriptor candidate STOPPED at full SequenceExact regression
+## Latest — high binding returns invalid-input; three additional reserved entries captured
+
+User approved the recommended one-host evidence-only diagnostic after5431f760.
+[Diagnostic report](2026-10-18-p2b-sequence-binding-diagnostic.md):
+PID46364,1203ms,exit0,capture complete,Error=null,981pins intact,no timeout/
+stderr. Low bindings and high UInt64 encode/decode comparisons passed;final
+high binding returned Accepted=false,Reason=invalid-input,NextSequence=null.
+Post-call Message inventory17=12application+5reserved entries;extra psbase/
+psadapted (PSInternalMemberSet) and pstypenames (PSCodeProperty) exceed the
+candidate's two-exclusion rule. Expected inventory15=13+2. This establishes a
+metadata-history compatibility gap,not wrong successor arithmetic. Exact
+creation point/trusted provenance of extra3 NOT proven;do not whitelist by
+names/flags alone. Inventories ran after actual API,without descriptor values.
+Diagnostic1/1spent,no product edits/compile/full replay/reviewer. Product
+F76B2DB7 unchanged;old repair3/3spent/review0/1ineligible and all old scopes
+unchanged. Next:readonly SDK provenance/identity design before any bounded
+repair;not acceptance,not main. Portable evidence/report saved on devbranch.
+
+## Historical — strict descriptor candidate STOPPED at full SequenceExact regression
 
 User approved new bounded 3+1 after eb2b94d9.
 [Execution report](2026-10-18-p2b-passive-descriptor-repair.md): RED/probe exact

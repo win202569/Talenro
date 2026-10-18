@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest unfinished checkpoint:[strict descriptor repair stopped](../roadmap/2026-10-18-p2b-passive-descriptor-repair.md).
+Latest diagnostic:[sequence binding evidence](../roadmap/2026-10-18-p2b-sequence-binding-diagnostic.md).
+One new host1/1spent. High UInt64 encode/decode comparisons passed,then binding
+returned invalid-input. Post-call Message had17members:12application+psobject/
+psextended/psbase/psadapted/pstypenames. Candidate recognizes only first2;
+extra3 provenance and exact creation point not established. Expected15=13+2.
+No product fix or raw-count/name-whitelist relaxation;F76B2DB7 unchanged.
+981pins intact,no compile/full replay/reviewer. Next readonly SDK identity
+design before any separately bounded repair. Prior3/3spent/reviewineligible
+and all historical scopes unchanged. Recover latest devbranch,not main;
+clone excludes raw/caches/sessions/runtime and never resets allowances.
+
+Historical unfinished checkpoint:[strict descriptor repair stopped](../roadmap/2026-10-18-p2b-passive-descriptor-repair.md).
 New leaf p2b-passive-descriptor-repair contains sealed module F76B2DB7 and
 portable tests/fixtures/controller. RED reproduced baseline callbacks4;
 focused passive-descriptor cases passed with zero counters. Full regression
