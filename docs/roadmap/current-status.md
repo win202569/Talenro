@@ -1,6 +1,27 @@
 # Project status — updated 2026-10-18
 
-## Latest — readonly SDK investigation complete; structural follow-up awaits approval
+## Latest — SDK structural candidate passes33groups; readonly review complete, Minor gap retained
+
+User approved new bounded3+1after98f21970.
+[Execution report](2026-10-18-p2b-sdk-structural-compatibility.md),
+[independent review](2026-10-18-p2b-sdk-structural-compatibility-review.md).
+RED/probe exact(PID47272,1337ms);focused GREEN exact(PID28864,2050ms);
+full GREEN exact(PID46664,18352ms,33PASS/36lines),including SequenceExact.
+New sealed productB468B564 validates optional SDK metadata exact class/name/
+flags/owner and fixed getter/null setter;business shape12/13 unchanged.
+998pins intact,no timeout/stderr,owned exit/complete streams. CounterNote
+counters0 for controlled proof/negative vectors;not universal getter tracing.
+One fresh readonly review completed:Critical0,Important0,Minor1. M1 OPEN:
+scalar/byte-array hidden/subclass decorations absent from saved vectors;
+public Members view there remains. Coverage gap,NOT a proven bypass/callback.
+Root descriptor issue addressed in this candidate's tested/reviewed scope,
+not blanket passivity or unforgeable SDK origin/security isolation.
+3/3hosts+1/1review SPENT;all historical budgets/records unchanged. No additional
+fix/probe/retest/reviewer. Next recommend separately bounded M1 investigation
+before broader limited offline acceptance;not approved/run. Necessary files
+preserved on devbranch;no formal P2-B/main/PS5/P2-C/P3/full C12/live grant.
+
+## Historical — readonly SDK investigation complete; structural follow-up awaited approval
 
 [Investigation report](2026-10-18-p2b-sdk-metadata-investigation.md) and portable
 sdk-metadata.json record local SDK2D8AF026 methods/IL/field declarations plus

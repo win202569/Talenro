@@ -1,6 +1,18 @@
 # Recover the project on a new computer
 
-Latest preparation:[readonly SDK origin investigation](../roadmap/2026-10-18-p2b-sdk-metadata-investigation.md).
+Latest candidate:[SDK structural compatibility](../roadmap/2026-10-18-p2b-sdk-structural-compatibility.md).
+Portable source leaf p2b-sdk-structural-compatibility,productB468B564;original
+literal frames/full33tests/managed fixture unchanged. RED/focused/full all exact;
+full33PASS includes prior SequenceExact failure.998pins intact. Fresh readonly
+review completed Critical0/Important0/Minor1;verbatim report retained. Minor M1
+OPEN: scalar/byte-array hidden/subclass decoration cases not demonstrated.
+No blanket passivity/factory-provenance/reflection-isolation/acceptance claim.
+New3/3hosts+1/1review spent;old records/budgets unchanged,no replay/reset.
+Next separately bounded M1 investigation recommended,NOT approved/run.
+Recover latest devbranch,not main. Clone restores portable source/tests/reports,
+not ignored raw receipts,caches,SDK dependencies,mappings or sessions.
+
+Historical preparation:[readonly SDK origin investigation](../roadmap/2026-10-18-p2b-sdk-metadata-investigation.md).
 Portable sdk-metadata.json records local DLL identity,selected IL and fixed
 owner/getter/setter field declarations. Factories can reuse existing entries;
 do not treat a generator return as independent provenance. Proposed exact
