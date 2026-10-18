@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — specified PS7 pure codec offline acceptance approved
+## Latest — bounded control-frame inbox written design pending approval
+
+[Inbox design](../superpowers/specs/2026-10-18-p2b-bounded-inbox-design.md).
+User approved design drafting only. New pure serial receive core:four fixed
+directions,4ordinary slots each(total16),one latest-heartbeat and256-byte
+assembler per endpoint. Ingress sequence commit is distinct from dequeue and
+upper handshake references;EOF/overflow/protocol faults latch global stop.
+No real pipes/processes/clocks/capabilities or new lifecycle simulator.
+DesignApproved=false;ImplementationApproved=false;RuntimeApproved=false.
+This turn documents/self-checks only,0targets/reviews/product edits. Existing
+codec limited approval and all spent/frozen budgets unchanged. Next:human
+written-spec review,then a separate exact implementation plan;no execution yet.
+
+## Historical — specified PS7 pure codec offline acceptance approved
 
 [Human approval record](2026-10-18-p2b-codec-limited-acceptance-approval.md).
 User explicitly accepted the displayed limited scope after proposal3da72edd.

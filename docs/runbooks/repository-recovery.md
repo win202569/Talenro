@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest artifact:[bounded inbox written design](../superpowers/specs/2026-10-18-p2b-bounded-inbox-design.md).
+Drafting approved,WRITTEN_DESIGN_PENDING_APPROVAL;no implementation/test budget.
+Four fixed directional inboxes,16ordinary slots plus4latest-heartbeat and4
+256-byte assembly buffers;sequence admission separate from upper handshake.
+No real I/O/capabilities/timing. Read the spec and await human written review
+before a separate plan. This checkpoint changes documents only;all old frozen
+budgets and fixed codec offline acceptance remain unchanged. Clone grants no
+target/review allowance,main merge or real runtime rights.
+
 Latest human decision:[specified PS7 pure codec offline acceptance approved](../roadmap/2026-10-18-p2b-codec-limited-acceptance-approval.md).
 User explicitly accepted the displayed proposal scope after3da72edd;fixed
 candidate9A532E17 at8500aef9 is accepted only for specified ordinaryPS7.6.5
