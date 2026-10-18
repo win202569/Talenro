@@ -1,6 +1,14 @@
 # Recover the project on a new computer
 
-Latest:[authorized inbox evidence correction](../roadmap/2026-10-18-p2b-inbox-evidence-correction.md).
+Latest:[bounded inbox limited acceptance proposal](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-proposal.md).
+Proposal only,not approved. Fixed47BABFED... at3c56edc3,ordinaryPS7.6.5 offline
+serial measured vectors. Five saved runs exact;derived UInt64 evidence corrected;
+Minor2 scalar ETS direct-assertion gap remains deferred and explicit.
+Read all limits before human decision. No new targets/compiles/review/product
+edits this turn;no runtime/main/fullC12 acceptance or restored budget. Cloning
+the development branch recovers proposal/source/results,not raw packets or rights.
+
+Historical:[authorized inbox evidence correction](../roadmap/2026-10-18-p2b-inbox-evidence-correction.md).
 After19c567a1 approval,8summary integer tokens corrected by exact text,all9
 embedded evidence subtrees match unchanged raw files. Important1 resolved by
 parent readonly comparison;not a new review verdict. Minor2 remains deferred.

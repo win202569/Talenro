@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — inbox tree-copy evidence corrected; bounded checkpoint complete
+## Latest — bounded inbox limited acceptance proposed, pending human decision
+
+[Proposal](2026-10-18-p2b-inbox-limited-acceptance-proposal.md) fixes product
+47BABFED... at3c56edc3 to measured ordinaryPS7.6.5 offline serial vectors only.
+Saved5exact runs(two44PASS),1326pins rechecked readonly;no new execution.
+Historical Important1 resolved by authorized lossless evidence correction,
+not a new reviewer verdict. Minor2 scalar ETS assertion gap explicitly deferred
+and must be accepted as a coverage exception,not claimed fully verified.
+LimitedAcceptanceApproved=false;RuntimeApproved=false;MainMergeApproved=false.
+User's generic continuation authorized this proposal,not unseen acceptance scope.
+New5hosts/1reviewer exhausted;oldoriginal2spent+3FROZEN/diagnostic1spent unchanged.
+Next:human decision on exact scope/limits before any approval registration.
+
+## Historical — inbox tree-copy evidence corrected; bounded checkpoint complete
 
 [Correction record](2026-10-18-p2b-inbox-evidence-correction.md).
 User authorized evidence-only correction after19c567a1. Exactly8rounded integer
