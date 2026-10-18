@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only finding:[loading/scope confound](../roadmap/2026-10-18-p1-loading-scope-readonly-audit.md).
+After2697b28e,zero tests/source edits;270 pins held. Diagnostic4096 reloads whole
+product inside helper;original uses previously script-loaded functions. Original
+helper bodies/assertions remain;reload effect unproven and historical A timeout
+is counterevidence to sufficiency. No dynamic binding attestation. Next design
+single-variable unchanged-product loading comparison,not automatic execution.
+All budgets/frozen slots/review ineligibility/PS5-I1-P1 blockers unchanged.
+Clone restores this audit and source,not ignored raw/runtime or new-run authority.
+
 Latest original-entry verification:[fresh PS5 timeout](../roadmap/2026-10-18-p1-original-ps5-fresh.md).
 After5a6270cf approval,new sole1/1 spent:30070ms/CPU22984.375ms,exit-1,
 owned exit,empty stderr,65 lines/48 PASS;exact prior original timeout prefix.

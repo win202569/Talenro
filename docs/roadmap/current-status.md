@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — read-only audit identifies loading-context confound, not root cause
+
+After2697b28e,[loading/scope audit](2026-10-18-p1-loading-scope-readonly-audit.md)
+used ZERO test hosts/no source edits. Original4096 uses previously script-loaded
+product;both A/B diagnostics reload all product functions inside dedicated helper.
+12 product helpers/16 original35 helpers identical;removing diagnostic additions
+restores original product;case order and270 pins held. Local reload is a real
+confound,NOT proven cause:historical A also reloaded and timed out. No dynamic
+binding attestation. Next design single-variable original-product loading-context
+comparison,no product counters;launch needs separate approval. All budgets/
+frozen slots/review ineligibility and PS5/I1/P1/candidate blockers unchanged.
+
 ## Latest — fresh original PS5 still times out; diagnostic completion is not acceptance
 
 After5a6270cf approval,[sole fresh original PS5 run](2026-10-18-p1-original-ps5-fresh.md)
