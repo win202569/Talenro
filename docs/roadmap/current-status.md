@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-18
 
+## Latest — later ownership group markers proposed, NOT PREPARED
+
+After5e6dc245,[bounded marker design](2026-10-18-p1-ownership-group-marker-proposal.md)
+adds only four proposed body START/END records for SequentialIsolation and
+PlainControls. Common case helper,full fixtures/assertions/APIs/order unchanged;
+script/output/history interference explicit. Prospective105-line/64-PASS/
+22-marker/11-pair inventory requires distinct offline checks for no-entry/open/
+ended-before-PASS/error frontiers. No implementation/run this turn. Confirm
+before preparation-only files/tests.388 pins/index held,PS5 FROZEN,old budgets/
+review/I1/P1 gates unchanged;original timeout remains unresolved.
+
 ## Latest — later ownership frontier audited read-only; no assertion failure proved
 
 After93761c95,[source/evidence audit](2026-10-18-p1-ownership-frontier-readonly-audit.md)

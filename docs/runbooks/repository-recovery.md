@@ -16,6 +16,14 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest proposal:[later group markers,NOT PREPARED](../roadmap/2026-10-18-p1-ownership-group-marker-proposal.md).
+After5e6dc245,design only:four direct START/END body markers around ownership
+SequentialIsolation/PlainControls,no common-helper/API/fixture/assertion/order
+changes.105-line distinct inventory/classifier proposed;no new code/controller/
+target run.388 pins/index held. Confirm design before preparation-only copy and
+offline tests;no frozenPS5 reuse/timeout increase/replay. Budgets/review/I1/P1
+gates persist. Git restores proposal,not ignored raw/cache/credentials/authority.
+
 Latest analysis:[later ownership frontier,read-only](../roadmap/2026-10-18-p1-ownership-frontier-readonly-audit.md).
 After93761c95,source AST/call counts and three saved output tails compared;
 SequentialIsolation/PlainControls previously passed in both completed candidate
