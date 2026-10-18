@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-19
 
-## Latest — P2-B handshake consumption contract written, pending spec approval
+## Latest — handshake spec approved; seam-only plan pending method/budget approval
+
+[Plan](../superpowers/plans/2026-10-19-p2b-handshake-seam-verification.md).
+User approved writtenSpec9C37A7AD... afterf64d0ff7,permitting plan-writing only.
+Proposes first delivery:12offline codec/inbox seam checks,no new production
+consumer/state/ticket/capability. Real stages explicitly deferred/blocked by
+actual capabilities,P2-C readiness,safety and exact run approval prerequisites.
+Native recommended;NEW2targethosts+conditional1readonlyreview proposed,NOT approved.
+No artificial API-RED or product mutant claim;fixed products untouched.
+This turn only plan/self-check:0new fixture/packet/target/test/compile/review.
+ImplementationApproved=false;RuntimeApproved=false. All old budgets and limited
+approvals/Minor2 deferral intact. Next:review plan,choose method/approve new budget.
+
+## Historical — P2-B handshake consumption contract written, pending spec approval
 
 [Written design](../superpowers/specs/2026-10-19-p2b-handshake-contract-design.md).
 User approved design-writing only after66e45727. Refines role-local state,
