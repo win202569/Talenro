@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest diagnostic: [P2-B PayloadLength expression defect](../roadmap/2026-10-18-p2b-payloadlength-diagnostic.md).
+Latest candidate: [P2-B PayloadLength test-only repair](../roadmap/2026-10-18-p2b-payloadlength-repair.md).
+Recover latest development branch and new p2b-payloadlength-repair leaf.
+Test239E80EF changes one expression only; moduleFA6047A4/fixtures/oracle exact
+copies. One separate ordinary PS7 full host1/1 consumed:32PASS/35exact lines,
+exit0,13200ms,stderr0,888pins intact. Not accepted:mutants/restored-final/review
+absent. Original2/5 used,3 frozen;old review0/1 ineligible;diagnostic1/1 spent.
+Do not replay/reset or reinterpret original failure. Clone includes portable
+candidate/report, not ignored packets/cache/mappings/sessions or run rights.
+Next proposed scope:two negative controls/restored full/conditional readonly
+review, separately bounded. No main/runtime/security or wider-stage grant.
+
+Historical diagnostic: [P2-B PayloadLength expression defect](../roadmap/2026-10-18-p2b-payloadlength-diagnostic.md).
 One separately approved expression-only host1/1 spent; no product import.
 Original expression fails Object[] subtraction before decoder invocation;
 parenthesized control yields15,17,113. No test/product repair or acceptance.

@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B PayloadLength expression defect diagnosed; NOT repaired
+## Latest — P2-B test-only candidate:32 groups passed once, NOT accepted
+
+User approved the proposed new candidate and finite validation after3b6b39fa.
+[Repair report](2026-10-18-p2b-payloadlength-repair.md): exactly one bracket-only
+expression correction in a new test copy239E80EF; productFA6047A4,fixtures and
+oracle byte-identical. One NEW ordinary PS7 full host1/1 consumed:exit0,
+32PASS/35exact lines,13200ms,no timeout,stderr0,owned exit/complete streams,
+888mapped pins unchanged. Original tests/records preserved, not rewritten.
+No mutants/restored-final/reviewer/acceptance or main merge. Original2/5 used,
+3 frozen and old conditional review0/1 ineligible; diagnostic1/1 remains spent.
+Next recommended: separately bound two negative controls, restored full and
+conditional readonly review of this candidate. No automatic continuation.
+
+## Historical — P2-B PayloadLength expression defect diagnosed; NOT repaired
 
 User approved the proposed minimal diagnostic after139f1d9c. One separate
 ordinary pinned PS7 host (1/1 spent) reproduced the original expression:
