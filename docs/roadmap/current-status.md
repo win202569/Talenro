@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded inbox UNFINISHED; frozen test-vector defect stops before full
+## Latest — bounded inbox UNFINISHED; approved tick correction reaches full failure
+
+[Continuation record](2026-10-18-p2b-bounded-inbox-tick-correction.md).
+User approved single tick correction/refreeze,noREDrepeat,remainingoriginal4+1.
+Original leaf/raw unchanged;product43067AD0 unchanged;newtest onlyObserved11.
+1262pins intact,new seal9750B67E. Overallslot2/full PID34060,1384ms,exit1:
+ApiRequired/BindingShapePASS,BindingIsolation first snapshotAccepted/Reason
+assertion fails. Actual returned reason/internal exception not captured;cause
+unresolved,no aliasing/fix claim. No timeout/stderr,ownedexit/drains complete.
+Original2/5SPENT+3FROZEN;review0/1ineligible. No postfailure edit/retry/mutant/
+probe/reviewer. Corrected time vector not reached dynamically. Save unfinished
+source/results/recovery;next needs explicit bounded diagnostic disposition.
+Existing codec limited acceptance unchanged,no main/live/fullC12 acceptance.
+
+## Historical — bounded inbox UNFINISHED; frozen test-vector defect stops before full
 
 [Execution/stop record](2026-10-18-p2b-bounded-inbox-execution.md).
 User approvedNative/new5+1 afterf284acc5.1230pins/9inputs frozen;RED exact

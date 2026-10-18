@@ -22,6 +22,13 @@ ImplementationApproved=true仅限该路线；RuntimeApproved=false。
 详情见docs/roadmap/2026-10-18-p2b-bounded-inbox-execution.md。
 原批准计划快照511FFF03保留；下文待批准描述是历史，不重置实际状态。
 
+后续实际状态：用户在cf347c4c后批准单一ObservedTick修正/refreeze，
+不重跑RED，继续原余4轮+条件审查。新副本仅向量加Observed11；
+模块43067AD0未改，封存后full PID34060/1384ms/exit1，API与BindingShape
+通过，在BindingIsolation首次snapshot返回检查失败；根因尚未确定。
+当前2/5原额度SPENT+3FROZEN，审查0/1ineligible。未继续变异/修复/重跑。
+详见docs/roadmap/2026-10-18-p2b-bounded-inbox-tick-correction.md。
+
 ## Global Constraints
 
 - 复用现有worktree及codex/c12-b01-task9-coordinator；无main/PR/强推/环境或安全设置变更。

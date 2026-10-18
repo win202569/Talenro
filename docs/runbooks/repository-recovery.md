@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest UNFINISHED:[bounded inbox tick-correction full failure](../roadmap/2026-10-18-p2b-bounded-inbox-tick-correction.md).
+New sibling tick-correction leaf preserves original frozen records. User approved
+oneObserved11 addition/refreeze,noREDrepeat and originalremaining4+conditional1.
+Unchanged43067AD0 sealed;fullslot2 ran once,API/BindingShapePASS then first
+snapshotAccepted/Reason assertion failed inBindingIsolation. Rootcause unknown;
+actual snapshot result/internal exception not saved.1262pins intact,no timeout/
+stderr,ownedexit/drains complete. Original2/5SPENT+3FROZEN,review0/1ineligible.
+Do not run controller/mutants or repair automatically;next requires explicit
+bounded diagnostic authority. Module is NOT verified/accepted. Portable summary
+contains actualfailed receipt/trace,not32PASS. Clone grants no new execution rights.
+
 Latest UNFINISHED checkpoint:[bounded inbox source-preflight stop](../roadmap/2026-10-18-p2b-bounded-inbox-execution.md).
 Recover existing devbranch;do NOT adopt inbox43067AD0 as verified code.
 Nine inputs/1230pins frozen;only RED ran exact,then module draft/staticparse.

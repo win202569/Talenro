@@ -1,0 +1,118 @@
+{
+  "Schema": 1,
+  "Status": "UNFINISHED_FULL_BINDING_ISOLATION_FAILURE",
+  "BaseCommit": "cf347c4c475c95fa2cc77b8779509eed4701b85f",
+  "OriginalHostsSpent": 2,
+  "RemainingOriginalHostsFrozen": 3,
+  "ReviewUsed": 0,
+  "ReviewEligible": false,
+  "FirstRedReplayed": false,
+  "Correction": "Only OriginTick10 vector adds ObservedTick11; original frozen leaf unchanged",
+  "CandidateUnchanged": true,
+  "ModuleImported": true,
+  "ProductCalled": true,
+  "Pins": 1262,
+  "PinsIntact": true,
+  "FrozenSHA256": "6A8A65225274D7FAE99FF329716DD21024514E56B7534F72F3BAEB560756D5EE",
+  "SealSHA256": "9750B67EBC55C598BE80485B7F08522EA0BE122F490057868B7E87BC6AC346E5",
+  "InvocationSHA256": "8EB4CF553EBE12B6D6050F7852E07CE5940EA00D35668F3E7AB2C87F269F7216",
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "35C42A9147C6D60FA4E45474D2ECC3CDFBF804875F1D8D1E209B176D7DC6355F"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "0C648562F01A040A0A3D7666D83971669BB75818D77A58D523572BEB470083B2"
+    },
+    {
+      "Name": "descriptor-fixture.cs",
+      "SHA256": "87882565265A40D01777C467FBFB2E40DAEDC8F270D47F896D390BD8CF4E09FE"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "7492EC8237942456E1AE5FF9CF057C1680EB1E5167ACED5A55E6F38963E63760"
+    },
+    {
+      "Name": "fixtures.json",
+      "SHA256": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+    },
+    {
+      "Name": "inbox.psm1",
+      "SHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8"
+    },
+    {
+      "Name": "inbox.tests.ps1",
+      "SHA256": "904F20D4D60540D7A312F5ACF14B0E1E01D263C7A905B18F578FB0846C7267CE"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "781CD5E6F5F021BB2026D89314A74309B7739FF704A0F31DE06EF59F5187AB0D"
+    },
+    {
+      "Name": "target.ps1",
+      "SHA256": "A9D8AC35CF6B65E484CBE86D5D5E55DF2BC79A263C1A72D60152A0CB17D8A307"
+    },
+    {
+      "Name": "test-helpers.ps1",
+      "SHA256": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D"
+    }
+  ],
+  "Receipt": {
+    "Number": 2,
+    "Slot": "full",
+    "AttemptConsumed": true,
+    "Launched": true,
+    "ModuleSHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8",
+    "PID": 34060,
+    "ElapsedMs": 1384,
+    "TimedOut": false,
+    "ExitCode": 1,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "PostPinsIntact": true,
+    "ExactExpected": false,
+    "Outcome": "INCOMPLETE",
+    "stdoutSHA256": "317760B2B7C4038A7A779AA0545F0E8B422A7BF3F99DD5CF68E06904132712BD",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TraceSHA256": "6A02A9B16BD5ED34119491105C898D4680CA8DC4D92DB684ED610B273777BB4E",
+    "FormalAcceptance": false
+  },
+  "Trace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "all",
+    "Groups": [
+      "ApiRequired",
+      "BindingShape"
+    ],
+    "CompileCount": 0,
+    "Observable": false,
+    "Counters": 0,
+    "Synthetic": [],
+    "Decorations": [],
+    "Error": {
+      "Message": "ASSERTION FAILED: P2BInboxBindingIsolation",
+      "Type": "System.Management.Automation.RuntimeException",
+      "Position": "At D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\test-helpers.ps1:4 char:56\r\n+ … ot $Condition){throw ('ASSERTION FAILED: P2BInbox'+$script:ibGroup)}}\r\n+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "Stack": "at IB-Need, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\test-helpers.ps1: line 4\r\nat IB-Result, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\test-helpers.ps1: line 39\r\nat IB-Snap, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\test-helpers.ps1: line 48\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.tests.ps1: line 39\r\nat IB-Case, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.tests.ps1: line 13\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.tests.ps1: line 36\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\target.ps1: line 3"
+    },
+    "Passed": false,
+    "RuntimeApproved": false
+  },
+  "ProductSeal": {
+    "FrozenSHA256": "6A8A65225274D7FAE99FF329716DD21024514E56B7534F72F3BAEB560756D5EE",
+    "ModuleSHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8",
+    "GoodSnapshotSHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8",
+    "CapacitySHA256": "55648E82211A5508BCD0D76D93C09937821632EE26BB11960B8797DF762D2267",
+    "SequenceSHA256": "542FE405565576F71CBF4A6DB767FE123984259869C5A0781FDE903EEB0AC773",
+    "CapacityDiff": "Count -ge 4 -> Count -ge 5",
+    "SequenceDiff": "Sequence -ne Next -> -lt Next",
+    "RuntimeApproved": false
+  },
+  "RootCauseEstablished": false,
+  "ActualSnapshotResultCaptured": false,
+  "CorrectionVectorExecuted": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+}
