@@ -13,6 +13,15 @@ ImplementationApproved=false；RuntimeApproved=false。
 原设计待批准标题留作历史。本计划、方法及新5+1额度均待另行批准。
 本轮只创建计划并更新进度/恢复，无实现、目标宿主、编译或新审查。
 
+实际状态更新：用户在f284acc5后批准本计划、Native及精确新5+1。
+ImplementationApproved=true仅限该路线；RuntimeApproved=false。
+当前INCOMPLETE_SOURCE_PREFLIGHT_STOP：1/5spent，RED精确；模块草稿
+已写/静态parse但未import/call/seal。封存的BindingMismatch起始tick10
+向量仍Observed4，违反固定codec前置条件，故在full前停止。
+余4轮FROZEN；审查0/1且不符合启动条件。未改封存测试或重跑RED。
+详情见docs/roadmap/2026-10-18-p2b-bounded-inbox-execution.md。
+原批准计划快照511FFF03保留；下文待批准描述是历史，不重置实际状态。
+
 ## Global Constraints
 
 - 复用现有worktree及codex/c12-b01-task9-coordinator；无main/PR/强推/环境或安全设置变更。

@@ -1,0 +1,56 @@
+{
+  "red": [
+    "{Context}",
+    "HOST: PS7.6.5 Core x64",
+    "ASSERTION FAILED: P2BInboxApiRequired"
+  ],
+  "full": [
+    "{Context}",
+    "HOST: PS7.6.5 Core x64",
+    "PASS: P2BInboxApiRequired",
+    "PASS: P2BInboxBindingShape",
+    "PASS: P2BInboxBindingIsolation",
+    "PASS: P2BInboxTokenIdentity",
+    "PASS: P2BInboxEmptyInbox",
+    "PASS: P2BInboxWholeFrame",
+    "PASS: P2BInboxSplitEdges",
+    "PASS: P2BInboxSingleByteChunks",
+    "PASS: P2BInboxChunkBounds",
+    "PASS: P2BInboxLiteralDirections",
+    "PASS: P2BInboxBindingMismatch",
+    "PASS: P2BInboxSequenceExact",
+    "PASS: P2BInboxSequenceAfterTake",
+    "PASS: P2BInboxSequenceHigh",
+    "PASS: P2BInboxSequenceExhaustion",
+    "PASS: P2BInboxEndpointCapacity",
+    "PASS: P2BInboxGlobalCapacity",
+    "PASS: P2BInboxHeartbeatMixed",
+    "PASS: P2BInboxHeartbeatReference",
+    "PASS: P2BInboxHeartbeatFullQueue",
+    "PASS: P2BInboxEofEmpty",
+    "PASS: P2BInboxEofPartial",
+    "PASS: P2BInboxInvalidFrame",
+    "PASS: P2BInboxFirstFailure",
+    "PASS: P2BInboxStoppedDelivery",
+    "PASS: P2BInboxInputPassivity",
+    "PASS: P2BInboxInputOwnership",
+    "PASS: P2BInboxOutputOwnership",
+    "PASS: P2BInboxSnapshotBounds",
+    "PASS: P2BInboxMultiInstance",
+    "PASS: P2BInboxAuthorityBoundary",
+    "PASS: P2BInboxComplete",
+    "LIMIT: declarations/inbox only; no runtime authority"
+  ],
+  "capacity": [
+    "{Context}",
+    "HOST: PS7.6.5 Core x64",
+    "PASS: P2BInboxApiRequired",
+    "ASSERTION FAILED: P2BInboxEndpointCapacity"
+  ],
+  "sequence": [
+    "{Context}",
+    "HOST: PS7.6.5 Core x64",
+    "PASS: P2BInboxApiRequired",
+    "ASSERTION FAILED: P2BInboxSequenceExact"
+  ]
+}

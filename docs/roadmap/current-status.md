@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded inbox design approved; Native5+1 implementation plan pending
+## Latest — bounded inbox UNFINISHED; frozen test-vector defect stops before full
+
+[Execution/stop record](2026-10-18-p2b-bounded-inbox-execution.md).
+User approvedNative/new5+1 afterf284acc5.1230pins/9inputs frozen;RED exact
+PID46868,1792ms,exit1/API assertion,empty stderr,ownedexit/drains complete.
+Module43067AD0 draft written/staticparse only;NOT imported/called/sealed/tested.
+Source tracing found frozen origin-mismatch vectorOrigin10/Observed4,which
+codec rejects before binding comparison,contradicting expectedbinding-mismatch.
+Static test defect,not runtime reproduction or accepted-codec regression.
+1/5spent+4FROZEN;review0/1ineligible. No frozen input edit/retry/full/mutant/
+review.1230pins intact,codec9A532E17 unchanged. Portable unfinished source,
+tests/summary/report/recovery saved;no acceptance/main. Explicit correction/
+refreeze and budget disposition required before continuation.
+
+## Historical — bounded inbox design approved; Native5+1 implementation plan pending
 
 [Implementation plan](../superpowers/plans/2026-10-18-p2b-bounded-inbox.md).
 User approved written design afterd7e45e1e. DesignApproved=true only;

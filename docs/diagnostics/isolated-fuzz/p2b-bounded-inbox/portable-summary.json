@@ -1,0 +1,113 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-inbox-unfinished-checkpoint",
+  "Status": "SOURCE_PREFLIGHT_STOP",
+  "BaseCommit": "f284acc57b6c7123a030a612a273deb00ca4611e",
+  "ModuleSealed": false,
+  "ModuleImported": false,
+  "ProductCalled": false,
+  "NewTargetHosts": 1,
+  "RemainingTargetSlots": 4,
+  "RemainingFrozen": true,
+  "ReviewsUsed": 0,
+  "ReviewEligible": false,
+  "FrozenPins": 1230,
+  "PinsIntact": true,
+  "FrozenSHA256": "B26F7D40082CF8C54BC2D78A78F3784AF4AE852DB0AB2CA508246442FC4B4528",
+  "InvocationIndexSHA256": "7650544FAD33B2BFEC8DD0807E0C43E41C52E64A0F4C40FD4832EEAAE66FC5D6",
+  "ApprovedPlanSnapshotSHA256": "511FFF034F6CC923E2F8E423389ED3C8F10A7B864E51377FCA9E0393A6492F42",
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "35C42A9147C6D60FA4E45474D2ECC3CDFBF804875F1D8D1E209B176D7DC6355F"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "05DBAB337C02288A022DAC89562086268A1EB2C48F34904CBFC97B5E4BA35F66"
+    },
+    {
+      "Name": "descriptor-fixture.cs",
+      "SHA256": "87882565265A40D01777C467FBFB2E40DAEDC8F270D47F896D390BD8CF4E09FE"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "7492EC8237942456E1AE5FF9CF057C1680EB1E5167ACED5A55E6F38963E63760"
+    },
+    {
+      "Name": "fixtures.json",
+      "SHA256": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+    },
+    {
+      "Name": "inbox.psm1",
+      "SHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8"
+    },
+    {
+      "Name": "inbox.tests.ps1",
+      "SHA256": "452AEAA727A03C9D2772EA593D71C82981C378FF56CADF4D79E1362B0D113542"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "C62B7B3E117F62A38C6EFBBEDD60EDB7D7405F5B8E530147492722DFFFE45249"
+    },
+    {
+      "Name": "target.ps1",
+      "SHA256": "A9D8AC35CF6B65E484CBE86D5D5E55DF2BC79A263C1A72D60152A0CB17D8A307"
+    },
+    {
+      "Name": "test-helpers.ps1",
+      "SHA256": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D"
+    }
+  ],
+  "Receipt": {
+    "Number": 1,
+    "Slot": "red",
+    "AttemptConsumed": true,
+    "Launched": true,
+    "ModuleSHA256": null,
+    "PID": 46868,
+    "ElapsedMs": 1792,
+    "TimedOut": false,
+    "ExitCode": 1,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "PostPinsIntact": true,
+    "ExactExpected": true,
+    "Outcome": "EXPECTED_WITHIN_SCOPE",
+    "stdoutSHA256": "E741D0CE86478BBD38B439AFA14DF111E6CC7C71AB0BB6CEA134B24EA6924341",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TraceSHA256": "01EBB29EED44F76433012EBEE556867BDE0274E5D2D6610B763D680DAB66847E",
+    "FormalAcceptance": false
+  },
+  "Trace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "all",
+    "Groups": [],
+    "CompileCount": 0,
+    "Observable": false,
+    "Counters": 0,
+    "Synthetic": [],
+    "Decorations": [],
+    "Error": {
+      "Message": "ASSERTION FAILED: P2BInboxApiRequired",
+      "Type": "System.Management.Automation.RuntimeException"
+    },
+    "Passed": false,
+    "RuntimeApproved": false
+  },
+  "Blocker": {
+    "Kind": "Frozen test vector contradicts decoder precondition",
+    "TestFile": "inbox.tests.ps1",
+    "Line": 99,
+    "HelperFile": "test-helpers.ps1",
+    "HelperLine": 29,
+    "CodecLine": 325,
+    "OriginTick": 10,
+    "ObservedTick": 4,
+    "Expected": "binding-mismatch",
+    "SourcePredicted": "invalid-frame",
+    "RuntimeReproduced": false
+  },
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+}

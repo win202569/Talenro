@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest UNFINISHED checkpoint:[bounded inbox source-preflight stop](../roadmap/2026-10-18-p2b-bounded-inbox-execution.md).
+Recover existing devbranch;do NOT adopt inbox43067AD0 as verified code.
+Nine inputs/1230pins frozen;only RED ran exact,then module draft/staticparse.
+Frozen BindingMismatch origin fixtureOrigin10/Observed4 is invalid before
+binding check. No product import/call/seal/full/mutants/reviewer.1/5SPENT+
+4FROZEN;review0/1ineligible. Inputs and original raw records unchanged.
+No automatic retry or frozen-test edit. A new explicit correction/refreeze
+decision and finite budget disposition are needed,without redoing RED by default.
+Portable summary preserves one receipt/static defect,not a full-pass result.
+Original codec limited approval unchanged;no main/live/fullC12 acceptance.
+
 Latest artifact:[bounded inbox implementation plan](../superpowers/plans/2026-10-18-p2b-bounded-inbox.md).
 Written design approved afterd7e45e1e;plan/method/new5+1budget NOT yet approved.
 RecommendedNative,32test groups,5ordered ordinary120000ms targets plus one
