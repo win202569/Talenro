@@ -1,0 +1,148 @@
+{
+  "AssemblySHA256": "2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B",
+  "AssemblyVersion": "7.6.0.500",
+  "MVID": "42bb522b-1082-4dc3-92f1-94f47317bb85",
+  "Methods": [
+    {
+      "Type": "System.Management.Automation.ReservedNameMembers",
+      "Method": "System.Object GenerateMemberSet(System.String, System.Object)",
+      "Token": "06001E8A",
+      "ILSHA256": "78F43F73A2DA02552AFFA5E3648A28FC1613933B7CF6DE52356CCA66C69EFCE1",
+      "ILHex": "0328D41E00060A066FBD1E0006026FB605000A0B072D300206733C1E000625166F551D000625176F601D000625176F5E1D00060B066FBD1E0006076F360A000A07067DE7060004072A"
+    },
+    {
+      "Type": "System.Management.Automation.ReservedNameMembers",
+      "Method": "System.Object GeneratePSBaseMemberSet(System.Object)",
+      "Token": "06001E8B",
+      "ILSHA256": "17F391480AC0778F6AB034F8513FECB1C43C3BBEA0E10CE02BC9A6ABAEA03527",
+      "ILHex": "720AA00E7002288A1E00062A"
+    },
+    {
+      "Type": "System.Management.Automation.ReservedNameMembers",
+      "Method": "System.Object GeneratePSAdaptedMemberSet(System.Object)",
+      "Token": "06001E8C",
+      "ILSHA256": "980C6BA65A99EBF6A2A5C608BC608500FB14CAD8E81CD1DD00D041DA5045AE53",
+      "ILHex": "72F69F0E7002288A1E00062A"
+    },
+    {
+      "Type": "System.Management.Automation.ReservedNameMembers",
+      "Method": "Void GeneratePSTypeNames(System.Object)",
+      "Token": "06001E90",
+      "ILSHA256": "22509897C20C080C8DB3CF852939DF7E1FE0F2AAAF7483EA0BDDAD0FDA35D4C6",
+      "ILHex": "0228D41E00060A066FBD1E00067220A10E706FB605000A2C012A7220A10E707EBD1F000473851D000625166F551D000625067DE706000425176F601D000625176F5E1D00060B066FBD1E0006076F360A000A2A"
+    },
+    {
+      "Type": "System.Management.Automation.ReservedNameMembers",
+      "Method": "System.Collections.ObjectModel.Collection`1[System.String] PSTypeNames(System.Management.Automation.PSObject)",
+      "Token": "06001E8F",
+      "ILSHA256": "E8FBD17EE26F5B27DC5C20FE3EDE653072C2DC932B67FF164CC88C4508BFC60C",
+      "ILHex": "026FC71E00062A"
+    },
+    {
+      "Type": "System.Management.Automation.PSMemberInfoIntegratingCollection`1",
+      "Method": "Void GenerateAllReservedMembers()",
+      "Token": "06001E91",
+      "ILSHA256": "D589A2D713250EB01B305A7366D4586C29E2E43BF7BAA9E5D7978851BF7E4837",
+      "ILHex": "027BDA0A000A6FFD1E00062D47027BDA0A000A176FFE1E0006027BDA0A000A288E1E000626027BDA0A000A288B1E000626027BDA0A000A288D1E000626027BDA0A000A288C1E000626027BDA0A000A28901E00062A"
+    },
+    {
+      "Type": "System.Management.Automation.PSMemberInfoIntegratingCollection`1",
+      "Method": "System.Collections.Generic.IEnumerator`1[T] GetEnumerator()",
+      "Token": "06001E9F",
+      "ILSHA256": "A5A723F87EDF02B74EFF128E0AA518295FD5AB5EAFF0D93B4108D8E7B9409066",
+      "ILHex": "0273ED0A000A8C9803001B2A"
+    },
+    {
+      "Type": "System.Management.Automation.PSCodeProperty",
+      "Method": "System.Reflection.MethodInfo get_GetterCodeReference()",
+      "Token": "06001D87",
+      "ILSHA256": "009B3D762AAD291282EDC7C20EFE7496B5669FA02C46832ED4084F69ED049A7A",
+      "ILHex": "027BEF0600042A"
+    },
+    {
+      "Type": "System.Management.Automation.PSCodeProperty",
+      "Method": "System.Reflection.MethodInfo get_SetterCodeReference()",
+      "Token": "06001D89",
+      "ILSHA256": "6854B6E867C205DD6603D4CB261771C246C61AA0E426861AC45F5E80018BE179",
+      "ILHex": "027BF00600042A"
+    },
+    {
+      "Type": "System.Management.Automation.PSCodeProperty",
+      "Method": "System.Object get_Value()",
+      "Token": "06001D8F",
+      "ILSHA256": "E239525ABC9037F13299994F2B65846F3E9A4D29E878F2C7ACAEC6813382B5DC",
+      "ILHex": "0228871D00061428E305000A2C2072C8980E701428D6010006178D16000001251602285B1D0006A273901600067A000228871D000614178D160000012516027BE7060004A26F4C05000A0ADE6A0B076F0D02000A252D0226070C7214990E700828CA010006188D160000012516027BE8060004A22517086F6801000AA2739A1600067A0D0975270100022C02FE1A724A990E700928CA010006188D160000012516027BE8060004A22517096F6801000AA2739A1600067A062A"
+    }
+  ],
+  "FixedFields": {
+    "ResolvedGenericTokens": [
+      {
+        "Token": "0A000AED",
+        "Type": "System.Management.Automation.PSMemberInfoIntegratingCollection`1+Enumerator[[System.Management.Automation.PSMemberInfo, System.Management.Automation, Version=7.6.0.500, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]",
+        "Signature": "Void .ctor(System.Management.Automation.PSMemberInfoIntegratingCollection`1[System.Management.Automation.PSMemberInfo])"
+      },
+      {
+        "Token": "0A000AEA",
+        "Type": "System.Management.Automation.PSMemberInfoIntegratingCollection`1[[System.Management.Automation.PSMemberInfo, System.Management.Automation, Version=7.6.0.500, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]",
+        "Signature": "Void GenerateAllReservedMembers()"
+      }
+    ],
+    "EnumeratorConstructorILSHA256": "B5E740A3E6488FF2231FFC8C5474BC94A792E924188A26DB44446F1D361331B4",
+    "Fields": [
+      {
+        "Type": "System.Management.Automation.PSInternalMemberSet",
+        "Fields": [
+          {
+            "Name": "_psObject",
+            "FieldType": "System.Management.Automation.PSObject",
+            "DeclaringType": "System.Management.Automation.PSInternalMemberSet"
+          }
+        ]
+      },
+      {
+        "Type": "System.Management.Automation.PSMemberSet",
+        "Fields": [
+          {
+            "Name": "_constructorPSObject",
+            "FieldType": "System.Management.Automation.PSObject",
+            "DeclaringType": "System.Management.Automation.PSMemberSet"
+          }
+        ]
+      },
+      {
+        "Type": "System.Management.Automation.PSMemberInfo",
+        "Fields": [
+          {
+            "Name": "instance",
+            "FieldType": "System.Object",
+            "DeclaringType": "System.Management.Automation.PSMemberInfo"
+          }
+        ]
+      },
+      {
+        "Type": "System.Management.Automation.PSCodeProperty",
+        "Fields": [
+          {
+            "Name": "<GetterCodeReference>k__BackingField",
+            "FieldType": "System.Reflection.MethodInfo",
+            "DeclaringType": "System.Management.Automation.PSCodeProperty"
+          },
+          {
+            "Name": "<SetterCodeReference>k__BackingField",
+            "FieldType": "System.Reflection.MethodInfo",
+            "DeclaringType": "System.Management.Automation.PSCodeProperty"
+          }
+        ]
+      }
+    ]
+  },
+  "Scope": {
+    "MetadataOnly": true,
+    "ProductImported": false,
+    "ProductCalled": false,
+    "DescriptorGettersInvoked": false,
+    "ManagedFixtureCompiled": false,
+    "NewTestInvocations": 0,
+    "FormalAcceptance": false
+  }
+}

@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest diagnostic:[sequence binding evidence](../roadmap/2026-10-18-p2b-sequence-binding-diagnostic.md).
+Latest preparation:[readonly SDK origin investigation](../roadmap/2026-10-18-p2b-sdk-metadata-investigation.md).
+Portable sdk-metadata.json records local DLL identity,selected IL and fixed
+owner/getter/setter field declarations. Factories can reuse existing entries;
+do not treat a generator return as independent provenance. Proposed exact
+owner/code-target structural compatibility is NOT a reflection-proof origin
+guarantee. New3+1 design requires approval;0/3,0/1unstarted. No product edit,
+getter/factory/product call,fixture compile,target host or reviewer in this
+investigation.981pins intact;F76B2DB7 and every old allowance unchanged.
+Recover latest devbranch,not main;clone does not restore ignored raw/cache/
+sessions/SDK dependencies or reset/replay permissions.
+
+Historical diagnostic:[sequence binding evidence](../roadmap/2026-10-18-p2b-sequence-binding-diagnostic.md).
 One new host1/1spent. High UInt64 encode/decode comparisons passed,then binding
 returned invalid-input. Post-call Message had17members:12application+psobject/
 psextended/psbase/psadapted/pstypenames. Candidate recognizes only first2;

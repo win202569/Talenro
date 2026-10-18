@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — high binding returns invalid-input; three additional reserved entries captured
+## Latest — readonly SDK investigation complete; structural follow-up awaits approval
+
+[Investigation report](2026-10-18-p2b-sdk-metadata-investigation.md) and portable
+sdk-metadata.json record local SDK2D8AF026 methods/IL/field declarations plus
+official v7.6.5 source. Public integrating enumeration generates all5reserved
+members;factories reuse existing entries,so lookup/reference-to-factory-return
+is not independent proof of origin. psbase/psadapted have owner fields;
+pstypenames has fixed getter/setter backing fields and a fixed SDK MethodInfo
+reference. No getters/factories/product APIs executed,no new target/compile/
+reviewer. Actual owner/code-reference checks NOT dynamically proven.
+Proposed bounded compatibility design:exact class/name/flags+owner+fixed SDK
+getter/null setter,keep12/13business shapes and exact passive descriptors.
+This is structural validation,NOT unforgeable factory provenance or protection
+from arbitrary same-process private reflection. New3ordered hosts+1conditional
+review proposed,NOTapproved/started0/3,0/1. Need in-chat design confirmation.
+All981pins intact,productF76B2DB7 unchanged,old spent/frozen scopes and open
+blockers unchanged. No acceptance/main/live grant.
+
+## Historical — high binding returns invalid-input; three additional reserved entries captured
 
 User approved the recommended one-host evidence-only diagnostic after5431f760.
 [Diagnostic report](2026-10-18-p2b-sequence-binding-diagnostic.md):
