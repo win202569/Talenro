@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-18
 
+## Latest — original-entrypoint promotion plan prepared, NOT approved
+
+After eb7b3788,user asked to continue. Prepared the
+[fixed-byte promotion plan](../superpowers/plans/2026-10-18-p1-owned-return-entrypoint-promotion.md)
+only. Original953CC2A8 remains unchanged;candidate1971F808 retains its approved
+PS7-only offline acceptance. PromotionApproved=false. Proposal:preserve old bytes,
+map only intentional historical destination pins,new max2 ordinary PS7 original-path
+API/ownership hosts,fail-stop,no new independent reviewer,no main/live/PS5 work.
+Requires explicit approval of writes,budget and evidence approach;no runs/source
+changes/dispatch this turn. Old budgets and all23+9limits stay unchanged.
+
 ## Latest — user approved fixed-candidate PS7 limited offline acceptance
 
 After fbcd2409 the user explicitly answered yes to proposal sections1/4/5/6,

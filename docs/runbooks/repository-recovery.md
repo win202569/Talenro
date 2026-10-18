@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest next-step preparation: [entrypoint promotion plan, NOT approved](../superpowers/plans/2026-10-18-p1-owned-return-entrypoint-promotion.md).
+After eb7b3788 only a plan was prepared. Original953CC2A8 is unchanged;candidate
+1971F808 remains PS7-limited accepted but not promoted. Proposed future writes,
+old-pin historical mapping,max2 new ordinary PS7 original-path tests and no-new-
+reviewer evidence approach all require explicit approval. No new host/reviewer,
+source replacement,main/live/PS5 action or budget renewal occurred this turn.
+
 Latest decision: [user-approved PS7 limited offline acceptance](../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-approval.md).
 After fbcd2409 user explicitly approved proposal sections1/4/5/6 and recommended A.
 Candidate1971F808 now has documentary acceptance ONLY for stated PS7 synthetic/
