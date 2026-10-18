@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest result: [offline timing fixtures36/37](../roadmap/2026-10-18-p1-offline-timing-result.md).
+Logger/checker offline batch found duplicate JSON fields accepted as a prefix.
+The checker remains unfixed; new harness preserves its failing witness. No
+candidate import/run, no retry or old-slot unfreeze. Read this blocker first;
+do not treat the prepared instrumentation as approved for candidate execution.
+
 Latest preparation: [stage timing code, not run](../roadmap/2026-10-18-p1-stage-timing-preparation.md).
 Seven portable instrumentation/checklist files are prepared; only parser/data/
 static-preservation checks ran. Logger/checker behavior and all runtime results

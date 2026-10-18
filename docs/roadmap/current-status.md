@@ -1,5 +1,23 @@
 # Project status — updated 2026-10-18
 
+## Latest — offline timing fixtures36/37;checker duplicate-key defect
+
+Aftera90555f6,user approved offline logger/checker fixtures only.One bounded
+37case batch completed in16246ms:36PASS/1FAIL,exit1,no timeout,owned exit and
+streams complete,stderr0,597pins intact,no controller error.No repair/retry.
+Failure:duplicate-json-property accepted as valid PREFIX_ONLY text,not a full
+runtime pass.Checker parses JSON before checking deserialized field inventory;
+duplicate raw names are not rejected.Candidate/checker/frozen sources unchanged.
+FACT parsing has the same source pattern but duplicate FACT was not separately
+tested;related risk,not another observed failure.
+
+Actual3logger helpers only loaded through AST allowlist;instrumented test never
+dot-sourced,candidate imports/product calls0.New offline1/1consumed.All older
+candidate slots remain frozen/unrun.No actual timing diagnostic or acceptance.
+See [offline result and RED witness](2026-10-18-p1-offline-timing-result.md).
+Next:separately approve a minimal strict duplicate-field checker fix and new
+offline regression;do not run candidate timing or turn the offline gate green.
+
 ## Latest — stage-boundary timing code PREPARED ONLY / NOT RUN
 
 Afterfb38f5b8,user approved the bounded design for code/checklist preparation
