@@ -1,5 +1,23 @@
 # Project status — updated 2026-10-18
 
+## Latest — strict timing JSON checker offline44/44;no candidate run
+
+User approved minimal checker fix and one offline regression.New standalone
+checker rejects duplicate decoded root keys before object conversion,on TIME
+and FACT paths,including case/Unicode aliases.Valid single escapes still pass.
+All44offline cases passed in22208ms/exit0,no timeout,owned exit/streams complete,
+stderr0,607pins intact,no controller error.No post-launch repair/retry.
+Same historical failing input SHA459400F6 now rejected;old36/37RED preserved.
+Original37cases+7variants/controls pass;1200original checker tokens preserved
+aside from raw-key guard/parse routing.Candidate1971F808,old checker and timing
+test unchanged;candidate imports/product calls0.Old remaining slots still frozen.
+
+See [offline44/44evidence and limits](2026-10-18-p1-strict-timing-json-result.md).
+This verifies the duplicate-root-key fix only within offline vectors,not actual
+candidate timing or ownership/runtime acceptance.Next:separately approve one
+new30s bounded stage-attribution diagnostic/controller using the revised checker.
+Do not auto-run,reuse old full/ownership slots,merge main or close I1/C12 gates.
+
 ## Latest — offline timing fixtures36/37;checker duplicate-key defect
 
 Aftera90555f6,user approved offline logger/checker fixtures only.One bounded

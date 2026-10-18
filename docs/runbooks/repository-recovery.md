@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest result: [strict timing JSON checker offline44/44](../roadmap/2026-10-18-p1-strict-timing-json-result.md).
+Use the NEW strict-timing-json checker for future proposals,not the frozen old
+checker with the duplicate-field defect.All44offline cases pass;candidate and
+actual timing test were not run.Old slots remain frozen.A candidate diagnostic
+still requires its own approved bounded controller/allowance before execution.
+
 Latest result: [offline timing fixtures36/37](../roadmap/2026-10-18-p1-offline-timing-result.md).
 Logger/checker offline batch found duplicate JSON fields accepted as a prefix.
 The checker remains unfixed; new harness preserves its failing witness. No
