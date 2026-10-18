@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest tool:[offline boundary verifier](../roadmap/2026-10-18-p1-boundary-offline-verifier.md).
+After1c9a31d7,independent function/tests/usage guide added beside isolated-fuzz
+utilities;47 synthetic cases pass in PS7.6.5,and read-only saved-output check
+matches91/64/four pairs. No product replay;344 old pins/false classifier/index
+remain unchanged. Default offline tests use committed synthetic fixtures only;
+no private raw/cache dependency. Tool checks supplied facts,not authenticity or
+product acceptance. Next bounded API-versus-equality observation design,not
+automatic execution. PS5 remains FROZEN;all budgets/review/I1/P1 gates persist.
+
 Latest execution:[boundary diagnostic result and classifier defect](../roadmap/2026-10-18-p1-candidate-boundary-marker-result.md).
 After3fd072f1,new1/1 spent:ordinary PS7 exit0/28437ms,91 lines/64 PASS,
 eight markers/four closed pairs;Check4096=16860.926ms. Frozen Host-regex defect

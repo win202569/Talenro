@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — offline classifier corrected;47 synthetic cases PASS
+
+After1c9a31d7,[separate offline verifier](2026-10-18-p1-boundary-offline-verifier.md)
+uses pinned inventory HostRule;tests first failed VerifierAvailable,then47/47
+passed on PS7.6.5. Actual saved-output check confirms91/64/eight markers/four
+pairs and Check4096=16860.926ms.344 pins and old false-classifier receipt/hash
+remain unchanged;zero product launches. This is text/receipt classification,
+not authenticity proof,product fix or full acceptance. Next design separation
+of API/equality inside Check4096 with explicit instrumentation/scope limits,
+not another automatic run. Old boundary1/1 spent,full1/2 spent/PS5 FROZEN,
+review/I1/P1 gates unchanged. Portable tests need no ignored raw records.
+
 ## Latest — boundary diagnostic completes; frozen classifier defect retained
 
 After3fd072f1,[one PS7 diagnostic](2026-10-18-p1-candidate-boundary-marker-result.md)
