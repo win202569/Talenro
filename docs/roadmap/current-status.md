@@ -1,5 +1,26 @@
 # Project status — updated 2026-10-18
 
+## Latest — single timed attribution TIMEOUT;prior-view scans dominate prefix
+
+After935d4215,user approved ONE30s candidate stage-attribution host.New1/1spent:
+timeout30095ms/exit-1,owned exit/streams complete,stderr0,615pins intact,no
+controller error.Strict saved-text checker validates PREFIX_ONLY:935TIMEevents
+(467pairs+1open)+103base lines,37facts,23/39behavioral PASS.No full matrix pass.
+Last announcement root-mode-A/prior-before ENTER;body-start/interrupted work
+unknown.Last event confirms49/49decisions,29/29direct scalar,1/1metadata calls.
+No retry/repair/later suites;candidate,test,checker and all old records unchanged.
+
+Measured COMPLETED body28.5570738s:prior-view scans19.6150681s(68.69%),49decision
+calls2.1274615s(7.45%).Prior-before10.1826304s,prior-after9.4324377s;open interval
+excluded.Logged prior emissions0.2882443s,unclassified0.4259351s before last event.
+Final emission,parent launch and unrecorded tail remain unknown.This attributes
+instrumented prefix cost,not a causal split for the old uninstrumented timeout.
+
+See [timing evidence and limits](2026-10-18-p1-timed-ownership-attribution.md).
+Next:design observer-only optimization with full coverage/equivalence checks;
+no history removal,assertion weakening,timeout increase or new run authorized.
+Old full/ownership slots stay frozen.No main/I1/security/runtime/C12 acceptance.
+
 ## Latest — strict timing JSON checker offline44/44;no candidate run
 
 User approved minimal checker fix and one offline regression.New standalone

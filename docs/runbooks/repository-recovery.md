@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest diagnostic: [timed attribution timeout](../roadmap/2026-10-18-p1-timed-ownership-attribution.md).
+One new30s host consumed;valid prefix only.Prior-view scans account for68.69%
+of completed timed body;49candidate calls completed,but39case matrix did not.
+No candidate/test/checker changes or retry;old slots remain frozen.Read this
+before earlier offline44/44success:that checker result is not matrix acceptance.
+
 Latest result: [strict timing JSON checker offline44/44](../roadmap/2026-10-18-p1-strict-timing-json-result.md).
 Use the NEW strict-timing-json checker for future proposals,not the frozen old
 checker with the duplicate-field defect.All44offline cases pass;candidate and
