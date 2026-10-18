@@ -1,5 +1,11 @@
 # P2-A execution — stopped, unfinished development checkpoint
 
+Readonly follow-up after cf878764: original source/records unchanged and775common
+pins intact. Failure-site call graph and the confirmed group-only catch limitation
+are documented in the [one-host diagnostic proposal](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md).
+No exact subassertion or product root cause established; no new run/fix/reviewer.
+The new one-host proposal is NOT approved and does not unfreeze old allowance.
+
 ## Decision and actual result
 
 After cc0663a590547e2203884303a9b75326482cff1a, user approved Native execution:

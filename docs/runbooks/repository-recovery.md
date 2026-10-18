@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest readonly follow-up: [InputMutation diagnostic proposal, NOT approved](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md).
+Failure-site table and observability gap are portable;exact root cause unresolved.
+Proposes ONE new ordinary host with unchanged product/assertions and diagnostic
+context/stack only. No diagnostic code/packet/host/reviewer created. Do not replay
+the original frozen route or treat this proposal as repair/test authorization.
+
 Latest execution: [P2-A stopped unfinished checkpoint](../roadmap/2026-10-18-p2a-timebase-execution.md).
 After cc0663a5,user approved Native max5ordinary PS7 hosts plus one conditional
 review. Pure module/tests/oracle/controller saved in p2a-timebase-plan/ with LF

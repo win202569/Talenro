@@ -1,5 +1,12 @@
 # Project status — updated 2026-10-18
 
+Readonly follow-up: inspected InputMutation call graph and confirmed outer catch
+drops failure site/stack; exact product-vs-fixture root cause remains unresolved.
+[One NEW diagnostic-host proposal, not approved](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md)
+preserves frozen files and original ordered prefix,adds context/stack only.
+No new source/packet/run/reviewer this audit. Old2/5consumed,unused3frozen,
+review0/1ineligible. Next explicit approval would permit diagnostic only,not fixes.
+
 ## Latest — P2-A Native implementation stopped at InputMutation, not accepted
 
 User approved Native plan after cc0663a5, max5 ordinary PS7 hosts and one review
