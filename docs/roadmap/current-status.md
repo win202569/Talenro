@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — isolated candidate passes direct integer semantics on both engines
+
+After031e5f24 approval,[candidate direct suite](2026-10-18-p1-integer-candidate-semantics.md)
+spent new2/2:PS7 wall881ms/CPU750ms,PS5 wall819ms/CPU750ms,both ordinary,
+exit0,no timeout,empty stderr,owned exit,17 lines/14 PASS.312 pins held;
+per-engine stdout byte-identical to baseline. Candidate3537E9F5/original953CC2A8/
+testE442D1DD unchanged. Direct tested contracts pass,NOT full regression,
+CodeProperty coverage,calibrated speedup or original timeout fix. Old budgets/
+frozen slots/review ineligibility/PS5-I1-P1 blockers unchanged. Next separately
+approve isolated full candidate regression with unchanged original scripts,
+PS7/PS5 one each/30s/stop on failure;no original promotion or automatic launch.
+
 ## Latest — isolated integer-local reuse candidate prepared,NOT RUN
 
 Afterd41feabd preparation-only approval,[minimal candidate](2026-10-18-p1-integer-type-reuse-candidate-prepared.md)
