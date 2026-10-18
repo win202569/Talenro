@@ -1,11 +1,21 @@
 # Recover the project on a new computer
 
-Latest proposal: [PS7 limited offline acceptance, pending decision](../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-proposal.md).
-Prepared after15064909;NOT approved. Candidate1971F808 remains isolated/unaccepted.
+Latest decision: [user-approved PS7 limited offline acceptance](../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-approval.md).
+After fbcd2409 user explicitly approved proposal sections1/4/5/6 and recommended A.
+Candidate1971F808 now has documentary acceptance ONLY for stated PS7 synthetic/
+sequential vectors. All23+9limits remain;PS5/full-dual-engine gate stays open and
+the missing new product-mutant evidence is accepted only for this narrow profile.
+Candidate remains isolated;PromotionApproved=false;machine flags unchanged.
+No source replacement,main,live work,new tests/reviewers or budget renewal.
+Read the approval before using historical status below;no next task auto-starts.
+
+Historical proposal preparation (superseded by approval above): [PS7 limited offline acceptance](../roadmap/2026-10-18-p1-owned-return-ps7-limited-acceptance-proposal.md).
+At that preparation checkpoint after15064909 it was NOT approved and candidate1971F808
+was isolated/unaccepted;the approval above supersedes that documentary acceptance state.
 Recommended A is only stated PS7 offline vectors,with explicit PS5/full-dual-engine
 exclusion and accepted new product-mutant evidence gap for that narrow profile.
-All23+9limits persist. Read sections1/4/5/6 before explicit decision. Approval would
-permit only a new documentary acceptance record/status update,not source replacement,
+All23+9limits persist. The then-required decision on sections1/4/5/6 is now recorded
+above. Its scope permits only documentary acceptance/status updates,not source replacement,
 promotion,new runs/reviewers,main or live work. No budget is renewed by this proposal.
 
 Latest review: [owned-return scoped review complete](../roadmap/2026-10-18-p1-owned-return-readonly-review.md).

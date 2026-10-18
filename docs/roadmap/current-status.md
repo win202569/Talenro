@@ -1,8 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — PS7 limited offline acceptance proposal prepared, NOT approved
+## Latest — user approved fixed-candidate PS7 limited offline acceptance
 
-User requested the recommended proposal after15064909. Prepared
+After fbcd2409 the user explicitly answered yes to proposal sections1/4/5/6,
+recommended A and documentary recording only. See
+[actual approval and exact boundaries](2026-10-18-p1-owned-return-ps7-limited-acceptance-approval.md).
+Candidate1971F808 is accepted only for stated PS7 synthetic/sequential vectors.
+All23+9limits retained;PS5/full-dual-engine P1 remains open;new product-mutant gap
+explicitly accepted only for this narrow decision. I1/R1 stay
+AddressedWithinStatedPS7Vectors,not globally closed. PromotionApproved=false;
+machine flags unchanged. No source replacement,tests,reviewers,main or live work.
+Only approval/status/recovery documentation changed;all old budgets unchanged.
+This approval starts no next task;promotion or full P1 needs separate scope.
+
+## Historical proposal preparation — approval recorded above
+
+At that checkpoint,user requested the recommended proposal after15064909. Prepared
 [exact candidate/profile/evidence and all23+9limits](2026-10-18-p1-owned-return-ps7-limited-acceptance-proposal.md).
 Recommendation A:accept only stated PS7 offline vectors;PS5/full dual-engine gate
 stays open and new product-mutant gap is explicitly accepted only for this narrow
