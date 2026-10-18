@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — four-case fixture-only retention design;NOT PREPARED/RUN
+## Latest — retention diagnostic INCOMPLETE;author instrumentation error
+
+After4b88ae0a,user approved preparation+one fixture-only host.
+[Failed result/confidence/next bounded design](2026-10-18-p1-string-retention-characterization-result.md).
+Five diagnostic files prepared;557frozen entries matched. Host12462ms/exit1,no
+timeout,complete owned exit/streams. stdoutHOST only,stderr320bytes reports
+missing BaseObject property. Probe54's direct wrapper BaseObject calibration
+read is the source-level instrumentation mistake;original stack not captured.
+First control incomplete,0FACT records,remaining3unrun. No candidate imports/
+calls/changes;no String-retention conclusion. New diagnostic1/1SPENT,no retry.
+Old repair1/3SPENT+2/3FROZEN,39casesunrun,candidate1971F808 unaccepted and Int32
+contamination unchanged. Source/schema/raw unchanged after failure.
+Next bounded design:NEW sibling diagnostic copy,use fixed public PSObject
+BaseObject getter through existing public Invoke trampoline only at calibration;
+retain all4cases/schema/identity/control/mutation guards. Proposed NEW0/1
+UNAPPROVED_UNUSED,same30s+2s+2s/zero product calls;approval would cover correction+
+preparation+one attempt together. No corrected source/probe executed this turn.
+
+## Previous — four-case fixture-only retention design;NOT PREPARED/RUN
 
 After183707d6,user requested design of the recommended limited characterization.
 Bounded existing-fixture diagnostic,short in-chat design;no new product subsystem

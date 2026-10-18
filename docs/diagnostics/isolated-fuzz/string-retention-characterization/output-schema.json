@@ -1,0 +1,15 @@
+{
+  "Schema": 1,
+  "Host": "HOST: 7.6.5 Core x64=True admin=False productCalls=0",
+  "Cases": ["held-string-view", "raw-int32-field", "raw-string-field", "wrapped-string-field"],
+  "Properties": ["Case", "BaseType", "StoredTypeBefore", "StoredTypeAfter", "ViewType", "HeldViewSameOnReread", "MemberCollectionSameOnReread", "BaseIdentitySame", "FieldDescriptorSame", "HeldDescriptorRetained", "HeldPayloadSame", "RereadDescriptorRetained", "RereadPayloadSame", "HeldMutationRetained", "RereadMutationRetained", "PostViewSameAsReread", "Capability", "Control", "ProductCalls"],
+  "Booleans": ["HeldViewSameOnReread", "MemberCollectionSameOnReread", "BaseIdentitySame", "FieldDescriptorSame", "HeldDescriptorRetained", "HeldPayloadSame", "RereadDescriptorRetained", "HeldMutationRetained", "PostViewSameAsReread", "Control"],
+  "NullableBooleans": ["RereadPayloadSame", "RereadMutationRetained"],
+  "StoredTypes": ["System.String", "System.Int32", "System.Management.Automation.PSObject"],
+  "ViewTypes": ["System.Management.Automation.PSObject", "System.Management.Automation.PSInternalMemberSet"],
+  "Capabilities": ["RETAINED", "NOT_RETAINED"],
+  "Terminal": "RESULT: DIAGNOSTIC_COMPLETE cases=4 productCalls=0 acceptance=False",
+  "CompleteLineCount": 6,
+  "ProductCalls": 0,
+  "FormalAcceptance": false
+}

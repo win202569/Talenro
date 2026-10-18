@@ -16,7 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[four-case fixture-only retention design](../roadmap/current-status.md).
+Latest handoff:[retention diagnostic instrumentation error](../roadmap/2026-10-18-p1-string-retention-characterization-result.md).
+After4b88ae0a,one approved host failed before any FACT record:probe calibration
+direct BaseObject read errored.12462ms/exit1,no timeout,complete owned exit/
+capture,stderr320bytes. Diagnostic1/1SPENT;four-case characterization incomplete,
+no candidate calls/edits.557frozen entries/old records unchanged;old repair2slots
+stay frozen,all39casesunrun/candidate1971F808 unaccepted. Proposed NEW sibling
+diagnostic-only getter correction+one same-budget attempt requires approval;
+no corrected source/controller prepared or run. Keep4cases/schema/guards,do not
+skip the failing calibration. Restore latest dev branch,not main;raw/runtimes
+and run authority do not clone or reset. Detailed source/stack confidence in report.
+
+Previous handoff:[four-case fixture-only retention design](../roadmap/current-status.md).
 After183707d6,design only:no executable/source/controller prepared/run.
 Proposed NEWmax1 ordinary fresh PS7 host,30s+2s exit+2s drain,ZERO candidate/
 product helper/import/decision calls. Four cases:held String-view control,raw
