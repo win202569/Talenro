@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — owned-return single readonly review plan/package prepared, not launched
+
+User requested materials only. New [review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md),
+[package](2026-10-18-p1-owned-return-review-package.md) and exact pin JSON define
+37source/report paths,27local evidence paths and676hash-only inherited entries.
+Scope:complete candidate1971F808/cumulative changes,original I1/Token R1 and new
+39case/45case/API/ownership evidence;all prior limits retained. Proposed ONE new
+fresh readonly reviewer requires explicit approval. Newreview0/1UNAPPROVED_UNUSED,
+target hostsZERO;no dispatch,test,source edit,promotion or main merge this turn.
+Important/Critical/incomplete stops without fix/re-review. Reviewer must return
+every finding/declined judgment and scoped disposition,not ReadyToMerge or I1
+global closure. Parent preparation/hash checks are not independent review.
+
 ## Latest — owned-return same-version API+ownership2/2passed
 
 NEW max2ordinary PS7 hosts both passed on candidate1971F808:full35groups/38lines

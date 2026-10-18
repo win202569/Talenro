@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest preparation: [owned-return readonly review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md)
+and [package/pin inventory](../roadmap/2026-10-18-p1-owned-return-review-package.md).
+Prepared only:37source/report and27local evidence identities,676inherited entries.
+ONE new fresh readonly review is proposed but unapproved;no dispatch or tests.
+Read plan and approve explicitly before launch;do not reuse spent/ineligible old
+seats. No automatic fixes,re-review,promotion,main merge or broad acceptance.
+Local raw missing after cloning is an evidence limitation,not a renewed budget.
+
 Latest result: [owned-return API/ownership2/2passed](../roadmap/2026-10-18-p1-owned-return-regression-v2-result.md).
 On exact candidate1971F808,PS7 full35groups/38lines passed in23.290s and ownership
 8fixture+10groups/22lines in6.464s,676pins intact,stderr0. New2/2spent,old slots

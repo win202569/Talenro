@@ -1,0 +1,285 @@
+{
+  "Sources": [
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/offline-supervision-policy.ps1",
+      "SHA256": "953CC2A8AED3A0EC392683D91175262A33F4841EF45F1D12B8134CEB29E622CA"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/integer-token-local-candidate/offline-supervision-policy.ps1",
+      "SHA256": "F9B4E408D9A4FF9C7A36EFD6E1F2472F17DACB3F76F463FF4973DAB4139CC82A"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.ps1",
+      "SHA256": "1971F808DAB0C0A520FC708BF240AF4367D21EE811FE9AEB8664E605E7E8BCE8"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/source-pins.json",
+      "SHA256": "4D7DC625DA698C6ECD64E77A53368DF2C289BF99F3D79E5D827FBBAD7DE6EB14"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/README.md",
+      "SHA256": "3AE81B30B64D27F6749262667EA0F765F64DD208D5B10301EE5A2BE19C3526EC"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.tests.ps1",
+      "SHA256": "61A3BACF26EDE1F8B137CBF77CC4DBC35E4D6E6FB8FE6365953CDA9F41CEDEA3"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/offline-supervision-policy.ownership.tests.ps1",
+      "SHA256": "C4905925B309B00E94834B2FDA3EE8034265B23CDF274276C9ECA5511250C6E7"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/scalar-owned-return-candidate/owned-return.tests.ps1",
+      "SHA256": "7DE3A737E177F1B191393AACC9D67479B0FE62A9C82521AD5E602522E1D92D44"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/stage-timing-ownership/owned-return.tests.ps1",
+      "SHA256": "986CDE7605B88500C35B70D5C4152B1D63370BAC3301B5BA514AC3B2C34AE5BA"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/stage-timing-ownership/output-inventory.json",
+      "SHA256": "7514F6C3348CF02EE59769F1EA895883E3A92F4C35373F7F7D963686156561D3"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/inline-ownership-observer/owned-return.tests.ps1",
+      "SHA256": "8F41A9850474720F5AE2525E3E905018884DA2CB55A92E8C669F339965173E04"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/inline-observer-storage-v2/offline.tests.ps1",
+      "SHA256": "D6531D884313F22DBBC3A03F5D6909A7D8E58C51C0B216FF011663EE68DCFB33"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/inline-observer-storage-v2/capture.ps1",
+      "SHA256": "13F0F255059EB75F9DF5C155FD433626EE11420C3A8D1DE2F8E45B392A0084BA"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/inline-observer-storage-v2/EXECUTION.md",
+      "SHA256": "7BA086750490EB3EF35F3032AD4E3657042A73A6C3DCA1E47F85BD5085C0F092"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/reflected-storage-fixture/set-stored.ps1",
+      "SHA256": "91C107BF6D5A08D265F0837CB161D75C5C08FC28DB962745EC13DABEBE1A5B01"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/reflected-storage-fixture/setter.tests.ps1",
+      "SHA256": "7D7093AA44A01B2AD32190972FE00F51189AEECC41231E7B5681767EC876F55C"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/strict-timing-json/inspect-capture.ps1",
+      "SHA256": "7E140A1BA753E1CBA836B36753FB3B741F615CB5941E9C1FD4990F9AF476B4D4"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/inline-ownership-timing/capture.ps1",
+      "SHA256": "9603B184A6A7B5F2E334EF6CFC0BA20F2DB1BB5BBDD27E69BA49ED0625C2AD88"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/owned-return-regression-v2/capture.ps1",
+      "SHA256": "8918CAEBF26003339A5A44E0CEC7763F4DBE934D29D67DE950402594C918C170"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/owned-return-regression-v2/source-pins.json",
+      "SHA256": "2BCA6E2EBA387B2C6804C3DE7A2743A2873C9C7F6BB0EEE85A1230AF8010B844"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/owned-return-regression-v2/expected-output.json",
+      "SHA256": "07358AE6468C8E7AF2B348ABBCDA5F2557B126CF3C35FFE54CDD19D96D83CD10"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/plain-scalar-ownership/ownership.tests.ps1",
+      "SHA256": "7A3A842D63AC6B7D18BF6E5C49DC47E543703CF568FCC9B8AE99CAD504AB8544"
+    },
+    {
+      "Path": "docs/superpowers/plans/2026-10-17-offline-supervision-policy.md",
+      "SHA256": "3939DCB9DF751627A53C39B72314EB6A69D19BE4A180FF274509C8AF769ACE66"
+    },
+    {
+      "Path": "docs/superpowers/plans/2026-10-17-p1-scalar-ownership-repair.md",
+      "SHA256": "005567A7B4E0D9DE504158C77AC9E694DD0CABA82D9DD0AF0E8D378DBBEFA9B1"
+    },
+    {
+      "Path": "docs/superpowers/specs/2026-10-17-raw-capture-supervision-design.md",
+      "SHA256": "6AA9A08600F2696866F3C3B2F12E838E4BB470DFE3D2F9B3F7BDA2A3BA99A281"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-17-offline-supervision-policy-readonly-review.md",
+      "SHA256": "94804FCB43A05AA40B15CD0EEBF5B15FA84030AD73130A0B6693BAF37DB85180"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-token-readonly-review.md",
+      "SHA256": "6FBB785029C29A5AC9E74A243F8EACEB7B4E74CC93A7066C2C9A530416DEE255"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-plain-scalar-ownership-result.md",
+      "SHA256": "F195823AC900EA6669A1925AFE19420AF3EE0F0B8793F50FA78BA2F43799EF51"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-owned-return-repair-result.md",
+      "SHA256": "E586FA2DC04335286C76342D48BDA83C15F76B567D320D65110D9503AD6C3C94"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-owned-return-gate-reconciliation.md",
+      "SHA256": "846611710033997AA4541940916A0C6438AF3253DB7B70F25E124F946E01A8AB"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-reflected-storage-result.md",
+      "SHA256": "074A63E81EFD2CC1A33E1ACD8D04578901777116D28C81580EC203803CC48269"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-inline-observer-v2-result.md",
+      "SHA256": "721CD3DFE66988D081723A98E5A5122FEB70D3362E77C80B9FB59774093CD07D"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-inline-ownership-timing-result.md",
+      "SHA256": "AA6B479B22873480F758294DCC35E2A0DA9E40370339632F93DA3F528AA55D93"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-owned-return-regression-v2-result.md",
+      "SHA256": "1EEB57423904EDDDF509307B8F341BBA77C8A6BCFAE5C3D4DACACD535244368C"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/integer-token-local-candidate/token-direct.fixed-members.tests.ps1",
+      "SHA256": "1EA8CDB1114EA6A7C68EF29E03F0029E277EFB64FF039EBCA8EB07B706E007A9"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/integer-token-local-candidate/TokenDescriptorSupport.cs",
+      "SHA256": "BF82CE30B9CE82449C90ADAA96C0B03F3892609FB903EF87B07C7FD68489409A"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-token-direct-fixed-members-result.md",
+      "SHA256": "A8ACA345FC632E0D5D614DADC93E4BF9CB60B24C28EC70951E9671918BA8C686"
+    }
+  ],
+  "LocalEvidence": [
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/frozen.json",
+      "SHA256": "7995C64D2DBABDE5D1B2133925A41CC41C42632E13740D981998FA67D4575097"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/invocations.json",
+      "SHA256": "1C8A048D77CC518F91FA922F6A1F666A7F7A7BE95A38D63E8EC393CE4C15FB16"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/full.stdout.txt",
+      "SHA256": "3FE31C43E6947167D06A1C03C94A382856B249C36A1FAA0DBF2BBD6C99342D76"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/full.stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/ownership.stdout.txt",
+      "SHA256": "0571AD4FEE3BA556B3D5A29D0E36A4C7AA5C3CAA95E97F2FF0556DA8D53464B8"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/ownership.stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-ownership-timing/frozen.json",
+      "SHA256": "803585E86355FD1664C36A29495BFA8BFF9C1FCC3596E8ACDE403ED8C699FD62"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-ownership-timing/invocation.json",
+      "SHA256": "C012FE83EB47D9FB7736A12A78BC45FD61BEF4EA68FB9AD6114B1CB4A2D268C9"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-ownership-timing/stdout.txt",
+      "SHA256": "442DE40B2FE3137AC14C62C5C3EB79B427B138A2B6022B819B7B2E16777B925B"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-ownership-timing/stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-ownership-timing/analysis.json",
+      "SHA256": "65110E040EE6A0083CB64BB8B1EFE3BDD8CFFC64E878A1B6750C051727F3EBD6"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-observer-storage-v2/frozen.json",
+      "SHA256": "8A5FB6E48FC16867EA19FC9DC151AF7E4E4A303A4507BAF8BAE7F349D2427276"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-observer-storage-v2/invocation.json",
+      "SHA256": "60B883B6AB22480F7B54ACEAEE5CB23BA7B3A623139E77C196D9598C258BDEBE"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-observer-storage-v2/stdout.txt",
+      "SHA256": "AE3DAB2BC89BD7602A70DC25677A6F54ECB22FFC41B8A46B7A82CA9BDF1D4C3D"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-observer-storage-v2/stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-inline-observer-storage-v2/fixture-inventory.json",
+      "SHA256": "A055241CF41A2D0D19C6A3DC7D1A1C8E00D0BE6E46F8D3A5D0168886137382E3"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-reflected-storage-fixture/frozen.json",
+      "SHA256": "301B63F26DD68DDA5AFD3266EC0DBE05FEF8DA9BF4F49DEF34A3694ECDFA5323"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-reflected-storage-fixture/invocation.json",
+      "SHA256": "B269EA0963B925996D15350E4099777F2A616975ABEBB5CDB508F966D879BAF7"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-reflected-storage-fixture/stdout.txt",
+      "SHA256": "B6DC1ED6ED076C40CB1FFB54CFB8B22E0327E7AA8E53BD6C8A1C497C8F76FD1B"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-reflected-storage-fixture/stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-plain-scalar-ownership/frozen.json",
+      "SHA256": "9CD8A8459C5566EE9B845784EDA56C1D9CB7666BE1CDEDD8189C09DF479D5BAD"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-plain-scalar-ownership/invocation.json",
+      "SHA256": "4E0D5F420CD988A7B183539ACF4EB7EAD6E21CCB486602E50BDA2F709D50918C"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-plain-scalar-ownership/stdout.txt",
+      "SHA256": "C543A1F1FB404EC4C4EC99346FB34C36F15FECBBEE3146F3FDEDB654F4ED04C5"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-plain-scalar-ownership/stderr.txt",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-token-readonly-review/reviewed-base.ps1.txt",
+      "SHA256": "FE23DF3BE1F5BA5DF4C2B565DEE5CFB46DAB6F57C896DA9B5C95DFE440FF0ABB"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-token-readonly-review/reviewer-response.md",
+      "SHA256": "736C72EA10BCCAE9174BAC5BF8AF88869730D609B9559480F12B2DD327815D85"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-10-18-p1-token-readonly-review/result.json",
+      "SHA256": "865BC62FB94B2C8CD2EFD24D4B207200BB129C88C84FEB72653D68C0CBDB7D50"
+    }
+  ],
+  "Schema": 1,
+  "PreparationBaseCommit": "c4dfdb2f9e62c5378bd8df2e10ff63b66b6e4429",
+  "Status": "PROPOSED_NOT_APPROVED",
+  "ProposedMaxFreshReviewDispatches": 1,
+  "ApprovedDispatches": 0,
+  "TargetHosts": 0,
+  "FormalAcceptance": false,
+  "PromotionApproved": false,
+  "InheritedPinCount": 676,
+  "InheritedManifest": {
+    "Path": ".superpowers/sdd/2026-10-18-p1-owned-return-regression-v2/frozen.json",
+    "SHA256": "7995C64D2DBABDE5D1B2133925A41CC41C42632E13740D981998FA67D4575097"
+  },
+  "ProposalDocuments": [
+    {
+      "Path": "docs/superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md",
+      "SHA256": "1D84F3161624560F0BDE3070F5E802D9F0608FA4DF2D0553D606D7AF121BEB62"
+    },
+    {
+      "Path": "docs/roadmap/2026-10-18-p1-owned-return-review-package.md",
+      "SHA256": "EC4C08A5B9A9C5005F543531D54E43F0C80B3D1FA6D6139CF31B575856351565"
+    }
+  ]
+}
