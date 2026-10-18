@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — hidden scalar/array decoration gap confirmed; product repair pending
+## Latest — raw scalar repair RED captured; strict UTF-8 decoding blocks continuation
+
+[Unfinished repair](2026-10-18-p2b-scalar-raw-repair.md).
+Approved new3+1scope: first target1/3spent,remaining2/3FROZEN,review0/1ineligible.
+PID17588,1970ms,exit1;all35cases completed and expected HiddenDecorationRefusal
+assertion occurred. Controller strict UTF-8 decode failed on CP936 A1AD ellipsis
+in Error.Position;receipt remains INCOMPLETE,not rewritten/promoted. Readonly
+strict CP936 JSON reconciliation confirms7clean accepted,14visible refused,
+14hidden accepted,all preconditions/retention valid,counters0/authority false.
+1046pins intact,no timeout/stderr,owned exit/streams complete. No product edit/
+seal/GREEN/full/reviewer/retry after stop;new and old productB468B564 unchanged,
+M1 UNFIXED. Next proposed NEW continuation controller requires approval to use
+saved RED read-only and ONLY original remaining2hosts+conditional review,without
+rerunning RED or weakening safety checks. No approval implied;recover devbranch.
+
+## Historical — hidden scalar/array decoration gap confirmed; product repair pending
 
 [Retained-fixture diagnostic](2026-10-18-p2b-scalar-retained-diagnostic.md).
 New approved one-host scope1/1spent: PID43056,1982ms,exit0,DIAGNOSTIC_CAPTURED.

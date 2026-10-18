@@ -1,6 +1,20 @@
 # Recover the project on a new computer
 
-Latest diagnostic:[retained scalar fixture](../roadmap/2026-10-18-p2b-scalar-retained-diagnostic.md).
+Latest unfinished repair:[raw scalar validation](../roadmap/2026-10-18-p2b-scalar-raw-repair.md).
+Portable new leaf p2b-scalar-raw-repair has unchangedB468B564baseline,new35case
+regression and original33full tests/fixtures. First target1/3spent,remaining2/3
+FROZEN,conditional review0/1ineligible. All35cases completed;expected refusal
+assertion occurred,but strict UTF-8 decode failed on CP936 ellipsis in captured
+Error.Position. Original receipt INCOMPLETE preserved. Readonly strict CP936
+interpretation establishes expected7clean/14visible-refused/14hidden-accepted;
+1046pins intact,counters0,no timeout/stderr. Product NOT repaired or sealed;
+no GREEN/full/reviewer/retry. NEW continuation controller/saved-RED accounting
+needs separate approval before using ONLY the original two remaining hosts and
+conditional review. Do not edit sealed source,transcode raw,promote old receipt,
+rerun RED or reset budgets. Recover latest devbranch,not main;clone restores
+portable report/matrix/source,not ignored raw/SDK/cache/mapping/session state.
+
+Historical diagnostic:[retained scalar fixture](../roadmap/2026-10-18-p2b-scalar-retained-diagnostic.md).
 New leaf p2b-scalar-retained-diagnostic completed35rows in one approved ordinary
 host1/1spent. Seven clean controls accepted;14visible decorations refused;
 14hidden decorations accepted. Preconditions and retained identities proven,
