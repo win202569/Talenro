@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — v2 observer offline equivalence45/45; no candidate run
+
+One ordinary PS7 offline host (30s bound) passed all45paired fixtures in1099ms,
+exit0, stderr0, no timeout, owned exit/streams complete,657pins intact. Saved
+output independently matches45ordered paired PASS lines+1summary and unchanged
+inventory. Old/new observers satisfy literal expected outcomes in both phases;
+storage, descriptor/base/type, held/fresh metadata and sharing controls pass.
+Synthetic reread decoy limitations remain; this is scoped observer equivalence,
+not candidate correctness, performance, actual39case completion or acceptance.
+V2 harness/setter/candidate/observers and all old records unchanged; no retry or
+old-slot reuse. See [45/45 evidence and limits](2026-10-18-p1-inline-observer-v2-result.md).
+Next proposal: one separately agreed30s candidate stage-timing diagnostic using
+optimized test copy, same39cases/80calls/history/assertions and strict checker.
+No candidate controller/launch yet; no main/I1/security/runtime/C12 acceptance.
+
 ## Latest — reflected storage construction10/10; v2 offline harness prepared only
 
 One ordinary PS7 synthetic setter check (10s bound) passed5kinds/10bidirectional

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest result: [v2 offline observer equivalence45/45](../roadmap/2026-10-18-p1-inline-observer-v2-result.md).
+One bounded offline host completed in1099ms, all657pins intact, stderr0. Fixed
+literal inventory unchanged; old/new observers agree on all45paired cases and
+before/after expectations. No candidate run, actual ownership matrix or speedup
+established. Next proposal is a separately agreed bounded candidate timing run
+of the optimized test; this offline allowance is spent and cannot authorize it.
+Keep prior failures/receipts and unchanged prepared sources; do not rerun controllers.
+
 Latest checkpoint: [reflected storage10/10 and prepared v2](../roadmap/2026-10-18-p1-reflected-storage-result.md).
 The public SDK setter preserves actual raw/PSObject storage over5kinds/10switches,
 with descriptor/base/type/value intact. New independent v2 harness is prepared,
