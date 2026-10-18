@@ -16,7 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[initially plain scalar ownership proposal](../roadmap/2026-10-18-p1-plain-scalar-ownership-proposal.md).
+Latest handoff:[plain-scalar ownership first-case failure](../roadmap/2026-10-18-p1-plain-scalar-ownership-result.md).
+Afterae21a085,one approved ordinary PS7 host observed a NoteProperty added through
+initially plain input Int32 ExitCode become visible on saved A.WouldExitCode.
+3calls;first case stopped before payload-content mutation,17later cases/final
+control unrun.1162ms/exit1,no timeout,empty stderr,complete owned exit/capture.
+535pin entries and exact4stdout lines/2stream hashes reconciled readonly.
+NEW1/1SPENT:no retry/fix/reviewer/promotion. Portable five-file test/controller/
+oracle leaf plus result/status retained;candidate and historical records unchanged.
+Restore latest development branch,not main;raw/local frozen packet and engine
+do not clone,and missing state cannot reset allowance. R1 now has this additional
+descriptor-contamination witness;other vectors unproved,I1/candidate unaccepted.
+Next separately agree bounded ownership-repair design/budget;no automatic run.
+
+Previous handoff:[initially plain scalar ownership proposal](../roadmap/2026-10-18-p1-plain-scalar-ownership-proposal.md).
 Afterbf1740cb,design only:no executable fixture/controller or target prepared/run.
 Proposed18 finite cases(normal/sticky,six field/type rows,three mutation directions),
 max38 candidate calls in ONE fresh PS7 host,30s+2s exit+2s drain. Full literals

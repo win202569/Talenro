@@ -1,6 +1,25 @@
 # Project status — updated 2026-10-18
 
-## Latest — initially plain scalar ownership proposal;NOT PREPARED/RUN
+## Latest — first plain-scalar case observed descriptor contamination;STOP
+
+Afterae21a085,user approved preparation plus ONE bounded host.
+[Result/limits](2026-10-18-p1-plain-scalar-ownership-result.md).
+Fresh ordinary PS7:1162ms,exit1,no timeout,empty stderr,complete owned-exit/capture.
+Normal control passed;two accepted full-literal-matching results were saved.
+Adding a NoteProperty to initially plain input Int32 ExitCode then made the
+property visible through A.Decision.WouldExitCode. First case stopped at that
+descriptor check BEFORE payload-content mutation;do not claim array propagation,
+B inspection or later matrix checks passed.3product calls,0completed case passes,
+17remaining cases UNRUN/FROZEN,final control unrun. NEW host1/1SPENT/no retry.
+535 frozen pin entries(51scoped+476inherited included),exact4stdout lines and
+both stream hashes reconciled readonly. Five portable fixture/controller/oracle
+files saved;candidate/original/old records unchanged. No repair/reviewer/merge.
+One-vector dynamic witness supplements historical R1 evidence gap;I1 remains
+unclosed/candidate NotAccepted. Prior review1/1/full4/4/direct2/2 and older freezes
+unchanged;no promotion or wider acceptance. Next recommend bounded ownership-
+repair design/budget only,not an automatic source fix or rerun.
+
+## Previous — initially plain scalar ownership proposal;NOT PREPARED/RUN
 
 Afterbf1740cb,user requested the recommended design only.
 [Bounded ownership proposal](2026-10-18-p1-plain-scalar-ownership-proposal.md):
