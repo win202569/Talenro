@@ -1,0 +1,111 @@
+{
+  "Schema": 1,
+  "Status": "DIAGNOSTIC_CAPTURED_NOT_REPAIRED",
+  "BaseCommit": "27e6dc45aeb853a989aa919c223b9420e8510153",
+  "NewDiagnosticBudget": 1,
+  "DiagnosticHostsSpent": 1,
+  "OriginalHostsSpent": 2,
+  "OriginalRemainingFrozen": 3,
+  "ReviewUsed": 0,
+  "ReviewEligible": false,
+  "Pins": 1289,
+  "PinsIntact": true,
+  "FrozenSHA256": "4A398AE49E88206C4D0CD9D24C27EA42999DC9D64CC84A66E1D773085CFD391B",
+  "InvocationSHA256": "6183737559F63F52D6A51755D643473DF3B17323A55C548543812CD8FC236492",
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "C3D8211727A36BF852E96F3EC3E91652DE46CA77943311B0841A3344422077F2"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "EF9EB30BA9D1F32C2AA78FF9BD6E0662B5D61C7E662283E878A0424DAE94F5E9"
+    },
+    {
+      "Name": "diagnostic.ps1",
+      "SHA256": "C108CD3F8622280D8B5FA0AB762E615527B2EE1F648A419103340984652C06B0"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "5A9BB6D203F9623729F0024431B4C604DA193FCEEFFF2058B0C3A9D867620322"
+    }
+  ],
+  "Receipt": {
+    "Schema": 1,
+    "AttemptConsumed": true,
+    "Launched": true,
+    "PID": 33584,
+    "ElapsedMs": 1060,
+    "TimedOut": false,
+    "ExitCode": 0,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "PostPinsIntact": true,
+    "Captured": true,
+    "Outcome": "DIAGNOSTIC_CAPTURED",
+    "stdoutSHA256": "36FCF7711AAC0969971410241A638C6999CF4DF301CE351859DD3839F4C7F379",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "RuntimeApproved": false
+  },
+  "Diagnostic": {
+    "Schema": 1,
+    "Mode": "p2b-first-snapshot-diagnostic",
+    "HostVersion": "7.6.5",
+    "Core": true,
+    "X64": true,
+    "Admin": false,
+    "Created": {
+      "Accepted": true,
+      "Reason": "created",
+      "HasToken": true,
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false
+    },
+    "BindingMutations": {
+      "BindingDigest0": 99,
+      "SessionId0": 99,
+      "Frequency": 1001
+    },
+    "SnapshotCalls": 1,
+    "ActualSnapshot": {
+      "Schema": 1,
+      "Mode": "p2b-inbox-only",
+      "Accepted": false,
+      "Reason": "internal-error",
+      "Inbox": null,
+      "EndpointId": null,
+      "AcceptedBytes": 0,
+      "Frame": null,
+      "Snapshot": null,
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false
+    },
+    "BreakpointLine": 258,
+    "CatchHits": 1,
+    "Caught": {
+      "ExceptionChain": [
+        {
+          "Type": "System.Management.Automation.RuntimeException",
+          "Message": "Unexpected scalar"
+        }
+      ],
+      "FullyQualifiedErrorId": "Unexpected scalar",
+      "Position": "At D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-cold-cache-repair\\control-frame.ps1:146 char:11\r\n+     }else{throw 'Unexpected scalar'}\r\n+           ~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "ScriptStackTrace": "at Copy-P2BCScalar, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-cold-cache-repair\\control-frame.ps1: line 146\r\nat Copy-IBTree, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.psm1: line 21\r\nat New-IBResult, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.psm1: line 29\r\nat Get-P2BInboxSnapshot, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-bounded-inbox-tick-correction\\inbox.psm1: line 256\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-first-snapshot-diagnostic\\diagnostic.ps1: line 51"
+    },
+    "BreakpointObservationError": null,
+    "BreakpointRemoved": true,
+    "Error": null,
+    "Captured": true,
+    "ProductChanged": false,
+    "FullSuiteRun": false,
+    "RuntimeApproved": false
+  },
+  "Localization": "Snapshot result tree falls through Copy-IBTree into scalar-only Copy-P2BCScalar; Unexpected scalar is caught and returned as internal-error",
+  "ConcreteRuntimeSnapshotCLRTypeObserved": false,
+  "ProductFixed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+}

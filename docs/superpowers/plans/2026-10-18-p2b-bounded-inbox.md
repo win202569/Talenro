@@ -29,6 +29,13 @@ ImplementationApproved=true仅限该路线；RuntimeApproved=false。
 当前2/5原额度SPENT+3FROZEN，审查0/1ineligible。未继续变异/修复/重跑。
 详见docs/roadmap/2026-10-18-p2b-bounded-inbox-tick-correction.md。
 
+额外诊断更新：用户在27e6dc45后批准单一<=120秒诊断，不修产品/重跑suite。
+1/1诊断SPENT：PID33584/1060ms/exit0，首次snapshot实际internal-error，
+捕获Unexpected scalar，stack定位Copy-IBTree:21→标量helper:146。
+临时catch断点仅记录一次且已移除；1289pins/产品未变。具体运行时wrapper
+类型未记录，不冒称动态证明。原2/5SPENT+3FROZEN、review0/1不变；
+下一修复/验证范围须另定。报告docs/roadmap/2026-10-18-p2b-first-snapshot-diagnostic.md。
+
 ## Global Constraints
 
 - 复用现有worktree及codex/c12-b01-task9-coordinator；无main/PR/强推/环境或安全设置变更。

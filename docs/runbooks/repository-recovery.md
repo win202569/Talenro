@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest evidence:[single first-snapshot diagnostic](../roadmap/2026-10-18-p2b-first-snapshot-diagnostic.md).
+Diagnostic1/1SPENT,captured actualinternal-error andUnexpected scalar stack:
+Copy-IBTree sends snapshot to scalar-only helper. Product43067AD0 NOT repaired;
+codec9A532E17 unchanged. Runtimewrapper type not recorded;do not overstate cause.
+One publicsnapshot call,temporarycatch breakpointremoved,no full rerun/reviewer.
+1289pins intact,no timeout/stderr,ownedexit/drains complete. Original2/5SPENT+
+3FROZEN,review0/1ineligible. Next needs explicit bounded repair/verification plan;
+do not automatically run oldslots. Portable summary includes actual result,
+exception/stack/receipt,not tokens/raw/runtime/cache/credentials or new allowance.
+
 Latest UNFINISHED:[bounded inbox tick-correction full failure](../roadmap/2026-10-18-p2b-bounded-inbox-tick-correction.md).
 New sibling tick-correction leaf preserves original frozen records. User approved
 oneObserved11 addition/refreeze,noREDrepeat and originalremaining4+conditional1.

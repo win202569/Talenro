@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded inbox UNFINISHED; approved tick correction reaches full failure
+## Latest — first snapshot failure localized; diagnostic captured, NOT fixed
+
+[Single diagnostic](2026-10-18-p2b-first-snapshot-diagnostic.md).
+User approved extra1host after27e6dc45. PID33584,1060ms,exit0/captured;
+first public snapshot returnsinternal-error,exceptionUnexpected scalar.
+Stack:codecScalar:146<-Copy-IBTree:21<-New-IBResult:29<-Snapshot:256.
+Inbox tree dispatch falls into scalar-only helper;not a proven aliasing bug
+or reason to relax codec. Concrete runtimewrapper type not captured;source
+classification is a repair direction,not a measured type result. CatchHits1,
+breakpointremoved,no source edits/retry/full/reviewer.1289pins intact,no
+timeout/stderr,ownedexit/drains complete. Diagnostic1/1SPENT;original2/5SPENT+
+3FROZEN,review0/1ineligible. Inbox stillUNFINISHED;next explicit repair plan
+needed. Fixedcodec limited acceptance unchanged;no main/live/fullC12 approval.
+
+## Historical — bounded inbox UNFINISHED; approved tick correction reaches full failure
 
 [Continuation record](2026-10-18-p2b-bounded-inbox-tick-correction.md).
 User approved single tick correction/refreeze,noREDrepeat,remainingoriginal4+1.
