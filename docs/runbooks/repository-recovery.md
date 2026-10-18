@@ -1,6 +1,15 @@
 # Recover the project on a new computer
 
-Latest decision artifact:[pure codec limited acceptance proposal](../roadmap/2026-10-18-p2b-codec-limited-acceptance-proposal.md).
+Latest human decision:[specified PS7 pure codec offline acceptance approved](../roadmap/2026-10-18-p2b-codec-limited-acceptance-approval.md).
+User explicitly accepted the displayed proposal scope after3da72edd;fixed
+candidate9A532E17 at8500aef9 is accepted only for specified ordinaryPS7.6.5
+offline codec/binding vectors. All proposal exclusions and spent/frozen budgets
+remain binding. RuntimeApproved=false;MainMergeApproved=false. No fullP2-B/
+PS5/P2-C/P3/Task9/fullC12/live/security promotion or new execution allowance.
+This turn only registers approval and saves documents;next follow-on design/
+plan needs a separate scope. Clone restores records,not runtime capability.
+
+Historical decision artifact:[pure codec limited acceptance proposal](../roadmap/2026-10-18-p2b-codec-limited-acceptance-proposal.md).
 It binds9A532E17 at8500aef9 to specified ordinary PS7 offline vectors only;
 acceptance remains PENDING,not approved by a generic continuation. This turn
 only rechecked1185pins/saved receipts and wrote documents;0new targets/review.

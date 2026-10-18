@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-18
 
-## Latest — pure codec limited offline acceptance proposed, awaiting human decision
+## Latest — specified PS7 pure codec offline acceptance approved
+
+[Human approval record](2026-10-18-p2b-codec-limited-acceptance-approval.md).
+User explicitly accepted the displayed limited scope after proposal3da72edd.
+Accepted fixed product9A532E17 at8500aef9 only for specified ordinaryPS7.6.5
+offline codec/binding vectors,with every proposal exclusion retained.
+LimitedAcceptanceApproved=true;RuntimeApproved=false;MainMergeApproved=false.
+Not fullP2-B/PS5/P2-C/P3/Task9/fullC12/security/live acceptance. This turn checked
+proposal and8fixed file hashes;0new targets/reviews/product edits. All spent/
+frozen budgets unchanged. Next requires a separately scoped follow-on design/
+plan;no automatic implementation,execution or entrypoint promotion.
+
+## Historical — pure codec limited offline acceptance proposed, awaiting human decision
 
 [Proposal and remaining dependencies](2026-10-18-p2b-codec-limited-acceptance-proposal.md)
 bind candidate9A532E17 at commit8500aef9 to specified ordinary PS7.6.5 offline
