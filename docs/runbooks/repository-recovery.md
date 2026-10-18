@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest proposal:[API/equality observation analysis,NOT PREPARED](../roadmap/2026-10-18-p1-api-equality-observation-analysis.md).
+Afterd5d21b17,source-only analysis proposes a4096-only helper with API/assertion
+markers,unchanged product/loading/common helpers and explicit fresh-history
+interference. No new probe/controller/verifier or target run.344 pins/index
+held. Preparation requires design confirmation and a distinct95-line nested
+inventory/offline classifier;do not weaken old91-line verifier or replay old
+tests. Git restores proposal,not ignored records/caches/replay authority.
+PS5 remains FROZEN;all spent budgets/review/I1/P1 gates unchanged.
+
 Latest tool:[offline boundary verifier](../roadmap/2026-10-18-p1-boundary-offline-verifier.md).
 After1c9a31d7,independent function/tests/usage guide added beside isolated-fuzz
 utilities;47 synthetic cases pass in PS7.6.5,and read-only saved-output check

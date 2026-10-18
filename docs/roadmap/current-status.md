@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-18
 
+## Latest — API/equality split proposed, NOT PREPARED
+
+Afterd5d21b17,[read-only observation design](2026-10-18-p1-api-equality-observation-analysis.md)
+recommends a dedicated4096-only helper preserving API/full assertion/return,
+four new inner markers,no product reload/common-helper edits. Fresh helper/body/
+invocation history is explicit interference,not zero-cost profiling. Proposed
+95-line/64-PASS/12-marker nested inventory needs a separate strict classifier;
+old91-line verifier must stay unchanged.344 prior pins/index held;zero launches
+or source implementations. Confirm design before preparation-only copies/offline
+tests;no autorun. PS5 FROZEN,old budgets/review/I1/P1 gates persist.
+
 ## Latest — offline classifier corrected;47 synthetic cases PASS
 
 After1c9a31d7,[separate offline verifier](2026-10-18-p1-boundary-offline-verifier.md)
