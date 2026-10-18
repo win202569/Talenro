@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest candidate:[SDK structural compatibility](../roadmap/2026-10-18-p2b-sdk-structural-compatibility.md).
+Latest unfinished diagnostic:[scalar descriptor retention](../roadmap/2026-10-18-p2b-scalar-decoration-diagnostic.md).
+New leaf p2b-scalar-decoration-diagnostic preserves the failed diagnostic.
+One host1/1spent;seven clean controls passed,vector8failed fixture identity
+before product call. SDK Add copies descriptors,so original-object identity
+is an invalid retained-reference assumption. Hidden/subclass inputs untested;
+CounterNote.Copy does not preserve hidden flag either. ProductB468B564 and
+prior33GREEN/review unchanged;MinorM1 still OPEN.1020pins intact. No fix/retry/
+new reviewer after stop. New corrected fixture/probe needs separate bounded
+approval;do not replay this packet. Latest devbranch restores source/report,
+not ignored raw,caches,sessions,SDK/mappings/dependencies or budget resets.
+
+Historical candidate:[SDK structural compatibility](../roadmap/2026-10-18-p2b-sdk-structural-compatibility.md).
 Portable source leaf p2b-sdk-structural-compatibility,productB468B564;original
 literal frames/full33tests/managed fixture unchanged. RED/focused/full all exact;
 full33PASS includes prior SequenceExact failure.998pins intact. Fresh readonly

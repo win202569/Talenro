@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — SDK structural candidate passes33groups; readonly review complete, Minor gap retained
+## Latest — scalar coverage diagnostic STOPPED at fixture identity; M1 remains open
+
+[Diagnostic report](2026-10-18-p2b-scalar-decoration-diagnostic.md).
+One new host1/1spent:PID20968,1585ms,exit0JSON capture but OutcomeINCOMPLETE,
+Stage encode-scalar:visible-note. Seven clean controls passed,counters0;vector8
+failed precondition at diagnostic.ps1:77 BEFORE its product call. No decorated
+input reached product,no hidden/subclass result. Saved row7 is last;failed
+pre-snapshot not serialized.1020pins intact,no timeout/stderr,owned exit/streams.
+Readonly SDK source/body metadata establishes Add copies descriptors,while
+the fixture incorrectly demands identity with the original inserted object.
+CounterNote.Copy also does not preserve hidden flags;future fixture must
+prove actual retention and save preconditions before asserting. No correction/
+rerun/reviewer after stop. Pre-freeze malformed hash literal was corrected
+only after readonly proof old records unchanged/no packet/no target;one host.
+ProductB468B564 and previous33PASS/review evidence unchanged;MinorM1 OPEN.
+Next NEW fixture/diagnostic proposal requires separately bounded allowance;
+not implemented/approved. No acceptance/main/live grant;recover devbranch.
+
+## Historical — SDK structural candidate passes33groups; readonly review complete, Minor gap retained
 
 User approved new bounded3+1after98f21970.
 [Execution report](2026-10-18-p2b-sdk-structural-compatibility.md),
