@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — P2 boundary design written, pending approval; no implementation
+
+User explicitly approved P2 written-design preparation only after a662ba37.
+[P2 prerequisites,interfaces and failure evidence](../superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md)
+separates A:pure integer timebase conversion,B:owned-session supervision,C:raw
+dual-channel capture,with P3 persistence separate. Recommend next plan ONLY A,
+no real clocks/processes/streams. Written spec not approved;no plan/implementation/
+test/reviewer/security query/native/runtime packet issued. Existing762checks
+read-only intact;P1 PS7 acceptance/promotion and all23+9limits unchanged.
+Safety-owner/vendor,current evidence,exact packet and separate runtime approval
+remain real gates. Next:user review written spec;approval permits A plan writing
+only,not implementation or real P2/StageB/C12/main/live work. Old budgets unchanged.
+
 ## Latest — original entrypoint promoted, two PS7 regressions passed
 
 Source/evidence checkpoint5a9dc4dec616600239c2e569ca3f82bc2cbc4206 pushed;

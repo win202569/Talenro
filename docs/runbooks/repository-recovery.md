@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest preparation: [P2 written design, pending approval](../superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md).
+Only documents prepared after a662ba37;P2 not implemented/tested/runtime-approved.
+Design splits pure timebase A,owned-session B,raw-capture C,and separate P3.
+Next written-spec approval permits only A implementation-plan writing;the plan
+needs its own review/method/budget before implementation. A consumes declared
+integers,no real clocks/processes/streams and cannot satisfy safety/runtime gates.
+All old allowances/limits and P1 PS7-only acceptance/promotion remain unchanged.
+No new packet,nonce,security query,native experiment or reviewer was issued.
+
 Latest result: [original entrypoint promotion recovered and passed](../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-recovery-result.md).
 Source/evidence checkpoint5a9dc4de was pushed and remote-verified;use latest
 development-branch commit including subsequent documentary completion confirmation.
