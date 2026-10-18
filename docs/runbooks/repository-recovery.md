@@ -1,11 +1,19 @@
 # Recover the project on a new computer
 
-Latest preparation: [owned-return readonly review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md)
+Latest review: [owned-return scoped review complete](../roadmap/2026-10-18-p1-owned-return-readonly-review.md).
+One approved fresh reviewer identified no Critical/Important/Minor within scope;
+I1/R1 AddressedWithinStatedPS7Vectors only. All23old+9new limits retained,including
+18rawString held-view cases without fresh-field reread retention. Review1/1spent;
+no executions,fixes,promotion,main merge or formal acceptance. Next is an explicit
+limited-PS7 acceptance proposal/profile decision,not automatic release or reruns.
+Preserve all old review verdicts/budgets;raw/engine state does not clone.
+
+Historical preparation (superseded by the completed review above): [owned-return readonly review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md)
 and [package/pin inventory](../roadmap/2026-10-18-p1-owned-return-review-package.md).
-Prepared only:37source/report and27local evidence identities,676inherited entries.
-ONE new fresh readonly review is proposed but unapproved;no dispatch or tests.
-Read plan and approve explicitly before launch;do not reuse spent/ineligible old
-seats. No automatic fixes,re-review,promotion,main merge or broad acceptance.
+At that checkpoint only:37source/report and27local evidence identities,676inherited
+entries;ONE new fresh readonly review was proposed but unapproved. That proposal
+has now been approved and its one review consumed;do not dispatch it again or reuse
+spent/ineligible old seats. No automatic fixes,re-review,promotion,main merge or broad acceptance.
 Local raw missing after cloning is an evidence limitation,not a renewed budget.
 
 Latest result: [owned-return API/ownership2/2passed](../roadmap/2026-10-18-p1-owned-return-regression-v2-result.md).

@@ -1,8 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — owned-return single readonly review plan/package prepared, not launched
+## Latest — owned-return independent readonly review complete, no scoped blockers
 
-User requested materials only. New [review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md),
+User explicitly approved plan after fda95cda. ONE fresh no-history reviewer
+completed:0Critical/0Important/0Minor identified;I1/R1 candidate dispositions
+AddressedWithinStatedPS7Vectors only. Independently checked37+27+2pins,676inherited
+entries,source/assertions and saved ordered outputs;no writes/execution/delegation.
+Parent accepted narrow assessment after source/data checks,retained all23old+9new
+limits. FACTs:32native+3wrappedString reread retained;18rawString held-view only.
+No global I1 closure,acceptance,promotion or main merge. See
+[review and every disposition](2026-10-18-p1-owned-return-readonly-review.md).
+NEW review1/1spent,targetsZERO;old budgets unchanged. Next recommendation:write
+explicit PS7-only limited offline acceptance proposal with all limits and PS5/
+mutation conditions,or choose full dual-engine evidence route. No profile chosen
+or new run authorized by this completed review.
+
+## Historical preparation — superseded by the completed review above
+
+At that checkpoint, user requested materials only. New [review plan](../superpowers/plans/2026-10-18-p1-owned-return-single-readonly-review.md),
 [package](2026-10-18-p1-owned-return-review-package.md) and exact pin JSON define
 37source/report paths,27local evidence paths and676hash-only inherited entries.
 Scope:complete candidate1971F808/cumulative changes,original I1/Token R1 and new
