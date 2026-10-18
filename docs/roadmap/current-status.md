@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — isolated integer-local reuse candidate prepared,NOT RUN
+
+Afterd41feabd preparation-only approval,[minimal candidate](2026-10-18-p1-integer-type-reuse-candidate-prepared.md)
+added separate product/test/README copies. Candidate3537E9F5 specializes only
+integer type reuse;full SDK member/descriptor checks precede bounds,no trusted
+flag/cache.12 other bodies/signature/gates/guard statements match;copied tests
+byte-identical E442D1DD. PS7.6.5 AST only,NOT behavior/performance/full PASS.
+Original953CC2A8 and negative control unchanged;301 pins held,zero target hosts.
+Old budgets/frozen slots/review ineligibility/PS5-I1-P1 blockers persist. Next
+separately approve PS7/PS5 candidate direct semantics,one each/30s/stop on failure;
+no automatic execution or original promotion.
+
 ## Latest — isolated missing-guard defect detected on PS7 and PS5
 
 Aftera02dfaa6 approval,[negative controls](2026-10-18-p1-integer-guard-loss-negative-control.md)

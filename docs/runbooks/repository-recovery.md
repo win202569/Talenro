@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest preparation:[integer-local reuse candidate,NOT RUN](../roadmap/2026-10-18-p1-integer-type-reuse-candidate-prepared.md).
+Afterd41feabd,user approved preparation only. Separate integer-type-reuse-candidate
+folder contains3537E9F5 candidate,unchanged direct test and warning README.
+Full corresponding guards retained by static comparison;no runtime/PS5/semantic/
+performance/full-regression acceptance. Original953CC2A8 remains in place and
+negative fixture untouched;301 pins held,zero new target hosts. Next fresh PS7/
+PS5 semantic pair requires approval,one each/30s/stop on failure;no promotion.
+Old frozen budgets/review ineligibility/PS5-I1-P1 gates persist. Recover portable
+files/reports,not raw/controller/runtime caches or replay authority.
+
 Latest control:[integer guard-loss detected](../roadmap/2026-10-18-p1-integer-guard-loss-negative-control.md).
 Aftera02dfaa6 approval,new2/2 spent:PS7 828ms/PS5 573ms,exit1 with exact intended
 NoteDecorations missing-refusal assertion,9 lines/6 earlier PASS,empty stderr,
