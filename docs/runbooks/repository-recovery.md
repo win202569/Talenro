@@ -16,7 +16,24 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest analysis:[Token-local type contract,READ-ONLY](../roadmap/2026-10-18-p1-token-local-type-contract-analysis.md).
+Latest handoff:Token-only bounded design in [current status](../roadmap/current-status.md),
+after32d12ad6,NOT PREPARED. New uninstrumented3537E9F5 module copy would change
+only Token body:one local exact-type result plus unchanged passive guard blocks
+before ordinal admission. Other12 functions/signatures/outside text identical;
+no shared Passive/Bool,coercion,cache,caller trust flag or timing changes.
+Direct fixture script chooses one fixed baseline/candidate per future process,
+literal outcomes,no preceding Shape;owned string descriptor/payload checks,
+callback-zero,metadata/order/mutation cases. Baseline discrepancy/lost decoration
+blocks comparison. Caller checks alone do not prove callee-bound view. Test-only
+CodeProperty getter support,if needed,is source-only during preparation;no
+compile/load now and no skipped coverage. Full API regression gates stay.
+Next confirm preparation-only source/fixture/static checks,NOT helper/target
+execution or controller. Future ordinary fresh PS7 hosts/limits need separate
+approval,no warmup/retry/PS5/frozen reuse.434 pins/index/raw held;no candidate/
+test/probe prepared or executed this turn. All acceptance/review gates persist.
+Git carries pending design/progress,not raw/cache/credentials/execution rights.
+
+Previous analysis:[Token-local type contract,READ-ONLY](../roadmap/2026-10-18-p1-token-local-type-contract-analysis.md).
 Aftere512bb80,source/AST inspection only:Token repeats type lookup through Passive,
 but removing its call changes a parameter-binding boundary. Full passive guards,
 untyped Value,ordinal/refusal order/ownership must stay. Direct decorated-string

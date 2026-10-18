@@ -1,6 +1,65 @@
 # Project status — updated 2026-10-18
 
-## Latest — Token local-type contract analyzed READ-ONLY;no candidate prepared
+## Latest — bounded Token-only candidate design proposed, NOT PREPARED
+
+After32d12ad6,user requested design only. Intent:investigate one invocation-local
+duplicate query without dropping a safety duty;not claim a timeout fix/speedup.
+Bounded in-chat design pending approval;no source/test/candidate/controller/
+probe creation,compilation,imports or execution. Status/recovery only updated.
+
+Recommend a NEW isolated module copy from uninstrumented integer candidate
+3537E9F5F203E181042DD9CCE27C2962096B72A7D25842B968145D2066255BD3,not the
+timed evaluator clone. Keep all13 function names/signatures;only Token's body
+may change,other12 function texts and all outside text byte-identical.
+Keep Value untyped,Allowed string[],metadata fallback before exact type lookup.
+Capture that lookup locally;exact string rejection remains first. Replace only
+the nested Passive call with its existing scalar/member/descriptor check blocks,
+including the original primitive-type condition using the local type. Preserve
+fixed SDK Members getter,extended-member refusal,ScriptProperty/CodeProperty
+and Length/Rank guards before unchanged ordinal TestToken/refusal. No known-type
+parameter,coercion,trusted caller flag,cache,global state,output or new timings.
+Shared Passive/Bool/Shape/Integer/evaluator/snapshots/assertions remain unchanged.
+Compared with changing shared Passive or fusing Bool too,this isolates the
+binding/body intervention to the one selected helper;no equivalence presumed.
+
+Proposed direct fixture script selects exactly baseline OR candidate from fixed
+hash-pinned paths;never loads both in one process or reloads/warmups an oracle.
+Expected clean success(no output) or exact refusal messages are independent
+literals,not learned from candidate or merely agreement between two versions.
+Cases cover allowed/empty/unknown/wrong-case strings,empty/null Allowed,wrong
+types/null,metadata-null fallback versus internally created context;owned fresh
+nonempty decorated strings with mutable NoteProperty payloads;Script/Code/Alias
+property and ScriptMethod plus Members/GetType/Length/Rank shadow cases;invalid
+token+decoration order;clean→decorated→clean and mutation isolation. Call Token
+directly,no preceding Shape that could mask a missing Token guard.
+
+Validate owner-field type/value/actual descriptor/payload identity before and
+after every direct call;lost decoration is fixture failure,not a passing refusal.
+Caller checks alone are NOT claimed to prove the actual callee's bound view.
+Original direct behavior must meet literal outcomes;any unexplained baseline/
+fixture/binding discrepancy blocks candidate comparison,no relaxed oracle.
+Callback counters must stay zero. CodeProperty needs a controlled minimal getter
+support type:prepare its test-only source if required,but do not compile/load it
+now;future approved direct-test host creates it. Unavailable support blocks that
+case,never silently skips/substitutes it. No product metadata proxy/interception.
+Direct helper outcomes do not replace full API equality/refusal-index/result
+ownership regressions;all those existing gates remain for later acceptance.
+
+Preparation,if approved next:isolated candidate source,fixture/test-support
+sources,README/LF rules and static fidelity only. Confirm13 functions/12 exact
+texts/signatures,exact copied passive guard blocks/order,one changed body,no
+new timers/cache/trust flag. Prepare tests first;do not claim runtime RED/GREEN
+or engine equivalence before authorized target/helper execution. No controller,
+full regression,benchmark,compile/import or direct helper call in preparation.
+Any future ordinary fresh PS7 baseline/candidate executions need NEW separately
+approved bounded hosts/limits,fail-stop/no warmup/retry/PS5;existing slots stay
+spent/frozen. Even passing direct tests would not prove speed or full acceptance.
+434 prior pins/latest index/raw held;all review/I1/P1/main/C12/security/runtime/
+release gates persist. Await preparation-only confirmation;no new spec/plan or
+candidate artifact written this turn. Git saves this pending handoff,not replay
+rights,raw records or caches.
+
+## Previous — Token local-type contract analyzed READ-ONLY;no candidate prepared
 
 Aftere512bb80,[Token/Passive contract analysis](2026-10-18-p1-token-local-type-contract-analysis.md)
 confirms duplicate exact-type query but not safe deletion or unique latency root
