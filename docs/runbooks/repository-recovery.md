@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest preparation: [P2-B detailed design, pending written approval](../superpowers/specs/2026-10-18-p2b-owned-session-design.md).
+Latest preparation: [P2-B pure control codec implementation plan](../superpowers/plans/2026-10-18-p2b-control-codec.md).
+User approved written design2a27cecc for plan writing only;designSHA41BD5F72
+retained. New plan recommends Native,three pure APIs,32groups andproposed5NEW
+ordinary PS7hosts/1conditional readonly review. Plan/method/budget NOT approved,
+0/5and0/1unstarted. No code directory,fixtures,controller,packet orproduct import/
+test/probe/compile/security query/reviewer created. Recover plan/design/current
+status from latest dev branch,not runtime capability or replay permission.
+Await explicit plan review/method/finite execution approval. No real process/
+Job/clock/stream/queue/ticket implementation orP2-C/P3/main grant;P2-A limited
+acceptance andold consumed/frozen allowances stay unchanged.
+
+Historical preparation: [P2-B detailed design, pending written approval](../superpowers/specs/2026-10-18-p2b-owned-session-design.md).
 After5864e4b8,user approved writing only. Design includes explicit proposal
 L-as-sole-target-creator/releaser instead of earlier C-creates-T wording,
 fixed256byte protocol/payloads,bounded queues/heartbeats,failure/cleanup evidence

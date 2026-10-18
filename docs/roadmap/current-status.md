@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B detailed design written, awaiting approval
+## Latest — P2-B design approved; pure codec plan awaits execution approval
+
+User approved written design2a27cecc only for first implementation-plan writing.
+[New plan](../superpowers/plans/2026-10-18-p2b-control-codec.md)
+defines three pure public APIs,12/13/10field contracts,independent full-byte
+fixtures,32groups,exact negative controls andproposed five NEW ordinary PS7
+hosts plus ONE conditional readonly review. Native recommended for this single
+coupled unit. DesignSHA41BD5F72 unchanged;draft status inoriginal spec historical.
+Plan/method/finite allowance NOT yet approved;0/5and0/1unstarted.
+This pass created only plan/status/recovery;no code/fixtures/controller/packet,
+product import,test/probe/compile/security query ornew reviewer.
+Pure codec is not a real state machine,queue,identity/capability or release API.
+P2-A scoped acceptance andall old budgets unchanged. Next:review plan andchoose
+execution method/approve exact finite scope;do not implement orrun before that.
+
+## Historical — P2-B detailed design written, awaiting approval
 
 User approved design-writing only after5864e4b8.
 [Detailed design](../superpowers/specs/2026-10-18-p2b-owned-session-design.md)
