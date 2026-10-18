@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest checkpoint:[integer direct tests prepared,NOT RUN](../roadmap/2026-10-18-p1-integer-direct-tests-prepared.md).
+Aftercb932195,user authorized preparation only. New standalone integer-validation
+test file has14 groups/real helper calls;AST parses in PS7.6.5,not runtime/PS5/
+fixture/TDD PASS. CodeProperty dynamic fixture absent. Original product/full-entry
+inventory unchanged;283 pins held. Recover source/report/status from Git,but do
+not auto-run. Next fresh PS7/PS5 baseline pair needs separate approval,30s each,
+one each/stop on failure. Loading1/2 spent/Inherited frozen,old budgets/review
+ineligibility/PS5-I1-P1 gates persist;no product type-reuse implementation yet.
+
 Latest read-only review:[integer local reuse safety](../roadmap/2026-10-18-p1-integer-reuse-safety-audit.md).
 Aftere185bbc1,zero tests/product edits;283 pins held. Direct integer-helper
 regressions absent in four original suites;scenario Shape checks can mask guard

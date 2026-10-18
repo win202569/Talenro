@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — 14 direct integer regression groups prepared, NOT RUN
+
+Aftercb932195 preparation-only approval,[standalone direct tests](2026-10-18-p1-integer-direct-tests-prepared.md)
+added14 groups/types,bounds,owned decorations,zero callbacks,error ordering,
+metadata/default/positional paths and clean/decorated transitions. Real helper
+calls,no Shape indirection/product overrides. PS7.6.5 AST syntax check only;
+fixtures/behavior/PS5/mutation/TDD red-green UNVERIFIED. CodeProperty dynamic
+fixture absent. Product/original suites unchanged;283 pins held. No target hosts
+or new allowance used;loading1/2 spent/Inherited frozen,old budgets/review
+ineligibility/PS5-I1-P1 blockers remain. Next separately approve fresh PS7 then
+PS5 standalone baselines,one each/30s/stop on failure,no automatic launch.
+
 ## Latest — integer reuse safety audit finds missing direct-helper regressions
 
 Aftere185bbc1,[read-only safety audit](2026-10-18-p1-integer-reuse-safety-audit.md)
