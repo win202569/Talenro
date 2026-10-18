@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-18
 
+## Latest — optimized actual ownership matrix39/39 in19.954s
+
+ONE separately approved ordinary PS7 candidate timing host completed all39cases,
+80/80decision calls,29/29direct scalar calls and1/1metadata call within30s. Exit0,
+no timeout, stderr0, owned exit/streams complete,666pins intact, no controller/
+checker error. Strict saved-text checker:COMPLETE_TEXT_ONLY,1340TIME/670pairs,
+153base lines,53facts,no open announcement. Outcome PASSED_WITHIN_MATRIX only.
+Completed body18.6676386s,prior scans11.1499656s. Matched467interval prefix prior
+scans5.5616888s versus old19.6150681s;single observed comparison,not a benchmark.
+No code/assertion/history changes,retry,old-slot reuse,promotion or main merge.
+See [full matrix timing and limits](2026-10-18-p1-inline-ownership-timing-result.md).
+Next:read-only reconcile remaining acceptance/promotion gates;do not infer I1,
+product-mutant sensitivity,all-project tests,security/runtime or C12 completion.
+
 ## Latest — v2 observer offline equivalence45/45; no candidate run
 
 One ordinary PS7 offline host (30s bound) passed all45paired fixtures in1099ms,

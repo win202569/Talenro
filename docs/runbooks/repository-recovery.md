@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest milestone: [optimized ownership matrix39/39](../roadmap/2026-10-18-p1-inline-ownership-timing-result.md).
+One approved actual candidate diagnostic completed in19.954s under30s, all80/29/1
+calls complete,666pins intact,stderr0. Strict output complete:1340TIME,153base
+lines,53facts. Only PASSED_WITHIN_MATRIX;no promotion,main merge or wider acceptance.
+Next is read-only reconciliation of remaining acceptance/promotion gates,not a
+repeat of successful diagnostics. Preserve all history;old allowances stay frozen.
+Raw receipts/engine cache do not follow from cloning this development branch.
+
 Latest result: [v2 offline observer equivalence45/45](../roadmap/2026-10-18-p1-inline-observer-v2-result.md).
 One bounded offline host completed in1099ms, all657pins intact, stderr0. Fixed
 literal inventory unchanged; old/new observers agree on all45paired cases and
