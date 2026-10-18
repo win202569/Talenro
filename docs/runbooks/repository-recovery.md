@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest result:[API/equality diagnostic complete once](../roadmap/2026-10-18-p1-api-equality-result.md).
+After8d38ab9b,new1/1 spent:ordinary PS7 exit0/28208ms,95 lines/64 PASS,
+12 markers/six closed pairs;API17567.757ms/assertion22.203ms.367 pins/raw/pairs
+rechecked,no source changes. Prepared NOT RUN wording is historical for this
+one diagnostic only;no original-entry/full acceptance. Next read-only candidate
+API root/validation-copy/decision analysis,not another automatic target run.
+PS5 remains FROZEN;old budgets/review/I1/P1 gates persist. Git recovers report/
+sources/tools,not ignored raw/controllers/caches/credentials/replay authority.
+
 Latest preparation:[API/equality split,target NOT RUN](../roadmap/2026-10-18-p1-api-equality-prepared.md).
 After2a369070,integer-candidate-api-equality holds seven source copies,new95-line
 inventory and README;separate nested offline verifier/tests added beside it.

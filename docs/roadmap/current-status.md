@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — split diagnostic completes; measured API region dominates equality
+
+After8d38ab9b,[one PS7 split diagnostic](2026-10-18-p1-api-equality-result.md)
+spent new1/1:28208ms/CPU36953.125ms,ordinary exit0,no timeout,empty stderr,
+owned exit,95 lines/64 PASS,12 markers/six closed pairs. API-call assignment
+17567.757ms versus full equality/assertion22.203ms;parent17593.772ms.
+367 pins and independent raw/pair audit held. H-API supported for this diagnostic,
+not internal cause,matched speedup or original timeout fix. Original product and
+assertions unchanged;no promotion. Next read-only API phase/call-path analysis,
+not speculative equality optimization or another automatic run. PS5 FROZEN,
+all old budgets/review/I1/P1 gates unchanged.
+
 ## Latest — API/equality split PREPARED; target NOT RUN
 
 After2a369070,[approved preparation](2026-10-18-p1-api-equality-prepared.md)
