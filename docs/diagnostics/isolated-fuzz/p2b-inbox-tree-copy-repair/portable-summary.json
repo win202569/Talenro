@@ -1,0 +1,468 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-inbox-tree-copy-repair-portable-summary",
+  "Status": "UNFINISHED_PREFLIGHT_STOP",
+  "BaseCommit": "131fee8584a1b308d28152abff3151da3ab41554",
+  "ImplementationApproved": true,
+  "Method": "Native",
+  "NewBudget": {
+    "ApprovedHosts": 5,
+    "ConsumedHosts": 2,
+    "RemainingFrozen": 3,
+    "ReviewerConsumed": 0,
+    "ReviewerEligible": false
+  },
+  "HistoricalBudget": {
+    "OriginalSpent": 2,
+    "OriginalFrozen": 3,
+    "DiagnosticSpent": 1
+  },
+  "FrozenSHA256": "DB3FFAFC5D8A9E9501B3C12FFBFBF3735CB5B52D8414CCB020EC71ED52E58418",
+  "FrozenPins": 1326,
+  "InheritedPins": 1289,
+  "AdditionalPins": 37,
+  "PreparedImmutableInputs": 10,
+  "AllPinsIntactAtHandoff": true,
+  "ProductSealSHA256": "DB47535AF5D567C23D94DAC03E491E9E6D3A9C3BC4C92708AC0B44416AA305C8",
+  "ProductSeal": {
+    "FrozenSHA256": "DB3FFAFC5D8A9E9501B3C12FFBFBF3735CB5B52D8414CCB020EC71ED52E58418",
+    "ModuleSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+    "GoodSnapshotSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+    "CapacitySHA256": "5D3168627B9BC3901FD07111B95BCB7C03F3AD25113B742CC3B8A3A267D5A1E0",
+    "SequenceSHA256": "3C6F0747BDA7060FF097A0E1EB6DE4B303CBD7C8BD23B910010BF37524B26E0D",
+    "CapacityDiff": "Count -ge 4 -> Count -ge 5",
+    "SequenceDiff": "Sequence -ne Next -> -lt Next",
+    "RuntimeApproved": false
+  },
+  "InvocationsSHA256": "DA505E50F62EF4B12AF40C13BEBCD2848AF1C13365C8372EC51B2BBC4C3A1745",
+  "Invocations": [
+    {
+      "Number": 1,
+      "Slot": "red",
+      "AttemptConsumed": true,
+      "Launched": true,
+      "ModuleSHA256": "43067AD0939CB56426568DDF435695383E6C21ABFD223B5A369BC6AE6F2451C8",
+      "PID": 45540,
+      "ElapsedMs": 1081,
+      "TimedOut": false,
+      "ExitCode": 1,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "PostPinsIntact": true,
+      "ExactExpected": true,
+      "Outcome": "EXPECTED_WITHIN_SCOPE",
+      "stdoutSHA256": "89358FC6ED5A6FE595FBDD5D9577A865946FD3D6EC5ED554A0A78DAD5625278E",
+      "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "TraceSHA256": "E3712E5B524E730238ED8AA04B941E7C736A528E391587F6BD732D3B22764D3A",
+      "OriginalTraceSHA256": null,
+      "FormalAcceptance": false
+    },
+    {
+      "Number": 2,
+      "Slot": "full",
+      "AttemptConsumed": true,
+      "Launched": true,
+      "ModuleSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+      "PID": 35788,
+      "ElapsedMs": 44734,
+      "TimedOut": false,
+      "ExitCode": 0,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "PostPinsIntact": true,
+      "ExactExpected": true,
+      "Outcome": "EXPECTED_WITHIN_SCOPE",
+      "stdoutSHA256": "4932E5C04448E19B99DEE2CEB8A39B112DF372830BAAB5D0E81AA09FF62CCC1C",
+      "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "TraceSHA256": "4D658A96151EC4DE38AB05FBED39EC64F707052AB1A8DDF96F99C33CEA8965AC",
+      "OriginalTraceSHA256": "AAE364B77AD1E64A1A08B9861AC1D350865B8071C8F4837DBBF25C30FF54CFCF",
+      "FormalAcceptance": false
+    }
+  ],
+  "RedTrace": {
+    "Schema": 1,
+    "Mode": "p2b-tree-repair-tests",
+    "Group": "red",
+    "Groups": [],
+    "Representation": {
+      "RawType": "System.Management.Automation.PSObject",
+      "BaseType": "System.Management.Automation.PSCustomObject",
+      "Fields": [
+        "Label",
+        "Values"
+      ]
+    },
+    "FirstActual": {
+      "Schema": 1,
+      "Mode": "p2b-inbox-only",
+      "Accepted": false,
+      "Reason": "internal-error",
+      "Inbox": null,
+      "EndpointId": null,
+      "AcceptedBytes": 0,
+      "Frame": null,
+      "Snapshot": null,
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false
+    },
+    "Error": {
+      "Message": "ASSERTION FAILED: P2BTreeFirstSnapshot",
+      "Type": "System.Management.Automation.RuntimeException",
+      "Position": "At D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\tree.tests.ps1:12 char:42\r\n+ … k){if(-not $ok){throw ('ASSERTION FAILED: P2BTree'+$script:trGroup)}}\r\n+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "Stack": "at TR-Need, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\tree.tests.ps1: line 12\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\tree.tests.ps1: line 44\r\nat TR-Case, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\tree.tests.ps1: line 14\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\tree.tests.ps1: line 22\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\target.ps1: line 4"
+    },
+    "Passed": false,
+    "RuntimeApproved": false
+  },
+  "FullTrace": {
+    "Schema": 1,
+    "Mode": "p2b-tree-repair-tests",
+    "Group": "all",
+    "Groups": [
+      "FirstSnapshot",
+      "OwnedObjectTree",
+      "OwnedArrayTree",
+      "EmptyArrays",
+      "NestedValues",
+      "ScalarLeaves",
+      "UnsupportedLeaves",
+      "ReturnedMutation",
+      "TwoSnapshots",
+      "TwoInboxes",
+      "StoppedSnapshot",
+      "Complete"
+    ],
+    "Representation": {
+      "RawType": "System.Management.Automation.PSObject",
+      "BaseType": "System.Management.Automation.PSCustomObject",
+      "Fields": [
+        "Label",
+        "Values"
+      ]
+    },
+    "FirstActual": {
+      "Schema": 1,
+      "Mode": "p2b-inbox-only",
+      "Accepted": true,
+      "Reason": "inspected",
+      "Inbox": null,
+      "EndpointId": null,
+      "AcceptedBytes": 0,
+      "Frame": null,
+      "Snapshot": {
+        "Stopped": false,
+        "FirstFailure": null,
+        "Binding": {
+          "Schema": 1,
+          "BindingDigest": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "SessionId": [
+            160,
+            161,
+            162,
+            163,
+            164,
+            165,
+            166,
+            167,
+            168,
+            169,
+            170,
+            171,
+            172,
+            173,
+            174,
+            175
+          ],
+          "OriginTick": 0,
+          "Frequency": 1000,
+          "DeadlineTick": 120000
+        },
+        "Endpoints": [
+          {
+            "EndpointId": 1,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 2,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 3,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 4,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          }
+        ]
+      },
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false
+    },
+    "Error": null,
+    "Passed": true,
+    "RuntimeApproved": false
+  },
+  "OriginalTrace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "all",
+    "Groups": [
+      "ApiRequired",
+      "BindingShape",
+      "BindingIsolation",
+      "TokenIdentity",
+      "EmptyInbox",
+      "WholeFrame",
+      "SplitEdges",
+      "SingleByteChunks",
+      "ChunkBounds",
+      "LiteralDirections",
+      "BindingMismatch",
+      "SequenceExact",
+      "SequenceAfterTake",
+      "SequenceHigh",
+      "SequenceExhaustion",
+      "EndpointCapacity",
+      "GlobalCapacity",
+      "HeartbeatMixed",
+      "HeartbeatReference",
+      "HeartbeatFullQueue",
+      "EofEmpty",
+      "EofPartial",
+      "InvalidFrame",
+      "FirstFailure",
+      "StoppedDelivery",
+      "InputPassivity",
+      "InputOwnership",
+      "OutputOwnership",
+      "SnapshotBounds",
+      "MultiInstance",
+      "AuthorityBoundary",
+      "Complete"
+    ],
+    "CompileCount": 1,
+    "Observable": true,
+    "Counters": 0,
+    "Synthetic": [
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 18446744073709552000,
+        "Last": 0
+      }
+    ],
+    "Decorations": [
+      {
+        "Subclass": false,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      }
+    ],
+    "Error": null,
+    "Passed": true,
+    "RuntimeApproved": false
+  },
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "35C42A9147C6D60FA4E45474D2ECC3CDFBF804875F1D8D1E209B176D7DC6355F"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "933FD75E65D0EC5024C834135B377EC5107D81B4EF21C8275E3C13A79DE80410"
+    },
+    {
+      "Name": "descriptor-fixture.cs",
+      "SHA256": "87882565265A40D01777C467FBFB2E40DAEDC8F270D47F896D390BD8CF4E09FE"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "EFE0E669AA7F1980ED6A0CDBFDC31646E6701D2A47F1F2879D8DD974FAB50D4A"
+    },
+    {
+      "Name": "fixtures.json",
+      "SHA256": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+    },
+    {
+      "Name": "inbox.psm1",
+      "SHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC"
+    },
+    {
+      "Name": "inbox.tests.ps1",
+      "SHA256": "904F20D4D60540D7A312F5ACF14B0E1E01D263C7A905B18F578FB0846C7267CE"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "A051C43DC70B2EC0A59E37897D0A1F8B3D0CED0AFC3EEBB4CD3E361F4E325D38"
+    },
+    {
+      "Name": "target.ps1",
+      "SHA256": "C4EB7D729786ABA94E60875597F664E09F2C31686AAEDCA3AF9B5D2D8CBE954A"
+    },
+    {
+      "Name": "test-helpers.ps1",
+      "SHA256": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D"
+    },
+    {
+      "Name": "tree.tests.ps1",
+      "SHA256": "854909B72BF0066BB03858E7801130AD106F741F6C0082D8364B227E7CF57F3D"
+    }
+  ],
+  "PreflightStop": {
+    "Slot": "capacity",
+    "TargetLaunched": false,
+    "AttemptConsumed": false,
+    "ControllerExitCode": 1,
+    "Error": "Pin mismatch: new inbox.psm1",
+    "Cause": "Agent patch unintentionally changed capacity-line indentation from twelve spaces to four in addition to the specified comparison. The frozen mutant SHA check rejected it before preconsumption/launch.",
+    "InitialRestoreSHA256": "7DE8460B8F6116A4E1ED3746453824E95D683C890D2376D9D461FDFCEE84DE5A",
+    "FinalRestoreSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+    "FinalRestoreExact": true,
+    "FurtherExecution": "FROZEN; no retry, sequence, final or reviewer",
+    "RawReceiptChanged": false
+  },
+  "Limits": [
+    "44 PASS was measured once, not twice; capacity/sequence mutation detection is unverified.",
+    "The representation probe observes its own controlled test object, not the vanished historical diagnostic object.",
+    "No full repository, Docker, Go, PS5, live, main, full C12 or formal acceptance.",
+    "Portable JSON is a derived record; it does not restore CLR identity, live tokens, ignored raw packets, dependencies, credentials or execution rights."
+  ],
+  "RuntimeApproved": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "FormalAcceptance": false,
+  "MainMergeApproved": false
+}

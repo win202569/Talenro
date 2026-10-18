@@ -1,6 +1,21 @@
 # Recover the project on a new computer
 
-Latest artifact:[inbox tree-copy repair plan](../superpowers/plans/2026-10-18-p2b-inbox-tree-copy-repair.md).
+Latest checkpoint:[inbox tree-copy repair](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
+Restore existingdevbranch codex/c12-b01-task9-coordinator,not automaticallymain.
+Good47BABFED... fixes first snapshot and passed new12+original32 once
+(49lines/44PASS). RED also exact. Source/tests/controller/oracles/complete
+portable traces are committed;ignored original raw packet is not.
+Capacity mutant application accidentally changed indentation;SHA gate blocked
+before launch. Good was restored exactly. NEW2/5SPENT+3FROZEN,review0/1
+ineligible;no sequence/final/reviewer executed. Old2/5SPENT+3FROZEN and
+diagnostic1/1 unchanged. UNFINISHED,not main/formal/runtime acceptance.
+Do not automatically rerun or regenerate old raw evidence. Next needs explicit
+release of only capacity/sequence/final+conditional review,with original packet
+and all1326pins reconciled. Preserve indentation and match sealed mutant SHA
+before launch;no frozen-test/controller edits or RED/full replay. Cloning does
+not restore raw packets,CLR identities,tokens,dependencies,credentials or rights.
+
+Historical artifact:[inbox tree-copy repair plan](../superpowers/plans/2026-10-18-p2b-inbox-tree-copy-repair.md).
 Plan-writing authorized only;implementation/NEW5+1budget not approved.
 Native recommended,12focused+original32groups,5ordered bounded targets and
 oneconditionalreadonlyreview. No repair files/target/review created this turn.

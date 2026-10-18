@@ -7,10 +7,13 @@
 **Tech Stack:** 普通Windows PS7.6.5Corex64、固定PowerShell SDK、原模块/固定CLR元数据；无产品编译、真实I/O或新依赖。
 **Spec:** [已批准inbox设计](../specs/2026-10-18-p2b-bounded-inbox-design.md)§3所有权/§6快照/§7验证；SHA43036F17E712CA2AA57F51CA09BAFF874DB53F954FADF82CBCD6388763B2585B。
 
-状态：PLAN_PENDING_APPROVAL。用户在0657df17后批准本修复计划编写，
-不是实施许可。ImplementationApproved=false；RuntimeApproved=false。
-本轮0产品变更/目标/编译/审查。原2/5SPENT+3FROZEN、独立诊断1/1SPENT
-及所有更早停止路线保持不变。本计划拟申请新5+1，不占用或复活旧3轮。
+状态：UNFINISHED_PREFLIGHT_STOP。用户已批准Native及独立NEW5+1。
+ImplementationApproved=true；RuntimeApproved=false。新RED精确，随后新12+
+原32组组合full全部通过。应用容量mutant时代理误改缩进，源码SHA前置
+检查拦截，未预消费/启动容量目标。已立即还原sealedgood47BABFED...，
+不得重跑或自动继续。NEW2/5SPENT+3FROZEN，review0/1ineligible。
+原2/5SPENT+3FROZEN及独立诊断1/1SPENT不变。
+实测/处置见[执行记录](../../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md)。
 
 ## Global Constraints
 
@@ -65,7 +68,7 @@ Copy-P2BCScalar:146 <- Copy-IBTree:21 <- New-IBResult:29 <- Snapshot:256。
 
 ## File map and fixed inputs
 
-未来新目录docs/diagnostics/isolated-fuzz/p2b-inbox-tree-copy-repair/；本轮不创建。
+实施目录docs/diagnostics/isolated-fuzz/p2b-inbox-tree-copy-repair/已创建并保存。
 
 | 文件 | 实施时职责 |
 | --- | --- |
@@ -89,22 +92,22 @@ Copy-P2BCScalar:146 <- Copy-IBTree:21 <- New-IBResult:29 <- Snapshot:256。
 **Consumes:** 固定设计/上述基线、已有诊断及新独立typed预期。
 **Produces:** 同五入口/相同结果合同、修复树复制和新5轮原字节回执。
 
-- [ ] **Step1 — prepare tests/oracle/controller and freeze.**
+- [x] **Step1 — prepare tests/oracle/controller and freeze.**
   复制旧产品/五项固定测试输入；核SHA。写专项12组和新路由，不import/
   compile/probe产品。静态parse和literal/source自检后Prepare，冻结新模块外
   全输入及baseline-product.psm1快照，旧1289条VerificationPath映射原样继承。
-- [ ] **Step2 — RED once on43067AD0.**
+- [x] **Step2 — RED once on43067AD0.**
   capture -Action Run -Slot red。先记录独立测试节点的原始/底层类型及owner；
   重现同Binding创建及digest0=99/session0=99/frequency1001修改，只调用
   一次public snapshot，完整保存ActualResult。必须Accepted=false/
   Reason=internal-error、payloadsnull/flagsfalse，随后精确
   ASSERTION FAILED: P2BTreeFirstSnapshot，exit1/3行。其他错误停止。
   无新的API缺失RED或原full重跑；不启动断点/managed编译。
-- [ ] **Step3 — implement allowed tree dispatch only.**
+- [x] **Step3 — implement allowed tree dispatch only.**
   新Get-IBTreeNode按上文签名/三元素合同，Copy-IBTree保留owner并递归独立构造。
   比较完整diff证明其他函数原字节不变。静态parse后SealProduct冻结good，
   同时生成两项准确mutant源码快照及SHA；不导入试跑。
-- [ ] **Step4 — full once: new12groups then unchanged32groups.**
+- [x] **Step4 — full once: new12groups then unchanged32groups.**
   capture -Action Run -Slot full。先执行tree.tests -Group all：
   context/host+12PASS(14行)，完成才在同一宿主执行原inbox.tests -Group all，
   原35行逐字节oracle不改。总49行、44PASS，exit0/空stderr；
@@ -148,10 +151,11 @@ FirstSnapshot在RED先独立记录wrapper表示；若不满足固定SDK下的可
 PSObject/PSCustomObject表示，停止，不用该轮临时学出的值重写oracle。
 GREEN对相同冻结向量执行，其余11组首次运行；不能声称它们各自跑过RED。
 
-## Proposed NEW5+1 allowance — NOT APPROVED
+## Approved NEW5+1 allowance — stopped at capacity preflight
 
 推荐Native，同一代理直接实施，一名新独立只读reviewer仅在五轮全部精确后启动。
-本新预算不是原3FROZEN的复用。每host最多120000ms执行+2000ms ownedexit+
+本新预算不是原3FROZEN的复用。实际新2host已用，余3冻结，审查不符合启动条件。
+以下为原批准边界，停止后不能自动继续。每host最多120000ms执行+2000ms ownedexit+
 2000ms并发分流drain；不改真实运行合同。固定PS7.6.5Corex64/adminFalse；
 engineSHA362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139，
 SDK SHA2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B，
@@ -206,8 +210,10 @@ target/composite输出oracle在Prepare前冻结；不根据失败输出学习预
 对象保留所属wrapper，array走原生类型和独立分配，token例外不泛化。
 12专项+32原组=44PASS；2专项header+12PASS+原35行=49行；
 RED3、mutants4。原32组完整性未被此前两PASS替代，未知后续缺陷仍可能停止。
-本轮只写计划，未创建新源码/fixture/packet或运行目标。
+实际完成Task1Steps1–4；Step5前置SHA拒绝后立即还原good，Steps5–7冻结。
+Task2审查未启动；必要源码、结果和恢复文档作为unfinished开发检查点保存。
 
-请用户审阅本计划并批准方法/预算。推荐Native；Subagent-driven需另定
-实施及审查席位，不能塞入本5+1。只有明确批准本计划、Native及新5+1后执行；
+用户已批准Native/新5+1，但当前已触发停止规则。下一步需显式批准仅释放
+未启动的capacity/sequence/final及原条件审查，不重跑已完成RED/full，
+不修改冻结测试/预期/控制器。不默认为获得继续许可。
 原2/5SPENT+3FROZEN和诊断1/1SPENT始终不变。

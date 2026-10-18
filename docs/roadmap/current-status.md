@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — inbox tree-copy repair plan written, NEW5+1 pending approval
+## Latest — inbox tree-copy repair passes 44 groups; mutation preflight stop
+
+[Execution record](2026-10-18-p2b-inbox-tree-copy-repair.md).
+Native/NEW5+1 approved. New RED exact; good47BABFED... then passed new12+
+unchanged original32 groups in one ordinaryPS7 host:49lines/44PASS,44734ms,
+exit0,no timeout/stderr. Original passivity counters0,compile1,synthetic4,
+decorations8. Only tree-copy/classifier changed;codec/receive semantics intact.
+Agent capacity patch accidentally changed indentation;sealed-mutant SHA gate
+rejected before preconsumption/target launch. Exact good restored and1326pins
+rechecked intact. This is not a product test failure or mutation-test success.
+NEW2/5SPENT+3FROZEN,review0/1ineligible;old2/5SPENT+3FROZEN anddiagnostic1/1
+unchanged. UNFINISHED:mutants/final/review unverified;no main/runtime acceptance.
+Next needs explicit release of only3unlaunched slots+conditional review,
+preserving frozen inputs and avoiding RED/full replay. Save necessary files
+on the existing development branch for recovery.
+
+## Historical — inbox tree-copy repair plan written, NEW5+1 pending approval
 
 [Repair plan](../superpowers/plans/2026-10-18-p2b-inbox-tree-copy-repair.md).
 User approved plan-writing only after0657df17. Proposed repair confines changes
