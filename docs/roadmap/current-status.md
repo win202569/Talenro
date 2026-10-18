@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — repaired-version diagnostic locates Plan traversal failure
+## Latest — P2-A test receiver corrected; five-outcome verification complete
+
+User approved bounded5+1route after8627f71d.
+[Exact result andreadonly review](2026-10-18-p2a-type-receiver-repair.md):
+old fullRED1193ms,corrected full24groups green1782ms,two exact negative mutants
+814/819ms,restored final24groups green1829ms. Five ordinary PS7.6.5 hosts,stderr0,
+no timeout,owned exit/drain,839pins intact. New5/5spent;one readonly review1/1
+complete,no Critical/Important/Minor findings within scope.
+ONLY TB-Type reflection receiver changed to Value.PSObject.BaseObject in a new
+full-suite copy B5C4E0CE. Fixture C720E247/product350CAB1A unchanged andproduct
+mutants restored. InputMutation/OutputOwnership/SequentialIsolation now reached
+andpassed. Necessary source/oracle/report andrecovery preserved on dev branch.
+No whole-project/PS5/P2-B/C/P3/C12/live acceptance or main merge. Old repair3/6
+spent,unused3frozen,old reviewineligible;new allowance cannot be replayed.
+Next:separate limited P2-A acceptance/disposition using this fixed-version
+evidence,not another automatic run or wider architecture implementation.
+
+## Historical — repaired-version diagnostic locates Plan traversal failure
 
 User approved ONE new ordinary host after6f984cab;now1/1spent.
 [Captured current site](2026-10-18-p2a-repaired-input-diagnostic.md):

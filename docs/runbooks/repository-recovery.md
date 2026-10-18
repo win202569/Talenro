@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest result: [repaired InputMutation diagnostic](../roadmap/2026-10-18-p2a-repaired-input-diagnostic.md).
+Latest result: [P2-A type receiver correction andfive exact outcomes](../roadmap/2026-10-18-p2a-type-receiver-repair.md).
+New5/5ordinary PS7hosts spent:RED/fullGREEN/two exact mutant failures/restored
+finalGREEN. Corrected full suite24groups green twice;readonly review1/1complete,
+no scoped findings. All839pins intact,no timeout/stderr,owned exit/streamscomplete.
+Recover eight portable files in p2a-type-receiver-repair/ andreport;this new
+full.tests.ps1 B5C4E0CE is the corrected test entrypoint for separately authorized
+future work. Product350CAB1A andfixtureC720E247 unchanged;both mutants restored.
+Old leaves remain immutable historical failures. No automatic replay of spent
+five slots or old frozen3slots. Raw receipts/local mappings/engine cache/sessions
+do not clone. Restore latest dev branch,not main;read remaining limits before
+any further execution. No project-wide/PS5/live/P2-B/C/P3/C12/main acceptance.
+Next is a separate limited P2-A acceptance/disposition decision,not a rerun.
+
+Historical result: [repaired InputMutation diagnostic](../roadmap/2026-10-18-p2a-repaired-input-diagnostic.md).
 One approved ordinary host1/1spent:exit1,1389ms,no timeout,stderr0,829pins intact.
 Current failure is output Plan container incorrectly sent to scalar TB-Leaf,
 not old input Schema. Mutation loop/later groups not reached. Static candidate:

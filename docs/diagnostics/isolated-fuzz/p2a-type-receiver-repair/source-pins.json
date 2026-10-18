@@ -1,0 +1,35 @@
+{
+  "Schema": 1,
+  "BaseCommit": "8627f71d130d497c7800c8f2382da71fced69398",
+  "Approval": "User approved bounded test receiver repair; five NEW ordinary hosts plus one conditional readonly review",
+  "OriginalProduct": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.ps1",
+    "SHA256": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B"
+  },
+  "OriginalTests": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-fixture-isolation-repair/full.tests.ps1",
+    "SHA256": "4BF2F3C9B4FB18809FD07187CEC598B0DA8B4CB9F42836DA5520F3814D18BBB8"
+  },
+  "InheritedPacket": ".superpowers/sdd/2026-10-18-p2a-repaired-input-diagnostic",
+  "Anchors": {
+    "frozen.json": "DFD29E83D47E632376BB794793E475ADF7061587C76A0F895E6234C821262A71",
+    "invocation.json": "D56482B283A69ACBA16B9BDC636F485E13A60330AA1F5E9311796BC2B67B0F04",
+    "stdout.bin": "BDE3183AFA316ECCC9072306B9B42A3E6094F4FF2EDA06C79A5A4E5A15B15FDE",
+    "stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "OldBuilderSHA256": "4BF2F3C9B4FB18809FD07187CEC598B0DA8B4CB9F42836DA5520F3814D18BBB8",
+  "TestBefore": "function TB-Type($Value){if($null -eq $Value){return $null};$arguments=[object[]]@($Value,$null);$script:invokeMethod.Invoke($script:typeMethod,$arguments)}",
+  "TestAfter": "function TB-Type($Value){if($null -eq $Value){return $null};$arguments=[object[]]@($Value.PSObject.BaseObject,$null);$script:invokeMethod.Invoke($script:typeMethod,$arguments)}",
+  "Order": [
+    "red",
+    "full",
+    "phase-mutant",
+    "expiry-mutant",
+    "final"
+  ],
+  "MaxHosts": 5,
+  "MaxReviewers": 1,
+  "FormalAcceptance": false
+}
