@@ -1,0 +1,62 @@
+{
+  "red": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "ASSERTION FAILED: P2AFixtureSchemaIndependent"
+  ],
+  "focused": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2AFixtureSchemaIndependent",
+    "PASS: P2AFixtureNumericIndependent",
+    "PASS: P2AFixtureMutationIsolation",
+    "PASS: P2AFixtureDefaults",
+    "PASS: P2AFixtureWrongTypes",
+    "PASS: P2AFixtureDecoratedInputs",
+    "PASS: P2AFixtureRanges",
+    "PASS: P2AFixtureNoCallbacks",
+    "PASS: P2AFixtureComplete",
+    "LIMIT: fixture regression only; no product import or call"
+  ],
+  "full": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2AApiRequired",
+    "PASS: P2ANullStop",
+    "PASS: P2ANormalStop",
+    "PASS: P2ANonzeroOrigin",
+    "PASS: P2AFractionalFrequency",
+    "PASS: P2AFractionalPhaseRounding",
+    "PASS: P2ADeadlineEquality",
+    "PASS: P2AStopCutoff",
+    "PASS: P2AStageWindows",
+    "PASS: P2ALateStop",
+    "PASS: P2AOriginLimit",
+    "PASS: P2AFrequencyLimit",
+    "PASS: P2AIntermediateOverflow",
+    "PASS: P2ARequestShape",
+    "PASS: P2AExactTypes",
+    "PASS: P2APassiveDescriptors",
+    "PASS: P2ADecoratedScalars",
+    "PASS: P2ARangeRelationships",
+    "PASS: P2AInputMutation",
+    "PASS: P2AOutputOwnership",
+    "PASS: P2ASequentialIsolation",
+    "PASS: P2ARefusalShape",
+    "PASS: P2AConservativeFlags",
+    "PASS: P2AComplete",
+    "LIMIT: declared integers only; no real clock or runtime evidence"
+  ],
+  "phase-mutant": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2AApiRequired",
+    "ASSERTION FAILED: P2AFractionalPhaseRounding"
+  ],
+  "expiry-mutant": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2AApiRequired",
+    "ASSERTION FAILED: P2ADeadlineEquality"
+  ]
+}

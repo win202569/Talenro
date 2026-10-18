@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — fixture repair focused9groups green,full suite stopped
+
+User approved exact6+1route after45a32ea7. [Actual result](2026-10-18-p2a-fixture-isolation-repair.md):
+old-helper RED expected788ms,repaired focused9groups green946ms;full1183ms failed
+InputMutation after18PASS. All ordinary,stderr0,no timeout,owned exit/drain,
+811pins intact. HelperC720E247 tested within focused cases;canonical product
+350CAB1A andall original frozen files unchanged. Full stdout same group/bytes
+does NOT prove same subassertion;old Schema diagnostic stack cannot apply to
+this repaired-helper run. New site unrecorded byunchanged group-only catch.
+Consumed3/6,unused3frozen,review0/1ineligible;no mutants/retry/extra fix/reviewer.
+Next recommendation:separately approved diagnostic of exact repaired full run,
+no further implementation change before locating failure. Not accepted/main/live.
+
+## Historical — bounded repair design pending approval
+
 Pending bounded repair design after5a4090f7: user selected fixture-only direction;
 [exact short design/new6+1allowance](2026-10-18-p2a-fixture-origin-probe.md#pending-next-decision--bounded-fixture-repair-not-executed)
 awaits approval. Fresh numeric defaults/plain values,retain explicit invalid/

@@ -2,6 +2,12 @@
 
 ## Pending next decision — bounded fixture repair, not executed
 
+Update after45a32ea7: user approved this exact6+1route. Execution now stopped at
+slot3 full InputMutation:old-helper RED expected,repaired focused9groups green,
+full unexpected. Consumed3/6,unused3frozen,review0/1ineligible;no mutant/fix/retry.
+See [actual repair checkpoint](2026-10-18-p2a-fixture-isolation-repair.md).
+The proposed/pending wording below records historical design preparation only.
+
 After5a4090f7,user requested the recommended fixture-only repair and bounded
 verification. This is an existing-helper bounded change,not a new subsystem;
 brainstorming's short in-chat design path applies,no new spec/implementation-plan

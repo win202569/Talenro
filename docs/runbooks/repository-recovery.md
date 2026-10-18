@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest result: [fixture repair focused green,full stopped](../roadmap/2026-10-18-p2a-fixture-isolation-repair.md).
+After45a32ea7,user approved6+1route. New leaf helperC720E247 passes focused9groups;
+full still fails InputMutation after18PASS,new subassertion unknown. Old trace
+cannot be reused as current root cause. Product350CAB1A/original files unchanged.
+Consumed3/6,unused3frozen,review0/1ineligible. Recover necessary helper/focused/full
+tests/oracles/report andstop state from dev branch;raw receipts/old local pins/
+engine cache/sessions do not clone. No replay,automatic fix,mutant,review or main.
+Next separate scope:diagnose exact repaired full failure before another repair.
+
 Pending next decision: [bounded fixture repair design andproposed6+1budget](../roadmap/2026-10-18-p2a-fixture-origin-probe.md#pending-next-decision--bounded-fixture-repair-not-executed).
 Fixture-only direction selected after5a4090f7;exact scalar-preservation design,
 six NEW ordered ordinary hosts andone NEW conditional readonly review await

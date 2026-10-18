@@ -1,0 +1,43 @@
+{
+  "Schema": 1,
+  "BaseCommit": "45a32ea732ca1172580ab81c8a882464a18e2f13",
+  "ApprovedDesign": "docs/roadmap/2026-10-18-p2a-fixture-origin-probe.md",
+  "ApprovedDesignSHA256": "0F76FE39A86F529A8B388DDD650382C2E82DF724C8E0F95EB55787ECD3CA4C0D",
+  "InheritedPacket": ".superpowers/sdd/2026-10-18-p2a-fixture-origin-probe",
+  "InheritedCount": 800,
+  "Anchors": {
+    "frozen.json": "F9D0459A4BFAED4155ABCADE77314C92876C6B2DAA13E3AA79D93DFB10BC4DC5",
+    "invocation.json": "9A84AB2256CA8479BFA17478BE821536CB63BFF81C0965A32D35DB66E581417A",
+    "stdout.bin": "BA461FC1745DF326E2240722F79943B85F973A8F818DF856B32C077722F3A4DA",
+    "stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "OriginalProduct": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.ps1",
+    "SHA256": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B"
+  },
+  "OriginalTests": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.tests.ps1",
+    "SHA256": "11BA52E114FC8F14D2D2A020FC6E6C70C52A3F2105B0DADE548416A483B71EB9"
+  },
+  "OldBuilderSHA256": "D3093A8DD92C9BD3ACD757CA3D9216F8D6482451203728ABA05D2F5A625C71E0",
+  "OriginalConstructor": "function New-TBRequest([object]$OriginTick=[long]0,[object]$Frequency=[long]1000,[object]$ObservedTick=[long]0,[object]$StopTick=$null,[object]$Schema=[int]1){\n    [pscustomobject]@{Schema=$Schema;OriginTick=$OriginTick;Frequency=$Frequency;ObservedTick=$ObservedTick;StopTick=$StopTick}\n}",
+  "FullTestReplacement": ". (Join-Path $PSScriptRoot 'fixture-builder.ps1')",
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "MaxHosts": 6,
+  "MaxReviewers": 1,
+  "MaxMs": 30000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "Order": [
+    "red",
+    "focused",
+    "full",
+    "phase-mutant",
+    "expiry-mutant",
+    "final"
+  ],
+  "CanonicalProductChanged": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+}
