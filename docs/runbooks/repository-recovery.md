@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest original-entry verification:[fresh PS5 timeout](../roadmap/2026-10-18-p1-original-ps5-fresh.md).
+After5a6270cf approval,new sole1/1 spent:30070ms/CPU22984.375ms,exit-1,
+owned exit,empty stderr,65 lines/48 PASS;exact prior original timeout prefix.
+270 pins held;original source/tests unchanged. Successful diagnostic pair does
+not replace original acceptance. PS5/I1/P1 blockers,old frozen budgets and review
+ineligibility remain. Recover committed report/source,not ignored packet/runtime
+caches or replay authority. Next ZERO-process comparison of loading/scope paths;
+no automatic extra test,timeout increase,guard removal or main acceptance.
+
 Latest paired diagnostic:[reverse-order PS5 B/A](../roadmap/2026-10-18-p1-ps5-reverse-pair.md).
 After334c2aa2 approval,new2/2 spent: B13280ms,A13425ms,both ordinary PS5,
 exit0,no timeout,empty stderr,each64 PASS/76 pairs/nine snapshots;262 pins held.

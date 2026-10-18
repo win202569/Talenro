@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — fresh original PS5 still times out; diagnostic completion is not acceptance
+
+After5a6270cf approval,[sole fresh original PS5 run](2026-10-18-p1-original-ps5-fresh.md)
+spent new1/1:cap30000ms,actual30070ms/CPU22984.375ms,exit-1,empty stderr,
+owned exit.65 lines/48 PASS through P1PassiveDescriptors,byte-identical to prior
+original PS5 timeout prefix.270 pins/controller/engine/raw and exact output prefix
+held;CaptureValid=true,ExpectedResult=false. No product/test edits or retries.
+PS5/I1/P1/candidate acceptance remains blocked;all old budgets/frozen slots and
+review ineligibility unchanged. Next recommend ZERO-process source comparison
+of original vs diagnostic loading/scope paths,not another unchanged full replay,
+speculative fix,limit increase or main merge.
+
 ## Latest — reverse-order PS5 B/A diagnostics both complete; original gate remains
 
 After334c2aa2 approval,[new B-then-A pair](2026-10-18-p1-ps5-reverse-pair.md)
