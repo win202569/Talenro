@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest preparation:descriptor-passivity bounded in-chat design after9488907f,
+Latest checkpoint:[descriptor-ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-descriptor-ingress.md).
+Approved3+1route used1host:counter fixture compilation/observability succeeded,
+RawIngress probe failed unexpectedly before original encoder call. No fix,
+focused/full run or reviewer. New leaf p2b-descriptor-ingress contains baseline
+moduleFA6047A4,NOT a repaired product. New full33group tests are NOT executed.
+916pins intact;original evidence/source/oracles retained.1/3used,2FROZEN,
+review0/1INELIGIBLE. Cause unknown;no exact exception/intermediate values saved.
+Read report for hashes/limits and next diagnostic recommendation. Clone does
+not restore ignored raw/cache/mappings/sessions or grant replay/reset rights.
+No acceptance/main or live capability;old consumed/frozen scopes unchanged.
+
+Historical preparation:descriptor-passivity bounded in-chat design after9488907f,
 awaiting approval. Read current-status for proposed3NEW ordinary hosts and1
 conditional readonly review,including explicit permission for an in-memory
 counter-only managed test subtype. Proposed0/3,0/1,unapproved/unstarted.

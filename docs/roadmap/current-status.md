@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — descriptor-passivity bounded design awaiting approval; blocker retained
+## Latest — approved descriptor-ingress route STOPPED at RawIngress probe
+
+User approved the bounded in-chat3NEW-host/1conditional-review design after
+45b62ca4,including in-memory managed counter fixture compilation.
+[Execution report](2026-10-18-p2b-descriptor-ingress.md):first host PID18472,
+1275ms,exit1;fixture observable PASS then unexpected RawIngress assertion.
+No timeout,stderr0,owned exit/complete streams,916pins intact. Probe did not
+establish safe ingress or reach original encoder callback reproduction.
+Cause unknown:group-only catch has no exact exception/counts. New product
+copy remains FA6047A4 baseline;no patch/seal/focused/full/reviewer afterward.
+Consumed1/3,remaining2FROZEN,review0/1INELIGIBLE. Original static Important
+finding and Minor deferred comparator finding retained. No acceptance/main.
+Next recommendation:separately bounded diagnostic preserving exception,
+stage/counters/types;not authorized or run here. Old consumed/frozen scopes
+unchanged;recover latest devbranch and do not replay/reset this route.
+
+## Historical — descriptor-passivity bounded design awaiting approval; blocker retained
 
 After9488907f,user requested continuing the recommended descriptor-ingress
 repair. Readonly source/SDK exploration only:PSNoteProperty has a public SDK
