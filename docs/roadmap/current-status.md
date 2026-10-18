@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — later ownership markers PREPARED, NOT RUN
+## Latest — ownership-marker PS7 diagnostic complete; acceptance still blocked
+
+Afterd7e7eaa2,user approved one ordinary fresh PS7 run,30000ms,no warmup/retry/
+PS5. [Result and pinned evidence](2026-10-18-p1-ownership-markers-result.md):
+wall28983ms,CPU39093.750ms,exit0,no timeout,empty stderr,owned-host-exited;
+105 lines/64PASS/22 markers/11 closed pairs,OpenScopes=[],complete-diagnostic.
+SequentialIsolation465.918ms andPlainControls329.866ms both END thenPASS.
+Independent raw/order/tick/rounding audit matched;412 pins/index/streams intact.
+This NEW allowance1/1 SPENT. Only1017ms cap headroom;not stable-performance,
+prior-timeout root cause or project acceptance. ValidationCopy17515.183ms remains
+largest measured closed phase,not pure-validation/helper root cause proof.
+Next recommend read-only source-cost analysis,no immediate replay/fix. All old
+budgets,PS5FROZEN and review0/1unused/ineligible persist;Candidate/I1/P1/main/C12/
+security/runtime/release UNACCEPTED. Raw/controller retained locally,not inGit.
+
+## Previous — later ownership markers PREPARED, NOT RUN
 
 After3e58ecfc,user approved preparation only. [Preparation evidence and identities](2026-10-18-p1-ownership-markers-prepared.md)
 and [ledger](2026-10-18-p1-ownership-preparation-ledger.md) record a new ten-file

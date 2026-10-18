@@ -16,7 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest preparation:[ownership markers,PREPARED NOT RUN](../roadmap/2026-10-18-p1-ownership-markers-prepared.md).
+Latest result:[ownership-marker diagnostic complete,NOT acceptance](../roadmap/2026-10-18-p1-ownership-markers-result.md).
+Afterd7e7eaa2,one newly approved ordinary PS7 run finished28983ms/exit0/no timeout:
+105 records/64PASS/22 markers/11 closed pairs,both later ownership groups passed.
+412 pins and saved raw/order/tick/rounding audit held;report preserves hashes and
+intervals. New allowance1/1SPENT,not a replay grant.1017ms headroom only;prior
+timeout unresolved. Next read-only ValidationCopy source-cost analysis,not new
+run or guard weakening. Old PS5 freeze/budgets/review/I1/P1/acceptance gates stay.
+Git restores report plus prepared source/tests,not ignored raw/controller/cache/
+credentials or execution authority. No main merge or stable-performance claim.
+
+Previous preparation:[ownership markers,PREPARED NOT RUN](../roadmap/2026-10-18-p1-ownership-markers-prepared.md).
 After3e58ecfc,approved independent ten-file copy plus separate offline classifier/
 tests/static checks. Seven source files identical;ownership adds only four body
 edge markers and restores exactly after removal.105 records/64PASS/22 markers/
