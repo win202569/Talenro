@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest human decision:[bounded inbox limited offline acceptance approved](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-approval.md).
+Latest artifact:[P2-B handshake consumption contract](../superpowers/specs/2026-10-19-p2b-handshake-contract-design.md).
+Only writing authorized after66e45727;written spec not yet approved. No product
+code/target/test/compile/reviewer/security query or new allowance. Read distinction
+between inbox admission sequence and ordinary consumption gaps from folded
+heartbeats;private local references never turn caller data into actual capability.
+No third simulator/live switch. P2-C/real capabilities still prerequisite for
+positive ticket/release;do not implement or probe from this document. Next needs
+human written-spec approval,then separate plan/method/finite execution decision.
+All prior limited approvals/Minor2 deferral/budgets remain intact;clone restores
+records/source,not raw packets,resources,dependencies,credentials or rights.
+
+Historical human decision:[bounded inbox limited offline acceptance approved](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-approval.md).
 User accepted displayed proposal afterb459894d. Fixed47BABFED... at3c56edc3 is
 accepted only for specified ordinaryPS7.6.5 serial offline vectors,with all
 proposal limits and Minor2 scalar ETS coverage deferral. Runtime/main/fullP2-B/

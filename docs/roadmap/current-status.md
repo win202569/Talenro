@@ -1,6 +1,19 @@
-# Project status — updated 2026-10-18
+# Project status — updated 2026-10-19
 
-## Latest — bounded inbox limited offline acceptance approved
+## Latest — P2-B handshake consumption contract written, pending spec approval
+
+[Written design](../superpowers/specs/2026-10-19-p2b-handshake-contract-design.md).
+User approved design-writing only after66e45727. Refines role-local state,
+owned-inbox delivery versus admission sequencing,Bound/Ready/Arm references,
+single local ticket/attempt,stop/unknown evidence and independent timing.
+No third lifecycle simulator,wire/inbox change,live capability or caller boolean
+upgrade. P2-C actual ready binding/capability prerequisites still required.
+DesignApproved=false;ImplementationApproved=false;RuntimeApproved=false.
+This turn documents/self-checks only:0targets/tests/compiles/reviewers/security
+queries. Fixedcodec/inbox limited approvals and all spent/frozen budgets intact.
+Next:human review of written spec;approval permits plan-writing only.
+
+## Historical — bounded inbox limited offline acceptance approved
 
 [Human approval](2026-10-18-p2b-inbox-limited-acceptance-approval.md).
 User explicitly accepted displayed scope afterb459894d:fixed47BABFED... at3c56edc3,
