@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — isolated missing-guard defect detected on PS7 and PS5
+
+Aftera02dfaa6 approval,[negative controls](2026-10-18-p1-integer-guard-loss-negative-control.md)
+spent new2/2:PS7 wall828ms/CPU734.375ms,PS5 wall573ms/CPU515.625ms,both
+ordinary,exit1,9 exact lines/6 PASS then NoteDecorations missing-refusal assertion,
+no timeout,empty stderr,owned exit. Exact intended failure =>control valid,NOT
+normal product PASS.301 pins held;original product/test unchanged;only labeled
+isolated fixture removes passive guard. Later negative vectors not reached,
+CodeProperty gap persists. Old budgets/review ineligibility/PS5-I1-P1 blockers
+unchanged. Next prepare separate safety-preserving integer-local candidate only,
+no original replacement or new execution without separately approved scope.
+
 ## Latest — direct integer baseline passes PS7 and PS5, original timeout unresolved
 
 Afterf33920a4 approval,[standalone baseline](2026-10-18-p1-integer-direct-baseline.md)

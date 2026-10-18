@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest control:[integer guard-loss detected](../roadmap/2026-10-18-p1-integer-guard-loss-negative-control.md).
+Aftera02dfaa6 approval,new2/2 spent:PS7 828ms/PS5 573ms,exit1 with exact intended
+NoteDecorations missing-refusal assertion,9 lines/6 earlier PASS,empty stderr,
+no timeout;301 pins held. Original product/tests unchanged. Copied defective
+module is isolated/labeled NOT a candidate;do not import into normal paths.
+This proves sensitivity to one guard-loss vector,not complete safety/performance.
+Next separate minimal candidate preparation,not original replacement or automatic
+tests. Old frozen budgets/review ineligibility/PS5-I1-P1 gates persist. Recover
+portable fixture/reports,not ignored raw/controller/runtime or replay authority.
+
 Latest baseline:[integer direct suite PS7/PS5 PASS](../roadmap/2026-10-18-p1-integer-direct-baseline.md).
 Afterf33920a4 approval,new2/2 spent:1047ms PS7,856ms PS5,both exit0,no timeout,
 empty stderr,17 lines/14 PASS,ordinary owned exit;290 pins held. Preparation's
