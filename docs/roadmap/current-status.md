@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — inventory identifies psobject/psextended; strict follow-up awaits approval
+## Latest — strict descriptor candidate STOPPED at full SequenceExact regression
+
+User approved new bounded 3+1 after eb2b94d9.
+[Execution report](2026-10-18-p2b-passive-descriptor-repair.md): RED/probe exact
+(PID46208,1451ms,baseline callbacks4); focused GREEN exact (PID17528,1802ms,
+zero counters). Strict inventory established 12 application + 2 exact SDK
+entries with matching object identity, zero raw callbacks. New product ingress
+patched/sealed F76B2DB7; historical modules unchanged. Full PID47800,10592ms,
+exit1:19 PASS groups then SequenceExact assertion at tests:261 (high UInt64
+binding expectation). Actual binding result/reason not captured; root cause
+UNDETERMINED. No timeout/stderr,owned exit/streams complete,963pins intact.
+STOPPED:3/3hosts spent,review0/1INELIGIBLE,no repair/retry/reviewer/acceptance.
+New source/tests retained as unfinished devbranch checkpoint. Old budgets
+unchanged. Next separately bounded evidence-only diagnostic proposed,NOT
+approved/run;no reset/replay. Historical Important blocker not closed,no main.
+
+## Historical — inventory identifies psobject/psextended; strict follow-up awaited approval
 
 User approved one inventory diagnostic afterf30aaf1c.
 [Report](2026-10-18-p2b-member-inventory-diagnostic.md):PID20860,1136ms,

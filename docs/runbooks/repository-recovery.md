@@ -1,6 +1,18 @@
 # Recover the project on a new computer
 
-Latest diagnostic:[member inventory and bounded proposal](../roadmap/2026-10-18-p2b-member-inventory-diagnostic.md).
+Latest unfinished checkpoint:[strict descriptor repair stopped](../roadmap/2026-10-18-p2b-passive-descriptor-repair.md).
+New leaf p2b-passive-descriptor-repair contains sealed module F76B2DB7 and
+portable tests/fixtures/controller. RED reproduced baseline callbacks4;
+focused passive-descriptor cases passed with zero counters. Full regression
+passed19groups then failed SequenceExact at tests:261,high UInt64 binding.
+Actual result/reason absent from saved trace;root cause unknown.3/3hosts spent,
+review0/1INELIGIBLE;STOP,no retry/repair/reviewer/acceptance.963pins intact.
+All historical sources,raw records and consumed/frozen allowances unchanged.
+Recover latest devbranch,not main. Clone does not restore ignored raw packets,
+private caches,mappings,sessions or reset/replay rights. Next evidence-only
+diagnostic requires separately bounded approval;do not replay capture.ps1.
+
+Historical diagnostic:[member inventory and bounded proposal](../roadmap/2026-10-18-p2b-member-inventory-diagnostic.md).
 One inventory host1/1spent:extra psobject/psextended entries identified by
 names/types/flags;12application descriptors plus2SDK-reserved,zero callbacks,
 Error=null,948pins intact. No product import/API call or repair/reviewer.
