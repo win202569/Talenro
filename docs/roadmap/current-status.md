@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — candidate API internal paths inspected read-only
+
+Afterbab59d47,[source phase analysis](2026-10-18-p1-api-internal-readonly-analysis.md)
+maps root115–131,validation+copy132–163,decision164–233. Clean time fixture
+keeps Prepared state;decision avoids reflection validators. Conditional counts
+65536 type queries/40960 member reads are source arithmetic,NOT measured costs.
+Old PS5 validation-dominant evidence is not transferable to candidate PS7.
+Selected untested H-VC:first whole-loop phase exceeds root/decision. Next bounded
+whole-phase observation design,not probe preparation/run or guard removal.
+367 pins/index held;zero launches/source edits. PS5 FROZEN,budgets/review/I1/P1
+gates unchanged;root cause and full acceptance unresolved.
+
 ## Latest — split diagnostic completes; measured API region dominates equality
 
 After8d38ab9b,[one PS7 split diagnostic](2026-10-18-p1-api-equality-result.md)

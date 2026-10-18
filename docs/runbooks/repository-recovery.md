@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest analysis:[candidate API internal paths,read-only](../roadmap/2026-10-18-p1-api-internal-readonly-analysis.md).
+Afterbab59d47,root/validation-copy/decision source phases traced;no new probe,
+source edit or target run.367 pins/index held. H-VC is untested:combined first
+loop may dominate,not a proven helper cause. Existing PS5 timing percentages
+cannot be applied to latest PS7 candidate. Next bounded sparse-phase design
+must address body/history/loading interference before preparation or execution.
+Git carries analysis,not ignored raw/runtime/credentials/replay authority.
+PS5 FROZEN,spent budgets/review/I1/P1 gates unchanged;no acceptance.
+
 Latest result:[API/equality diagnostic complete once](../roadmap/2026-10-18-p1-api-equality-result.md).
 After8d38ab9b,new1/1 spent:ordinary PS7 exit0/28208ms,95 lines/64 PASS,
 12 markers/six closed pairs;API17567.757ms/assertion22.203ms.367 pins/raw/pairs
