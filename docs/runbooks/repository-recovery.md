@@ -1,5 +1,22 @@
 # Recover the project on a new computer
 
+Latest test-only checkpoint:[existing receiver retention](../roadmap/2026-10-18-p2b-receiver-retention.md).
+p2b-receiver-retention includes six frozen inputs and derived portable-summary.
+One approved host1/1spent,RETENTION_VERIFIED:45cases(nine types x clean/visible/
+hidden exact/subclass),all existing actual wrappers retained across capture/
+relay,90positive verdicts,45wrong replacements detected,486reference IDs.
+36decorated inputs retain exact descriptors,including18hidden;all controlled
+case counters0. CounterNote compiled once,positive observable.1134pins intact,
+no timeout/stderr,owned exit/drain complete. Scope is the NEW containing-array
+test helper,not public scalar/note retrieval,local/optional SDK histories or
+product outputs. No product import/API/edit/full regression/reviewer. B468B564
+unchanged,M1 OPEN;old latest repair1/3spent+2FROZEN,review0/1ineligible and all
+prior frozen scopes unchanged. Next define bounded product-test bridge and
+baseline RED before repair;no main/acceptance or target replay granted.
+Recover development branch,not automatically main. Clone restores tests/source/
+derived IDs/reports,not actual references,ignored raw,SDK/runtime/cache/sessions/
+mappings,and never resets allowances. All authority flags remain false.
+
 Latest diagnostic:[scalar receiver observations](../roadmap/2026-10-18-p2b-scalar-receiver-diagnostic.md).
 p2b-scalar-receiver-diagnostic includes four immutable inputs and derived
 portable-summary.json:6cases,18fixed phases,12controls,130reference IDs. One

@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — scalar receiver observation diagnostic complete; no product repair yet
+## Latest — existing wrapped receiver/descriptor retention verified in new test helper
+
+[Retention tests](2026-10-18-p2b-receiver-retention.md). New approved1/1host spent:
+PID49044,2760ms,exit0,RETENTION_VERIFIED.45cases(nine types x five variants),
+all already wrapped before capture;45original wrappers/handles retained.
+90capture/relay verdicts pass,108attached descriptor observations retain exact
+references/class/name/flags(including54hidden).45equal-content independent
+wrong receivers detected;486reference IDs. Unchanged CounterNote compiled once,
+positive observable;all45case counters0before/after/negative.1134pins intact,
+no timeout/stderr,owned exit/drains complete. New test helper only:no product
+import/API/edit/full suite/reviewer. B468B564 unchanged,M1 OPEN;old latest repair
+1/3spent+2FROZEN,review0/1ineligible and all prior budgets unchanged. Next bounded
+product-test bridge/baseline RED scope needed;no main or broader acceptance.
+Portable source/summary/report/recovery saved;clone does not restore raw or
+actual CLR references and resets no allowance.
+
+## Historical — scalar receiver observation diagnostic complete; no product repair yet
 
 [Receiver diagnostic](2026-10-18-p2b-scalar-receiver-diagnostic.md). New independent
 1/1host spent:PID48656,6333ms,exit0,DIAGNOSTIC_CAPTURED. All6cases/18fixed phases/
