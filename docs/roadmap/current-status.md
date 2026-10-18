@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded inbox limited acceptance proposed, pending human decision
+## Latest — bounded inbox limited offline acceptance approved
+
+[Human approval](2026-10-18-p2b-inbox-limited-acceptance-approval.md).
+User explicitly accepted displayed scope afterb459894d:fixed47BABFED... at3c56edc3,
+ordinaryPS7.6.5 stable serial measured offline vectors only. Proposal restrictions
+1–10 and Minor2 scalar ETS assertion gap accepted/deferred,not repaired.
+LimitedAcceptanceApproved=true;RuntimeApproved=false;MainMergeApproved=false.
+Historical Important1 resolved by authorized evidence correction/parent comparison,
+not re-review. Original data flags and review verdict remain unchanged.
+This turn0targets/tests/compiles/reviewers/product edits;8fixed pins verified readonly.
+All spent/frozen budgets unchanged. No fullP2-B/P2-C/P3/Task9/fullC12/live approval.
+Next:separately scope session-state/handshake design and finite plan;not started.
+
+## Historical — bounded inbox limited acceptance proposed, pending human decision
 
 [Proposal](2026-10-18-p2b-inbox-limited-acceptance-proposal.md) fixes product
 47BABFED... at3c56edc3 to measured ordinaryPS7.6.5 offline serial vectors only.

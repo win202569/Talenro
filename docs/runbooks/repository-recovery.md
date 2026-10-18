@@ -1,6 +1,16 @@
 # Recover the project on a new computer
 
-Latest:[bounded inbox limited acceptance proposal](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-proposal.md).
+Latest human decision:[bounded inbox limited offline acceptance approved](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-approval.md).
+User accepted displayed proposal afterb459894d. Fixed47BABFED... at3c56edc3 is
+accepted only for specified ordinaryPS7.6.5 serial offline vectors,with all
+proposal limits and Minor2 scalar ETS coverage deferral. Runtime/main/fullP2-B/
+fullC12/live acceptance remain false. No new budget or future implementation
+authority. Source/tests/raw/review/history unchanged;this turn documents only.
+Read approval and current-status on existing development branch before further
+work;session-state/handshake design and plan need their own scope. Clone restores
+records,not raw packets,CLR identity,tokens,dependencies,credentials or rights.
+
+Historical:[bounded inbox limited acceptance proposal](../roadmap/2026-10-18-p2b-inbox-limited-acceptance-proposal.md).
 Proposal only,not approved. Fixed47BABFED... at3c56edc3,ordinaryPS7.6.5 offline
 serial measured vectors. Five saved runs exact;derived UInt64 evidence corrected;
 Minor2 scalar ETS direct-assertion gap remains deferred and explicit.
