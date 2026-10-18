@@ -1,6 +1,15 @@
 # Recover the project on a new computer
 
-Latest diagnostic:[RawIngress receiver mismatch](../roadmap/2026-10-18-p2b-rawingress-diagnostic.md).
+Latest preparation:corrected member-set route proposed afterbd0813fc;bounded
+in-chat design awaits approval. Read current-status. Candidate approach:
+exact PSMemberSet for psextended,read fixed internalMembers field rather than
+applying PSObject.InstanceMembers getter to PSInternalMemberSet. Readonly
+metadata/IL supports the direction,NOT dynamic safe-path proof. No new source,
+fixture compilation/import/host/packet/reviewer. Proposed new3hosts+1conditional
+review remain unapproved/unstarted0/3,0/1;do not reuse two frozen old slots.
+Recover latest development branch,not main. No product repair or acceptance.
+
+Historical diagnostic:[RawIngress receiver mismatch](../roadmap/2026-10-18-p2b-rawingress-diagnostic.md).
 One separately approved evidence-only host1/1spent. Frozen helper receives
 PSInternalMemberSet where PSObject getter requires PSObject;TargetException
 at line21 before collection/enumeration,counters0. Product not imported or

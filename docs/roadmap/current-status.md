@@ -1,6 +1,27 @@
 # Project status — updated 2026-10-18
 
-## Latest — RawIngress diagnostic identifies reflection receiver mismatch
+## Latest — corrected member-set route proposed; bounded design awaits approval
+
+Afterbd0813fc,user requested new-test-candidate receiver correction and safe
+path validation before product repair. Readonly SDK metadata/IL inspection
+only:PSMemberSet.InternalMembers getter is a direct internalMembers field read;
+the field has fixed PSMemberInfoInternalCollection<PSMemberInfo> type. The
+PSInternalMemberSet override may generate adapted/base/PSObject members,so
+merely using its similarly named getter is NOT selected as a safe correction.
+Proposed bounded design:obtain psextended member set,prove exact PSMemberSet
+CLR identity,read its fixed SDK internalMembers field,then prove raw collection
+identity and descriptor retention with zero fixture callbacks. Metadata route
+is NOT dynamically verified. Original helper/product remain unchanged.
+If approved,create new candidate only;new3host route:corrected-helper
+RED/probe against baseline,focused GREEN after conditional product ingress
+repair,then full33group GREEN;one conditional fresh readonly review after
+all exact outcomes. In-memory counter fixture unchanged. New3+1 NOT yet
+approved/started (0/3,0/1);all prior scopes remain consumed/frozen.
+No product/helper source edit,fixture compilation,import,target host,new
+packet or reviewer in this preparation. Bounded in-chat design review required
+before implementation;no new architectural spec/plan document. No acceptance.
+
+## Historical — RawIngress diagnostic identifies reflection receiver mismatch
 
 User approved one separately bounded evidence-only diagnostic after1d183dce.
 [Diagnostic report](2026-10-18-p2b-rawingress-diagnostic.md):PID21488,1304ms,
