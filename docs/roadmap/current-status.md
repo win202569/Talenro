@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — approved member-set route STOPPED at14-versus12 inventory gate
+## Latest — inventory identifies psobject/psextended; strict follow-up awaits approval
+
+User approved one inventory diagnostic afterf30aaf1c.
+[Report](2026-10-18-p2b-member-inventory-diagnostic.md):PID20860,1136ms,
+exit0diagnostic capture,Error=null,14members. Extra entries are psobject
+(exact PSInternalMemberSet) and psextended(exact PSMemberSet),both reserved/
+hidden/instance=true;11normal fields+Version CounterNote make12application
+fields. Raw/inventory counters0,no values/getters/product import/API calls.
+948pins intact,no timeout,stderr0. Diagnostic1/1spent;no product fix/reviewer.
+New bounded in-chat proposal:recognize only these two by exact names/types/
+flags AND identity with current SDK sets;reject all other/masquerading/hidden
+extras,keep12/13business fields and exact PSNoteProperty-before-value checks.
+Proposed new3hosts(RED/focused/full)+1conditional readonly review are NOT yet
+approved/started0/3,0/1;unchanged in-memory counter fixture,unexpected→stop.
+Member-set route1/3+2frozen/0review and all previous scopes unchanged.
+Important blocker remains;no acceptance/main. Read report before next decision.
+
+## Historical — approved member-set route STOPPED at14-versus12 inventory gate
 
 User approved new bounded3+1after90e4dae7. [Execution report](2026-10-18-p2b-member-set-ingress.md):
 first PID33684,1394ms,exit1,fixture observable PASS then unexpected RawIngress

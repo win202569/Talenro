@@ -1,6 +1,18 @@
 # Recover the project on a new computer
 
-Latest checkpoint:[member-set ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-member-set-ingress.md).
+Latest diagnostic:[member inventory and bounded proposal](../roadmap/2026-10-18-p2b-member-inventory-diagnostic.md).
+One inventory host1/1spent:extra psobject/psextended entries identified by
+names/types/flags;12application descriptors plus2SDK-reserved,zero callbacks,
+Error=null,948pins intact. No product import/API call or repair/reviewer.
+Proposed new strict metadata distinction requires names+exact CLR types+
+reserved/hidden/instance flags+same-object identity with current SDK sets;
+all other/masquerading extras reject,business shape remains12/13. New3+1
+proposal unapproved/unstarted0/3,0/1;wait for bounded design approval,no replay.
+Member-set route1/3+2frozen/review0/1ineligible and all older scopes unchanged.
+Recover latest devbranch,not main;raw/cache/mappings/sessions not in clone.
+Product stillFA6047A4,Important blocker unresolved,no acceptance/main grant.
+
+Historical checkpoint:[member-set ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-member-set-ingress.md).
 New route1/3used+2FROZEN,review0/1ineligible. Corrected raw path returned
 exact set/collection types,14members/one actual subtype/zero callbacks;expected
 12count assertion failed. Extra member identities undetermined;do not relax
