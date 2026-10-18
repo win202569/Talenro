@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — three-phase records closed; overall diagnostic TIMEOUT
+
+After9c867a1b,[one PS7 three-phase run](2026-10-18-p1-three-phase-result.md)
+spent new1/1:30081ms/CPU40562.5ms,timeout/exit-1,ordinary,empty stderr,owned
+exit,95/101 lines and59/64 PASS through P1I1PassiveDescriptors. All18 markers/
+nine pairs closed:root9.763ms,validation+copy16881.149ms,decision654.162ms.
+Valid prefix,NOT full PASS;next expected SequentialIsolation,exact active
+statement unknown.388 pins/raw/pairs held;read-only audit rounding aligned,
+no record changes/retry. Phase ordering supported,not root cause/performance
+acceptance. Next read-only later sequential-isolation workload/evidence audit,
+not another automatic run. PS5 FROZEN,old budgets/review/I1/P1 gates persist.
+
 ## Latest — three-phase observation PREPARED; target NOT RUN
 
 After5c08ef8d,[approved preparation](2026-10-18-p1-three-phase-prepared.md)

@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest result:[three-phase records complete,overall TIMEOUT](../roadmap/2026-10-18-p1-three-phase-result.md).
+After9c867a1b,new1/1 spent:ordinary PS7 timeout30081ms,95/101 lines,59/64 PASS
+through P1I1PassiveDescriptors;owned exit/empty stderr. Nine pairs closed:
+root9.763ms,validation-copy16881.149ms,decision654.162ms.388 pins/raw verified.
+No full-suite PASS or root cause;next SequentialIsolation output absent,exact
+active step unknown. Next read-only later-test workload/evidence review before
+new diagnostics,no retry/frozenPS5 reuse. Source NOT RUN headers superseded only
+for this observed run;budgets/review/I1/P1 gates persist. Git carries report and
+sources/tools,not ignored records/caches/credentials or replay authority.
+
 Latest preparation:[three-phase diagnostic,target NOT RUN](../roadmap/2026-10-18-p1-three-phase-prepared.md).
 After5c08ef8d,integer-candidate-three-phase holds eight sources,new101-line
 inventory and README;separate depth-three verifier/tests added beside it.
