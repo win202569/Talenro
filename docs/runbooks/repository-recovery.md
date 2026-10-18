@@ -1,6 +1,20 @@
 # Recover the project on a new computer
 
-Latest candidate: [P2-B PayloadLength test-only repair](../roadmap/2026-10-18-p2b-payloadlength-repair.md).
+Latest validation: [P2-B negative controls/restored full](../roadmap/2026-10-18-p2b-codec-negative-controls.md).
+Two specified mutants each hit their exact assertion;module restored after
+each;final full32PASS/35exact lines. New hosts3/3spent,one conditional fresh
+readonly reviewer1/1complete:1Important passive-descriptor defect,1Minor
+trailing-newline comparator issue. Important blocker accepted;no source repair
+or extra run. No acceptance/main merge. Next is separately bounded descriptor
+investigation/repair,not replaying this completed3+1route;Minor deferred.
+Candidate remains p2b-payloadlength-repair (FA6047A4/239E80EF);new validation
+controller under p2b-codec-negative-controls.895mapped pins intact. Restore
+latest development branch;read final report disposition before further work.
+Original2/5used+3frozen and old review0/1ineligible,diagnostic1/1,repair full1/1
+spent unchanged. Clone restores portable files/reports,not raw/cache/mappings/
+sessions or replay rights;no reset or automatic execution/capability grant.
+
+Historical candidate: [P2-B PayloadLength test-only repair](../roadmap/2026-10-18-p2b-payloadlength-repair.md).
 Recover latest development branch and new p2b-payloadlength-repair leaf.
 Test239E80EF changes one expression only; moduleFA6047A4/fixtures/oracle exact
 copies. One separate ordinary PS7 full host1/1 consumed:32PASS/35exact lines,

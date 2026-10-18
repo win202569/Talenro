@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B test-only candidate:32 groups passed once, NOT accepted
+## Latest — P2-B exact validation evidence, but readonly review BLOCKED
+
+User approved the proposed three NEW hosts and one conditional readonly review
+after07269905. [Execution report](2026-10-18-p2b-codec-negative-controls.md):
+reserved-tail920ms/exit1/ReservedZero exact;sequence-equality1088ms/exit1/
+SequenceExact exact;restored final12924ms/exit0/32PASS/35exact lines. Immediate
+good-hash restoration after each mutant;all895pins/raw streams reconciled.
+No timeout,stderr0,ordinary pinned PS7.6.5Corex64,complete streams/owned exit.
+Fresh readonly review1/1complete:0Critical,1Important descriptor-passivity
+defect,1Minor trailing-newline comparator issue. MemberType/Value accesses
+precede exact descriptor CLR identity;SDK members virtual/nonfinal. Static
+finding confirmed,no compiled subclass/reproducer. Important blocker accepted;
+no acceptance/main merge/source fix/retest or broader capability grant.
+Next:separately bound descriptor-passivity investigation/repair;Minor deferred.
+New hosts3/3spent;original2/5used+3frozen,old review0/1ineligible,diagnostic1/1
+and repair full1/1spent unchanged. Recover existing devbranch,not main.
+
+## Historical — P2-B test-only candidate:32 groups passed once, NOT accepted
 
 User approved the proposed new candidate and finite validation after3b6b39fa.
 [Repair report](2026-10-18-p2b-payloadlength-repair.md): exactly one bracket-only
