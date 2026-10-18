@@ -1,0 +1,21 @@
+{
+  "Schema": 1,
+  "ApprovedDesignCommit": "7bbaf3a683af924bcd7977f3533b2ccd49bc1bc1",
+  "BaseCandidate": {
+    "Path": "docs/diagnostics/isolated-fuzz/integer-token-local-candidate/offline-supervision-policy.ps1",
+    "SHA256": "F9B4E408D9A4FF9C7A36EFD6E1F2472F17DACB3F76F463FF4973DAB4139CC82A"
+  },
+  "CandidateSHA256": "1971F808DAB0C0A520FC708BF240AF4367D21EE811FE9AEB8664E605E7E8BCE8",
+  "RoutingCopies": [
+    {
+      "Path": "offline-supervision-policy.tests.ps1",
+      "Source": "docs/diagnostics/isolated-fuzz/integer-token-api-regression/candidate/offline-supervision-policy.tests.ps1",
+      "SHA256": "61A3BACF26EDE1F8B137CBF77CC4DBC35E4D6E6FB8FE6365953CDA9F41CEDEA3"
+    },
+    {
+      "Path": "offline-supervision-policy.ownership.tests.ps1",
+      "Source": "docs/diagnostics/isolated-fuzz/integer-token-api-regression/candidate/offline-supervision-policy.ownership.tests.ps1",
+      "SHA256": "C4905925B309B00E94834B2FDA3EE8034265B23CDF274276C9ECA5511250C6E7"
+    }
+  ]
+}

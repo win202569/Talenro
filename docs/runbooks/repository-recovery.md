@@ -16,7 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[bounded scalar-return repair design](../roadmap/current-status.md).
+Latest handoff:[owned-return candidate String fixture failure](../roadmap/2026-10-18-p1-owned-return-repair-result.md).
+After7bbaf3a6,isolated candidate1971F808 implemented with3ownership helpers/two
+return reroutes;old source/tests untouched. First of3approved PS7 hosts stopped
+after9scalar PASS vectors:first String attachment not retained,FIXTURE_INVALID.
+818ms/exit1,no timeout,empty stderr,complete owned exit/streams. Decision calls0;
+all39behavioral cases/normal controls and later2hosts UNRUN. NEW1/3SPENT,
+2/3UNUSED_FROZEN,no retry/fix/reviewer/promotion.548pins/exact11lines/2stream
+hashes reconciled readonly. Git carries9portable leaf files and result/recovery,
+not ignored raw/runtime/local state. Restore latest dev branch,not main;missing
+state cannot renew budgets. Candidate remains UNVERIFIED/UNACCEPTED;old Int32
+failure unchanged. Next readonly String field-retention analysis before any
+new fixture/candidate revision;do not weaken attachment/identity assertions.
+
+Previous handoff:[bounded scalar-return repair design](../roadmap/current-status.md).
 After29b49473,design/source inspection only;no new module/test/controller or host.
 Recommend NEW isolated candidate with common owned-result boundary for every
 scalar leaf,including root Reason/constants;retain exact schema/types/refusal

@@ -1,6 +1,25 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded scalar-return repair design presented;NOT IMPLEMENTED
+## Latest — owned-return candidate implemented;String fixture INVALID;STOP
+
+After7bbaf3a6,user approved isolated implementation plus three ordered bounded
+hosts. [Result and precise limits](2026-10-18-p1-owned-return-repair-result.md).
+Nine portable files prepared;new candidate1971F808 has3 ownership helpers and
+two return reroutes.12old helpers/public signature/validation/reduction unchanged;
+old API/ownership tests copied byte-identically. All5 scripts parse,not acceptance.
+First ordinary PS7 host818ms/exit1,no timeout,empty stderr,complete owned exit/
+streams.9scalar vectors passed;first String(clean) failed attachment-retention
+fidelity. Outcome FIXTURE_INVALID,NOT isolation success or new String defect.
+Decision entrypoint calls0;39behavioral cases/both normal controls unrun. Later
+full API/old ownership hosts unrun. NEW1/3SPENT,2/3UNUSED_FROZEN,no retry/repair.
+548frozen entries(535inherited+4anchors+9files)/exact11stdout lines/2stream hashes
+reconciled readonly. Candidate implemented but UNVERIFIED/UNACCEPTED;old Int32
+descriptor-contamination witness remains. No new reviewer/promotion/main merge.
+Next recommend readonly String stored-field metadata-retention analysis,then
+separately agreed narrow fixture/candidate design;no guard weakening or reuse
+of frozen later slots. All previous budgets and wider acceptance blockers held.
+
+## Previous — bounded scalar-return repair design presented;NOT IMPLEMENTED
 
 After29b49473,user requested the recommended minimal repair/regression design
 only. Bounded existing-return-flow change;short in-chat design,not a new subsystem
