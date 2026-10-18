@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — integer reuse safety audit finds missing direct-helper regressions
+
+Aftere185bbc1,[read-only safety audit](2026-10-18-p1-integer-reuse-safety-audit.md)
+used ZERO target hosts/no source edits. Four original suites have zero direct
+integer-helper calls;earlier Shape refusals can mask helper guard loss. Preferred
+UNAPPROVED candidate:integer-local exact-type reuse with full equivalent passive
+inspection,no KnownType/trusted flag,no changes to common Passive/Token/Bool.
+Direct refusal/callback/error-order tests needed before helper edits. Conditional
+integer-only model avoids8192 queries,not measured savings or timeout fix.
+283 pins held;loading1/2 spent/Inherited frozen,old budgets/review ineligibility/
+PS5-I1-P1 blockers unchanged. Next short-design approval,not automatic code/tests.
+
 ## Latest — static cost model identifies repeated type queries, not measured savings
 
 After8833f30f,[hot-loop read-only model](2026-10-18-p1-hot-loop-readonly-cost-model.md)

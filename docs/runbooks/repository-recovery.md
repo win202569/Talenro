@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only review:[integer local reuse safety](../roadmap/2026-10-18-p1-integer-reuse-safety-audit.md).
+Aftere185bbc1,zero tests/product edits;283 pins held. Direct integer-helper
+regressions absent in four original suites;scenario Shape checks can mask guard
+loss. Proposed integer-local specialization retains full passive checks/interface,
+no trusted-type flag/common-helper edits. Candidate NOT approved/implemented or
+proven safe/fast. Need direct refusal/callback/error-order tests before product
+change;no new test allowance. Loading1/2 spent/Inherited frozen,old budgets/review
+ineligibility/PS5-I1-P1 blockers remain. Recover report/source,not raw/runtime or
+replay authority;next short-design approval only.
+
 Latest read-only analysis:[hot-loop cost model](../roadmap/2026-10-18-p1-hot-loop-readonly-cost-model.md).
 After8833f30f,zero tests/source edits. Model for complete clean4096-time validation
 path:73728 type queries/40960 Passive calls/40960 Members reads,not actual cutoff
