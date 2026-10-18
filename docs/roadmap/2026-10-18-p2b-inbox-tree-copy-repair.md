@@ -1,9 +1,72 @@
-# P2-B inbox tree-copy repair — unfinished checkpoint
+# P2-B inbox tree-copy repair — bounded verification and review
+
+## Continuation after8f0d8ba2 — five exact; evidence defect blocks completion
+
+The user explicitly released only the three unlaunched capacity/sequence/final
+slots and the existing conditional reviewer. RED and the completed full were
+not replayed; no frozen input, product repair, controller or oracle was changed.
+The earlier preflight stop below is historical and remains preserved.
+
+| Continued slot | Measured result |
+| --- | --- |
+| capacity | Exact sealed5D316862...,PID36484,1888ms,exit1,4lines/P2BInboxEndpointCapacity |
+| sequence | Exact sealed3C6F0747...,PID30116,1165ms,exit1,4lines/P2BInboxSequenceExact |
+| final | Restored47BABFED...,PID4232,47987ms,exit0,49lines/44PASS |
+
+Each mutant's SHA was checked before launch; each immediate restoration
+returned to exact47BABFED... before proceeding. Both negative controls failed
+at the intended accepted-counterexample assertions, not a generic exception.
+All five original rows now EXPECTED_WITHIN_SCOPE. All hosts ordinaryPS7.6.5
+Corex64;no timeout/stderr,ownedexit/drains/postpins complete.
+Full/final stdout SHA4932E5C0...,focused trace4D658A96...,original trace
+AAE364B7... are identical. Each full/final compiled its unchanged descriptor
+fixture once,with counters0/synthetic4/decorations8. No extra target/compile.
+Readonly final check confirmed all1326pins,allowed prefix/tail identity and
+same sealed good product.
+
+New allowance5/5SPENT,0remaining;review1/1completed after five exact outcomes.
+No other reviewer,fix-pass,retest,main merge or formal/runtime acceptance.
+Old original2/5SPENT+3FROZEN anddiagnostic1/1SPENT remain unchanged.
+### Independent review and parent disposition
+
+[Complete review and all dispositions](../diagnostics/isolated-fuzz/p2b-inbox-tree-copy-repair/review.md).
+Critical0,Important1,Minor1;no production defect identified in the allowed repair.
+Status: **UNFINISHED_REVIEW_BLOCKED_PORTABLE_UINT64**,not scoped completion.
+
+Important1 is accepted/blocking:the parent-generated portable summary rounds
+UInt64 boundary values through JavaScript Number JSON conversion. Readonly
+integer-lexeme comparison confirms both embedded OriginalTrace.Synthetic and
+FinalOriginalTrace.Synthetic are inaccurate. Raw full/final traces still hold
+9223372036854775808 and18446744073709551614 exactly;the derived values are
+9223372036854776000 and18446744073709552000. Raw evidence/hash/verdicts remain
+correct and unchanged. Embedded rounded fields are explicitly invalidated as
+boundary evidence,not automatically repaired. No target/compile/reviewer rerun.
+
+Minor2 is accepted/deferred:new Count.Probe mutations are not explicitly checked
+for retained scalar metadata or absence on counterparts;IB-Eq ignores scalar
+decorations. Fresh-scalar/reference guards and old passivity tests support a
+narrower claim,not complete direct coverage. Frozen suite remains unchanged.
+
+All five declined-to-judge items have parent dispositions:historical object's
+identity unavailable;intermediate restoration timing observed by parent hash
+checks but not independently timestamped in five packet rows;arbitrary/cyclic/
+private-tampered trees not supported;other runtimes/concurrency/live/main and
+broader acceptance unverified;readonly review is not independent reproduction.
+No scope limit was silently dropped or promoted to proof.
+
+Next recommendation needs explicit approval:only lossless correction of derived
+portable evidence (documented decimal strings or exact integer lexemes),then
+readonly direct comparison with unchanged saved traces. Zero target processes,
+managed compilations,new reviewers or frozen source/test/controller/oracle edits.
+This does not authorize addressing Minor2,rerunning any of five hosts,main merge,
+formal acceptance or live use. Preserve all current raw and historical records.
+
+## Historical checkpoint at8f0d8ba2 — preflight stop
 
 Date: 2026-10-18. Existing development branch: `codex/c12-b01-task9-coordinator`.
 Base commit: `131fee8584a1b308d28152abff3151da3ab41554`.
 User approved the displayed Native implementation and NEW5+1 allowance.
-Status: **UNFINISHED — preflight identity stop after one successful 44-group full**.
+Historical status: **UNFINISHED — preflight identity stop after one successful 44-group full**.
 No main merge or formal/runtime acceptance.
 
 ## Implemented scope

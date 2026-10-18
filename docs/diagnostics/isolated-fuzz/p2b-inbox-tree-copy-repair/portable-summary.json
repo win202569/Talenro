@@ -1,16 +1,17 @@
 {
   "Schema": 1,
   "Mode": "p2b-inbox-tree-copy-repair-portable-summary",
-  "Status": "UNFINISHED_PREFLIGHT_STOP",
+  "Status": "UNFINISHED_REVIEW_BLOCKED_PORTABLE_UINT64",
   "BaseCommit": "131fee8584a1b308d28152abff3151da3ab41554",
   "ImplementationApproved": true,
   "Method": "Native",
   "NewBudget": {
     "ApprovedHosts": 5,
-    "ConsumedHosts": 2,
-    "RemainingFrozen": 3,
-    "ReviewerConsumed": 0,
-    "ReviewerEligible": false
+    "ConsumedHosts": 5,
+    "RemainingFrozen": 0,
+    "ReviewerConsumed": 1,
+    "ReviewerEligible": false,
+    "ReviewerStatus": "COMPLETE_BLOCKING_FINDING"
   },
   "HistoricalBudget": {
     "OriginalSpent": 2,
@@ -34,7 +35,7 @@
     "SequenceDiff": "Sequence -ne Next -> -lt Next",
     "RuntimeApproved": false
   },
-  "InvocationsSHA256": "DA505E50F62EF4B12AF40C13BEBCD2848AF1C13365C8372EC51B2BBC4C3A1745",
+  "InvocationsSHA256": "447B896F231E8B7DD714887D919B12700A0AA0F214D3F55F8F45EB3E1DE693F6",
   "Invocations": [
     {
       "Number": 1,
@@ -65,6 +66,69 @@
       "ModuleSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
       "PID": 35788,
       "ElapsedMs": 44734,
+      "TimedOut": false,
+      "ExitCode": 0,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "PostPinsIntact": true,
+      "ExactExpected": true,
+      "Outcome": "EXPECTED_WITHIN_SCOPE",
+      "stdoutSHA256": "4932E5C04448E19B99DEE2CEB8A39B112DF372830BAAB5D0E81AA09FF62CCC1C",
+      "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "TraceSHA256": "4D658A96151EC4DE38AB05FBED39EC64F707052AB1A8DDF96F99C33CEA8965AC",
+      "OriginalTraceSHA256": "AAE364B77AD1E64A1A08B9861AC1D350865B8071C8F4837DBBF25C30FF54CFCF",
+      "FormalAcceptance": false
+    },
+    {
+      "Number": 3,
+      "Slot": "capacity",
+      "AttemptConsumed": true,
+      "Launched": true,
+      "ModuleSHA256": "5D3168627B9BC3901FD07111B95BCB7C03F3AD25113B742CC3B8A3A267D5A1E0",
+      "PID": 36484,
+      "ElapsedMs": 1888,
+      "TimedOut": false,
+      "ExitCode": 1,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "PostPinsIntact": true,
+      "ExactExpected": true,
+      "Outcome": "EXPECTED_WITHIN_SCOPE",
+      "stdoutSHA256": "ACD4E14FC3E4B0EE9066B99E2BC5E79382AE67F56DB819228C843139912FD92B",
+      "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "TraceSHA256": "D5C89E1494C0DB64289FEE328D6900F81966F2F7431DE212B2827EA07B049687",
+      "OriginalTraceSHA256": null,
+      "FormalAcceptance": false
+    },
+    {
+      "Number": 4,
+      "Slot": "sequence",
+      "AttemptConsumed": true,
+      "Launched": true,
+      "ModuleSHA256": "3C6F0747BDA7060FF097A0E1EB6DE4B303CBD7C8BD23B910010BF37524B26E0D",
+      "PID": 30116,
+      "ElapsedMs": 1165,
+      "TimedOut": false,
+      "ExitCode": 1,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "PostPinsIntact": true,
+      "ExactExpected": true,
+      "Outcome": "EXPECTED_WITHIN_SCOPE",
+      "stdoutSHA256": "C7C1F0A884E375C45BBBD091BB9514DF5C579739C05FB4B0305508775E2E2388",
+      "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "TraceSHA256": "82B2D4F835D4A58A34FE568EF451A5AE06CDAADDFBA9CFDD65A94505C8555FE7",
+      "OriginalTraceSHA256": null,
+      "FormalAcceptance": false
+    },
+    {
+      "Number": 5,
+      "Slot": "final",
+      "AttemptConsumed": true,
+      "Launched": true,
+      "ModuleSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+      "PID": 4232,
+      "ElapsedMs": 47987,
       "TimedOut": false,
       "ExitCode": 0,
       "OwnedExit": true,
@@ -451,18 +515,385 @@
     "InitialRestoreSHA256": "7DE8460B8F6116A4E1ED3746453824E95D683C890D2376D9D461FDFCEE84DE5A",
     "FinalRestoreSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
     "FinalRestoreExact": true,
-    "FurtherExecution": "FROZEN; no retry, sequence, final or reviewer",
+    "FurtherExecution": "Historically frozen at8f0d8ba2; user explicitly released only three unlaunched slots and conditional review. Existing stop receipts were not rewritten.",
     "RawReceiptChanged": false
   },
   "Limits": [
-    "44 PASS was measured once, not twice; capacity/sequence mutation detection is unverified.",
+    "44 PASS measured in each of the original full and restored final hosts; both specified mutants trigger their exact assertion.",
+    "Only FirstSnapshot had an individual RED run; the other eleven focused groups first ran in the initial successful full.",
     "The representation probe observes its own controlled test object, not the vanished historical diagnostic object.",
     "No full repository, Docker, Go, PS5, live, main, full C12 or formal acceptance.",
-    "Portable JSON is a derived record; it does not restore CLR identity, live tokens, ignored raw packets, dependencies, credentials or execution rights."
+    "Portable JSON is a derived record; it does not restore CLR identity, live tokens, ignored raw packets, dependencies, credentials or execution rights.",
+    "Embedded OriginalTrace/FinalOriginalTrace Synthetic UInt64 values are known rounded and are NOT exact boundary evidence; raw trace hashes are correct. Handoff remains unfinished."
   ],
   "RuntimeApproved": false,
   "SourceVerified": false,
   "LiveActionsPerformed": false,
   "FormalAcceptance": false,
-  "MainMergeApproved": false
+  "MainMergeApproved": false,
+  "CapacityTrace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "capacity",
+    "Groups": [
+      "ApiRequired"
+    ],
+    "CompileCount": 0,
+    "Observable": false,
+    "Counters": 0,
+    "Synthetic": [],
+    "Decorations": [],
+    "Error": {
+      "Message": "ASSERTION FAILED: P2BInboxEndpointCapacity",
+      "Type": "System.Management.Automation.RuntimeException",
+      "Position": "At D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\test-helpers.ps1:4 char:56\r\n+ … ot $Condition){throw ('ASSERTION FAILED: P2BInbox'+$script:ibGroup)}}\r\n+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "Stack": "at IB-Need, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\test-helpers.ps1: line 4\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 139\r\nat IB-Case, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 13\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 135\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\target.ps1: line 12"
+    },
+    "Passed": false,
+    "RuntimeApproved": false
+  },
+  "SequenceTrace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "sequence",
+    "Groups": [
+      "ApiRequired"
+    ],
+    "CompileCount": 0,
+    "Observable": false,
+    "Counters": 0,
+    "Synthetic": [],
+    "Decorations": [],
+    "Error": {
+      "Message": "ASSERTION FAILED: P2BInboxSequenceExact",
+      "Type": "System.Management.Automation.RuntimeException",
+      "Position": "At D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\test-helpers.ps1:4 char:56\r\n+ … ot $Condition){throw ('ASSERTION FAILED: P2BInbox'+$script:ibGroup)}}\r\n+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "Stack": "at IB-Need, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\test-helpers.ps1: line 4\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 107\r\nat IB-Case, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 13\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\inbox.tests.ps1: line 104\r\nat <ScriptBlock>, D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\docs\\diagnostics\\isolated-fuzz\\p2b-inbox-tree-copy-repair\\target.ps1: line 12"
+    },
+    "Passed": false,
+    "RuntimeApproved": false
+  },
+  "FinalTrace": {
+    "Schema": 1,
+    "Mode": "p2b-tree-repair-tests",
+    "Group": "all",
+    "Groups": [
+      "FirstSnapshot",
+      "OwnedObjectTree",
+      "OwnedArrayTree",
+      "EmptyArrays",
+      "NestedValues",
+      "ScalarLeaves",
+      "UnsupportedLeaves",
+      "ReturnedMutation",
+      "TwoSnapshots",
+      "TwoInboxes",
+      "StoppedSnapshot",
+      "Complete"
+    ],
+    "Representation": {
+      "RawType": "System.Management.Automation.PSObject",
+      "BaseType": "System.Management.Automation.PSCustomObject",
+      "Fields": [
+        "Label",
+        "Values"
+      ]
+    },
+    "FirstActual": {
+      "Schema": 1,
+      "Mode": "p2b-inbox-only",
+      "Accepted": true,
+      "Reason": "inspected",
+      "Inbox": null,
+      "EndpointId": null,
+      "AcceptedBytes": 0,
+      "Frame": null,
+      "Snapshot": {
+        "Stopped": false,
+        "FirstFailure": null,
+        "Binding": {
+          "Schema": 1,
+          "BindingDigest": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "SessionId": [
+            160,
+            161,
+            162,
+            163,
+            164,
+            165,
+            166,
+            167,
+            168,
+            169,
+            170,
+            171,
+            172,
+            173,
+            174,
+            175
+          ],
+          "OriginTick": 0,
+          "Frequency": 1000,
+          "DeadlineTick": 120000
+        },
+        "Endpoints": [
+          {
+            "EndpointId": 1,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 2,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 3,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          },
+          {
+            "EndpointId": 4,
+            "Count": 0,
+            "NextSequence": 1,
+            "LastNonHeartbeatSequence": 0,
+            "PartialBytes": [],
+            "Queue": [],
+            "Heartbeat": null,
+            "PartialLength": 0
+          }
+        ]
+      },
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false
+    },
+    "Error": null,
+    "Passed": true,
+    "RuntimeApproved": false
+  },
+  "FinalOriginalTrace": {
+    "Schema": 1,
+    "Mode": "p2b-inbox-tests",
+    "Group": "all",
+    "Groups": [
+      "ApiRequired",
+      "BindingShape",
+      "BindingIsolation",
+      "TokenIdentity",
+      "EmptyInbox",
+      "WholeFrame",
+      "SplitEdges",
+      "SingleByteChunks",
+      "ChunkBounds",
+      "LiteralDirections",
+      "BindingMismatch",
+      "SequenceExact",
+      "SequenceAfterTake",
+      "SequenceHigh",
+      "SequenceExhaustion",
+      "EndpointCapacity",
+      "GlobalCapacity",
+      "HeartbeatMixed",
+      "HeartbeatReference",
+      "HeartbeatFullQueue",
+      "EofEmpty",
+      "EofPartial",
+      "InvalidFrame",
+      "FirstFailure",
+      "StoppedDelivery",
+      "InputPassivity",
+      "InputOwnership",
+      "OutputOwnership",
+      "SnapshotBounds",
+      "MultiInstance",
+      "AuthorityBoundary",
+      "Complete"
+    ],
+    "CompileCount": 1,
+    "Observable": true,
+    "Counters": 0,
+    "Synthetic": [
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 9223372036854776000,
+        "Last": 0
+      },
+      {
+        "Before": 1,
+        "After": 18446744073709552000,
+        "Last": 0
+      }
+    ],
+    "Decorations": [
+      {
+        "Subclass": false,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": false,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "System.Management.Automation.PSNoteProperty",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": false,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      },
+      {
+        "Subclass": true,
+        "Hidden": true,
+        "Cold": true,
+        "TagClass": "P2BDescriptorFixture.CounterNote",
+        "Retained": true,
+        "Counters": 0
+      }
+    ],
+    "Error": null,
+    "Passed": true,
+    "RuntimeApproved": false
+  },
+  "Continuation": {
+    "ApprovalAfter": "8f0d8ba286ee92822b7d52f0b80ed1d48cd42f73",
+    "Scope": "Only capacity/sequence/final plus conditional review; no RED/full replay or frozen input changes.",
+    "CapacityBeforeSHA256": "5D3168627B9BC3901FD07111B95BCB7C03F3AD25113B742CC3B8A3A267D5A1E0",
+    "CapacityAfterSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+    "SequenceBeforeSHA256": "3C6F0747BDA7060FF097A0E1EB6DE4B303CBD7C8BD23B910010BF37524B26E0D",
+    "SequenceAfterSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+    "FullFinalStdoutIdentical": true,
+    "FullFinalFocusedTraceIdentical": true,
+    "FullFinalOriginalTraceIdentical": true,
+    "ExtraTargets": 0,
+    "ExtraManagedCompiles": 0
+  },
+  "Review": {
+    "File": "review.md",
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 1,
+    "ImportantDisposition": "ACCEPTED/BLOCKING: derived UInt64 integers rounded; raw traces/hashes correct. Do not use embedded Synthetic values as exact evidence. No automatic correction.",
+    "MinorDisposition": "ACCEPTED/DEFERRED: Count.Probe scalar ETS isolation is not directly asserted; frozen tests unchanged.",
+    "DeclinedToJudgeItems": 5,
+    "AllParentDispositionsPreserved": true,
+    "ProductionDefectIdentified": false,
+    "ScopedCheckpointComplete": false,
+    "NewReviewersAllowed": 0
+  },
+  "KnownDefects": [
+    {
+      "ID": "review-important-1",
+      "AffectedFields": [
+        "OriginalTrace.Synthetic[].After",
+        "FinalOriginalTrace.Synthetic[].After"
+      ],
+      "Problem": "UInt64 integer precision lost through JavaScript Number JSON roundtrip. Embedded values are inaccurate; consult unchanged raw trace/hash and verbatim review. Correction requires explicit disposition.",
+      "RawEvidenceChanged": false,
+      "AutomaticFixPerformed": false
+    },
+    {
+      "ID": "review-minor-2",
+      "Problem": "New scalar Count.Probe decorations not directly checked for retained/absent metadata across snapshots.",
+      "Disposition": "Deferred; no frozen suite modification or new execution."
+    }
+  ]
 }

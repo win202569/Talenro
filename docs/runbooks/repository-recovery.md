@@ -1,6 +1,21 @@
 # Recover the project on a new computer
 
-Latest checkpoint:[inbox tree-copy repair](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
+Current continuation:[inbox tree-copy verification](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
+After8f0d8ba2 explicit approval,only capacity/sequence/final ran. All5rows exact,
+both mutants' intended assertions observed,each restored exactgood47BABFED... .
+Final49lines44PASS matches firstfull stdout andbothtraces. NoRED/fullreplay.
+New5/5SPENT,review1/1complete;oldoriginal2spent+3FROZEN/diagnostic1spent unchanged.
+UNFINISHED:Important evidence defect blocks scoped handoff. Parent portable JSON
+roundtrip rounded embedded UInt64 Synthetic values;raw full/final traces/hash
+are correct and unchanged. Do not use embedded rounded fields as exact boundary
+evidence. Read complete review.md/parent dispositions,including correct decimal
+lexemes and deferred Count.Probe coverage gap. No production defect identified.
+Next requires explicit evidence-only lossless correction + readonly comparison,
+0targets/compiles/reviewers,no frozen test/product/controller edits or reruns.
+Read finalreview/dispositions before further work. Clone does not restore the
+ignoredpacket or grant new targets/review/main/live/formalacceptance rights.
+
+Historical checkpoint:[inbox tree-copy repair](../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md).
 Restore existingdevbranch codex/c12-b01-task9-coordinator,not automaticallymain.
 Good47BABFED... fixes first snapshot and passed new12+original32 once
 (49lines/44PASS). RED also exact. Source/tests/controller/oracles/complete

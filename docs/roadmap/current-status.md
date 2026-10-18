@@ -1,6 +1,25 @@
 # Project status — updated 2026-10-18
 
-## Latest — inbox tree-copy repair passes 44 groups; mutation preflight stop
+## Latest — inbox tree-copy five exact; portable UInt64 evidence blocks completion
+
+[Execution record](2026-10-18-p2b-inbox-tree-copy-repair.md).
+After8f0d8ba2 user released only3unlaunched slots+conditionalreview. NoRED/full
+replay or frozen input change. CapacityPID36484/1888ms andsequencePID30116/
+1165ms hit intended assertions;each restored exactgood47BABFED... . Final
+PID4232/47987ms/exit0/49lines44PASS matches initialfull stdout/bothtracehashes.
+All1326pins intact,no timeout/stderr,ownedexit/drains complete. New5/5SPENT,
+review1/1complete:Critical0/Important1/Minor1,no product defect identified.
+Important accepted/blocking:parent JSON/JavaScript Number conversion rounded
+embedded UInt64 boundary values in portable-summary;raw full/final traces and
+hashes remain exact. Derived Synthetic fields explicitly marked inaccurate,
+not automatically fixed. Minor accepted/deferred:Count.Probe metadata isolation
+is not directly asserted. Full review andall5declined dispositions preserved.
+UNFINISHED;next needs explicit evidence-only lossless correction/read-only
+comparison,0targets/compiles/reviewers. No frozen suite edits or reruns.
+Oldoriginal2spent+3FROZEN/diagnostic1spent unchanged.
+No main/formal/runtime/fullC12 acceptance or additional target authority.
+
+## Historical — inbox tree-copy repair passes 44 groups; mutation preflight stop
 
 [Execution record](2026-10-18-p2b-inbox-tree-copy-repair.md).
 Native/NEW5+1 approved. New RED exact; good47BABFED... then passed new12+

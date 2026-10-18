@@ -7,11 +7,14 @@
 **Tech Stack:** 普通Windows PS7.6.5Corex64、固定PowerShell SDK、原模块/固定CLR元数据；无产品编译、真实I/O或新依赖。
 **Spec:** [已批准inbox设计](../specs/2026-10-18-p2b-bounded-inbox-design.md)§3所有权/§6快照/§7验证；SHA43036F17E712CA2AA57F51CA09BAFF874DB53F954FADF82CBCD6388763B2585B。
 
-状态：UNFINISHED_PREFLIGHT_STOP。用户已批准Native及独立NEW5+1。
-ImplementationApproved=true；RuntimeApproved=false。新RED精确，随后新12+
-原32组组合full全部通过。应用容量mutant时代理误改缩进，源码SHA前置
-检查拦截，未预消费/启动容量目标。已立即还原sealedgood47BABFED...，
-不得重跑或自动继续。NEW2/5SPENT+3FROZEN，review0/1ineligible。
+状态：UNFINISHED_REVIEW_BLOCKED_PORTABLE_UINT64。用户在8f0d8ba2后批准只释放未启动3轮
+及条件审查，不重跑RED/full、不改冻结输入。此前容量缩进错误已精确还原，
+历史前置拒绝记录保留。容量/序号mutants均指定断言，随后最终组合49行/
+44PASS，与原full一致。ImplementationApproved=true；RuntimeApproved=false。
+NEW5/5SPENT，0remaining；只读review1/1完成，Critical0/Important1/Minor1。
+Important：可携带摘要的UInt64边界值被代理JSON转换舍入；原始记录与哈希
+正确不变，但证据交付未完成。Minor：Count.Probe隔离未直接断言，接受延期。
+未自动修复/补测/更换reviewer；完整审查及5项declined处置已保存。
 原2/5SPENT+3FROZEN及独立诊断1/1SPENT不变。
 实测/处置见[执行记录](../../roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md)。
 
@@ -114,14 +117,14 @@ Copy-P2BCScalar:146 <- Copy-IBTree:21 <- New-IBResult:29 <- Snapshot:256。
   两份trace分别保存，均Passed/Errornull/authorityfalse。
   原suite必须CompileCount1/Observabletrue/Counters0/Synthetic4/Decorations8。
   任一失败冻结余3轮/条件审查，不借mutant槽修复。
-- [ ] **Step5 — capacity mutant and immediate restore.**
+- [x] **Step5 — capacity mutant and immediate restore.**
   原唯一Count -ge4→-ge5；target仅调用原Group capacity，原4行/
   exit1/ASSERTION FAILED: P2BInboxEndpointCapacity。必须是错误接受第五帧，
   不是internal-error/数组越界。立即apply_patch还原good并核SHA。
-- [ ] **Step6 — sequence mutant and immediate restore.**
+- [x] **Step6 — sequence mutant and immediate restore.**
   原唯一Sequence -ne Next→-lt Next；只跑原Group sequence，
   原4行/exit1/P2BInboxSequenceExact错误接受反例。立即恢复good身份。
-- [ ] **Step7 — final combined full after restoration.**
+- [x] **Step7 — final combined full after restoration.**
   完全相同good/专项/32组/oracle，总49行/44PASS/exit0。原fixture仅在两次
   组合full宿主各managed编译一次，无额外编译host/预热。所有pins/恢复身份核对。
 
@@ -151,11 +154,11 @@ FirstSnapshot在RED先独立记录wrapper表示；若不满足固定SDK下的可
 PSObject/PSCustomObject表示，停止，不用该轮临时学出的值重写oracle。
 GREEN对相同冻结向量执行，其余11组首次运行；不能声称它们各自跑过RED。
 
-## Approved NEW5+1 allowance — stopped at capacity preflight
+## Approved NEW5+1 allowance — exhausted; review blocks evidence handoff
 
 推荐Native，同一代理直接实施，一名新独立只读reviewer仅在五轮全部精确后启动。
-本新预算不是原3FROZEN的复用。实际新2host已用，余3冻结，审查不符合启动条件。
-以下为原批准边界，停止后不能自动继续。每host最多120000ms执行+2000ms ownedexit+
+本新预算不是原3FROZEN的复用。实际新5host已用，0remaining，审查条件已满足。
+以下为原批准边界，不允许补跑。每host最多120000ms执行+2000ms ownedexit+
 2000ms并发分流drain；不改真实运行合同。固定PS7.6.5Corex64/adminFalse；
 engineSHA362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139，
 SDK SHA2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B，
@@ -190,14 +193,14 @@ target/composite输出oracle在Prepare前冻结；不根据失败输出学习预
 **Consumes:** 相同sealedgood、专项/32组、literal/oracle/controller、五轮原证据。
 **Produces:** 一次限定审查、完整findings/declined处置和devbranch保存，不是验收。
 
-- [ ] **Step1 — one fresh readonly reviewer after5exact.**
+- [x] **Step1 — one fresh readonly reviewer after5exact.**
   审允许diff、wrapper/owner/数组所有权/标量拒绝、测试独立性、五轮证据；
   原codec及历史其余材料只hash/必要固定helper边界，不扩大历史wholebranch审计。
   禁止execute/import/compile/修改/额外探测/网络安全查询/嵌套代理。
-- [ ] **Step2 — preserve and disposition all feedback.**
+- [x] **Step2 — preserve and disposition all feedback.**
   Critical/Important/审查不完整停止，无自动修复/补测/换reviewer。
   原样保留所有findings/declined；父代理逐项说明有限成立范围与缺口。
-- [ ] **Step3 — checkpoint necessary files explicitly.**
+- [x] **Step3 — checkpoint necessary files explicitly (unfinished status).**
   新portable-summary/review.md、docs/roadmap/2026-10-18-p2b-inbox-tree-copy-repair.md、
   本计划实际状态/current-status/recovery，普通提交推送既有devbranch并核remote=local/clean。
   ignored原始记录/缓存/凭据不提交或删除。失败也保存为unfinished，禁止main/
@@ -210,10 +213,12 @@ target/composite输出oracle在Prepare前冻结；不根据失败输出学习预
 对象保留所属wrapper，array走原生类型和独立分配，token例外不泛化。
 12专项+32原组=44PASS；2专项header+12PASS+原35行=49行；
 RED3、mutants4。原32组完整性未被此前两PASS替代，未知后续缺陷仍可能停止。
-实际完成Task1Steps1–4；Step5前置SHA拒绝后立即还原good，Steps5–7冻结。
-Task2审查未启动；必要源码、结果和恢复文档作为unfinished开发检查点保存。
+实际完成Task1Steps1–7；Step5前置拒绝后未启动目标，经用户续批才执行3轮。
+Task2只读审查已完成，证据精度Important阻塞，Minor延期，5项declined全部处置。
+必要源码、结果、完整审查和恢复文档作为明确unfinished检查点保存。
 
-用户已批准Native/新5+1，但当前已触发停止规则。下一步需显式批准仅释放
-未启动的capacity/sequence/final及原条件审查，不重跑已完成RED/full，
-不修改冻结测试/预期/控制器。不默认为获得继续许可。
+用户已批准Native/新5+1及停止后的3轮/条件审查续行，现五轮均精确。
+唯一只读review的Important已触发停止；不自动修复/补测/更换审查者。
+下一步建议显式批准仅无损校正派生摘要并只读逐字比较，0目标/编译/审查，
+不改冻结产品/测试/预期/控制器，也不把该校正当成Minor修复或正式验收。
 原2/5SPENT+3FROZEN和诊断1/1SPENT始终不变。
