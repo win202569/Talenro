@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest artifact:[inbox tree-copy repair plan](../superpowers/plans/2026-10-18-p2b-inbox-tree-copy-repair.md).
+Plan-writing authorized only;implementation/NEW5+1budget not approved.
+Native recommended,12focused+original32groups,5ordered bounded targets and
+oneconditionalreadonlyreview. No repair files/target/review created this turn.
+Read owner-preserving classification/strictscalar boundaries and exact slots
+before approving. Original2/5SPENT+3FROZEN,diagnostic1/1SPENT unchanged;clone
+does not grant execution/replay rights. Fixedcodec remains untouched.
+
 Latest evidence:[single first-snapshot diagnostic](../roadmap/2026-10-18-p2b-first-snapshot-diagnostic.md).
 Diagnostic1/1SPENT,captured actualinternal-error andUnexpected scalar stack:
 Copy-IBTree sends snapshot to scalar-only helper. Product43067AD0 NOT repaired;

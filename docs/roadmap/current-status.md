@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-18
 
-## Latest — first snapshot failure localized; diagnostic captured, NOT fixed
+## Latest — inbox tree-copy repair plan written, NEW5+1 pending approval
+
+[Repair plan](../superpowers/plans/2026-10-18-p2b-inbox-tree-copy-repair.md).
+User approved plan-writing only after0657df17. Proposed repair confines changes
+toCopy-IBTree/private node classifier,retainspropertyowner/independent arrays/
+scalar rejection;codec9A532E17 and receive semantics unchanged. Twelve new
+focused groups plus original32,proposedNEW5hosts+conditional1readonlyreview,
+Native recommended. ImplementationApproved=false;RuntimeApproved=false.
+Original2/5SPENT+3FROZEN,diagnostic1/1SPENT unchanged;no targets/compiles/review/
+product edits this turn. Need explicit plan/method/new-budget approval before
+creating repair source or packet. No main or wider acceptance.
+
+## Historical — first snapshot failure localized; diagnostic captured, NOT fixed
 
 [Single diagnostic](2026-10-18-p2b-first-snapshot-diagnostic.md).
 User approved extra1host after27e6dc45. PID33584,1060ms,exit0/captured;
