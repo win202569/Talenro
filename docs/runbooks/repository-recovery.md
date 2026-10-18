@@ -16,7 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[read-only Token promotion-gate audit](../roadmap/2026-10-18-p1-token-promotion-gate-audit.md).
+Latest handoff:[NEW single P1 readonly review proposal](../superpowers/plans/2026-10-18-p1-token-single-readonly-review.md).
+Afteref8eb82b,plan-only drafting:no review package/dispatch,test or source fix.
+Proposed NEW1review seat UNAPPROVED/UNUSED,zero target-host allowance.
+Review full relevant P1 scalar-refusal/I1 paths and cumulative Integer/Token,
+saved PS7 direct/API/ownership records;not whole branch or only newest helper.
+Old review0/1UNUSED/INELIGIBLE and original spent1/1 remain distinct.
+476 pins and all old budgets held. Proposal preserves PS5/combined-flow/
+mutation/extra/performance limitations and forbids automatic fixes/re-review/
+acceptance/promotion/main merge. Read exact approval terms before dispatch.
+Restore latest development branch,not main;ignored evidence/runtimes/authority
+do not clone. Next approval would cover package plus ONE readonly review only.
+
+Previous handoff:[read-only Token promotion-gate audit](../roadmap/2026-10-18-p1-token-promotion-gate-audit.md).
 After11514bcf,only code/report/pin reads:no new runs/reviewer/source fixes.
 PS7 direct/API/ownership evidence passed,but legacy all7 reviewer precondition
 unmet;old reviewer0/1UNUSED/INELIGIBLE remains. Cumulative candidate diff from

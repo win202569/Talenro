@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — read-only promotion-gate inventory;NOT READY FOR PROMOTION
+## Latest — NEW single P1 readonly review proposal;NOT DISPATCHED
+
+Afteref8eb82b,user requested drafting only:
+[single-review route proposal](../superpowers/plans/2026-10-18-p1-token-single-readonly-review.md).
+NEW max1fresh no-history reviewer proposed;0/1UNAPPROVED/UNUSED,ZERO target
+hosts. Scope current P1 module,I1 scalar refusal/output ownership,cumulative
+Integer/Token changes and saved direct/full API/ownership PS7 evidence.
+Historical reviewed FE23 snapshot resolved/hash-checked from Git;not executed.
+Proposed new review route does not satisfy/revive old7slot/PS5 route or seat.
+PS5/combined-flow/extra-suite/mutation/performance limits remain explicit;
+reviewer may judge insufficiency,not silently accept a guard gap. Important/
+Critical stops,no automatic fixes/review cycle. Even clean review would record
+FormalAcceptance=false,PromotionApproved=false;no main/security/runtime clearance.
+No package/reviewer/new target/source fix this turn;476 pins held. Next request
+approval of preparation+ONE readonly dispatch only;no tests or merge implied.
+
+## Previous — read-only promotion-gate inventory;NOT READY FOR PROMOTION
 
 After11514bcf,user requested gate inventory only:
 [audit/classification](2026-10-18-p1-token-promotion-gate-audit.md).
