@@ -1,6 +1,25 @@
 # Project status — updated 2026-10-18
 
-## Latest — four Token full API/ownership suites PASSED;not promoted
+## Latest — read-only promotion-gate inventory;NOT READY FOR PROMOTION
+
+After11514bcf,user requested gate inventory only:
+[audit/classification](2026-10-18-p1-token-promotion-gate-audit.md).
+Source-only AST:current original953CC2A8→integer3537E9F5 changes Integer;
+integer→TokenF9B4E408 changes Token;13 names/signatures retained. Cumulative
+candidate-vs-original scope is TWO helper functions;new baseline was integer
+candidate,not original. I1 review must also inspect retained scalar-refusal/
+ownership implementation versus earlier Important finding,not Token alone.
+Direct/scoped full API/ownership PS7 evidence passed;old combined-flow failures,
+PS5 freeze,extra-suite/mutation scope decisions and independent I1 disposition
+not cleared. Old conditional reviewer requires all7 precise outcomes,unmet;
+review0/1UNUSED/INELIGIBLE cannot be spent on new green labels.
+No new defect inferred,no target/helper/import/reviewer/source fix or main merge.
+476 pins/current4rows/8streams held;all budgets unchanged. Next recommend a
+written NEW P1-only readonly-review/limited-acceptance-route proposal,with PS7
+scope and all cross-engine/performance/runtime exclusions explicit;not more
+tests or automatic review. Such a proposal needs separate user direction.
+
+## Previous — four Token full API/ownership suites PASSED;not promoted
 
 Afterbef13327,user approved preparation+four ordered ordinary fresh PS7 hosts.
 [Result/source/frozen evidence](2026-10-18-p1-token-full-api-result.md).

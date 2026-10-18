@@ -16,7 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[four Token full API/ownership suites PASSED](../roadmap/2026-10-18-p1-token-full-api-result.md).
+Latest handoff:[read-only Token promotion-gate audit](../roadmap/2026-10-18-p1-token-promotion-gate-audit.md).
+After11514bcf,only code/report/pin reads:no new runs/reviewer/source fixes.
+PS7 direct/API/ownership evidence passed,but legacy all7 reviewer precondition
+unmet;old reviewer0/1UNUSED/INELIGIBLE remains. Cumulative candidate diff from
+original is Integer+Token;I1 review also needs retained scalar-refusal/ownership
+paths,not only latest helper. No original replacement,main or wider acceptance.
+476pins/4rows/8stream hashes held;full4/4 and direct2/2spent,PS5/other freezes
+unchanged. Next draft a NEW narrow review/acceptance-route proposal only if
+directed;no test/reviewer authority or budget renewal from this checkpoint.
+Restore latest development branch,not main;ignored raw/runtimes do not clone.
+
+Previous handoff:[four Token full API/ownership suites PASSED](../roadmap/2026-10-18-p1-token-full-api-result.md).
 Afterbef13327,four approved hosts passed in order:baseline-full/ownership then
 candidate-full/ownership,exact38/22/38/22line inventories,exit0,empty stderr,
 no timeout,known owned exit/complete captures.476 frozen pins held.
