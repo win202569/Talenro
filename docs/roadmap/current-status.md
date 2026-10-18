@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — corrected member-set route proposed; bounded design awaits approval
+## Latest — approved member-set route STOPPED at14-versus12 inventory gate
+
+User approved new bounded3+1after90e4dae7. [Execution report](2026-10-18-p2b-member-set-ingress.md):
+first PID33684,1394ms,exit1,fixture observable PASS then unexpected RawIngress
+assertion. Rich trace shows exact PSMemberSet/raw collection types,14retained
+members,one CounterNote,zero callbacks;assertion expected12members. Extra two
+members' identities not saved/undetermined. No target mismatch this time.
+Original encoder reproduction not reached;no product patch/seal/focused/full/
+reviewer. Product copy remainsFA6047A4.939pins intact,no timeout,stderr0,
+owned exit/complete streams.1/3used+2FROZEN,review0/1INELIGIBLE;all old scopes
+unchanged. Do not change12→14 or silently ignore members to obtain green.
+Next:separately bounded member name/type/flags inventory diagnostic before
+choosing any filter or product rule;not run/authorized here. Important blocker
+and Minor deferred finding remain,no acceptance/main or real capability.
+
+## Historical — corrected member-set route proposed; bounded design awaits approval
 
 Afterbd0813fc,user requested new-test-candidate receiver correction and safe
 path validation before product repair. Readonly SDK metadata/IL inspection

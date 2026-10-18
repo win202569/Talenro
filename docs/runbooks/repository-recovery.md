@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest preparation:corrected member-set route proposed afterbd0813fc;bounded
+Latest checkpoint:[member-set ingress INCOMPLETE_STOPPED](../roadmap/2026-10-18-p2b-member-set-ingress.md).
+New route1/3used+2FROZEN,review0/1ineligible. Corrected raw path returned
+exact set/collection types,14members/one actual subtype/zero callbacks;expected
+12count assertion failed. Extra member identities undetermined;do not relax
+count or filter guesses. Product baselineFA6047A4 unchanged,no patch/full run.
+939pins intact. New leaf p2b-member-set-ingress includes trace-capable tests;
+raw/index/trace retained ignored. Recover latest devbranch and report,not main;
+clone cannot restore raw/cache/mappings/sessions or reset/replay allowances.
+Next separate proposal is member-identity inventory diagnostic,not acceptance
+or immediate product repair. Earlier stopped scopes remain frozen.
+
+Historical preparation:corrected member-set route proposed afterbd0813fc;bounded
 in-chat design awaits approval. Read current-status. Candidate approach:
 exact PSMemberSet for psextended,read fixed internalMembers field rather than
 applying PSObject.InstanceMembers getter to PSInternalMemberSet. Readonly
