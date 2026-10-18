@@ -1,6 +1,15 @@
 # Recover the project on a new computer
 
-Latest proposal: [fixture-origin probe,NOT approved](../superpowers/plans/2026-10-18-p2a-fixture-origin-probe.md).
+Latest result: [fixture default reuse confirmed,not repaired](../roadmap/2026-10-18-p2a-fixture-origin-probe.md).
+One approved NEW fixture-only host1/1spent,zero product calls. Default Schema
+backing/metadata shared by A/B/C;fresh Int32 controls independent/clean. Original
+product/tests andold failures unchanged. Recover probe,constructor identity,
+oracle/transformation andportable result from existing dev branch;raw ignored
+receipts/historical local pins/cache/sessions do not clone. No replay or old-slot
+reuse. Next separate decision:fixture-only numeric isolation repair plus finite
+regression/mutant/final evidence;no automatic main/live/product acceptance.
+
+Historical proposal: [fixture-origin probe,then NOT approved](../superpowers/plans/2026-10-18-p2a-fixture-origin-probe.md).
 Readonly official version-tag source supports default/backing reuse as a possible
 metadata pathway,but exact prior attribution remains unresolved. Proposes ONE
 new fixture-only ordinary host,5constructor calls,shared-default versus fresh

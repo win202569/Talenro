@@ -10,9 +10,10 @@
 
 **Spec:** [P2-A boundaries](../specs/2026-10-18-p2-adapter-boundaries-design.md), [captured failure site](../../roadmap/2026-10-18-p2a-input-mutation-diagnostic.md). Scope is fixture provenance, not product implementation or acceptance.
 
-Status: PROPOSED_NOT_APPROVED. After c3e56d5b user requested further diagnosis;
-this turn did readonly source/evidence inspection and documentation only.
-No new probe source/packet/host, repair, reviewer or product execution.
+Status: APPROVED_AND_EXECUTED after a980a9dc. One new ordinary fixture-only host
+consumed1/1;DEFAULT_REUSE_CONFIRMED,zero product import/call,zero repair/reviewer.
+See [actual controlled result](../../roadmap/2026-10-18-p2a-fixture-origin-probe.md).
+Proposal/source-investigation text below is historical;no automatic fix follows.
 
 ## Source investigation and evidence boundary
 
@@ -59,7 +60,7 @@ was launched.790common pins and4latest packet anchors were readonly intact.
 
 ## Task 1 — one fixture-only characterization, after approval
 
-**Proposed files, not created:** docs/diagnostics/isolated-fuzz/p2a-fixture-origin-probe/
+**Approved files, now created:** docs/diagnostics/isolated-fuzz/p2a-fixture-origin-probe/
 fixture-origin.ps1,capture.ps1,source-pins.json,expected-output.json,README.md,
 .gitattributes(LF). New ignored packet .superpowers/sdd/2026-10-18-p2a-fixture-origin-probe/.
 Report docs/roadmap/2026-10-18-p2a-fixture-origin-probe.md;status/recovery/plan ledger.
@@ -69,7 +70,7 @@ Report docs/roadmap/2026-10-18-p2a-fixture-origin-probe.md;status/recovery/plan 
 not the rest of that script. **Produces:** bounded identity/metadata/control facts,
 not a changed fixture constructor or product API result.
 
-- [ ] **Step 1 — prepare without target execution.** Verify clean branch/origin,
+- [x] **Step 1 — prepare without target execution.** Verify clean branch/origin,
  790pins+4latest raw anchors;freeze original constructor extent and exact diff.
  Copy ONLY that function definition verbatim into probe;do not dot-source or
  evaluate original script. Add test-only New-OriginFreshInt32([int]$Value) using
@@ -77,7 +78,7 @@ not a changed fixture constructor or product API result.
  Use exactly FIVE constructor calls, each with Origin0/Frequency1000/Observed4/
  Stop2 Int64: A/B omit Schema, C omits Schema after mutation, D/E each receive a
  separately allocated fresh Int32=1. No loops creating additional fixtures.
-- [ ] **Step 2 — freeze the exact characterization sequence.** Hold A/B Schema
+- [x] **Step 2 — freeze the exact characterization sequence.** Hold A/B Schema
  views before mutation,confirm exact Int32/value1 and initially plain views;
  record backing identity AB. Attach ONE NoteProperty P2AFixtureOriginProbe to A's
  held Schema view with one-element payload ['initial'];change payload once to
@@ -87,7 +88,7 @@ not a changed fixture constructor or product API result.
  backing versus A/B/C and each other,exact type/value,absence of probe metadata;
  recheck A's descriptor/payload still retained. Never clear metadata or coerce a
  wrong-type fixture. No product function exists in the probe source.
-- [ ] **Step 3 — run ONE bounded ordinary host and stop.** Existing engine
+- [x] **Step 3 — run ONE bounded ordinary host and stop.** Existing engine
  C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe,
  SHA256=362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139;
  -NoProfile -NonInteractive -File fixture-origin.ps1 only. Persist consumption
@@ -102,7 +103,7 @@ not a changed fixture constructor or product API result.
  DEFAULT_REUSE_NOT_CONFIRMED(exit2),including mixed sharing. Invalid fixture,
  missing evidence,drift,timeout/unknown cleanup gives INCOMPLETE(exit1 or controller
  failure). No outcome grants another host or an automatic source change.
-- [ ] **Step 4 — readonly disposition and preservation.** If confirmed,describe a
+- [x] **Step 4 — readonly disposition and preservation.** If confirmed,describe a
  reproducible fixture-only pollution pathway,not exact historical attribution or
  global product clearance. Only then propose fresh numeric-fixture construction
  while preserving strict wrong-type/decorated-input/ownership assertions;any
@@ -113,5 +114,5 @@ not a changed fixture constructor or product API result.
 
 Self-review: one task,one host,zero product calls,zero reviewer. Five focus items
 map to identity,retention,held/fresh comparisons,fresh controls and exact outcomes.
-No broad acceptance claim. Native method retained. Please approve/reject this
-fixture-only diagnostic;this proposal does not reopen any frozen allowance.
+No broad acceptance claim. Native method retained. This fixture-only diagnostic
+is now spent;it did not reopen any frozen allowance or grant repair authority.

@@ -1,0 +1,82 @@
+{
+  "Schema": 1,
+  "Context": "{Context}",
+  "Host": "HOST: 7.6.5 Core x64=True",
+  "RecordPrefix": "ORIGIN: ",
+  "Limit": "LIMIT: fixture only; no product import, call or repair",
+  "LineCount": 4,
+  "RecordFields": [
+    "Schema",
+    "Outcome",
+    "Stage",
+    "ConstructorCalls",
+    "Types",
+    "Values",
+    "PlainBeforeA",
+    "PlainBeforeB",
+    "SharedAB",
+    "SharedAC",
+    "AInitialAttachmentRetained",
+    "AMutationRetained",
+    "BHeldMatch",
+    "BFreshMatch",
+    "CHeldMatch",
+    "CFreshMatch",
+    "FreshDPlain",
+    "FreshEPlain",
+    "FreshDIndependent",
+    "FreshEIndependent",
+    "AFinalRetained",
+    "ProductImported",
+    "ProductCalled",
+    "RepairPerformed",
+    "ErrorCode"
+  ],
+  "FixtureLabels": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "RequiredType": "System.Int32",
+  "RequiredValue": 1,
+  "RequiredConstructorCalls": 5,
+  "RequiredTrue": [
+    "PlainBeforeA",
+    "PlainBeforeB",
+    "AInitialAttachmentRetained",
+    "AMutationRetained",
+    "FreshDPlain",
+    "FreshEPlain",
+    "FreshDIndependent",
+    "FreshEIndependent",
+    "AFinalRetained"
+  ],
+  "ChainFields": [
+    "SharedAB",
+    "SharedAC",
+    "BHeldMatch",
+    "BFreshMatch",
+    "CHeldMatch",
+    "CFreshMatch"
+  ],
+  "RequiredFalse": [
+    "ProductImported",
+    "ProductCalled",
+    "RepairPerformed"
+  ],
+  "Confirmed": {
+    "Outcome": "DEFAULT_REUSE_CONFIRMED",
+    "ExitCode": 0
+  },
+  "NotConfirmed": {
+    "Outcome": "DEFAULT_REUSE_NOT_CONFIRMED",
+    "ExitCode": 2
+  },
+  "Incomplete": {
+    "Outcome": "INCOMPLETE",
+    "ExitCode": 1
+  },
+  "NoReplay": true
+}

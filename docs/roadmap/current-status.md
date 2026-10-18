@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — fixture default reuse confirmed without any product call
+
+After a980a9dc,user approved one NEW fixture-only host,now1/1spent.
+[Controlled source-of-pollution result](2026-10-18-p2a-fixture-origin-probe.md):
+unchanged constructor5calls,exit0,742ms,4lines,stderr0,no timeout,owned exit/drain,
+800pins intact. Default Schema A/B/C share backing andsame retained descriptor/
+payload;fresh typed-array Int32 controls D/E independent andclean. Product never
+loaded/called;no fix/retry/reviewer. Confirmed a sufficient fixture-only pollution
+pathway,not exact historical reference attribution or global product clearance.
+Next recommendation:fixture-only fresh numeric leaves,preserve all strict
+assertions/types/malformed cases/order,then new finite RED/full/mutant/final
+verification approval. Old2/5consumed,3frozen;site diagnostic1/1spent;reviewineligible.
+
+## Historical — source investigation and fixture-only proposal
+
 Latest readonly follow-up after c3e56d5b: official PS7.6.5 source explains why
 constant default/primitive assignment need not allocate independent backing,and
 numeric instance metadata can follow base identity. This supports fixture-reuse

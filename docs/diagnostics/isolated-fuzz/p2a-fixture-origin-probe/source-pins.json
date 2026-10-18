@@ -1,0 +1,59 @@
+{
+  "Schema": 1,
+  "BaseCommit": "a980a9dc01eed979d1dc9e6383453a658b339068",
+  "ApprovedPlan": "docs/superpowers/plans/2026-10-18-p2a-fixture-origin-probe.md",
+  "ApprovedPlanSHA256": "D29C941CBB7874152BE53D8000992667511E8C30C860EE86DE563EE86975B856",
+  "InheritedPacket": ".superpowers/sdd/2026-10-18-p2a-input-mutation-diagnostic",
+  "OriginalCommonPins": 790,
+  "Anchors": {
+    "frozen.json": "AF3D93BB4C1AEA2BD788AA08E1DF2DED6798C2C063906B717C05255459C1BE99",
+    "invocation.json": "7893E8BE695854CE6DFEB6FEEEB0F8CB6726FED40F76AAEEFB4AC4B82BABBA9E",
+    "stdout.bin": "1E0FC080EC3BB7D4665F949534582773429C5BFB27A14B832E508E2C3905D082",
+    "stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "OriginalTest": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.tests.ps1",
+    "SHA256": "11BA52E114FC8F14D2D2A020FC6E6C70C52A3F2105B0DADE548416A483B71EB9"
+  },
+  "OriginalConstructor": {
+    "Name": "New-TBRequest",
+    "StartLine": 34,
+    "EndLine": 36,
+    "Definition": "function New-TBRequest([object]$OriginTick=[long]0,[object]$Frequency=[long]1000,[object]$ObservedTick=[long]0,[object]$StopTick=$null,[object]$Schema=[int]1){\n    [pscustomobject]@{Schema=$Schema;OriginTick=$OriginTick;Frequency=$Frequency;ObservedTick=$ObservedTick;StopTick=$StopTick}\n}"
+  },
+  "ExactTransformation": {
+    "RetainOriginalLines": [
+      34,
+      35,
+      36
+    ],
+    "OmitOriginalLines": [
+      [
+        1,
+        33
+      ],
+      [
+        37,
+        195
+      ]
+    ],
+    "AddBefore": "# Fixture-only characterization. No product source, imports or product calls.\nSet-StrictMode -Version Latest\n$ErrorActionPreference='Stop'\n$script:originReference=[object].GetMethod('ReferenceEquals',[type[]]@([object],[object]))\n$script:originType=[object].GetMethod('GetType',[type[]]@())\n$script:originName='P2AFixtureOriginProbe'\n",
+    "AddAfter": "\nfunction New-OriginFreshInt32([int]$Value){\n    $storage=[Array]::CreateInstance([int],1)\n    $storage.SetValue($Value,0)\n    return ,($storage.GetValue(0))\n}\nfunction Origin-Reference($Left,$Right){\n    $parameters=[object[]]@($Left,$Right)\n    return [bool]$script:originReference.Invoke($null,$parameters)\n}\nfunction Origin-Need([bool]$Value){if(-not $Value){throw 'fixture-invalid'}}\nfunction Origin-Plain($Members){\n    foreach($p in $Members){if($p.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty){return $false}}\n    return $true\n}\nfunction Get-OriginSchemaView([object]$Owner){\n    $descriptor=$Owner.PSObject.Properties['Schema']\n    Origin-Need ($null -ne $descriptor -and $descriptor.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty)\n    $base=$Owner.Schema.PSObject.BaseObject\n    $type=$script:originType.Invoke($base,$null)\n    Origin-Need ($type -eq [int] -and $base -eq 1)\n    $view=$Owner.Schema.PSObject\n    [pscustomobject]@{Owner=$Owner;Descriptor=$descriptor;Base=$base;Type=$type.FullName;Value=$base;View=$view;Members=$view.Properties}\n}\nfunction Origin-Matches($Members,$Descriptor,$Payload,[string]$Value){\n    $found=$Members[$script:originName]\n    if($null -eq $found){return $false}\n    return ($found.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty -and\n        (Origin-Reference $found $Descriptor) -and (Origin-Reference $found.Value $Payload) -and\n        $found.Value.Count -eq 1 -and $found.Value[0] -ceq $Value)\n}\n$d=[ordered]@{\n    Schema=1;Outcome='INCOMPLETE';Stage='startup';ConstructorCalls=0\n    Types=[ordered]@{A=$null;B=$null;C=$null;D=$null;E=$null}\n    Values=[ordered]@{A=$null;B=$null;C=$null;D=$null;E=$null}\n    PlainBeforeA=$null;PlainBeforeB=$null;SharedAB=$null;SharedAC=$null\n    AInitialAttachmentRetained=$null;AMutationRetained=$null\n    BHeldMatch=$null;BFreshMatch=$null;CHeldMatch=$null;CFreshMatch=$null\n    FreshDPlain=$null;FreshEPlain=$null;FreshDIndependent=$null;FreshEIndependent=$null;AFinalRetained=$null\n    ProductImported=$false;ProductCalled=$false;RepairPerformed=$false;ErrorCode=''\n}\n$exitCode=1\ntry{\n    $identity=[Security.Principal.WindowsIdentity]::GetCurrent()\n    $principal=[Security.Principal.WindowsPrincipal]::new($identity)\n    $admin=$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)\n    [Console]::Out.WriteLine('CONTEXT: '+$identity.Name+' admin='+$admin)\n    [Console]::Out.WriteLine('HOST: '+$PSVersionTable.PSVersion.ToString()+' '+$PSVersionTable.PSEdition+' x64='+[Environment]::Is64BitProcess)\n    Origin-Need (-not $admin -and $PSVersionTable.PSVersion.ToString() -ceq '7.6.5' -and $PSVersionTable.PSEdition -ceq 'Core' -and [Environment]::Is64BitProcess)\n    $d.Stage='construct-before'\n    $a=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2);$d.ConstructorCalls++\n    $b=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2);$d.ConstructorCalls++\n    $av=Get-OriginSchemaView $a;$bv=Get-OriginSchemaView $b\n    $d.Types.A=$av.Type;$d.Types.B=$bv.Type;$d.Values.A=$av.Value;$d.Values.B=$bv.Value\n    $d.PlainBeforeA=Origin-Plain $av.Members;$d.PlainBeforeB=Origin-Plain $bv.Members\n    $d.SharedAB=Origin-Reference $av.Base $bv.Base\n    Origin-Need ($d.PlainBeforeA -and $d.PlainBeforeB)\n    $d.Stage='attach-and-mutate'\n    $payload=[object[]]@('initial')\n    $av.Members.Add([Management.Automation.PSNoteProperty]::new($script:originName,$payload))\n    $held=$av.Members[$script:originName]\n    $d.AInitialAttachmentRetained=Origin-Matches $av.Members $held $payload 'initial'\n    Origin-Need $d.AInitialAttachmentRetained\n    $held.Value[0]='changed'\n    $d.AMutationRetained=(Origin-Matches $av.Members $held $payload 'changed') -and\n        (Origin-Matches $a.Schema.PSObject.Properties $held $payload 'changed') -and $payload[0] -ceq 'changed'\n    Origin-Need $d.AMutationRetained\n    $d.BHeldMatch=Origin-Matches $bv.Members $held $payload 'changed'\n    $d.BFreshMatch=Origin-Matches $b.Schema.PSObject.Properties $held $payload 'changed'\n    $d.Stage='construct-after'\n    $c=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2);$d.ConstructorCalls++\n    $cv=Get-OriginSchemaView $c\n    $d.Types.C=$cv.Type;$d.Values.C=$cv.Value\n    $d.SharedAC=Origin-Reference $av.Base $cv.Base\n    $d.CHeldMatch=Origin-Matches $cv.Members $held $payload 'changed'\n    $d.CFreshMatch=Origin-Matches $c.Schema.PSObject.Properties $held $payload 'changed'\n    $d.Stage='fresh-controls'\n    $freshD=New-OriginFreshInt32 1\n    $dOwner=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2) $freshD;$d.ConstructorCalls++\n    $freshE=New-OriginFreshInt32 1\n    $eOwner=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2) $freshE;$d.ConstructorCalls++\n    $dv=Get-OriginSchemaView $dOwner;$ev=Get-OriginSchemaView $eOwner\n    $d.Types.D=$dv.Type;$d.Types.E=$ev.Type;$d.Values.D=$dv.Value;$d.Values.E=$ev.Value\n    $d.FreshDPlain=(Origin-Plain $dv.Members) -and (Origin-Plain $dOwner.Schema.PSObject.Properties)\n    $d.FreshEPlain=(Origin-Plain $ev.Members) -and (Origin-Plain $eOwner.Schema.PSObject.Properties)\n    $d.FreshDIndependent=(-not (Origin-Reference $dv.Base $av.Base)) -and\n        (-not (Origin-Reference $dv.Base $bv.Base)) -and (-not (Origin-Reference $dv.Base $cv.Base))\n    $d.FreshEIndependent=(-not (Origin-Reference $ev.Base $av.Base)) -and\n        (-not (Origin-Reference $ev.Base $bv.Base)) -and (-not (Origin-Reference $ev.Base $cv.Base)) -and\n        (-not (Origin-Reference $ev.Base $dv.Base))\n    $d.AFinalRetained=(Origin-Matches $av.Members $held $payload 'changed') -and\n        (Origin-Matches $a.Schema.PSObject.Properties $held $payload 'changed')\n    Origin-Need ($d.ConstructorCalls -eq 5 -and $d.FreshDPlain -and $d.FreshEPlain -and\n        $d.FreshDIndependent -and $d.FreshEIndependent -and $d.AFinalRetained)\n    $d.Stage='complete'\n    if($d.SharedAB -and $d.SharedAC -and $d.BHeldMatch -and $d.BFreshMatch -and $d.CHeldMatch -and $d.CFreshMatch){\n        $d.Outcome='DEFAULT_REUSE_CONFIRMED';$exitCode=0\n    }else{$d.Outcome='DEFAULT_REUSE_NOT_CONFIRMED';$exitCode=2}\n}catch{\n    $d.Outcome='INCOMPLETE'\n    $d.ErrorCode=if($_.Exception.Message -ceq 'fixture-invalid'){'fixture-invalid'}else{'exception'}\n    $exitCode=1\n}\n$json=$d|ConvertTo-Json -Depth 5 -Compress\nif([Text.UTF8Encoding]::new($false).GetByteCount($json) -gt 65536){\n    [Console]::Out.WriteLine('ORIGIN: {\"Schema\":1,\"Outcome\":\"INCOMPLETE\",\"ErrorCode\":\"record-too-large\"}')\n    [Console]::Out.WriteLine('LIMIT: fixture only; no product import, call or repair')\n    exit 1\n}\n[Console]::Out.WriteLine('ORIGIN: '+$json)\n[Console]::Out.WriteLine('LIMIT: fixture only; no product import, call or repair')\nexit $exitCode\n",
+    "Reason": "Isolate unchanged fixture; add fixed bounded characterization and controls; no product source"
+  },
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "MaxHosts": 1,
+  "MaxReviewers": 0,
+  "ConstructorCalls": 5,
+  "FreshControls": 2,
+  "DescriptorAdds": 1,
+  "PayloadMutations": 1,
+  "MaxMs": 30000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "MaxRecordBytes": 65536,
+  "ProductImported": false,
+  "ProductCalled": false,
+  "RepairPerformed": false
+}
