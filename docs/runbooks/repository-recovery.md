@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest analysis:[candidate boundary read-only comparison](../roadmap/2026-10-18-p1-candidate-boundary-readonly-comparison.md).
+After8b7eb852,zero target launches/source changes;327 pins held. Saved outcomes
+do not isolate cause or candidate active statement. Next preparation-only design
+uses outer InvalidInputs/Build4096/Check4096/Check4097 markers without changing
+P1-Check/product/loading/assertions. No diagnostic copy/run prepared this turn;
+future execution requires a new scope,not frozen PS5 reuse. Recover analysis
+and sources,not raw/caches/credentials/replay authority. Full1/2 spent,PS5
+FROZEN;all prior allowances/review ineligibility/I1/P1 gates remain unchanged.
+
 Latest result:[candidate full regression PS7 TIMEOUT](../roadmap/2026-10-18-p1-integer-candidate-full-regression.md).
 After1b1144a7 approval,new1/2 spent:PS7 wall30090ms/CPU36171.875ms,
 exit-1,65 lines/48 PASS through PassiveDescriptors,empty stderr,owned exit.

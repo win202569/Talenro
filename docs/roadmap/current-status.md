@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — read-only candidate boundary comparison; root cause NOT established
+
+After8b7eb852,[read-only comparison](2026-10-18-p1-candidate-boundary-readonly-comparison.md)
+traced boundary preparation/check/equality/decision paths and compared saved
+successful/timeout receipts.327 pins held;12 product functions and six test
+copies unchanged;zero target launches/source edits. Candidate's conditional
+type-query reduction retains member checks,not demonstrated full-flow relief.
+Current PS7 prefix cannot locate its active boundary statement. Next recommend
+preparation ONLY of external boundary markers in a separate copy,unchanged
+P1-Check/product/loading/assertions;test H-boundary only after separate approval.
+No run/retry/PS5 unfreeze;full1/2 spent,PS5 FROZEN,old budgets/review/I1/P1
+gates unchanged. Root cause,performance and candidate acceptance UNVERIFIED.
+
 ## Latest — candidate full regression PS7 TIMEOUT; PS5 FROZEN
 
 After1b1144a7 approval,[candidate full regression](2026-10-18-p1-integer-candidate-full-regression.md)
