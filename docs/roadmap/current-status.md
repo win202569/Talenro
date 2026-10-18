@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — type-sensitive scalar repair stopped at string fixture precondition
+## Latest — scalar receiver observation diagnostic complete; no product repair yet
+
+[Receiver diagnostic](2026-10-18-p2b-scalar-receiver-diagnostic.md). New independent
+1/1host spent:PID48656,6333ms,exit0,DIAGNOSTIC_CAPTURED. All6cases/18fixed phases/
+12controls complete,130reference IDs. Legacy separate string reads observe
+different wrappers/keys/tables;byte/array owners differ but key/table share.
+Fixed handle stable in18phases;equal-content independent controls remain
+distinct. Capture created a wrapper in all6cases (original base retained);
+already-wrapped/hostile-metadata retention NOT exercised. No product import/API/
+compile/edit,full regression or reviewer;1121pins intact,no timeout/stderr,
+owned exit/drains complete. B468B564 unchanged,M1 OPEN. Old latest1/3spent+
+2FROZEN,review0/1ineligible and all older frozen scopes unchanged. Next bounded
+test integration must retain actual receiver,materialize before inventory and
+separately prove existing decoration retention;no new target allowance/main/
+acceptance from this diagnostic. Portable summary/report saved for recovery.
+
+## Historical — type-sensitive scalar repair stopped at string fixture precondition
 
 [Stopped checkpoint](2026-10-18-p2b-scalar-key-ownership.md), new leaf
 p2b-scalar-key-ownership with derived portable-summary.json. New approved3+1:

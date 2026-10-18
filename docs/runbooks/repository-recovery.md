@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+Latest diagnostic:[scalar receiver observations](../roadmap/2026-10-18-p2b-scalar-receiver-diagnostic.md).
+p2b-scalar-receiver-diagnostic includes four immutable inputs and derived
+portable-summary.json:6cases,18fixed phases,12controls,130reference IDs. One
+independent host1/1spent,DIAGNOSTIC_CAPTURED. Old separate string reads use
+different wrapper/key/table;byte/array retain same key/table despite differing
+owners. Capturing once keeps observations stable,but ALL6captures created a
+wrapper over original base;already-wrapped/hostile metadata preservation was
+NOT proved. No product import/API/compile/edit,full suite or reviewer. Product
+B468B564 unchanged,M1 OPEN.1121pins intact,no timeout/stderr,owned exit/drains.
+Old latest repair1/3spent+2FROZEN,review0/1ineligible and all older frozen budgets
+unchanged. Next bounded test integration design must distinguish clean capture
+from original decoration retention;no silent target retry or main/acceptance.
+Recover current devbranch,not automatically main. Clone restores portable
+source/IDs/reports,not actual references,ignored raw,runtime/SDK/cache/sessions/
+mappings or reset rights. All authority flags remain false.
+
 Latest unfinished checkpoint:[scalar key/table precondition stop](../roadmap/2026-10-18-p2b-scalar-key-ownership.md).
 New p2b-scalar-key-ownership leaf has unchanged B468B564 product,prepared tests
 and derived portable-summary.json. First new host stopped BEFORE product API:
