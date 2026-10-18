@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — later ownership frontier audited read-only; no assertion failure proved
+
+After93761c95,[source/evidence audit](2026-10-18-p1-ownership-frontier-readonly-audit.md)
+confirms unchanged SequentialIsolation has three cases/nine API calls and full
+ownership/refusal/clean-result checks;PlainControls has five calls. Prior two
+candidate diagnostics saved both PASSes;latest59-PASS timeout has neither START
+nor PASS for SequentialIsolation,no saved assertion/fixture error. Active step/
+case duration unknown;whole-run failure retained.388 pins/index/stream hashes
+held;zero target runs/source edits. Next bounded group-level marker DESIGN,
+not assertion weakening,timeout increase or replay. PS5 FROZEN,budgets/review/
+I1/P1 gates unchanged;root cause unresolved.
+
 ## Latest — three-phase records closed; overall diagnostic TIMEOUT
 
 After9c867a1b,[one PS7 three-phase run](2026-10-18-p1-three-phase-result.md)

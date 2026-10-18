@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest analysis:[later ownership frontier,read-only](../roadmap/2026-10-18-p1-ownership-frontier-readonly-audit.md).
+After93761c95,source AST/call counts and three saved output tails compared;
+SequentialIsolation/PlainControls previously passed in both completed candidate
+diagnostics,latest timeout gives no case-entry timing or assertion failure.
+388 pins/index held,no source changes or new execution. Next group-level marker
+design only;keep full fixtures/assertions/case helper/order. No timeout increase,
+frozenPS5 release or replay authority. Budgets/review/I1/P1 gates persist.
+Git recovers analysis,not ignored raw/runtime caches/credentials/test allowance.
+
 Latest result:[three-phase records complete,overall TIMEOUT](../roadmap/2026-10-18-p1-three-phase-result.md).
 After9c867a1b,new1/1 spent:ordinary PS7 timeout30081ms,95/101 lines,59/64 PASS
 through P1I1PassiveDescriptors;owned exit/empty stderr. Nine pairs closed:
