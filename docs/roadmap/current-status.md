@@ -1,5 +1,13 @@
 # Project status — updated 2026-10-18
 
+Pending bounded repair design after5a4090f7: user selected fixture-only direction;
+[exact short design/new6+1allowance](2026-10-18-p2a-fixture-origin-probe.md#pending-next-decision--bounded-fixture-repair-not-executed)
+awaits approval. Fresh numeric defaults/plain values,retain explicit invalid/
+decorated caller inputs;canonical product andold frozen files unchanged. Propose
+focusedRED/focusedGREEN/fullGREEN/two exact mutants/restoredGREEN,then one NEW
+conditional readonly reviewer. No new code/packet/run/reviewer this follow-up.
+800pins+4anchors readonly intact;old budgets still spent/frozen. No acceptance/main.
+
 ## Latest — fixture default reuse confirmed without any product call
 
 After a980a9dc,user approved one NEW fixture-only host,now1/1spent.

@@ -1,5 +1,50 @@
 # P2-A fixture origin — default reuse confirmed without product execution
 
+## Pending next decision — bounded fixture repair, not executed
+
+After5a4090f7,user requested the recommended fixture-only repair and bounded
+verification. This is an existing-helper bounded change,not a new subsystem;
+brainstorming's short in-chat design path applies,no new spec/implementation-plan
+document. This note preserves the proposed decision for fresh-machine recovery.
+General direction is agreed;the following exact design/new allowance needs review.
+
+Use a NEW isolated repair leaf,leaving all frozen original/diagnostic files and
+raw receipts unchanged. Only the test-fixture numeric-construction path changes:
+omitted numeric defaults get independent typed-array Int32/Int64 storage;explicit
+plain numeric values get independent storage WITHOUT changing type/value. Explicit
+wrong types,nulls,ranges and intentionally decorated caller scalars must retain
+their invalid characteristics,not be normalized/stripped into valid inputs.
+Use fixed SDK type/descriptor observation,not caller GetType/ToString/getters.
+DecoratedScalars still decorates after construction;no metadata clearing in place.
+All original full-suite assertions,literals,ordering and24PASS/27line contract
+remain unchanged;new focused tests check the constructor isolation separately.
+Canonical product350CAB1A remains unchanged;only isolated copied product bytes
+may receive the two already specified temporary mutants,restored immediately.
+
+Proposed NEW allowance: SIX ordinary PS7 hosts in this exact order:
+1.old constructor fails the focused independence regression at the designated
+Schema-independent assertion;2.repaired constructor passes the SAME focused
+test plus retained-invalid-input controls;3.corrected full24-group suite green;
+4.natural500floor-to-ceil mutant fails exact FractionalPhaseRounding assertion;
+5.expiry>=to>mutant fails exact DeadlineEquality assertion;6.restored full suite
+green. No extra warmup/probe/global suite/PS5 or reuse of old frozen slots.
+Max30000ms each+2000ms owned exit+2000ms separate concurrent raw-byte drain,
+ordinary context,preconsumption and protected pins required;any unexpected
+outcome stops,no automatic repair/retry. Restore temporary mutant even on failure.
+
+Only if all SIX precise outcomes hold,propose ONE NEW fresh readonly reviewer
+scoped to this repair delivery,unchanged product context and six saved receipts,
+not whole historical branch;no execution,edits,nesting or security/network queries.
+Critical/Important/incomplete review stops without automatic fix/retest/re-review.
+All findings/declined judgments require parent disposition. This is a NEW seat,
+not the prior ineligible conditional reviewer. No formal acceptance/main/B/C/P3/live
+authority follows. Preserve/push necessary files under standing AGENTS instruction.
+Explicit finite route overrides generic extra test/review/fix/cleanup skill loops.
+
+This follow-up performed readonly inspection only:800protected checks+4latest
+anchors intact,zero new source/packet/host/reviewer. Existing allowances remain
+spent/frozen. Short design and6+1budget must be approved before implementation.
+
 ## Approval and exact result
 
 After a980a9dc01eed979d1dc9e6383453a658b339068, user approved ONE NEW ordinary

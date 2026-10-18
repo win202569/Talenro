@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Pending next decision: [bounded fixture repair design andproposed6+1budget](../roadmap/2026-10-18-p2a-fixture-origin-probe.md#pending-next-decision--bounded-fixture-repair-not-executed).
+Fixture-only direction selected after5a4090f7;exact scalar-preservation design,
+six NEW ordered ordinary hosts andone NEW conditional readonly review await
+approval. No new source/packet/host/reviewer. Preserve old files/allowances;do not
+infer execution or reuse authority from general direction or cloning. New leaf
+would retain wrong-type/decorated-input tests andcanonical product identity.
+
 Latest result: [fixture default reuse confirmed,not repaired](../roadmap/2026-10-18-p2a-fixture-origin-probe.md).
 One approved NEW fixture-only host1/1spent,zero product calls. Default Schema
 backing/metadata shared by A/B/C;fresh Int32 controls independent/clean. Original
