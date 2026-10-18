@@ -1,0 +1,56 @@
+{
+  "Schema": 1,
+  "BaseCommit": "fab8466e0ce15f4a1d98e0274852433ac9e435f6",
+  "Approval": "User approved Native five NEW ordinary codec hosts plus one conditional readonly review",
+  "ApprovedPlan": "docs/superpowers/plans/2026-10-18-p2b-control-codec.md",
+  "ApprovedPlanSHA256": "15E7F4D33673D8DF2C9C2CC577BDACADA08797B4C34599199BABE2E8DD80D094",
+  "Spec": "docs/superpowers/specs/2026-10-18-p2b-owned-session-design.md",
+  "SpecSHA256": "41BD5F7225D65D7BAE903E693946A2595C5036A2408B16BECE37965C622E36CE",
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "InheritedPacket": ".superpowers/sdd/2026-10-18-p2a-type-receiver-repair",
+  "InheritedPins": 839,
+  "Anchors": {
+    "expiry-mutant.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "expiry-mutant.stdout.bin": "74654A6B484E3AFC377DD928FA513C6BBE12AEE64F9B2ABFF33C308D3B1B7E28",
+    "final.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "final.stdout.bin": "0F165F63428FB1B3825D28A5D9BD9812E125C596153D585D2F16C8AB78ED102B",
+    "frozen.json": "D0725F51180648141ED8858EC747A8AB65BDF08D229D5948A4505D18566F1642",
+    "full.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "full.stdout.bin": "0F165F63428FB1B3825D28A5D9BD9812E125C596153D585D2F16C8AB78ED102B",
+    "invocations.json": "9C3C0A4CEA02566512BBA79E0EFB75CDC34FC85B721A829AC78B6539E797C9D3",
+    "old-tests.ps1": "4BF2F3C9B4FB18809FD07187CEC598B0DA8B4CB9F42836DA5520F3814D18BBB8",
+    "phase-mutant.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "phase-mutant.stdout.bin": "461D7670C9137F61677A557109C9514A9D81B5AF281E687B60E5C28CCD8A2053",
+    "product-baseline.ps1": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B",
+    "red.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "red.stdout.bin": "6501C845BA8E87A3507971494CA64995BB898207F7D0A56E50D54DB3EE805064",
+    "repair-seal.json": "4009560CB93A267EBB050DEB7A4887516A69B0AB31789B226CB2EB4B8CF3015F",
+    "repaired-tests.ps1": "B5C4E0CE14F0B08C647A966884BE6496AA9C05A5D5BEA827B6F86F87EAFCAA65"
+  },
+  "Candidates": [
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2a-type-receiver-repair/offline-timebase-plan.ps1",
+      "SHA256": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2a-type-receiver-repair/full.tests.ps1",
+      "SHA256": "B5C4E0CE14F0B08C647A966884BE6496AA9C05A5D5BEA827B6F86F87EAFCAA65"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2a-type-receiver-repair/fixture-builder.ps1",
+      "SHA256": "C720E247298FA84B8BD348A4A3FBDB3759B7F1F2A510EA0D67D9479E00045A58"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2a-type-receiver-repair/expected-output.json",
+      "SHA256": "DA3CF1837213F9451A2CB2941DC248B663116CD52EEC199D1D01646A90CA0225"
+    }
+  ],
+  "CommonPins": 868,
+  "MaxHosts": 5,
+  "MaxReviewers": 1,
+  "MaxMs": 60000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "FormalAcceptance": false
+}

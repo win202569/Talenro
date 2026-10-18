@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B design approved; pure codec plan awaits execution approval
+## Latest — P2-B pure codec checkpoint INCOMPLETE
+
+User approved Native execution and the exact five-host/one-conditional-review
+route after fab8466e. Sources, independent fixtures and controller now exist.
+[Execution report](2026-10-18-p2b-control-codec-execution.md): API RED matched;
+full run exited1 after13PASS at PayloadLength (2597ms, no timeout, empty stderr).
+868 mapped pins intact. Root cause is NOT established; group-only catch retains
+no exception detail. No fix, retry, mutant or reviewer after this result.
+Consumed2/5; remaining3 FROZEN; review0/1 INELIGIBLE. Not accepted or complete.
+Necessary files are preserved on the existing development branch; recover there,
+not main. Raw packets remain local/ignored. Do not replay or reset allowances.
+Next requires an explicitly bounded diagnostic decision, not continued slots.
+P2-A limited acceptance unchanged; no real process/Job/clock/queue/identity/
+capability, P2-C/P3/C12/main/security/runtime approval.
+
+## Historical — P2-B design approved; pure codec plan awaits execution approval
 
 User approved written design2a27cecc only for first implementation-plan writing.
 [New plan](../superpowers/plans/2026-10-18-p2b-control-codec.md)

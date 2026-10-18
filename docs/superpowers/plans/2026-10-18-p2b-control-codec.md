@@ -13,8 +13,13 @@
 设计物理SHA256=41BD5F7225D65D7BAE903E693946A2595C5036A2408B16BECE37965C622E36CE。
 设计起草状态留作历史，不回写冻结内容。
 
-状态：PLAN_PENDING_APPROVAL；ImplementationApproved=false；RuntimeApproved=false。
-拟议5次NEW普通测试宿主+1次条件限定只读审查，当前0/5、0/1，均未批准/执行。
+实际状态：INCOMPLETE_STOPPED；用户在fab8466e后批准Native及精确5+1路线。
+ImplementationApproved=true仅限本纯codec路线；RuntimeApproved=false。
+已用2/5：RED符合预期；full在PayloadLength失败，13PASS后exit1。
+剩余3轮冻结，条件只读审查0/1且不符合启动条件。无修复/重跑/变异。
+冻结的批准原文另存ignored packet approved-plan.snapshot.md，SHA15E7F4D3。
+下述待批准/仅写计划描述是原计划历史，不覆盖本实际状态。
+详见docs/roadmap/2026-10-18-p2b-control-codec-execution.md。
 
 ## Global Constraints
 
@@ -135,16 +140,16 @@ StopAck为1→2、2→1、3→2（没有2→3）；Observation仅3→2或2→1�
 **Produces:** 三public入口、严格独立结果、五轮有界回执；无真实会话或运行能力。
 **Files:** 创建上表8文件；实现开始前模块必须不存在，其余7输入先冻结。
 
-- [ ] **Step 1 — prepare independent tests and oracle.** 写全部32组测试、12份完整hex、
+- [x] **Step 1 — prepare independent tests and oracle.** 写全部32组测试、12份完整hex、
   控制器和metadata。先静态核对layout/payload常量和fixture构造源码，再冻结；
   实际getter/metadata突变的可观察性在相应full测试内证明，不另行导入/执行预检。
   所有数值输入显式CLR类型；纯测试helper BC-Need([bool])、BC-Equal($Actual,$Expected)、
   BC-Case([string], [scriptblock])负责断言、完整类型/字段比较和Group筛选。
   BC-Equal不得调用产品，类型反射receiver用BaseObject；byte[]逐字节独立比较。
-- [ ] **Step 2 — run RED once.** capture Run red，模块不存在时仅检查三public函数缺失；
+- [x] **Step 2 — run RED once.** capture Run red，模块不存在时仅检查三public函数缺失；
   exit1，context/host后ASSERTION FAILED: P2BCodecApiRequired，精确3行，stderr空。
   模块已存在或任何非预期结果即停止，不自行换测试/重跑。
-- [ ] **Step 3 — implement module.** 按上文签名/返回/优先级及设计表实现，不新增额外入口。
+- [x] **Step 3 — implement module.** 按上文签名/返回/优先级及设计表实现，不新增额外入口。
   全部普通数据快照/校验完成才返回成功；无I/O/load-time动作。静态parse、exact
   fixture字节和独立oracle核对后SealProduct冻结good身份，不导入试跑。
 - [ ] **Step 4 — run full GREEN once.** capture Run full -Group all，必须exit0、

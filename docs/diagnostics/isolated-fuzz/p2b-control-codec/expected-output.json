@@ -1,0 +1,56 @@
+{
+  "red": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "ASSERTION FAILED: P2BCodecApiRequired"
+  ],
+  "full": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2BCodecApiRequired",
+    "PASS: P2BCodecHelloLiteral",
+    "PASS: P2BCodecEncodeAllKinds",
+    "PASS: P2BCodecDecodeAllKinds",
+    "PASS: P2BCodecRoundTripSecondary",
+    "PASS: P2BCodecExactMessageShape",
+    "PASS: P2BCodecExactTypes",
+    "PASS: P2BCodecPassiveDescriptors",
+    "PASS: P2BCodecDecoratedScalars",
+    "PASS: P2BCodecByteArrayShape",
+    "PASS: P2BCodecFrameLength",
+    "PASS: P2BCodecHeaderMagicVersion",
+    "PASS: P2BCodecReservedZero",
+    "PASS: P2BCodecPayloadLength",
+    "PASS: P2BCodecPayloadConstants",
+    "PASS: P2BCodecMalformedPayloadRange",
+    "PASS: P2BCodecDirectionRoles",
+    "PASS: P2BCodecObservationSemantics",
+    "PASS: P2BCodecSequenceExact",
+    "PASS: P2BCodecSequenceExhaustion",
+    "PASS: P2BCodecArmReferences",
+    "PASS: P2BCodecStopReferences",
+    "PASS: P2BCodecHeartbeatReference",
+    "PASS: P2BCodecTimebase",
+    "PASS: P2BCodecArmEquality",
+    "PASS: P2BCodecBindingMismatch",
+    "PASS: P2BCodecFragmentRefusal",
+    "PASS: P2BCodecInputMutation",
+    "PASS: P2BCodecOutputOwnership",
+    "PASS: P2BCodecSequentialIsolation",
+    "PASS: P2BCodecConservativeFlags",
+    "PASS: P2BCodecComplete",
+    "LIMIT: protocol declarations only; no identity, capability or runtime approval"
+  ],
+  "reserved-tail": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2BCodecApiRequired",
+    "ASSERTION FAILED: P2BCodecReservedZero"
+  ],
+  "sequence-equality": [
+    "{Context}",
+    "HOST: 7.6.5 Core x64=True",
+    "PASS: P2BCodecApiRequired",
+    "ASSERTION FAILED: P2BCodecSequenceExact"
+  ]
+}

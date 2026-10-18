@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest preparation: [P2-B pure control codec implementation plan](../superpowers/plans/2026-10-18-p2b-control-codec.md).
+Latest checkpoint: [P2-B pure codec INCOMPLETE execution](../roadmap/2026-10-18-p2b-control-codec-execution.md).
+Recover latest codex/c12-b01-task9-coordinator, not main. Portable source/test/
+fixtures/oracle/controller and approved plan are included. API RED matched;
+full failed PayloadLength after13PASS. Cause unresolved; no repair or retry.
+Consumed2/5; remaining3 FROZEN; conditional review0/1 INELIGIBLE. Preserve these
+limits across machines. Clone does not recover ignored raw receipts, mappings,
+private engine cache or sessions; hashes/transcribed outcomes are in the report.
+Do not run Prepare/Run on a fresh clone as automatic replay or slot reset.
+Next needs a separately bounded diagnostic decision. No acceptance, main merge,
+real session/process/Job/clock/queue/capability, P2-C/P3 or security/runtime grant.
+
+Historical preparation: [P2-B pure control codec implementation plan](../superpowers/plans/2026-10-18-p2b-control-codec.md).
 User approved written design2a27cecc for plan writing only;designSHA41BD5F72
 retained. New plan recommends Native,three pure APIs,32groups andproposed5NEW
 ordinary PS7hosts/1conditional readonly review. Plan/method/budget NOT approved,
