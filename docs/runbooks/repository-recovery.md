@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest checkpoint: [inline observer preflight blocked](../roadmap/2026-10-18-p1-inline-observer-preflight-blocked.md).
+Optimized test copy and 45 offline cases are prepared but unexecuted. The new
+controller stopped before child launch because its generated inventory hash was
+wrong; original inventory and all 615 inherited pins remain unchanged. Preserve
+the failing controller; a separate correction and agreement to continue are next.
+Do not launch the optimized whole test or assume a speedup/equivalence pass.
+No candidate imports/calls, no old-slot reuse, no main or wider acceptance.
+
 Latest diagnostic: [timed attribution timeout](../roadmap/2026-10-18-p1-timed-ownership-attribution.md).
 One new30s host consumed;valid prefix only.Prior-view scans account for68.69%
 of completed timed body;49candidate calls completed,but39case matrix did not.

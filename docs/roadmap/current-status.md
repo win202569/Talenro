@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-18
 
+## Latest — inline observer prepared; offline preflight blocked
+
+Independent optimization copy and 45-case observer-only harness are prepared.
+Three scripts parse; whole source outside V-Others is unchanged. NOT runtime
+validated. One controller invocation stopped before packet creation or offline
+child launch: generation accidentally replaced 597 with 615 inside an inventory
+hash as well as the inherited-count field. Actual file and all 615 inherited pins
+are unchanged (zero drift). Offline cases executed 0/45; candidate calls/imports 0.
+No repair/retry after the guard failure; old slots remain frozen. No speed claim.
+See [preflight evidence and next proposal](2026-10-18-p1-inline-observer-preflight-blocked.md).
+Next: separately preserve/correct the controller after agreement to continue;
+do not launch the prepared optimized whole test. No main or wider acceptance.
+
 ## Latest — single timed attribution TIMEOUT;prior-view scans dominate prefix
 
 After935d4215,user approved ONE30s candidate stage-attribution host.New1/1spent:
