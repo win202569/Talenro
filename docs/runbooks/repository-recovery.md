@@ -1,6 +1,18 @@
 # Recover the project on a new computer
 
-Latest result: [fixture repair focused green,full stopped](../roadmap/2026-10-18-p2a-fixture-isolation-repair.md).
+Latest result: [repaired InputMutation diagnostic](../roadmap/2026-10-18-p2a-repaired-input-diagnostic.md).
+One approved ordinary host1/1spent:exit1,1389ms,no timeout,stderr0,829pins intact.
+Current failure is output Plan container incorrectly sent to scalar TB-Leaf,
+not old input Schema. Mutation loop/later groups not reached. Static candidate:
+TB-Type needs base-object receiver normalization;no correction tested or applied.
+Recover seven diagnostic files,portable captured record andremaining stop state
+from latest development branch. Original product/helper/frozen sources unchanged.
+Original repair3/6spent,unused3frozen,review0/1ineligible. Do not replay this spent
+diagnostic or frozen slots. Raw receipts/local mappings/engine cache/sessions
+do not clone. Next requires separate bounded test-helper correction/verification
+scope;no automatic product clearance,review,main merge or live acceptance.
+
+Historical result: [fixture repair focused green,full stopped](../roadmap/2026-10-18-p2a-fixture-isolation-repair.md).
 After45a32ea7,user approved6+1route. New leaf helperC720E247 passes focused9groups;
 full still fails InputMutation after18PASS,new subassertion unknown. Old trace
 cannot be reused as current root cause. Product350CAB1A/original files unchanged.

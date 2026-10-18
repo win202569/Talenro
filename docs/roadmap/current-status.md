@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-18
 
-## Latest — fixture repair focused9groups green,full suite stopped
+## Latest — repaired-version diagnostic locates Plan traversal failure
+
+User approved ONE new ordinary host after6f984cab;now1/1spent.
+[Captured current site](2026-10-18-p2a-repaired-input-diagnostic.md):
+exit1,1389ms,22lines,stderr0,no timeout,owned exit/drain,829pins intact.
+Input leaves completed;output traversal passed Plan container to scalar TB-Leaf,
+then failed its initially-plain check (repaired full53,caller158). Plan's eight
+ordinary properties are expected;input mutation loop not reached. This is NOT
+the old Schema site. Failure-only state captured Created=true andPlan base type
+PSCustomObject. TB-Type reflection receiver normalization is a static candidate,
+not an experimentally verified correction. No fix/retry/reviewer/product change.
+Old repair3/6spent,unused3frozen,review0/1ineligible. Recommend separately approved
+test-helper-only correction plus finite verification;no acceptance/main/live.
+
+## Historical — fixture repair focused9groups green,full suite stopped
 
 User approved exact6+1route after45a32ea7. [Actual result](2026-10-18-p2a-fixture-isolation-repair.md):
 old-helper RED expected788ms,repaired focused9groups green946ms;full1183ms failed

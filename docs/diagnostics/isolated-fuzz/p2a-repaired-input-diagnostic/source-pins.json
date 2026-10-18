@@ -1,0 +1,39 @@
+{
+  "Schema": 1,
+  "BaseCommit": "6f984cab31e569a93b26211b5c912872d14fc307",
+  "Approval": "User approved ONE new repaired-version diagnostic; no fix/retry/reviewer",
+  "OriginalProduct": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-fixture-isolation-repair/offline-timebase-plan.ps1",
+    "SHA256": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B"
+  },
+  "OriginalTest": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-fixture-isolation-repair/full.tests.ps1",
+    "SHA256": "4BF2F3C9B4FB18809FD07187CEC598B0DA8B4CB9F42836DA5520F3814D18BBB8"
+  },
+  "OriginalBuilder": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-fixture-isolation-repair/fixture-builder.ps1",
+    "SHA256": "C720E247298FA84B8BD348A4A3FBDB3759B7F1F2A510EA0D67D9479E00045A58"
+  },
+  "OriginalPacket": ".superpowers/sdd/2026-10-18-p2a-fixture-isolation-repair",
+  "Anchors": {
+    "frozen.json": "C7920AD9E89E4D78718E08B59A2CEEB7ECBB71AF3A40851E281E4310D5F506F3",
+    "repair-seal.json": "0EA5506C92229C7F394592DA1E573C34C30D471CF4FD069CB4C67961C1DDC90B",
+    "invocations.json": "E48A6239B67258C2D36E58E321D3712BF25B793150F0BD8752A68B75B8DBBC52",
+    "old-builder.ps1": "D3093A8DD92C9BD3ACD757CA3D9216F8D6482451203728ABA05D2F5A625C71E0",
+    "repaired-builder.ps1": "C720E247298FA84B8BD348A4A3FBDB3759B7F1F2A510EA0D67D9479E00045A58",
+    "product-baseline.ps1": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B",
+    "red.stdout.bin": "5042CC72DB3027BEF2A3ACDE9751A3BD6CB43F4BFC5AA36B8E2904FC0C449642",
+    "focused.stdout.bin": "E50AFB71D3D8EEE951B01EBEFC3AF6CCD800156B66D20D40F0E20ABBAA4446C7",
+    "full.stdout.bin": "6501C845BA8E87A3507971494CA64995BB898207F7D0A56E50D54DB3EE805064",
+    "full.stderr.bin": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "Transformation": "Reuse prior diagnostic-only stages/assertion counter; replace old constructor with exact repaired helper import; stage OriginalOperationLine refers to repaired full.tests.ps1 (old lines >=38 minus2). Add failure-only passive state collection; stop immediately after InputMutation. No original assertions, literals, order or product calls changed.",
+  "MaxHosts": 1,
+  "MaxReviewers": 0,
+  "MaxMs": 30000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "Acceptance": false
+}
