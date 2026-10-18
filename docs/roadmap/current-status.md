@@ -1,5 +1,22 @@
 # Project status — updated 2026-10-18
 
+## Latest — observer cost/coverage analysis ONLY; no new run
+
+After753960b7,user approved the recommended read-only analysis. Rechecked582
+frozen entries/raw stream hashes;one focused slot still incomplete,later two
+still frozen/unrun. Candidate/test/controller/frozen bytes unchanged.
+Source-derived repeated history scans grow quadratically:modeled full success
+path184178V-Invariant calls(66522in confirmed prefix),4394retained unselected
+contexts at end. These are static counts,NOT timing measurements or causality.
+Post-run schema/pin checks occur outside the child wall window;BEGIN precedes
+several stages and cannot locate the interruption. Actual timeout attribution
+remains unknown. Current cross-case scope excludes historical selected contexts.
+
+See [cost derivation and coverage limits](2026-10-18-p1-observer-cost-analysis.md).
+Next recommendation:separately approve an instrumentation DESIGN preserving
+all assertions/30s safety limits before any implementation or fresh execution.
+No new budget,retry,repair,review,unfreeze,merge or acceptance authorized here.
+
 ## Latest — view-aware ownership: TIMEOUT / EXECUTION_INCOMPLETE
 
 User approved the d10d39ee design and NEW max-three ordered hosts. Prepared

@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+Latest analysis: [observer cost and coverage](../roadmap/2026-10-18-p1-observer-cost-analysis.md).
+Read-only arithmetic confirms growing history-scan work, not measured timeout
+attribution. No new test run or code change; all frozen slots remain frozen.
+Next proposed step is a separately approved instrumentation design only.
+
 Latest execution: [view-aware ownership timeout checkpoint](../roadmap/2026-10-18-p1-view-aware-ownership-result.md).
 NEW first slot consumed: 30s timeout, 23/39 behavioral cases completed, no full
 pass. Remaining full API/ownership slots frozen and unrun; do not retry them.
