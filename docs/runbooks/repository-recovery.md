@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest artifact:[bounded inbox implementation plan](../superpowers/plans/2026-10-18-p2b-bounded-inbox.md).
+Written design approved afterd7e45e1e;plan/method/new5+1budget NOT yet approved.
+RecommendedNative,32test groups,5ordered ordinary120000ms targets plus one
+conditional readonly review. No implementation files/target/compile/reviewer
+created this turn;all historical freezes unchanged. Review exact interfaces,
+private token state and independent-test/controller contract before authorizing.
+Plan approval must not be inferred from design approval;clone grants no budget.
+
 Latest artifact:[bounded inbox written design](../superpowers/specs/2026-10-18-p2b-bounded-inbox-design.md).
 Drafting approved,WRITTEN_DESIGN_PENDING_APPROVAL;no implementation/test budget.
 Four fixed directional inboxes,16ordinary slots plus4latest-heartbeat and4

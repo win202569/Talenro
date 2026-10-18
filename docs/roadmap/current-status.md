@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded control-frame inbox written design pending approval
+## Latest — bounded inbox design approved; Native5+1 implementation plan pending
+
+[Implementation plan](../superpowers/plans/2026-10-18-p2b-bounded-inbox.md).
+User approved written design afterd7e45e1e. DesignApproved=true only;
+ImplementationApproved=false;RuntimeApproved=false. Plan freezes fivepublic
+interfaces,private weak-key token registry,12-field results,32test groups,
+independent literals and two targeted mutants. Proposed new5ordinary hosts
+(120000ms each+2000exit+2000drain)+1conditional readonly review,NOT approved.
+Native recommended;alternative agent execution requires a replacement budget.
+This turn documents/self-checks only:0targets/reviews/compiles/product edits.
+Existing codec acceptance and all prior spent/frozen budgets unchanged.
+Next:human plan/method/exact-budget approval before any implementation.
+
+## Historical — bounded control-frame inbox written design pending approval
 
 [Inbox design](../superpowers/specs/2026-10-18-p2b-bounded-inbox-design.md).
 User approved design drafting only. New pure serial receive core:four fixed
