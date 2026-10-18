@@ -16,7 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[direct baseline FAILED;candidate NOT RUN](../roadmap/2026-10-18-p1-token-direct-result.md).
+Latest handoff:[fixture precheck source revision;NOT EXECUTED](../roadmap/2026-10-18-p1-token-direct-fixture-revision.md).
+After4c5edbd5,added token-direct.fixed-members.tests.ps1 beside the original
+in integer-token-local-candidate. SHA2561EA8CDB1;full hash/evidence in report.
+Only clean-owner Members getter revised;original failed test and all449 prior
+frozen identities untouched. Static checks only;no import/compile/test/host.
+Restore latest dev-branch checkpoint,not main. Old baseline1/1SPENT and
+candidate0/1UNUSED/FROZEN persist;missing ignored packet cannot reset them.
+Next requires NEW separate bounded baseline/conditional-candidate approval
+using revised target;no execution authorized by this source-only repair.
+
+Previous handoff:[direct baseline FAILED;candidate NOT RUN](../roadmap/2026-10-18-p1-token-direct-result.md).
 Afterf7e43a26,the approved baseline host exited1 after3060ms without timeout.
 Target stdout empty,stderr missing Members property. Static trace points to
 clean-owner fixture precheck,not candidate evidence;no source fix or replay.

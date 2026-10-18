@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — direct baseline FAILED;candidate NOT RUN
+## Latest — fixture precheck source revised;NOT EXECUTED
+
+After4c5edbd5,user approved following source-only repair recommendation.
+[Revision/static evidence](2026-10-18-p1-token-direct-fixture-revision.md).
+New token-direct.fixed-members.tests.ps1 SHA2561EA8CDB1 replaces only clean-owner
+adapted Members read with fixed SDK getter/member enumeration. Original failed
+test,module/support/pins and all449 frozen identities unchanged.
+Static:zero PS syntax errors;4 signatures,3 other functions/outside Check-Owner
+identical;type/value/descriptor/payload checks and literal oracle retained.
+No revised test/helper/import/compile/controller/host/probe this turn.
+Runtime repair,RED/GREEN and candidate equivalence remain UNVERIFIED.
+Old baseline1/1SPENT,candidate0/1UNUSED/FROZEN;all acceptance gates persist.
+Next seek NEW separate baseline1 then conditional candidate1 approval under
+same30s/fail-stop rules,now targeting the revised source;see exact terms in report.
+No old-slot reuse,source relaxation,retry,warmup,PS5,review or main merge.
+
+## Previous — direct baseline FAILED;candidate NOT RUN
 
 Afterf7e43a26,user approved the bounded proposal. One ordinary PS7 baseline
 attempt at2026-10-18T10:25:24.3016388Z failed:wall3060ms,CPU2437.5ms,
