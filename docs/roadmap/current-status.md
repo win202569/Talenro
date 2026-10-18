@@ -1,6 +1,21 @@
 # Project status — updated 2026-10-18
 
-## Latest — approved entrypoint promotion STOPPED before source replacement
+## Latest — original entrypoint promoted, two PS7 regressions passed
+
+After f436d139,user explicitly approved backup/preparation-only correction and
+continuation within original max2. New recovery leaf/packet preserves all old
+failed files/records. Original entrypoint now exact1971F808 accepted candidate;
+correct LF baseline953CC2A8 retained,old wrong54A07EB2 unchanged.
+[Recovery result and exact evidence](2026-10-18-p1-owned-return-entrypoint-promotion-recovery-result.md):
+original-path API35groups/38lines21408ms,ownership8fixture+10groups/22lines13797ms;
+both ordinary PS7,exit0,stderr0,no timeout,762checks intact. Original2/2spent,no
+extra host/reviewer/mutant/focused rerun. Historical3destination entries verify
+correct old baseline;other739unchanged+9anchors. No old manifest rewritten.
+All23+9limits retained,PS5/full P1/main/live/P2/P3/C12 remain separately gated.
+Git CRLF checkout differs from LF execution hash;see recovery report before
+claiming byte identity on a fresh computer. No next task auto-starts.
+
+## Historical — approved entrypoint promotion stopped before recovery
 
 After cca8c0c6,user explicitly approved Native fixed-byte promotion,max2 ordinary
 PS7 regressions,no new reviewer and fail-stop. Step1 passed;Step2 baseline byte

@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest result: [original entrypoint promotion recovered and passed](../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-recovery-result.md).
+After f436d139 user authorized preparation-only correction within same max2.
+Original entrypoint now accepted candidate1971F808;both original-path PS7 suites
+passed21408/13797ms. Original2/2spent,no added allowance/reviewer. Correct old LF
+baseline953CC2A8 lives in new owned-return-entrypoint-promotion-recovery-v1/;
+old failed54A07EB2 leaf/report/stop ledger remain unchanged. Old3destination pins
+must verify old baseline/history,not current source;all other old pins retained.
+Important:existing Git eol=crlf checks out this source as C82EE1D8,while actual LF
+execution hash is1971F808. Read full hashes/evidence in report;do not silently
+normalize/run/reuse old manifests to claim fresh validation. No new runtime
+authority,main/PS5/full-P1/live/P2/P3/C12 acceptance follows. All23+9limits persist.
+Next substantive work needs its own scope;this completed route must not rerun.
+
 Latest execution: [entrypoint promotion stopped during preparation](../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-result.md).
 User approved after cca8c0c6,but baseline exact-byte check failed before source
 replacement:parent converted LF to CRLF. Preserve erroneous backup54A07EB2 and

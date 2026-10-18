@@ -1,3 +1,5 @@
+# ISOLATED CANDIDATE: owned scalar returns; UNVERIFIED, NOT PROMOTED.
+# Original product unchanged. Execution needs a separately approved controller.
 # Pure synthetic supervision decisions. No imports, I/O, clocks or live adapters.
 # Only fixed SDK metadata is reused. Every input is still checked on every call.
 # An evaluation owns this context; it is not stored in script/global state.
@@ -51,15 +53,35 @@ function Assert-SupervisionPolicyShape($Value,[string[]]$Names,$Metadata=$null,[
 function Assert-SupervisionPolicyInteger($Value,[long]$Min=0,[long]$Max=[long]::MaxValue,$Metadata=$null){
     if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
     $type=Get-SupervisionPolicyType $Value -Metadata $Metadata;if($type -ne [int] -and $type -ne [long]){throw 'Exact integer required'}
-    Assert-SupervisionPolicyPassive $Value -Metadata $Metadata;if($Value -lt $Min -or $Value -gt $Max){throw 'Integer bound'}
+    # Reuse the exact int/long type established above, never caller-supplied trust.
+    # Keep these checks contract-equivalent to Assert-SupervisionPolicyPassive.
+    $view=$Value.psextended
+    $members=$Metadata.MembersProperty.GetValue($view.PSObject.BaseObject,$null)
+    foreach($member in $members){throw 'Decorated scalar'}
+    foreach($p in $Value.PSObject.Properties){
+        if($p.MemberType -in @([Management.Automation.PSMemberTypes]::ScriptProperty,[Management.Automation.PSMemberTypes]::CodeProperty)){throw 'Executable descriptor'}
+        if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Shadow bound'}
+    }
+    if($Value -lt $Min -or $Value -gt $Max){throw 'Integer bound'}
 }
 function Test-SupervisionPolicyToken($Value,[string[]]$Allowed){
     foreach($token in $Allowed){if([string]::Equals($Value,$token,[StringComparison]::Ordinal)){return $true}};return $false
 }
 function Assert-SupervisionPolicyToken($Value,[string[]]$Allowed,$Metadata=$null){
     if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
-    if((Get-SupervisionPolicyType $Value -Metadata $Metadata) -ne [string]){throw 'Exact string required'}
-    Assert-SupervisionPolicyPassive $Value -Metadata $Metadata;if(-not (Test-SupervisionPolicyToken $Value $Allowed)){throw 'Ordinal token required'}
+    $type=Get-SupervisionPolicyType $Value -Metadata $Metadata
+    if($type -ne [string]){throw 'Exact string required'}
+    if($type -eq [int] -or $type -eq [long] -or $type -eq [bool] -or $type -eq [string]){
+        # Use the fixed SDK getter so an added member named Members cannot shadow it.
+        $view=$Value.psextended
+        $members=$Metadata.MembersProperty.GetValue($view.PSObject.BaseObject,$null)
+        foreach($member in $members){throw 'Decorated scalar'}
+    }
+    foreach($p in $Value.PSObject.Properties){
+        if($p.MemberType -in @([Management.Automation.PSMemberTypes]::ScriptProperty,[Management.Automation.PSMemberTypes]::CodeProperty)){throw 'Executable descriptor'}
+        if(([StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Length') -or [StringComparer]::OrdinalIgnoreCase.Equals($p.Name,'Rank')) -and $p.MemberType -ne [Management.Automation.PSMemberTypes]::Property){throw 'Shadow bound'}
+    }
+    if(-not (Test-SupervisionPolicyToken $Value $Allowed)){throw 'Ordinal token required'}
 }
 function Assert-SupervisionPolicyBool($Value,$Metadata=$null){
     if($null -eq $Metadata){$Metadata=New-SupervisionPolicyMetadata}
@@ -99,6 +121,69 @@ function Set-SupervisionPolicyFailure($Result,$Context,[string]$Reason,[int]$Ind
     if($Capture -ceq 'timed-out'){$Result.State='Aborted';$d.WouldCaptureStatus='timed-out';$d.WouldCleanupStatus='unknown';$d.WouldNaturalCompletion=$false}
     elseif($Capture -cne 'preserve' -and $d.WouldCaptureStatus -cne 'complete'){$d.WouldCaptureStatus=$Capture}
     Set-SupervisionPolicyWindows $d $At
+}
+# Fixed SDK metadata for owned output construction only; no admission shortcut.
+function New-SupervisionPolicyOwnershipMetadata {
+    [pscustomobject]@{
+        TypeMethod=[object].GetMethod('GetType')
+        MembersProperty=[Management.Automation.PSMemberSet].GetProperty('Members')
+        StringCharsMethod=[string].GetMethod('ToCharArray',[type[]]@())
+        StringConstructor=[string].GetConstructor([type[]]@([char[]]))
+    }
+}
+function Copy-SupervisionPolicyScalar($Value,$Metadata){
+    if($null -eq $Value){return $null}
+    $base=$Value.PSObject.BaseObject
+    $type=$Metadata.TypeMethod.Invoke($base,$null)
+    if($type -eq [int] -or $type -eq [long] -or $type -eq [bool]){
+        $storage=[Array]::CreateInstance($type,1)
+        $storage.SetValue($base,0)
+        $fresh=$storage.GetValue(0)
+    }elseif($type -eq [string]){
+        # Every string in the closed output schema is nonempty.
+        if($base.Length -eq 0){throw 'Unexpected empty output string'}
+        $chars=$Metadata.StringCharsMethod.Invoke($base,$null)
+        $parameters=[object[]]::new(1);$parameters[0]=$chars
+        $fresh=$Metadata.StringConstructor.Invoke($parameters)
+    }else{throw 'Unexpected output scalar type'}
+    if($Metadata.TypeMethod.Invoke($fresh.PSObject.BaseObject,$null) -ne $type -or
+        [object]::ReferenceEquals($base,$fresh.PSObject.BaseObject)){throw 'Output storage not independent'}
+    if($type -eq [string]){
+        if(-not [string]::Equals($base,$fresh.PSObject.BaseObject,[StringComparison]::Ordinal)){throw 'Output string changed'}
+    }elseif($base -cne $fresh.PSObject.BaseObject){throw 'Output scalar changed'}
+    $view=$fresh.psextended
+    $members=$Metadata.MembersProperty.GetValue($view.PSObject.BaseObject,$null)
+    foreach($member in $members){throw 'New output scalar decorated'}
+    return ,$fresh
+}
+function Copy-SupervisionPolicyResult($Source){
+    $metadata=New-SupervisionPolicyOwnershipMetadata
+    $rootNames=@('Schema','Mode','EvidenceClass','Evaluated','Reason','State','FailureObservationIndex','Decision','OriginVerified','Acceptance','RuntimeApproved','LiveActionsPerformed','CleanupStatus')
+    $decisionNames=@('DeadlineMs','StopAtMs','NaturalUntilMs','CleanupUntilMs','PublishUntilMs','LastAtMs','LastSequence','StdoutRetainedBytes','StderrRetainedBytes','DataEventCount','ControlSummaryCount','ControlSummaryByteMax','ControlQueueDepth','WouldCaptureStatus','WouldCleanupStatus','WouldStopOwnedSession','WouldNaturalCompletion','WouldEvidenceComplete','WouldPositiveTechnicalCandidate','WouldExitObserved','WouldExitCode','WouldClassification')
+    if($metadata.TypeMethod.Invoke($Source.PSObject.BaseObject,$null) -ne [Management.Automation.PSCustomObject] -or
+        @($Source.PSObject.Properties).Count -ne 13){throw 'Unexpected internal result shape'}
+    $owned=[pscustomobject][ordered]@{}
+    foreach($name in $rootNames){
+        $property=$Source.PSObject.Properties[$name]
+        if($null -eq $property -or $property.Name -cne $name -or $property.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Unexpected internal result descriptor'}
+        $value=$property.Value
+        if($name -ceq 'Decision' -and $null -ne $value){
+            if($metadata.TypeMethod.Invoke($value.PSObject.BaseObject,$null) -ne [Management.Automation.PSCustomObject] -or
+                @($value.PSObject.Properties).Count -ne 22){throw 'Unexpected internal decision shape'}
+            $decision=[pscustomobject][ordered]@{}
+            foreach($field in $decisionNames){
+                $p=$value.PSObject.Properties[$field]
+                if($null -eq $p -or $p.Name -cne $field -or $p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty){throw 'Unexpected internal decision descriptor'}
+                $scalar=Copy-SupervisionPolicyScalar $p.Value $metadata
+                $decision.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new($field,$scalar))
+            }
+            $owned.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new($name,$decision))
+        }else{
+            $scalar=Copy-SupervisionPolicyScalar $value $metadata
+            $owned.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new($name,$scalar))
+        }
+    }
+    return $owned
 }
 function Get-OfflineSupervisionDecision([object]$Scenario){
     Set-StrictMode -Version Latest
@@ -219,9 +304,9 @@ function Get-OfflineSupervisionDecision([object]$Scenario){
             }
             if($null -ne $reason){Set-SupervisionPolicyFailure $result $context $reason $i $at}
         }
-        return $result
+        return (Copy-SupervisionPolicyResult $result)
     }catch{
         if($result.Evaluated){$result.Evaluated=$false;$result.Reason='internal-error';$result.State='Refused';$result.Decision=$null;$result.FailureObservationIndex=$null}
-        return $result
+        return (Copy-SupervisionPolicyResult $result)
     }
 }
