@@ -1,6 +1,25 @@
 # Recover the project on a new computer
 
-Latest UNFINISHED candidate:[retained scalar repair](../roadmap/2026-10-18-p2b-scalar-retained-repair.md).
+Latest bounded verified repair:[cold-cache repair](../roadmap/2026-10-18-p2b-cold-cache-repair.md).
+Recover codex/c12-b01-task9-coordinator from the verified GitHub origin,not
+automatically main. p2b-cold-cache-repair contains sealed9A532E17 candidate,
+portable tests/fixtures/controller,derived portable-summary.json and complete
+review.md. Three exact gates:RED36shared-dirty misses,focused84/84match,
+full original33groups/exact36lines. Independent reviewCritical0/Important0/
+Minor0.1185pins intact,no timeout/stderr,owned exits/drains complete.
+Prior P1 is resolved only within the bounded structural-compatibility contract;
+no formal P2-B/PS5/fullC12/live/security/runtime/main acceptance is granted.
+Nested-wrapper/empty-existing-table cold combinations were not dynamically
+tested;review.md preserves every exclusion. All authority flags remain false.
+New3/3hosts+1/1review SPENT;do NOT replay capture.ps1 or assume clone grants
+fresh allowance. Old latest1/3spent+2FROZEN and all older budgets unchanged.
+Clone restores source/tests/portable results/review/report,not ignored raw,
+actual CLR references,private mappings,SDK/runtime/cache/sessions/credentials.
+Reference IDs in summary are recorded ordinal labels,not recreated objects.
+Read current-status.md and the new execution report for the next separately
+scoped limited offline acceptance/remaining-roadmap decision. No automatic merge.
+
+Historical UNFINISHED candidate:[retained scalar repair](../roadmap/2026-10-18-p2b-scalar-retained-repair.md).
 p2b-scalar-retained-repair contains candidate327E8F33,tests/fixtures/controller,
 derived portable-summary.json and complete independent review.md. Three exact
 test gates pass(including original33groups),but reviewCritical0/Important1/

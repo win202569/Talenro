@@ -1,6 +1,24 @@
 # Project status — updated 2026-10-18
 
-## Latest — retained scalar candidate passes three gates; independent review blocks acceptance
+## Latest — cold-cache P1 repair verified within bounded offline contract
+
+[Execution report](2026-10-18-p2b-cold-cache-repair.md). Candidate9A532E17
+distinguishes an uninitialized wrapper cache from absent shared SDK metadata.
+New3/3hosts spent,all exact:RED36shared-dirty misses;focused84/84match
+(38accept/46refuse),all36misses now refused;full original33groups/exact36lines.
+Prior182malformed/45guards/54key controls retained. Independent1/1review
+complete:Critical0/Important0/Minor0,no incomplete item.1185pins intact,
+no timeout/stderr,owned exits/drains complete;controlled callbacks zero.
+Bounded M1/P1 repair verified,NOT formal P2-B/fullC12/live/security acceptance.
+Nested-wrapper/empty-existing-table cold combinations lack dedicated dynamic
+vectors;other SDK/PS5/concurrency/private-reflection isolation excluded.
+All authority flags false. Old327E8F33 review remains historically blocked;
+old latest1/3spent+2FROZEN and all older budgets unchanged. New3+1fully spent.
+Necessary source/tests/portable summary/full review/recovery preserved on the
+existing devbranch,no main merge. Clone resets no budget or execution rights.
+Next:separately scoped limited offline acceptance/remaining-roadmap decision.
+
+## Historical — retained scalar candidate passes three gates; independent review blocks acceptance
 
 [Unfinished repair](2026-10-18-p2b-scalar-retained-repair.md),complete review in
 p2b-scalar-retained-repair/review.md. New3/3hosts spent,all exact:RED14hidden
