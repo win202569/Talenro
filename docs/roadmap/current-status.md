@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-A limited PS7 offline acceptance APPROVED
+## Latest — P2-B detailed design written, awaiting approval
+
+User approved design-writing only after5864e4b8.
+[Detailed design](../superpowers/specs/2026-10-18-p2b-owned-session-design.md)
+specifies owned-session roles,atomic creation/ownership candidate,once-only
+release,256byte control frame/payloads,fixed queue/heartbeat/fault capacities,
+loss/timeout dispositions andverification map. Explicit proposed refinement:
+L creates/releases T;C only reads (older high-level C-creates-T text retained
+as history). Original cap32/observation0x101000/inherit=false unchanged;
+outer bootstrap inheritance separately constrained.
+DesignApproved=false,ImplementationApproved=false,RuntimeApproved=false.
+No code/import/test/probe/native compile/security query/runtime identities or
+new reviewer. Microsoft documentation checked for candidate constraints,not
+host compatibility or clearance. P2-A scoped acceptance unchanged;old budgets
+remain spent/frozen. Next written approval permits ONLY first pure control-frame
+codec/admission implementation-plan writing;no live capability or execution.
+
+## Historical — P2-A limited PS7 offline acceptance APPROVED
 
 User answered yes to the exact limited acceptance question after0228e7eb.
 [Approval record](2026-10-18-p2a-ps7-limited-acceptance-approval.md):

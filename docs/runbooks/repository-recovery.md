@@ -1,6 +1,17 @@
 # Recover the project on a new computer
 
-Latest decision: [P2-A limited PS7 offline acceptance APPROVED](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-approval.md).
+Latest preparation: [P2-B detailed design, pending written approval](../superpowers/specs/2026-10-18-p2b-owned-session-design.md).
+After5864e4b8,user approved writing only. Design includes explicit proposal
+L-as-sole-target-creator/releaser instead of earlier C-creates-T wording,
+fixed256byte protocol/payloads,bounded queues/heartbeats,failure/cleanup evidence
+andfuture validation gates. No implementation,test/probe/compile/security query,
+real session identity or runtime packet. Design/implementation/runtime approval
+all false. On clone,read this new design andcurrent status;P2-A limited acceptance
+remains valid,not live readiness. If user approves written spec,next is ONLY
+pure protocol codec/admission plan writing;implementation andfinite runs need
+separate approval. No slot reset,system changes orautomatic B/C/P3/main work.
+
+Historical decision: [P2-A limited PS7 offline acceptance APPROVED](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-approval.md).
 User explicitly approved after0228e7eb:LimitedAcceptanceApproved=true for
 candidatecc764dba/product350CAB1A/testsB5C4E0CE/fixtureC720E247,ordinary Windows
 PS7.6.5 Core x64 specified declared-integer vectors only. Proposal remains
