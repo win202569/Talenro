@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — existing wrapped receiver/descriptor retention verified in new test helper
+## Latest — retained scalar candidate passes three gates; independent review blocks acceptance
+
+[Unfinished repair](2026-10-18-p2b-scalar-retained-repair.md),complete review in
+p2b-scalar-retained-repair/review.md. New3/3hosts spent,all exact:RED14hidden
+wrongly accepted;focused all28decorations refused+182malformed+45guards+54key
+controls;full original33groups/exact36lines. Independent1/1review complete:
+Critical0,Important1(P1),Minor0. Blocker:wrapper-local null _instanceMembers
+cache is not proof of absent shared-key metadata;candidate early return can
+skip decorations for an unmaterialized wrapper. Source-based finding,NOT new
+runtime reproduction. Parent accepts blocker;candidate327E8F33 NOT accepted,
+M1 OPEN. No postreview edit/probe/test/review;new3+1spent,old latest1/3spent+
+2FROZEN and every older budget unchanged.1154pins intact,no timeout/stderr,
+owned exits/drains complete. B468B564 and failed18DA24E1 unchanged. Next needs
+new bounded authoritative-table/null-cache repair+regression scope. Necessary
+source/summary/full review/recovery saved as unfinished devbranch checkpoint;
+no main/formal acceptance or clone replay rights.
+
+## Historical — existing wrapped receiver/descriptor retention verified in new test helper
 
 [Retention tests](2026-10-18-p2b-receiver-retention.md). New approved1/1host spent:
 PID49044,2760ms,exit0,RETENTION_VERIFIED.45cases(nine types x five variants),

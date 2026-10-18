@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+Latest UNFINISHED candidate:[retained scalar repair](../roadmap/2026-10-18-p2b-scalar-retained-repair.md).
+p2b-scalar-retained-repair contains candidate327E8F33,tests/fixtures/controller,
+derived portable-summary.json and complete independent review.md. Three exact
+test gates pass(including original33groups),but reviewCritical0/Important1/
+Minor0 BLOCKS acceptance. Local null wrapper cache does not prove absent shared
+metadata;unmaterialized shared-key receiver can skip checks. Source-based issue,
+no new runtime reproduction. Do NOT adopt candidate as accepted baseline or
+merge main. M1 OPEN;baselineB468B564 and failed18DA24E1 unchanged. New3/3hosts+
+1/1review SPENT,no postreview edit/test/probe. Old latest1/3spent+2FROZEN and all
+older frozen budgets unchanged.1154pins intact,no timeout/stderr,owned exits/
+drains complete. Next new finite scope must distinguish empty cache from truly
+absent authoritative table,with dirty shared-key/clean null-cache/string/local
+controls. Recover existing devbranch,not automatically main. Clone preserves
+portable source/test/result/review/report,not raw,actual references,SDK/runtime/
+cache/sessions/mappings;it never resets budgets or grants acceptance/replay.
+
 Latest test-only checkpoint:[existing receiver retention](../roadmap/2026-10-18-p2b-receiver-retention.md).
 p2b-receiver-retention includes six frozen inputs and derived portable-summary.
 One approved host1/1spent,RETENTION_VERIFIED:45cases(nine types x clean/visible/
