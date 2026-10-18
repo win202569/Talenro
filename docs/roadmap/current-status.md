@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — fixture precheck source revised;NOT EXECUTED
+## Latest — revised Token direct baseline/candidate PASSED;not full acceptance
+
+After6bc5ffbc,user approved NEW max2 attempts under same30s/fail-stop terms.
+[Direct result/evidence](2026-10-18-p1-token-direct-fixed-members-result.md).
+Ordinary fresh pinned PS7 baseline2344ms then candidate2158ms;each exit0,
+no timeout,complete raw streams,owned-host-exited,empty stderr and429/429 exact
+ordered lines(428 case PASS plus terminal). All457 pins intact;source untouched.
+Revised clean-owner precheck works for these cases;original failed record held.
+New baseline1/1SPENT,candidate1/1SPENT;old direct baseline1/1SPENT and old
+candidate0/1UNUSED/FROZEN remain. No retry,warmup,PS5,extra host or reviewer.
+Direct tested-case evidence ONLY;not speedup,RED/GREEN,full API/ownership
+regression,whole-branch security review or I1/P1/main/C12/runtime/release
+acceptance. Candidate remains isolated/unpromoted;no main merge.
+Next propose separately bounded full API equality/refusal-index/result-ownership
+regressions;no target/controller/full regression authorization carries forward.
+Git checkpoint preserves portable evidence/progress,not raw/cache/replay rights.
+
+## Previous — fixture precheck source revised;NOT EXECUTED
 
 After4c5edbd5,user approved following source-only repair recommendation.
 [Revision/static evidence](2026-10-18-p1-token-direct-fixture-revision.md).

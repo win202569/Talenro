@@ -16,7 +16,18 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[fixture precheck source revision;NOT EXECUTED](../roadmap/2026-10-18-p1-token-direct-fixture-revision.md).
+Latest handoff:[revised Token direct baseline/candidate PASSED](../roadmap/2026-10-18-p1-token-direct-fixed-members-result.md).
+After6bc5ffbc,new baseline2344ms/candidate2158ms hosts each exit0,no timeout,
+empty stderr,429 exact ordered lines,known owned exit/complete streams.
+457 frozen pins held;all source/prior failed records untouched.
+NEW allowance2/2SPENT;old failed/frozen slots unchanged. These are direct
+tested-case results,NOT full API/ownership/security/performance acceptance.
+Candidate stays isolated;restore latest dev-branch commit,not main.
+Next separately scope/approve full API equality/refusal-index/result-ownership
+regressions. No additional hosts or retries follow from this checkpoint.
+Git does not restore ignored raw/controller/cache or reset consumed allowances.
+
+Previous handoff:[fixture precheck source revision;NOT EXECUTED](../roadmap/2026-10-18-p1-token-direct-fixture-revision.md).
 After4c5edbd5,added token-direct.fixed-members.tests.ps1 beside the original
 in integer-token-local-candidate. SHA2561EA8CDB1;full hash/evidence in report.
 Only clean-owner Members getter revised;original failed test and all449 prior
