@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+Latest unfinished checkpoint:[scalar key/table precondition stop](../roadmap/2026-10-18-p2b-scalar-key-ownership.md).
+New p2b-scalar-key-ownership leaf has unchanged B468B564 product,prepared tests
+and derived portable-summary.json. First new host stopped BEFORE product API:
+54 controlled key/table cases validated;21 numeric/bool proofs validated,then
+literal.String history0 table identity failed. String proof22 is partial;
+SDKCount/ApplicationCount/Counters null,not0. Raw has only psextended,whose key/
+table mismatch separately obtained shim owner;actual wrapper must survive helper
+observation boundaries. No fresh-output/matrix/negative/full verification.
+New3+1budget:1host spent,2FROZEN,review0/1ineligible;all older frozen scopes stay
+unchanged. No fixture rewrite/retry,product edit,seal or reviewer authorized
+after unexpected stop. M1 OPEN;do not adopt failed18DA24E1 or merge main.
+1109pins intact,no timeout/stderr,owned exit/drain complete. Recover development
+branch,not automatically main. Clone preserves source/tests/portable result/
+reports,but not ignored raw,actual references,runtime/SDK/cache/session/mappings
+or replay rights. Next needs a bounded fixture-receiver correction design.
+
 Latest completed diagnostic:[wrapper references](../roadmap/2026-10-18-p2b-wrapper-reference-diagnostic.md).
 Audit-only p2b-wrapper-reference-diagnostic includes portable-summary.json with
 12cases/36phases and87stable reference IDs,derived from hashed raw. Independent

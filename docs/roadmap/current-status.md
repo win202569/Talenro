@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — controlled reference diagnostic complete; shared table with mixed wrapper owners confirmed
+## Latest — type-sensitive scalar repair stopped at string fixture precondition
+
+[Stopped checkpoint](2026-10-18-p2b-scalar-key-ownership.md), new leaf
+p2b-scalar-key-ownership with derived portable-summary.json. New approved3+1:
+first host PID45752,1570ms,exit1,INCOMPLETE at SDKProof:literal.String history0,
+before product API. All54 controlled nine-type/default-local identity cases
+validated;21 numeric/bool SDK proofs validated. Proof22 string raw only contains
+psextended;its key/table differ from separately acquired shim owner. Failed raw
+table identity assertion;SDKCount/ApplicationCount/Counters null,not0. No fresh
+output/history/matrix/negative/full cases reached. Fixture must preserve actual
+wrapper across helper observations;do not relax ownership to base/value equality.
+Product B468B564 unchanged,M1 OPEN. New1/3spent+2FROZEN,review0/1ineligible;
+all old frozen budgets preserved. No retry,product edit,seal,reviewer or acceptance.
+1109pins intact,no timeout/stderr,owned exit/streams complete. Portable source/
+summary/report/status/recovery saved for devbranch recovery;raw remains ignored.
+Next requires a bounded fixture-receiver correction design;no silent resumption.
+
+## Historical — controlled reference diagnostic complete; shared table with mixed wrapper owners confirmed
 
 [Evidence report](2026-10-18-p2b-wrapper-reference-diagnostic.md),portable-summary.json
 in p2b-wrapper-reference-diagnostic. New independent1/1host spent:PID48084,
