@@ -16,7 +16,23 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest analysis:[ValidationCopy fields/call paths,READ-ONLY](../roadmap/2026-10-18-p1-validation-copy-field-analysis.md).
+Latest handoff:bounded attribution proposal in [current status](../roadmap/current-status.md),
+after590aaf0d;NOT PREPARED. Three timestamps per row bracket original validation
+then unchanged copy/list Add;local sums/counter only,one summary after normal
+ValidationCopy END and before Decision START. No per-row output/guard/copy/order
+changes. Prospective new106-line inventory keeps64PASS/22 markers/11 pairs;old
+105 tools untouched. Proposed new clone+caller only,six PS1 companions identical.
+Offline tests/static restoration and strict count/Int64/sum<=parent/order/prefix
+checks required before any run;missing summary is unknown,not zero. H:validation
+sum>copy only in complete diagnostic;otherwise falsified/incomplete as applicable.
+12288 extra timestamp reads plus accounting/history can cause a30s timeout;
+no overhead-free claim or subtraction-based original cost attribution.
+Confirm preparation-only next;no target/controller/probe/test prepared/run now.
+412 prior pins/latest single-invocation index intact. Existing budgets/PS5 freeze/
+review/acceptance gates persist;later run requires separate explicit scope.
+Git restores proposal/progress,not raw records,runtime cache or replay authority.
+
+Previous analysis:[ValidationCopy fields/call paths,READ-ONLY](../roadmap/2026-10-18-p1-validation-copy-field-analysis.md).
 After0874e244,no source/probe/controller/test execution. Combined17515.183ms loop
 includes validation plus snapshot/copy. Conditional time-row ledger16 type/
 10 Members/31 helper entries per row does NOT establish their actual latency.

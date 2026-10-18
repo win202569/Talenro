@@ -1,6 +1,60 @@
 # Project status — updated 2026-10-18
 
-## Latest — ValidationCopy field/call paths analyzed READ-ONLY
+## Latest — bounded attribution design proposed, NOT PREPARED
+
+After590aaf0d,user requested design only. Bounded in-chat proposal,not an
+implementation/spec-plan handoff;no new source,probe,controller or test run.
+Goal:compare instrumented validation versus owned snapshot/copy within the same
+unchanged per-row order,not identify a helper root cause or optimize product.
+
+Recommend three local Stopwatch reads per successful row:before the existing
+failure-index/input assignment,immediately before the unchanged copy statement,
+and immediately after its list Add. Aggregate validation=sum(t1-t0),copy=sum(t2-t1)
+and completed rows locally;no per-row output,wrapper,shared helper edit or finally
+end. Six new typed locals initialize after RootSetup END and before ValidationCopy
+START;their names must be collision-checked during preparation. Updates after t2
+occur outside both
+subintervals but inside the existing whole-loop phase. Preserve every guard,
+API/argument,fixture,assertion,failure order and copy/list operation in situ.
+
+Only after normal whole-loop completion and its existing ValidationCopy END,
+emit ONE invariant summary at new nonempty line76:ATTRIBUTION/ValidationCopy
+with rows=4096,validationTicks and copyTicks. Then existing Decision START follows.
+Prospective106 lines/64PASS/22 timing markers/11 closed pairs;summary is NOT a
+new start/end pair. A NEW isolated copy would alter only phase clone (fresh
+diagnostic entry name) and original35 caller command;six companion PS1 sources
+byte-identical. Old105 and all older classifiers/inventories stay unchanged.
+
+Future preparation-only work would use independent synthetic RED/GREEN cases
+and AST/byte restoration:removing instrumentation/restoring entry/caller names
+must recover prior files exactly. New strict classifier requires exact row count,
+nonnegative invariant Int64 sums,checked arithmetic,one correctly ordered summary,
+and validationTicks+copyTicks <= closed parent ValidationCopy tick span. Missing/
+duplicate/malformed/overflow/impossible summary cannot become complete. Prefixes
+retain their true frontier;no summary means attribution unavailable,not zeros.
+No error/timeout fabricated end or automatic retry. Existing host/receipt/exit/
+budget/ownership order gates and FormalProjectAcceptance=false stay.
+
+Predeclared H-Attribution:only in a complete106-record diagnostic,validation sum
+exceeds copy sum;copy>=validation falsifies this ordering in that instrumented
+run. Partial summaries may be described as partial only,not full hypothesis or
+project acceptance. No same-case pure helper/CPU or original-run ratio inferred.
+Three reads/row mean12288 additional timestamp calls if4096 rows complete,plus
+counter/dispatch/body/history effects. They can push the prior28983ms run beyond
+30000ms. Boundaries contain timer/assignment work asymmetrically;no overhead-free
+claim or empty-loop/baseline subtraction. Parent minus sums is merely unattributed
+time,not calibrated overhead. A two-read copy-only residual would mix validation
+with loop/accounting cost;per-helper timers would perturb far more calls.
+
+Decision pending:confirm preparation ONLY (isolated copy,offline verifier/tests,
+static fidelity),not target execution. No new allowance requested/created here.
+Any later controller/run needs separate approval;no timeout increase,cache,
+reordered/two-pass validation/copy,per-row output,guard weakening or PS5 reuse.
+412 prior pins/latest index held. All spent/frozen/review/I1/P1/main/C12/security/
+runtime/release gates persist. Design saved in status/recovery for another PC;
+no implementation plan or new probe artifact created.
+
+## Previous — ValidationCopy field/call paths analyzed READ-ONLY
 
 After0874e244,[read-only source/cost ledger](2026-10-18-p1-validation-copy-field-analysis.md)
 maps the17515.183ms combined loop to its clean4096 time-row fixture. Both clone/
