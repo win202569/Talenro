@@ -16,7 +16,13 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[Token-only PREPARED source](../roadmap/2026-10-18-p1-token-local-preparation.md),
+Latest handoff:[bounded PS7 direct validation proposal](../superpowers/plans/2026-10-18-token-direct-bounded-validation.md).
+After95360155,draft only was approved. No controller or target execution this
+turn. NEW proposed baseline1/candidate1 slots remain UNAPPROVED/UNUSED.
+Read exact limits/oracle/fail-stop terms before seeking execution approval.
+No source repair/retry/PS5/full API/performance/main authority is implied.
+
+Previous handoff:[Token-only PREPARED source](../roadmap/2026-10-18-p1-token-local-preparation.md),
 after6b4b4a8a. Restore the latest development-branch commit,not main.
 New isolated folder integer-token-local-candidate includes candidate,direct
 test,CodeProperty C# source,portable hash pins,README and leaf LF attributes.

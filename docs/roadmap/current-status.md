@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — Token-only source PREPARED; runtime UNVERIFIED
+## Latest — direct validation proposal saved; NO RUN
+
+After95360155,user approved drafting the next bounded proposal:
+[PS7 direct validation plan](../superpowers/plans/2026-10-18-token-direct-bounded-validation.md).
+Proposed NEW max2 attempts:baseline1 first,candidate1 only after complete baseline
+success;30000ms child wall per host plus bounded2000ms exit/2000ms drain.
+Independent429-line ordered oracle,empty stderr,exit0,known cleanup and intact
+pins required. Failure freezes later slot;no repair/retry/warmup/PS5. Proposed
+support compilation occurs only inside approved future children. No controller
+created,no test/support/module imported/compiled/executed this turn.
+Execution budget still UNAPPROVED/UNUSED;all historical frozen gates unchanged.
+Next request approval of this exact proposal,not another design/preparation loop.
+
+## Previous — Token-only source PREPARED; runtime UNVERIFIED
 
 User approved preparation only after6b4b4a8a. Saved isolated candidate,
 direct tests,CodeProperty support source,pins/README/leaf LF rules:
