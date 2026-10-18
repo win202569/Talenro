@@ -1,6 +1,14 @@
 # Recover the project on a new computer
 
-Latest checkpoint: [P2-B pure codec INCOMPLETE execution](../roadmap/2026-10-18-p2b-control-codec-execution.md).
+Latest diagnostic: [P2-B PayloadLength expression defect](../roadmap/2026-10-18-p2b-payloadlength-diagnostic.md).
+One separately approved expression-only host1/1 spent; no product import.
+Original expression fails Object[] subtraction before decoder invocation;
+parenthesized control yields15,17,113. No test/product repair or acceptance.
+Recover diagnostic scripts/report from latest development branch; ignored raw
+packet remains local. No replay or reset: original2/5 used,3 frozen,review0/1
+ineligible. Next requires a bounded test-only correction/validation decision.
+
+Historical checkpoint: [P2-B pure codec INCOMPLETE execution](../roadmap/2026-10-18-p2b-control-codec-execution.md).
 Recover latest codex/c12-b01-task9-coordinator, not main. Portable source/test/
 fixtures/oracle/controller and approved plan are included. API RED matched;
 full failed PayloadLength after13PASS. Cause unresolved; no repair or retry.

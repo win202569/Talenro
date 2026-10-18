@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-B pure codec checkpoint INCOMPLETE
+## Latest — P2-B PayloadLength expression defect diagnosed; NOT repaired
+
+User approved the proposed minimal diagnostic after139f1d9c. One separate
+ordinary pinned PS7 host (1/1 spent) reproduced the original expression:
+`@($len-1,$len+1,113)` throws MethodNotFound/op_Subtraction on Object[] at
+len16 before entering the loop body. Parenthesized control returns15,17,113.
+[Diagnostic report](2026-10-18-p2b-payloadlength-diagnostic.md) preserves exact
+AST/output/hashes. No product/test import or API call; no frozen source edits.
+This confirms a test expression defect, NOT codec correctness or later passes.
+Original2/5 consumed,3 frozen; review0/1 ineligible. Next needs a bounded
+test-only correction and validation decision, preserving original evidence.
+
+## Historical — P2-B pure codec checkpoint INCOMPLETE
 
 User approved Native execution and the exact five-host/one-conditional-review
 route after fab8466e. Sources, independent fixtures and controller now exist.
