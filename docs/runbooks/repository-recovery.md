@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest preparation:[API/equality split,target NOT RUN](../roadmap/2026-10-18-p1-api-equality-prepared.md).
+After2a369070,integer-candidate-api-equality holds seven source copies,new95-line
+inventory and README;separate nested offline verifier/tests added beside it.
+63 synthetic cases pass on PS7;old91-line verifier/47 tests unchanged. Static
+fidelity checks only;no real split output/timing or controller. Git carries
+portable fixtures/tools without private raw dependencies. Next one-host PS7/30s
+diagnostic requires separate approval,not direct invocation or frozenPS5 reuse.
+344 pins/index held;spent budgets/review/I1/P1 gates unchanged. No acceptance.
+
 Latest proposal:[API/equality observation analysis,NOT PREPARED](../roadmap/2026-10-18-p1-api-equality-observation-analysis.md).
 Afterd5d21b17,source-only analysis proposes a4096-only helper with API/assertion
 markers,unchanged product/loading/common helpers and explicit fresh-history

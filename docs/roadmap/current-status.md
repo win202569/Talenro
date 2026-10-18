@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — API/equality split PREPARED; target NOT RUN
+
+After2a369070,[approved preparation](2026-10-18-p1-api-equality-prepared.md)
+adds isolated source copy/95-line inventory/README and a separate nested offline
+verifier/tests. Six source files byte-identical;one extra helper/one4096 caller,
+original helpers/assertions/product/loading unchanged,exact reversal checked.
+New offline suite63 PASS;old47-case verifier retained. AST/static fidelity only,
+zero target launches,no controller. Actual split timing/binding unverified.
+Next separately approve ONE new ordinary fresh PS7/30s/no warmup/retry/fallback;
+not old-budget reuse.344 prior pins/index held;PS5 FROZEN,old budgets/review/
+I1/P1 gates unchanged. No product/project acceptance.
+
 ## Latest — API/equality split proposed, NOT PREPARED
 
 Afterd5d21b17,[read-only observation design](2026-10-18-p1-api-equality-observation-analysis.md)

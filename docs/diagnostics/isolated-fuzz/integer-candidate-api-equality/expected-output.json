@@ -1,0 +1,433 @@
+{
+  "Schema": 1,
+  "Status": "PREPARED_NOT_RUN",
+  "CandidateOnly": true,
+  "FormalProjectAcceptance": false,
+  "ExpectedNonemptyLines": 95,
+  "ExpectedPassCount": 64,
+  "Target": "offline-supervision-policy.shape-lookup-regression.ps1",
+  "StopwatchFrequencyRule": "Read Diagnostics.Stopwatch.Frequency in the future capture environment; ticks are absolute monotonic timestamps, not milliseconds.",
+  "ContextRule": "^CONTEXT: .+ admin=False$",
+  "HostRule": "^HOST: 7\\..+ Core x64=True$",
+  "BoundaryTickRule": "Nonnegative invariant Int64 ticks; globally nondecreasing; strict ordered matching stack. Check4096 contains Evaluate4096 and Assert4096 siblings. Compute closed pairs only; never infer unfinished ends.",
+  "Lines": [
+    {
+      "Kind": "Context",
+      "Value": "{Context}"
+    },
+    {
+      "Kind": "Host",
+      "Value": "{Host}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "STAGE: ShapeLookup"
+    },
+    {
+      "Kind": "Context",
+      "Value": "{Context}"
+    },
+    {
+      "Kind": "Host",
+      "Value": "{Host}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeRootOrdinal"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeFieldBounds"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeObservationOrdinal"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeKindIsolation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeRepeatedCalls"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ShapeDescriptorSafety"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "LIMIT: shape lookup contracts only; no full regression or runtime acceptance."
+    },
+    {
+      "Kind": "Literal",
+      "Value": "STAGE: ExistingFull"
+    },
+    {
+      "Kind": "Context",
+      "Value": "{Context}"
+    },
+    {
+      "Kind": "Host",
+      "Value": "{Host}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "STAGE: ReflectionReuse"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ReflectionInputMutation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ReflectionDecorationAfterClean"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ReflectionDescriptorAfterClean"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "LIMIT: reflection reuse regression only; no timing guarantee or runtime acceptance."
+    },
+    {
+      "Kind": "Literal",
+      "Value": "STAGE: ExistingAll"
+    },
+    {
+      "Kind": "Context",
+      "Value": "{Context}"
+    },
+    {
+      "Kind": "Host",
+      "Value": "{Host}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureConstructor"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixturePrimitiveMatrix"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureDescriptors"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureInputIdentity"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureIsolation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureWrappedInputIdentity"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureExtendedView"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1FixtureComplete"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "LIMIT: fixture construction only; no product import, product assertions, I1 closure or repair-budget renewal."
+    },
+    {
+      "Kind": "Context",
+      "Value": "{Context}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ApiRequired"
+    },
+    {
+      "Kind": "Host",
+      "Value": "{Host}"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1EmptyPrepared"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1NormalStages"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1AbsoluteDeadline"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1StopBoundary"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1TotalDeadline"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1StartupConsumesBudget"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1EqualTimeSequence"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1BackwardTime"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1SequenceRefusal"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1SessionClockRefusal"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ActorDirection"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ArmPrerequisites"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ReleaseOnce"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ProgressMonotonic"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ExitBeforeEOF"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1UnknownExit"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1NonzeroExit"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1DataBounds"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ControlBounds"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ReadFault"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1SupervisorLost"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1LauncherLost"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1FailureSticky"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1PhaseBudgets"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1CleanupUnknown"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1PersistRefused"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1TerminalTrailing"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1InvalidScenario"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1InvalidObservation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1PassiveDescriptors"
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "InvalidInputs",
+      "Edge": "START",
+      "Pattern": "^BOUNDARY: InvalidInputs START ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "InvalidInputs",
+      "Edge": "END",
+      "Pattern": "^BOUNDARY: InvalidInputs END ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Build4096",
+      "Edge": "START",
+      "Pattern": "^BOUNDARY: Build4096 START ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Build4096",
+      "Edge": "END",
+      "Pattern": "^BOUNDARY: Build4096 END ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Check4096",
+      "Edge": "START",
+      "Pattern": "^BOUNDARY: Check4096 START ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Subphase",
+      "Name": "Evaluate4096",
+      "Edge": "START",
+      "Parent": "Check4096",
+      "Pattern": "^SUBPHASE: Evaluate4096 START ticks=([0-9]+)$"
+    },
+    {
+      "Kind": "Subphase",
+      "Name": "Evaluate4096",
+      "Edge": "END",
+      "Parent": "Check4096",
+      "Pattern": "^SUBPHASE: Evaluate4096 END ticks=([0-9]+)$"
+    },
+    {
+      "Kind": "Subphase",
+      "Name": "Assert4096",
+      "Edge": "START",
+      "Parent": "Check4096",
+      "Pattern": "^SUBPHASE: Assert4096 START ticks=([0-9]+)$"
+    },
+    {
+      "Kind": "Subphase",
+      "Name": "Assert4096",
+      "Edge": "END",
+      "Parent": "Check4096",
+      "Pattern": "^SUBPHASE: Assert4096 END ticks=([0-9]+)$"
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Check4096",
+      "Edge": "END",
+      "Pattern": "^BOUNDARY: Check4096 END ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Check4097",
+      "Edge": "START",
+      "Pattern": "^BOUNDARY: Check4097 START ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Boundary",
+      "Name": "Check4097",
+      "Edge": "END",
+      "Pattern": "^BOUNDARY: Check4097 END ticks=([0-9]+)$",
+      "Parent": ""
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ArrayAndIntegerBounds"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1CallerMutation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1ConservativeFlags"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1Complete"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "LIMIT: synthetic supervision policy only;no OS,real clock,pipes,containment or cleanup proof."
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1ApiRequired"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1DecoratedInteger"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1DecoratedBoolean"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1DecoratedString"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1RootScalars"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1ObservationScalars"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1PassiveDescriptors"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1SequentialIsolation"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1PlainControls"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: P1I1Complete"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "LIMIT: decorated-scalar refusal and sequential isolation only; no live supervision, concurrency or runtime acceptance."
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: ReflectionReuseRegression"
+    },
+    {
+      "Kind": "Literal",
+      "Value": "PASS: ShapeLookupRegression"
+    }
+  ],
+  "ExpectedTimingMarkers": 12,
+  "ExpectedClosedPairs": 6
+}
