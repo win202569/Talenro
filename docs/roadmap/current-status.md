@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — cold-cache P1 repair verified within bounded offline contract
+## Latest — pure codec limited offline acceptance proposed, awaiting human decision
+
+[Proposal and remaining dependencies](2026-10-18-p2b-codec-limited-acceptance-proposal.md)
+bind candidate9A532E17 at commit8500aef9 to specified ordinary PS7.6.5 offline
+codec vectors only. LimitedAcceptanceApproved=false; no human decision yet.
+This turn rehashed1185pins and checked three saved receipts;0new hosts/reviews,
+0product edits. Latest3+1spent and every historical freeze unchanged. Saved
+84/84cold cases,33full groups and0C/0I/0M review support proposal,not fullP2-B.
+Old negative-control mutants belong to an earlier version,not rerun on9A532E17.
+All exclusions retained,including cold nested-wrapper/empty-existing-table gaps.
+Next after explicit decision:separate bounded P2-B follow-on design/plan;
+real capability/P2-C/P3/Task9 integration remain independently gated. No main.
+
+## Historical — cold-cache P1 repair verified within bounded offline contract
 
 [Execution report](2026-10-18-p2b-cold-cache-repair.md). Candidate9A532E17
 distinguishes an uninitialized wrapper cache from absent shared SDK metadata.

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest decision artifact:[pure codec limited acceptance proposal](../roadmap/2026-10-18-p2b-codec-limited-acceptance-proposal.md).
+It binds9A532E17 at8500aef9 to specified ordinary PS7 offline vectors only;
+acceptance remains PENDING,not approved by a generic continuation. This turn
+only rechecked1185pins/saved receipts and wrote documents;0new targets/review.
+All3+1spent and historical freezes remain unchanged. Read proposal exclusions
+and remaining dependency order before any new work. No fullP2-B/live/P2-C/P3/
+Task9/fullC12/main promotion;clone grants no execution or replay allowance.
+
 Latest bounded verified repair:[cold-cache repair](../roadmap/2026-10-18-p2b-cold-cache-repair.md).
 Recover codex/c12-b01-task9-coordinator from the verified GitHub origin,not
 automatically main. p2b-cold-cache-repair contains sealed9A532E17 candidate,
