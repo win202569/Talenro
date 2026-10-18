@@ -16,7 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest preparation:[validation/copy attribution,PREPARED NOT RUN](../roadmap/2026-10-18-p1-validation-copy-attribution-prepared.md).
+Latest result:[attribution TIMEOUT,UNACCEPTED](../roadmap/2026-10-18-p1-validation-copy-attribution-result.md).
+After7bb53651,one newly approved ordinary PS7 diagnostic timed out at30s:
+wall30085ms/exit-1/owned-host-exited,95 records/58PASS/18 markers/nine closed
+pairs. LastPASS ObservationScalars;next expected PassiveDescriptors PASS is not
+an entry marker. Later ownership bodies unobserved. Earlier4096-row summary
+closed:validation17993.322ms,copy473.236ms,remainder133.267ms NOT overhead.
+Valid partial attribution only;complete-run hypothesis remains not-assessed.
+434 pins/index/raw audit held. NEW allowance1/1SPENT,no retry/timeout extension/
+PS5 reuse. Next read-only duplicate-type contract analysis,not implementation.
+All old budget/review/acceptance gates persist. Git restores failed-checkpoint
+report and portable source/tests,not ignored raw/controller/cache/replay rights.
+
+Previous preparation:[validation/copy attribution,PREPARED NOT RUN](../roadmap/2026-10-18-p1-validation-copy-attribution-prepared.md).
 After9ebfe9e4,user approved only new isolated copy/offline/static checks. Report
 pins14 new artifacts:11-file copy (including leaf LF attribute),classifier,
 synthetic tests and static fidelity. Six PS1 identical;two restore exactly after

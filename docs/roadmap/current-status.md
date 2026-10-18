@@ -1,6 +1,23 @@
 # Project status — updated 2026-10-18
 
-## Latest — validation/copy attribution PREPARED, NOT RUN
+## Latest — attribution diagnostic TIMEOUT;partial totals retained,UNACCEPTED
+
+After7bb53651,user approved one fresh ordinary PS7/30000ms/no warmup/retry/PS5.
+[Failed diagnostic and identities](2026-10-18-p1-validation-copy-attribution-result.md):
+wall30085ms,CPU40359.375ms,TimedOut=true,exit-1,owned-host-exited,empty stderr.
+95/106 records,58/64PASS,18 markers/nine closed pairs,OpenScopes=[];valid-prefix,
+ExpectedResult=false. LastPASS:P1I1ObservationScalars,next expectedPASS:
+P1I1PassiveDescriptors;actual next body/statement entry unobserved. Later two
+ownership groups unobserved,not proved hanging.434 pins/index/streams held;
+independent raw/tick/rounding/sum audit matched. New allowance1/1 SPENT,no rerun.
+Earlier closed summary4096 rows:validation17993.322ms,copy473.236ms,parent
+18599.826ms,remainder133.267ms(unattributed,NOT overhead). AttributionAvailable
+true but complete-run hypothesis NOT ASSESSED;no full acceptance or root cause.
+Next read-only Token/Passive duplicate-type contract analysis only;no speculative
+fix/cache/guard weakening or new execution. All old budgets/PS5 freeze/review/
+I1/P1/main/C12/security/runtime/release gates persist. Raw/controller local only.
+
+## Previous — validation/copy attribution PREPARED, NOT RUN
 
 After9ebfe9e4,user approved preparation only. [Prepared evidence and identities](2026-10-18-p1-validation-copy-attribution-prepared.md)
 records new isolated11-file copy (eight PS1,inventory,README,leaf LF attributes)
