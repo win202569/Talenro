@@ -16,7 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[revised Token direct baseline/candidate PASSED](../roadmap/2026-10-18-p1-token-direct-fixed-members-result.md).
+Latest handoff:[full API/ownership bounded proposal](../superpowers/plans/2026-10-18-token-full-api-bounded-regression.md).
+Aftera4921533,coverage/source inspection and plan ONLY;no new tests/controller/
+target/probe prepared or run. Proposed NEWmax4 hosts:baseline-full then baseline-
+ownership then candidate-full then candidate-ownership,each30s/fail-stop.
+Read exact source hashes/oracles/cleanup terms;slots UNAPPROVED/UNUSED.
+Approval requested for preparation plus ordered execution together,not separate
+prep-only handoffs. All previous direct/diagnostic slots and457pins unchanged.
+Restore latest development-branch commit,not main;no new runtime authority or
+budget reset comes from clone/missing ignored raw. Wider acceptance withheld.
+
+Previous handoff:[revised Token direct baseline/candidate PASSED](../roadmap/2026-10-18-p1-token-direct-fixed-members-result.md).
 After6bc5ffbc,new baseline2344ms/candidate2158ms hosts each exit0,no timeout,
 empty stderr,429 exact ordered lines,known owned exit/complete streams.
 457 frozen pins held;all source/prior failed records untouched.

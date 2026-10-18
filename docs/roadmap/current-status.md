@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — revised Token direct baseline/candidate PASSED;not full acceptance
+## Latest — full API/ownership bounded proposal;NOT PREPARED/RUN
+
+Aftera4921533,user requested continuing. Read existing uninstrumented full
+and ownership sources only;35 API case groups +18 ownership/fixture groups.
+[Proposed four-host plan](../superpowers/plans/2026-10-18-token-full-api-bounded-regression.md).
+Recommend exact-source isolated baseline/candidate directories;separate hosts
+ordered baseline-full,baseline-ownership,candidate-full,candidate-ownership.
+Full38-line and ownership22-line ordered inventories;literal complete result/
+FailureObservationIndex/ref ownership assertions unchanged;4096/4097 retained.
+Each30s wall+bounded2s exit/2s drain,ordinary fresh PS7;any failure freezes later
+slots. No source/controller/probe prepared or target executed this turn.
+Newmax4 allowance UNAPPROVED/UNUSED;all457 pins and old spent/frozen gates held.
+Next approval may cover exact-source preparation AND four ordered attempts
+together,no further preparation-only loop. No retry,PS5,performance,reviewer,
+assertion relaxation,whole-project acceptance or main promotion authority.
+
+## Previous — revised Token direct baseline/candidate PASSED;not full acceptance
 
 After6bc5ffbc,user approved NEW max2 attempts under same30s/fail-stop terms.
 [Direct result/evidence](2026-10-18-p1-token-direct-fixed-members-result.md).
