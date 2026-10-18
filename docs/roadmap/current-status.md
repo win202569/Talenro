@@ -1,6 +1,18 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2-A test receiver corrected; five-outcome verification complete
+## Latest — P2-A limited acceptance recommendation ready, NOT approved
+
+[Pending user decision](2026-10-18-p2a-ps7-limited-acceptance-proposal.md)
+binds candidatecc764dba,product350CAB1A,corrected testsB5C4E0CE andfixtureC720E247.
+Readonly contract/evidence check:839mapped pins,5exact receipts,10raw streams
+andcurrent identities intact;0new hosts/reviewers/imports/edits to source.
+Recommend only stated ordinary Windows PS7.6.5 declared-integer vectors.
+LimitedAcceptanceApproved=false until explicit decision. No PS5/whole-project/
+live/P2-B/C/P3/C12/main grant. Five-slot verification andreview remain consumed;
+old routes frozen. Approval would only record scoped acceptance/update recovery,
+not execute anything or automatically begin next architecture.
+
+## Historical — P2-A test receiver corrected; five-outcome verification complete
 
 User approved bounded5+1route after8627f71d.
 [Exact result andreadonly review](2026-10-18-p2a-type-receiver-repair.md):

@@ -1,6 +1,15 @@
 # Recover the project on a new computer
 
-Latest result: [P2-A type receiver correction andfive exact outcomes](../roadmap/2026-10-18-p2a-type-receiver-repair.md).
+Pending decision: [P2-A limited offline acceptance recommendation](../roadmap/2026-10-18-p2a-ps7-limited-acceptance-proposal.md).
+Candidatecc764dba/product350CAB1A/testsB5C4E0CE/fixtureC720E247,reconciled against
+approved contract andsaved five-outcome/review evidence. NOT accepted yet:
+LimitedAcceptanceApproved=false. This documentation-only pass added0hosts,
+0reviews andno source changes. Clone preserves proposal/source/report/limits,
+not raw packet/caches/history mappings or new run rights. Approval would record
+only the stated ordinary PS7 declared-integer scope;no PS5/live/P2-B/C/P3/C12/
+main grant,slot reuse or automatic next-stage implementation.
+
+Historical result: [P2-A type receiver correction andfive exact outcomes](../roadmap/2026-10-18-p2a-type-receiver-repair.md).
 New5/5ordinary PS7hosts spent:RED/fullGREEN/two exact mutant failures/restored
 finalGREEN. Corrected full suite24groups green twice;readonly review1/1complete,
 no scoped findings. All839pins intact,no timeout/stderr,owned exit/streamscomplete.
