@@ -1,5 +1,21 @@
 # Project status — updated 2026-10-18
 
+## Latest — one diagnostic captured InputMutation fixture-precondition failure
+
+After f5549619,user approved ONE new ordinary PS7 diagnostic host,now1/1spent.
+[Captured site and exact evidence](2026-10-18-p2a-input-mutation-diagnostic.md):
+exit1,1183ms,22lines,stderr0,no timeout,owned exit/complete drain,790pins intact.
+Input request Schema view already had a NoteProperty at original TB-Leaf55,
+called while collecting input leaves at160;mutation loop/result comparisons not
+reached. Earlier18PASS reproduced. Immediate site known;metadata propagation
+origin remains hypothetical,two preceding product-call results not logged.
+Recommend fresh numeric-fixture controls/ownership tracing before selecting a
+fixture-only repair;do not weaken assertions or clear metadata in place.
+Product/original tests/raw unchanged,no fix/retry/reviewer. Old2/5consumed,
+unused3frozen,review0/1ineligible. Further repair/validation needs new approval.
+
+## Historical — readonly diagnosis and one-host proposal
+
 Readonly follow-up: inspected InputMutation call graph and confirmed outer catch
 drops failure site/stack; exact product-vs-fixture root cause remains unresolved.
 [One NEW diagnostic-host proposal, not approved](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md)

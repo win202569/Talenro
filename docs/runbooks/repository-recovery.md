@@ -1,6 +1,16 @@
 # Recover the project on a new computer
 
-Latest readonly follow-up: [InputMutation diagnostic proposal, NOT approved](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md).
+Latest result: [one-shot InputMutation diagnostic](../roadmap/2026-10-18-p2a-input-mutation-diagnostic.md).
+User approved after f5549619;new1/1host spent,site captured at input Schema
+initially-plain check (original55,caller160),before mutation/result comparisons.
+No repair or product-wide clearance;descriptor propagation origin remains a
+hypothesis. Recover diagnostic source,exact product copy,line map,allowlisted
+diff and portable result from dev branch. Raw ignored receipts/old local pins/
+engine cache/sessions do not clone. Do NOT replay spent diagnostic or old frozen
+route. Old2/5consumed,unused3frozen,reviewineligible. Next needs separately scoped
+fixture-ownership confirmation/repair and finite validation approval,not main/live.
+
+Historical readonly follow-up: [InputMutation diagnostic proposal, then NOT approved](../superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md).
 Failure-site table and observability gap are portable;exact root cause unresolved.
 Proposes ONE new ordinary host with unchanged product/assertions and diagnostic
 context/stack only. No diagnostic code/packet/host/reviewer created. Do not replay

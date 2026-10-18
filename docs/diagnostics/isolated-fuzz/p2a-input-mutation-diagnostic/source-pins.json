@@ -1,0 +1,1469 @@
+{
+  "Schema": 1,
+  "BaseCommit": "f5549619d34eadcdfc580d5587d01bf9c55145c3",
+  "ApprovedPlan": "docs/superpowers/plans/2026-10-18-p2a-input-mutation-diagnostic.md",
+  "ApprovedPlanSHA256": "C8C79512687A0082C293A5E038DA0AED209D1984CFF400C327F559AEDBC51BAF",
+  "OriginalProduct": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.ps1",
+    "SHA256": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B"
+  },
+  "OriginalTest": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2a-timebase-plan/offline-timebase-plan.tests.ps1",
+    "SHA256": "11BA52E114FC8F14D2D2A020FC6E6C70C52A3F2105B0DADE548416A483B71EB9"
+  },
+  "OriginalPacket": ".superpowers/sdd/2026-10-18-p2a-timebase-plan",
+  "Anchors": {
+    "frozen.json": "9AAD955334C597DFFB8DE2CF68D6007BCF3651434D1B044A8BAEFC7D926FE4E9",
+    "invocations.json": "E0ADE0F19586A010ADC60354960869784905D43EBADBE7C9F8EE922C32940541",
+    "product-seal.json": "5B2131F81C3468773374A77864344919F00832D783138D86914B46CB529C7693",
+    "good-product.ps1": "350CAB1A36CECEA57D8335581ADC780CE1F17BDC9379D63F03130C6EEF4FC35B",
+    "red.stdout.txt": "31E8C781AB1E8428C2017279C3AEB143B47FDF9170D51CA52143FEAF7511DFCB",
+    "full.stdout.txt": "6501C845BA8E87A3507971494CA64995BB898207F7D0A56E50D54DB3EE805064",
+    "red.stderr.txt": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "full.stderr.txt": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "OriginalCommonPins": 775,
+  "MaxHosts": 1,
+  "MaxReviewers": 0,
+  "MaxMs": 30000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "MaxDiagnosticBytes": 65536,
+  "LineMap": [
+    {
+      "DiagnosticLine": 1,
+      "OriginalLine": 1,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 2,
+      "OriginalLine": 2,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 3,
+      "OriginalLine": 3,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 4,
+      "OriginalLine": 4,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 5,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 6,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 7,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 8,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 9,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 10,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 11,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 12,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 13,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 14,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 15,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 16,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 17,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 18,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 19,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 20,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 21,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 22,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 23,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 24,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-helper"
+    },
+    {
+      "DiagnosticLine": 25,
+      "OriginalLine": 5,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 26,
+      "OriginalLine": 6,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 27,
+      "OriginalLine": 7,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 28,
+      "OriginalLine": 8,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 29,
+      "OriginalLine": 9,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 30,
+      "OriginalLine": 10,
+      "Kind": "assertion-counter-only"
+    },
+    {
+      "DiagnosticLine": 31,
+      "OriginalLine": 11,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 32,
+      "OriginalLine": 12,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 33,
+      "OriginalLine": 13,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 34,
+      "OriginalLine": 14,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 35,
+      "OriginalLine": 15,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 36,
+      "OriginalLine": 16,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 37,
+      "OriginalLine": 17,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 38,
+      "OriginalLine": 18,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 39,
+      "OriginalLine": 19,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 40,
+      "OriginalLine": 20,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 41,
+      "OriginalLine": 21,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 42,
+      "OriginalLine": 22,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 43,
+      "OriginalLine": 23,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 44,
+      "OriginalLine": 24,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 45,
+      "OriginalLine": 25,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 46,
+      "OriginalLine": 26,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 47,
+      "OriginalLine": 27,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 48,
+      "OriginalLine": 28,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 49,
+      "OriginalLine": 29,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 50,
+      "OriginalLine": 30,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 51,
+      "OriginalLine": 31,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 52,
+      "OriginalLine": 32,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 53,
+      "OriginalLine": 33,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 54,
+      "OriginalLine": 34,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 55,
+      "OriginalLine": 35,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 56,
+      "OriginalLine": 36,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 57,
+      "OriginalLine": 37,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 58,
+      "OriginalLine": 38,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 59,
+      "OriginalLine": 39,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 60,
+      "OriginalLine": 40,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 61,
+      "OriginalLine": 41,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 62,
+      "OriginalLine": 42,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 63,
+      "OriginalLine": 43,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 64,
+      "OriginalLine": 44,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 65,
+      "OriginalLine": 45,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 66,
+      "OriginalLine": 46,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 67,
+      "OriginalLine": 47,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 68,
+      "OriginalLine": 48,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 69,
+      "OriginalLine": 49,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 70,
+      "OriginalLine": 50,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 71,
+      "OriginalLine": 51,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 72,
+      "OriginalLine": 51,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 73,
+      "OriginalLine": 52,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 74,
+      "OriginalLine": 53,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 75,
+      "OriginalLine": 53,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 76,
+      "OriginalLine": 54,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 77,
+      "OriginalLine": 55,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 78,
+      "OriginalLine": 55,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 79,
+      "OriginalLine": 56,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 80,
+      "OriginalLine": 57,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 81,
+      "OriginalLine": 58,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 82,
+      "OriginalLine": 59,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 83,
+      "OriginalLine": 59,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 84,
+      "OriginalLine": 60,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 85,
+      "OriginalLine": 61,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 86,
+      "OriginalLine": 62,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 87,
+      "OriginalLine": 63,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 88,
+      "OriginalLine": 64,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 89,
+      "OriginalLine": 65,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 90,
+      "OriginalLine": 65,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 91,
+      "OriginalLine": 66,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 92,
+      "OriginalLine": 66,
+      "Kind": "unchanged-loop-header"
+    },
+    {
+      "DiagnosticLine": 93,
+      "OriginalLine": 66,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 94,
+      "OriginalLine": 66,
+      "Kind": "unchanged-assertion"
+    },
+    {
+      "DiagnosticLine": 95,
+      "OriginalLine": 66,
+      "Kind": "unchanged-loop-close"
+    },
+    {
+      "DiagnosticLine": 96,
+      "OriginalLine": 67,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 97,
+      "OriginalLine": 68,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 98,
+      "OriginalLine": 68,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 99,
+      "OriginalLine": 69,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 100,
+      "OriginalLine": 70,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 101,
+      "OriginalLine": 70,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 102,
+      "OriginalLine": 71,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 103,
+      "OriginalLine": 71,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 104,
+      "OriginalLine": 72,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 105,
+      "OriginalLine": 73,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 106,
+      "OriginalLine": 73,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 107,
+      "OriginalLine": 74,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 108,
+      "OriginalLine": 74,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 109,
+      "OriginalLine": 75,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 110,
+      "OriginalLine": 75,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 111,
+      "OriginalLine": 76,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 112,
+      "OriginalLine": 76,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 113,
+      "OriginalLine": 77,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 114,
+      "OriginalLine": 77,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 115,
+      "OriginalLine": 78,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 116,
+      "OriginalLine": 78,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 117,
+      "OriginalLine": 79,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 118,
+      "OriginalLine": 80,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 119,
+      "OriginalLine": 81,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 120,
+      "OriginalLine": 82,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 121,
+      "OriginalLine": 82,
+      "Kind": "unchanged-loop-header"
+    },
+    {
+      "DiagnosticLine": 122,
+      "OriginalLine": 82,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 123,
+      "OriginalLine": 82,
+      "Kind": "unchanged-assertion"
+    },
+    {
+      "DiagnosticLine": 124,
+      "OriginalLine": 82,
+      "Kind": "unchanged-loop-close"
+    },
+    {
+      "DiagnosticLine": 125,
+      "OriginalLine": 83,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 126,
+      "OriginalLine": 84,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 127,
+      "OriginalLine": 85,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 128,
+      "OriginalLine": 86,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 129,
+      "OriginalLine": 87,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 130,
+      "OriginalLine": 88,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 131,
+      "OriginalLine": 89,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 132,
+      "OriginalLine": 90,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 133,
+      "OriginalLine": 91,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 134,
+      "OriginalLine": 92,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 135,
+      "OriginalLine": 93,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 136,
+      "OriginalLine": 94,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 137,
+      "OriginalLine": 95,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 138,
+      "OriginalLine": 96,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 139,
+      "OriginalLine": 97,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 140,
+      "OriginalLine": 98,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 141,
+      "OriginalLine": 99,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 142,
+      "OriginalLine": 100,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 143,
+      "OriginalLine": 101,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 144,
+      "OriginalLine": 102,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 145,
+      "OriginalLine": 103,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 146,
+      "OriginalLine": 104,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 147,
+      "OriginalLine": 105,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 148,
+      "OriginalLine": 106,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 149,
+      "OriginalLine": 107,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 150,
+      "OriginalLine": 108,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 151,
+      "OriginalLine": 109,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 152,
+      "OriginalLine": 110,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 153,
+      "OriginalLine": 111,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 154,
+      "OriginalLine": 112,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 155,
+      "OriginalLine": 113,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 156,
+      "OriginalLine": 114,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 157,
+      "OriginalLine": 115,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 158,
+      "OriginalLine": 116,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 159,
+      "OriginalLine": 117,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 160,
+      "OriginalLine": 118,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 161,
+      "OriginalLine": 119,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 162,
+      "OriginalLine": 120,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 163,
+      "OriginalLine": 121,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 164,
+      "OriginalLine": 122,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 165,
+      "OriginalLine": 123,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 166,
+      "OriginalLine": 124,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 167,
+      "OriginalLine": 125,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 168,
+      "OriginalLine": 126,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 169,
+      "OriginalLine": 127,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 170,
+      "OriginalLine": 128,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 171,
+      "OriginalLine": 129,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 172,
+      "OriginalLine": 130,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 173,
+      "OriginalLine": 131,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 174,
+      "OriginalLine": 132,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 175,
+      "OriginalLine": 133,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 176,
+      "OriginalLine": 134,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 177,
+      "OriginalLine": 135,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 178,
+      "OriginalLine": 136,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 179,
+      "OriginalLine": 137,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 180,
+      "OriginalLine": 138,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 181,
+      "OriginalLine": 139,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 182,
+      "OriginalLine": 140,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 183,
+      "OriginalLine": 141,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 184,
+      "OriginalLine": 142,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 185,
+      "OriginalLine": 143,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 186,
+      "OriginalLine": 144,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 187,
+      "OriginalLine": 145,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 188,
+      "OriginalLine": 146,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 189,
+      "OriginalLine": 147,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 190,
+      "OriginalLine": 148,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 191,
+      "OriginalLine": 149,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 192,
+      "OriginalLine": 150,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 193,
+      "OriginalLine": 151,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 194,
+      "OriginalLine": 152,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 195,
+      "OriginalLine": 153,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 196,
+      "OriginalLine": 154,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 197,
+      "OriginalLine": 155,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 198,
+      "OriginalLine": 156,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 199,
+      "OriginalLine": 157,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 200,
+      "OriginalLine": 158,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 201,
+      "OriginalLine": 159,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 202,
+      "OriginalLine": 159,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 203,
+      "OriginalLine": 159,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 204,
+      "OriginalLine": 159,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 205,
+      "OriginalLine": 159,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 206,
+      "OriginalLine": 159,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 207,
+      "OriginalLine": 160,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 208,
+      "OriginalLine": 160,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 209,
+      "OriginalLine": 160,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 210,
+      "OriginalLine": 160,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 211,
+      "OriginalLine": 161,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 212,
+      "OriginalLine": 161,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 213,
+      "OriginalLine": 162,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 214,
+      "OriginalLine": 162,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 215,
+      "OriginalLine": 162,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 216,
+      "OriginalLine": 162,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 217,
+      "OriginalLine": 162,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 218,
+      "OriginalLine": 162,
+      "Kind": "unchanged-statement"
+    },
+    {
+      "DiagnosticLine": 219,
+      "OriginalLine": 163,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 220,
+      "OriginalLine": 163,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 221,
+      "OriginalLine": 164,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 222,
+      "OriginalLine": 164,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 223,
+      "OriginalLine": 165,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 224,
+      "OriginalLine": 165,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 225,
+      "OriginalLine": 166,
+      "Kind": "context-only"
+    },
+    {
+      "DiagnosticLine": 226,
+      "OriginalLine": 166,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 227,
+      "OriginalLine": 167,
+      "Kind": "unchanged"
+    },
+    {
+      "DiagnosticLine": 228,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 229,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 230,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 231,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 232,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 233,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 234,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 235,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    },
+    {
+      "DiagnosticLine": 236,
+      "OriginalLine": null,
+      "Kind": "diagnostic-only-termination"
+    }
+  ],
+  "AllowlistedDiff": [
+    {
+      "OriginalLine": 10,
+      "Before": "function TB-Need([bool]$Value){if(-not $Value){throw 'Assertion'}}",
+      "After": "function TB-Need([bool]$Value){$script:diagAssertion++;if(-not $Value){throw 'Assertion'}}"
+    },
+    {
+      "OriginalLine": 51,
+      "Before": "    $descriptor=$Owner.PSObject.Properties[$Field]",
+      "After": "    $script:diagStage='leaf-descriptor';$script:diagOriginalLine=51;$script:diagField=$Field;$script:diagOtherField='';$script:diagOtherIndex=0\n    $descriptor=$Owner.PSObject.Properties[$Field]"
+    },
+    {
+      "OriginalLine": 53,
+      "Before": "    $stored=TB-Type $descriptor.Value;$base=$Owner.$Field.PSObject.BaseObject",
+      "After": "    $script:diagStage='leaf-context';$script:diagOriginalLine=53\n    $stored=TB-Type $descriptor.Value;$base=$Owner.$Field.PSObject.BaseObject"
+    },
+    {
+      "OriginalLine": 55,
+      "Before": "    foreach($p in $members){TB-Need ($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty)}",
+      "After": "    $script:diagStage='leaf-initially-plain';$script:diagOriginalLine=55\n    foreach($p in $members){TB-Need ($p.MemberType -ne [Management.Automation.PSMemberTypes]::NoteProperty)}"
+    },
+    {
+      "OriginalLine": 59,
+      "Before": "    foreach($p in $Value.PSObject.Properties){",
+      "After": "    $script:diagStage='enumerate-leaves';$script:diagOriginalLine=59\n    foreach($p in $Value.PSObject.Properties){"
+    },
+    {
+      "OriginalLine": 65,
+      "Before": "    $script:metadataSequence++;$name='P2AMetadata'+$script:metadataSequence",
+      "After": "    $script:diagStage='mutate-begin';$script:diagOriginalLine=65;$script:diagField=$Selected.Field;$script:diagOtherField='';$script:diagOtherIndex=0\n    $script:metadataSequence++;$name='P2AMetadata'+$script:metadataSequence"
+    },
+    {
+      "OriginalLine": 66,
+      "Before": "    foreach($other in $Others){TB-Need (-not (TB-Ref $Selected.Base $other.Base))}",
+      "After": "    $script:diagOtherIndex=0\n    foreach($other in $Others){\n    $script:diagStage='cross-owner-independence';$script:diagOriginalLine=66;$script:diagOtherField=$other.Field;$script:diagOtherIndex++\n        TB-Need (-not (TB-Ref $Selected.Base $other.Base))\n    }"
+    },
+    {
+      "OriginalLine": 68,
+      "Before": "    $Selected.Members.Add([Management.Automation.PSNoteProperty]::new($name,$payload))",
+      "After": "    $script:diagStage='attach-selected';$script:diagOriginalLine=68\n    $Selected.Members.Add([Management.Automation.PSNoteProperty]::new($name,$payload))"
+    },
+    {
+      "OriginalLine": 70,
+      "Before": "    TB-Need ($null -ne $held -and $held.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty -and (TB-Ref $held.Value $payload))",
+      "After": "    $script:diagStage='held-descriptor';$script:diagOriginalLine=70\n    TB-Need ($null -ne $held -and $held.MemberType -eq [Management.Automation.PSMemberTypes]::NoteProperty -and (TB-Ref $held.Value $payload))"
+    },
+    {
+      "OriginalLine": 71,
+      "Before": "    $read=$Selected.Owner.($Selected.Field).PSObject.Properties[$name];$retained=$null -ne $read",
+      "After": "    $script:diagStage='fresh-reread';$script:diagOriginalLine=71\n    $read=$Selected.Owner.($Selected.Field).PSObject.Properties[$name];$retained=$null -ne $read"
+    },
+    {
+      "OriginalLine": 73,
+      "Before": "    $held.Value[0]='changed'",
+      "After": "    $script:diagStage='mutate-payload';$script:diagOriginalLine=73\n    $held.Value[0]='changed'"
+    },
+    {
+      "OriginalLine": 74,
+      "Before": "    TB-Need ((TB-Ref $Selected.View.Properties[$name] $held) -and $held.Value[0] -ceq 'changed' -and $payload[0] -ceq 'changed')",
+      "After": "    $script:diagStage='held-mutation';$script:diagOriginalLine=74\n    TB-Need ((TB-Ref $Selected.View.Properties[$name] $held) -and $held.Value[0] -ceq 'changed' -and $payload[0] -ceq 'changed')"
+    },
+    {
+      "OriginalLine": 75,
+      "Before": "    $after=$Selected.Owner.($Selected.Field).PSObject.Properties[$name]",
+      "After": "    $script:diagStage='reread-after';$script:diagOriginalLine=75\n    $after=$Selected.Owner.($Selected.Field).PSObject.Properties[$name]"
+    },
+    {
+      "OriginalLine": 76,
+      "Before": "    TB-Need (($null -ne $after) -eq $retained)",
+      "After": "    $script:diagStage='reread-consistency';$script:diagOriginalLine=76\n    TB-Need (($null -ne $after) -eq $retained)"
+    },
+    {
+      "OriginalLine": 77,
+      "Before": "    if($retained){TB-Need ((TB-Ref $after.Value $payload) -and $after.Value[0] -ceq 'changed')}",
+      "After": "    $script:diagStage='retained-payload';$script:diagOriginalLine=77\n    if($retained){TB-Need ((TB-Ref $after.Value $payload) -and $after.Value[0] -ceq 'changed')}"
+    },
+    {
+      "OriginalLine": 78,
+      "Before": "    TB-Need ((TB-Ref $Selected.Owner.PSObject.Properties[$Selected.Field] $Selected.Descriptor) -and",
+      "After": "    $script:diagStage='selected-invariant';$script:diagOriginalLine=78\n    TB-Need ((TB-Ref $Selected.Owner.PSObject.Properties[$Selected.Field] $Selected.Descriptor) -and"
+    },
+    {
+      "OriginalLine": 82,
+      "Before": "    foreach($other in $Others){TB-Need ($null -eq $other.Members[$name] -and $null -eq $other.Owner.($other.Field).PSObject.Properties[$name])}",
+      "After": "    $script:diagOtherIndex=0\n    foreach($other in $Others){\n    $script:diagStage='cross-owner-clean';$script:diagOriginalLine=82;$script:diagOtherField=$other.Field;$script:diagOtherIndex++\n        TB-Need ($null -eq $other.Members[$name] -and $null -eq $other.Owner.($other.Field).PSObject.Properties[$name])\n    }"
+    },
+    {
+      "OriginalLine": 159,
+      "Before": "        $r=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2);$a=New-OfflineTimebasePlan $r;$b=New-OfflineTimebasePlan $r",
+      "After": "    $script:diagStage='construct-request';$script:diagOriginalLine=159;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $r=New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2)\n    $script:diagStage='construct-result-a';$script:diagOriginalLine=159;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $a=New-OfflineTimebasePlan $r\n    $script:diagStage='construct-result-b';$script:diagOriginalLine=159;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $b=New-OfflineTimebasePlan $r"
+    },
+    {
+      "OriginalLine": 160,
+      "Before": "        $inputs=@(TB-Leaves $r);$outputs=@((TB-Leaves $a);(TB-Leaves $b))",
+      "After": "    $script:diagStage='collect-input-leaves';$script:diagOriginalLine=160;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $inputs=@(TB-Leaves $r)\n    $script:diagStage='collect-output-leaves';$script:diagOriginalLine=160;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $outputs=@((TB-Leaves $a);(TB-Leaves $b))"
+    },
+    {
+      "OriginalLine": 161,
+      "Before": "        foreach($leaf in $inputs){TB-Mutate $leaf $outputs}",
+      "After": "    $script:diagStage='input-mutation-loop';$script:diagOriginalLine=161\n        foreach($leaf in $inputs){TB-Mutate $leaf $outputs}"
+    },
+    {
+      "OriginalLine": 162,
+      "Before": "        $payload=[object[]]@('initial');$r.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('RootMutation',$payload));$payload[0]='changed'",
+      "After": "    $script:diagStage='create-root-payload';$script:diagOriginalLine=162;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $payload=[object[]]@('initial')\n    $script:diagStage='attach-root-payload';$script:diagOriginalLine=162;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $r.PSObject.Properties.Add([Management.Automation.PSNoteProperty]::new('RootMutation',$payload))\n    $script:diagStage='mutate-root-payload';$script:diagOriginalLine=162;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0\n        $payload[0]='changed'"
+    },
+    {
+      "OriginalLine": 163,
+      "Before": "        TB-Need ((TB-Ref $r.RootMutation $payload) -and $r.RootMutation[0] -ceq 'changed')",
+      "After": "    $script:diagStage='root-retention';$script:diagOriginalLine=163\n        TB-Need ((TB-Ref $r.RootMutation $payload) -and $r.RootMutation[0] -ceq 'changed')"
+    },
+    {
+      "OriginalLine": 164,
+      "Before": "        $r.PSObject.Properties['ObservedTick'].Value=[long]5",
+      "After": "    $script:diagStage='replace-input-value';$script:diagOriginalLine=164\n        $r.PSObject.Properties['ObservedTick'].Value=[long]5"
+    },
+    {
+      "OriginalLine": 165,
+      "Before": "        TB-Need ($r.ObservedTick -eq 5 -and (TB-Equal $a (TB-Normal)) -and (TB-Equal $b (TB-Normal)))",
+      "After": "    $script:diagStage='saved-results-compare';$script:diagOriginalLine=165\n        TB-Need ($r.ObservedTick -eq 5 -and (TB-Equal $a (TB-Normal)) -and (TB-Equal $b (TB-Normal)))"
+    },
+    {
+      "OriginalLine": 166,
+      "Before": "        TB-Need (TB-Equal (New-OfflineTimebasePlan (New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2))) (TB-Normal))",
+      "After": "    $script:diagStage='next-normal-call';$script:diagOriginalLine=166\n        TB-Need (TB-Equal (New-OfflineTimebasePlan (New-TBRequest ([long]0) ([long]1000) ([long]4) ([long]2))) (TB-Normal))"
+    }
+  ],
+  "AdditionalInsertions": [
+    {
+      "DiagnosticLine": 5,
+      "Text": "$script:diagStage='startup';$script:diagOriginalLine=0;$script:diagField='';$script:diagOtherField='';$script:diagOtherIndex=0;$script:diagAssertion=0"
+    },
+    {
+      "DiagnosticLine": 6,
+      "Text": "function TB-Diagnostic([string]$Outcome,$Record=$null){"
+    },
+    {
+      "DiagnosticLine": 7,
+      "Text": "    $d=[ordered]@{"
+    },
+    {
+      "DiagnosticLine": 8,
+      "Text": "        Schema=1;Outcome=$Outcome;Case=$script:case;Stage=$script:diagStage"
+    },
+    {
+      "DiagnosticLine": 9,
+      "Text": "        Field=$script:diagField;OtherField=$script:diagOtherField;OtherIndex=$script:diagOtherIndex"
+    },
+    {
+      "DiagnosticLine": 10,
+      "Text": "        AssertionOrdinal=$script:diagAssertion;OriginalOperationLine=$script:diagOriginalLine"
+    },
+    {
+      "DiagnosticLine": 11,
+      "Text": "        ExceptionType=$null;ErrorId=$null;Message=$null;DiagnosticLine=$null;Stack=$null"
+    },
+    {
+      "DiagnosticLine": 12,
+      "Text": "        ProductChanged=$false;RepairPerformed=$false;Acceptance=$false"
+    },
+    {
+      "DiagnosticLine": 13,
+      "Text": "    }"
+    },
+    {
+      "DiagnosticLine": 14,
+      "Text": "    if($null -ne $Record){"
+    },
+    {
+      "DiagnosticLine": 15,
+      "Text": "        $d.ExceptionType=$Record.Exception.GetType().FullName"
+    },
+    {
+      "DiagnosticLine": 16,
+      "Text": "        $d.ErrorId=$Record.FullyQualifiedErrorId;$d.Message=$Record.Exception.Message"
+    },
+    {
+      "DiagnosticLine": 17,
+      "Text": "        $d.DiagnosticLine=$Record.InvocationInfo.ScriptLineNumber;$d.Stack=$Record.ScriptStackTrace"
+    },
+    {
+      "DiagnosticLine": 18,
+      "Text": "    }"
+    },
+    {
+      "DiagnosticLine": 19,
+      "Text": "    $json=$d|ConvertTo-Json -Depth 5 -Compress"
+    },
+    {
+      "DiagnosticLine": 20,
+      "Text": "    if([Text.UTF8Encoding]::new($false).GetByteCount($json) -gt 65536){"
+    },
+    {
+      "DiagnosticLine": 21,
+      "Text": "        $json='{\"Schema\":1,\"Outcome\":\"INCOMPLETE\",\"Detail\":\"diagnostic-record-too-large\"}'"
+    },
+    {
+      "DiagnosticLine": 22,
+      "Text": "    }"
+    },
+    {
+      "DiagnosticLine": 23,
+      "Text": "    [Console]::Out.WriteLine('DIAG: '+$json)"
+    },
+    {
+      "DiagnosticLine": 24,
+      "Text": "}"
+    },
+    {
+      "DiagnosticLine": 228,
+      "Text": "    TB-Diagnostic 'NOT_REPRODUCED'"
+    },
+    {
+      "DiagnosticLine": 229,
+      "Text": "    exit 2"
+    },
+    {
+      "DiagnosticLine": 230,
+      "Text": "}catch{"
+    },
+    {
+      "DiagnosticLine": 231,
+      "Text": "    $record=$_"
+    },
+    {
+      "DiagnosticLine": 232,
+      "Text": "    $outcome=if($script:case -ceq 'InputMutation'){'INPUT_MUTATION_EXCEPTION'}else{'EARLIER_FAILURE'}"
+    },
+    {
+      "DiagnosticLine": 233,
+      "Text": "    TB-Diagnostic $outcome $record"
+    },
+    {
+      "DiagnosticLine": 234,
+      "Text": "    [Console]::Out.WriteLine('ASSERTION FAILED: P2A'+$script:case)"
+    },
+    {
+      "DiagnosticLine": 235,
+      "Text": "    exit 1"
+    },
+    {
+      "DiagnosticLine": 236,
+      "Text": "}"
+    }
+  ],
+  "OmittedOriginalLines": {
+    "From": 168,
+    "Through": 195,
+    "Reason": "Stop after InputMutation; replace original uninformative outer catch only"
+  },
+  "ProductChanged": false,
+  "RepairPerformed": false,
+  "Acceptance": false
+}

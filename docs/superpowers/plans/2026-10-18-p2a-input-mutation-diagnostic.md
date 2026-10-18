@@ -10,8 +10,11 @@
 
 **Spec:** Original [P2 boundaries](../specs/2026-10-18-p2-adapter-boundaries-design.md), [approved finite implementation route](2026-10-18-p2a-timebase-plan.md), and [actual stopped evidence](../../roadmap/2026-10-18-p2a-timebase-execution.md). This proposal addresses observability only.
 
-Status: PROPOSED_NOT_APPROVED. This turn performed readonly diagnosis and wrote
-documentation only. No diagnostic source/controller/packet, host or reviewer created.
+Status: APPROVED_AND_EXECUTED after f5549619. One new ordinary host consumed1/1;
+REPRODUCED_SITE_CAPTURED at input Schema initially-plain check (original55, caller160).
+No repair/retry/reviewer; old unused3slots remain frozen. See
+[actual diagnostic result](../../roadmap/2026-10-18-p2a-input-mutation-diagnostic.md).
+Original proposal/findings below are historical; approval does not authorize fixes.
 
 ## Readonly findings
 
@@ -62,7 +65,7 @@ frozen, conditional review0/1ineligible. No extra execution in this audit.
 
 ## Task 1 — one diagnostic capture, only after explicit approval
 
-**Files proposed, not yet created:**
+**Approved files, created during this one-shot diagnostic:**
 docs/diagnostics/isolated-fuzz/p2a-input-mutation-diagnostic/ with exact product
 copy offline-timebase-plan.ps1, diagnostic.tests.ps1, capture.ps1, source-pins.json,
 README.md and LF .gitattributes. New ignored packet
@@ -73,7 +76,7 @@ Report: docs/roadmap/2026-10-18-p2a-input-mutation-diagnostic.md.
 and preserved prior evidence identities. **Produces:** diagnostic-site/exception
 record and complete stream receipts, not a new product or success decision.
 
-- [ ] **Step 1 — prepare without execution.** Verify clean expected branch/origin,
+- [x] **Step 1 — prepare without execution.** Verify clean expected branch/origin,
   original source/test and775common pins plus current frozen/index/seal/four streams.
   Copy exact product bytes. Derive test prefix mechanically from the original:
   preserve all helpers/assertions/literals and ordered groups ApiRequired through
@@ -85,7 +88,7 @@ record and complete stream receipts, not a new product or success decision.
   in the outer catch. Emit structured DIAG record with case/stage/field/other field/
   assertion ordinal plus stack and diagnostic line; preserve original failure label.
   Freeze a static original-to-diagnostic line map and allowlisted exact diff.
-- [ ] **Step 2 — freeze bounded controller.** No product import during preparation.
+- [x] **Step 2 — freeze bounded controller.** No product import during preparation.
   Persist preconsumption before the single launch; engine SHA256
   362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139.
   Existing engine path is recorded in the original source-pins.json. Ordinary
@@ -93,7 +96,7 @@ record and complete stream receipts, not a new product or success decision.
   Max30000ms execution+2000ms owned exit+2000ms concurrent separate raw-byte drain;
   no PID scanning, unrelated termination or elevation. Static parse/hash/diff
   checks only before launch; no warmup. Preserve all original mappings and pins.
-- [ ] **Step 3 — run once and stop.** A reproduced InputMutation exception with
+- [x] **Step 3 — run once and stop.** A reproduced InputMutation exception with
   exactly the previous18PASS prefix, a complete bounded DIAG record,exit1,stderr0,
   intact pins,ordinary context and confirmed owned exit/drain is REPRODUCED_SITE_CAPTURED.
   If InputMutation completes, emit DIAG outcome NOT_REPRODUCED and exit2 before
@@ -101,14 +104,14 @@ record and complete stream receipts, not a new product or success decision.
   missing/oversized diagnostic record (max64KiB), drift, timeout or unknown cleanup
   is INCOMPLETE. No outcome grants a second host or fixes. Observer-induced changes
   remain a limitation even if the same site is recovered.
-- [ ] **Step 4 — readonly reconcile and preserve.** Map captured line/stack/ordinal
+- [x] **Step 4 — readonly reconcile and preserve.** Map captured line/stack/ordinal
   to the frozen source, distinguish observed fact from hypothesis, record a focused
   proposed repair only if supported. If no site recovered, state that limitation.
   Save diagnostic source and report/status/recovery as necessary development
   checkpoint; explicit stage list,ordinary commit/push existing branch,remote SHA
   equality. Keep raw ignored records. Further repair/validation needs a new decision.
 
-Self-review: no feature changes or product fixes; one task/one host/no reviewer.
+Preparation self-review: no feature changes or product fixes; one task/one host/no reviewer.
 Five focus risks map to ordered prefix, exact diff, markers/stack, byte pin and
-explicit outcomes. Native method retained. This document requests review and
-approval of ONE diagnostic run only; it does not resume the original five-slot route.
+explicit outcomes. Native method retained. The originally requested ONE diagnostic
+run is now spent; it did not resume the original five-slot route or grant repair.
