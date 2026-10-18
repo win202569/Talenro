@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — synthetic storage trace completed; wrapper lost at assignment/reread
+
+One new ordinary PS7 diagnostic (10s bound) completed2paths/14records in836ms,
+exit0, stderr0, owned exit/streams complete,637pins intact. Exact setup remains
+Int32 before/after, descriptor/base references unchanged. Split trace: constructor
+result and R-Wrapper return are native PSObject, but assigned field reads Int32.
+This locates the observable assignment/reread boundary, not a specific internal
+binder/setter/getter step. The storage fixture guard correctly rejected a non-change.
+See [full trace and limits](2026-10-18-p1-storage-setup-trace.md).
+No old batch rerun, observer scan, fixture repair or candidate import/call. Prior
+equivalence remains only3/45 completed paired cases, no speed/acceptance claim.
+Next proposal: separately prove a type-changing SDK-reflection assignment while
+preserving descriptor/base identity; only then prepare a revised fixture/harness.
+Old slots remain frozen; no main/I1/security/runtime/C12 acceptance.
+
 ## Latest — corrected preflight passed; offline fixture blocked at case 4
 
 Failed controller preserved; new capture-corrected.ps1 corrects only the wrong

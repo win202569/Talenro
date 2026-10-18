@@ -1,0 +1,14 @@
+{
+  "Schema": 1,
+  "BaseCommit": "f1779db788eb1b3a4a7f1efd4b34e1e4f35e9dce",
+  "PriorFrozenSHA256": "B5CCFC9EFB1EACB8448FF5432ACBE100849A9288B23EF14CAD6B5F7CC74599C8",
+  "InheritedPins": 627,
+  "Hosts": 1,
+  "MaxMs": 10000,
+  "ExitMs": 2000,
+  "DrainMs": 2000,
+  "Paths": 2,
+  "Records": 14,
+  "CandidateImports": 0,
+  "ProductCalls": 0
+}

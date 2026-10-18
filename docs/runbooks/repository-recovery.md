@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest diagnosis: [synthetic storage trace](../roadmap/2026-10-18-p1-storage-setup-trace.md).
+Two Int32 paths/14records complete in836ms;637pins intact, stderr0. Wrapper exists
+at constructor/helper return, but the assigned note-property field reads Int32.
+Old storage guard is correct; no fixture fix or equivalence rerun was made. The
+45-case matrix remains incomplete (3paired passes), not a speedup or acceptance.
+Next proposal is a separately bounded construction check preserving real stored
+type changes plus descriptor/base identity; do not rerun any saved controller.
+
 Latest result: [offline observer fixture blocked](../roadmap/2026-10-18-p1-inline-observer-fixture-blocked.md).
 Corrected preflight succeeded, but the single offline child stopped at case4:
 the Int32 storage fixture did not actually change stored type. Only 3/45 paired
