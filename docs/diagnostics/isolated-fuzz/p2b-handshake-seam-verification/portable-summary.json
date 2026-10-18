@@ -1,0 +1,490 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-handshake-seam-verification-portable-summary",
+  "Status": "TWO_EXACT_REVIEW_PENDING",
+  "BaseCommit": "c1b87ccc604b488dae3f48e8325b1238cd3e1df3",
+  "Method": "Native",
+  "ImplementationApproved": true,
+  "NewBudget": {
+    "HostsApproved": 2,
+    "HostsSpent": 2,
+    "HostsRemaining": 0,
+    "ReviewersApproved": 1,
+    "ReviewersSpent": 0,
+    "ReviewerEligible": true
+  },
+  "HistoricalBudget": {
+    "TreeHostsSpent": 5,
+    "TreeReviewersSpent": 1,
+    "OriginalHostsSpent": 2,
+    "OriginalRemainingFrozen": 3,
+    "DiagnosticHostsSpent": 1
+  },
+  "FrozenSHA256": "D7476546E4F2491E31D9A4B5A76B2A1458DCF3172CA07EF6D874E5E6970ACD86",
+  "FrozenPins": 1378,
+  "InheritedPins": 1326,
+  "AdditionalPins": 52,
+  "SpecSHA256": "9C37A7AD0156DDB7732503E78F919FAA887B0708D3F91CFA5494C9BD367309CC",
+  "ApprovedPlanSnapshotSHA256": "24FF0B4DBD3D5DD20C2B2287180A12E547D3637C022D031020215ABEC573D3FD",
+  "ProductSHA256": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+  "CodecSHA256": "9A532E17D33CAB1FEE9D8BB24C41D5A4B867E42F5EBAB0EE3C3C29C9CDC1093C",
+  "InvocationsSHA256": "F631E13950558B50F2B3A7FA3404FC2F462132B2B743D34796826456163DB21E",
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "E71155BDB5E982056850C6A6A20C4A4968657DD75C18926606B420ABB5D77602"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "2CB714AE6359521DFF7550AC7AF71A46A0E67248666AC564D8C0312AF2DCA578"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "65C43804F59C7F36E3E9C9BFF22AF40EA110026291E95234ECC547CC6373F987"
+    },
+    {
+      "Name": "handshake-seam.tests.ps1",
+      "SHA256": "4EB9FE8CC657E00CB3FC2281A3E9A9076C5A4232FEF516676E7DFBDBF609A745"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "FCC2B39647D12834998CB682A19B7AF35438898E3279A9F1ED534FEBA449AB46"
+    }
+  ],
+  "FullFinalStdoutIdentical": true,
+  "FullFinalTraceIdentical": true,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "CompileCount": 0,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "Limits": [
+    "Only the twelve new seam groups ran in each host; old33/32/12 suites were not rerun.",
+    "No production consumer/state machine, ticket, real time, capabilities, or release was implemented or verified.",
+    "Test-only first-run-green exception was approved; no API-RED, product fix or mutation claim.",
+    "Codec/inbox limited acceptance and the existing Minor2 scalar ETS assertion deferral are unchanged.",
+    "This is not full P2-B, P2-C/P3, Task9/fullC12/main/live or formal acceptance.",
+    "Portable raw subtrees are inserted as original JSON text, without JavaScript Number conversion; cloning does not restore raw packets, dependencies, credentials, CLR identity or execution rights."
+  ]
+,
+  "Invocations": [
+  {
+    "Number": 1,
+    "Slot": "full",
+    "AttemptConsumed": true,
+    "Launched": true,
+    "PID": 26732,
+    "ElapsedMs": 5331,
+    "TimedOut": false,
+    "ExitCode": 0,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "PostPinsIntact": true,
+    "ExactExpected": true,
+    "CrossRunEqual": true,
+    "Outcome": "EXPECTED_WITHIN_SCOPE",
+    "stdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E",
+    "TraceDifferences": [],
+    "RealGateImplemented": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false
+  },
+  {
+    "Number": 2,
+    "Slot": "final",
+    "AttemptConsumed": true,
+    "Launched": true,
+    "PID": 29608,
+    "ElapsedMs": 4044,
+    "TimedOut": false,
+    "ExitCode": 0,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "PostPinsIntact": true,
+    "ExactExpected": true,
+    "CrossRunEqual": true,
+    "Outcome": "EXPECTED_WITHIN_SCOPE",
+    "stdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E",
+    "TraceDifferences": [],
+    "RealGateImplemented": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false
+  }
+],
+  "FullTrace": {
+  "Schema": 1,
+  "Mode": "p2b-handshake-seam-tests",
+  "Groups": [
+    "FixedBoundary",
+    "OrdinaryGap",
+    "TakeDoesNotResetAdmission",
+    "StaleExpectedRejected",
+    "DeclaredExpectedIsNotAuthority",
+    "ArmReference",
+    "StopReference",
+    "HeartbeatReference",
+    "ArmDeclaredExpiry",
+    "LookalikeInboxRejected",
+    "StoppedInboxNoRecovery",
+    "Complete"
+  ],
+  "Observations": {
+    "FixedBoundary": {
+      "Exports": [
+        "Add-P2BInboxFragment",
+        "Close-P2BInboxInput",
+        "Get-P2BInboxSnapshot",
+        "New-P2BInbox",
+        "Receive-P2BInboxFrame"
+      ],
+      "Pins": {
+        "Module": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+        "Helper": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D",
+        "Fixture": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+      }
+    },
+    "OrdinaryGap": {
+      "EnqueuedReasons": [
+        "queued",
+        "heartbeat-updated",
+        "heartbeat-updated",
+        "queued"
+      ],
+      "BeforeCount": 2,
+      "BeforeNext": 5,
+      "BeforeLast": 4,
+      "HeartbeatSequence": 3,
+      "DeliveredSequences": [
+        1,
+        4
+      ],
+      "AfterCount": 0,
+      "AfterNext": 5,
+      "AfterLast": 4
+    },
+    "TakeDoesNotResetAdmission": {
+      "Reason": "sequence-mismatch",
+      "AcceptedBytes": 256,
+      "FirstFailureSequence": 4,
+      "Next": 5,
+      "Last": 4,
+      "PartialLength": 256
+    },
+    "StaleExpectedRejected": {
+      "ConsumedSequence": 4,
+      "ExpectedNext": 2,
+      "Reason": "sequence-mismatch",
+      "ReturnedNext": null
+    },
+    "DeclaredExpectedIsNotAuthority": {
+      "ExpectedNext": 4,
+      "Reason": "binding-matched",
+      "ReturnedNext": 5,
+      "Flags": [
+        false,
+        false,
+        false
+      ]
+    },
+    "ArmReference": {
+      "Sequence": 7,
+      "PayloadReference": 3,
+      "ExpectedReferences": [
+        3,
+        0,
+        2
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        8,
+        null,
+        null
+      ]
+    },
+    "StopReference": {
+      "Sequence": 7,
+      "PayloadReference": 2,
+      "ExpectedReferences": [
+        2,
+        0,
+        1
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        8,
+        null,
+        null
+      ]
+    },
+    "HeartbeatReference": {
+      "Sequence": 2,
+      "PayloadReference": 1,
+      "ExpectedReferences": [
+        1,
+        0
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        3,
+        null
+      ]
+    },
+    "ArmDeclaredExpiry": {
+      "ObservedTicks": [
+        113499,
+        113500
+      ],
+      "ArmReference": 1,
+      "ReleaseBefore": 113500,
+      "Reasons": [
+        "binding-matched",
+        "expired-declaration"
+      ],
+      "ReturnedNext": [
+        2,
+        null
+      ]
+    },
+    "LookalikeInboxRejected": {
+      "Reasons": [
+        "invalid-input",
+        "invalid-input",
+        "invalid-input"
+      ],
+      "OriginalSnapshotUnchanged": true,
+      "FakeCount": 3
+    },
+    "StoppedInboxNoRecovery": {
+      "CreatedCount": 1,
+      "CloseReason": "peer-closed",
+      "PostFeed": "stopped",
+      "PostTake": "stopped",
+      "FirstReason": "peer-closed",
+      "FirstSequence": null,
+      "Count": 1,
+      "Next": 2,
+      "Last": 1
+    },
+    "Complete": {
+      "PriorGroups": 11,
+      "Exports": [
+        "Add-P2BInboxFragment",
+        "Close-P2BInboxInput",
+        "Get-P2BInboxSnapshot",
+        "New-P2BInbox",
+        "Receive-P2BInboxFrame"
+      ]
+    }
+  },
+  "Passed": true,
+  "Error": null,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false
+},
+  "FinalTrace": {
+  "Schema": 1,
+  "Mode": "p2b-handshake-seam-tests",
+  "Groups": [
+    "FixedBoundary",
+    "OrdinaryGap",
+    "TakeDoesNotResetAdmission",
+    "StaleExpectedRejected",
+    "DeclaredExpectedIsNotAuthority",
+    "ArmReference",
+    "StopReference",
+    "HeartbeatReference",
+    "ArmDeclaredExpiry",
+    "LookalikeInboxRejected",
+    "StoppedInboxNoRecovery",
+    "Complete"
+  ],
+  "Observations": {
+    "FixedBoundary": {
+      "Exports": [
+        "Add-P2BInboxFragment",
+        "Close-P2BInboxInput",
+        "Get-P2BInboxSnapshot",
+        "New-P2BInbox",
+        "Receive-P2BInboxFrame"
+      ],
+      "Pins": {
+        "Module": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+        "Helper": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D",
+        "Fixture": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+      }
+    },
+    "OrdinaryGap": {
+      "EnqueuedReasons": [
+        "queued",
+        "heartbeat-updated",
+        "heartbeat-updated",
+        "queued"
+      ],
+      "BeforeCount": 2,
+      "BeforeNext": 5,
+      "BeforeLast": 4,
+      "HeartbeatSequence": 3,
+      "DeliveredSequences": [
+        1,
+        4
+      ],
+      "AfterCount": 0,
+      "AfterNext": 5,
+      "AfterLast": 4
+    },
+    "TakeDoesNotResetAdmission": {
+      "Reason": "sequence-mismatch",
+      "AcceptedBytes": 256,
+      "FirstFailureSequence": 4,
+      "Next": 5,
+      "Last": 4,
+      "PartialLength": 256
+    },
+    "StaleExpectedRejected": {
+      "ConsumedSequence": 4,
+      "ExpectedNext": 2,
+      "Reason": "sequence-mismatch",
+      "ReturnedNext": null
+    },
+    "DeclaredExpectedIsNotAuthority": {
+      "ExpectedNext": 4,
+      "Reason": "binding-matched",
+      "ReturnedNext": 5,
+      "Flags": [
+        false,
+        false,
+        false
+      ]
+    },
+    "ArmReference": {
+      "Sequence": 7,
+      "PayloadReference": 3,
+      "ExpectedReferences": [
+        3,
+        0,
+        2
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        8,
+        null,
+        null
+      ]
+    },
+    "StopReference": {
+      "Sequence": 7,
+      "PayloadReference": 2,
+      "ExpectedReferences": [
+        2,
+        0,
+        1
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        8,
+        null,
+        null
+      ]
+    },
+    "HeartbeatReference": {
+      "Sequence": 2,
+      "PayloadReference": 1,
+      "ExpectedReferences": [
+        1,
+        0
+      ],
+      "Reasons": [
+        "binding-matched",
+        "reference-mismatch"
+      ],
+      "ReturnedNext": [
+        3,
+        null
+      ]
+    },
+    "ArmDeclaredExpiry": {
+      "ObservedTicks": [
+        113499,
+        113500
+      ],
+      "ArmReference": 1,
+      "ReleaseBefore": 113500,
+      "Reasons": [
+        "binding-matched",
+        "expired-declaration"
+      ],
+      "ReturnedNext": [
+        2,
+        null
+      ]
+    },
+    "LookalikeInboxRejected": {
+      "Reasons": [
+        "invalid-input",
+        "invalid-input",
+        "invalid-input"
+      ],
+      "OriginalSnapshotUnchanged": true,
+      "FakeCount": 3
+    },
+    "StoppedInboxNoRecovery": {
+      "CreatedCount": 1,
+      "CloseReason": "peer-closed",
+      "PostFeed": "stopped",
+      "PostTake": "stopped",
+      "FirstReason": "peer-closed",
+      "FirstSequence": null,
+      "Count": 1,
+      "Next": 2,
+      "Last": 1
+    },
+    "Complete": {
+      "PriorGroups": 11,
+      "Exports": [
+        "Add-P2BInboxFragment",
+        "Close-P2BInboxInput",
+        "Get-P2BInboxSnapshot",
+        "New-P2BInbox",
+        "Receive-P2BInboxFrame"
+      ]
+    }
+  },
+  "Passed": true,
+  "Error": null,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false
+}
+}

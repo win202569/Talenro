@@ -1,6 +1,17 @@
 # Project status — updated 2026-10-19
 
-## Latest — handshake spec approved; seam-only plan pending method/budget approval
+## Latest — handshake seam checks pass twice; conditional review pending
+
+[Execution](2026-10-19-p2b-handshake-seam-verification.md).
+User approved Native/NEW2+conditional1 afterc1b87ccc. Prepared5inputs/1378pins.
+fullPID26732/5331ms andfinalPID29608/4044ms:each exit0/15lines12PASS,
+stdout andcomplete trace identical,oracle0differences,no timeout/stderr,
+ownedexit/drains/postpins complete. Zero compiles/product edits/old suite reruns.
+NEW2/2targets spent;one conditional readonlyreview now eligible,not run yet.
+No real handshake consumer/state/ticket/clock/capability implemented;no acceptance/
+main/live promotion. Existing limited approvals/Minor2 andoldbudgets unchanged.
+
+## Historical — handshake spec approved; seam-only plan pending method/budget approval
 
 [Plan](../superpowers/plans/2026-10-19-p2b-handshake-seam-verification.md).
 User approved writtenSpec9C37A7AD... afterf64d0ff7,permitting plan-writing only.

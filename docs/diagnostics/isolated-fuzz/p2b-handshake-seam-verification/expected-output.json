@@ -1,0 +1,204 @@
+{
+  "Output": [
+    "{Context}",
+    "HOST: PS7.6.5 Core x64",
+    "PASS: P2BHSeamFixedBoundary",
+    "PASS: P2BHSeamOrdinaryGap",
+    "PASS: P2BHSeamTakeDoesNotResetAdmission",
+    "PASS: P2BHSeamStaleExpectedRejected",
+    "PASS: P2BHSeamDeclaredExpectedIsNotAuthority",
+    "PASS: P2BHSeamArmReference",
+    "PASS: P2BHSeamStopReference",
+    "PASS: P2BHSeamHeartbeatReference",
+    "PASS: P2BHSeamArmDeclaredExpiry",
+    "PASS: P2BHSeamLookalikeInboxRejected",
+    "PASS: P2BHSeamStoppedInboxNoRecovery",
+    "PASS: P2BHSeamComplete",
+    "LIMIT: declarations/seam only; no handshake state or runtime authority"
+  ],
+  "TraceExpected": {
+    "Schema": 1,
+    "Mode": "p2b-handshake-seam-tests",
+    "Groups": [
+      "FixedBoundary",
+      "OrdinaryGap",
+      "TakeDoesNotResetAdmission",
+      "StaleExpectedRejected",
+      "DeclaredExpectedIsNotAuthority",
+      "ArmReference",
+      "StopReference",
+      "HeartbeatReference",
+      "ArmDeclaredExpiry",
+      "LookalikeInboxRejected",
+      "StoppedInboxNoRecovery",
+      "Complete"
+    ],
+    "Observations": {
+      "FixedBoundary": {
+        "Exports": [
+          "Add-P2BInboxFragment",
+          "Close-P2BInboxInput",
+          "Get-P2BInboxSnapshot",
+          "New-P2BInbox",
+          "Receive-P2BInboxFrame"
+        ],
+        "Pins": {
+          "Module": "47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC",
+          "Helper": "4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D",
+          "Fixture": "5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D"
+        }
+      },
+      "OrdinaryGap": {
+        "EnqueuedReasons": [
+          "queued",
+          "heartbeat-updated",
+          "heartbeat-updated",
+          "queued"
+        ],
+        "BeforeCount": 2,
+        "BeforeNext": 5,
+        "BeforeLast": 4,
+        "HeartbeatSequence": 3,
+        "DeliveredSequences": [
+          1,
+          4
+        ],
+        "AfterCount": 0,
+        "AfterNext": 5,
+        "AfterLast": 4
+      },
+      "TakeDoesNotResetAdmission": {
+        "Reason": "sequence-mismatch",
+        "AcceptedBytes": 256,
+        "FirstFailureSequence": 4,
+        "Next": 5,
+        "Last": 4,
+        "PartialLength": 256
+      },
+      "StaleExpectedRejected": {
+        "ConsumedSequence": 4,
+        "ExpectedNext": 2,
+        "Reason": "sequence-mismatch",
+        "ReturnedNext": null
+      },
+      "DeclaredExpectedIsNotAuthority": {
+        "ExpectedNext": 4,
+        "Reason": "binding-matched",
+        "ReturnedNext": 5,
+        "Flags": [
+          false,
+          false,
+          false
+        ]
+      },
+      "ArmReference": {
+        "Sequence": 7,
+        "PayloadReference": 3,
+        "ExpectedReferences": [
+          3,
+          0,
+          2
+        ],
+        "Reasons": [
+          "binding-matched",
+          "reference-mismatch",
+          "reference-mismatch"
+        ],
+        "ReturnedNext": [
+          8,
+          null,
+          null
+        ]
+      },
+      "StopReference": {
+        "Sequence": 7,
+        "PayloadReference": 2,
+        "ExpectedReferences": [
+          2,
+          0,
+          1
+        ],
+        "Reasons": [
+          "binding-matched",
+          "reference-mismatch",
+          "reference-mismatch"
+        ],
+        "ReturnedNext": [
+          8,
+          null,
+          null
+        ]
+      },
+      "HeartbeatReference": {
+        "Sequence": 2,
+        "PayloadReference": 1,
+        "ExpectedReferences": [
+          1,
+          0
+        ],
+        "Reasons": [
+          "binding-matched",
+          "reference-mismatch"
+        ],
+        "ReturnedNext": [
+          3,
+          null
+        ]
+      },
+      "ArmDeclaredExpiry": {
+        "ObservedTicks": [
+          113499,
+          113500
+        ],
+        "ArmReference": 1,
+        "ReleaseBefore": 113500,
+        "Reasons": [
+          "binding-matched",
+          "expired-declaration"
+        ],
+        "ReturnedNext": [
+          2,
+          null
+        ]
+      },
+      "LookalikeInboxRejected": {
+        "Reasons": [
+          "invalid-input",
+          "invalid-input",
+          "invalid-input"
+        ],
+        "OriginalSnapshotUnchanged": true,
+        "FakeCount": 3
+      },
+      "StoppedInboxNoRecovery": {
+        "CreatedCount": 1,
+        "CloseReason": "peer-closed",
+        "PostFeed": "stopped",
+        "PostTake": "stopped",
+        "FirstReason": "peer-closed",
+        "FirstSequence": null,
+        "Count": 1,
+        "Next": 2,
+        "Last": 1
+      },
+      "Complete": {
+        "PriorGroups": 11,
+        "Exports": [
+          "Add-P2BInboxFragment",
+          "Close-P2BInboxInput",
+          "Get-P2BInboxSnapshot",
+          "New-P2BInbox",
+          "Receive-P2BInboxFrame"
+        ]
+      }
+    },
+    "Passed": true,
+    "Error": null,
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "RealGateImplemented": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false
+  }
+}

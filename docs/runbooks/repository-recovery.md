@@ -1,6 +1,16 @@
 # Recover the project on a new computer
 
-Latest:[handshake seam verification plan](../superpowers/plans/2026-10-19-p2b-handshake-seam-verification.md).
+Latest:[handshake seam two exact runs](../roadmap/2026-10-19-p2b-handshake-seam-verification.md).
+Native/NEW2+conditional1 approved afterc1b87ccc. Frozen5inputs/1378pins;full
+PID26732 andfinalPID29608 each15lines12PASS/exit0,identical stdout/complete trace.
+No timeout/stderr,ownedexit/drains complete;0compiles/product/old suite changes.
+Two targets exhausted;unique readonlyreview pending. Restore existingdevbranch,
+read review outcome before further work. No production state/ticket/capability
+or new formal/live/main/fullC12 acceptance. Oldbudgets andMinor2 unchanged.
+Clone preserves portable data,not raw packet/dependencies/credentials/CLR rights;
+do not automatically replay any host or reconstruct missing historical raw.
+
+Historical:[handshake seam verification plan](../superpowers/plans/2026-10-19-p2b-handshake-seam-verification.md).
 WrittenSpec9C37A7AD... approved afterf64d0ff7;only plan-writing authorized.
 New plan proposes12seam-only checks using unchanged codec/inbox,Native NEW2+1.
 Method/budget/implementation NOT approved;0new fixture/packet/target/compile/review.

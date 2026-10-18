@@ -7,9 +7,11 @@
 **Tech Stack:** Windows PowerShell7.6.5 Core x64、固定SDK、现有byte[256] fixture，无Add-Type/原生编译/新依赖。
 **Spec:** [书面合同](../specs/2026-10-19-p2b-handshake-contract-design.md)，SHA256=9C37A7AD0156DDB7732503E78F919FAA887B0708D3F91CFA5494C9BD367309CC。用户在f64d0ff7后明确批准书面稿并仅同意编写计划。
 
-状态：PLAN_PENDING_APPROVAL。ImplementationApproved=false；RuntimeApproved=false。
-本轮只写计划/自检；0新产品/夹具文件/packet/目标/测试/编译/审查/安全查询。
-提议NEW2目标+条件1只读reviewer，未批准。此预算只适用于Native。
+状态：TWO_EXACT_REVIEW_PENDING。ImplementationApproved=true；RuntimeApproved=false。
+用户在c1b87ccc后批准Native/NEW2+条件1；已准备5输入并冻结1378pins。
+full PID26732/5331ms与final PID29608/4044ms均exit0/15行12PASS，输出/
+完整trace哈希一致，0编译/产品变更/旧suite重跑。条件只读审查尚待启动。
+NEW2/2目标已用尽；唯一reviewer符合启动条件，不增加任何后续额度。
 旧inbox5/5和1/1已用完，旧原2spent+3FROZEN及独立诊断1spent均不变。
 
 ## Global Constraints
@@ -56,7 +58,7 @@ owner/vendor及精确运行批准、P2-C准备绑定尚未成立。不得在此�
 
 ## 文件图与固定输入
 
-未来新目录docs/diagnostics/isolated-fuzz/p2b-handshake-seam-verification/，本轮不创建。
+实施目录docs/diagnostics/isolated-fuzz/p2b-handshake-seam-verification/已创建并冻结5输入。
 
 | 文件 | 唯一职责 |
 | --- | --- |
@@ -97,7 +99,7 @@ StopAtTick Int64=113500,ArmSequence/StopSequence/LastNonHeartbeatSequence UInt64
 不从被测Message复制这些值。IB-Frame从固定hex独立改写方向/序号/声明时基；
 Kind5的payload引用保持3、Kind10保持2，不能假设为1。
 
-- [ ] **Step1 — 先写完整夹具/预期，静态检查后冻结，产品不动。**
+- [x] **Step1 — 先写完整夹具/预期，静态检查后冻结，产品不动。**
   只Import固定inbox一次；固定codec定义由其已有依赖提供，不另加预热。
   新trace字段固定Schema1/Mode=p2b-handshake-seam-tests/Groups string[]/
   Observations固定观测对象/Passed bool/Error null或固定异常摘要/
@@ -169,7 +171,7 @@ Kind5的payload引用保持3、Kind10保持2，不能假设为1。
   上述名称/断言中的SnapshotQueue/Count等是局部观测值，不是新接口或caller事实。
   所有codec结果均按10字段根核查；所有inbox结果用固定IB-Result核12字段根。
 
-- [ ] **Step2 — Prepare，冻结1378条映射，不启动目标。**
+- [x] **Step2 — Prepare，冻结1378条映射，不启动目标。**
   新packet .superpowers/sdd/2026-10-19-p2b-handshake-seam-verification/此前不存在。
   继承旧tree-copy frozen.json的1326条VerificationPath映射，逐项原样核对。
   先核旧manifest DB3FFAFC5D8A9E9501B3C12FFBFBF3735CB5B52D8414CCB020EC71ED52E58418、
@@ -186,7 +188,7 @@ Kind5的payload引用保持3、Kind10保持2，不能假设为1。
   Spec快照必须9C37A7AD...；Plan快照绑定用户批准版本。
   静态parse/JSON/literal/source检查不得import产品或编译。清单数量/旧身份任何异常停。
 
-- [ ] **Step3 — full一次，首次执行新12组夹具。**
+- [x] **Step3 — full一次，首次执行新12组夹具。**
   Run: capture.ps1 -Action Run -Slot full -FrozenSHA256 <Prepare实际SHA>。
   新controller预消费row1后才启动同一固定普通PS7目标，直接-File
   handshake-seam.tests.ps1 -TracePath <packet/full.trace.json>。
@@ -197,12 +199,12 @@ Kind5的payload引用保持3、Kind10保持2，不能假设为1。
   pins/产品身份不变，ownedexit/drains完成，无timeout。
   任何失败立即冻结final/review，不借第二轮修复或改冻结预期。
 
-- [ ] **Step4 — final一次，不改任一输入或产品。**
+- [x] **Step4 — final一次，不改任一输入或产品。**
   Run:同controller -Action Run -Slot final -FrozenSHA256 <同一SHA>。
   Expected:同15行/12PASS/exit0/空stderr，stdout和完整trace与full哈希相同。
   两轮是新夹具有限重复，不是旧suite回归或新产品RED→GREEN。
 
-- [ ] **Step5 — 保存有限结果，勿声称真实阶段完成。**
+- [x] **Step5 — 保存有限结果，勿声称真实阶段完成。**
   portable-summary保留两raw流/trace哈希及精确可携带trace，读取时保留JSON数字原文，
   不经JavaScript Number回写；逐字段/数字token与raw做只读比较。
   原始记录留ignored，不复制旧raw进Git，不把full/final改判。
@@ -216,7 +218,7 @@ Kind5的payload引用保持3、Kind10保持2，不能假设为1。
 保守拒绝。若发现真实产品缺陷或测试向量有误，停止并另定处置，不改既有验收。
 这里的有限例外不适用于今后新增生产行为；后者仍须各自TDD与明确预算。
 
-## 拟申请NEW2+1，当前未批准
+## 已批准NEW2+1，目标用尽，等待唯一条件审查
 
 推荐Native：一个紧耦合夹具交付+一次末尾只读review，避免额外实施代理。
 Subagent-driven需要重新提出包含实施/逐任务/末尾review的预算，不能塞入本2+1。
@@ -269,5 +271,5 @@ Spec§1–10覆盖账本见上；真正本地阶段/票据/能力/竞争/时钟/
 所有新辅助函数都在脚本scope，模块五导出和全部产品哈希不变；
 没有未定义的生产接口、TODO占位、实际能力或可运行live包。
 
-请用户审阅本计划并明确方法和新2+1预算。推荐Native；批准前不创建
-新夹具/packet或执行任何目标。书面Spec批准不等于本计划执行批准。
+用户已批准本计划Native/新2+1；两轮均精确，等待唯一条件只读审查。
+不得补跑目标或修改冻结夹具；真实能力/状态阶段仍在本计划范围之外。
