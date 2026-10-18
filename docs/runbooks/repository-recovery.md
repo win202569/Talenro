@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest checkpoint: [reflected storage10/10 and prepared v2](../roadmap/2026-10-18-p1-reflected-storage-result.md).
+The public SDK setter preserves actual raw/PSObject storage over5kinds/10switches,
+with descriptor/base/type/value intact. New independent v2 harness is prepared,
+all45case expectations preserved, but NOT executed and has no launch controller.
+Do not confuse setter success with observer equivalence, speedup or acceptance.
+Next proposal is one newly bounded offline v2 batch; old failed sources and all
+raw history stay frozen, no candidate/actual ownership run authorized by this check.
+
 Latest diagnosis: [synthetic storage trace](../roadmap/2026-10-18-p1-storage-setup-trace.md).
 Two Int32 paths/14records complete in836ms;637pins intact, stderr0. Wrapper exists
 at constructor/helper return, but the assigned note-property field reads Int32.

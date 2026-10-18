@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-18
 
+## Latest — reflected storage construction10/10; v2 offline harness prepared only
+
+One ordinary PS7 synthetic setter check (10s bound) passed5kinds/10bidirectional
+storage transitions in777ms, exit0, stderr0, owned exit/streams complete,647pins
+intact. Public SDK reflected setter really changes stored native type while
+preserving descriptor/base identity, base type/value and no metadata/output.
+New independent inline-observer-storage-v2 harness uses this utility and asserts
+initial storage kinds; all45case definitions/literal outcomes remain identical.
+V2 parser passes, but no v2 runtime/45case equivalence or speed claim. Previous
+failed harness/observers/candidate unchanged; old slots remain frozen. See
+[verified construction and prepared v2](2026-10-18-p1-reflected-storage-result.md).
+Next proposal: one newly bounded30s offline v2 batch, no candidate import/call,
+stop on mismatch without repair/retry. No controller/launch yet for that batch;
+no actual ownership suite, main/I1/security/runtime/C12 acceptance.
+
 ## Latest — synthetic storage trace completed; wrapper lost at assignment/reread
 
 One new ordinary PS7 diagnostic (10s bound) completed2paths/14records in836ms,
