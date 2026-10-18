@@ -16,6 +16,17 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest result:[candidate full regression PS7 TIMEOUT](../roadmap/2026-10-18-p1-integer-candidate-full-regression.md).
+After1b1144a7 approval,new1/2 spent:PS7 wall30090ms/CPU36171.875ms,
+exit-1,65 lines/48 PASS through PassiveDescriptors,empty stderr,owned exit.
+PS5 never launched and is FROZEN.327 pins held;original remains unchanged.
+Recover seven portable copies in integer-type-reuse-full-regression and report;
+these are UNACCEPTED candidate tests,not the normal product or main acceptance.
+No replay authority or ignored raw/controller/runtime cache is restored by Git.
+Next read-only boundary/call-path comparison before defining new diagnostics;
+no retry,timeout increase,frozen-slot release or speculative optimization.
+All previous spent/frozen budgets and review/I1/P1 gates remain in force.
+
 Latest verification:[candidate direct semantics PS7/PS5 PASS](../roadmap/2026-10-18-p1-integer-candidate-semantics.md).
 After031e5f24 approval,new2/2 spent:881ms PS7,819ms PS5,both ordinary exit0,
 17 lines/14 PASS,no timeout/empty stderr/owned exit;312 pins held. Candidate

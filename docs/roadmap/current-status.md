@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — candidate full regression PS7 TIMEOUT; PS5 FROZEN
+
+After1b1144a7 approval,[candidate full regression](2026-10-18-p1-integer-candidate-full-regression.md)
+spent new1/2:ordinary PS7 timed out30090ms/CPU36171.875ms,exit-1,
+65 lines/48 PASS through P1PassiveDescriptors,empty stderr,owned exit.
+327 pins held;seven copied sources byte-identical;original product unchanged.
+PS5 NOT launched,remaining slot FROZEN;no retry. Exact output prefix is not
+full PASS. Root cause/precise active statement unknown;prior direct PASS does
+not establish complete-flow performance. Candidate/I1/P1 remain UNACCEPTED;
+old budgets/review ineligibility unchanged. Next read-only comparison to define
+one diagnostic hypothesis;no speculative patch or automatic additional run.
+
 ## Latest — isolated candidate passes direct integer semantics on both engines
 
 After031e5f24 approval,[candidate direct suite](2026-10-18-p1-integer-candidate-semantics.md)
