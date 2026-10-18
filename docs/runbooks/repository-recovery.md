@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest unfinished diagnostic:[scalar descriptor retention](../roadmap/2026-10-18-p2b-scalar-decoration-diagnostic.md).
+Latest diagnostic:[retained scalar fixture](../roadmap/2026-10-18-p2b-scalar-retained-diagnostic.md).
+New leaf p2b-scalar-retained-diagnostic completed35rows in one approved ordinary
+host1/1spent. Seven clean controls accepted;14visible decorations refused;
+14hidden decorations accepted. Preconditions and retained identities proven,
+controlled counters0,authority flags false,1030pins intact. M1 is now an observed
+input-validation gap. ProductB468B564 remains UNFIXED;prior33PASS covers only its
+historical suite. No full rerun/new review/formal acceptance/main. Next requires
+a separately approved raw scalar inventory repair design and finite validation
+scope;do not replay either sealed diagnostic or reuse consumed slots. Recover
+latest codex/c12-b01-task9-coordinator,not main. Clone restores source/report and
+the complete matrix summary,not ignored raw/runtime/SDK/mappings/caches/sessions
+or reset/replay rights. Old source,receipts and all budgets remain unchanged.
+
+Historical unfinished diagnostic:[scalar descriptor retention](../roadmap/2026-10-18-p2b-scalar-decoration-diagnostic.md).
 New leaf p2b-scalar-decoration-diagnostic preserves the failed diagnostic.
 One host1/1spent;seven clean controls passed,vector8failed fixture identity
 before product call. SDK Add copies descriptors,so original-object identity

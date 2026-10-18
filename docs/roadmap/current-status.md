@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — scalar coverage diagnostic STOPPED at fixture identity; M1 remains open
+## Latest — hidden scalar/array decoration gap confirmed; product repair pending
+
+[Retained-fixture diagnostic](2026-10-18-p2b-scalar-retained-diagnostic.md).
+New approved one-host scope1/1spent: PID43056,1982ms,exit0,DIAGNOSTIC_CAPTURED.
+All35rows completed with preconditions and identity retention proven. Seven
+clean controls accepted;14visible decorated inputs refused;14hidden decorated
+inputs accepted. All controlled callback counters0 and authority flags false.
+M1 is now an observed controlled input-validation gap, NOT merely untested.
+Scalar/byte-array check uses public Members view that omits hidden entries.
+1030pins intact,no timeout/stderr,owned exit/complete streams. Corrected fixture
+only;productB468B564,old records and previous33PASS/review unchanged. No product
+repair/full rerun/new review/acceptance/main. Next separately bounded raw scalar
+inventory repair design recommended,NOT yet approved or implemented. Recover
+latest development branch;clone restores portable source/report,not raw/runtime
+or consumed budgets. This is diagnostic evidence,not a passing acceptance run.
+
+## Historical — scalar coverage diagnostic STOPPED at fixture identity; M1 remains open
 
 [Diagnostic report](2026-10-18-p2b-scalar-decoration-diagnostic.md).
 One new host1/1spent:PID20968,1585ms,exit0JSON capture but OutcomeINCOMPLETE,
