@@ -16,6 +16,16 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest read-only analysis:[hot-loop cost model](../roadmap/2026-10-18-p1-hot-loop-readonly-cost-model.md).
+After8833f30f,zero tests/source edits. Model for complete clean4096-time validation
+path:73728 type queries/40960 Passive calls/40960 Members reads,not actual cutoff
+counts or measured cost. SDK metadata/fixed schemas already reused. Investigate
+same-local-value duplicate type queries without skipping safety checks or caching
+input acceptance.283 pins held;loading Local1/2 failed,Inherited frozen,old budgets/
+review ineligibility/PS5-I1-P1 blockers persist. Next bounded design/safety review,
+not automatic product changes/tests. Clone restores reports/source,not raw/runtime
+caches or execution authority.
+
 Latest diagnostic:[local reload timeout](../roadmap/2026-10-18-p1-loading-context-comparison.md).
 After9feeab1b and design approval,new1/2 spent:Local30081ms/CPU31546.875ms,
 exit-1,48 PASS,Evaluate4096 open.13 reloaded function/scriptblock references

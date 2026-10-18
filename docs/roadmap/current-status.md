@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — static cost model identifies repeated type queries, not measured savings
+
+After8833f30f,[hot-loop read-only model](2026-10-18-p1-hot-loop-readonly-cost-model.md)
+used ZERO test hosts/no source edits. Conditional clean4096-time validation path:
+18 type queries/10 Passive calls/10 SDK Members reads per row =>73728/40960/40960.
+Not observed timeout totals or timing attribution. Four typed-validator calls
+each repeat a type query inside Passive;metadata/shape sets already reused.
+Retain all decoration/descriptor/exact-type checks;no acceptance cache/guard removal.
+283 pins held,loading1/2 spent/Inherited frozen,all old budgets/review ineligibility/
+PS5-I1-P1 blockers unchanged. Next design/safety-review same-local-value type reuse
+for one typed validator before implementation or new verification allowance.
+
 ## Latest — confirmed local reload still times out; inherited slot frozen
 
 After9feeab1b/design approval,[loading-context diagnostic](2026-10-18-p1-loading-context-comparison.md)
