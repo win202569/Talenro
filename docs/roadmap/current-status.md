@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — direct integer baseline passes PS7 and PS5, original timeout unresolved
+
+Afterf33920a4 approval,[standalone baseline](2026-10-18-p1-integer-direct-baseline.md)
+spent new2/2:PS7 wall1047ms/CPU765.625ms,PS5 wall856ms/CPU921.875ms,both
+ordinary hosts,exit0,no timeout,empty stderr,17 lines/14 PASS,owned exit.
+290 pins/raw/exact output held;product/test unchanged. Tested fixtures/semantics
+now verified on both hosts,NOT CodeProperty coverage,mutation/TDD completion,
+fewer queries,full original regression or performance. PS5/I1/P1 blockers persist;
+old budgets/review ineligibility/loading Inherited freeze unchanged. Next propose
+separately approved isolated guard-loss negative controls,PS7/PS5 one each/30s,
+expected direct-test rejection;no automatic run or product edit.
+
 ## Latest — 14 direct integer regression groups prepared, NOT RUN
 
 Aftercb932195 preparation-only approval,[standalone direct tests](2026-10-18-p1-integer-direct-tests-prepared.md)

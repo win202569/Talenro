@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest baseline:[integer direct suite PS7/PS5 PASS](../roadmap/2026-10-18-p1-integer-direct-baseline.md).
+Afterf33920a4 approval,new2/2 spent:1047ms PS7,856ms PS5,both exit0,no timeout,
+empty stderr,17 lines/14 PASS,ordinary owned exit;290 pins held. Preparation's
+NOT RUN status is historical;test/product bytes unchanged. CodeProperty dynamic
+gap,original PS5 timeout,I1/P1/review gates and all old frozen budgets remain.
+Next isolated guard-loss negative controls require new approval;no automatic
+product patch/replay or main. Recover committed test/report/status,not ignored
+controller/raw/runtime or execution authority.
+
 Latest checkpoint:[integer direct tests prepared,NOT RUN](../roadmap/2026-10-18-p1-integer-direct-tests-prepared.md).
 Aftercb932195,user authorized preparation only. New standalone integer-validation
 test file has14 groups/real helper calls;AST parses in PS7.6.5,not runtime/PS5/
