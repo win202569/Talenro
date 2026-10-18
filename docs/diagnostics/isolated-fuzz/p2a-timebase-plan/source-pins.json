@@ -1,0 +1,29 @@
+{
+  "Schema": 1,
+  "BaseCommit": "cc0663a590547e2203884303a9b75326482cff1a",
+  "ApprovedPlan": "docs/superpowers/plans/2026-10-18-p2a-timebase-plan.md",
+  "ApprovedPlanSHA256": "0D442900A9B1F3BDB62BDA2AB1F27A06E386ACB92BC9A7E622FA105AE89852CD",
+  "Spec": "docs/superpowers/specs/2026-10-18-p2-adapter-boundaries-design.md",
+  "SpecSHA256": "A8E8AD45081E73D526324AF15153C0DDB90E531A92A10C03BF6DAF40A1D52705",
+  "InheritedPacket": ".superpowers/sdd/2026-10-18-p1-owned-return-entrypoint-promotion-recovery-v1",
+  "InheritedPins": 762,
+  "Anchors": {
+    "frozen.json": "9F47C38196A3866FCE4918420A29CA6DAFF3E08300C0EA1D46573CE9069BCDD9",
+    "invocations.json": "93C121C6D8E2F6727F7C9047FD46683F8707D47EF35022D6A5B04602C23E27E5",
+    "full.stdout.txt": "3FE31C43E6947167D06A1C03C94A382856B249C36A1FAA0DBF2BBD6C99342D76",
+    "ownership.stdout.txt": "0571AD4FEE3BA556B3D5A29D0E36A4C7AA5C3CAA95E97F2FF0556DA8D53464B8",
+    "full.stderr.txt": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ownership.stderr.txt": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "Engine": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+  "EngineSHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+  "MaxHosts": 5,
+  "MaxReviewers": 1,
+  "MaxMs": 30000,
+  "ExitWaitMs": 2000,
+  "DrainMs": 2000,
+  "FailStop": true,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false
+}

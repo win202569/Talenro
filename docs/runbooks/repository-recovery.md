@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest preparation: [P2-A implementation plan, NOT approved](../superpowers/plans/2026-10-18-p2a-timebase-plan.md).
+Latest execution: [P2-A stopped unfinished checkpoint](../roadmap/2026-10-18-p2a-timebase-execution.md).
+After cc0663a5,user approved Native max5ordinary PS7 hosts plus one conditional
+review. Pure module/tests/oracle/controller saved in p2a-timebase-plan/ with LF
+rules. RED exact;full failed InputMutation after18PASS,root cause unresolved.
+Consumed2/5,remaining3frozen;review0/1not eligible. No mutant,fix,retry/review or
+live runtime authority. Preserve failed files and ignored raw packet;do not
+automatically replay controller on this or another computer. Portable report has
+ordered output,source/raw hashes,limits and next boundary. Ignored receipts,
+historical pin files,PS7 cache and sessions do not clone. Diagnosis/repair and
+instrumented validation need a separately scoped decision and finite allowance.
+Recover latest existing development-branch checkpoint,NOT main or acceptance.
+P1 entrypoint/old allowances/all prior limits unchanged.
+
+Historical preparation: [P2-A implementation plan, then NOT approved](../superpowers/plans/2026-10-18-p2a-timebase-plan.md).
 User approved written design after7e555097 for plan writing only. New plan proposes
 one pure integer module,max5ordinary PS7 targets and one conditional fresh readonly
 review;0/5and0/1unapproved. No new code/tests/controller/raw packet or execution.

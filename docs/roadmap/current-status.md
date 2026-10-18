@@ -1,6 +1,19 @@
 # Project status — updated 2026-10-18
 
-## Latest — P2 design approved for A-plan writing; implementation plan pending
+## Latest — P2-A Native implementation stopped at InputMutation, not accepted
+
+User approved Native plan after cc0663a5, max5 ordinary PS7 hosts and one review
+conditional on all five exact results. Standalone module/tests/controller/oracle
+prepared; slot1 exact API RED, slot2 failed InputMutation after18 PASS labels.
+No timeout,stderr empty,owned exit/complete drain,all775common pins intact.
+[Actual evidence and recovery boundary](2026-10-18-p2a-timebase-execution.md).
+Consumed2/5;unused3frozen,review0/1not eligible. No mutants,fix,retry,extra import
+or reviewer. Exact subassertion/root cause unresolved;group-only catch discarded
+detail. Next needs scoped diagnosis/repair/validation approval,preserving frozen
+files/raw records;do not silently resume unused slots. Save as UNFINISHED dev
+checkpoint,not acceptance/main/B/C/P3/live authority. P1 and old limits unchanged.
+
+## Historical — P2 design approved for A-plan writing; implementation plan pending
 
 After7e555097,user explicitly approved written P2 design only for P2-A plan writing.
 [Pure integer timebase implementation plan](../superpowers/plans/2026-10-18-p2a-timebase-plan.md)

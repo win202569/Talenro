@@ -10,7 +10,10 @@
 
 **Spec:** [P2 书面设计 §5/§9/§10](../specs/2026-10-18-p2-adapter-boundaries-design.md)。用户在设计提交 7e5550974257f3edce5355d1b7acc34bb6d0b497 后，对“批准设计，仅进入 P2-A 实施计划编写”回复“是”。设计固定物理 SHA256=A8E8AD45081E73D526324AF15153C0DDB90E531A92A10C03BF6DAF40A1D52705；原设计起草状态留作历史，不回写。
 
-状态：PLAN_PREPARED_NOT_APPROVED。实现、五次目标宿主、一次审查均未启动/未批准。
+状态：用户在 cc0663a5 后批准 Native 路线和有限额度；现已 STOPPED_AT_SLOT_2_INPUT_MUTATION。
+已用 2/5 个普通宿主、0/1 reviewer。slot1 精确 RED；slot2 在 InputMutation 失败，
+余下三次及条件审查冻结，不自动修复/重跑。详见
+[实际失败记录](../../roadmap/2026-10-18-p2a-timebase-execution.md)。未验收，无真实运行权限。
 
 ## Global Constraints
 
@@ -70,10 +73,10 @@ Add-TimebasePlanTicks([long]$Left,[long]$Right)、Subtract-TimebasePlanTicks([lo
 **Consumes:** 设计的五字段声明；固定 literal、保护链和普通 PS7 宿主。
 **Produces:** New-OfflineTimebasePlan([object]$Request) 的独立根/Plan，五次精确结果与停止/完成 ledger；不产出真实时基证据。
 
-- [ ] **Step 1 — preflight and write tests before module.** 核对当时 HEAD/干净分支/origin/实际批准。先写完整测试、固定 oracle、控制器及 metadata，模块文件必须不存在。保护上次 promotion 的 762 个映射/当前条目，再加入其 frozen/index/四份原始流六个 anchors 和本设计身份；全部只读核对。新目录 LF 物理字节与 Git 过滤字节一致后再 freeze，避免修复前次换行错误来假装旧回执通过。
+- [x] **Step 1 — preflight and write tests before module.** 核对当时 HEAD/干净分支/origin/实际批准。先写完整测试、固定 oracle、控制器及 metadata，模块文件必须不存在。保护上次 promotion 的 762 个映射/当前条目，再加入其 frozen/index/四份原始流六个 anchors 和本设计身份；全部只读核对。新目录 LF 物理字节与 Git 过滤字节一致后再 freeze，避免修复前次换行错误来假装旧回执通过。
 - [ ] **Step 2 — pin full expected values and all 24 groups.** 测试专有 New-TBRequest 强制构造正确 Int32/Int64 fixture，TB-Need、TB-Case、TB-Equal 只做断言/严格完整递归比较；预期 root/Plan 不调用任何产品 helper。所有有效 Plan 比较全部八字段/精确 CLR 类型；所有拒绝比较全部根八字段和 Plan=null。确定下面表格的向量，并在完整套件开始前验证可执行属性/附加元数据 fixture 真正可观察、确实改变原对象；没有发生的突变不能当作通过证据。
-- [ ] **Step 3 — slot 1 RED.** 在产品不存在时，以固定宿主运行 tests -Group all。Expected:exit1，CONTEXT/HOST 两行后仅 ASSERTION FAILED: P2AApiRequired，无 PASS。非预期异常/模块已存在即停止，不先实现或自行换 RED。
-- [ ] **Step 4 — implement public function and helpers.** 依下述精确算法完成准入、范围/关系检查、算术和独立返回；不导入 P1 helper，不读任何真实时间。静态 parse/差异/类型路径核对，不另作产品导入试跑。冻结 good 产品 SHA 和 green manifest，再进入下一 slot。
+- [x] **Step 3 — slot 1 RED.** 在产品不存在时，以固定宿主运行 tests -Group all。Expected:exit1，CONTEXT/HOST 两行后仅 ASSERTION FAILED: P2AApiRequired，无 PASS。非预期异常/模块已存在即停止，不先实现或自行换 RED。
+- [x] **Step 4 — implement public function and helpers.** 依下述精确算法完成准入、范围/关系检查、算术和独立返回；不导入 P1 helper，不读任何真实时间。静态 parse/差异/类型路径核对，不另作产品导入试跑。冻结 good 产品 SHA 和 green manifest，再进入下一 slot。
 - [ ] **Step 5 — slot 2 GREEN.** 相同普通宿主、相同 tests -Group all。Expected:exit0，固定 24 个 PASS、27 有序行（CONTEXT/HOST/24PASS/LIMIT），stderr 空、完整流、owned exit、身份完整；任何失败停止不修复。
 - [ ] **Step 6 — slot 3 phase-rounding mutant and immediate restore.** 仅将计算 NaturalUntil 的 500ms delta 调用参数 Ceiling 从 false 改 true，其他字节/测试不变；保存 good/mutant 摘要与精确差异。Group phase-rounding 必须 exit1，在 P2AFractionalPhaseRounding 断言失败，先前仅 P2AApiRequired PASS。无论结果如何立即通过补丁恢复 good SHA；若非预期则冻结余项。
 - [ ] **Step 7 — slot 4 deadline-equality mutant and immediate restore.** 仅将最终 ObservedTick>=DeadlineTick 改为 >，Group deadline-equality 必须 exit1，在 P2ADeadlineEquality 失败，先前仅 API PASS。保存差异/摘要并立即恢复 good；非预期即停止。
@@ -169,7 +172,7 @@ s+floor500 等所有指定分支并检查，不能因最终 min 较小而跳过�
 两个指定 mutant 不改 helper 通用规则/预期。选择 natural500 的 floor→ceil，
 因为 F1001 时该差异可观察；不选择会被 StopAt min 的另一项遮蔽的冗余改动。
 
-## Proposed finite allowance — 0/5 targets and 0/1 reviewer, UNAPPROVED
+## Approved finite allowance — 2/5 targets, 0/1 reviewer; remainder FROZEN after slot2 failure
 
 固定已有宿主 C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe，
 SHA256=362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139。
@@ -208,7 +211,7 @@ stderr 必须空、精确有序行、owned exit/complete drain/保护链/模块�
 - [ ] **Step 2 — reconcile every finding and limitation.** Critical/Important 或审查不完整即停止，无自动修复、额外测试、召回/替换 reviewer。Minor 和拒绝判断逐项记录父代理处置，不悄悄改代码。有限向量、普通可恢复 internal-error 静态路径、灾难恢复、并发/敌对 type-data、真实时基/调度/身份/OS/采集/清理/持久化及 PS5 明确保留，不用审查无 blocker 推定全局保证。
 - [ ] **Step 3 — preserve final state.** 结果/审查/本计划勾选、current-status/recovery 记录实际预算与未完成门槛；必要文件普通提交推送原开发分支、核对远端 SHA 和 clean。原始 packet 不提交、不删除；不自动正式验收、提升到其他入口、进入 B/C/P3、合并 main 或授权真实运行。
 
-## Self-review and execution-method handoff
+## Historical preparation self-review and execution-method handoff
 
 设计 §1–4/§6–10 作为边界继承；仅实现 §5 数值单元，§9 的 P2-A 类别均在 Task1
 具名组及两个 mutant 中落实；不承诺动态触发灾难/内部错误。五条 Review Focus
