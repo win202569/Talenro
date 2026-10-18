@@ -16,7 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[NEW single P1 readonly review proposal](../superpowers/plans/2026-10-18-p1-token-single-readonly-review.md).
+Latest handoff:[independent P1 review COMPLETE;Important R1 STOP](../roadmap/2026-10-18-p1-token-readonly-review.md).
+Afterca32f2d9,one fresh no-history reviewer completed source/saved-data review:
+0Critical/1Important/0Minor,I1InsufficientEvidence. Accepted scalar-leaf isolation
+after later metadata attachment is unestablished;not a reproduced runtime defect.
+Portable package/report retain all findings and18+5declined limits;51scoped/
+476inherited pins and recent12streams matched. Source/tests/raw unchanged.
+NEW review1/1SPENT,zero target executions/no repairs/re-review. Prior full4/4,
+direct2/2 and old failed/frozen/review seats persist. No formal acceptance,
+candidate promotion,original replacement or main merge. Restore dev branch.
+Next separately propose initially-plain scalar ownership characterization with
+independent oracle/finite budget;no execution or correction follows automatically.
+Ignored raw/manifest/dispatch/response/runtimes do not clone or replenish seats.
+
+Previous handoff:[NEW single P1 readonly review proposal](../superpowers/plans/2026-10-18-p1-token-single-readonly-review.md).
 Afteref8eb82b,plan-only drafting:no review package/dispatch,test or source fix.
 Proposed NEW1review seat UNAPPROVED/UNUSED,zero target-host allowance.
 Review full relevant P1 scalar-refusal/I1 paths and cumulative Integer/Token,

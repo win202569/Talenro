@@ -1,6 +1,26 @@
 # Project status — updated 2026-10-18
 
-## Latest — NEW single P1 readonly review proposal;NOT DISPATCHED
+## Latest — independent P1 review COMPLETE;Important R1 STOP
+
+Afterca32f2d9,user approved ONE new fresh readonly reviewer. [Review/dispositions](2026-10-18-p1-token-readonly-review.md)
+and [frozen package](2026-10-18-p1-token-review-package.md).
+Result:0Critical,1Important(R1),0Minor;I1CandidateDisposition=InsufficientEvidence.
+Admission-time decoration refusal is supported,but accepted scalar leaves are
+still shallow-copied/directly assigned. Existing refused-input isolation and
+primitive type/value comparators do not prove post-return metadata isolation
+for initially plain inputs/two accepted results. Static evidence gap,NOT a
+dynamically reproduced aliasing failure or authority escalation.
+Parent checked exact assignments/contract/tests;retains Important and STOP.
+51scoped+476inherited pins/all12saved stream hashes independently matched;
+saved direct429each/API38/22/38/22 remain passed within prior scope. No new
+runtime observation. All18original+5additional declined limits retained.
+NEW review1/1SPENT;no repair/probe/test/re-review,promotion or main merge.
+Old seats/budgets/freezes unchanged. FormalAcceptance=false,PromotionApproved=false.
+Next propose ONE narrow initially-plain scalar-leaf ownership characterization,
+including post-return decoration/two accepted outputs;design/oracle/budget first,
+separate approval before any execution or correction. Not a generic full rerun.
+
+## Previous — NEW single P1 readonly review proposal;NOT DISPATCHED
 
 Afteref8eb82b,user requested drafting only:
 [single-review route proposal](../superpowers/plans/2026-10-18-p1-token-single-readonly-review.md).
