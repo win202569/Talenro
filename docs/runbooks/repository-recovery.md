@@ -16,7 +16,20 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[readonly String retention source analysis](../roadmap/2026-10-18-p1-string-retention-readonly-analysis.md).
+Latest handoff:[four-case fixture-only retention design](../roadmap/current-status.md).
+After183707d6,design only:no executable/source/controller prepared/run.
+Proposed NEWmax1 ordinary fresh PS7 host,30s+2s exit+2s drain,ZERO candidate/
+product helper/import/decision calls. Four cases:held String-view control,raw
+Int32 control,raw String field,pre-stored explicit-wrapper String field. Compare
+held/reread public-view/member/base identities and actual descriptor/payload
+retention/mutation;no post-attachment replacement. String loss is capability
+evidence,not isolation success. Controls/integrity/capture must be valid.
+NEW0/1UNAPPROVED_UNUSED;approval would cover preparation+one attempt together.
+Old548pins,repair1/3SPENT+2/3FROZEN,39unrun and unaccepted1971F808 persist.
+Restore latest dev branch,not main;raw/runtimes and validation authority do not
+clone. No automatic candidate adjustment,regression rerun,review or promotion.
+
+Previous handoff:[readonly String retention source analysis](../roadmap/2026-10-18-p1-string-retention-readonly-analysis.md).
 Aftere5e1a956,no code/probe/helper/test executions. Upstream7.6.5 source supports
 wrapper-specific String metadata identity;fixture's two field accesses do not
 record/persist the same wrapper. This is a hypothesis consistent with the saved

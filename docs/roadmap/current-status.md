@@ -1,6 +1,69 @@
 # Project status — updated 2026-10-18
 
-## Latest — readonly String retention analysis;wrapper hypothesis,NOT FIXED
+## Latest — four-case fixture-only retention design;NOT PREPARED/RUN
+
+After183707d6,user requested design of the recommended limited characterization.
+Bounded existing-fixture diagnostic,short in-chat design;no new product subsystem
+or formal spec/implementation-plan artifact. Question:does the original property
+remain visible through the retained view but disappear through field reread,and
+does pre-established wrapper storage change that observation? Not I1 acceptance.
+
+Propose NEW ONE ordinary fresh PS7 host,30s wall+2s owned exit+2s stream drain,
+ZERO candidate/product imports/helper/decision calls. Four fixed cases,in order:
+1. Held String-view positive control:fresh nonempty clean String,retain its public
+   PSObject reserved view before attachment;add/read known NoteProperty through
+   that SAME held view. Descriptor/payload identity and mutable retention required.
+2. Raw owned Int32(0) in a fresh owner.Value field;attach through existing field,
+   then reread. Require same base identity/value and retained descriptor/payload
+   as a second positive control,consistent with earlier primitive fixtures.
+3. Raw fresh nonempty String(clean) in a fresh owner.Value field;same direct
+   attachment/reread sequence. Retention or loss is an observation,not isolation.
+4. Fresh String(clean) explicitly wrapped with the public exact PSObject(object)
+   constructor and stored in owner.Value BEFORE any views/mutation are taken.
+   Same attachment/reread sequence;do not assume assignment preserves the wrapper.
+
+Each case owns fresh base values,payload object[] and distinct property names;
+no shared literals/global type-data/private reflection. Retain strong references
+to the pre-attachment view,member collection,field NoteProperty and base value.
+Use only fixed public SDK construction/member access. Record actual public-view
+and member-collection ReferenceEquals evidence,base ReferenceEquals/type/value,
+held-view descriptor/payload retention and reread-view descriptor/payload presence,
+then one payload mutation and both views' observations. Identity is reference
+comparison,not GetHashCode/string labels. These public-view identities are proxy
+evidence,NOT a claim to observe every raw CLR wrapper/debasing step.
+No field reassignment/reconstruction after initial setup or attachment. A missing
+property may be absent while the held view retains it;do not replace the field
+to force persistence. Independent same-view positive control stays required.
+
+Before the sole launch,freeze standalone diagnostic/controller/source pins and
+an independent ordered output SCHEMA:host context,four fixed-case fact records,
+terminal diagnostic summary. Known field types/nullable absence markers and
+allowed capability enums(RETAINED/NOT_RETAINED) are fixed in advance;unknown
+measured booleans are not retrofitted as expected answers. Emit facts only,not
+serialize/reconstruct subject objects. No production PASS/isolation label.
+Both controls must be valid;type/value/base changes,inconsistent identity/payload
+facts,unexpected descriptors,missing evidence or capture/integrity errors stop
+as FIXTURE_INVALID/INCOMPLETE. String-case loss may complete a capability record,
+but NEVER becomes an ownership regression pass. Exact physical identities are
+not stable IDs to carry across processes. Report alternatives if observations
+contradict the wrapper hypothesis instead of editing it to obtain a pass.
+
+Approval would cover new fixture-only source/controller preparation AND one
+attempt together;no warmup,baseline,compiler,OS/security changes,dependency
+install,second host/retry,candidate repair,review or release/main/promotion.
+Preconsume the new slot;keep original raw bytes/exit/drain/hash facts. Recheck
+548old frozen entries and prior receipt/stream anchors before/after. New portable
+diagnostic is explicitly non-production/non-regression,not a reusable acceptance
+gate without separate review. Missing local packets do not reset allowances.
+
+Current NEW0/1UNAPPROVED_UNUSED;no executable/source/controller prepared or
+run this turn. Old repair1/3SPENT+2/3UNUSED_FROZEN,all39cases UNRUN,candidate
+1971F808 UNVERIFIED and prior Int32 contamination unchanged. Next approval can
+cover the four-case design plus preparation/one attempt,not another drafting or
+prep-only cycle. Outcome supports only this fixture path,not a complete engine
+root-cause proof or authorization to alter production semantics.
+
+## Previous — readonly String retention analysis;wrapper hypothesis,NOT FIXED
 
 Aftere5e1a956,user requested readonly diagnosis only.
 [Source trace/confidence](2026-10-18-p1-string-retention-readonly-analysis.md).
