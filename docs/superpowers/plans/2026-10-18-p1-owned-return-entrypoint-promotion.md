@@ -61,7 +61,7 @@
 - [x] **Step 4 — exact source promotion.** 用 apply_patch 将原入口替换成候选同字节内容，不复制测试或改算法；按原换行策略核验新入口 SHA=1971F808…、baseline SHA=953CC2A8…、候选/测试不变。静态 parser 检查产品与新增控制器，无 dot-source/import/执行探测。差异只能是固定候选累计 Integer/Token/owned-return 改动和本计划列出的新记录文件。失败按下文停止。
 - [x] **Step 5 — NEW slot 1: original-path full API.** 仅普通继承令牌 PS7，-NoProfile -NonInteractive -File <原目录 offline-supervision-policy.tests.ps1> -Group all。成功要求 exit0、精确 38 行/35 PASS 组、stderr 空、owned exit、流完整、全部新身份与历史映射一致。不能调用候选目录测试冒充原路径验证。
 - [x] **Step 6 — NEW slot 2: original-path ownership.** 仅 Step 5 全部成功后启动同引擎原目录 ownership.tests.ps1 -Group regression。成功要求 exit0、精确 22 行/8 fixture+10 regression 组，以及与 Step 5 相同的严格证据检查。不能放宽断言或排除慢项。
-- [ ] **Step 7 — read-only reconcile and handoff.** 逐项读取新回执、流和身份，记录实际路径、原/新 SHA、两个结果与所有保留门槛。满足才记 PROMOTED_ON_DEVELOPMENT_BRANCH_PS7_LIMITED，仍非 main/release/完整 P1；未满足记录 UNFINISHED_STOPPED。仅提交明确文件并普通推送开发分支，确认远端 SHA/clean 状态。
+- [x] **Step 7 — read-only reconcile and handoff.** 逐项读取新回执、流和身份，记录实际路径、原/新 SHA、两个结果与所有保留门槛。满足才记 PROMOTED_ON_DEVELOPMENT_BRANCH_PS7_LIMITED，仍非 main/release/完整 P1；未满足记录 UNFINISHED_STOPPED。仅提交明确文件并普通推送开发分支，确认远端 SHA/clean 状态。
 
 ## Approved finite allowance — original 2/2 consumed after explicit recovery approval
 
@@ -87,4 +87,4 @@ Git-only 提权若需要，单独受平台权限审核，不作为普通测试�
 本计划只处理已批准候选的原路径采用，不实现新功能。五类 Review Focus 由 Step 1–7 的身份/历史映射/API/ownership/范围检查分别约束；没有追加缺失 PS5、产品 mutation 或真实运行证明。
 当前只读检索发现原入口被既有诊断脚本/历史 pin 引用；这是潜在导入路由影响，不是这些脚本重新获准执行。候选未发现 PSScriptRoot/PSCommandPath/Join-Path/import 路径依赖；两对测试物理摘要相同。这些是文本/身份检查，不是新运行证据。
 恢复审批明确允许必要准备路径/元数据修正，故使用独立 owned-return-entrypoint-promotion-recovery-v1/ leaf/packet 和正确 LF 备份；旧失败 leaf/packet/report 原样保留。
-Step1–6 完成；Step7 只读对照已完成，提交及推送待实际保存核实。2/2 用尽，不再重跑或自动增加审查。所有原范围与门槛不变。
+Step1–7 完成；源码/证据提交 5a9dc4dec616600239c2e569ca3f82bc2cbc4206 已推送，远端同 SHA、工作区干净经实际核实。本次仅补记保存确认。2/2 用尽，不再重跑或自动增加审查。所有原范围与门槛不变。

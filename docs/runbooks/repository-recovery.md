@@ -1,6 +1,8 @@
 # Recover the project on a new computer
 
 Latest result: [original entrypoint promotion recovered and passed](../roadmap/2026-10-18-p1-owned-return-entrypoint-promotion-recovery-result.md).
+Source/evidence checkpoint5a9dc4de was pushed and remote-verified;use latest
+development-branch commit including subsequent documentary completion confirmation.
 After f436d139 user authorized preparation-only correction within same max2.
 Original entrypoint now accepted candidate1971F808;both original-path PS7 suites
 passed21408/13797ms. Original2/2spent,no added allowance/reviewer. Correct old LF

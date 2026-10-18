@@ -2,6 +2,9 @@
 
 ## Latest — original entrypoint promoted, two PS7 regressions passed
 
+Source/evidence checkpoint5a9dc4dec616600239c2e569ca3f82bc2cbc4206 pushed;
+remote equality and clean worktree actually verified before this final doc update.
+
 After f436d139,user explicitly approved backup/preparation-only correction and
 continuation within original max2. New recovery leaf/packet preserves all old
 failed files/records. Original entrypoint now exact1971F808 accepted candidate;
