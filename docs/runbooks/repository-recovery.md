@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest stopped scope:[scalar SDK owner proof](../roadmap/2026-10-18-p2b-scalar-sdk-compatibility.md).
+Latest read-only explanation:[wrapper ownership](../roadmap/2026-10-18-p2b-scalar-wrapper-readonly.md).
+Official SDK source allows distinct wrappers to share metadata for one boxed/
+reference base;custom/string/local-storage key rules differ. This is consistent
+with the saved byte-owner mismatch,but actual base/key/collection identities
+were not captured. Do not promote the partial proof or equate primitive values/
+all bases as an ownership rule. Next first define scalar ownership contract
+and a separately approved bounded evidence question;no new patch/probe/design
+or budget is authorized. No code execution/change,new host/reviewer here.
+1078pins intact;B468B564 unchanged,M1 OPEN,failed18DA24E1 must not be adopted.
+Latest1/3spent+2FROZEN and old2/3spent+1FROZEN,review ineligible,all scopes unchanged.
+Recover latest devbranch,not main;clone excludes ignored raw/SDK/runtime/cache/
+mapping/session state and never resets replay rights or broadens acceptance.
+
+Historical stopped scope:[scalar SDK owner proof](../roadmap/2026-10-18-p2b-scalar-sdk-compatibility.md).
 New leaf p2b-scalar-sdk-compatibility copies unchangedB468B564 and adds structural
 proof tests. First target failed literal.Byte common-owner assertion BEFORE
 product API: saved psextended owner/constructor comparisons to psobject owner

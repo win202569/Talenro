@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — first scalar SDK owner proof fails; new remaining two slots frozen
+## Latest — read-only wrapper sharing model identified; actual key/table relation unproven
+
+[Wrapper investigation](2026-10-18-p2b-scalar-wrapper-readonly.md).
+SDK source permits distinct wrappers over the same boxed/reference base to
+share instance metadata,with different key rules for custom objects,strings
+and local-storage mode. Factories can retain descriptors created by different
+wrappers. This is a source-supported explanation consistent with the saved byte
+owner mismatch,NOT proof of actual historical shared base/key/table. Saved
+partial proof is still unvalidated;other types/fresh outputs unreached.
+Separate wrapper/base/collection identity;do not replace owner checks with
+value equality or blanket base equality. Define the required scalar contract
+and separately bounded evidence question before another product patch.
+No code/import/test/compile/new host/reviewer;1078pins intact,B468B564 and failed
+18DA24E1 unchanged,M1 OPEN. Latest1/3spent+2FROZEN,review0/1ineligible;old2/3spent+
+1FROZEN unchanged. No new design/execution allowance or main/acceptance grant.
+
+## Historical — first scalar SDK owner proof fails; new remaining two slots frozen
 
 [New stopped scope](2026-10-18-p2b-scalar-sdk-compatibility.md).
 Approved new3+1after4f67088e. First targetPID29852,1381ms,exit1,INCOMPLETE at
