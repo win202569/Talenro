@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-18
 
+## Latest — corrected preflight passed; offline fixture blocked at case 4
+
+Failed controller preserved; new capture-corrected.ps1 corrects only the wrong
+inventory hash and packet path. Ten literal pins match source files. One ordinary
+PS7 offline host consumed: 971ms/exit1, no timeout, owned exit/streams complete,
+627 frozen pins intact, stderr362 bytes, no controller error. Paired cases 1–3
+passed (Int32 clean, selected skip, descriptor change). Case4 Int32/storage failed
+its setup guard on the OLD side: assignment did not change actual stored type.
+No new-side after-comparison, final RESULT, retry or post-launch repair. Only
+3/45 paired cases completed; no full equivalence or speed claim. Candidate imports
+and calls0; old slots remain frozen. See [evidence and next bounded proposal](2026-10-18-p1-inline-observer-fixture-blocked.md).
+Next: separately characterize synthetic storage setup before proposing a fixture
+correction and new offline batch. No actual ownership suite or main acceptance.
+
 ## Latest — inline observer prepared; offline preflight blocked
 
 Independent optimization copy and 45-case observer-only harness are prepared.

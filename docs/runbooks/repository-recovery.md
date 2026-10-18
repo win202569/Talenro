@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest result: [offline observer fixture blocked](../roadmap/2026-10-18-p1-inline-observer-fixture-blocked.md).
+Corrected preflight succeeded, but the single offline child stopped at case4:
+the Int32 storage fixture did not actually change stored type. Only 3/45 paired
+cases completed, not full equivalence. All627 frozen pins intact; no candidate
+calls/imports, retry, source repair or actual ownership suite. Both controllers
+and the failed harness are preserved. Do not rerun either controller or infer
+speedup/acceptance; next proposal is bounded synthetic-only setup diagnosis.
+
 Latest checkpoint: [inline observer preflight blocked](../roadmap/2026-10-18-p1-inline-observer-preflight-blocked.md).
 Optimized test copy and 45 offline cases are prepared but unexecuted. The new
 controller stopped before child launch because its generated inventory hash was
