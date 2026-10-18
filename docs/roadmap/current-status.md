@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-18
 
+## Latest — three-phase observation PREPARED; target NOT RUN
+
+After5c08ef8d,[approved preparation](2026-10-18-p1-three-phase-prepared.md)
+adds definition-only4096 entry clone/six phase markers,new101-line inventory/
+README and separate depth-three offline verifier/tests. Candidate module and
+five other source copies byte-identical;clone and two-edit original35 reversal
+verified by AST/text. New76-case offline suite PASS;old63/47 tools retained.
+Zero target runs,no controller,actual phase timings/binding unverified.
+367 prior pins/index held. Next separately approve ONE new ordinary fresh PS7/
+30s/no warmup/retry/fallback,not old-slot reuse. PS5 FROZEN,all old budgets/
+review/I1/P1 gates unchanged;root cause/full acceptance unresolved.
+
 ## Latest — three-phase observation proposed, NOT PREPARED
 
 Aftere3a1a8ee,[bounded timing proposal](2026-10-18-p1-three-phase-observation-proposal.md)

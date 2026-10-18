@@ -16,6 +16,15 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
+Latest preparation:[three-phase diagnostic,target NOT RUN](../roadmap/2026-10-18-p1-three-phase-prepared.md).
+After5c08ef8d,integer-candidate-three-phase holds eight sources,new101-line
+inventory and README;separate depth-three verifier/tests added beside it.
+76 synthetic cases pass on PS7;old63/47 tools unchanged. AST/text fidelity only,
+no real timing/output/controller. Candidate module bytes unchanged,new entry
+history/interference explicit. Next PS7/30s single diagnostic requires separate
+approval,no direct invocation or frozenPS5 reuse.367 pins/index held;old budgets/
+review/I1/P1 gates persist. Git recovers portable files,not raw/cache/replay rights.
+
 Latest proposal:[three-phase timing,NOT PREPARED](../roadmap/2026-10-18-p1-three-phase-observation-proposal.md).
 Aftere3a1a8ee,design-only recommendation keeps candidate module unchanged and
 defines a4096-only evaluator clone at startup,with six root/validation-copy/
