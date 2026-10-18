@@ -1,6 +1,26 @@
 # Project status — updated 2026-10-18
 
-## Latest — full API/ownership bounded proposal;NOT PREPARED/RUN
+## Latest — four Token full API/ownership suites PASSED;not promoted
+
+Afterbef13327,user approved preparation+four ordered ordinary fresh PS7 hosts.
+[Result/source/frozen evidence](2026-10-18-p1-token-full-api-result.md).
+Baseline-full25681ms/38lines,baseline-ownership4404ms/22lines,then candidate-
+full18883ms/38lines,candidate-ownership7228ms/22lines. All exit0,no timeout,
+empty stderr,complete original streams,owned-host-exited,exact ordered oracle.
+Full35PASS groups and ownership18PASS groups each;4096/4097 preserved,
+literal full-object/refusal-index/CallerMutation/SequentialIsolation checks ran.
+Ten portable files added in integer-token-api-regression:6 byte-identical test/
+module routing copies plus LF/pins/README/oracle.476 pins intact;old records held.
+NEW full API4/4SPENT;all older direct/diagnostic/full/PS5 frozen slots unchanged.
+Direct plus scoped PS7 API/ownership evidence now passed,NOT performance or
+whole-project/security/runtime/release/I1/P1/C12 acceptance. No independent
+review,reflection/shape extra suites,warmup,retry,PS5 or main merge;candidate
+remains isolated/unpromoted. Receipt timings are not benchmark conclusions.
+Next READ-ONLY inventory of remaining promotion gates/review eligibility;
+no further test/reviewer authority follows from this exhausted allowance.
+Git saves necessary portable sources/evidence/recovery,not raw/cache/replay rights.
+
+## Previous — full API/ownership bounded proposal;NOT PREPARED/RUN
 
 Aftera4921533,user requested continuing. Read existing uninstrumented full
 and ownership sources only;35 API case groups +18 ownership/fixture groups.

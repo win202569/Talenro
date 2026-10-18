@@ -16,7 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:[full API/ownership bounded proposal](../superpowers/plans/2026-10-18-token-full-api-bounded-regression.md).
+Latest handoff:[four Token full API/ownership suites PASSED](../roadmap/2026-10-18-p1-token-full-api-result.md).
+Afterbef13327,four approved hosts passed in order:baseline-full/ownership then
+candidate-full/ownership,exact38/22/38/22line inventories,exit0,empty stderr,
+no timeout,known owned exit/complete captures.476 frozen pins held.
+Restore latest dev-branch commit,not main;integer-token-api-regression carries
+6 exact module/test routing copies plus LF/pins/README/oracle and portable report.
+NEW4/4SPENT;prior direct/diagnostic/PS5 spent/frozen slots unchanged. No extra
+run/reviewer,performance claim,whole-project acceptance or main promotion.
+Candidate remains isolated. Next read-only gate/review-eligibility inventory.
+Ignored raw/controller/cache not restored by Git;missing records cannot reset
+allowances or grant replay rights. New-computer engine preparation remains separate.
+
+Previous handoff:[full API/ownership bounded proposal](../superpowers/plans/2026-10-18-token-full-api-bounded-regression.md).
 Aftera4921533,coverage/source inspection and plan ONLY;no new tests/controller/
 target/probe prepared or run. Proposed NEWmax4 hosts:baseline-full then baseline-
 ownership then candidate-full then candidate-ownership,each30s/fail-stop.
