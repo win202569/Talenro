@@ -1,0 +1,12 @@
+{
+  "Schema": 1,
+  "Baseline": {
+    "Path": "../integer-candidate-validation-copy-attribution/offline-supervision-policy.ps1",
+    "SHA256": "3537E9F5F203E181042DD9CCE27C2962096B72A7D25842B968145D2066255BD3"
+  },
+  "Candidate": {
+    "Path": "offline-supervision-policy.ps1",
+    "SHA256": "F9B4E408D9A4FF9C7A36EFD6E1F2472F17DACB3F76F463FF4973DAB4139CC82A"
+  },
+  "SupportSHA256": "BF82CE30B9CE82449C90ADAA96C0B03F3892609FB903EF87B07C7FD68489409A"
+}

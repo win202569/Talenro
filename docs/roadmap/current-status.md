@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-18
 
-## Latest — bounded Token-only candidate design proposed, NOT PREPARED
+## Latest — Token-only source PREPARED; runtime UNVERIFIED
+
+User approved preparation only after6b4b4a8a. Saved isolated candidate,
+direct tests,CodeProperty support source,pins/README/leaf LF rules:
+[preparation evidence](2026-10-18-p1-token-local-preparation.md).
+Tests/support written first;no import/helper/test/compile/controller/benchmark.
+Static PS syntax clear;13 signatures retained,12 other function texts and all
+outside Token body identical;original passive guard blocks copied intact.
+CandidateF9B4E408 / tests04B72510 / supportBF82CE30;full hashes in report.
+434 historical pins held. Runtime RED/GREEN,baseline oracle/fixture binding,
+C# compilation,full API regressions and speed remain UNVERIFIED.
+Next requires NEW separate bounded fresh PS7 execution approval,not another
+source-only confirmation;no retry/warmup/PS5/frozen reuse. All existing budget,
+review,I1/P1/main/C12/security/runtime/release gates persist;no acceptance.
+Git checkpoint preserves portable source/progress,not execution rights.
+
+## Previous — bounded Token-only candidate design proposed, NOT PREPARED
 
 After32d12ad6,user requested design only. Intent:investigate one invocation-local
 duplicate query without dropping a safety duty;not claim a timeout fix/speedup.

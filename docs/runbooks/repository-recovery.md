@@ -16,7 +16,19 @@ runbooks. Start with [current status](../roadmap/current-status.md) to resume wo
 
 ## Standing preservation rule and latest development work
 
-Latest handoff:Token-only bounded design in [current status](../roadmap/current-status.md),
+Latest handoff:[Token-only PREPARED source](../roadmap/2026-10-18-p1-token-local-preparation.md),
+after6b4b4a8a. Restore the latest development-branch commit,not main.
+New isolated folder integer-token-local-candidate includes candidate,direct
+test,CodeProperty C# source,portable hash pins,README and leaf LF attributes.
+Static only:13 signatures,12 other functions/outside Token body identical,
+guard blocks preserved,PS syntax clear. No module/helper/test loading or
+execution,C# compilation,controller or benchmark. Runtime/engine/fixture
+equivalence and performance UNVERIFIED;all acceptance/budget gates persist.
+Next obtain NEW bounded fresh PS7 baseline/candidate execution approval with
+fail-stop limits;no retry/warmup/PS5/frozen reuse. Do not run on source approval.
+Git restores portable source,not raw/cache/credentials or execution authority.
+
+Previous proposed handoff:Token-only bounded design in [current status](../roadmap/current-status.md),
 after32d12ad6,NOT PREPARED. New uninstrumented3537E9F5 module copy would change
 only Token body:one local exact-type result plus unchanged passive guard blocks
 before ordinal admission. Other12 functions/signatures/outside text identical;
