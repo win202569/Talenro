@@ -1,11 +1,18 @@
 # Recover the project on a new computer
 
-Latest:[handshake seam two exact runs](../roadmap/2026-10-19-p2b-handshake-seam-verification.md).
+Latest:[handshake seam review-blocked unfinished checkpoint](../roadmap/2026-10-19-p2b-handshake-seam-verification.md).
 Native/NEW2+conditional1 approved afterc1b87ccc. Frozen5inputs/1378pins;full
 PID26732 andfinalPID29608 each15lines12PASS/exit0,identical stdout/complete trace.
 No timeout/stderr,ownedexit/drains complete;0compiles/product/old suite changes.
-Two targets exhausted;unique readonlyreview pending. Restore existingdevbranch,
-read review outcome before further work. No production state/ticket/capability
+Two targets andunique readonlyreview exhausted. Complete review found Important
+I1:post-Start receipt-write exception can bypass owned-target termination/bounded
+exit (capture.ps1:101–107). Two saved exact observations remain unchanged,not
+controller fault-path verification. Read full review.md andreview-disposition.md
+in the new leaf;all10scope exclusions dispositioned. No frozen-input edit/fix/
+fault injection/retry/re-review. Taskunfinished/not accepted. Restore existingdevbranch,
+not main;ca897038 is pre-review checkpoint,the latest handoff records blocker.
+Next needs separately approved narrow repair plan/new finite budget.
+No production state/ticket/capability
 or new formal/live/main/fullC12 acceptance. Oldbudgets andMinor2 unchanged.
 Clone preserves portable data,not raw packet/dependencies/credentials/CLR rights;
 do not automatically replay any host or reconstruct missing historical raw.

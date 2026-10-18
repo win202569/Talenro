@@ -1,13 +1,19 @@
 # Project status — updated 2026-10-19
 
-## Latest — handshake seam checks pass twice; conditional review pending
+## Latest — handshake seam review blocked by Important I1; unfinished
 
 [Execution](2026-10-19-p2b-handshake-seam-verification.md).
 User approved Native/NEW2+conditional1 afterc1b87ccc. Prepared5inputs/1378pins.
 fullPID26732/5331ms andfinalPID29608/4044ms:each exit0/15lines12PASS,
 stdout andcomplete trace identical,oracle0differences,no timeout/stderr,
 ownedexit/drains/postpins complete. Zero compiles/product edits/old suite reruns.
-NEW2/2targets spent;one conditional readonlyreview now eligible,not run yet.
+NEW2/2targets and1/1readonlyreview spent. Complete review found Important I1:
+controller post-launch record-save exception can bypass owned-target termination/
+bounded exit. Parent verified source;two exact saved observations remain intact.
+Full review and10scope dispositions preserved. No automatic fix/test/re-review;
+five frozen inputs unchanged. Task unfinished/not accepted. Checkpoint ca897038
+was pushed before review;latest handoff preserves this blocker on the same branch.
+Next needs a separately approved narrow repair plan/new finite budget.
 No real handshake consumer/state/ticket/clock/capability implemented;no acceptance/
 main/live promotion. Existing limited approvals/Minor2 andoldbudgets unchanged.
 

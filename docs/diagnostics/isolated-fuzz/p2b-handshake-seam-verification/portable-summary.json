@@ -1,7 +1,19 @@
 {
   "Schema": 1,
   "Mode": "p2b-handshake-seam-verification-portable-summary",
-  "Status": "TWO_EXACT_REVIEW_PENDING",
+  "Status": "REVIEW_BLOCKED_I1_UNFINISHED",
+  "Review": {
+    "InspectedCommit": "ca897038fc3b6fee6fa12cbacf034283f056b0aa",
+    "CompleteWithinReadonlyScope": true,
+    "ImportantFindings": ["I1: post-launch controller exception can bypass owned-target termination/bounded exit"],
+    "CriticalFindings": 0,
+    "NewMinorFindings": 0,
+    "DeclinedItemsPreservedAndDispositioned": 10,
+    "TaskComplete": false,
+    "AutomaticFixOrRerunAllowed": false,
+    "Report": "review.md",
+    "Disposition": "review-disposition.md"
+  },
   "BaseCommit": "c1b87ccc604b488dae3f48e8325b1238cd3e1df3",
   "Method": "Native",
   "ImplementationApproved": true,
@@ -10,8 +22,8 @@
     "HostsSpent": 2,
     "HostsRemaining": 0,
     "ReviewersApproved": 1,
-    "ReviewersSpent": 0,
-    "ReviewerEligible": true
+    "ReviewersSpent": 1,
+    "ReviewerEligible": false
   },
   "HistoricalBudget": {
     "TreeHostsSpent": 5,

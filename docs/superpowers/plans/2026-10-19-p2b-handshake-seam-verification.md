@@ -7,11 +7,12 @@
 **Tech Stack:** Windows PowerShell7.6.5 Core x64、固定SDK、现有byte[256] fixture，无Add-Type/原生编译/新依赖。
 **Spec:** [书面合同](../specs/2026-10-19-p2b-handshake-contract-design.md)，SHA256=9C37A7AD0156DDB7732503E78F919FAA887B0708D3F91CFA5494C9BD367309CC。用户在f64d0ff7后明确批准书面稿并仅同意编写计划。
 
-状态：TWO_EXACT_REVIEW_PENDING。ImplementationApproved=true；RuntimeApproved=false。
+状态：REVIEW_BLOCKED_I1_UNFINISHED。ImplementationApproved=true；RuntimeApproved=false。
 用户在c1b87ccc后批准Native/NEW2+条件1；已准备5输入并冻结1378pins。
 full PID26732/5331ms与final PID29608/4044ms均exit0/15行12PASS，输出/
-完整trace哈希一致，0编译/产品变更/旧suite重跑。条件只读审查尚待启动。
-NEW2/2目标已用尽；唯一reviewer符合启动条件，不增加任何后续额度。
+完整trace哈希一致，0编译/产品变更/旧suite重跑。唯一只读审查已完成，发现Important I1：
+控制器启动目标后保存记录异常可绕过终止/有界退出；本任务未完成，按规则停止。
+NEW2/2目标和1/1reviewer已用尽；不改冻结输入，不自动修复/重跑/复审。
 旧inbox5/5和1/1已用完，旧原2spent+3FROZEN及独立诊断1spent均不变。
 
 ## Global Constraints
@@ -218,7 +219,7 @@ Kind5的payload引用保持3、Kind10保持2，不能假设为1。
 保守拒绝。若发现真实产品缺陷或测试向量有误，停止并另定处置，不改既有验收。
 这里的有限例外不适用于今后新增生产行为；后者仍须各自TDD与明确预算。
 
-## 已批准NEW2+1，目标用尽，等待唯一条件审查
+## 已批准NEW2+1全部用尽，审查I1阻塞
 
 推荐Native：一个紧耦合夹具交付+一次末尾只读review，避免额外实施代理。
 Subagent-driven需要重新提出包含实施/逐任务/末尾review的预算，不能塞入本2+1。
@@ -249,15 +250,15 @@ current-status/repository-recovery。
 **Consumes:** 相同冻结夹具/1378pins、两轮raw/精确oracle、固定产品身份。
 **Produces:** 一次完整限定review及所有findings/declined处置、普通开发检查点；不是验收。
 
-- [ ] **Step1 — 仅在两轮均精确后，消耗唯一fresh只读reviewer。**
+- [x] **Step1 — 仅在两轮均精确后，消耗唯一fresh只读reviewer。**
   按Review Focus审新5文件/预期/两raw记录及Spec范围，不重审整个历史分支。
   固定codec/helper只读必要边界，其他历史hash-only。
   禁止execute/import/compile/编辑/index/HEAD/网络/安全查询/嵌套代理。
-- [ ] **Step2 — 保留所有意见及范围弃判，逐项处置。**
+- [x] **Step2 — 保留所有意见及范围弃判，逐项处置。**
   Critical/Important/不完整即停，不自动fix pass/补测/换reviewer。
   Minor仅明确延期；不能据原产品限定验收忽略新夹具问题。
   审查不能把“无握手/能力实现”误称已经实现；允许部分交付须显式标注。
-- [ ] **Step3 — 核对明确必要文件后普通提交推送现有开发分支。**
+- [x] **Step3 — 核对明确必要文件后普通提交推送现有开发分支（仅unfinished保存，不代表任务通过）。**
   更新本Plan/执行与恢复记录，写清完成组数/未测项/失败/旧新预算。
   校对便携结果与raw完全一致、远端SHA=local/工作树干净；失败只存unfinished。
   不合并main、不自动验收、不删除原始/worktree/分支，不附加生产阶段。
@@ -271,5 +272,8 @@ Spec§1–10覆盖账本见上；真正本地阶段/票据/能力/竞争/时钟/
 所有新辅助函数都在脚本scope，模块五导出和全部产品哈希不变；
 没有未定义的生产接口、TODO占位、实际能力或可运行live包。
 
-用户已批准本计划Native/新2+1；两轮均精确，等待唯一条件只读审查。
+用户已批准本计划Native/新2+1；两轮均精确，唯一只读审查完整完成并发现Important I1。
+完整review.md及review-disposition.md保留1条问题和10项范围弃判处置。
+I1维持Important并停止：不自动fix pass、故障注入、重跑、换reviewer。
+两条成功观察不改判；本有限任务未完成/未验收。Task2 Step3仅保存unfinished检查点。
 不得补跑目标或修改冻结夹具；真实能力/状态阶段仍在本计划范围之外。

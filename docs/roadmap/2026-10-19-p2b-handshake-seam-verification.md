@@ -2,7 +2,9 @@
 
 Date:2026-10-19. Execution base c1b87ccc604b488dae3f48e8325b1238cd3e1df3,
 branch codex/c12-b01-task9-coordinator.
-Status:TWO_EXACT_REVIEW_PENDING. User explicitly approved Native/NEW2+conditional1.
+Status:REVIEW_BLOCKED_I1_UNFINISHED. User explicitly approved Native/NEW2+conditional1.
+Task1 checkpoint ca897038fc3b6fee6fa12cbacf034283f056b0aa was pushed and remote
+equality/clean tree verified before the single readonly review.
 
 ## Delivered scope
 
@@ -46,8 +48,9 @@ Inputs are immutable;summary/report/status are separate handoff outputs.
 
 [Portable summary](../diagnostics/isolated-fuzz/p2b-handshake-seam-verification/portable-summary.json)
 embeds invocations/fulltrace/finaltrace as original JSON text,without passing raw
-numbers through JavaScript Number. Handoff requires readonly exact JSON subtree/
-numeric-token comparison with unchanged raw files. A clone does not restore raw.
+numbers through JavaScript Number. Parent readonly comparison confirmed three
+exact JSON subtrees including raw numeric tokens,zero differences;1378pins and
+manifest/index/six artifact hashes remain intact. A clone does not restore raw.
 
 ## Process, review and remaining boundaries
 
@@ -57,10 +60,17 @@ The finite approved workflow overrides generic extra baseline/task-done suites,
 fix pass and workspace deletion;cost:no broader product verification claim.
 Existing isolated PowerShell worktree reused;no setup/install/security changes.
 
-NEW2/2targets spent,0remaining. Conditional1readonlyreview eligible,not yet run.
-It must inspect the same fixed inputs/records,then all findings and declined-to-
-judge items are preserved with parent dispositions. Blocking/incomplete review
-stops;no automatic fix,test or replacement reviewer.
+NEW2/2targets and1/1readonlyreview spent,none remaining. Complete bounded review
+of ca897038 found Important I1:no conditional owned-target termination/bounded
+exit when Save-Json throws after Start (capture.ps1:101–107). Parent source check
+confirms it;the successful saved runs did not exercise this exceptional path.
+[Full review](../diagnostics/isolated-fuzz/p2b-handshake-seam-verification/review.md)
+and [all dispositions](../diagnostics/isolated-fuzz/p2b-handshake-seam-verification/review-disposition.md)
+preserve the finding and10declined-to-judge items. No Critical/newMinor findings.
+Task NOT complete/accepted. Preserve unfinished checkpoint only;no frozen-input
+edit,fault injection,fix,test,retry,re-review or further implementation authorized.
+Next recommendation is a separately approved narrow exception-containment repair
+plan and explicit new finite verification/review budget,not implementation now.
 Old tree5targets+1reviewer spent;oldoriginal2spent+3FROZEN anddiagnostic1spent
 remain unchanged. Existing Minor2 scalar ETS direct assertion gap remains deferred.
 
