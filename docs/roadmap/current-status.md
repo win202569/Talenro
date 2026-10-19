@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-19
 
+## Latest — preparation-only revision awaiting review
+
+[Preparation V2 plan](../superpowers/plans/2026-10-19-offline-diagnostic-entry-preparation-v2.md).
+User continued proposed correction/new preparation. Readonly review also found
+old exact11leaf count conflicts with the final portable summary (12files).
+Proposed isolated preparation-only script preserves old driver/packet/portable;
+two bounded in-tool regression calls and one Prepare,0hosts/children/reviewers.
+New2075mapping/17snapshot packet is not runtime authority. Written revision
+requires review before code or Prepare; no new execution this turn. Historical
+remaining6hosts/7children/conditional1review stay frozen; runtime8files absent.
+
 ## Latest — entry-migration Prepare failed; unfinished checkpoint
 
 [Execution](2026-10-19-offline-diagnostic-entry-migration.md).

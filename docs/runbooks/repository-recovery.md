@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest next step:[review preparation-only V2 revision](../superpowers/plans/2026-10-19-offline-diagnostic-entry-preparation-v2.md).
+This is a proposed isolated metadata correction/new Prepare, not an approved
+runtime restart. The failed originals must stay unchanged. No new code or
+Prepare executed while drafting it. Do not use old11file directory-count
+assumption after portable export, delete the portable summary, retry original
+Prepare or consume old frozen allowances. Review the written revision first.
+
 Latest checkpoint:[entry migration Prepare failure](../roadmap/2026-10-19-offline-diagnostic-entry-migration.md).
 Plan/native6hosts+7children+conditional1review were approved, but the first
 Prepare failed on optional inherited Role metadata.12bootstrap inputs exist;
