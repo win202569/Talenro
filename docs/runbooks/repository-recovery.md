@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest:[R1 repair Task1 checkpoint](../roadmap/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
+Approved new finite scope after4f72700d; RED exact, one shared-file repair,
+GREEN7of7/full trace exact.2of4hosts consumed,0of4children,0of1review.
+CONTAINMENT/FINAL/conditional review pending, no overall/R1 acceptance.
+Intermediate checkpoint preserves seven inputs and progress, not yet final raw
+export. Do not replay consumed slots, reconstruct missing raw or assume clone
+restores runtimes/CLR identity/credentials/authority. Resume only with original
+intact evidence and the plan's gates; latest development branch, not main.
+
 Latest proposal:[R1 first-failure bookkeeping repair](../superpowers/plans/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Afterb458b352 this is planning only, no code/packet/target/test/reviewer. Shared
 first-error latch and protected final bookkeeping proposed for all three R1

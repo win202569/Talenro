@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-19
 
+## Latest — R1 repair Task1 RED/GREEN exact; further checks pending
+
+[Execution](2026-10-19-p2b-first-failure-bookkeeping-repair.md).
+Native/new4hosts+4children+conditional1review approved after4f72700d.
+Shared bookkeeping RED reproduced expected escape; one-file repair then
+GREEN7of7/full trace exact. Both ordinary hosts exited/drained, empty stderr,
+1539pins intact,0children. Spent2hosts;2hosts+4children and conditional review
+remain. Task1 checkpoint only, no R1/full acceptance. CONTAINMENT/FINAL/review
+pending; R2/Minor2 deferred, old records/quotas unchanged. No main/live/product.
+
 ## Latest — R1 first-failure bookkeeping repair proposed; not approved
 
 [Written repair plan](../superpowers/plans/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
