@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+Latest execution:[live supervisor](../roadmap/2026-10-19-p2b-live-completion-supervisor.md).
+Human approved Native plan and NEW5hosts+8children+conditional1readonlyreview.
+Task1 core-red2exactFAIL → two-file fix → core-green7exactPASS;1670pins intact,
+both hosts exited/drained,0children. Spent2hosts/0children/0review;3hosts+8children
+and conditionalreview remain only in original authorized context, not automatic
+clone/replay rights. Owned executor still deliberate retry RED baseline. Read
+report/plan before any work; next owned-red only if original context and every
+frozen raw original remain available and no unknown attempt exists. Otherwise
+freeze remaining allowance and obtain new scoped direction; never reconstruct
+raw from summaries. Final portable export/review pending. Source/tests/docs
+checkpoint on existing codex/c12-b01-task9-coordinator; main is not current
+recovery point. Clone cannot restore Session/acks/process identity/credentials/
+runtime/cache/rights. C1/C2 unresolved, R2/Minor2 and all old quotas unchanged.
+
 Latest proposal:[live completion supervisor implementation plan](../superpowers/plans/2026-10-19-p2b-live-completion-supervisor.md).
 User approved34339923written spec for planning only. Native NEW5hosts+8children=
 13newPS7 processes+conditional1readonlyreview proposed, NOT execution approval.

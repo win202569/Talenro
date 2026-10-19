@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — Native supervisor Task1 core RED→GREEN verified, overall unfinished
+
+[Execution](2026-10-19-p2b-live-completion-supervisor.md). Human approved plan/
+Native NEW5hosts+8children+conditional1readonlyreview. All12baseline inputs LF/
+staticparse0errors,1670pins frozen. core-red host19148 exact2FAIL/exit1; sole
+session+sinks fix then core-green host1660 exact7PASS/exit0/fulltrace. Both
+exited/drained, empty stderr,0children/Start/rescue, allpins intact. Spent2hosts/
+0children/0review;3hosts+8children+conditionalreview remain. Owned executor is
+still deliberate RED baseline, not accepted. Next owned-red → sole planned
+owned fix → owned-green → single live sequence → conditional review. Any
+nonexact/unknown/record failure freezes all remaining grants. C1/C2 unresolved,
+R2/Minor2 deferred; old evidence/quotas unchanged. No main/live/formal/full-C12
+acceptance. Necessary development checkpoint; portable final handoff pending.
+
 ## Latest — supervisor spec approved; Native implementation plan proposed
 
 [Plan](../superpowers/plans/2026-10-19-p2b-live-completion-supervisor.md).
