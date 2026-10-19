@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest proposal:[live completion supervisor implementation plan](../superpowers/plans/2026-10-19-p2b-live-completion-supervisor.md).
+User approved34339923written spec for planning only. Native NEW5hosts+8children=
+13newPS7 processes+conditional1readonlyreview proposed, NOT execution approval.
+Core and owned-executor RED/GREEN use distinct grants; final live A sequence
+alone consumes genuine in-memory completion, never disk Outcome. Failed sinks
+stay quarantined while exact-owned cleanup continues.12inputs/1670pins proposed;
+old helper/oracles/evidence stay frozen. This turn documents only, no code/run/
+test/compile/agent/review. Clone restores source/design/plan/records, not Session,
+acknowledgements, runtime/CLR identities, credentials or allowance. C1/C2 remain
+unresolved, old quotas frozen/exhausted, R2/Minor2 deferred. Next requires review
+of written plan and explicit execution-method/new-budget approval. No automatic
+replay/reconstruction/main/live/formal/full-C12 acceptance.
+
 Latest proposal:[live completion supervisor written design](../superpowers/specs/2026-10-19-p2b-live-completion-supervisor-design.md).
 User approved direction/spec authoring after05ca9713, not implementation or new
 runtime. New written spec awaits human review. Proposed live session confirmation

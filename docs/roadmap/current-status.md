@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — supervisor spec approved; Native implementation plan proposed
+
+[Plan](../superpowers/plans/2026-10-19-p2b-live-completion-supervisor.md).
+User approved34339923written spec (SHA6687E0196D1B8DF5BAEE3E603F5EA86018AE84292D9D38116FCF17A35F6FD49F)
+for plan authoring only. Proposed12inputs/1670pins, separate core/owned RED→GREEN
+grants and one live sequence with real one-use acknowledgements, failed sink
+quarantine and new owned executor. Native NEW5hosts+8children=13PS7 processes+
+conditional1readonlyreview PROPOSED, NOT approved. No code/targets/tests/compiles/
+agents/reviewers this turn. C1/C2 unresolved; old observations/quotas and R2/
+Minor2 unchanged. Next: human plan review, execution method and finite approval;
+no main/live/formal/full-C12 acceptance or automatic resumption.
+
 ## Latest — live completion supervisor written design pending review
 
 [Written design](../superpowers/specs/2026-10-19-p2b-live-completion-supervisor-design.md).
