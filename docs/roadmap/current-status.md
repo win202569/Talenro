@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-19
 
+## Latest — offline diagnostic-entry migration design awaiting review
+
+[Written design](../superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md).
+Human approved drafting the offline-only migration proposal, not the new written
+design/implementation/runtime budget. Recommend a new supported scripts entry
+and private implementation, not forwarding exhausted historical driver Grants.
+Default Inspect is read-only; future fixed-profile execution needs separately
+approved scope/budget. Legacy source/evidence unchanged; supported-entry migration
+does not claim OS-level disabling of old scripts. Actual new-entry consumers
+and non-confounded Ack tests required. No code/import/test/target/agent/review.
+C1/C2 open,R2/Minor2 deferred; all five flagsfalse. Next: user reviews written
+design before an implementation plan is drafted; no old allowance reuse.
+
 ## Latest — C1/C2 evidence mapped; next boundary is diagnostic entry scope
 
 [Readonly closure map](2026-10-19-p2b-c1-c2-closure-map.md). Author checked old

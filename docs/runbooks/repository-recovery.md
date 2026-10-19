@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest proposal:[offline diagnostic-entry migration design](../superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md).
+Human approved writing this proposal only; written design review is pending.
+Proposed scripts/diagnose-offline.ps1 and private directory do not exist yet;
+do not run assumed commands or translate old Grants into new authority. Default
+read-only inspection/new fixed-profile execution split is a proposed contract,
+not implemented behavior. No new runtime budget, code/test/target/review. Read
+the design and obtain written-design approval before implementation planning.
+Old sources/raw/portable/quotas remain unchanged; C1/C2 open,R2/Minor2 deferred.
+
 Latest follow-up:[C1/C2 readonly closure map](../roadmap/2026-10-19-p2b-c1-c2-closure-map.md).
 It separates old unresolved controller findings from the tested replacement
 offline mechanism. No production or operator-entry migration has been selected
