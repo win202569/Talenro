@@ -1,6 +1,20 @@
 # Project status — updated 2026-10-19
 
-## Latest — controller repair GREEN failed; remaining budget frozen
+## Latest — error-causality verification revision proposed; not approved
+
+[Revised verification plan](../superpowers/plans/2026-10-19-p2b-error-causality-characterization.md).
+After94283f1e,user authorized readonly analysis thenverification-plan revision,
+not code or runs. Official PowerShell7.6.5 source creates separate ErrorRecord
+wrappers forcatch;requiring identity withan Error-list item is aninvalid
+cross-wrapper premise,not proof of overwritten primary cause. Oldfailed GREEN/
+CauseConfirmed=false/raw fields remainunchanged;I1 notclosed oraccepted.
+Proposed Native diagnostic only:new1host/0children/0independentreview,
+two real localI/O errors and5fixed positive/negative groups;NOT approved/spent.
+It calibrates bounded I/O-cause identity,not controller behavior. No oldquota
+unfreeze,no GREEN/FINAL restart. This turn0newcode/packet/target/test/compile/review.
+Next:review proposal/approve its finite diagnostic scope beforeimplementation.
+
+## Historical — controller repair GREEN failed; remaining budget frozen
 
 [Execution](2026-10-19-p2b-controller-exception-containment.md).
 After19e3880d,user approved Native/3hosts+5children+conditional1review.

@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Newest:[error-causality characterization proposal](../superpowers/plans/2026-10-19-p2b-error-causality-characterization.md).
+After94283f1e,user authorized readonly analysis andrevised verification plan only.
+Static PowerShell7.6.5 source shows catch uses a newErrorRecord wrapper;theold
+cross-source record-identity predicate cannot establish primary-loss. This does
+not retroactively pass GREEN orprove controller containment complete. Historical
+raw/portable fields andfrozen code unchanged. Proposed Native/new1diagnostic
+host/0children/0independentreview is NOT approved;0newcode/packet/run/test.
+Read newplan;do not modifyold test orresume FINAL. Any adopted revised assertion
+andcontroller verification still need separate scope/budget afterdiagnostic.
+Oldremaining1host+3children+1review staysFROZEN;I1unfinished. Clone restores
+documentation/source,not runtime ErrorRecord identities/raw/host/dependencies/rights.
+
 Current:[controller containment failed GREEN checkpoint](../roadmap/2026-10-19-p2b-controller-exception-containment.md).
 Native/3hosts+5children+conditional1review approved after19e3880d. Actual:
 REDexpected failure/rescue;GREENexit2,1of5PASS thenPrimarySurvivesFinalReceiptFault
