@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-19
 
+## Latest — association guard RED exact / GREEN7of7; FINAL and review pending
+
+[Execution](2026-10-19-p2b-process-association-guard-repair.md).
+Native/new3hosts+4children+conditional1review approved after979c9cf1.
+Six inputs/1487pins; RED22720/694ms/exit1 exact,0children. One observer-only fix;
+GREEN36288/1609ms/exit0,7exactPASS/trace0diffs/details valid/empty stderr.
+Three children owned-exited,0rescue; pre-start guard skippedKill/Wait, pins intact.
+Spent2hosts+3children=5of7; final1host+1child and conditional1review still pending.
+No overall/I1 acceptance, old failures/frozen budgets unchanged. No product/compile.
+
 ## Latest — process-association guard repair proposed; approval pending
 
 [Narrow revision plan](../superpowers/plans/2026-10-19-p2b-process-association-guard-repair.md).

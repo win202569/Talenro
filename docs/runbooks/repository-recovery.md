@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest staged checkpoint:[association guard verification](../roadmap/2026-10-19-p2b-process-association-guard-repair.md).
+Approved Native/new3hosts+4children+conditional1review after979c9cf1. Six inputs/
+1487pins; RED exact with0children, observer-only change thenGREEN7of7 exact.
+Spent2hosts+3children; final1host+1child/conditional1review pending under plan gates.
+No I1/overall acceptance; old failed records and allowances unchanged/FROZEN.
+Source preserved; portable raw handoff not yet consolidated at this intermediate
+checkpoint. Do not replay RED/GREEN after clone; raw/runtime/CLR identities/rights
+do not follow from Git. Recover latest development branch, not main.
+
 Latest proposal:[process-association guard repair](../superpowers/plans/2026-10-19-p2b-process-association-guard-repair.md).
 After13060300 readonly analysis located a shared invalid getter/catch premise in
 the failed pre-start assertion and two cleanup guards. Plan proposes a private
