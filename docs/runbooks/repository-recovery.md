@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest:[causality reverification failed GREEN](../roadmap/2026-10-19-p2b-controller-causality-reverification.md).
+Native/new2hosts+4children+conditional1review approved after62f7ad23; five
+inputs/1454pins frozen. Host40880/1556ms/exit2: first4groups PASS, fifth
+PreStartOutputFault fails on Unassociated=false. Root cause not established.
+Three actual children owned-exited without rescue, host/drains complete, pins
+intact; full run INCOMPLETE. Used1host+3children=4/6; remaining1host+1child+
+conditional1review FROZEN. No FINAL/reviewer/fix/retry; old failed records and
+old remaining allowances unchanged, I1 unaccepted. New leaf saves fixed inputs
+and portable exact observations/stream bytes/raw hashes. Read report and seek
+separate readonly cause-analysis direction; no automatic execution on clone.
+Clone restores source/documents, not ignored raw, engine/SDK, CLR identities,
+credentials or future permissions. Recover latest development branch, not main.
+
 Latest proposal:[controller causality reverification plan](../superpowers/plans/2026-10-19-p2b-controller-causality-reverification.md).
 Documentation only after37d82327; no new code, packet, run or reviewer.
 Proposed Native/new2hosts+4children=6PS7 processes+conditional1readonlyreview,

@@ -7,9 +7,14 @@
 **Tech Stack:** Windows、普通 PowerShell 7.6.5 Core x64、固定 SDK；无安装、编译、新产品依赖或安全设置变更。
 **Spec:** [原 I1 收束修复合同](2026-10-19-p2b-controller-exception-containment.md)、[判据诊断计划](2026-10-19-p2b-error-causality-characterization.md)及[握手合同 §9](../specs/2026-10-19-p2b-handshake-contract-design.md)。本计划不实现真实握手状态或能力。
 
-状态：PROPOSED_NOT_APPROVED。依据开发检查点
-37d8232767f2f084a7d8990702391eb2f0e754cc；用户本次“继续”只进入书面补验计划。
-推荐 Native；新额度、代码实现及运行均待批准。本轮零代码/目标/测试/编译/审查。
+状态：GREEN_FAILED_FROZEN_UNFINISHED。用户在 62f7ad23 后以“是”批准 Native、
+NEW2 宿主+4 子进程+条件1审查及首次 GREEN 判据修订例外。
+执行基线 62f7ad23058fc13dbea1387a41cbe6fab5da00b8；原批准快照 SHA
+5264D0FBE0A26258E4DDC1F9A54E2C06786E1CFEAD4A141B8458CDDB77BD2FAC 单独保留。
+五输入/1454pins 已冻结。GREEN 宿主40880/1556ms/exit2：前四组通过，
+PreStartOutputFault 的 Unassociated=false 未达预期；失败原因未确认，不改判。
+三子进程确切退出、0外层救援；本轮用1宿主+3子进程，余1宿主+1子进程+1审查冻结。
+FINAL/审查未运行，I1 未验收。源码/原始记录不修不重跑，只保存 unfinished 检查点。
 
 ## Global Constraints
 
@@ -181,4 +186,5 @@ Run 只从既有普通父调用；Integrate 必须核 final 已预消费且 gree
 
 请审阅并批准：Native 实施本计划；NEW 2 宿主+4 子进程（6 新 PS7 进程），
 条件性 1 次独立只读审查；新套件首次 GREEN 的判据修订例外；失败即停、不借旧额度。
-批准前本轮只保存文档。批准也不授权自动修失败、重试或正式验收。
+用户已批准该范围；本轮 GREEN 第五组失败，停线生效。该批准不授权自动修失败、
+重试或正式验收；下一步需要另行决定只读原因分析，再决定修订与新验证范围。

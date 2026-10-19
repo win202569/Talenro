@@ -1,0 +1,191 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-controller-causality-reverification",
+  "Status": "GREEN_FAILED_FROZEN_UNFINISHED",
+  "BaseCommit": "62f7ad23058fc13dbea1387a41cbe6fab5da00b8",
+  "Method": "Native",
+  "ImplementationApproved": true,
+  "Budget": {
+    "MaxHosts": 2,
+    "MaxChildren": 4,
+    "MaxReviewers": 1,
+    "SpentHosts": 1,
+    "SpentChildren": 3,
+    "SpentReviewers": 0,
+    "RemainingHosts": 1,
+    "RemainingChildren": 1,
+    "RemainingReviewers": 1,
+    "RemainingStatus": "FROZEN"
+  },
+  "OldContainmentBudget": {
+    "RemainingHosts": 1,
+    "RemainingChildren": 3,
+    "RemainingReviewers": 1,
+    "Status": "FROZEN"
+  },
+  "FrozenSHA256": "EE04A4A23F93B6CDB0011CB058DC515ED69C28C06E4A747CD0799B5B5C5671F1",
+  "FrozenPins": 1454,
+  "InheritedPins": 1434,
+  "AdditionalPins": 20,
+  "ApprovedPlanSHA256": "5264D0FBE0A26258E4DDC1F9A54E2C06786E1CFEAD4A141B8458CDDB77BD2FAC",
+  "GroupsPassed": 4,
+  "FailedGroup": "PreStartOutputFault",
+  "FailedObservation": {
+    "Unassociated": false,
+    "ExpectedUnassociated": true
+  },
+  "CauseConfirmed": false,
+  "FinalIntegrationExecuted": false,
+  "IndependentReviewPerformed": false,
+  "I1Accepted": false,
+  "OldGreenReclassified": false,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "RealGateImplemented": false,
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "E3083818059D2956756D32B1D4A7098E28F57DFB3B971F429A73E51672505B9D"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "87A670F540827B90AE023A7C77318E9C64D0B6834FB5AF19B2C7F6BA74917287"
+    },
+    {
+      "Name": "containment.tests.ps1",
+      "SHA256": "3D9AE7D88BDCFC77B4C353E3E5751AF43DBE9B8EB96CE0B3E06F3165676031F9"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "B1C569B87C66495459861FD3B5786A72015D6FDC0CD85FCEDB1616832B0B2740"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "9BAAAD40BC5CE3B5DC38EEDA998AA598122BC0D15343774D350A1AC77ACC2063"
+    }
+  ],
+  "ArtifactInventory": [
+    {
+      "RelativePath": "approved-plan.snapshot.md",
+      "Bytes": 15162,
+      "SHA256": "5264D0FBE0A26258E4DDC1F9A54E2C06786E1CFEAD4A141B8458CDDB77BD2FAC"
+    },
+    {
+      "RelativePath": "children.json",
+      "Bytes": 652,
+      "SHA256": "2AF3B97D66D08276FB5C6762CF435C9FBAE37E6FC2E8F3DD8567B74C2A6F3B67"
+    },
+    {
+      "RelativePath": "frozen.json",
+      "Bytes": 543089,
+      "SHA256": "EE04A4A23F93B6CDB0011CB058DC515ED69C28C06E4A747CD0799B5B5C5671F1"
+    },
+    {
+      "RelativePath": "green-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/normal.receipt.json",
+      "Bytes": 244,
+      "SHA256": "2CE110DEF56CAF3B7DACFEF3AEC188EA337D64BDE3FECAD23EA8019C288451D5"
+    },
+    {
+      "RelativePath": "green-cases/normal.stderr.bin",
+      "Bytes": 19,
+      "SHA256": "4A72DAC7A1B133CE02FA5D9E5C3AC54FCBA2024D5BF6617FD1DFFEADCECFF1B6"
+    },
+    {
+      "RelativePath": "green-cases/normal.stdout.bin",
+      "Bytes": 19,
+      "SHA256": "C8ADB80B579BD08B97D5577409DD9DCFBA1F2EFD8BBD936A232CAFF921DC22A3"
+    },
+    {
+      "RelativePath": "green-cases/prestart.receipt.json",
+      "Bytes": 501,
+      "SHA256": "34535D79AFA74E6848143B133F9DE70728D96E733F0087EC7241425C687D9330"
+    },
+    {
+      "RelativePath": "green-cases/timeout.receipt.json",
+      "Bytes": 243,
+      "SHA256": "BDF4F1F026DEDE859457DCD787B6227F9A8927F77CFF9E482937DF91EFFDF7A4"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green.details.json",
+      "Bytes": 2315,
+      "SHA256": "785B8CE9D877EB9B7CD3DF47C5093CC1FFABD893A6FAFE1EC66C940C3AE2FF85"
+    },
+    {
+      "RelativePath": "green.stderr.bin",
+      "Bytes": 39,
+      "SHA256": "E78C21ED4B73D5E4089E82A37C16C88C5C5CCBA7ABD3314C62482A237E502DB5"
+    },
+    {
+      "RelativePath": "green.stdout.bin",
+      "Bytes": 102,
+      "SHA256": "D9EEF2D477CE27C5FBB9D96AC6121307D1AA7F67D9A97F394CE1B72B38B6031F"
+    },
+    {
+      "RelativePath": "green.trace.json",
+      "Bytes": 2051,
+      "SHA256": "20AA984EFA611CAFFF11066349622D61E8F9A1E576776B2365EBD7AC5D496393"
+    },
+    {
+      "RelativePath": "hosts.json",
+      "Bytes": 1024,
+      "SHA256": "47EEFA809C508F71ACC634F506C679855CE717BBFBA86D62BF308CBFA996E847"
+    },
+    {
+      "RelativePath": "progress.md",
+      "Bytes": 2419,
+      "SHA256": "1BC03ED82130561CF43C2BD79CB61101D138B70DCE28DDDC388455BE0594E257"
+    }
+  ],
+  "RawJson": {
+    "hosts.json": "{\r\n  \"Number\": 1,\r\n  \"Slot\": \"green\",\r\n  \"AttemptConsumed\": true,\r\n  \"Started\": true,\r\n  \"PID\": 40880,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 2,\r\n  \"ElapsedMs\": 1556,\r\n  \"ParentError\": null,\r\n  \"CleanupErrors\": [],\r\n  \"PostPinsIntact\": true,\r\n  \"ExactExpected\": false,\r\n  \"DetailsValid\": true,\r\n  \"stdoutSHA256\": \"D9EEF2D477CE27C5FBB9D96AC6121307D1AA7F67D9A97F394CE1B72B38B6031F\",\r\n  \"stderrSHA256\": \"E78C21ED4B73D5E4089E82A37C16C88C5C5CCBA7ABD3314C62482A237E502DB5\",\r\n  \"TraceSHA256\": \"20AA984EFA611CAFFF11066349622D61E8F9A1E576776B2365EBD7AC5D496393\",\r\n  \"DetailsSHA256\": \"785B8CE9D877EB9B7CD3DF47C5093CC1FFABD893A6FAFE1EC66C940C3AE2FF85\",\r\n  \"TraceDifferences\": [\r\n    \"trace.Groups:array-count\",\r\n    \"trace.Observations.PreStartOutputFault.Unassociated:kind\",\r\n    \"trace.Passed:kind\",\r\n    \"trace.Error:kind\"\r\n  ],\r\n  \"Outcome\": \"INCOMPLETE\",\r\n  \"RealGateImplemented\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false\r\n}",
+    "children.json": "[\r\n  {\r\n    \"Number\": 1,\r\n    \"Case\": \"fault\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 14272,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 2,\r\n    \"Case\": \"normal\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 18040,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": 0,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 3,\r\n    \"Case\": \"timeout\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 9820,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  }\r\n]",
+    "green.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-controller-causality-reverification\",\r\n  \"Groups\": [\r\n    \"PostStartReceiptFault\",\r\n    \"PrimarySurvivesFinalReceiptFault\",\r\n    \"NormalExit\",\r\n    \"Timeout\"\r\n  ],\r\n  \"Observations\": {\r\n    \"PostStartReceiptFault\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": true,\r\n      \"CleanupCount\": 1,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false\r\n    },\r\n    \"PrimarySurvivesFinalReceiptFault\": {\r\n      \"ErrorCount\": 2,\r\n      \"AnchorsDistinct\": true,\r\n      \"Original\": true,\r\n      \"PrimaryReplaced\": false,\r\n      \"Swapped\": false,\r\n      \"CleanupReplaced\": false,\r\n      \"NullAnchor\": false,\r\n      \"MissingPrimary\": false,\r\n      \"DeepNine\": false,\r\n      \"CleanupCount\": 1\r\n    },\r\n    \"NormalExit\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": false,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false\r\n    },\r\n    \"Timeout\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": true,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false\r\n    },\r\n    \"PreStartOutputFault\": {\r\n      \"Started\": false,\r\n      \"PrimaryPresent\": true,\r\n      \"Unassociated\": false,\r\n      \"OwnedExit\": false,\r\n      \"ExitCode\": null,\r\n      \"TerminationRequested\": false\r\n    }\r\n  },\r\n  \"Passed\": false,\r\n  \"Error\": \"ASSERTION FAILED: PreStartOutputFault\",\r\n  \"Rescues\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false\r\n}",
+    "green.details.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-controller-causality-details\",\r\n  \"ErrorCount\": 2,\r\n  \"RecordsNewestFirst\": [\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-controller-causality-reverification\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-controller-causality-reverification\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    },\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-controller-causality-reverification\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-controller-causality-reverification\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    }\r\n  ],\r\n  \"RecordsTruncated\": false,\r\n  \"Results\": {\r\n    \"Fault\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 50\r\n    },\r\n    \"Normal\": {\r\n      \"ExitCode\": 0,\r\n      \"ElapsedMs\": 420\r\n    },\r\n    \"Timeout\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 218\r\n    }\r\n  }\r\n}",
+    "green-cases/normal.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 0,\r\n  \"ElapsedMs\": 420,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/timeout.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": true,\r\n  \"TerminationRequested\": true,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": -1,\r\n  \"ElapsedMs\": 218,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/prestart.receipt.json": "{\r\n  \"Started\": false,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": false,\r\n  \"StreamsComplete\": false,\r\n  \"ExitCode\": null,\r\n  \"ElapsedMs\": 2,\r\n  \"PrimaryError\": \"Exception calling \\\"Create\\\" with \\\"1\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-controller-causality-reverification\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}"
+  },
+  "PortableStreams": {
+    "green.stderr.bin": "QVNTRVJUSU9OIEZBSUxFRDogUHJlU3RhcnRPdXRwdXRGYXVsdA0K",
+    "green.stdout.bin": "UEFTUzogUG9zdFN0YXJ0UmVjZWlwdEZhdWx0DQpQQVNTOiBQcmltYXJ5U3Vydml2ZXNGaW5hbFJlY2VpcHRGYXVsdA0KUEFTUzogTm9ybWFsRXhpdA0KUEFTUzogVGltZW91dA0K",
+    "green-cases/fault.stderr.bin": "",
+    "green-cases/fault.stdout.bin": "",
+    "green-cases/normal.stderr.bin": "UDJCLUNPTlRBSU5NRU5ULUVSUg==",
+    "green-cases/normal.stdout.bin": "UDJCLUNPTlRBSU5NRU5ULU9VVA==",
+    "green-cases/timeout.stderr.bin": "",
+    "green-cases/timeout.stdout.bin": ""
+  },
+  "ApprovedPlanBase64": "IyBQMi1CIENvbnRyb2xsZXIgQ2F1c2FsaXR5IFJldmVyaWZpY2F0aW9uIEltcGxlbWVudGF0aW9uIFBsYW4KCj4gKipGb3IgYWdlbnRpYyB3b3JrZXJzOioqIFJFUVVJUkVEIFNVQi1TS0lMTDogVXNlIHN1cGVycG93ZXJzOmV4ZWN1dGluZy1wbGFucyBmb3IgcHJvcG9zZWQgTmF0aXZlIGV4ZWN1dGlvbi4gU3RlcHMgdXNlIGNoZWNrYm94ZXMuIE5vIGltcGxlbWVudGF0aW9uIG9yIGV4ZWN1dGlvbiBpcyBhdXRob3JpemVkIGJ5IHRoaXMgZG9jdW1lbnQgYWxvbmUuCgoqKkdvYWw6Kiog5Zyo5LiN5pS55o6n5Yi25Zmo55qE5YmN5o+Q5LiL5L+u6K6i6aaW5Zug5pat6KiA77yM6KGl6aqM5a6M5pW05LqU57uE5pS25p2f6KGM5Li677yM5YaN6aqM6K+B5LiA5qyh5Y6f5o+h5omLIHNlYW0g6ZuG5oiQ44CCCioqQXJjaGl0ZWN0dXJlOioqIOaWsOa1i+ivleWPquivu+WKoOi9veWOnyBHUkVFTiDlgJnpgIkgb3duZWQtcnVuIOS4juWOn+WtkOi/m+eoiyBmaXh0dXJl77yb5Lul5bey5qCh5YeG55qE5pyJ55WMIEkvTyDlj7blm6Douqvku73mm7/ku6Pot6jmnaXmupAgRXJyb3JSZWNvcmQg5YyF6KOF5Zmo6Lqr5Lu95q+U6L6D44CC5paw55uu5b2V44CB5paw5Ya757uT5YyF44CB5paw6aKE5raI6LS56LSm5pys77yb5pmu6YCa54i25o6n5Yi25Zmo55uR552j5Lik5Liq5a6/5Li777yM56ys5LqM5a6/5Li75LuF5Zyo6aaW5a6/5Li75a6M5pW06YCa6L+H5ZCO6LCD55So5Y6fIHNlYW0g5LiA5qyh44CCCioqVGVjaCBTdGFjazoqKiBXaW5kb3dz44CB5pmu6YCaIFBvd2VyU2hlbGwgNy42LjUgQ29yZSB4NjTjgIHlm7rlrpogU0RL77yb5peg5a6J6KOF44CB57yW6K+R44CB5paw5Lqn5ZOB5L6d6LWW5oiW5a6J5YWo6K6+572u5Y+Y5pu044CCCioqU3BlYzoqKiBb5Y6fIEkxIOaUtuadn+S/ruWkjeWQiOWQjF0oMjAyNi0xMC0xOS1wMmItY29udHJvbGxlci1leGNlcHRpb24tY29udGFpbm1lbnQubWQp44CBW+WIpOaNruiviuaWreiuoeWIkl0oMjAyNi0xMC0xOS1wMmItZXJyb3ItY2F1c2FsaXR5LWNoYXJhY3Rlcml6YXRpb24ubWQp5Y+KW+aPoeaJi+WQiOWQjCDCpzldKC4uL3NwZWNzLzIwMjYtMTAtMTktcDJiLWhhbmRzaGFrZS1jb250cmFjdC1kZXNpZ24ubWQp44CC5pys6K6h5YiS5LiN5a6e546w55yf5a6e5o+h5omL54q25oCB5oiW6IO95Yqb44CCCgrnirbmgIHvvJpQUk9QT1NFRF9OT1RfQVBQUk9WRUTjgILkvp3mja7lvIDlj5Hmo4Dmn6XngrkKMzdkODIzMjc2N2YyZjA4NGE3ZDg5OTA3MDIzOTFlYjJmMGU3NTRjY++8m+eUqOaIt+acrOasoeKAnOe7p+e7reKAneWPqui/m+WFpeS5pumdouihpemqjOiuoeWIkuOAggrmjqjojZAgTmF0aXZl77yb5paw6aKd5bqm44CB5Luj56CB5a6e546w5Y+K6L+Q6KGM5Z2H5b6F5om55YeG44CC5pys6L2u6Zu25Luj56CBL+ebruaghy/mtYvor5Uv57yW6K+RL+WuoeafpeOAggoKIyMgR2xvYmFsIENvbnN0cmFpbnRzCgotIOS7heeOsOaciSBjb2RleC9jMTItYjAxLXRhc2s5LWNvb3JkaW5hdG9yIOW8gOWPkeW3peS9nOagke+8m1Bvd2VyU2hlbGwg5omn6KGM44CCCiAg5LiN5ZCI5bm2IG1haW7jgIHlj5HluIPjgIHliKDml6fmlofku7bjgIHmlLkgR2l0IOS/oeS7u+aIluWuieWFqOiuvue9ruOAgeWuieijheS+nei1luOAggotIOWOnyBzZWFt44CBY29udGFpbm1lbnTjgIFjYXVzYWxpdHkg55qE5YWo6YOo5Ya757uT6L6T5YWl44CBcmF344CBcG9ydGFibGUtc3VtbWFyeeOAgQogIOWuoeafpeS4juWksei0peiusOW9leS/neaMgeS4jeWPmO+8m+aXpyBHUkVFTiDku43kuLrlpLHotKXvvIxGaXJzdFJlY29yZElkZW50aXR5PWZhbHNl44CBCiAgQ2F1c2VDb25maXJtZWQ9ZmFsc2Ug5LiN6KGl5YaZ44CB5LiN5pS55Yik44CC6K+K5patIDUvNSDkuI3nrYnkuo7mjqfliLblmajpqozmlLbjgIIKLSDlm7rlrpogY29kZWMgU0hBMjU277yaOUE1MzJFMTdEMzNDQUIxRkVFOUQ4QkIyNEM0MUQ1QTRCODY3RTQyRjVFQkFCMEVFM0MzQzI5QzlDREMxMDkzQ+OAggotIOWbuuWumiBpbmJveCBTSEEyNTbvvJo0N0JBQkZFREZEQTczQzg1MEVBNDlDQzc0RTNCNjM0ODkxOUVBQzY5RTdBRkJGRDNEQ0E5MDdCNDk4OEMwMkZD44CCCi0g5Zu65a6aIGVuZ2luZSBTSEEyNTbvvJozNjJBMzU2Q0U3RjA5NDBFQzc0RjczQThGQzJDOTkwQTJDQzI0QTM4QTExQzkwQkJEOEVDQTk0NzExMEFEMTM544CCCi0g5Zu65a6aIFNESyBTSEEyNTbvvJoyRDhBRjAyNkU1ODlDNTYwMzYyOUJGQzNFN0M1NzI2NUI0MTY3QjEyRUNBM0FFNTQ5QzZBNkMzQ0E3RTQ5NjdC44CCCi0gU291cmNlVmVyaWZpZWTjgIFMaXZlQWN0aW9uc1BlcmZvcm1lZOOAgVJ1bnRpbWVBcHByb3ZlZOOAgUZvcm1hbEFjY2VwdGFuY2XjgIEKICBSZWFsR2F0ZUltcGxlbWVudGVkIOWdh+S4jeWNh+e6p++8m+WOn+aciemZkOemu+e6v+aJueWHhuS4jiBNaW5vcjIg5bu25ZCO5LiN5Y+Y44CCCi0g5penIGNvbnRhaW5tZW50IOS9mSAxIOWuv+S4uyszIOWtkOi/m+eoiysxIOWuoeafpeS/neaMgSBGUk9aRU7vvJvor4rmlq0gMS8xIOW3suiAl+WwveOAggogIOS4jeWAn+eUqOS7u+S9leaXp+mineW6pu+8jOS4jeiHquWKqOmHjei3kSBSRUTjgIHml6cgR1JFRU7jgIHml6for4rmlq3miJbml6cgRklOQUzjgIIKLSDkuI3kv67mlLkv5aSN5Yi25Lqn5ZOB5o6n5Yi25Zmo44CB5LiN5aKe5Yqg5pWF6Zqc5byA5YWz44CBc2V0dGVy44CBY2FsbGJhY2vvvJvku4XmlrDmtYvor5Xnp4HmnInliKTmja7jgIIKICDlj6rmjIHmnInlubbnm5HnnaPnoa7liIcgUHJvY2VzcyDlr7nosaHvvIzkuI3mjIkgUElEL+WQjeensOmHjeaJvuOAgeafpeivouaIlue7iOatouWFtuS7lui/m+eoi+OAggoKIyMg5Zu65a6a5aSN55So5LiO5paH5Lu25Zu+Cgrku6XkuIvnm7jlr7not6/lvoTku6UgZG9jcy9kaWFnbm9zdGljcy9pc29sYXRlZC1mdXp6LyDkuLrmoLnvvIzlj6ror7vlpI3nlKjvvJoKCnwg6L6T5YWlIHwgU0hBMjU2IC8g55So6YCUIHwKfCAtLS0gfCAtLS0gfAp8IHAyYi1jb250cm9sbGVyLWV4Y2VwdGlvbi1jb250YWlubWVudC9vd25lZC1ydW4ucHMxIHwgN0E0MjVDNjYxOTY4Q0Q3NEJGRDhDRDRFQUEyNUNCQTUzRUQzNkNDMDlFM0QyOTQ2RjlEMDk1RkMwOTVCMjVFMe+8m+WUr+S4gOWPl+a1i+aOp+WItuWZqOWAmemAiSB8CnwgcDJiLWNvbnRyb2xsZXItZXhjZXB0aW9uLWNvbnRhaW5tZW50L2ZpeHR1cmUtY2hpbGQucHMxIHwgRUU1Q0RBMUM1NDczOUVCQUREOTU3ODM5MUNDRTU2QjVDQTEzQ0RFNzY0RUM4NzhENTc4MkVGQUUzODlCMjUxRu+8m0hvbGQgLyBFbWl0QW5kRXhpdCB8CnwgcDJiLWVycm9yLWNhdXNhbGl0eS1jaGFyYWN0ZXJpemF0aW9uL2NhdXNhbGl0eS50ZXN0cy5wczEgfCAzNTI0QURENjhBM0MwRjQ4N0Q1MzBGMzk3OUNCNjcyMUQ4RTA4Qjg0MEZBODBGMDkyQTZFRkYwRjg1QUNBODIz77yb5Y+q6K+75o+Q5Y+W5Lik5Liq5Yik5o2u5a6a5LmJ77yM5LiN5omn6KGM6K+l6ISa5pysIHwKfCBwMmItaGFuZHNoYWtlLXNlYW0tdmVyaWZpY2F0aW9uL2hhbmRzaGFrZS1zZWFtLnRlc3RzLnBzMSB8IOWkjeeUqOWOn+WGu+e7kyBtYW5pZmVzdCDkuK3nmoTnsr7noa7lk4jluIzkuI7ljp8gb3JhY2xl77yM5LiN5L+u5pS55oiW5aSN5Yi255uu5qCHIHwKCuaWsOebruW9lSBkb2NzL2RpYWdub3N0aWNzL2lzb2xhdGVkLWZ1enovcDJiLWNvbnRyb2xsZXItY2F1c2FsaXR5LXJldmVyaWZpY2F0aW9uL++8mgoKLSBjb250YWlubWVudC50ZXN0cy5wczHvvJrkupTnu4TmtYvor5XjgIHnp4HmnInlm6Dmnpzmlq3oqIDkuI7kuInmrKHlrZDov5vnqIvotKbmnKzjgIIKLSBjYXB0dXJlLnBzMe+8mlByZXBhcmUgLyBSdW4gLyBJbnRlZ3JhdGUg5LiJ56eN5YWl5Y+j77yb5pmu6YCa54i255uR552j44CB6aKE5raI6LS544CB5a6M5pW0IG9yYWNsZSDmr5TovoPjgIIKLSBleHBlY3RlZC1vdXRwdXQuanNvbu+8mui/kOihjOWJjeS6uuW3peWbuuWumueahCBHUkVFTi9GSU5BTCDovpPlh7rlj4rlrozmlbTop4LmtYvpooTmnJ/jgIIKLSBSRUFETUUubWQgLyAuZ2l0YXR0cmlidXRlc++8muiMg+WbtOOAgeaBouWkjemZkOWItuOAgXBzMS9qc29uL21kIOeJqeeQhiBMRuOAggoK5YWx5LqU5Liq5paw5Ya757uT6L6T5YWl44CC5ZCO57utIHBvcnRhYmxlLXN1bW1hcnkuanNvbuOAgXJldmlldy5tZOOAgXJldmlldy1kaXNwb3NpdGlvbi5tZArmmK/ovpPlh7rvvIzkuI3liJfkuLrmiafooYzovpPlhaXjgILmlrAgaWdub3JlZCBwYWNrZXTvvJoKLnN1cGVycG93ZXJzL3NkZC8yMDI2LTEwLTE5LXAyYi1jb250cm9sbGVyLWNhdXNhbGl0eS1yZXZlcmlmaWNhdGlvbi/jgIIK5omn6KGM5oql5ZGK5Y+m5bu6IGRvY3Mvcm9hZG1hcC8yMDI2LTEwLTE5LXAyYi1jb250cm9sbGVyLWNhdXNhbGl0eS1yZXZlcmlmaWNhdGlvbi5tZO+8mwrmm7TmlrAgY3VycmVudC1zdGF0dXMubWQg5LiOIHJlcG9zaXRvcnktcmVjb3ZlcnkubWTvvIzlv4XopoHmlofku7bmj5DkuqTnjrDmnInliIbmlK/jgIIKCiMjIFJldmlldyBGb2N1cwoKMS4g5ZCM5LiA5bqV5bGC6ZSZ6K+v55qEIGNhdGNoIOWMheijheWZqOS4jeWQjO+8muesrCAyIOe7hOavlOi+gyBJL08g5Y+25Zug77yM5ouS57ud55So5YyF6KOF5Zmo6Lqr5Lu95Luj5pu/44CCCjIuIOS4pOasoeWQjOi3r+W+hOOAgeWQjOaWh+acrOmUmeivr+a3t+WQjO+8muesrCAyIOe7hOimgeaxgueLrOeri+mUmueCueeahOWPtuWboOS4jeWQjO+8jOa2iOaBr+S4jeW+l+WGs+WumumAmui/h+OAggozLiDku6Xov5Tlm57lgLzoh6ror4Hpppblm6DjgIHmiJbmuIXnkIbplJnor6/mm7/mjaLpppblm6DvvJrnrKwgMiDnu4Tku47ni6znq4sgRXJyb3Ig5YiX6KGo5Y+W6ZSa54K577yM5qC45LiJ56eN5pu/5o2i6LSf5L6L44CCCjQuIOmineWklumUmeivr+aIluaXoOeVjOmTvuiiq+mdmem7mOW/veeVpe+8muesrCAyIOe7hOimgeaxguaBsOWlveS4pOadoeeLrOeri+WIl+ihqOiusOW9le+8m+epuuOAgee8uuWkseOAgea3seS5neWxguWdh+aLkue7neOAggo1LiDmlZHmj7TmiJbmjIHkuYXljJblpLHotKXooqvor6/miqXmiJDlip/vvJrnrKwgMS8zLzQg57uE5ZKMIEZJTkFMIOimgeaxguehruWIh+mAgOWHui/lrozmlbTlj4zmtYHvvJvlpJblsYLmlZHmj7TljbPlgZzmraLjgIIKCiMjIOaWsOmihOeul+OAgemhuuW6j+S4juWBnOe6vwoK5ouf5om55YeGIE5FVyAyIOS4qumhtuWxgiBQUzcg5a6/5Li7ICsgNCDkuKrlj5fmjqcgUFM3IOWtkOi/m+eoiyA9IDYg5Liq5paw6L+b56iL77yMCuWkluWKoOadoeS7tuaApyAxIOasoeWPquivu+eLrOeri+WuoeafpeOAguaZrumAmuaXouacieeItuS4iuS4i+aWh+S4jeWPpuWQr+WKqCBQUzfvvJtQcmVwYXJlIOS4jeWQr+WKqOebruagh+OAggrml6Dlrp7njrDku6PnkIbjgIHpop3lpJbor4rmlq3lrr/kuLvjgIHmjqLpkojjgIHph43or5XmiJbkuqflk4EgbXV0YW5044CCCgp8IOmhuuW6jyB8IOWuv+S4u+anvSB8IOWtkOi/m+eoi+anvSB8IOWUr+S4gOeUqOmAlCB8CnwgLS0tIHwgLS0tIHwgLS0tIHwgLS0tIHwKfCAxIHwgZ3JlZW4gfCBmYXVsdOOAgW5vcm1hbOOAgXRpbWVvdXQgfCDmlrAgY29udGFpbm1lbnQudGVzdHMucHMx77yM5pWF6Zqc5a2Q6L+b56iL55Sx5YmN5Lik57uE5YWx5LqrIHwKfCAyIHwgZmluYWwgfCBmaW5hbC1zZWFtIHwg5pawIGNhcHR1cmUucHMxIC1BY3Rpb24gSW50ZWdyYXRl77yM6LCD55So5Y6fIHNlYW0g5LiA5qyhIHwKfCAzIHwg5pegIHwg5pegIHwg5YmN5Lik6KGM5a6M5pW057K+56Gu5oiQ5Yqf5ZCO77yM5LiA5qyh54us56uL5Y+q6K+75a6h5p+lIHwKClByZVN0YXJ0T3V0cHV0RmF1bHQg5LuF5Yib5bu65pyq5ZCv5Yqo55qEIFByb2Nlc3Mg5a+56LGh77yM5pegIFN0YXJ0IOWwneivle+8m+S4jeW+l+a2iOiAl+aIluWinuWKoOWtkOi/m+eoi+OAggrmr4/kuKogU3RhcnQg5bCd6K+V5LmL5YmN5YWI5oyB5LmF5YyW5raI6LS55qe977yb5Y2z5L2/5ZCv5Yqo5aSx6LSl5Lmf5bey5raI6LS577yM5LiN5Y+v5Zue6YCA44CCCuWPquWFgeiuuOmhuuW6j+WJjee8gO+8m+W3suacieWvueW6lOanveOAgei0puacrOacquefpeOAgeeItuiusOW9leWGmeWksei0peaIliBwaW4g5LiN56ym77yM56aB5q2iIFN0YXJ044CCCgrmr4/kuKrpobblsYLlrr/kuLsgTWF4TXM9MTIwMDAw77yb6LaF5pe25ZCO5Y+q5a+55oyB5pyJ55qE5ZCM5LiAIFByb2Nlc3Mg6K+35rGC57uI5q2i77yMCkV4aXRXYWl0TXM9MjAwMOOAgeWPjOa1geWQiOeUqCBEcmFpbk1zPTIwMDDjgILlroPku6zmmK/mnInnlYzop4LmtYvnqpflj6PvvIzkuI3mmK/noazlrp7ml7bkv53or4HvvIwK6LaF6ZmQ5aaC5a6e5aSx6LSl77yM5LiN5bu26ZW/5ZCO6YeN5Yik44CC5Y+X5rWLIGhlbHBlciDnmoQgZmF1bHQvbm9ybWFsIE1heE1zPTIwMDDjgIF0aW1lb3V0Ck1heE1zPTIwMO+8m0V4aXRXYWl0TXMvRHJhaW5NcyDlkIQgMjAwMOOAgmZpeHR1cmUgSG9sZCDkv53mjIHljp8gNDUwMDBtcyDkuI3mlLnjgIIKRklOQUwgc2VhbSDkvb/nlKggTWF4TXM9MTEwMDAw77yI5LiN5pS55Y+Y5Y6f5rWL6K+V6ISa5pys77yJ77yb5YW25aSW5bGCIGZpbmFsIOWuv+S4u+WPlwoxMjAwMDBtcyDmgLvnm5HnnaPvvIzkv53nlZkgMTAwMDBtcyDnu5nlrZDlsYLmnInpmZDmlLbmnZ/kuI7lrr/kuLvokL3nm5jvvIzkuI3ph43nva7niLbmiKrmraLjgIIK6Iul5a2Q5bGC5LiN6IO95Zyo54i255WM5YaF5a6M5oiQ77yM6K6w5b2VIHVua25vd24g5bm25YGc57q/77yb54i257uI5q2i5a6/5Li75LiN562J5LqO5bey6K+B5piOCuWFtuWtkOi/m+eoi+mAgOWHuu+8jOS4jeW+l+aKiuWuv+S4u+mAgOWHuuaIliBmaXh0dXJlIOiHquihjOWIsOacn+W9k+S9nOWtkOi/m+eoi+aUtuadn+ivgeaNruOAggoK5Lu75L2V6Z2e57K+56Gu57uT5p6c44CB5pyq55+l5omA5pyJ5p2DL+mAgOWHuuOAgei2heaXtuWuv+S4u+OAgea1geS4jeWujOaVtOOAgeaEj+WkliBzdGRlcnLjgIHpop3lpJbplJnor6/jgIEKcGluIOa8guenu+OAgeWkluWxguaVkeaPtOOAgeiusOW9lS/op6PmnpDlpLHotKXvvJrlhYjmjInnoa7liIflr7nosaHlrozmiJDmnInpmZDlronlhajmlLbmnZ/vvIzlho3lgZzmraLlkI7nu63mp73jgIIK5L+d55WZ5Y6f5aeL6K6w5b2V77yM5L2Z6YeP5qCHIEZST1pFTu+8m+S4jeiHquWKqOS/ruS7o+eggeOAgeS/riBvcmFjbGXjgIHph43ot5HmiJblj5HlrqHmn6XjgIIKCiMjIFRhc2sgMTog5paw5pat6KiA5Y+K5LqU57uE6KGl6aqM77yI5LiA5qyhIEdSRUVO77yJCgoqKkZpbGVzOioqIOWIm+W7uuaWsOS6lOi+k+WFpe+8m+WPquivu+S4iui/sOWbuuWumua6kO+8jOS4jeS/ruaUueaXp+ebruW9leOAggoqKkludGVyZmFjZXM6KioKCi0gSW52b2tlLVAyQk93bmVkUnVuIC1Qcm9jZXNzIDxEaWFnbm9zdGljcy5Qcm9jZXNzPiAtU3Rkb3V0UGF0aCA8c3RyaW5nPgogIC1TdGRlcnJQYXRoIDxzdHJpbmc+IC1SZWNlaXB0UGF0aCA8c3RyaW5nPiAtTWF4TXMgPGludD4KICAtRXhpdFdhaXRNcyAyMDAwIC1EcmFpbk1zIDIwMDDvvJrkv53mjIHljp/nrb7lkI3kuI7ov5Tlm57lrZfmrrXjgIIKLSBjb250YWlubWVudC50ZXN0cy5wczEgLVRyYWNlUGF0aCA8Zml4ZWQgZ3JlZW4udHJhY2UuanNvbj4gLURldGFpbHNQYXRoCiAgPGZpeGVkIGdyZWVuLmRldGFpbHMuanNvbj7vvJrku4Xlm7rlrprmlrAgcGFja2V0IOi3r+W+hO+8jOaIkOWKnyBleGl0MO+8jOWksei0pSBleGl0MuOAggotIOengeaciSBDLVNhbWVJT0NhdXNlKFtvYmplY3RdTGVmdCxbb2JqZWN0XVJpZ2h0KSDkuI4KICBDLVByaW1hcnlQcmVzZXJ2ZWQoW29iamVjdF1SZXN1bHQsW29iamVjdF1GaXJzdEFuY2hvcixbb2JqZWN0XUZpbmFsQW5jaG9yKQogIOWOn+agt+aPkOWPluiviuaWreS4reeahOWHveaVsOWumuS5ie+8m+mdmeaAgeavlOWvueWHveaVsOS9k++8jOS4jSBpbXBvcnQv5omn6KGM5pen6K+K5pat55uu5qCH44CCCiAg5YmN6ICF5LuF5o6l5Y+XIEVycm9yUmVjb3Jk77yM5a6M5pW06LWwIEV4Y2VwdGlvbi5Jbm5lckV4Y2VwdGlvbiDliLAgbnVsbO+8jOacgOWkmiA4IOS4qgogIOS4jemHjeWkjeiKgueCue+8jOWPluacgOWQjuS4gOS4qiBVbmF1dGhvcml6ZWRBY2Nlc3NFeGNlcHRpb24vSU9FeGNlcHRpb24g5rS+55Sf5byC5bi477ybCiAg5LuF5ZCM5LiA5Y+25Zug5byV55So5Li6IHRydWXjgILlkI7ogIXopoHmsYIgUFNDdXN0b21PYmplY3QvUFNOb3RlUHJvcGVydHnjgIHnsr7noa7kuIDkuKoKICBFcnJvclJlY29yZFtdIOa4heeQhumhue+8jOmmluWboOWMuemFjSBGaXJzdCDkuI3ljLnphY0gRmluYWzvvIzmuIXnkIblj43lkJHljLnphY3jgIIKCi0gWyBdIFN0ZXAgMe+8muWkjeaguOWJjee9ruivgeaNruOAgeS6lOi+k+WFpeaWh+S7tui+ueeVjOS4juWFqOmDqOWbuuWumuWTiOW4jOOAguehruiupOS7heaWsCBvcmFjbGUg5L+u6K6i77yMCiAg5LiN5YGa5paw55qE5Lqn5ZOBIFJFRO+8m+aJueWHhuacrOiuoeWIkuWNs+aYjuehruWQjOaEj+KAnOaWsOWll+S7tummluasoei/kOihjOWPryBHUkVFTuKAneeahOa1i+ivleWIpOaNruS/ruiuouS+i+WkluOAggogIOWOhuWPsiBSRUQg5Y+q6K+05piO5bey5L+d5a2Y55qE5pen57y66Zm377yM5LiN5YaS56ew5pys6L2u6YeN5paw5a6M5oiQIFJFROKGkkdSRUVO44CCCi0gWyBdIFN0ZXAgMu+8muWFiOWGmeeLrOeri+mihOacn+WPiuS6lOe7hOaWreiogO+8jOWGjeWGmeaWsOWFpeWPoy/otKbmnKzjgILnrKwgMiDnu4TlnKggaGVscGVyIOiwg+eUqOWJjQogIEVycm9yLkNsZWFyKCnvvIzov5Tlm57lkI7nq4vljbPkv53lrZjor6Xlrr/kuLsgRXJyb3Ig5YiX6KGo55qE5a+56LGh5b+r54Wn77yM5pep5LqO5YW25LuW5Y+v6IO95oql6ZSZ5pON5L2c44CCCiAg5b+r54Wn5b+F6aG75oGw5aW95Lik5p2hIEVycm9yUmVjb3Jk77yb5pen5Zyo5YmN44CB5paw5Zyo5ZCO77yM5YiG5Yir5LulIG9sZGVzdOOAgW5ld2VzdCDkuLrni6znq4vplJrngrnjgIIKICDov5nmmK/lm7rlrprosIPnlKjot6/lvoTnmoTkuKXmoLzpooTmnJ/vvIzkuI3mmK/lt7LmtYvkuovlrp7vvJrmlbDph4/kuI3nrYnkuo4gMiDljbPlpLHotKXvvIzkuI3og73lvZPlnLrliIbnu4TjgIEKICDlv73nlaXpop3lpJbpobnmiJbmlL7lrr0gb3JhY2xl44CC6ZSa54K55LiN5b6X5LuOIHIuUHJpbWFyeUVycm9yL0NsZWFudXBFcnJvcnMg5a+85Ye644CCCiAg5Zu65a6aIGhlbHBlciDnmoTkuKTmrKEgU2F2ZS1SZWNlaXB0IOmhuuW6j+S4uummluWGmeWksei0peOAgWZpbmFsbHkg5pyr5YaZ5aSx6LSl77yb5L+d5oyB6K+l5rqQ56CBIHBpbuOAggotIFsgXSBTdGVwIDPvvJrlrp7njrDkuIvliJflm7rlrprmtYvor5XvvJvnrKwgMiDnu4TmiYDnlKjmm7/mjaLmoLnku4XmmK/mlq3oqIDotJ/kvovvvIznu53kuI3kv67mlLnlrp7pmYUgcu+8mgoKfCDnu4TlkI3vvIjmjInpobrluo/vvIkgfCDlv4XpobvmiJDnq4vnmoTpooTmnJ8gfAp8IC0tLSB8IC0tLSB8CnwgUG9zdFN0YXJ0UmVjZWlwdEZhdWx0IHwg5paw55uu5b2V5L2cIFJlY2VpcHRQYXRo77yMSG9sZCDlrZDov5vnqIvvvJtTdGFydGVkL1ByaW1hcnlQcmVzZW50L093bmVkRXhpdC9BY3R1YWxIYXNFeGl0ZWQvVGVybWluYXRpb25SZXF1ZXN0ZWQvU3RyZWFtc0NvbXBsZXRlPXRydWXvvJtUaW1lZE91dC9DbGVhbnVwT3ZlcmZsb3c9ZmFsc2XvvJvml6DlpJblsYLmlZHmj7QgfAp8IFByaW1hcnlTdXJ2aXZlc0ZpbmFsUmVjZWlwdEZhdWx0IHwg5Lik5p2h54us56uL6ZSa54K577yM5LqS5LiN5ZCM5Y+25Zug77ybQy1QcmltYXJ5UHJlc2VydmVkKHIsZmlyc3QsZmluYWwpPXRydWXjgIFDbGVhbnVwQ291bnQ9Me+8m+eUqCBmaW5hbCDmm7/mjaIgcHJpbWFyeeOAgeS6pOaNouS4pOiAheOAgeeUqCBmaXJzdCDmm7/mjaIgY2xlYW51cCDnmoTkuInkuKrmma7pgJrotJ/kvovmoLnlnYcgZmFsc2XvvJtudWxsIOmUmueCuS/nvLogUHJpbWFyeS/kuZ3lsYLljIXoo4XlnYcgZmFsc2UgfAp8IE5vcm1hbEV4aXQgfCBFbWl0QW5kRXhpdO+8m2V4aXQw44CB5pegIHByaW1hcnkvY2xlYW51cC9vdmVyZmxvdy90aW1lb3V0L2tpbGzvvIznoa7liIfpgIDlh7ov5Y+M5rWB5a6M5oiQ77yb5Y6fIEFTQ0lJIHN0ZG91dD1QMkItQ09OVEFJTk1FTlQtT1VU44CBc3RkZXJyPVAyQi1DT05UQUlOTUVOVC1FUlIg57K+56Gu5Yy56YWNIHwKfCBUaW1lb3V0IHwgSG9sZO+8m1RpbWVkT3V0L1Rlcm1pbmF0aW9uUmVxdWVzdGVkL093bmVkRXhpdC9BY3R1YWxIYXNFeGl0ZWQvU3RyZWFtc0NvbXBsZXRlPXRydWXvvIzlt7Lnn6XpgIDlh7rnoIHvvIzml6AgcHJpbWFyeS9jbGVhbnVwL292ZXJmbG9377yb5LiN6KaB5rGC54m55a6a57uI5q2i56CBIHwKfCBQcmVTdGFydE91dHB1dEZhdWx0IHwgU3Rkb3V0UGF0aCDmjIflkJHnm67lvZXvvJtTdGFydGVkPWZhbHNl44CBcHJpbWFyeSDlrZjlnKjvvIxQcm9jZXNzIOacquWFs+iBlOOAgU93bmVkRXhpdD1mYWxzZeOAgUV4aXRDb2RlPW51bGzjgIHml6Aga2lsbO+8m+ivpeW8guW4uOS4jeaYr+WQr+WKqOaIkOWKnyB8CgotIFsgXSBTdGVwIDTvvJrmma7pgJrniLYgUHJlcGFyZeOAgumqjOivgSBkaWFnbm9zdGljIGZyb3plbi5qc29uIFNIQQogIDZCMzFDQjZBQkREMEM2MTBDRjk1NTczMjIwN0QzREM0NzhCOTA1MjQxODI2OTUzOTE4MTAwMzQ4MTQxMTQyOEXvvIznu6fmib8KICAxNDM0IOaYoOWwhCBwaW7vvJvliqDlhaXor6Xor4rmlq3lhajpg6ggNyByYXfjgIE2IHBvcnRhYmxlIOaWh+S7tuOAgeaJp+ihjOaKpeWRiuOAgeaWsOS6lOi+k+WFpeWSjAogIOacrOaJueWHhuiuoeWIkuW/q+eFp++8iOaAuyAxNDU0IOaYoOWwhOmhue+8jOWFgeiuuOmHjeWkjei3r+W+hOS9huemgeatouefm+ebvuWTiOW4jO+8ieOAgui+k+WHuuWujOaVtOa4heWNleWQjuWGu+e7k+OAggogIOaJgOacieaWsOS7o+eggeOAgW9yYWNsZeOAgemihOeul+OAgeanveW6j+S4juiuoeWIkuW/q+eFp+WTiOW4jOWbuuWumu+8m+i/kOihjOWJjeWQjuWFqOa4heWNleajgOafpeOAggogIOe8uuaXpyByYXcv5Zu65a6a5L6d6LWW5pe25YGc5Zyo5YeG5aSH6Zi25q6177yM5LiN5LuOIHBvcnRhYmxlIOaVsOaNruS8qumAoOWOn+S7tuOAggotIFsgXSBTdGVwIDXvvJrku4XkuIDmrKHmma7pgJrniLYgUnVuIC1TbG90IGdyZWVuIC1Gcm96ZW5TSEEyNTYgPHByZXBhcmUg6L6T5Ye6PuOAggogIOWug+WQr+WKqOS4iui/sOaWsOa1i+ivleWuv+S4u+S4gOasoe+8jOWQjuiAhea2iOi0ueS4ieWtkOanve+8mzUg6KGMIFBBU1Mg5b+F6aG75LiO5LiK6L+w57uE5ZCN6YCQ5a2X5ZCM5bqP77yMCiAg5a6/5Li7IGV4aXQwL+epuiBzdGRlcnIv5peg54i26ZSZ6K+vL+WujOaVtOmAgOWHuuWPjOa1gS8w5pWR5o+077yM5a6M5pW0IHRyYWNlIOWvueWbuuWumiBvcmFjbGUg6Zu25beu5byC44CCCiAg5Yqo5oCBIFBJROOAgeaXtumXtOOAgee7iOatoumAgOWHuueggeWPquWcqOaYjuehruWIl+WHuueahCByZWNlaXB0cyDlrZfmrrXkv53lrZjkuI7ojIPlm7TmoLjpqozvvIwKICDkuI3ku47lrozmlbTlm7rlrpogdHJhY2Ug5q+U6L6D5Lit5Li05pe25Yig5a2X5q6177ybZGV0YWlscyDkv53nlZnlr7nosaHlhbPns7vluIPlsJTlgLzkuI7mnInnlYzplJnor6/pk77jgIIKICDkuI3luo/liJfljJblo7Dnp7DmgaLlpI0gQ0xSIOW8leeUqOi6q+S7veOAguWksei0peaJp+ihjOWBnOe6v++8m+S4jeW+l+i/m+WFpSBUYXNrIDLjgIIKLSBbIF0gU3RlcCA277ya5L+d5a2Y5riF5pmw5qCH5rOo55qE5byA5Y+R5qOA5p+l54K55Y+K5oGi5aSN6K+05piO77yb5Y2z5L2/IEdSRUVOIOmAmui/h+S5n+WPquihqOekuuacrOe7hOinguWvn++8jAogIOS4jeWFs+mXrSBJMeOAgeS4jeWjsOensOaVtOS9k+WujOaIkOOAguaZrumAmuaPkOS6pOS4jeaUueWPmOWGu+e7k+aJp+ihjOi+k+WFpeaIluW3sua2iOi0ueanveOAggoKIyMgVGFzayAyOiDkuIDmrKEgRklOQUwg6ZuG5oiQ44CB5p2h5Lu25a6h5p+l5ZKM5Lqk5o6lCgoqKkZpbGVzOioqIOWQjOS4gOaWsCBjYXB0dXJlLnBzMS9leHBlY3RlZC1vdXRwdXQuanNvbu+8m+a0vueUnyBzdW1tYXJ544CB5omn6KGM5oql5ZGK5LiO5a6h5p+l6K6w5b2V44CCCioqSW50ZXJmYWNlczoqKiBjYXB0dXJlLnBzMSAtQWN0aW9uIFByZXBhcmXvvJstQWN0aW9uIFJ1biAtU2xvdCBncmVlbnxmaW5hbAogIC1Gcm96ZW5TSEEyNTYgPDY0IGhleD7vvJvlhoXpg6ggLUFjdGlvbiBJbnRlZ3JhdGUgLUZyb3plblNIQTI1NiA8c2FtZT7jgIIKUnVuIOWPquS7juaXouacieaZrumAmueItuiwg+eUqO+8m0ludGVncmF0ZSDlv4XpobvmoLggZmluYWwg5bey6aKE5raI6LS55LiUIGdyZWVuIOeyvuehrumAmui/h++8jOemgeatouS7u+aEj+ebtOi3keOAggoKLSBbIF0gU3RlcCAx77ya5pmu6YCa54i2IFJ1biAtU2xvdCBmaW5hbO+8jOS7heWcqCBUYXNrIDEg5YWo6YOo57K+56Gu6YCa6L+H5LiU5omA5pyJIHBpbiDlrozmlbTlkI7vvIwKICDpooTmtojotLkgZmluYWwg5a6/5Li75qe95bm25ZCv5YqoIGNhcHR1cmUucHMxIC1BY3Rpb24gSW50ZWdyYXRlIOS4gOasoeOAgkludGVncmF0ZSDlj6ror7vliqDovb0KICDlm7rlrpogb3duZWQtcnVu77yM5a+556Gu5YiH5Y6fIHNlYW0gUHJvY2VzcyDpooTmtojotLkgZmluYWwtc2VhbSDlrZDmp73lubbosIPnlKggaGVscGVyIOS4gOasoeOAggogIFJ1biDniLbkvb/nlKjni6znq4vnmoTml6LmnInor4rmlq3niLbnm5HnnaPmqKHlvI/vvIzkuI3kvp3otZbooqvmtYsgaGVscGVyIOadpeS/neivgemhtuWxgua4heeQhuOAggogIOavj+WxguWcqCBTdGFydCDkuYvlkI7jgIHmjIHkuYXljJbkuYvliY3lv4Xpobvov5vlhaUgZmluYWxseSDlronlhajovrnnlYzvvIzmjIHmnInlrp7pmYXlkK/liqjnirbmgIHvvJsKICDkv53lrZjlpLHotKXkuI3og73nu5Xov4fmnInpmZDpgIDlh7ov5Y+M5rWB5pS25p2f77yM5pWR5o+05LiN6KKr5b2S5L2c6aqM6K+B5oiQ5Yqf44CCCi0gWyBdIFN0ZXAgMu+8mkZJTkFMIOimgeaxguWOnyAxNSDooYwvMTIgUEFTU+OAgeWOn+WujOaVtCB0cmFjZSBvcmFjbGUg6Zu25beu5byC77ybc3Rkb3V0IFNIQQogIEY2OTNBNjRBMTQwMkEwQUY4ODJFMzBENjJGNkVCNzk2MDFGNUYzODA5NzQ5MDBERDk4MkI3RUQ5NDY0MUEwRkXjgIF0cmFjZSBTSEEKICA0NzUxRDAzRDI4RkI4MzQyQUZGQzU2QkYwRTgzNDNGMEUwQjFENUU1NDhBN0RGN0MxQjE2NEY3MTlDMTBBMTdF44CCCiAgaGVscGVyIOW/hemhu+aXoCBwcmltYXJ5L2NsZWFudXAvb3ZlcmZsb3cvdGltZW91dC9raWxs77yMZXhpdDDjgIHnoa7liIfpgIDlh7ov5Y+M5rWB5a6M5pW077ybCiAgZmluYWwg5a6/5Li75ZCM5qC3IGV4aXQw44CB56m6IHN0ZGVycuOAgeWujOaVtOeItuebkeedo+OAgeaXoOaVkeaPtOS4lOWQjue9riBwaW5zIOWujOaVtOOAggogIOi/meaYr+S4gOmhueaWsOaYjuehrumihOeul+eahOmbhuaIkOinguWvn++8jOS4jeaYr+iHquWKqOaBouWkjeaXpyBGSU5BTOOAggotIFsgXSBTdGVwIDPvvJrku4XkuIrov7DmiJDlip/lkI7mtojotLkgMSDmrKHni6znq4vlj6ror7vlrqHmn6XjgILmjojmnYPml7blj6rmtL7kuIDkuKogcmV2aWV3ZXLvvIwKICDml6DmiafooYzku6PnkIbmiJbpop3lpJblrqHmn6XvvJvkuI3miafooYzohJrmnKwv5o6i6ZKI77yM5qC45YWo6YOo5paw6L6T5YWl44CB5Y6fIGhlbHBlcuOAgeeLrOeri+mihOacn+OAgQogIOmUmueCueeLrOeri+aApy/mlbDph4/mi5Lnu53jgIHmm7/mjaLotJ/kvovjgIHotKbmnKwv5pS25p2f5LiO5a6M5pW057uT5p6c44CC5oql5ZGK5YiG5byA5Yy65YiGIEkxIOaYr+WQpuaciQogIOi2s+Wkn+S/ruWkjeivgeaNruOAgeWJqeS9memXrumimOWSjOiMg+WbtOaOkumZpO+8m+WujOaVtOWPjemmiOmAkOmhuSBkaXNwb3NpdGlvbu+8jOS4jemdmem7mOS4ouW8g+OAggogIOWPkeeOsOmYu+WhnumhueWImeS/neeVmeacqumqjOaUtueKtuaAge+8jOS4jeiHquWKqOS/ruWkjeOAgeWkjemqjOaIluS6jOWuoeOAggotIFsgXSBTdGVwIDTvvJrku4XlvZPkuKTmrKHov5DooYzlj4rni6znq4vlrqHmn6XlnYfmu6HotrPlkIjlkIzvvIzmj5DkuqTigJzmnInpmZDnprvnur/mjqfliLblmajooaXpqozor4Hmja7lvoXnlKjmiLcKICDpqozmlLbigJ3nmoTkuqTmjqXvvJvkuI3oh6rooYzotYvkuojmraPlvI8v6L+Q6KGML2xpdmUvbWFpbi9mdWxsLUMxMiDpqozmlLbjgIJwb3J0YWJsZSBzdW1tYXJ5IOS/neeVmQogIOeyvuehrua6kOeggS/orqHliJIvbWFuaWZlc3Qv5Y6f5aeL5rWBL3RyYWNlL2RldGFpbHMv6LSm5pys5ZOI5biM5Y+K5a6e6ZmF6K6h5pWw77ybcmF3IOS7jSBpZ25vcmVk44CCCiAg5piO56Gu5pen5aSx6LSl5pyq5pS55Yik44CB5pen6aKd5bqm5Ya757uT44CB5paw6aKd5bqm5bey55SoL+acqueUqC/lhrvnu5PmlbDlkozlhajpg6jliankvZnpmLvloZ7jgIIKICDmm7TmlrDmgaLlpI3mlofmoaPjgIHmmL7lvI/mlofku7bliJfooajmmoLlrZjmj5DkuqTmjqjpgIHlubbmoLjov5znq68gU0hB77yb5LiN5o+Q5Lqk57yT5a2Y44CB5Yet5o2u44CB5LqM6L+b5Yi244CCCgojIyDorqHliJLoh6rmo4DkuI7mibnlh4bpl6gKCuW3suWvueeFp+WOnyBJMSDlkIjlkIzlkozmj6HmiYsgwqc5IOiHquajgO+8muS6lOe7hOOAgeacgOe7iOWujOaVtCBzZWFt44CB54us56uLIG9yYWNsZeOAgQrpppblm6DotJ/kvovjgIHml6for4Hmja7kv53miqTjgIHnoa7liIfov5vnqIvmiYDmnInmnYPjgIHmnInpmZDml7bnqpfjgIHmlrDpop3luqblj4rmnaHku7blrqHmn6XlnYfmnInlvZLlsZ7jgIIK5paw6ZSa54K56Lev5b6E5bCa5pyq5omn6KGM77yM5oGw5aW95Lik5p2h55qE6aKE5pyf5Y+v6IO96Kem5Y+R5YGc57q/77yb5LiN6IO955So6K+K5pat55u05o6l5pu/5a6D6aqM5pS244CCCuS4jeaWsOWinuS6p+WTgeihjOS4uu+8jOS4jeS7peWQiOaIkOe7k+aenOabv+S7o+ecn+WunuaOp+WItuWZqOWbnuaJp++8jOS4jeaJqeWxleecn+WunuiDveWKm+iMg+WbtOOAggoK6K+35a6h6ZiF5bm25om55YeG77yaTmF0aXZlIOWunuaWveacrOiuoeWIku+8m05FVyAyIOWuv+S4uys0IOWtkOi/m+eoi++8iDYg5pawIFBTNyDov5vnqIvvvInvvIwK5p2h5Lu25oCnIDEg5qyh54us56uL5Y+q6K+75a6h5p+l77yb5paw5aWX5Lu26aaW5qyhIEdSRUVOIOeahOWIpOaNruS/ruiuouS+i+Wklu+8m+Wksei0peWNs+WBnOOAgeS4jeWAn+aXp+mineW6puOAggrmibnlh4bliY3mnKzova7lj6rkv53lrZjmlofmoaPjgILmibnlh4bkuZ/kuI3mjojmnYPoh6rliqjkv67lpLHotKXjgIHph43or5XmiJbmraPlvI/pqozmlLbjgIIK",
+  "Limits": [
+    "No retry, correction or further slot consumption after failure.",
+    "Only four containment groups passed; full verification failed.",
+    "Unassociated=false cause was not investigated or waived.",
+    "CLR identities cannot be reconstructed from this summary.",
+    "Raw packets/runtime/credentials/execution rights do not follow from clone.",
+    "Independent review gate was not reached."
+  ]
+}

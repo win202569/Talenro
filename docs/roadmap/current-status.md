@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — causality reverification GREEN 4/5; fifth group failed, stopped
+
+[Execution](2026-10-19-p2b-controller-causality-reverification.md).
+User approved Native/new2hosts+4children+conditional1review after62f7ad23.
+Five inputs/1454pins frozen; host40880/1556ms/exit2. Post-start fault,
+primary-cause preservation with replacement negatives, normal and timeout passed.
+PreStartOutputFault failed: Unassociated=false versus true; cause unestablished.
+All three actual children owned-exited,0rescue; host drains/exit complete,
+no timeout/parenterror and postpins intact. Full trace nonexact, not accepted.
+Spent1host+3children=4/6; remaining1host+1child+1review FROZEN. No FINAL/reviewer,
+auto-fix or rerun. Old failures/remaining budgets and I1 unaccepted unchanged.
+Next: separately authorize readonly fifth-group cause analysis; changes/new runs
+need a revised scope and budget. Necessary source/portable results saved for clone.
+
 ## Latest — controller causality reverification proposed; approval pending
 
 [New written plan](../superpowers/plans/2026-10-19-p2b-controller-causality-reverification.md).
