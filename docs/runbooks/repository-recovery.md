@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest proposal:[live completion supervisor written design](../superpowers/specs/2026-10-19-p2b-live-completion-supervisor-design.md).
+User approved direction/spec authoring after05ca9713, not implementation or new
+runtime. New written spec awaits human review. Proposed live session confirmation
+alone gates continuation; disk is evidence only. Failed sinks cannot be reused
+by finalization, but exact-object cleanup continues. Old helper's repeated
+receipt write is explicitly incompatible with the proposed new managed path;
+old source/evidence stays frozen, new boundary/oracles require a future approved
+plan. Clone restores design/progress/records, not live Session/acknowledgements,
+runtime identities/credentials or execution allowance. Do not resume old slots,
+rebuild raw or turn old EXPECTED_* files into permissions. C1/C2 remain unresolved,
+R2/Minor2 deferred, all old exhausted/frozen budgets unchanged. Next: review and
+approve written spec for plan authoring only; no automatic target or reviewer.
+
 Latest:[B1/B2 publication repair](../roadmap/2026-10-19-p2b-completion-publication-repair.md).
 Bounded chat design and separate NEW4hosts+4children+conditional1review approved.
 RED exact3FAIL, publication-only repair, GREEN6of6/CONTAINMENT7of7/FINAL15lines

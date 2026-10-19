@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — live completion supervisor written design pending review
+
+[Written design](../superpowers/specs/2026-10-19-p2b-live-completion-supervisor-design.md).
+After05ca9713,user approved architectural direction and writing the spec, not
+implementation/execution. Proposal separates live one-use continuation from
+disk evidence and permanently quarantines failed controller sinks while owned
+cleanup continues. No disk/session recovery authority. Explicitly records the
+legacy owned-run repeated-receipt write incompatibility; new execution boundary
+and new independent fault oracle required by a future plan, not implemented.
+This turn documents only:0code/targets/tests/compiles/agents/reviewers. Written
+spec pending human review; next approval permits implementation-plan writing
+only. C1/C2 still unresolved, old results/quotas and R2/Minor2 unchanged. No
+main/live/formal/full-C12 acceptance or new runtime budget.
+
 ## Latest — B1/B2 narrowly repaired; complete contract blocked by C1/C2
 
 [Execution](2026-10-19-p2b-completion-publication-repair.md).
