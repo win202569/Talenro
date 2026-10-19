@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — fresh budget approved; prefix and recording RED/GREEN exact
+
+[Execution](2026-10-19-p2b-timeout-observation-repair.md). Native NEW6hosts+
+7children+conditional1review approved after0f6b4544.14LF/static inputs,1795pins;
+prefix-red2FAIL→single sequence fix→prefix-green14PASS. recording-red exact
+fixed exit2/no evidence→single capture fix→recording-green exact fixed exit2/
+INCOMPLETE evidence with actual primary preserved. All4hosts exited/drained,
+0children/transport error/rescue, pins intact. Spent4hosts/0children/0review;
+remaining2hosts/7children/conditionalreview, no old quota reuse. Next owned3
+then sequence4; any nonexact freezes remainder, no auto repair/retry. Overall
+unfinished; C1/C2 unresolved,R2/Minor2 deferred,no main/live/formal acceptance.
+
 ## Latest — timeout/recording direction approved; fresh budget pending
 
 [Budget request](2026-10-19-p2b-timeout-recording-budget.md). Human approved

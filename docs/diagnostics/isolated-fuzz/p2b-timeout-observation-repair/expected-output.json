@@ -1,0 +1,631 @@
+{
+  "Schema": 1,
+  "RootNames": [
+    "Accepted",
+    "Rejection",
+    "Ack",
+    "Observation",
+    "Error"
+  ],
+  "IORootNames": [
+    "Ok",
+    "Value",
+    "Error"
+  ],
+  "EvidenceRootNames": [
+    "Schema",
+    "Grant",
+    "Status",
+    "Groups",
+    "CurrentGroup",
+    "NotRun",
+    "Observations",
+    "PrimaryError",
+    "SecondaryErrors",
+    "Overflow",
+    "Probe",
+    "SourceVerified",
+    "LiveActionsPerformed",
+    "RuntimeApproved",
+    "FormalAcceptance",
+    "RealGateImplemented"
+  ],
+  "Grants": {
+    "prefix-red": {
+      "ExitCode": 1,
+      "Children": 0,
+      "Output": [
+        "FAIL: EmptyPrefix",
+        "FAIL: ProperPrefix",
+        "PASS: CompletePrefix",
+        "PASS: InvalidPrefix",
+        "PASS: NormalExact",
+        "PASS: NormalShortRejected",
+        "PASS: NullAndTypeRejected"
+      ],
+      "Groups": [
+        {
+          "Name": "EmptyPrefix",
+          "Passed": false,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 0,
+            "Rejected": 2
+          }
+        },
+        {
+          "Name": "ProperPrefix",
+          "Passed": false,
+          "Facts": {
+            "Checks": 36,
+            "Accepted": 0,
+            "Rejected": 36
+          }
+        },
+        {
+          "Name": "CompletePrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "InvalidPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 10,
+            "Accepted": 0,
+            "Rejected": 10
+          }
+        },
+        {
+          "Name": "NormalExact",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "NormalShortRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 38,
+            "Accepted": 0,
+            "Rejected": 38
+          }
+        },
+        {
+          "Name": "NullAndTypeRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 8,
+            "Accepted": 0,
+            "Rejected": 8
+          }
+        }
+      ],
+      "Status": "COMPLETE",
+      "Evidence": "Required"
+    },
+    "prefix-green": {
+      "ExitCode": 0,
+      "Children": 0,
+      "Output": [
+        "PASS: EmptyPrefix",
+        "PASS: ProperPrefix",
+        "PASS: CompletePrefix",
+        "PASS: InvalidPrefix",
+        "PASS: NormalExact",
+        "PASS: NormalShortRejected",
+        "PASS: NullAndTypeRejected",
+        "PASS: DiskCannotMintAck",
+        "PASS: FailedSinkRejectsAccess",
+        "PASS: InvalidLedgerStops",
+        "PASS: FirstAndSecondaryBounded",
+        "PASS: OutputFailureNoAck",
+        "PASS: PreconsumeFailureNoStart",
+        "PASS: HandleCopiesRejected"
+      ],
+      "Groups": [
+        {
+          "Name": "EmptyPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "ProperPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 36,
+            "Accepted": 36,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "CompletePrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "InvalidPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 10,
+            "Accepted": 0,
+            "Rejected": 10
+          }
+        },
+        {
+          "Name": "NormalExact",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "NormalShortRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 38,
+            "Accepted": 0,
+            "Rejected": 38
+          }
+        },
+        {
+          "Name": "NullAndTypeRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 8,
+            "Accepted": 0,
+            "Rejected": 8
+          }
+        },
+        {
+          "Name": "DiskCannotMintAck",
+          "Passed": true,
+          "Facts": {
+            "AdvanceAccepted": false,
+            "FileUnchanged": true,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "FailedSinkRejectsAccess",
+          "Passed": true,
+          "Facts": {
+            "FirstFailed": true,
+            "PostFailureLogicalIO": 0,
+            "PrimarySame": true,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "InvalidLedgerStops",
+          "Passed": true,
+          "Facts": {
+            "Cases": [
+              {
+                "Case": "missing",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              },
+              {
+                "Case": "bad",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              },
+              {
+                "Case": "index",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              }
+            ]
+          }
+        },
+        {
+          "Name": "FirstAndSecondaryBounded",
+          "Passed": true,
+          "Facts": {
+            "PrimarySame": true,
+            "SecondaryCount": 8,
+            "Overflow": true
+          }
+        },
+        {
+          "Name": "OutputFailureNoAck",
+          "Passed": true,
+          "Facts": {
+            "Failed": true,
+            "AckIssued": 0,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "PreconsumeFailureNoStart",
+          "Passed": true,
+          "Facts": {
+            "Reserved": 1,
+            "StartCalls": 0,
+            "Failed": true,
+            "StartIO": 1,
+            "SecondAccepted": false
+          }
+        },
+        {
+          "Name": "HandleCopiesRejected",
+          "Passed": true,
+          "Facts": {
+            "Rejected": 3,
+            "StartCalls": 0
+          }
+        }
+      ],
+      "Status": "COMPLETE",
+      "Evidence": "Required"
+    },
+    "recording-red": {
+      "ExitCode": 2,
+      "Children": 0,
+      "Output": [
+        "PROBE: RecordingBeforeAssertion"
+      ],
+      "ErrorOutput": [
+        "EXPECTED: RecordingProbeAbort"
+      ],
+      "Groups": [],
+      "Status": "INCOMPLETE",
+      "Evidence": "Absent"
+    },
+    "recording-green": {
+      "ExitCode": 2,
+      "Children": 0,
+      "Output": [
+        "PROBE: RecordingBeforeAssertion"
+      ],
+      "ErrorOutput": [
+        "EXPECTED: RecordingProbeAbort"
+      ],
+      "Groups": [],
+      "Status": "INCOMPLETE",
+      "Evidence": "Required"
+    },
+    "owned-green": {
+      "ExitCode": 0,
+      "Children": 3,
+      "Output": [
+        "PASS: ReceiptFaultNoRetry",
+        "PASS: FirstCauseSurvivesCleanup",
+        "PASS: NormalExit",
+        "PASS: Timeout",
+        "PASS: PreStartFaultNoStart",
+        "PASS: UnassociatedNoKillWait"
+      ],
+      "Groups": [
+        {
+          "Name": "ReceiptFaultNoRetry",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "ReceiptAttempts": 1,
+            "SecondaryCount": 0,
+            "AckIssued": 0
+          }
+        },
+        {
+          "Name": "FirstCauseSurvivesCleanup",
+          "Passed": true,
+          "Facts": {
+            "PrimarySame": true,
+            "OwnedExit": true,
+            "StreamsComplete": true
+          }
+        },
+        {
+          "Name": "NormalExit",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ExitCode": 0,
+            "StreamsMatch": true
+          }
+        },
+        {
+          "Name": "Timeout",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "TimedOut": true,
+            "TerminationRequested": true,
+            "ExitCode": -1,
+            "StreamsMatch": true
+          }
+        },
+        {
+          "Name": "PreStartFaultNoStart",
+          "Passed": true,
+          "Facts": {
+            "Started": false,
+            "StartCalls": 0,
+            "Failed": true
+          }
+        },
+        {
+          "Name": "UnassociatedNoKillWait",
+          "Passed": true,
+          "Facts": {
+            "Association": "Unassociated",
+            "PID": null,
+            "KillCalls": 0,
+            "WaitCalls": 0
+          }
+        }
+      ],
+      "Status": "COMPLETE",
+      "Evidence": "Required"
+    },
+    "sequence-green": {
+      "ExitCode": 0,
+      "Children": 4,
+      "Output": [
+        "STEP: sequence-a/0",
+        "STEP: sequence-b/0",
+        "STEP: sequence-a/1",
+        "CONTEXT: DESKTOP-H4SVCLU\\Lenovo admin=False",
+        "HOST: PS7.6.5 Core x64",
+        "PASS: P2BHSeamFixedBoundary",
+        "PASS: P2BHSeamOrdinaryGap",
+        "PASS: P2BHSeamTakeDoesNotResetAdmission",
+        "PASS: P2BHSeamStaleExpectedRejected",
+        "PASS: P2BHSeamDeclaredExpectedIsNotAuthority",
+        "PASS: P2BHSeamArmReference",
+        "PASS: P2BHSeamStopReference",
+        "PASS: P2BHSeamHeartbeatReference",
+        "PASS: P2BHSeamArmDeclaredExpiry",
+        "PASS: P2BHSeamLookalikeInboxRejected",
+        "PASS: P2BHSeamStoppedInboxNoRecovery",
+        "PASS: P2BHSeamComplete",
+        "LIMIT: declarations/seam only; no handshake state or runtime authority",
+        "PASS: LiveAckBindingsAndReplay",
+        "PASS: OutputFailureNoContinuation",
+        "PASS: PositiveOwnedContinuation",
+        "PASS: SessionClosedNoResume"
+      ],
+      "Groups": [
+        {
+          "Name": "LiveAckBindingsAndReplay",
+          "Passed": true,
+          "Facts": {
+            "InvalidRequests": 6,
+            "AckConsumed": 1,
+            "ReplayAccepted": false,
+            "AStarts": 2,
+            "BStarts": 1
+          }
+        },
+        {
+          "Name": "OutputFailureNoContinuation",
+          "Passed": true,
+          "Facts": {
+            "Failed": true,
+            "AckIssued": 0,
+            "StartCalls": 1,
+            "NextAccepted": false,
+            "OwnedExit": true,
+            "StreamsComplete": true
+          }
+        },
+        {
+          "Name": "PositiveOwnedContinuation",
+          "Passed": true,
+          "Facts": {
+            "Status": "Closed",
+            "Failed": false,
+            "AckIssued": 1,
+            "AckConsumed": 1,
+            "SeamExact": true
+          }
+        },
+        {
+          "Name": "SessionClosedNoResume",
+          "Passed": true,
+          "Facts": {
+            "AClosed": "Closed",
+            "BClosed": "Closed",
+            "CClosed": "Closed",
+            "FreshAdvance": false,
+            "FreshStartCalls": 0
+          }
+        }
+      ],
+      "Status": "COMPLETE",
+      "Evidence": "Required"
+    }
+  },
+  "Cases": {
+    "disk": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "sink": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "missing": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "bad": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "index": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "errors": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "output": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "preconsume": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "copies": {
+      "Grants": [
+        "prefix-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "receipt-fault": {
+      "Grants": [
+        "owned-green"
+      ],
+      "Steps": [
+        "Hold"
+      ],
+      "Budget": 1
+    },
+    "normal": {
+      "Grants": [
+        "owned-green"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "timeout": {
+      "Grants": [
+        "owned-green"
+      ],
+      "Steps": [
+        "Hold"
+      ],
+      "Budget": 1
+    },
+    "prestart": {
+      "Grants": [
+        "owned-green"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "sequence-a": {
+      "Grants": [
+        "sequence-green"
+      ],
+      "Steps": [
+        "EmitAndExit",
+        "Seam"
+      ],
+      "Budget": 2
+    },
+    "sequence-b": {
+      "Grants": [
+        "sequence-green"
+      ],
+      "Steps": [
+        "EmitAndExit",
+        "Seam"
+      ],
+      "Budget": 1
+    },
+    "sequence-output-fault": {
+      "Grants": [
+        "sequence-green"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "fresh": {
+      "Grants": [
+        "sequence-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "recording": {
+      "Grants": [
+        "recording-red",
+        "recording-green"
+      ],
+      "Steps": [],
+      "Budget": 0
+    }
+  },
+  "Recording": {
+    "PrimaryType": "System.Management.Automation.MethodInvocationException",
+    "PrimaryErrorId": "FileNotFoundException",
+    "PrimaryMessageTemplate": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '{LedgerPath}'.\"",
+    "SecondaryType": "System.Management.Automation.RuntimeException",
+    "SecondaryErrorId": "ASSERT: RecordingProbeAbort",
+    "SecondaryMessage": "ASSERT: RecordingProbeAbort",
+    "ObservationCount": 1,
+    "CurrentGroup": "RecordingProbeAbort",
+    "NotRun": [
+      "AfterProbe"
+    ]
+  },
+  "SeamStdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+  "SeamTraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E"
+}

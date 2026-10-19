@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest execution:[timeout/recording repair](../roadmap/2026-10-19-p2b-timeout-observation-repair.md).
+Fresh Native6hosts/7children/conditionalreview approved; prefix RED→GREEN14PASS
+and fixed recording-abort RED→GREEN exact.4hosts/0children/0review spent;
+2hosts/7children remain only in original authorized context with all originals,
+not clone/replay rights.14source/test inputs and docs checkpointed on existing
+development branch. Final portable/review pending; owned and live sequence
+unrun in this stage. Read execution/request before any work. No original/raw
+reconstruction, disk Session/ack recovery or old quota reuse; unknown/nonexact
+freezes remainder. C1/C2 unclosed; all prior stops/quotas and R2/Minor2 unchanged.
+
 Latest proposal:[timeout/recording new budget](../roadmap/2026-10-19-p2b-timeout-recording-budget.md).
 Human approved the bounded direction, not this newly written execution budget.
 Native NEW6hosts+7children+conditional1readonlyreview proposed;14new inputs/
