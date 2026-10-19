@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-19
 
-## Latest — I1 controller repair plan proposed; no new execution approval
+## Latest — controller repair GREEN failed; remaining budget frozen
+
+[Execution](2026-10-19-p2b-controller-exception-containment.md).
+After19e3880d,user approved Native/3hosts+5children+conditional1review.
+Prepared7inputs/1398pins;REDhost30464/813ms exit1 exact andchild2004rescued.
+One planned owned-run-only repair;GREENhost20428/824ms exit2,1of5PASS then
+PrimarySurvivesFinalReceiptFault fails (FirstRecordIdentity=false).
+Child47688exited/streamscomplete/no outer rescue,but primary identity remains
+unverified. Cause unresolved:actual replacement versus comparator reference not
+established. No automatic fix/relabel/probe. Normal/Timeout/PreStart/FINAL/review
+not run. Spent2hosts+2children=4of8;remaining1host+3children+1review FROZEN.
+I1/task unfinished/not accepted. All old inputs/raw/results/review unchanged,
+zero compiles/product edits/old suites. Necessary sources/evidence saved for clone.
+Next recommendation:separately authorize readonly failed-assertion analysis;
+any code/comparator change or new verification needs revised approval/budget.
+
+## Historical — I1 controller repair plan proposed; no new execution approval
 
 [Repair plan](../superpowers/plans/2026-10-19-p2b-controller-exception-containment.md).
 User agreed to plan-writing after229dd2a5,not implementation. New-directory

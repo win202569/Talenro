@@ -1,0 +1,355 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-controller-exception-containment-portable-summary",
+  "Status": "GREEN_FAILED_FROZEN_UNFINISHED",
+  "BaseCommit": "19e3880d5133ecdb75bed9981ceff25ceb0547ce",
+  "Method": "Native",
+  "ImplementationApproved": true,
+  "Budget": {
+    "HostsApproved": 3,
+    "HostsSpent": 2,
+    "HostsRemainingFrozen": 1,
+    "ChildrenApproved": 5,
+    "ChildrenSpent": 2,
+    "ChildrenRemainingFrozen": 3,
+    "TotalApprovedNewProcesses": 8,
+    "TotalSpentNewProcesses": 4,
+    "ReviewersApproved": 1,
+    "ReviewersSpent": 0,
+    "ReviewersRemainingFrozen": 1
+  },
+  "RedFrozenSHA256": "F9C76ECB6C78FDAE6D492A8B71626088746946D6C9E78A8BFE234263DB9C280C",
+  "GreenFrozenSHA256": "9AAF1DA823DC427F0989DBAEFD802FAFE70B08653177FE93289D038ADA377248",
+  "FrozenPins": 1398,
+  "InheritedPins": 1378,
+  "ApprovedPlanSHA256": "3680755E62407264EB4AF4204FF9EC96D06A3FAAC6E1BF352FCAC039DE9E18DA",
+  "BaselineSourceSHA256": "DB762EE2FD87FCA4B921AEDBF44EC997A7C1AE7F0F4ED26FAB356D6A11F68842",
+  "CandidateSourceSHA256": "7A425C661968CD74BFD8CD4EAA25CBA53ED36CC09E3D2946F9D095FC095B25E1",
+  "ParentBookkeepingSHA256": "B2D91DB0D61385277354A392B3D56C7FF96891989BD213650BA40E0AB1403302",
+  "GreenGroupsPassed": 1,
+  "GreenGroupsPlanned": 5,
+  "FailedAssertion": "PrimarySurvivesFinalReceiptFault",
+  "CauseConfirmed": false,
+  "Observed": {
+    "FaultChildExited": true,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "TerminationRequested": true,
+    "Rescues": 0,
+    "FirstRecordIdentity": false,
+    "DistinctFinalError": true,
+    "CleanupCount": 1
+  },
+  "Unexecuted": [
+    "NormalExit",
+    "Timeout",
+    "PreStartOutputFault",
+    "FINAL seam integration",
+    "conditional readonly review"
+  ],
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "Limits": [
+    "RED is the expected saved failure before exact-owned rescue, not a passing suite.",
+    "GREEN failed and remains INCOMPLETE. The first containment check passed but neither I1 closure nor task completion is established.",
+    "Saved evidence does not distinguish replacement of the first ErrorRecord from a wrong identity comparator reference. No dynamic follow-up or reinterpretation was run.",
+    "Normal, timeout, pre-start, FINAL and review were not executed. Unspent allowances are frozen, not automatically available.",
+    "Old seam inputs, two successful observations, I1 review, product hashes and all historical spent/frozen budgets are unchanged.",
+    "Raw subtrees below are embedded as original JSON text without JavaScript Number roundtrip; raw manifests/packets and live ErrorRecord identities are not restored by cloning."
+  ],
+  "ArtifactInventory": [
+    {
+      "RelativePath": "approved-plan.snapshot.md",
+      "Bytes": 14861,
+      "SHA256": "3680755E62407264EB4AF4204FF9EC96D06A3FAAC6E1BF352FCAC039DE9E18DA"
+    },
+    {
+      "RelativePath": "children.json",
+      "Bytes": 420,
+      "SHA256": "2C66F55C9BF325068BDEA3D88CF1F7FCFFCF854FFB890A08C8A8F9B742DFEA79"
+    },
+    {
+      "RelativePath": "green-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green.frozen.json",
+      "Bytes": 525045,
+      "SHA256": "9AAF1DA823DC427F0989DBAEFD802FAFE70B08653177FE93289D038ADA377248"
+    },
+    {
+      "RelativePath": "green.host.stderr.bin",
+      "Bytes": 52,
+      "SHA256": "2EE208A15805C66EEA47BD5B84AB2C8148BA631A5104619FB9866EE2BFED9804"
+    },
+    {
+      "RelativePath": "green.host.stdout.bin",
+      "Bytes": 29,
+      "SHA256": "9C0FFE184F5E223C766D4E25576F5B66D07CF81FBB0C0115E61F37840A7D5590"
+    },
+    {
+      "RelativePath": "green.owned-run.ps1",
+      "Bytes": 3320,
+      "SHA256": "7A425C661968CD74BFD8CD4EAA25CBA53ED36CC09E3D2946F9D095FC095B25E1"
+    },
+    {
+      "RelativePath": "green.trace.json",
+      "Bytes": 838,
+      "SHA256": "A816AF5220BC55765399CE000DB10CA73C8360E561343EFE8C84C0A71909CA43"
+    },
+    {
+      "RelativePath": "hosts.json",
+      "Bytes": 1330,
+      "SHA256": "DABC7C60B42B63A47E5CFB50C8527E32F986F0DBA6388687EA2D98D259A4E495"
+    },
+    {
+      "RelativePath": "parent.ps1",
+      "Bytes": 7106,
+      "SHA256": "B2D91DB0D61385277354A392B3D56C7FF96891989BD213650BA40E0AB1403302"
+    },
+    {
+      "RelativePath": "red-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "red-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "red.before-rescue.json",
+      "Bytes": 316,
+      "SHA256": "A1592AEAB2C06C15E2B74A91E192A452021E4D830A502573DEE8DF3BB60D6A67"
+    },
+    {
+      "RelativePath": "red.frozen.json",
+      "Bytes": 525043,
+      "SHA256": "F9C76ECB6C78FDAE6D492A8B71626088746946D6C9E78A8BFE234263DB9C280C"
+    },
+    {
+      "RelativePath": "red.host.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "red.host.stdout.bin",
+      "Bytes": 75,
+      "SHA256": "ED7862BFA5040DFEA8DB82FAAC4A0E0209E08FF07796E8AB35BEF927D8C4AB3A"
+    },
+    {
+      "RelativePath": "red.owned-run.ps1",
+      "Bytes": 2693,
+      "SHA256": "DB762EE2FD87FCA4B921AEDBF44EC997A7C1AE7F0F4ED26FAB356D6A11F68842"
+    },
+    {
+      "RelativePath": "red.trace.json",
+      "Bytes": 674,
+      "SHA256": "D42F742FD50C34EAF68805288518A9795647125CF96B4069503CCCDA74FACA5A"
+    }
+  ],
+  "PortableStreams": [
+    {
+      "RelativePath": "green-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "green-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "green.host.stderr.bin",
+      "Bytes": 52,
+      "SHA256": "2EE208A15805C66EEA47BD5B84AB2C8148BA631A5104619FB9866EE2BFED9804",
+      "Base64": "QVNTRVJUSU9OIEZBSUxFRDogUHJpbWFyeVN1cnZpdmVzRmluYWxSZWNlaXB0RmF1bHQNCg=="
+    },
+    {
+      "RelativePath": "green.host.stdout.bin",
+      "Bytes": 29,
+      "SHA256": "9C0FFE184F5E223C766D4E25576F5B66D07CF81FBB0C0115E61F37840A7D5590",
+      "Base64": "UEFTUzogUG9zdFN0YXJ0UmVjZWlwdEZhdWx0DQo="
+    },
+    {
+      "RelativePath": "red-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "red-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "red.host.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "red.host.stdout.bin",
+      "Bytes": 75,
+      "SHA256": "ED7862BFA5040DFEA8DB82FAAC4A0E0209E08FF07796E8AB35BEF927D8C4AB3A",
+      "Base64": "RkFJTDogUG9zdFN0YXJ0UmVjZWlwdEZhdWx0Lk93bmVkRXhpdA0KUkVTQ1VFOiBleGFjdC1vd25lZCBleGl0IGNvbmZpcm1lZA0K"
+    }
+  ],
+  "Hosts": [
+  {
+    "Number": 1,
+    "Slot": "RED",
+    "AttemptConsumed": true,
+    "Started": true,
+    "PID": 30464,
+    "TimedOut": false,
+    "TerminationRequested": false,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "ExitCode": 1,
+    "ElapsedMs": 813,
+    "PostPinsIntact": true,
+    "Exact": true,
+    "stdoutSHA256": "ED7862BFA5040DFEA8DB82FAAC4A0E0209E08FF07796E8AB35BEF927D8C4AB3A",
+    "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ParentError": null,
+    "Outcome": "EXPECTED_RED_RESCUED",
+    "RealGateImplemented": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false
+  },
+  {
+    "Number": 2,
+    "Slot": "GREEN",
+    "AttemptConsumed": true,
+    "Started": true,
+    "PID": 20428,
+    "TimedOut": false,
+    "TerminationRequested": false,
+    "OwnedExit": true,
+    "StreamsComplete": true,
+    "ExitCode": 2,
+    "ElapsedMs": 824,
+    "PostPinsIntact": true,
+    "Exact": false,
+    "stdoutSHA256": "9C0FFE184F5E223C766D4E25576F5B66D07CF81FBB0C0115E61F37840A7D5590",
+    "stderrSHA256": "2EE208A15805C66EEA47BD5B84AB2C8148BA631A5104619FB9866EE2BFED9804",
+    "ParentError": null,
+    "Outcome": "INCOMPLETE",
+    "RealGateImplemented": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false
+  }
+],
+  "Children": [
+  {
+    "Number": 1,
+    "Case": "red-fault",
+    "AttemptConsumed": true,
+    "Started": true,
+    "PID": 2004,
+    "OwnedExit": true,
+    "Rescue": true,
+    "Outcome": "EXPECTED_RED_RESCUED"
+  },
+  {
+    "Number": 2,
+    "Case": "green-fault",
+    "AttemptConsumed": true,
+    "Started": true,
+    "PID": 47688,
+    "OwnedExit": true,
+    "Rescue": false,
+    "Outcome": "FAULT_CONTAINED"
+  }
+],
+  "RedTrace": {
+  "Schema": 1,
+  "Phase": "RED",
+  "Groups": [],
+  "Observations": {
+    "PostStartReceiptFault": {
+      "Started": true,
+      "PrimaryPresent": true,
+      "CleanupCount": 1,
+      "TimedOut": false,
+      "TerminationRequested": false,
+      "OwnedExit": false,
+      "StreamsComplete": false,
+      "ExitCode": null,
+      "ActualHasExited": false,
+      "CleanupOverflow": false,
+      "FailedAssertion": "PostStartReceiptFault.OwnedExit"
+    }
+  },
+  "Passed": false,
+  "Error": null,
+  "Rescues": 1,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+},
+  "GreenTrace": {
+  "Schema": 1,
+  "Phase": "GREEN",
+  "Groups": [
+    "PostStartReceiptFault"
+  ],
+  "Observations": {
+    "PostStartReceiptFault": {
+      "Started": true,
+      "PrimaryPresent": true,
+      "CleanupCount": 1,
+      "TimedOut": false,
+      "TerminationRequested": true,
+      "OwnedExit": true,
+      "StreamsComplete": true,
+      "ExitCode": -1,
+      "ActualHasExited": true,
+      "CleanupOverflow": false
+    },
+    "PrimarySurvivesFinalReceiptFault": {
+      "FirstRecordIdentity": false,
+      "DistinctFinalError": true,
+      "CleanupCount": 1
+    }
+  },
+  "Passed": false,
+  "Error": "ASSERTION FAILED: PrimarySurvivesFinalReceiptFault",
+  "Rescues": 0,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "RealGateImplemented": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+},
+  "RedBeforeRescue": {
+  "Started": true,
+  "PrimaryPresent": true,
+  "CleanupCount": 1,
+  "TimedOut": false,
+  "TerminationRequested": false,
+  "OwnedExit": false,
+  "StreamsComplete": false,
+  "ExitCode": null,
+  "ActualHasExited": false,
+  "CleanupOverflow": false,
+  "FailedAssertion": "PostStartReceiptFault.OwnedExit"
+}
+}

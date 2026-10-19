@@ -1,0 +1,39 @@
+function Invoke-P2BOwnedRun {
+    param([Parameter(Mandatory)][Diagnostics.Process]$Process,
+    [Parameter(Mandatory)][string]$StdoutPath,[Parameter(Mandatory)][string]$StderrPath,
+    [Parameter(Mandatory)][string]$ReceiptPath,[ValidateRange(1,120000)][int]$MaxMs=120000,
+    [ValidateRange(1,2000)][int]$ExitWaitMs=2000,[ValidateRange(1,2000)][int]$DrainMs=2000)
+    $r=[pscustomobject][ordered]@{Started=$false;PrimaryError=$null;CleanupErrors=[Management.Automation.ErrorRecord[]]@();TimedOut=$false;TerminationRequested=$false;OwnedExit=$false;StreamsComplete=$false;ExitCode=$null;ElapsedMs=[long]0;CleanupOverflow=$false}
+    $cleanup=[Collections.Generic.List[Management.Automation.ErrorRecord]]::new()
+    $stdout=$null;$stderr=$null;$ot=$null;$et=$null
+    $timer=[Diagnostics.Stopwatch]::StartNew()
+    function Add-Cleanup([Management.Automation.ErrorRecord]$Record){
+        if($cleanup.Count -lt 8){$cleanup.Add($Record)}else{$r.CleanupOverflow=$true}
+    }
+    function Save-Receipt{
+        $value=[ordered]@{Started=$r.Started;TimedOut=$r.TimedOut;TerminationRequested=$r.TerminationRequested;OwnedExit=$r.OwnedExit;StreamsComplete=$r.StreamsComplete;ExitCode=$r.ExitCode;ElapsedMs=$timer.ElapsedMilliseconds;PrimaryError=if($null -ne $r.PrimaryError){$r.PrimaryError.ToString()}else{$null};CleanupCount=$cleanup.Count;CleanupOverflow=$r.CleanupOverflow}
+        [IO.File]::WriteAllText($ReceiptPath,($value|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+    }
+    # RED baseline: old post-Start persistence precedes copies/wait. No owned-exit
+    # cleanup on exception; Process.Dispose moved to caller only for observation.
+    try{
+        $stdout=[IO.File]::Create($StdoutPath);$stderr=[IO.File]::Create($StderrPath)
+        if(-not $Process.Start()){throw 'Owned target did not start'}
+        $r.Started=$true
+        Save-Receipt
+        $ot=$Process.StandardOutput.BaseStream.CopyToAsync($stdout)
+        $et=$Process.StandardError.BaseStream.CopyToAsync($stderr)
+        if(-not $Process.WaitForExit($MaxMs)){$r.TimedOut=$true;$r.TerminationRequested=$true;$Process.Kill()}
+        $r.OwnedExit=$Process.WaitForExit($ExitWaitMs)
+        if($r.OwnedExit){$r.ExitCode=$Process.ExitCode}
+        $r.StreamsComplete=[Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($ot,$et),$DrainMs)
+    }catch{$r.PrimaryError=$_}
+    finally{
+        $timer.Stop();$r.ElapsedMs=$timer.ElapsedMilliseconds
+        if($null -ne $stdout){try{$stdout.Dispose()}catch{Add-Cleanup $_}}
+        if($null -ne $stderr){try{$stderr.Dispose()}catch{Add-Cleanup $_}}
+        try{Save-Receipt}catch{Add-Cleanup $_}
+    }
+    $r.CleanupErrors=$cleanup.ToArray()
+    return $r
+}

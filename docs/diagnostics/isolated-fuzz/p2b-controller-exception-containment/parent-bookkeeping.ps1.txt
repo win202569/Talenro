@@ -1,0 +1,78 @@
+param([Parameter(Mandatory)][ValidateSet('RED','GREEN','FINAL')][string]$Slot,
+[Parameter(Mandatory)][string]$FrozenSHA256)
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+$packet=$PSScriptRoot;$root=[IO.Path]::GetFullPath((Join-Path $packet '../../..'));Set-Location -LiteralPath $root
+$leaf=Join-Path $root 'docs/diagnostics/isolated-fuzz/p2b-controller-exception-containment'
+$engine='C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'
+$id=[Security.Principal.WindowsIdentity]::GetCurrent()
+if(([Security.Principal.WindowsPrincipal]::new($id)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Ordinary parent required'}
+function Save-Hosts($Value){[IO.File]::WriteAllText((Join-Path $packet 'hosts.json'),($Value|ConvertTo-Json -Depth 15),[Text.UTF8Encoding]::new($false))}
+$manifestPath=Join-Path $packet $(if($Slot -ceq 'RED'){'red.frozen.json'}else{'green.frozen.json'})
+if((Get-FileHash -LiteralPath $manifestPath).Hash -cne $FrozenSHA256){throw 'Frozen hash'}
+$f=Get-Content -LiteralPath $manifestPath -Raw|ConvertFrom-Json
+if($f.Pins.Count -ne 1398){throw 'Pin count'}
+foreach($pin in $f.Pins){if((Get-FileHash -LiteralPath $pin.VerificationPath).Hash -cne $pin.SHA256){throw ('Pin '+$pin.VerificationPath)}}
+$rows=@();$index=Join-Path $packet 'hosts.json'
+if(Test-Path -LiteralPath $index){$rows=@(Get-Content -LiteralPath $index -Raw|ConvertFrom-Json)}
+$order=@('RED','GREEN','FINAL');$outcomes=@('EXPECTED_RED_RESCUED','EXPECTED_GREEN','EXPECTED_FINAL')
+if($rows.Count -ge 3 -or $Slot -cne $order[$rows.Count]){throw 'Ordered host budget'}
+for($i=0;$i -lt $rows.Count;$i++){
+    if($rows[$i].Outcome -cne $outcomes[$i]){throw 'Prior incomplete/nonexact'}
+    foreach($s in @('stdout','stderr')){if((Get-FileHash -LiteralPath (Join-Path $packet ($rows[$i].Slot.ToLowerInvariant()+'.host.'+$s+'.bin'))).Hash -cne $rows[$i].($s+'SHA256')){throw 'Prior raw drift'}}
+}
+$row=[pscustomobject][ordered]@{Number=($rows.Count+1);Slot=$Slot;AttemptConsumed=$true;Started=$false;PID=$null;TimedOut=$false;TerminationRequested=$false;OwnedExit=$false;StreamsComplete=$false;ExitCode=$null;ElapsedMs=$null;PostPinsIntact=$false;Exact=$false;stdoutSHA256=$null;stderrSHA256=$null;ParentError=$null;Outcome='INCOMPLETE';RealGateImplemented=$false;RuntimeApproved=$false;FormalAcceptance=$false}
+$rows+=,$row;Save-Hosts $rows
+$p=[Diagnostics.Process]::new();$p.StartInfo=[Diagnostics.ProcessStartInfo]::new()
+$p.StartInfo.FileName=$engine;$p.StartInfo.UseShellExecute=$false;$p.StartInfo.CreateNoWindow=$true;$p.StartInfo.RedirectStandardOutput=$true;$p.StartInfo.RedirectStandardError=$true
+if($Slot -ceq 'FINAL'){
+    $argsList=@('-NoProfile','-NonInteractive','-File',(Join-Path $leaf 'capture.ps1'),'-Action','Run','-Slot','final','-FrozenSHA256',$FrozenSHA256)
+}else{
+    $argsList=@('-NoProfile','-NonInteractive','-File',(Join-Path $leaf 'containment.tests.ps1'),'-Phase',$Slot,'-TracePath',(Join-Path $packet ($Slot.ToLowerInvariant()+'.trace.json')))
+}
+$p.StartInfo.Arguments=(@($argsList|ForEach-Object{'"'+$_+'"'}) -join ' ')
+$stdout=$null;$stderr=$null;$ot=$null;$et=$null;$timer=[Diagnostics.Stopwatch]::StartNew()
+try{
+    $stdout=[IO.File]::Create((Join-Path $packet ($Slot.ToLowerInvariant()+'.host.stdout.bin')))
+    $stderr=[IO.File]::Create((Join-Path $packet ($Slot.ToLowerInvariant()+'.host.stderr.bin')))
+    if(-not $p.Start()){throw 'Host did not start'}
+    $row.Started=$true;$row.PID=$p.Id
+    $ot=$p.StandardOutput.BaseStream.CopyToAsync($stdout);$et=$p.StandardError.BaseStream.CopyToAsync($stderr)
+    Save-Hosts $rows
+    if(-not $p.WaitForExit(120000)){$row.TimedOut=$true}
+}catch{$row.ParentError=$_.ToString()}
+finally{
+    if($row.Started){
+        try{if(-not $p.HasExited){$row.TerminationRequested=$true;$p.Kill()}}catch{if($null -eq $row.ParentError){$row.ParentError=$_.ToString()}}
+        try{$row.OwnedExit=$p.WaitForExit(2000);if($row.OwnedExit){$row.ExitCode=$p.ExitCode}}catch{if($null -eq $row.ParentError){$row.ParentError=$_.ToString()}}
+    }
+    if($null -ne $ot -and $null -ne $et){try{$row.StreamsComplete=[Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($ot,$et),2000)}catch{if($null -eq $row.ParentError){$row.ParentError=$_.ToString()}}}
+    if($null -ne $stdout){try{$stdout.Dispose()}catch{if($null -eq $row.ParentError){$row.ParentError=$_.ToString()}}}
+    if($null -ne $stderr){try{$stderr.Dispose()}catch{if($null -eq $row.ParentError){$row.ParentError=$_.ToString()}}}
+    $p.Dispose();$timer.Stop();$row.ElapsedMs=$timer.ElapsedMilliseconds
+    Save-Hosts $rows
+}
+foreach($pin in $f.Pins){if((Get-FileHash -LiteralPath $pin.VerificationPath).Hash -cne $pin.SHA256){throw ('Post pin '+$pin.VerificationPath)}}
+$row.PostPinsIntact=$true
+foreach($s in @('stdout','stderr')){$row.($s+'SHA256')=(Get-FileHash -LiteralPath (Join-Path $packet ($Slot.ToLowerInvariant()+'.host.'+$s+'.bin'))).Hash}
+$raw=[Text.UTF8Encoding]::new($false,$true).GetString([IO.File]::ReadAllBytes((Join-Path $packet ($Slot.ToLowerInvariant()+'.host.stdout.bin'))))
+$lf=[string][char]10;$normal=$raw.Replace(([string][char]13+[char]10),$lf);if($normal.EndsWith($lf)){$normal=$normal.Substring(0,$normal.Length-1)}
+$oracle=Get-Content -LiteralPath (Join-Path $leaf 'expected-output.json') -Raw|ConvertFrom-Json
+$children=@(Get-Content -LiteralPath (Join-Path $packet 'children.json') -Raw|ConvertFrom-Json)
+$match=$false
+if($Slot -ceq 'FINAL'){
+    $meta=Get-Content -LiteralPath (Join-Path $packet 'final.capture.json') -Raw|ConvertFrom-Json
+    $match=$meta.Exact -and $row.ExitCode -eq 0 -and $row.stdoutSHA256 -ceq $oracle.Final.StdoutSHA256 -and $children.Count -eq 5 -and $children[4].Outcome -ceq 'FINAL_EXACT'
+}else{
+    $want=$oracle.$Slot
+    $t=Get-Content -LiteralPath (Join-Path $packet ($Slot.ToLowerInvariant()+'.trace.json')) -Raw|ConvertFrom-Json
+    $match=$row.ExitCode -eq $want.ExitCode -and $normal -ceq ($want.Output -join $lf) -and $null -eq $t.Error -and $t.Rescues -eq $want.Rescues -and $t.CompileCount -eq 0 -and -not $t.ProductChanged
+    if($Slot -ceq 'RED'){$match=$match -and -not $t.Passed -and $t.Groups.Count -eq 0 -and $children.Count -eq 1 -and $children[0].Outcome -ceq 'EXPECTED_RED_RESCUED' -and $children[0].OwnedExit -and $children[0].Rescue}
+    else{$match=$match -and $t.Passed -and $t.Groups.Count -eq 5 -and $children.Count -eq 4 -and $children[1].Outcome -ceq 'FAULT_CONTAINED' -and $children[2].Outcome -ceq 'NORMAL_EXIT' -and $children[3].Outcome -ceq 'TIMEOUT_CONTAINED' -and @($children|Where-Object{-not $_.OwnedExit}).Count -eq 0}
+}
+$row.Exact=$match -and -not $row.TimedOut -and -not $row.TerminationRequested -and $row.OwnedExit -and $row.StreamsComplete -and $null -eq $row.ParentError -and $row.PostPinsIntact -and (Get-Item -LiteralPath (Join-Path $packet ($Slot.ToLowerInvariant()+'.host.stderr.bin'))).Length -eq 0
+if($row.Exact){$row.Outcome=$outcomes[$row.Number-1]}
+Save-Hosts $rows
+$row|ConvertTo-Json -Depth 8
+[Console]::Out.Write($raw)
+if(-not $row.Exact){throw 'Nonexact host; freeze remaining budget and review'}

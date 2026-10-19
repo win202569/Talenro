@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+Current:[controller containment failed GREEN checkpoint](../roadmap/2026-10-19-p2b-controller-exception-containment.md).
+Native/3hosts+5children+conditional1review approved after19e3880d. Actual:
+REDexpected failure/rescue;GREENexit2,1of5PASS thenPrimarySurvivesFinalReceiptFault
+identity assertion fails. Faultchild exit/drains confirmed without outer rescue;
+cause of identity comparison failure unresolved,not waived. Newleaf includes
+7sources,portable raw subtrees/stream bytes,REDbaseline/parent text snapshots.
+No normal/timeout/pre-start/FINAL/review executed. Used2hosts+2children=4processes;
+remaining1host+3children+1review FROZEN. Task/I1 not complete/accepted.
+Do not rerun frozen inputs,correct/relabel evidence or continueFINAL automatically.
+Next needs explicit readonly-analysis direction;code/comparator changes andnew
+verification require separate scope/budget. Old frozen inputs/raw/fullreview/
+budgets unchanged. Clone doesnot restore raw packets/engine/credentials/live
+ErrorRecord or Process identities/rights;do not reconstruct missing originals.
+
 Newest proposal:[I1 controller exception-containment repair plan](../superpowers/plans/2026-10-19-p2b-controller-exception-containment.md).
 After229dd2a5,user authorized plan-writing only. No new controller/code/packet/run/
 test/compile/reviewer. Proposed Native/3verification hosts+5ownedchildren=8newPS7

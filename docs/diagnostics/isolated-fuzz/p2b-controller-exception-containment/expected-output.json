@@ -1,0 +1,32 @@
+{
+  "Schema": 1,
+  "RED": {
+    "ExitCode": 1,
+    "Output": [
+      "FAIL: PostStartReceiptFault.OwnedExit",
+      "RESCUE: exact-owned exit confirmed"
+    ],
+    "Rescues": 1
+  },
+  "GREEN": {
+    "ExitCode": 0,
+    "Output": [
+      "PASS: PostStartReceiptFault",
+      "PASS: PrimarySurvivesFinalReceiptFault",
+      "PASS: NormalExit",
+      "PASS: Timeout",
+      "PASS: PreStartOutputFault"
+    ],
+    "Rescues": 0
+  },
+  "Final": {
+    "ExitCode": 0,
+    "StdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+    "TraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E"
+  },
+  "Limits": {
+    "Hosts": 3,
+    "Children": 5,
+    "Reviewers": 1
+  }
+}
