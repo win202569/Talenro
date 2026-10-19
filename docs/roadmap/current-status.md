@@ -1,5 +1,15 @@
 # Project status — updated 2026-10-19
 
+## Latest — B1/B2 publication repair runtime exact; review pending
+
+[Execution](2026-10-19-p2b-completion-publication-repair.md).
+Approved bounded design then NEW4hosts+4children+conditional1review after8b842a19.
+RED3expectedFAIL, publication-only fix, GREEN6of6, CONTAINMENT7of7 and FINAL
+15lines12PASS/full oracle/hashes exact.1599pins intact, complete exits/drains,
+0rescue. All8processes spent. Unique conditional readonly review pending;
+no further runtime/retry/automaticfix. No acceptance/main/live/product change.
+R2/Minor2 and all old failed observations/frozen budgets unchanged.
+
 ## Latest — R1 repair observations exact; review blocked by B1/B2
 
 [Execution](2026-10-19-p2b-first-failure-bookkeeping-repair.md).

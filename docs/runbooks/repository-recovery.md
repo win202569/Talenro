@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest:[B1/B2 publication repair](../roadmap/2026-10-19-p2b-completion-publication-repair.md).
+Bounded chat design and separate NEW4hosts+4children+conditional1review approved.
+RED exact3FAIL, publication-only repair, GREEN6of6/CONTAINMENT7of7/FINAL15lines
+12PASS/full hashes exact. All4hosts+4children spent, unique review pending.
+Intermediate source checkpoint only; full review/portable export pending, not
+accepted. Do not replay slots or reconstruct missing raw. Clone does not restore
+runtime/SDK/CLR identity/credentials or new rights. Old allowances remain frozen,
+R2/Minor2 deferred; no main/live/formal/full-C12 acceptance. Latest development
+branch, not main, is the recovery starting point.
+
 Latest:[R1 repair verification](../roadmap/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Approved new finite scope after4f72700d; RED exact, one shared-file repair,
 GREEN7of7/full trace exact. Task1 checkpoint0f747ee6 pushed/remote equal.

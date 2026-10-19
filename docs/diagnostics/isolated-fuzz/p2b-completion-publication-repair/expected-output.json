@@ -1,0 +1,318 @@
+{
+  "Schema": 1,
+  "RedOutput": [
+    "FAIL: MissingLedgerMustRemainMissing",
+    "FAIL: MalformedLedgerMustRemainUnchanged",
+    "FAIL: OutputFailureMustNotOpenNextSlot"
+  ],
+  "RedTraceExpected": {
+    "Schema": 1,
+    "Mode": "p2b-publication-red",
+    "Groups": [
+      "MissingLedgerPreserved",
+      "MalformedLedgerPreserved",
+      "OutputFailureStopsNextSlot"
+    ],
+    "Observations": {
+      "MissingLedgerPreserved": {
+        "CompletionReturnedFalse": true,
+        "PublicationReturnedFalse": false,
+        "OriginalPreserved": false,
+        "PrimarySame": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      },
+      "MalformedLedgerPreserved": {
+        "CompletionReturnedFalse": true,
+        "PublicationReturnedFalse": false,
+        "OriginalPreserved": false,
+        "PrimarySame": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      },
+      "OutputFailureStopsNextSlot": {
+        "PublicationReturnedFalse": true,
+        "LedgerUnchanged": false,
+        "NextSlotEligible": true,
+        "PrimaryPresent": true,
+        "DisposedOutputCause": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      }
+    },
+    "Passed": true,
+    "Error": null,
+    "ControlPrimaryAbsent": true,
+    "StartCalls": 0,
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false,
+    "RealGateImplemented": false
+  },
+  "ContainmentOutput": [
+    "PASS: UnstartedAssociation",
+    "PASS: UnknownAssociationRejected",
+    "PASS: PostStartReceiptFault",
+    "PASS: PrimarySurvivesFinalReceiptFault",
+    "PASS: NormalExit",
+    "PASS: Timeout",
+    "PASS: PreStartOutputFault"
+  ],
+  "ContainmentTraceExpected": {
+    "Schema": 1,
+    "Mode": "p2b-publication-containment",
+    "Groups": [
+      "UnstartedAssociation",
+      "UnknownAssociationRejected",
+      "PostStartReceiptFault",
+      "PrimarySurvivesFinalReceiptFault",
+      "NormalExit",
+      "Timeout",
+      "PreStartOutputFault"
+    ],
+    "Observations": {
+      "UnstartedAssociation": {
+        "State": "Unassociated",
+        "ProcessId": null,
+        "ErrorPresent": true
+      },
+      "UnknownAssociationRejected": {
+        "NullUnknown": true,
+        "SimilarUnknown": true
+      },
+      "PostStartReceiptFault": {
+        "Started": true,
+        "PrimaryPresent": true,
+        "CleanupCount": 1,
+        "TimedOut": false,
+        "TerminationRequested": true,
+        "OwnedExit": true,
+        "StreamsComplete": true,
+        "ExitCodeKnown": true,
+        "ActualHasExited": true,
+        "CleanupOverflow": false,
+        "AssociationMatches": true
+      },
+      "PrimarySurvivesFinalReceiptFault": {
+        "ErrorCount": 2,
+        "AnchorsDistinct": true,
+        "Original": true,
+        "PrimaryReplaced": false,
+        "Swapped": false,
+        "CleanupReplaced": false,
+        "NullAnchor": false,
+        "MissingPrimary": false,
+        "DeepNine": false,
+        "CleanupCount": 1
+      },
+      "NormalExit": {
+        "Started": true,
+        "PrimaryPresent": false,
+        "CleanupCount": 0,
+        "TimedOut": false,
+        "TerminationRequested": false,
+        "OwnedExit": true,
+        "StreamsComplete": true,
+        "ExitCodeKnown": true,
+        "ActualHasExited": true,
+        "CleanupOverflow": false,
+        "AssociationMatches": true
+      },
+      "Timeout": {
+        "Started": true,
+        "PrimaryPresent": false,
+        "CleanupCount": 0,
+        "TimedOut": true,
+        "TerminationRequested": true,
+        "OwnedExit": true,
+        "StreamsComplete": true,
+        "ExitCodeKnown": true,
+        "ActualHasExited": true,
+        "CleanupOverflow": false,
+        "AssociationMatches": true
+      },
+      "PreStartOutputFault": {
+        "Started": false,
+        "PrimaryPresent": true,
+        "Unassociated": true,
+        "ProcessId": null,
+        "AssociationErrorPresent": true,
+        "OwnedExit": false,
+        "ExitCode": null,
+        "TerminationRequested": false
+      }
+    },
+    "Guards": {
+      "fault": {
+        "State": "Associated",
+        "Started": true,
+        "OwnedExit": true,
+        "KillAttempted": false,
+        "WaitAttempted": true,
+        "PidMatches": true,
+        "CleanupCount": 0
+      },
+      "normal": {
+        "State": "Associated",
+        "Started": true,
+        "OwnedExit": true,
+        "KillAttempted": false,
+        "WaitAttempted": true,
+        "PidMatches": true,
+        "CleanupCount": 0
+      },
+      "timeout": {
+        "State": "Associated",
+        "Started": true,
+        "OwnedExit": true,
+        "KillAttempted": false,
+        "WaitAttempted": true,
+        "PidMatches": true,
+        "CleanupCount": 0
+      },
+      "prestart": {
+        "State": "Unassociated",
+        "Started": false,
+        "OwnedExit": false,
+        "KillAttempted": false,
+        "WaitAttempted": false,
+        "PidMatches": false,
+        "CleanupCount": 0
+      }
+    },
+    "Passed": true,
+    "Error": null,
+    "Rescues": 0,
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false,
+    "RealGateImplemented": false,
+    "Bookkeeping": {
+      "PrimaryAbsent": true,
+      "SecondaryCount": 0,
+      "Overflow": false,
+      "FinalLedgerWritten": true
+    }
+  },
+  "FinalExpected": {
+    "Exact": true,
+    "Started": true,
+    "OwnedExit": true,
+    "ActualHasExited": true,
+    "StreamsComplete": true,
+    "TimedOut": false,
+    "TerminationRequested": false,
+    "PrimaryPresent": false,
+    "CleanupCount": 0,
+    "CleanupOverflow": false,
+    "ExitCode": 0,
+    "Rescue": false,
+    "PostPinsIntact": true,
+    "StdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+    "StderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E",
+    "TraceDifferences": [],
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false,
+    "RealGateImplemented": false,
+    "AssociationMatches": true,
+    "GuardState": "Associated",
+    "BookkeepingPrimaryAbsent": true,
+    "BookkeepingSecondaryCount": 0,
+    "BookkeepingOverflow": false
+  },
+  "PublicationOutput": [
+    "PASS: MissingLedgerPreserved",
+    "PASS: MalformedLedgerPreserved",
+    "PASS: OutputFailureStopsNextSlot",
+    "PASS: LatchedFailureDoesNotPublish",
+    "PASS: HealthyIntegrationPublication",
+    "PASS: HealthyHostPublication"
+  ],
+  "PublicationTraceExpected": {
+    "Schema": 1,
+    "Mode": "p2b-publication-green",
+    "Groups": [
+      "MissingLedgerPreserved",
+      "MalformedLedgerPreserved",
+      "OutputFailureStopsNextSlot",
+      "LatchedFailureDoesNotPublish",
+      "HealthyIntegrationPublication",
+      "HealthyHostPublication"
+    ],
+    "Observations": {
+      "MissingLedgerPreserved": {
+        "CompletionReturnedFalse": true,
+        "PublicationReturnedFalse": true,
+        "OriginalPreserved": true,
+        "PrimarySame": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      },
+      "MalformedLedgerPreserved": {
+        "CompletionReturnedFalse": true,
+        "PublicationReturnedFalse": true,
+        "OriginalPreserved": true,
+        "PrimarySame": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      },
+      "OutputFailureStopsNextSlot": {
+        "PublicationReturnedFalse": true,
+        "LedgerUnchanged": true,
+        "NextSlotEligible": false,
+        "PrimaryPresent": true,
+        "DisposedOutputCause": true,
+        "SecondaryCount": 0,
+        "Overflow": false,
+        "Outcome": "INCOMPLETE"
+      },
+      "LatchedFailureDoesNotPublish": {
+        "PublicationReturnedFalse": true,
+        "LedgerUnchanged": true,
+        "PrimarySame": true,
+        "SecondaryCount": 0
+      },
+      "HealthyIntegrationPublication": {
+        "Published": true,
+        "ExactRow": true,
+        "PrimaryAbsent": true,
+        "SecondaryCount": 0,
+        "FinalLedgerWritten": true
+      },
+      "HealthyHostPublication": {
+        "Published": true,
+        "ExactOutput": true,
+        "NextSlotEligible": true,
+        "PrimaryAbsent": true,
+        "SecondaryCount": 0
+      }
+    },
+    "Passed": true,
+    "Error": null,
+    "ControlPrimaryAbsent": true,
+    "StartCalls": 0,
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false,
+    "RealGateImplemented": false
+  }
+}
