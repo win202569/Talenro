@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — timeout passed; owned run stopped before prestart IO
+
+[Execution](2026-10-19-p2b-timeout-observation-repair.md). Prefix/core14PASS and
+recording RED/GREEN exact. Actual owned host15428 exit2/nonexact after4PASS:
+timeout44848 exited-1/drained in218ms,empty streams accepted as literal prefixes;
+normal41736 exit0/drained/exact19bytes. Then prestart test hit cumulative3of3
+host budget gate before opening streams,Observation=null,assertion stopped.
+No fourth child. INCOMPLETE evidence retains real step error and assertion;
+host PrimaryError remains assertion (no universal first-cause promotion claim).
+All1795pins intact. Spent5hosts/3children/0review;remaining1host/4children/review
+FROZEN. No reorder/fix/retest/review. Checkpoint includes failure/portable/
+recovery data, not acceptance. Next separately scope ordering and unexpected
+step-error classification with fresh budget;C1/C2 unclosed,R2/Minor2 deferred.
+
 ## Latest — fresh budget approved; prefix and recording RED/GREEN exact
 
 [Execution](2026-10-19-p2b-timeout-observation-repair.md). Native NEW6hosts+

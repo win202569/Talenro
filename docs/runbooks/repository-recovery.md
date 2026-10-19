@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest stop:[timeout/observation repair](../roadmap/2026-10-19-p2b-timeout-observation-repair.md).
+Owned host15428 failed after4PASS: timeout now passes with valid empty prefixes,
+but prestart was ordered after3actual targets and rejected by3of3budget gate,
+not the intended stream-open fault. INCOMPLETE envelope preserves all actual
+step observations/errors; no missing evidence is reconstructed. Spent5of6hosts/
+3of7children/0review;remaining1host/4children/review FROZEN. No automatic reorder,
+gate weakening,target retry,sequence or review. Source checkpoint15bd2e62 plus
+later evidence/docs handoff on existing devbranch,not main. Clone restores data,
+not Session/ack/runtime/credentials/allowance. Next needs separately authorized
+ordering/error-classification scope and fresh budget;all old stops/quotas and
+C1/C2/R2/Minor2 limits remain. Do not import or run stored source snapshots.
+
 Latest execution:[timeout/recording repair](../roadmap/2026-10-19-p2b-timeout-observation-repair.md).
 Fresh Native6hosts/7children/conditionalreview approved; prefix RED→GREEN14PASS
 and fixed recording-abort RED→GREEN exact.4hosts/0children/0review spent;
