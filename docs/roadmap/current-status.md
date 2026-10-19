@@ -1,5 +1,20 @@
 # Project status — updated 2026-10-19
 
+## Latest — supervisor stopped on owned-green timeout stream mismatch
+
+[Execution](2026-10-19-p2b-live-completion-supervisor.md). Core2FAIL→7PASS exact;
+owned-red exact1FAIL (actual receipt retry), sole owned-only fix applied.
+owned-green host44336 exit2/nonexact after3PASS; timeout child14092 exited-1/
+drained in210ms but both streams empty, not literal expected strings. Normal
+child23384 exit0/drained/exact streams in376ms. Startup delay is an inference,
+not proven internal scheduling. Capture trace/details missing, not rebuilt;
+prestart/sequence/seam/review not run. All1670pins intact. Spent4hosts/4children/
+0review;remaining1host+4children+conditionalreview FROZEN. No automatic fix,
+timeout change,retry/review or continued target. Necessary source/failed evidence
+and recovery checkpoint saved on existing development branch. C1/C2 unresolved,
+R2/Minor2 deferred, no main/live/formal/full-C12 acceptance. Next: separately
+approve a repair/recording plan with new exact budget; data cannot restore rights.
+
 ## Latest — Native supervisor Task1 core RED→GREEN verified, overall unfinished
 
 [Execution](2026-10-19-p2b-live-completion-supervisor.md). Human approved plan/

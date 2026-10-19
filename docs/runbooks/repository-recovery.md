@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest stop:[supervisor nonexact owned-green](../roadmap/2026-10-19-p2b-live-completion-supervisor.md).
+Core RED→GREEN7PASS and owned-red exact; sole owned-only fix applied but
+owned-green exit2: timeout target14092 exited/drained in210ms with empty streams,
+not expected fixture strings.3earlier PASS lines do not make the grant exact.
+Capture trace/details absent, prestart/sequence/seam/review unrun; do not rebuild
+missing originals or replay any grant. Spent4of5hosts/4of8children/0review;
+remaining1host/4children/conditionalreview FROZEN. Portable raw-text/byte export
+is recovery data only, not a Session/ack/process identity, executable approval
+or substitute original. Read report and latest development-branch commit, not
+main; no automatic Prepare/RunOne even with matching files. New repair/recording
+plan and precise fresh budget require separate approval. No source/test/oracle/
+timeout changes after stop. C1/C2 unresolved; R2/Minor2 and old quotas unchanged.
+
 Latest execution:[live supervisor](../roadmap/2026-10-19-p2b-live-completion-supervisor.md).
 Human approved Native plan and NEW5hosts+8children+conditional1readonlyreview.
 Task1 core-red2exactFAIL → two-file fix → core-green7exactPASS;1670pins intact,

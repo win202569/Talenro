@@ -1,5 +1,5 @@
-# Baseline deliberately preserves the old final receipt retry for owned-red.
-# Do not call the frozen legacy helper. Only this file changes after owned-red.
+# New owned boundary: cleanup cannot re-enter a failed receipt sink.
+# The frozen legacy helper and all historical observations remain unchanged.
 function Invoke-LSOwnedStep($SessionEntry,$StepDescriptor){
     $e=$SessionEntry;$d=$StepDescriptor
     $r=[pscustomobject][ordered]@{Started=$false;Association='Unknown';PID=$null;OwnedExit=$false;ExitCode=$null;StreamsComplete=$false;TimedOut=$false;TerminationRequested=$false;ElapsedMs=[long]0;KillCalls=0;WaitCalls=0;SeamExact=$false;Stdout=$null}
@@ -62,13 +62,10 @@ function Invoke-LSOwnedStep($SessionEntry,$StepDescriptor){
         Close-LSStream $e $d.Err
         try{$process.Dispose()}catch{Add-LSFailure $e.Handle $_}
         $timer.Stop();$r.ElapsedMs=$timer.ElapsedMilliseconds
-        # RED extraction: actual second attempt bypasses the repaired core gate.
-        # Its actual second ErrorRecord is retained, not manufactured.
-        if($r.Started){
-            $receiptSink=$e.Sinks[$d.Receipt]
-            $receiptSink.LogicalIOAttempts++
-            try{[IO.File]::WriteAllText($receiptSink.Path,(ConvertTo-Json -InputObject $r -Depth 10),[Text.UTF8Encoding]::new($false))}
-            catch{Fail-LSIO $e $receiptSink $_}
+        # All exact-object release has already run. Known failure means no
+        # Read/Complete/Save/reopen/explicit flush against this path, even here.
+        if($r.Started -and -not $e.FailureLatched -and $e.Sinks[$d.Receipt].State -ceq 'Healthy'){
+            $null=Write-LSLedger $e.Handle $d.Receipt $r
         }
     }
     return $r
