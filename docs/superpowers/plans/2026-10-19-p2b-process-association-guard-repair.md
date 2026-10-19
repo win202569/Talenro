@@ -7,9 +7,13 @@
 **Tech Stack:** Windows、普通 PowerShell 7.6.5 Core x64、固定 SDK、托管反射；无安装、Add-Type、原生编译、安全设置或依赖变更。
 **Spec:** [原 I1 收束合同](2026-10-19-p2b-controller-exception-containment.md)、[因果补验合同](2026-10-19-p2b-controller-causality-reverification.md)及[握手合同 §9](../specs/2026-10-19-p2b-handshake-contract-design.md)。仅窄修离线测试控制器，不实现真实握手/能力。
 
-状态：PROPOSED_NOT_APPROVED。基线 13060300e27219c835b05c26ad8c47afdcf23f62。
-用户已同意只读分析，随后“继续”只授权本修订计划编写。本轮零代码、目标、
-测试、编译及审查。推荐 Native；实现/新预算待书面批准。
+状态：REVIEW_BLOCKED_R1_UNFINISHED。用户在979c9cf1后批准Native/新3宿主+
+4子进程+条件1审查，执行基线979c9cf179d0aed0e23d91cbb1efefe181802b90。
+原批准快照98EB496FE5ACB02E0675A14116BE18FA099A8A2F731E50E5AEA718D0FF0A60D5不变。
+RED精确、仅observer一次修复、GREEN七组精确、FINAL原15行12PASS/完整oracle精确。
+唯一审查发现R1 Important：最终记账失败可遮盖首因；R2 Minor：PreStart详情键覆盖。
+全部7进程及1审查额度用尽；不修不重跑不二审，旧失败/原始记录/冻结余量不改。
+本任务仍未完成/验收，具体证据及逐项处置见同日执行报告和新leaf review文件。
 
 ## 已知依据与范围选择
 
@@ -186,5 +190,5 @@ Integrate 为内部入口，核 FINAL 已消费且 GREEN 全精确；不允许�
 清理写盘失败封闭、完整 oracle 和历史保护均有任务；OS/API未知异常实际注入仍未覆盖，
 只能静态审查并如实 unknown。反射包装预期未动态验证，非精确就停，不边跑边改分类。
 
-请批准 Native 实施本计划及 NEW3宿主+4子进程=7新PS7进程、条件1只读审查。
-这是新额度申请，不解冻任何旧槽。批准前只保存本计划/状态/恢复说明，不写代码或运行。
+原预算已批准并全部消费，不解冻任何旧槽。R1触发停线，下一步需另行批准窄范围
+首因/最终记账修复计划及新有限预算；本轮仅补齐未验收交接，不自动实施建议。

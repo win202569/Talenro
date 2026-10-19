@@ -1,0 +1,316 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-process-association-guard-repair",
+  "Status": "REVIEW_BLOCKED_R1_UNFINISHED",
+  "BaseCommit": "979c9cf179d0aed0e23d91cbb1efefe181802b90",
+  "Task1Commit": "36e670a8d28e52effe42f7c1acbaa8a6eb89c522",
+  "Method": "Native",
+  "ImplementationApproved": true,
+  "Budget": {
+    "MaxHosts": 3,
+    "MaxChildren": 4,
+    "MaxReviewers": 1,
+    "SpentHosts": 3,
+    "SpentChildren": 4,
+    "SpentReviewers": 1,
+    "RemainingHosts": 0,
+    "RemainingChildren": 0,
+    "RemainingReviewers": 0
+  },
+  "OldBudgets": {
+    "Containment": {
+      "RemainingHosts": 1,
+      "RemainingChildren": 3,
+      "RemainingReviewers": 1,
+      "Status": "FROZEN"
+    },
+    "CausalityReverification": {
+      "RemainingHosts": 1,
+      "RemainingChildren": 1,
+      "RemainingReviewers": 1,
+      "Status": "FROZEN"
+    }
+  },
+  "RedFrozenSHA256": "1784EF8AB67CF18D5B95D236112D93555E7C8B977AB0D5DB5AAA44DC0F23EF3E",
+  "GreenFrozenSHA256": "56865465D3D07E89B2B64A132AB50C2EB77B2C856207A0BFF04B40B01D0A2A1E",
+  "FrozenPins": 1487,
+  "InheritedPins": 1454,
+  "AdditionalPins": 33,
+  "ChangedPins": 1,
+  "ApprovedPlanSHA256": "98EB496FE5ACB02E0675A14116BE18FA099A8A2F731E50E5AEA718D0FF0A60D5",
+  "RedObserverSHA256": "33CF0CDEA148B7405D912AA4C37A5337FF9F80685DB26B6B83E41582DCDA8874",
+  "GreenObserverSHA256": "CD6E9564E77FF55812F9E96291B0F4E511758245A9BBC53AD2802B95E809C6E5",
+  "RedExact": true,
+  "GreenGroupsPassed": 7,
+  "FinalExact": true,
+  "FinalOutputLines": 15,
+  "FinalPassLines": 12,
+  "IndependentReviewPerformed": true,
+  "I1Accepted": false,
+  "OldGreenReclassified": false,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "RealGateImplemented": false,
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "E3083818059D2956756D32B1D4A7098E28F57DFB3B971F429A73E51672505B9D"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "F3CC123924CB95003AB9F16DBE4D1B5CC84504AA1F4857ABB5D3455536BC492A"
+    },
+    {
+      "Name": "containment.tests.ps1",
+      "SHA256": "FD7FC9FCFC695DFFDF159F4C2681C989F6A96C0B3876E1728F1AD3ABF0730FE5"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "FF436571DE28F4F191B9F882A3EEE8106997ACFA46FD5B24B6CDBBEFF308CD0C"
+    },
+    {
+      "Name": "owned-process-observation.ps1",
+      "SHA256": "CD6E9564E77FF55812F9E96291B0F4E511758245A9BBC53AD2802B95E809C6E5"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "6418BB1D18CA87121F65DFDAA06C41D988F4EE5420B190CC7A48F76B6C64B89A"
+    }
+  ],
+  "RawJson": {
+    "children.json": "[\r\n  {\r\n    \"Number\": 1,\r\n    \"Case\": \"fault\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 19636,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 2,\r\n    \"Case\": \"normal\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 21436,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": 0,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 3,\r\n    \"Case\": \"timeout\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 45228,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 4,\r\n    \"Case\": \"final-seam\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 38696,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": 0,\r\n    \"Rescue\": false,\r\n    \"AssociationMatches\": true,\r\n    \"GuardState\": \"Associated\",\r\n    \"GuardErrors\": [],\r\n    \"Outcome\": \"FINAL_EXACT\"\r\n  }\r\n]",
+    "final.capture.json": "{\r\n  \"Exact\": true,\r\n  \"Started\": true,\r\n  \"OwnedExit\": true,\r\n  \"ActualHasExited\": true,\r\n  \"StreamsComplete\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"PrimaryPresent\": false,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false,\r\n  \"ExitCode\": 0,\r\n  \"Rescue\": false,\r\n  \"PostPinsIntact\": true,\r\n  \"StdoutSHA256\": \"F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE\",\r\n  \"StderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n  \"TraceSHA256\": \"4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E\",\r\n  \"TraceDifferences\": [],\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false,\r\n  \"AssociationMatches\": true,\r\n  \"GuardState\": \"Associated\"\r\n}",
+    "final.seam.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 0,\r\n  \"ElapsedMs\": 4947,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "final.seam.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-handshake-seam-tests\",\r\n  \"Groups\": [\r\n    \"FixedBoundary\",\r\n    \"OrdinaryGap\",\r\n    \"TakeDoesNotResetAdmission\",\r\n    \"StaleExpectedRejected\",\r\n    \"DeclaredExpectedIsNotAuthority\",\r\n    \"ArmReference\",\r\n    \"StopReference\",\r\n    \"HeartbeatReference\",\r\n    \"ArmDeclaredExpiry\",\r\n    \"LookalikeInboxRejected\",\r\n    \"StoppedInboxNoRecovery\",\r\n    \"Complete\"\r\n  ],\r\n  \"Observations\": {\r\n    \"FixedBoundary\": {\r\n      \"Exports\": [\r\n        \"Add-P2BInboxFragment\",\r\n        \"Close-P2BInboxInput\",\r\n        \"Get-P2BInboxSnapshot\",\r\n        \"New-P2BInbox\",\r\n        \"Receive-P2BInboxFrame\"\r\n      ],\r\n      \"Pins\": {\r\n        \"Module\": \"47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC\",\r\n        \"Helper\": \"4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D\",\r\n        \"Fixture\": \"5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D\"\r\n      }\r\n    },\r\n    \"OrdinaryGap\": {\r\n      \"EnqueuedReasons\": [\r\n        \"queued\",\r\n        \"heartbeat-updated\",\r\n        \"heartbeat-updated\",\r\n        \"queued\"\r\n      ],\r\n      \"BeforeCount\": 2,\r\n      \"BeforeNext\": 5,\r\n      \"BeforeLast\": 4,\r\n      \"HeartbeatSequence\": 3,\r\n      \"DeliveredSequences\": [\r\n        1,\r\n        4\r\n      ],\r\n      \"AfterCount\": 0,\r\n      \"AfterNext\": 5,\r\n      \"AfterLast\": 4\r\n    },\r\n    \"TakeDoesNotResetAdmission\": {\r\n      \"Reason\": \"sequence-mismatch\",\r\n      \"AcceptedBytes\": 256,\r\n      \"FirstFailureSequence\": 4,\r\n      \"Next\": 5,\r\n      \"Last\": 4,\r\n      \"PartialLength\": 256\r\n    },\r\n    \"StaleExpectedRejected\": {\r\n      \"ConsumedSequence\": 4,\r\n      \"ExpectedNext\": 2,\r\n      \"Reason\": \"sequence-mismatch\",\r\n      \"ReturnedNext\": null\r\n    },\r\n    \"DeclaredExpectedIsNotAuthority\": {\r\n      \"ExpectedNext\": 4,\r\n      \"Reason\": \"binding-matched\",\r\n      \"ReturnedNext\": 5,\r\n      \"Flags\": [\r\n        false,\r\n        false,\r\n        false\r\n      ]\r\n    },\r\n    \"ArmReference\": {\r\n      \"Sequence\": 7,\r\n      \"PayloadReference\": 3,\r\n      \"ExpectedReferences\": [\r\n        3,\r\n        0,\r\n        2\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        8,\r\n        null,\r\n        null\r\n      ]\r\n    },\r\n    \"StopReference\": {\r\n      \"Sequence\": 7,\r\n      \"PayloadReference\": 2,\r\n      \"ExpectedReferences\": [\r\n        2,\r\n        0,\r\n        1\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        8,\r\n        null,\r\n        null\r\n      ]\r\n    },\r\n    \"HeartbeatReference\": {\r\n      \"Sequence\": 2,\r\n      \"PayloadReference\": 1,\r\n      \"ExpectedReferences\": [\r\n        1,\r\n        0\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        3,\r\n        null\r\n      ]\r\n    },\r\n    \"ArmDeclaredExpiry\": {\r\n      \"ObservedTicks\": [\r\n        113499,\r\n        113500\r\n      ],\r\n      \"ArmReference\": 1,\r\n      \"ReleaseBefore\": 113500,\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"expired-declaration\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        2,\r\n        null\r\n      ]\r\n    },\r\n    \"LookalikeInboxRejected\": {\r\n      \"Reasons\": [\r\n        \"invalid-input\",\r\n        \"invalid-input\",\r\n        \"invalid-input\"\r\n      ],\r\n      \"OriginalSnapshotUnchanged\": true,\r\n      \"FakeCount\": 3\r\n    },\r\n    \"StoppedInboxNoRecovery\": {\r\n      \"CreatedCount\": 1,\r\n      \"CloseReason\": \"peer-closed\",\r\n      \"PostFeed\": \"stopped\",\r\n      \"PostTake\": \"stopped\",\r\n      \"FirstReason\": \"peer-closed\",\r\n      \"FirstSequence\": null,\r\n      \"Count\": 1,\r\n      \"Next\": 2,\r\n      \"Last\": 1\r\n    },\r\n    \"Complete\": {\r\n      \"PriorGroups\": 11,\r\n      \"Exports\": [\r\n        \"Add-P2BInboxFragment\",\r\n        \"Close-P2BInboxInput\",\r\n        \"Get-P2BInboxSnapshot\",\r\n        \"New-P2BInbox\",\r\n        \"Receive-P2BInboxFrame\"\r\n      ]\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"RealGateImplemented\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false\r\n}",
+    "green-cases/normal.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 0,\r\n  \"ElapsedMs\": 384,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/prestart.receipt.json": "{\r\n  \"Started\": false,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": false,\r\n  \"StreamsComplete\": false,\r\n  \"ExitCode\": null,\r\n  \"ElapsedMs\": 0,\r\n  \"PrimaryError\": \"Exception calling \\\"Create\\\" with \\\"1\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-process-association-guard-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/timeout.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": true,\r\n  \"TerminationRequested\": true,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": -1,\r\n  \"ElapsedMs\": 212,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green.details.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-controller-causality-details\",\r\n  \"ErrorCount\": 2,\r\n  \"RecordsNewestFirst\": [\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-process-association-guard-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-process-association-guard-repair\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    },\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-process-association-guard-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-process-association-guard-repair\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    }\r\n  ],\r\n  \"RecordsTruncated\": false,\r\n  \"Results\": {\r\n    \"Fault\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 58\r\n    },\r\n    \"Normal\": {\r\n      \"ExitCode\": 0,\r\n      \"ElapsedMs\": 384\r\n    },\r\n    \"Timeout\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 212\r\n    }\r\n  },\r\n  \"AssociationDetails\": {\r\n    \"Unstarted\": {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"InvalidOperationException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"GetValue\\\" with \\\"1\\\" argument(s): \\\"No process is associated with this object.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.InvalidOperationException\",\r\n          \"Message\": \"No process is associated with this object.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    },\r\n    \"fault\": {\r\n      \"ProcessId\": 19636,\r\n      \"Errors\": []\r\n    },\r\n    \"normal\": {\r\n      \"ProcessId\": 21436,\r\n      \"Errors\": []\r\n    },\r\n    \"timeout\": {\r\n      \"ProcessId\": 45228,\r\n      \"Errors\": []\r\n    },\r\n    \"prestart\": {\r\n      \"ProcessId\": null,\r\n      \"Errors\": []\r\n    }\r\n  }\r\n}",
+    "green.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-process-association-guard-repair\",\r\n  \"Groups\": [\r\n    \"UnstartedAssociation\",\r\n    \"UnknownAssociationRejected\",\r\n    \"PostStartReceiptFault\",\r\n    \"PrimarySurvivesFinalReceiptFault\",\r\n    \"NormalExit\",\r\n    \"Timeout\",\r\n    \"PreStartOutputFault\"\r\n  ],\r\n  \"Observations\": {\r\n    \"UnstartedAssociation\": {\r\n      \"State\": \"Unassociated\",\r\n      \"ProcessId\": null,\r\n      \"ErrorPresent\": true\r\n    },\r\n    \"UnknownAssociationRejected\": {\r\n      \"NullUnknown\": true,\r\n      \"SimilarUnknown\": true\r\n    },\r\n    \"PostStartReceiptFault\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": true,\r\n      \"CleanupCount\": 1,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"PrimarySurvivesFinalReceiptFault\": {\r\n      \"ErrorCount\": 2,\r\n      \"AnchorsDistinct\": true,\r\n      \"Original\": true,\r\n      \"PrimaryReplaced\": false,\r\n      \"Swapped\": false,\r\n      \"CleanupReplaced\": false,\r\n      \"NullAnchor\": false,\r\n      \"MissingPrimary\": false,\r\n      \"DeepNine\": false,\r\n      \"CleanupCount\": 1\r\n    },\r\n    \"NormalExit\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": false,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"Timeout\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": true,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"PreStartOutputFault\": {\r\n      \"Started\": false,\r\n      \"PrimaryPresent\": true,\r\n      \"Unassociated\": true,\r\n      \"ProcessId\": null,\r\n      \"AssociationErrorPresent\": true,\r\n      \"OwnedExit\": false,\r\n      \"ExitCode\": null,\r\n      \"TerminationRequested\": false\r\n    }\r\n  },\r\n  \"Guards\": {\r\n    \"fault\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"normal\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"timeout\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"prestart\": {\r\n      \"State\": \"Unassociated\",\r\n      \"Started\": false,\r\n      \"OwnedExit\": false,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": false,\r\n      \"PidMatches\": false,\r\n      \"CleanupCount\": 0\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"Rescues\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false\r\n}",
+    "hosts.json": "[\r\n  {\r\n    \"Number\": 1,\r\n    \"Slot\": \"red\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 22720,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 1,\r\n    \"ElapsedMs\": 694,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"7425C27B749010E516FE2122D776EBE6C826E1F03DFD6F1048143DAE53FB4184\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"267F669F790CBAB4DB439239FDA28A49E170028074C61BDC00B20358CA9BE20A\",\r\n    \"DetailsSHA256\": \"07C0B39CA2B1AB13B75DDA2D6C8A3AB9007D1151CDC3BE397567669F353C8729\",\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_RED\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  },\r\n  {\r\n    \"Number\": 2,\r\n    \"Slot\": \"green\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 36288,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 0,\r\n    \"ElapsedMs\": 1609,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"7434296CFD64BB12FE20F111E87FDAFB57B02335AA0516225AF53050F26CAF57\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"9F468FDB89187C23EAD3810D1DEE79518D13461A58A64B297B8CF5787EDEA0DA\",\r\n    \"DetailsSHA256\": \"1B1FC470CA360F44A06A07A02C8D68D5BF68203C57D82153F5DC147B9100D1E4\",\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_GREEN\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  },\r\n  {\r\n    \"Number\": 3,\r\n    \"Slot\": \"final\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 30428,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 0,\r\n    \"ElapsedMs\": 8024,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"1687D98E6953F588002A8478010B5277365D20AA609F37A1BD2C1167ECDA505C\",\r\n    \"DetailsSHA256\": null,\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_FINAL\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  }\r\n]",
+    "red.details.json": "{\r\n  \"State\": \"Associated\",\r\n  \"ProcessId\": null,\r\n  \"ErrorPresent\": false\r\n}",
+    "red.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-process-association-red\",\r\n  \"Phase\": \"RED\",\r\n  \"Observation\": {\r\n    \"State\": \"Associated\",\r\n    \"ProcessId\": null,\r\n    \"ErrorPresent\": false\r\n  },\r\n  \"FailedAssertion\": \"Association.UnstartedMustBeUnassociated\",\r\n  \"StartCalls\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false\r\n}"
+  },
+  "PortableStreams": {
+    "final.seam.stderr.bin": "",
+    "final.seam.stdout.bin": "Q09OVEVYVDogREVTS1RPUC1INFNWQ0xVXExlbm92byBhZG1pbj1GYWxzZQ0KSE9TVDogUFM3LjYuNSBDb3JlIHg2NA0KUEFTUzogUDJCSFNlYW1GaXhlZEJvdW5kYXJ5DQpQQVNTOiBQMkJIU2VhbU9yZGluYXJ5R2FwDQpQQVNTOiBQMkJIU2VhbVRha2VEb2VzTm90UmVzZXRBZG1pc3Npb24NClBBU1M6IFAyQkhTZWFtU3RhbGVFeHBlY3RlZFJlamVjdGVkDQpQQVNTOiBQMkJIU2VhbURlY2xhcmVkRXhwZWN0ZWRJc05vdEF1dGhvcml0eQ0KUEFTUzogUDJCSFNlYW1Bcm1SZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtU3RvcFJlZmVyZW5jZQ0KUEFTUzogUDJCSFNlYW1IZWFydGJlYXRSZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtQXJtRGVjbGFyZWRFeHBpcnkNClBBU1M6IFAyQkhTZWFtTG9va2FsaWtlSW5ib3hSZWplY3RlZA0KUEFTUzogUDJCSFNlYW1TdG9wcGVkSW5ib3hOb1JlY292ZXJ5DQpQQVNTOiBQMkJIU2VhbUNvbXBsZXRlDQpMSU1JVDogZGVjbGFyYXRpb25zL3NlYW0gb25seTsgbm8gaGFuZHNoYWtlIHN0YXRlIG9yIHJ1bnRpbWUgYXV0aG9yaXR5DQo=",
+    "final.stderr.bin": "",
+    "final.stdout.bin": "Q09OVEVYVDogREVTS1RPUC1INFNWQ0xVXExlbm92byBhZG1pbj1GYWxzZQ0KSE9TVDogUFM3LjYuNSBDb3JlIHg2NA0KUEFTUzogUDJCSFNlYW1GaXhlZEJvdW5kYXJ5DQpQQVNTOiBQMkJIU2VhbU9yZGluYXJ5R2FwDQpQQVNTOiBQMkJIU2VhbVRha2VEb2VzTm90UmVzZXRBZG1pc3Npb24NClBBU1M6IFAyQkhTZWFtU3RhbGVFeHBlY3RlZFJlamVjdGVkDQpQQVNTOiBQMkJIU2VhbURlY2xhcmVkRXhwZWN0ZWRJc05vdEF1dGhvcml0eQ0KUEFTUzogUDJCSFNlYW1Bcm1SZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtU3RvcFJlZmVyZW5jZQ0KUEFTUzogUDJCSFNlYW1IZWFydGJlYXRSZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtQXJtRGVjbGFyZWRFeHBpcnkNClBBU1M6IFAyQkhTZWFtTG9va2FsaWtlSW5ib3hSZWplY3RlZA0KUEFTUzogUDJCSFNlYW1TdG9wcGVkSW5ib3hOb1JlY292ZXJ5DQpQQVNTOiBQMkJIU2VhbUNvbXBsZXRlDQpMSU1JVDogZGVjbGFyYXRpb25zL3NlYW0gb25seTsgbm8gaGFuZHNoYWtlIHN0YXRlIG9yIHJ1bnRpbWUgYXV0aG9yaXR5DQo=",
+    "green.stderr.bin": "",
+    "green.stdout.bin": "UEFTUzogVW5zdGFydGVkQXNzb2NpYXRpb24NClBBU1M6IFVua25vd25Bc3NvY2lhdGlvblJlamVjdGVkDQpQQVNTOiBQb3N0U3RhcnRSZWNlaXB0RmF1bHQNClBBU1M6IFByaW1hcnlTdXJ2aXZlc0ZpbmFsUmVjZWlwdEZhdWx0DQpQQVNTOiBOb3JtYWxFeGl0DQpQQVNTOiBUaW1lb3V0DQpQQVNTOiBQcmVTdGFydE91dHB1dEZhdWx0DQo=",
+    "red.stderr.bin": "",
+    "red.stdout.bin": "RkFJTDogQXNzb2NpYXRpb24uVW5zdGFydGVkTXVzdEJlVW5hc3NvY2lhdGVkDQo=",
+    "green-cases/fault.stderr.bin": "",
+    "green-cases/fault.stdout.bin": "",
+    "green-cases/normal.stderr.bin": "UDJCLUNPTlRBSU5NRU5ULUVSUg==",
+    "green-cases/normal.stdout.bin": "UDJCLUNPTlRBSU5NRU5ULU9VVA==",
+    "green-cases/timeout.stderr.bin": "",
+    "green-cases/timeout.stdout.bin": ""
+  },
+  "SourceSnapshots": {
+    "red.observer.ps1": "ZnVuY3Rpb24gUmVhZC1QMkJQcm9jZXNzQXNzb2NpYXRpb24oW29iamVjdF0kUHJvY2Vzcyl7CiAgICAkc3RhdGU9J1VuYXNzb2NpYXRlZCc7JGlkPSRudWxsOyRlcnJvclJlY29yZD0kbnVsbAogICAgIyBQcmVzZXJ2ZSB0aGUgb2xkIGNsZWFudXAgcHJlbWlzZSBmb3IgdGhlIGNvbnRyb2xsZWQgUkVEIG9ubHkuCiAgICB0cnl7JGlkPSRQcm9jZXNzLklkOyRzdGF0ZT0nQXNzb2NpYXRlZCd9Y2F0Y2h7JGVycm9yUmVjb3JkPSRffQogICAgcmV0dXJuIFtwc2N1c3RvbW9iamVjdF1bb3JkZXJlZF1Ae1N0YXRlPSRzdGF0ZTtQcm9jZXNzSWQ9JGlkO0Vycm9yPSRlcnJvclJlY29yZH0KfQo=",
+    "green.observer.ps1": "ZnVuY3Rpb24gUmVhZC1QMkJQcm9jZXNzQXNzb2NpYXRpb24oW29iamVjdF0kUHJvY2Vzcyl7CiAgICAkcmVzdWx0PVtwc2N1c3RvbW9iamVjdF1bb3JkZXJlZF1Ae1N0YXRlPSdVbmtub3duJztQcm9jZXNzSWQ9JG51bGw7RXJyb3I9JG51bGx9CiAgICBpZigkUHJvY2VzcyAtaXNub3QgW0RpYWdub3N0aWNzLlByb2Nlc3NdKXtyZXR1cm4gJHJlc3VsdH0KICAgIHRyeXsKICAgICAgICAkcHJvcGVydHk9W0RpYWdub3N0aWNzLlByb2Nlc3NdLkdldFByb3BlcnR5KCdJZCcsKFtSZWZsZWN0aW9uLkJpbmRpbmdGbGFnc106OlB1YmxpYyAtYm9yIFtSZWZsZWN0aW9uLkJpbmRpbmdGbGFnc106Okluc3RhbmNlKSkKICAgICAgICBbb2JqZWN0XSR2YWx1ZT0kcHJvcGVydHkuR2V0VmFsdWUoJFByb2Nlc3MpCiAgICAgICAgaWYoJHZhbHVlIC1pcyBbaW50XSAtYW5kICR2YWx1ZSAtZ3QgMCl7JHJlc3VsdC5TdGF0ZT0nQXNzb2NpYXRlZCc7JHJlc3VsdC5Qcm9jZXNzSWQ9JHZhbHVlfQogICAgfWNhdGNoewogICAgICAgICRyZXN1bHQuRXJyb3I9JF8KICAgICAgICBbRXhjZXB0aW9uXSRub2RlPSRfLkV4Y2VwdGlvbgogICAgICAgICRzZWVuPVtDb2xsZWN0aW9ucy5HZW5lcmljLkxpc3RbRXhjZXB0aW9uXV06Om5ldygpCiAgICAgICAgd2hpbGUoJG51bGwgLW5lICRub2RlKXsKICAgICAgICAgICAgaWYoJHNlZW4uQ291bnQgLWdlIDgpe3JldHVybiAkcmVzdWx0fQogICAgICAgICAgICBmb3JlYWNoKCRwcmlvciBpbiAkc2Vlbil7aWYoW29iamVjdF06OlJlZmVyZW5jZUVxdWFscygkcHJpb3IsJG5vZGUpKXtyZXR1cm4gJHJlc3VsdH19CiAgICAgICAgICAgICRzZWVuLkFkZCgkbm9kZSkKICAgICAgICAgICAgaWYoJG51bGwgLWVxICRub2RlLklubmVyRXhjZXB0aW9uKXsKICAgICAgICAgICAgICAgIGlmKCRub2RlLkdldFR5cGUoKSAtZXEgW0ludmFsaWRPcGVyYXRpb25FeGNlcHRpb25dKXskcmVzdWx0LlN0YXRlPSdVbmFzc29jaWF0ZWQnfQogICAgICAgICAgICAgICAgcmV0dXJuICRyZXN1bHQKICAgICAgICAgICAgfQogICAgICAgICAgICBpZigkbm9kZS5HZXRUeXBlKCkgLW5lIFtNYW5hZ2VtZW50LkF1dG9tYXRpb24uTWV0aG9kSW52b2NhdGlvbkV4Y2VwdGlvbl0gLWFuZCAkbm9kZS5HZXRUeXBlKCkgLW5lIFtSZWZsZWN0aW9uLlRhcmdldEludm9jYXRpb25FeGNlcHRpb25dKXtyZXR1cm4gJHJlc3VsdH0KICAgICAgICAgICAgJG5vZGU9JG5vZGUuSW5uZXJFeGNlcHRpb24KICAgICAgICB9CiAgICB9CiAgICByZXR1cm4gJHJlc3VsdAp9Cg==",
+    "approved-plan.snapshot.md": "IyBQMi1CIFByb2Nlc3MgQXNzb2NpYXRpb24gR3VhcmQgUmVwYWlyIEltcGxlbWVudGF0aW9uIFBsYW4KCj4gKipGb3IgYWdlbnRpYyB3b3JrZXJzOioqIFJFUVVJUkVEIFNVQi1TS0lMTDogVXNlIHN1cGVycG93ZXJzOmV4ZWN1dGluZy1wbGFucyBmb3IgcHJvcG9zZWQgTmF0aXZlIGV4ZWN1dGlvbi4gU3RlcHMgdXNlIGNoZWNrYm94ZXMuIE5vIGNvZGUgb3IgcnVudGltZSBhdXRob3JpdHkgZm9sbG93cyBmcm9tIGEgcHJvcG9zZWQgcGxhbi4KCioqR29hbDoqKiDkv67mraPmnKrlkK/liqjov5vnqIvmlq3oqIDlj4rkuKTlpITlkIzmupDmuIXnkIbmiqTmoI/nmoTplJnor6/lvILluLjliY3mj5DvvIzph43mlrDlrozmiJDmnInpmZDnprvnur/mlLbmnZ/kuI4gc2VhbSDpqozor4HjgIIKKipBcmNoaXRlY3R1cmU6Kiog5Zyo5paw55uu5b2V5byV5YWl5LiA5Liq5LuF5L6b56a757q/5o6n5Yi25Zmo5L2/55So55qE56eB5pyJ6L+b56iL5YWz6IGU6KeC5a+f5Ye95pWw77yM5rWL6K+V5pat6KiA5LiO5Lik5aSE5riF55CG5oqk5qCP5YWx55So5a6D44CC5YWI5Zyo5peg5a2Q6L+b56iLIFJFRCDkuK3lpI3njrDml6fliKTmlq3nmoTlrp7pmYXplJnor6/vvIzlho3ku4Xkv67or6Xlh73mlbDvvJvlrozmlbQgR1JFRU4g5ZKMIEZJTkFMIOWdh+S9v+eUqOaWsOWGu+e7k+a4heWNle+8jOWOnyBvd25lZC1ydW4v5Lqn5ZOBL+WOhuWPsuivgeaNruS4jeWKqOOAggoqKlRlY2ggU3RhY2s6KiogV2luZG93c+OAgeaZrumAmiBQb3dlclNoZWxsIDcuNi41IENvcmUgeDY044CB5Zu65a6aIFNES+OAgeaJmOeuoeWPjeWwhO+8m+aXoOWuieijheOAgUFkZC1UeXBl44CB5Y6f55Sf57yW6K+R44CB5a6J5YWo6K6+572u5oiW5L6d6LWW5Y+Y5pu044CCCioqU3BlYzoqKiBb5Y6fIEkxIOaUtuadn+WQiOWQjF0oMjAyNi0xMC0xOS1wMmItY29udHJvbGxlci1leGNlcHRpb24tY29udGFpbm1lbnQubWQp44CBW+WboOaenOihpemqjOWQiOWQjF0oMjAyNi0xMC0xOS1wMmItY29udHJvbGxlci1jYXVzYWxpdHktcmV2ZXJpZmljYXRpb24ubWQp5Y+KW+aPoeaJi+WQiOWQjCDCpzldKC4uL3NwZWNzLzIwMjYtMTAtMTktcDJiLWhhbmRzaGFrZS1jb250cmFjdC1kZXNpZ24ubWQp44CC5LuF56qE5L+u56a757q/5rWL6K+V5o6n5Yi25Zmo77yM5LiN5a6e546w55yf5a6e5o+h5omLL+iDveWKm+OAggoK54q25oCB77yaUFJPUE9TRURfTk9UX0FQUFJPVkVE44CC5Z+657q/IDEzMDYwMzAwZTI3MjE5YzgzNWIwNWMyNmFkOGM0N2FmZGNmMjNmNjLjgIIK55So5oi35bey5ZCM5oSP5Y+q6K+75YiG5p6Q77yM6ZqP5ZCO4oCc57un57ut4oCd5Y+q5o6I5p2D5pys5L+u6K6i6K6h5YiS57yW5YaZ44CC5pys6L2u6Zu25Luj56CB44CB55uu5qCH44CBCua1i+ivleOAgee8luivkeWPiuWuoeafpeOAguaOqOiNkCBOYXRpdmXvvJvlrp7njrAv5paw6aKE566X5b6F5Lmm6Z2i5om55YeG44CCCgojIyDlt7Lnn6Xkvp3mja7kuI7ojIPlm7TpgInmi6kKCuS/neWtmOeahCBHUkVFTiDliY3lm5vnu4TpgJrov4fvvIznrKzkupTnu4QgVW5hc3NvY2lhdGVkPWZhbHNl77yM5a6M5pW06L+Q6KGM5LuN5aSx6LSl44CCCua1i+ivlSBjb250YWlubWVudC50ZXN0cy5wczE6MTUwIOeUqCB0cnl7JG51bGw9JHAuSWR9Y2F0Y2gg5o6o5pat5pyq5YWz6IGU77ybCuWQjOebruW9lea1i+ivlTo4MyDlkowgY2FwdHVyZS5wczE6MTA2IOWImeaKiuKAnOacquaNleiOt+W8guW4uOKAneaOqOaWreS4uuW3suWFs+iBlC/lt7LlkK/liqjjgIIK6L+Z5LiJ5aSE5L6d6LWW5ZCM5LiA5Liq6ZSZ6K+v5YmN5o+Q44CC5Y6fIG93bmVkLXJ1bjoyMCDnmoTmlofku7bliJvlu7rlnKggU3RhcnQ6MjEg5LmL5YmN77ybCuS/neWtmOeahCBwcmVzdGFydCDlm57miafmmL7npLogQ3JlYXRlIOWksei0peOAgVN0YXJ0ZWQ9ZmFsc2XvvIzkvYbmnKrkv53lrZggSWQgZ2V0dGVyIOeahOWunumZhei/lOWbnuWAvOOAggoKW1Bvd2VyU2hlbGwgNy42LjUgQmluZGVycy5jczo1MDI34oCTNTA0MF0oaHR0cHM6Ly9naXRodWIuY29tL1Bvd2VyU2hlbGwvUG93ZXJTaGVsbC9ibG9iL3Y3LjYuNS9zcmMvU3lzdGVtLk1hbmFnZW1lbnQuQXV0b21hdGlvbi9lbmdpbmUvcnVudGltZS9CaW5kaW5nL0JpbmRlcnMuY3MjTDUwMjctTDUwNDApCuWwhuS4gOiIrOaIkOWRmOivu+WPluW8guW4uOi9rOaIkCBudWxs77yb5Zug5q2k5aSW5bGCIGNhdGNoIOaYr+WQpuinpuWPkeS4jeaYr+i/m+eoi+WFs+iBlOivgeaYjuOAggrov5nmmK/pnZnmgIHljp/lm6DlrprkvY3vvIzkuI3mmK/kuIDmrKHmlrDnmoTov5DooYzop4Llr5/vvIzkuI3ooaXlhpnml6cgQ2F1c2VDb25maXJtZWQv5aSx6LSl5a2X5q6144CCCltQcm9wZXJ0eUluZm8uR2V0VmFsdWUg5paH5qGjXShodHRwczovL2xlYXJuLm1pY3Jvc29mdC5jb20vZW4tdXMvZG90bmV0L2FwaS9zeXN0ZW0ucmVmbGVjdGlvbi5wcm9wZXJ0eWluZm8uZ2V0dmFsdWU/dmlldz1uZXQtMTAuMCkK5o+Q5L6b5pi+5byP5pa55rOV6LCD55So6Lev5b6E77yb5Y+N5bCE5byC5bi455qE5a6e6ZmF5YyF6KOF5LuN6aG75pys6K6h5YiSIEdSRUVOIOmqjOivge+8jOS4jeiDveWHreaWh+aho+mihOWFiOWuo+ensOmAmui/h+OAggoK6YCJ5YWx5Lqr56eB5pyJ6KeC5a+f5Ye95pWw77yM5L2/5LiJ5aSE5LiN5YaN6YeN5aSN5LiN5ZCM5Yik5pat44CC5Y+q5oqK56ys5LqU57uE5pS55oiQIG51bGwg5q+U6L6D77yMCuS7jemBl+a8j+a4heeQhuaKpOagj++8jOaLkue7ne+8m+WOn+WcsOaUueWGu+e7k+ebruW9leS8muaNn+Wdj+WOhuWPsui6q+S7ve+8jOaLkue7ne+8m+S4jemHjeWGmeS6p+WTgeeUn+WRveWRqOacn+OAggoKIyMgR2xvYmFsIENvbnN0cmFpbnRzCgotIOS9v+eUqOW9k+WJjemalOemu+W3peS9nOagkeWSjCBjb2RleC9jMTItYjAxLXRhc2s5LWNvb3JkaW5hdG9y77ybUG93ZXJTaGVsbC1vbmx544CCCiAg5LiN5ZCI5bm2IG1haW7jgIHlj5HluIPjgIHliKDpmaTljoblj7LmiJbljp/lp4vorrDlvZXjgIHmlLkgR2l0IOS/oeS7uy/lronlhajorr7nva7miJblronoo4Xkvp3otZbjgIIKLSDlm7rlrpogb3duZWQtcnVuIFNIQTI1Nu+8mjdBNDI1QzY2MTk2OENENzRCRkQ4Q0Q0RUFBMjVDQkE1M0VEMzZDQzA5RTNEMjk0NkY5RDA5NUZDMDk1QjI1RTHjgIIKLSDlm7rlrpogZml4dHVyZS1jaGlsZCBTSEEyNTbvvJpFRTVDREExQzU0NzM5RUJBREQ5NTc4MzkxQ0NFNTZCNUNBMTNDREU3NjRFQzg3OEQ1NzgyRUZBRTM4OUIyNTFG44CCCi0g5Zu65a6aIGNvZGVj77yaOUE1MzJFMTdEMzNDQUIxRkVFOUQ4QkIyNEM0MUQ1QTRCODY3RTQyRjVFQkFCMEVFM0MzQzI5QzlDREMxMDkzQ++8mwogIGluYm9477yaNDdCQUJGRURGREE3M0M4NTBFQTQ5Q0M3NEUzQjYzNDg5MTlFQUM2OUU3QUZCRkQzRENBOTA3QjQ5ODhDMDJGQ+OAggotIGVuZ2luZe+8mjM2MkEzNTZDRTdGMDk0MEVDNzRGNzNBOEZDMkM5OTBBMkNDMjRBMzhBMTFDOTBCQkQ4RUNBOTQ3MTEwQUQxMznvvJsKICBTREvvvJoyRDhBRjAyNkU1ODlDNTYwMzYyOUJGQzNFN0M1NzI2NUI0MTY3QjEyRUNBM0FFNTQ5QzZBNkMzQ0E3RTQ5NjdC44CCCi0g5Y6fIGNhdXNhbGl0eS1yZXZlcmlmaWNhdGlvbiDkupTovpPlhaXjgIExOCByYXfjgIE2IHBvcnRhYmxl44CB5omn6KGM5oql5ZGK5LiO5Y6f6K6h5YiS5LiN5Y+Y44CCCiAg5YW25L2Z5Y6G5Y+y5rqQ56CBL+WOn+Wni+iusOW9lS/lrqHmn6Uv5aSx6LSlL+mihOeul+S4jeWPmO+8jOS4jemHjeWIhuexu+aXpyBHUkVFTiDmiJbmtojpmaQgSTEg6Zi75aGe44CCCi0g5pen5Zug5p6c6KGl6aqM5L2ZIDEg5a6/5Li7KzEg5a2Q6L+b56iLKzEg5a6h5p+l44CB5penIGNvbnRhaW5tZW50IOS9mSAxIOWuv+S4uyszIOWtkOi/m+eoiysKICAxIOWuoeafpeWFqOmDqCBGUk9aRU7vvJvkuI3lgJ/nlKjml6fpop3luqbvvIzkuI3oh6rliqjnu6fnu63ml6cgRklOQUzjgIIKLSBTb3VyY2VWZXJpZmllZC9MaXZlQWN0aW9uc1BlcmZvcm1lZC9SdW50aW1lQXBwcm92ZWQvRm9ybWFsQWNjZXB0YW5jZS8KICBSZWFsR2F0ZUltcGxlbWVudGVkIOS/neaMgSBmYWxzZe+8m01pbm9yMiDlu7blkI7lkozmiYDmnInljp/mnInpmZDmibnlh4bkuI3lj5jjgIIKLSDlj6rop4Llr58v57uI5q2i6LCD55So6ICF5Yib5bu65bm25LuN5oyB5pyJ55qE56Gu5YiHIFByb2Nlc3PvvJtQSUQg5Y+q5L2c6K+K5pat6L6T5Ye677yM5LiN55So5LqO6YeN5om+44CCCiAg5peg6L+b56iL5p6a5Li+44CB5oyJ5ZCN56ew57uI5q2i44CBS2lsbC10cmVl44CB5Lqn5ZOB5pWF6ZqcIHNldHRlci9jYWxsYmFja+OAgeaOoumSiOaIlue8luivkeOAggoKIyMg5paH5Lu25LiO5o6l5Y+jCgrmlrAgbGVhZu+8mmRvY3MvZGlhZ25vc3RpY3MvaXNvbGF0ZWQtZnV6ei9wMmItcHJvY2Vzcy1hc3NvY2lhdGlvbi1ndWFyZC1yZXBhaXIv44CCCuWFreS4quWGu+e7k+i+k+WFpe+8mm93bmVkLXByb2Nlc3Mtb2JzZXJ2YXRpb24ucHMx77yI5LuF5a6a5LmJ56eB5pyJ6KeC5a+f5Ye95pWw77yJ44CBCmNvbnRhaW5tZW50LnRlc3RzLnBzMe+8iFJFRC9HUkVFTu+8ieOAgWNhcHR1cmUucHMx77yIUHJlcGFyZS9SdW4vSW50ZWdyYXRl77yJ44CBCmV4cGVjdGVkLW91dHB1dC5qc29u44CBUkVBRE1FLm1k44CBLmdpdGF0dHJpYnV0ZXPvvIjniannkIYgTEbvvInjgIIK5Lul5Zug5p6c6KGl6aqM55qE5rWL6K+VL2NhcHR1cmUg5Li66YCC6YWN6LW354K577yM5LiN5omn6KGM5YW25pen5YWl5Y+j77yb5Y+q6K+75aSN55So5Y6fIGhlbHBlcuOAgQpmaXh0dXJlIOWPiuWOnyBzZWFtIOiEmuacrC9vcmFjbGXvvIzkuI3lpI3liLbmiJbkv67mlLnkuqflk4HjgILmtL7nlJ8gc3VtbWFyeS9yZXZpZXcg5Li66L6T5Ye644CCCgrmlrAgaWdub3JlZCBwYWNrZXTvvJouc3VwZXJwb3dlcnMvc2RkLzIwMjYtMTAtMTktcDJiLXByb2Nlc3MtYXNzb2NpYXRpb24tZ3VhcmQtcmVwYWlyL+OAggrmiafooYzmiqXlkYrvvJpkb2NzL3JvYWRtYXAvMjAyNi0xMC0xOS1wMmItcHJvY2Vzcy1hc3NvY2lhdGlvbi1ndWFyZC1yZXBhaXIubWTvvJsK5Lqk5o6l5pu05pawIGN1cnJlbnQtc3RhdHVzIOS4jiByZXBvc2l0b3J5LXJlY292ZXJ577yM5pi+5byP5paH5Lu25YiX6KGo5o+Q5Lqk546w5pyJ5byA5Y+R5YiG5pSv44CCCgpSZWFkLVAyQlByb2Nlc3NBc3NvY2lhdGlvbihbb2JqZWN0XVByb2Nlc3MpIOi/lOWbnuaZrumAmuacieW6j+ague+8mgpTdGF0ZT0nQXNzb2NpYXRlZCd8J1VuYXNzb2NpYXRlZCd8J1Vua25vd24n44CBUHJvY2Vzc0lkPW51bGxhYmxlIEludDMy44CBCkVycm9yPUVycm9yUmVjb3JkfG51bGzjgILlroPlj6ror7vjgIHkuI0gU3RhcnQvS2lsbC9EaXNwb3Nl77yM5LiN5o6l5Y+X5aSW6YOoIGdldHRlciDmiJblm57osIPjgIIKCkdSRUVOIOWQiOWQjO+8mgoKLSDpnZ7nnJ/lrp4gRGlhZ25vc3RpY3MuUHJvY2Vzc++8iOWQqyBudWxsL+aZrumAmuebuOS8vOWvueixoe+8ieebtOaOpSBVbmtub3duL251bGwvbnVsbOOAggotIOS7juWbuuWumiBbRGlhZ25vc3RpY3MuUHJvY2Vzc10g57G75Z6L5Y+WIHB1YmxpYyBpbnN0YW5jZSBJZCBQcm9wZXJ0eUluZm/vvIzlubbnlKgKICBHZXRWYWx1ZSDmlrnms5XosIPnlKjor7vlj5bljp/lr7nosaHvvIzogIzkuI3mmK/lr7nlpJbpg6jlr7nosaHlj5bliqjmgIHlsZ7mgKfmiJbmiafooYzlpJbpg6jku6PnoIHjgIIKLSDlj6rmnInlrp7pmYXov5Tlm54gSW50MzIg5LiUID4wIOaJjSBBc3NvY2lhdGVk77yMRXJyb3I9bnVsbO+8m251bGwv5YW25LuW57G75Z6LL+mdnuato+WAvOS4uiBVbmtub3du44CCCi0g5o2V6I6355qE5pa55rOV6LCD55So6ZSZ6K+v5b+F6aG75L+d55WZIEVycm9yUmVjb3Jk77yb5a6M5pW06LWwIElubmVyRXhjZXB0aW9uIOWIsCBudWxs77yM5pyA5aSaCiAgOCDkuKrkuI3ph43lpI3oioLngrnjgILlj6rlhYHorrggTWV0aG9kSW52b2NhdGlvbkV4Y2VwdGlvbi9UYXJnZXRJbnZvY2F0aW9uRXhjZXB0aW9uIOWMheijhe+8jAogIOacgOWGheWxguaBsOS4uiBJbnZhbGlkT3BlcmF0aW9uRXhjZXB0aW9uIOaJjSBVbmFzc29jaWF0ZWTvvIxQcm9jZXNzSWQ9bnVsbOOAggogIOe8uuWkseOAgeW+queOr+OAgei2hemZkOOAgeWFtuS7luW8guW4uOaIluacquefpeWMheijheWdhyBVbmtub3du77yb5LiN5oyJ5raI5oGv5a2X56ym5Liy5YiG57G744CCCi0g5LiN5oqKIEFzc29jaWF0ZWQg562J5ZCM5LuN5a2Y5rS777yM5LiN5oqKIFVuYXNzb2NpYXRlZCDmianlsZXkuLrku7vkvZXotYTmupDmuIXnkIblt7LmiJDlip/vvJsKICDmraTlh73mlbDlj6rlnKjosIPnlKjogIXoh6rlt7HliJvlu7rjgIHlsJrmnKogRGlzcG9zZSDnmoTlr7nosaHkuIrkvpvnlJ/lkb3lkajmnJ/liKTmlq3jgIIKCuato+WFs+iBlOa1i+ivleS7peWunumZheWQr+WKqC/noa7liIfpgIDlh7rnmoTljp/lr7nosaHnm7TmjqXor7vlj5bmraMgSW50MzIgSWQg5L2c54us56uL57yW5Y+36ZSa54K577yMCuaWsOWHveaVsOeahCBQcm9jZXNzSWQg5b+F6aG755u4562J77yb55u05o6l5bGe5oCn6Iul6L+U5ZueIG51bGwg5Y2z5pyq55+lL+Wksei0pe+8jOS4jeS7peKAnOacquaKm+W8guW4uOKAnQroh6ror4HjgILliqjmgIHnvJblj7fkuI3lhpnlhaXlm7rlrpogb3JhY2xl77yM57yW5Y+35YWz57O75biD5bCU5YC85b+F6aG76L+b5YWl5a6M5pW0IHRyYWNlIOavlOi+g+OAggoK5LiJ5aSE5L2/55So77ya56ys5LqU57uE6KaB5rGCIFVuYXNzb2NpYXRlZOOAgW51bGwgUElE44CB5pyJ5a6e6ZmF6ZSZ6K+v77yb5Lik5aSE5riF55CG5oqk5qCP5Y+q5pyJCkFzc29jaWF0ZWQg5omN6IO95o2u6KeC5a+f5aGrIFN0YXJ0ZWQvUElE44CCVW5hc3NvY2lhdGVkIOS4lOayoeacieW3suefpeWQr+WKqOivgeaNruS4jeiwg+eUqApLaWxsL1dhaXTvvIzkuI3kvKrpgKAgT3duZWRFeGl077yb5LiO5bey55+lIFN0YXJ0ZWQg5Yay56qB5YiZ6K6wIFVua25vd24v5aSx6LSl44CCClVua25vd24g5rC45LiN5o6o5pat4oCc5pyq5ZCv5Yqo4oCd5oiW4oCc6YCA5Ye64oCd77ya5aaC5Y+v6IO95bey5ZCv5Yqo77yM5Y+q6IO95a+55oyB5pyJ55qE5ZCM5LiA5a+56LGh5YGaCuS4gOasoeacieeVjOWuieWFqOaUtuadn++8jOiusOW9leavj+S4qumUmeivr++8jOS4jeaNruatpOiHquWKqOmAmui/h++8m+S4jeiDveaMiSBQSUQg6YeN5paw5om+55uu5qCH44CCCuaJgOaciea1gS/orrDlvZUvRGlzcG9zZSDku43lnKggZmluYWxseSDlhoXvvIzlpJblsYLmlZHmj7TljbPlgZznur/vvJvkuLvlm6DkuI3ooqvmuIXnkIYv5YaZ55uY6ZSZ6K+v5pu/5o2i44CCCgojIyBSZXZpZXcgRm9jdXMKCjEuIOWxnuaAp+W8guW4uOiiq+WQnu+8mlVuc3RhcnRlZEFzc29jaWF0aW9uIOWvueaWsOacquWQr+WKqOWvueixoeimgeaxguaYvuW8j+aWueazlei3r+W+hOW+lyBVbmFzc29jaWF0ZWTjgIIKMi4gbnVsbC/nm7jkvLzmma7pgJrlr7nosaHooqvlvZPmiJDov5vnqIvvvJpVbmtub3duQXNzb2NpYXRpb25SZWplY3RlZCDopoHmsYIgVW5rbm93bu+8jOS4jeinpuWPkeS7u+S9leeUn+WRveWRqOacn+aTjeS9nOOAggozLiBudWxsIFBJRCDooqvlvZPmiJDlt7LlkK/liqjvvJpSRUQg55u05o6l5pq06Zyy5pen5YmN5o+Q77ybR1JFRU4g5LiJ5a2Q6L+b56iL5LiOIEZJTkFMIOWcqCBEaXNwb3NlIOWJjeaguOatoyBJbnQzMiBQSUTjgIIKNC4g5pyq5YWz6IGU5a+56LGh6L+b5YWl5riF55CG77yaUHJlU3RhcnRPdXRwdXRGYXVsdCDlrp7pmYXosIPnlKjmlrDmtYvor5XkvqfmuIXnkIbmiqTmoI/vvIzopoHmsYLkuI0gS2lsbC9XYWl044CB5LiN5Lyq5oqlIFN0YXJ0ZWQvT3duZWRFeGl044CCCjUuIFVua25vd24g5oiW5riF55CG5aSx6LSl6KKr5a6j56ew5oiQ5Yqf77ya5Lik5oqk5qCP5rqQ56CB5a6h5p+l5ZKM55yf5a6e5pWF6ZqcL+i2heaXtue7k+aenOWdh+aguOWksei0peWwgemXre+8m+acquefpSBBUEkvT1Mg5aSx6LSl5LuF6Z2Z5oCB6KaG55uW77yM5LiN5YaS5YWF5bey5Yqo5oCB5rOo5YWl44CCCgojIyDmlrDmnInpmZDpooTnrpflj4rlhrvnu5MKCuaLn+aJueWHhiBORVcgMyDpobblsYLlrr/kuLsgKzQg5a2Q6L+b56iLID03IOaWsCBQUzcg6L+b56iL77yM5p2h5Lu25oCnIDEg5qyh54us56uL5Y+q6K+75a6h5p+l44CCCuaXouacieaZrumAmueItuS4iuS4i+aWhyBQcmVwYXJlL1J1biDorrDotKbvvIzkuI3lj6blkK/liqggUFM377yb5peg5a6e5pa95Luj55CG44CB6aKd5aSW5Z+657q/44CB5o6i6ZKI5oiW6YeN6K+V44CCCgp8IOanvSB8IOaWsOWuv+S4uyB8IOaWsOWtkOi/m+eoiyB8IOW/hemhu+eyvuehrua7oei2syB8CnwgLS0tIHwgLS0tIHwgLS0tIHwgLS0tIHwKfCBSRUQgfCAxIHwgMCB8IOaWsOacquWQr+WKqOWvueixoeaatOmcsuaXp+WFs+iBlOWIpOaWre+8jOmihOWumuaWreiogOWksei0pe+8m+S7juacquiwg+eUqCBTdGFydCB8CnwgR1JFRU4gfCAxIHwgMyB8IOS4pOe7hOWFs+iBlOajgOafpSvljp/kupTnu4TmlLbmnZ/lhajpg6ggUEFTU++8jDDlpJblsYLmlZHmj7QgfAp8IEZJTkFMIHwgMSB8IDEgfCDmlrAgSW50ZWdyYXRlIOiwg+eUqOWOnyBzZWFtIOS4gOasoe+8jOWOn+WujOaVtCBvcmFjbGUv5a2X6IqC5LiN5Y+YIHwKCuavj+S4qiBTdGFydCDlsJ3or5XlhYjmtojotLnni6znq4vmp73vvIjlkK/liqjlpLHotKXkuZ/mtojotLnvvInvvJvlj6rlhYHorrjpobrluo/liY3nvIDjgIJSRUQg5Y+q6IO95pivCumihOWumuWksei0pe+8jOmaj+WQjuS7hSBvd25lZC1wcm9jZXNzLW9ic2VydmF0aW9uLnBzMSDlhYHorrjkuIDmrKHpooTlrprkv67lpI3vvJvlhbbkvZnkupTovpPlhaUvCm9yYWNsZSDkuI3lj5jjgIJSRUQvR1JFRU4g5ZCE5a2Y5YWo5riF5Y2V5LiO6KeC5a+f5rqQ56CB5b+r54Wn44CC5Lu75oSP5pyq55+lL+mdnueyvuehri/lhpnnm5jmiJYK6Kej5p6Q5aSx6LSlL+a8guenuy/pgIDlh7rmiJbmtYHkuI3mmI4v5pWR5o+077yM5YWI5pyJ6ZmQ5a6J5YWo5pS25p2f77yM5YaN5Ya757uT5YWo6YOo5L2Z5qe95Y+K5a6h5p+l44CCCuS4jeiHquWKqOS/ruaWsOmXrumimOOAgeaUuSBvcmFjbGXjgIHooaXot5HmiJbkuozlrqHjgIIKCumhtuWxgiBNYXhNcz0xMjAwMDDjgIHpgIDlh7rop4Llr58gMjAwMG1z44CB5Y+M5rWB5YWx55SoIDIwMDBtc++8m2ZhdWx0L25vcm1hbApNYXhNcz0yMDAw44CBdGltZW91dD0yMDDjgIFoZWxwZXIgRXhpdFdhaXQvRHJhaW4g5ZCEMjAwMO+8m2ZpeHR1cmUgSG9sZCDljp80NTAwMOS4jeaUueOAggpGSU5BTCBzZWFtIE1heE1zPTExMDAwMO+8jOWkluWxguaAuzEyMDAwMO+8jOeVmTEwMDAw57uZ5pyJ6ZmQ5pS25p2fL+iusOW9le+8m+S4jeiDvemHjee9rueItuaIquatouOAggrotoXpmZDlpoLlrp4gdW5rbm93bu+8jOS4jeWuo+ensOehrOWunuaXtuaIlueItuWuv+S4u+mAgOWHuuetieS6juWtkOi/m+eoi+mAgOWHuuOAggoKUHJlcGFyZSDnu6fmib/lm6DmnpzooaXpqowgbWFuaWZlc3Qg55qEMTQ1NOadoe+8m+WKoOivpemYtuautTE4IHJhd+OAgTYgcG9ydGFibGXjgIEK5omn6KGM5oql5ZGK5ZKM6K6h5YiS5ZCEMeOAgeaWsOWFrei+k+WFpeOAgeacrOaJueWHhuiuoeWIkuW/q+eFpzHvvIzlhbExNDg35pig5bCE6aG544CCCuWFiOaJk+WNsOWujOaVtOi3r+W+hC/lk4jluIzmuIXljZXvvJvph43lpI3mmKDlsITlv4XpobvlkIzlk4jluIzvvIznvLrljp/lp4vmlofku7blsLHlgZzvvIzkuI3ku44gc3VtbWFyeSDph43lu7rjgIIK5pawIHBhY2tldCDlj6/pooTlrZjku4UgcHJvZ3Jlc3MubWTvvJvkuI3lvpflrZjlnKjml6cgbWFuaWZlc3Qv5qe9L+e7k+aenOOAgkdSRUVOIOS7heinguWvn+WHveaVsArkuIDpobnlk4jluIzlj5jljJbvvIzlhbbkvZkxNDg26aG56YCQ6aG555u45ZCM77ybRklOQUwg5a6M5YWo5L2/55SoIEdSRUVOIOa4heWNleOAguWJjeWQjuWFqOmHj+aguOWvueOAggoKIyMgVGFzayAxOiDlhbHkuqvlhbPogZTliKTmja7nmoTnnJ/lrp4gUkVEIOS4juS4gOasoeS/ruWkjQoKKipGaWxlczoqKiDmlrDlha3ovpPlhaXvvJvljoblj7Lnm67lvZXlj6ror7vjgIIKKipJbnRlcmZhY2VzOioqIFJlYWQtUDJCUHJvY2Vzc0Fzc29jaWF0aW9uIOWmguS4iu+8m2NvbnRhaW5tZW50LnRlc3RzLnBzMQotUGhhc2UgUkVEfEdSRUVOIC1UcmFjZVBhdGggPGZpeGVkIHBhY2tldCBwYXRoPiAtRGV0YWlsc1BhdGggPGZpeGVkIHBhY2tldCBwYXRoPuOAggpjYXB0dXJlLnBzMSAtQWN0aW9uIFByZXBhcmV8UnVufEludGVncmF0ZSAtU2xvdCByZWR8Z3JlZW58ZmluYWwgLUZyb3plblNIQTI1NiA8NjRoZXg+44CCCkludGVncmF0ZSDkuLrlhoXpg6jlhaXlj6PvvIzmoLggRklOQUwg5bey5raI6LS55LiUIEdSRUVOIOWFqOeyvuehru+8m+S4jeWFgeiuuOS7u+aEj+ebtOi3keOAggoKLSBbIF0gU3RlcDHvvJrlhYjlhpnlrZfpnaIgb3JhY2xlIOWSjOWFt+WQjeaWreiogO+8jOWGjeWujOaIkOiwg+eUqOaWueOAglJFRCDln7rnur/op4Llr5/lh73mlbDku4XlsIYKICDml6fkuKTooYwgdHJ5eyRpZD0kUHJvY2Vzcy5JZDvigKblhbPogZTkuLrnnJ99Y2F0Y2h74oCm5pyq5YWz6IGUfSDljp/kuYnnp7vlhaXor6Xnp4HmnInmjqXlj6PvvJsKICDkuI3liqAgbnVsbC/mraPlgLzmoKHpqozvvIzkuI3liLbpgKDnvLogQVBJIOWksei0peOAglJFRCDlj6rliqDovb3op4Llr5/lh73mlbDvvIzkuI3liqDovb0gaGVscGVyL+S6p+WTgeOAggotIFsgXSBTdGVwMu+8mumdmeaAgeino+aekOOAgeWkjeaguOWFrei+k+WFpS/pooTnrpfjgIFQcmVwYXJlIOWGu+e7kyBSRUTjgILmma7pgJrniLYgUnVuIC1TbG90IHJlZOOAggogIEV4cGVjdGVk77ya5oGw5aW9IEZBSUw6IEFzc29jaWF0aW9uLlVuc3RhcnRlZE11c3RCZVVuYXNzb2NpYXRlZOOAgWV4aXQx77ybCiAg5L+d5a2Y5a6e6ZmF5pen5Yik5a6aIEFzc29jaWF0ZWQvUElEPW51bGzvvIzop4Llr5/lr7nosaHlnKggZmluYWxseSBEaXNwb3Nl77yMMCBTdGFydC/lrZDmp73jgIIKICDnu5Pmnpzoi6XkuI7mraTkuI3lkIzlgZznur/vvIzkuI3og73osIPmlbQgUkVEIOmihOacn+aIluebtOaOpee7p+e7rSBHUkVFTuOAggotIFsgXSBTdGVwM++8muS7heWcqCBSRUQg57K+56Gu5ZCO77yM5bCG5YWx5Lqr6KeC5a+f5Ye95pWw5pS55Li65LiK6L+w5pi+5byP5Y+N5bCE5pa55rOVL+acieeVjOW8guW4uOWIhuexu+OAggogIOS4jeaUueS4pOiwg+eUqOaWueOAgea1i+ivleaIliBvcmFjbGXvvJvkv53nlZnljp8gUkVEIOa6kOeggS/muIXljZXlubbnlJ/miJAgR1JFRU4g5riF5Y2V44CCCi0gWyBdIFN0ZXA077ya5pmu6YCa54i25LuF5LiA5qyhIFJ1biAtU2xvdCBncmVlbu+8jOaMieS7peS4i+S4g+e7hOaJp+ihjOW5tuavlOi+g+WujOaVtOeLrOeriyB0cmFjZe+8mgoKfCDlm7rlrprnu4Tpobrluo8gfCDlv4Xpobvmlq3oqIAgfAp8IC0tLSB8IC0tLSB8CnwgVW5zdGFydGVkQXNzb2NpYXRpb24gfCDmlrDmnKrlkK/liqjnnJ/lrp4gUHJvY2Vzc++8jFN0YXRlPVVuYXNzb2NpYXRlZOOAgVBJRD1udWxs44CBRXJyb3Ig5a2Y5Zyo77yb5pegIFN0YXJ0L+WtkOanvSB8CnwgVW5rbm93bkFzc29jaWF0aW9uUmVqZWN0ZWQgfCBudWxsIOWSjOaZrumAmuebuOS8vOaguemDvSBVbmtub3duL251bGwvbnVsbO+8m+aXoCBTdGFydC/lrZDmp70gfAp8IFBvc3RTdGFydFJlY2VpcHRGYXVsdCB8IOWQjOWOn+ecn+WunuebruW9leWGmeWksei0pe+8m+ehruWIh+mAgOWHui/lj4zmtYHlrozmlbTjgIHopoHmsYLnu4jmraLjgIHpnZ50aW1lb3V044CB5pegb3ZlcmZsb3cv5pWR5o+0IHwKfCBQcmltYXJ5U3Vydml2ZXNGaW5hbFJlY2VpcHRGYXVsdCB8IOWOn+S4pOS4queLrOeriyBFcnJvcuWIl+ihqOmUmueCueOAgeS4jeWQjOWPtuWboO+8m+WOn+aguSB0cnVl77yMcHJpbWFyeeabv+aNoi/kuqTmjaIvY2xlYW51cOabv+aNoi9udWxsL+e8uuWksS/kuZ3lsYLotJ/kvosgZmFsc2XvvJvmgbDkuIDmuIXnkIbplJnor68gfAp8IE5vcm1hbEV4aXQgfCDljp8gRW1pdEFuZEV4aXTvvJvlm7rlrprlj4zmtYHjgIFleGl0MOOAgeaXoOmUmeivry9raWxsL3RpbWVvdXQvb3ZlcmZsb3fvvJtEaXNwb3Nl5YmN5YWz6IGU5Li65q2jIEludDMyIFBJRCB8CnwgVGltZW91dCB8IOWOnyBIb2xkLzIwMG1z77yb6K+35rGC57uI5q2i5LiU56Gu5YiH6YCA5Ye6L+WPjOa1geWujOaVtOOAgeW3suefpemAgOWHuuegge+8jOaXoOmineWklumUmeivry9vdmVyZmxvd++8m0Rpc3Bvc2XliY3lhbPogZTku43kuLrljp8gUElEIHwKfCBQcmVTdGFydE91dHB1dEZhdWx0IHwg5Y6f6L6T5Ye66Lev5b6E5pWF6Zqc77ybU3RhcnRlZD1mYWxzZeOAgXByaW1hcnnlrZjlnKjjgIFVbmFzc29jaWF0ZWQvbnVsbCBQSUTjgIFPd25lZEV4aXQ9ZmFsc2XjgIFFeGl0Q29kZT1udWxs44CB5pegS2lsbO+8m+WunumZhei1sOaWsOa1i+ivlea4heeQhuaKpOagj++8jOiusOW9leacquWwneivlUtpbGwvV2FpdCB8CgogIEV4cGVjdGVk77yaN+ihjCBQQVNTIOWQjOW6j+OAgeWuv+S4u2V4aXQwL+epunN0ZGVycuOAgeWujOaVtOmAgOWHuuS4juWPjOa1geOAgTDmlZHmj7TjgIHlkI7nva5waW5z5a6M5pW077yMCiAg5a6M5pW0dHJhY2Xlr7lvcmFjbGXpm7blt67lvILjgIJQSUQv6ICX5pe2L+e7iOatoueggeS7heWcqOmihOWFiOWIl+WHuueahOWKqOaAgSByZWNlaXB0cyDkv53lrZjkuI7ojIPlm7Tmo4Dmn6XvvIwKICDkuI3kuLTml7bliKDlrZfmrrXmlL7lrr3mr5TovoPvvJtkZXRhaWxzIOS/neWtmOacieeVjOW8guW4uOexu+Wei+mTvuWSjOWunumZheinguWvn++8jOS4jeaBouWkjSBDTFIg6Lqr5Lu944CCCi0gWyBdIFN0ZXA177ya5L+d5a2Y5b+F6KaB5byA5Y+R5qOA5p+l54K577yM5qCH5piO5LuF5q2k5Lu75Yqh6KeC5a+f5a6M5oiQ77yb5aSx6LSl5Y+q5L+d5a2YIHVuZmluaXNoZWTjgIIKICBQb3dlclNoZWxsL21hbnVhbOi0puacrOabv+S7o0Jhc2jmioDog73ljIXoo4XvvIzkuI3pop3lpJbov5DooYwgdGFzay1kb25lL+WFqOWll+WOhuWPsua1i+ivleaIluWIoOmZpCByYXfjgIIKCiMjIFRhc2sgMjog5LiA5qyhIEZJTkFM44CB5p2h5Lu25a6h5p+l5ZKM5Lqk5o6lCgoqKkZpbGVzOioqIOWQjOS4gOaWsCBjYXB0dXJlL29yYWNsZe+8m+i+k+WHuiBzdW1tYXJ544CB5omn6KGM5oql5ZGK44CBcmV2aWV3L2Rpc3Bvc2l0aW9u44CCCioqQ29uc3VtZXM6KiogVGFzazHlrozmlbQgR1JFRU7jgIHkuInlt7LpgIDlh7rlrZDmp73lj4rmnKrmvILnp7sgR1JFRU7muIXljZXvvJvljp8gc2VhbS9vcmFjbGXjgIIKCi0gWyBdIFN0ZXAx77yaR1JFRU7lrozlhajnsr7noa7lkI7vvIzmma7pgJrniLbpooTmtojotLkgRklOQUwg5bm25ZCv5YqoIEludGVncmF0ZeWuv+S4u+S4gOasoe+8mwogIOWug+mihOa2iOi0ueWUr+S4gCBzZWFt5a2Q5qe977yM55So5Zu65a6aIG93bmVkLXJ1biDosIPljp8gc2VhbeOAguaWsCBjYXB0dXJl5L6n5oqk5qCP6LCD55So5ZCM5LiACiAgUmVhZC1QMkJQcm9jZXNzQXNzb2NpYXRpb27vvJvkuI7mtYvor5XkvqflkIzlkIjlkIzjgILmma7pgJrpobblsYLniLbku43kvb/nlKjni6znq4sgU3RhcnRlZOagh+iusOebkeedo+OAggotIFsgXSBTdGVwMu+8muimgeaxguWOnzE16KGMLzEyUEFTU+OAgWV4aXQwL+epunN0ZGVycuOAgeWujOaVtOWOn3RyYWNlIG9yYWNsZembtuW3ruW8gu+8jAogIHN0ZG91dCBTSEEgRjY5M0E2NEExNDAyQTBBRjg4MkUzMEQ2MkY2RUI3OTYwMUY1RjM4MDk3NDkwMEREOTgyQjdFRDk0NjQxQTBGReOAgQogIHRyYWNlIFNIQSA0NzUxRDAzRDI4RkI4MzQyQUZGQzU2QkYwRTgzNDNGMEUwQjFENUU1NDhBN0RGN0MxQjE2NEY3MTlDMTBBMTdF44CCCiAgaGVscGVy5pegcHJpbWFyeS9jbGVhbnVwL292ZXJmbG93L3RpbWVvdXQva2lsbOOAgeehruWIh+mAgOWHui/lj4zmtYHlrozmlbTjgIHml6DmlZHmj7TvvJsKICBGSU5BTOWuv+S4u+WQjOagt+WujOaVtOOAgeaXoOeItumUmeivr+OAgeWQjue9rnBpbnPlrozmlbTvvJvlhbPogZQgUElEIOS4juaMgeacieWvueixoeS4gOiHtOOAggotIFsgXSBTdGVwM++8muWPquacieWFqOmDqOS4iui/sOadoeS7tuaIkOeri++8jOa2iOi0ueWUr+S4gCBmcmVzaOWPquivu3Jldmlld++8jOaguOWFrei+k+WFpS9SRUTihpJHUkVFTgogIOWUr+S4gOaUueWKqOOAgeS4pOaKpOagj+WPiuesrOS6lOe7hOOAgeaJgOaciVJldmlldyBGb2N1c+OAgeS4g+e7hC9GSU5BTC/pooTnrpcv6K+B5o2u44CC5peg5omn6KGM5o6i6ZKI44CBCiAg5bWM5aWX5Luj55CG5oiW5L+u5pS577yb5a6M5pW05oql5ZGK6YCQ6aG5IGRpc3Bvc2l0aW9u44CC6Zi75aGeL+S4jeWujOaVtOWNs+WBnO+8jOaXoOiHquWKqGZpeC/ooaXpqowv5LqM5a6h44CCCi0gWyBdIFN0ZXA077ya5L+d5a2Y5rqQ56CBL+iuoeWIkui6q+S7veOAgeWFqOmDqOWOn+Wni+a1geWtl+iKgi90cmFjZS9kZXRhaWxzL+i0puacrOWTiOW4jOS4juWunumZhemihOeul++8jAogIHN1bW1hcnnkuI5yYXfpgJDpobnkuIDoh7TvvJtyYXfnu6fnu61pZ25vcmVk5LiU5L+d55WZ44CC5pu05paw54q25oCBL+aBouWkje+8jOaYvuW8j+WIl+ihqOaPkOS6pOaOqOmAge+8jAogIOaguHJlbW90ZT09bG9jYWzjgILkuI3oh6rooYzlhbPpl63mraPlvI/pqozmlLbvvIzkuI3mlLnml6flpLHotKUv5Ya757uT5L2Z6YeP77yM5LiN5ZCI5bm2bWFpbuaIluaOiOS6iGxpdmXmnYPpmZDjgIIKCiMjIOiHquajgOS4juaJueWHhumXqAoK5bey6Ieq5qOA77ya5LiJ5aSE6ZSZ6K+v5YmN5o+Q5Zyo5ZCM5LiA56eB5pyJ6L6555WM5L+u6K6i77yb55yf5a6e5pyq5ZCv5YqoIFJFRCDlhYjooYzjgIHlj6rmlLnkuIDovpPlhaXjgIEK5LiD57uEIEdSRUVOL+S4gOasoSBGSU5BTC/mnaHku7blrqHmn6XnmoTmjqXlj6PkuI7pooTnrpfkuIDoh7TjgILlr7kgbnVsbC/mnKrnn6Xmi5Lnu53jgIHljp/pppblm6DotJ/kvovjgIEK5riF55CG5YaZ55uY5aSx6LSl5bCB6Zet44CB5a6M5pW0IG9yYWNsZSDlkozljoblj7Lkv53miqTlnYfmnInku7vliqHvvJtPUy9BUEnmnKrnn6XlvILluLjlrp7pmYXms6jlhaXku43mnKropobnm5bvvIwK5Y+q6IO96Z2Z5oCB5a6h5p+l5bm25aaC5a6eIHVua25vd27jgILlj43lsITljIXoo4XpooTmnJ/mnKrliqjmgIHpqozor4HvvIzpnZ7nsr7noa7lsLHlgZzvvIzkuI3ovrnot5HovrnmlLnliIbnsbvjgIIKCuivt+aJueWHhiBOYXRpdmUg5a6e5pa95pys6K6h5YiS5Y+KIE5FVzPlrr/kuLsrNOWtkOi/m+eoiz035pawUFM36L+b56iL44CB5p2h5Lu2MeWPquivu+WuoeafpeOAggrov5nmmK/mlrDpop3luqbnlLPor7fvvIzkuI3op6Plhrvku7vkvZXml6fmp73jgILmibnlh4bliY3lj6rkv53lrZjmnKzorqHliJIv54q25oCBL+aBouWkjeivtOaYju+8jOS4jeWGmeS7o+eggeaIlui/kOihjOOAggo="
+  },
+  "Limits": [
+    "No more runtime/review budget remains; no automatic fix or retry.",
+    "Only declared finite offline controller/seam observations are supported.",
+    "Original failures and all old frozen quotas remain unchanged.",
+    "CLR identities, ignored raw, fixed runtime/SDK, credentials and run permission do not follow from clone.",
+    "AssociationDetails PreStart observer chain is overwritten by case-insensitive prestart guard key; saved Unstarted observer chain and full trace results remain.",
+    "Raw JSON strings retain numeric lexemes exactly; do not parse/re-emit UInt64 via floating-point."
+  ],
+  "ReviewFindings": {
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 1,
+    "Blocking": "R1",
+    "DeferredMinor": "R2",
+    "DeclinedItems": 16,
+    "AllDeclinedDispositioned": true
+  },
+  "OriginalI1PathRepairObserved": true,
+  "HandoffAuthorVerified": true,
+  "HandoffIndependentlyReviewed": false,
+  "ArtifactInventory": [
+    {
+      "RelativePath": "approved-plan.snapshot.md",
+      "Bytes": 15248,
+      "SHA256": "98EB496FE5ACB02E0675A14116BE18FA099A8A2F731E50E5AEA718D0FF0A60D5"
+    },
+    {
+      "RelativePath": "children.json",
+      "Bytes": 966,
+      "SHA256": "CEAD8AC3115BDF7C492DDB08CFCA33010BFCB9ECF5BC5978D74221AC7CDBF16A"
+    },
+    {
+      "RelativePath": "final.capture.json",
+      "Bytes": 872,
+      "SHA256": "1687D98E6953F588002A8478010B5277365D20AA609F37A1BD2C1167ECDA505C"
+    },
+    {
+      "RelativePath": "final.seam.receipt.json",
+      "Bytes": 245,
+      "SHA256": "25B3F4737505806B64F8330E70E9C918A97A84B203BD6E8C413BB28FC12BDB51"
+    },
+    {
+      "RelativePath": "final.seam.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "final.seam.stdout.bin",
+      "Bytes": 545,
+      "SHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE"
+    },
+    {
+      "RelativePath": "final.seam.trace.json",
+      "Bytes": 4179,
+      "SHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E"
+    },
+    {
+      "RelativePath": "final.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "final.stdout.bin",
+      "Bytes": 545,
+      "SHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE"
+    },
+    {
+      "RelativePath": "green-cases/fault.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/fault.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/normal.receipt.json",
+      "Bytes": 244,
+      "SHA256": "353F7881C27DEE9581CD0F111F1E5E0ED608871BD9922A104B6815AB483D168D"
+    },
+    {
+      "RelativePath": "green-cases/normal.stderr.bin",
+      "Bytes": 19,
+      "SHA256": "4A72DAC7A1B133CE02FA5D9E5C3AC54FCBA2024D5BF6617FD1DFFEADCECFF1B6"
+    },
+    {
+      "RelativePath": "green-cases/normal.stdout.bin",
+      "Bytes": 19,
+      "SHA256": "C8ADB80B579BD08B97D5577409DD9DCFBA1F2EFD8BBD936A232CAFF921DC22A3"
+    },
+    {
+      "RelativePath": "green-cases/prestart.receipt.json",
+      "Bytes": 498,
+      "SHA256": "1506E6D36424BF17F818D06C0219DCFFEA0CB333C2BDE5E0DFB4352FD8C569BA"
+    },
+    {
+      "RelativePath": "green-cases/timeout.receipt.json",
+      "Bytes": 243,
+      "SHA256": "C8B367F185CB5DEB52A51C83BAC4B535575D002D942DD3B1EDE0F8C796B1907D"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stdout.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green.details.json",
+      "Bytes": 3283,
+      "SHA256": "1B1FC470CA360F44A06A07A02C8D68D5BF68203C57D82153F5DC147B9100D1E4"
+    },
+    {
+      "RelativePath": "green.frozen.json",
+      "Bytes": 553749,
+      "SHA256": "56865465D3D07E89B2B64A132AB50C2EB77B2C856207A0BFF04B40B01D0A2A1E"
+    },
+    {
+      "RelativePath": "green.observer.ps1",
+      "Bytes": 1273,
+      "SHA256": "CD6E9564E77FF55812F9E96291B0F4E511758245A9BBC53AD2802B95E809C6E5"
+    },
+    {
+      "RelativePath": "green.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green.stdout.bin",
+      "Bytes": 191,
+      "SHA256": "7434296CFD64BB12FE20F111E87FDAFB57B02335AA0516225AF53050F26CAF57"
+    },
+    {
+      "RelativePath": "green.trace.json",
+      "Bytes": 3402,
+      "SHA256": "9F468FDB89187C23EAD3810D1DEE79518D13461A58A64B297B8CF5787EDEA0DA"
+    },
+    {
+      "RelativePath": "hosts.json",
+      "Bytes": 2732,
+      "SHA256": "F2A63B833D28AB9B79B36EB2D7F7E10D14801E432618A3B37B6677CD2A709379"
+    },
+    {
+      "RelativePath": "progress.md",
+      "Bytes": 3785,
+      "SHA256": "100572698CC7718D22463BCCF9C7E7A5946991B725E00E70DFDC2CFCB006B9C0"
+    },
+    {
+      "RelativePath": "red.details.json",
+      "Bytes": 77,
+      "SHA256": "07C0B39CA2B1AB13B75DDA2D6C8A3AB9007D1151CDC3BE397567669F353C8729"
+    },
+    {
+      "RelativePath": "red.frozen.json",
+      "Bytes": 553747,
+      "SHA256": "1784EF8AB67CF18D5B95D236112D93555E7C8B977AB0D5DB5AAA44DC0F23EF3E"
+    },
+    {
+      "RelativePath": "red.observer.ps1",
+      "Bytes": 332,
+      "SHA256": "33CF0CDEA148B7405D912AA4C37A5337FF9F80685DB26B6B83E41582DCDA8874"
+    },
+    {
+      "RelativePath": "red.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "red.stdout.bin",
+      "Bytes": 47,
+      "SHA256": "7425C27B749010E516FE2122D776EBE6C826E1F03DFD6F1048143DAE53FB4184"
+    },
+    {
+      "RelativePath": "red.trace.json",
+      "Bytes": 474,
+      "SHA256": "267F669F790CBAB4DB439239FDA28A49E170028074C61BDC00B20358CA9BE20A"
+    },
+    {
+      "RelativePath": "review-package.md",
+      "Bytes": 2191,
+      "SHA256": "96F768B9460488ABA4B3DF7943ADB45F2CCA3C4BB78B0835F75074A2BEF00D1C"
+    }
+  ],
+  "ReviewOutputs": [
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2b-process-association-guard-repair/review.md",
+      "SHA256": "59DA7C50CAA7FD94E93AAD0AE6ACFBDD78154D02257E022856DFBE4F2E4379FE"
+    },
+    {
+      "Path": "docs/diagnostics/isolated-fuzz/p2b-process-association-guard-repair/review-disposition.md",
+      "SHA256": "D9AE10483FF0BCCA75B1C0296E82A94060AB628E5DFBE1BD5F21BA6C4BAC0A06"
+    }
+  ]
+}

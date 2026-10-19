@@ -1,6 +1,19 @@
 # Recover the project on a new computer
 
-Latest staged checkpoint:[association guard verification](../roadmap/2026-10-19-p2b-process-association-guard-repair.md).
+Latest:[association guard review-blocked checkpoint](../roadmap/2026-10-19-p2b-process-association-guard-repair.md).
+All approved RED/GREEN7of7/FINAL15lines12PASS observations exact. Unique readonly
+review found R1 Important (final ledger errors can mask earlier cause) and R2
+Minor (PreStart/prestart detail collision). Full review/all16dispositions saved;
+task REVIEW_BLOCKED_R1_UNFINISHED, no automatic fix/retest/re-review/acceptance.
+All3hosts+4children+1review spent;0remaining. Old failures and frozen budgets
+unchanged. Portable export preserves exact raw JSON strings/stream bytes/hashes
+and RED/GREEN observer snapshots; author-checked after review, not independently
+reviewed. Clone restores those records/source, not ignored raw, engine/SDK, CLR
+identity, credentials or rights. Read report and separately approve any R1 plan/
+new execution. Do not replay old slots or reconstruct missing raw; latest
+development branch, not main, is the recovery starting point.
+
+Historical staged checkpoint:[association guard verification](../roadmap/2026-10-19-p2b-process-association-guard-repair.md).
 Approved Native/new3hosts+4children+conditional1review after979c9cf1. Six inputs/
 1487pins; RED exact with0children, observer-only change thenGREEN7of7 exact.
 Spent2hosts+3children; final1host+1child/conditional1review pending under plan gates.

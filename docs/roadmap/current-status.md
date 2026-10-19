@@ -1,6 +1,27 @@
 # Project status — updated 2026-10-19
 
-## Latest — association guard RED exact / GREEN7of7; FINAL and review pending
+## Latest — all finite runs exact; independent review blocks on R1
+
+[Execution](2026-10-19-p2b-process-association-guard-repair.md).
+RED exact/GREEN7of7/FINAL15lines12PASS and full hashes/oracles intact. Unique
+readonlyreview found R1 Important: final bookkeeping failure can mask first
+failure; R2 Minor: pre-start observer detail overwritten by case-insensitive key.
+Coordinator verified both, preserved all observations and complete review/all16
+dispositions. REVIEW_BLOCKED_R1_UNFINISHED; no fix/retest/re-review, not accepted.
+Spent3/3hosts+4/4children+1/1review,0remaining. Old failed records/frozen quotas
+unchanged. Portable/recovery outputs author-checked only, not independently
+reviewed. Next: separately approve narrow R1 repair plan/new finite budget.
+
+## Historical — association guard FINAL exact; unique independent review pending
+
+[Execution](2026-10-19-p2b-process-association-guard-repair.md).
+After exact RED andGREEN7of7, FINAL30428/8024ms/exit0 matched original15lines/
+12PASS/full oracle/stdout+trace hashes. Seamchild38696exit0, ownedexit/drains/
+postpins complete, no rescue/errors. All3hosts+4children=7of7 consumed; unique
+read-only review seat consumed and pending. No more runs/fixes/re-review;
+no formal/I1/live/main acceptance. Previous failures and frozen budgets unchanged.
+
+## Historical — association guard RED exact / GREEN7of7; FINAL and review pending
 
 [Execution](2026-10-19-p2b-process-association-guard-repair.md).
 Native/new3hosts+4children+conditional1review approved after979c9cf1.

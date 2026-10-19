@@ -1,4 +1,4 @@
-# P2-B process association guard repair — staged verification
+# P2-B process association guard repair — review-blocked unfinished
 
 Date2026-10-19; execution base979c9cf179d0aed0e23d91cbb1efefe181802b90,
 branch codex/c12-b01-task9-coordinator. User approved Native/new3hosts+
@@ -31,6 +31,45 @@ checkpoint spent2hosts+3children=5of7processes; FINAL and conditional review not
 executed. Remaining1host+1child+1review require unchanged plan gates, no retry.
 Portable raw handoff will be consolidated after the final outcome; ignored raw
 and RED/GREEN snapshots preserved. Do not replay consumed slots after clone.
+
+## Final review disposition — REVIEW_BLOCKED_R1_UNFINISHED
+
+Single fresh reviewer completed after exact FINAL. Full report and all16 scope
+dispositions are saved in the new leaf. Coordinator verified R1 at test:119 and
+capture:151/216: final ledger reads/writes can replace an earlier propagated
+failure. It remains fail-closed and after cleanup, not a revived observed process
+leak, but the complete first-failure contract is unmet. R1 stays Important and
+blocks completion. No automatic repair, probe, repeat or second review.
+
+R2 Minor deferred: PreStart/prestart dictionary keys collide, so the individual
+pre-start observer error chain was overwritten by guard details. The full trace
+still observes error presence/Unassociated/no Kill/Wait; the separate unstarted
+chain is intact. Do not reconstruct the missing detail or claim it was captured.
+
+RED/GREEN/FINAL saved observations remain exact; original I1 cleanup/association
+repair has narrow supporting evidence, not overall acceptance. Final runtime
+3/3hosts+4/4children and review1/1 exhausted,0remaining. All old frozen allowances
+and failed records unchanged. I1Accepted/FormalAcceptance/RuntimeApproved remain
+false. New portable summary/raw stream export is author-generated/author-checked
+after review, explicitly outside that review's completed output coverage.
+
+Next recommendation: separately authorize a written narrow R1 repair plan/new
+finite budget, with R2 disposition explicit. Do not resume any consumed slot.
+
+## Historical intermediate state — final integration observed, review pending
+
+Task1 checkpoint36e670a8 was pushed before the unique FINAL.
+FINAL host30428/8024ms/exit0 EXPECTED_FINAL, original15lines/12PASS, empty stderr,
+no timeout/termination/parenterror/cleanup error/rescue, owned exit/drains/pins
+complete. Seam child38696/exit0 owned-exited, positive ID matched held object;
+shared guard Associated, no guard error. Full original seam oracle and complete
+final-capture oracle each zero differences. Original stdout F693A64A... and
+seam trace4751D03D... match their literal full SHA256s in the approved plan.
+
+All3hosts+4children=7of7processes consumed. No runtime allowance remains.
+Conditional review seat1of1 consumed after these exact results; one fresh
+read-only reviewer is inspecting source/receipts. No overall/I1 acceptance or
+automatic fix/retest/re-review is authorized by passing the saved runs.
 
 Old failed GREEN/raw/portable statuses unchanged; old frozen allowances unchanged,
 I1 unaccepted until all required evidence and independent review/user decision.
