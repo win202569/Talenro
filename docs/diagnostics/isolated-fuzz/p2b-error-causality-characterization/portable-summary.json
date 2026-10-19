@@ -1,0 +1,287 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-error-causality-characterization-portable",
+  "Status": "CHARACTERIZED_WITHIN_SCOPE_NO_ACCEPTANCE",
+  "BaseCommit": "7e2184f67182a9759015bc7ccd92bf291e7bcec2",
+  "Method": "Native",
+  "ImplementationApproved": true,
+  "Budget": {
+    "HostsApproved": 1,
+    "HostsSpent": 1,
+    "HostsRemaining": 0,
+    "ChildrenApproved": 0,
+    "ChildStarts": 0,
+    "ReviewersApproved": 0,
+    "ReviewersSpent": 0
+  },
+  "OldContainmentBudget": {
+    "HostsSpent": 2,
+    "ChildrenSpent": 2,
+    "HostsRemainingFrozen": 1,
+    "ChildrenRemainingFrozen": 3,
+    "ReviewersRemainingFrozen": 1
+  },
+  "FrozenSHA256": "6B31CB6ABDD0C610CF955732207D3DC478B9052418269539181003481411428E",
+  "FrozenPins": 1434,
+  "InheritedPins": 1398,
+  "AdditionalPins": 36,
+  "ApprovedPlanSHA256": "866221E9517B32D75FD6E9FF18DB59EE415FA0545173BF8158751076A23D0607",
+  "GroupsPassed": 5,
+  "TraceDifferences": 0,
+  "DiagnosticAuthorSelfChecked": true,
+  "IndependentReviewPerformed": false,
+  "ControllerIntegrationVerified": false,
+  "I1Accepted": false,
+  "OldGreenReclassified": false,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "RealGateImplemented": false,
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "E71155BDB5E982056850C6A6A20C4A4968657DD75C18926606B420ABB5D77602"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "C4D27E9495E0A31DA9A3EC2B18D69818F11D6B771F87CCF08748A972EB7FEE69"
+    },
+    {
+      "Name": "causality.tests.ps1",
+      "SHA256": "3524ADD68A3C0F487D530F3979CB6721D8E08B840FA80F092A6EFF0F85ACA823"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "B28E3C7754D649E6774F779B6F6D2DA5A5B4BF559E3D8D3BFE0ABAED3EAB759C"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "154426A1FC3905472959819DF9DEB0DE2880F075061635174BB763AFEA6B09AD"
+    }
+  ],
+  "ArtifactInventory": [
+    {
+      "RelativePath": "approved-plan.snapshot.md",
+      "Bytes": 12878,
+      "SHA256": "866221E9517B32D75FD6E9FF18DB59EE415FA0545173BF8158751076A23D0607"
+    },
+    {
+      "RelativePath": "diagnostic.details.json",
+      "Bytes": 4274,
+      "SHA256": "CC47B470C7599C1C24D3D0BF815CA2040B34459DE303E0F192B304775C654DF0"
+    },
+    {
+      "RelativePath": "diagnostic.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "diagnostic.stdout.bin",
+      "Bytes": 156,
+      "SHA256": "E42BE56F9048B63CD8A45726C3C1B5820D041FABB38071D95220941E528D9F12"
+    },
+    {
+      "RelativePath": "diagnostic.trace.json",
+      "Bytes": 1181,
+      "SHA256": "411C253A5681B4214C5620ECDA7068AA2BFBB5577C96FF42553507D55034B5E9"
+    },
+    {
+      "RelativePath": "frozen.json",
+      "Bytes": 536703,
+      "SHA256": "6B31CB6ABDD0C610CF955732207D3DC478B9052418269539181003481411428E"
+    },
+    {
+      "RelativePath": "invocation.json",
+      "Bytes": 922,
+      "SHA256": "5FEB020C6F3A93514BD9F815D5720B7F3519F91AD6D51DA20D216C14FF2D3782"
+    }
+  ],
+  "PortableStreams": [
+    {
+      "RelativePath": "diagnostic.stderr.bin",
+      "Bytes": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Base64": ""
+    },
+    {
+      "RelativePath": "diagnostic.stdout.bin",
+      "Bytes": 156,
+      "SHA256": "E42BE56F9048B63CD8A45726C3C1B5820D041FABB38071D95220941E528D9F12",
+      "Base64": "UEFTUzogQ2F0Y2hDb3B5Tm90SWRlbnRpdHkNClBBU1M6IE9yaWdpbmFsQ2F1c2VSZXRhaW5lZA0KUEFTUzogRGlzdGluY3RFcXVhbFRleHQNClBBU1M6IFZhbGlkYXRvclJlamVjdHNSZXBsYWNlbWVudA0KUEFTUzogTWlzc2luZ09yVW5ib3VuZGVkQ2F1c2VSZWplY3RlZA0K"
+    }
+  ],
+  "Limits": [
+    "One fixed ordinary PS7 diagnostic only; no product/controller import or child-start code in target. No OS process-name/PID scan was performed.",
+    "ErrorRecord wrapper reference inequality coexists with shared underlying I/O-cause identity in this diagnostic.",
+    "Two real same-path errors had equal leaf messages but different I/O exception references; explicit primary/cleanup replacement negatives were rejected.",
+    "Missing causes and a nine-wrapper chain were rejected; cycle protection received source self-check only, not a dynamic cyclic input.",
+    "The cause predicate applies only to complete bounded chains ending at permitted I/O failures in one live CLR process. Serialized flags do not preserve exception identity.",
+    "Old failed GREEN/FirstRecordIdentity=false/CauseConfirmed=false, controller I1 and all historical spent/frozen budgets remain unchanged.",
+    "Only author self-check, zero independent review by approved scope. No controller GREEN/FINAL, main/live/formal/full C12 acceptance.",
+    "Raw JSON subtrees are embedded without JavaScript Number reserialization. A clone restores portable source/data, not ignored raw, engine/SDK, credentials, runtime identities or execution rights."
+  ],
+  "Invocation": {
+  "Number": 1,
+  "AttemptConsumed": true,
+  "Started": true,
+  "PID": 2844,
+  "TimedOut": false,
+  "TerminationRequested": false,
+  "OwnedExit": true,
+  "StreamsComplete": true,
+  "ExitCode": 0,
+  "ElapsedMs": 749,
+  "ParentError": null,
+  "CleanupErrors": [],
+  "PostPinsIntact": true,
+  "ExactExpected": true,
+  "DetailsValid": true,
+  "stdoutSHA256": "E42BE56F9048B63CD8A45726C3C1B5820D041FABB38071D95220941E528D9F12",
+  "stderrSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "TraceSHA256": "411C253A5681B4214C5620ECDA7068AA2BFBB5577C96FF42553507D55034B5E9",
+  "DetailsSHA256": "CC47B470C7599C1C24D3D0BF815CA2040B34459DE303E0F192B304775C654DF0",
+  "TraceDifferences": [],
+  "ChildrenAllowed": 0,
+  "ReviewersAllowed": 0,
+  "Outcome": "EXPECTED_WITHIN_DIAGNOSTIC_SCOPE",
+  "RealGateImplemented": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false
+},
+  "Trace": {
+  "Schema": 1,
+  "Mode": "p2b-error-causality-characterization",
+  "Groups": [
+    "CatchCopyNotIdentity",
+    "OriginalCauseRetained",
+    "DistinctEqualText",
+    "ValidatorRejectsReplacement",
+    "MissingOrUnboundedCauseRejected"
+  ],
+  "Observations": {
+    "CatchCopyNotIdentity": {
+      "RecordReferencesDiffer": true,
+      "SameCause": true
+    },
+    "OriginalCauseRetained": {
+      "FirstMatches": true,
+      "FinalMatches": true,
+      "FirstVsFinal": false
+    },
+    "DistinctEqualText": {
+      "MessagesNonemptyEqual": true,
+      "LeafReferencesDiffer": true,
+      "SameCause": false
+    },
+    "ValidatorRejectsReplacement": {
+      "Original": true,
+      "PrimaryReplaced": false,
+      "Swapped": false,
+      "CleanupReplaced": false
+    },
+    "MissingOrUnboundedCauseRejected": {
+      "NullAnchor": false,
+      "MissingPrimary": false,
+      "DeepNine": false
+    }
+  },
+  "Passed": true,
+  "Error": null,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "RealGateImplemented": false
+},
+  "Details": {
+  "Schema": 1,
+  "Mode": "p2b-error-causality-details",
+  "Events": [
+    {
+      "Stage": "first-write",
+      "Catch": {
+        "RecordType": "System.Management.Automation.ErrorRecord",
+        "FullyQualifiedErrorId": "UnauthorizedAccessException",
+        "Chain": [
+          {
+            "Type": "System.Management.Automation.MethodInvocationException",
+            "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.\"",
+            "MessageTruncated": false
+          },
+          {
+            "Type": "System.UnauthorizedAccessException",
+            "Message": "Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.",
+            "MessageTruncated": false
+          }
+        ],
+        "ChainTruncated": false
+      },
+      "Anchor": {
+        "RecordType": "System.Management.Automation.ErrorRecord",
+        "FullyQualifiedErrorId": "UnauthorizedAccessException",
+        "Chain": [
+          {
+            "Type": "System.Management.Automation.MethodInvocationException",
+            "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.\"",
+            "MessageTruncated": false
+          },
+          {
+            "Type": "System.UnauthorizedAccessException",
+            "Message": "Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.",
+            "MessageTruncated": false
+          }
+        ],
+        "ChainTruncated": false
+      },
+      "ErrorCount": 1,
+      "OldestRecordMatches": false,
+      "OldestCauseMatches": true
+    },
+    {
+      "Stage": "final-write",
+      "Catch": {
+        "RecordType": "System.Management.Automation.ErrorRecord",
+        "FullyQualifiedErrorId": "UnauthorizedAccessException",
+        "Chain": [
+          {
+            "Type": "System.Management.Automation.MethodInvocationException",
+            "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.\"",
+            "MessageTruncated": false
+          },
+          {
+            "Type": "System.UnauthorizedAccessException",
+            "Message": "Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.",
+            "MessageTruncated": false
+          }
+        ],
+        "ChainTruncated": false
+      },
+      "Anchor": {
+        "RecordType": "System.Management.Automation.ErrorRecord",
+        "FullyQualifiedErrorId": "UnauthorizedAccessException",
+        "Chain": [
+          {
+            "Type": "System.Management.Automation.MethodInvocationException",
+            "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.\"",
+            "MessageTruncated": false
+          },
+          {
+            "Type": "System.UnauthorizedAccessException",
+            "Message": "Access to the path 'D:\\Projects\\Talenro\\.worktrees\\c12-b01-task9-coordinator\\.superpowers\\sdd\\2026-10-19-p2b-error-causality-characterization\\receipt-is-directory' is denied.",
+            "MessageTruncated": false
+          }
+        ],
+        "ChainTruncated": false
+      },
+      "ErrorCount": 2,
+      "OldestRecordMatches": false,
+      "OldestCauseMatches": false
+    }
+  ]
+}
+}

@@ -1,0 +1,57 @@
+{
+  "Schema": 1,
+  "Output": [
+    "PASS: CatchCopyNotIdentity",
+    "PASS: OriginalCauseRetained",
+    "PASS: DistinctEqualText",
+    "PASS: ValidatorRejectsReplacement",
+    "PASS: MissingOrUnboundedCauseRejected"
+  ],
+  "TraceExpected": {
+    "Schema": 1,
+    "Mode": "p2b-error-causality-characterization",
+    "Groups": [
+      "CatchCopyNotIdentity",
+      "OriginalCauseRetained",
+      "DistinctEqualText",
+      "ValidatorRejectsReplacement",
+      "MissingOrUnboundedCauseRejected"
+    ],
+    "Observations": {
+      "CatchCopyNotIdentity": {
+        "RecordReferencesDiffer": true,
+        "SameCause": true
+      },
+      "OriginalCauseRetained": {
+        "FirstMatches": true,
+        "FinalMatches": true,
+        "FirstVsFinal": false
+      },
+      "DistinctEqualText": {
+        "MessagesNonemptyEqual": true,
+        "LeafReferencesDiffer": true,
+        "SameCause": false
+      },
+      "ValidatorRejectsReplacement": {
+        "Original": true,
+        "PrimaryReplaced": false,
+        "Swapped": false,
+        "CleanupReplaced": false
+      },
+      "MissingOrUnboundedCauseRejected": {
+        "NullAnchor": false,
+        "MissingPrimary": false,
+        "DeepNine": false
+      }
+    },
+    "Passed": true,
+    "Error": null,
+    "CompileCount": 0,
+    "ProductChanged": false,
+    "SourceVerified": false,
+    "LiveActionsPerformed": false,
+    "RuntimeApproved": false,
+    "FormalAcceptance": false,
+    "RealGateImplemented": false
+  }
+}

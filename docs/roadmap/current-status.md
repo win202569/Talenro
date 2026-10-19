@@ -1,6 +1,22 @@
 # Project status — updated 2026-10-19
 
-## Latest — error-causality verification revision proposed; not approved
+## Latest — error-causality diagnostic 5/5 exact; controller remains unaccepted
+
+[Diagnostic execution](2026-10-19-p2b-error-causality-characterization.md).
+After7e2184f6,user approved Native/new1host/0children/0independentreview.
+Fiveinputs/1434mapped pins frozen;host2844/749ms/exit0,exact5PASS/empty stderr,
+complete ownedexit/drains,no timeout/termination/parenterror,trace0differences.
+Same I/O cause matches across different record wrappers;equal-text independent
+causes andexplicit primary/cleanup replacements do notmatch. Missing/deep chain
+negatives reject. Details retain two real I/O errors,not simulated processes.
+New1/1host spent,none remaining;author self-check only,no independent review.
+OldGREEN/FirstRecordIdentity=false/CauseConfirmed=false andI1status unchanged.
+Oldremaining1host+3children+1review staysFROZEN;no control GREEN/FINAL rerun.
+Zero compiles/product edits/imports. Next:separately plan controller assertion
+revision/full5groups/FINAL/freshreview,new explicit finite budget. No acceptance/
+main/live permission follows from diagnostic.
+
+## Historical — error-causality verification revision proposed; not approved
 
 [Revised verification plan](../superpowers/plans/2026-10-19-p2b-error-causality-characterization.md).
 After94283f1e,user authorized readonly analysis thenverification-plan revision,

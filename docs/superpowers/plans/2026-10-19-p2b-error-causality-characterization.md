@@ -7,9 +7,12 @@
 **Tech Stack:** Windows普通PowerShell7.6.5 Core x64、固定SDK、File.WriteAllText；无新依赖、原生编译或安全设置变更。
 **Spec:** [原I1修复合同](2026-10-19-p2b-controller-exception-containment.md)中的“首因保留/清理错误分离”，受[握手合同§9](../specs/2026-10-19-p2b-handshake-contract-design.md)的验证隔离约束。本计划只验证判据，不完成上述合同。
 
-状态：PROPOSED_NOT_APPROVED。基线94283f1eac2b5f242e95ec1aeb097bdaff489847，
-开发分支codex/c12-b01-task9-coordinator。用户仅同意继续修订验证方案，
-未批准新诊断实施/执行预算。本轮仅文档：0新代码/目标/测试/编译/审查。
+状态：CHARACTERIZED_WITHIN_SCOPE_NO_ACCEPTANCE。用户在7e2184f6后批准Native/
+新1诊断宿主、0子进程、0独立审查。执行基线7e2184f67182a9759015bc7ccd92bf291e7bcec2。
+开发分支codex/c12-b01-task9-coordinator。5输入/1434pins已冻结，
+唯一host2844/749ms/exit0，5组精确PASS、空stderr、trace零差异、details有效。
+输入完整、ownedexit/drains完成，无子进程/编译/产品导入；额度1/1用尽。
+仅判据诊断完成，未关闭I1、未改判旧GREEN；只读核对并保存开发检查点。
 
 ## 静态依据、选择与不变结论
 
@@ -98,7 +101,7 @@ Primary必须与FirstAnchor同I/O叶因、与FinalAnchor不同；CleanupErrors�
 4. Error列表多包装/索引变化污染锚点：OriginalCauseRetained核两次独立阶段锚点和对应catch，记录来源，不假定全局最早项正确。
 5. 缺失、循环或过深链被当成功：MissingOrUnboundedCauseRejected核缺锚点/缺Primary/超过8节点拒绝；循环保护须源码自检，不伪造产品钩子。
 
-## 新预算提案：1诊断宿主，0子进程，0独立审查
+## 已批准且用尽：1诊断宿主，0子进程，0独立审查
 
 推荐Native，仅一组紧耦合诊断，不派发代理或追加独立review席位。
 现有普通父上下文执行capture Prepare/Run，不再开一个PS7做记账。
@@ -111,7 +114,7 @@ Run只Start一个固定PS7 -NoProfile -NonInteractive -File causality.tests.ps1�
 
 这是新固定语义表征，首次预期通过；不制造缺API RED，不改产品，也不声称
 产品TDD修复。真实I/O反例及显式错误替换样本在同一宿主内检查判据。
-上述有限首绿及0独立审查需随计划明确批准，覆盖通用技能的额外baseline/
+用户已明确批准上述有限首绿及0独立审查，覆盖通用技能的额外baseline/
 task-done/suite/最终review建议；代价是只有诊断作者自检，没有独立验收。
 以后拟采用判据补验控制器，必须另定含运行/审查的有限计划。
 
@@ -121,7 +124,7 @@ task-done/suite/最终review建议；代价是只有诊断作者自检，没有�
 **Consumes:** 两次实际本地写入失败及独立阶段锚点。
 **Produces:** 固定5组observations及完整原始诊断，不改变旧测试。
 
-- [ ] **Step1 — 先写固定断言与预期，静态检查后Prepare。**
+- [x] **Step1 — 先写固定断言与预期，静态检查后Prepare。**
   五组顺序及PASS名称恰好如下；每组断言为literal true/false，不由判据计算预期：
   CatchCopyNotIdentity：第一catch与第一列表锚点记录引用不同=true，
   两者叶因匹配=true。
@@ -133,13 +136,13 @@ task-done/suite/最终review建议；代价是只有诊断作者自检，没有�
   Primary替换成second、主清理交换、Cleanup替换成first三反例均false。
   MissingOrUnboundedCauseRejected：null锚点、缺Primary、9层RuntimeException
   包装后才到I/O叶因的普通反例均false；不执行控制器或模拟其生命周期。
-- [ ] **Step2 — Freeze全部1434条映射，不启动。**
+- [x] **Step2 — Freeze全部1434条映射，不启动。**
   继承旧GREEN清单9AAF1DA8...的1398条VerificationPath及哈希，逐项核对；
   增加旧containment packet递归19个文件、旧portable叶10文件、旧执行报告1、
   新5输入及批准Plan快照1。1434=1398+19+10+1+5+1。
   旧packet/leaf文件数量变化或缺失停止，不能补建。清单role/path/hash展示后
   才冻结；审批快照取用户实际批准的本稿版本，不随进度文档更新而覆盖。
-- [ ] **Step3 — Run一次，检查完整预期。**
+- [x] **Step3 — Run一次，检查完整预期。**
   Run:现有普通父上下文capture.ps1 -Action Run -FrozenSHA256 <Prepare实际SHA>。
   Expected:exit0/空stderr/恰好5行PASS，按上述5组顺序；无Context额外输出。
   trace固定Schema1/Mode=p2b-error-causality-characterization/Groups string[]/
@@ -155,11 +158,11 @@ task-done/suite/最终review建议；代价是只有诊断作者自检，没有�
 **Consumes:** 同一冻结输入/清单/一次诊断回执。
 **Produces:** 可恢复诊断结果，不是控制器修复验收。
 
-- [ ] **Step1 — 保存便携结果并只读核对。**
+- [x] **Step1 — 保存便携结果并只读核对。**
   保留trace/双流字节哈希及准确JSON数字token，不经JS Number回写。
   稀缺CLR引用只能在同一宿主中判断；JSON里的true或数字ID不能恢复引用。
   核全部映射/原始哈希/便携子树，失败也保留、不改旧GREEN。
-- [ ] **Step2 — 明确完成范围，必要文件提交推送开发分支。**
+- [x] **Step2 — 明确完成范围，必要文件提交推送开发分支。**
   更新本Plan/新执行说明/current-status/repository-recovery；
   结果只能称“限定宿主下判据表征”，不称I1关闭/原GREEN通过/
   正常退出或超时路径通过/完整首因保证。
@@ -174,5 +177,7 @@ task-done/suite/最终review建议；代价是只有诊断作者自检，没有�
 或字符串等价，不修改I1合同的“真实首因保留”目标，只避免跨包装记录引用假设。
 本稿是后续方案细分，不修改旧合同/历史失败/冻结清单；旧进程CLR对象关系
 无法补测，单次新表征也不宣称已还原其每个引用。
-本轮自检为文档检查，不消耗目标或review。待审阅计划及明确批准Native/
-新1宿主+0子进程+0review之后才准备输入并执行。
+用户已批准本有限诊断；实际1宿主/0子进程/0独立审查，五组符合预期。
+批准稿快照866221E9...，manifest6B31CB6A...；原始回执和失败历史保留。
+本有限诊断没有进一步目标或审查额度。下一步只建议另定控制器断言修订+
+完整5组/FINAL/独立审查计划；不得自动改旧冻结文件、重跑或解冻原额度。

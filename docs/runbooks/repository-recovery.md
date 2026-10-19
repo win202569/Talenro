@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest:[five-group error-causality diagnostic](../roadmap/2026-10-19-p2b-error-causality-characterization.md).
+Native/new1host/0children/0review approved after7e2184f6;host2844/749ms/exit0,
+5exactPASS/empty stderr/complete drains/post1434pins,0trace differences.
+Newleaf preserves5sources,independent oracle,portable invocation/trace/details,
+stream bytes andraw artifact hashes. Live reference identity isnot serialized.
+One diagnostic allowance exhausted;no independent review. This isnot controller
+GREEN/FINAL/I1acceptance. Original failed traces/status/quotas remain unchanged;
+remaining old1host+3children+1review FROZEN. Do notresume old run automatically.
+Next needs a separately approved controller assertion-revision/integration plan
+andexplicit finite budget/review. Recover latestdevelopment branch,not main;
+clone restores sources/portable observations,not ignoredraw/fixed engine/SDK/
+credentials/runtime identities or execution rights.
+
 Newest:[error-causality characterization proposal](../superpowers/plans/2026-10-19-p2b-error-causality-characterization.md).
 After94283f1e,user authorized readonly analysis andrevised verification plan only.
 Static PowerShell7.6.5 source shows catch uses a newErrorRecord wrapper;theold
