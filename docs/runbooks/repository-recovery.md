@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest follow-up:[C1/C2 readonly closure map](../roadmap/2026-10-19-p2b-c1-c2-closure-map.md).
+It separates old unresolved controller findings from the tested replacement
+offline mechanism. No production or operator-entry migration has been selected
+or implemented; next scope decision precedes any new code/test budget. No new
+runtime runs/imports/review, original1930pins intact. Read this map and latest
+execution; do not rerun stored fixtures, restore old allowances or rewrite raw
+evidence. Author-only mapping/checkpoint, C1/C2 open and R2/Minor2 deferred.
+
 Latest execution:[prestart/first-cause repair](../roadmap/2026-10-19-p2b-prestart-cause-repair.md),
 [approved finite brief](../roadmap/2026-10-19-p2b-prestart-cause-budget.md).
 NEW4hosts/7children exhausted with all exact signatures;1930pins intact.

@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — C1/C2 evidence mapped; next boundary is diagnostic entry scope
+
+[Readonly closure map](2026-10-19-p2b-c1-c2-closure-map.md). Author checked old
+findings against latest Session/Ack/sink guards and saved observations;1930pins
+still intact. New mechanism is an offline fixed-fixture path, not an in-place
+repair or production migration of the historical controller. Literal new-interface
+references found only in diagnostic sources, not searched application/tool roots.
+C1/C2 remain open; R2/Minor2 deferred. No new runtime tests/imports/targets/agents/
+review or code changes. Recommend defining future offline diagnostic-entry
+migration scope before planning another bounded implementation; not replaying
+exhausted grants. This mapping is author-only, not acceptance or a new budget.
+
 ## Latest — prestart/first-cause scoped checkpoint verified and reviewed
 
 [Execution](2026-10-19-p2b-prestart-cause-repair.md), [approved brief](2026-10-19-p2b-prestart-cause-budget.md).
