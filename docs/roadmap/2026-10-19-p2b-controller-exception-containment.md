@@ -63,6 +63,9 @@ Old seam2+1/tree5+1spent;original2spent+3FROZEN/diagnostic1spent unchanged.
 preserves complete hosts/children/RED/GREEN/before-rescue JSON subtrees as raw JSON
 text,stream bytes inBase64 plushashes and19artifact identities. REDbaseline/
 parent bookkeeping text snapshots are handoff outputs,not extra frozen inputs.
+The two readable .ps1.txt snapshots may receive CRLF on a Windows checkout;
+SourceSnapshots in the LF-pinned JSON also preserves their exact original bytes
+asBase64 withlength/hash. Use those bytes for identity,not checkout line endings.
 Fresh readonly handoff validation:5JSON subtrees andraw numeric tokens exact;
 1398GREEN pins intact,only1planned RED→GREEN source delta,all19raw hashes,
 8decodedstream byte hashes and2source snapshot hashes match. FINAL absent.
