@@ -1,0 +1,38 @@
+{
+  "Schema": 1,
+  "Stage": "offline-diagnostic-entry-preparation-v2",
+  "Status": "AUTHOR_PATCH_PATH_REJECTED_BEFORE_IMPLEMENTATION_UNFINISHED",
+  "ApprovedRevisionCommit": "71c24463e3d10e9351a15f56bd53b2162704b81d",
+  "ApprovedRevisionSHA256": "CB511F97B2FB40FE4B67B739EDEC2E36C11B2990B06C7359040F3EA7A1B63E9F",
+  "PacketPath": ".superpowers/sdd/2026-10-19-offline-diagnostic-entry-preparation-v2",
+  "Budget": {
+    "RegressionInvocationsConsumed": 0,
+    "PrepareInvocationsConsumed": 0,
+    "CaptureHostsConsumed": 0,
+    "ChildrenConsumed": 0,
+    "ReviewersConsumed": 0,
+    "RegressionInvocationsFrozen": 2,
+    "PrepareInvocationsFrozen": 1,
+    "HistoricalAllowancesFrozen": true
+  },
+  "Artifacts": [
+    {
+      "Path": "progress.md",
+      "Encoding": "base64",
+      "Length": 1634,
+      "SHA256": "3FD3624373E9081602310D2F31AE1EA504B65043CD2F2650A041EE6B365805DE",
+      "Data": "IyBTREQgbGVkZ2VyIOKAlCBwbGFuOiBkb2NzL3N1cGVycG93ZXJzL3BsYW5zLzIwMjYtMTAtMTktb2ZmbGluZS1kaWFnbm9zdGljLWVudHJ5LXByZXBhcmF0aW9uLXYyLm1kCgpIdW1hbiBhcHByb3ZlZCByZXZpc2lvbiBhdDcxYzI0NDYzZTNkMTBlOTM1MWExNWY1NmJkNTNiMjE2MjcwNGI4MWQuClJldmlzaW9uIFNIQTI1NiBDQjUxMUY5N0IyRkI0MEZFNEI2N0I3MzlFREVDMkUzNkMxMUIyOTkwQjA2QzczNTkwNDBGM0VBN0ExQjYzRTlGLgpOYXRpdmUgbWV0aG9kLiBBcHByb3ZlZCBtYXhpbXVtMmluLXRvb2wgcmVncmVzc2lvbnMrMVByZXBhcmUsCjBjYXB0dXJlIGhvc3RzL2NoaWxkcmVuL3Jldmlld2Vyczsgb2xkNi83L2NvbmRpdGlvbmFsMXN0YXkgZnJvemVuLgpDbGVhbiBsaW5rZWQgd29ya3RyZWUgb24gY29kZXgvYzEyLWIwMS10YXNrOS1jb29yZGluYXRvciB2ZXJpZmllZDsKY3VycmVudDcxYzI0NDYzIGFkZHMgYXBwcm92ZWQgcGxhbi9zdGF0dXMvcmVjb3Zlcnkgb3ZlcjkyMTI4OTA1c291cmNlIGJhc2UuCgpTVE9QOiBBVVRIT1JfUEFUQ0hfUEFUSF9SRUpFQ1RFRF9CRUZPUkVfSU1QTEVNRU5UQVRJT04uClRoZSBpbml0aWFsIGF1dGhvci1jb21wb3NlZCBhcHBseV9wYXRjaCBpbmNvcnJlY3RseSBpbmNsdWRlZCB1bnJlbGF0ZWQgcGF0aApEOi9Qcm9qZWN0cy9UYWxlbnZvLy53b3JrdHJlZXMvYzEyLWIwMS10YXNrOS1jb29yZGluYXRvci9JTlZBTElELgpTYWZldHkgcmV2aWV3IHJlamVjdGVkIHRoZSBlbnRpcmUgcGF0Y2guIFJlYWRvbmx5IFRlc3QtUGF0aCBjb25maXJtZWQgRmFsc2UKZm9yIHRoZSBwcm9wb3NlZCBuZXcgcGFja2V0LCBuZXcgc291cmNlIGxlYWYgYW5kIGVycm9uZW91cyB0YXJnZXQgYWZ0ZXJ3YXJkLgpObyB2YWxpZCBvciBpbnZhbGlkIHBhdGNoIGZpbGVzIHdlcmUgd3JpdHRlbjsgbm8gcnVudGltZSBjb2RlIGNoYW5nZWQuClRoaXMgaXMgYW4gYXV0aG9yIHRvb2wtaW5wdXQgbWlzdGFrZSwgbm90IGEgUm9sZS10ZXN0IG9yIHByZXBhcmF0aW9uIGZhaWx1cmUuCk5vIHJ1bnRpbWUgRXJyb3JSZWNvcmQgZXhpc3RzIGZvciB0aGlzIHRvb2wgcmVqZWN0aW9uOyBkbyBub3QgcmVjb25zdHJ1Y3Qgb25lLgoKU3BlbnQwcmVncmVzc2lvbiBpbnZvY2F0aW9ucy8wUHJlcGFyZS8wY2FwdHVyZSBob3N0cy8wY2hpbGRyZW4vMHJldmlld2Vycy4KUmVtYWluaW5nMnJlZ3Jlc3Npb25zLzFQcmVwYXJlIGZyb3plbiBieSB0aGUgYXBwcm92ZWQgdW5leHBlY3RlZC1vdXRjb21lIHJ1bGUuCk5vIFJFRC9HUkVFTiwgaGVscGVyLCBwcmVwYXJhdGlvbiBzY3JpcHQsIGZyZWV6ZSBvciBzbmFwc2hvdHMgcHJvZHVjZWQuCk9sZCBvcmlnaW5hbHMgdW50b3VjaGVkLiBUYXNrMSByZW1haW5zIGluY29tcGxldGUuIFRoaXMgbGVkZ2VyIHdhcyBjcmVhdGVkCm9ubHkgYWZ0ZXIgc3RvcHBpbmcgdG8gcHJlc2VydmUgdGhlIGFjdHVhbCBkaXNwb3NpdGlvbjsgaXQgaXMgbm90IGEgc3VjY2Vzc2Z1bApzZXR1cCBhcnRpZmFjdCBvciBhdXRob3JpdHkgdG8gcmV0cnkuIEZpbmFsIHJlY292ZXJ5IGV4cG9ydCBpbmNsdWRlcyB0aGlzCmFjdHVhbCBsZWRnZXIgb25seS4gTm8gY29kZSBmaXgsIHJldHJ5LCBuZXcgZGlyZWN0b3J5IGdlbmVyYXRpb24gb3IgcmV2aWV3Lgo="
+    }
+  ],
+  "ExpectedAbsentArtifacts": [
+    "preparation.frozen.json",
+    "snapshots/",
+    "approved-spec.snapshot.md",
+    "approved-plan.snapshot.md",
+    "approved-revision.snapshot.md",
+    "regression-red.json",
+    "regression-green.json"
+  ],
+  "RuntimeErrorRecordSaved": false,
+  "Authority": "Recovery-only actual stopped ledger; no replay or execution authority"
+}

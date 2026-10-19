@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-19
 
+## Latest — V2 approved, author patch rejected before any implementation
+
+[Actual V2 disposition](2026-10-19-offline-diagnostic-entry-preparation-v2.md).
+Human approved71c24463revision. Initial patch included an erroneous unrelated
+path; safety review rejected all writes. Readonly checks confirmed no files
+created by that patch. Author error, not a test/preparation outcome. Spent0
+regressions/0Prepare/0hosts/0children/0reviews. Remaining2regressions/1Prepare
+frozen under approved stop rule; old6/7/conditional1still frozen. No fix or
+runtime implementation exists. Only stopped ledger/portable/report preserved;
+no automatic retry. Older pending-review sections below are historical.
+
 ## Latest — preparation-only revision awaiting review
 
 [Preparation V2 plan](../superpowers/plans/2026-10-19-offline-diagnostic-entry-preparation-v2.md).

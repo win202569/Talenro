@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest disposition:[V2 author patch rejection](../roadmap/2026-10-19-offline-diagnostic-entry-preparation-v2.md).
+V2 was approved, but my initial patch contained an unrelated incorrect path
+and was wholly rejected before any write. No regression or Prepare ran;
+remaining2regressions/1Prepare are frozen under its stop rule. The actual new
+packet contains only a post-stop ledger, exported as recovery data. There is
+no helper or preparation implementation to run. Do not retry the rejected
+patch, consume frozen allowances or infer runtime authority from this export.
+Old originals/allowances remain unchanged. Read the disposition before acting.
+
 Latest next step:[review preparation-only V2 revision](../superpowers/plans/2026-10-19-offline-diagnostic-entry-preparation-v2.md).
 This is a proposed isolated metadata correction/new Prepare, not an approved
 runtime restart. The failed originals must stay unchanged. No new code or
