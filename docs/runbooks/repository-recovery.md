@@ -3,12 +3,18 @@
 Latest:[B1/B2 publication repair](../roadmap/2026-10-19-p2b-completion-publication-repair.md).
 Bounded chat design and separate NEW4hosts+4children+conditional1review approved.
 RED exact3FAIL, publication-only repair, GREEN6of6/CONTAINMENT7of7/FINAL15lines
-12PASS/full hashes exact. All4hosts+4children spent, unique review pending.
-Intermediate source checkpoint only; full review/portable export pending, not
-accepted. Do not replay slots or reconstruct missing raw. Clone does not restore
-runtime/SDK/CLR identity/credentials or new rights. Old allowances remain frozen,
-R2/Minor2 deferred; no main/live/formal/full-C12 acceptance. Latest development
-branch, not main, is the recovery starting point.
+12PASS/full hashes exact. All4hosts+4children+1review spent. B1/B2 narrowly
+repaired; C1 uncertain final-write marker and C2 failed-host-ledger retry remain
+Important/unresolved. REVIEW_BLOCKED_C1_C2_UNFINISHED, full contract unaccepted.
+Complete review/all34dispositions/portable22raw JSON strings+16streams+3snapshots+
+45artifact hashes saved and author-checked; later outputs not independently
+reviewed. Source checkpoint349947e4 pushed/remote equal; Git history/final reply
+record later handoff push. Do not replay slots or reconstruct missing raw. Clone
+does not restore runtime/SDK/CLR identity/credentials or new rights. Old quotas
+frozen, R2/Minor2 deferred; no main/live/formal/full-C12 acceptance. Latest
+development branch, not main, is recovery starting point. Next needs separately
+approved coherent completion acknowledgement/failed-sink lifecycle design, not
+automatic implementation or more targets.
 
 Latest:[R1 repair verification](../roadmap/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Approved new finite scope after4f72700d; RED exact, one shared-file repair,

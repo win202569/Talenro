@@ -1,0 +1,409 @@
+{
+  "Schema": 1,
+  "Mode": "p2b-completion-publication-portable",
+  "Status": "REVIEW_BLOCKED_C1_C2_UNFINISHED",
+  "BaseCommit": "8b842a19a4d43c0b079c69d9d9e917c9d2cc1c2b",
+  "SourceCheckpoint": "349947e4a57f23ca4f05cee673b46ef94345f265",
+  "Approval": "Bounded in-chat design approved, then separate NEW4hosts+4children+conditional1review approval; README snapshot is author record, not separate written-spec approval",
+  "Method": "Native ordinary PowerShell; serial finite RED/GREEN/CONTAINMENT/FINAL; one publication-only repair",
+  "Budget": {
+    "MaxHosts": 4,
+    "HostsConsumed": 4,
+    "MaxChildren": 4,
+    "ChildrenConsumed": 4,
+    "MaxReviewers": 1,
+    "ReviewersConsumed": 1,
+    "RuntimeRemaining": 0,
+    "ReviewRemaining": 0,
+    "AutomaticFixAuthorized": false,
+    "RetryAuthorized": false
+  },
+  "OldBudgets": "All previous exhausted/frozen allowances remain unchanged",
+  "RedFrozenSHA256": "CCECB43871CAB41AE40570F648AF47EDE33C01129DDAE745FBF8ACA2130F42EC",
+  "GreenFrozenSHA256": "3A763103C93625C522CF8BFF997F9280EA07F3278A6D3FCE6D221759368D4237",
+  "FrozenPins": 1599,
+  "InheritedPins": 1539,
+  "AdditionalPins": 60,
+  "ChangedPins": 1,
+  "DesignRecordSHA256": "3CC26E4E9EA1A6766A1D56A21240A6E7332DFC468C4DC47060555C7489983F76",
+  "RedPublicationSHA256": "7FB610A201C4C22805309A7AE84F4D432DA4F213F5772A7E3D0CCC1E22E08290",
+  "GreenPublicationSHA256": "93FD62F86E9A7BDBF1DE2A9C34E95694C7ED2F181A8362ED372641069C6ACB29",
+  "RedExact": true,
+  "GreenGroupsPassed": 6,
+  "ContainmentGroupsPassed": 7,
+  "FinalExact": true,
+  "FinalOutputLines": 15,
+  "FinalPassLines": 12,
+  "IndependentReviewPerformed": true,
+  "B1Accepted": false,
+  "B2Accepted": false,
+  "I1Accepted": false,
+  "OldFailuresReclassified": false,
+  "CompileCount": 0,
+  "ProductChanged": false,
+  "SourceVerified": false,
+  "LiveActionsPerformed": false,
+  "RuntimeApproved": false,
+  "FormalAcceptance": false,
+  "RealGateImplemented": false,
+  "Files": [
+    {
+      "Name": ".gitattributes",
+      "SHA256": "E3083818059D2956756D32B1D4A7098E28F57DFB3B971F429A73E51672505B9D"
+    },
+    {
+      "Name": "bookkeeping.ps1",
+      "SHA256": "51261705DD6B622AA2EB9AF9C6B030BB1FE6B5D387BBE371EE3BD3BFFCFB6BB6"
+    },
+    {
+      "Name": "capture.ps1",
+      "SHA256": "74AB34E891DFFABA68CDDD72FAABD6044C1880C60F56E31212C4E9001445D44C"
+    },
+    {
+      "Name": "containment.tests.ps1",
+      "SHA256": "1959161420FAF3E8555F7C4236CA59815A61989C5956B4067FD012DCB66958BB"
+    },
+    {
+      "Name": "expected-output.json",
+      "SHA256": "C246C48B81C424FCD28327CBF9B6EF8F67C64072382B7031B428AE925DFB7698"
+    },
+    {
+      "Name": "publication.ps1",
+      "SHA256": "93FD62F86E9A7BDBF1DE2A9C34E95694C7ED2F181A8362ED372641069C6ACB29"
+    },
+    {
+      "Name": "publication.tests.ps1",
+      "SHA256": "A06803DFF02F33A7A2297A8A6221D3820052B31B7AF137ABA375D805375DA8FB"
+    },
+    {
+      "Name": "README.md",
+      "SHA256": "3CC26E4E9EA1A6766A1D56A21240A6E7332DFC468C4DC47060555C7489983F76"
+    }
+  ],
+  "RawJson": {
+    "children.json": "[\r\n  {\r\n    \"Number\": 1,\r\n    \"Case\": \"fault\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 38744,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 2,\r\n    \"Case\": \"normal\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 31824,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": 0,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 3,\r\n    \"Case\": \"timeout\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 16884,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": -1,\r\n    \"Rescue\": false,\r\n    \"Outcome\": \"EXPECTED\"\r\n  },\r\n  {\r\n    \"Number\": 4,\r\n    \"Case\": \"final-seam\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 2644,\r\n    \"OwnedExit\": true,\r\n    \"ExitCode\": 0,\r\n    \"Rescue\": false,\r\n    \"AssociationMatches\": true,\r\n    \"GuardState\": \"Associated\",\r\n    \"GuardErrors\": [],\r\n    \"Outcome\": \"FINAL_EXACT\"\r\n  }\r\n]",
+    "containment.details.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-controller-causality-details\",\r\n  \"ErrorCount\": 2,\r\n  \"RecordsNewestFirst\": [\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    },\r\n    {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"UnauthorizedAccessException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"WriteAllText\\\" with \\\"3\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.UnauthorizedAccessException\",\r\n          \"Message\": \"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-cases\\\\receipt-is-directory' is denied.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    }\r\n  ],\r\n  \"RecordsTruncated\": false,\r\n  \"Results\": {\r\n    \"Fault\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 45\r\n    },\r\n    \"Normal\": {\r\n      \"ExitCode\": 0,\r\n      \"ElapsedMs\": 424\r\n    },\r\n    \"Timeout\": {\r\n      \"ExitCode\": -1,\r\n      \"ElapsedMs\": 214\r\n    }\r\n  },\r\n  \"AssociationDetails\": {\r\n    \"Unstarted\": {\r\n      \"RecordType\": \"System.Management.Automation.ErrorRecord\",\r\n      \"FullyQualifiedErrorId\": \"InvalidOperationException\",\r\n      \"Chain\": [\r\n        {\r\n          \"Type\": \"System.Management.Automation.MethodInvocationException\",\r\n          \"Message\": \"Exception calling \\\"GetValue\\\" with \\\"1\\\" argument(s): \\\"No process is associated with this object.\\\"\",\r\n          \"MessageTruncated\": false\r\n        },\r\n        {\r\n          \"Type\": \"System.InvalidOperationException\",\r\n          \"Message\": \"No process is associated with this object.\",\r\n          \"MessageTruncated\": false\r\n        }\r\n      ],\r\n      \"ChainTruncated\": false\r\n    },\r\n    \"fault\": {\r\n      \"ProcessId\": 38744,\r\n      \"Errors\": []\r\n    },\r\n    \"normal\": {\r\n      \"ProcessId\": 31824,\r\n      \"Errors\": []\r\n    },\r\n    \"timeout\": {\r\n      \"ProcessId\": 16884,\r\n      \"Errors\": []\r\n    },\r\n    \"prestart\": {\r\n      \"ProcessId\": null,\r\n      \"Errors\": []\r\n    }\r\n  }\r\n}",
+    "containment.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-publication-containment\",\r\n  \"Groups\": [\r\n    \"UnstartedAssociation\",\r\n    \"UnknownAssociationRejected\",\r\n    \"PostStartReceiptFault\",\r\n    \"PrimarySurvivesFinalReceiptFault\",\r\n    \"NormalExit\",\r\n    \"Timeout\",\r\n    \"PreStartOutputFault\"\r\n  ],\r\n  \"Observations\": {\r\n    \"UnstartedAssociation\": {\r\n      \"State\": \"Unassociated\",\r\n      \"ProcessId\": null,\r\n      \"ErrorPresent\": true\r\n    },\r\n    \"UnknownAssociationRejected\": {\r\n      \"NullUnknown\": true,\r\n      \"SimilarUnknown\": true\r\n    },\r\n    \"PostStartReceiptFault\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": true,\r\n      \"CleanupCount\": 1,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"PrimarySurvivesFinalReceiptFault\": {\r\n      \"ErrorCount\": 2,\r\n      \"AnchorsDistinct\": true,\r\n      \"Original\": true,\r\n      \"PrimaryReplaced\": false,\r\n      \"Swapped\": false,\r\n      \"CleanupReplaced\": false,\r\n      \"NullAnchor\": false,\r\n      \"MissingPrimary\": false,\r\n      \"DeepNine\": false,\r\n      \"CleanupCount\": 1\r\n    },\r\n    \"NormalExit\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": false,\r\n      \"TerminationRequested\": false,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"Timeout\": {\r\n      \"Started\": true,\r\n      \"PrimaryPresent\": false,\r\n      \"CleanupCount\": 0,\r\n      \"TimedOut\": true,\r\n      \"TerminationRequested\": true,\r\n      \"OwnedExit\": true,\r\n      \"StreamsComplete\": true,\r\n      \"ExitCodeKnown\": true,\r\n      \"ActualHasExited\": true,\r\n      \"CleanupOverflow\": false,\r\n      \"AssociationMatches\": true\r\n    },\r\n    \"PreStartOutputFault\": {\r\n      \"Started\": false,\r\n      \"PrimaryPresent\": true,\r\n      \"Unassociated\": true,\r\n      \"ProcessId\": null,\r\n      \"AssociationErrorPresent\": true,\r\n      \"OwnedExit\": false,\r\n      \"ExitCode\": null,\r\n      \"TerminationRequested\": false\r\n    }\r\n  },\r\n  \"Guards\": {\r\n    \"fault\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"normal\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"timeout\": {\r\n      \"State\": \"Associated\",\r\n      \"Started\": true,\r\n      \"OwnedExit\": true,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": true,\r\n      \"PidMatches\": true,\r\n      \"CleanupCount\": 0\r\n    },\r\n    \"prestart\": {\r\n      \"State\": \"Unassociated\",\r\n      \"Started\": false,\r\n      \"OwnedExit\": false,\r\n      \"KillAttempted\": false,\r\n      \"WaitAttempted\": false,\r\n      \"PidMatches\": false,\r\n      \"CleanupCount\": 0\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"Rescues\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false,\r\n  \"Bookkeeping\": {\r\n    \"PrimaryAbsent\": true,\r\n    \"SecondaryCount\": 0,\r\n    \"Overflow\": false,\r\n    \"FinalLedgerWritten\": true\r\n  }\r\n}",
+    "final.capture.json": "{\r\n  \"Exact\": true,\r\n  \"Started\": true,\r\n  \"OwnedExit\": true,\r\n  \"ActualHasExited\": true,\r\n  \"StreamsComplete\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"PrimaryPresent\": false,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false,\r\n  \"ExitCode\": 0,\r\n  \"Rescue\": false,\r\n  \"PostPinsIntact\": true,\r\n  \"StdoutSHA256\": \"F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE\",\r\n  \"StderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n  \"TraceSHA256\": \"4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E\",\r\n  \"TraceDifferences\": [],\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false,\r\n  \"AssociationMatches\": true,\r\n  \"GuardState\": \"Associated\",\r\n  \"BookkeepingPrimaryAbsent\": true,\r\n  \"BookkeepingSecondaryCount\": 0,\r\n  \"BookkeepingOverflow\": false\r\n}",
+    "final.seam.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 0,\r\n  \"ElapsedMs\": 4092,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "final.seam.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-handshake-seam-tests\",\r\n  \"Groups\": [\r\n    \"FixedBoundary\",\r\n    \"OrdinaryGap\",\r\n    \"TakeDoesNotResetAdmission\",\r\n    \"StaleExpectedRejected\",\r\n    \"DeclaredExpectedIsNotAuthority\",\r\n    \"ArmReference\",\r\n    \"StopReference\",\r\n    \"HeartbeatReference\",\r\n    \"ArmDeclaredExpiry\",\r\n    \"LookalikeInboxRejected\",\r\n    \"StoppedInboxNoRecovery\",\r\n    \"Complete\"\r\n  ],\r\n  \"Observations\": {\r\n    \"FixedBoundary\": {\r\n      \"Exports\": [\r\n        \"Add-P2BInboxFragment\",\r\n        \"Close-P2BInboxInput\",\r\n        \"Get-P2BInboxSnapshot\",\r\n        \"New-P2BInbox\",\r\n        \"Receive-P2BInboxFrame\"\r\n      ],\r\n      \"Pins\": {\r\n        \"Module\": \"47BABFEDFDA73C850EA49CC74E3B6348919EAC69E7AFBFD3DCA907B4988C02FC\",\r\n        \"Helper\": \"4F418D2BE07ACE9597CE7A90438E7325F692A3C578010580548299016A2A5E8D\",\r\n        \"Fixture\": \"5045D321677C5FC3ABFA8674CF23CA9062C86A92D64E0B596001564E303D2A8D\"\r\n      }\r\n    },\r\n    \"OrdinaryGap\": {\r\n      \"EnqueuedReasons\": [\r\n        \"queued\",\r\n        \"heartbeat-updated\",\r\n        \"heartbeat-updated\",\r\n        \"queued\"\r\n      ],\r\n      \"BeforeCount\": 2,\r\n      \"BeforeNext\": 5,\r\n      \"BeforeLast\": 4,\r\n      \"HeartbeatSequence\": 3,\r\n      \"DeliveredSequences\": [\r\n        1,\r\n        4\r\n      ],\r\n      \"AfterCount\": 0,\r\n      \"AfterNext\": 5,\r\n      \"AfterLast\": 4\r\n    },\r\n    \"TakeDoesNotResetAdmission\": {\r\n      \"Reason\": \"sequence-mismatch\",\r\n      \"AcceptedBytes\": 256,\r\n      \"FirstFailureSequence\": 4,\r\n      \"Next\": 5,\r\n      \"Last\": 4,\r\n      \"PartialLength\": 256\r\n    },\r\n    \"StaleExpectedRejected\": {\r\n      \"ConsumedSequence\": 4,\r\n      \"ExpectedNext\": 2,\r\n      \"Reason\": \"sequence-mismatch\",\r\n      \"ReturnedNext\": null\r\n    },\r\n    \"DeclaredExpectedIsNotAuthority\": {\r\n      \"ExpectedNext\": 4,\r\n      \"Reason\": \"binding-matched\",\r\n      \"ReturnedNext\": 5,\r\n      \"Flags\": [\r\n        false,\r\n        false,\r\n        false\r\n      ]\r\n    },\r\n    \"ArmReference\": {\r\n      \"Sequence\": 7,\r\n      \"PayloadReference\": 3,\r\n      \"ExpectedReferences\": [\r\n        3,\r\n        0,\r\n        2\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        8,\r\n        null,\r\n        null\r\n      ]\r\n    },\r\n    \"StopReference\": {\r\n      \"Sequence\": 7,\r\n      \"PayloadReference\": 2,\r\n      \"ExpectedReferences\": [\r\n        2,\r\n        0,\r\n        1\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        8,\r\n        null,\r\n        null\r\n      ]\r\n    },\r\n    \"HeartbeatReference\": {\r\n      \"Sequence\": 2,\r\n      \"PayloadReference\": 1,\r\n      \"ExpectedReferences\": [\r\n        1,\r\n        0\r\n      ],\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"reference-mismatch\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        3,\r\n        null\r\n      ]\r\n    },\r\n    \"ArmDeclaredExpiry\": {\r\n      \"ObservedTicks\": [\r\n        113499,\r\n        113500\r\n      ],\r\n      \"ArmReference\": 1,\r\n      \"ReleaseBefore\": 113500,\r\n      \"Reasons\": [\r\n        \"binding-matched\",\r\n        \"expired-declaration\"\r\n      ],\r\n      \"ReturnedNext\": [\r\n        2,\r\n        null\r\n      ]\r\n    },\r\n    \"LookalikeInboxRejected\": {\r\n      \"Reasons\": [\r\n        \"invalid-input\",\r\n        \"invalid-input\",\r\n        \"invalid-input\"\r\n      ],\r\n      \"OriginalSnapshotUnchanged\": true,\r\n      \"FakeCount\": 3\r\n    },\r\n    \"StoppedInboxNoRecovery\": {\r\n      \"CreatedCount\": 1,\r\n      \"CloseReason\": \"peer-closed\",\r\n      \"PostFeed\": \"stopped\",\r\n      \"PostTake\": \"stopped\",\r\n      \"FirstReason\": \"peer-closed\",\r\n      \"FirstSequence\": null,\r\n      \"Count\": 1,\r\n      \"Next\": 2,\r\n      \"Last\": 1\r\n    },\r\n    \"Complete\": {\r\n      \"PriorGroups\": 11,\r\n      \"Exports\": [\r\n        \"Add-P2BInboxFragment\",\r\n        \"Close-P2BInboxInput\",\r\n        \"Get-P2BInboxSnapshot\",\r\n        \"New-P2BInbox\",\r\n        \"Receive-P2BInboxFrame\"\r\n      ]\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"RealGateImplemented\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false\r\n}",
+    "green-cases/normal.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": 0,\r\n  \"ElapsedMs\": 424,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/prestart.receipt.json": "{\r\n  \"Started\": false,\r\n  \"TimedOut\": false,\r\n  \"TerminationRequested\": false,\r\n  \"OwnedExit\": false,\r\n  \"StreamsComplete\": false,\r\n  \"ExitCode\": null,\r\n  \"ElapsedMs\": 0,\r\n  \"PrimaryError\": \"Exception calling \\\"Create\\\" with \\\"1\\\" argument(s): \\\"Access to the path 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-cases\\\\receipt-is-directory' is denied.\\\"\",\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-cases/timeout.receipt.json": "{\r\n  \"Started\": true,\r\n  \"TimedOut\": true,\r\n  \"TerminationRequested\": true,\r\n  \"OwnedExit\": true,\r\n  \"StreamsComplete\": true,\r\n  \"ExitCode\": -1,\r\n  \"ElapsedMs\": 214,\r\n  \"PrimaryError\": null,\r\n  \"CleanupCount\": 0,\r\n  \"CleanupOverflow\": false\r\n}",
+    "green-publication-cases/already-failed.json": "[{\"Number\":1,\"Outcome\":\"INCOMPLETE\"}]",
+    "green-publication-cases/healthy-host.json": "{\r\n  \"Number\": 1,\r\n  \"Outcome\": \"EXPECTED_GREEN\"\r\n}",
+    "green-publication-cases/healthy-integration.json": "{\r\n  \"Number\": 1,\r\n  \"Outcome\": \"FINAL_EXACT\"\r\n}",
+    "green-publication-cases/Malformed.json": "{",
+    "green-publication-cases/output-failure.json": "[{\"Number\":1,\"Outcome\":\"INCOMPLETE\"}]",
+    "green.details.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-publication-details\",\r\n  \"Phase\": \"GREEN\",\r\n  \"Events\": [\r\n    {\r\n      \"Name\": \"MissingLedgerPreserved\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.Management.Automation.MethodInvocationException\",\r\n        \"RootType\": \"System.IO.FileNotFoundException\",\r\n        \"Message\": \"Exception calling \\\"ReadAllText\\\" with \\\"1\\\" argument(s): \\\"Could not find file 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-publication-cases\\\\Missing.json'.\\\"\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"MalformedLedgerPreserved\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.ArgumentException\",\r\n        \"RootType\": \"Newtonsoft.Json.JsonSerializationException\",\r\n        \"Message\": \"Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"OutputFailureStopsNextSlot\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.Management.Automation.MethodInvocationException\",\r\n        \"RootType\": \"System.ObjectDisposedException\",\r\n        \"Message\": \"Exception calling \\\"WriteLine\\\" with \\\"1\\\" argument(s): \\\"Cannot write to a closed TextWriter.\\r\\nObject name: 'StreamWriter'.\\\"\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"LatchedFailureDoesNotPublish\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.Management.Automation.MethodInvocationException\",\r\n        \"RootType\": \"System.IO.FileNotFoundException\",\r\n        \"Message\": \"Exception calling \\\"ReadAllText\\\" with \\\"1\\\" argument(s): \\\"Could not find file 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\green-publication-cases\\\\first.missing'.\\\"\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"HealthyIntegrationPublication\",\r\n      \"Primary\": null,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"HealthyHostPublication\",\r\n      \"Primary\": null,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    }\r\n  ]\r\n}",
+    "green.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-publication-green\",\r\n  \"Groups\": [\r\n    \"MissingLedgerPreserved\",\r\n    \"MalformedLedgerPreserved\",\r\n    \"OutputFailureStopsNextSlot\",\r\n    \"LatchedFailureDoesNotPublish\",\r\n    \"HealthyIntegrationPublication\",\r\n    \"HealthyHostPublication\"\r\n  ],\r\n  \"Observations\": {\r\n    \"MissingLedgerPreserved\": {\r\n      \"CompletionReturnedFalse\": true,\r\n      \"PublicationReturnedFalse\": true,\r\n      \"OriginalPreserved\": true,\r\n      \"PrimarySame\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    },\r\n    \"MalformedLedgerPreserved\": {\r\n      \"CompletionReturnedFalse\": true,\r\n      \"PublicationReturnedFalse\": true,\r\n      \"OriginalPreserved\": true,\r\n      \"PrimarySame\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    },\r\n    \"OutputFailureStopsNextSlot\": {\r\n      \"PublicationReturnedFalse\": true,\r\n      \"LedgerUnchanged\": true,\r\n      \"NextSlotEligible\": false,\r\n      \"PrimaryPresent\": true,\r\n      \"DisposedOutputCause\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    },\r\n    \"LatchedFailureDoesNotPublish\": {\r\n      \"PublicationReturnedFalse\": true,\r\n      \"LedgerUnchanged\": true,\r\n      \"PrimarySame\": true,\r\n      \"SecondaryCount\": 0\r\n    },\r\n    \"HealthyIntegrationPublication\": {\r\n      \"Published\": true,\r\n      \"ExactRow\": true,\r\n      \"PrimaryAbsent\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"FinalLedgerWritten\": true\r\n    },\r\n    \"HealthyHostPublication\": {\r\n      \"Published\": true,\r\n      \"ExactOutput\": true,\r\n      \"NextSlotEligible\": true,\r\n      \"PrimaryAbsent\": true,\r\n      \"SecondaryCount\": 0\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"ControlPrimaryAbsent\": true,\r\n  \"StartCalls\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false\r\n}",
+    "hosts.json": "[\r\n  {\r\n    \"Number\": 1,\r\n    \"Slot\": \"red\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 34916,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 1,\r\n    \"ElapsedMs\": 805,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"FDA8FF322FE643302C0895063DE5C454FD74CCFC4E457708DB6A720EA48201BB\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"4A18930B0DB2F5119E8DD71D090F5D5375A2931B9835EE12D241919EF931E975\",\r\n    \"DetailsSHA256\": \"DAB56D91D410DA2CECDAF5C5F5CC24A6EBA019B54BC94E1CD3335A1760729244\",\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_RED\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  },\r\n  {\r\n    \"Number\": 2,\r\n    \"Slot\": \"green\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 21368,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 0,\r\n    \"ElapsedMs\": 783,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"99CD3509FAE8C88A7712FF03852E08807186B64A502B1422B153898EEC2F5488\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"879D617D83DC870198D56E9958068492047EB2D9F849306ED31352B1410C014A\",\r\n    \"DetailsSHA256\": \"BCF7746010990D63C3568A06B85D413ACC9AB058BB7EFE2CAF17E3FA71218E6F\",\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_GREEN\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  },\r\n  {\r\n    \"Number\": 3,\r\n    \"Slot\": \"containment\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 19960,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 0,\r\n    \"ElapsedMs\": 1655,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"7434296CFD64BB12FE20F111E87FDAFB57B02335AA0516225AF53050F26CAF57\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"4A0A616B483BF28FE6BCE1BC1865464FE7FF75BD2518915E20A6E16D5CC41084\",\r\n    \"DetailsSHA256\": \"CF7EABFECB1ED5215116C9C7BF9DCB6FD34B7B6738AFA3EA445C181A7CA7B007\",\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_CONTAINMENT\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  },\r\n  {\r\n    \"Number\": 4,\r\n    \"Slot\": \"final\",\r\n    \"AttemptConsumed\": true,\r\n    \"Started\": true,\r\n    \"PID\": 36748,\r\n    \"TimedOut\": false,\r\n    \"TerminationRequested\": false,\r\n    \"OwnedExit\": true,\r\n    \"StreamsComplete\": true,\r\n    \"ExitCode\": 0,\r\n    \"ElapsedMs\": 7350,\r\n    \"ParentError\": null,\r\n    \"CleanupErrors\": [],\r\n    \"PostPinsIntact\": true,\r\n    \"ExactExpected\": true,\r\n    \"DetailsValid\": true,\r\n    \"stdoutSHA256\": \"F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE\",\r\n    \"stderrSHA256\": \"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855\",\r\n    \"TraceSHA256\": \"F4AF904A3ACFFE58FD9A88838C663BB3B39024A4EB75BCF37024A6A8E9FFD070\",\r\n    \"DetailsSHA256\": null,\r\n    \"TraceDifferences\": [],\r\n    \"Outcome\": \"EXPECTED_FINAL\",\r\n    \"RealGateImplemented\": false,\r\n    \"RuntimeApproved\": false,\r\n    \"FormalAcceptance\": false\r\n  }\r\n]",
+    "red-publication-cases/Malformed.json": "{\r\n  \"Number\": 1,\r\n  \"Outcome\": \"FINAL_EXACT\"\r\n}",
+    "red-publication-cases/Missing.json": "{\r\n  \"Number\": 1,\r\n  \"Outcome\": \"FINAL_EXACT\"\r\n}",
+    "red-publication-cases/output-failure.json": "{\r\n  \"Number\": 1,\r\n  \"Outcome\": \"EXPECTED_GREEN\"\r\n}",
+    "red.details.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-publication-details\",\r\n  \"Phase\": \"RED\",\r\n  \"Events\": [\r\n    {\r\n      \"Name\": \"MissingLedgerPreserved\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.Management.Automation.MethodInvocationException\",\r\n        \"RootType\": \"System.IO.FileNotFoundException\",\r\n        \"Message\": \"Exception calling \\\"ReadAllText\\\" with \\\"1\\\" argument(s): \\\"Could not find file 'D:\\\\Projects\\\\Talenro\\\\.worktrees\\\\c12-b01-task9-coordinator\\\\.superpowers\\\\sdd\\\\2026-10-19-p2b-completion-publication-repair\\\\red-publication-cases\\\\Missing.json'.\\\"\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"MalformedLedgerPreserved\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.ArgumentException\",\r\n        \"RootType\": \"Newtonsoft.Json.JsonSerializationException\",\r\n        \"Message\": \"Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    },\r\n    {\r\n      \"Name\": \"OutputFailureStopsNextSlot\",\r\n      \"Primary\": {\r\n        \"Type\": \"System.Management.Automation.ErrorRecord\",\r\n        \"ExceptionType\": \"System.Management.Automation.MethodInvocationException\",\r\n        \"RootType\": \"System.ObjectDisposedException\",\r\n        \"Message\": \"Exception calling \\\"WriteLine\\\" with \\\"1\\\" argument(s): \\\"Cannot write to a closed TextWriter.\\r\\nObject name: 'StreamWriter'.\\\"\"\r\n      },\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false\r\n    }\r\n  ]\r\n}",
+    "red.trace.json": "{\r\n  \"Schema\": 1,\r\n  \"Mode\": \"p2b-publication-red\",\r\n  \"Groups\": [\r\n    \"MissingLedgerPreserved\",\r\n    \"MalformedLedgerPreserved\",\r\n    \"OutputFailureStopsNextSlot\"\r\n  ],\r\n  \"Observations\": {\r\n    \"MissingLedgerPreserved\": {\r\n      \"CompletionReturnedFalse\": true,\r\n      \"PublicationReturnedFalse\": false,\r\n      \"OriginalPreserved\": false,\r\n      \"PrimarySame\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    },\r\n    \"MalformedLedgerPreserved\": {\r\n      \"CompletionReturnedFalse\": true,\r\n      \"PublicationReturnedFalse\": false,\r\n      \"OriginalPreserved\": false,\r\n      \"PrimarySame\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    },\r\n    \"OutputFailureStopsNextSlot\": {\r\n      \"PublicationReturnedFalse\": true,\r\n      \"LedgerUnchanged\": false,\r\n      \"NextSlotEligible\": true,\r\n      \"PrimaryPresent\": true,\r\n      \"DisposedOutputCause\": true,\r\n      \"SecondaryCount\": 0,\r\n      \"Overflow\": false,\r\n      \"Outcome\": \"INCOMPLETE\"\r\n    }\r\n  },\r\n  \"Passed\": true,\r\n  \"Error\": null,\r\n  \"ControlPrimaryAbsent\": true,\r\n  \"StartCalls\": 0,\r\n  \"CompileCount\": 0,\r\n  \"ProductChanged\": false,\r\n  \"SourceVerified\": false,\r\n  \"LiveActionsPerformed\": false,\r\n  \"RuntimeApproved\": false,\r\n  \"FormalAcceptance\": false,\r\n  \"RealGateImplemented\": false\r\n}"
+  },
+  "PortableStreams": {
+    "containment.stderr.bin": "",
+    "containment.stdout.bin": "UEFTUzogVW5zdGFydGVkQXNzb2NpYXRpb24NClBBU1M6IFVua25vd25Bc3NvY2lhdGlvblJlamVjdGVkDQpQQVNTOiBQb3N0U3RhcnRSZWNlaXB0RmF1bHQNClBBU1M6IFByaW1hcnlTdXJ2aXZlc0ZpbmFsUmVjZWlwdEZhdWx0DQpQQVNTOiBOb3JtYWxFeGl0DQpQQVNTOiBUaW1lb3V0DQpQQVNTOiBQcmVTdGFydE91dHB1dEZhdWx0DQo=",
+    "final.seam.stderr.bin": "",
+    "final.seam.stdout.bin": "Q09OVEVYVDogREVTS1RPUC1INFNWQ0xVXExlbm92byBhZG1pbj1GYWxzZQ0KSE9TVDogUFM3LjYuNSBDb3JlIHg2NA0KUEFTUzogUDJCSFNlYW1GaXhlZEJvdW5kYXJ5DQpQQVNTOiBQMkJIU2VhbU9yZGluYXJ5R2FwDQpQQVNTOiBQMkJIU2VhbVRha2VEb2VzTm90UmVzZXRBZG1pc3Npb24NClBBU1M6IFAyQkhTZWFtU3RhbGVFeHBlY3RlZFJlamVjdGVkDQpQQVNTOiBQMkJIU2VhbURlY2xhcmVkRXhwZWN0ZWRJc05vdEF1dGhvcml0eQ0KUEFTUzogUDJCSFNlYW1Bcm1SZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtU3RvcFJlZmVyZW5jZQ0KUEFTUzogUDJCSFNlYW1IZWFydGJlYXRSZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtQXJtRGVjbGFyZWRFeHBpcnkNClBBU1M6IFAyQkhTZWFtTG9va2FsaWtlSW5ib3hSZWplY3RlZA0KUEFTUzogUDJCSFNlYW1TdG9wcGVkSW5ib3hOb1JlY292ZXJ5DQpQQVNTOiBQMkJIU2VhbUNvbXBsZXRlDQpMSU1JVDogZGVjbGFyYXRpb25zL3NlYW0gb25seTsgbm8gaGFuZHNoYWtlIHN0YXRlIG9yIHJ1bnRpbWUgYXV0aG9yaXR5DQo=",
+    "final.stderr.bin": "",
+    "final.stdout.bin": "Q09OVEVYVDogREVTS1RPUC1INFNWQ0xVXExlbm92byBhZG1pbj1GYWxzZQ0KSE9TVDogUFM3LjYuNSBDb3JlIHg2NA0KUEFTUzogUDJCSFNlYW1GaXhlZEJvdW5kYXJ5DQpQQVNTOiBQMkJIU2VhbU9yZGluYXJ5R2FwDQpQQVNTOiBQMkJIU2VhbVRha2VEb2VzTm90UmVzZXRBZG1pc3Npb24NClBBU1M6IFAyQkhTZWFtU3RhbGVFeHBlY3RlZFJlamVjdGVkDQpQQVNTOiBQMkJIU2VhbURlY2xhcmVkRXhwZWN0ZWRJc05vdEF1dGhvcml0eQ0KUEFTUzogUDJCSFNlYW1Bcm1SZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtU3RvcFJlZmVyZW5jZQ0KUEFTUzogUDJCSFNlYW1IZWFydGJlYXRSZWZlcmVuY2UNClBBU1M6IFAyQkhTZWFtQXJtRGVjbGFyZWRFeHBpcnkNClBBU1M6IFAyQkhTZWFtTG9va2FsaWtlSW5ib3hSZWplY3RlZA0KUEFTUzogUDJCSFNlYW1TdG9wcGVkSW5ib3hOb1JlY292ZXJ5DQpQQVNTOiBQMkJIU2VhbUNvbXBsZXRlDQpMSU1JVDogZGVjbGFyYXRpb25zL3NlYW0gb25seTsgbm8gaGFuZHNoYWtlIHN0YXRlIG9yIHJ1bnRpbWUgYXV0aG9yaXR5DQo=",
+    "green-cases/fault.stderr.bin": "",
+    "green-cases/fault.stdout.bin": "",
+    "green-cases/normal.stderr.bin": "UDJCLUNPTlRBSU5NRU5ULUVSUg==",
+    "green-cases/normal.stdout.bin": "UDJCLUNPTlRBSU5NRU5ULU9VVA==",
+    "green-cases/timeout.stderr.bin": "",
+    "green-cases/timeout.stdout.bin": "",
+    "green.stderr.bin": "",
+    "green.stdout.bin": "UEFTUzogTWlzc2luZ0xlZGdlclByZXNlcnZlZA0KUEFTUzogTWFsZm9ybWVkTGVkZ2VyUHJlc2VydmVkDQpQQVNTOiBPdXRwdXRGYWlsdXJlU3RvcHNOZXh0U2xvdA0KUEFTUzogTGF0Y2hlZEZhaWx1cmVEb2VzTm90UHVibGlzaA0KUEFTUzogSGVhbHRoeUludGVncmF0aW9uUHVibGljYXRpb24NClBBU1M6IEhlYWx0aHlIb3N0UHVibGljYXRpb24NCg==",
+    "red.stderr.bin": "",
+    "red.stdout.bin": "RkFJTDogTWlzc2luZ0xlZGdlck11c3RSZW1haW5NaXNzaW5nDQpGQUlMOiBNYWxmb3JtZWRMZWRnZXJNdXN0UmVtYWluVW5jaGFuZ2VkDQpGQUlMOiBPdXRwdXRGYWlsdXJlTXVzdE5vdE9wZW5OZXh0U2xvdA0K"
+  },
+  "SourceSnapshots": {
+    "approved-design.snapshot.md": "IyBCMS9CMiBjb21wbGV0aW9uIHB1YmxpY2F0aW9uIHJlcGFpcgoKQXBwcm92ZWQgaW4gY2hhdCBhZnRlciA4Yjg0MmExOTogYm91bmRlZCBleGlzdGluZy1jb250cm9sbGVyIHJlcGFpci4gQjEgc3RvcHMKbm9ybWFsIGxlZGdlciBwdWJsaWNhdGlvbiBhZnRlciBmaW5hbCBjb21wbGV0aW9uIGZhaWx1cmU7IHByZXNlcnZlIG1pc3NpbmcvYmFkCmxlZGdlciBhbmQgZmlyc3QgY2F1c2Ugd2l0aG91dCByZWNvbnN0cnVjdGlvbi9yZXRyeS4gQjIgZmluaXNoZXMgb3V0cHV0IGJlZm9yZQpwZXJzaXN0aW5nIG5leHQtc2xvdCBzdWNjZXNzLiBSMi9NaW5vcjIgcmVtYWluIGRlZmVycmVkLCBubyBwcm9kdWN0L21haW4vbGl2ZS8KZm9ybWFsL2Z1bGwtQzEyIGFjY2VwdGFuY2UuIE5ldyBidWRnZXQgc2VwYXJhdGVseSBhcHByb3ZlZDo0dG9wLWxldmVsIG9yZGluYXJ5ClBTNyBob3N0cys0b3duZWQgUFM3IGNoaWxkcmVuPThuZXcgcHJvY2Vzc2VzLCBjb25kaXRpb25hbDFmcmVzaCByZWFkb25seSByZXZpZXcuCgpFeGVjdXRpb24gY2hlY2tsaXN0IChpbmxpbmUvbWFudWFsLCBub3QgYSBuZXcgYXBwcm92YWwgcmVxdWVzdCk6Ci0gRnJlZXplOGlucHV0cyBhbmQgaW5oZXJpdGVkIHJlY29yZHMgYmVmb3JlIFJFRC4gUkVEIG9uY2UsMGNoaWxkcmVuLCBleGl0MSwKICBleGFjdGx5M2V4cGVjdGVkIEZBSUwgbGluZXMvZnVsbCB0cmFjZSBleHBvc2luZyBtaXNzaW5nK2JhZCBsZWRnZXIgcmV3cml0ZXMKICBhbmQgb3V0cHV0LWZhaWx1cmUgbmV4dC1zbG90IGVsaWdpYmlsaXR5LiBSZWFsIGZpbGVzeXN0ZW0vY2xvc2VkIHdyaXRlciBmYXVsdHMuCi0gT25seSBleGFjdCBSRUQgcGVybWl0cyBvbmUgcHVibGljYXRpb24ucHMxIHJlcGFpcjsgb3RoZXIgaW5wdXRzL29yYWNsZXMgZml4ZWQuCi0gR1JFRU4gb25jZSwwY2hpbGRyZW46NlBBU1MvZnVsbCBsaXRlcmFsIG9yYWNsZSwgZXhpdDAvZW1wdHkgc3RkZXJyLiBIZWFsdGh5CiAgcGF0aHMgcGx1cyBsYXRjaGVkIGZhaWx1cmUsIG1pc3NpbmcvYmFkIGxlZGdlciBhbmQgZmluYWwtb3V0cHV0IGZhdWx0LgotIENPTlRBSU5NRU5UIG9uY2U6b3JpZ2luYWw3Z3JvdXBzLzNvd25lZCBjaGlsZHJlbiwgb3JpZ2luYWwgb3duZWQtcnVuL29ic2VydmVyLgotIEZJTkFMIG9uY2U6b3JpZ2luYWwgc2VhbTE1bGluZXMxMlBBU1MvZnVsbCBvcmFjbGUvc3Rkb3V0K3RyYWNlIGhhc2hlcywxY2hpbGQuCi0gT25seSBhbGwgZXhhY3QgcGVybWl0MWZyZXNoIHJlYWRvbmx5IHJldmlldywgdGhlbiBmdWxsIHJlcG9ydC9kaXNwb3NpdGlvbnMsCiAgcG9ydGFibGUgZXhhY3QgcmF3IHN0cmluZ3Mvc3RyZWFtIGJ5dGVzL3NuYXBzaG90cy9pbnZlbnRvcnkgYW5kIHJlY292ZXJ5IHB1c2guClVuZXhwZWN0ZWQgcmVzdWx0IHN0b3BzL2ZyZWV6ZXMgYWxsIHJlbWFpbmluZyBydW50aW1lL3Jldmlldywgbm8gYXV0b21hdGljIGZpeCwKcmV0cnkgb3Igc2Vjb25kIHJldmlldy4gT2xkIGV4aGF1c3RlZC9mcm96ZW4gYWxsb3dhbmNlcyBuZXZlciBib3Jyb3dlZC4gUGFyZW50ClByZXBhcmUvUnVuIHVzZXMgZXhpc3Rpbmcgb3JkaW5hcnkgY29udGV4dCwgbm8gZXh0cmEgUFM3LiBUb3AxMjAwMDBtcywKRXhpdFdhaXQyMDAwbXMvc2hhcmVkIGRyYWluczIwMDBtczsgc2VhbTExMDAwMG1zOyBmaXh0dXJlcyB1bmNoYW5nZWQuCgpQcml2YXRlIHB1YmxpY2F0aW9uLnBzMSBvbmx5IGRlZmluZXMgdHdvIGZpeGVkIGhlbHBlcnM7IG5vIGNhbGxiYWNrcy9pbmplY3Rpb24KQVBJIG9yIHByb2Nlc3MgY3JlYXRpb24uIFRoZSBiYXNlbGluZSBleHRyYWN0cyB0aGUgcHJpb3IgdHdvIGJhZCBwdWJsaWNhdGlvbgpvcmRlcnMuIFRlc3RzIGV4ZXJjaXNlIHRoZXNlIHNhbWUgaGVscGVycyBsYXRlciB3aXJlZCBpbnRvIHRoZSBhY3R1YWwgY2FwdHVyZS4KQjEgcmVjZWl2ZXMgYSBwcmV2aW91c2x5IGZhaWxlZCBDb21wbGV0ZSBhbmQgbXVzdCByZWZ1c2UgYW55IG5vcm1hbCBsYXRlciBzYXZlLgpCMiB1c2VzIGFjdHVhbCBDb25zb2xlLk91dDsgYSBkaXNwb3NlZCBTdHJlYW1Xcml0ZXIgaW4gdGhlIHVuaXQgaG9zdCBpbmR1Y2VzIGEKcmVhbCBvdXRwdXQgZXJyb3IuIFRlc3RzIHJlc3RvcmUgdGhlIG9yaWdpbmFsIHdyaXRlciBiZWZvcmUgZW1pdHRpbmcgdGhlaXIgb3duCnJlc3VsdHMuIEhlYWx0aHkgb3V0cHV0IGNoZWNrZWQgYWZ0ZXIgb25seSBDUkxG4oaSTEYgbm9ybWFsaXphdGlvbi4KVGhpcyBpcyBzaGFyZWQtY29uc3VtZXIgdGVzdGluZyBwbHVzIHN0YXRpYyB3aXJpbmcgcmV2aWV3LCBub3QgZHluYW1pYyBmYXVsdAppbmplY3Rpb24gaW50byBldmVyeSBmaW5hbGx5IG9yIHRoZSBzdXBlcnZpc2luZyBvcmRpbmFyeSBwYXJlbnQuIE5vIGNyYXNoLApwb3dlci1sb3NzLCBhZHZlcnNhcmlhbCBmaWxlc3lzdGVtIG9yIGR1cmFibGUtdHJhbnNhY3Rpb24gZ3VhcmFudGVlOyBhbWJpZ3VvdXMKSU8vYWxsLXNpbmsgZmFpbHVyZXMgcmVtYWluIHVua25vd24vSU5DT01QTEVURSBhbmQgcmVxdWlyZSBtYW51YWwgc3RvcCwgbm90CnJlcGxheS4gQ29uc29sZSBwdWJsaWNhdGlvbiBpcyBhbiBvYnNlcnZhdGlvbjsgbGVkZ2VyIGVsaWdpYmlsaXR5IGlzIHNlcGFyYXRlLgoKUkVEL0dSRUVOIGZ1bGwgbWFuaWZlc3RzIGFuZCBwdWJsaWNhdGlvbiBzbmFwc2hvdHMgYXJlIHNlcGFyYXRlLiBJbmhlcml0MTUzOQpwaW5zIHBsdXMzOXByaW9yIHJhdysxMHBvcnRhYmxlK3JlcG9ydC9wbGFuMituZXcgaW5wdXRzOCt0aGlzIGJyaWVmIHNuYXBzaG90MQo9MTU5OW1hcHBpbmdzLiBPbmx5IHB1YmxpY2F0aW9uLnBzMSBtYXkgY2hhbmdlIGFmdGVyIFJFRCwxNTk4b3RoZXIgbWFwcGluZ3MKbXVzdCBtYXRjaC4gTm8gb2xkIHJhdyByZWNvbnN0cnVjdGlvbi9kZWxldGlvbi4gU291cmNlVmVyaWZpZWQvTGl2ZUFjdGlvbnNQZXJmb3JtZWQvClJ1bnRpbWVBcHByb3ZlZC9Gb3JtYWxBY2NlcHRhbmNlL1JlYWxHYXRlSW1wbGVtZW50ZWQgc3RheSBmYWxzZS4K",
+    "green.publication.ps1": "IyBGaXhlZCBwcml2YXRlIHB1YmxpY2F0aW9uIGJvdW5kYXJpZXM7IG5vIGNhbGxlci1zdXBwbGllZCBjYWxsYmFja3Mgb3Igc2lua3MuCmZ1bmN0aW9uIFNhdmUtUDJCSW50ZWdyYXRpb25QdWJsaWNhdGlvbihbb2JqZWN0XSRTdGF0ZSxbc3RyaW5nXSRQYXRoLFtpbnRdJFJvd0luZGV4LFtvYmplY3RdJFJvdyxbb2JqZWN0XSRSb3dzKXsKICAgIGlmKCRudWxsIC1uZSAkU3RhdGUuUHJpbWFyeUVycm9yIC1vciAkU3RhdGUuU2Vjb25kYXJ5RXJyb3JzLkNvdW50IC1uZSAwIC1vciAkU3RhdGUuU2Vjb25kYXJ5T3ZlcmZsb3cpe3JldHVybiAkZmFsc2V9CiAgICAjIFJlYWQgdGhlIGV4aXN0aW5nIGxlZGdlciBhZ2FpbjsgbmV2ZXIgcmVidWlsZCBpdCBmcm9tIHN0YWxlIGluLW1lbW9yeSByb3dzLgogICAgcmV0dXJuIChDb21wbGV0ZS1QMkJMZWRnZXIgJFN0YXRlICRQYXRoICRSb3dJbmRleCAkUm93ICdpbnRlZ3JhdGlvbicpCn0KZnVuY3Rpb24gUHVibGlzaC1QMkJIb3N0T3V0Y29tZShbb2JqZWN0XSRTdGF0ZSxbc3RyaW5nXSRQYXRoLFtvYmplY3RdJFJvd3MsW29iamVjdF0kUm93LFtzdHJpbmddJFJhdyl7CiAgICBpZigkbnVsbCAtbmUgJFN0YXRlLlByaW1hcnlFcnJvciAtb3IgJFN0YXRlLlNlY29uZGFyeUVycm9ycy5Db3VudCAtbmUgMCAtb3IgJFN0YXRlLlNlY29uZGFyeU92ZXJmbG93KXtyZXR1cm4gJGZhbHNlfQogICAgdHJ5ewogICAgICAgICRyZW5kZXJlZD0kUm93fENvbnZlcnRUby1Kc29uIC1EZXB0aCAxMgogICAgICAgIFtDb25zb2xlXTo6T3V0LldyaXRlTGluZSgkcmVuZGVyZWQpCiAgICAgICAgW0NvbnNvbGVdOjpPdXQuV3JpdGUoJFJhdykKICAgICAgICBbQ29uc29sZV06Ok91dC5GbHVzaCgpCiAgICAgICAgIyBObyBub3JtYWwgb3V0cHV0IGZvbGxvd3MgdGhlIGF1dGhvcml0YXRpdmUgY29tcGxldGlvbiB3cml0ZS4KICAgICAgICByZXR1cm4gKFNhdmUtUDJCTGVkZ2VyICRTdGF0ZSAkUGF0aCAkUm93cykKICAgIH1jYXRjaHtBZGQtUDJCRmFpbHVyZSAkU3RhdGUgJF87cmV0dXJuICRmYWxzZX0KfQo=",
+    "red.publication.ps1": "IyBDb250cm9sbGVkIFJFRDogZXh0cmFjdGVkIHByZXZpb3VzIHB1YmxpY2F0aW9uIG9yZGVyLCBub3QgYXJ0aWZpY2lhbCBmYWlsdXJlcy4KZnVuY3Rpb24gU2F2ZS1QMkJJbnRlZ3JhdGlvblB1YmxpY2F0aW9uKFtvYmplY3RdJFN0YXRlLFtzdHJpbmddJFBhdGgsW2ludF0kUm93SW5kZXgsW29iamVjdF0kUm93LFtvYmplY3RdJFJvd3MpewogICAgcmV0dXJuIChTYXZlLVAyQkxlZGdlciAkU3RhdGUgJFBhdGggJFJvd3MpCn0KZnVuY3Rpb24gUHVibGlzaC1QMkJIb3N0T3V0Y29tZShbb2JqZWN0XSRTdGF0ZSxbc3RyaW5nXSRQYXRoLFtvYmplY3RdJFJvd3MsW29iamVjdF0kUm93LFtzdHJpbmddJFJhdyl7CiAgICB0cnl7CiAgICAgICAgJG9rPVNhdmUtUDJCTGVkZ2VyICRTdGF0ZSAkUGF0aCAkUm93cwogICAgICAgIGlmKC1ub3QgJG9rKXtyZXR1cm4gJGZhbHNlfQogICAgICAgIFtDb25zb2xlXTo6T3V0LldyaXRlTGluZSgoJFJvd3xDb252ZXJ0VG8tSnNvbiAtRGVwdGggMTIpKQogICAgICAgIFtDb25zb2xlXTo6T3V0LldyaXRlKCRSYXcpCiAgICAgICAgW0NvbnNvbGVdOjpPdXQuRmx1c2goKQogICAgICAgIHJldHVybiAkdHJ1ZQogICAgfWNhdGNoe0FkZC1QMkJGYWlsdXJlICRTdGF0ZSAkXztyZXR1cm4gJGZhbHNlfQp9Cg=="
+  },
+  "ArtifactInventory": [
+    {
+      "RelativePath": "approved-design.snapshot.md",
+      "Length": 2979,
+      "SHA256": "3CC26E4E9EA1A6766A1D56A21240A6E7332DFC468C4DC47060555C7489983F76"
+    },
+    {
+      "RelativePath": "children.json",
+      "Length": 965,
+      "SHA256": "C90898AF626828B2A1BCA717181A6ED5D06DD01CD431448E327A3BE2D1EEC56D"
+    },
+    {
+      "RelativePath": "containment.details.json",
+      "Length": 3271,
+      "SHA256": "CF7EABFECB1ED5215116C9C7BF9DCB6FD34B7B6738AFA3EA445C181A7CA7B007"
+    },
+    {
+      "RelativePath": "containment.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "containment.stdout.bin",
+      "Length": 191,
+      "SHA256": "7434296CFD64BB12FE20F111E87FDAFB57B02335AA0516225AF53050F26CAF57"
+    },
+    {
+      "RelativePath": "containment.trace.json",
+      "Length": 3529,
+      "SHA256": "4A0A616B483BF28FE6BCE1BC1865464FE7FF75BD2518915E20A6E16D5CC41084"
+    },
+    {
+      "RelativePath": "final.capture.json",
+      "Length": 977,
+      "SHA256": "F4AF904A3ACFFE58FD9A88838C663BB3B39024A4EB75BCF37024A6A8E9FFD070"
+    },
+    {
+      "RelativePath": "final.seam.receipt.json",
+      "Length": 245,
+      "SHA256": "659FD2422A445DEBA5EAFA4BB56E1E59B156E163B6A53D3806B48BFF7828B2E8"
+    },
+    {
+      "RelativePath": "final.seam.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "final.seam.stdout.bin",
+      "Length": 545,
+      "SHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE"
+    },
+    {
+      "RelativePath": "final.seam.trace.json",
+      "Length": 4179,
+      "SHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E"
+    },
+    {
+      "RelativePath": "final.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "final.stdout.bin",
+      "Length": 545,
+      "SHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE"
+    },
+    {
+      "RelativePath": "green-cases/fault.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/fault.stdout.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/normal.receipt.json",
+      "Length": 244,
+      "SHA256": "37BF7FC7D139B5EA203318117B5D1AA4C2C1FECA956B417A08E6040DC444EA82"
+    },
+    {
+      "RelativePath": "green-cases/normal.stderr.bin",
+      "Length": 19,
+      "SHA256": "4A72DAC7A1B133CE02FA5D9E5C3AC54FCBA2024D5BF6617FD1DFFEADCECFF1B6"
+    },
+    {
+      "RelativePath": "green-cases/normal.stdout.bin",
+      "Length": 19,
+      "SHA256": "C8ADB80B579BD08B97D5577409DD9DCFBA1F2EFD8BBD936A232CAFF921DC22A3"
+    },
+    {
+      "RelativePath": "green-cases/prestart.receipt.json",
+      "Length": 495,
+      "SHA256": "F2CF1EB75A29499AE5ADE9C1A13B251386A226FAC7457A4886322CA2278F58FC"
+    },
+    {
+      "RelativePath": "green-cases/timeout.receipt.json",
+      "Length": 243,
+      "SHA256": "9BEF7A6221DFE7498ED912F6E305D9E15BB0BAA818A5956C92C2F7578042ADB9"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-cases/timeout.stdout.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green-publication-cases/already-failed.json",
+      "Length": 37,
+      "SHA256": "A5F8B9ADBB8E3B64BD50194FF05CF0D032EFCE8DDBB684F1DCC5FF55E0199327"
+    },
+    {
+      "RelativePath": "green-publication-cases/healthy-host.json",
+      "Length": 51,
+      "SHA256": "75EA40E1883926C9B6D4449C8FFB766DC731A60518DAC30C398A529E82AD1BBC"
+    },
+    {
+      "RelativePath": "green-publication-cases/healthy-integration.json",
+      "Length": 48,
+      "SHA256": "BFB3F24918859DB1A1538CB9E1FDF646AEECD1CB3C1AB6BF2BC0A04388F09365"
+    },
+    {
+      "RelativePath": "green-publication-cases/Malformed.json",
+      "Length": 1,
+      "SHA256": "021FB596DB81E6D02BF3D2586EE3981FE519F275C0AC9CA76BBCF2EBB4097D96"
+    },
+    {
+      "RelativePath": "green-publication-cases/output-failure.json",
+      "Length": 37,
+      "SHA256": "A5F8B9ADBB8E3B64BD50194FF05CF0D032EFCE8DDBB684F1DCC5FF55E0199327"
+    },
+    {
+      "RelativePath": "green.details.json",
+      "Length": 2544,
+      "SHA256": "BCF7746010990D63C3568A06B85D413ACC9AB058BB7EFE2CAF17E3FA71218E6F"
+    },
+    {
+      "RelativePath": "green.frozen.json",
+      "Length": 589499,
+      "SHA256": "3A763103C93625C522CF8BFF997F9280EA07F3278A6D3FCE6D221759368D4237"
+    },
+    {
+      "RelativePath": "green.publication.ps1",
+      "Length": 1037,
+      "SHA256": "93FD62F86E9A7BDBF1DE2A9C34E95694C7ED2F181A8362ED372641069C6ACB29"
+    },
+    {
+      "RelativePath": "green.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "green.stdout.bin",
+      "Length": 199,
+      "SHA256": "99CD3509FAE8C88A7712FF03852E08807186B64A502B1422B153898EEC2F5488"
+    },
+    {
+      "RelativePath": "green.trace.json",
+      "Length": 1995,
+      "SHA256": "879D617D83DC870198D56E9958068492047EB2D9F849306ED31352B1410C014A"
+    },
+    {
+      "RelativePath": "hosts.json",
+      "Length": 3675,
+      "SHA256": "2391A30BCEC15DBD2629D1B04251D236A9EADA8329D96BA018D2153522D437B1"
+    },
+    {
+      "RelativePath": "progress.md",
+      "Length": 3317,
+      "SHA256": "E51C355E5F16EDCB891F0EFA4B94EBBCA102C7011DDF520F55B554D000668451"
+    },
+    {
+      "RelativePath": "red-publication-cases/Malformed.json",
+      "Length": 48,
+      "SHA256": "BFB3F24918859DB1A1538CB9E1FDF646AEECD1CB3C1AB6BF2BC0A04388F09365"
+    },
+    {
+      "RelativePath": "red-publication-cases/Missing.json",
+      "Length": 48,
+      "SHA256": "BFB3F24918859DB1A1538CB9E1FDF646AEECD1CB3C1AB6BF2BC0A04388F09365"
+    },
+    {
+      "RelativePath": "red-publication-cases/output-failure.json",
+      "Length": 51,
+      "SHA256": "75EA40E1883926C9B6D4449C8FFB766DC731A60518DAC30C398A529E82AD1BBC"
+    },
+    {
+      "RelativePath": "red.details.json",
+      "Length": 1648,
+      "SHA256": "DAB56D91D410DA2CECDAF5C5F5CC24A6EBA019B54BC94E1CD3335A1760729244"
+    },
+    {
+      "RelativePath": "red.frozen.json",
+      "Length": 589497,
+      "SHA256": "CCECB43871CAB41AE40570F648AF47EDE33C01129DDAE745FBF8ACA2130F42EC"
+    },
+    {
+      "RelativePath": "red.publication.ps1",
+      "Length": 643,
+      "SHA256": "7FB610A201C4C22805309A7AE84F4D432DA4F213F5772A7E3D0CCC1E22E08290"
+    },
+    {
+      "RelativePath": "red.stderr.bin",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "RelativePath": "red.stdout.bin",
+      "Length": 120,
+      "SHA256": "FDA8FF322FE643302C0895063DE5C454FD74CCFC4E457708DB6A720EA48201BB"
+    },
+    {
+      "RelativePath": "red.trace.json",
+      "Length": 1340,
+      "SHA256": "4A18930B0DB2F5119E8DD71D090F5D5375A2931B9835EE12D241919EF931E975"
+    },
+    {
+      "RelativePath": "review-package.md",
+      "Length": 3566,
+      "SHA256": "09965CFBA361B44B2C27124342546ADA13614151E235AA28A08B683D0142CB7F"
+    }
+  ],
+  "Limits": [
+    "Fault vectors exercise actual shared publication consumers and real filesystem/closed-writer errors, not dynamic injection into every actual finally or the ordinary supervising parent.",
+    "No more runtime/review/retry/fix budget; old failed records and frozen allowances unchanged.",
+    "Raw JSON is retained as exact strings; preserve numeric lexemes, not floating-point re-emission.",
+    "All-sink/ambiguous IO remains unknown/INCOMPLETE; no automatic replay, durable-transaction or crash-atomicity guarantee.",
+    "Complete frozen manifests retained ignored locally, represented portably by exact hashes/counts.",
+    "Clone does not restore ignored raw, runtime/SDK, CLR identities, credentials or new runtime authority.",
+    "R2 PreStart/prestart diagnostic collision and historical Minor2 scalar ETS assertion gap remain deferred.",
+    "Later portable/report/status/recovery/disposition outputs are author-checked, not independently reviewed.",
+    "Original B1/B2 mechanisms narrowly repaired; complete failure-closed publication/controller contract remains blocked by C1/C2. No dynamic occurrence of C1/C2 is claimed."
+  ],
+  "ReviewFindings": [
+    {
+      "Id": "C1",
+      "Severity": "Important",
+      "Status": "Unresolved",
+      "Finding": "A locally detected ambiguous final host-ledger write can leave a parseable EXPECTED marker that a later invocation trusts without positive completion acknowledgement."
+    },
+    {
+      "Id": "C2",
+      "Severity": "Important",
+      "Status": "Unresolved",
+      "Finding": "Parent post-start host-ledger save failure can be followed by finalization read/replace/write to the same failed sink."
+    },
+    {
+      "Id": "R2",
+      "Severity": "Minor",
+      "Status": "Deferred",
+      "Finding": "PreStart/prestart diagnostic-key collision unchanged."
+    },
+    {
+      "Id": "Minor2",
+      "Severity": "Minor",
+      "Status": "Deferred",
+      "Finding": "Historical scalar ETS assertion gap unchanged."
+    }
+  ],
+  "HandoffAuthorVerified": true,
+  "HandoffIndependentlyReviewed": false,
+  "B1OriginalMechanismRepaired": true,
+  "B2OriginalMechanismRepaired": true,
+  "ReviewOutputs": [
+    {
+      "Name": "review.md",
+      "SHA256": "3DED6D6D31CC1E977AE866E446B8E03A3D67722F7BD1E13E4B38EECBACA3EF98"
+    },
+    {
+      "Name": "review-disposition.md",
+      "SHA256": "FD247CAA30658417EA0735755D40D0BCDFDB498FC1834A41F2DDEE351B878309"
+    }
+  ],
+  "DeclinedToJudgeDispositions": 34
+}

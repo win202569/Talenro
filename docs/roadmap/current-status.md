@@ -1,14 +1,19 @@
 # Project status — updated 2026-10-19
 
-## Latest — B1/B2 publication repair runtime exact; review pending
+## Latest — B1/B2 narrowly repaired; complete contract blocked by C1/C2
 
 [Execution](2026-10-19-p2b-completion-publication-repair.md).
 Approved bounded design then NEW4hosts+4children+conditional1review after8b842a19.
 RED3expectedFAIL, publication-only fix, GREEN6of6, CONTAINMENT7of7 and FINAL
 15lines12PASS/full oracle/hashes exact.1599pins intact, complete exits/drains,
-0rescue. All8processes spent. Unique conditional readonly review pending;
-no further runtime/retry/automaticfix. No acceptance/main/live/product change.
-R2/Minor2 and all old failed observations/frozen budgets unchanged.
+0rescue. All4hosts+4children+1review spent. Review confirms B1/B2 original
+mechanisms repaired but C1 uncertain final-write marker can authorize next slot,
+C2 parent finalizer retries failed host ledger. Both Important/unresolved and
+author-verified; no dynamic occurrence claimed. REVIEW_BLOCKED_C1_C2_UNFINISHED.
+Full review/all34dispositions/portable raw evidence saved; later handoff author-
+checked only. No further runtime/retry/automaticfix/re-review or acceptance/main/
+live/product change. R2/Minor2 and old records/quotas unchanged. Next: separately
+approve coherent completion acknowledgement/failed-sink lifecycle design.
 
 ## Latest — R1 repair observations exact; review blocked by B1/B2
 

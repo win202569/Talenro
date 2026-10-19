@@ -30,8 +30,14 @@ fixed93FD62F86E9A7BDBF1DE2A9C34E95694C7ED2F181A8362ED372641069C6ACB29.
 
 ## Scope and current state
 
-All4hosts+4children consumed. Runtime exact, unique conditional review pending;
-not yet accepted. No extra target, automatic fix/retry or second review.
+Source checkpoint349947e4a57f23ca4f05cee673b46ef94345f265 pushed, remote SHA equal.
+All4hosts+4children+1fresh readonly review consumed. Review confirms original
+B1/B2 mechanisms narrowly repaired, but C1/C2 Important block complete acceptance:
+final save can report failure while leaving valid next-slot success bytes, with
+no positive independent acknowledgement; parent finalizer can retry hosts.json
+after its post-start save failed. Author verified both in frozen source, no
+dynamic occurrence claimed. REVIEW_BLOCKED_C1_C2_UNFINISHED. No extra target,
+automatic fix/retry or second review. No frozen input was changed after review.
 Shared-consumer tests exercise the same two helpers wired into capture, not
 dynamic fault injection into every actual finally/supervising parent. Original
 bookkeeping/owned-run/observer behavior otherwise unchanged; prior sources and
@@ -48,4 +54,17 @@ documentation ambiguity, actual human approval/finite limits remain binding).
 Clone restores necessary tracked source and eventual portable observations,
 not ignored raw, runtime/SDK, CLR identities, credentials or new execution rights.
 Recover latest development branch, not main; never replay consumed slots or
-reconstruct missing raw. Full review/dispositions/portable export pending.
+reconstruct missing raw. Portable summary preserves22raw JSON strings,16stream
+byte/Base64 exports,3source/design snapshots and45artifact hashes; author
+compared directly with raw without number re-emission. Complete independent
+[review](../diagnostics/isolated-fuzz/p2b-completion-publication-repair/review.md)
+and [all34dispositions](../diagnostics/isolated-fuzz/p2b-completion-publication-repair/review-disposition.md)
+with effects/costs saved. This later handoff is author-checked, not independently
+reviewed; original raw remains ignored and retained. Development checkpoint
+only, no main/live/formal/full-C12 acceptance.
+
+Next work needs separately approved whole completion/continuation-boundary
+design and failed-sink lifecycle, not another isolated output/save reorder.
+Positively acknowledged completion and refusal after same-sink failure must be
+specified together. This recommendation does not authorize design implementation,
+new execution or re-review; exhausted/frozen historical allowances unchanged.
