@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — diagnostic-entry design approved; implementation plan pending
+
+Human explicitly approved the written design in7e375b8a, SHA256
+DA27DA1C6BD3578512FB60A7F38B6635EAC9ACEF6570534F8B868BD07D088D9A.
+[Implementation plan](../superpowers/plans/2026-10-19-offline-diagnostic-entry-migration.md)
+proposes Native3tasks, NEW6hosts+7children=13controlled processes, conditional
+1readonly review.20planned inputs/2064Present-or-Absent mappings/46snapshots;
+actual public entry first, private runtime next, owned/live verification last.
+Non-confounded candidate-ledger/missing-Ack check has an available next step
+and remaining budget. Plan and execution allowance NOT approved yet; this turn
+only documents,0code/import/test/target/agent/review. Old evidence/quotas remain
+unchanged;C1/C2 open,R2/Minor2 deferred,all flagsfalse. Next user reviews plan,
+selects execution method and explicitly approves new finite allowance.
+
 ## Latest — offline diagnostic-entry migration design awaiting review
 
 [Written design](../superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md).

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest planning:[offline diagnostic-entry migration implementation plan](../superpowers/plans/2026-10-19-offline-diagnostic-entry-migration.md).
+Written design at7e375b8a approved; original pending header is historical.
+Only planning authorized. Proposed Native6hosts/7children/conditional1review,
+new20inputs/2064mappings with explicit absent implementation files; no code or
+test skeleton exists yet. Do not run proposed entry/driver commands, Prepare,
+or restore any prior allowance. User must review plan and approve method/new
+budget first. Clone restores this planning progress only; old sources/raw/
+portable and C1/C2/R2/Minor2 limits unchanged,all five flagsfalse.
+
 Latest proposal:[offline diagnostic-entry migration design](../superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md).
 Human approved writing this proposal only; written design review is pending.
 Proposed scripts/diagnose-offline.ps1 and private directory do not exist yet;
