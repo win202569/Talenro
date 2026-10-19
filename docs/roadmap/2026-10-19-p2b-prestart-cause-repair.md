@@ -1,6 +1,6 @@
 # Prestart / first-cause execution — 2026-10-19
 
-Status: DYNAMIC_EXACT_REVIEW_PENDING. No full-C12 or runtime acceptance.
+Status: SCOPED_DEVELOPMENT_CHECKPOINT_ACCEPTABLE. Overall acceptance unfinished.
 
 Human approved the short in-chat design and NEW4hosts+7children, conditional
 1readonly review. [Approved execution brief](2026-10-19-p2b-prestart-cause-budget.md)
@@ -75,8 +75,64 @@ Runtime verification is scoped: classification RED-to-GREEN identity proof,
 owned6groups, sequence4groups plus original12seam groups. Prefix/core tests
 were preserved but NOT rerun in this four-host budget; prior14PASS remains
 historical evidence, not a new broad suite. No full C12 acceptance inferred.
-Source checkpoint before review; portable export and sole readonly review
-pending. Review findings requiring code change will block, not authorize fixes.
+Source checkpoint94ca52f48b8e5f430f9c933a314e804dd7883892 pushed; author
+verified remote equality and clean tree before review. Sole fresh readonly
+review completed with0Critical/0Important/0actionableMinor. Independent review
+confirmed1930GREEN mappings,30source snapshots,12host artifact hashes,
+capture-only phase delta, complete literal outputs/groups and original seam
+identities. Scoped dev checkpoint acceptable; no production/main acceptance.
+NEW4hosts/7children/1review exhausted. No additional runtime/fix/review granted.
+
+## Review disposition and author-only handoff
+
+All seven review exclusions retained explicitly, not silently accepted:
+
+1. Late-write/flush/close/concurrent failure paths remain unverified; no such
+   guarantee inferred from successful saved publication.
+2. Host death/hard-fileIO/descendant cleanup after termination remain unproven;
+   fixed finite waits cannot promise those behaviors.
+3. Classifier-exception/observation-limit paths inspected statically only;
+   actual dynamic edge coverage remains incomplete.
+4. Prefix/core and independent bootstrap RED coverage not reopened; no new
+   broad suite claim from historical observations.
+5. C1/C2 stay unclosed; R2/Minor2 stay deferred, so overall acceptance unfinished.
+6. Later export/report/status/recovery author-checked only, not independently
+   reviewed; cost: handoff export lacks a fresh independent reviewer.
+7. No production/live/runtime/formal/main/full-C12 signoff; fixtures lack that
+   authority and all five flags remain false.
+
+No new minor finding. Existing R2/Minor2 remain deferred. These dispositions
+and the three process rulings above are complete; no further fix is implied.
+Raw review response and all original records preserved in ignored packet.
+Final portable export/byte verification is author-only mechanical handoff,
+not another target run, review, raw reconstruction or executable permission.
+
+## Portable byte-preserving handoff
+
+[Portable data](../diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json)
+contains all92packet originals:38JSON artifacts as raw UTF8 text and54byte
+artifacts as base64, including all30source snapshots and sole review response;
+19directory entries and7empty files preserved. Raw JSON numeric lexemes are
+never converted through JS numbers. Embedded line endings/bytes unchanged.
+All92decoded payloads independently compared byte-for-byte, length and SHA256
+against originals,0differences. Wrapper physicalLF,2123937bytes,SHA256
+0D38601783035306FE5165301A1A8364D21676BA0AE6AC77520D052DBD81E6E8.
+
+One export serialization/CreateNew/write/flush/close succeeded. The first
+author-only verification command then failed when its PowerShell if-output
+enumerated an empty byte array into null, making HashData overload ambiguous.
+The already-written wrapper and all originals were left untouched. A corrected
+READONLY verifier assigns decoded arrays directly within branches; all92,
+including7empty files, then matched. No re-export, source/oracle change,
+additional host/child/review, allowance reset or evidence reconstruction.
+This checker correction is not runtime acceptance and is not independently
+reviewed. Original ledger snapshot intentionally ends before export; later
+wrapper/commit/remote checks live here and in Git/tool evidence.
+
+All original records remain ignored/preserved. Fresh clone obtains source,
+tests, approved brief, complete portable records, review/disposition and these
+recovery notes from the development branch; not dependencies, credentials,
+live sessions/acks, original private process objects or executable permission.
 
 Manual finite PowerShell ledger replaces default Bash/setup/full-suite/task-done
 reruns, deletion and extra fix/re-review rounds — approved scope/preservation
@@ -89,6 +145,6 @@ No PID/name lookup/tree kill/watchdog/Job or widened timing. Parent observes
 only exact capture hosts; child lifecycle comes from frozen executor, not an
 independent OS inventory. FileIO is not hard realtime; outer host termination
 cannot prove all descendants exited. All originals remain ignored/preserved.
-Portable handoff pending, data only, never raw reconstruction or replay rights.
+Portable handoff is data only, never raw reconstruction or replay rights.
 C1/C2 unclosed; R2/Minor2 deferred. All five capability flagsfalse. No main merge,
 compile/install/production/live/formal acceptance. Overall project unfinished.
