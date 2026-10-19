@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-19
 
+## Latest — process-association guard repair proposed; approval pending
+
+[Narrow revision plan](../superpowers/plans/2026-10-19-p2b-process-association-guard-repair.md).
+Readonly analysis after13060300 identified an invalid property-getter catch
+premise in the fifth assertion and two cleanup guards. Official PS7.6.5 binder
+masks ordinary getter exceptions as null; no new runtime observation/relabel.
+Proposed shared private explicit-method observation, unstarted RED then one
+observer-only repair, seven GREEN groups and one FINAL; unchanged owned-run.
+Native/NEW3hosts+4children=7processes+conditional1readonlyreview NOT approved.
+This turn documentation only,0code/targets/tests/compiles/reviewers. All old
+failed records/18raw/1454pins unchanged, all remaining old allowances FROZEN;
+I1 remains unaccepted. Next: review written plan and approve its new finite scope.
+
 ## Latest — causality reverification GREEN 4/5; fifth group failed, stopped
 
 [Execution](2026-10-19-p2b-controller-causality-reverification.md).

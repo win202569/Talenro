@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest proposal:[process-association guard repair](../superpowers/plans/2026-10-19-p2b-process-association-guard-repair.md).
+After13060300 readonly analysis located a shared invalid getter/catch premise in
+the failed pre-start assertion and two cleanup guards. Plan proposes a private
+Associated/Unassociated/Unknown observer via explicit method, real unstarted RED,
+one observer-only fix, full seven-group GREEN and one original seam FINAL.
+Native/NEW3hosts+4children=7processes+conditional1review NOT approved. This turn
+documents only: no new implementation/packet/run/reviewer. Old failed results,
+raw and remaining allowances stay unchanged/FROZEN; no automatic FINAL or replay.
+Read plan and obtain its scope/budget approval before implementation. Clone
+restores tracked sources/portable observations, not raw, runtime/SDK, CLR identity,
+credentials or execution rights. Use latest development branch, not main.
+
 Latest:[causality reverification failed GREEN](../roadmap/2026-10-19-p2b-controller-causality-reverification.md).
 Native/new2hosts+4children+conditional1review approved after62f7ad23; five
 inputs/1454pins frozen. Host40880/1556ms/exit2: first4groups PASS, fifth
