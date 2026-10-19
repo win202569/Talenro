@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest proposal:[controller causality reverification plan](../superpowers/plans/2026-10-19-p2b-controller-causality-reverification.md).
+Documentation only after37d82327; no new code, packet, run or reviewer.
+Proposed Native/new2hosts+4children=6PS7 processes+conditional1readonlyreview,
+NOT approved. Five containment groups, then one original seam integration;
+fixed owned-run remains unchanged. Error-list anchors must be independent of
+returned primary/cleanup; exact two-record expectation is unverified and any
+deviation stops, not an excuse to loosen the oracle. Old failed GREEN, I1 and
+frozen allowances unchanged; diagnostic success does not close acceptance.
+Read plan and obtain scope/budget approval before implementation. Clone restores
+documents/source/portable observations, not ignored raw, fixed dependencies,
+CLR identities, credentials or execution rights. Do not reconstruct old raw or
+resume old slots; recover latest existing development branch, not main.
+
 Latest:[five-group error-causality diagnostic](../roadmap/2026-10-19-p2b-error-causality-characterization.md).
 Native/new1host/0children/0review approved after7e2184f6;host2844/749ms/exit0,
 5exactPASS/empty stderr/complete drains/post1434pins,0trace differences.

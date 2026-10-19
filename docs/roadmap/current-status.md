@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-19
 
+## Latest — controller causality reverification proposed; approval pending
+
+[New written plan](../superpowers/plans/2026-10-19-p2b-controller-causality-reverification.md).
+After37d82327, user requested the next planning step. Documentation only:
+0 new code/targets/tests/compiles/reviewers. Proposed Native assertion-only
+revision in a new leaf, unchanged fixed owned-run/fixture/seam; independent
+Error-list anchors and bounded I/O-cause identity, explicit replacement negatives.
+NEW 2 hosts+4 children=6 PS7 processes+conditional1 readonly review proposed,
+NOT approved or spent. Full5 containment groups precede one FINAL integration;
+unknown/nonexact stops, no retry. Old GREEN remains failed, I1 unaccepted;
+old remaining1host+3children+1review stays FROZEN. Diagnostic5/5 is only
+predicate calibration. Next: human review and explicit finite-budget approval.
+
 ## Latest — error-causality diagnostic 5/5 exact; controller remains unaccepted
 
 [Diagnostic execution](2026-10-19-p2b-error-causality-characterization.md).
