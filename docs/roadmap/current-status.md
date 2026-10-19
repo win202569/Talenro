@@ -1,14 +1,21 @@
 # Project status — updated 2026-10-19
 
-## Latest — R1 repair Task1 RED/GREEN exact; further checks pending
+## Latest — R1 repair observations exact; review blocked by B1/B2
 
 [Execution](2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Native/new4hosts+4children+conditional1review approved after4f72700d.
 Shared bookkeeping RED reproduced expected escape; one-file repair then
 GREEN7of7/full trace exact. Both ordinary hosts exited/drained, empty stderr,
-1539pins intact,0children. Spent2hosts;2hosts+4children and conditional review
-remain. Task1 checkpoint only, no R1/full acceptance. CONTAINMENT/FINAL/review
-pending; R2/Minor2 deferred, old records/quotas unchanged. No main/live/product.
+1539pins intact. Task1 checkpoint0f747ee6 pushed/remote equal. CONTAINMENT7of7
+and FINAL15lines12PASS/full oracle/stdout+trace hashes exact; all4children
+owned-exited,0rescue. Spent4of4hosts+4of4children+1of1readonlyreview. B1 Important:
+integration may rewrite failed child ledger; B2 Important: persisted success can
+survive output failure and open next-slot gate. Both author-verified/unresolved;
+REVIEW_BLOCKED_B1_B2_UNFINISHED. Narrow exception masking repaired, full failure-
+closed contract not accepted.0runtime/retry/re-review/automaticfix. Full review/
+all29dispositions/portable raw export saved, later handoff author-checked only.
+R2/Minor2 deferred, old records/quotas unchanged. No main/live/product. Next:
+separately approve narrow B1/B2 design/new finite validation before more code.
 
 ## Latest — R1 first-failure bookkeeping repair proposed; not approved
 

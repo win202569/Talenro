@@ -7,7 +7,7 @@
 **Tech Stack:** 普通 Windows PowerShell7.6.5 Core x64、固定托管 SDK、本地文件 I/O；无安装、编译、新原生 API、安全设置或产品依赖。
 **Spec:** [R1/R2 完整审查](../../diagnostics/isolated-fuzz/p2b-process-association-guard-repair/review.md)、[协调者处置](../../diagnostics/isolated-fuzz/p2b-process-association-guard-repair/review-disposition.md)、[关联护栏合同](2026-10-19-p2b-process-association-guard-repair.md)及[握手合同 §9](../specs/2026-10-19-p2b-handshake-contract-design.md)。
 
-状态：PROPOSED_NOT_APPROVED。依据 b458b35238c8fe5566716c50cc9461bc33a2751a。
+原提案状态（历史）：PROPOSED_NOT_APPROVED。依据 b458b35238c8fe5566716c50cc9461bc33a2751a。
 本次“按建议继续”只进入书面 R1 修复计划；0代码/目标/测试/编译/代理/审查。
 推荐 Native。新实现和新额度待批准；旧结果不改判。R2 Minor 继续明确延期，
 不得趁适配修掉 PreStart/prestart 键碰撞，也不得重建已丢失的历史详情。
@@ -196,3 +196,27 @@ Prepare 继承上阶段1487映射项，加33 raw、9 portable、报告和计划�
 
 请审阅并批准 Native实施本计划、NEW4宿主+4子进程=8新PS7进程、条件1只读审查。
 批准前本轮仅文档；批准也不授权预期外修复、重试或自行正式验收。
+
+## Execution update — 2026-10-19
+
+User approved Native/new4hosts+4children+conditional1review after4f72700d.
+The original approval text is retained in approved-plan.snapshot.md with hash
+90ED9184AC462DA01C8E6144C5E7D5BFF0C22A4511C2A9569A88BF6241EA183D.
+The unchecked steps above preserve the original proposed text, not current status.
+
+- [x] Task1 steps1–4: seven inputs frozen, exact RED, bookkeeping-only repair,
+  exact GREEN7of7,1539pins/1538unchanged, no children.
+- [x] Task1 step5: necessary checkpoint0f747ee6 pushed and remote SHA verified.
+- [x] Task2 steps1–2: containment7of7 and FINAL15lines12PASS/full hashes exact.
+- [x] Task2 step3: sole readonly review complete; B1/B2 Important block acceptance.
+- [x] Task2 documentary handoff: full review/all29dispositions/portable evidence
+  saved as unfinished. Git history and final response record actual checkpoint
+  push/equality results; this checkbox does not assert a successful push.
+
+All4hosts+4children consumed,0runtime/retry slots. No automatic fixes/re-review.
+R2/Minor2 deferred; original failures/old frozen budgets unchanged. No main,
+live, formal or full-C12 acceptance. See execution report for exact observations.
+Status REVIEW_BLOCKED_B1_B2_UNFINISHED. Shared-boundary exception masking narrowly
+repaired; integration failed-ledger retry/reconstruction and parent persisted
+success after output failure remain unresolved. No post-review frozen code
+change or extra target. Further work needs separately approved B1/B2 design.

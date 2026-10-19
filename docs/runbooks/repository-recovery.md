@@ -1,13 +1,21 @@
 # Recover the project on a new computer
 
-Latest:[R1 repair Task1 checkpoint](../roadmap/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
+Latest:[R1 repair verification](../roadmap/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Approved new finite scope after4f72700d; RED exact, one shared-file repair,
-GREEN7of7/full trace exact.2of4hosts consumed,0of4children,0of1review.
-CONTAINMENT/FINAL/conditional review pending, no overall/R1 acceptance.
-Intermediate checkpoint preserves seven inputs and progress, not yet final raw
-export. Do not replay consumed slots, reconstruct missing raw or assume clone
-restores runtimes/CLR identity/credentials/authority. Resume only with original
-intact evidence and the plan's gates; latest development branch, not main.
+GREEN7of7/full trace exact. Task1 checkpoint0f747ee6 pushed/remote equal.
+CONTAINMENT7of7 and FINAL15lines12PASS/full hashes exact.4of4hosts+4of4children
+spent; sole readonlyreview complete, B1/B2 Important acceptance blockers retained:
+failed child ledger can be rewritten; persisted success can survive output
+failure and permit next slot. REVIEW_BLOCKED_B1_B2_UNFINISHED. Exception masking
+narrowly repaired, full contract unaccepted. No retries/re-review or automatic
+fix authorized. Full review/all29dispositions saved. Portable summary preserves16raw JSON strings,
+16stream bytes/Base64,3source/plan snapshots and inventory/hash/budget, verified
+against raw by author; later handoff outputs not independently reviewed.
+Do not replay consumed slots, reconstruct missing raw or assume clone restores
+runtimes/CLR identity/credentials/authority. R2/Minor2 and old frozen allowances
+unchanged. No main/live/formal/full-C12 acceptance; latest development branch,
+not main, is the recovery starting point. Next requires separately approved
+narrow B1/B2 design/new finite validation; do not automatically resume targets.
 
 Latest proposal:[R1 first-failure bookkeeping repair](../superpowers/plans/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
 Afterb458b352 this is planning only, no code/packet/target/test/reviewer. Shared
