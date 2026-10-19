@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-19
 
+## Latest — entry-migration Prepare failed; unfinished checkpoint
+
+[Execution](2026-10-19-offline-diagnostic-entry-migration.md).
+Native plan/new6hosts+7children+conditional1review approved.12bootstrap inputs
+written;8implementation files still absent. First Prepare failed before any
+capture host: new transport reads optional Role metadata absent in295of1930
+old pins. Readonly hashes1930/1930intact. Only2approved snapshots+ledger exist;
+no valid freeze or runtime test. Spent0hosts/0children/0reviews; all remainder
+FROZEN. Bootstrap preserved unchanged; no repair/retry/review. Portable summary
+preserves actual3packet files only. New scoped correction/Prepare authorization
+required; clone does not resume authority. C1/C2 open,R2/Minor2 deferred,
+all five flagsfalse. Older pending-approval sections below are historical.
+
 ## Latest — diagnostic-entry design approved; implementation plan pending
 
 Human explicitly approved the written design in7e375b8a, SHA256

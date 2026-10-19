@@ -1,0 +1,1343 @@
+{
+  "Schema": 1,
+  "RootNames": [
+    "Accepted",
+    "Rejection",
+    "Ack",
+    "Observation",
+    "Error"
+  ],
+  "IORootNames": [
+    "Ok",
+    "Value",
+    "Error"
+  ],
+  "EvidenceRootNames": [
+    "Schema",
+    "Grant",
+    "Status",
+    "Groups",
+    "CurrentGroup",
+    "NotRun",
+    "Observations",
+    "PrimaryError",
+    "SecondaryErrors",
+    "Overflow",
+    "Probe",
+    "SourceVerified",
+    "LiveActionsPerformed",
+    "RuntimeApproved",
+    "FormalAcceptance",
+    "RealGateImplemented"
+  ],
+  "InspectRootNames": [
+    "Schema",
+    "Action",
+    "Profiles",
+    "Dependencies",
+    "History",
+    "Authority",
+    "SourceVerified",
+    "LiveActionsPerformed",
+    "RuntimeApproved",
+    "FormalAcceptance",
+    "RealGateImplemented"
+  ],
+  "ProfileRootNames": [
+    "Schema",
+    "Profile",
+    "EntryPath",
+    "EntrySHA256",
+    "KernelPath",
+    "KernelSHA256",
+    "FrozenSHA256",
+    "Status",
+    "Groups",
+    "Observations",
+    "PrimaryError",
+    "SecondaryErrors",
+    "Overflow",
+    "Closed",
+    "SourceVerified",
+    "LiveActionsPerformed",
+    "RuntimeApproved",
+    "FormalAcceptance",
+    "RealGateImplemented"
+  ],
+  "Grants": {
+    "entry-red": {
+      "Profile": null,
+      "Children": 0,
+      "ExitCode": 1,
+      "Status": "INCOMPLETE",
+      "Groups": [
+        {
+          "Name": "EntryPresent",
+          "Passed": false,
+          "Facts": {
+            "Exists": false
+          }
+        }
+      ],
+      "Output": [
+        "FAIL: EntryPresent"
+      ],
+      "ErrorOutput": [],
+      "NotRun": [
+        "InspectDefaultReadOnly",
+        "InspectExplicitReadOnly",
+        "UnsupportedRequestNoRuntime",
+        "InspectDependencyStateReadOnly",
+        "InspectHistoryDataOnly"
+      ]
+    },
+    "entry-green": {
+      "Profile": null,
+      "Children": 0,
+      "ExitCode": 0,
+      "Status": "COMPLETE",
+      "Groups": [
+        {
+          "Name": "EntryPresent",
+          "Passed": true,
+          "Facts": {
+            "Exists": true
+          }
+        },
+        {
+          "Name": "InspectDefaultReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectExplicitReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "UnsupportedRequestNoRuntime",
+          "Passed": true,
+          "Facts": {
+            "Rejected": 14,
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectDependencyStateReadOnly",
+          "Passed": true,
+          "Facts": {
+            "MissingImplementation": 6,
+            "FreezeManifestPresent": false
+          }
+        },
+        {
+          "Name": "InspectHistoryDataOnly",
+          "Passed": true,
+          "Facts": {
+            "State": "Consumed",
+            "Role": "evidence-only",
+            "Authority": "None"
+          }
+        }
+      ],
+      "Output": [
+        "PASS: EntryPresent",
+        "PASS: InspectDefaultReadOnly",
+        "PASS: InspectExplicitReadOnly",
+        "PASS: UnsupportedRequestNoRuntime",
+        "PASS: InspectDependencyStateReadOnly",
+        "PASS: InspectHistoryDataOnly"
+      ],
+      "ErrorOutput": [],
+      "NotRun": [],
+      "ExistingProfiles": []
+    },
+    "runtime-red": {
+      "Profile": "entry-migration-core",
+      "Children": 0,
+      "ExitCode": 1,
+      "Status": "INCOMPLETE",
+      "Groups": [
+        {
+          "Name": "RuntimeProfileBound",
+          "Passed": false,
+          "Facts": {
+            "Profile": "entry-migration-core",
+            "PublicEntry": true,
+            "PrivateModule": false,
+            "Closed": false,
+            "SourceBound": false
+          }
+        }
+      ],
+      "Output": [
+        "FAIL: RuntimeProfileBound"
+      ],
+      "ErrorOutput": [],
+      "NotRun": [
+        "EmptyPrefix",
+        "ProperPrefix",
+        "CompletePrefix",
+        "InvalidPrefix",
+        "NormalExact",
+        "NormalShortRejected",
+        "NullAndTypeRejected",
+        "DiskCannotMintAck",
+        "FailedSinkRejectsAccess",
+        "InvalidLedgerStops",
+        "FirstAndSecondaryBounded",
+        "OutputFailureNoAck",
+        "PreconsumeFailureNoStart",
+        "HandleCopiesRejected",
+        "ProfileReentryRejected"
+      ]
+    },
+    "runtime-green": {
+      "Profile": "entry-migration-core",
+      "Children": 0,
+      "ExitCode": 0,
+      "Status": "COMPLETE",
+      "Groups": [
+        {
+          "Name": "EmptyPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "ProperPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 36,
+            "Accepted": 36,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "CompletePrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "InvalidPrefix",
+          "Passed": true,
+          "Facts": {
+            "Checks": 10,
+            "Accepted": 0,
+            "Rejected": 10
+          }
+        },
+        {
+          "Name": "NormalExact",
+          "Passed": true,
+          "Facts": {
+            "Checks": 2,
+            "Accepted": 2,
+            "Rejected": 0
+          }
+        },
+        {
+          "Name": "NormalShortRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 38,
+            "Accepted": 0,
+            "Rejected": 38
+          }
+        },
+        {
+          "Name": "NullAndTypeRejected",
+          "Passed": true,
+          "Facts": {
+            "Checks": 8,
+            "Accepted": 0,
+            "Rejected": 8
+          }
+        },
+        {
+          "Name": "DiskCannotMintAck",
+          "Passed": true,
+          "Facts": {
+            "AdvanceAccepted": false,
+            "FileUnchanged": true,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "FailedSinkRejectsAccess",
+          "Passed": true,
+          "Facts": {
+            "FirstFailed": true,
+            "PostFailureLogicalIO": 0,
+            "PrimarySame": true,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "InvalidLedgerStops",
+          "Passed": true,
+          "Facts": {
+            "Cases": [
+              {
+                "Case": "missing",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              },
+              {
+                "Case": "bad",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              },
+              {
+                "Case": "index",
+                "Failed": true,
+                "AckIssued": 0,
+                "StartCalls": 0
+              }
+            ]
+          }
+        },
+        {
+          "Name": "FirstAndSecondaryBounded",
+          "Passed": true,
+          "Facts": {
+            "PrimarySame": true,
+            "SecondaryCount": 8,
+            "Overflow": true
+          }
+        },
+        {
+          "Name": "OutputFailureNoAck",
+          "Passed": true,
+          "Facts": {
+            "Failed": true,
+            "AckIssued": 0,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "PreconsumeFailureNoStart",
+          "Passed": true,
+          "Facts": {
+            "Reserved": 1,
+            "StartCalls": 0,
+            "Failed": true,
+            "StartIO": 1,
+            "SecondAccepted": false
+          }
+        },
+        {
+          "Name": "HandleCopiesRejected",
+          "Passed": true,
+          "Facts": {
+            "Rejected": 3,
+            "StartCalls": 0
+          }
+        },
+        {
+          "Name": "RuntimeProfileBound",
+          "Passed": true,
+          "Facts": {
+            "Profile": "entry-migration-core",
+            "PublicEntry": true,
+            "PrivateModule": true,
+            "Closed": true,
+            "SourceBound": true
+          }
+        },
+        {
+          "Name": "ProfileReentryRejected",
+          "Passed": true,
+          "Facts": {
+            "Rejected": true,
+            "SameModule": true,
+            "ProfileTreeUnchanged": true
+          }
+        }
+      ],
+      "Output": [
+        "PASS: EmptyPrefix",
+        "PASS: ProperPrefix",
+        "PASS: CompletePrefix",
+        "PASS: InvalidPrefix",
+        "PASS: NormalExact",
+        "PASS: NormalShortRejected",
+        "PASS: NullAndTypeRejected",
+        "PASS: DiskCannotMintAck",
+        "PASS: FailedSinkRejectsAccess",
+        "PASS: InvalidLedgerStops",
+        "PASS: FirstAndSecondaryBounded",
+        "PASS: OutputFailureNoAck",
+        "PASS: PreconsumeFailureNoStart",
+        "PASS: HandleCopiesRejected",
+        "PASS: RuntimeProfileBound",
+        "PASS: ProfileReentryRejected"
+      ],
+      "ErrorOutput": [],
+      "NotRun": []
+    },
+    "lifecycle": {
+      "Profile": "entry-migration-owned",
+      "Children": 3,
+      "ExitCode": 0,
+      "Status": "COMPLETE",
+      "Groups": [
+        {
+          "Name": "EntryPresent",
+          "Passed": true,
+          "Facts": {
+            "Exists": true
+          }
+        },
+        {
+          "Name": "InspectDefaultReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectExplicitReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "UnsupportedRequestNoRuntime",
+          "Passed": true,
+          "Facts": {
+            "Rejected": 14,
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectDependencyStateReadOnly",
+          "Passed": true,
+          "Facts": {
+            "MissingImplementation": 0,
+            "FreezeManifestPresent": true
+          }
+        },
+        {
+          "Name": "InspectHistoryDataOnly",
+          "Passed": true,
+          "Facts": {
+            "State": "Consumed",
+            "Role": "evidence-only",
+            "Authority": "None"
+          }
+        },
+        {
+          "Name": "PreStartFaultNoStart",
+          "Passed": true,
+          "Facts": {
+            "Started": false,
+            "StartCalls": 0,
+            "Failed": true
+          }
+        },
+        {
+          "Name": "UnassociatedNoKillWait",
+          "Passed": true,
+          "Facts": {
+            "Association": "Unassociated",
+            "PID": null,
+            "KillCalls": 0,
+            "WaitCalls": 0
+          }
+        },
+        {
+          "Name": "ReceiptFaultNoRetry",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "ReceiptAttempts": 1,
+            "SecondaryCount": 0,
+            "AckIssued": 0
+          }
+        },
+        {
+          "Name": "FirstCauseSurvivesCleanup",
+          "Passed": true,
+          "Facts": {
+            "PrimarySame": true,
+            "OwnedExit": true,
+            "StreamsComplete": true
+          }
+        },
+        {
+          "Name": "NormalExit",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ExitCode": 0,
+            "StreamsMatch": true
+          }
+        },
+        {
+          "Name": "Timeout",
+          "Passed": true,
+          "Facts": {
+            "Started": true,
+            "OwnedExit": true,
+            "StreamsComplete": true,
+            "TimedOut": true,
+            "TerminationRequested": true,
+            "ExitCode": -1,
+            "StreamsMatch": true
+          }
+        },
+        {
+          "Name": "RuntimeProfileBound",
+          "Passed": true,
+          "Facts": {
+            "Profile": "entry-migration-owned",
+            "PublicEntry": true,
+            "PrivateModule": true,
+            "Closed": true,
+            "SourceBound": true
+          }
+        },
+        {
+          "Name": "ProfileReentryRejected",
+          "Passed": true,
+          "Facts": {
+            "Rejected": true,
+            "SameModule": true,
+            "ProfileTreeUnchanged": true
+          }
+        }
+      ],
+      "Output": [
+        "PASS: EntryPresent",
+        "PASS: InspectDefaultReadOnly",
+        "PASS: InspectExplicitReadOnly",
+        "PASS: UnsupportedRequestNoRuntime",
+        "PASS: InspectDependencyStateReadOnly",
+        "PASS: InspectHistoryDataOnly",
+        "PASS: PreStartFaultNoStart",
+        "PASS: UnassociatedNoKillWait",
+        "PASS: ReceiptFaultNoRetry",
+        "PASS: FirstCauseSurvivesCleanup",
+        "PASS: NormalExit",
+        "PASS: Timeout",
+        "PASS: RuntimeProfileBound",
+        "PASS: ProfileReentryRejected"
+      ],
+      "ErrorOutput": [],
+      "NotRun": [],
+      "ExistingProfiles": [
+        "entry-migration-core"
+      ]
+    },
+    "continuation": {
+      "Profile": "entry-migration-live",
+      "Children": 4,
+      "ExitCode": 0,
+      "Status": "COMPLETE",
+      "Groups": [
+        {
+          "Name": "EntryPresent",
+          "Passed": true,
+          "Facts": {
+            "Exists": true
+          }
+        },
+        {
+          "Name": "InspectDefaultReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectExplicitReadOnly",
+          "Passed": true,
+          "Facts": {
+            "Authority": "None",
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "UnsupportedRequestNoRuntime",
+          "Passed": true,
+          "Facts": {
+            "Rejected": 14,
+            "RuntimeLoaded": false,
+            "ProfileTreeUnchanged": true
+          }
+        },
+        {
+          "Name": "InspectDependencyStateReadOnly",
+          "Passed": true,
+          "Facts": {
+            "MissingImplementation": 0,
+            "FreezeManifestPresent": true
+          }
+        },
+        {
+          "Name": "InspectHistoryDataOnly",
+          "Passed": true,
+          "Facts": {
+            "State": "Consumed",
+            "Role": "evidence-only",
+            "Authority": "None"
+          }
+        },
+        {
+          "Name": "AvailableNextStepWithCandidateLedger",
+          "Passed": true,
+          "Facts": {
+            "Active": true,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "DeclaredBudget": 2,
+            "DeclaredSteps": 2,
+            "Remaining": 1,
+            "Candidate": true,
+            "MissingAckAccepted": false,
+            "StartCallsBefore": 1,
+            "StartCallsAfter": 1,
+            "LedgerUnchanged": true,
+            "ValidAckAvailable": true
+          }
+        },
+        {
+          "Name": "LiveAckBindingsAndReplay",
+          "Passed": true,
+          "Facts": {
+            "InvalidRequests": 6,
+            "AckConsumed": 1,
+            "ReplayAccepted": false,
+            "AStarts": 2,
+            "BStarts": 1
+          }
+        },
+        {
+          "Name": "OutputFailureNoContinuation",
+          "Passed": true,
+          "Facts": {
+            "Failed": true,
+            "AckIssued": 0,
+            "StartCalls": 1,
+            "NextAccepted": false,
+            "OwnedExit": true,
+            "StreamsComplete": true
+          }
+        },
+        {
+          "Name": "PositiveOwnedContinuation",
+          "Passed": true,
+          "Facts": {
+            "Status": "Closed",
+            "Failed": false,
+            "AckIssued": 1,
+            "AckConsumed": 1,
+            "SeamExact": true
+          }
+        },
+        {
+          "Name": "SessionClosedNoResume",
+          "Passed": true,
+          "Facts": {
+            "AClosed": "Closed",
+            "BClosed": "Closed",
+            "CClosed": "Closed",
+            "FreshAdvance": false,
+            "FreshStartCalls": 0
+          }
+        },
+        {
+          "Name": "RuntimeProfileBound",
+          "Passed": true,
+          "Facts": {
+            "Profile": "entry-migration-live",
+            "PublicEntry": true,
+            "PrivateModule": true,
+            "Closed": true,
+            "SourceBound": true
+          }
+        },
+        {
+          "Name": "ProfileReentryRejected",
+          "Passed": true,
+          "Facts": {
+            "Rejected": true,
+            "SameModule": true,
+            "ProfileTreeUnchanged": true
+          }
+        }
+      ],
+      "Output": [
+        "PASS: EntryPresent",
+        "PASS: InspectDefaultReadOnly",
+        "PASS: InspectExplicitReadOnly",
+        "PASS: UnsupportedRequestNoRuntime",
+        "PASS: InspectDependencyStateReadOnly",
+        "PASS: InspectHistoryDataOnly",
+        "STEP: sequence-a/0",
+        "STEP: sequence-b/0",
+        "STEP: sequence-a/1",
+        "CONTEXT: DESKTOP-H4SVCLU\\Lenovo admin=False",
+        "HOST: PS7.6.5 Core x64",
+        "PASS: P2BHSeamFixedBoundary",
+        "PASS: P2BHSeamOrdinaryGap",
+        "PASS: P2BHSeamTakeDoesNotResetAdmission",
+        "PASS: P2BHSeamStaleExpectedRejected",
+        "PASS: P2BHSeamDeclaredExpectedIsNotAuthority",
+        "PASS: P2BHSeamArmReference",
+        "PASS: P2BHSeamStopReference",
+        "PASS: P2BHSeamHeartbeatReference",
+        "PASS: P2BHSeamArmDeclaredExpiry",
+        "PASS: P2BHSeamLookalikeInboxRejected",
+        "PASS: P2BHSeamStoppedInboxNoRecovery",
+        "PASS: P2BHSeamComplete",
+        "LIMIT: declarations/seam only; no handshake state or runtime authority",
+        "PASS: AvailableNextStepWithCandidateLedger",
+        "PASS: LiveAckBindingsAndReplay",
+        "PASS: OutputFailureNoContinuation",
+        "PASS: PositiveOwnedContinuation",
+        "PASS: SessionClosedNoResume",
+        "PASS: RuntimeProfileBound",
+        "PASS: ProfileReentryRejected"
+      ],
+      "ErrorOutput": [],
+      "NotRun": [],
+      "ExistingProfiles": [
+        "entry-migration-core",
+        "entry-migration-owned"
+      ]
+    }
+  },
+  "Profiles": {
+    "entry-migration-core": {
+      "Children": 0
+    },
+    "entry-migration-owned": {
+      "Children": 3
+    },
+    "entry-migration-live": {
+      "Children": 4
+    }
+  },
+  "Cases": {
+    "disk": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "sink": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "missing": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "bad": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "index": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "errors": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "output": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "preconsume": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "copies": {
+      "Grants": [
+        "entry-migration-core"
+      ],
+      "Steps": [],
+      "Budget": 0
+    },
+    "receipt-fault": {
+      "Grants": [
+        "entry-migration-owned"
+      ],
+      "Steps": [
+        "Hold"
+      ],
+      "Budget": 1
+    },
+    "normal": {
+      "Grants": [
+        "entry-migration-owned"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "timeout": {
+      "Grants": [
+        "entry-migration-owned"
+      ],
+      "Steps": [
+        "Hold"
+      ],
+      "Budget": 1
+    },
+    "prestart": {
+      "Grants": [
+        "entry-migration-owned"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "sequence-a": {
+      "Grants": [
+        "entry-migration-live"
+      ],
+      "Steps": [
+        "EmitAndExit",
+        "Seam"
+      ],
+      "Budget": 2
+    },
+    "sequence-b": {
+      "Grants": [
+        "entry-migration-live"
+      ],
+      "Steps": [
+        "EmitAndExit",
+        "Seam"
+      ],
+      "Budget": 1
+    },
+    "sequence-output-fault": {
+      "Grants": [
+        "entry-migration-live"
+      ],
+      "Steps": [
+        "EmitAndExit"
+      ],
+      "Budget": 1
+    },
+    "fresh": {
+      "Grants": [
+        "entry-migration-live"
+      ],
+      "Steps": [],
+      "Budget": 0
+    }
+  },
+  "SeamStdoutSHA256": "F693A64A1402A0AF882E30D62F6EB79601F5F380974900DD982B7ED94641A0FE",
+  "SeamTraceSHA256": "4751D03D28FB8342AFFC56BF0E8343F0E0B1D5E548A7DF7C1B164F719C10A17E",
+  "ImplementationNames": [
+    "session.psm1",
+    "sinks.ps1",
+    "owned-step.ps1",
+    "sequence.ps1",
+    "profiles.ps1",
+    "observations.ps1"
+  ],
+  "Rejections": [
+    {
+      "Name": "Action",
+      "Args": [
+        "-Action",
+        "Run"
+      ],
+      "Type": "System.Management.Automation.RuntimeException",
+      "Ids": [
+        "OD: unsupported action"
+      ],
+      "Message": "OD: unsupported action",
+      "Parameters": {
+        "Action": "Run"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Profile",
+      "Args": [
+        "-Action",
+        "Inspect",
+        "-Profile",
+        "classification-red"
+      ],
+      "Type": "System.Management.Automation.RuntimeException",
+      "Ids": [
+        "OD: unsupported profile"
+      ],
+      "Message": "OD: unsupported profile",
+      "Parameters": {
+        "Action": "Inspect",
+        "Profile": "classification-red"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Grant",
+      "Args": [
+        "-Grant",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Grant'.",
+      "Parameters": {
+        "Grant": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Slot",
+      "Args": [
+        "-Slot",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Slot'.",
+      "Parameters": {
+        "Slot": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Resume",
+      "Args": [
+        "-Resume"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Resume'.",
+      "Parameters": {
+        "Resume": true
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Retry",
+      "Args": [
+        "-Retry"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Retry'.",
+      "Parameters": {
+        "Retry": true
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Force",
+      "Args": [
+        "-Force"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Force'.",
+      "Parameters": {
+        "Force": true
+      },
+      "Positional": false
+    },
+    {
+      "Name": "SkipValidation",
+      "Args": [
+        "-SkipValidation"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'SkipValidation'.",
+      "Parameters": {
+        "SkipValidation": true
+      },
+      "Positional": false
+    },
+    {
+      "Name": "ScriptPath",
+      "Args": [
+        "-ScriptPath",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'ScriptPath'.",
+      "Parameters": {
+        "ScriptPath": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Command",
+      "Args": [
+        "-Command",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Command'.",
+      "Parameters": {
+        "Command": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Arguments",
+      "Args": [
+        "-Arguments",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'Arguments'.",
+      "Parameters": {
+        "Arguments": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "OutputRoot",
+      "Args": [
+        "-OutputRoot",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'OutputRoot'.",
+      "Parameters": {
+        "OutputRoot": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "RunId",
+      "Args": [
+        "-RunId",
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "NamedParameterNotFound,diagnose-offline.ps1",
+        "NamedParameterNotFound"
+      ],
+      "Message": "A parameter cannot be found that matches parameter name 'RunId'.",
+      "Parameters": {
+        "RunId": "unexpected"
+      },
+      "Positional": false
+    },
+    {
+      "Name": "Positional",
+      "Args": [
+        "unexpected"
+      ],
+      "Type": "System.Management.Automation.ParameterBindingException",
+      "Ids": [
+        "PositionalParameterNotFound,diagnose-offline.ps1",
+        "PositionalParameterNotFound"
+      ],
+      "Message": "A positional parameter cannot be found that accepts argument 'unexpected'.",
+      "Parameters": {},
+      "Positional": true
+    }
+  ],
+  "InspectTemplates": {
+    "Missing": {
+      "Schema": 1,
+      "Action": "Inspect",
+      "Profiles": [
+        {
+          "Id": "entry-migration-core",
+          "Children": 0
+        },
+        {
+          "Id": "entry-migration-owned",
+          "Children": 3
+        },
+        {
+          "Id": "entry-migration-live",
+          "Children": 4
+        }
+      ],
+      "Dependencies": [
+        {
+          "Role": "Engine",
+          "Path": "C:\\Users\\Lenovo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+          "Exists": true,
+          "SHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "SMA",
+          "Path": "C:\\Users\\Lenovo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\System.Management.Automation.dll",
+          "Exists": true,
+          "SHA256": "2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "History",
+          "Path": "@repo:docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+          "Exists": true,
+          "SHA256": "0D38601783035306FE5165301A1A8364D21676BA0AE6AC77520D052DBD81E6E8",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "FreezeManifest",
+          "Path": "@repo:.superpowers/sdd/2026-10-19-offline-diagnostic-entry-migration/runtime-green.frozen.json",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": null
+        },
+        {
+          "Role": "Impl:session.psm1",
+          "Path": "@repo:scripts/private/offline-diagnostics/session.psm1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        },
+        {
+          "Role": "Impl:sinks.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/sinks.ps1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        },
+        {
+          "Role": "Impl:owned-step.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/owned-step.ps1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        },
+        {
+          "Role": "Impl:sequence.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/sequence.ps1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        },
+        {
+          "Role": "Impl:profiles.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/profiles.ps1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        },
+        {
+          "Role": "Impl:observations.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/observations.ps1",
+          "Exists": false,
+          "SHA256": null,
+          "MatchesPinned": false
+        }
+      ],
+      "History": {
+        "Path": "@repo:docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+        "State": "Consumed",
+        "Role": "evidence-only"
+      },
+      "Authority": "None",
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false,
+      "FormalAcceptance": false,
+      "RealGateImplemented": false
+    },
+    "Present": {
+      "Schema": 1,
+      "Action": "Inspect",
+      "Profiles": [
+        {
+          "Id": "entry-migration-core",
+          "Children": 0
+        },
+        {
+          "Id": "entry-migration-owned",
+          "Children": 3
+        },
+        {
+          "Id": "entry-migration-live",
+          "Children": 4
+        }
+      ],
+      "Dependencies": [
+        {
+          "Role": "Engine",
+          "Path": "C:\\Users\\Lenovo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+          "Exists": true,
+          "SHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "SMA",
+          "Path": "C:\\Users\\Lenovo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\System.Management.Automation.dll",
+          "Exists": true,
+          "SHA256": "2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "History",
+          "Path": "@repo:docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+          "Exists": true,
+          "SHA256": "0D38601783035306FE5165301A1A8364D21676BA0AE6AC77520D052DBD81E6E8",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "FreezeManifest",
+          "Path": "@repo:.superpowers/sdd/2026-10-19-offline-diagnostic-entry-migration/runtime-green.frozen.json",
+          "Exists": true,
+          "SHA256": "@frozen",
+          "MatchesPinned": null
+        },
+        {
+          "Role": "Impl:session.psm1",
+          "Path": "@repo:scripts/private/offline-diagnostics/session.psm1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/session.psm1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:sinks.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/sinks.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/sinks.ps1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:owned-step.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/owned-step.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/owned-step.ps1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:sequence.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/sequence.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/sequence.ps1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:profiles.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/profiles.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/profiles.ps1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:observations.ps1",
+          "Path": "@repo:scripts/private/offline-diagnostics/observations.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/private/offline-diagnostics/observations.ps1",
+          "MatchesPinned": true
+        }
+      ],
+      "History": {
+        "Path": "@repo:docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+        "State": "Consumed",
+        "Role": "evidence-only"
+      },
+      "Authority": "None",
+      "SourceVerified": false,
+      "LiveActionsPerformed": false,
+      "RuntimeApproved": false,
+      "FormalAcceptance": false,
+      "RealGateImplemented": false
+    }
+  }
+}

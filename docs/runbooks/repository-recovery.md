@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest checkpoint:[entry migration Prepare failure](../roadmap/2026-10-19-offline-diagnostic-entry-migration.md).
+Plan/native6hosts+7children+conditional1review were approved, but the first
+Prepare failed on optional inherited Role metadata.12bootstrap inputs exist;
+the public/private implementation8files remain absent.0hosts/0children/0reviews
+spent; remaining allowance FROZEN. Do not execute bootstrap, retry Prepare,
+import tests, restore old quotas or start review automatically. Read the new
+portable summary for the exact3actual packet files; absent runtime records
+must remain absent. New scoped authorization is needed for compatibility
+correction and a new preparation generation. This is unfinished development,
+not acceptance; old findings/false flags persist. Historical planning entries
+below do not override this latest stop. Clone restores files, not authority.
+
 Latest planning:[offline diagnostic-entry migration implementation plan](../superpowers/plans/2026-10-19-offline-diagnostic-entry-migration.md).
 Written design at7e375b8a approved; original pending header is historical.
 Only planning authorized. Proposed Native6hosts/7children/conditional1review,
