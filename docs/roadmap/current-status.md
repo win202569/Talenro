@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-19
 
+## Latest — prestart and first-cause repair dynamically exact; review pending
+
+[Execution](2026-10-19-p2b-prestart-cause-repair.md), [approved brief](2026-10-19-p2b-prestart-cause-budget.md).
+NEW4hosts/7children all exact, no outer termination/rescue;1930pins intact.
+Unexpected actual step error now preserved as host primary before assertion
+(same test RED-to-GREEN); owned6PASS with real prestart open-fault first,
+Start0/Unassociated/Kill0/Wait0, then3actual owned targets exited/drained.
+Sequence4PASS+original12seam PASS with genuine in-memory ack consumed once,
+invalid/replay/closed/disk-positive requests rejected and C output fault stops.
+Runtime budget exhausted; sole conditional readonly review eligible/pending.
+Source/approved brief/tests and execution/recovery docs checkpointed on existing
+dev branch, not main. Portable export pending. Old quotas/evidence unchanged;
+C1/C2 unclosed, R2/Minor2 deferred, no live/runtime/formal/full-C12 acceptance.
+
 ## Latest — timeout passed; owned run stopped before prestart IO
 
 [Execution](2026-10-19-p2b-timeout-observation-repair.md). Prefix/core14PASS and

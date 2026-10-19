@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest execution:[prestart/first-cause repair](../roadmap/2026-10-19-p2b-prestart-cause-repair.md),
+[approved finite brief](../roadmap/2026-10-19-p2b-prestart-cause-budget.md).
+NEW4hosts/7children exhausted with all exact signatures;1930pins intact.
+Classification RED-to-GREEN, owned6PASS (real zero-start prestart first),
+sequence4PASS+original12seam PASS. Sole readonly review and final portable
+handoff pending. Source/tests/brief/docs saved on codex/c12-b01-task9-coordinator,
+not main; no runtime/full-C12 acceptance. Do not Prepare/RunOne/import saved
+snapshots or recover Session/Ack from disk; cloning restores data only, never
+runtime/credentials/live handles or consumed/frozen allowances. All old stops
+and remaining budgets stay frozen;C1/C2 unclosed,R2/Minor2 deferred.
+
 Latest stop:[timeout/observation repair](../roadmap/2026-10-19-p2b-timeout-observation-repair.md).
 Owned host15428 failed after4PASS: timeout now passes with valid empty prefixes,
 but prestart was ordered after3actual targets and rejected by3of3budget gate,
