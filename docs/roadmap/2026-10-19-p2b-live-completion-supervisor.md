@@ -87,7 +87,15 @@ reserialization),63exact byte artifacts including all48source snapshots and
 streams,30directory inventory entries. Missing owned-green trace/details,
 unpersisted fault PID and unrun prestart/sequence/review explicitly marked.
 No authority/session recovery or raw-original reconstruction supported.
-Bytes3469669; SHA25653C8B41FCF5C65896B1396695733101345D3942F87FA7F36DD9968636972A9A5.
+Local CRLF container bytes3469669;
+SHA25653C8B41FCF5C65896B1396695733101345D3942F87FA7F36DD9968636972A9A5.
+Git normalizes the outer JSON formatting to LF under the frozen attributes:
+committed/clone container bytes3468828;
+SHA2568EAADF0CD94590EC534C81C767E5621C53AB1573AF2294263EDBD2506EFC156F.
+The raw JSON strings encode original line breaks, and binary/snapshot payloads
+use base64. A separate readonly comparison of the actual committed Git blob
+verified all96payloads against original bytes/hashes with0differences. Do not
+compare the local wrapper hash to the LF clone wrapper or rewrite raw payloads.
 
 First mechanical export succeeded, but its initial readonly verification
 unrolled9empty byte arrays to null and emitted ToBase64String null errors;
@@ -98,6 +106,11 @@ Neither originals nor portable were rewritten; no target/import/test/retry
 or new review was performed for that correction. This is author export QA,
 not evidence that the failed owned-green grant passed. Packet progress is
 the captured pre-export ledger state; later handoff SHA lives in Git history.
+
+Unfinished source/evidence checkpointcc208d38da0b3312ea1eee6842fd35f3acda0a1f
+pushed to verified origin development branch and remote equality confirmed;
+working tree clean at that checkpoint. This later container-hash clarification
+is documentation only; final handoff commit is recorded by Git/final reply.
 
 ## Budget, next steps and recovery
 
