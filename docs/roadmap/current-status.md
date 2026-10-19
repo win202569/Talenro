@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — timeout/recording direction approved; fresh budget pending
+
+[Budget request](2026-10-19-p2b-timeout-recording-budget.md). Human approved
+bounded direction: keep200ms; timeout permits only literal byte prefixes,
+normal still exact; collect observations before assertions; single-write
+failure evidence/no retry. Proposed Native NEW6hosts+7children=13processes+
+conditional1readonlyreview, not yet execution approval. Prefix and recording
+RED/GREEN consume0children; owned/sequence consume3+4. New14inputs/1795mappings
+proposed; no new source/Prepare/test/target/compile/agent/review this turn.
+Old stop remains:4hosts/4children spent,1host/4children/oldreview frozen.
+C1/C2 unresolved,R2/Minor2 deferred. Next: human budget/scope approval, no replay.
+
 ## Latest — supervisor stopped on owned-green timeout stream mismatch
 
 [Execution](2026-10-19-p2b-live-completion-supervisor.md). Core2FAIL→7PASS exact;

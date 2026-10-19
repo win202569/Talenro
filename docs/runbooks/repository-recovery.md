@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest proposal:[timeout/recording new budget](../roadmap/2026-10-19-p2b-timeout-recording-budget.md).
+Human approved the bounded direction, not this newly written execution budget.
+Native NEW6hosts+7children+conditional1readonlyreview proposed;14new inputs/
+1795mappings would be isolated from old source/raw. No code/Prepare/test/target/
+compile/agent/review performed this turn. Read request before any action;
+explicit fresh scope/budget approval still needed. Old1host/4children/review
+remain frozen, consumed or missing results never replayed/reconstructed.
+Clone restores proposal and prior evidence, not Session/acks/runtime/rights.
+
 Latest stop:[supervisor nonexact owned-green](../roadmap/2026-10-19-p2b-live-completion-supervisor.md).
 Core RED→GREEN7PASS and owned-red exact; sole owned-only fix applied but
 owned-green exit2: timeout target14092 exited/drained in210ms with empty streams,
