@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — R1 first-failure bookkeeping repair proposed; not approved
+
+[Written repair plan](../superpowers/plans/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
+Afterb458b352,user requested the recommended R1 planning step. Documents only:
+0code/targets/tests/compiles/agents/reviewers. Proposes shared first-error latch
+and guarded final read/parse/update/serialize/write at all three R1 exits;
+real IO RED/GREEN, original seven containment groups and one FINAL.
+Native NEW4hosts+4children=8processes+conditional1review proposed, NOT approved.
+R2 diagnostic gap/Minor2 remain deferred; all old evidence and frozen budgets
+unchanged. All-sink failure remains unknown, not a persistence guarantee.
+Next: human review/new finite-scope approval; R1 still Important/unaccepted.
+
 ## Latest — all finite runs exact; independent review blocks on R1
 
 [Execution](2026-10-19-p2b-process-association-guard-repair.md).

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest proposal:[R1 first-failure bookkeeping repair](../superpowers/plans/2026-10-19-p2b-first-failure-bookkeeping-repair.md).
+Afterb458b352 this is planning only, no code/packet/target/test/reviewer. Shared
+first-error latch and protected final bookkeeping proposed for all three R1
+sites, with real IO RED/GREEN then full containment/FINAL. Native NEW4hosts+
+4children=8processes+conditional1review NOT approved. R2 andMinor2 deferred;
+previous successful observations, review blockers and frozen quotas unchanged.
+Read plan and obtain its scope/budget approval before implementation. Clone
+restores documents/source/portable observations, not ignored raw, dependencies,
+CLR identities, credentials or future runtime authority. No replay/reconstruction
+or automatic old-slot resume; recover latest development branch, not main.
+
 Latest:[association guard review-blocked checkpoint](../roadmap/2026-10-19-p2b-process-association-guard-repair.md).
 All approved RED/GREEN7of7/FINAL15lines12PASS observations exact. Unique readonly
 review found R1 Important (final ledger errors can mask earlier cause) and R2
