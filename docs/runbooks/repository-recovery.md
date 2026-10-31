@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+Latest:[runtime review blocked](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md)
+and [full review](../roadmap/2026-10-31-offline-diagnostic-runtime-review.md).
+All8implementation files and six reported exact runs are preserved, but two
+Important findings prevent narrow acceptance: write/dispose first-cause ordering
+and incomplete non-Step/error validation. Budget6hosts/7children/1review fully
+consumed; no remaining runtime or review. Do not rerun profiles, modify frozen
+source/oracle, delete output trees or infer permission from successful records.
+portable-final.json preserves actual current packet bytes/directories/46snapshots
+and full review; older portable-stopped/core/runtime-verified remain historical.
+Read [operator boundaries](offline-diagnostics.md); use new dev branch checkpoint,
+not main. A new repair/verification revision needs explicit separate approval.
+Clone restores necessary progress/evidence, not credentials, pinned cache,
+Session/Ack, live state, consumed allowances or acceptance.
+
 Latest:[runtime private core verified](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md).
 User explicitly resumed stopped remainder; actual runtime-red and16PASS core
 completed without replaying entry phases. All8implementation files now present;

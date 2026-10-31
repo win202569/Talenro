@@ -1,5 +1,19 @@
 # Project status — updated 2026-10-31
 
+## Latest — implementation recorded; independent review blocks acceptance
+
+[Execution](2026-10-31-offline-diagnostic-runtime-migration.md) /
+[complete review](2026-10-31-offline-diagnostic-runtime-review.md).
+All8offline entry/private files implemented. Six grants report expected exact
+results,7actual targets/46snapshots;16core/14lifecycle/13continuation plus12seam
+PASS recorded. Sole fresh review:0Critical/2Important/0Minor. I1 compound
+write/dispose can displace first cause; I2 non-Step observations/errors not
+completely validated. Author accepts both, no auto fix/retest/second review.
+Budget6hosts/7children/1review exhausted. Frozen sources/old records unchanged;
+portable-final preserves complete current packet including review/stop/resume.
+Next requires separately approved repair/verification revision. No main merge,
+new narrow C1/C2 acceptance, historical closure, production/formal/fullC12 claim.
+
 ## Latest — resumed; private core16PASS, lifecycle pending
 
 [Execution](2026-10-31-offline-diagnostic-runtime-migration.md).
