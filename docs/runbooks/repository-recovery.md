@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest:[preparation-only V2 completed](../roadmap/2026-10-31-offline-diagnostic-entry-preparation-v2-complete.md).
+The new converter is fixed; originalRED recovered without replay and oneGREEN
+passed. One Prepare produced2078pins/17source snapshots/8Absent with readonly
+0differences. portable-prepared.json preserves all28actual packet files and
+directories. Older stop/unknown/recovery reports remain historical, not current
+failures. Read latest report first; do not infer runtime permission from files.
+Budget2regressions/1Prepare exhausted, old6hosts/7children/conditional1review
+still frozen. No public/private runtime implementation exists yet; do not run
+Prepare or old driver/capture commands. Clone restores source/evidence only,
+not live Session/Ack, caches, credentials, execution allowance or acceptance.
+
 Latest:[original V2 RED recovered without replay](../roadmap/2026-10-31-preparation-v2-regression-recovery.md).
 Read this before the older UNKNOWN report. Original app completion output
 confirms expected missingRole failure with original serialized error and

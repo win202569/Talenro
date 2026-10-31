@@ -1,4 +1,17 @@
-# Project status — updated 2026-10-19
+# Project status — updated 2026-10-31
+
+## Latest — preparation compatibility fixed and single Prepare verified
+
+[Completed preparation](2026-10-31-offline-diagnostic-entry-preparation-v2-complete.md).
+Human approved remaining1GREEN/1Prepare and3hashed audit inputs. OriginalRED
+not replayed; GREEN passed1930pins/295missingRole/3literal/8required rejection
+cases. Single Prepare exact2078pins/2070Present/8Absent/17source snapshots;
+post-check0differences, tested helper unchanged. Both result texts preserved.
+Total2regressions/1Prepare exhausted;0capture/child/review. Old runtime6/7/
+conditional1still frozen.28actual packet files exported in portable-prepared;
+earlier evidence/exports unchanged.8runtime source paths remain absent.
+Author-only scoped preparation, not C1/C2 closure/fullC12 acceptance or main
+merge. Next actual runtime implementation needs separately approved scope.
 
 ## Latest — original V2 RED recovered readonly, no replay
 
