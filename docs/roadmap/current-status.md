@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-31
 
+## Latest — single scope diagnostic completed; repair remains blocked
+
+[Actual diagnosis](2026-10-31-offline-record-chain-diagnosis.md).
+User approved separate1host/0targets/0compilations/0reviews; single PID11488
+exited0, five ordered stages complete, empty raw streams and healthy exit/drain.
+All four tested function names were shadowed by dynamic-module definitions
+inside caller scope; sentinel was module-only. Historical first ErrorRecord
+still UNKNOWN; no writer/collector call, fixture, profile, repair or rerun.
+All2317old pins plus diagnostic/dependency entries unchanged. Sources/actual
+portable records preserved; new allowance exhausted, old6/7/1/conditional1
+still FROZEN. I1/I2 unresolved; next needs separately written repair adjustment.
+
 ## Latest — record-chain diagnostic proposal; no new execution
 
 [Diagnostic proposal](../superpowers/plans/2026-10-31-offline-record-chain-diagnosis.md).

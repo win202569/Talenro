@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest actual:[scope diagnosis](../roadmap/2026-10-31-offline-record-chain-diagnosis.md).
+Separate approved single diagnostic completed: four commands shadowed during
+caller-function execution, sentinel module-only; original historical first
+cause stays UNKNOWN. Necessary3diagnostic sources and portable-final archive
+preserve actual records; no writer/collector operations or I1/I2 fix occurred.
+The diagnostic1host allowance is exhausted. Original repair6hosts/7targets/
+1compile/conditional1review stays FROZEN; do not rerun either driver, edit
+frozen sources, or infer execution permission from cloned archives. Next needs
+a separately written and approved record-isolation repair/verification adjustment.
+
 Latest planning:[record-chain diagnosis](../superpowers/plans/2026-10-31-offline-record-chain-diagnosis.md).
 Only read-only investigation and a proposal are complete. No new diagnostic
 source or runtime result exists. Unrestricted dynamic-module exports support a
