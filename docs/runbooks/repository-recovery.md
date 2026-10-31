@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest planning:[record-isolation repair](../superpowers/plans/2026-10-31-offline-record-isolation-repair.md).
+Only the written proposal exists. New p2b-record-isolation-repair runtime leaf
+and packet do not exist; do not create/run them from clone instructions alone.
+Proposed separate2hosts/0targets/0compilations/0reviews requires explicit approval.
+It would verify only the export/publisher harness boundary, not repair I1/I2,
+replay writer-red, or resume frozen6/7/1/conditional1runtime allowance. All actual
+scope-diagnostic sources/records remain unchanged; read the actual report below.
+
 Latest actual:[scope diagnosis](../roadmap/2026-10-31-offline-record-chain-diagnosis.md).
 Separate approved single diagnostic completed: four commands shadowed during
 caller-function execution, sentinel module-only; original historical first

@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-31
 
+## Latest — record-isolation repair plan drafted; execution unapproved
+
+[Proposed narrow repair](../superpowers/plans/2026-10-31-offline-record-isolation-repair.md).
+Planning only after a003dfe1. Recommends a small separate harness, not another
+runtime tree: suppress case-module exports and independently bind publication.
+Proposed NEW2hosts/0targets/0compilations/0reviews for nine-group RED→GREEN;
+2394Present entries/16source snapshots if approved. No new runtime files,
+imports/tests/Prepare/targets/agents/reviews ran. Existing2365dependency entries
+matched. Old repair6/7/1/conditional1 remains FROZEN; I1/I2 still unresolved.
+Even harness success would require separate actual-runtime integration approval.
+
 ## Latest — single scope diagnostic completed; repair remains blocked
 
 [Actual diagnosis](2026-10-31-offline-record-chain-diagnosis.md).
