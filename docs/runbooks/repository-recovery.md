@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest planning:[actual I1/I2 integration](../superpowers/plans/2026-10-31-offline-integrated-review-repair.md).
+Only this proposal exists: v3 runtime/new integration leaf/packet are absent.
+Do not create/run them from clone instructions alone. Proposed NEW7hosts/
+7targets/2memory compilations/conditional1review requires explicit approval.
+Normal publication must still call the actual tested production writer, not
+replace it with a standalone instrumentation loop. Old v2/history and verified
+isolation harness remain unchanged; all old allowances stay frozen/exhausted.
+Read proposed file map, RED/GREEN contracts and stop rules before execution.
+
 Latest actual:[record-isolation harness](../roadmap/2026-10-31-offline-record-isolation-repair.md).
 New8source harness completed exact RED5FAIL4PASS then GREEN9PASS using its
 approved2hosts only,0targets/0compilations/0reviews. The new builder export

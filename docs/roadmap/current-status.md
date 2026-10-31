@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-31
 
+## Latest — actual I1/I2 integration revision drafted; no execution approved
+
+[Proposed integration](../superpowers/plans/2026-10-31-offline-integrated-review-repair.md).
+Planning only after c99380db. Recommends new v3 ownership while preserving all
+frozen v2/history; normal private publisher calls the SAME production writer
+as unit tests, with tested no-export case modules and independent failure journal.
+Proposed NEW7hosts/7targets/2memory compilations/conditional1readonly review;
+28sources/2482Present pins/84snapshots; three recorder groups in each real host.
+No new runtime source/import/Prepare/test/compile/target/agent/review ran.
+Existing2394pins matched; I1/I2 unresolved, old6/7/1/conditional1 still FROZEN.
+
 ## Latest — record isolation harness RED→GREEN verified; runtime unaccepted
 
 [Actual scoped repair](2026-10-31-offline-record-isolation-repair.md).
