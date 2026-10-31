@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest planning:[offline diagnostic runtime migration](../superpowers/plans/2026-10-31-offline-diagnostic-runtime-migration.md).
+Based on verified39d55e30preparation, same approved architecture; no new
+runtime code/leaf/packet exists yet. New2129mapping/46snapshot execution and
+NEW6capture hosts/7children/conditional1review are proposed, not authorized.
+Old2078state-aware pins retain8Absent runtime files; do not duplicate those
+pins, edit old manifests, replay Prepare or recover spent/frozen allowances.
+Review and explicitly approve the new written plan before implementation.
+Clone restores documents/evidence, not Session/Ack or runtime authorization.
+
 Latest:[preparation-only V2 completed](../roadmap/2026-10-31-offline-diagnostic-entry-preparation-v2-complete.md).
 The new converter is fixed; originalRED recovered without replay and oneGREEN
 passed. One Prepare produced2078pins/17source snapshots/8Absent with readonly

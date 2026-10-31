@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-31
 
+## Latest — runtime migration plan drafted, new allowance awaiting approval
+
+[New implementation plan](../superpowers/plans/2026-10-31-offline-diagnostic-runtime-migration.md).
+User authorized planning after39d55e30preparation checkpoint. Reuses approved
+offline-entry architecture, new separate runtime leaf/packet; historical
+2078pins/28raw/8leaf unchanged. Proposed2129state-aware mappings,8Absent
+runtime paths and12+14+20=46snapshots; Native3tasks, NEW6hosts/7children/
+conditional1fresh readonly review. Existing spent/frozen allowances untouched.
+This turn documents only:0code/bootstrap/Prepare/import/test/target/agent/
+review. New written plan and allowance require explicit approval before work.
+No production/default verification/CI/Docker changes or main merge proposed.
+
 ## Latest — preparation compatibility fixed and single Prepare verified
 
 [Completed preparation](2026-10-31-offline-diagnostic-entry-preparation-v2-complete.md).
