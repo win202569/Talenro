@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-31
 
+## Latest — resumed; private core16PASS, lifecycle pending
+
+[Execution](2026-10-31-offline-diagnostic-runtime-migration.md).
+Explicit user resume, no entry rerun. Actual backend RED exact, six private
+files added, runtime Prepare2129Present/46total snapshots. Core GREEN16PASS
+including98literal byte conditions,7core,source binding and same-module reentry;
+0targets/empty stderr/exact exit/drain/evidence/pins. Spent4hosts/0children/
+0reviews, remaining2hosts/7children/conditional1review. portable-core preserves
+actual packet. Next lifecycle then continuation, no source changes or probes.
+Historical collector stop remains recorded; no formal/fullC12/C1-C2 acceptance.
+
 ## Latest — entry verified; unfinished collector stop, remainder frozen
 
 [Execution](2026-10-31-offline-diagnostic-runtime-migration.md).

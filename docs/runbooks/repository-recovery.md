@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest:[runtime private core verified](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md).
+User explicitly resumed stopped remainder; actual runtime-red and16PASS core
+completed without replaying entry phases. All8implementation files now present;
+2129pins/46snapshots. portable-core.json contains current packet bytes, while
+portable-stopped.json remains historical. Spent4hosts/0children/0reviews;
+remaining2hosts/7children/conditional1review in current approved execution only.
+Lifecycle/continuation/review not yet done. No automatic execution on clone,
+new allowance from JSON, Session/Ack restoration or old module replay. Sources
+immutable, runtime-green SHA recorded in execution report.
+
 Latest execution:[offline runtime migration Task1](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md).
 Public entry/catalog implemented; entry RED/GREEN exact with6PASS/14rejections,
 2129pins and26source snapshots. Six private runtime files still absent.

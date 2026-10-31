@@ -1,9 +1,32 @@
 # Offline diagnostic runtime migration — execution
 
-Status: UNFINISHED_COLLECTOR_STOP_ENTRY_VERIFIED. Approved plan65b7826c,
+Status: TASK2_CORE_VERIFIED_LIFECYCLE_PENDING. Approved plan65b7826c,
 SHA4DA58CDD8BCBA1A584D08973EDEBE181FE312FD4029F581322BB49A508CBB538.
 Native inline; new6capture hosts/7children/conditional1review. All historical
 allowances remain spent/frozen. No main merge or production integration.
+
+## Explicit resume and Task2
+
+User explicitly resumed remaining4hosts/7children/conditional1review after
+07738d56, preserving all records without rerunning completed phases. Earlier
+collector stop/export remain unchanged historical evidence, not current block.
+Task2 runtime-red via actual public RunApproved exact backend unavailable,
+exit1/0targets/unique expectedFAIL/15NotRun. Added exactly six private files.
+Single runtime-green Prepare SHA
+C3E24036ED56FFC89C8742418342D02A9B447B8C8643B0F8F1860D0DCAEF3175,
+2129Present/0Absent/20snapshots; all46snapshots now present.
+
+Runtime GREEN16PASS:7prefix groups/98literal conditions,7core groups, actual
+source binding and same-module reentry rejection. Exit0/empty stderr/0targets,
+full evidence/exact exit/drain/post-pins, no controller error or rescue. Tool
+session59922 and complete chunks preserved before parsing. Unique module export
+Invoke-ODProfile; fixed new manifest/tests/profile roots, private opaque refs.
+
+Current spent4hosts/0children/0reviews; remaining2hosts/7children/conditional1
+review authorized. Next lifecycle3targets then continuation4targets, one each;
+same runtime-green SHA. Sources/tests/oracle/driver immutable. No production,
+formal/fullC12 or new C1/C2 acceptance: actual lifecycle and review still pending.
+portable-core.json preserves actual packet bytes without replay or authority.
 
 ## Task1 actual verification
 
