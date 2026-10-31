@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-31
 
+## Latest — repair seed frozen; first writer test recording failed
+
+[Execution](2026-10-31-offline-diagnostic-review-repair.md).
+Written plan explicitly approved.25new seed sources/static checks and single
+Prepare2317Present/25snapshots succeeded. First writer-red capture exited2,
+not intended RED; original stdout/stderr/evidence are0bytes, internal first
+cause UNKNOWN. Parent final nonexact/unknown, no target/rescue/input drift.
+Spent1host/0targets/1memory compile/0reviews; remainder6hosts/7targets/1compile/
+conditional1review FROZEN. No fix/retry/refreeze/contract/profile/review followed.
+I1/I2 still Important/unresolved; portable-stopped preserves actual failure
+records and frozen seed. No acceptance or main merge; explicit adjustment needed.
+
 ## Latest — I1/I2 repair plan drafted; new execution awaiting approval
 
 [Proposed repair plan](../superpowers/plans/2026-10-31-offline-diagnostic-review-repair.md).

@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest:[repair first-run stop](../roadmap/2026-10-31-offline-diagnostic-review-repair.md).
+The v2seed sources now exist but are deliberately UNFIXED and UNACCEPTED.
+Prepare froze2317Present/25source snapshots. First writer-red exit2 and0byte
+evidence are real preserved failure/unknown state, not the intended RED.
+Do not import/run v2, replace the empty evidence, edit frozen tests/seed,
+rerun/refreeze or infer permission from portable-stopped.json. It preserves
+actual bytes/directories and tool text only, not an internal cause that was
+never serialized. Spent1host/0targets/1compile/0review; remaining6/7/1/conditional1
+frozen pending explicit diagnostic/recording adjustment. Old I1/I2 unresolved;
+current diagnosis of a scope escape is unconfirmed. Clone restores progress,
+not live Session/Ack, runtime cache/credentials/allowances or acceptance.
+
 Latest planning:[I1/I2 repair proposal](../superpowers/plans/2026-10-31-offline-diagnostic-review-repair.md).
 Baselineda81a0fd retains all8implemented files and unresolved review findings.
 Proposed versioned entry scripts/offline-diagnostics-v2/diagnose-offline.ps1
