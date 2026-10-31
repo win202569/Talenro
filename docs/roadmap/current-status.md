@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-19
 
+## Latest — original V2 RED recovered readonly, no replay
+
+[Recovery evidence](2026-10-31-preparation-v2-regression-recovery.md).
+Exact original completed app event found:27.8405118s, wrapperexit0 but test
+Passedfalse/PropertyNotFoundStrict/missingRole as intended. Original serialized
+error and source/test hashes verified. Earlier UNKNOWN records preserved;
+new portable-recovery contains actual extracted text, not reconstructed output.
+No new tests/Prepare/source fix/process/review.1regression consumed; remaining
+1GREEN/1Prepare still frozen. Proposed narrow adjustment: allow/hash3actual
+audit records in packet and2078pins instead of2075,17snapshots/8Absent same.
+Needs explicit resume approval; no old runtime allowance recovery.
+
 ## Latest — 2026-10-31 V2 first regression outcome unknown
 
 [Resumed execution](2026-10-31-offline-diagnostic-entry-preparation-v2-resume.md).

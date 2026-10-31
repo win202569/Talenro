@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest:[original V2 RED recovered without replay](../roadmap/2026-10-31-preparation-v2-regression-recovery.md).
+Read this before the older UNKNOWN report. Original app completion output
+confirms expected missingRole failure with original serialized error and
+matching source hashes; earlier UNKNOWN records remain historical. New
+portable-recovery.json preserves actual recovered event/output text; it is
+not raw-stream reconstruction or runtime authority. Remaining1GREEN/1Prepare
+still frozen. Proposed approval explicitly allows3hashed audit records and
+2078pins, unchanged17snapshots/8Absent. Do not rerun RED, delete evidence or
+run the unfixed converter/preparation stub automatically.
+
 Latest:[2026-10-31 V2 regression collector unknown](../roadmap/2026-10-31-offline-diagnostic-entry-preparation-v2-resume.md).
 4new sources now exist, but converter remains unfixed and preparation body
 deliberately throws. First regression submitted; actual outcome UNKNOWN after
