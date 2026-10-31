@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-31
 
+## Latest — record-chain diagnostic proposal; no new execution
+
+[Diagnostic proposal](../superpowers/plans/2026-10-31-offline-record-chain-diagnosis.md).
+Read-only source/documentation review found unrestricted New-Module exports
+and dependent collector/publication paths; this supports a command-shadowing
+hypothesis, not recovery of the original missing ErrorRecord. Proposed separate
+scope-only allowance: 1 host / 0 targets / 0 compilations / 0 reviews, awaiting
+explicit approval. No diagnostic source/import/Prepare/test/compile/agent ran.
+All frozen seed inputs and original records remain unchanged; I1/I2 unresolved.
+Original remaining 6hosts/7targets/1compile/conditional1review stays FROZEN.
+
 ## Latest — repair seed frozen; first writer test recording failed
 
 [Execution](2026-10-31-offline-diagnostic-review-repair.md).

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest planning:[record-chain diagnosis](../superpowers/plans/2026-10-31-offline-record-chain-diagnosis.md).
+Only read-only investigation and a proposal are complete. No new diagnostic
+source or runtime result exists. Unrestricted dynamic-module exports support a
+scope/command-shadowing hypothesis; original internal first cause stays UNKNOWN.
+The proposed separate 1host/0targets/0compilations/0reviews is NOT authorized.
+Do not create/run it or resume frozen 6/7/1/conditional1 allowance from a clone.
+Read and explicitly approve the diagnostic proposal first; it never authorizes
+repairing I1/I2, editing frozen tests, replaying writer-red or merging main.
+
 Latest:[repair first-run stop](../roadmap/2026-10-31-offline-diagnostic-review-repair.md).
 The v2seed sources now exist but are deliberately UNFIXED and UNACCEPTED.
 Prepare froze2317Present/25source snapshots. First writer-red exit2 and0byte
