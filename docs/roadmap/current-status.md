@@ -1,5 +1,18 @@
 # Project status — updated 2026-10-31
 
+## Latest — entry verified; unfinished collector stop, remainder frozen
+
+[Execution](2026-10-31-offline-diagnostic-runtime-migration.md).
+New plan explicitly approved;11bootstrap inputs frozen,2129state-aware pins.
+Actual missing-entry RED exact, then public entry/catalog added and entry
+GREEN6PASS including14rejections; no runtime import/target/extra host.
+12+14snapshots,6private files still absent. Spent2of6hosts/0of7children,
+0reviews; remaining4hosts/7children/conditional1review FROZEN. Checkpoint
+archive construction failed (btoa unavailable) before shell dispatch. Original
+outputs/evidence intact; no private implementation/import/review followed.
+Stopped portable checkpoint preserves actual bytes; historical allowances
+unchanged. Explicit resume required; no main/formal/fullC12/C1-C2 acceptance.
+
 ## Latest — runtime migration plan drafted, new allowance awaiting approval
 
 [New implementation plan](../superpowers/plans/2026-10-31-offline-diagnostic-runtime-migration.md).

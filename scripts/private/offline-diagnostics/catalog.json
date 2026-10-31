@@ -1,0 +1,40 @@
+{
+  "Schema": 1,
+  "Authority": "None",
+  "Profiles": [
+    {
+      "Id": "entry-migration-core",
+      "Children": 0
+    },
+    {
+      "Id": "entry-migration-owned",
+      "Children": 3
+    },
+    {
+      "Id": "entry-migration-live",
+      "Children": 4
+    }
+  ],
+  "Dependencies": [
+    {
+      "Role": "Engine",
+      "Path": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+      "SHA256": "362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139"
+    },
+    {
+      "Role": "SMA",
+      "Path": "C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/System.Management.Automation.dll",
+      "SHA256": "2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B"
+    },
+    {
+      "Role": "History",
+      "Path": "docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+      "SHA256": "0D38601783035306FE5165301A1A8364D21676BA0AE6AC77520D052DBD81E6E8"
+    }
+  ],
+  "History": {
+    "Path": "docs/diagnostics/isolated-fuzz/p2b-prestart-cause-repair/portable-summary.json",
+    "State": "Consumed",
+    "Role": "evidence-only"
+  }
+}

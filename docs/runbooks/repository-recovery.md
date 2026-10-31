@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest execution:[offline runtime migration Task1](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md).
+Public entry/catalog implemented; entry RED/GREEN exact with6PASS/14rejections,
+2129pins and26source snapshots. Six private runtime files still absent.
+Read p2b-entry-runtime-migration/portable-stopped.json for actual packet bytes,
+directories and ledger; never overwrite old originals or rerun spent phases.
+Spent2hosts/0children; remaining4hosts/7children/conditional1review FROZEN
+after archive command construction failed (btoa unavailable); no lost raw
+runtime output. Preservation is an unfinished checkpoint, not authorization.
+Frozen tests/driver/public source unchanged; next runtime-red must use exact
+entry-green SHA listed in execution report only after explicit resume. Do not import old modules or
+automatically run diagnostics on another machine. All five flags remain false.
+
 Latest planning:[offline diagnostic runtime migration](../superpowers/plans/2026-10-31-offline-diagnostic-runtime-migration.md).
 Based on verified39d55e30preparation, same approved architecture; no new
 runtime code/leaf/packet exists yet. New2129mapping/46snapshot execution and
