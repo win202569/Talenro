@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest planning:[I1/I2 repair proposal](../superpowers/plans/2026-10-31-offline-diagnostic-review-repair.md).
+Baselineda81a0fd retains all8implemented files and unresolved review findings.
+Proposed versioned entry scripts/offline-diagnostics-v2/diagnose-offline.ps1
+does not exist yet; do not run/create it or replay the old namespace from this
+document. New7hosts/7children/2memory compilations/conditional1review require
+explicit written-plan approval; this planning consent is not execution consent.
+Old frozen sources/raw/portable/review remain byte-identical; no old allowance
+or Session/Ack is restored. Read proposal tradeoffs and fixture limitations.
+
 Latest:[runtime review blocked](../roadmap/2026-10-31-offline-diagnostic-runtime-migration.md)
 and [full review](../roadmap/2026-10-31-offline-diagnostic-runtime-review.md).
 All8implementation files and six reported exact runs are preserved, but two

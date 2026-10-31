@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-31
 
+## Latest — I1/I2 repair plan drafted; new execution awaiting approval
+
+[Proposed repair plan](../superpowers/plans/2026-10-31-offline-diagnostic-review-repair.md).
+User authorized planning only afterda81a0fd review-blocked checkpoint. Proposal
+preserves every frozen source/record, uses separate v2 entry/private/leaf/packet,
+targeted I1/I2 RED→GREEN then3actual profiles. ProposedNEW7capture hosts/
+7controlled children/2in-memory fixture compilations/conditional1fresh review;
+2317Present mappings and75snapshots across3phases. No new execution approved.
+This turn documents only:0runtime code/tests/Prepare/import/compile/target/
+agent/review. Old6/7/1exhausted, I1/I2 still Important blockers, no main merge.
+
 ## Latest — implementation recorded; independent review blocks acceptance
 
 [Execution](2026-10-31-offline-diagnostic-runtime-migration.md) /
