@@ -1,9 +1,26 @@
 # Offline diagnostic runtime migration — execution
 
-Status: TASK2_CORE_VERIFIED_LIFECYCLE_PENDING. Approved plan65b7826c,
+Status: SIX_GRANTS_EXACT_INDEPENDENT_REVIEW_PENDING. Approved plan65b7826c,
 SHA4DA58CDD8BCBA1A584D08973EDEBE181FE312FD4029F581322BB49A508CBB538.
 Native inline; new6capture hosts/7children/conditional1review. All historical
 allowances remain spent/frozen. No main merge or production integration.
+
+## Task3 runtime results — all six grants exact
+
+Lifecycle14PASS/3actual targets: prestart first with Start0/Unassociated/no
+kill or wait; receipt failure once/primary preserved/exact cleanup; normal
+exit and timeout literal-prefix streams. Continuation13PASS plus original
+12seamPASS/4actual targets: active A0/Next1/Reserved1 with real Ack still valid,
+candidate ledger cannot replace Ack;6invalid requests and replay reject without
+extra targets; B fixed budget rejects, C actual closed output fails/no Ack;
+A1 consumes real confirmation once and original seam stdout/trace hashes match.
+All owned exits/drains, raw streams, ordered evidence and2129post-pins exact.
+
+Spent6hosts/7children/0reviews, runtime allowance exhausted. Readonly eligibility
+confirmed6exact finals/7targets/2129Present/46snapshots before the sole fresh
+readonly review. Runtime sources remain immutable; review not yet concluded.
+No rerun/fix round/second review. Operator documentation/final portable handoff
+follow review; no main merge or broader acceptance.
 
 ## Explicit resume and Task2
 
