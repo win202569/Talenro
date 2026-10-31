@@ -1,5 +1,16 @@
 # Project status — updated 2026-10-19
 
+## Latest — 2026-10-31 V2 first regression outcome unknown
+
+[Resumed execution](2026-10-31-offline-diagnostic-entry-preparation-v2-resume.md).
+Human allowed typo correction/same2regressions+1Prepare.4planned sources now
+exist. First regression submitted once; author collector parsed empty output
+without retaining full execution/session result. Actual outcome UNKNOWN,
+not RED/PASS.1invocation consumed; remaining1regression/1Prepare frozen.
+No rerun, Role fix, implemented preparation body, freeze, snapshots or runtime
+hosts/children/review. Old stop report/export unchanged; separate completion
+export is actual data only. Next needs direction on UNKNOWN/collector.
+
 ## Latest — V2 approved, author patch rejected before any implementation
 
 [Actual V2 disposition](2026-10-19-offline-diagnostic-entry-preparation-v2.md).

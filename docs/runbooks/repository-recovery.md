@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest:[2026-10-31 V2 regression collector unknown](../roadmap/2026-10-31-offline-diagnostic-entry-preparation-v2-resume.md).
+4new sources now exist, but converter remains unfixed and preparation body
+deliberately throws. First regression submitted; actual outcome UNKNOWN after
+collector parsing failure, no runtime ErrorRecord/session metadata retained.
+Do not infer RED/PASS, reconstruct output or rerun.1of2regressions consumed;
+remaining1regression/1Prepare frozen; original runtime allowances unchanged.
+Earlier portable-summary.json preserved; later portable-completion.json is
+author-only actual recovery data, not execution authority. Read latest report.
+
 Latest disposition:[V2 author patch rejection](../roadmap/2026-10-19-offline-diagnostic-entry-preparation-v2.md).
 V2 was approved, but my initial patch contained an unrelated incorrect path
 and was wholly rejected before any write. No regression or Prepare ran;
