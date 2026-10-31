@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest actual:[record-isolation harness](../roadmap/2026-10-31-offline-record-isolation-repair.md).
+New8source harness completed exact RED5FAIL4PASS then GREEN9PASS using its
+approved2hosts only,0targets/0compilations/0reviews. The new builder export
+boundary is fixed; independent records and failed-publisher IO0 were checked.
+Portable-final preserves actual bytes and16snapshots. No I1/I2/public runtime
+integration or acceptance followed. All old sources/records remain unchanged.
+New allowance exhausted; old6/7/1/conditional1 still FROZEN. Do not run the
+new driver from a clone, restore permissions from evidence, or edit frozen v2.
+Read the actual report and obtain a separately approved integration revision.
+
 Latest planning:[record-isolation repair](../superpowers/plans/2026-10-31-offline-record-isolation-repair.md).
 Only the written proposal exists. New p2b-record-isolation-repair runtime leaf
 and packet do not exist; do not create/run them from clone instructions alone.

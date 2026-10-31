@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-31
 
+## Latest — record isolation harness RED→GREEN verified; runtime unaccepted
+
+[Actual scoped repair](2026-10-31-offline-record-isolation-repair.md).
+Approved NEW2hosts used once each: RED PID14852/5FAIL4PASS/exit1 exact;
+GREEN PID1496/9PASS/exit0 exact. Independent evidence/journals/exit/drain
+healthy, empty stderr,2394pins intact,16source snapshots. Sole phase edit adds
+no-members exports to new case-module.ps1; all7other sources unchanged.
+Healthy publisher and real existing-file failure/latched IO0 verified.
+No product/I1/I2/runtime integration or independent review; new2host allowance
+exhausted, old6/7/1/conditional1 remains FROZEN. Necessary sources and portable
+actual records preserved. Next requires separately approved integration revision.
+
 ## Latest — record-isolation repair plan drafted; execution unapproved
 
 [Proposed narrow repair](../superpowers/plans/2026-10-31-offline-record-isolation-repair.md).
