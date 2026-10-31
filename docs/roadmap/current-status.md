@@ -1,5 +1,17 @@
 # Project status — updated 2026-10-31
 
+## Latest — integrated v3 seed saved; preparation failed before tests
+
+[Actual stopped execution](2026-10-31-offline-integrated-review-repair.md).
+Approved plan produced28seed sources; static AST/LF/JSON passed and2394
+inherited pins matched. The single Prepare failed because I prematurely saved
+its yielded tool result in the packet while its inventory check was running.
+No manifest/snapshots/host/target/compilation/review; actual0/0/0/0. I1/I2
+unfixed and unvalidated. Remaining NEW7/7/2/conditional1 is FROZEN; no retry
+or source edits after stop. Necessary sources and actual portable records are
+saved as an unfinished checkpoint, not acceptance. Next needs a separately
+approved preparation-recording adjustment. All older limits remain unchanged.
+
 ## Latest — actual I1/I2 integration revision drafted; no execution approved
 
 [Proposed integration](../superpowers/plans/2026-10-31-offline-integrated-review-repair.md).

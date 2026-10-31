@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest actual:[integrated v3 preparation stop](../roadmap/2026-10-31-offline-integrated-review-repair.md).
+Recover the existing development branch, not automatically main. It contains
+28unaccepted v3 seed sources and portable-stopped.json with actual records.
+Static checks passed; the first Prepare failed due to our premature tool-receipt
+write. No manifest/source snapshots or runtime results exist. I1/I2 remain
+unfixed, NEW7hosts/7targets/2compilations/conditional1review all FROZEN.
+Do not run/import v3, remove stop.json, retry/refreeze, modify seed, or infer
+permission from an archive. Read the [v3 safety notice](offline-diagnostics-v3.md).
+Next requires a separately approved preparation-recording adjustment. Preserve
+all older frozen sources, records and limits. Historical entries below describe
+their point-in-time states and do not override this latest actual checkpoint.
+
 Latest planning:[actual I1/I2 integration](../superpowers/plans/2026-10-31-offline-integrated-review-repair.md).
 Only this proposal exists: v3 runtime/new integration leaf/packet are absent.
 Do not create/run them from clone instructions alone. Proposed NEW7hosts/
