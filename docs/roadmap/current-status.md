@@ -1,4 +1,14 @@
-# Project status — updated 2026-10-31
+# Project status — updated 2026-11-01
+
+## Latest — preparation-recording appendix drafted; no execution
+
+[Proposed narrow appendix](../superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md).
+Timing-only waiting cannot clear the intentionally retained stop/inventory
+gates. Recommends an explicitly approved, hash-bound preparation-only exception
+and one-attempt marker, preserving all original records; this design is not yet
+approved. No source change/Prepare/test/import/compile/target/review. All runtime
+allowances remain FROZEN; I1/I2 unresolved. Next: review the design before a
+separate finite preparation-only execution plan, not automatic test resumption.
 
 ## Latest — integrated v3 seed saved; preparation failed before tests
 

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal:[preparation-recording appendix](../superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md).
+Documentation only, not permission to edit or run the driver. It explains why
+waiting alone cannot clear the retained stop and recommends a hash-bound,
+preparation-only one-attempt exception for a later approved plan. Preserve the
+five original packet files and portable archive unchanged. Runtime grants stay
+FROZEN regardless of any future preparation result; no v3 acceptance is implied.
+
 Latest actual:[integrated v3 preparation stop](../roadmap/2026-10-31-offline-integrated-review-repair.md).
 Recover the existing development branch, not automatically main. It contains
 28unaccepted v3 seed sources and portable-stopped.json with actual records.
