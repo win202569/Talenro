@@ -2,6 +2,18 @@
 
 Status: NOT_ACCEPTED. Supplement Task1 complete; Task2 incomplete.
 
+## Latest proposal — typed verifier and complete failure records
+
+Readonly source/PowerShell7.6.5 tracing established a comparison-level defect:
+source Body versus loaded FunctionDefinitionAst extent. ODS-Case also exits
+without retaining comparison operands/completed groups on assertion failure.
+[New design](../superpowers/specs/2026-11-01-offline-owner-scope-verifier-design.md)
+and [plan](../superpowers/plans/2026-11-01-offline-owner-scope-verifier.md) address
+both boundaries together with strict typed comparison and protected case state.
+Old failed GREEN remains failed; its unsaved operands are not reconstructed.
+Proposed additional3auxiliary computations, no runtime budget addition; approval
+pending. This planning turn changed documents only, no source/test/retest.
+
 User approved [supplement design](../superpowers/specs/2026-11-01-offline-owner-scope-signature-design.md)
 and [plan](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md) with “是”.
 Base576d2c25fcc3740caef01b3db84ffd01ef0147d2. Native finite workflow, no agents.

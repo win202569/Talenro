@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — verifier-boundary revision proposed; execution pending
+
+[修订设计](../superpowers/specs/2026-11-01-offline-owner-scope-verifier-design.md)及
+[有限验证计划](../superpowers/plans/2026-11-01-offline-owner-scope-verifier.md)已拟定。
+改为同层函数正文/独立行内参数检查，并统一保留当前组、已完成组、原始错误和比较双方。
+申请3次辅助计算：旧比较器RED、新验证器GREEN、完整九组GREEN；旧3次不返还。
+不新增宿主/编译/目标/快照/审查，原5宿主/7目标/1编译/条件1审查及93/155快照冻结。
+本轮只写方案，未改候选源码或冻结测试，未运行验证；旧GREEN仍失败，NOT_ACCEPTED。
+拟新增溯源后2236pins，需批准修订设计/计划及3次辅助额度后实施。
+
 ## Latest — exact replacement RED; candidate repair GREEN stopped
 
 [实际执行报告](2026-11-01-offline-owner-scope-signature.md)。替代RED精确返回

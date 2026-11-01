@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Newest proposed next step: [verifier-boundary revision](../superpowers/plans/2026-11-01-offline-owner-scope-verifier.md).
+Pending design/plan/3additional auxiliary computations approval; no source/test or
+execution this turn. Existing three computations remain consumed. Proposed new
+sequence is old-checker RED, new-verifier GREEN, full nine-group scope GREEN; not
+a replay of historical scope RED or a refund. Runtime5hosts/7targets/1compile/
+conditional1review and snapshot ceiling155 unchanged/frozen. Current actual
+recovery still uses portable-owner-scope-signature.json and all five stops.
+New test/input/phase/stop/portable names do not exist yet. Only driver provenance
+would further change; other four candidate sources stay fixed. Proposed freeze
+count2236 replaces prior uncreated2228. Never run the current driver automatically.
+
 Newest actual handoff: [signature GREEN stopped](../roadmap/2026-11-01-offline-owner-scope-signature.md).
 Replacement RED exact1FAIL/8NotRun/exit1; five candidate sources authored. Sole
 GREEN failed DefinitionsExact/Capture-Value assertion, exit2/Unexpected=true,
