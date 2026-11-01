@@ -1,5 +1,45 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest authoritative state — writer freeze, prelaunch controller failure
+
+User approved resuming original validation from64cd578e without extra budget.
+Prepare writer-green ran exactly once, exit0,2209pins/2482original rows/2172unique
+inherited paths,31new source snapshots; exact2writer/owner changes accepted.
+Writer freeze SHA256:
+9AC3EAD775DB2BE7D21DE3B1CD3FE46342B1B176BA6B07C03F082D0F63B0C548.
+Actual source freezes2; planned source snapshots62of93. Original seed/REDs intact.
+
+RunOne writer-green invoked once, exit1 BEFORE grant intent/capture creation.
+Actual error CannotIndex at driver.ps1:85, called from507. Readonly source trace:
+line504 decodes manifest with ConvertFrom-Json (PSCustomObject), line507 passes
+it to Driver-FalseFlags, line85 indexes Value[flag] like a dictionary. Saved
+evidence/receipt readers use AsHashtable. The manifest itself is not corrupted.
+This is a frozen controller implementation defect, not writer test failure,
+platform restriction, Docker issue or a successful negative test.
+
+Complete original Prepare/RunOne commands and terminal results retained, with
+driver-created stop.json, readonly diagnosis and integrity command/result.
+All2209writer pins and31writer snapshots verified unchanged. No writer intent,
+final/stdout/stderr/evidence, capture/unit root or repair manifest exists. Thus
+0capture hosts/0targets/0fixture compiles/0runtime reviews consumed. Both2RED
+remain consumed;5hosts/7targets/1compile/conditional1review unused but FROZEN.
+No implementation test pass or Task2 completion is claimed. Overall NOT_ACCEPTED.
+
+No repair, reproduction run, stop removal, manifest mutation/refreeze, later
+stage or reviewer followed. driver.ps1 is among the29other frozen sources and
+cannot be changed under the approved two-file window. Next needs explicit
+source/provenance revision and stop-recovery scope; unused allowances alone
+do not authorize another invocation. Old budgets, failures and fivefalse flags
+unchanged. No main merge or I1/I2 closure.
+
+New portable-writer-prelaunch-stopped.json preserves all actual current packet
+originals including both source freezes and failures; no absent runtime records
+are synthesized. Earlier archives remain unchanged and chronologically labelled.
+
+Archive185actual files/49directories; decoded lengths/SHA256/bytes equal actual
+originals. Archive SHA256:
+437F046811A2376CF39531AD3BEAC5EE1E299A28185383BE56991290C8F51489.
+
 ## Latest authoritative state — candidate implementation, not validated
 
 User approved only correcting the rejected patch context and continuing the

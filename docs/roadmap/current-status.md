@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — writer freeze complete; controller stopped before tests
+
+[Current report](2026-11-01-offline-i1-i2-single-owner.md).
+writer-green prepared once successfully:2209pins,31new snapshots (62of93total).
+The one RunOne invocation then failed before intent/capture creation: manifest
+is PSCustomObject, but Driver-FalseFlags uses dictionary indexing (CannotIndex).
+No writer test, capture host, target, compile or runtime review ran. NOT_ACCEPTED.
+Original2RED consumed;5hosts/7targets/1compile/conditional1review unused/frozen.
+Driver-created stop.json retained. No source fix/refreeze/retry. Latest portable
+archive: portable-writer-prelaunch-stopped.json. Driver is frozen outside the
+two-file window; repair requires explicit source/provenance/stop-recovery scope.
+
 ## Latest — two-file implementation applied; readonly inspection stopped
 
 [Current report](2026-11-01-offline-i1-i2-single-owner.md).

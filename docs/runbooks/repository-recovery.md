@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest authoritative checkpoint: writer-green freeze succeeded once, but its
+RunOne failed before grant intent or capture launch. Actual CannotIndex arises
+from PSCustomObject manifest passed to dictionary-indexing Driver-FalseFlags.
+Read portable-writer-prelaunch-stopped.json and the latest roadmap. It preserves
+both manifests,62actual source snapshots, exact Prepare/RunOne records and
+driver-created stop.json. No writer host/target/compile/review ran. All runtime
+budget unused/frozen; original2RED stay consumed. Do not remove stop.json, rerun
+Prepare/RED/RunOne, edit driver or manufacture absent evidence after cloning.
+Current sources remain byte-equal to writer freeze. A scoped revision of the
+frozen driver/provenance and stop recovery must be approved before any repair.
+
 Latest checkpoint: candidate Task2 writer/owner implementations are now present,
 after explicit limited patch-context approval. A later read-only inspection
 used absent manifest Sources instead of SourcePaths and stopped continuation.
