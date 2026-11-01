@@ -12,6 +12,7 @@ $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $packet=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
 $engine='C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'
 $inputPaths=@('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/.gitattributes','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/README.md','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/expected-output.json','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/test-helpers.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/entry.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/core.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/prefix.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/owned.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/live.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/capture.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/driver.ps1','scripts/offline-diagnostics-v4/diagnose-offline.ps1','scripts/offline-diagnostics-v4/private/catalog.json','scripts/offline-diagnostics-v4/private/session.psm1','scripts/offline-diagnostics-v4/private/sinks.ps1','scripts/offline-diagnostics-v4/private/owned-step.ps1','scripts/offline-diagnostics-v4/private/sequence.ps1','scripts/offline-diagnostics-v4/private/profiles.ps1','scripts/offline-diagnostics-v4/private/observations.ps1','scripts/offline-diagnostics-v4/.gitattributes','scripts/offline-diagnostics-v4/private/write-boundary.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/observation-contract.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/fault-stream.cs','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/observation-contract.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/case-module.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/publisher.psm1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/recording.tests.ps1')
+$inputPaths+=@('scripts/offline-diagnostics-v4/private/record-owner.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/expected-observations.json','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/source-model.ps1')
 function Driver-Hash([string]$Path){(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash}
 function Driver-CheckHash([string]$Path,[string]$Expected){if((Driver-Hash $Path) -cne $Expected){throw ('Input drift/missing: '+$Path)}}
 function Driver-Once([string]$Path,[byte[]]$Bytes){
@@ -38,12 +39,13 @@ function Driver-Verify($Manifest){
     }
 }
 function Driver-Static {
+    Driver-Need ($inputPaths.Count -eq 31 -and @($inputPaths|Select-Object -Unique).Count -eq 31) 'Exact thirty-one source identities'
     foreach($name in @('case-module.ps1','publisher.psm1','recording.tests.ps1','.gitattributes','README.md','expected-output.json','test-helpers.ps1','entry.tests.ps1','core.tests.ps1','prefix.tests.ps1','owned.tests.ps1','live.tests.ps1','capture.ps1','driver.ps1','record-boundary.tests.ps1','observation-contract.tests.ps1','fault-stream.cs','observation-contract.ps1')){
         if(-not [IO.File]::Exists((Join-Path $PSScriptRoot $name))){throw ('Missing explicit frozen source '+$name)}
     }
     foreach($relative in $inputPaths){
         $path=[IO.Path]::GetFullPath((Join-Path $repo $relative))
-        if(-not [IO.File]::Exists($path)){continue}
+        if(-not [IO.File]::Exists($path)){throw ('Missing explicit frozen source '+$relative)}
         if([IO.File]::ReadAllBytes($path) -contains 13){throw ('Non-LF source: '+$relative)}
         if($path.EndsWith('.ps1') -or $path.EndsWith('.psm1')){
             $tokens=$null;$errors=$null
@@ -181,14 +183,17 @@ function Driver-UnitEvidence($Evidence,$Oracle,[string]$CurrentGrant){
             }
         }
     }else{
-        Driver-Need ($Evidence.Observations.Count -eq 23) 'Twenty-three schema cases'
-        for($i=0;$i -lt 23;$i++){
-            $row=$Evidence.Observations[$i];$v=$row.Value;$f=$expected.Groups[$i].Facts
-            Driver-Keys $v @('Index','Kind','Profile','ActualRejected','Error') SchemaCase
-            Driver-Need ($row.Name -ceq 'SchemaCase' -and $v.Index -eq $f.Index -and $v.Kind -ceq $f.Kind -and $v.ActualRejected -is [bool] -and $v.ActualRejected -eq $f.ActualRejected) 'Fixed schema result'
-            $profileIndex=if($i -lt 3){$i}elseif($f.Index -eq 16){2}elseif($f.Index -cin @(17,18)){1}else{0}
-            $profileId=@('entry-migration-core','entry-migration-owned','entry-migration-live')[$profileIndex]
-            Driver-Need ($v.Profile -ceq $profileId) 'Fixed unit profile data'
+        Driver-Need ($CurrentGrant -ceq 'contract-green' -and $Evidence.Observations.Count -eq 1 -and $Evidence.Observations[0].Name -ceq 'SchemaSuite') 'One bounded contract aggregate'
+        $cases=$Evidence.Observations[0].Value
+        Driver-Need ($cases -is [array] -and $cases.Count -eq 49 -and $Oracle.ContractGroupNames.Count -eq 49) 'All forty-nine actual contract cases'
+        $ids=@('entry-migration-core','entry-migration-owned','entry-migration-live')
+        for($i=0;$i -lt 49;$i++){
+            $v=$cases[$i]
+            Driver-Keys $v @('Name','Profile','Kind','ExpectedRejected','ActualRejected','Error') SchemaCase
+            $reject=($i -ge 4 -and $i -le 23) -or ($i -ge 28 -and $i -le 45)
+            $kind=if($i -eq 0){'Availability'}elseif($i -le 3){'Baseline'}elseif($i -le 23){'Mutation'}elseif($i -le 26){'Schema2'}elseif($i -eq 27){'IntentFailure'}elseif($i -le 45){'Schema2Mutation'}else{'Static'}
+            $profileId=if($i -eq 0 -or $i -ge 46){''}elseif($i -le 3){$ids[$i-1]}elseif($i -ge 24 -and $i -le 26){$ids[$i-24]}elseif($i -eq 19){$ids[2]}elseif($i -cin @(20,21)){$ids[1]}else{$ids[0]}
+            Driver-Need ($v.Name -ceq $Oracle.ContractGroupNames[$i] -and $v.Kind -ceq $kind -and $v.Profile -ceq $profileId -and $v.ExpectedRejected -is [bool] -and $v.ExpectedRejected -eq $reject -and $v.ActualRejected -is [bool] -and $v.ActualRejected -eq $reject) 'Fixed complete contract case disposition'
             if($v.ActualRejected){
                 Driver-Keys $v.Error @('Type','Message','ErrorId','Position','Stack') ContractError
                 Driver-Need ($v.Error.Type -ceq 'System.Management.Automation.RuntimeException' -and $v.Error.Message -ceq 'OD: observation contract mismatch' -and $v.Error.ErrorId -ceq 'OD: observation contract mismatch') 'Only exact contract error is rejection'
@@ -199,6 +204,7 @@ function Driver-UnitEvidence($Evidence,$Oracle,[string]$CurrentGrant){
 }
 
 . (Join-Path $PSScriptRoot observation-contract.ps1)
+. (Join-Path $PSScriptRoot source-model.ps1)
 
 function Driver-Recorder($Evidence,$Oracle,[string]$CurrentGrant,$Manifest){
     $records=@($Evidence.Observations | Where-Object {$_.Name -ceq 'Recorder'})
@@ -251,6 +257,19 @@ function Driver-Recorder($Evidence,$Oracle,[string]$CurrentGrant,$Manifest){
 function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manifest,[string]$KnownFreeze){
     $e=$Evidence
     Driver-Keys $e $Oracle.EvidenceRootNames Evidence
+    # Validate every returned representation before deciding success/failure.
+    # INCOMPLETE with no rows is a known failure representation, never a pass.
+    # The actual parent has no historical/unit-context fallback.
+    if($CurrentGrant -cin @('core','lifecycle','continuation')){
+        $returns=@($e.Observations|Where-Object Name -CEQ ProfileReturn)
+        Driver-Need ($returns.Count -eq 1) 'one complete profile representation required'
+        $context=New-ODRuntimeContext $repo $Profile.Profile $Manifest $KnownFreeze
+        Assert-ODProfileReport $returns[0].Value $Profile.Profile $context
+        if($returns[0].Value.Status -ceq 'COMPLETE'){
+            Assert-ODProfileObservations $returns[0].Value.Observations $Profile.Profile $context
+        }
+        Driver-Need ($returns[0].Value.Status -ceq 'COMPLETE') 'valid failure representation remains unsuccessful'
+    }
     Driver-Need ($e.Schema -eq 1 -and $e.Grant -ceq $CurrentGrant -and $e.Status -ceq $Profile.Status -and -not $e.Overflow -and $null -eq $e.PrimaryError -and $e.SecondaryErrors.Count -eq 0 -and $null -eq $e.CurrentGroup -and $null -eq $e.Probe) 'Capture status/controller fault mismatch'
     Driver-Need ((Driver-EqualJSON $e.Groups $Profile.Groups) -and (Driver-EqualJSON $e.NotRun $Profile.NotRun)) 'Ordered groups/NotRun mismatch'
     Driver-FalseFlags $e
@@ -283,7 +302,7 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
     if($expectedReturns -eq 1){
         $r=$profileReturns[0].Value
         Driver-Keys $r $Oracle.ProfileRootNames ProfileReport
-        Driver-Need ($r.Schema -eq 1 -and $r.Profile -ceq $Profile.Profile -and $r.Status -ceq 'COMPLETE' -and $r.Closed -and $null -eq $r.PrimaryError -and $r.SecondaryErrors.Count -eq 0 -and -not $r.Overflow -and $r.FrozenSHA256 -ceq $KnownFreeze) 'Private runtime report status mismatch'
+        Driver-Need ($r.Schema -eq 2 -and $r.Profile -ceq $Profile.Profile -and $r.Status -ceq 'COMPLETE' -and $r.Closed -and $null -eq $r.PrimaryError -and $r.SecondaryErrors.Count -eq 0 -and -not $r.Overflow -and $r.FrozenSHA256 -ceq $KnownFreeze) 'Private runtime report status mismatch'
         Driver-FalseFlags $r
         Driver-Need ($r.EntryPath -ceq [IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/diagnose-offline.ps1')) -and $r.KernelPath -ceq [IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/private/session.psm1')) -and $r.EntrySHA256 -ceq (Driver-PinHash $Manifest 'scripts/offline-diagnostics-v4/diagnose-offline.ps1') -and $r.KernelSHA256 -ceq (Driver-PinHash $Manifest 'scripts/offline-diagnostics-v4/private/session.psm1')) 'Actual source identity differs from independently frozen pins'
         $offset=6
@@ -291,7 +310,6 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
         $expectedGroups=@($Profile.Groups | Select-Object -Skip $offset -First $count)
         Driver-Need (Driver-EqualJSON $r.Groups $expectedGroups) 'Profile ordered group projection mismatch'
         Driver-Need ($r.Observations -is [array] -and $r.Observations.Count -le 32) 'Profile observation bounds'
-        Assert-ODProfileObservations $r.Observations $Profile.Profile ([ordered]@{Repo=$repo;PacketRoot=$packet;ProfileRoot=[IO.Path]::GetFullPath((Join-Path $packet ('profiles/'+$Profile.Profile)));Oracle=$Oracle;Sources=[ordered]@{Sinks=(Join-Path $repo 'scripts/offline-diagnostics-v4/private/sinks.ps1');Core=(Join-Path $repo 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/core.tests.ps1')}})
         foreach($detail in $r.Observations){
             Driver-Keys $detail @('Name','Value') ProfileObservation
             if($detail.Name -ceq 'Step'){$owned=Driver-Step $detail.Value $Oracle $Profile.Profile;if($null -ne $owned){$started.Add($owned)}}

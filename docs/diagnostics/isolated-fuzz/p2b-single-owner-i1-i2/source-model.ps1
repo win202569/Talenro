@@ -97,3 +97,22 @@ function New-ODRuntimeContext([string]$Repo,[string]$Profile,[Collections.IDicti
 function New-ODHistoricalContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest){
     return New-ODFixedContext $Repo $Profile $Manifest '' $true
 }
+
+# This explicit data-unit context is never selected by the runtime consumer.
+# It describes the already planned writer-green IntentFailureNoWork case only.
+function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifest,[string]$RepairSHA256){
+    $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256
+    $writerManifest=Join-Path $context.PacketRoot 'writer-green.frozen.json'
+    $writerHash=(Get-FileHash -LiteralPath $writerManifest -Algorithm SHA256).Hash
+    if($Manifest.PreviousFrozenSHA256 -cne $writerHash){throw 'OD: unit context prior freeze mismatch'}
+    $context.Manifest=[ordered]@{Path=$writerManifest;SHA256=$writerHash}
+    $context.ProfileRoot=[IO.Path]::GetFullPath((Join-Path $context.PacketRoot 'unit/writer-green/owner-controls/intent-profile/entry-migration-core'))
+    $extra=Read-ODSourceModel $Repo @('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/case-module.ps1') $Manifest
+    foreach($key in $extra.Keys){$context.SourceModel[$key]=$extra[$key]}
+    $context.IntentFailure=[ordered]@{
+        Type='System.Management.Automation.MethodInvocationException';ErrorId='IOException'
+        Message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $context.PacketRoot 'unit/writer-green/owner-controls/intent-existing.bin'))
+        Source=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'));Function='New-ODRecordStream';Operation='Open'
+    }
+    return $context
+}

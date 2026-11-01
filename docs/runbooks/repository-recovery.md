@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Current I2 authoring:49case body, bounded partial aggregate and both actual
+parent predicate calls are written, NOT executed. Read the latest roadmap and
+portable-i2-authoring.json incremental receipts alongside earlier archives.
+Next is driver preparation/pin/source-window/writer/recorder migration and final
+source-context static checks. First freeze and every runtime budget remain unused.
+
 Current:[approved prefreeze continuation](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
 Restore the development branch, not main.31source paths exist but remain
 UNFINISHED/NOT_RUN: do not invoke driver/entry/tests yet. The latest portable

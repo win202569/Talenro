@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — I2 suite and parent calls authored, still NOT RUN
+
+[Single-owner continuation](2026-11-01-offline-i1-i2-single-owner.md).
+Authored all49I2 cases (+3recorder planned), exact mismatch-only rejection,
+bounded partial-result aggregate and explicit historical/unit/runtime contexts.
+Parent calls both complete predicates and rejects valid INCOMPLETE reports.
+AdditionalReject15 coherently moves all copies of one cause to a real function
+declaration line, preventing copy-equality from substituting for AST validation.
+Driver31source inventory updated. Seed preparation/source windows, writer-unit
+and recorder decoding still need migration; source contexts need final static
+cross-check. No freeze/RED/GREEN/host/target/compile/review. Do not run scripts.
+
 ## Latest — approved prefreeze authoring continuation, NOT RUN
 
 [Current single-owner work](2026-11-01-offline-i1-i2-single-owner.md).

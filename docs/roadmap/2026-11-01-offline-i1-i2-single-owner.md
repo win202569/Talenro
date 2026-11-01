@@ -157,3 +157,44 @@ No capture host/test or commit ran. Under the approved prefreeze authoring
 amendment, selected one actual Git application and normalized only the new
 portable JSON line endings. Archived file payloads remain identical; subsequent
 ledger/error records are preserved separately in portable-authoring-git-checkpoint.json.
+
+## I2 suite and actual parent call authoring — still prefreeze
+
+Continued fromce964e76. The I2 test body now defines all49ordered cases: API
+availability, three historical positives, original20mutations, three independent
+Schema2wrappers, actual saved intent-failure representation, additional18
+mutations and three readonly static checks. The expected values are frozen
+literal data/contracts, not derived from future validator output. Nothing ran.
+
+Only the fixed RuntimeException Message/FQID counts as rejection; unexpected
+exceptions escape as failures. Successful predicates must emit nothing. One
+SchemaSuite aggregate is updated after each completed case, preserving partial
+results without exceeding the32top-level observation bound. Three recorder
+groups remain separate for the planned52total, not yet dynamically established.
+
+The intent unit context binds the writer-green prior manifest and fixed unit
+root/error signature; it is never selected by the actual runtime parent.
+AdditionalReject15 changes all duplicate projections of one cause coherently
+to the actual function-declaration line and matching top stack line: a valid
+file line is not a valid fault statement. This avoids a false-negative test
+that merely breaks equality between copies rather than requiring AST binding.
+
+Driver-Evidence now calls Assert-ODProfileReport and, for COMPLETE reports,
+Assert-ODProfileObservations using only New-ODRuntimeContext. A valid INCOMPLETE
+representation still fails parent disposition. Contract-unit decoding expects
+one aggregate with49ordered cases and literal kind/profile/rejection matrix.
+Driver explicit source inventory expanded to31, missing named sources reject.
+
+These are candidate source changes, NOT test passes or I1/I2 acceptance. The
+driver still contains old preparation adjustment, inherited pin preparation,
+writer-unit and recorder contracts; do not invoke it. Remaining authoring must
+replace those portions, freeze metadata including PreviousFrozenSHA256/PinCount,
+and cross-check isolated AST source frames before the first freeze. APIs stay
+definition-free until the exact planned availability REDs. Budget consumption0.
+
+portable-i2-authoring.json is an incremental recovery archive:9actual files,
+7directories,4changed authoring snapshots and three actual parse-result
+envelopes. Decoded bytes equal originals; its two prerequisite portable archives
+were checked unchanged. SHA256:
+A3D14101EB57B5C21E94CBFC066D039F2E8D824A08832D06CDC71766968002F7.
+These are authoring snapshots, not any of the planned93source-freeze snapshots.
