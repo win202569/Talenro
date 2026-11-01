@@ -1,5 +1,16 @@
 # Project status — updated 2026-11-01
 
+## Latest — full checker readonly audit; unified revision recommended
+
+[Audit findings](2026-11-01-offline-checker-readonly-audit.md).
+Complete original parent/recheck/probe read, AST-only assignment review.
+Two actual blockers (reserved Error, singleton labels) plus4static gaps:
+shape/types, source attribution, JSONL trailing records and persistence cleanup
+first-cause handling. No mutation or retry; static gaps are not claimed as
+observed false passes. Recommends one consolidated contract/checker revision,
+not another one-line retry. Code/results unchanged,0new hosts/targets/compiles/
+reviews; integration6/7/1/conditional1 FROZEN and I1/I2 unresolved.
+
 ## Latest — zero-host readonly recheck failed on reserved variable
 
 [Actual stopped recheck](2026-11-01-offline-error-reference-readonly-recheck.md).

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest readonly:[complete checker audit](../roadmap/2026-11-01-offline-checker-readonly-audit.md).
+Read6findings before proposing another correction:2actual execution blockers
+and4source-only contract/recording gaps, with explicit evidence limits. Audit
+did not modify or execute either checker/probe, run data mutations or redo the
+incomplete full-pin audit. Do not treat it as code repair, accepted data result
+or approval for tests. Unified revision still needs separate scope/approval;
+all original failures and integration6/7/1/conditional1 FROZEN remain.
+
 Latest actual:[readonly computation stopped](../roadmap/2026-11-01-offline-error-reference-readonly-recheck.md).
 portable-readonly-recheck.json preserves8new sidecar records, separate from
 original16file archive. New Outcome=FAILED/CasesChecked=0 due to reserved
