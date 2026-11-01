@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory)][ValidateSet('writer-red','contract-red','writer-green','contract-green','core','lifecycle','continuation')][string]$Grant,
+    [Parameter(Mandatory)][ValidateSet('writer-green','contract-green','core','lifecycle','continuation')][string]$Grant,
     [Parameter(Mandatory)][ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256
 )
 Set-StrictMode -Version Latest
@@ -54,7 +54,11 @@ function Capture-Once([string]$Path,$Value){
     if($bytes.Length -gt 1048576){throw 'Evidence byte limit exceeded'}
     if($script:EvidenceAttempted){throw 'Evidence attempt consumed'}
     $script:EvidenceAttempted=$true
-    & $script:Publisher {param($Path,$Bytes)Write-ODCaptureRecord $Path $Bytes} $Path $bytes
+    $outcome=& $script:Publisher {param($Path,$Bytes)Write-ODCaptureRecord $Path $Bytes} $Path $bytes
+    $consumption=[pscustomobject]@{Consumed=$false}
+    Register-ODRecordOutcome $outcome $consumption
+    if(-not $outcome.Succeeded){$script:Aborted=$true}
+    return $outcome.Succeeded
 }
 
 function Capture-ErrorSummary {
@@ -97,6 +101,7 @@ try{
     $journal=[IO.File]::Open((Join-Path $script:CaptureRoot journal.jsonl),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
     Write-ODJournal ([Text.Encoding]::UTF8.GetBytes('{"Stage":"begin"}'+"`n"))
     . (Join-Path $repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1')
+    . (Join-Path $repo 'scripts/offline-diagnostics-v4/private/record-owner.ps1')
     $oracle=Get-Content -LiteralPath (Join-Path $PSScriptRoot expected-output.json) -Raw | ConvertFrom-Json -AsHashtable
     . (Join-Path $PSScriptRoot recording.tests.ps1)
     $script:RecorderGuard=Start-ODRecorderGuards
@@ -104,9 +109,7 @@ try{
     . (Join-Path $PSScriptRoot test-helpers.ps1)
     . (Join-Path $PSScriptRoot entry.tests.ps1)
     switch -CaseSensitive ($Grant){
-        'writer-red' {. (Join-Path $PSScriptRoot record-boundary.tests.ps1);Invoke-ODWriterTests}
         'writer-green' {. (Join-Path $PSScriptRoot record-boundary.tests.ps1);Invoke-ODWriterTests}
-        'contract-red' {. (Join-Path $PSScriptRoot observation-contract.tests.ps1);Invoke-ODContractTests}
         'contract-green' {. (Join-Path $PSScriptRoot observation-contract.tests.ps1);Invoke-ODContractTests}
         'core' {Invoke-ODEntryContract $Grant;Invoke-ODRuntimeContract $Grant}
         'lifecycle' {Invoke-ODEntryContract $Grant;Invoke-ODRuntimeContract $Grant}
@@ -115,10 +118,14 @@ try{
     Complete-ODRecorderGuards $script:RecorderGuard $script:Publisher $script:CaseModules
     Write-ODJournal ([Text.Encoding]::UTF8.GetBytes('{"Stage":"tests-complete"}'+"`n"))
     $script:CurrentGroup=$null
-    $exitCode=if(@($script:Groups | Where-Object {-not $_.Passed}).Count -gt 0){1}else{0}
+    $exitCode=if($script:Aborted){2}elseif(@($script:Groups | Where-Object {-not $_.Passed}).Count -gt 0){1}else{0}
 }catch{$script:Aborted=$true;$exitCode=2;Capture-Failure $_;Journal-ODFailure $_}
 finally{try{[Console]::Out.Flush()}catch{Capture-Failure $_;$exitCode=2;Journal-ODFailure $_}}
 if($null -ne $script:HostPrimary){Capture-ErrorSummary}
-try{Capture-Evidence;Write-ODJournal ([Text.Encoding]::UTF8.GetBytes('{"Stage":"published"}'+"`n"))}catch{Capture-Failure $_;$exitCode=2;Journal-ODFailure $_;Capture-ErrorSummary}
+try{
+    $published=Capture-Evidence
+    if($published){Write-ODJournal ([Text.Encoding]::UTF8.GetBytes('{"Stage":"published"}'+"`n"))}
+    else{$exitCode=2;Capture-ErrorSummary}
+}catch{Capture-Failure $_;$exitCode=2;Journal-ODFailure $_;Capture-ErrorSummary}
 finally{if($null -ne $journal){try{$journal.Dispose()}catch{$exitCode=2}}}
 exit $exitCode

@@ -14,11 +14,11 @@ function Invoke-ODProfile {
     $script:Grant=$Profile
     $Grant=$Profile
     $repo=$script:Repo;$packet=$script:Packet
-    $manifestPath=Join-Path $packet 'repair-green.frozen.json'
+    $manifestPath=$script:ProfileManifestPath
     $FrozenSHA256=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
     $script:FrozenSHA256=$FrozenSHA256
     $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if($manifest.Schema -ne 2 -or $manifest.Phase -cne 'repair-green' -or $manifest.Pins.Count -ne 2482){throw 'OD: unbound runtime manifest'}
+    if($manifest.Schema -ne 2 -or $manifest.Phase -cne $script:ProfilePhase -or $manifest.Pins.Count -ne $manifest.PinCount -or $manifest.PinCount -lt 2482){throw 'OD: unbound runtime manifest'}
     $seen=@{}
     foreach($pin in $manifest.Pins){
         if($pin.ExpectedState -cne 'Present' -or (Get-FileHash -LiteralPath $pin.VerificationPath -Algorithm SHA256).Hash -cne $pin.SHA256){throw 'OD: frozen input changed'}
@@ -30,12 +30,15 @@ function Invoke-ODProfile {
     $entryPath=[IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/diagnose-offline.ps1'))
     $entryHash=(Get-FileHash -LiteralPath $entryPath -Algorithm SHA256).Hash
     $kernelHash=(Get-FileHash -LiteralPath $script:KernelPath -Algorithm SHA256).Hash
-    $root=Join-Path $packet ('profiles/'+$Profile)
+    $root=Join-Path $script:ProfileRootBase $Profile
     if(Test-Path -LiteralPath $root){throw 'OD: profile already attempted'}
     $null=[IO.Directory]::CreateDirectory($root)
     $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject ([ordered]@{Profile=$Profile;AttemptConsumed=$true;FrozenSHA256=$FrozenSHA256})))
-    Write-ODProfileIntentRecord (Join-Path $root profile.intent.json) $bytes
+    $intentOutcome=Write-ODProfileIntentRecord (Join-Path $root profile.intent.json) $bytes
+    $intentConsumption=[pscustomobject]@{Consumed=$false}
+    Register-ODRecordOutcome $intentOutcome $intentConsumption
     $closed=$true
+    if($intentOutcome.Succeeded){
     try{
         . (Join-Path $script:TestLeaf test-helpers.ps1)
         switch -CaseSensitive ($Profile){
@@ -60,9 +63,10 @@ function Invoke-ODProfile {
         try{[Console]::Out.Flush()}catch{Capture-Failure $_}
         $script:CurrentGroup=$null
     }
+    }
     $good=$closed -and $null -eq $script:HostPrimary -and $script:HostSecondary.Count -eq 0 -and -not $script:HostOverflow -and @($script:Groups | Where-Object {-not $_.Passed}).Count -eq 0
     [pscustomobject][ordered]@{
-        Schema=1;Profile=$Profile;EntryPath=$entryPath;EntrySHA256=$entryHash
+        Schema=2;Profile=$Profile;EntryPath=$entryPath;EntrySHA256=$entryHash
         KernelPath=$script:KernelPath;KernelSHA256=$kernelHash;FrozenSHA256=$FrozenSHA256
         Status=$(if($good){'COMPLETE'}else{'INCOMPLETE'});Groups=$script:Groups.ToArray();Observations=$script:Details.ToArray()
         PrimaryError=$script:HostPrimary;SecondaryErrors=$script:HostSecondary.ToArray();Overflow=$script:HostOverflow;Closed=$closed

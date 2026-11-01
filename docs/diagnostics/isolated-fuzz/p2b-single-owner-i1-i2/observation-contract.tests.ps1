@@ -4,6 +4,15 @@ function Get-ODHistoricalContext([string]$Profile){
 }
 function Invoke-ODContractTests {
     . (Join-Path $PSScriptRoot observation-contract.ps1)
+    $available=$true
+    foreach($name in @('Assert-ODProfileObservations','Assert-ODProfileReport')){
+        if($null -eq (Get-Command $name -CommandType Function -ErrorAction Ignore)){$available=$false}
+    }
+    if(-not $available){
+        $groups=@(foreach($name in $oracle.ContractGroupNames){[ordered]@{Name=$name;Status=$(if($name -ceq 'ContractAPIAvailable'){'FAIL'}else{'NotRun'})}})
+        return [pscustomobject][ordered]@{Schema=1;PASS=0;FAIL=1;NotRun=51;ExitCode=1;Groups=$groups}
+    }
+    LS-Result ContractAPIAvailable $true ([ordered]@{Verified=$true})
     $historical=Join-Path $repo '.superpowers/sdd/2026-10-31-offline-diagnostic-runtime-migration'
     $refs=@(
         @('runtime-green','entry-migration-core','58B2D81047526EFB2BEE3FD8155DFAF493FC3FD6ECAAE32B0E7ED19C7DB66EA0'),

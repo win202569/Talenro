@@ -5,6 +5,9 @@ $script:Packet=Join-Path $script:Repo '.superpowers/sdd/2026-11-01-offline-i1-i2
 $script:TestLeaf=Join-Path $script:Repo 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2'
 $script:Oracle=$null
 $script:Invoked=$false
+$script:ProfilePhase='repair-green'
+$script:ProfileManifestPath=Join-Path $script:Packet 'repair-green.frozen.json'
+$script:ProfileRootBase=Join-Path $script:Packet 'profiles'
 $script:KernelPath=$PSCommandPath
 $script:Sessions=[Collections.Generic.List[object]]::new()
 $script:Clock=[Diagnostics.Stopwatch]::StartNew()
@@ -16,6 +19,7 @@ $script:Engine='C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/depe
 . (Join-Path $script:Repo 'docs/diagnostics/isolated-fuzz/p2b-process-association-guard-repair/owned-process-observation.ps1')
 . (Join-Path $PSScriptRoot observations.ps1)
 . (Join-Path $PSScriptRoot write-boundary.ps1)
+. (Join-Path $PSScriptRoot record-owner.ps1)
 . (Join-Path $PSScriptRoot profiles.ps1)
 
 function Find-LSSession([object]$Handle){

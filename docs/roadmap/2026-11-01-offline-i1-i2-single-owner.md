@@ -95,3 +95,65 @@ D4055A83AD385A4B31D778CFDE7EAF8F0F1A6647C6A72D64F92C76B37926D08C.
 The actual complete authoring error output is saved with a labelled operation
 summary; no claim is made to retain the full original failed transformation
 command text. The corrected provenance command/result are retained in full.
+
+## Approved prefreeze authoring continuation — unfinished
+
+User approved pure authoring/structural corrections before the FIRST freeze;
+provenance and every post-freeze failure still stop immediately. Original
+failed receipts and both stopped archives remain unchanged. No extra budget.
+
+Corrected oracle transformation targets the actual Present template only.
+Literal expectations now name26writer groups and52contract groups (49contract
+cases plus3recorder groups); old RED host grants removed from expected data.
+Continuation stdout ordering is preserved, not rebuilt from group names.
+
+Authored candidate caller changes: Schema2 profile reports; intent result
+consumed before any work, no handled I/O rethrow; capture imports profile errors
+once and marks INCOMPLETE unsuccessful; final publication returns a live result
+to capture, latches attempts and does not retry; actual publisher has no collector.
+Global ErrorRecord-reference deduplication algorithm is unchanged.
+
+Writer suite authoring now includes availability-first guard, ten outcome-based
+operation cases and twelve named owner controls. Actual capture/profile function
+ASTs are used in isolated test scopes. These controls HAVE NOT RUN. The complete
+I2 GREEN body still reflects old cases and MUST be adapted before source freeze.
+Both validator APIs and five writer/owner APIs remain absent intentionally.
+
+Added source-model.ps1: definitions-only readonly fixed runtime/historical
+context builders, pin checks and independent AST function/call/fault extents.
+It has NOT been invoked or dynamically verified. All31planned source paths now
+exist. A readonly prefreeze check parsed PowerShell/JSON, checked LF and scanned
+reserved-variable writes, returning no issues. This is structural evidence only,
+not full static security review, API RED, GREEN or source freeze.
+
+Ruling: writer tests explicitly inventory12private scopes, not the earlier
+authoring idea of11: ten writer cases + owner-control scope + a separate final
+write-fault scope. Actual publisher's default factory is never replaced by that
+fault scope. Recorder stages remain32 (ten ×3 plus Before/After); no extra
+capture host/target/compilation. All expectation changes precede first freeze.
+
+Remaining Task1 work: complete52group I2 test body and bounded aggregate
+observations; finish fixed contexts for all fixtures; adapt driver31source list,
+inherited pin map/count, three source windows and final full Schema2 predicates;
+recheck live fault signatures, caller/collector/export bindings and no-work
+behavior statically. Only then freeze31sources and consume the two REDs once.
+
+Current disposition PREFREEZE_AUTHORING_IN_PROGRESS / NOT_RUN / NOT_ACCEPTED.
+NEW consumption remains0of2RED,0of5hosts,0of7targets,0of1compile,0ofconditional1
+runtime review. Older budgets remain frozen. This is an ordinary recovery
+checkpoint, not completion, permission expansion or a main merge.
+
+portable-authoring-progress.json preserves76actual packet files/17directories,
+including31current authoring snapshots (NOT the planned source-freeze snapshots).
+Decoded lengths/SHA256/bytes were checked against actual originals. Archive SHA:
+Initial encoding2F62C7D3D48D98E3174478785B6FFADB795C99C9D43D28825C2A30BB7FBAB0A8;
+after mechanical LF normalization for byte-exact Git staging, current archive
+SHA95CEF46BE6A78B48B6280B58A64814F1025AEA0A202444148553E67A60B20B0A.
+Earlier stopped archives are not overwritten or relabelled.
+
+Checkpoint tooling initially failed before commit: application discovery found
+two Git executables and joined them into one invalid ProcessStartInfo path.
+No capture host/test or commit ran. Under the approved prefreeze authoring
+amendment, selected one actual Git application and normalized only the new
+portable JSON line endings. Archived file payloads remain identical; subsequent
+ledger/error records are preserved separately in portable-authoring-git-checkpoint.json.

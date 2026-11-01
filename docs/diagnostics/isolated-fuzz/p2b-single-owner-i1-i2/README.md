@@ -1,11 +1,25 @@
-# Integrated offline review repair
+# Offline I1/I2 single-owner repair — UNFINISHED, DO NOT RUN
+
 Approved plan: docs/superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md.
-Independent v3 entry, case modules and private production-bound publisher.
-All28sources freeze before RED; only writer then validator change in their windows.
-Seven capture hosts/seven targets/two in-memory compilations/conditional one review.
-Default Inspect stays non-running. No old driver replay, budget restoration,
-module Force/unload, failed output retry, installation, deletion or main merge.
-Three recorder groups per host bind actual references, module state and writer source.
-Normal evidence and unit cases call the same production writer; journal is not fallback.
-Any nonexact/unknown result freezes remaining grants and reviewer. Actual bytes,
-errors, early tool returns and zero-byte files are preserved without reconstruction.
+Design, Native execution and finite budget are approved; historical failures and
+older budgets are unchanged. User also permitted pure authoring corrections
+before the FIRST source freeze, not post-freeze retries/provenance relaxation.
+
+All31source paths now exist, but the driver and full I2 suite are NOT adapted.
+Writer/owner and validator APIs remain intentionally definition-free seeds.
+No source freeze, availability RED, capture host, target, compilation or runtime
+review has run. Syntax/JSON/LF checks alone do not establish functionality.
+
+Planned: two tool-context availability REDs (1FAIL/25NotRun and1FAIL/51NotRun),
+then5capture hosts/7targets/1in-memory fixture compilation/conditional1review.
+Before RED, freeze all31sources and independent26/52group expectations; later
+windows change only2writer/owner files, then1validator file, for93snapshots.
+
+The actual capture publisher must have no collector, return live outcomes and
+use the real source-bound default factory. The capture owner consumes once.
+Writer tests inventory12private scopes: ten operation cases, owner controls and
+one final-write fault scope; recorder stage bound stays32. No extra host/target.
+
+Next: finish complete I2 cases, fixed source contexts and driver/pin/parent
+adaptation, then perform all prefreeze static checks BEFORE consuming REDs.
+Do not use copied old driver grants or claim successful repair from this leaf.

@@ -103,8 +103,12 @@ function Invoke-ODRuntimeContract([string]$CurrentGrant){
     LS-Details ProfileReturn $report
     LS-Need ($null -ne $report -and (OD-Equal @($report.PSObject.Properties.Name) $oracle.ProfileRootNames)) 'full profile ordered root'
     foreach($group in $report.Groups){$script:Groups.Add($group)}
-    if($null -ne $report.PrimaryError){Capture-Failure $report.PrimaryError}
-    LS-Need ($report.Status -ceq 'COMPLETE' -and $report.Closed -and $null -eq $report.PrimaryError -and $report.SecondaryErrors.Count -eq 0 -and -not $report.Overflow) 'complete profile without controller fault'
+    $profileConsumption=[pscustomobject]@{Consumed=$false}
+    Import-ODProfileFailure $report $profileConsumption
+    # A handled failure is unsuccessful without throwing its report/errors back
+    # through the module boundary and manufacturing another ErrorRecord.
+    if($report.Status -cne 'COMPLETE'){$script:Aborted=$true;return}
+    LS-Need ($report.Schema -eq 2 -and $report.Closed -and $null -eq $report.PrimaryError -and $report.SecondaryErrors.Count -eq 0 -and -not $report.Overflow) 'complete profile without controller fault'
     $modules=@(Get-Module -All | Where-Object {$_.Path -ieq $kernel})
     $source=$modules.Count -eq 1 -and $report.EntryPath -ceq $entry -and $report.KernelPath -ceq $kernel -and $report.EntrySHA256 -ceq (Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash -and $report.KernelSHA256 -ceq (Get-FileHash -LiteralPath $kernel -Algorithm SHA256).Hash -and $report.FrozenSHA256 -ceq $FrozenSHA256
     LS-Result RuntimeProfileBound $source ([ordered]@{Profile=$report.Profile;PublicEntry=($report.EntryPath -ceq $entry);PrivateModule=($modules.Count -eq 1);Closed=$report.Closed;SourceBound=$source})

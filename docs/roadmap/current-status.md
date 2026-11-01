@@ -1,5 +1,16 @@
 # Project status — updated 2026-11-01
 
+## Latest — approved prefreeze authoring continuation, NOT RUN
+
+[Current single-owner work](2026-11-01-offline-i1-i2-single-owner.md).
+User permitted pure authoring corrections before the first freeze.31/31source
+paths now exist. Literal26/52group expectations, candidate Schema2/outcome caller
+wiring, writer/owner controls and readonly AST-context builder were authored.
+Static syntax/JSON/LF/reserved-write checks reported no issues at that point;
+this is NOT a test result. Driver and complete I2 tests still need adaptation.
+APIs remain absent by plan.0RED/0hosts/0targets/0compiles/0runtime reviews.
+NEW budget unchanged; old budgets frozen. Do not execute unfinished v4 scripts.
+
 ## Latest — recovery passed archives; pre-freeze authoring stopped
 
 [Actual partial checkpoint](2026-11-01-offline-i1-i2-single-owner.md).

@@ -34,7 +34,7 @@ $freezeExists=[IO.File]::Exists($freeze)
 $freezeHash=if($freezeExists){(Get-FileHash -LiteralPath $freeze -Algorithm SHA256).Hash}else{$null}
 $dependencies.Add([pscustomobject][ordered]@{Role='FreezeManifest';Path=$freeze;Exists=$freezeExists;SHA256=$freezeHash;MatchesPinned=$null})
 $manifest=if($freezeExists){Get-Content -LiteralPath $freeze -Raw | ConvertFrom-Json}else{$null}
-foreach($name in @('session.psm1','sinks.ps1','owned-step.ps1','sequence.ps1','profiles.ps1','observations.ps1','write-boundary.ps1')){
+foreach($name in @('session.psm1','sinks.ps1','owned-step.ps1','sequence.ps1','profiles.ps1','observations.ps1','write-boundary.ps1','record-owner.ps1')){
     $path=[IO.Path]::GetFullPath((Join-Path $private $name))
     $exists=[IO.File]::Exists($path)
     $hash=if($exists){(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}else{$null}

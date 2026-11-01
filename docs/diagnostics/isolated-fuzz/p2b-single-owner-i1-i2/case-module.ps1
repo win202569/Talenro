@@ -2,6 +2,7 @@ param([string]$WriterPath,[string]$CollectorText)
 $caseModule=New-Module -ArgumentList $WriterPath,$CollectorText -ScriptBlock {
     param($WriterPath,$CollectorText)
     . $WriterPath
+    . (Join-Path ([IO.Path]::GetDirectoryName($WriterPath)) record-owner.ps1)
     . ([ScriptBlock]::Create($CollectorText))
     $script:OriginalFactory=(Get-Command New-ODRecordStream).ScriptBlock
     $script:HostPrimary=$null

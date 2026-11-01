@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Current:[approved prefreeze continuation](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
+Restore the development branch, not main.31source paths exist but remain
+UNFINISHED/NOT_RUN: do not invoke driver/entry/tests yet. The latest portable
+authoring-progress archive preserves consent, earlier failures, static-check
+receipt and current authoring snapshots, separately from stopped archives.
+No runtime APIs/freeze/RED/GREEN were completed. Continue Task1: finish I2 cases
+and driver/parent/source binding; static checks; only then first source freeze.
+The prefreeze authoring amendment does not allow provenance or post-freeze
+failure retries, extra budget, historical reruns, installs or main integration.
+
 Latest:[pre-freeze authoring stop](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
 Partial v4/test sources now exist (30/31), mechanically migrated but NOT READY
 TO RUN; source-model.ps1 missing, APIs are comment-only seeds, driver/glue/oracle

@@ -299,7 +299,7 @@
           "Passed": true,
           "Facts": {
             "PublisherExports": 0,
-            "PublisherClean": true,
+            "CollectorStateAbsent": true,
             "Cases": 0
           }
         },
@@ -309,7 +309,8 @@
           "Facts": {
             "DefaultFactory": true,
             "ProductionSource": true,
-            "ProbeExact": true
+            "ProbeExact": true,
+            "OutcomeSucceeded": true
           }
         }
       ],
@@ -499,7 +500,7 @@
           "Passed": true,
           "Facts": {
             "PublisherExports": 0,
-            "PublisherClean": true,
+            "CollectorStateAbsent": true,
             "Cases": 0
           }
         },
@@ -509,7 +510,8 @@
           "Facts": {
             "DefaultFactory": true,
             "ProductionSource": true,
-            "ProbeExact": true
+            "ProbeExact": true,
+            "OutcomeSucceeded": true
           }
         }
       ],
@@ -690,7 +692,7 @@
           "Passed": true,
           "Facts": {
             "PublisherExports": 0,
-            "PublisherClean": true,
+            "CollectorStateAbsent": true,
             "Cases": 0
           }
         },
@@ -700,7 +702,8 @@
           "Facts": {
             "DefaultFactory": true,
             "ProductionSource": true,
-            "ProbeExact": true
+            "ProbeExact": true,
+            "OutcomeSucceeded": true
           }
         }
       ],
@@ -747,247 +750,6 @@
         "entry-migration-owned"
       ]
     },
-    "writer-red": {
-      "Children": 0,
-      "Profile": null,
-      "ExitCode": 1,
-      "Status": "COMPLETE",
-      "Groups": [
-        {
-          "Name": "CaptureWriteDisposeFirstCause",
-          "Passed": false,
-          "Facts": {
-            "Boundary": "Capture",
-            "Case": "WriteDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": false,
-            "SecondaryIsDispose": false,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 0,
-            "DisposeCalls": 1,
-            "SecondaryCount": 1,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "CaptureFlushDisposeFirstCause",
-          "Passed": false,
-          "Facts": {
-            "Boundary": "Capture",
-            "Case": "FlushDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": false,
-            "SecondaryIsDispose": false,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 1,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "CaptureDisposeOnly",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Capture",
-            "Case": "DisposeOnly",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 0,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "CaptureSuccessOnce",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Capture",
-            "Case": "SuccessOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 0,
-            "BytesExact": true,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "CaptureOpenFailureOnce",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Capture",
-            "Case": "OpenFailureOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 0,
-            "FlushCalls": 0,
-            "DisposeCalls": 0,
-            "SecondaryCount": 0,
-            "BytesExact": false,
-            "ExistingUnchanged": true,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "IntentWriteDisposeFirstCause",
-          "Passed": false,
-          "Facts": {
-            "Boundary": "Intent",
-            "Case": "WriteDisposeFirstCause",
-            "ThrownIsFirst": false,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 0,
-            "DisposeCalls": 1,
-            "SecondaryCount": 1,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "IntentFlushDisposeFirstCause",
-          "Passed": false,
-          "Facts": {
-            "Boundary": "Intent",
-            "Case": "FlushDisposeFirstCause",
-            "ThrownIsFirst": false,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 1,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "IntentDisposeOnly",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Intent",
-            "Case": "DisposeOnly",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 0,
-            "BytesExact": false,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "IntentSuccessOnce",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Intent",
-            "Case": "SuccessOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 1,
-            "FlushCalls": 1,
-            "DisposeCalls": 1,
-            "SecondaryCount": 0,
-            "BytesExact": true,
-            "ExistingUnchanged": false,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "IntentOpenFailureOnce",
-          "Passed": true,
-          "Facts": {
-            "Boundary": "Intent",
-            "Case": "OpenFailureOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
-            "SecondaryIsDispose": true,
-            "OpenCalls": 1,
-            "WriteCalls": 0,
-            "FlushCalls": 0,
-            "DisposeCalls": 0,
-            "SecondaryCount": 0,
-            "BytesExact": false,
-            "ExistingUnchanged": true,
-            "FactoryIsolated": true
-          }
-        },
-        {
-          "Name": "RecorderIdentityIsolation",
-          "Passed": true,
-          "Facts": {
-            "AllSame": true
-          }
-        },
-        {
-          "Name": "RecorderPrivateState",
-          "Passed": true,
-          "Facts": {
-            "PublisherExports": 0,
-            "PublisherClean": true,
-            "Cases": 10
-          }
-        },
-        {
-          "Name": "RecorderProductionBinding",
-          "Passed": true,
-          "Facts": {
-            "DefaultFactory": true,
-            "ProductionSource": true,
-            "ProbeExact": true
-          }
-        }
-      ],
-      "NotRun": [],
-      "ExistingProfiles": [],
-      "ErrorOutput": [],
-      "Output": [
-        "FAIL: CaptureWriteDisposeFirstCause",
-        "FAIL: CaptureFlushDisposeFirstCause",
-        "PASS: CaptureDisposeOnly",
-        "PASS: CaptureSuccessOnce",
-        "PASS: CaptureOpenFailureOnce",
-        "FAIL: IntentWriteDisposeFirstCause",
-        "FAIL: IntentFlushDisposeFirstCause",
-        "PASS: IntentDisposeOnly",
-        "PASS: IntentSuccessOnce",
-        "PASS: IntentOpenFailureOnce",
-        "PASS: RecorderIdentityIsolation",
-        "PASS: RecorderPrivateState",
-        "PASS: RecorderProductionBinding"
-      ]
-    },
     "writer-green": {
       "Children": 0,
       "Profile": null,
@@ -995,13 +757,21 @@
       "Status": "COMPLETE",
       "Groups": [
         {
+          "Name": "OwnerAPIAvailable",
+          "Passed": true,
+          "Facts": {
+            "Available": true
+          }
+        },
+        {
           "Name": "CaptureWriteDisposeFirstCause",
           "Passed": true,
           "Facts": {
             "Boundary": "Capture",
             "Case": "WriteDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1019,8 +789,9 @@
           "Facts": {
             "Boundary": "Capture",
             "Case": "FlushDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1038,8 +809,9 @@
           "Facts": {
             "Boundary": "Capture",
             "Case": "DisposeOnly",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1057,8 +829,9 @@
           "Facts": {
             "Boundary": "Capture",
             "Case": "SuccessOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": true,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1076,8 +849,9 @@
           "Facts": {
             "Boundary": "Capture",
             "Case": "OpenFailureOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 0,
@@ -1095,8 +869,9 @@
           "Facts": {
             "Boundary": "Intent",
             "Case": "WriteDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1114,8 +889,9 @@
           "Facts": {
             "Boundary": "Intent",
             "Case": "FlushDisposeFirstCause",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1133,8 +909,9 @@
           "Facts": {
             "Boundary": "Intent",
             "Case": "DisposeOnly",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1152,8 +929,9 @@
           "Facts": {
             "Boundary": "Intent",
             "Case": "SuccessOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": true,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 1,
@@ -1171,8 +949,9 @@
           "Facts": {
             "Boundary": "Intent",
             "Case": "OpenFailureOnce",
-            "ThrownIsFirst": true,
-            "PrimaryIsFirst": true,
+            "Succeeded": false,
+            "OutcomePrimaryIsFirst": true,
+            "CollectorPrimaryIsFirst": true,
             "SecondaryIsDispose": true,
             "OpenCalls": 1,
             "WriteCalls": 0,
@@ -1182,6 +961,90 @@
             "BytesExact": false,
             "ExistingUnchanged": true,
             "FactoryIsolated": true
+          }
+        },
+        {
+          "Name": "SameRecordOnce",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "DistinctSameTextKept",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "SharedExceptionDifferentRecordsKept",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "ExistingPrimaryPreserved",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "OverflowBound8",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "OutcomeConsumedOnce",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "MalformedOutcomeStops",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "IntentFailureNoWork",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "PublisherSingleOwner",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "SummaryFaultKeepsPrimary",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "ProjectionFaultKeepsPrimary",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "FinalWriteFailureNoRetry",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
           }
         },
         {
@@ -1196,8 +1059,8 @@
           "Passed": true,
           "Facts": {
             "PublisherExports": 0,
-            "PublisherClean": true,
-            "Cases": 10
+            "CollectorStateAbsent": true,
+            "Cases": 12
           }
         },
         {
@@ -1206,7 +1069,8 @@
           "Facts": {
             "DefaultFactory": true,
             "ProductionSource": true,
-            "ProbeExact": true
+            "ProbeExact": true,
+            "OutcomeSucceeded": true
           }
         }
       ],
@@ -1214,6 +1078,7 @@
       "ExistingProfiles": [],
       "ErrorOutput": [],
       "Output": [
+        "PASS: OwnerAPIAvailable",
         "PASS: CaptureWriteDisposeFirstCause",
         "PASS: CaptureFlushDisposeFirstCause",
         "PASS: CaptureDisposeOnly",
@@ -1224,277 +1089,18 @@
         "PASS: IntentDisposeOnly",
         "PASS: IntentSuccessOnce",
         "PASS: IntentOpenFailureOnce",
-        "PASS: RecorderIdentityIsolation",
-        "PASS: RecorderPrivateState",
-        "PASS: RecorderProductionBinding"
-      ]
-    },
-    "contract-red": {
-      "Children": 0,
-      "Profile": null,
-      "ExitCode": 1,
-      "Status": "COMPLETE",
-      "Groups": [
-        {
-          "Name": "Baseline1",
-          "Passed": true,
-          "Facts": {
-            "Index": 1,
-            "Kind": "Baseline",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Baseline2",
-          "Passed": true,
-          "Facts": {
-            "Index": 2,
-            "Kind": "Baseline",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Baseline3",
-          "Passed": true,
-          "Facts": {
-            "Index": 3,
-            "Kind": "Baseline",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject01",
-          "Passed": false,
-          "Facts": {
-            "Index": 1,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject02",
-          "Passed": false,
-          "Facts": {
-            "Index": 2,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject03",
-          "Passed": false,
-          "Facts": {
-            "Index": 3,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject04",
-          "Passed": false,
-          "Facts": {
-            "Index": 4,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject05",
-          "Passed": false,
-          "Facts": {
-            "Index": 5,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject06",
-          "Passed": false,
-          "Facts": {
-            "Index": 6,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject07",
-          "Passed": false,
-          "Facts": {
-            "Index": 7,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject08",
-          "Passed": false,
-          "Facts": {
-            "Index": 8,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject09",
-          "Passed": false,
-          "Facts": {
-            "Index": 9,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject10",
-          "Passed": false,
-          "Facts": {
-            "Index": 10,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject11",
-          "Passed": false,
-          "Facts": {
-            "Index": 11,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject12",
-          "Passed": false,
-          "Facts": {
-            "Index": 12,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject13",
-          "Passed": false,
-          "Facts": {
-            "Index": 13,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject14",
-          "Passed": false,
-          "Facts": {
-            "Index": 14,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject15",
-          "Passed": false,
-          "Facts": {
-            "Index": 15,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject16",
-          "Passed": false,
-          "Facts": {
-            "Index": 16,
-            "Kind": "Mutation",
-            "ActualRejected": false
-          }
-        },
-        {
-          "Name": "Reject17",
-          "Passed": true,
-          "Facts": {
-            "Index": 17,
-            "Kind": "Mutation",
-            "ActualRejected": true
-          }
-        },
-        {
-          "Name": "Reject18",
-          "Passed": true,
-          "Facts": {
-            "Index": 18,
-            "Kind": "Mutation",
-            "ActualRejected": true
-          }
-        },
-        {
-          "Name": "Reject19",
-          "Passed": true,
-          "Facts": {
-            "Index": 19,
-            "Kind": "Mutation",
-            "ActualRejected": true
-          }
-        },
-        {
-          "Name": "Reject20",
-          "Passed": true,
-          "Facts": {
-            "Index": 20,
-            "Kind": "Mutation",
-            "ActualRejected": true
-          }
-        },
-        {
-          "Name": "RecorderIdentityIsolation",
-          "Passed": true,
-          "Facts": {
-            "AllSame": true
-          }
-        },
-        {
-          "Name": "RecorderPrivateState",
-          "Passed": true,
-          "Facts": {
-            "PublisherExports": 0,
-            "PublisherClean": true,
-            "Cases": 0
-          }
-        },
-        {
-          "Name": "RecorderProductionBinding",
-          "Passed": true,
-          "Facts": {
-            "DefaultFactory": true,
-            "ProductionSource": true,
-            "ProbeExact": true
-          }
-        }
-      ],
-      "NotRun": [],
-      "ExistingProfiles": [],
-      "ErrorOutput": [],
-      "Output": [
-        "PASS: Baseline1",
-        "PASS: Baseline2",
-        "PASS: Baseline3",
-        "FAIL: Reject01",
-        "FAIL: Reject02",
-        "FAIL: Reject03",
-        "FAIL: Reject04",
-        "FAIL: Reject05",
-        "FAIL: Reject06",
-        "FAIL: Reject07",
-        "FAIL: Reject08",
-        "FAIL: Reject09",
-        "FAIL: Reject10",
-        "FAIL: Reject11",
-        "FAIL: Reject12",
-        "FAIL: Reject13",
-        "FAIL: Reject14",
-        "FAIL: Reject15",
-        "FAIL: Reject16",
-        "PASS: Reject17",
-        "PASS: Reject18",
-        "PASS: Reject19",
-        "PASS: Reject20",
+        "PASS: SameRecordOnce",
+        "PASS: DistinctSameTextKept",
+        "PASS: SharedExceptionDifferentRecordsKept",
+        "PASS: ExistingPrimaryPreserved",
+        "PASS: OverflowBound8",
+        "PASS: OutcomeConsumedOnce",
+        "PASS: MalformedOutcomeStops",
+        "PASS: IntentFailureNoWork",
+        "PASS: PublisherSingleOwner",
+        "PASS: SummaryFaultKeepsPrimary",
+        "PASS: ProjectionFaultKeepsPrimary",
+        "PASS: FinalWriteFailureNoRetry",
         "PASS: RecorderIdentityIsolation",
         "PASS: RecorderPrivateState",
         "PASS: RecorderProductionBinding"
@@ -1507,210 +1113,346 @@
       "Status": "COMPLETE",
       "Groups": [
         {
-          "Name": "Baseline1",
+          "Name": "ContractAPIAvailable",
           "Passed": true,
           "Facts": {
-            "Index": 1,
-            "Kind": "Baseline",
-            "ActualRejected": false
+            "Verified": true
           }
         },
         {
-          "Name": "Baseline2",
+          "Name": "BaselineCore",
           "Passed": true,
           "Facts": {
-            "Index": 2,
-            "Kind": "Baseline",
-            "ActualRejected": false
+            "Verified": true
           }
         },
         {
-          "Name": "Baseline3",
+          "Name": "BaselineOwned",
           "Passed": true,
           "Facts": {
-            "Index": 3,
-            "Kind": "Baseline",
-            "ActualRejected": false
+            "Verified": true
+          }
+        },
+        {
+          "Name": "BaselineLive",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
           }
         },
         {
           "Name": "Reject01",
           "Passed": true,
           "Facts": {
-            "Index": 1,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject02",
           "Passed": true,
           "Facts": {
-            "Index": 2,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject03",
           "Passed": true,
           "Facts": {
-            "Index": 3,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject04",
           "Passed": true,
           "Facts": {
-            "Index": 4,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject05",
           "Passed": true,
           "Facts": {
-            "Index": 5,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject06",
           "Passed": true,
           "Facts": {
-            "Index": 6,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject07",
           "Passed": true,
           "Facts": {
-            "Index": 7,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject08",
           "Passed": true,
           "Facts": {
-            "Index": 8,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject09",
           "Passed": true,
           "Facts": {
-            "Index": 9,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject10",
           "Passed": true,
           "Facts": {
-            "Index": 10,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject11",
           "Passed": true,
           "Facts": {
-            "Index": 11,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject12",
           "Passed": true,
           "Facts": {
-            "Index": 12,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject13",
           "Passed": true,
           "Facts": {
-            "Index": 13,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject14",
           "Passed": true,
           "Facts": {
-            "Index": 14,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject15",
           "Passed": true,
           "Facts": {
-            "Index": 15,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject16",
           "Passed": true,
           "Facts": {
-            "Index": 16,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject17",
           "Passed": true,
           "Facts": {
-            "Index": 17,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject18",
           "Passed": true,
           "Facts": {
-            "Index": 18,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject19",
           "Passed": true,
           "Facts": {
-            "Index": 19,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
           }
         },
         {
           "Name": "Reject20",
           "Passed": true,
           "Facts": {
-            "Index": 20,
-            "Kind": "Mutation",
-            "ActualRejected": true
+            "Verified": true
+          }
+        },
+        {
+          "Name": "Schema2CompleteCore",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "Schema2CompleteOwned",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "Schema2CompleteLive",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "Schema2IntentFailure",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject01",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject02",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject03",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject04",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject05",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject06",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject07",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject08",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject09",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject10",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject11",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject12",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject13",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject14",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject15",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject16",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject17",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "AdditionalReject18",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "StaticReservedNames",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "StaticPureContract",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
+          }
+        },
+        {
+          "Name": "StaticAllConsumersBound",
+          "Passed": true,
+          "Facts": {
+            "Verified": true
           }
         },
         {
@@ -1725,7 +1467,7 @@
           "Passed": true,
           "Facts": {
             "PublisherExports": 0,
-            "PublisherClean": true,
+            "CollectorStateAbsent": true,
             "Cases": 0
           }
         },
@@ -1735,7 +1477,8 @@
           "Facts": {
             "DefaultFactory": true,
             "ProductionSource": true,
-            "ProbeExact": true
+            "ProbeExact": true,
+            "OutcomeSucceeded": true
           }
         }
       ],
@@ -1743,9 +1486,10 @@
       "ExistingProfiles": [],
       "ErrorOutput": [],
       "Output": [
-        "PASS: Baseline1",
-        "PASS: Baseline2",
-        "PASS: Baseline3",
+        "PASS: ContractAPIAvailable",
+        "PASS: BaselineCore",
+        "PASS: BaselineOwned",
+        "PASS: BaselineLive",
         "PASS: Reject01",
         "PASS: Reject02",
         "PASS: Reject03",
@@ -1766,6 +1510,31 @@
         "PASS: Reject18",
         "PASS: Reject19",
         "PASS: Reject20",
+        "PASS: Schema2CompleteCore",
+        "PASS: Schema2CompleteOwned",
+        "PASS: Schema2CompleteLive",
+        "PASS: Schema2IntentFailure",
+        "PASS: AdditionalReject01",
+        "PASS: AdditionalReject02",
+        "PASS: AdditionalReject03",
+        "PASS: AdditionalReject04",
+        "PASS: AdditionalReject05",
+        "PASS: AdditionalReject06",
+        "PASS: AdditionalReject07",
+        "PASS: AdditionalReject08",
+        "PASS: AdditionalReject09",
+        "PASS: AdditionalReject10",
+        "PASS: AdditionalReject11",
+        "PASS: AdditionalReject12",
+        "PASS: AdditionalReject13",
+        "PASS: AdditionalReject14",
+        "PASS: AdditionalReject15",
+        "PASS: AdditionalReject16",
+        "PASS: AdditionalReject17",
+        "PASS: AdditionalReject18",
+        "PASS: StaticReservedNames",
+        "PASS: StaticPureContract",
+        "PASS: StaticAllConsumersBound",
         "PASS: RecorderIdentityIsolation",
         "PASS: RecorderPrivateState",
         "PASS: RecorderProductionBinding"
@@ -1931,7 +1700,8 @@
     "sequence.ps1",
     "profiles.ps1",
     "observations.ps1",
-    "write-boundary.ps1"
+    "write-boundary.ps1",
+    "record-owner.ps1"
   ],
   "Rejections": [
     {
@@ -2261,6 +2031,13 @@
           "Path": "@repo:scripts/offline-diagnostics-v4/private/write-boundary.ps1",
           "Exists": true,
           "SHA256": "@pin:scripts/offline-diagnostics-v4/private/write-boundary.ps1",
+          "MatchesPinned": true
+        },
+        {
+          "Role": "Impl:record-owner.ps1",
+          "Path": "@repo:scripts/offline-diagnostics-v4/private/record-owner.ps1",
+          "Exists": true,
+          "SHA256": "@pin:scripts/offline-diagnostics-v4/private/record-owner.ps1",
           "MatchesPinned": true
         }
       ],
@@ -7161,13 +6938,15 @@
       "RecorderPrivateState",
       "RecorderProductionBinding"
     ],
-    "ProbeText": "{\"Recorder\":\"v3\",\"Healthy\":true}",
+    "ProbeText": "{\"Recorder\":\"v4\",\"Healthy\":true}",
     "RootKeys": [
       "Stages",
       "Publisher",
       "Cases",
       "ProbePath",
-      "ProbeBytes"
+      "ProbeBytes",
+      "Outcome",
+      "Consumed"
     ],
     "CommandKeys": [
       "Name",
@@ -7180,5 +6959,99 @@
       "Variables",
       "Cmdlets"
     ]
-  }
+  },
+  "OwnerControlNames": [
+    "SameRecordOnce",
+    "DistinctSameTextKept",
+    "SharedExceptionDifferentRecordsKept",
+    "ExistingPrimaryPreserved",
+    "OverflowBound8",
+    "OutcomeConsumedOnce",
+    "MalformedOutcomeStops",
+    "IntentFailureNoWork",
+    "PublisherSingleOwner",
+    "SummaryFaultKeepsPrimary",
+    "ProjectionFaultKeepsPrimary",
+    "FinalWriteFailureNoRetry"
+  ],
+  "ContractGroupNames": [
+    "ContractAPIAvailable",
+    "BaselineCore",
+    "BaselineOwned",
+    "BaselineLive",
+    "Reject01",
+    "Reject02",
+    "Reject03",
+    "Reject04",
+    "Reject05",
+    "Reject06",
+    "Reject07",
+    "Reject08",
+    "Reject09",
+    "Reject10",
+    "Reject11",
+    "Reject12",
+    "Reject13",
+    "Reject14",
+    "Reject15",
+    "Reject16",
+    "Reject17",
+    "Reject18",
+    "Reject19",
+    "Reject20",
+    "Schema2CompleteCore",
+    "Schema2CompleteOwned",
+    "Schema2CompleteLive",
+    "Schema2IntentFailure",
+    "AdditionalReject01",
+    "AdditionalReject02",
+    "AdditionalReject03",
+    "AdditionalReject04",
+    "AdditionalReject05",
+    "AdditionalReject06",
+    "AdditionalReject07",
+    "AdditionalReject08",
+    "AdditionalReject09",
+    "AdditionalReject10",
+    "AdditionalReject11",
+    "AdditionalReject12",
+    "AdditionalReject13",
+    "AdditionalReject14",
+    "AdditionalReject15",
+    "AdditionalReject16",
+    "AdditionalReject17",
+    "AdditionalReject18",
+    "StaticReservedNames",
+    "StaticPureContract",
+    "StaticAllConsumersBound"
+  ],
+  "WriterGroupNames": [
+    "OwnerAPIAvailable",
+    "CaptureWriteDisposeFirstCause",
+    "CaptureFlushDisposeFirstCause",
+    "CaptureDisposeOnly",
+    "CaptureSuccessOnce",
+    "CaptureOpenFailureOnce",
+    "IntentWriteDisposeFirstCause",
+    "IntentFlushDisposeFirstCause",
+    "IntentDisposeOnly",
+    "IntentSuccessOnce",
+    "IntentOpenFailureOnce",
+    "SameRecordOnce",
+    "DistinctSameTextKept",
+    "SharedExceptionDifferentRecordsKept",
+    "ExistingPrimaryPreserved",
+    "OverflowBound8",
+    "OutcomeConsumedOnce",
+    "MalformedOutcomeStops",
+    "IntentFailureNoWork",
+    "PublisherSingleOwner",
+    "SummaryFaultKeepsPrimary",
+    "ProjectionFaultKeepsPrimary",
+    "FinalWriteFailureNoRetry",
+    "RecorderIdentityIsolation",
+    "RecorderPrivateState",
+    "RecorderProductionBinding"
+  ],
+  "SnapshotSourceCount": 31
 }
