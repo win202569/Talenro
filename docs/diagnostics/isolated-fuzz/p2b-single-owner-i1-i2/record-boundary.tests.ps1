@@ -16,6 +16,7 @@ function Invoke-ODWriterTests {
         return [pscustomobject][ordered]@{Schema=1;PASS=0;FAIL=1;NotRun=25;ExitCode=1;Groups=$groups}
     }
     LS-Result OwnerAPIAvailable $true ([ordered]@{Available=$true})
+    . (Join-Path $PSScriptRoot case-module.ps1)
     Add-Type -TypeDefinition ([IO.File]::ReadAllText((Join-Path $PSScriptRoot fault-stream.cs))) -Language CSharp -ErrorAction Stop
     $source=[IO.File]::ReadAllText((Join-Path $PSScriptRoot capture.ps1))
     $tokens=$null;$parseErrors=$null
@@ -29,8 +30,7 @@ function Invoke-ODWriterTests {
         $root=Join-Path $packet ('unit/'+$Grant+'/'+$definition.Boundary+'/'+$definition.Case)
         LS-Need (-not (Test-Path -LiteralPath $root)) 'unit case no retry'
         $null=[IO.Directory]::CreateDirectory($root)
-        . (Join-Path $PSScriptRoot case-module.ps1) $writer $collector[0].Extent.Text
-        $module=$caseModule
+        $module=New-ODCaseModule $writer $collector[0].Extent.Text
         $script:CaseModules.Add([pscustomobject]@{Boundary=$definition.Boundary;Case=$definition.Case;Module=$module})
         Observe-ODRecorderGuard $script:RecorderGuard Created $definition.Name
         try{
@@ -103,11 +103,10 @@ function Invoke-ODWriterTests {
 # function ASTs. Synthetic ErrorRecord construction appears in exactly one
 # labelled contract control; all other causes come from real resource calls.
 function Invoke-ODOwnerControls([string]$WriterPath,[string]$CollectorText,[string]$CaptureText){
-    . (Join-Path $PSScriptRoot case-module.ps1) $WriterPath $CollectorText
-    $controls=$caseModule
+    . (Join-Path $PSScriptRoot case-module.ps1)
+    $controls=New-ODCaseModule $WriterPath $CollectorText
     $script:CaseModules.Add([pscustomobject]@{Boundary='Owner';Case='Controls';Module=$controls})
-    . (Join-Path $PSScriptRoot case-module.ps1) $WriterPath $CollectorText
-    $failurePublisher=$caseModule
+    $failurePublisher=New-ODCaseModule $WriterPath $CollectorText
     $script:CaseModules.Add([pscustomobject]@{Boundary='Capture';Case='FinalWriteControl';Module=$failurePublisher})
     & $failurePublisher {
         $script:ControlOpens=0

@@ -198,3 +198,66 @@ envelopes. Decoded bytes equal originals; its two prerequisite portable archives
 were checked unchanged. SHA256:
 A3D14101EB57B5C21E94CBFC066D039F2E8D824A08832D06CDC71766968002F7.
 These are authoring snapshots, not any of the planned93source-freeze snapshots.
+
+## Driver preparation and decoder authoring from23782758
+
+Removed old PreparationAdjustment workflow and old writer-red/contract-red
+host grants from the new driver. The candidate seed inherits all2482original
+Present rows, canonical-deduplicates only equal state/hash entries, then adds
+31explicit sources, approved design/plan/three consent records and the original
+seed itself as an immutable provenance input. No repository glob or mutable
+ledger/tool receipt becomes a runtime pin. Exact map/count is recorded in the
+future actual manifest, not inferred from the preview below.
+
+Readonly authoring preview found2172unique inherited paths and310identical
+duplicates. With37named additions, candidate unique total2209. This is NOT
+Prepare, a source freeze, a new verification of every old pin or runtime proof.
+Corrected prefreeze driver/profile checks that had incorrectly required the
+deduplicated PinCount to be at least2482. InheritedPins still means2482original
+rows; InheritedUniquePins and PinCount separately describe canonical maps.
+
+Ruling: retain the referenced original seed as one extra immutable provenance
+pin — the approved plan requires its exact identity, and making that explicit
+does not widen runtime source ownership, grants or capabilities. Cost if wrong:
+a missing/mutated historical seed blocks the new chain rather than being ignored.
+Ruling: canonical deduplication follows the approved identical-entry rule;310
+repeated original rows are represented once, not dropped as missing inputs.
+The unique count is computed/disclosed; never rewrite old2482row evidence.
+
+Candidate preparation enforces seed/writer-green/repair-green only; two exact
+availability receipts before writer freeze, exact prior host before later
+stages, two writer/owner source changes then one validator change, and31CreateNew
+source snapshots per phase. Existing approved document snapshots are verified,
+not overwritten; consent snapshots are separate. No preparation was invoked.
+
+New parent decoding checks live-outcome projections, ten real operation cases,
+twelve labelled owner controls and actual writer-stage intent report metadata.
+Recorder decoder expects12private scopes,32writer stages, six unchanged command
+references, unchanged capture collector references, absent publisher collector
+and one consumed healthy default-factory probe. Live-reference assertions remain
+in actual isolated tests; serialized equality is never described as live identity.
+
+Added strict evidence UTF8/one-object/duplicate-key/BOM checks outside pure
+predicates and exact original stdout/stderr comparison without normalization.
+Prior host records bind their source freeze and original streams. Process launch,
+exact-object ownership,120000/150000ms limits and2000ms exit/drain remain unchanged.
+
+Cross-source authoring found and corrected the absent-contract guard returning
+49names instead of52: all three recorder names are now NotRun as required.
+case-module.ps1 is now definitions-only; modules are created explicitly after
+availability succeeds. Fixed unit-only AST context derives profile anonymous
+relative lines and strips explicit function-scope qualifiers for stack names;
+normal runtime context has no anonymous historical/unit fallback.
+
+Everything remains PREFREEZE_AUTHORING / NOT_RUN / NOT_ACCEPTED. All31sources
+were parsed/read structurally, with definition-free API seeds and unchanged
+collector verified at that point. Final whole-chain prefreeze source/data/caller
+cross-check is next; then the FIRST actual freeze and two exact availability
+REDs, without repeated approval.0RED/0hosts/0targets/0compiles/0runtime reviews.
+
+portable-driver-authoring.json preserves13actual new records/10directories,
+including7authoring source snapshots and full source-static/count-preview tool
+commands/results. Its prerequisite incremental archive was checked unchanged;
+decoded lengths/SHA256/bytes matched actual originals. Archive SHA256:
+7549AD53AD3F2E6CD15DB5498430D8FCFA0917F501933AF5A1D55E7A23115872.
+These snapshots are not part of the planned93source-freeze snapshots.

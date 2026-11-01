@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Current driver authoring is saved in portable-driver-authoring.json alongside
+earlier incremental archives. New preparation/decoder code is written, unrun.
+The actual inherited list has2482rows but2172unique identities; the candidate
+combined map has2209unique paths, not2482or2519. Do not hardcode the preview
+as a runtime manifest: the first actual freeze must disclose/recheck its map.
+Continue final prefreeze source/data/caller cross-check before any Prepare/RED.
+No runtime budget has been consumed or old budget restored.
+
 Current I2 authoring:49case body, bounded partial aggregate and both actual
 parent predicate calls are written, NOT executed. Read the latest roadmap and
 portable-i2-authoring.json incremental receipts alongside earlier archives.

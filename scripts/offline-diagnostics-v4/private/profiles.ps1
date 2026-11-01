@@ -18,7 +18,7 @@ function Invoke-ODProfile {
     $FrozenSHA256=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
     $script:FrozenSHA256=$FrozenSHA256
     $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if($manifest.Schema -ne 2 -or $manifest.Phase -cne $script:ProfilePhase -or $manifest.Pins.Count -ne $manifest.PinCount -or $manifest.PinCount -lt 2482){throw 'OD: unbound runtime manifest'}
+    if($manifest.Schema -ne 2 -or $manifest.Phase -cne $script:ProfilePhase -or $manifest.Pins.Count -ne $manifest.PinCount -or $manifest.InheritedPins -ne 2482 -or $manifest.SourceCount -ne 31 -or $manifest.InheritedUniquePins -le 0 -or $manifest.InheritedUniquePins -gt $manifest.InheritedPins -or $manifest.PinCount -lt $manifest.InheritedUniquePins){throw 'OD: unbound runtime manifest'}
     $seen=@{}
     foreach($pin in $manifest.Pins){
         if($pin.ExpectedState -cne 'Present' -or (Get-FileHash -LiteralPath $pin.VerificationPath -Algorithm SHA256).Hash -cne $pin.SHA256){throw 'OD: frozen input changed'}

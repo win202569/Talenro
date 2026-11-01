@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — new driver preparation and decoders authored, NOT RUN
+
+[Current single-owner work](2026-11-01-offline-i1-i2-single-owner.md).
+Removed old preparation-adjustment replay and old RED host grants; authored
+fixed inherited mapping,31source freezes, two-file/one-file windows, prior-stage
+checks and new writer/recorder decoding. Strict JSON duplicate/BOM/framing and
+original stdout checks are authored. Readonly preview:2482original rows →2172
+unique inherited paths +37explicit additions =2209combined unique paths.
+Corrected count checks before first freeze, plus52name RED guard and definition-
+only case utility. No actual Prepare/freeze/RED/GREEN/host/target/compile/review.
+Next: final prefreeze source/caller/data cross-check, then first freeze and REDs.
+
 ## Latest — I2 suite and parent calls authored, still NOT RUN
 
 [Single-owner continuation](2026-11-01-offline-i1-i2-single-owner.md).

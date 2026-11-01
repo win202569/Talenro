@@ -1,9 +1,9 @@
+[CmdletBinding(PositionalBinding=$false)]
 param(
     [Parameter(Mandatory)][ValidateSet('Prepare','RunOne')][string]$Action,
-    [Parameter(Mandatory)][ValidateSet('seed','writer-red','contract-red','writer-green','contract-green','repair-green','core','lifecycle','continuation')][string]$Grant,
+    [Parameter(Mandatory)][ValidateSet('seed','writer-green','contract-green','repair-green','core','lifecycle','continuation')][string]$Grant,
     [ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256,
-    [ValidatePattern('^[A-F0-9]{64}$')][string]$PreviousFrozenSHA256,
-    [string]$PreparationAdjustment
+    [ValidatePattern('^[A-F0-9]{64}$')][string]$PreviousFrozenSHA256
 )
 try{
 Set-StrictMode -Version Latest
@@ -88,6 +88,27 @@ function Driver-FalseFlags($Value){
 function Driver-Keys($Value,[string[]]$Names,[string]$Label){
     Driver-Need ($Value -is [Collections.IDictionary] -and (Driver-EqualJSON @($Value.Keys) $Names)) ('Ordered complete root mismatch '+$Label)
 }
+function Driver-JSONKeys($Element){
+    if($Element.ValueKind -eq [Text.Json.JsonValueKind]::Object){
+        $names=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach($property in $Element.EnumerateObject()){
+            Driver-Need ($names.Add($property.Name)) 'Duplicate JSON member refused'
+            Driver-JSONKeys $property.Value
+        }
+    }elseif($Element.ValueKind -eq [Text.Json.JsonValueKind]::Array){foreach($item in $Element.EnumerateArray()){Driver-JSONKeys $item}}
+}
+function Driver-ReadEvidence([string]$Path){
+    $bytes=[IO.File]::ReadAllBytes($Path)
+    Driver-Need ($bytes.Length -gt 0 -and $bytes.Length -le 1048576) 'Evidence byte bound'
+    $text=[Text.UTF8Encoding]::new($false,$true).GetString($bytes)
+    Driver-Need (-not $text.StartsWith([string][char]0xFEFF,[StringComparison]::Ordinal)) 'Evidence BOM refused'
+    $options=[Text.Json.JsonDocumentOptions]::new();$options.MaxDepth=96
+    $options.AllowTrailingCommas=$false;$options.CommentHandling=[Text.Json.JsonCommentHandling]::Disallow
+    $document=[Text.Json.JsonDocument]::Parse($text,$options)
+    try{Driver-Need ($document.RootElement.ValueKind -eq [Text.Json.JsonValueKind]::Object) 'One JSON root object';Driver-JSONKeys $document.RootElement}
+    finally{$document.Dispose()}
+    return ConvertFrom-Json -InputObject $text -AsHashtable -Depth 96
+}
 function Driver-ErrorLocation($Record,[string[]]$Sources){
     Driver-Need ($Record.Position -is [string] -and $Record.Stack -is [string] -and $Record.Stack.Length -gt 0) 'Actual error source/stack required'
     $matched=$false
@@ -148,39 +169,63 @@ function Driver-UnitError($Record,[string]$ExpectedId,[string]$ExpectedMessage,[
     Driver-Keys $Record @('Type','Message','ErrorId','Position','Stack') UnitError
     Driver-Need ($Record.Type -ceq 'System.Management.Automation.MethodInvocationException' -and $Record.ErrorId -ceq $ExpectedId -and $Record.Message -ceq $ExpectedMessage) 'Fixed actual unit error'
     Driver-ErrorLocation $Record @($Source)
+    $path=[IO.Path]::GetFullPath((Join-Path $repo $Source))
+    $location=[regex]::Match($Record.Position,('^At '+[regex]::Escape($path)+':([0-9]+) char:([0-9]+)\r?\n'),[Text.RegularExpressions.RegexOptions]::CultureInvariant)
+    Driver-Need $location.Success 'Actual writer error statement position'
+    $operation=if($ExpectedId -ceq 'IOException'){'Open'}elseif($ExpectedId -ceq 'FileNotFoundException'){'Dispose'}elseif($ExpectedMessage.StartsWith('Exception calling "Write"',[StringComparison]::Ordinal)){'Write'}else{'Flush'}
+    $tokens=$null;$issues=$null
+    $ast=[Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$issues)
+    Driver-Need ($issues.Count -eq 0) 'Frozen writer AST'
+    $calls=@($ast.FindAll({param($node)$node -is [Management.Automation.Language.InvokeMemberExpressionAst] -and $node.Member.Value -ceq $operation},$true))
+    $matched=$false
+    foreach($call in $calls){$extent=Get-ODFailureExtent $call;if($extent.StartLineNumber -eq [int]$location.Groups[1].Value -and $extent.StartColumnNumber -eq [int]$location.Groups[2].Value){$matched=$true}}
+    Driver-Need $matched 'Writer cause binds actual operation AST, not any valid line'
 }
-function Driver-UnitEvidence($Evidence,$Oracle,[string]$CurrentGrant){
+function Driver-UnitEvidence($Evidence,$Oracle,[string]$CurrentGrant,$Manifest,[string]$KnownFreeze){
     $expected=$Oracle.Grants[$CurrentGrant]
-    Driver-Need ($Evidence.NotRun.Count -eq 0 -and $Evidence.Status -ceq 'COMPLETE') 'Complete unit execution'
-    if($CurrentGrant.StartsWith('writer-')){
-        Driver-Need ($Evidence.Observations.Count -eq 10) 'Ten record cases'
+    Driver-Need ($Evidence.NotRun -is [array] -and $Evidence.NotRun.Count -eq 0 -and $Evidence.Status -ceq 'COMPLETE') 'Complete unit execution'
+    if($CurrentGrant -ceq 'writer-green'){
+        Driver-Need ($Evidence.Observations.Count -eq 11) 'Ten record cases and one owner aggregate'
         for($i=0;$i -lt 10;$i++){
-            $row=$Evidence.Observations[$i];$v=$row.Value;$g=$expected.Groups[$i];$f=$g.Facts
+            $row=$Evidence.Observations[$i];$v=$row.Value;$f=$expected.Groups[$i+1].Facts
             Driver-Need ($row.Name -ceq 'RecordCase') 'Record observation order'
-            Driver-Keys $v @('Boundary','Case','Thrown','Primary','Secondary','OpenCalls','WriteCalls','FlushCalls','DisposeCalls','BytesExact','ExistingUnchanged','FactoryIsolated','Overflow') RecordCase
-            Driver-Need ($v.Boundary -ceq $f.Boundary -and $v.Case -ceq $f.Case -and $v.Secondary.Count -eq $f.SecondaryCount -and -not $v.Overflow) 'Record identity/error bounds'
+            Driver-Keys $v @('Boundary','Case','Outcome','Consumed','Primary','Secondary','OpenCalls','WriteCalls','FlushCalls','DisposeCalls','BytesExact','ExistingUnchanged','FactoryIsolated','Overflow') RecordCase
+            Driver-Keys $v.Outcome @('Succeeded','PrimaryError','SecondaryErrors') PrivateOutcomeProjection
+            Driver-Need ($v.Boundary -ceq $f.Boundary -and $v.Case -ceq $f.Case -and $v.Secondary -is [array] -and $v.Secondary.Count -eq $f.SecondaryCount -and $v.Overflow -is [bool] -and -not $v.Overflow -and $v.Consumed -is [bool] -and $v.Consumed) 'Record identity and single consumption'
+            Driver-Need ($v.Outcome.Succeeded -is [bool] -and $v.Outcome.Succeeded -eq $f.Succeeded -and $v.Outcome.SecondaryErrors -is [array] -and (Driver-EqualJSON $v.Outcome.PrimaryError $v.Primary) -and (Driver-EqualJSON $v.Outcome.SecondaryErrors $v.Secondary)) 'Live identity assertions retain equal projections'
             foreach($key in @('OpenCalls','WriteCalls','FlushCalls','DisposeCalls','BytesExact','ExistingUnchanged','FactoryIsolated')){Driver-Need ($v[$key] -ceq $f[$key] -and $v[$key].GetType() -eq $f[$key].GetType()) ('Record exact field '+$key)}
-            $root=Join-Path $packet ('unit/'+$CurrentGrant+'/'+$v.Boundary+'/'+$v.Case)
-            $op=if($v.Case.StartsWith('Write')){'Write'}else{'Flush'};$argc=if($op -ceq 'Write'){3}else{0}
+            $root=Join-Path $packet ('unit/writer-green/'+$v.Boundary+'/'+$v.Case)
+            $op=if($v.Case.StartsWith('Write',[StringComparison]::Ordinal)){'Write'}else{'Flush'};$argc=if($op -ceq 'Write'){3}else{0}
             $opMessage=('Exception calling "{0}" with "{1}" argument(s): "Cannot access a closed file."' -f $op,$argc)
             $disposeMessage=('Exception calling "Dispose" with "0" argument(s): "Could not find file ''{0}''."' -f (Join-Path $root absent.txt))
             $openMessage=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $root record.bin))
-            $records=@();if($null -ne $v.Thrown){$records+=,$v.Thrown};if($null -ne $v.Primary){$records+=,$v.Primary};$records+=@($v.Secondary)
-            if($v.Case -ceq 'SuccessOnce'){Driver-Need ($records.Count -eq 0) 'Success no errors'}
+            if($v.Outcome.Succeeded){Driver-Need ($null -eq $v.Primary -and $v.Secondary.Count -eq 0) 'Success has no errors'}
             else{
-                Driver-Need ($null -ne $v.Thrown -and $null -ne $v.Primary) 'Real unit causes present'
-                foreach($errorRecord in $records){
-                    $message=switch -CaseSensitive ($errorRecord.ErrorId){'ObjectDisposedException'{$opMessage}'FileNotFoundException'{$disposeMessage}'IOException'{$openMessage}default{throw 'Unknown unit error'}}
-                    Driver-UnitError $errorRecord $errorRecord.ErrorId $message 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'
-                }
-                if($v.Case.EndsWith('FirstCause')){
-                    $red=$CurrentGrant -ceq 'writer-red'
-                    $throwId=if($red -and $v.Boundary -ceq 'Intent'){'FileNotFoundException'}else{'ObjectDisposedException'}
-                    $primaryId=if($red -and $v.Boundary -ceq 'Capture'){'FileNotFoundException'}else{'ObjectDisposedException'}
-                    $secondaryId=if($red -and $v.Boundary -ceq 'Capture'){'ObjectDisposedException'}else{'FileNotFoundException'}
-                    Driver-Need ($v.Thrown.ErrorId -ceq $throwId -and $v.Primary.ErrorId -ceq $primaryId -and $v.Secondary[0].ErrorId -ceq $secondaryId) 'Seed versus fixed cause ordering'
-                }else{Driver-Need (Driver-EqualJSON $v.Thrown $v.Primary) 'Single cause same projection'}
+                Driver-Need ($null -ne $v.Primary) 'Actual first unit cause required'
+                $wanted=if($v.Case -cin @('WriteDisposeFirstCause','FlushDisposeFirstCause')){'ObjectDisposedException'}elseif($v.Case -ceq 'DisposeOnly'){'FileNotFoundException'}else{'IOException'}
+                $primaryMessage=switch -CaseSensitive ($wanted){'ObjectDisposedException'{$opMessage}'FileNotFoundException'{$disposeMessage}'IOException'{$openMessage}}
+                Driver-UnitError $v.Primary $wanted $primaryMessage 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'
+                foreach($secondary in $v.Secondary){Driver-UnitError $secondary 'FileNotFoundException' $disposeMessage 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'}
             }
+        }
+        $owner=$Evidence.Observations[10]
+        Driver-Need ($owner.Name -ceq 'OwnerControls' -and $owner.Value -is [array] -and $owner.Value.Count -eq 12 -and $Oracle.OwnerControlNames.Count -eq 12) 'All twelve owner controls'
+        $assertions=@(1,2,1,1,9,2,14,1,1,1,1,1)
+        $secondaryCounts=@(0,1,1,2,8,0,0,0,0,1,1,1)
+        for($i=0;$i -lt 12;$i++){
+            $v=$owner.Value[$i]
+            Driver-Keys $v @('Name','Assertions','ContractOnly','Primary','Secondary','Overflow','IntentReport') OwnerControl
+            Driver-Need ($v.Name -ceq $Oracle.OwnerControlNames[$i] -and $v.Assertions -is [long] -and $v.Assertions -eq $assertions[$i] -and $v.ContractOnly -is [bool] -and $v.ContractOnly -eq ($i -eq 2) -and $v.Secondary -is [array] -and $v.Secondary.Count -eq $secondaryCounts[$i] -and $v.Overflow -is [bool] -and $v.Overflow -eq ($i -eq 4)) 'Literal owner control evidence'
+            Driver-Need (($null -eq $v.Primary) -eq ($i -eq 8)) 'Owner primary presence'
+            if($i -eq 7){
+                $r=$v.IntentReport
+                Driver-Keys $r $Oracle.ProfileRootNames IntentFailureReport
+                Driver-Need ($r.Schema -eq 2 -and $r.Profile -ceq 'entry-migration-core' -and $r.Status -ceq 'INCOMPLETE' -and $r.Groups -is [array] -and $r.Groups.Count -eq 0 -and $r.Observations -is [array] -and $r.Observations.Count -eq 0 -and $r.Closed -is [bool] -and $r.Closed -and $r.Overflow -is [bool] -and -not $r.Overflow -and $r.SecondaryErrors -is [array] -and $r.SecondaryErrors.Count -eq 0 -and (Driver-EqualJSON $r.PrimaryError $v.Primary)) 'Known intent failure no work/report references'
+                Driver-Need ($r.FrozenSHA256 -ceq $KnownFreeze -and $r.EntryPath -ceq [IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/diagnose-offline.ps1')) -and $r.EntrySHA256 -ceq (Driver-PinHash $Manifest 'scripts/offline-diagnostics-v4/diagnose-offline.ps1') -and $r.KernelPath -ceq [IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/private/session.psm1')) -and $r.KernelSHA256 -ceq (Driver-PinHash $Manifest 'scripts/offline-diagnostics-v4/private/session.psm1')) 'Unit intent bound to current writer freeze, not future repair'
+                Driver-FalseFlags $r
+                $message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $packet 'unit/writer-green/owner-controls/intent-existing.bin'))
+                Driver-UnitError $r.PrimaryError 'IOException' $message 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'
+            }else{Driver-Need ($null -eq $v.IntentReport) 'No invented intent report on other controls'}
         }
     }else{
         Driver-Need ($CurrentGrant -ceq 'contract-green' -and $Evidence.Observations.Count -eq 1 -and $Evidence.Observations[0].Name -ceq 'SchemaSuite') 'One bounded contract aggregate'
@@ -212,12 +257,12 @@ function Driver-Recorder($Evidence,$Oracle,[string]$CurrentGrant,$Manifest){
     $r=$records[0].Value
     Driver-Keys $r $Oracle.Recorder.RootKeys Recorder
     $writerPath=[IO.Path]::GetFullPath((Join-Path $repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'))
-    Driver-Keys $r.Publisher @('Name','Path','WriterFile','FactoryFile','WriterSHA256','DefaultFactory','PrimaryNull','SecondaryCount','Overflow') PublisherBinding
+    Driver-Keys $r.Publisher @('Name','Path','WriterFile','FactoryFile','WriterSHA256','DefaultFactory','CollectorStateAbsent') PublisherBinding
     Driver-Need ($r.Publisher.Name -ceq 'publisher' -and $r.Publisher.Path -ceq [IO.Path]::GetFullPath((Join-Path $PSScriptRoot publisher.psm1)) -and $r.Publisher.WriterFile -ceq $writerPath -and $r.Publisher.FactoryFile -ceq $writerPath -and $r.Publisher.WriterSHA256 -ceq (Driver-PinHash $Manifest 'scripts/offline-diagnostics-v4/private/write-boundary.ps1')) 'Actual production publisher binding'
-    foreach($key in @('DefaultFactory','PrimaryNull')){Driver-Need ($r.Publisher[$key] -is [bool] -and $r.Publisher[$key]) 'Publisher default/clean state'}
-    Driver-Need ($r.Publisher.SecondaryCount -eq 0 -and $r.Publisher.Overflow -is [bool] -and -not $r.Publisher.Overflow) 'Publisher no cleanup errors'
-    $writerGrant=$CurrentGrant -cin @('writer-red','writer-green')
-    $expectedCases=if($writerGrant){10}else{0}
+    foreach($key in @('DefaultFactory','CollectorStateAbsent')){Driver-Need ($r.Publisher[$key] -is [bool] -and $r.Publisher[$key]) 'Publisher default factory and absent collector'}
+    $writerGrant=$CurrentGrant -ceq 'writer-green'
+    $expectedCases=if($writerGrant){12}else{0}
+    $caseInventory=@($Oracle.WriterCases)+@([ordered]@{Boundary='Owner';Case='Controls'},[ordered]@{Boundary='Capture';Case='FinalWriteControl'})
     Driver-Need ($r.Cases -is [array] -and $r.Cases.Count -eq $expectedCases) 'Exact case module inventory'
     $stages=[Collections.Generic.List[object]]::new()
     $stages.Add([ordered]@{Stage='Before';Case=''})
@@ -226,26 +271,30 @@ function Driver-Recorder($Evidence,$Oracle,[string]$CurrentGrant,$Manifest){
     Driver-Need ($r.Stages -is [array] -and $r.Stages.Count -eq $stages.Count) 'Complete recorder stages'
     for($i=0;$i -lt $stages.Count;$i++){
         $actual=$r.Stages[$i]
-        Driver-Keys $actual @('Stage','Case','Commands') RecorderStage
-        Driver-Need ($actual.Stage -ceq $stages[$i].Stage -and $actual.Case -ceq $stages[$i].Case -and $actual.Commands -is [array] -and $actual.Commands.Count -eq 4) 'Recorder exact stage identity/order'
-        $names=@('New-ODRecordStream','Write-ODCaptureRecord','Write-ODProfileIntentRecord','Capture-Failure')
-        for($j=0;$j -lt 4;$j++){
+        Driver-Keys $actual @('Stage','Case','Commands','CollectorSame') RecorderStage
+        Driver-Need ($actual.Stage -ceq $stages[$i].Stage -and $actual.Case -ceq $stages[$i].Case -and $actual.Commands -is [array] -and $actual.Commands.Count -eq 6 -and $actual.CollectorSame -is [bool] -and $actual.CollectorSame) 'Recorder exact stage and collector identity/order'
+        $names=@('New-ODRecordStream','Write-ODCaptureRecord','Write-ODProfileIntentRecord','Register-ODRecordOutcome','Import-ODProfileFailure','Capture-Failure')
+        for($j=0;$j -lt 6;$j++){
             $command=$actual.Commands[$j];Driver-Keys $command $Oracle.Recorder.CommandKeys RecorderCommand
             Driver-Need ($command.Name -ceq $names[$j] -and $command.SameOriginal -is [bool] -and $command.SameOriginal -and $command.ModuleName -is [string] -and $command.ModuleName -ceq '') 'Actual outer references isolated'
         }
     }
     $moduleNames=[Collections.Generic.List[string]]::new()
     for($i=0;$i -lt $expectedCases;$i++){
-        $c=$r.Cases[$i];$case=$Oracle.WriterCases[$i];$f=$Oracle.Grants[$CurrentGrant].Groups[$i].Facts
+        $c=$r.Cases[$i];$case=$caseInventory[$i]
+        $primaryNull=if($i -lt 10){$case.Case -ceq 'SuccessOnce'}else{$true}
+        $secondaryCount=if($i -lt 10){$Oracle.Grants[$CurrentGrant].Groups[$i+1].Facts.SecondaryCount}else{0}
         Driver-Keys $c @('Boundary','Case','ModuleName','Exports','State') RecorderCase
         Driver-Need ($c.Boundary -ceq $case.Boundary -and $c.Case -ceq $case.Case -and $c.ModuleName -is [string] -and $c.ModuleName -cmatch '^__DynamicModule_[a-f0-9-]{36}$') 'Case module role identity'
         $moduleNames.Add($c.ModuleName)
         Driver-Keys $c.Exports $Oracle.Recorder.ExportsKeys NoExports
         foreach($key in $Oracle.Recorder.ExportsKeys){Driver-Need ($c.Exports[$key] -is [long] -and $c.Exports[$key] -eq 0) 'Case exports must be zero'}
         Driver-Keys $c.State @('Initialized','PrimaryNull','SecondaryCount','Overflow') CaseState
-        Driver-Need ($c.State.Initialized -is [bool] -and $c.State.Initialized -and $c.State.PrimaryNull -is [bool] -and $c.State.PrimaryNull -eq ($case.Case -ceq 'SuccessOnce') -and $c.State.SecondaryCount -eq $f.SecondaryCount -and $c.State.Overflow -is [bool] -and -not $c.State.Overflow) 'Explicit isolated case state'
+        Driver-Need ($c.State.Initialized -is [bool] -and $c.State.Initialized -and $c.State.PrimaryNull -is [bool] -and $c.State.PrimaryNull -eq $primaryNull -and $c.State.SecondaryCount -eq $secondaryCount -and $c.State.Overflow -is [bool] -and -not $c.State.Overflow) 'Explicit isolated case state'
     }
     Driver-Need (@($moduleNames.ToArray()|Select-Object -Unique).Count -eq $expectedCases) 'Distinct private case modules'
+    Driver-Keys $r.Outcome @('Succeeded','PrimaryError','SecondaryErrors') PublisherProbeOutcome
+    Driver-Need ($r.Outcome.Succeeded -is [bool] -and $r.Outcome.Succeeded -and $null -eq $r.Outcome.PrimaryError -and $r.Outcome.SecondaryErrors -is [array] -and $r.Outcome.SecondaryErrors.Count -eq 0 -and $r.Consumed -is [bool] -and $r.Consumed) 'Actual default probe outcome consumed once'
     $probePath=Join-Path $packet ('capture/'+$CurrentGrant+'/publisher-probe.json')
     $probe=[Text.Encoding]::UTF8.GetBytes($Oracle.Recorder.ProbeText)
     Driver-Need ($r.ProbePath -ceq $probePath -and $r.ProbeBytes -ceq [Convert]::ToBase64String($probe) -and [Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($probePath),[byte[]]$probe)) 'Actual production writer probe bytes'
@@ -275,7 +324,7 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
     Driver-FalseFlags $e
     Driver-Need ($e.Observations -is [array] -and $e.Observations.Count -le 32) 'Capture observation bounds'
     Driver-Recorder $e $Oracle $CurrentGrant $Manifest
-    if($CurrentGrant -cin @('writer-red','writer-green','contract-red','contract-green')){$unit=$e.Clone();$unit.Observations=@($e.Observations | Where-Object {$_.Name -cne 'Recorder'});Driver-UnitEvidence $unit $Oracle $CurrentGrant;return 0}
+    if($CurrentGrant -cin @('writer-green','contract-green')){$unit=$e.Clone();$unit.Observations=@($e.Observations | Where-Object {$_.Name -cne 'Recorder'});Driver-UnitEvidence $unit $Oracle $CurrentGrant $Manifest $KnownFreeze;return 0}
     $profileReturns=@($e.Observations | Where-Object {$_.Name -ceq 'ProfileReturn'})
     $expectedReturns=if($CurrentGrant -cin @('core','lifecycle','continuation')){1}else{0}
     Driver-Need ($profileReturns.Count -eq $expectedReturns) 'Exactly one canonical profile return'
@@ -324,154 +373,151 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
     if($started.Count -gt 0){Driver-Need (@($started.PID | Select-Object -Unique).Count -eq $started.Count) 'Distinct owned direct targets required'}
     return $started.Count
 }
-$preparationException=$false
-if(-not [string]::IsNullOrEmpty($PreparationAdjustment)){
-    Driver-Need ($PreparationAdjustment -ceq 'offline-prepare-recording-adjustment-2026-11-01-1' -and $Action -ceq 'Prepare' -and $Grant -ceq 'seed') 'Adjustment is preparation-only'
-    $adjustment=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-prepare-recording-adjustment'
-    function Driver-AdjustmentPath([string]$Path){
-        $cursor=[IO.Path]::GetFullPath($Path)
-        Driver-Need ($cursor.StartsWith($repo+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) 'Adjustment fixed repository path'
-        while($cursor -ine $repo){
-            $item=Get-Item -LiteralPath $cursor -Force
-            Driver-Need (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'Adjustment linked path refused'
-            $cursor=[IO.Path]::GetDirectoryName($cursor)
-        }
+# New preparation uses named immutable inputs, never a historical adjustment
+# replay, a repository glob, or the mutable authoring ledger as a runtime pin.
+Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet stop.json))) 'Execution stopped; no refreeze'
+function Driver-AddPin($Map,$Rows,[string]$Path,[string]$Hash,[string]$Role){
+    $canonical=[IO.Path]::GetFullPath($Path)
+    Driver-Need ($Hash -cmatch '^[A-F0-9]{64}$') 'Present pin requires complete SHA256'
+    if($Map.ContainsKey($canonical)){
+        $prior=$Map[$canonical]
+        Driver-Need ($prior.ExpectedState -ceq 'Present' -and $prior.SHA256 -ceq $Hash) 'Conflicting canonical source identity'
+        return
     }
-    $adjustmentPlan=Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md'
-    $adjustmentDesign=Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md'
-    foreach($path in @($packet,$adjustment,$adjustmentPlan,$adjustmentDesign,$PSCommandPath)){Driver-AdjustmentPath $path}
-    Driver-CheckHash $adjustmentPlan '5F070621AD11402B4ABBFD71EFA86D39E847130694D6817CEDE6340649BBD2BD'
-    Driver-CheckHash $adjustmentDesign '6F57E7DAA71C5B3E6E193B8C46BD643B524D8ACFE2A945EF166FB1F4A06298E5'
-    $retained=[ordered]@{
-        'progress.md'='55B652081DA45F3F891D14C1DE95D634A3BA5872B53F9C6D60ECF59C84061E63'
-        'seed.prepare.tool-result.json'='C6EDB04CFD2C1E78BE02E497A48DBA4A8E4F74CB4E95EB83CCDAD700F8903719'
-        'static.tool-result.json'='69620AFC7571CB0D83F10812A405D7044A5F0135FEF628B9F2D40512A68441EA'
-        'stop.json'='0D4FE34A03FAD3FD1D45B8C4B850C5B6D8C8BF9F3C9283304503B7119FD7EDE2'
-        'author-integrity.tool-result.json'='8F091601FAD7F9603D603F786458B7EB4EFAFD0952A65FF38A82FE2237994E02'
+    $pin=[pscustomobject][ordered]@{VerificationPath=$canonical;SHA256=$Hash;ExpectedState='Present';Role=$Role}
+    $Map.Add($canonical,$pin);$Rows.Add($pin)
+}
+function Driver-RequireAvailability([string]$Name,[string]$SeedSHA256,[int]$Total,[string[]]$Names){
+    $record=Get-Content -LiteralPath (Join-Path $packet ($Name+'.final.json')) -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Keys $record @('Schema','Grant','FrozenSHA256','ToolExitCode','Report') AvailabilityReceipt
+    Driver-Need ($record.Schema -eq 1 -and $record.Grant -ceq $Name -and $record.FrozenSHA256 -ceq $SeedSHA256 -and $record.ToolExitCode -eq 1) 'Actual availability computation binding'
+    $report=$record.Report
+    Driver-Keys $report @('Schema','PASS','FAIL','NotRun','ExitCode','Groups') AvailabilityReport
+    foreach($key in @('Schema','PASS','FAIL','NotRun','ExitCode')){Driver-Need ($report[$key] -is [long]) 'Availability JSON integer kinds'}
+    Driver-Need ($report.Schema -eq 1 -and $report.PASS -eq 0 -and $report.FAIL -eq 1 -and $report.NotRun -eq ($Total-1) -and $report.ExitCode -eq 1 -and $report.Groups -is [array] -and $report.Groups.Count -eq $Total -and $Names.Count -eq $Total) 'Exact missing-API result'
+    for($i=0;$i -lt $Total;$i++){
+        Driver-Keys $report.Groups[$i] @('Name','Status') AvailabilityGroup
+        Driver-Need ($report.Groups[$i].Name -is [string] -and $report.Groups[$i].Status -is [string] -and $report.Groups[$i].Name -ceq $Names[$i] -and $report.Groups[$i].Status -ceq $(if($i -eq 0){'FAIL'}else{'NotRun'})) 'Exact availability group order'
     }
-    $existing=@(Get-ChildItem -LiteralPath $packet -Force)
-    Driver-Need ($existing.Count -eq 5 -and @($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @($retained.Keys)}).Count -eq 0) 'Exact retained five-file inventory'
-    foreach($name in $retained.Keys){$path=Join-Path $packet $name;Driver-AdjustmentPath $path;Driver-CheckHash $path $retained[$name]}
-    $stoppedPortable=Join-Path $PSScriptRoot portable-stopped.json
-    Driver-AdjustmentPath $stoppedPortable
-    Driver-CheckHash $stoppedPortable '1D10ABA536D414B06BE67422EA3662EF68AF4926858A70EBBBCFAB38E1EE6ADF'
-    $archive=Get-Content -LiteralPath $stoppedPortable -Raw|ConvertFrom-Json
-    foreach($record in $archive.Artifacts){
-        $path=Join-Path $packet $record.Path
-        Driver-Need ($record.Path -cin @($retained.Keys) -and [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) -ceq $record.Base64) 'Retained original bytes'
-    }
-    foreach($name in @('approval.json','original-driver.bin','static.tool-result.json','attempt.intent.json')){Driver-AdjustmentPath (Join-Path $adjustment $name)}
-    Driver-CheckHash (Join-Path $adjustment approval.json) '7480924FD798E39D35E26EC27E0D1BF4D0E43CB16CD1CE632AF73FC85B84AA79'
-    Driver-CheckHash (Join-Path $adjustment original-driver.bin) '4F75FBDD23CD6A21C3567460A1CFC62661B5B00D8D5A77F8FE4300CFE1500EE9'
-    $approval=Get-Content -LiteralPath (Join-Path $adjustment approval.json) -Raw|ConvertFrom-Json -AsHashtable
-    Driver-Keys $approval @('Schema','Identity','DesignSHA256','PlanSHA256','OriginalDriverSHA256','ExecutionBaseline','ApprovalText','AdditionalPrepare','Hosts','Targets','Compilations','Reviews','RuntimeRemainder') AdjustmentApproval
-    foreach($name in @('Schema','AdditionalPrepare')){Driver-Need ($approval[$name] -is [long] -and $approval[$name] -eq 1) 'Adjustment one preparation'}
-    foreach($name in @('Hosts','Targets','Compilations','Reviews')){Driver-Need ($approval[$name] -is [long] -and $approval[$name] -eq 0) 'Adjustment zero runtime grants'}
-    Driver-Need ($approval.Identity -ceq $PreparationAdjustment -and $approval.ApprovalText -ceq '是' -and $approval.ExecutionBaseline -ceq '73aa96037cf1908ec47cd1d789349b9e602a15ab' -and $approval.RuntimeRemainder -ceq 'FROZEN') 'Actual adjustment approval'
-    $staticOriginal=(Get-Content -LiteralPath (Join-Path $packet static.tool-result.json) -Raw|ConvertFrom-Json).waits[-1].output|ConvertFrom-Json
-    Driver-Need ($staticOriginal.Sources.Count -eq 28) 'Original seed source inventory'
-    foreach($source in $staticOriginal.Sources){
-        $path=Join-Path $repo $source.Path;Driver-AdjustmentPath $path
-        if($source.Path -cne 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/driver.ps1'){Driver-CheckHash $path $source.SHA256}
-    }
-    $intentPath=Join-Path $adjustment attempt.intent.json
-    $intent=Get-Content -LiteralPath $intentPath -Raw|ConvertFrom-Json -AsHashtable
-    Driver-Keys $intent @('Schema','Identity','ApprovalSHA256','PlanSHA256','RevisedDriverSHA256','Action','Grant','AttemptConsumed','RuntimeRemainder') AdjustmentIntent
-    Driver-Need ($intent.Schema -is [long] -and $intent.Schema -eq 1 -and $intent.Identity -ceq $PreparationAdjustment -and $intent.ApprovalSHA256 -ceq (Driver-Hash (Join-Path $adjustment approval.json)) -and $intent.PlanSHA256 -ceq (Driver-Hash $adjustmentPlan) -and $intent.RevisedDriverSHA256 -ceq (Driver-Hash $PSCommandPath) -and $intent.Action -ceq 'Prepare' -and $intent.Grant -ceq 'seed' -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.RuntimeRemainder -ceq 'FROZEN') 'Fixed consumed adjustment intent'
-    foreach($name in @('seed.frozen.json','snapshots','writer-red.intent.json')){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet $name))) 'Adjustment preparation output already exists'}
-    Driver-JSON (Join-Path $adjustment attempt.entered.json) ([ordered]@{Identity=$PreparationAdjustment;IntentSHA256=(Driver-Hash $intentPath);AttemptConsumed=$true})
-    $preparationException=$true
-}else{
-    Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet stop.json))) 'Execution stopped; no refreeze'
+}
+function Driver-RequireFinal([string]$Name){
+    $record=Get-Content -LiteralPath (Join-Path $packet ($Name+'.final.json')) -Raw|ConvertFrom-Json -AsHashtable
+    foreach($key in @('Started','OwnedExit','StreamsComplete','PostPinsIntact','Exact','EvidenceValid')){Driver-Need ($record[$key] -is [bool] -and $record[$key]) 'Prior actual host must be exact'}
+    foreach($key in @('TimedOut','TerminationRequested','Overflow','Rescue')){Driver-Need ($record[$key] -is [bool] -and -not $record[$key]) 'Prior host cannot require rescue'}
+    Driver-Need ($record.Grant -ceq $Name -and $record.ExitCode -eq 0 -and $null -eq $record.PrimaryError -and $record.SecondaryErrors -is [array] -and $record.SecondaryErrors.Count -eq 0) 'Prior host disposition'
+    $phase=if($Name -ceq 'writer-green'){'writer-green'}else{'repair-green'}
+    Driver-Need ($record.FrozenSHA256 -ceq (Driver-Hash (Join-Path $packet ($phase+'.frozen.json')))) 'Prior actual host source epoch'
+    Driver-FalseFlags $record
+    Driver-Need ($record.EvidenceSHA256 -ceq (Driver-Hash (Join-Path $packet ($Name+'.evidence.json'))) -and $record.StdoutSHA256 -ceq (Driver-Hash (Join-Path $packet ($Name+'.stdout.bin'))) -and $record.StderrSHA256 -ceq (Driver-Hash (Join-Path $packet ($Name+'.stderr.bin')))) 'Prior original stream/evidence identity'
 }
 if($Action -ceq 'Prepare'){
-    Driver-Need ($Grant -cin @('seed','writer-green','repair-green')) 'Only three approved Prepare phases'
+    Driver-Need ($Grant -cin @('seed','writer-green','repair-green')) 'Only three approved source freezes'
     Driver-Static
     $manifestPath=Join-Path $packet ($Grant+'.frozen.json')
     Driver-Need (-not (Test-Path -LiteralPath $manifestPath)) 'Prepare attempted; no retry'
     if($Grant -ceq 'seed'){
-        $existing=@(Get-ChildItem -LiteralPath $packet -Force)
-        if($preparationException){
-            Driver-Need ($existing.Count -eq 5 -and @($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @($retained.Keys)}).Count -eq 0) 'Exact retained five-file inventory'
-            foreach($name in $retained.Keys){Driver-AdjustmentPath (Join-Path $packet $name);Driver-CheckHash (Join-Path $packet $name) $retained[$name]}
-        }else{
-        Driver-Need (@($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @('progress.md','static.tool-result.json')}).Count -eq 0) 'Only explicit ledger/static receipts before freeze'
+        Driver-Need ([string]::IsNullOrEmpty($PreviousFrozenSHA256)) 'Seed has no previous new freeze'
+        foreach($name in @('writer-green','contract-green','core','lifecycle','continuation')){
+            foreach($suffix in @('intent.json','final.json','stdout.bin','stderr.bin','evidence.json')){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet ($name+'.'+$suffix)))) 'Runtime output cannot precede first freeze'}
         }
-        $spec=Join-Path $repo 'docs/superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md'
+        foreach($relative in @('scripts/offline-diagnostics-v4/private/write-boundary.ps1','scripts/offline-diagnostics-v4/private/record-owner.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/observation-contract.ps1')){
+            $tokens=$null;$issues=$null
+            $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $repo $relative),[ref]$tokens,[ref]$issues)
+            Driver-Need ($issues.Count -eq 0 -and @($ast.FindAll({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst]},$true)).Count -eq 0) 'Availability seed is definition-free'
+        }
+        $spec=Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-i1-i2-single-owner-design.md'
         $plan=Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md'
-        Driver-CheckHash $spec 'DA27DA1C6BD3578512FB60A7F38B6635EAC9ACEF6570534F8B868BD07D088D9A'
-        Driver-CheckHash $plan '67A052C56F0C57AD94A2E2E6B79A81AA6969A61FDAA89736FA271C1BF75E6689'
-        $oldPacket=Join-Path $repo '.superpowers/sdd/2026-10-31-offline-record-isolation-repair'
-        $oldManifest=Join-Path $oldPacket isolation-green.frozen.json
-        Driver-CheckHash $oldManifest '93B1D18EE6C4FF944FEB45AA8CE8E91C7011BDD3C0374FFA9A6587C2AAF1D447'
+        Driver-CheckHash $spec 'A1173B1781FD01D9FB0195FA3BF4EF07D702902C0562355CB79EE9CF08164951'
+        Driver-CheckHash $plan '4448A8EDC17572625EDA26950137C17E6E66F0A5790C4E7E09A093A5FBDEF3CC'
+        $oldManifest=Join-Path $repo '.superpowers/sdd/2026-10-31-offline-integrated-review-repair/seed.frozen.json'
+        Driver-CheckHash $oldManifest '9411278BDB6636F38C1D643C647C754194B0D67249958342BF26FC49D6DFDDC1'
         $old=Get-Content -LiteralPath $oldManifest -Raw|ConvertFrom-Json
-        Driver-Need ($old.Pins.Count -eq 2394) 'Inherited2394'
+        Driver-Need ($old.Schema -eq 2 -and $old.Phase -ceq 'seed' -and $old.Pins.Count -eq 2482) 'Actual inherited seed mapping'
+        Driver-Verify $old
         $pins=[Collections.Generic.List[object]]::new()
+        $map=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::OrdinalIgnoreCase)
         foreach($pin in $old.Pins){
-            Driver-Need ($pin.Path -is [string] -and $pin.SHA256 -is [string] -and $pin.SHA256 -cmatch '^[A-F0-9]{64}$') 'Actual inherited identity'
-            $pins.Add([pscustomobject][ordered]@{VerificationPath=[IO.Path]::GetFullPath($pin.Path);SHA256=$pin.SHA256;ExpectedState='Present';Role='inherited-isolation'})
+            Driver-Need ($pin.ExpectedState -ceq 'Present') 'Inherited Present remains Present'
+            Driver-AddPin $map $pins $pin.VerificationPath $pin.SHA256 'inherited-v3-seed'
         }
-        Driver-Verify ([pscustomobject]@{Pins=$pins.ToArray()})
-        $portablePath=Join-Path $repo 'docs/diagnostics/isolated-fuzz/p2b-record-isolation-repair/portable-final.json'
-        Driver-CheckHash $portablePath '83FE6E002281837B4E841F334A591B6D936EE2D90D107441529AF4D123DFFD2D'
-        $portable=Get-Content -LiteralPath $portablePath -Raw|ConvertFrom-Json
-        Driver-Need ($portable.Artifacts.Count -eq 47 -and $portable.Directories.Count -eq 6) 'Historical portable inventory'
-        foreach($a in $portable.Artifacts){
-            Driver-Need (-not [IO.Path]::IsPathRooted($a.Path) -and $a.Path -notmatch '(^|[\\/])\.\.([\\/]|$)' -and $a.Encoding -ceq 'base64') 'Portable fixed path'
-            $original=Join-Path $oldPacket $a.Path;$bytes=[Convert]::FromBase64String($a.Data)
-            Driver-Need ($bytes.Length -eq $a.Length -and [IO.File]::Exists($original)) 'Portable original length'
-            Driver-CheckHash $original $a.SHA256
-            Driver-Need ([Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($original),[byte[]]$bytes)) 'Portable original bytes'
+        $inheritedUnique=$pins.Count
+        foreach($relative in $inputPaths){$path=Join-Path $repo $relative;Driver-AddPin $map $pins $path (Driver-Hash $path) 'single-owner-source'}
+        foreach($path in @($spec,$plan,$oldManifest)){Driver-AddPin $map $pins $path (Driver-Hash $path) 'immutable-provenance'}
+        $consents=@('approval.json','recovery-approval.json','prefreeze-authoring-consent.json')
+        foreach($name in $consents){$path=Join-Path $packet $name;Driver-AddPin $map $pins $path (Driver-Hash $path) 'explicit-consent'}
+        # Existing approved document snapshots came from the original consent
+        # recording step. Verify rather than overwrite or recopy them.
+        Driver-CheckHash (Join-Path $packet approved-spec.snapshot.md) (Driver-Hash $spec)
+        Driver-CheckHash (Join-Path $packet approved-plan.snapshot.md) (Driver-Hash $plan)
+        foreach($name in $consents){Driver-Once (Join-Path $packet ('approved-'+$name+'.snapshot.json')) ([IO.File]::ReadAllBytes((Join-Path $packet $name)))}
+        $manifest=[pscustomobject][ordered]@{
+            Schema=2;Phase=$Grant;BaseCommit='7d4570bd0389b00a8296b2e3d3a9ce0090a7359a'
+            PlanSHA256=(Driver-Hash $plan);DesignSHA256=(Driver-Hash $spec);InheritedManifestSHA256=(Driver-Hash $oldManifest)
+            InheritedPins=2482;InheritedUniquePins=$inheritedUnique;PinCount=$pins.Count;SourceCount=31;SourcePaths=[string[]]$inputPaths
+            Pins=$pins.ToArray();ChangedInputs=[string[]]@();PreviousFrozenSHA256=$null
+            MaxAvailabilityREDs=2;MaxHosts=5;MaxChildren=7;MaxCompilations=1;MaxReviewers=1
+            SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false
         }
-        Driver-Once (Join-Path $packet approved-spec.snapshot.md) ([IO.File]::ReadAllBytes($spec))
-        Driver-Once (Join-Path $packet approved-plan.snapshot.md) ([IO.File]::ReadAllBytes($plan))
-        $raw=@(Get-ChildItem -LiteralPath $oldPacket -Recurse -File|Sort-Object FullName)
-        $leaf=@(Get-ChildItem -LiteralPath (Join-Path $repo 'docs/diagnostics/isolated-fuzz/p2b-record-isolation-repair') -File -Force|Sort-Object Name)
-        Driver-Need ($raw.Count -eq 47 -and $leaf.Count -eq 9 -and $inputPaths.Count -eq 28) 'Explicit inventory'
-        $report=Join-Path $repo 'docs/roadmap/2026-10-31-offline-record-isolation-repair.md'
-        $paths=@($raw.FullName)+@($leaf.FullName)+@($report,$plan,(Join-Path $packet approved-spec.snapshot.md),(Join-Path $packet approved-plan.snapshot.md))+@($inputPaths|ForEach-Object {Join-Path $repo $_})
-        Driver-Need ($paths.Count -eq 88) 'Exact88new dependencies'
-        foreach($path in $paths){$pins.Add([pscustomobject][ordered]@{VerificationPath=[IO.Path]::GetFullPath($path);SHA256=(Driver-Hash $path);ExpectedState='Present';Role='integrated-review-repair-dependency'})}
-        $manifest=[pscustomobject][ordered]@{Schema=2;Phase=$Grant;BaseCommit='9b6eaf19bdecfdee0919b62c996a90f9a7c43373';PlanSHA256='67A052C56F0C57AD94A2E2E6B79A81AA6969A61FDAA89736FA271C1BF75E6689';InheritedPins=2394;Pins=$pins.ToArray();ChangedInputs=[string[]]@();MaxHosts=7;MaxChildren=7;MaxCompilations=2;MaxReviewers=1;SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false}
     }else{
         Driver-Need (-not [string]::IsNullOrEmpty($PreviousFrozenSHA256)) 'Previous identity required'
         $previous=if($Grant -ceq 'writer-green'){'seed'}else{'writer-green'}
         $previousPath=Join-Path $packet ($previous+'.frozen.json');Driver-CheckHash $previousPath $PreviousFrozenSHA256
         $manifest=Get-Content -LiteralPath $previousPath -Raw|ConvertFrom-Json
-        $allowed=if($Grant -ceq 'writer-green'){'scripts/offline-diagnostics-v4/private/write-boundary.ps1'}else{'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/observation-contract.ps1'}
+        Driver-Need ($manifest.Phase -ceq $previous -and $manifest.Pins.Count -eq $manifest.PinCount -and $manifest.SourceCount -eq 31 -and (Driver-EqualJSON $manifest.SourcePaths $inputPaths)) 'Prior source ownership and manifest'
+        if($Grant -ceq 'writer-green'){
+            $oracle=Get-Content -LiteralPath (Join-Path $PSScriptRoot expected-output.json) -Raw|ConvertFrom-Json -AsHashtable
+            Driver-RequireAvailability 'writer-availability-red' $PreviousFrozenSHA256 26 $oracle.WriterGroupNames
+            $contractNames=@($oracle.ContractGroupNames)+@($oracle.Recorder.Names)
+            Driver-RequireAvailability 'contract-availability-red' $PreviousFrozenSHA256 52 $contractNames
+        }else{Driver-RequireFinal 'writer-green'}
+        [string[]]$allowed=if($Grant -ceq 'writer-green'){@('scripts/offline-diagnostics-v4/private/write-boundary.ps1','scripts/offline-diagnostics-v4/private/record-owner.ps1')}else{@('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/observation-contract.ps1')}
         $changed=[Collections.Generic.List[string]]::new()
         foreach($pin in $manifest.Pins){
             $relative=[IO.Path]::GetRelativePath($repo,$pin.VerificationPath).Replace('\','/')
-            if($relative -ceq $allowed){
-                $hash=Driver-Hash $pin.VerificationPath;Driver-Need ($pin.ExpectedState -ceq 'Present' -and $pin.SHA256 -cne $hash) 'One specified source must change'
+            if($relative -cin $allowed){
+                $hash=Driver-Hash $pin.VerificationPath
+                Driver-Need ($pin.ExpectedState -ceq 'Present' -and $pin.SHA256 -cne $hash) 'Every specified source must change'
                 $pin.SHA256=$hash;$changed.Add($relative)
             }else{Driver-CheckHash $pin.VerificationPath $pin.SHA256}
         }
-        Driver-Need ($changed.Count -eq 1) 'Exact one-source window'
-        $manifest.Phase=$Grant;$manifest.ChangedInputs=$changed.ToArray()
+        Driver-Need ($changed.Count -eq $allowed.Count -and @(Compare-Object $changed.ToArray() $allowed).Count -eq 0) 'Exact approved source window'
+        $manifest.Phase=$Grant;$manifest.ChangedInputs=$changed.ToArray();$manifest.PreviousFrozenSHA256=$PreviousFrozenSHA256
     }
-    Driver-Need ($manifest.Pins.Count -eq 2482) 'Exact2317'
+    Driver-Need ($manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -gt 0 -and $manifest.InheritedUniquePins -le $manifest.InheritedPins -and $manifest.PinCount -ge $manifest.InheritedUniquePins -and $manifest.SourceCount -eq 31) 'Disclosed original-row and canonical-unique mapping counts'
     Driver-Verify $manifest
     $base=Join-Path $packet ('snapshots/'+$Grant);Driver-Need (-not (Test-Path -LiteralPath $base)) 'Snapshot attempted'
-    foreach($relative in $inputPaths){$target=Join-Path $base $relative;$null=[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target));Driver-Once $target ([IO.File]::ReadAllBytes((Join-Path $repo $relative)))}
+    foreach($relative in $inputPaths){
+        $target=Join-Path $base $relative;$null=[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target))
+        Driver-Once $target ([IO.File]::ReadAllBytes((Join-Path $repo $relative)))
+        Driver-CheckHash $target (Driver-Hash (Join-Path $repo $relative))
+    }
     Driver-JSON $manifestPath $manifest
-    [ordered]@{Prepared=$Grant;FrozenSHA256=(Driver-Hash $manifestPath);Pins=2482;Snapshots=28;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
+    [ordered]@{Prepared=$Grant;FrozenSHA256=(Driver-Hash $manifestPath);Pins=$manifest.PinCount;InheritedPins=2482;InheritedUniquePins=$manifest.InheritedUniquePins;Snapshots=31;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
     return
 }
 Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet stop.json))) 'Execution stopped; no retry'
 Driver-Need (-not [string]::IsNullOrEmpty($FrozenSHA256)) 'Missing frozen identity'
-Driver-Need ($Grant -cin @('writer-red','contract-red','writer-green','contract-green','core','lifecycle','continuation')) 'Approved RunOne only'
-$phase=switch -CaseSensitive ($Grant){'writer-red'{'seed'}'contract-red'{'seed'}'writer-green'{'writer-green'}default{'repair-green'}}
+Driver-Need ($Grant -cin @('writer-green','contract-green','core','lifecycle','continuation')) 'Only five approved capture hosts'
+$phase=if($Grant -ceq 'writer-green'){'writer-green'}else{'repair-green'}
 $manifestPath=Join-Path $packet ($phase+'.frozen.json')
 Driver-CheckHash $manifestPath $FrozenSHA256
 $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-Driver-Need ($manifest.Schema -eq 2 -and $manifest.Pins.Count -eq 2482) 'Exact2317mapping state-aware manifest'
+Driver-Need ($manifest.Schema -eq 2 -and $manifest.Phase -ceq $phase -and $manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -gt 0 -and $manifest.InheritedUniquePins -le $manifest.InheritedPins -and $manifest.PinCount -ge $manifest.InheritedUniquePins -and $manifest.SourceCount -eq 31 -and (Driver-EqualJSON $manifest.SourcePaths $inputPaths) -and $manifest.MaxHosts -eq 5 -and $manifest.MaxChildren -eq 7 -and $manifest.MaxCompilations -eq 1 -and $manifest.MaxReviewers -eq 1) 'Exact new source ownership and finite budget'
 Driver-Verify $manifest
+Driver-FalseFlags $manifest
+Driver-Need ($manifest.MaxAvailabilityREDs -eq 2) 'Only two availability computations'
+switch -CaseSensitive ($Grant){
+    'contract-green' {Driver-RequireFinal 'writer-green'}
+    'core' {Driver-RequireFinal 'contract-green'}
+    'lifecycle' {Driver-RequireFinal 'core'}
+    'continuation' {Driver-RequireFinal 'lifecycle'}
+}
 $oracle=Get-Content -LiteralPath (Join-Path $PSScriptRoot expected-output.json) -Raw | ConvertFrom-Json -AsHashtable
 $intentPath=Join-Path $packet ($Grant+'.intent.json');$finalPath=Join-Path $packet ($Grant+'.final.json')
 foreach($suffix in @('intent.json','final.json','stdout.bin','stderr.bin','evidence.json')){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet ($Grant+'.'+$suffix)))) 'Grant attempted/unknown; no retry'}
 Driver-JSON $intentPath ([ordered]@{Grant=$Grant;AttemptConsumed=$true;FrozenSHA256=$FrozenSHA256;AuthorizedHost=1;AuthorizedChildren=$oracle.Grants[$Grant].Children})
-$row=[ordered]@{Grant=$Grant;Started=$false;PID=$null;OwnedExit=$false;StreamsComplete=$false;ExitCode=$null;TimedOut=$false;TerminationRequested=$false;PrimaryError=$null;SecondaryErrors=@();Overflow=$false;PostPinsIntact=$false;Exact=$false;StdoutSHA256=$null;StderrSHA256=$null;EvidenceSHA256=$null;EvidenceValid=$false;ChildrenObserved=0;EvidenceState='Unknown';ExpectedNegative=($Grant -cin @('writer-red','contract-red'));ExpectedOutputSHA256=$null;Rescue=$false;SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false}
+$row=[ordered]@{Grant=$Grant;Started=$false;PID=$null;OwnedExit=$false;StreamsComplete=$false;ExitCode=$null;TimedOut=$false;TerminationRequested=$false;PrimaryError=$null;SecondaryErrors=@();Overflow=$false;PostPinsIntact=$false;Exact=$false;StdoutSHA256=$null;StderrSHA256=$null;EvidenceSHA256=$null;EvidenceValid=$false;ChildrenObserved=0;EvidenceState='Unknown';ExpectedNegative=$false;ExpectedOutputSHA256=$null;Rescue=$false;SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false}
+$row.FrozenSHA256=$FrozenSHA256
 $cleanup=[Collections.Generic.List[string]]::new()
 function Driver-Error($Record){
     if($null -eq $row.PrimaryError){$row.PrimaryError=$Record.ToString()+"`n"+$Record.ScriptStackTrace}
@@ -527,9 +573,9 @@ if($null -eq $row.PrimaryError -and $row.Started -and $row.OwnedExit -and $row.S
         $expectedError=if($profile.ErrorOutput.Count -gt 0){($profile.ErrorOutput -join $nl)+$nl}else{''}
         $row.ExpectedOutputSHA256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($expected)))
         $row.StdoutSHA256=Driver-Hash $stdoutPath;$row.StderrSHA256=Driver-Hash $stderrPath
-        if($stdout.Replace([Environment]::NewLine,([string][char]10)) -cne $expected.Replace([Environment]::NewLine,([string][char]10)) -or $stderr.Replace([Environment]::NewLine,([string][char]10)) -cne $expectedError.Replace([Environment]::NewLine,([string][char]10))){throw 'Exact stdout/stderr mismatch'}
+        if($stdout -cne $expected -or $stderr -cne $expectedError){throw 'Exact original stdout/stderr mismatch'}
         Driver-Need ((Get-Item -LiteralPath $evidencePath).Length -le 1048576) 'Evidence byte bound'
-        $actual=Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json -AsHashtable
+        $actual=Driver-ReadEvidence $evidencePath
         $row.ChildrenObserved=Driver-Evidence $actual $profile $oracle $Grant $manifest $FrozenSHA256
         $row.EvidenceSHA256=Driver-Hash $evidencePath;$row.EvidenceValid=$true;$row.EvidenceState='RequiredExact'
         Driver-Need ($row.ExitCode -eq $profile.ExitCode) 'Unexpected capture exit'

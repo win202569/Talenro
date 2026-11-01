@@ -86,7 +86,8 @@ function Invoke-ODContractTests {
         if($null -eq (Get-Command $name -CommandType Function -ErrorAction Ignore)){$available=$false}
     }
     if(-not $available){
-        $groups=@(foreach($name in $oracle.ContractGroupNames){[ordered]@{Name=$name;Status=$(if($name -ceq 'ContractAPIAvailable'){'FAIL'}else{'NotRun'})}})
+        $names=@($oracle.ContractGroupNames)+@($oracle.Recorder.Names)
+        $groups=@(foreach($name in $names){[ordered]@{Name=$name;Status=$(if($name -ceq 'ContractAPIAvailable'){'FAIL'}else{'NotRun'})}})
         return [pscustomobject][ordered]@{Schema=1;PASS=0;FAIL=1;NotRun=51;ExitCode=1;Groups=$groups}
     }
     LS-Result ContractAPIAvailable $true ([ordered]@{Verified=$true})

@@ -13,7 +13,11 @@ function Get-ODPinnedSHA256([string]$Path,[Collections.IDictionary]$Manifest){
 function Get-ODSourceOwner($Node){
     $parent=$Node.Parent
     while($null -ne $parent){
-        if($parent -is [Management.Automation.Language.FunctionDefinitionAst]){return $parent.Name}
+        if($parent -is [Management.Automation.Language.FunctionDefinitionAst]){return ($parent.Name -creplace '^(script|local|global|private):','')}
+        if($parent -is [Management.Automation.Language.ScriptBlockAst]){
+            if($parent.Parent -is [Management.Automation.Language.FunctionDefinitionAst]){return ($parent.Parent.Name -creplace '^(script|local|global|private):','')}
+            return '<ScriptBlock>'
+        }
         $parent=$parent.Parent
     }
     return '<ScriptBlock>'
@@ -35,11 +39,12 @@ function Read-ODSourceModel([string]$Repo,[string[]]$RelativePaths,[Collections.
         $ast=[Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$issues)
         if($issues.Count -ne 0){throw 'OD: source model AST invalid'}
         $functions=@(foreach($node in $ast.FindAll({param($n)$n -is [Management.Automation.Language.FunctionDefinitionAst]},$true)){
-            [ordered]@{Name=$node.Name;StartLine=$node.Extent.StartLineNumber;EndLine=$node.Extent.EndLineNumber}
+            [ordered]@{Name=($node.Name -creplace '^(script|local|global|private):','');StartLine=$node.Extent.StartLineNumber;EndLine=$node.Extent.EndLineNumber}
         })
         $calls=@(foreach($node in $ast.FindAll({param($n)$n -is [Management.Automation.Language.CommandAst]},$true)){
             $callee=$node.GetCommandName()
             if($null -eq $callee -and $node.CommandElements.Count -gt 0 -and $node.CommandElements[0] -is [Management.Automation.Language.VariableExpressionAst] -and $node.CommandElements[0].VariablePath.UserPath -ceq 'entry'){$callee='@fixed-entry'}
+            if($null -eq $callee -and $node.CommandElements.Count -gt 0 -and $node.CommandElements[0] -is [Management.Automation.Language.VariableExpressionAst] -and $node.CommandElements[0].VariablePath.UserPath -ceq 'script:OriginalFactory'){$callee='@fixed-record-factory'}
             if($null -ne $callee){[ordered]@{Caller=(Get-ODSourceOwner $node);Callee=$callee;Line=$node.Extent.StartLineNumber;Column=$node.Extent.StartColumnNumber}}
         })
         $faults=@(foreach($node in $ast.FindAll({param($n)
@@ -109,6 +114,18 @@ function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifes
     $context.ProfileRoot=[IO.Path]::GetFullPath((Join-Path $context.PacketRoot 'unit/writer-green/owner-controls/intent-profile/entry-migration-core'))
     $extra=Read-ODSourceModel $Repo @('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/case-module.ps1') $Manifest
     foreach($key in $extra.Keys){$context.SourceModel[$key]=$extra[$key]}
+    # The isolated case evaluates only the already frozen profile function AST.
+    # Its anonymous source label and relative lines are derived independently,
+    # not accepted as arbitrary missing-file locations in runtime contexts.
+    $profilePath=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/profiles.ps1'))
+    $profileModel=$context.SourceModel[$profilePath]
+    $definition=@($profileModel.Functions|Where-Object Name -CEQ Invoke-ODProfile)
+    if($definition.Count -ne 1){throw 'OD: unit profile AST identity mismatch'}
+    $offset=$definition[0].StartLine-1
+    $relativeCalls=@(foreach($call in $profileModel.Calls){if($call.Caller -ceq 'Invoke-ODProfile'){[ordered]@{Caller=$call.Caller;Callee=$call.Callee;Line=($call.Line-$offset);Column=$call.Column}}})
+    $relativeFaults=@(foreach($fault in $profileModel.Faults){if($fault.Function -ceq 'Invoke-ODProfile'){[ordered]@{Function=$fault.Function;Operation=$fault.Operation;Line=($fault.Line-$offset);Column=$fault.Column;EndLine=($fault.EndLine-$offset);EndColumn=$fault.EndColumn;Text=$fault.Text}}})
+    $context.SourceModel['<No file>']=[ordered]@{SHA256=$profileModel.SHA256;Origin=$profilePath;Functions=@([ordered]@{Name='Invoke-ODProfile';StartLine=1;EndLine=($definition[0].EndLine-$offset)});Calls=$relativeCalls;Faults=$relativeFaults}
+    $context.UnitBindings=[ordered]@{ProfileFunction='Invoke-ODProfile';AnonymousSource='<No file>';FactorySource=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'));FactoryFunction='New-ODRecordStream'}
     $context.IntentFailure=[ordered]@{
         Type='System.Management.Automation.MethodInvocationException';ErrorId='IOException'
         Message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $context.PacketRoot 'unit/writer-green/owner-controls/intent-existing.bin'))

@@ -5,8 +5,8 @@ Design, Native execution and finite budget are approved; historical failures and
 older budgets are unchanged. User also permitted pure authoring corrections
 before the FIRST source freeze, not post-freeze retries/provenance relaxation.
 
-All31source paths now exist. The49case I2 body and parent predicate calls are
-authored, but driver preparation, writer-unit and recorder adaptation remain.
+All31source paths now exist. The49case I2 body, actual parent calls, new seed
+preparation/source windows and writer/recorder decoding are authored, NOT RUN.
 Writer/owner and validator APIs remain intentionally definition-free seeds.
 No source freeze, availability RED, capture host, target, compilation or runtime
 review has run. Syntax/JSON/LF checks alone do not establish functionality.
@@ -21,6 +21,12 @@ use the real source-bound default factory. The capture owner consumes once.
 Writer tests inventory12private scopes: ten operation cases, owner controls and
 one final-write fault scope; recorder stage bound stays32. No extra host/target.
 
-Next: finish driver seed/source windows, writer/recorder evidence and fixed
-unit-source contexts, then all prefreeze static checks BEFORE consuming REDs.
-Do not use copied old driver grants or claim successful repair from this leaf.
+Readonly mapping preview found2482inherited rows,2172unique paths (310identical
+duplicates), and2209combined unique paths after37explicit additions. These are
+preview counts, not an actual manifest or source freeze. No mutable ledger pin.
+Utility definitions now create no module merely from dot-sourcing. An explicit
+New-ODCaseModule call occurs only after writer availability succeeds.
+
+Next: final whole-chain prefreeze static cross-check, then the first31source
+freeze and two exact availability REDs under the existing approval. Do not run
+the driver independently or claim successful repair from authoring checks.
