@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — zero-host readonly recheck failed on reserved variable
+
+[Actual stopped recheck](2026-11-01-offline-error-reference-readonly-recheck.md).
+16original files/9directories/8inputs matched preflight; static comparison
+confirmed only label-array predicate change. Sole readonly computation then
+hit inherited $error assignment (automatic $Error is read-only), exit1,
+Outcome=FAILED/CasesChecked=0. No corrected retry or original verdict rewrite.
+Post-original-byte check not reached; its false flag is not a detected mutation.
+0new hosts/targets/compiles/reviews; integration6/7/1/conditional1 FROZEN.
+8file new archive byte-verified, source unchanged. Further revision needs
+explicit scope and full checker review, not another implicit one-line patch.
+
 ## Latest — zero-host saved-data recheck plan drafted; not executed
 
 [Proposed readonly recheck](../superpowers/plans/2026-11-01-offline-error-reference-readonly-recheck.md).

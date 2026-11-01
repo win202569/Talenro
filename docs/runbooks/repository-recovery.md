@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest actual:[readonly computation stopped](../roadmap/2026-11-01-offline-error-reference-readonly-recheck.md).
+portable-readonly-recheck.json preserves8new sidecar records, separate from
+original16file archive. New Outcome=FAILED/CasesChecked=0 due to reserved
+$error/$Error assignment; no accepted data recheck or retry. Original parent
+Exact=false and all runtime stops/limits remain. New OriginalsUnchanged=false
+means post-check not reached, not proven drift; preflight passed separately.
+No new diagnostic hosts; integration6/7/1/conditional1 FROZEN. Do not rename,
+recompute/regrade or execute original command from clone/old consent alone.
+
 Latest proposal:[zero-host saved-data recheck](../superpowers/plans/2026-11-01-offline-error-reference-readonly-recheck.md).
 Plan only, no recheck sidecar/result/archive exists yet. Proposes a separate
 readonly label-array-corrected assessment, not rerunning the diagnostic or
