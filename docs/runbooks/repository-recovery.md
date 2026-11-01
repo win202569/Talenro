@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest actual checkpoint: [projection10PASS/scope9PASS and2251pin source freeze](../roadmap/2026-11-01-offline-error-projection.md).
+Design/plan/finite allowance approved, auxiliary9/9consumed. New manifest
+182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461;
+155/186snapshots, no new writer host yet at this checkpoint. Historical2hosts/
+2compiles remain consumed. Original remaining5hosts/7targets/1compile/conditional1
+review gated by one actual writer-projection-green and no newest projection stop.
+Portable-error-projection-freeze.json preserves417files/108directories/20zero-byte
+files, decoded bytes verified; SHA E13D03435C988D3EF5F69B2777F6480577170CC2B4482F8C24F5975CD887294E.
+Six historical stops remain; do not replay old attempts. NOT_ACCEPTED; branch
+codex/c12-b01-task9-coordinator, not main. Earlier sections are historical.
+
 Newest handoff: written projection design approved; [implementation plan](../superpowers/plans/2026-11-01-offline-error-projection.md)
 is awaiting explicit plan/allowance approval. Native execution, no implementation
 agents or extra review. Proposed new2251pin epoch and separate writer-projection

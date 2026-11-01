@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-01
 
+## Latest — projection10/10, scope9/9; new source freeze2251pins
+
+[实际执行](2026-11-01-offline-error-projection.md)：旧投影RED精确失败，修复后
+10组GREEN及新源码9组scopeGREEN通过。唯一新源码冻结成功2251pins/31快照，
+总155/186；六份历史stop和旧失败记录保留。辅助累计9/9耗尽，尚未运行新写入
+宿主，历史仍2宿主/2编译/0目标/0审查。冻结归档417文件/108目录/20零字节已校验。
+下一步推送检查点，再运行唯一writer-projection-green；NOT_ACCEPTED，不合并main。
+
 ## Latest — projection design approved; implementation plan awaiting approval
 
 书面设计已由用户“是”批准；[实施计划](../superpowers/plans/2026-11-01-offline-error-projection.md)
