@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest actual:[one preparation verified and stopped](../roadmap/2026-11-01-offline-prepare-recording-adjustment.md).
+The development branch now preserves actual2482pin seed manifest/28source
+snapshots and8sidecar records in portable-prepare-adjustment.json (44files total).
+Original portable-stopped remains unchanged; preserve both archives and use
+their explicit root mappings when checking bytes. No automatic import/replay.
+Single additional preparation allowance is exhausted; intent/entered markers
+and original stop remain. Runtime7/7/2/conditional1 stays FROZEN, I1/I2 unfixed.
+Do not rerun Prepare/RunOne, remove markers or treat clone/manifest as consent.
+Further integration requires separately written scope and approval. The older
+planning/absent-manifest statements below are historical, not current authority.
+
 Latest planning:[single preparation adjustment plan](../superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md).
 Design approved; plan execution not yet approved. It proposes only1additional
 Prepare with a fixed driver exception, retained records and durable attempt

@@ -1,5 +1,12 @@
 # Offline diagnostics v3 — UNACCEPTED, DO NOT RUN
 
+Update2026-11-01: [one preparation-only adjustment](../roadmap/2026-11-01-offline-prepare-recording-adjustment.md)
+successfully created/verified2482pins and28source snapshots. This supersedes
+only the earlier absence of those artifacts, not the execution prohibition.
+All runtime grants remain frozen; I1/I2 remain unfixed. The single additional
+preparation attempt is exhausted. Retain both attempt markers and original stop;
+do not run Prepare/RunOne or infer runtime permission from the manifest.
+
 The v3 tree is an unfinished seed, not a supported diagnostic entry point.
 Read the [actual stopped execution](../roadmap/2026-10-31-offline-integrated-review-repair.md)
 and [approved plan](../superpowers/plans/2026-10-31-offline-integrated-review-repair.md).

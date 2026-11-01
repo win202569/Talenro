@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory)][ValidateSet('Prepare','RunOne')][string]$Action,
     [Parameter(Mandatory)][ValidateSet('seed','writer-red','contract-red','writer-green','contract-green','repair-green','core','lifecycle','continuation')][string]$Grant,
     [ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256,
-    [ValidatePattern('^[A-F0-9]{64}$')][string]$PreviousFrozenSHA256
+    [ValidatePattern('^[A-F0-9]{64}$')][string]$PreviousFrozenSHA256,
+    [string]$PreparationAdjustment
 )
 try{
 Set-StrictMode -Version Latest
@@ -305,7 +306,66 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
     if($started.Count -gt 0){Driver-Need (@($started.PID | Select-Object -Unique).Count -eq $started.Count) 'Distinct owned direct targets required'}
     return $started.Count
 }
-Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet stop.json))) 'Execution stopped; no refreeze'
+$preparationException=$false
+if(-not [string]::IsNullOrEmpty($PreparationAdjustment)){
+    Driver-Need ($PreparationAdjustment -ceq 'offline-prepare-recording-adjustment-2026-11-01-1' -and $Action -ceq 'Prepare' -and $Grant -ceq 'seed') 'Adjustment is preparation-only'
+    $adjustment=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-prepare-recording-adjustment'
+    function Driver-AdjustmentPath([string]$Path){
+        $cursor=[IO.Path]::GetFullPath($Path)
+        Driver-Need ($cursor.StartsWith($repo+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) 'Adjustment fixed repository path'
+        while($cursor -ine $repo){
+            $item=Get-Item -LiteralPath $cursor -Force
+            Driver-Need (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'Adjustment linked path refused'
+            $cursor=[IO.Path]::GetDirectoryName($cursor)
+        }
+    }
+    $adjustmentPlan=Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md'
+    $adjustmentDesign=Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md'
+    foreach($path in @($packet,$adjustment,$adjustmentPlan,$adjustmentDesign,$PSCommandPath)){Driver-AdjustmentPath $path}
+    Driver-CheckHash $adjustmentPlan '5F070621AD11402B4ABBFD71EFA86D39E847130694D6817CEDE6340649BBD2BD'
+    Driver-CheckHash $adjustmentDesign '6F57E7DAA71C5B3E6E193B8C46BD643B524D8ACFE2A945EF166FB1F4A06298E5'
+    $retained=[ordered]@{
+        'progress.md'='55B652081DA45F3F891D14C1DE95D634A3BA5872B53F9C6D60ECF59C84061E63'
+        'seed.prepare.tool-result.json'='C6EDB04CFD2C1E78BE02E497A48DBA4A8E4F74CB4E95EB83CCDAD700F8903719'
+        'static.tool-result.json'='69620AFC7571CB0D83F10812A405D7044A5F0135FEF628B9F2D40512A68441EA'
+        'stop.json'='0D4FE34A03FAD3FD1D45B8C4B850C5B6D8C8BF9F3C9283304503B7119FD7EDE2'
+        'author-integrity.tool-result.json'='8F091601FAD7F9603D603F786458B7EB4EFAFD0952A65FF38A82FE2237994E02'
+    }
+    $existing=@(Get-ChildItem -LiteralPath $packet -Force)
+    Driver-Need ($existing.Count -eq 5 -and @($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @($retained.Keys)}).Count -eq 0) 'Exact retained five-file inventory'
+    foreach($name in $retained.Keys){$path=Join-Path $packet $name;Driver-AdjustmentPath $path;Driver-CheckHash $path $retained[$name]}
+    $stoppedPortable=Join-Path $PSScriptRoot portable-stopped.json
+    Driver-AdjustmentPath $stoppedPortable
+    Driver-CheckHash $stoppedPortable '1D10ABA536D414B06BE67422EA3662EF68AF4926858A70EBBBCFAB38E1EE6ADF'
+    $archive=Get-Content -LiteralPath $stoppedPortable -Raw|ConvertFrom-Json
+    foreach($record in $archive.Artifacts){
+        $path=Join-Path $packet $record.Path
+        Driver-Need ($record.Path -cin @($retained.Keys) -and [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) -ceq $record.Base64) 'Retained original bytes'
+    }
+    foreach($name in @('approval.json','original-driver.bin','static.tool-result.json','attempt.intent.json')){Driver-AdjustmentPath (Join-Path $adjustment $name)}
+    Driver-CheckHash (Join-Path $adjustment approval.json) '7480924FD798E39D35E26EC27E0D1BF4D0E43CB16CD1CE632AF73FC85B84AA79'
+    Driver-CheckHash (Join-Path $adjustment original-driver.bin) '4F75FBDD23CD6A21C3567460A1CFC62661B5B00D8D5A77F8FE4300CFE1500EE9'
+    $approval=Get-Content -LiteralPath (Join-Path $adjustment approval.json) -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Keys $approval @('Schema','Identity','DesignSHA256','PlanSHA256','OriginalDriverSHA256','ExecutionBaseline','ApprovalText','AdditionalPrepare','Hosts','Targets','Compilations','Reviews','RuntimeRemainder') AdjustmentApproval
+    foreach($name in @('Schema','AdditionalPrepare')){Driver-Need ($approval[$name] -is [long] -and $approval[$name] -eq 1) 'Adjustment one preparation'}
+    foreach($name in @('Hosts','Targets','Compilations','Reviews')){Driver-Need ($approval[$name] -is [long] -and $approval[$name] -eq 0) 'Adjustment zero runtime grants'}
+    Driver-Need ($approval.Identity -ceq $PreparationAdjustment -and $approval.ApprovalText -ceq '是' -and $approval.ExecutionBaseline -ceq '73aa96037cf1908ec47cd1d789349b9e602a15ab' -and $approval.RuntimeRemainder -ceq 'FROZEN') 'Actual adjustment approval'
+    $staticOriginal=(Get-Content -LiteralPath (Join-Path $packet static.tool-result.json) -Raw|ConvertFrom-Json).waits[-1].output|ConvertFrom-Json
+    Driver-Need ($staticOriginal.Sources.Count -eq 28) 'Original seed source inventory'
+    foreach($source in $staticOriginal.Sources){
+        $path=Join-Path $repo $source.Path;Driver-AdjustmentPath $path
+        if($source.Path -cne 'docs/diagnostics/isolated-fuzz/p2b-integrated-review-repair/driver.ps1'){Driver-CheckHash $path $source.SHA256}
+    }
+    $intentPath=Join-Path $adjustment attempt.intent.json
+    $intent=Get-Content -LiteralPath $intentPath -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Keys $intent @('Schema','Identity','ApprovalSHA256','PlanSHA256','RevisedDriverSHA256','Action','Grant','AttemptConsumed','RuntimeRemainder') AdjustmentIntent
+    Driver-Need ($intent.Schema -is [long] -and $intent.Schema -eq 1 -and $intent.Identity -ceq $PreparationAdjustment -and $intent.ApprovalSHA256 -ceq (Driver-Hash (Join-Path $adjustment approval.json)) -and $intent.PlanSHA256 -ceq (Driver-Hash $adjustmentPlan) -and $intent.RevisedDriverSHA256 -ceq (Driver-Hash $PSCommandPath) -and $intent.Action -ceq 'Prepare' -and $intent.Grant -ceq 'seed' -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.RuntimeRemainder -ceq 'FROZEN') 'Fixed consumed adjustment intent'
+    foreach($name in @('seed.frozen.json','snapshots','writer-red.intent.json')){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet $name))) 'Adjustment preparation output already exists'}
+    Driver-JSON (Join-Path $adjustment attempt.entered.json) ([ordered]@{Identity=$PreparationAdjustment;IntentSHA256=(Driver-Hash $intentPath);AttemptConsumed=$true})
+    $preparationException=$true
+}else{
+    Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet stop.json))) 'Execution stopped; no refreeze'
+}
 if($Action -ceq 'Prepare'){
     Driver-Need ($Grant -cin @('seed','writer-green','repair-green')) 'Only three approved Prepare phases'
     Driver-Static
@@ -313,7 +373,12 @@ if($Action -ceq 'Prepare'){
     Driver-Need (-not (Test-Path -LiteralPath $manifestPath)) 'Prepare attempted; no retry'
     if($Grant -ceq 'seed'){
         $existing=@(Get-ChildItem -LiteralPath $packet -Force)
+        if($preparationException){
+            Driver-Need ($existing.Count -eq 5 -and @($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @($retained.Keys)}).Count -eq 0) 'Exact retained five-file inventory'
+            foreach($name in $retained.Keys){Driver-AdjustmentPath (Join-Path $packet $name);Driver-CheckHash (Join-Path $packet $name) $retained[$name]}
+        }else{
         Driver-Need (@($existing|Where-Object {$_.PSIsContainer -or $_.Name -cnotin @('progress.md','static.tool-result.json')}).Count -eq 0) 'Only explicit ledger/static receipts before freeze'
+        }
         $spec=Join-Path $repo 'docs/superpowers/specs/2026-10-19-offline-diagnostic-entry-migration-design.md'
         $plan=Join-Path $repo 'docs/superpowers/plans/2026-10-31-offline-integrated-review-repair.md'
         Driver-CheckHash $spec 'DA27DA1C6BD3578512FB60A7F38B6635EAC9ACEF6570534F8B868BD07D088D9A'

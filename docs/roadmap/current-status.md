@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — single preparation verified; runtime still frozen
+
+[Actual adjustment result](2026-11-01-offline-prepare-recording-adjustment.md).
+Explicit execution approval used exactly1additional seed Prepare, exit0.
+2482Present pins and28source snapshots verified;5original records unchanged.
+Only fixed driver preparation controls changed; other27seed sources unchanged.
+New44file portable archive verified; original stopped archive preserved.
+No capture host/target/compilation/review or runtime test. I1/I2 unresolved;
+7/7/2/conditional1 remainder FROZEN. This task has stopped as required, not
+runtime acceptance. No RunOne, later freeze or retry is authorized; any next
+integration needs separate written scope/approval. Earlier entries are history.
+
 ## Latest — preparation design approved; execution plan awaits approval
 
 [Finite preparation-only plan](../superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md).
