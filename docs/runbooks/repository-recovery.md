@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+# Latest recovery checkpoint — 2026-11-01 verifier source freeze
+
+Read [actual verifier execution](../roadmap/2026-11-01-offline-owner-scope-verifier.md).
+Use branch codex/c12-b01-task9-coordinator, not main. New regression8/8 and full
+scope9/9 passed; unique writer-scope source freeze has2236pins and total124/155
+snapshots. Runtime after freeze has NOT run; NOT_ACCEPTED. All6auxiliary attempts
+are consumed; no new probe/retry. Original5hosts/7targets/1compile/conditional1
+review remain, gated by actual writer success and no newest verifier stop.
+
+New portable-owner-scope-verifier-freeze.json (same diagnostic directory as prior
+archives) preserves338actual P/Q files,83directories,10zero-byte files; SHA256
+3735B585AF79FD22EE9B81DF2BF07865AB09C65BDCF0054CCF1FEF91B3BD08DA.
+Decoded bytes match originals. Do not overwrite any existing receipt or stop;
+do not rewrite old absolute manifests to imply they ran on the new computer.
+All prior recovery sections below remain historical.
+
 Newest proposed next step: [verifier-boundary revision](../superpowers/plans/2026-11-01-offline-owner-scope-verifier.md).
 Pending design/plan/3additional auxiliary computations approval; no source/test or
 execution this turn. Existing three computations remain consumed. Proposed new

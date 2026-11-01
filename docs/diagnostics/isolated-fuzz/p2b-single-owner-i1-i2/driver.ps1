@@ -514,12 +514,12 @@ function Driver-RequireFinal([string]$Name){
 
 function Driver-ScopeRegression([string]$Phase,$Binding){
     $red=$Phase -ceq 'Red'
-    $prefix=if($red){'owner-scope-signature-red'}else{'owner-scope-signature-green'}
+    $prefix=if($red){'owner-scope-signature-red'}else{'owner-scope-verifier-scope-green'}
     $path=Join-Path $packet ($prefix+'.final.json')
     $r=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json -AsHashtable
     Driver-Keys $r @('Schema','Phase','TestSHA256','InputSHA256','SourceSHA256','Groups','PASS','FAIL','NotRun','ExitCode','RootError') ScopeRegression
     foreach($key in @('Schema','PASS','FAIL','NotRun','ExitCode')){Driver-Need ($r[$key] -is [long]) 'Scope regression integer types'}
-    Driver-Need ($r.Schema -eq 1 -and $r.Phase -ceq $Phase -and $r.TestSHA256 -ceq $Binding.TestSHA256 -and $r.InputSHA256 -ceq '511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792' -and $r.PASS -eq $(if($red){0}else{9}) -and $r.FAIL -eq $(if($red){1}else{0}) -and $r.NotRun -eq $(if($red){8}else{0}) -and $r.ExitCode -eq $(if($red){1}else{0})) 'Exact scope regression disposition'
+    Driver-Need ($r.Schema -eq 1 -and $r.Phase -ceq $Phase -and $r.TestSHA256 -ceq $Binding.TestSHA256 -and $r.InputSHA256 -ceq $(if($red){'511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792'}else{'F08D1A3AEB9E8840024C4F2C80711DE7D411C90B22C08BD265A3FD1EDC28A7F0'}) -and $r.PASS -eq $(if($red){0}else{9}) -and $r.FAIL -eq $(if($red){1}else{0}) -and $r.NotRun -eq $(if($red){8}else{0}) -and $r.ExitCode -eq $(if($red){1}else{0})) 'Exact scope regression disposition'
     $names=@('FourFunctionsPersist','DefinitionsExact','ModuleIsolation','AttemptBindings','ConsumedAttempt','HistoricalEpoch','RecoveryGate','NewEpochBindings','OriginalContractsUnchanged')
     Driver-Need ($r.Groups -is [array] -and $r.Groups.Count -eq 9) 'Nine scope groups'
     for($i=0;$i -lt 9;$i++){
@@ -535,6 +535,7 @@ function Driver-ScopeRegression([string]$Phase,$Binding){
     }
     $intent=Get-Content -LiteralPath (Join-Path $packet ($prefix+'.intent.json')) -Raw|ConvertFrom-Json -AsHashtable
     Driver-Need ($intent.Schema -eq 1 -and $intent.Phase -ceq $Phase -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.TestSHA256 -ceq $r.TestSHA256 -and $intent.InputSHA256 -ceq $r.InputSHA256) 'Unique scope phase intent'
+    if(-not $red){Driver-Need ($intent.Computation -is [long] -and $intent.Computation -eq 6 -and $intent.ComputationCeiling -is [long] -and $intent.ComputationCeiling -eq 6) 'Final bounded auxiliary computation'}
     if($red){
         Driver-Keys $r.RootError @('Type','ErrorId','Message','Position','Stack') ActualScopeCause
         Driver-Need ($r.RootError.Type -ceq 'System.Management.Automation.CommandNotFoundException' -and $r.RootError.ErrorId -ceq 'CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand' -and $r.RootError.Message.Contains('Invoke-ODProfile') -and $r.RootError.Position -is [string] -and $r.RootError.Stack -is [string]) 'Exact query-boundary scope cause'
@@ -550,13 +551,62 @@ function Driver-ScopeMap($Info){
         OriginalTestSHA256='BDA424DCC24805F6FFDDEB30DDB67F502CDE7FD34B4B32E1E760D156507C4DCE'
         OriginalInputSHA256=$Info.Binding.HistoricalFiles['owner-scope.input.json']
         HistoricalArtifacts=$Info.Binding.HistoricalFiles
-        SignatureRecovery=[ordered]@{Schema=1;HistoricalAuxiliaryStopSHA256='D82E7A269C8982EB6AA7BDECCC779D8A3E674CC3F01EBE6484A4145B35CF3236';SupplementDesignSHA256=$Info.Binding.DesignSHA256;SupplementPlanSHA256=$Info.Binding.PlanSHA256;SupplementApprovalSHA256=$Info.Binding.ApprovalSHA256;TestSHA256=$Info.Binding.TestSHA256;InputSHA256='511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792';RedFinalSHA256=$Info.RedSHA256;GreenFinalSHA256=$Info.GreenSHA256}
-        Budget=[ordered]@{HistoricalHostsConsumed=1;HistoricalCompilesConsumed=1;TotalHostCeiling=6;TotalCompilationCeiling=2;ScopeComputationCeiling=3;SourceSnapshotCeiling=155;Targets=7;ConditionalReviews=1}
+        SignatureRecovery=[ordered]@{Schema=1;HistoricalAuxiliaryStopSHA256='D82E7A269C8982EB6AA7BDECCC779D8A3E674CC3F01EBE6484A4145B35CF3236';SupplementDesignSHA256=$Info.Binding.DesignSHA256;SupplementPlanSHA256=$Info.Binding.PlanSHA256;SupplementApprovalSHA256=$Info.Binding.ApprovalSHA256;TestSHA256=$Info.Binding.TestSHA256;InputSHA256='511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792';RedFinalSHA256=$Info.RedSHA256;FailedGreenDiagnosticSHA256='53D5EADE9E505069DC92C0561F06F1D269AEC0B8A48A6821DC7AA60016FAEBDF'}
+        VerifierRecovery=[ordered]@{Schema=1;HistoricalSignatureStopSHA256='1D8844C21D1F0559CCD705D4394519E30D31BC72524F9671D821F46FF4118F38';PlanSHA256=$Info.Verifier.Binding.PlanSHA256;DesignSHA256=$Info.Verifier.Binding.DesignSHA256;ApprovalSHA256=$Info.Verifier.Binding.HistoricalFiles['owner-scope-verifier.approval.json'];RegressionTestSHA256=$Info.Verifier.Binding.RegressionTestSHA256;RegressionInputSHA256=$Info.Verifier.Binding.RegressionInputSHA256;TestSHA256=$Info.Verifier.Binding.TestSHA256;InputSHA256='F08D1A3AEB9E8840024C4F2C80711DE7D411C90B22C08BD265A3FD1EDC28A7F0';VerifierRedFinalSHA256=$Info.Verifier.RedSHA256;VerifierGreenFinalSHA256=$Info.Verifier.GreenSHA256;ScopeGreenFinalSHA256=$Info.GreenSHA256;HistoricalFailedGreenToolSHA256='F7E6F4F6B95D984FC88FCF7A8BE3949593913EB4CAD45F919F2F6E04E825B204'}
+        Budget=[ordered]@{HistoricalHostsConsumed=1;HistoricalCompilesConsumed=1;TotalHostCeiling=6;TotalCompilationCeiling=2;ScopeComputationCeiling=6;SourceSnapshotCeiling=155;Targets=7;ConditionalReviews=1}
     }
 }
+function Driver-VerifierRegression([string]$Phase,$Binding){
+    $red=$Phase -ceq 'Red';$prefix='owner-scope-verifier-'+$Phase.ToLowerInvariant()
+    $path=Join-Path $packet ($prefix+'.final.json')
+    $r=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Keys $r @('Schema','Phase','TestSHA256','InputSHA256','CodeSHA256','FixtureSHA256','Groups','PASS','FAIL','NotRun','ExitCode','RootError') VerifierRegression
+    foreach($k in @('Schema','PASS','FAIL','NotRun','ExitCode')){Driver-Need ($r[$k] -is [long]) 'Verifier integer kinds'}
+    Driver-Need ($r.Schema -eq 1 -and $r.Phase -ceq $Phase -and $r.TestSHA256 -ceq $Binding.RegressionTestSHA256 -and $r.InputSHA256 -ceq $Binding.RegressionInputSHA256 -and $r.CodeSHA256 -ceq $(if($red){$Binding.HistoricalTestSHA256}else{$Binding.TestSHA256}) -and $r.PASS -eq $(if($red){0}else{8}) -and $r.FAIL -eq $(if($red){1}else{0}) -and $r.NotRun -eq $(if($red){7}else{0}) -and $r.ExitCode -eq $(if($red){1}else{0})) 'Exact verifier disposition'
+    Driver-Need (Driver-EqualJSON $r.FixtureSHA256 $Binding.FixtureSHA256) 'Six actual verifier fixture identities'
+    $names=@('SameDefinitionsAccepted','ChangedBodyRejected','ChangedInlineParameterRejected','UnexpectedAstKindRejected','UnexpectedNameRejected','FailurePreservesOriginal','CompletedGroupsPreserved','LaterCasesNotExecuted')
+    Driver-Need ($r.Groups -is [array] -and $r.Groups.Count -eq 8) 'Eight verifier groups'
+    for($i=0;$i -lt 8;$i++){
+        Driver-Keys $r.Groups[$i] @('Name','Status') VerifierGroup
+        Driver-Need ($r.Groups[$i].Name -ceq $names[$i] -and $r.Groups[$i].Status -ceq $(if($red){if($i -eq 0){'FAIL'}else{'NotRun'}}else{'PASS'})) 'Verifier group order/disposition'
+    }
+    if($red){
+        Driver-Keys $r.RootError @('Type','ErrorId','Message','Position','Stack','Comparison') ActualVerifierCause
+        Driver-Need ($r.RootError.Type -ceq 'System.Management.Automation.RuntimeException' -and $r.RootError.ErrorId -ceq 'Owner scope regression: actual body unchanged Capture-Value' -and $r.RootError.Message -ceq $r.RootError.ErrorId -and $r.RootError.Position -is [string] -and $r.RootError.Stack -is [string]) 'Actual old checker rejection'
+        Driver-Keys $r.RootError.Comparison @('ExpectedNodeType','LoadedNodeType','ExpectedText','LoadedText','OldExpectedOperand','OldLoadedOperand') ActualComparison
+        $c=$r.RootError.Comparison
+        Driver-Need ($c.ExpectedNodeType -ceq 'System.Management.Automation.Language.FunctionDefinitionAst' -and $c.LoadedNodeType -ceq $c.ExpectedNodeType -and $c.ExpectedText -is [string] -and $c.LoadedText -is [string] -and $c.OldExpectedOperand -is [string] -and $c.OldLoadedOperand -is [string] -and $c.OldExpectedOperand -cne $c.OldLoadedOperand) 'Actual unequal old operands'
+    }else{Driver-Need ($null -eq $r.RootError) 'No verifier GREEN cause'}
+    $intent=Get-Content -LiteralPath (Join-Path $packet ($prefix+'.intent.json')) -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ($intent.Schema -eq 1 -and $intent.Phase -ceq $Phase -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.Computation -eq $(if($red){4}else{5}) -and $intent.ComputationCeiling -eq 6 -and $intent.TestSHA256 -ceq $r.TestSHA256 -and $intent.InputSHA256 -ceq $r.InputSHA256) 'Unique verifier phase intent'
+    if(-not $red){Driver-Need ($intent.CodeSHA256 -ceq $r.CodeSHA256 -and $intent.FullInputSHA256 -ceq (Driver-Hash (Join-Path $packet owner-scope-verifier-scope.input.json))) 'Verifier implementation/input intent'}
+    return Driver-Hash $path
+}
+function Driver-VerifierGate {
+    $path=Join-Path $packet owner-scope-verifier-scope.input.json
+    Driver-CheckHash $path 'F08D1A3AEB9E8840024C4F2C80711DE7D411C90B22C08BD265A3FD1EDC28A7F0'
+    $b=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ($b.Schema -eq 1 -and $b.AdditionalComputations -eq 3 -and $b.ComputationCeiling -eq 6 -and $b.TestSHA256 -ceq '52B237AF4BF7DB0AD0D45919B41860C8F39831E2B26E69BC840BE341E096FF4E' -and $b.RegressionTestSHA256 -ceq 'BD3DF80E75C62B7924BBC4AB399493AE9AD1F102117B3061D4B7DE0775AFD926' -and $b.RegressionInputSHA256 -ceq 'C76019BD52329DDDF5DEA2117EBAD44B77AF6E15E72B515CD5707F63A2561548' -and $b.HistoricalTestSHA256 -ceq 'FA11EF9E1B3B3AAA411C3B848525243094FAC318EE8AD38F1F6B3C63581C3513' -and $b.HistoricalInputSHA256 -ceq '511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792' -and $b.HistoricalRedFinalSHA256 -ceq '307D8BC0C2D5E9C12F34EAA99DEE81A9FF0FED7190891660062425BC80E79C1A' -and $b.HistoricalFailedGreenSHA256 -ceq '53D5EADE9E505069DC92C0561F06F1D269AEC0B8A48A6821DC7AA60016FAEBDF') 'Exact verifier frozen binding'
+    foreach($n in $b.HistoricalFiles.Keys){Driver-CheckHash (Join-Path $packet $n) $b.HistoricalFiles[$n]}
+    Driver-CheckHash (Join-Path $packet owner-scope-signature.stop.json) '1D8844C21D1F0559CCD705D4394519E30D31BC72524F9671D821F46FF4118F38'
+    Driver-CheckHash (Join-Path $PSScriptRoot owner-scope-verifier.tests.ps1) $b.TestSHA256
+    Driver-CheckHash (Join-Path $PSScriptRoot owner-scope-verifier-regression.tests.ps1) $b.RegressionTestSHA256
+    Driver-CheckHash (Join-Path $packet owner-scope-verifier-regression.input.json) $b.RegressionInputSHA256
+    Driver-CheckHash (Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-owner-scope-verifier.md') $b.PlanSHA256
+    Driver-CheckHash (Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-owner-scope-verifier-design.md') $b.DesignSHA256
+    Driver-Need ($b.FixtureSHA256.Count -eq 6) 'Exact six verifier fixtures'
+    foreach($n in $b.FixtureSHA256.Keys){Driver-CheckHash (Join-Path $repo $n) $b.FixtureSHA256[$n]}
+    $a=Get-Content -LiteralPath (Join-Path $packet owner-scope-verifier.approval.json) -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ($a.Schema -eq 1 -and $a.Approved -is [bool] -and $a.Approved -and $a.UserReply -ceq '是' -and $a.Method -ceq 'Native' -and $a.BaseCommit -ceq '9128d0cd6dc6ca4c3a359de38b2887f49d773f93' -and $a.PlanSHA256 -ceq $b.PlanSHA256 -and $a.DesignSHA256 -ceq $b.DesignSHA256 -and (Driver-EqualJSON $a.FixtureSHA256 $b.FixtureSHA256) -and (Driver-EqualJSON $a.HistoricalScopeBaseline $b.BaselineSources)) 'Exact verifier approval'
+    foreach($n in $a.HistoricalFiles.Keys){Driver-Need ($b.HistoricalFiles[$n] -ceq $a.HistoricalFiles[$n]) 'Historical approval binding'}
+    foreach($n in $a.CandidateSources.Keys){if($n -cne 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/driver.ps1'){Driver-CheckHash (Join-Path $repo $n) $a.CandidateSources[$n]}}
+    foreach($pair in @(@('AdditionalComputations',3),@('ComputationCeiling',6),@('ModulesPerComputation',2),@('AdditionalHosts',0),@('AdditionalCompiles',0),@('AdditionalTargets',0),@('AdditionalSnapshots',0),@('AdditionalReviewers',0))){Driver-Need ($a[$pair[0]] -is [long] -and $a[$pair[0]] -eq $pair[1]) 'Exact verifier finite allowance'}
+    return [pscustomobject]@{Binding=$b;Approval=$a;RedSHA256=(Driver-VerifierRegression Red $b);GreenSHA256=(Driver-VerifierRegression Green $b)}
+}
+
 function Driver-OwnerScopeGate {
-    $newStop=Test-Path -LiteralPath (Join-Path $packet owner-scope-signature.stop.json)
-    Driver-Need (-not $newStop) 'Scope signature recovery stopped; no retry'
+    $newStop=Test-Path -LiteralPath (Join-Path $packet owner-scope-verifier.stop.json)
+    Driver-Need (-not $newStop) 'Scope verifier recovery stopped; no retry'
     $inputPath=Join-Path $packet owner-scope-signature.input.json
     Driver-CheckHash $inputPath '511274F055A0107E4A76899F650FB8151F4AC47B344D7824EDC95937D69AE792'
     $binding=Get-Content -LiteralPath $inputPath -Raw|ConvertFrom-Json -AsHashtable
@@ -576,8 +626,10 @@ function Driver-OwnerScopeGate {
     foreach($pair in @(@('AdditionalRedComputations',1),@('ReleasedExistingGreenComputations',1),@('AdditionalHosts',0),@('AdditionalCompiles',0),@('AdditionalTargets',0),@('AdditionalSnapshots',0),@('AdditionalReviewers',0))){$approved=$approved -and $approval[$pair[0]] -is [long] -and $approval[$pair[0]] -eq $pair[1]}
     $approved=$approved -and $original.Schema -eq 1 -and $original.Approved -is [bool] -and $original.Approved -and $original.UserReply -ceq '是' -and $original.Method -ceq 'Native' -and $original.SnapshotCeiling -eq 155 -and $original.AdditionalBudget.ScopeComputations -eq 2 -and $original.AdditionalBudget.CaptureHosts -eq 1 -and $original.AdditionalBudget.FixtureCompilations -eq 1 -and $original.AdditionalBudget.SourceSnapshots -eq 31 -and $original.AdditionalBudget.Targets -eq 0 -and $original.AdditionalBudget.Reviewers -eq 0
     $controller=Driver-ControllerGate
-    $red=Driver-ScopeRegression Red $binding;$green=Driver-ScopeRegression Green $binding
-    $info=[pscustomobject]@{Binding=$binding;Original=$original;Controller=$controller;RedSHA256=$red;GreenSHA256=$green}
+    $verifier=Driver-VerifierGate
+    Driver-Need (Driver-EqualJSON $binding.BaselineSources $verifier.Binding.BaselineSources) 'Historical and new source windows agree'
+    $red=Driver-ScopeRegression Red $binding;$green=Driver-ScopeRegression Green $verifier.Binding
+    $info=[pscustomobject]@{Binding=$binding;Original=$original;Controller=$controller;Verifier=$verifier;RedSHA256=$red;GreenSHA256=$green}
     $grants=@('writer-green','contract-green','core','lifecycle','continuation')
     $start=if($Action -ceq 'Prepare' -and $Grant -ceq 'writer-scope-rebind'){0}elseif($Action -ceq 'Prepare' -and $Grant -ceq 'repair-green'){1}elseif($Action -ceq 'RunOne'){[array]::IndexOf($grants,$Grant)}else{-1}
     Driver-Need ($start -ge 0) 'Only approved current scope stages'
@@ -593,9 +645,9 @@ function Driver-OwnerScopeGate {
         foreach($relative in @('writer-scope-repair.intent.json','writer-scope-repair.frozen.json','snapshots/writer-scope-rebind')){if(Test-Path -LiteralPath (Join-Path $packet $relative)){$consumed=$true}}
     }else{
         $epoch=Get-Content -LiteralPath (Get-ODWriterManifestPath) -Raw|ConvertFrom-Json -AsHashtable
-        Driver-Need ($epoch.Schema -eq 2 -and $epoch.Phase -ceq 'writer-green' -and $epoch.PreviousFrozenSHA256 -ceq 'D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C' -and $epoch.PinCount -eq 2228 -and $epoch.SourceCount -eq 31 -and (Driver-EqualJSON $epoch.SourcePaths $inputPaths) -and (Driver-EqualJSON $epoch.OwnerScopeRecovery (Driver-ScopeMap $info))) 'Exact scope source epoch'
+        Driver-Need ($epoch.Schema -eq 2 -and $epoch.Phase -ceq 'writer-green' -and $epoch.PreviousFrozenSHA256 -ceq 'D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C' -and $epoch.PinCount -eq 2236 -and $epoch.SourceCount -eq 31 -and (Driver-EqualJSON $epoch.SourcePaths $inputPaths) -and (Driver-EqualJSON $epoch.OwnerScopeRecovery (Driver-ScopeMap $info))) 'Exact scope source epoch'
         $intent=Get-Content -LiteralPath (Join-Path $packet writer-scope-repair.intent.json) -Raw|ConvertFrom-Json -AsHashtable
-        Driver-Need ($intent.Schema -eq 1 -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.ApprovalSHA256 -ceq $binding.ApprovalSHA256 -and $intent.GreenSHA256 -ceq $green -and $intent.ParentSHA256 -ceq $epoch.PreviousFrozenSHA256) 'Unique scope source intent'
+        Driver-Need ($intent.Schema -eq 1 -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.ApprovalSHA256 -ceq $verifier.Binding.HistoricalFiles['owner-scope-verifier.approval.json'] -and $intent.GreenSHA256 -ceq $green -and $intent.ParentSHA256 -ceq $epoch.PreviousFrozenSHA256) 'Unique scope source intent'
     }
     Assert-ODOwnerScopeFacts ([ordered]@{Schema=1;ParentSHA256=(Driver-Hash (Join-Path $packet writer-controller-repair.frozen.json));HistoricalStopSHA256=(Driver-Hash (Join-Path $packet controller-parameter.stop.json));ApprovalValid=[bool]$approved;AttemptConsumed=$consumed;NewStopPresent=$newStop})
     return $info
@@ -640,17 +692,20 @@ if($Action -ceq 'Prepare'){
             (Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md'),(Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-owner-scope-repair.md'),
             (Join-Path $packet owner-scope.approval.json),(Join-Path $PSScriptRoot owner-scope.tests.ps1),(Join-Path $packet owner-scope.input.json),
             (Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-owner-scope-signature-design.md'),(Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-owner-scope-signature.md'),
-            (Join-Path $packet owner-scope-signature.approval.json),(Join-Path $PSScriptRoot owner-scope-signature.tests.ps1),(Join-Path $packet owner-scope-signature.input.json),(Join-Path $packet writer-scope.stop.json)
+            (Join-Path $packet owner-scope-signature.approval.json),(Join-Path $PSScriptRoot owner-scope-signature.tests.ps1),(Join-Path $packet owner-scope-signature.input.json),(Join-Path $packet writer-scope.stop.json),
+            (Join-Path $repo 'docs/superpowers/specs/2026-11-01-offline-owner-scope-verifier-design.md'),(Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-owner-scope-verifier.md'),
+            (Join-Path $packet owner-scope-verifier.approval.json),(Join-Path $PSScriptRoot owner-scope-verifier-regression.tests.ps1),(Join-Path $packet owner-scope-verifier-regression.input.json),
+            (Join-Path $PSScriptRoot owner-scope-verifier.tests.ps1),(Join-Path $packet owner-scope-verifier-scope.input.json),(Join-Path $packet owner-scope-signature.stop.json)
         )
         foreach($path in $provenance){Driver-AddPin $map $pins $path (Driver-Hash $path) 'owner-scope-signature-provenance'}
-        Driver-Need ($pins.Count -eq 2228) 'Exactly thirteen additional unique provenance pins'
+        Driver-Need ($pins.Count -eq 2236) 'Exactly twenty-one additional unique provenance pins'
         $manifest.Pins=$pins.ToArray();$manifest.PinCount=$pins.Count
         Add-Member -InputObject $manifest -NotePropertyName OwnerScopeRecovery -NotePropertyValue (Driver-ScopeMap $ownerInputs)
     }
     Driver-Need ($manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -eq 2172 -and $manifest.SourceCount -eq 31) 'Original mapping counts retained'
     Driver-Verify $manifest
     if($Grant -ceq 'writer-scope-rebind'){
-        Driver-JSON (Join-Path $packet writer-scope-repair.intent.json) ([ordered]@{Schema=1;AttemptConsumed=$true;ParentSHA256=$PreviousFrozenSHA256;ApprovalSHA256=$ownerInputs.Binding.ApprovalSHA256;GreenSHA256=$ownerInputs.GreenSHA256})
+        Driver-JSON (Join-Path $packet writer-scope-repair.intent.json) ([ordered]@{Schema=1;AttemptConsumed=$true;ParentSHA256=$PreviousFrozenSHA256;ApprovalSHA256=$ownerInputs.Verifier.Binding.HistoricalFiles['owner-scope-verifier.approval.json'];GreenSHA256=$ownerInputs.GreenSHA256})
     }
     $base=Join-Path $packet ('snapshots/'+$Grant);Driver-Need (-not (Test-Path -LiteralPath $base)) 'Snapshot attempted'
     foreach($relative in $inputPaths){
@@ -662,7 +717,7 @@ if($Action -ceq 'Prepare'){
     [ordered]@{Prepared=$Grant;Phase=$manifest.Phase;FrozenSHA256=(Driver-Hash $manifestPath);Pins=$manifest.PinCount;InheritedPins=2482;InheritedUniquePins=$manifest.InheritedUniquePins;Snapshots=31;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
     return
 }
-Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet owner-scope-signature.stop.json))) 'Scope execution stopped; no retry'
+Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet owner-scope-verifier.stop.json))) 'Scope execution stopped; no retry'
 Driver-Need (-not [string]::IsNullOrEmpty($FrozenSHA256)) 'Missing frozen identity'
 Driver-Need ($Grant -cin @('writer-green','contract-green','core','lifecycle','continuation')) 'Only five approved capture hosts'
 $phase=if($Grant -ceq 'writer-green'){'writer-green'}else{'repair-green'}
@@ -758,8 +813,8 @@ if(-not $row.Exact){throw 'Grant nonexact/unknown: freeze all remaining grants a
 }catch{
     $actual=$_
     $stopRoot=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))) '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-    if((Test-Path -LiteralPath $stopRoot) -and -not (Test-Path -LiteralPath (Join-Path $stopRoot owner-scope-signature.stop.json))){
-        Driver-JSON (Join-Path $stopRoot owner-scope-signature.stop.json) ([ordered]@{Action=$Action;Grant=$Grant;Message=$actual.Exception.Message;ErrorId=$actual.FullyQualifiedErrorId;Position=$actual.InvocationInfo.PositionMessage;Stack=$actual.ScriptStackTrace;Remainder='FROZEN'})
+    if((Test-Path -LiteralPath $stopRoot) -and -not (Test-Path -LiteralPath (Join-Path $stopRoot owner-scope-verifier.stop.json))){
+        Driver-JSON (Join-Path $stopRoot owner-scope-verifier.stop.json) ([ordered]@{Action=$Action;Grant=$Grant;Message=$actual.Exception.Message;ErrorId=$actual.FullyQualifiedErrorId;Position=$actual.InvocationInfo.PositionMessage;Stack=$actual.ScriptStackTrace;Remainder='FROZEN'})
     }
     throw
 }

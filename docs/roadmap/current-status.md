@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — verifier8/8 and scope9/9 passed; source epoch frozen
+
+[实际执行](2026-11-01-offline-owner-scope-verifier.md)：旧比较器RED精确失败，
+新验证器8PASS及完整scope9PASS；原始异常、比较文本和完整工具记录已保存。
+唯一源码冻结成功：2236pins/31新快照，总124/155。辅助计算累计6/6耗尽。
+尚未运行新writer宿主，历史总量仍1宿主/1编译/0目标/0审查；余下5宿主/
+7目标/1编译/条件1审查待执行。五份历史stop和旧归档不变，NOT_ACCEPTED。
+portable-owner-scope-verifier-freeze.json已校验338文件/83目录/10零字节文件。
+下一步保存开发分支检查点后运行唯一writer-scope-green；不合并main。
+
 ## Latest — verifier-boundary revision proposed; execution pending
 
 [修订设计](../superpowers/specs/2026-11-01-offline-owner-scope-verifier-design.md)及
