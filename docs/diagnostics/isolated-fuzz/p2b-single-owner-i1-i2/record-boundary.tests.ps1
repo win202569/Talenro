@@ -133,7 +133,7 @@ function Invoke-ODOwnerControls([string]$WriterPath,[string]$CollectorText,[stri
         . ([ScriptBlock]::Create($ProfileText))
         $script:ControlRoot=$Root;$script:Repo=$Repo;$script:Packet=$Packet;$script:TestLeaf=$Leaf
         $script:KernelPath=Join-Path $Repo 'scripts/offline-diagnostics-v4/private/session.psm1'
-        $script:ProfilePhase='writer-green';$script:ProfileManifestPath=Join-Path $Packet 'writer-green.frozen.json'
+        $script:ProfilePhase='writer-green';$script:ProfileManifestPath=Join-Path $Packet 'writer-controller-repair.frozen.json'
         $script:ProfileRootBase=Join-Path $Root intent-profile
         $script:Publisher=$Publisher
         $script:FailurePublisher=$FailurePublisher

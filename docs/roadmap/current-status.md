@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — controller repair authored; auxiliary GREEN stopped
+
+[实际执行报告](2026-11-01-offline-controller-recovery.md)。
+新增根因RED准确复现CannotIndex（1FAIL/12NotRun/exit1），随后仅改3获准来源。
+唯一GREEN被我新增回归脚本的参数AST读取错误中断，返回null；工具exit0不代表
+通过。没有GREEN final/新冻结/宿主/目标/编译/运行审查。新旧停线均保留。
+额外2次回归计算已消耗；5宿主/7目标/1编译/条件1审查和新快照阶段冻结。
+源码修订未验收，NOT_ACCEPTED；不得直接重跑。恢复归档portable-controller-recovery.json。
+
 ## Latest — controller recovery plan drafted; execution approval pending
 
 [具体修订计划](../superpowers/plans/2026-11-01-offline-controller-recovery.md)。

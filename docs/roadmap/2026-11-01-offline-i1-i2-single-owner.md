@@ -1,5 +1,18 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — controller amendment stopped during auxiliary GREEN
+
+[Actual amendment result](2026-11-01-offline-controller-recovery.md).
+Execution approved; preflight intact. Auxiliary test committed before root RED;
+actual CannotIndex reproduced once (1FAIL/12NotRun/exit1). Only3approved existing
+sources edited, two bindings literal-only; other28sources/2206pins intact.
+The sole GREEN failed in auxiliary context.Body.ParamBlock.Parameters access
+for an inline-parameter function. Tool emitted an error/null despite exit0;
+no valid GREEN final/pass count is claimed. Both extra computations consumed.
+No automatic repair/retry/new freeze/driver run followed; new stop retained
+alongside old. Snapshots remain62; runtime0hosts/targets/compiles/reviews.
+Remaining5/7/1/conditional1 and new snapshot stages frozen; NOT_ACCEPTED.
+
 ## Latest — selected recovery approach, concrete plan pending approval
 
 User selected the append-only controller proposal and requested a concrete plan.

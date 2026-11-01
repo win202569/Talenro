@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest:[actual controller recovery stop](../roadmap/2026-11-01-offline-controller-recovery.md).
+Amendment execution was approved. New root RED reproduced CannotIndex exactly;
+three candidate sources were edited. The sole GREEN errored in the frozen
+auxiliary script's function-parameter AST access and returned null. Tool exit0
+is NOT success. Both additional regression computations are consumed, no new
+freeze/capture/target/compile/reviewer ran. Keep original stop and new fixed
+controller-repair.stop.json. Read portable-controller-recovery.json (P/Q roots)
+and the actual report. Candidate sources/tests are in Git; do not remove stops,
+repeat RED/GREEN/Prepare/RunOne or infer approval from unused runtime budget.
+Repairing the test and its hash/input/recovery bindings needs explicit scope
+and a new validation allowance. Remaining5/7/1/conditional1 runtime budget frozen.
+
 Latest:[controller recovery implementation plan](../superpowers/plans/2026-11-01-offline-controller-recovery.md).
 The user selected the append-only proposal; this commit drafts its concrete plan
 only. Execution,3existing-source edits/new auxiliary test,31extra snapshots and

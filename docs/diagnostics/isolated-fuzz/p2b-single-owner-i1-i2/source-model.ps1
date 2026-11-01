@@ -107,7 +107,7 @@ function New-ODHistoricalContext([string]$Repo,[string]$Profile,[Collections.IDi
 # It describes the already planned writer-green IntentFailureNoWork case only.
 function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifest,[string]$RepairSHA256){
     $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256
-    $writerManifest=Join-Path $context.PacketRoot 'writer-green.frozen.json'
+    $writerManifest=Join-Path $context.PacketRoot 'writer-controller-repair.frozen.json'
     $writerHash=(Get-FileHash -LiteralPath $writerManifest -Algorithm SHA256).Hash
     if($Manifest.PreviousFrozenSHA256 -cne $writerHash){throw 'OD: unit context prior freeze mismatch'}
     $context.Manifest=[ordered]@{Path=$writerManifest;SHA256=$writerHash}
