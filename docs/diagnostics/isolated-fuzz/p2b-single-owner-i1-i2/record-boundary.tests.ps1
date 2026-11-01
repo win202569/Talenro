@@ -27,7 +27,7 @@ function Invoke-ODWriterTests {
     $writer=Join-Path $repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'
     $outer=(Get-Command New-ODRecordStream).ScriptBlock
     foreach($definition in $oracle.WriterCases){
-        $root=Join-Path $packet ('unit/'+$Grant+'/'+$definition.Boundary+'/'+$definition.Case)
+        $root=Join-Path $packet ('unit/writer-scope-green/'+$definition.Boundary+'/'+$definition.Case)
         LS-Need (-not (Test-Path -LiteralPath $root)) 'unit case no retry'
         $null=[IO.Directory]::CreateDirectory($root)
         $module=New-ODCaseModule $writer $collector[0].Extent.Text
@@ -112,7 +112,7 @@ function Invoke-ODOwnerControls([string]$WriterPath,[string]$CollectorText,[stri
         $script:ControlOpens=0
         function script:New-ODRecordStream([string]$Path){$script:ControlOpens++;return & $script:OriginalFactory $Path}
     }
-    $controlRoot=Join-Path $packet 'unit/writer-green/owner-controls'
+    $controlRoot=Join-Path $packet 'unit/writer-scope-green/owner-controls'
     LS-Need (-not (Test-Path -LiteralPath $controlRoot)) 'owner controls no retry'
     $null=[IO.Directory]::CreateDirectory($controlRoot)
     $captureTokens=$null;$captureIssues=$null
@@ -129,11 +129,15 @@ function Invoke-ODOwnerControls([string]$WriterPath,[string]$CollectorText,[stri
     LS-Need ($profileIssues.Count -eq 0 -and $profileDefinition.Count -eq 1) 'actual intent owner AST'
     & $controls {
         param($Definitions,$ProfileText,$Root,$Repo,$Packet,$Leaf,$Publisher,$FailurePublisher)
-        foreach($text in $Definitions){. ([ScriptBlock]::Create($text))}
-        . ([ScriptBlock]::Create($ProfileText))
+        foreach($text in $Definitions){
+            if(@([regex]::Matches($text,'\Afunction (Capture-Value|Capture-Once|Capture-ErrorSummary)(?=\s|\()')).Count -ne 1){throw 'ASSERT: exact capture import declaration'}
+            . ([ScriptBlock]::Create(($text -creplace '\Afunction (Capture-Value|Capture-Once|Capture-ErrorSummary)(?=\s|\()','function script:$1')))
+        }
+        if(@([regex]::Matches($ProfileText,'\Afunction Invoke-ODProfile(?=\s|\()')).Count -ne 1){throw 'ASSERT: exact profile import declaration'}
+        . ([ScriptBlock]::Create(($ProfileText -creplace '\Afunction Invoke-ODProfile(?=\s|\()','function script:Invoke-ODProfile')))
         $script:ControlRoot=$Root;$script:Repo=$Repo;$script:Packet=$Packet;$script:TestLeaf=$Leaf
         $script:KernelPath=Join-Path $Repo 'scripts/offline-diagnostics-v4/private/session.psm1'
-        $script:ProfilePhase='writer-green';$script:ProfileManifestPath=Join-Path $Packet 'writer-controller-repair.frozen.json'
+        $script:ProfilePhase='writer-green';$script:ProfileManifestPath=Join-Path $Packet 'writer-scope-repair.frozen.json'
         $script:ProfileRootBase=Join-Path $Root intent-profile
         $script:Publisher=$Publisher
         $script:FailurePublisher=$FailurePublisher

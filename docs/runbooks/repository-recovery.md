@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Newest actual handoff: [signature GREEN stopped](../roadmap/2026-11-01-offline-owner-scope-signature.md).
+Replacement RED exact1FAIL/8NotRun/exit1; five candidate sources authored. Sole
+GREEN failed DefinitionsExact/Capture-Value assertion, exit2/Unexpected=true,
+no complete GREEN receipt/new freeze/host/compile/target/reviewer. Candidate
+sources in Git are NOT_ACCEPTED; do not run the edited driver after cloning.
+Restore actual P/Q records/directories from portable-owner-scope-signature.json,
+retain all five stops and all older archives. Auxiliary computations3of3spent,
+no remaining RED/GREEN; runtime5hosts/7targets/1compile/conditional1review and
+remaining snapshot stages frozen. Existing snapshots93of155;2228pin scope freeze
+does not exist. Corrected frozen auxiliary remains owner-scope-signature.tests.ps1.
+Next requires verifier-boundary review before any revised implementation/retest;
+absence of full comparison operands is not authorization to infer acceptance.
+
 Newest proposed next step: [signature supplement](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md),
 pending design/plan/one-extra-RED approval. No new test/source/execution this turn.
 Retain old frozen auxiliary and all four stops/archives. Proposed corrected test

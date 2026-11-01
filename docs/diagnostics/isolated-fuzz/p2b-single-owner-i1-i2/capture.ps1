@@ -7,6 +7,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $packet=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
+$attemptSlot=if($Grant -ceq 'writer-green'){'writer-scope-green'}else{$Grant}
 $script:Groups=[Collections.Generic.List[object]]::new()
 $script:Details=[Collections.Generic.List[object]]::new()
 $script:ActiveSessions=[Collections.Generic.List[object]]::new()
@@ -75,7 +76,7 @@ function Capture-Evidence {
         PrimaryError=$script:HostPrimary;SecondaryErrors=$script:HostSecondary.ToArray();Overflow=$script:HostOverflow;Probe=$null
         SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false
     }
-    Capture-Once (Join-Path $packet ($Grant+'.evidence.json')) (Capture-Value $value)
+    Capture-Once (Join-Path $packet ($attemptSlot+'.evidence.json')) (Capture-Value $value)
 }
 function Write-ODJournal([byte[]]$Bytes){
     if($journalState.Failed){throw 'Journal latched'}
@@ -95,7 +96,7 @@ try{
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     $admin=([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if($identity.Name -cne 'DESKTOP-H4SVCLU\Lenovo' -or $admin){throw 'Unexpected fixed offline context'}
-    $script:CaptureRoot=Join-Path $packet ('capture/'+$Grant)
+    $script:CaptureRoot=Join-Path $packet ('capture/'+$attemptSlot)
     if(Test-Path -LiteralPath $script:CaptureRoot){throw 'Capture attempted; no retry'}
     $null=[IO.Directory]::CreateDirectory($script:CaptureRoot)
     $journal=[IO.File]::Open((Join-Path $script:CaptureRoot journal.jsonl),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)

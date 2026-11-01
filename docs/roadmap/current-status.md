@@ -1,5 +1,16 @@
 # Project status — updated 2026-11-01
 
+## Latest — exact replacement RED; candidate repair GREEN stopped
+
+[实际执行报告](2026-11-01-offline-owner-scope-signature.md)。替代RED精确返回
+1FAIL/8NotRun/exit1，底层错误及Get-Command完整编号已保存。随后完成获准5文件
+候选修复；唯一GREEN在Capture-Value正文一致性断言失败（exit2），无完整GREEN结果。
+源码正文与父快照一致，但实际比较文本未保存，不能据此放行或补造通过记录。
+已停线；未新冻结/启动宿主/编译/目标/审查。辅助计算3/3耗尽；5宿主/7目标/
+1编译/条件1审查冻结，快照93/155。新增第5份stop，旧记录不变。NOT_ACCEPTED。
+候选源码及portable-owner-scope-signature.json保留进度；下一步应只读审视验证器
+比较边界，不继续追加逐条重试。恢复仍从开发分支，而非main。
+
 ## Latest — signature/error-preservation supplement drafted; approval pending
 
 [最小补充方案](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md)：

@@ -2,6 +2,16 @@
 
 Status: NOT_ACCEPTED. Task1 incomplete; Task2/3 not started.
 
+## Latest actual supplement — replacement RED exact, repair GREEN stopped
+
+See [signature execution report](2026-11-01-offline-owner-scope-signature.md).
+User approved supplement; new frozen auxiliary's replacement RED exactly met
+1FAIL/8NotRun/exit1 with actual full query error retained. Five approved candidate
+sources then changed; sole GREEN failed Capture-Value body equality, exit2, no
+full receipt. No new freeze/host/compile followed. Auxiliary3/3consumed; runtime
+and future snapshots frozen. Five-stop chain/old results retained. Candidate
+repair NOT_ACCEPTED; old missing underlying error is still not reconstructed.
+
 ## Latest proposal — signature supplement pending approval
 
 Readonly review found that the auxiliary queries Get-Command but compares a bare
