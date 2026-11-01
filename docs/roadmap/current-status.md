@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — single-owner execution stopped before implementation
+
+[Actual preflight stop](2026-11-01-offline-i1-i2-single-owner.md).
+Execution/new budget approved;2482old pins and28snapshots matched. Referenced
+archive comparison then failed because author mistyped expected hash. This is
+not proven original drift. No corrected retry, v4 code/test source or RED/GREEN.
+NEW2RED/5hosts/7targets/1compile/conditional1review all unused but frozen by stop;
+old budgets unchanged. Stopped portable checkpoint preserves complete receipts.
+
 ## Latest — design approved; single-owner implementation plan drafted
 
 [Proposed plan](../superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md).

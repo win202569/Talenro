@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest execution:[single-owner preflight stop](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
+Full2482pins/28snapshots matched, but wrong author-supplied expected archive hash
+caused an actual stop before code/tests. New leaf has only LF attributes and
+portable-stopped.json; no v4 runtime or31source freeze. Do not run old controls
+or automatically reuse unused NEW budget; obtain an explicit recovery scope.
+The wrong comparison is not evidence of archive mutation. Read original receipts.
+
 Latest planning:[single-owner implementation plan](../superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md).
 Design approved; proposed31source v4/test trees still not created. Execution
 requires separate approval of Native workflow and NEW2tool-contextREDs plus
