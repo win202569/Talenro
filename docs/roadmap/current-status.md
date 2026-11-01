@@ -1,5 +1,18 @@
 # Project status — updated 2026-11-01
 
+## Latest — continuation action01 failed; all remaining work frozen
+
+[Actual stopped continuation](2026-11-01-offline-i1-i2-continuation.md).
+Controller/static preflight passed; writer-red PID20520 exited2, INCOMPLETE,
+4FAIL3PASS before IntentDisposeOnly assertion at record-boundary.tests.ps1:53.
+Not intended complete RED; parent Exact/EvidenceValid=false. Owned exit/drain
+and PostPinsIntact=true, partial original error/journal preserved. Consumed
+1host/0targets/1compile/0review; v3 remainder6/7/1/conditional1 FROZEN.
+No I1/I2 edits/later actions/review;28runtime snapshots only.69file portable
+archive byte-verified. Independent post-stop integrity command failed parsing,
+not a passed full audit. Necessary unfinished checkpoint preserved; no retries
+or further execution without separately scoped approval.
+
 ## Latest — I1/I2 continuation plan drafted; no allowance released
 
 [Proposed continuation](../superpowers/plans/2026-11-01-offline-i1-i2-continuation.md).

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest actual:[continuation01 unexpected assertion](../roadmap/2026-11-01-offline-i1-i2-continuation.md).
+Restore the development branch and portable-continuation.json (69actual files,
+28directories), alongside unchanged earlier archives. Separate Control/Packet
+mappings preserve sources, consent, attempt, partial evidence/error/journal and
+28runtime snapshots. Existing continuation controller is STOPPED, not an
+available replay entry. Both old and new stop markers must remain. No terminal
+success for01;02..09 unattempted. v3 remainder6hosts/7targets/1compile/
+conditional1review FROZEN, I1/I2 unfixed. Independent post-stop full-pin audit
+did not run because its command failed parsing; do not infer it from archive
+byte checks. No rerun/fix/new namespace/import from cloning or old approval.
+
 Latest proposal:[I1/I2 continuation plan](../superpowers/plans/2026-11-01-offline-i1-i2-continuation.md).
 Draft only: continuation-driver.ps1 and its control sidecar do not exist yet.
 No runtime grant released. It recommends preserving frozen driver/seed/old

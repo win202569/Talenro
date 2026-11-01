@@ -1,5 +1,12 @@
 # Offline diagnostics v3 — UNACCEPTED, DO NOT RUN
 
+Latest2026-11-01: [continuation stopped on first action](../roadmap/2026-11-01-offline-i1-i2-continuation.md).
+writer-red exited2 with unexpected IntentDisposeOnly assertion, not intended
+RED. New continuation stop/action01 consumed intent must be retained alongside
+original stop; no01retry or02..09execution. Remaining v3 6/7/1/conditional1
+FROZEN, I1/I2 unfixed. Only partial evidence and28runtime snapshots exist.
+Archive supports recovery, not acceptance or renewed execution consent.
+
 Update2026-11-01: [one preparation-only adjustment](../roadmap/2026-11-01-offline-prepare-recording-adjustment.md)
 successfully created/verified2482pins and28source snapshots. This supersedes
 only the earlier absence of those artifacts, not the execution prohibition.
