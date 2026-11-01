@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Current: seed freeze and both availability REDs completed exactly, then stopped
+on a rejected writer implementation patch. Read current roadmap and
+portable-seed-red-stopped.json. All31sources still equal the seed snapshots;
+writer/owner/validator APIs remain absent. Do not run scripts or repeat REDs.
+NEW2RED consumed;5hosts/7targets/1compile/conditional1review remain frozen.
+Resume only with explicit authority to correct patch context inside the original
+two-file implementation window; no seed rebuild,29other source edits or extra
+budget. Cloning/archives do not restore runtime Session/Ack capabilities.
+
 Current driver authoring is saved in portable-driver-authoring.json alongside
 earlier incremental archives. New preparation/decoder code is written, unrun.
 The actual inherited list has2482rows but2172unique identities; the candidate

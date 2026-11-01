@@ -1,5 +1,9 @@
 # Offline I1/I2 single-owner repair — UNFINISHED, DO NOT RUN
 
+This is the authoring baseline frozen with the source, not a live status page.
+After the first freeze, current disposition and operator authority are recorded
+in docs/roadmap/current-status.md and the single-owner execution report.
+
 Approved plan: docs/superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md.
 Design, Native execution and finite budget are approved; historical failures and
 older budgets are unchanged. User also permitted pure authoring corrections

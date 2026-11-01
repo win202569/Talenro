@@ -261,3 +261,49 @@ commands/results. Its prerequisite incremental archive was checked unchanged;
 decoded lengths/SHA256/bytes matched actual originals. Archive SHA256:
 7549AD53AD3F2E6CD15DB5498430D8FCFA0917F501933AF5A1D55E7A23115872.
 These snapshots are not part of the planned93source-freeze snapshots.
+
+## Actual seed freeze / exact REDs / postfreeze edit stop
+
+Final source cross-check found31unique sources,12definition-only test utilities,
+26/52group names,19profile root keys and22/8/15independent row models. Only
+before first freeze, made private test-module strict/error-stop explicit and
+labelled source README as historical authoring baseline rather than live status.
+
+Actual FIRST Prepare seed ran once, exit0. Frozen manifest SHA256:
+4E4342C389C507F6148AE029140814FBCB4046AD62D1EFE3BFD451863C9DC1BA.
+It records2209unique Present pins,2482original inherited rows/2172unique, and
+31CreateNew source snapshots. Source-freeze consumption31of93; no writer/repair
+freeze. Complete actual command/tool output and approved consent snapshots saved.
+
+After separate consumed intents, each availability RED ran once in its tool
+context: writer1FAIL/25NotRun/exit1 with26ordered groups; contract1FAIL/51NotRun/
+exit1 with52ordered groups. Exact absence guards, NOT old defect reproduction,
+GREEN or runtime acceptance. Complete original commands/outputs/intents/final
+receipts retained. Post-RED readonly check found no2209pin or31snapshot drift,
+and no capture/unit directories. No Add-Type, module fixture or target ran.
+
+First Task2 implementation patch was rejected by apply_patch: expected writer
+comment "Private record writers..." differs from actual frozen "Actual writer
+APIs...". This was an author-supplied patch-context mistake, not a runtime,
+environment, platform-safeguard or provenance failure. The implementation patch
+did not apply. Readonly verification confirmed all31source bytes still match
+seed snapshots; writer/owner remain comment-only. No context correction/retry.
+
+The approved prefreeze authoring amendment no longer applies. Stop under the
+postfreeze source-error rule. Task1 complete, Task2 not implemented, overall
+STOPPED_POSTFREEZE_SOURCE_EDIT_CONTEXT_MISMATCH / NOT_ACCEPTED. NEW2of2RED used;
+remaining5hosts/7targets/1compile/conditional1runtime review frozen. Old budgets
+unchanged. No conditional reviewer used, no main integration or I1/I2 closure.
+
+Actual failure text and readonly diagnosis are preserved; full failed tool-call
+text was not retained in packet and is not misrepresented as an original command.
+To proceed, explicit authority must permit correction of this patch context and
+continuation of the original two-file implementation window, without redoing
+seed/REDs, modifying the29other frozen sources or adding runtime/review budget.
+
+portable-seed-red-stopped.json preserves all144actual packet files/41directories,
+including the31seed source snapshots, exact once-only RED originals and failure
+records. Decoded lengths/SHA256/bytes matched originals. Archive SHA256:
+DE114025D1EEA3E815AE374BF446F042FEB9C67207E9B87B9DD7FC2FA4C6D48F.
+Historical/pre-freeze snapshots remain labelled separately; no missing runtime
+files or original commands were synthesized from portable data.

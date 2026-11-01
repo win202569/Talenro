@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — seed frozen; two exact availability REDs; source edit stopped
+
+[Authoritative current report](2026-11-01-offline-i1-i2-single-owner.md).
+First actual freeze:2209unique pins/31source snapshots. Both once-only REDs
+matched:1FAIL/25NotRun and1FAIL/51NotRun, exit1. These prove absent APIs only.
+The first writer/owner implementation patch then failed because its comment
+anchor did not match actual frozen source. No implementation applied; readonly
+check confirms all31source bytes unchanged. No correction/retry. NOT_ACCEPTED.
+2RED consumed; remaining5hosts/7targets/1compile/conditional1review frozen.
+Writer-green not prepared; no runtime host/target/compile/review. Explicit
+limited recovery approval is required before correcting the patch context.
+
 ## Latest — new driver preparation and decoders authored, NOT RUN
 
 [Current single-owner work](2026-11-01-offline-i1-i2-single-owner.md).
