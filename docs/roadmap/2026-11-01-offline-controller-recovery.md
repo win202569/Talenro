@@ -1,5 +1,16 @@
 # Controller recovery — writer host stopped, not accepted
 
+## Latest — follow-up auxiliary scope RED stopped before runtime edits
+
+See [actual scope amendment report](2026-11-01-offline-owner-scope-repair.md).
+User approved scope design/plan/additional budget; frozen auxiliary's sole RED
+then threw its own signature assertion, tool exit2, no valid expected RED final.
+The caught underlying error was not saved; do not infer its signature. No old
+runtime source edit, GREEN, re-freeze, host, compile, target or review followed.
+All old controller/writer records below remain exact. New writer-scope.stop.json
+freezes scope remainder1GREEN and current runtime5hosts/7targets/1compile/
+conditional1review. Snapshots93of155. NOT_ACCEPTED; no retry is authorized.
+
 ## Latest — scope repair design/plan proposed, no implementation
 
 User approved planning only. [Design](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)

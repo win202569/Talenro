@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — approved scope repair stopped in auxiliary RED
+
+[实际报告](2026-11-01-offline-owner-scope-repair.md)。方案及新增额度已获批准；
+辅助脚本先提交冻结，唯一RED计算却在错误签名检查中自身报错（exit2），未返回
+预期1FAIL/8NotRun/exit1。底层捕获错误未保存，不能据此宣称已精确复现根因。
+已停线，未修改5个现有运行来源、未跑GREEN/新冻结/宿主/编译/目标/审查。
+消耗1次辅助计算；剩余1次GREEN及5宿主/7目标/1编译/条件1审查冻结。
+快照仍93/155；新增writer-scope.stop.json，旧三份stop不变。NOT_ACCEPTED。
+恢复用portable-owner-scope-repair.json；建议先只读复核辅助脚本，不直接重跑。
+
 ## Latest — fixture scope repair plan drafted; approval pending
 
 [修复设计](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)及

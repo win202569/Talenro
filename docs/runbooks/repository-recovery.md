@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Newest actual handoff: [auxiliary RED stopped](../roadmap/2026-11-01-offline-owner-scope-repair.md).
+User approved the scope design/plan/increment, but the sole new RED computation
+failed inside its own error-signature assertion, exit2, no valid RED final.
+Do not infer the missing underlying caught ErrorRecord. Frozen auxiliary source
+is owner-scope.tests.ps1; do not edit/replay it under the old allowance. No existing
+runtime source changed and no new GREEN/freeze/host/compile/target/review ran.
+One computation consumed; remaining one GREEN and runtime5hosts/7targets/1compile/
+conditional1review frozen. Snapshots93of155. Restore actual P/Q files/directories
+from portable-owner-scope-repair.json; keep four stops including writer-scope.stop.json.
+Older archives remain unchanged. Latest result is NOT_ACCEPTED; a new readonly
+review/proposal should precede any corrected regression or replacement RED.
+
 Newest handoff: [proposed scope design](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)
 and [scope/retest plan](../superpowers/plans/2026-11-01-offline-owner-scope-repair.md).
 Planning only, pending design/plan/budget approval. No runtime source/test edit,
