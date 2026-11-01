@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Newest proposal: [error-projection design](../superpowers/specs/2026-11-01-offline-error-projection-design.md).
+Approach1 was selected; written design and later implementation plan/budget are
+NOT approved. Documentation only, no source/test execution. Missing metadata
+would be projected as null; strict real I/O error acceptance remains unchanged.
+Proposed additions3auxiliary/1host/1compile/31snapshots are not authorization.
+All six stops and124snapshots remain; do not replay the stopped attempt.
+
 ## Latest — stopped writer evidence projection, not accepted
 
 Read [actual stopped execution](../roadmap/2026-11-01-offline-owner-scope-verifier.md).

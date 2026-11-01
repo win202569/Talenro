@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-01
 
+## Latest — null-safe error projection design proposed; execution blocked
+
+用户已选择方案1：[缺失错误元数据如实保存为null](../superpowers/specs/2026-11-01-offline-error-projection-design.md)，
+真实I/O错误的位置/调用栈/操作绑定仍严格校验。本轮仅设计，未改源码或运行测试。
+设计待批准，之后再写实施计划；拟申请新增3辅助计算/1写入宿主/1编译/31快照，
+对应累计上限9辅助/7宿主/3编译/186快照，目标和条件审查不增加。额度尚未授权。
+六份stop、124快照及失败记录保持不变；NOT_ACCEPTED，不合并main。
+
 ## Latest — writer tests printed26PASS; evidence projection failed, stopped
 
 [实际执行及只读定位](2026-11-01-offline-owner-scope-verifier.md)。新验证器8/8、
