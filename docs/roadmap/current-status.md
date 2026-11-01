@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — two-file implementation applied; readonly inspection stopped
+
+[Current report](2026-11-01-offline-i1-i2-single-owner.md).
+Approved patch-context recovery applied candidate writers/owners. Readonly
+inspection then assumed nonexistent manifest Sources instead of SourcePaths,
+raising a null-index error. No writer-green freeze or runtime test followed.
+Readonly comparison: exactly2allowed files changed,29frozen sources unchanged;
+both changed files parse/LF. NOT behavioral verification or acceptance.
+2RED consumed;5hosts/7targets/1compile/conditional1review unused but frozen.
+Latest portable-source-recovery-stopped.json preserves actual packet records.
+Do not rerun RED/seed, change other29sources or infer runtime approval.
+
 ## Latest — seed frozen; two exact availability REDs; source edit stopped
 
 [Authoritative current report](2026-11-01-offline-i1-i2-single-owner.md).

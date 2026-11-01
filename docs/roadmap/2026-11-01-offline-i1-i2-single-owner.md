@@ -1,4 +1,43 @@
-# Single-owner I1/I2 implementation — stopped during preflight
+# Single-owner I1/I2 implementation — unvalidated candidate checkpoint
+
+## Latest authoritative state — candidate implementation, not validated
+
+User approved only correcting the rejected patch context and continuing the
+original two-file Task2 window. Actual frozen comments were read, and the patch
+applied to write-boundary.ps1 and record-owner.ps1. It implements narrow stream
+operation catches, live ordered outcomes, one-time consumption and caller-owned
+collection/import. This describes authored code, NOT proven behavior.
+
+A following read-only inspection incorrectly accessed $seed.Sources[0]. The
+manifest actually has SourcePaths, so PowerShell emitted "Cannot index into a
+null array." The subsequent search succeeded and the tool exit was0; that does
+not erase the preceding nonterminating error. No writer-green preparation,
+runtime test, fixture import, compilation, target or runtime review followed.
+Apply the approved unexpected-error stop. Preserve original errors and approvals.
+
+Readonly diagnosis: all31source files compared to seed snapshots; exactly the
+two allowed files changed,29others identical. Both changed files parse and are
+LF. No writer-green manifest/capture/unit root exists. Task1 remains complete;
+Task2 candidate implementation UNTESTED / NOT_ACCEPTED. Both2RED consumed;
+remaining5hosts/7targets/1compile/conditional1review unused and frozen. Source
+freeze snapshots remain31of93. Old budgets and five false flags unchanged.
+
+portable-source-recovery-stopped.json preserves the current actual packet,
+including limited approval, current ledger, labelled inspection error and full
+readonly diagnosis command/result. Current candidate source is saved in Git;
+seed snapshots remain original. No historical archive is overwritten. Full
+failed inspection tool call is not claimed retained; exact failing fragment,
+error and misleading exit0 caveat are recorded explicitly.
+
+Next proposed authority: resume original writer-green preparation and bounded
+verification from these candidate sources, without repeating seed/RED, expanding
+source windows or budgets. No implementation completion, I1/I2 closure or main
+integration is claimed. Historical sections below remain unchanged chronological
+records; they are not the latest status or an execution permission.
+
+Latest archive:147actual packet files/41directories, decoded byte lengths/hashes
+and original bytes verified equal. SHA256:
+B963A6B1143ACEFF9C784E324C5F018548EE3D80493739F64FE130561F2E77B6.
 
 Latest: STOPPED_PREFREEZE_ORACLE_AUTHORING_ERROR / NOT_ACCEPTED after explicitly
 approved recovery. Historical preflight stop below is not erased.

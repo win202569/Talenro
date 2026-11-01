@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest checkpoint: candidate Task2 writer/owner implementations are now present,
+after explicit limited patch-context approval. A later read-only inspection
+used absent manifest Sources instead of SourcePaths and stopped continuation.
+Exactly2allowed sources differ from seed;29others unchanged; syntax/LF checked,
+but NO behavioral test, writer-green Prepare, capture, target or compile ran.
+Read portable-source-recovery-stopped.json and the latest roadmap first.
+Remaining5hosts/7targets/1compile/conditional1review are unused but frozen.
+Resume requires authority for original writer-green preparation/validation;
+no seed/RED replay, extra budget, other29source edits or main merge.
+Earlier "Current/Latest" sections below are chronological historical records,
+not the latest state or permission to replay any stopped command.
+
 Current: seed freeze and both availability REDs completed exactly, then stopped
 on a rejected writer implementation patch. Read current roadmap and
 portable-seed-red-stopped.json. All31sources still equal the seed snapshots;
