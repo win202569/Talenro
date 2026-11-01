@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest:[readonly controller audit/proposed scope](../roadmap/2026-11-01-offline-controller-readonly-audit.md).
+This checkpoint adds documentation only, not a repair or execution approval.
+Existing runtime sources, writer freeze and stop remain unchanged;2209pins and
+31writer snapshots matched. Proposed append-only controller epoch requires an
+explicit3source window,31extra provenance snapshots and separately bounded local
+regression computations; original5hosts/7targets/1compile/conditional1review stay
+frozen. Do not treat this proposal as permission to edit sources or resume runs.
+
 Latest authoritative checkpoint: writer-green freeze succeeded once, but its
 RunOne failed before grant intent or capture launch. Actual CannotIndex arises
 from PSCustomObject manifest passed to dictionary-indexing Driver-FalseFlags.

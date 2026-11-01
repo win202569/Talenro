@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — readonly controller audit complete; revision proposal only
+
+[只读审查及候选范围](2026-11-01-offline-controller-readonly-audit.md)。
+确认 manifest 对象/字典边界不一致，并追踪后续 IDictionary 源码上下文消费者。
+建议统一解码边界、用追加式来源修订保留旧清单/stop；候选3文件窗口包含两个
+固定 writer 清单绑定，不能假称只改一行即可运行。需另外批准31份快照和有限
+回归计算，原宿主/目标/编译预算不增加。本轮仅文档，源码/测试/运行0。
+2209pins/31writer快照核对一致。方案待选择和具体计划批准，NOT_ACCEPTED。
+
 ## Latest — writer freeze complete; controller stopped before tests
 
 [Current report](2026-11-01-offline-i1-i2-single-owner.md).

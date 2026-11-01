@@ -1,5 +1,18 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — readonly controller audit and proposed revision, no implementation
+
+[Audit/proposal](2026-11-01-offline-controller-readonly-audit.md) traces the
+actual CannotIndex and the downstream typed IDictionary context boundary.
+Recommends uniform RunOne manifest decoding plus an append-only writer source
+epoch preserving both existing manifests and stop in place. Candidate changes
+are driver and2fixed writer-manifest consumers, not writer behavior/oracles.
+This is NOT an approved design/execution plan or permission to bypass a stop.
+Incremental31source snapshots and2bounded local regression computations would
+need explicit approval; original capture/target/compile/reviewer budgets unchanged.
+This turn sources/tests/runtime0;2209pins/31writer snapshots unchanged. Current
+STOPPED_DRIVER_MANIFEST_TYPE_MISMATCH/NOT_ACCEPTED disposition remains in force.
+
 ## Latest authoritative state — writer freeze, prelaunch controller failure
 
 User approved resuming original validation from64cd578e without extra budget.
