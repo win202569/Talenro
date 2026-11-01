@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal:[I1/I2 single-owner design](../superpowers/specs/2026-11-01-offline-i1-i2-single-owner-design.md).
+Draft only; v4 runtime/test paths do not exist as part of this proposal.
+Cross-layer contract changes must be approved explicitly: retained live private
+results, not rethrow-ErrorRecord identity or Exception-based deduplication.
+No implementation plan or new runtime budget yet; do not resume old controllers.
+The one document feasibility check is not the frozen independent runtime review.
+
 Latest:[formal saved-data assessment](../roadmap/2026-11-01-offline-checker-formal-assessment.md).
 Outcome DATA_CONTRACT_MATCH, OriginalsState MATCH;6cases checked once after
 prior44PASS. New portable-assessment.json preserves actual schema2result,

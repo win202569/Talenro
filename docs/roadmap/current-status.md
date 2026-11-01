@@ -1,5 +1,16 @@
 # Project status — updated 2026-11-01
 
+## Latest — I1/I2 single-owner design drafted; approval pending
+
+[Proposed design](../superpowers/specs/2026-11-01-offline-i1-i2-single-owner-design.md).
+User selected one collection owner per boundary, preserving ErrorRecord-reference
+deduplication. Proposed private outcomes replace handled record-error rethrows;
+original identity is retained in live results, not promised across a catch.
+I2 covers complete observations plus explicit incomplete-report branch.
+Documentation-only feasibility check completed, not frozen runtime review.
+No code/test/integration/budget change. Design approval then implementation plan;
+neither selection nor document creation authorizes execution or main merge.
+
 ## Latest — formal saved-data assessment matches
 
 [Actual formal assessment](2026-11-01-offline-checker-formal-assessment.md).
