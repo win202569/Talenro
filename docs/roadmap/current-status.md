@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — formal saved-data assessment matches
+
+[Actual formal assessment](2026-11-01-offline-checker-formal-assessment.md).
+Exactly1assessment on original15228bytes:6cases validated, DATA_CONTRACT_MATCH,
+OriginalsState=MATCH. Pre/post original16files/9dirs/archive/8inputs equal;
+source pins match prior44PASS suite. Single normal fixed receipt write passed.
+Tests0/new diagnostic hosts0 this turn. Historical parent/recheck failures stay
+failed; no production I1/I2 repair or integration budget release. Compound
+receipt I/O dynamically unverified. Separate portable-assessment.json recovery.
+
 ## Latest — BOM fix verified,44/44 saved-data tests pass
 
 [Scoped repair result](2026-11-01-offline-checker-bom-repair.md).

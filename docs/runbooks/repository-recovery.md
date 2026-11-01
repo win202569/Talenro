@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest:[formal saved-data assessment](../roadmap/2026-11-01-offline-checker-formal-assessment.md).
+Outcome DATA_CONTRACT_MATCH, OriginalsState MATCH;6cases checked once after
+prior44PASS. New portable-assessment.json preserves actual schema2result,
+consumed intent, corrected source pins and normal receipt success. It is not
+an original-parent success or production/integration acceptance. Do not rerun
+the consumed assessment, change historical failures or unfreeze runtime grants.
+
 Latest:[verified BOM repair](../roadmap/2026-11-01-offline-checker-bom-repair.md).
 Corrected checker uses ordinal BOM comparison; original42group suite plus new
 separate2group regression passed once. Read portable-bom-repair.json for actual
