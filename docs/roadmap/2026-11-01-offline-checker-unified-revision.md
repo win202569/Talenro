@@ -3,6 +3,11 @@
 Latest status: STOPPED_GREEN_FAILURE / NOT_ACCEPTED. The preparation and
 handoff stops below are preserved historical stages; see resumed results.
 
+Later separately approved [BOM repair](2026-11-01-offline-checker-bom-repair.md)
+passed one original42+supplement2 validation. This report remains the historical
+failed attempt; its source snapshots/verdict are not changed to match that
+later repair. Formal data assessment remains unattempted.
+
 Subsequent [cause-only diagnosis](2026-11-01-offline-checker-framing-root-cause.md)
 corrects this report's earlier source interpretation: line44 is the BOM framing
 guard, not the parser catch at line53. Default culture-sensitive StartsWith

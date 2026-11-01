@@ -41,7 +41,7 @@ function Assert-ODSavedReferenceData([byte[]]$Bytes,[Collections.IDictionary]$Co
     $text=$null
     try{$text=[Text.UTF8Encoding]::new($false,$true).GetString($Bytes)}
     catch{ODR-Need $false}
-    ODR-Need (-not $text.StartsWith([string][char]0xFEFF) -and -not $text.Contains("`r") -and $text.EndsWith("`n") -and -not $text.EndsWith("`n`n"))
+    ODR-Need (-not $text.StartsWith([string][char]0xFEFF,[StringComparison]::Ordinal) -and -not $text.Contains("`r") -and $text.EndsWith("`n") -and -not $text.EndsWith("`n`n"))
     $rowTexts=$text.Substring(0,$text.Length-1).Split([char]10)
     ODR-Need ($rowTexts.Count -eq 7)
     $rows=[Collections.Generic.List[object]]::new()

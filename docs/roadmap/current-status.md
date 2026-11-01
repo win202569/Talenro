@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — BOM fix verified,44/44 saved-data tests pass
+
+[Scoped repair result](2026-11-01-offline-checker-bom-repair.md).
+Added ordinal BOM comparison only and separate2group regression supplement.
+Focused RED reproduced bug; sole complete validation original42+supplement2
+allPASS,0FAIL. Original frozen tests/model, receipt and original records/input
+bytes unchanged. Formal assessment/receipt invocation NOT_RUN; no integration
+acceptance or budget release. Historical failed records remain unchanged.
+
 ## Latest — root cause identified; no fix/test retry
 
 [Confirmed BOM framing bug](2026-11-01-offline-checker-framing-root-cause.md).

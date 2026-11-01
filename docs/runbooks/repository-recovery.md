@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest:[verified BOM repair](../roadmap/2026-11-01-offline-checker-bom-repair.md).
+Corrected checker uses ordinal BOM comparison; original42group suite plus new
+separate2group regression passed once. Read portable-bom-repair.json for actual
+RED/GREEN/source identities; older portable-final.json remains a failed-stage
+archive, not current source binding. Formal data assessment and receipt call
+remain unattempted. Do not auto-rerun tests/assessment or release frozen budgets.
+
 Latest diagnosis:[BOM framing root cause](../roadmap/2026-11-01-offline-checker-framing-root-cause.md)
 and new root-cause-evidence.json. Source line44, not53, rejects BOM-free input
 because default StartsWith uses culture-aware comparison. No fix/test retry in
