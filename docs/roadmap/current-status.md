@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-01
 
+## Latest — controller recovery plan drafted; execution approval pending
+
+[具体修订计划](../superpowers/plans/2026-11-01-offline-controller-recovery.md)。
+用户已选择追加式修订方案。本轮仅写计划：3现有来源文件+独立回归脚本，保留
+旧清单/stop，新增固定 writer 清单及严格恢复核验。待批准31额外来源快照
+（总上限124）和2次有限回归计算；原5宿主/7目标/1编译/条件1审查不增。
+未改运行源码、未执行回归/Prepare/RunOne；仍NOT_ACCEPTED，运行额度冻结。
+
 ## Latest — readonly controller audit complete; revision proposal only
 
 [只读审查及候选范围](2026-11-01-offline-controller-readonly-audit.md)。

@@ -1,5 +1,16 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — selected recovery approach, concrete plan pending approval
+
+User selected the append-only controller proposal and requested a concrete plan.
+[New amendment plan](../superpowers/plans/2026-11-01-offline-controller-recovery.md)
+fixes the3existing-source window, auxiliary regression script, fixed new writer
+manifest and strict old/new-stop provenance. Requests31extra source snapshots
+(124total ceiling) and2bounded local regression computations; no increase to
+remaining5capture hosts/7targets/1compile/conditional1review. Scope/cost and
+execution approval remain pending; this turn writes documents only. Original
+CannotIndex stop, old freezes/62snapshots/2REDs and all verdicts unchanged.
+
 ## Latest — readonly controller audit and proposed revision, no implementation
 
 [Audit/proposal](2026-11-01-offline-controller-readonly-audit.md) traces the

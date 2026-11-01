@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest:[controller recovery implementation plan](../superpowers/plans/2026-11-01-offline-controller-recovery.md).
+The user selected the append-only proposal; this commit drafts its concrete plan
+only. Execution,3existing-source edits/new auxiliary test,31extra snapshots and
+2regression computations still require explicit approval. Existing runtime
+5hosts/7targets/1compile/conditional1review remains frozen, not increased.
+No new source/test, recovery intent, manifest or runtime output was created by
+this planning turn. Keep old stop/manifests/archives in place. Do not run saved
+commands merely because this plan exists or a fresh clone contains it.
+
 Latest:[readonly controller audit/proposed scope](../roadmap/2026-11-01-offline-controller-readonly-audit.md).
 This checkpoint adds documentation only, not a repair or execution approval.
 Existing runtime sources, writer freeze and stop remain unchanged;2209pins and
