@@ -1,6 +1,27 @@
 # Recover the project on a new computer
 
-# Latest recovery checkpoint — 2026-11-01 verifier source freeze
+## Latest — stopped writer evidence projection, not accepted
+
+Read [actual stopped execution](../roadmap/2026-11-01-offline-owner-scope-verifier.md).
+The source-freeze checkpoint below was pushed at8c28bbf8, then the writer host
+ran once:26PASS stdout, childexit2/parentexit1, PositionMessage property failure
+while serializing evidence. The required writer evidence file does not exist.
+Newest sixth owner-scope-verifier.stop.json always blocks. Do not replay, patch,
+re-freeze or start later stages using the historical authorizations.
+
+Final portable-owner-scope-verifier.json preserves369actual P/Q files,
+100directories,20zero-byte files, decoded-byte/hash/directory equality verified;
+SHA16839616C3342A3C84D4CF24E4FC63B5038E5A2DC5D344299E022EE729AD6E34.
+Use the final development-branch checkpoint rather than main or the earlier
+freeze archive alone. Historical originals, all six stops,124snapshots and current
+sources are preserved; source files remain unchanged after full scope GREEN.
+Cumulative6auxiliary computations/2hosts/2compiles consumed;0targets/0reviews.
+Remaining4hosts/7targets/0compiles/conditional1review FROZEN. Contract implementation
+and its final31snapshot epoch were NOT performed. Recommended next action is
+readonly review of error-record projection/evidence publication, followed by a
+new approved design and bounded attempt budget. NOT_ACCEPTED; no main merge.
+
+## Earlier recovery checkpoint — 2026-11-01 verifier source freeze
 
 Read [actual verifier execution](../roadmap/2026-11-01-offline-owner-scope-verifier.md).
 Use branch codex/c12-b01-task9-coordinator, not main. New regression8/8 and full

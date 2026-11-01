@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — writer tests printed26PASS; evidence projection failed, stopped
+
+[实际执行及只读定位](2026-11-01-offline-owner-scope-verifier.md)。新验证器8/8、
+scope9/9及2236pins源码冻结成功；随后唯一writer-scope-green打印26PASS，
+但证据序列化因PositionMessage属性缺失失败，子exit2/父exit1，未生成证据文件。
+因此没有writer验收通过，NOT_ACCEPTED。新第六份stop已落盘；未修补或重跑。
+进程已退出、双流完整、无超时/终止/救援；全部来源绑定和124快照完整。
+累计2宿主/2编译/0目标/0审查，辅助6/6耗尽；余4宿主/7目标/0编译/
+条件1审查冻结，contract及后续未执行。最终portable-owner-scope-verifier.json
+已校验369文件/100目录/20零字节文件。建议下一步只读审查证据投影边界，
+之后另行批准修复范围与验证额度；不合并main。
+
 ## Latest — verifier8/8 and scope9/9 passed; source epoch frozen
 
 [实际执行](2026-11-01-offline-owner-scope-verifier.md)：旧比较器RED精确失败，
