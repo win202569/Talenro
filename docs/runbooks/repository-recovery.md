@@ -1,6 +1,13 @@
 # Recover the project on a new computer
 
-Newest proposal: [error-projection design](../superpowers/specs/2026-11-01-offline-error-projection-design.md).
+Newest handoff: written projection design approved; [implementation plan](../superpowers/plans/2026-11-01-offline-error-projection.md)
+is awaiting explicit plan/allowance approval. Native execution, no implementation
+agents or extra review. Proposed new2251pin epoch and separate writer-projection
+attempt preserve all old receipts/stops. Additions3auxiliary/1host/1compile/
+31snapshots remain unexecuted; cumulative ceilings would be9/7/3/186. This turn
+changed documentation only. Do not infer execution permission from design approval.
+
+Earlier proposal: [error-projection design](../superpowers/specs/2026-11-01-offline-error-projection-design.md).
 Approach1 was selected; written design and later implementation plan/budget are
 NOT approved. Documentation only, no source/test execution. Missing metadata
 would be projected as null; strict real I/O error acceptance remains unchanged.

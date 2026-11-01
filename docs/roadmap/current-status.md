@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-01
 
+## Latest — projection design approved; implementation plan awaiting approval
+
+书面设计已由用户“是”批准；[实施计划](../superpowers/plans/2026-11-01-offline-error-projection.md)
+已拟定并自查，仍待计划及额度批准。原生执行；10组投影RED/GREEN、9组新源码
+scopeGREEN，再唯一新写入尝试。新来源清单拟2251项（2236+15），六份旧stop保留。
+新增额度请求3辅助计算/1宿主/1编译/31快照；累计上限9/7/3/186，目标/审查不增加。
+本轮只写文档，未改源码/测试或执行验证；旧失败仍NOT_ACCEPTED。
+
 ## Latest — null-safe error projection design proposed; execution blocked
 
 用户已选择方案1：[缺失错误元数据如实保存为null](../superpowers/specs/2026-11-01-offline-error-projection-design.md)，
