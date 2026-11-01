@@ -107,11 +107,11 @@ function New-ODHistoricalContext([string]$Repo,[string]$Profile,[Collections.IDi
 # It describes the already planned writer-green IntentFailureNoWork case only.
 function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifest,[string]$RepairSHA256){
     $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256
-    $writerManifest=Join-Path $context.PacketRoot 'writer-scope-repair.frozen.json'
+    $writerManifest=Join-Path $context.PacketRoot 'writer-projection-repair.frozen.json'
     $writerHash=(Get-FileHash -LiteralPath $writerManifest -Algorithm SHA256).Hash
     if($Manifest.PreviousFrozenSHA256 -cne $writerHash){throw 'OD: unit context prior freeze mismatch'}
     $context.Manifest=[ordered]@{Path=$writerManifest;SHA256=$writerHash}
-    $context.ProfileRoot=[IO.Path]::GetFullPath((Join-Path $context.PacketRoot 'unit/writer-scope-green/owner-controls/intent-profile/entry-migration-core'))
+    $context.ProfileRoot=[IO.Path]::GetFullPath((Join-Path $context.PacketRoot 'unit/writer-projection-green/owner-controls/intent-profile/entry-migration-core'))
     $extra=Read-ODSourceModel $Repo @('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/case-module.ps1') $Manifest
     foreach($key in $extra.Keys){$context.SourceModel[$key]=$extra[$key]}
     # The isolated case evaluates only the already frozen profile function AST.
@@ -128,7 +128,7 @@ function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifes
     $context.UnitBindings=[ordered]@{ProfileFunction='Invoke-ODProfile';AnonymousSource='<No file>';FactorySource=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'));FactoryFunction='New-ODRecordStream'}
     $context.IntentFailure=[ordered]@{
         Type='System.Management.Automation.MethodInvocationException';ErrorId='IOException'
-        Message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $context.PacketRoot 'unit/writer-scope-green/owner-controls/intent-existing.bin'))
+        Message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $context.PacketRoot 'unit/writer-projection-green/owner-controls/intent-existing.bin'))
         Source=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'));Function='New-ODRecordStream';Operation='Open'
     }
     return $context

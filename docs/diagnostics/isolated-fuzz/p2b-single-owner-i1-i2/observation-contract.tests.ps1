@@ -160,8 +160,8 @@ function Invoke-ODContractTests {
     }
     # Input is the actual saved earlier host's report, not an expectation
     # learned from GREEN. Its expected error signature/context are literal.
-    $writerEvidencePath=Join-Path $packet 'writer-scope-green.evidence.json'
-    $writerFinal=Get-Content (Join-Path $packet 'writer-scope-green.final.json') -Raw|ConvertFrom-Json -AsHashtable
+    $writerEvidencePath=Join-Path $packet 'writer-projection-green.evidence.json'
+    $writerFinal=Get-Content (Join-Path $packet 'writer-projection-green.final.json') -Raw|ConvertFrom-Json -AsHashtable
     LS-Need ($writerFinal.Exact -is [bool] -and $writerFinal.Exact) 'only exact writer host may feed data fixture'
     $writerEvidence=Get-Content -LiteralPath $writerEvidencePath -Raw|ConvertFrom-Json -AsHashtable
     $owners=@($writerEvidence.Observations|Where-Object Name -CEQ OwnerControls)

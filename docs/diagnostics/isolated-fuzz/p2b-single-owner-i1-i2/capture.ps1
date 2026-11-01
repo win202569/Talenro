@@ -7,7 +7,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $packet=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-$attemptSlot=if($Grant -ceq 'writer-green'){'writer-scope-green'}else{$Grant}
+$attemptSlot=if($Grant -ceq 'writer-green'){'writer-projection-green'}else{$Grant}
 $script:Groups=[Collections.Generic.List[object]]::new()
 $script:Details=[Collections.Generic.List[object]]::new()
 $script:ActiveSessions=[Collections.Generic.List[object]]::new()
@@ -29,7 +29,7 @@ function Capture-Failure([Management.Automation.ErrorRecord]$Record){
 function Capture-Value($Value){
     if($null -eq $Value){return $null}
     if($Value -is [Management.Automation.ErrorRecord]){
-        return [ordered]@{Type=$Value.Exception.GetType().FullName;Message=$Value.Exception.Message;ErrorId=$Value.FullyQualifiedErrorId;Position=$Value.InvocationInfo.PositionMessage;Stack=$Value.ScriptStackTrace}
+        return [ordered]@{Type=$Value.Exception.GetType().FullName;Message=$Value.Exception.Message;ErrorId=$Value.FullyQualifiedErrorId;Position=$(if($null -eq $Value.InvocationInfo){$null}else{$Value.InvocationInfo.PositionMessage});Stack=$Value.ScriptStackTrace}
     }
     if($Value -is [Collections.IDictionary]){
         $result=[ordered]@{}
