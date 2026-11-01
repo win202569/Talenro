@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — diagnostic measured wrapper identity; parent check failed
+
+[Actual reference diagnostic](2026-11-01-offline-error-reference-diagnostic.md).
+Single PID10448 exit0, six saved cases: four rethrow paths have different
+ErrorRecord/same Exception and collector2; independent faults differ in both.
+Parent singleton-label indexing check failed, Exact=false; no corrected retry
+or regrade. This is saved measurement, not accepted diagnostic/integration proof.
+Consumed NEW1host/0targets/0compiles/0reviews, exhausted; original integration
+6/7/1/conditional1 FROZEN, I1/I2 unresolved.16file portable archive byte-verified.
+No production source changes, extra experiment or review; further revision
+requires separate written scope/approval, not another throw-only workaround.
+
 ## Latest — minimal reference diagnostic plan drafted; not authorized
 
 [Proposed single-host diagnostic](../superpowers/plans/2026-11-01-offline-error-reference-diagnostic.md).

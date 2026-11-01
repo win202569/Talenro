@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest actual:[reference diagnostic parent stop](../roadmap/2026-11-01-offline-error-reference-diagnostic.md).
+New diagnostic leaf now exists but its single host allowance is exhausted.
+portable-final.json preserves16files/9directories,4snapshots, zero-byte streams,
+six measured rows and original failed parent result/command. Do not replay it.
+Four rethrow cases measured different ErrorRecord/same Exception; this does not
+recover historical missing references or repair I1/I2. Parent Exact=false stays
+authoritative; do not patch/regrade from clone. Integration6/7/1/conditional1
+remains FROZEN. Proposed collector/parent revision needs separate approval.
+
 Latest proposal:[minimal reference propagation diagnostic](../superpowers/plans/2026-11-01-offline-error-reference-diagnostic.md).
 Plan only; new p2b-error-reference-diagnostic source/packet does not yet exist.
 Do not create/run it from clone consent. Proposed NEW1host/0targets/0compiles/
