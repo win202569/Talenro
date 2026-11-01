@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — unified checker revision plan drafted; no implementation
+
+[Proposed complete revision](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).
+New pure validator/data tests/fixed receipt helper proposed for auditA1–A6 and
+tri-state provenance. Requests finite availabilityRED/GREEN42groups/one formal
+saved-data assessment,0new diagnostic hosts/targets/compiles/reviews; original
+records unchanged and no I1/I2 production fix. Receipt compound I/O remains
+static-only, explicitly unverified. No code/test/assessment this turn; explicit
+execution approval required. Integration6/7/1/conditional1 remains FROZEN.
+
 ## Latest — full checker readonly audit; unified revision recommended
 
 [Audit findings](2026-11-01-offline-checker-readonly-audit.md).

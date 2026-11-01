@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest proposal:[unified checker/data-contract revision](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).
+Planning only: new p2b-saved-data-contract-revision sources/packet do not exist.
+Proposes one availabilityRED, one42groupGREEN and one separate data assessment
+with0new diagnostic hosts, preserving original failed verdicts. No production
+source repair or integration grant release. Do not create/run from cloning or
+draft approval; read full type/framing/source/receipt contracts and limitations
+before explicit execution consent. Old stops/archives remain authoritative.
+
 Latest readonly:[complete checker audit](../roadmap/2026-11-01-offline-checker-readonly-audit.md).
 Read6findings before proposing another correction:2actual execution blockers
 and4source-only contract/recording gaps, with explicit evidence limits. Audit
