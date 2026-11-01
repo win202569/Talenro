@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest:[pre-freeze authoring stop](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
+Partial v4/test sources now exist (30/31), mechanically migrated but NOT READY
+TO RUN; source-model.ps1 missing, APIs are comment-only seeds, driver/glue/oracle
+unfinished. Recovery archive checks passed, but oracle generation errored before
+writing. No freeze/tests/hosts/targets/compile/review. Read new authoring-stopped
+portable and original receipts; no automatic retry or unused-budget reuse.
+
 Latest execution:[single-owner preflight stop](../roadmap/2026-11-01-offline-i1-i2-single-owner.md).
 Full2482pins/28snapshots matched, but wrong author-supplied expected archive hash
 caused an actual stop before code/tests. New leaf has only LF attributes and

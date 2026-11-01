@@ -1,0 +1,4820 @@
+{
+  "Schema": 1,
+  "Origin": "Independent frozen v3 literal oracle, mechanically migrated; not runtime-derived",
+  "Rows": {
+    "entry-migration-core": [
+      {
+        "Name": "disk",
+        "Value": {
+          "Status": "New",
+          "FailureLatched": false,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/disk",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/disk/ledger.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/disk/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/disk/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/disk/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/disk/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/disk/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/disk/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/disk/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/disk/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": null,
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Write",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sink",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sink/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sink/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sink/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sink/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sink/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sink/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sink/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sink/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sink/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "Read",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sink",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sink/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 1
+              },
+              "Start": {
+                "Path": "@root/sink/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sink/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sink/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sink/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sink/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sink/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sink/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sink/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Complete",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sink",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sink/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 2
+              },
+              "Start": {
+                "Path": "@root/sink/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sink/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sink/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sink/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sink/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sink/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sink/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sink/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Write",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sink",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sink/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 3
+              },
+              "Start": {
+                "Path": "@root/sink/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sink/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sink/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sink/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sink/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sink/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sink/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sink/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "sink",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/sink",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/sink/ledger.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 3
+            },
+            "Start": {
+              "Path": "@root/sink/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/sink/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/sink/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/sink/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/sink/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/sink/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/sink/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/sink/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.MethodInvocationException",
+              "ErrorId": "UnauthorizedAccessException",
+              "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+              "Source": "Sinks",
+              "Function": "Write-LSLedger"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Read",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/missing",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/missing/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/missing/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/missing/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/missing/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/missing/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/missing/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/missing/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/missing/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/missing/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/missing/ledger.json'.\"",
+                "Source": "Sinks",
+                "Function": "Read-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/missing/ledger.json'.\"",
+                "Source": "Sinks",
+                "Function": "Read-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "missing",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/missing",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/missing/ledger.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/missing/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/missing/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/missing/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/missing/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/missing/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/missing/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/missing/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/missing/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.MethodInvocationException",
+              "ErrorId": "FileNotFoundException",
+              "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/missing/ledger.json'.\"",
+              "Source": "Sinks",
+              "Function": "Read-LSLedger"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Read",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/bad",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/bad/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/bad/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/bad/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/bad/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/bad/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/bad/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/bad/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/bad/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/bad/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.ArgumentException",
+                "ErrorId": "System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand",
+                "Message": "Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.",
+                "Source": "Sinks",
+                "Function": "Read-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.ArgumentException",
+                "ErrorId": "System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand",
+                "Message": "Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.",
+                "Source": "Sinks",
+                "Function": "Read-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "bad",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/bad",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/bad/ledger.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/bad/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/bad/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/bad/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/bad/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/bad/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/bad/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/bad/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/bad/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.ArgumentException",
+              "ErrorId": "System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand",
+              "Message": "Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.",
+              "Source": "Sinks",
+              "Function": "Read-LSLedger"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Complete",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/index",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/index/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/index/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/index/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/index/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/index/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/index/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/index/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/index/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/index/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.RuntimeException",
+                "ErrorId": "Invalid ledger row index",
+                "Message": "Invalid ledger row index",
+                "Source": "Sinks",
+                "Function": "Complete-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.RuntimeException",
+                "ErrorId": "Invalid ledger row index",
+                "Message": "Invalid ledger row index",
+                "Source": "Sinks",
+                "Function": "Complete-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "index",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/index",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/index/ledger.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/index/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/index/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/index/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/index/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/index/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/index/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/index/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/index/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.RuntimeException",
+              "ErrorId": "Invalid ledger row index",
+              "Message": "Invalid ledger row index",
+              "Source": "Sinks",
+              "Function": "Complete-LSLedger"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Write",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/errors",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/errors/ledger.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/errors/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/errors/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/errors/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/errors/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/errors/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/errors/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/errors/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/errors/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/errors/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/errors/ledger.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "errors",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/errors",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/errors/ledger.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/errors/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/errors/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/errors/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/errors/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/errors/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/errors/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/errors/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/errors/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.MethodInvocationException",
+              "ErrorId": "UnauthorizedAccessException",
+              "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/errors/ledger.json' is denied.\"",
+              "Source": "Sinks",
+              "Function": "Write-LSLedger"
+            }
+          },
+          "SecondaryErrors": [
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-0'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-1'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-2'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-3'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-4'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-5'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-6'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            },
+            {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "FileNotFoundException",
+                "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/errors/absent-7'.\"",
+                "Source": "Core",
+                "Function": "Invoke-LSCoreTests"
+              }
+            }
+          ],
+          "Overflow": true
+        }
+      },
+      {
+        "Name": "Output",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/output",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/output/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/output/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/output/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/output/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/output/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/output/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/output/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/output/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/output/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Ok": false,
+            "Value": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "output",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 0,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/output",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/output/ledger.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/output/start.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/output/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/output/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/output/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/output/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/output/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/output/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/output/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.MethodInvocationException",
+              "ErrorId": "ObjectDisposedException",
+              "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+              "Source": "Sinks",
+              "Function": "Write-LSOutput"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/preconsume",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/preconsume/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/preconsume/start.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/preconsume/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/preconsume/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/preconsume/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/preconsume/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/preconsume/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/preconsume/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/preconsume/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/preconsume/start.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": null,
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/preconsume/start.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/preconsume",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/preconsume/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/preconsume/start.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/preconsume/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/preconsume/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/preconsume/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/preconsume/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/preconsume/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/preconsume/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/preconsume/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/preconsume/start.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "preconsume",
+        "Value": {
+          "Status": "Failed",
+          "FailureLatched": true,
+          "NextOrdinal": 0,
+          "Reserved": 1,
+          "StartCalls": 0,
+          "AckIssued": 0,
+          "AckConsumed": 0,
+          "Root": "@root/preconsume",
+          "Sinks": {
+            "Ledger": {
+              "Path": "@root/preconsume/ledger.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Start": {
+              "Path": "@root/preconsume/start.json",
+              "State": "Failed",
+              "LogicalIOAttempts": 1,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt0": {
+              "Path": "@root/preconsume/receipt-0.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Receipt1": {
+              "Path": "@root/preconsume/receipt-1.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out0": {
+              "Path": "@root/preconsume/stdout-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err0": {
+              "Path": "@root/preconsume/stderr-0.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Out1": {
+              "Path": "@root/preconsume/stdout-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Err1": {
+              "Path": "@root/preconsume/stderr-1.bin",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "Trace1": {
+              "Path": "@root/preconsume/seam-trace.json",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleOut": {
+              "Path": "ConsoleOut",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            },
+            "ConsoleError": {
+              "Path": "ConsoleError",
+              "State": "Healthy",
+              "LogicalIOAttempts": 0,
+              "RejectedWithoutIO": 0
+            }
+          },
+          "PrimaryError": {
+            "$error": {
+              "Type": "System.Management.Automation.MethodInvocationException",
+              "ErrorId": "UnauthorizedAccessException",
+              "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/preconsume/start.json' is denied.\"",
+              "Source": "Sinks",
+              "Function": "Write-LSLedger"
+            }
+          },
+          "SecondaryErrors": [],
+          "Overflow": false
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": null,
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": null,
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": null,
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      }
+    ],
+    "entry-migration-owned": [
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/prestart",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/prestart/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/prestart/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/prestart/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/prestart/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/prestart/stdout-0.bin",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/prestart/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/prestart/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/prestart/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/prestart/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"Create\" with \"1\" argument(s): \"Access to the path '@root/prestart/stdout-0.bin' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Open-LSStream"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": false,
+              "Association": "Unassociated",
+              "PID": null,
+              "OwnedExit": false,
+              "ExitCode": null,
+              "StreamsComplete": false,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000
+              },
+              "KillCalls": 0,
+              "WaitCalls": 0,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"Create\" with \"1\" argument(s): \"Access to the path '@root/prestart/stdout-0.bin' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Open-LSStream"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "prestart",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/prestart",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/prestart/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/prestart/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/prestart/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/prestart/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/prestart/stdout-0.bin",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/prestart/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/prestart/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/prestart/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/prestart/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"Create\" with \"1\" argument(s): \"Access to the path '@root/prestart/stdout-0.bin' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Open-LSStream"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Observation": {
+            "Started": false,
+            "Association": "Unassociated",
+            "PID": null,
+            "OwnedExit": false,
+            "ExitCode": null,
+            "StreamsComplete": false,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000
+            },
+            "KillCalls": 0,
+            "WaitCalls": 0,
+            "SeamExact": false,
+            "Stdout": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/receipt-fault",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/receipt-fault/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/receipt-fault/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/receipt-fault/receipt-0.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/receipt-fault/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/receipt-fault/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/receipt-fault/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/receipt-fault/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/receipt-fault/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/receipt-fault/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/receipt-fault/receipt-0.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "receipt-fault/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": -1,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": true,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000,
+                "Key": "receipt-fault/0"
+              },
+              "KillCalls": 1,
+              "WaitCalls": 1,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/receipt-fault/receipt-0.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "receipt-fault",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/receipt-fault",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/receipt-fault/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/receipt-fault/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/receipt-fault/receipt-0.json",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/receipt-fault/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/receipt-fault/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/receipt-fault/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/receipt-fault/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/receipt-fault/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/receipt-fault/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "UnauthorizedAccessException",
+                "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/receipt-fault/receipt-0.json' is denied.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSLedger"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Observation": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "receipt-fault/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": -1,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": true,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000,
+              "Key": "receipt-fault/0"
+            },
+            "KillCalls": 1,
+            "WaitCalls": 1,
+            "SeamExact": false,
+            "Stdout": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/normal",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/normal/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/normal/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/normal/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/normal/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/normal/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/normal/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/normal/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/normal/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/normal/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "normal/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": 0,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000,
+                "Key": "normal/0"
+              },
+              "KillCalls": 0,
+              "WaitCalls": 2,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "normal",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/normal",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/normal/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/normal/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/normal/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/normal/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/normal/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/normal/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/normal/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/normal/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/normal/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Observation": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "normal/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": 0,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000,
+              "Key": "normal/0"
+            },
+            "KillCalls": 0,
+            "WaitCalls": 2,
+            "SeamExact": false,
+            "Stdout": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/timeout",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/timeout/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/timeout/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/timeout/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/timeout/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/timeout/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/timeout/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/timeout/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/timeout/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/timeout/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "timeout/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": -1,
+              "StreamsComplete": true,
+              "TimedOut": true,
+              "TerminationRequested": true,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 4200,
+                "Key": "timeout/0"
+              },
+              "KillCalls": 1,
+              "WaitCalls": 2,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "timeout",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/timeout",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/timeout/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/timeout/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/timeout/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/timeout/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/timeout/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/timeout/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/timeout/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/timeout/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/timeout/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Observation": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "timeout/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": -1,
+            "StreamsComplete": true,
+            "TimedOut": true,
+            "TerminationRequested": true,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 4200,
+              "Key": "timeout/0"
+            },
+            "KillCalls": 1,
+            "WaitCalls": 2,
+            "SeamExact": false,
+            "Stdout": null
+          }
+        }
+      }
+    ],
+    "entry-migration-live": [
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": true,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "sequence-a/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": 0,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000,
+                "Key": "sequence-a/0"
+              },
+              "KillCalls": 0,
+              "WaitCalls": 2,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-b",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-b/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-b/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-b/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-b/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-b/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-b/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-b/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-b/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-b/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": true,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "sequence-b/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": 0,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000,
+                "Key": "sequence-b/0"
+              },
+              "KillCalls": 0,
+              "WaitCalls": 2,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-output-fault",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-output-fault/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-output-fault/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-output-fault/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-output-fault/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-output-fault/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-output-fault/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-output-fault/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-output-fault/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-output-fault/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "sequence-output-fault/0"
+              },
+              "OwnedExit": true,
+              "ExitCode": 0,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 6000,
+                "Key": "sequence-output-fault/0"
+              },
+              "KillCalls": 0,
+              "WaitCalls": 2,
+              "SeamExact": false,
+              "Stdout": null
+            },
+            "Error": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            }
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Failed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-output-fault",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-output-fault/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-output-fault/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-output-fault/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-output-fault/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-output-fault/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-output-fault/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-output-fault/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-output-fault/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-output-fault/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Active",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-b",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-b/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-b/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-b/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-b/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-b/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-b/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-b/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-b/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-b/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 2,
+            "Reserved": 2,
+            "StartCalls": 2,
+            "AckIssued": 1,
+            "AckConsumed": 1,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": true,
+            "Rejection": null,
+            "AckPresent": false,
+            "Observation": {
+              "Started": true,
+              "Association": "Associated",
+              "PID": {
+                "$dynamic": "pid",
+                "Key": "sequence-a/1"
+              },
+              "OwnedExit": true,
+              "ExitCode": 0,
+              "StreamsComplete": true,
+              "TimedOut": false,
+              "TerminationRequested": false,
+              "ElapsedMs": {
+                "$dynamic": "elapsed",
+                "Max": 114000,
+                "Key": "sequence-a/1"
+              },
+              "KillCalls": 0,
+              "WaitCalls": 2,
+              "SeamExact": true,
+              "Stdout": null
+            },
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "Step",
+        "Value": {
+          "View": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 2,
+            "Reserved": 2,
+            "StartCalls": 2,
+            "AckIssued": 1,
+            "AckConsumed": 1,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Result": {
+            "Accepted": false,
+            "Rejection": "gate-rejected",
+            "AckPresent": false,
+            "Observation": null,
+            "Error": null
+          }
+        }
+      },
+      {
+        "Name": "sequence",
+        "Value": {
+          "A": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 2,
+            "Reserved": 2,
+            "StartCalls": 2,
+            "AckIssued": 1,
+            "AckConsumed": 1,
+            "Root": "@root/sequence-a",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-a/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-a/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-a/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-a/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-a/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-a/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-a/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-a/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-a/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "B": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 1,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 1,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-b",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-b/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-b/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-b/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-b/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-b/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-b/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-b/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-b/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-b/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "C": {
+            "Status": "Closed",
+            "FailureLatched": true,
+            "NextOrdinal": 0,
+            "Reserved": 1,
+            "StartCalls": 1,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/sequence-output-fault",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/sequence-output-fault/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/sequence-output-fault/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/sequence-output-fault/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 2,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/sequence-output-fault/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/sequence-output-fault/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/sequence-output-fault/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 3,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/sequence-output-fault/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/sequence-output-fault/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/sequence-output-fault/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Failed",
+                "LogicalIOAttempts": 1,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": {
+              "$error": {
+                "Type": "System.Management.Automation.MethodInvocationException",
+                "ErrorId": "ObjectDisposedException",
+                "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+                "Source": "Sinks",
+                "Function": "Write-LSOutput"
+              }
+            },
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "Fresh": {
+            "Status": "Closed",
+            "FailureLatched": false,
+            "NextOrdinal": 0,
+            "Reserved": 0,
+            "StartCalls": 0,
+            "AckIssued": 0,
+            "AckConsumed": 0,
+            "Root": "@root/fresh",
+            "Sinks": {
+              "Ledger": {
+                "Path": "@root/fresh/ledger.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Start": {
+                "Path": "@root/fresh/start.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt0": {
+                "Path": "@root/fresh/receipt-0.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Receipt1": {
+                "Path": "@root/fresh/receipt-1.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out0": {
+                "Path": "@root/fresh/stdout-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err0": {
+                "Path": "@root/fresh/stderr-0.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Out1": {
+                "Path": "@root/fresh/stdout-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Err1": {
+                "Path": "@root/fresh/stderr-1.bin",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "Trace1": {
+                "Path": "@root/fresh/seam-trace.json",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleOut": {
+                "Path": "ConsoleOut",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              },
+              "ConsoleError": {
+                "Path": "ConsoleError",
+                "State": "Healthy",
+                "LogicalIOAttempts": 0,
+                "RejectedWithoutIO": 0
+              }
+            },
+            "PrimaryError": null,
+            "SecondaryErrors": [],
+            "Overflow": false
+          },
+          "A0": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "sequence-a/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": 0,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000,
+              "Key": "sequence-a/0"
+            },
+            "KillCalls": 0,
+            "WaitCalls": 2,
+            "SeamExact": false,
+            "Stdout": null
+          },
+          "B0": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "sequence-b/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": 0,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000,
+              "Key": "sequence-b/0"
+            },
+            "KillCalls": 0,
+            "WaitCalls": 2,
+            "SeamExact": false,
+            "Stdout": null
+          },
+          "C0": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "sequence-output-fault/0"
+            },
+            "OwnedExit": true,
+            "ExitCode": 0,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 6000,
+              "Key": "sequence-output-fault/0"
+            },
+            "KillCalls": 0,
+            "WaitCalls": 2,
+            "SeamExact": false,
+            "Stdout": null
+          },
+          "A1": {
+            "Started": true,
+            "Association": "Associated",
+            "PID": {
+              "$dynamic": "pid",
+              "Key": "sequence-a/1"
+            },
+            "OwnedExit": true,
+            "ExitCode": 0,
+            "StreamsComplete": true,
+            "TimedOut": false,
+            "TerminationRequested": false,
+            "ElapsedMs": {
+              "$dynamic": "elapsed",
+              "Max": 114000,
+              "Key": "sequence-a/1"
+            },
+            "KillCalls": 0,
+            "WaitCalls": 2,
+            "SeamExact": true,
+            "Stdout": null
+          }
+        }
+      }
+    ]
+  },
+  "CoreErrors": {
+    "sink": {
+      "$error": {
+        "Type": "System.Management.Automation.MethodInvocationException",
+        "ErrorId": "UnauthorizedAccessException",
+        "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/sink/ledger.json' is denied.\"",
+        "Source": "Sinks",
+        "Function": "Write-LSLedger"
+      }
+    },
+    "missing": {
+      "$error": {
+        "Type": "System.Management.Automation.MethodInvocationException",
+        "ErrorId": "FileNotFoundException",
+        "Message": "Exception calling \"ReadAllText\" with \"1\" argument(s): \"Could not find file '@root/missing/ledger.json'.\"",
+        "Source": "Sinks",
+        "Function": "Read-LSLedger"
+      }
+    },
+    "bad": {
+      "$error": {
+        "Type": "System.ArgumentException",
+        "ErrorId": "System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand",
+        "Message": "Conversion from JSON failed with error: Unexpected end when reading JSON. Path '', line 1, position 1.",
+        "Source": "Sinks",
+        "Function": "Read-LSLedger"
+      }
+    },
+    "index": {
+      "$error": {
+        "Type": "System.Management.Automation.RuntimeException",
+        "ErrorId": "Invalid ledger row index",
+        "Message": "Invalid ledger row index",
+        "Source": "Sinks",
+        "Function": "Complete-LSLedger"
+      }
+    },
+    "errors": {
+      "$error": {
+        "Type": "System.Management.Automation.MethodInvocationException",
+        "ErrorId": "UnauthorizedAccessException",
+        "Message": "Exception calling \"WriteAllText\" with \"3\" argument(s): \"Access to the path '@root/errors/ledger.json' is denied.\"",
+        "Source": "Sinks",
+        "Function": "Write-LSLedger"
+      }
+    },
+    "output": {
+      "$error": {
+        "Type": "System.Management.Automation.MethodInvocationException",
+        "ErrorId": "ObjectDisposedException",
+        "Message": "Exception calling \"Write\" with \"1\" argument(s): \"Cannot write to a closed TextWriter.@NLObject name: 'StreamWriter'.\"",
+        "Source": "Sinks",
+        "Function": "Write-LSOutput"
+      }
+    }
+  }
+}

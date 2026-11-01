@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — recovery passed archives; pre-freeze authoring stopped
+
+[Actual partial checkpoint](2026-11-01-offline-i1-i2-single-owner.md).
+Explicit recovery archive checks passed.30/31source files mechanically created,
+but no complete oracle/caller adaptation, seed freeze or writer/owner/validator
+API implementation. In-memory oracle update then failed on assumed template
+Dependencies; write not reached. No correction/retry. NOT_RUN/NOT_ACCEPTED;
+all runtime/test budget unused and refrozen. Do not execute partial v4 scripts.
+
 ## Latest — single-owner execution stopped before implementation
 
 [Actual preflight stop](2026-11-01-offline-i1-i2-single-owner.md).
