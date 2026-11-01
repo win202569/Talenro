@@ -1,5 +1,26 @@
 # Controller recovery — writer host stopped, not accepted
 
+## Latest — scope repair design/plan proposed, no implementation
+
+User approved planning only. [Design](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)
+and [plan](../superpowers/plans/2026-11-01-offline-owner-scope-repair.md) propose
+private module script scope for all four actual imported definitions, retaining
+parameters/bodies/zero exports. Reorganizing all controls is broader; exporting
+or stubbing them is not acceptable. Selected approach is a recommendation still
+awaiting approval, not a claimed user-approved implementation.
+
+Five existing fixture/controller sources form the complete narrow change window;
+new auxiliary is outside31runtime sources. Fixed separate writer-scope-green slot
+and writer-scope-repair epoch prevent overwriting the consumed attempt. Historical
+GREEN remains bound to historical snapshots. All old stops/evidence remain exact.
+Additional requested budget:2scope computations (max2private modules each),1host,
+1fixture compile,31snapshots; no new target/reviewer. Proposed snapshot ceiling155
+reserves the later31contract snapshots. Consumed failed host/compile not refunded.
+
+This turn changed documentation only. No new test/source, scope reproduction,
+module execution, freeze, host, compile, target or review. I1/I2 NOT_ACCEPTED;
+remaining runtime still frozen pending explicit design/plan/budget approval.
+
 ## Latest — actual writer host18PASS/8NotRun, overall failure
 
 Controller freeze checkpoint6eda8a79 was pushed before the host. Original

@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — fixture scope repair plan drafted; approval pending
+
+[修复设计](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)及
+[执行计划](../superpowers/plans/2026-11-01-offline-owner-scope-repair.md)已拟定，尚未批准执行。
+建议只修私有测试模块四函数的作用域，并在5文件窗口内完整绑定独立writer-scope-green
+输出及新来源清单；旧失败输出/三份stop/93快照原样保留，不覆盖或返还额度。
+申请新增2次作用域回归计算、1宿主、1夹具编译、31快照（总上限155）；0额外目标/审查。
+本轮仅文档，未改源码/测试，未执行回归、模块夹具、冻结或宿主。I1/I2仍NOT_ACCEPTED，
+运行额度冻结；用户审阅设计、计划及追加预算后才可实施，仍用Native方式。
+
 ## Latest — actual writer host failed after18reported PASS
 
 [实际运行结果](2026-11-01-offline-controller-recovery.md)。

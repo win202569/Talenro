@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Newest handoff: [proposed scope design](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md)
+and [scope/retest plan](../superpowers/plans/2026-11-01-offline-owner-scope-repair.md).
+Planning only, pending design/plan/budget approval. No runtime source/test edit,
+scope computation, module fixture, new freeze/host/compile occurred this turn.
+Proposed increment:2scope computations,1writer host,1fixture compile,31snapshots;
+no extra target/reviewer. Old failed host/compile stay consumed. Proposed fixed
+new slot writer-scope-green and writer-scope-repair manifest do NOT exist yet;
+never replay saved commands or overwrite old writer outputs. Snapshot ceiling155
+is proposed, not approved. Restore the existing stopped archive below first;
+runtime remains frozen and NOT_ACCEPTED. Use Native execution only after approval.
+
 Latest:[actual writer host stopped](../roadmap/2026-11-01-offline-controller-recovery.md).
 The one writer host ran after successful controller-rebind freeze.18reported
 PASS/8NotRun, capture exit2/parent exit1; Invoke-ODProfile was missing in the
