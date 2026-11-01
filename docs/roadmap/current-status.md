@@ -1,5 +1,17 @@
 # Project status — updated 2026-11-01
 
+## Latest — readonly error-reference analysis; no new execution
+
+[Analysis and bounded recommendation](2026-11-01-offline-error-reference-readonly-analysis.md).
+Both completed Intent compound cases saved2secondary projections equal in all
+5fields, versus expected1; DisposeCalls=1. Inner and outer catches both collect,
+but deduplication uses reference identity. This supports a rethrow/reference
+hypothesis, not proof of aborted IntentDisposeOnly's missing count or Exception
+identity. Recommend a separately designed minimal propagation diagnostic, not
+another runtime generation/full retry. No code/test/import/host/compile/target/
+review; v3 remainder6/7/1/conditional1 FROZEN, I1/I2 unresolved. Earlier failed
+independent full-pin audit remains uncompleted, not replaced by this analysis.
+
 ## Latest — continuation action01 failed; all remaining work frozen
 
 [Actual stopped continuation](2026-11-01-offline-i1-i2-continuation.md).

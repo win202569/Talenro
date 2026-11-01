@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest readonly:[error-reference analysis](../roadmap/2026-11-01-offline-error-reference-readonly-analysis.md).
+Saved Intent compound cases contain duplicate equal projections despite one
+Dispose call; JSON cannot restore reference identity. Read the confirmed facts
+versus missing aborted-case data before designing any further experiment.
+No code change or budget release followed. Do not weaken the assertion, merge
+errors by text, rewrite frozen oracle, retry01 or run02..09 from this report.
+
 Latest actual:[continuation01 unexpected assertion](../roadmap/2026-11-01-offline-i1-i2-continuation.md).
 Restore the development branch and portable-continuation.json (69actual files,
 28directories), alongside unchanged earlier archives. Separate Control/Packet
