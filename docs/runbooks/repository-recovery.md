@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest planning:[single-owner implementation plan](../superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md).
+Design approved; proposed31source v4/test trees still not created. Execution
+requires separate approval of Native workflow and NEW2tool-contextREDs plus
+5hosts/7targets/1compile/conditional1review. This is not old budget release or
+permission to rerun an old controller. Read precise cross-layer Schema2 change,
+fixed source windows, expected cases, stop rules and review limits before work.
+
 Latest proposal:[I1/I2 single-owner design](../superpowers/specs/2026-11-01-offline-i1-i2-single-owner-design.md).
 Draft only; v4 runtime/test paths do not exist as part of this proposal.
 Cross-layer contract changes must be approved explicitly: retained live private

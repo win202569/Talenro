@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — design approved; single-owner implementation plan drafted
+
+[Proposed plan](../superpowers/plans/2026-11-01-offline-i1-i2-single-owner.md).
+User approved design ce631703; execution/new budget still pending. Plan specifies
+new v4 actual writer/owner/ProfileReportSchema2/complete I2 chain,31sources,
+two tool-context availabilityREDs then NEW5capture hosts/7targets/1fixture compile/
+conditional1runtime review. Existing v3 and earlier budgets remain frozen.
+This turn docs only: no runtime code/tests/imports/Prepare/processes/review.
+
 ## Latest — I1/I2 single-owner design drafted; approval pending
 
 [Proposed design](../superpowers/specs/2026-11-01-offline-i1-i2-single-owner-design.md).
