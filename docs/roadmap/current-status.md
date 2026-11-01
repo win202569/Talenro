@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — I1/I2 continuation plan drafted; no allowance released
+
+[Proposed continuation](../superpowers/plans/2026-11-01-offline-i1-i2-continuation.md).
+Recommends separately bound controller beside frozen driver, original runtime
+packet/seed unchanged, nine fixed actions using only the unused v3 remainder.
+Requests explicit control exception and release7hosts/7targets/2compilations/
+conditional1review, not an added grant or old v2 release. Two remaining freezes
+would yield84runtime snapshots total. Planning only: no source/import/Prepare/
+test/compile/target/agent/review. I1/I2 unresolved; all runtime grants still FROZEN.
+
 ## Latest — single preparation verified; runtime still frozen
 
 [Actual adjustment result](2026-11-01-offline-prepare-recording-adjustment.md).

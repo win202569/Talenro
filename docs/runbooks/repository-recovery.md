@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest proposal:[I1/I2 continuation plan](../superpowers/plans/2026-11-01-offline-i1-i2-continuation.md).
+Draft only: continuation-driver.ps1 and its control sidecar do not exist yet.
+No runtime grant released. It recommends preserving frozen driver/seed/old
+stop, a separately bound controller and seven never-run v3 grants, with two
+remaining production-only change windows. Do not create/run it or interpret
+cloning/disk approval/seed as permission. Read exact action order, source/control
+identity distinction and stop rules before requesting explicit execution approval.
+
 Latest actual:[one preparation verified and stopped](../roadmap/2026-11-01-offline-prepare-recording-adjustment.md).
 The development branch now preserves actual2482pin seed manifest/28source
 snapshots and8sidecar records in portable-prepare-adjustment.json (44files total).
