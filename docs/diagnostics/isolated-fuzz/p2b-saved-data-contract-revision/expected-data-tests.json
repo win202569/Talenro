@@ -1,0 +1,16 @@
+{
+  "Schema": 1,
+  "Groups": ["FunctionAvailable", "OriginalPositive", "AlternatePositive", "N01MissingRow", "N02DuplicateRow", "N03SwapRows", "N04UnknownCase", "N05ExtraKey", "N06KeyOrder", "N07EventsScalar", "N08ProjectionsScalar", "N09RecordMatrixScalar", "N10ExceptionRowScalar", "N11SecondaryScalar", "N12ObservationString", "N13PrimaryString", "N14SecondaryString", "N15FinalSchemaString", "N16FinalCasesString", "N17FinalFaultsString", "N18CaseFaultsString", "N19MatrixString", "N20Diagonal", "N21Asymmetry", "N22RecordExceptionRelation", "N23PositionNonnumeric", "N24PositionWrongLine", "N25PositionWrongPath", "N26ErrorId", "N27Message", "N28ExtraLF", "N29MissingLF", "N30RawCRLF", "N31BOM", "N32DuplicateKey", "N33InvalidUTF8", "N34Oversize", "N35BlankRow", "N36StackLine", "NoReservedVariableWrites", "PureValidatorNoIOOrProcess", "ReceiptFirstCauseStructure"],
+  "Mismatch": "ODR: saved data contract mismatch",
+  "OriginalMeasurements": [
+    {"Case":"DirectOuter","RecordSame":true,"ExceptionSame":true,"CollectorTotal":1},
+    {"Case":"CatchBare","RecordSame":false,"ExceptionSame":true,"CollectorTotal":2},
+    {"Case":"CatchRetained","RecordSame":false,"ExceptionSame":true,"CollectorTotal":2},
+    {"Case":"FinallyBare","RecordSame":false,"ExceptionSame":true,"CollectorTotal":2},
+    {"Case":"FinallyRetained","RecordSame":false,"ExceptionSame":true,"CollectorTotal":2},
+    {"Case":"IndependentSameText","RecordSame":false,"ExceptionSame":false,"CollectorTotal":2}
+  ],
+  "AlternateMeasurement": {"Case":"CatchBare","RecordSame":true,"ExceptionSame":true,"CollectorTotal":1},
+  "RED": {"FAIL":1,"PASS":0,"NotRun":41,"ExitCode":1},
+  "GREEN": {"FAIL":0,"PASS":42,"NotRun":0,"ExitCode":0}
+}

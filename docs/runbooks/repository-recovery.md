@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest: unified revision has all5new source files and frozen tests, but is
+STOPPED_GREEN_FAILURE / NOT_ACCEPTED. Sole expected RED succeeded as intended;
+sole GREEN40PASS/2FAIL rejected both valid controls at the JSON parse catch.
+No assessment/receipt invocation. Read actual report and preserved source/test
+snapshots; do not rerun tests or execute a saved command merely after cloning.
+Any root-cause experiment/fix/revalidation needs a new agreed finite scope.
+
 Checkpoint recovery was subsequently approved: original archive uses Artifacts,
 not Files/Records. New leaf has a local LF rule; pre-recovery archive bytes and
 errors are preserved inside its recovery checkpoint. This consent permits

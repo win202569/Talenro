@@ -1,6 +1,9 @@
-# Unified saved-data revision — stopped during preparation
+# Unified saved-data revision — stopped on GREEN
 
-Status: STOPPED_PREPARATION_METADATA_ERROR / NOT_ACCEPTED.
+Latest status: STOPPED_GREEN_FAILURE / NOT_ACCEPTED. The preparation and
+handoff stops below are preserved historical stages; see resumed results.
+
+Original stage: STOPPED_PREPARATION_METADATA_ERROR / NOT_ACCEPTED.
 Executed preparation after explicit approval “是” of the
 [complete plan](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).
 Baseline35c5a4f3d4207b08668f1d86b004383102ecbc6e; existing development branch.
@@ -70,3 +73,52 @@ Added only the new leaf's LF attribute; no Git/global/security config change.
 Pre-recovery portable bytes preserved in a unique snapshot; recovery archive
 includes that snapshot and handoff error. No test/assessment run during this
 packaging recovery. The prior stop/failed verdicts remain historical facts.
+
+## Resumed finite implementation — actual GREEN failure
+
+Recovery checkpoint6f068681 was pushed with remote/local equality and clean
+worktree; indexed bytes matched disk. Complete original16file/9directory/
+archive decoded-byte equality and8bound inputs then passed. Frozen recheck
+archive hash also matched. These are preparation checks, not data acceptance.
+
+Authored tests and literal42group expected model BEFORE the expected RED;
+froze both. Sole RED:0PASS/1FAIL/41NotRun/exit1, FunctionAvailable absent.
+After that authored the new pure validator and fixed-path receipt helper.
+New5sources/plan/consent identities were bound before the sole GREEN.
+
+Actual GREEN:40PASS/2FAIL/0NotRun/exit1. OriginalPositive and AlternatePositive
+both throw ODR: saved data contract mismatch at saved-data-contract.ps1:44,
+inside the JsonDocument.Parse boundary catch. The inner exception was not
+preserved, so its precise type/message/cause is not established. No diagnostic
+invocation or separate parser experiment followed. No implementation/test
+correction, expectation change, extra suite/static run or second GREEN.
+
+36negative groups reportedPASS, but both valid controls fail at the common
+parse entry. Their rejection does NOT establish that specific later invariants
+were exercised. Availability and3static groups passed; this does not supersede
+the failed valid controls. The revision is NOT_ACCEPTED / STOPPED_GREEN_FAILURE.
+
+Formal assessment blocked and not attempted; no assessment intent/result.json.
+Receipt helper has structural-only evidence and was never called for normal
+or compound-fault I/O. No production I1/I2 repair or broader acceptance.
+Consumption1expectedRED/1GREEN/0assessment,0diagnostic hosts/targets/compiles/
+reviews. Historical parent/recheck failures and frozen integration unchanged.
+
+Individual in-memory variant byte snapshots were not saved. Archive preserves
+the frozen test/expected definitions and actual complete results, not invented
+variant snapshots or reconstructed live references. This evidence limitation
+is separate from the actual positive-control failures.
+
+Post-stop integrity-only comparison passed: original16files/9directories,
+archive and8bound inputs unchanged, frozen tests unchanged, no assessment
+intent/result present. This is not a second suite or formal data assessment.
+
+Final portable checkpoint contains29actual files/1root directory, including
+prior checkpoint snapshots, new5source snapshots, frozen tests/binding,
+RED/GREEN inputs/results/intents and post-stop integrity record. All decoded
+lengths/hashes/bytes matched the actual records. Latest archive SHA256:
+52CFF282BE1E64674E684DCB61C076EFD459796959A879A74CD80B30F8A53D57.
+Earlier archive hashes in this report identify earlier retained stages only.
+Final handoff also stopped once before staging because the author constructed
+the expected path list incorrectly. Recovery uses eight explicit literal paths,
+retains file-list/byte guards, and does not change or rerun source/tests.

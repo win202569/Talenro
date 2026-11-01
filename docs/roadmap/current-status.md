@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — unified implementation stopped on its sole GREEN
+
+[Actual results](2026-11-01-offline-checker-unified-revision.md).
+Recovery checkpoint pushed; complete original-byte/input preflight passed.
+Tests frozen before expected RED (1FAIL/41NotRun); new validator/receipt authored
+afterward. Sole GREEN40PASS/2FAIL: both positive controls rejected at JSON parse
+boundary. Negative PASS counts do not prove downstream validation coverage.
+No correction/retry; formal assessment0 and receipt not invoked. NOT_ACCEPTED.
+Original failures/integration6/7/1/conditional1 FROZEN;0new diagnostic hosts.
+
 ## Latest — approved checkpoint recovery, implementation not yet resumed
 
 Archive schema now explicitly recognized; new-leaf LF rule added without
