@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest diagnosis:[BOM framing root cause](../roadmap/2026-11-01-offline-checker-framing-root-cause.md)
+and new root-cause-evidence.json. Source line44, not53, rejects BOM-free input
+because default StartsWith uses culture-aware comparison. No fix/test retry in
+this diagnosis; source/frozen suite remain at the failed checkpoint. Before
+repairing, agree a finite new test/revalidation scope and preserve old evidence.
+
 Latest: unified revision has all5new source files and frozen tests, but is
 STOPPED_GREEN_FAILURE / NOT_ACCEPTED. Sole expected RED succeeded as intended;
 sole GREEN40PASS/2FAIL rejected both valid controls at the JSON parse catch.

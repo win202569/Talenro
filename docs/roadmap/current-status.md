@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — root cause identified; no fix/test retry
+
+[Confirmed BOM framing bug](2026-11-01-offline-checker-framing-root-cause.md).
+The failed line44 is a framing guard, not JSON parsing. Default culture-aware
+StartsWith treats U+FEFF as ignorable here and rejects valid BOM-free data.
+Ordinal/raw-byte controls distinguish it correctly; original first-row parser
+controls succeed. Implementation/frozen tests unchanged; suite remains failed,
+formal assessment unattempted; integration allowance FROZEN.
+
 ## Latest — unified implementation stopped on its sole GREEN
 
 [Actual results](2026-11-01-offline-checker-unified-revision.md).

@@ -3,6 +3,12 @@
 Latest status: STOPPED_GREEN_FAILURE / NOT_ACCEPTED. The preparation and
 handoff stops below are preserved historical stages; see resumed results.
 
+Subsequent [cause-only diagnosis](2026-11-01-offline-checker-framing-root-cause.md)
+corrects this report's earlier source interpretation: line44 is the BOM framing
+guard, not the parser catch at line53. Default culture-sensitive StartsWith
+misidentifies BOM-free text as BOM-prefixed; direct parser controls succeed.
+Original40PASS/2FAIL verdict remains failed; no implementation or suite retry.
+
 Original stage: STOPPED_PREPARATION_METADATA_ERROR / NOT_ACCEPTED.
 Executed preparation after explicit approval “是” of the
 [complete plan](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).
