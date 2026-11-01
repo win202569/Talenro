@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — preparation design approved; execution plan awaits approval
+
+[Finite preparation-only plan](../superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md).
+User approved the narrow design and drafting this plan, not execution. Proposed
+one fixed driver-control change and at most1additional seed Prepare, durable
+intent/entered markers, exact original five-record binding and terminal-only
+tool recording; then stop regardless of result. No source/Prepare/test/import/
+compile/target/review in this planning turn. All runtime remainder stays FROZEN;
+I1/I2 unresolved. Explicit plan execution approval is the next gate.
+
 ## Latest — preparation-recording appendix drafted; no execution
 
 [Proposed narrow appendix](../superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md).

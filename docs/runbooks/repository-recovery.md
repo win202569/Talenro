@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest planning:[single preparation adjustment plan](../superpowers/plans/2026-11-01-offline-prepare-recording-adjustment.md).
+Design approved; plan execution not yet approved. It proposes only1additional
+Prepare with a fixed driver exception, retained records and durable attempt
+markers. No runtime allowance is resumed; success still requires stopping.
+Do not implement/run it from cloning or design consent alone. Existing seed,
+failed-preparation record and portable-stopped archive remain unchanged.
+
 Latest proposal:[preparation-recording appendix](../superpowers/specs/2026-11-01-offline-prepare-recording-adjustment-design.md).
 Documentation only, not permission to edit or run the driver. It explains why
 waiting alone cannot clear the retained stop and recommends a hash-bound,
