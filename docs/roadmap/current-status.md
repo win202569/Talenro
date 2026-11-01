@@ -1,5 +1,22 @@
 # Project status — updated 2026-11-01
 
+## Latest — approved checkpoint recovery, implementation not yet resumed
+
+Archive schema now explicitly recognized; new-leaf LF rule added without
+global Git changes. Prior archive bytes and both preparation errors preserved.
+Recovering byte-exact push before original finite data-TDD workflow resumes.
+RED/GREEN/assessment0; original integration budgets remain frozen.
+
+## Latest — unified revision stopped before tests
+
+[Actual preparation stop](2026-11-01-offline-checker-unified-revision.md).
+Execution approved, but an erroneous archive-schema lookup ($p.Files[0])
+reported Cannot index into a null array. No correction/retry after the stop.
+No new sources/tests or RED/GREEN/assessment ran; no stage intent consumed.
+Full original provenance preflight not completed. Original failures and frozen
+integration6/7/1/conditional1 unchanged;0hosts/targets/compiles/reviews.
+Portable checkpoint preserves exact failed command/output. Do not auto-resume.
+
 ## Latest — unified checker revision plan drafted; no implementation
 
 [Proposed complete revision](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).

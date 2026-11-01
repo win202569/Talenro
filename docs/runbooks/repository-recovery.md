@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Checkpoint recovery was subsequently approved: original archive uses Artifacts,
+not Files/Records. New leaf has a local LF rule; pre-recovery archive bytes and
+errors are preserved inside its recovery checkpoint. This consent permits
+resuming the original finite plan after successful provenance checks, not
+replaying stopped historical diagnostic/recheck commands or extending budgets.
+
+Latest execution:[unified revision preparation stop](../roadmap/2026-11-01-offline-checker-unified-revision.md).
+The source leaf now contains only a portable stopped checkpoint, not the five
+proposed sources. Archive-schema inspection failed before provenance preflight
+or TDD. No RED/GREEN/assessment ran or intent was consumed. Preserve this stop;
+do not apply the plan's absent-leaf preflight or automatically reuse its unused
+computations. Obtain a separately agreed recovery scope before continuation.
+
 Latest proposal:[unified checker/data-contract revision](../superpowers/plans/2026-11-01-offline-checker-unified-revision.md).
 Planning only: new p2b-saved-data-contract-revision sources/packet do not exist.
 Proposes one availabilityRED, one42groupGREEN and one separate data assessment
