@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — minimal reference diagnostic plan drafted; not authorized
+
+[Proposed single-host diagnostic](../superpowers/plans/2026-11-01-offline-error-reference-diagnostic.md).
+Six fixed cases compare actual ErrorRecord/Exception references and collection
+counts across catch/finally bare versus retained rethrow; independent-error
+control prevents text-only deduplication. Proposes NEW1host/0targets/0compiles/
+0reviews, then stop; no production writer/fixture or integration replay. No
+source/diagnostic execution this turn. v3 remainder6/7/1/conditional1 remains
+FROZEN. Explicit execution approval required before implementation or launch.
+
 ## Latest — readonly error-reference analysis; no new execution
 
 [Analysis and bounded recommendation](2026-11-01-offline-error-reference-readonly-analysis.md).

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal:[minimal reference propagation diagnostic](../superpowers/plans/2026-11-01-offline-error-reference-diagnostic.md).
+Plan only; new p2b-error-reference-diagnostic source/packet does not yet exist.
+Do not create/run it from clone consent. Proposed NEW1host/0targets/0compiles/
+0reviews is separate from frozen v3 remainder and not yet approved. Six live
+reference comparisons would measure the simplified probe, not restore missing
+historical objects or prove I1/I2 repair. Read exact boundaries before approval.
+
 Latest readonly:[error-reference analysis](../roadmap/2026-11-01-offline-error-reference-readonly-analysis.md).
 Saved Intent compound cases contain duplicate equal projections despite one
 Dispose call; JSON cannot restore reference identity. Read the confirmed facts
