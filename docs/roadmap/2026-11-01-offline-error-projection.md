@@ -5,6 +5,48 @@ and [native plan/allowance](../superpowers/plans/2026-11-01-offline-error-projec
 Baselinecf1e5ce0; this is not product/I1/I2 acceptance. Six historical stops,
 old actual failures and all archives remain unchanged.
 
+## Latest — writer accepted; contract source-model scope blocker
+
+Source-freeze checkpoint28d4cf73b7be512f3178692e0963f03f0ecb212e was pushed
+and remoteSHA verified before the replacement host. Writer-projection-green ran
+once (host29400): parentexit0/childexit0, Exact=true,EvidenceValid=true,
+RequiredExact, owned exit/complete streams/no timeout/termination/rescue,
+post-pins intact,26PASS and exact original stdout/empty stderr. Actual evidence
+SHA73DBE760267684A9CFE675C5435921C836CAF36CEB2F95C506DE2D8906BBA106.
+The error-projection repair has passed this writer boundary; wider I1/I2/product
+acceptance remains NOT_ACCEPTED and historical failures are unchanged.
+
+Original contract implementation was then released. Only observation-contract.ps1
+was authored as an UNTESTED candidate, parsed successfully, and not source-frozen.
+Static review found an actual retained IntentFailureNoWork stack frame:
+Invoke-ODOwnerControls at record-boundary.tests.ps1:162 invokes variable controls.
+Independent AST extraction shows CommandAst.GetCommandName=null, first element
+VariableExpressionAst/controls. Current Read-ODSourceModel records named calls
+and only the fixed entry/record-factory variable aliases, omitting this boundary.
+Strict full stack validation cannot match that omitted caller descriptor. Adding
+it to the mapper is outside the approved contract-only source window; neither
+guessing a location nor loosening the stack check is authorized.
+
+Stopped BEFORE contract Prepare/host. New seventh error-projection.stop.json
+records a static scope blocker, not an invented thrown runtime exception.
+No contract/core/lifecycle/continuation host, target or review ran; no186snapshot
+epoch exists. Cumulative9auxiliary/3hosts/3compiles/155snapshots/0targets/0reviews;
+remaining4hosts/7targets/0compiles/conditional1review frozen. Do not rerun the
+successful writer or treat the untested contract candidate as accepted.
+
+Post-candidate bulk readonly pin reconciliation produced no output during bounded
+waits and was interrupted; it did NOT complete, so no fresh all-pin integrity
+claim is made. Writer post-pin acceptance refers to its actual completed run.
+Next requires a written scope amendment for independent readonly dynamic-call
+descriptors in source-model.ps1 and necessary new-epoch controller bindings,
+before any new edits or execution. This is not approval of another attempt.
+
+Final portable-error-projection.json preserves449actual P/Q files,125directories,
+31zero-byte files; LF container and every decoded byte/hash/directory verified.
+SHA FD9B1CD5D6F08F419B816F0C788561CA5AFBE1AE1305AC43EDD2A9F343F40310.
+Earlier freeze/archive files are unchanged. The original full tool results,
+writer evidence and static-blocker record are included, not reconstructed.
+
 ## Source-freeze checkpoint
 
 Regression frozen at0e636f61bba4c6f4e6c888077fe08f50e7b352a8 beforeRED;

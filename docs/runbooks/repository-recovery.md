@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+Latest actual state: [writer exact success, then contract source-model scope blocker](../roadmap/2026-11-01-offline-error-projection.md).
+Writer-projection-green is consumed and accepted at its boundary (exit0,Exact,
+EvidenceValid); do not replay it. Contract candidate exists but is UNTESTED and
+unfrozen. Static AST review found controls-variable module invocation omitted
+by the readonly source mapper. Contract-only window cannot repair that model.
+Newest seventh error-projection.stop.json blocks further execution; no contract
+Prepare/host or later stage occurred. Total9auxiliary/3hosts/3compiles/155snapshots,
+0targets/0reviews. Remaining4hosts/7targets/0compiles/conditional1review frozen.
+Scope amendment for source-model/controller provenance is needed before further
+source edits or runs. Whole I1/I2/product remains NOT_ACCEPTED; no main merge.
+
+Use final portable-error-projection.json, not only the earlier freeze archive:
+449actual P/Q files/125directories/31zero-byte files, decoded bytes verified;
+SHA FD9B1CD5D6F08F419B816F0C788561CA5AFBE1AE1305AC43EDD2A9F343F40310.
+It includes the actual successful writer evidence and newest static scope stop.
+
 Latest actual checkpoint: [projection10PASS/scope9PASS and2251pin source freeze](../roadmap/2026-11-01-offline-error-projection.md).
 Design/plan/finite allowance approved, auxiliary9/9consumed. New manifest
 182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461;

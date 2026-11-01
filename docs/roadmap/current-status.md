@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — writer已正式通过该边界；契约来源模型缺口待扩大范围
+
+[实际执行](2026-11-01-offline-error-projection.md)：新writer退出0，Exact/EvidenceValid
+均true，26PASS、证据保存及父级完整验收通过。随后只编写未测试的契约候选；只读
+AST检查确认来源模型漏记controls动态调用位置，严格核对实际堆栈需要扩展模型。
+该改动超出后续“仅契约文件”窗口，故停在契约冻结/宿主之前，新增第七份静态stop。
+累计9辅助/3宿主/3编译/155快照/0目标/0审查；余4宿主/7目标/0编译/条件1审查冻结。
+旧失败仍保留，整体NOT_ACCEPTED；不重跑已成功writer，不合并main。
+
 ## Latest — projection10/10, scope9/9; new source freeze2251pins
 
 [实际执行](2026-11-01-offline-error-projection.md)：旧投影RED精确失败，修复后
