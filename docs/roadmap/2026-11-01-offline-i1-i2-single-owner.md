@@ -1,5 +1,15 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — actual controller-rebind freeze succeeded
+
+After user continuation, Prepare controller-rebind ran once/exit0 with exact
+3changed sources/2215pins/31new snapshots. New writer manifest SHA:
+D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C.
+Source snapshots93of124; old manifests/REDs/stops unchanged. Actual preparation
+gates passed; writer host and runtime acceptance still pending. Runtime5/7/1/
+conditional1unused. Save portable-controller-rebind.json checkpoint, then run
+the original writer-green once against this SHA, not the old writer manifest.
+
 ## Latest — supplemental parameter regression GREEN passed
 
 [Supplement result](2026-11-01-offline-controller-recovery.md): user authorized

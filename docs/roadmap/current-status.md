@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-01
 
+## Latest — controller freeze created; actual writer validation next
+
+[实际来源修订](2026-11-01-offline-controller-recovery.md)。
+Prepare controller-rebind一次成功：2215pins、31新快照、精确3来源变更。
+新writer清单D8D31B8B…FAC57C，快照累计93/124。旧清单/两份停线原字节保留。
+尚未启动实际writer宿主/夹具编译/目标/运行审查。先保存检查点，然后原定
+writer-green仅一次，要求26PASS及完整记录条件；当前I1/I2仍NOT_ACCEPTED。
+
 ## Latest — supplemental auxiliary GREEN13/13 passed; runtime pending
 
 [实际补充结果](2026-11-01-offline-controller-recovery.md)。

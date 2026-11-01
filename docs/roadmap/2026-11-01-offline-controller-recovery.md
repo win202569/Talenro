@@ -1,5 +1,26 @@
 # Controller recovery — auxiliary GREEN passed; runtime pending
 
+## Latest — append-only controller freeze succeeded; writer host pending
+
+User "继续" resumed original freeze/runtime gates from173bf2e2. Preflight source
+bindings/other2206pins/both historical stops matched; original outputs absent.
+Actual Prepare controller-rebind ran exactly once, exit0. New file
+writer-controller-repair.frozen.json, Phase writer-green, SHA256:
+D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C.
+2215pins/2482inherited rows/2172unique inherited paths,31CreateNew snapshots,
+exact3changed sources. All source snapshot consumption now93of124.
+Actual full source/provenance preparation passed, not merely a helper simulation.
+
+Both old manifests, old RED/failed GREEN and two historical stops remain intact.
+No writer host/target/fixture compile/runtime reviewer ran at this checkpoint.
+Runtime5hosts/7targets/1compile/conditional1review remains unused. Save/push
+portable-controller-rebind.json before the original one-shot writer-green run.
+Original I1/I2 runtime disposition remains NOT_ACCEPTED; no main merge.
+
+Controller-rebind archive240actual files/58directories; decoded lengths/hashes/
+bytes matched originals. SHA256:
+023B39A5C8D1F010A0F1F4663706605A075BE56DA5CF501E10B728C6AE150890.
+
 ## Latest — limited parameter supplement passed, no runtime acceptance
 
 User approved retaining every original/both stops, correcting the auxiliary

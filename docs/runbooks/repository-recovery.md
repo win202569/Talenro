@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest controller freeze: writer-controller-repair.frozen.json was created once
+successfully, SHA D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C.
+2215pins/31new snapshots; total93of124. Read portable-controller-rebind.json and
+current controller report. Old manifests/two stops remain in place. At this
+checkpoint no capture/fixture/target/reviewer ran. Next original writer-green
+uses THIS new SHA once, never the old writer freeze or a repeated Prepare.
+Actual host acceptance is still pending; cloning is not execution authority.
+
 Latest:[supplemental parameter GREEN passed](../roadmap/2026-11-01-offline-controller-recovery.md).
 Corrected auxiliary is controller-recovery-parameter.tests.ps1; old frozen script
 stays in place. Sole extra GREEN passed13/13, exit0; RED was not repeated. New
