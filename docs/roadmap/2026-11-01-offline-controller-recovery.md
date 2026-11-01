@@ -1,4 +1,57 @@
-# Controller recovery — auxiliary GREEN passed; runtime pending
+# Controller recovery — writer host stopped, not accepted
+
+## Latest — actual writer host18PASS/8NotRun, overall failure
+
+Controller freeze checkpoint6eda8a79 was pushed before the host. Original
+writer-green RunOne then ran exactly once against D8D31B8B…FAC57C. Actual capture
+started and exited2; parent tool exit1. OwnedExit/StreamsComplete/PostPinsIntact
+true; TimedOut/TerminationRequested/Rescue false. All source identities retained.
+
+Capture reported18PASS (API gate, ten real writer cases, seven owner controls),
+then stopped with CommandNotFoundException: Invoke-ODProfile not recognized at
+record-boundary.tests.ps1:231 char33. Remaining8groups NotRun: IntentFailureNoWork,
+PublisherSingleOwner,SummaryFaultKeepsPrimary,ProjectionFaultKeepsPrimary,
+FinalWriteFailureNoRetry and all three recorder groups. The actual profile was
+not invoked. The owner aggregate/IntentReport/healthy publisher probe do not
+exist; no complete successful recorder result may be reconstructed from PASS.
+
+Parent failed exact stdout/stderr comparison before evidence validation:
+Exact=false,EvidenceValid=false,EvidenceSHA256=null. INCOMPLETE evidence exists
+(48505bytes), but that is not a parent-accepted result. Journal stages are
+begin/unexpected-error/published, with31partial recorder stages, not32complete.
+Successful publication of a failure record is not successful test completion.
+Full actual command/tool output, original535byte stdout/230byte stderr, intent,
+final/evidence/journal/fixture files and new controller-parameter.stop.json kept.
+
+Readonly source trace: the first private controls-module invocation dot-evaluates
+the profile and three capture function ASTs locally; later separate invocation
+cannot find Invoke-ODProfile. Control-* functions explicitly use script scope,
+consistent with the preceding controls working. This is a source-based scope
+explanation, not a separate reproduction, scope fix or production profile run.
+It is a fixture/wiring failure; no evidence of platform refusal or source drift.
+
+Stop applied immediately: no source edits, extra imports/calls/host, retry,
+refreeze, contract implementation or reviewer. Readonly all2215pins and31new
+snapshots still match. Source snapshots remain93of124; the old manifests/REDs/
+auxiliary failures and both historical stops are unchanged. New active stop
+SHA ECC2C74E5544CA0EC9A7D2C5A4377DA35F1A352F26CFEADBFEF35124C2A41607.
+
+Consumed1of5capture hosts and1of1in-memory fixture compile;0controlled targets/
+0runtime reviews. The fixture compilation is confirmed by passing all ten
+FaultStream cases after the sole Add-Type statement. Remainder4hosts/7targets/
+0compiles/conditional1review FROZEN. Overall NOT_ACCEPTED, original I1/I2 open;
+partial live-case results are not complete integration acceptance. No main merge.
+
+Next needs an explicit fixture-scope repair/provenance plan and retest budget.
+Remaining hosts are reserved for later stages, not a spare writer retry, and no
+fixture compile remains. Preserve existing writer paths; do not delete outputs,
+silently rename an attempt, rerun RED/GREEN or overwrite a stopped source epoch.
+portable-controller-writer-stopped.json archives all actual P/Q records/files,
+including partial/zero-byte resources; candidate sources remain unchanged in Git.
+
+Stopped archive269actual files/75directories, including10zero-byte files;
+decoded lengths/SHA256/bytes verified equal actual originals. SHA256:
+D5245EC98C627E01C86CA933F3EEB55D9587D9E4E37132C110A9E6601DCA7719.
 
 ## Latest — append-only controller freeze succeeded; writer host pending
 

@@ -1,5 +1,17 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — first actual writer host stopped, not accepted
+
+[Actual writer result](2026-11-01-offline-controller-recovery.md): controller
+freeze exact and checkpoint pushed, then writer-green once.18reported PASS,
+8NotRun; actual CommandNotFoundException for Invoke-ODProfile in isolated owner
+control. Capture exit2/parent exit1,Exactfalse/EvidenceValidfalse; no timeout,
+rescue or source drift. Retained partial evidence does not certify full I1.
+No fix/retry/refreeze/contract/reviewer.1host/1fixture compile consumed,0targets/
+reviews; remaining4hosts/7targets/0compiles/conditional1review frozen. Source
+snapshots93of124; all2215pins/31controller snapshots match. New active stop and
+two historical stops preserved with actual partial/zero-byte files. I1/I2 open.
+
 ## Latest — actual controller-rebind freeze succeeded
 
 After user continuation, Prepare controller-rebind ran once/exit0 with exact

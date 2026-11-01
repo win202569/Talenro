@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — actual writer host failed after18reported PASS
+
+[实际运行结果](2026-11-01-offline-controller-recovery.md)。
+修订冻结成功后，writer宿主运行一次；18组报告PASS，随后因隔离测试作用域中
+找不到Invoke-ODProfile中断，8组NotRun。宿主exit2、父控制器exit1，整体未通过；
+输出完整收齐、无超时/强制终止，2215pins/31新快照未变。未修补或重跑。
+已消耗1宿主/1夹具编译，0目标/审查；剩余4宿主/7目标/0编译/条件1审查冻结。
+三份停线记录、原始部分输出/零字节文件均保留；93/124快照，I1/I2仍NOT_ACCEPTED。
+恢复归档portable-controller-writer-stopped.json；重测需要明确的新范围/预算。
+
 ## Latest — controller freeze created; actual writer validation next
 
 [实际来源修订](2026-11-01-offline-controller-recovery.md)。

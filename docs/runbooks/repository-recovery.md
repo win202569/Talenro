@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest:[actual writer host stopped](../roadmap/2026-11-01-offline-controller-recovery.md).
+The one writer host ran after successful controller-rebind freeze.18reported
+PASS/8NotRun, capture exit2/parent exit1; Invoke-ODProfile was missing in the
+isolated owner-control invocation. Overall NOT_ACCEPTED; do not infer acceptance
+from partial PASS or published INCOMPLETE evidence. All2215pins/31new snapshots
+matched after stop; source snapshots93of124.1host/1fixture compilation consumed,
+0targets/reviews; remaining4hosts/7targets/0compiles/conditional1review frozen.
+Read portable-controller-writer-stopped.json. Preserve all three stop files,
+existing writer intent/final/streams/evidence/journal and zero-byte fixture files.
+No repair/retry/refreeze or later stage/reviewer followed. A new scope/provenance
+plan and additional retest budget must precede another writer or compile; never
+delete old outputs or reuse its attempted grant paths after cloning.
+
 Latest controller freeze: writer-controller-repair.frozen.json was created once
 successfully, SHA D8D31B8BE9F38A35F12CF5951DC28B3723D759B96AF3BC3B3D8B3D4D95FAC57C.
 2215pins/31new snapshots; total93of124. Read portable-controller-rebind.json and
