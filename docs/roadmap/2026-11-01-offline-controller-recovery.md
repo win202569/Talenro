@@ -1,4 +1,62 @@
-# Controller recovery — stopped in auxiliary GREEN, not accepted
+# Controller recovery — auxiliary GREEN passed; runtime pending
+
+## Latest — limited parameter supplement passed, no runtime acceptance
+
+User approved retaining every original/both stops, correcting the auxiliary
+parameter access and necessary source/recovery bindings, with ONE additional
+GREEN and no RED rerun. Basef7c4160f. This limited supplement is complete.
+
+Preserved controller-recovery.tests.ps1 unchanged at SHA522452799A8DCE5D8ECCDFBE0FF5852D56E3C564FA6C462843145A5E450F5DB5.
+New controller-recovery-parameter.tests.ps1 fixes only the parameter AST access,
+selects its separate file/input names, and accepts Green only. All13groups and
+their assertions/expectations are unchanged. New script committed before GREEN:
+93c99424e3805f742c2316ba1d0d3acf13cf6e6a; SHA45571C4256BDDEFD86822714949FEA92E0F989EA040DFB536C78341F1E3DA97E.
+New input0E5D77EDB197CE1B067C617E67B114174DFF1CEA95494B3265A4FE19594F2AC6.
+Its inherited TestCommit identifies the original e2e354fd baseline; the new
+intent explicitly records the corrected commit. No old input was overwritten.
+
+Sole supplemental GREEN:13PASS/0FAIL/0NotRun/exit0, RootError null; complete
+actual command/tool output and final report retained. The caller now stops on
+an error/null/invalid report, preventing the prior misleading exit0 outcome.
+No RED was executed. The old exact RED and failed first GREEN remain unchanged.
+
+Driver's provenance reader distinguishes old RED test/input hashes from new
+GREEN hashes, validates the supplementary approval and historical auxiliary
+stop, and selects controller-parameter.stop.json for a new failure. Both old
+stops remain in place and byte-identical. No generic stop bypass was added.
+The future ControllerRecovery map includes ParameterApprovalSHA256,
+HistoricalAuxiliaryStopSHA256,OriginalRegressionTestSHA256 and
+OriginalRegressionInputSHA256, in addition to the prior planned fields.
+The six-pin amendment still totals2215pins/31runtime sources; its auxiliary pin
+selects the corrected script. Old test/input identities remain explicitly
+checked by the driver and preserved in Git/portable, not relabelled as new tests.
+
+Post-GREEN readonly check matched all3reported source hashes and corrected
+test/input hashes; both historical stops unchanged; new stop/freeze/runtime
+outputs absent. Historical196archived records matched before GREEN (excluding
+the intentionally append-only Q ledger). The supplementary computation is used;
+total controller computations3 (root RED, failed GREEN, successful supplement).
+Original two availability REDs remain consumed and unchanged.
+
+Scope of success: actual decoder/helper regression plus pure recovery facts
+and static binding checks only. The full driver gate/freeze/host chain was NOT
+executed. No controller-rebind Prepare, new31snapshots, writer host, fixture,
+target or independent runtime reviewer. Snapshots remain62; runtime budget
+5hosts/7targets/1compile/conditional1review unchanged and unconsumed. Overall
+I1/I2 NOT_ACCEPTED; no main/product acceptance or historical finding closure.
+
+Next original planned step: create writer-controller-repair.frozen.json once
+with31controller-rebind snapshots, then run the one original writer-green host
+only under all exact gates. No post-GREEN source edits or rerun are authorized.
+portable-controller-parameter-green.json preserves all actual current P/Q records;
+earlier portable archives and failed results remain unchanged. Candidate sources
+and both auxiliary versions are tracked in Git for fresh-computer recovery.
+
+Supplement archive204actual files/50directories, decoded lengths/SHA256/bytes
+matched actual originals. SHA256:
+CBB29A835B9C2459D036A4A4285A6D5ACA0149F07669E7B4F54BC94DA90C31C4.
+
+Historical stopped report follows unchanged below.
 
 Status: STOPPED_AUXILIARY_PARAMETER_AST_ERROR / NOT_ACCEPTED.
 User explicitly approved the complete [amendment plan](../superpowers/plans/2026-11-01-offline-controller-recovery.md), Native method,3existing-source window plus auxiliary regression script,31extra source snapshots and2finite regression computations. Base7d366cdb.

@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-01
 
+## Latest — supplemental auxiliary GREEN13/13 passed; runtime pending
+
+[实际补充结果](2026-11-01-offline-controller-recovery.md)。
+独立修正版回归脚本仅修参数AST读取及版本绑定，旧脚本/两份停线/失败结果保留。
+唯一补充GREEN13PASS/0FAIL/0NotRun/exit0；不重跑RED。来源哈希核对一致。
+尚未执行控制器冻结或writer宿主，故不是I1/I2验收。快照仍62，原运行预算
+5宿主/7目标/1编译/条件1审查未消耗。下一步是一次controller-rebind冻结，
+再按原计划验证实际写边界；本轮补充仅到GREEN。新恢复归档
+portable-controller-parameter-green.json，旧portable-controller-recovery.json不改。
+
 ## Latest — controller repair authored; auxiliary GREEN stopped
 
 [实际执行报告](2026-11-01-offline-controller-recovery.md)。

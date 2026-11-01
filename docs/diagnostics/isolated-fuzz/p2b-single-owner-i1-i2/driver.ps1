@@ -393,12 +393,14 @@ function Driver-Evidence($Evidence,$Profile,$Oracle,[string]$CurrentGrant,$Manif
 # replay, a repository glob, or the mutable authoring ledger as a runtime pin.
 # The historical prelaunch stop is retained, never removed or overwritten.
 function Driver-ControllerRegression([string]$Phase,$Binding){
-    $name='controller-regression-'+$Phase.ToLowerInvariant()+'.final.json'
+    $red=$Phase -ceq 'Red'
+    $name=if($red){'controller-regression-red.final.json'}else{'controller-regression-parameter-green.final.json'}
     $receipt=Get-Content -LiteralPath (Join-Path $packet $name) -Raw|ConvertFrom-Json -AsHashtable
     Driver-Keys $receipt @('Schema','Phase','TestSHA256','InputSHA256','SourceSHA256','PASS','FAIL','NotRun','ExitCode','Groups','RootError') ControllerRegression
-    $red=$Phase -ceq 'Red'
+    $expectedTest=if($red){$Binding.OriginalTestSHA256}else{$Binding.TestSHA256}
+    $expectedInput=if($red){$Binding.OriginalInputSHA256}else{'0E5D77EDB197CE1B067C617E67B114174DFF1CEA95494B3265A4FE19594F2AC6'}
     foreach($key in @('Schema','PASS','FAIL','NotRun','ExitCode')){Driver-Need ($receipt[$key] -is [long]) 'Regression integer types'}
-    Driver-Need ($receipt.Schema -eq 1 -and $receipt.Phase -ceq $Phase -and $receipt.TestSHA256 -ceq $Binding.TestSHA256 -and $receipt.InputSHA256 -ceq '954E1DDAB0DA47A937D037B2D251D5630AD520DC56F7E1E1C16246B5C4579344' -and $receipt.PASS -eq $(if($red){0}else{13}) -and $receipt.FAIL -eq $(if($red){1}else{0}) -and $receipt.NotRun -eq $(if($red){12}else{0}) -and $receipt.ExitCode -eq $(if($red){1}else{0})) 'Exact regression disposition'
+    Driver-Need ($receipt.Schema -eq 1 -and $receipt.Phase -ceq $Phase -and $receipt.TestSHA256 -ceq $expectedTest -and $receipt.InputSHA256 -ceq $expectedInput -and $receipt.PASS -eq $(if($red){0}else{13}) -and $receipt.FAIL -eq $(if($red){1}else{0}) -and $receipt.NotRun -eq $(if($red){12}else{0}) -and $receipt.ExitCode -eq $(if($red){1}else{0})) 'Exact regression disposition'
     $names=@('ProductionManifestDictionary','FiveFalseFlags','TrueFlagRejected','StringFlagRejected','MissingFlagRejected','NullFlagRejected','RecoveryExact','MissingApproval','ChangedStop','WrongParent','ExistingAttempt','NewStop','WriterBindings')
     Driver-Need ($receipt.Groups -is [array] -and $receipt.Groups.Count -eq 13) 'Thirteen regression groups'
     for($i=0;$i -lt 13;$i++){
@@ -420,28 +422,37 @@ function Driver-ControllerRegression([string]$Phase,$Binding){
     return $receipt
 }
 function Driver-ControllerMap($Info){
-    return [ordered]@{Schema=1;HistoricalWriterSHA256=$Info.Binding.HistoricalWriterSHA256;HistoricalStopSHA256=$Info.Binding.HistoricalStopSHA256;ApprovalSHA256=$Info.Binding.ApprovalSHA256;AmendmentPlanSHA256=$Info.Binding.PlanSHA256;AuditSHA256=$Info.Binding.AuditSHA256;RegressionTestSHA256=$Info.Binding.TestSHA256;RegressionRedSHA256=$Info.RedSHA256;RegressionGreenSHA256=$Info.GreenSHA256}
+    return [ordered]@{Schema=1;HistoricalWriterSHA256=$Info.Binding.HistoricalWriterSHA256;HistoricalStopSHA256=$Info.Binding.HistoricalStopSHA256;ApprovalSHA256=$Info.Binding.ApprovalSHA256;AmendmentPlanSHA256=$Info.Binding.PlanSHA256;AuditSHA256=$Info.Binding.AuditSHA256;RegressionTestSHA256=$Info.Binding.TestSHA256;RegressionRedSHA256=$Info.RedSHA256;RegressionGreenSHA256=$Info.GreenSHA256;ParameterApprovalSHA256=$Info.Binding.ParameterApprovalSHA256;HistoricalAuxiliaryStopSHA256=$Info.Binding.HistoricalAuxiliaryStopSHA256;OriginalRegressionTestSHA256=$Info.Binding.OriginalTestSHA256;OriginalRegressionInputSHA256=$Info.Binding.OriginalInputSHA256}
 }
 function Driver-ControllerGate {
-    Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet controller-repair.stop.json))) 'Controller recovery stopped; no retry'
-    $inputPath=Join-Path $packet controller-regression.input.json
-    Driver-CheckHash $inputPath '954E1DDAB0DA47A937D037B2D251D5630AD520DC56F7E1E1C16246B5C4579344'
+    Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet controller-parameter.stop.json))) 'Controller recovery stopped; no retry'
+    $inputPath=Join-Path $packet controller-regression-parameter.input.json
+    Driver-CheckHash $inputPath '0E5D77EDB197CE1B067C617E67B114174DFF1CEA95494B3265A4FE19594F2AC6'
     $binding=Get-Content -LiteralPath $inputPath -Raw|ConvertFrom-Json -AsHashtable
+    Driver-CheckHash (Join-Path $packet controller-regression.input.json) '954E1DDAB0DA47A937D037B2D251D5630AD520DC56F7E1E1C16246B5C4579344'
+    Driver-CheckHash (Join-Path $packet controller-repair.stop.json) '16A1CE2B13BC49389E981EED646A7AFF78219BB85760E5B63362FDE839774027'
+    $parameterApprovalPath=Join-Path $packet controller-parameter.approval.json
+    Driver-CheckHash $parameterApprovalPath $binding.ParameterApprovalSHA256
+    $parameterApproval=Get-Content -LiteralPath $parameterApprovalPath -Raw|ConvertFrom-Json -AsHashtable
     Driver-CheckHash (Join-Path $packet writer-green.frozen.json) '9AC3EAD775DB2BE7D21DE3B1CD3FE46342B1B176BA6B07C03F082D0F63B0C548'
     Driver-CheckHash (Join-Path $packet stop.json) 'F19687B1628DC1C48CC771A07DA4308D48E89B8D51921DDACDB6C4CBFAFDE9D2'
     Driver-CheckHash (Join-Path $packet seed.frozen.json) '4E4342C389C507F6148AE029140814FBCB4046AD62D1EFE3BFD451863C9DC1BA'
     Driver-CheckHash (Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-controller-recovery.md') 'EC4F8E00B0B46BCB2086263A06F2AC58DCF6A5ECF3B3F47E43F9CF33CA2A5691'
     Driver-CheckHash (Join-Path $repo 'docs/roadmap/2026-11-01-offline-controller-readonly-audit.md') 'EC4FF0038A10BF613A7F99D264953F81B6B4BB20B0B872023C74281E2537C2EB'
     Driver-CheckHash (Join-Path $PSScriptRoot controller-recovery.tests.ps1) '522452799A8DCE5D8ECCDFBE0FF5852D56E3C564FA6C462843145A5E450F5DB5'
+    Driver-CheckHash (Join-Path $PSScriptRoot controller-recovery-parameter.tests.ps1) '45571C4256BDDEFD86822714949FEA92E0F989EA040DFB536C78341F1E3DA97E'
     $approvalPath=Join-Path $packet controller-repair.approval.json
     Driver-CheckHash $approvalPath $binding.ApprovalSHA256
     $approval=Get-Content -LiteralPath $approvalPath -Raw|ConvertFrom-Json -AsHashtable
     $approved=$approval.Schema -eq 1 -and $approval.UserReply -ceq '是' -and $approval.Method -ceq 'Native' -and $approval.PlanSHA256 -ceq $binding.PlanSHA256 -and $approval.AuditSHA256 -ceq $binding.AuditSHA256 -and $approval.HistoricalWriterSHA256 -ceq $binding.HistoricalWriterSHA256 -and $approval.HistoricalStopSHA256 -ceq $binding.HistoricalStopSHA256 -and (Driver-EqualJSON $approval.ExistingSourceWindow @('driver.ps1','record-boundary.tests.ps1','source-model.ps1')) -and $approval.AuxiliaryRegression -ceq 'controller-recovery.tests.ps1'
     foreach($pair in @(@('AdditionalSourceSnapshots',31),@('SourceSnapshotCeiling',124),@('RegressionComputations',2),@('CaptureHosts',5),@('Targets',7),@('Compilations',1),@('ConditionalRuntimeReviews',1))){$approved=$approved -and $approval[$pair[0]] -is [long] -and $approval[$pair[0]] -eq $pair[1]}
     $approved=$approved -and $approval.RepeatOldRED -is [bool] -and -not $approval.RepeatOldRED -and $approval.PreserveHistoricalEvidence -is [bool] -and $approval.PreserveHistoricalEvidence
+    $approved=$approved -and $parameterApproval.Schema -eq 1 -and $parameterApproval.UserReply -ceq '是' -and $parameterApproval.BaseCommit -ceq 'f7c4160f74a86828ad8675b24ce06e9ee8b946e3' -and $parameterApproval.HistoricalAuxiliaryStopSHA256 -ceq $binding.HistoricalAuxiliaryStopSHA256 -and $parameterApproval.OriginalTestSHA256 -ceq $binding.OriginalTestSHA256 -and $parameterApproval.OriginalInputSHA256 -ceq $binding.OriginalInputSHA256 -and $parameterApproval.CorrectedAuxiliary -ceq 'controller-recovery-parameter.tests.ps1'
+    $approved=$approved -and $parameterApproval.SupplementalGreenComputations -is [long] -and $parameterApproval.SupplementalGreenComputations -eq 1 -and $parameterApproval.AdditionalSnapshotBudget -is [long] -and $parameterApproval.AdditionalSnapshotBudget -eq 0 -and $parameterApproval.RepeatRED -is [bool] -and -not $parameterApproval.RepeatRED -and $parameterApproval.PreserveAllOriginals -is [bool] -and $parameterApproval.PreserveAllOriginals
+    foreach($pair in @(@('CaptureHosts',5),@('Targets',7),@('Compiles',1),@('ConditionalRuntimeReviews',1))){$approved=$approved -and $parameterApproval[$pair[0]] -is [long] -and $parameterApproval[$pair[0]] -eq $pair[1]}
     $null=Driver-ControllerRegression Red $binding
     $null=Driver-ControllerRegression Green $binding
-    $info=[pscustomobject]@{Binding=$binding;RedSHA256=(Driver-Hash (Join-Path $packet controller-regression-red.final.json));GreenSHA256=(Driver-Hash (Join-Path $packet controller-regression-green.final.json))}
+    $info=[pscustomobject]@{Binding=$binding;RedSHA256=(Driver-Hash (Join-Path $packet controller-regression-red.final.json));GreenSHA256=(Driver-Hash (Join-Path $packet controller-regression-parameter-green.final.json))}
     $initial=$Grant -ceq 'controller-rebind' -or ($Action -ceq 'RunOne' -and $Grant -ceq 'writer-green')
     $forbidden=$false
     $grants=@('writer-green','contract-green','core','lifecycle','continuation')
@@ -459,10 +470,10 @@ function Driver-ControllerGate {
         $epoch=Get-Content -LiteralPath $epochPath -Raw|ConvertFrom-Json -AsHashtable
         Driver-Need ($epoch.Schema -eq 2 -and $epoch.Phase -ceq 'writer-green' -and $epoch.PreviousFrozenSHA256 -ceq $binding.HistoricalWriterSHA256 -and $epoch.PinCount -eq 2215 -and $epoch.SourceCount -eq 31 -and (Driver-EqualJSON $epoch.SourcePaths $inputPaths) -and (Driver-EqualJSON $epoch.ControllerRecovery (Driver-ControllerMap $info))) 'Exact controller source epoch'
         $intent=Get-Content -LiteralPath (Join-Path $packet controller-repair.intent.json) -Raw|ConvertFrom-Json -AsHashtable
-        Driver-Need ($intent.Schema -eq 1 -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.HistoricalWriterSHA256 -ceq $binding.HistoricalWriterSHA256 -and $intent.HistoricalStopSHA256 -ceq $binding.HistoricalStopSHA256 -and $intent.ApprovalSHA256 -ceq $binding.ApprovalSHA256 -and $intent.PlanSHA256 -ceq $binding.PlanSHA256 -and $intent.TestSHA256 -ceq $binding.TestSHA256) 'Unique actual source recovery intent'
+        Driver-Need ($intent.Schema -eq 1 -and $intent.AttemptConsumed -is [bool] -and $intent.AttemptConsumed -and $intent.HistoricalWriterSHA256 -ceq $binding.HistoricalWriterSHA256 -and $intent.HistoricalStopSHA256 -ceq $binding.HistoricalStopSHA256 -and $intent.ApprovalSHA256 -ceq $binding.ApprovalSHA256 -and $intent.PlanSHA256 -ceq $binding.PlanSHA256 -and $intent.TestSHA256 -ceq $binding.TestSHA256 -and $intent.ParameterApprovalSHA256 -ceq $binding.ParameterApprovalSHA256) 'Unique actual source recovery intent'
         if($Grant -ceq 'repair-green' -or $Grant -ceq 'contract-green'){Driver-RequireFinal writer-green}
     }
-    Assert-ODControllerRecoveryFacts ([ordered]@{Schema=1;HistoricalWriterSHA256=(Driver-Hash (Join-Path $packet writer-green.frozen.json));HistoricalStopSHA256=(Driver-Hash (Join-Path $packet stop.json));ApprovalValid=[bool]$approved;ForbiddenOutputsPresent=$forbidden;NewStopPresent=(Test-Path -LiteralPath (Join-Path $packet controller-repair.stop.json))})
+    Assert-ODControllerRecoveryFacts ([ordered]@{Schema=1;HistoricalWriterSHA256=(Driver-Hash (Join-Path $packet writer-green.frozen.json));HistoricalStopSHA256=(Driver-Hash (Join-Path $packet stop.json));ApprovalValid=[bool]$approved;ForbiddenOutputsPresent=$forbidden;NewStopPresent=(Test-Path -LiteralPath (Join-Path $packet controller-parameter.stop.json))})
     return $info
 }
 function Driver-AddPin($Map,$Rows,[string]$Path,[string]$Hash,[string]$Role){
@@ -534,7 +545,7 @@ if($Action -ceq 'Prepare'){
         Driver-Need ($manifest.PinCount -eq 2209) 'Original writer pin count'
         $pins=[Collections.Generic.List[object]]::new();$map=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::OrdinalIgnoreCase)
         foreach($pin in $manifest.Pins){Driver-AddPin $map $pins $pin.VerificationPath $pin.SHA256 $pin.Role}
-        foreach($path in @((Join-Path $packet writer-green.frozen.json),(Join-Path $packet stop.json),(Join-Path $repo 'docs/roadmap/2026-11-01-offline-controller-readonly-audit.md'),(Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-controller-recovery.md'),(Join-Path $packet controller-repair.approval.json),(Join-Path $PSScriptRoot controller-recovery.tests.ps1))){Driver-AddPin $map $pins $path (Driver-Hash $path) 'controller-recovery-provenance'}
+        foreach($path in @((Join-Path $packet writer-green.frozen.json),(Join-Path $packet stop.json),(Join-Path $repo 'docs/roadmap/2026-11-01-offline-controller-readonly-audit.md'),(Join-Path $repo 'docs/superpowers/plans/2026-11-01-offline-controller-recovery.md'),(Join-Path $packet controller-repair.approval.json),(Join-Path $PSScriptRoot controller-recovery-parameter.tests.ps1))){Driver-AddPin $map $pins $path (Driver-Hash $path) 'controller-recovery-provenance'}
         Driver-Need ($pins.Count -eq 2215) 'Exactly six additional unique pins'
         $manifest.Pins=$pins.ToArray();$manifest.PinCount=$pins.Count
         Add-Member -InputObject $manifest -NotePropertyName ControllerRecovery -NotePropertyValue (Driver-ControllerMap $controllerInputs)
@@ -542,7 +553,7 @@ if($Action -ceq 'Prepare'){
     Driver-Need ($manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -gt 0 -and $manifest.InheritedUniquePins -le $manifest.InheritedPins -and $manifest.PinCount -ge $manifest.InheritedUniquePins -and $manifest.SourceCount -eq 31) 'Disclosed original-row and canonical-unique mapping counts'
     Driver-Verify $manifest
     if($Grant -ceq 'controller-rebind'){
-        Driver-JSON (Join-Path $packet controller-repair.intent.json) ([ordered]@{Schema=1;AttemptConsumed=$true;HistoricalWriterSHA256=$controllerInputs.Binding.HistoricalWriterSHA256;HistoricalStopSHA256=$controllerInputs.Binding.HistoricalStopSHA256;TestSHA256=$controllerInputs.Binding.TestSHA256;PlanSHA256=$controllerInputs.Binding.PlanSHA256;ApprovalSHA256=$controllerInputs.Binding.ApprovalSHA256})
+        Driver-JSON (Join-Path $packet controller-repair.intent.json) ([ordered]@{Schema=1;AttemptConsumed=$true;HistoricalWriterSHA256=$controllerInputs.Binding.HistoricalWriterSHA256;HistoricalStopSHA256=$controllerInputs.Binding.HistoricalStopSHA256;TestSHA256=$controllerInputs.Binding.TestSHA256;PlanSHA256=$controllerInputs.Binding.PlanSHA256;ApprovalSHA256=$controllerInputs.Binding.ApprovalSHA256;ParameterApprovalSHA256=$controllerInputs.Binding.ParameterApprovalSHA256})
     }
     $base=Join-Path $packet ('snapshots/'+$Grant);Driver-Need (-not (Test-Path -LiteralPath $base)) 'Snapshot attempted'
     foreach($relative in $inputPaths){
@@ -554,7 +565,7 @@ if($Action -ceq 'Prepare'){
     [ordered]@{Prepared=$Grant;Phase=$manifest.Phase;FrozenSHA256=(Driver-Hash $manifestPath);Pins=$manifest.PinCount;InheritedPins=2482;InheritedUniquePins=$manifest.InheritedUniquePins;Snapshots=31;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
     return
 }
-Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet controller-repair.stop.json))) 'Controller execution stopped; no retry'
+Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet controller-parameter.stop.json))) 'Controller execution stopped; no retry'
 Driver-Need (-not [string]::IsNullOrEmpty($FrozenSHA256)) 'Missing frozen identity'
 Driver-Need ($Grant -cin @('writer-green','contract-green','core','lifecycle','continuation')) 'Only five approved capture hosts'
 $phase=if($Grant -ceq 'writer-green'){'writer-green'}else{'repair-green'}
@@ -649,8 +660,8 @@ if(-not $row.Exact){throw 'Grant nonexact/unknown: freeze all remaining grants a
 }catch{
     $actual=$_
     $stopRoot=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))) '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-    if((Test-Path -LiteralPath $stopRoot) -and -not (Test-Path -LiteralPath (Join-Path $stopRoot controller-repair.stop.json))){
-        Driver-JSON (Join-Path $stopRoot controller-repair.stop.json) ([ordered]@{Action=$Action;Grant=$Grant;Message=$actual.Exception.Message;ErrorId=$actual.FullyQualifiedErrorId;Position=$actual.InvocationInfo.PositionMessage;Stack=$actual.ScriptStackTrace;Remainder='FROZEN'})
+    if((Test-Path -LiteralPath $stopRoot) -and -not (Test-Path -LiteralPath (Join-Path $stopRoot controller-parameter.stop.json))){
+        Driver-JSON (Join-Path $stopRoot controller-parameter.stop.json) ([ordered]@{Action=$Action;Grant=$Grant;Message=$actual.Exception.Message;ErrorId=$actual.FullyQualifiedErrorId;Position=$actual.InvocationInfo.PositionMessage;Stack=$actual.ScriptStackTrace;Remainder='FROZEN'})
     }
     throw
 }

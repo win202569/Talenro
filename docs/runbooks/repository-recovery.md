@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest:[supplemental parameter GREEN passed](../roadmap/2026-11-01-offline-controller-recovery.md).
+Corrected auxiliary is controller-recovery-parameter.tests.ps1; old frozen script
+stays in place. Sole extra GREEN passed13/13, exit0; RED was not repeated. New
+input/final/tool records use controller-regression-parameter names; retain both
+old stops/failures. Driver binds old RED to old test/input and new GREEN to new
+test/input, with supplementary approval/historical auxiliary stop identities.
+New failure destination is controller-parameter.stop.json (currently absent).
+Read portable-controller-parameter-green.json and current report; no Prepare,
+capture, target, compile or runtime review occurred. Snapshots remain62 and
+runtime5/7/1/conditional1 untouched. Next planned step is one append-only
+controller-rebind freeze, then original writer validation; do not mistake the
+auxiliary pass for runtime acceptance or automatically replay saved commands.
+
 Latest:[actual controller recovery stop](../roadmap/2026-11-01-offline-controller-recovery.md).
 Amendment execution was approved. New root RED reproduced CannotIndex exactly;
 three candidate sources were edited. The sole GREEN errored in the frozen

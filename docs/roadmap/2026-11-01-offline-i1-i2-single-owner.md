@@ -1,5 +1,17 @@
 # Single-owner I1/I2 implementation — unvalidated candidate checkpoint
 
+## Latest — supplemental parameter regression GREEN passed
+
+[Supplement result](2026-11-01-offline-controller-recovery.md): user authorized
+one extra GREEN after narrowly correcting auxiliary AST access/source bindings.
+Separate corrected script preserves the old version;13PASS/0FAIL/0NotRun/exit0,
+RootError null. Old RED was not rerun; both stops/failed GREEN retained. Actual
+3source/test/input hashes checked after GREEN, no edits thereafter. New driver
+binds original RED versus corrected GREEN separately and verifies supplementary
+approval/historical auxiliary stop; no generic bypass. No Prepare/new freeze/
+capture/fixture/target/reviewer this supplement. Snapshots62, runtime5/7/1/
+conditional1 untouched. Limited auxiliary check complete; I1/I2 still NOT_ACCEPTED.
+
 ## Latest — controller amendment stopped during auxiliary GREEN
 
 [Actual amendment result](2026-11-01-offline-controller-recovery.md).
