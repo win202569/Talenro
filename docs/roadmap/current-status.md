@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — zero-host saved-data recheck plan drafted; not executed
+
+[Proposed readonly recheck](../superpowers/plans/2026-11-01-offline-error-reference-readonly-recheck.md).
+Only singleton expected-label array preservation changes; original predicates
+otherwise retained. Proposes one readonly computation,0new tested hosts/targets/
+compiles/reviews, separate data-only result; original parent Exact=false and
+all source/records unchanged. No execution or source changes in this turn.
+Integration6/7/1/conditional1 stays FROZEN; explicit execution approval required.
+
 ## Latest — diagnostic measured wrapper identity; parent check failed
 
 [Actual reference diagnostic](2026-11-01-offline-error-reference-diagnostic.md).

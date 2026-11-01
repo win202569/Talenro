@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal:[zero-host saved-data recheck](../superpowers/plans/2026-11-01-offline-error-reference-readonly-recheck.md).
+Plan only, no recheck sidecar/result/archive exists yet. Proposes a separate
+readonly label-array-corrected assessment, not rerunning the diagnostic or
+changing its failed parent. Preserve original16file archive and source/binding;
+do not infer acceptance or restored budgets from cloned measurements. Existing
+integration6/7/1/conditional1 remains FROZEN pending separately scoped work.
+
 Latest actual:[reference diagnostic parent stop](../roadmap/2026-11-01-offline-error-reference-diagnostic.md).
 New diagnostic leaf now exists but its single host allowance is exhausted.
 portable-final.json preserves16files/9directories,4snapshots, zero-byte streams,
