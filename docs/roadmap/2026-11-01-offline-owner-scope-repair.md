@@ -2,6 +2,18 @@
 
 Status: NOT_ACCEPTED. Task1 incomplete; Task2/3 not started.
 
+## Latest proposal — signature supplement pending approval
+
+Readonly review found that the auxiliary queries Get-Command but compares a bare
+error identifier, and saves the caught error only after an assertion that can
+throw. This establishes a test-boundary/preservation defect, not the missing
+old error's actual contents. [Supplement design](../superpowers/specs/2026-11-01-offline-owner-scope-signature-design.md)
+and [plan](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md) propose
+a separately frozen corrected test,1extra replacement RED and the already unused
+GREEN, with exact supplemental provenance/new stop. No added runtime host/compile/
+target/snapshot/reviewer. All old records preserved; no test/source edit or new
+computation during proposal writing. Approval required before implementation.
+
 User approved [design](../superpowers/specs/2026-11-01-offline-owner-scope-repair-design.md),
 [plan](../superpowers/plans/2026-11-01-offline-owner-scope-repair.md) and its finite
 increment with reply “是”. Baseline f8514dd7a035abd413c2928daa6f882f9d1c85cd.

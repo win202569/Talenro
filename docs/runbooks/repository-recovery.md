@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Newest proposed next step: [signature supplement](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md),
+pending design/plan/one-extra-RED approval. No new test/source/execution this turn.
+Retain old frozen auxiliary and all four stops/archives. Proposed corrected test
+captures the original error before checking its exact Get-Command identifier;
+unexpected diagnostics are not phase-final success/failure receipts. Additional
+budget requested is1replacement RED only, reusing the previously unused1GREEN.
+Runtime5hosts/7targets/1compile/conditional1review and snapshot ceiling155 unchanged,
+still frozen. Future corrected script/input/signature-phase paths do not exist yet.
+The supplemented source freeze would have2228pins, not old plan's2222; its13new
+immutable provenance paths must be explicit. Do not replay saved commands.
+
 Newest actual handoff: [auxiliary RED stopped](../roadmap/2026-11-01-offline-owner-scope-repair.md).
 User approved the scope design/plan/increment, but the sole new RED computation
 failed inside its own error-signature assertion, exit2, no valid RED final.

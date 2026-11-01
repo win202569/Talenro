@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-01
 
+## Latest — signature/error-preservation supplement drafted; approval pending
+
+[最小补充方案](../superpowers/plans/2026-11-01-offline-owner-scope-signature.md)：
+保留旧辅助脚本，另建版本；先保留底层错误，再按Get-Command完整签名精确判定。
+仅申请1次替代RED，沿用剩余1次GREEN；不追加宿主/编译/目标/快照/审查额度。
+旧失败不补判为通过；四份旧stop和归档保留，新stop始终阻断。来源清单新增补充
+溯源后拟为2228pins，原五文件修复窗口及运行限制不变。本轮仅文档，未改测试、
+未执行验证；NOT_ACCEPTED，所有运行仍冻结，待批准设计/计划及1次额外RED。
+
 ## Latest — approved scope repair stopped in auxiliary RED
 
 [实际报告](2026-11-01-offline-owner-scope-repair.md)。方案及新增额度已获批准；
