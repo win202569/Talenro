@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — descriptor RED matched; three-source candidate frozen before GREEN14
+
+第13次辅助精确0PASS/1FAIL/19NotRun/exit1，缺失描述失败已独立确认。三源码候选
+已实现固定AST描述、单元绑定及恢复控制器；静态解析通过，进程安全尾部仅stop名改变。
+候选归档473文件/125目录/31零字节解码一致；GREEN14尚未执行，未冻结运行源码。
+实际13辅助/3宿主/3编译/155快照/0目标/0审查；整体NOT_ACCEPTED。
+
 ## Latest — pin GREEN7/7; descriptor v2 frozen before RED13
 
 第12次辅助7PASS/exit0，缺失/Absent/坏格式/冲突/实际哈希不符均拒绝，同值重复接受。

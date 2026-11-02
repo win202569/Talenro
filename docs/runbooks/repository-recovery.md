@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest candidate: descriptor RED13 exact expected failure; three-source candidate
+and input frozen before GREEN14. portable-pin-binding-candidate.json473files/
+125directories/31zero-byte decoded equal; SHA
+91766DFA75AD4FF73886DC2C4B40D135A413AF5480A3A6C6192202FE703402E9.
+No repair manifest/snapshots/runtime host yet; GREEN14 pending, NOT_ACCEPTED.
+
 Latest: pin GREEN12 passed7/7, exact source/test/input hashes unchanged. New
 contract-call-model-v2.tests.ps1/input frozen before RED13; original regression
 unchanged. portable-pin-binding-descriptor-preparation.json469files/125dirs/

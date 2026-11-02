@@ -33,7 +33,7 @@ function OC-SourceError($Actual,$Expected,$Context){
     OC-Need ($faults.Count -ge 1)
     $stack=$Actual.Stack.Replace(([string][char]13+[char]10),[string][char]10).Split([char]10)
     OC-Need ($stack.Count -ge 2 -and $stack.Count -le 32)
-    $previousFunction=$null;$previousSource=$null
+    $previousFunction=$null;$previousSource=$null;$previousLine=0
     for($i=0;$i -lt $stack.Count;$i++){
         $frame=[regex]::Match($stack[$i],'^at (.+), (.+): line ([0-9]+)$')
         OC-Need $frame.Success
@@ -47,9 +47,24 @@ function OC-SourceError($Actual,$Expected,$Context){
             if($calls.Count -eq 0 -and $Context.Contains('UnitBindings') -and $previousSource -ceq $Context.UnitBindings.FactorySource -and $previousFunction -ceq $Context.UnitBindings.FactoryFunction){
                 $calls=@($frameModel.Calls|Where-Object {$_.Caller -ceq $function -and $_.Line -eq $frameLine -and $_.Callee -ceq '@fixed-record-factory'})
             }
+            if($calls.Count -eq 0 -and $Context.Contains('UnitBindings') -and $Context.UnitBindings.Contains('OwnerControlCall')){
+                $binding=$Context.UnitBindings.OwnerControlCall
+                $keys=@('Source','SHA256','Owner','Variable','Line','Column','BodyStartLine','BodyStartColumn','BodyEndLine','BodyEndColumn')
+                OC-Keys $binding $keys
+                OC-Need ($frameModel.Contains('DynamicCalls') -and $frameModel.DynamicCalls -is [array] -and $frameModel.DynamicCalls.Count -eq 1)
+                $descriptor=$frameModel.DynamicCalls[0];OC-Keys $descriptor $keys
+                foreach($key in $keys){
+                    if($key -cin @('Source','SHA256','Owner','Variable')){OC-Need ($binding[$key] -is [string] -and $descriptor[$key] -is [string])}
+                    else{OC-Integer $binding[$key];OC-Integer $descriptor[$key];OC-Need ($binding[$key] -gt 0)}
+                    OC-Need ($binding[$key] -ceq $descriptor[$key])
+                }
+                OC-Need ($binding.Source -ceq $path -and $binding.SHA256 -ceq $frameModel.SHA256 -and $binding.Owner -ceq 'Invoke-ODOwnerControls' -and $binding.Variable -ceq 'controls' -and $function -ceq $binding.Owner -and $frameLine -eq $binding.Line)
+                OC-Need ($previousFunction -ceq '<ScriptBlock>' -and $previousSource -ceq $path -and $binding.BodyEndLine -ge $binding.BodyStartLine -and $previousLine -ge $binding.BodyStartLine -and $previousLine -le $binding.BodyEndLine)
+                $calls=@($descriptor)
+            }
             OC-Need ($calls.Count -ge 1)
         }
-        $previousFunction=$function;$previousSource=$path
+        $previousFunction=$function;$previousSource=$path;$previousLine=$frameLine
     }
     OC-Need ($previousSource -ceq $Context.Sources.Capture -and $previousFunction -ceq '<ScriptBlock>')
 }

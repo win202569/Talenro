@@ -56,10 +56,29 @@ function Read-ODSourceModel([string]$Repo,[string[]]$RelativePaths,[Collections.
             $operation=if($node -is [Management.Automation.Language.InvokeMemberExpressionAst]){$node.Member.Value}elseif($node -is [Management.Automation.Language.ThrowStatementAst]){'throw'}else{'ConvertFrom-Json'}
             [ordered]@{Function=(Get-ODSourceOwner $node);Operation=$operation;Line=$extent.StartLineNumber;Column=$extent.StartColumnNumber;EndLine=$extent.EndLineNumber;EndColumn=$extent.EndColumnNumber;Text=$extent.Text}
         })
+        $dynamicCalls=@(if($relative -ceq 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1'){
+            foreach($node in $ast.FindAll({param($n)$n -is [Management.Automation.Language.CommandAst]},$true)){
+                if((Get-ODSourceOwner $node) -cne 'Invoke-ODOwnerControls' -or $node.CommandElements.Count -lt 2){continue}
+                $variable=$node.CommandElements[0];$literal=$node.CommandElements[1]
+                if($variable -isnot [Management.Automation.Language.VariableExpressionAst] -or $variable.VariablePath.UserPath -cne 'controls' -or $literal -isnot [Management.Automation.Language.ScriptBlockExpressionAst]){continue}
+                $parameters=$literal.ScriptBlock.ParamBlock
+                if($null -eq $parameters -or $parameters.Parameters.Count -ne 1 -or $parameters.Parameters[0].Name.VariablePath.UserPath -cne 'Name'){continue}
+                $body=$literal.ScriptBlock.Extent
+                [ordered]@{Source=$path;SHA256=$sha;Owner='Invoke-ODOwnerControls';Variable='controls';Line=$node.Extent.StartLineNumber;Column=$node.Extent.StartColumnNumber;BodyStartLine=$body.StartLineNumber;BodyStartColumn=$body.StartColumnNumber;BodyEndLine=$body.EndLineNumber;BodyEndColumn=$body.EndColumnNumber}
+            }
+        })
         if((Get-ODPinnedSHA256 $path $Manifest) -cne $sha){throw 'OD: source model changed during read'}
-        $models[$path]=[ordered]@{SHA256=$sha;Functions=$functions;Calls=$calls;Faults=$faults}
+        $models[$path]=[ordered]@{SHA256=$sha;Functions=$functions;Calls=$calls;Faults=$faults;DynamicCalls=$dynamicCalls}
     }
     return $models
+}
+function Get-ODIntentCallBinding([Collections.IDictionary]$SourceModel,[string]$Source){
+    if(-not $SourceModel.Contains($Source) -or -not $Source.EndsWith('/docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1'.Replace('/',[IO.Path]::DirectorySeparatorChar),[StringComparison]::Ordinal)){throw 'OD: unit call binding mismatch'}
+    $model=$SourceModel[$Source]
+    if(-not $model.Contains('DynamicCalls') -or $model.DynamicCalls -isnot [array] -or $model.DynamicCalls.Count -ne 1){throw 'OD: unit call binding mismatch'}
+    $call=$model.DynamicCalls[0]
+    if($call.Source -cne $Source -or $call.SHA256 -cne $model.SHA256 -or $call.Owner -cne 'Invoke-ODOwnerControls' -or $call.Variable -cne 'controls'){throw 'OD: unit call binding mismatch'}
+    return $call
 }
 function New-ODFixedContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest,[string]$FrozenSHA256,[bool]$Historical){
     if($Profile -cnotin @('entry-migration-core','entry-migration-owned','entry-migration-live')){throw 'OD: source model unsupported profile'}
@@ -126,6 +145,7 @@ function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifes
     $relativeFaults=@(foreach($fault in $profileModel.Faults){if($fault.Function -ceq 'Invoke-ODProfile'){[ordered]@{Function=$fault.Function;Operation=$fault.Operation;Line=($fault.Line-$offset);Column=$fault.Column;EndLine=($fault.EndLine-$offset);EndColumn=$fault.EndColumn;Text=$fault.Text}}})
     $context.SourceModel['<No file>']=[ordered]@{SHA256=$profileModel.SHA256;Origin=$profilePath;Functions=@([ordered]@{Name='Invoke-ODProfile';StartLine=1;EndLine=($definition[0].EndLine-$offset)});Calls=$relativeCalls;Faults=$relativeFaults}
     $context.UnitBindings=[ordered]@{ProfileFunction='Invoke-ODProfile';AnonymousSource='<No file>';FactorySource=[IO.Path]::GetFullPath((Join-Path $Repo 'scripts/offline-diagnostics-v4/private/write-boundary.ps1'));FactoryFunction='New-ODRecordStream'}
+    $context.UnitBindings.OwnerControlCall=Get-ODIntentCallBinding $context.SourceModel ([IO.Path]::GetFullPath((Join-Path $Repo 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1')))
     $context.IntentFailure=[ordered]@{
         Type='System.Management.Automation.MethodInvocationException';ErrorId='IOException'
         Message=('Exception calling "Open" with "4" argument(s): "The file ''{0}'' already exists."' -f (Join-Path $context.PacketRoot 'unit/writer-projection-green/owner-controls/intent-existing.bin'))
