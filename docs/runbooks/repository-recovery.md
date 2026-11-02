@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest execution preparation: plan02b53d98 approved, including one auxiliary15.
+NEW portable-fault-location-preparation.json contains525files/135directories/
+31zero-byte entries, decoded equal; SHA
+66A5AE59317B4D65431430B05262AE9504B9DB610E880C9EE76800FCC7C6F899.
+It embeds all current P/Q plus H/runtime-green.evidence.json and frozen.json.
+Diagnostic/input identities are recorded in Q/fault-location-progress.md; no
+intent or computation yet. Restore without overwriting originals; retain all
+prior archive references for unrelated historical data. Original root required.
+
 Latest: user approved the diagnosis design after dac6f473. The
 [bounded implementation plan](../superpowers/plans/2026-11-02-offline-fault-location-diagnosis.md)
 awaits execution approval for one added auxiliary computation15. No diagnostic

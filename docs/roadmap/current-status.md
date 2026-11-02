@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — single diagnosis approved and prepared; not yet invoked
+
+用户“是”批准02b53d98计划及一次辅助15额度。新诊断仅定义函数，静态解析通过；
+69输入/31运行源码/九stop/12允许函数已核对，未调用诊断或原有函数。
+新准备归档525文件/135目录/31零字节，包含两份所需历史H记录，解码逐字节一致；
+SHA66A5AE59317B4D65431430B05262AE9504B9DB610E880C9EE76800FCC7C6F899。
+待推送准备检查点后只运行一次；累计仍14辅助，原运行链冻结，NOT_ACCEPTED。
+
 ## Latest — fault-location design approved; implementation plan awaits approval
 
 用户“是”批准dac6f473书面附录。[单次定位计划](../superpowers/plans/2026-11-02-offline-fault-location-diagnosis.md)
