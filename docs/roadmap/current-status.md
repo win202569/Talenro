@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — call-model plan approved; regression/input checkpoint before RED
+
+用户“是”批准ae594fef中的计划及2次辅助计算。只读核对2251历史pins、155快照、
+七份stop及新路径未占用已完成。新20组回归与输入已编写并通过静态解析，尚未运行。
+portable-contract-call-model-preparation.json保存453实际文件/125目录/31零字节，
+解码一致；源码未改，辅助仍9/11，运行仍3宿主/3编译/0目标/0审查；NOT_ACCEPTED。
+
 ## Latest — call-model design approved; implementation plan awaiting approval
 
 用户“是”批准1df88952中的范围修订设计；[实施计划](../superpowers/plans/2026-11-02-offline-contract-call-model.md)

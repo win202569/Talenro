@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Call-model execution approved afterae594fef (user “是”). Preparation checkpoint:
+new contract-call-model.tests.ps1 and portable-contract-call-model-preparation.json;
+453actual files/125directories/31zero-byte files, decoded equality verified,
+SHA F1C05F5BE4B39C3E2CC9A125E5F735E291416D1D133D25C8D3FB98B2A2270AB3.
+Preflight2251historical pins/155snapshots/seven stops passed; no RED/GREEN yet,
+no runtime source edit or additional allowance consumed. Resume from actual
+ledger/intents, never replay a consumed attempt. Previous pending-approval text
+below is historical. Whole product remains NOT_ACCEPTED.
+
 Newest handoff (2026-11-02): written call-model design approved by user “是”
 after1df88952. [Implementation plan](../superpowers/plans/2026-11-02-offline-contract-call-model.md)
 awaits plan/allowance approval: native, exactly three runtime sources, two auxiliary
