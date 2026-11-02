@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Newest proposal: [pin-binding recovery design](../superpowers/specs/2026-11-02-offline-pin-binding-recovery-design.md).
+User approved drafting afterca8486df; written design/plan/extra allowance pending.
+Proposes local pin-array rename, focused pin RED/GREEN and versioned descriptor
+RED/GREEN:3additional auxiliary computations plus1unspent allowance, ceiling14.
+No runtime allowance increase; eight stops and old tests/results stay immutable.
+This turn changed only documentation; actual consumption remains10auxiliary.
+
 Latest actual state: [call-model RED setup failure](../roadmap/2026-11-02-offline-contract-call-model.md).
 Use portable-contract-call-model.json:457actual files/125directories/31zero-byte
 files, decoded equality verified; SHA

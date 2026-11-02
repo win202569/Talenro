@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — pin-binding recovery design proposed; no execution
+
+[恢复修订设计](../superpowers/specs/2026-11-02-offline-pin-binding-recovery-design.md)
+已拟定：来源检查仅重命名冲突局部变量，保持全部指纹检查；拟新增3次辅助计算，
+加原剩余1次，共4阶段，累计上限14。分别验证指纹RED/GREEN、调用描述RED/GREEN。
+原失败与冻结测试不修改；新版仅调整恢复绑定，运行额度不增加。设计待批准，
+本轮仅文档；实际仍10辅助/3宿主/3编译/155快照/0目标/0审查，整体NOT_ACCEPTED。
+
 ## Latest — call-model RED setup failed; stopped before implementation
 
 [实际记录](2026-11-02-offline-contract-call-model.md)：首次辅助验证退出2，
