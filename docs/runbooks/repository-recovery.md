@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest freeze: [pin7PASS/model20PASS and2276pins](../roadmap/2026-11-02-offline-pin-binding-recovery.md).
+repair-green SHA A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556;
+186snapshots, eight old stops; no new runtime host yet. Use portable-pin-binding-freeze.json,
+510files/133dirs/31zero-byte decoded equal, SHA
+0FF966E80721AFBAE838E3D67E7A62ACE3F817C2B2F271AAA12DCCC17FF78CA2.
+Auxiliary14/14 consumed; continue only original unspent contract/core/lifecycle/
+continuation gates. No source edits, re-freeze or auxiliary reruns authorized.
+
 Latest candidate: descriptor RED13 exact expected failure; three-source candidate
 and input frozen before GREEN14. portable-pin-binding-candidate.json473files/
 125directories/31zero-byte decoded equal; SHA

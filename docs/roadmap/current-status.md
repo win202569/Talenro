@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — pin7/7 and descriptor20/20 passed; repair freeze2276pins
+
+[实际执行](2026-11-02-offline-pin-binding-recovery.md)：四次辅助均符合预期，
+最后20组GREEN通过。唯一源码冻结2276pins/31新快照成功，总186；八旧stop保留。
+冻结归档510文件/133目录/31零字节已校验。辅助14/14耗尽，运行仍3宿主/3编译/
+0目标/0审查；下一步原定contract-green，整体NOT_ACCEPTED。
+
 ## Latest — descriptor RED matched; three-source candidate frozen before GREEN14
 
 第13次辅助精确0PASS/1FAIL/19NotRun/exit1，缺失描述失败已独立确认。三源码候选
