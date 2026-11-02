@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest: user approved the diagnosis design after dac6f473. The
+[bounded implementation plan](../superpowers/plans/2026-11-02-offline-fault-location-diagnosis.md)
+awaits execution approval for one added auxiliary computation15. No diagnostic
+script or computation exists yet. Approved spec bytes are retained unchanged;
+its draft label is historical, superseded by this approval record. Original nine
+stops and runtime freeze remain effective. The plan requires the original root;
+another path needs a separately reviewed relocation design, not silent rewriting.
+
 Latest planning: [diagnosis-only recovery addendum](../superpowers/specs/2026-11-02-offline-fault-location-diagnosis-design.md)
 is DRAFT/PENDING_APPROVAL. Direction and drafting were approved, not execution.
 Proposed addition is one offline auxiliary computation15 only; no repair, host,

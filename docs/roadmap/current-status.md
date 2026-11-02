@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — fault-location design approved; implementation plan awaits approval
+
+用户“是”批准dac6f473书面附录。[单次定位计划](../superpowers/plans/2026-11-02-offline-fault-location-diagnosis.md)
+已明确固定输入、函数白名单、22条历史观测的顺序遍历、首错即停及独立记录。
+计划与新增一次辅助计算仍待执行批准；未创建诊断脚本、未运行验证、未修改源码。
+累计仍14辅助/4宿主/3编译/186快照，原失败结论和冻结链不变，NOT_ACCEPTED。
+
 ## Latest — diagnosis-only recovery addendum drafted; no new execution
 
 [恢复附录草案](../superpowers/specs/2026-11-02-offline-fault-location-diagnosis-design.md)
