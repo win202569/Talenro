@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — pin GREEN7/7; descriptor v2 frozen before RED13
+
+第12次辅助7PASS/exit0，缺失/Absent/坏格式/冲突/实际哈希不符均拒绝，同值重复接受。
+变量冲突修复已通过该边界。新版20组调用模型回归仅重绑定恢复身份，原测试不改；
+RED13尚未运行。新描述准备归档469文件/125目录/31零字节，解码一致。
+累计12辅助/3宿主/3编译/155快照/0目标/0审查；整体NOT_ACCEPTED。
+
 ## Latest — focused pin RED matched; rename-only candidate before GREEN
 
 第11次辅助实际0PASS/1FAIL/6NotRun/exit1，精确复现SHA256属性错误，前后源码一致。

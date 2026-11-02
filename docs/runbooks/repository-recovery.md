@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest: pin GREEN12 passed7/7, exact source/test/input hashes unchanged. New
+contract-call-model-v2.tests.ps1/input frozen before RED13; original regression
+unchanged. portable-pin-binding-descriptor-preparation.json469files/125dirs/
+31zero-byte decoded equal; SHA AC69F4C301FBA88C8CD6A610297361CDBB650E3A6D02732DD99614E25C25A09E.
+Consumption12auxiliary; no new runtime/compile/target/review. Do not replay11/12.
+
 Latest intermediate: pin RED11 matched exactly (0PASS/1FAIL/6NotRun/exit1).
 Only local matches→pinRows rename in source-model.ps1; reverse-substitution full
 file equality verified. GREEN12 pending. portable-pin-binding-intermediate.json
