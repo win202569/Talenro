@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — call-model design approved; implementation plan awaiting approval
+
+用户“是”批准1df88952中的范围修订设计；[实施计划](../superpowers/plans/2026-11-02-offline-contract-call-model.md)
+已拟定，等待计划/额度确认。原生执行，三源码窗口；拟20组辅助RED/GREEN各一次，
+辅助累计上限11；契约冻结拟2263pins/31新快照，总186。已成功writer不重跑，
+原剩余4宿主/7目标/0编译/条件1审查仍冻结。本轮仅文档，无源码修改或测试执行；
+七份stop保留，整体NOT_ACCEPTED。
+
 ## Latest — bounded call-model scope amendment drafted; no execution
 
 [范围修订设计](../superpowers/specs/2026-11-02-offline-contract-call-model-design.md)

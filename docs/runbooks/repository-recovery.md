@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Newest handoff (2026-11-02): written call-model design approved by user “是”
+after1df88952. [Implementation plan](../superpowers/plans/2026-11-02-offline-contract-call-model.md)
+awaits plan/allowance approval: native, exactly three runtime sources, two auxiliary
+computations (ceiling11), then original unspent four-host chain only if gates pass.
+Proposed contract freeze2263pins/31snapshots; no new runtime allowance. This turn
+changed documents only, ran no diagnostic tests and consumed no allowance.
+All seven stops and accepted writer originals remain; do not replay writer.
+Historical proposal text below records the earlier state, not current approval.
+
 Newest proposal (2026-11-02): [fixed owner-control call-model amendment](../superpowers/specs/2026-11-02-offline-contract-call-model-design.md).
 Drafting only; written design/plan/allowance not approved. Proposed three-source
 contract window (model/contract/driver),2auxiliary computations, no extra runtime
