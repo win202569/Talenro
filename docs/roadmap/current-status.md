@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — local command-extent repair design drafted, not implemented
+
+[局部修复设计](../superpowers/specs/2026-11-02-offline-command-extent-repair-design.md)
+仅拟修改Get-ODFailureExtent中的ConvertFrom-Json分支；其他错误和精确匹配保持原样。
+拟新增RED16/GREEN17两次辅助，十组局部检查；不启动完整契约、不重新冻结源码。
+用户已选择方向并同意编写，书面设计/执行尚未批准。本轮仅文档，累计仍15辅助，
+原运行链冻结、NOT_ACCEPTED。修复候选届时不再匹配旧运行清单，不得绕过校验运行。
+
 ## Latest — first saved-data mismatch located; no repair or runtime retry
 
 [单次定位结果](2026-11-02-offline-fault-location-diagnosis.md)：第15次辅助

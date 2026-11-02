@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal: [local command-extent repair design](../superpowers/specs/2026-11-02-offline-command-extent-repair-design.md)
+is DRAFT/PENDING_APPROVAL, documentation only. Proposed change is the narrow
+ConvertFrom-Json extent branch; proposed allowance is RED16/GREEN17 only.
+No implementation or new computation yet. Future candidate source will differ
+from the old manifest pin: do not rewrite that manifest or run the old driver.
+Written design and subsequent execution plan require approval; runtime stays frozen.
+
 Latest actual: [single fault-location diagnosis](../roadmap/2026-11-02-offline-fault-location-diagnosis.md).
 Use NEW portable-fault-location.json:528files/135directories/31zero-byte,
 decoded equal; SHA EB5B1E3743889DB1DD695D23CA2131E5E49380799423665CA9D5942FA2825BB3.
