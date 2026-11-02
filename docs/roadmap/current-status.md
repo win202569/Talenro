@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-02
 
+## Latest — first saved-data mismatch located; no repair or runtime retry
+
+[单次定位结果](2026-11-02-offline-fault-location-diagnosis.md)：第15次辅助
+LocatedMismatch/exit0，655检查点中654匹配，首错为第9条观测的PrimaryError。
+ConvertFrom-Json实际36行50列，模型误归到赋值语句36行9列；原精确谓词拒绝。
+69输入前后指纹一致，无诊断/记录错误。未修复源码，未重跑完整契约，不能宣称验收。
+最终归档528文件/135目录/31零字节解码一致，原始记录完整保留。
+累计15辅助/4宿主/3编译/186快照；额度用尽、后续运行链冻结，NOT_ACCEPTED。
+
 ## Latest — single diagnosis approved and prepared; not yet invoked
 
 用户“是”批准02b53d98计划及一次辅助15额度。新诊断仅定义函数，静态解析通过；

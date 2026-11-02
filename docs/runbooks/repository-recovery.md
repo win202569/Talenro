@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest actual: [single fault-location diagnosis](../roadmap/2026-11-02-offline-fault-location-diagnosis.md).
+Use NEW portable-fault-location.json:528files/135directories/31zero-byte,
+decoded equal; SHA EB5B1E3743889DB1DD695D23CA2131E5E49380799423665CA9D5942FA2825BB3.
+Contains all P/Q including computation15intent/final/full tool record and the two
+required H originals. Located first mismatch at row8 View.PrimaryError:
+ConvertFrom-Json actual36:50 versus modeled assignment36:9.69pre/post inputs equal.
+No repair or runtime rerun. Auxiliary15 consumed/exhausted; nine old stops and
+remaining runtime freeze remain in effect. Do not replay the diagnostic, alter
+original contract failure or treat diagnostic exit0 as product acceptance.
+
 Latest execution preparation: plan02b53d98 approved, including one auxiliary15.
 NEW portable-fault-location-preparation.json contains525files/135directories/
 31zero-byte entries, decoded equal; SHA
