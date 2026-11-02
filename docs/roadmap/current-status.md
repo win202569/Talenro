@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — local extent design approved; two-run implementation plan pending
+
+用户“是”批准8e8b2147设计。[实施计划](../superpowers/plans/2026-11-02-offline-command-extent-repair.md)
+已明确十组检查、真实历史输入、旧/新函数作用域隔离及RED16/GREEN17。
+计划与新增两次辅助额度尚待执行批准；本轮仅文档，源码/测试未改、无新计算。
+累计仍15辅助/4宿主/3编译/186快照，旧运行清单与停止记录不变，NOT_ACCEPTED。
+
 ## Latest — local command-extent repair design drafted, not implemented
 
 [局部修复设计](../superpowers/specs/2026-11-02-offline-command-extent-repair-design.md)

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest planning: local extent design approved after8e8b2147; its original draft
+bytes remain unchanged. [Implementation plan](../superpowers/plans/2026-11-02-offline-command-extent-repair.md)
+awaits execution approval for RED16/GREEN17. No new regression or source repair
+exists yet. Keep edited live helper identity separate from immutable historical
+snapshots during future execution; never rewrite old runtime pins to allow GREEN.
+Only local acceptance/rejection/model invariants are in scope, not full acceptance.
+
 Latest proposal: [local command-extent repair design](../superpowers/specs/2026-11-02-offline-command-extent-repair-design.md)
 is DRAFT/PENDING_APPROVAL, documentation only. Proposed change is the narrow
 ConvertFrom-Json extent branch; proposed allowance is RED16/GREEN17 only.
