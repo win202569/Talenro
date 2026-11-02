@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — pin-binding plan approved; focused regression frozen before RED
+
+用户“是”批准d3e129ac计划及3新增辅助额度。只读2251pins/155快照/八stop核对通过。
+七组指纹回归及批准/输入已准备，尚未运行；源码未改。准备归档461文件/125目录/
+31零字节，解码一致；后续按11RED、12GREEN、13描述RED、14描述GREEN执行。
+实际仍10辅助/3宿主/3编译/0目标/0审查，整体NOT_ACCEPTED。
+
 ## Latest — pin-binding design approved; recovery plan awaiting approval
 
 用户“是”批准977b039b中的书面设计；[实施计划](../superpowers/plans/2026-11-02-offline-pin-binding-recovery.md)

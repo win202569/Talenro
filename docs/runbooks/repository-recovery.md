@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Pin-binding execution approved afterd3e129ac. New preparation checkpoint contains
+pin-binding.tests.ps1 and portable-pin-binding-preparation.json (461files/125dirs/
+31zero-byte, decoded equal; SHA A1843BA01EEAD89D807DF5780692E0CD67440977E6DC24F79C1DE48A144B2D5A).
+Historical2251pins/155snapshots/eight stops verified; no new computation or source
+edit yet. Follow actual intents/ledger; do not replay any consumed attempt.
+
 Latest planning handoff: user approved pin-binding written design after977b039b.
 [Recovery implementation plan](../superpowers/plans/2026-11-02-offline-pin-binding-recovery.md)
 awaits plan/allowance approval: native, computations11–14,3additional auxiliaries,
