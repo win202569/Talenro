@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — diagnosis-only recovery addendum drafted; no new execution
+
+[恢复附录草案](../superpowers/specs/2026-11-02-offline-fault-location-diagnosis-design.md)
+已写明先定位、不修复：拟新增一次只读辅助计算（15/15），其他执行额度不增加。
+用户已选择该方向并同意编写；书面设计及执行尚未批准。本轮仅文档，无源码修改、
+无验证重跑；消耗仍14辅助/4宿主/3编译/186快照，旧stop与冻结链不变，NOT_ACCEPTED。
+
 ## Latest — contract host stopped at BaselineCore; auxiliary repairs passed
 
 [实际执行](2026-11-02-offline-pin-binding-recovery.md)：指纹7/7、调用模型20/20通过，

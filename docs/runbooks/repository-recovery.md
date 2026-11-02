@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest planning: [diagnosis-only recovery addendum](../superpowers/specs/2026-11-02-offline-fault-location-diagnosis-design.md)
+is DRAFT/PENDING_APPROVAL. Direction and drafting were approved, not execution.
+Proposed addition is one offline auxiliary computation15 only; no repair, host,
+compile, snapshot, target or reviewer allowance. No new script or diagnostic ran.
+Resume by approving the written design and preparing a bounded implementation
+plan, not by rerunning contract-green. All historical stops remain effective.
+
 Latest actual: [contract BaselineCore failure after passing auxiliary repairs](../roadmap/2026-11-02-offline-pin-binding-recovery.md).
 Use NEW portable-pin-binding.json, not only the earlier freeze archive:
 518actual P/Q files/134directories/31zero-byte, decoded equal; SHA
