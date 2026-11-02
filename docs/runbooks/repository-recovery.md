@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Newest proposal (2026-11-02): [fixed owner-control call-model amendment](../superpowers/specs/2026-11-02-offline-contract-call-model-design.md).
+Drafting only; written design/plan/allowance not approved. Proposed three-source
+contract window (model/contract/driver),2auxiliary computations, no extra runtime
+host/compile/target/snapshot/reviewer. Keep the unspent repair-green manifest and
+four later slots; do not rerun the accepted writer or reinterpret its source epoch.
+All seven stops and155snapshots remain. Current auxiliary9/runtime3hosts3compiles/
+0targets0reviews; later chain remains frozen and whole product NOT_ACCEPTED.
+
 Latest actual state: [writer exact success, then contract source-model scope blocker](../roadmap/2026-11-01-offline-error-projection.md).
 Writer-projection-green is consumed and accepted at its boundary (exit0,Exact,
 EvidenceValid); do not replay it. Contract candidate exists but is UNTESTED and

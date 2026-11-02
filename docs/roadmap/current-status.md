@@ -1,4 +1,13 @@
-# Project status — updated 2026-11-01
+# Project status — updated 2026-11-02
+
+## Latest — bounded call-model scope amendment drafted; no execution
+
+[范围修订设计](../superpowers/specs/2026-11-02-offline-contract-call-model-design.md)
+已拟定：仅为固定controls案例调用增加只读AST描述，单元上下文显式绑定；真实运行
+上下文不获得该例外。后续改动窗口拟从仅契约扩大为来源模型/契约/控制器三文件。
+已成功writer与旧快照保持绑定，不重跑、不按新源码重判。只申请2次辅助计算，
+辅助上限拟11；运行宿主/编译/目标/快照/审查不增加，原剩余4宿主/7目标/31快照/
+条件1审查继续冻结。本轮仅文档，设计待批准；整体NOT_ACCEPTED。
 
 ## Latest — writer已正式通过该边界；契约来源模型缺口待扩大范围
 
