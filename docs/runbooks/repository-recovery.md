@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+Latest actual: [contract BaselineCore failure after passing auxiliary repairs](../roadmap/2026-11-02-offline-pin-binding-recovery.md).
+Use NEW portable-pin-binding.json, not only the earlier freeze archive:
+518actual P/Q files/134directories/31zero-byte, decoded equal; SHA
+8FF8BA63EFA96FFA476CFB2AA165312459DF09979610EB2829F64FC75B638029.
+Includes actual contract failure streams/evidence/journal/final/tool and ninth stop.
+Contract-green consumed once:1PASS/1FAIL/50NotRun,childexit2/parentexit1; owned exit,
+streams and post-source pins intact, no timeout/termination. Ninth pin-binding.stop
+blocks all later work. No post-stop source edit or retry; core/lifecycle/continuation
+intents absent. Consumed14auxiliary/4hosts/3compiles/186snapshots/0targets/0reviews;
+remaining3hosts/7targets/conditional1review frozen, no auxiliary/snapshot budget.
+Readonly trace suggests pipeline-command versus assignment fault extent mismatch;
+not a verified fix. Do not reinterpret failed final or backfill its evidence hash.
+
 Latest freeze: [pin7PASS/model20PASS and2276pins](../roadmap/2026-11-02-offline-pin-binding-recovery.md).
 repair-green SHA A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556;
 186snapshots, eight old stops; no new runtime host yet. Use portable-pin-binding-freeze.json,

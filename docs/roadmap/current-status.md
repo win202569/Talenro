@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — contract host stopped at BaselineCore; auxiliary repairs passed
+
+[实际执行](2026-11-02-offline-pin-binding-recovery.md)：指纹7/7、调用模型20/20通过，
+2276pins冻结成功；随后契约宿主1PASS/1FAIL/50NotRun，子退出2/父退出1。
+源码指纹完整，无超时或强制终止；第九份stop保留，后续三阶段未运行。
+只读定位到错误位置匹配，疑似管道命令列50与赋值语句列9范围差异；未修复/重测。
+累计14辅助/4宿主/3编译/186快照/0目标/0审查；剩余链冻结，整体NOT_ACCEPTED。
+
 ## Latest — pin7/7 and descriptor20/20 passed; repair freeze2276pins
 
 [实际执行](2026-11-02-offline-pin-binding-recovery.md)：四次辅助均符合预期，
