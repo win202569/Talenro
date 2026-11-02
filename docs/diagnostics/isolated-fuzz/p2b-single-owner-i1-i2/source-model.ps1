@@ -1,13 +1,13 @@
 # Read-only context construction, deliberately outside the pure predicates.
 # Merely dot-sourcing this file reads no files and executes no stored code.
 function Get-ODPinnedSHA256([string]$Path,[Collections.IDictionary]$Manifest){
-    $matches=@($Manifest.Pins|Where-Object {$_.VerificationPath -ieq $Path})
-    if($matches.Count -eq 0){throw 'OD: source model input not pinned'}
-    foreach($pin in $matches){
-        if($pin.ExpectedState -cne 'Present' -or $pin.SHA256 -cnotmatch '^[A-F0-9]{64}$' -or $pin.SHA256 -cne $matches[0].SHA256){throw 'OD: source model pin conflict'}
+    $pinRows=@($Manifest.Pins|Where-Object {$_.VerificationPath -ieq $Path})
+    if($pinRows.Count -eq 0){throw 'OD: source model input not pinned'}
+    foreach($pin in $pinRows){
+        if($pin.ExpectedState -cne 'Present' -or $pin.SHA256 -cnotmatch '^[A-F0-9]{64}$' -or $pin.SHA256 -cne $pinRows[0].SHA256){throw 'OD: source model pin conflict'}
     }
     $actual=(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
-    if($actual -cne $matches[0].SHA256){throw 'OD: source model input changed'}
+    if($actual -cne $pinRows[0].SHA256){throw 'OD: source model input changed'}
     return $actual
 }
 function Get-ODSourceOwner($Node){

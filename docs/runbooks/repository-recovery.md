@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest intermediate: pin RED11 matched exactly (0PASS/1FAIL/6NotRun/exit1).
+Only local matches→pinRows rename in source-model.ps1; reverse-substitution full
+file equality verified. GREEN12 pending. portable-pin-binding-intermediate.json
+465files/125directories/31zero-byte, decoded equal; SHA
+920C972EBD08DD66FB03D604909D5E02C05147080100A8D6EE44F95F23CFCDA8.
+Do not replay RED11 or claim rename accepted before actual GREEN.
+
 Pin-binding execution approved afterd3e129ac. New preparation checkpoint contains
 pin-binding.tests.ps1 and portable-pin-binding-preparation.json (461files/125dirs/
 31zero-byte, decoded equal; SHA A1843BA01EEAD89D807DF5780692E0CD67440977E6DC24F79C1DE48A144B2D5A).

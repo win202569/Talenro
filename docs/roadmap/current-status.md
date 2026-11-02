@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-02
 
+## Latest — focused pin RED matched; rename-only candidate before GREEN
+
+第11次辅助实际0PASS/1FAIL/6NotRun/exit1，精确复现SHA256属性错误，前后源码一致。
+仅将Get-ODPinnedSHA256局部matches改为pinRows，静态反向替换证明其他字节不变。
+中间归档465文件/125目录/31零字节解码一致；GREEN12尚未执行，不能宣称修复通过。
+源码候选已保存，整体NOT_ACCEPTED，运行额度未使用。
+
 ## Latest — pin-binding plan approved; focused regression frozen before RED
 
 用户“是”批准d3e129ac计划及3新增辅助额度。只读2251pins/155快照/八stop核对通过。
