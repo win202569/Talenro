@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — call-model RED setup failed; stopped before implementation
+
+[实际记录](2026-11-02-offline-contract-call-model.md)：首次辅助验证退出2，
+0PASS/0FAIL/20NotRun；来源指纹检查在进入测试组前报SHA256属性缺失。
+只读诊断指向局部$matches与PowerShell自动$Matches变量冲突；尚未修复或重测。
+新增第八份stop，完整工具结果保留；三源码未改。累计10辅助/3宿主/3编译/
+155快照/0目标/0审查；剩余1辅助及后续运行链冻结。整体NOT_ACCEPTED。
+
 ## Latest — call-model plan approved; regression/input checkpoint before RED
 
 用户“是”批准ae594fef中的计划及2次辅助计算。只读核对2251历史pins、155快照、

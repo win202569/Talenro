@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+Latest actual state: [call-model RED setup failure](../roadmap/2026-11-02-offline-contract-call-model.md).
+Use portable-contract-call-model.json:457actual files/125directories/31zero-byte
+files, decoded equality verified; SHA
+01B4748BB6E672DB9D8170B65ACEC0D800DDEF48058DA7AE5392DA9E5FFB37E7.
+It includes actual failed RED tool/receipt/intent, eighth stop and recovery ledger;
+the earlier preparation archive remains immutable and does not contain this stop.
+Computation10of11 consumed: exit2,0PASS/0FAIL/20NotRun, actual SHA256 property
+failure in Get-ODPinnedSHA256 before any group. Eighth contract-call-model.stop.json
+blocks GREEN and runtime. No runtime source changed, no new host/compile/target/
+review. Preserve failed original tool/receipt; no backfill of empty post-hash map.
+Static diagnosis suggests $matches/automatic $Matches collision; no repair or
+reproduction after stop. Remaining1auxiliary/4hosts/7targets/31snapshots/conditional1review
+frozen pending explicit recovery revision. Whole product NOT_ACCEPTED.
+
 Call-model execution approved afterae594fef (user “是”). Preparation checkpoint:
 new contract-call-model.tests.ps1 and portable-contract-call-model-preparation.json;
 453actual files/125directories/31zero-byte files, decoded equality verified,
