@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest planning handoff: user approved pin-binding written design after977b039b.
+[Recovery implementation plan](../superpowers/plans/2026-11-02-offline-pin-binding-recovery.md)
+awaits plan/allowance approval: native, computations11–14,3additional auxiliaries,
+no additional runtime allowance. Proposed2276pins (2251+25unique new paths),
+same three-source window; all eight stops and original tests/results immutable.
+No implementation or verification ran this turn; actual auxiliary consumption10.
+
 Newest proposal: [pin-binding recovery design](../superpowers/specs/2026-11-02-offline-pin-binding-recovery-design.md).
 User approved drafting afterca8486df; written design/plan/extra allowance pending.
 Proposes local pin-array rename, focused pin RED/GREEN and versioned descriptor

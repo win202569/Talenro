@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-02
 
+## Latest — pin-binding design approved; recovery plan awaiting approval
+
+用户“是”批准977b039b中的书面设计；[实施计划](../superpowers/plans/2026-11-02-offline-pin-binding-recovery.md)
+已拟定。原生执行，四次验证编号11–14；新增3次辅助额度，运行额度不增加。
+冻结清单拟2251+25=2276pins；仅三个源码文件，八份stop及旧测试/失败保留。
+本轮仅文档，未改源码或运行验证。实际消耗仍10辅助/3宿主/3编译/155快照/
+0目标/0审查；计划与额度待批准，整体NOT_ACCEPTED。
+
 ## Latest — pin-binding recovery design proposed; no execution
 
 [恢复修订设计](../superpowers/specs/2026-11-02-offline-pin-binding-recovery-design.md)
