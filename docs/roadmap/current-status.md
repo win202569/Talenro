@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-03
 
+## Latest — GREEN19 passed; single Prepare failed before freeze, stopped
+
+[实际结果](2026-11-03-offline-extent-contract-rebind-result.md)：GREEN19全部22组及
+十组命令位置检查通过；唯一Prepare在实际历史路径检查中失败。新增gate错误地将
+C盘绝对路径拼到D盘项目目录后，未创建Prepare意图/新清单/快照/宿主意图。
+已保存新stop并停止，无修复/重试；正式契约未执行，不能宣称完整验证通过。
+累计19辅助/4宿主/3编译/186快照；新增1宿主/31快照未消耗但冻结，NOT_ACCEPTED。
+最终归档556文件/135目录/31零字节已逐字节解码核对，SHA
+C2984F9A3917CF16EEC1F658EB5B4D61A0EAE7C9AED720BDEC5E93AB06071C77。
+
 ## Latest — expected RED18 confirmed; four-file candidate prepared
 
 RED18实际0PASS/1FAIL/21NotRun/exit1，精确缺失新绑定函数，准备/记录错误均为空。

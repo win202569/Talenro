@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest actual: [extent contract result](../roadmap/2026-11-03-offline-extent-contract-rebind-result.md).
+GREEN19 passed22groups plus ten command invariants, but the single Prepare failed
+in actual historical path resolution before any freeze/host. New extent-contract
+stop exists; no retry. Use portable-extent-contract-final.json, not candidate
+alone, to restore the failed Prepare and full tool records. Original addendum
+remains pinned and immutable; the separate result report supersedes its status.
+Counters19aux/4hosts/3compiles/186snapshots. No freeze archive/new host exists.
+Do not infer permission to replay from absent Prepare intent; its call failed
+before that internal writer. Further recovery requires new approved scope.
+Final archive verified556files/135directories/31zero-byte; SHA
+C2984F9A3917CF16EEC1F658EB5B4D61A0EAE7C9AED720BDEC5E93AB06071C77.
+
 Latest candidate: expected RED18=0PASS/1FAIL/21NotRun/exit1, no setup/recording
 errors; full tool result preserved. Four operational binding files now edited
 and parse; GREEN19 not invoked. Use portable-extent-contract-candidate.json.
