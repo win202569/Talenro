@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — local command extent repair passed10/10; runtime remains frozen
+
+[实际结果](2026-11-02-offline-command-extent-repair.md)：RED16精确复现后仅插入一条
+ConvertFrom-Json定位分支，GREEN17十组全部通过、错误为空。31源码/76历史输入
+前后指纹一致；反向移除插入可恢复旧源码原始字节。最终归档541文件/135目录/
+31零字节已校验并保留完整记录。累计17辅助/4宿主/3编译/186快照，辅助额度用尽。
+旧运行清单未改且不匹配新源码；九stop保留，完整契约未重跑，整体NOT_ACCEPTED。
+
 ## Latest — expected RED16 confirmed; single-insertion candidate ready
 
 RED16精确0PASS/1FAIL/9NotRun/exit1，无准备/记录错误，31源码及76历史输入前后一致。

@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest actual2026-11-03: [local command extent repair](../roadmap/2026-11-02-offline-command-extent-repair.md)
+completed expected RED16 then GREEN17=10PASS/exit0; all errors null and pre/post
+inputs unchanged. NEW portable-command-extent.json541files/135directories/
+31zero-byte, decoded equal; SHA
+71861DA4FDBCA93A5D68AC255AE5B9FAFD709D9346219312A77DFA2345E364C1.
+Contains actual phase intents/finals/full tool records. Auxiliary17 exhausted.
+Source has one command-specific insertion; the old runtime manifest intentionally
+still pins its old hash. Do not run/bypass old driver or replay16/17. Runtime
+rebind/freeze/acceptance needs new approved scope; all nine old stops remain.
+
 Latest candidate: expected RED16 matched0PASS/1FAIL/9NotRun/exit1. One insertion
 in source-model.ps1 only; candidate SHA
 BB8FA693FC6CE09FE8CC54EA8F5FAD43CF483B015928C6631AA12C0218A1CA8B.
