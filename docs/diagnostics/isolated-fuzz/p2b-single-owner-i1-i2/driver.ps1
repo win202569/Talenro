@@ -884,6 +884,40 @@ function Assert-ODExtentContractFacts([Collections.IDictionary]$Facts){
 function Driver-ExtentContractMap($Info){
     return [ordered]@{ParentSHA256=$Info.Input.ParentSHA256;WriterSHA256=$Info.Input.WriterSHA256;ApprovalSHA256=(Driver-Hash (Join-Path $packet extent-contract.approval.json));InputSHA256=(Driver-Hash (Join-Path $packet extent-contract.input.json));CandidateSHA256=(Driver-Hash (Join-Path $packet extent-contract-candidate.input.json));RedSHA256=$Info.RedSHA256;GreenSHA256=$Info.GreenSHA256;AddendumSHA256=$Info.Approval.AddendumSHA256;WriterArtifacts=$Info.WriterArtifacts}
 }
+function Driver-VerifyHistory([string]$Repo,[Collections.IDictionary]$HistoricalFiles){
+    if([string]::IsNullOrWhiteSpace($Repo) -or -not [IO.Path]::IsPathFullyQualified($Repo) -or $null -eq $HistoricalFiles -or $HistoricalFiles.Count -eq 0){throw 'OD: historical path binding mismatch'}
+    try{$root=[IO.Path]::GetFullPath($Repo).TrimEnd([char[]]@('\','/'))}catch{throw 'OD: historical path binding mismatch'}
+    $external=[Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $external.Add([IO.Path]::GetFullPath('C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'),'362A356CE7F0940EC74F73A8FC2C990A2CC24A38A11C90BBD8ECA947110AD139')
+    $external.Add([IO.Path]::GetFullPath('C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'),'60C9B29843624DD8AF6B6A7B26147753BE6AEEF65098B9A503CC50850AFE410F')
+    $external.Add([IO.Path]::GetFullPath('C:/Users/Lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/System.Management.Automation.dll'),'2D8AF026E589C5603629BFC3E7C57265B4167B12ECA3AE549C6A6C3CA7E4967B')
+    $resolved=[Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach($key in $HistoricalFiles.Keys){
+        $hash=$HistoricalFiles[$key]
+        if($key -isnot [string] -or [string]::IsNullOrWhiteSpace($key) -or $hash -isnot [string] -or $hash -cnotmatch '^[A-F0-9]{64}$'){throw 'OD: historical path binding mismatch'}
+        $normalized=$key.Replace('/','\')
+        if($normalized.StartsWith('\\',[StringComparison]::Ordinal)){throw 'OD: historical path binding mismatch'}
+        $driveAbsolute=$normalized -cmatch '^[A-Za-z]:\\'
+        $body=if($driveAbsolute){$normalized.Substring(3)}else{$normalized}
+        if($body -match '[<>:"|?*\x00-\x1F]'){throw 'OD: historical path binding mismatch'}
+        foreach($part in $body.Split('\')){
+            if($part -ceq '.' -or $part -ceq '..'){continue}
+            if($part.Length -eq 0 -or $part.EndsWith(' ',[StringComparison]::Ordinal) -or $part.EndsWith('.',[StringComparison]::Ordinal)){throw 'OD: historical path binding mismatch'}
+        }
+        if([IO.Path]::IsPathRooted($normalized)){
+            if(-not $driveAbsolute -or -not [IO.Path]::IsPathFullyQualified($normalized)){throw 'OD: historical path binding mismatch'}
+            try{$path=[IO.Path]::GetFullPath($normalized)}catch{throw 'OD: historical path binding mismatch'}
+            if(-not $external.ContainsKey($path) -or $external[$path] -cne $hash){throw 'OD: historical path binding mismatch'}
+        }else{
+            try{$path=[IO.Path]::GetFullPath($normalized,$root)}catch{throw 'OD: historical path binding mismatch'}
+            if(-not $path.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'OD: historical path binding mismatch'}
+        }
+        if($resolved.ContainsKey($path)){
+            if($resolved[$path] -cne $hash){throw 'OD: historical path binding mismatch'}
+        }else{$resolved.Add($path,$hash)}
+    }
+    foreach($path in $resolved.Keys){Driver-CheckHash $path $resolved[$path]}
+}
 function Driver-ExtentContractGate {
     Driver-Need ($Epoch -ceq 'extent-contract' -and (($Action -ceq 'Prepare' -and $Grant -ceq 'extent-contract-rebind') -or ($Action -ceq 'RunOne' -and $Grant -ceq 'contract-green'))) 'Only explicit extent contract route'
     Driver-Need (-not (Test-Path (Join-Path $packet extent-contract.stop.json))) 'Extent recovery stopped'
@@ -893,7 +927,7 @@ function Driver-ExtentContractGate {
     $b=Get-Content (Join-Path $packet extent-contract.input.json) -Raw|ConvertFrom-Json -AsHashtable
     Driver-Need ($a.Schema -eq 1 -and $a.UserReply -ceq '是' -and $a.NamingReply -ceq '是' -and $a.Method -ceq 'Native') 'Explicit execution and corrected identity approval'
     foreach($pair in @(@('AddedAuxiliary',2),@('ComputationCeiling',19),@('AddedHosts',1),@('AddedSnapshots',31),@('AddedTargets',0),@('AddedCompilations',0),@('AddedReviewers',0),@('ConsumedAuxiliary',17),@('ConsumedHosts',4),@('ConsumedCompilations',3),@('ConsumedSnapshots',186))){Driver-Need ($a[$pair[0]] -is [long] -and $a[$pair[0]] -eq $pair[1]) 'Exact extent allowances'}
-    foreach($rel in $b.HistoricalFiles.Keys){Driver-CheckHash (Join-Path $repo $rel) $b.HistoricalFiles[$rel]}
+    Driver-VerifyHistory $repo $b.HistoricalFiles
     foreach($rel in $b.HelperSHA256.Keys){Driver-CheckHash (Join-Path $repo $rel) $b.HelperSHA256[$rel]}
     Driver-CheckHash (Join-Path $PSScriptRoot extent-contract.tests.ps1) $b.TestSHA256
     $parent=Get-Content (Join-Path $packet repair-green.frozen.json) -Raw|ConvertFrom-Json -AsHashtable

@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest candidate: approved syntax correction uses version3, preserving v1/v2
+tests and stops. Four scripts parse; preparation succeeded with2326immutable
+files/2307original history/31sources. Only driver verifier/call changed. GREEN21
+not invoked; old RED20 retained. Use portable-history-path-v3-candidate.json.
+No runtime/Prepare authority. Counters20/4/3/186 until remaining21 is invoked.
+
 Latest actual: [history-path v2 preparation result](../roadmap/2026-11-03-offline-history-path-v2-result.md).
 Approved versioned correction did not reach regression: generated test failed
 parsing during preparation. history-path-v2.stop.json exists; v2 test is malformed

@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — v3 test preparation passed; driver-only repair ready for GREEN21
+
+用户批准修正未执行草稿后，另建v3保留全部旧版本。四脚本语法通过，输入固定：
+2326不可变文件/2307原历史记录/31源码。仅driver新增实际路径校验并替换调用，
+候选解析通过；GREEN21尚未运行，RED20不重跑，所有旧stop保留，NOT_ACCEPTED。
+
 ## Latest — v2 preparation stopped at parser; GREEN21 remains unconsumed
 
 [v2实际记录](2026-11-03-offline-history-path-v2-result.md)：用户批准版本化修订后，
