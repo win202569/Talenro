@@ -1,4 +1,11 @@
-# Project status — updated 2026-11-02
+# Project status — updated 2026-11-03
+
+## Latest — command extent regression prepared; RED16 not yet run
+
+用户批准040b975b计划及两次辅助额度。新十组测试仅定义函数，静态解析通过；
+76历史输入/31源码/九stop已核对，源码未改。准备归档534文件/135目录/31零字节
+解码一致，SHAAE05F62B7E81C4AA05591F71F578CDC0E6396A20D1679449327B99E8ECF86A98。
+推送准备检查点后运行RED16；当前仍15辅助，完整运行链冻结，NOT_ACCEPTED。
 
 ## Latest — local extent design approved; two-run implementation plan pending
 

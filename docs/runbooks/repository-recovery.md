@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest preparation2026-11-03: command extent plan040b975b approved for RED16/
+GREEN17. New portable-command-extent-preparation.json contains534files/
+135directories/31zero-byte, decoded equal, SHA
+AE05F62B7E81C4AA05591F71F578CDC0E6396A20D1679449327B99E8ECF86A98.
+Test/input and runner saved; no intent/run or source modification yet. Original
+runtime freeze and nine stops remain intact. Do not execute any old driver grant.
+
 Latest planning: local extent design approved after8e8b2147; its original draft
 bytes remain unchanged. [Implementation plan](../superpowers/plans/2026-11-02-offline-command-extent-repair.md)
 awaits execution approval for RED16/GREEN17. No new regression or source repair
