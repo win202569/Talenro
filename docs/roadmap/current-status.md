@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — history-contract design approved; implementation plan pending
+
+用户“是”批准06676374设计。[实施计划](../superpowers/plans/2026-11-03-offline-history-contract-recovery.md)
+明确四文件、新编号、RED22/GREEN23的20组检查及一次冻结/一次52组契约宿主。
+43新增来源与2276旧pins无重叠，预计2319pins；尝试记录提前到资源校验前。
+本轮仅文档，累计21辅助/4宿主/3编译/186快照不变；执行待批准，NOT_ACCEPTED。
+
 ## Latest — history-repaired full contract recovery design drafted
 
 [恢复设计](../superpowers/specs/2026-11-03-offline-history-contract-recovery-design.md)

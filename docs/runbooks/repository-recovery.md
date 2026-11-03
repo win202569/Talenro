@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest planning: design06676374 approved with “是”; original bytes preserved.
+[History-contract implementation plan](../superpowers/plans/2026-11-03-offline-history-contract-recovery.md)
+awaits execution approval. Defines20auxiliary groups for22/23,43new pins
+(2319total), four binding files, early owned attempts, one freeze/one52group host.
+No code/test/freeze/host in this turn; counters21/4/3/186, all12stops unchanged.
+
 Latest proposal: [history-contract recovery design](../superpowers/specs/2026-11-03-offline-history-contract-recovery-design.md)
 is DRAFT/PENDING_APPROVAL. Proposed fresh history-contract epoch and disjoint
 binding-red/green versus history-contract-host identities retain all12old stops.
