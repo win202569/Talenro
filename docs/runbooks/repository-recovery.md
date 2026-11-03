@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST STOP: runtime preparation helper is malformed (missing outer foreach
+brace). Syntax preflight failed; assistant orchestration nevertheless invoked it,
+which failed parsing before execution. Use portable-history-contract-runtime-final.json
+for the original draft and actual failure record.14stops retained; counters24/4/3/186.
+No input/approval/RED25/source edit/freeze/host. Do not run the malformed helper
+or continue the stopped scope; versioned correction needs explicit approval.
+
 Latest:all20runtime regression group bodies and receipt entry point are authored
 and parse, with no top-level execution. Complete the preparation/run/archive
 helpers and immutable fixtures before freezing or invoking RED25. Read the latest

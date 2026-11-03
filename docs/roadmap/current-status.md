@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — runtime preparation stopped at parser
+
+助手编写的准备脚本少一个右括号；语法预检失败后编排仍误调用准备脚本，解析失败退出。
+已保留原脚本、实际调用和新stop；未固定输入、未运行RED25、未改生产源码。
+累计24/4/3/186不变，14stop保留。按规则停止不修补重试，待版本化修订授权。
+
 ## Latest — all20runtime test bodies authored; fixtures pending
 
 20组测试体及结果记录入口已编写，语法检查无错误、顶层无执行语句。

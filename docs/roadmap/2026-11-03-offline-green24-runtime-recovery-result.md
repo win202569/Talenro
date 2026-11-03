@@ -1,6 +1,25 @@
 # GREEN24 runtime recovery execution progress
 
-Status: APPROVED / PREFLIGHT_COMPLETE / IMPLEMENTATION_INCOMPLETE / NOT_ACCEPTED.
+Status: STOPPED / PREPARATION_PARSER_FAILURE / NOT_ACCEPTED.
+
+Final archive verified609files/135directories/31zero-byte, decoded bytes equal.
+SHA256:F4CAFB362F3B8CA565228E81104AF6C58D9EB729455E318773D5DF2C6CAC6F39.
+
+## Latest: STOPPED at preparation parser; no RED25
+
+Preparation/run/preservation helpers were authored. An added outer foreach in
+the preparation helper lacks its closing brace. Final syntax preflight failed;
+assistant orchestration incorrectly still invoked the preparation command.
+That command exited1 at parsing before executing its body. Both are assistant
+errors, not a product/Docker failure. No preparation input/approval, auxiliary
+intent, source edit, snapshot or host was produced. Counters24/4/3/186 unchanged.
+
+Preserved the malformed helper and full preparation tool call/result. Created
+history-contract-runtime.stop.json explicitly because a parse failure cannot
+reach the helper's own catch. All13old stops remain;14stops total. No patch or
+retry after the failed preparation, per the approved first-unexpected-result rule.
+Next needs explicit authorization for a versioned authoring correction; do not
+replay this stopped preparation or consume RED25 under the old stopped scope.
 
 ## Latest test-authoring checkpoint
 
