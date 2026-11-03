@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest: design067f05a7 approved with “是”; original bytes retained.
+The GREEN24 runtime implementation plan now awaits execution approval.
+It fixes20groups for25/26,68unique appended paths,2344total pins and one
+freeze/host. No execution in this planning turn; counters24/4/3/186 unchanged.
+Do not treat the plan itself as permission to run; retain all13stops.
+
 Latest design only: user selected a new versioned runtime recovery entry.
 [GREEN24-backed runtime design](../superpowers/specs/2026-11-03-offline-green24-runtime-recovery-design.md)
 is pending design approval. Proposed history-contract-runtime identities separate

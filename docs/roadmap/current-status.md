@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — runtime design approved; execution plan pending
+
+用户批准067f05a7设计。[实施计划](../superpowers/plans/2026-11-03-offline-green24-runtime-recovery.md)
+明确RED25/GREEN26的20组检查、四文件范围、一次冻结/宿主及停止条件。
+只读核算68新增来源无重叠，2276+68=2344pins。执行待批准。
+本轮仅文档，累计24/4/3/186不变；旧13stop保留，NOT_ACCEPTED。
+
 ## Latest — GREEN24-backed runtime recovery design drafted
 
 用户选择新版本恢复入口；[设计草案](../superpowers/specs/2026-11-03-offline-green24-runtime-recovery-design.md)
