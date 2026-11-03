@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — GREEN24 all20passed; local test correction complete
+
+[实际结果](2026-11-03-offline-history-contract-v2-result.md)：版本化修正后GREEN24一次20/20通过，
+错误均为空；31源码及2391项保存检查前后一致，生产源码未改。
+13旧stop全部保留，无新增stop；未执行Prepare/冻结/宿主。累计24/4/3/186。
+本次辅助修正范围完成；原运行入口仍绑定失败GREEN23，整体NOT_ACCEPTED。
+下一步需新的绑定/冻结恢复范围，不能替换旧回执或直接重跑已停止入口。
+
 ## Latest — versioned test correction prepared; GREEN24 pending
 
 用户批准保留原记录、版本化修正测试并新增一次辅助验证。

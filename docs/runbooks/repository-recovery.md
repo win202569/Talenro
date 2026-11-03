@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST RESULT: versioned GREEN24 passed20/20 once after preparation15322d5d.
+Final archive604files/135directories/31zero-byte, decoded equal; SHA256
+35DCE732E63E5FBC08C2A53C1180448028107B8D1C0D17CFCDE615B6A976FF52.
+Use portable-history-contract-v2-final.json.31source hashes and2391combined
+preservation checks were unchanged; all errors null. All13old stops retained,
+no new v2stop; no Prepare/freeze/snapshot/host. Counters24/4/3/186.
+This fulfills only the approved test correction. The production runtime gate
+still requires failed GREEN23 and remains blocked: do not replace receipts,
+delete stops, replay old attempts or assume this pass authorizes a host.
+See v2-result for exact receipt identity and boundaries. Older pending notes
+below describe prior checkpoints, not instructions to repeat GREEN24.
+
 Latest amendment: user approved versioned test correction plus one auxiliary24
 only. See2026-11-03-offline-history-contract-v2-approval.md and v2-result.md.
 Use portable-history-contract-v2-preparation.json:31unchanged production sources,
