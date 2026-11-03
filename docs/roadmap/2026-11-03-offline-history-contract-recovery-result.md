@@ -2,6 +2,18 @@
 
 Status: IN_PROGRESS / UNFINISHED / NOT_ACCEPTED.
 
+## Latest: complete Task 1 fixtures prepared, RED22 not yet invoked
+
+All20regression groups and the preparation helper are authored. Four new scripts
+parse. Mechanical preparation succeeded:31sources,2341historical files,
+2307original history,43append paths,2319expected pins. Fixture-map presence was
+checked before writing. Production remains unchanged.
+InputSHA256:3F7B73785FB601B2E988E14796C43D2085DC7B741E5E6B18A03D6049586D41D8.
+TestSHA256:C9F2B924E84B000B4894D492DDA023C9EDA5825CA9273079F73D3951D407A5A9.
+The preparation archive supersedes the two-file helper draft for recovery.
+Next: after remote checkpoint verification, invoke RED22 exactly once.
+The older paragraphs below describe the preceding draft checkpoint.
+
 The user approved execution of plan commit
 e2fcf01a13540a6f4b6658006bedf4d637359bb4 with “是”.
 The original spec and plan bytes retain their historical draft labels; this

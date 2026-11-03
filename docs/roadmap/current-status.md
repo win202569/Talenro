@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — history-contract fixtures frozen; RED22 pending
+
+20组测试及准备工具已编写，四脚本语法通过；准备成功固定31源码/2341历史文件。
+43新增来源无重叠，预计2319pins。源码未改，未运行RED22或宿主。
+累计21/4/3/186不变。准备归档推送核对后执行一次RED22，无需重复批准。
+
 ## Latest — history-contract execution approved; helper drafts only
 
 用户“是”已批准 e2fcf01a 实施计划，无需重复批准同一计划。

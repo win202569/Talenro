@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest: history-contract Task1 fixtures are prepared and immutable;20groups and
+all four helper/test scripts parse. Use portable-history-contract-preparation.json
+for the complete P/Q history and new input.31sources/2341historical files,
+2307original history/43append paths. RED22 not invoked at this checkpoint.
+See the latest section of the execution report for exact input/test hashes.
+After confirming current receipts/ledger, continue the already approved plan;
+never overwrite these frozen inputs or replay an existing phase intent.
+
 Latest execution status: plan e2fcf01a was approved with “是”; continue its Task 1
 without asking for duplicate approval. See
 [execution progress](../roadmap/2026-11-03-offline-history-contract-recovery-result.md).
