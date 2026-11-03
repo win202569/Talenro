@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — historical-path plan approved; RED20 prepared, not invoked
+
+用户批准ed3cead3计划。18组测试及辅助工具已编写/解析；31源码、2307原历史记录
+和2314不可变输入固定，十stop保留。准备归档推送后仅运行RED20。
+本阶段尚未修改源码/调用测试，累计19辅助/4宿主/3编译/186快照，NOT_ACCEPTED。
+
 ## Latest — historical-path design approved; execution plan awaits approval
 
 用户“是”批准0700546b设计，原设计字节保留。

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest preparation: historical-path plan ed3cead3 approved.18group definitions
+and three helpers parse;31sources/2307original history/2314immutable inputs bound.
+Use portable-history-path-preparation.json after its checkpoint push. RED20 not
+invoked yet; no source edits. InputSHA7D95CF5FF4B718B833C6B77EE0006AAF780A04ED9D0FC397A7CA3770ED25E5F3;
+testSHA1259CACE5C240F7FE1DF8F698100A27D7FEF1E486C6A2921BE463F801F9C7C5F.
+Ten stops and runtime freeze remain. No additional host/Prepare authority.
+
 Latest planning: design0700546b approved with “是”; original design bytes retained.
 [Historical-path implementation plan](../superpowers/plans/2026-11-03-offline-history-path-repair.md)
 awaits execution approval: one driver edit, RED20/GREEN21,18ordered groups and
