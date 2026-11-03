@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest planning2026-11-03: user approved design at2c58fb47 with “是”; keep its
+original draft bytes for provenance. [Implementation plan](../superpowers/plans/2026-11-03-offline-extent-contract-rebind.md)
+is pending execution approval. It defines four operational edits, RED18/GREEN19,
+30new provenance pins (expected2306total),31snapshots and one new contract host.
+No implementation/test/freeze/host ran during planning. Counters remain17aux/
+4hosts/3compiles/186snapshots; old failures/stops and downstream freeze remain.
+Read the latest section first; earlier entries below are historical checkpoints.
+
 Latest proposal: [fresh contract epoch design](../superpowers/specs/2026-11-03-offline-extent-contract-rebind-design.md)
 is DRAFT/PENDING_APPROVAL. Proposed epoch extent-contract uses a new manifest and
 extent-contract-green host slot, never overwrites old repair/contract artifacts.

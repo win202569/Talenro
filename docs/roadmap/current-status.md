@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — extent contract design approved; implementation plan awaits execution approval
+
+用户“是”批准2c58fb47书面设计；原设计文件保持原字节。
+[实施计划](../superpowers/plans/2026-11-03-offline-extent-contract-rebind.md)
+明确四文件绑定、RED18/GREEN19、一次Prepare及一次完整契约宿主；新清单预计2306pins。
+本轮仅文档，未执行修复/辅助/冻结/宿主。累计仍17辅助/4宿主/3编译/186快照，
+旧失败与九stop保留，后续阶段冻结，整体NOT_ACCEPTED。等待实施计划执行批准。
+
 ## Latest — fresh contract epoch design drafted; no execution
 
 [重新冻结与单次契约设计](../superpowers/specs/2026-11-03-offline-extent-contract-rebind-design.md)
