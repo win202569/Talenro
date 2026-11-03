@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — historical-path design approved; execution plan awaits approval
+
+用户“是”批准0700546b设计，原设计字节保留。
+[实施计划](../superpowers/plans/2026-11-03-offline-history-path-repair.md)
+明确仅修改driver、RED20/GREEN21及18组检查，直接测试生产路径校验与实际gate调用。
+本轮仅文档，无源码修改/测试/冻结/宿主；累计19辅助/4宿主/3编译/186快照不变。
+计划执行待批准；十stop保留，运行链仍冻结，NOT_ACCEPTED。
+
 ## Latest — local historical-path repair design drafted; no execution
 
 [局部路径修复设计](../superpowers/specs/2026-11-03-offline-history-path-repair-design.md)

@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest planning: design0700546b approved with “是”; original design bytes retained.
+[Historical-path implementation plan](../superpowers/plans/2026-11-03-offline-history-path-repair.md)
+awaits execution approval: one driver edit, RED20/GREEN21,18ordered groups and
+direct production history-verifier/gate-call coverage. No new code or computation
+in this turn. Counters19/4/3/186 unchanged; all ten stops remain authoritative.
+
 Latest proposal: [local historical-path repair design](../superpowers/specs/2026-11-03-offline-history-path-repair-design.md)
 is DRAFT/PENDING_APPROVAL. Proposed scope is one driver verifier shared with actual
 gate and local regression, two new auxiliaries20/21 only. No source edits/tests,
