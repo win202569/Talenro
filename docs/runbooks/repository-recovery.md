@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest candidate: expected RED16 matched0PASS/1FAIL/9NotRun/exit1. One insertion
+in source-model.ps1 only; candidate SHA
+BB8FA693FC6CE09FE8CC54EA8F5FAD43CF483B015928C6631AA12C0218A1CA8B.
+NEW portable-command-extent-candidate.json538files/135directories/31zero-byte,
+decoded equal, SHA3DD3DC6D43B27A0C18E6599A8EDD040075609ADB9D2C2B622EE65C94259844C7.
+GREEN17 not run. Old runtime manifest intentionally still pins old source: do
+not update or bypass it, run the driver, replay RED16 or reopen runtime grants.
+
 Latest preparation2026-11-03: command extent plan040b975b approved for RED16/
 GREEN17. New portable-command-extent-preparation.json contains534files/
 135directories/31zero-byte, decoded equal, SHA

@@ -23,6 +23,7 @@ function Get-ODSourceOwner($Node){
     return '<ScriptBlock>'
 }
 function Get-ODFailureExtent($Node){
+    if($Node -is [Management.Automation.Language.CommandAst] -and $Node.GetCommandName() -ceq 'ConvertFrom-Json'){return $Node.Extent}
     $candidate=$Node;$parent=$Node.Parent
     while($null -ne $parent -and $parent -isnot [Management.Automation.Language.StatementBlockAst] -and $parent -isnot [Management.Automation.Language.NamedBlockAst]){
         if($parent -is [Management.Automation.Language.StatementAst]){$candidate=$parent}

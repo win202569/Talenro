@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — expected RED16 confirmed; single-insertion candidate ready
+
+RED16精确0PASS/1FAIL/9NotRun/exit1，无准备/记录错误，31源码及76历史输入前后一致。
+已仅在Get-ODFailureExtent加入ConvertFrom-Json返回自身Extent分支；静态反向还原
+等于旧源码，其余30源码未变，候选解析通过。GREEN17尚未执行。
+候选归档538文件/135目录/31零字节解码一致。新源码故意不匹配旧运行清单；
+禁止运行旧driver，未重新冻结。累计16辅助，整体NOT_ACCEPTED。
+
 ## Latest — command extent regression prepared; RED16 not yet run
 
 用户批准040b975b计划及两次辅助额度。新十组测试仅定义函数，静态解析通过；
