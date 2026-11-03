@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — versioned test correction prepared; GREEN24 pending
+
+用户批准保留原记录、版本化修正测试并新增一次辅助验证。
+修正版统一调用节点数组处理；20组要求保留，31生产文件不改。
+四脚本语法通过，2356原文件固定；准备归档推送后仅运行一次GREEN24。
+当前23/4/3/186；旧13stop保留，无Prepare/宿主权限。NOT_ACCEPTED。
+
 ## Latest — GREEN23 stopped; test utility defect, no host start
 
 [实际结果](2026-11-03-offline-history-contract-recovery-result.md)：GREEN23记录14通过/1失败/5未运行，

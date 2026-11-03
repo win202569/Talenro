@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest amendment: user approved versioned test correction plus one auxiliary24
+only. See2026-11-03-offline-history-contract-v2-approval.md and v2-result.md.
+Use portable-history-contract-v2-preparation.json:31unchanged production sources,
+2356preserved files and immutable amendment/test/helpers. GREEN24 not run yet at
+this checkpoint. Never replay22/23 or start Prepare/host; all13stops retained.
+
 LATEST STOP: GREEN23 at candidate74beb0c6 returned14PASS/1FAIL/5NotRun/exit1.
 Final archive verified595files/135directories/31zero-byte files, SHA256
 FE174593467A094DFCA1E8F008DA9B7F506AB5F37FF615551A543A12E8BD5209.
