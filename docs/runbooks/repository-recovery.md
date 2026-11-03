@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest proposal: [local historical-path repair design](../superpowers/specs/2026-11-03-offline-history-path-repair-design.md)
+is DRAFT/PENDING_APPROVAL. Proposed scope is one driver verifier shared with actual
+gate and local regression, two new auxiliaries20/21 only. No source edits/tests,
+freeze or host in this planning turn. All ten stops and original artifacts remain;
+counters19aux/4hosts/3compiles/186snapshots. Do not run the stopped extent route.
+
 Latest actual: [extent contract result](../roadmap/2026-11-03-offline-extent-contract-rebind-result.md).
 GREEN19 passed22groups plus ten command invariants, but the single Prepare failed
 in actual historical path resolution before any freeze/host. New extent-contract

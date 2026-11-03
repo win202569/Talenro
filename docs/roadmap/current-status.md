@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — local historical-path repair design drafted; no execution
+
+[局部路径修复设计](../superpowers/specs/2026-11-03-offline-history-path-repair-design.md)
+拟只修改driver历史文件校验，让实际gate与局部测试调用同一校验函数；保留三条
+已固定的绝对路径身份与哈希，拒绝越界和未知外部路径。建议新增RED20/GREEN21，
+不冻结、不启动宿主。设计待批准；本轮只读核对与文档，累计19/4/3/186不变。
+
 ## Latest — GREEN19 passed; single Prepare failed before freeze, stopped
 
 [实际结果](2026-11-03-offline-extent-contract-rebind-result.md)：GREEN19全部22组及
