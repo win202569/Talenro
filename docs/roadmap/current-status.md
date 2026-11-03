@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — GREEN24-backed runtime recovery design drafted
+
+用户选择新版本恢复入口；[设计草案](../superpowers/specs/2026-11-03-offline-green24-runtime-recovery-design.md)
+使用独立history-contract-runtime标识，保留13旧stop，分别验证历史GREEN24和新候选源码。
+拟新增RED25/GREEN26、一次Prepare，并明确重新授权未消耗的1宿主/31快照；尚未授权执行。
+本轮仅文档，31源码核对无变化；累计24/4/3/186不变，NOT_ACCEPTED。
+设计待批准，随后编写实施计划；不能据本草案启动运行。
+
 ## Latest — GREEN24 all20passed; local test correction complete
 
 [实际结果](2026-11-03-offline-history-contract-v2-result.md)：版本化修正后GREEN24一次20/20通过，

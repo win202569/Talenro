@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+Latest design only: user selected a new versioned runtime recovery entry.
+[GREEN24-backed runtime design](../superpowers/specs/2026-11-03-offline-green24-runtime-recovery-design.md)
+is pending design approval. Proposed history-contract-runtime identities separate
+old GREEN24 provenance from newly changed candidate validation. Proposed25/26,
+one Prepare and reactivation of unused1host/31snapshots are NOT execution grants.
+No source/test/runtime change in this drafting turn; counters24/4/3/186 unchanged.
+Keep13stops and recover actual evidence from the existing v2-final archive.
+
 LATEST RESULT: versioned GREEN24 passed20/20 once after preparation15322d5d.
 Final archive604files/135directories/31zero-byte, decoded equal; SHA256
 35DCE732E63E5FBC08C2A53C1180448028107B8D1C0D17CFCDE615B6A976FF52.
