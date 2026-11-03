@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — GREEN23 stopped; test utility defect, no host start
+
+[实际结果](2026-11-03-offline-history-contract-recovery-result.md)：GREEN23记录14通过/1失败/5未运行，
+第15组因测试辅助函数返回嵌套数组而比较失败，准备/记录错误为空；这是助手编写的测试缺陷。
+已按规则停止，不修改重跑，不启动Prepare/宿主；新stop加12旧stop共13个全部保留。
+累计23辅助/4宿主/3编译/186快照。完整验证未通过，NOT_ACCEPTED。
+使用history-contract-final归档恢复；后续版本化测试修订和新增验证需另行明确批准。
+
 ## Latest — RED22 exact; four-file candidate awaiting GREEN23
 
 RED22按预期失败：0通过/1失败/19未运行，准备和记录错误为空。

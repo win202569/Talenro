@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST STOP: GREEN23 at candidate74beb0c6 returned14PASS/1FAIL/5NotRun/exit1.
+Final archive verified595files/135directories/31zero-byte files, SHA256
+FE174593467A094DFCA1E8F008DA9B7F506AB5F37FF615551A543A12E8BD5209.
+IntentOwnership failed in the test helper's nested-array offset comparison;
+setup/recording errors null. See the final section of the execution report.
+Use portable-history-contract-final.json to restore full original receipts,
+tool session/poll results and new stop. Retain all13stops and immutable versions.
+Counters23/4/3/186. No new Prepare, manifest, snapshots or host exist.
+Do not replay RED22/GREEN23 or proceed to runtime: the first unexpected result
+froze the remainder. Versioned test correction and added auxiliary require new
+explicit approval; the earlier continue instructions below are superseded.
+
 Latest: exact RED22 consumed once after89bb7824; do not replay. Four-file candidate
 and immutable candidate input are ready for GREEN23. Use
 portable-history-contract-candidate.json after verifying its checkpoint.

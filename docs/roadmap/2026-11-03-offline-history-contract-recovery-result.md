@@ -1,6 +1,42 @@
 # History-contract execution progress
 
-Status: IN_PROGRESS / UNFINISHED / NOT_ACCEPTED.
+Status: STOPPED / UNFINISHED / NOT_ACCEPTED.
+
+Final portable archive verified595files/135directories/31zero-byte files,
+decoded byte-for-byte equal. SHA256:
+FE174593467A094DFCA1E8F008DA9B7F506AB5F37FF615551A543A12E8BD5209.
+
+## Final actual disposition: GREEN23 stopped in test utility
+
+Candidate74beb0c619b6b6531d46586419d17718e7d36d4b was pushed and remotely verified.
+GREEN23 ran once:14PASS/1FAIL/5NotRun/exit1. The failed group is IntentOwnership,
+with ComparisonFailure at history-contract.tests.ps1 line146. SetupError and
+RecordingError are null. The five remaining groups did not run. Inputs and
+source/history hashes were unchanged by the run. No complete pass is claimed.
+
+Read-only source/error tracing identifies an assistant-authored test defect:
+HC-Calls returns an array as one pipeline object using a leading comma; the
+caller adds another array wrapper and filters the whole collection. Consequently
+engineChecks[0].Extent.StartOffset yields many offsets, not one integer, and the
+comparison fails. Similar structural selection checks require review; the14PASS
+count records the actual receipt and is not proof that every structural assertion
+was sound. This is not evidence of a Docker failure or of full production safety.
+No new diagnostic/test invocation, patch or retry was used after this failure.
+
+Both authorized auxiliaries are consumed:23aux/4hosts/3compilations/186snapshots.
+The new history-contract.stop.json is preserved with all12old stops (13total).
+Confirmed absent:history-contract.intent.json,history-contract.frozen.json,
+snapshots/history-contract,history-contract-host.intent.json and host final.
+Prepare was not invoked; no new snapshot or host started. Remaining runtime
+allowance is frozen by the first-unexpected-result rule, not silently reusable.
+
+Full actual call, initial running-session result, polling results, final receipt
+and stop are preserved in portable-history-contract-final.json. Original tests,
+inputs and candidate remain immutable. A future versioned test correction and
+additional auxiliary computation require explicit revised approval. Do not replay
+RED22/GREEN23 or invoke Prepare/host from this stopped checkpoint.
+
+The earlier sections below are chronological intermediate checkpoints only.
 
 ## Latest: RED22 exact; four-file candidate ready for GREEN23
 
