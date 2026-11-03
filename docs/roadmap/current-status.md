@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-03
 
+## Latest — history-contract execution approved; helper drafts only
+
+用户“是”已批准 e2fcf01a 实施计划，无需重复批准同一计划。
+[执行记录](2026-11-03-offline-history-contract-recovery-result.md)：只读核对31源码及2326历史文件一致；
+两份新辅助脚本已编写且语法通过，但20组测试及准备输入尚未完成。
+源码未改，RED22/GREEN23、Prepare和宿主均未运行；累计21/4/3/186不变。
+小型 helper-draft 归档仅保存未冻结脚本，不替代 path-v3-final 完整历史归档。
+下一步继续计划 Task 1 的测试/输入编写，不重跑旧阶段。NOT_ACCEPTED。
+
 ## Latest — history-contract design approved; implementation plan pending
 
 用户“是”批准06676374设计。[实施计划](../superpowers/plans/2026-11-03-offline-history-contract-recovery.md)

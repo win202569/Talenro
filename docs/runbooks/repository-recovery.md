@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+Latest execution status: plan e2fcf01a was approved with “是”; continue its Task 1
+without asking for duplicate approval. See
+[execution progress](../roadmap/2026-11-03-offline-history-contract-recovery-result.md).
+The 31 source and 2326 historical identities match. Two helper drafts parse,
+but the 20-group test and preparation inputs are not yet authored/frozen.
+No new regression, Prepare or host has run; counters remain21/4/3/186.
+Restore the original full path-v3-final archive first. The additional
+portable-history-contract-helper-draft.json contains only two unfinished Q
+scripts with per-file lengths/hashes/base64. Verify before restoring; never
+overwrite differing bytes. Do not invoke these drafts before completing and
+freezing Task 1. Existing approval remains valid; all original stops remain.
+
 Latest planning: design06676374 approved with “是”; original bytes preserved.
 [History-contract implementation plan](../superpowers/plans/2026-11-03-offline-history-contract-recovery.md)
 awaits execution approval. Defines20auxiliary groups for22/23,43new pins
