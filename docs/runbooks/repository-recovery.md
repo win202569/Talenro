@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+Latest authoring: history-contract-runtime.tests.ps1 is a tracked unfinished
+definitions-only draft:20group names and scalar-AST/error helpers exist, but
+the full regression entry point/group bodies are not implemented. Do not run or
+freeze it. Resume Task1 authoring under existing approval; no phase consumed.
+
 Latest execution authority: user approved plan1e7fd083 with “批准”. Resume its
 Task1 test/helper authoring without duplicate approval. Read
 ../roadmap/2026-11-03-offline-green24-runtime-recovery-result.md.

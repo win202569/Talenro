@@ -2,6 +2,18 @@
 
 Status: APPROVED / PREFLIGHT_COMPLETE / IMPLEMENTATION_INCOMPLETE / NOT_ACCEPTED.
 
+## Latest test-authoring checkpoint
+
+Created L/history-contract-runtime.tests.ps1 as an explicitly unfinished,
+definitions-only draft. It contains the20ordered group names, local AST parsing,
+scalar command extraction, read-only definition allowlist, precise rejection
+and first-failure receipt helpers. No orchestration entry point exists yet,
+so this draft cannot be mistaken for the complete regression suite.
+
+Next: implement all20group bodies and immutable fixture/pre-post recording,
+then author preparation/run/preservation helpers. Do not freeze or run this
+partial draft. No production change or test invocation has occurred.
+
 The user replied “批准” after implementation plan commit
 1e7fd083a2e8cd4b2c94f50a72541216da53ac15. The plan is now approved for its
 exact bounded sequence; original plan/design bytes are retained unchanged.

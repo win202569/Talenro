@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — runtime test helpers authored; suite incomplete
+
+已开始编写新测试：20组名称、单节点AST提取、只读提取白名单和错误记录工具已写入。
+文件明确标注未完成，完整测试入口及20组测试体尚未完成，禁止冻结或运行草稿。
+生产源码未改，RED25未运行；累计24/4/3/186不变。继续原批准计划，无需重复批准。
+
 ## Latest — runtime plan execution approved; preflight complete
 
 用户“批准”授权1e7fd083计划的限定执行序列，无需重复申请同一批准。
