@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — RED22 exact; four-file candidate awaiting GREEN23
+
+RED22按预期失败：0通过/1失败/19未运行，准备和记录错误为空。
+四文件已实现新路径并通过语法检查，其他27源码和2341历史文件不变。
+候选输入已固定；推送归档核对后仅运行一次GREEN23。未冻结、未启动宿主。
+累计22辅助/4宿主/3编译/186快照；NOT_ACCEPTED。
+
 ## Latest — history-contract fixtures frozen; RED22 pending
 
 20组测试及准备工具已编写，四脚本语法通过；准备成功固定31源码/2341历史文件。

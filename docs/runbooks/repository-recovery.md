@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest: exact RED22 consumed once after89bb7824; do not replay. Four-file candidate
+and immutable candidate input are ready for GREEN23. Use
+portable-history-contract-candidate.json after verifying its checkpoint.
+All four files parse; only4of31source identities changed;2341historical files match.
+No GREEN23/Prepare/host at this checkpoint. Counters22/4/3/186. Continue only the
+approved once-only sequence, preserving all old stops and original frozen tests.
+
 Latest: history-contract Task1 fixtures are prepared and immutable;20groups and
 all four helper/test scripts parse. Use portable-history-contract-preparation.json
 for the complete P/Q history and new input.31sources/2341historical files,

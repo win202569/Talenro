@@ -81,6 +81,7 @@ function Invoke-ODContractStaticChecks($Manifest,$Suite){
 }
 function Invoke-ODContractTests {
     param([string]$Epoch='legacy')
+    if($Epoch -cnotin @('legacy','extent-contract','history-contract')){throw 'OD: invalid explicit epoch'}
     . (Join-Path $PSScriptRoot observation-contract.ps1)
     $available=$true
     foreach($name in @('Assert-ODProfileObservations','Assert-ODProfileReport')){

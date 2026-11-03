@@ -2,6 +2,19 @@
 
 Status: IN_PROGRESS / UNFINISHED / NOT_ACCEPTED.
 
+## Latest: RED22 exact; four-file candidate ready for GREEN23
+
+RED22 ran once after verified remote89bb7824:0PASS/1FAIL/19NotRun/exit1,
+exact RuntimeException message/ErrorId OD: invalid explicit epoch. Setup and
+recording errors null; pre/post source/history hashes unchanged. Actual call saved.
+Four production binding files now implement the new route and parse. Exactly4of31
+source identities changed;2341historical identities remain unchanged. Candidate
+input is fixed. New attempts are exclusively acquired before resource checking;
+shared read-only validation binds old receipts to old source epochs.
+GREEN23 has not run; no new Prepare or host. Counters22/4/3/186.
+Next: push candidate archive, verify remote, invoke GREEN23 once. First unexpected
+result stops the remaining scope without edits/retries. Earlier sections are history.
+
 ## Latest: complete Task 1 fixtures prepared, RED22 not yet invoked
 
 All20regression groups and the preparation helper are authored. Four new scripts

@@ -1,7 +1,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
     [Parameter(Mandatory)][ValidateSet('Prepare','RunOne')][string]$Action,
-    [Parameter(Mandatory)][ValidateSet('seed','writer-green','contract-green','repair-green','controller-rebind','writer-projection-rebind','pin-binding-rebind','extent-contract-rebind','core','lifecycle','continuation')][string]$Grant,
+    [Parameter(Mandatory)][ValidateSet('seed','writer-green','contract-green','repair-green','controller-rebind','writer-projection-rebind','pin-binding-rebind','extent-contract-rebind','history-contract-rebind','core','lifecycle','continuation')][string]$Grant,
     [ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256,
     [ValidatePattern('^[A-F0-9]{64}$')][string]$PreviousFrozenSHA256,
     [string]$Epoch='legacy'
@@ -26,6 +26,21 @@ function Driver-Once([string]$Path,[byte[]]$Bytes){
     if($null -ne $primary){throw $primary}
 }
 function Driver-JSON([string]$Path,$Value){Driver-Once $Path ([Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $Value -Depth 60)))}
+
+# Only this invocation may retain the returned ownership object.
+function Driver-AcquireHistoryAttempt([string]$Action,[string]$Grant){
+    if(($Action -ceq 'Prepare' -and $Grant -ceq 'history-contract-rebind')){$name='history-contract.intent.json'}
+    elseif($Action -ceq 'RunOne' -and $Grant -ceq 'contract-green'){$name='history-contract-host.intent.json'}
+    else{throw 'OD: invalid history action'}
+    $path=Join-Path $packet $name;$token=[guid]::NewGuid().ToString('D')
+    $record=[ordered]@{Schema=1;Action=$Action;Grant=$Grant;Epoch='history-contract';AttemptConsumed=$true;Token=$token}
+    $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $record -Depth 10))
+    $stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush()}finally{$stream.Dispose()}
+    return [pscustomobject]@{Path=$path;Token=$token;SHA256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))}
+}
+$historyOwnership=$null
+if($Epoch -ceq 'history-contract'){$historyOwnership=Driver-AcquireHistoryAttempt $Action $Grant}
 function Driver-Verify($Manifest){
     $seen=@{}
     foreach($pin in $Manifest.Pins){
@@ -91,6 +106,7 @@ function Get-ODWriterManifestPath {
 }
 
 function Get-ODAttemptSlot([string]$Grant,[string]$Epoch='legacy'){
+    if($Epoch -ceq 'history-contract'){if($Grant -ceq 'contract-green'){return 'history-contract-host'};throw 'OD: invalid explicit grant'}
     if($Epoch -ceq 'extent-contract'){if($Grant -ceq 'contract-green'){return 'extent-contract-green'};throw 'OD: invalid explicit grant'}
     if($Epoch -cne 'legacy'){throw 'OD: invalid explicit epoch'}
     if($Grant -ceq 'writer-green'){return 'writer-projection-green'}
@@ -1007,8 +1023,151 @@ function Driver-PrepareExtent($Info){
     [ordered]@{Prepared=$Grant;Phase=$manifest.Phase;FrozenSHA256=(Driver-Hash $manifestPath);Pins=2306;Snapshots=31;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
 }
 
-Driver-Need ($Epoch -cin @('legacy','extent-contract')) 'Explicit known epoch'
-if($Epoch -ceq 'extent-contract'){
+
+# Shared read-only validation; no attempt writes or host orchestration.
+function Driver-ValidateHistoryInputs([string]$Repo,[Collections.IDictionary]$Approval,[Collections.IDictionary]$Binding,[Collections.IDictionary]$Candidate){
+    $packet=Join-Path $Repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
+    $leaf='docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2'
+    $approvalPath=Join-Path $packet 'history-contract.approval.json'
+    $inputPath=Join-Path $packet 'history-contract.input.json'
+    Driver-Need ((Driver-Hash $approvalPath) -ceq 'AD2187335A655406E3EDC64F65D3F255745F685378AB5133EA23D6368C2FCBF8' -and $Binding.ApprovalSHA256 -ceq 'AD2187335A655406E3EDC64F65D3F255745F685378AB5133EA23D6368C2FCBF8') 'OD: history approval mismatch'
+    $savedApproval=Get-Content $approvalPath -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ((Driver-EqualJSON $Approval $savedApproval) -and $Approval.Schema -eq 1 -and $Approval.BaseCommit -ceq 'e2fcf01a13540a6f4b6658006bedf4d637359bb4' -and $Approval.UserReply -ceq '是') 'OD: history approval mismatch'
+    foreach($pair in @(@('AddedAuxiliary',2),@('AuxiliaryCeiling',23),@('PrepareAttempts',1),@('ReactivatedHosts',1),@('ReactivatedSnapshots',31),@('AddedChildren',0),@('AddedCompilations',0),@('AddedReviewers',0),@('ConsumedAuxiliary',21),@('ConsumedHosts',4),@('ConsumedCompilations',3),@('ConsumedSnapshots',186))){
+        Driver-Need ($Approval[$pair[0]] -is [long] -and $Approval[$pair[0]] -eq $pair[1]) 'OD: history approval mismatch'
+    }
+    Driver-Need ((Driver-Hash $inputPath) -ceq '3F7B73785FB601B2E988E14796C43D2085DC7B741E5E6B18A03D6049586D41D8') 'OD: history input mismatch'
+    $saved=Get-Content $inputPath -Raw|ConvertFrom-Json -AsHashtable
+    $fixture=$Binding.FixtureBindings
+    Driver-Need ((Driver-EqualJSON $fixture.Parent $saved.FixtureBindings.Parent) -and $fixture.Parent.SHA256 -ceq 'A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556') 'OD: history parent mismatch'
+    $parentPath=Join-Path $Repo $fixture.Parent.Path
+    Driver-Need ((Driver-Hash $parentPath) -ceq $fixture.Parent.SHA256) 'OD: history parent mismatch'
+    $parent=Get-Content $parentPath -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ($parent.PinCount -eq 2276 -and $parent.SourceCount -eq 31 -and (Driver-EqualJSON $parent.SourcePaths @($Binding.BaselineSources.Keys))) 'OD: history parent mismatch'
+    Driver-Need ($fixture.WriterSHA256 -ceq '182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461' -and $parent.PreviousFrozenSHA256 -ceq $fixture.WriterSHA256 -and (Driver-EqualJSON $fixture.WriterArtifacts $saved.FixtureBindings.WriterArtifacts)) 'OD: history writer mismatch'
+    foreach($name in $fixture.WriterArtifacts.Keys){Driver-Need ((Driver-Hash (Join-Path $packet $name)) -ceq $fixture.WriterArtifacts[$name]) 'OD: history writer mismatch'}
+    Driver-Need ((Driver-EqualJSON $fixture.PriorBinding $saved.FixtureBindings.PriorBinding) -and (Driver-EqualJSON $fixture.PathRepair $saved.FixtureBindings.PathRepair)) 'OD: history prior receipt mismatch'
+    foreach($map in @($fixture.PriorBinding,$fixture.PathRepair)){foreach($name in $map.Keys){Driver-Need ((Driver-Hash (Join-Path $packet $name)) -ceq $map[$name]) 'OD: history prior receipt mismatch'}}
+    Driver-Need ((Driver-EqualJSON $Binding $saved)) 'OD: history input mismatch'
+    Driver-VerifyHistory $Repo $Binding.HistoricalFiles
+    Driver-VerifyHistory $Repo $Binding.OriginalHistory
+    foreach($rel in $Binding.HelperSHA256.Keys){Driver-CheckHash (Join-Path $Repo $rel) $Binding.HelperSHA256[$rel]}
+    Driver-CheckHash (Join-Path $Repo ($leaf+'/history-contract.tests.ps1')) $Binding.TestSHA256
+    Driver-Need ($Candidate.Schema -eq 1 -and $Candidate.InputSHA256 -ceq (Driver-Hash $inputPath) -and $Candidate.ExpectedPinCount -eq 2319 -and (Driver-EqualJSON $Candidate.AppendPaths $Binding.AppendPaths) -and (Driver-EqualJSON @($Candidate.CandidateSources.Keys) @($Binding.BaselineSources.Keys))) 'OD: history candidate mismatch'
+    $changed=@($Candidate.CandidateSources.Keys|Where-Object {$Candidate.CandidateSources[$_] -cne $Binding.BaselineSources[$_]})
+    Driver-Need ($changed.Count -eq 4 -and @(Compare-Object $changed @($Binding.BaselineSourceBytes.Keys)).Count -eq 0) 'OD: history candidate mismatch'
+    foreach($rel in $Candidate.CandidateSources.Keys){Driver-Need ((Driver-Hash (Join-Path $Repo $rel)) -ceq $Candidate.CandidateSources[$rel]) 'OD: history candidate mismatch'}
+    Driver-Need ($Candidate.RedFinalSHA256 -ceq (Driver-Hash (Join-Path $packet 'history-contract-binding-red.final.json'))) 'OD: history candidate mismatch'
+    # Receipts refer to their own source epochs, never the edited live driver.
+    foreach($row in @(@('extent-contract-binding-red','extent-contract',18,0,1,21),@('extent-contract-binding-green','extent-contract',19,22,0,0),@('history-path-red','history-path',20,0,1,17),@('history-path-v3-green','history-path-v3',21,18,0,0))){
+        $prefix=$row[0];$inputName=$row[1]
+        $r=Get-Content (Join-Path $packet ($prefix+'.final.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $i=Get-Content (Join-Path $packet ($prefix+'.intent.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $b=Get-Content (Join-Path $packet ($inputName+'.input.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $expectedSources=$b.BaselineSources
+        if($prefix.EndsWith('green')){
+            $oldCandidate=Get-Content (Join-Path $packet ($inputName+'-candidate.input.json')) -Raw|ConvertFrom-Json -AsHashtable
+            $expectedSources=$oldCandidate.CandidateSources
+            Driver-Need ($r.PhaseInputSHA256 -ceq (Driver-Hash (Join-Path $packet ($inputName+'-candidate.input.json')))) 'OD: history prior receipt mismatch'
+        }
+        Driver-Need ($r.InputSHA256 -ceq (Driver-Hash (Join-Path $packet ($inputName+'.input.json'))) -and $r.TestSHA256 -ceq $b.TestSHA256 -and (Driver-EqualJSON $r.SourceSHA256 $expectedSources) -and (Driver-EqualJSON $r.PostSourceSHA256 $expectedSources) -and (Driver-EqualJSON $r.HistoricalSHA256 $b.HistoricalFiles) -and (Driver-EqualJSON $r.PostHistoricalSHA256 $b.HistoricalFiles)) 'OD: history prior receipt mismatch'
+        Driver-Need ($i.AttemptConsumed -is [bool] -and $i.AttemptConsumed -and $i.Computation -eq $row[2] -and $i.InputSHA256 -ceq $r.InputSHA256 -and $i.TestSHA256 -ceq $r.TestSHA256 -and $r.PASS -eq $row[3] -and $r.FAIL -eq $row[4] -and $r.NotRun -eq $row[5] -and $null -eq $r.SetupError -and $null -eq $r.RecordingError) 'OD: history prior receipt mismatch'
+        $tool=Get-Content (Join-Path $packet ($prefix+'.tool-record.json')) -Raw|ConvertFrom-Json -AsHashtable
+        Driver-Need ($tool.Tool -ceq 'exec_command' -and $tool.Input.cmd.Contains($inputName) -and $tool.Result.exit_code -eq $r.ExitCode) 'OD: history prior receipt mismatch'
+    }
+    Driver-RequireFinal writer-green legacy
+    return [ordered]@{Parent=$parent;WriterArtifacts=$fixture.WriterArtifacts;CandidateSources=$Candidate.CandidateSources;PriorBinding=$fixture.PriorBinding;PathRepair=$fixture.PathRepair}
+}
+function Driver-RequireHistoryReceipts([string]$Repo,[Collections.IDictionary]$Binding,[Collections.IDictionary]$Candidate){
+    $packet=Join-Path $Repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
+    $names=@('NewEpochBinding','RealHistory','ExternalIdentity','RepositoryFixture','ApprovalIdentity','CandidateIdentity','PriorReceiptIdentity','ParentLineage','WriterIdentity','WrongHashRejected','InvalidPathRejected','UnknownEpochRejected','DisjointNamespaces','ConsumedAttempt','IntentOwnership','ActualInputCall','ActualSlotFlow','SourceWindow','OriginalGuardsUnchanged','OriginalSuiteUnchanged')
+    $hashes=[ordered]@{}
+    foreach($phaseName in @('Red','Green')){
+        $slotName='history-contract-binding-'+$phaseName.ToLowerInvariant()
+        $r=Get-Content (Join-Path $packet ($slotName+'.final.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $i=Get-Content (Join-Path $packet ($slotName+'.intent.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $source=if($phaseName -ceq 'Red'){$Binding.BaselineSources}else{$Candidate.CandidateSources}
+        $phaseHash=if($phaseName -ceq 'Red'){$null}else{Driver-Hash (Join-Path $packet 'history-contract-candidate.input.json')}
+        Driver-Need ($i.Schema -eq 1 -and $i.AttemptConsumed -is [bool] -and $i.AttemptConsumed -and $i.Computation -eq $(if($phaseName -ceq 'Red'){22}else{23}) -and $i.Ceiling -eq 23 -and $i.Phase -ceq $phaseName -and $i.TestSHA256 -ceq $Binding.TestSHA256 -and $i.InputSHA256 -ceq $Candidate.InputSHA256 -and $i.PhaseInputSHA256 -ceq $phaseHash -and (Driver-EqualJSON $i.SourceSHA256 $source)) 'OD: history auxiliary intent mismatch'
+        Driver-Need ($r.Schema -eq 1 -and $r.Phase -ceq $phaseName -and $r.TestSHA256 -ceq $Binding.TestSHA256 -and $r.InputSHA256 -ceq $Candidate.InputSHA256 -and $r.PhaseInputSHA256 -ceq $phaseHash -and $null -eq $r.SetupError -and $null -eq $r.RecordingError -and (Driver-EqualJSON $r.SourceSHA256 $source) -and (Driver-EqualJSON $r.PostSourceSHA256 $source) -and (Driver-EqualJSON $r.HistoricalSHA256 $Binding.HistoricalFiles) -and (Driver-EqualJSON $r.PostHistoricalSHA256 $Binding.HistoricalFiles) -and $r.Groups.Count -eq 20) 'OD: history auxiliary receipt mismatch'
+        for($j=0;$j -lt 20;$j++){$status=if($phaseName -ceq 'Green'){'PASS'}elseif($j -eq 0){'FAIL'}else{'NotRun'};Driver-Need ($r.Groups[$j].Name -ceq $names[$j] -and $r.Groups[$j].Status -ceq $status) 'OD: history ordered group mismatch'}
+        if($phaseName -ceq 'Red'){Driver-Need ($r.PASS -eq 0 -and $r.FAIL -eq 1 -and $r.NotRun -eq 19 -and $r.ExitCode -eq 1 -and $r.RootError.Type -ceq 'System.Management.Automation.RuntimeException' -and $r.RootError.Message -ceq 'OD: invalid explicit epoch' -and $r.RootError.ErrorId -ceq $r.RootError.Message) 'OD: history RED mismatch'}
+        else{Driver-Need ($r.PASS -eq 20 -and $r.FAIL -eq 0 -and $r.NotRun -eq 0 -and $r.ExitCode -eq 0 -and $null -eq $r.RootError) 'OD: history GREEN mismatch'}
+        $tool=Get-Content (Join-Path $packet ($slotName+'.tool-record.json')) -Raw|ConvertFrom-Json -AsHashtable
+        $expectedCommand='& ./.superpowers/sdd/2026-11-01-offline-controller-recovery/run-history-contract.ps1 -Phase '+$phaseName+' -InputSHA256 '+$Candidate.InputSHA256+' -TestSHA256 '+$Binding.TestSHA256
+        Driver-Need ($tool.Tool -ceq 'exec_command' -and $tool.Input.cmd -ceq $expectedCommand -and [IO.Path]::GetFullPath($tool.Input.workdir).TrimEnd('\','/') -ieq $Repo.TrimEnd('\','/') -and $tool.Result.exit_code -eq $r.ExitCode) 'OD: history tool identity mismatch'
+        $output=ConvertFrom-Json -AsHashtable -InputObject $tool.Result.output
+        Driver-Need ($output.Expected -is [bool] -and $output.Expected -and $output.PASS -eq $r.PASS -and $output.FAIL -eq $r.FAIL -and $output.NotRun -eq $r.NotRun -and $output.ExitCode -eq $r.ExitCode -and (Driver-EqualJSON $output.RootError $r.RootError) -and $null -eq $output.SetupError -and $null -eq $output.RecordingError) 'OD: history tool result mismatch'
+        $hashes[$phaseName+'SHA256']=Driver-Hash (Join-Path $packet ($slotName+'.final.json'))
+    }
+    Driver-Need ($Candidate.RedFinalSHA256 -ceq $hashes.RedSHA256) 'OD: history candidate RED mismatch'
+    return $hashes
+}
+function Driver-HistoryRecoveryMap($Inputs,$Receipts){
+    return [ordered]@{ParentSHA256=$Inputs.Input.FixtureBindings.Parent.SHA256;WriterSHA256=$Inputs.Input.FixtureBindings.WriterSHA256;ApprovalSHA256=$Inputs.Input.ApprovalSHA256;InputSHA256=$Inputs.Candidate.InputSHA256;CandidateSHA256=(Driver-Hash (Join-Path $packet 'history-contract-candidate.input.json'));RedSHA256=$Receipts.RedSHA256;GreenSHA256=$Receipts.GreenSHA256;PriorBinding=$Inputs.Validated.PriorBinding;PathRepair=$Inputs.Validated.PathRepair;WriterArtifacts=$Inputs.Validated.WriterArtifacts}
+}
+function Driver-HistoryGate($Ownership){
+    Driver-Need ($Epoch -ceq 'history-contract' -and $null -ne $Ownership -and [object]::ReferenceEquals($Ownership,$historyOwnership)) 'OD: history ownership mismatch'
+    $ownedPath=Join-Path $packet $(if($Action -ceq 'Prepare'){'history-contract.intent.json'}else{'history-contract-host.intent.json'})
+    Driver-Need ($Ownership.Path -ceq $ownedPath -and (Driver-Hash $ownedPath) -ceq $Ownership.SHA256) 'OD: history ownership mismatch'
+    $owned=Get-Content $ownedPath -Raw|ConvertFrom-Json -AsHashtable
+    Driver-Need ($owned.Schema -eq 1 -and $owned.Token -ceq $Ownership.Token -and $owned.AttemptConsumed -is [bool] -and $owned.AttemptConsumed -and $owned.Action -ceq $Action -and $owned.Grant -ceq $Grant -and $owned.Epoch -ceq $Epoch) 'OD: history ownership mismatch'
+    $blocked=[Collections.Generic.List[string]]::new()
+    $blocked.Add('history-contract.stop.json')
+    foreach($suffix in @('final.json','stdout.bin','stderr.bin','evidence.json','tool-record.json')){$blocked.Add('history-contract-host.'+$suffix)}
+    foreach($path in @('capture/history-contract-host','unit/history-contract-host')){$blocked.Add($path)}
+    if($Action -ceq 'Prepare'){foreach($path in @('history-contract-host.intent.json','history-contract.frozen.json','snapshots/history-contract')){$blocked.Add($path)}}
+    foreach($path in $blocked){$occupiedPath=Join-Path $packet $path;Driver-Need (-not (Test-Path -LiteralPath $occupiedPath)) 'OD: history attempt occupied'}
+    Driver-CheckHash (Join-Path $packet 'history-contract.approval.json') 'AD2187335A655406E3EDC64F65D3F255745F685378AB5133EA23D6368C2FCBF8'
+    Driver-CheckHash (Join-Path $packet 'history-contract.input.json') '3F7B73785FB601B2E988E14796C43D2085DC7B741E5E6B18A03D6049586D41D8'
+    $a=Get-Content (Join-Path $packet 'history-contract.approval.json') -Raw|ConvertFrom-Json -AsHashtable
+    $b=Get-Content (Join-Path $packet 'history-contract.input.json') -Raw|ConvertFrom-Json -AsHashtable
+    $c=Get-Content (Join-Path $packet 'history-contract-candidate.input.json') -Raw|ConvertFrom-Json -AsHashtable
+    $validated=Driver-ValidateHistoryInputs $repo $a $b $c
+    $receipts=Driver-RequireHistoryReceipts $repo $b $c
+    $info=[pscustomobject]@{Approval=$a;Input=$b;Candidate=$c;Validated=$validated;Receipts=$receipts;Ownership=$Ownership}
+    if($Action -ceq 'RunOne'){
+        $f=Get-Content (Join-Path $packet 'history-contract.frozen.json') -Raw|ConvertFrom-Json -AsHashtable
+        $i=Get-Content (Join-Path $packet 'history-contract.intent.json') -Raw|ConvertFrom-Json -AsHashtable
+        Driver-Need ($i.Schema -eq 1 -and $i.Action -ceq 'Prepare' -and $i.Grant -ceq 'history-contract-rebind' -and $i.Epoch -ceq 'history-contract' -and $i.AttemptConsumed -is [bool] -and $i.AttemptConsumed -and $i.Token -ceq $f.PrepareToken -and $f.PrepareIntentSHA256 -ceq (Driver-Hash (Join-Path $packet 'history-contract.intent.json'))) 'OD: history completed Prepare mismatch'
+        Assert-ODHistoryLineage $f $validated.Parent $b.FixtureBindings.Parent.SHA256 $b.FixtureBindings.WriterSHA256
+        $map=Driver-HistoryRecoveryMap $info $receipts;$map.PrepareToken=$i.Token
+        Driver-Need ((Driver-EqualJSON $f.HistoryContractRecovery $map)) 'OD: history frozen provenance mismatch'
+        foreach($key in @('OwnerScopeRecovery','ErrorProjectionRecovery','PinBindingRecovery')){Driver-Need (Driver-EqualJSON $f[$key] $validated.Parent[$key]) 'OD: history inherited maps mismatch'}
+        foreach($rel in $inputPaths){Driver-CheckHash (Join-Path (Join-Path $packet 'snapshots/history-contract') $rel) $c.CandidateSources[$rel]}
+    }
+    return $info
+}
+function Driver-PrepareHistory($Info){
+    Driver-Static
+    Driver-Need ($PreviousFrozenSHA256 -ceq $Info.Input.FixtureBindings.Parent.SHA256) 'OD: history exact repair parent required'
+    $manifest=Get-Content (Join-Path $packet 'repair-green.frozen.json') -Raw|ConvertFrom-Json -AsHashtable
+    $pins=[Collections.Generic.List[object]]::new();$map=[Collections.Generic.Dictionary[string,object]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach($pin in $manifest.Pins){
+        $rel=[IO.Path]::GetRelativePath($repo,$pin.VerificationPath).Replace('\','/')
+        $hash=if($Info.Input.BaselineSourceBytes.Contains($rel)){$Info.Candidate.CandidateSources[$rel]}else{$pin.SHA256}
+        Driver-AddPin $map $pins $pin.VerificationPath $hash $pin.Role
+    }
+    foreach($rel in $Info.Input.AppendPaths){$path=Join-Path $repo $rel;Driver-Need (-not $map.ContainsKey([IO.Path]::GetFullPath($path))) 'OD: history append overlap';Driver-AddPin $map $pins $path (Driver-Hash $path) 'history-contract-provenance'}
+    Driver-Need ($pins.Count -eq 2319) 'OD: history exact43append required'
+    $manifest.Pins=$pins.ToArray();$manifest.PinCount=2319;$manifest.Phase='history-contract';$manifest.PreviousFrozenSHA256=$PreviousFrozenSHA256
+    $manifest.ChangedInputs=@($Info.Input.BaselineSourceBytes.Keys);$manifest.MaxHosts=1;$manifest.MaxChildren=0;$manifest.MaxCompilations=0;$manifest.MaxReviewers=0
+    $manifest.HistoryContractRecovery=Driver-HistoryRecoveryMap $Info $Info.Receipts
+    $manifest.PrepareToken=$Info.Ownership.Token;$manifest.PrepareIntentSHA256=$Info.Ownership.SHA256
+    $manifest.HistoryContractRecovery.PrepareToken=$Info.Ownership.Token
+    Driver-Verify $manifest
+    $base=Join-Path $packet 'snapshots/history-contract'
+    foreach($rel in $inputPaths){$target=Join-Path $base $rel;$null=[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target));Driver-Once $target ([IO.File]::ReadAllBytes((Join-Path $repo $rel)));Driver-CheckHash $target $Info.Candidate.CandidateSources[$rel]}
+    Driver-Verify $manifest
+    $manifestPath=Join-Path $packet 'history-contract.frozen.json';Driver-JSON $manifestPath $manifest
+    [ordered]@{Prepared=$Grant;Phase=$manifest.Phase;FrozenSHA256=(Driver-Hash $manifestPath);Pins=2319;Snapshots=31;ChangedInputs=$manifest.ChangedInputs}|ConvertTo-Json
+}
+
+Driver-Need ($Epoch -cin @('legacy','extent-contract','history-contract')) 'Explicit known epoch'
+if($Epoch -ceq 'history-contract'){
+    $historyInputs=Driver-HistoryGate $historyOwnership
+    if($Action -ceq 'Prepare'){Driver-PrepareHistory $historyInputs;return}
+}elseif($Epoch -ceq 'extent-contract'){
     $extentInputs=Driver-ExtentContractGate
     if($Action -ceq 'Prepare'){Driver-PrepareExtent $extentInputs;return}
 }else{$pinInputs=Driver-PinBindingGate}
@@ -1073,11 +1232,11 @@ if($Action -ceq 'Prepare'){
 if($Epoch -ceq 'legacy'){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet pin-binding.stop.json))) 'Pin execution stopped; no retry'}
 Driver-Need (-not [string]::IsNullOrEmpty($FrozenSHA256)) 'Missing frozen identity'
 Driver-Need ($Grant -cin @('contract-green','core','lifecycle','continuation')) 'Only four remaining approved capture hosts'
-$phase=if($Epoch -ceq 'extent-contract'){'extent-contract'}elseif($Grant -ceq 'writer-green'){'writer-green'}else{'repair-green'}
+$phase=if($Epoch -ceq 'history-contract'){'history-contract'}elseif($Epoch -ceq 'extent-contract'){'extent-contract'}elseif($Grant -ceq 'writer-green'){'writer-green'}else{'repair-green'}
 $manifestPath=if($Grant -ceq 'writer-green'){Get-ODWriterManifestPath}else{Join-Path $packet (Get-ODEpochManifestName $Epoch)}
 Driver-CheckHash $manifestPath $FrozenSHA256
 $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json -AsHashtable
-Driver-Need ($manifest.Schema -eq 2 -and $manifest.Phase -ceq $phase -and $manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -gt 0 -and $manifest.InheritedUniquePins -le $manifest.InheritedPins -and $manifest.PinCount -ge $manifest.InheritedUniquePins -and $manifest.SourceCount -eq 31 -and (Driver-EqualJSON $manifest.SourcePaths $inputPaths) -and $manifest.MaxHosts -eq $(if($Epoch -ceq 'extent-contract'){1}else{4}) -and $manifest.MaxChildren -eq $(if($Epoch -ceq 'extent-contract'){0}else{7}) -and $manifest.MaxCompilations -eq 0 -and $manifest.MaxReviewers -eq $(if($Epoch -ceq 'extent-contract'){0}else{1})) 'Exact new source ownership and finite budget'
+Driver-Need ($manifest.Schema -eq 2 -and $manifest.Phase -ceq $phase -and $manifest.Pins.Count -eq $manifest.PinCount -and $manifest.InheritedPins -eq 2482 -and $manifest.InheritedUniquePins -gt 0 -and $manifest.InheritedUniquePins -le $manifest.InheritedPins -and $manifest.PinCount -ge $manifest.InheritedUniquePins -and $manifest.SourceCount -eq 31 -and (Driver-EqualJSON $manifest.SourcePaths $inputPaths) -and $manifest.MaxHosts -eq $(if($Epoch -cin @('extent-contract','history-contract')){1}else{4}) -and $manifest.MaxChildren -eq $(if($Epoch -cin @('extent-contract','history-contract')){0}else{7}) -and $manifest.MaxCompilations -eq 0 -and $manifest.MaxReviewers -eq $(if($Epoch -cin @('extent-contract','history-contract')){0}else{1})) 'Exact new source ownership and finite budget'
 Driver-Verify $manifest
 Driver-FalseFlags $manifest
 Driver-Need ($manifest.MaxAvailabilityREDs -eq 2) 'Only two availability computations'
@@ -1090,8 +1249,9 @@ switch -CaseSensitive ($Grant){
 $oracle=Get-Content -LiteralPath (Join-Path $PSScriptRoot expected-output.json) -Raw | ConvertFrom-Json -AsHashtable
 $slot=Get-ODAttemptSlot $Grant $Epoch
 $intentPath=Join-Path $packet ($slot+'.intent.json');$finalPath=Join-Path $packet ($slot+'.final.json')
-foreach($suffix in @('intent.json','final.json','stdout.bin','stderr.bin','evidence.json')){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet ($slot+'.'+$suffix)))) 'Grant attempted/unknown; no retry'}
-Driver-JSON $intentPath ([ordered]@{Grant=$Grant;AttemptSlot=$slot;AttemptConsumed=$true;FrozenSHA256=$FrozenSHA256;AuthorizedHost=1;AuthorizedChildren=$oracle.Grants[$Grant].Children})
+$hostSuffixes=if($Epoch -ceq 'history-contract'){@('final.json','stdout.bin','stderr.bin','evidence.json')}else{@('intent.json','final.json','stdout.bin','stderr.bin','evidence.json')}
+foreach($suffix in $hostSuffixes){Driver-Need (-not (Test-Path -LiteralPath (Join-Path $packet ($slot+'.'+$suffix)))) 'Grant attempted/unknown; no retry'}
+if($Epoch -cne 'history-contract'){Driver-JSON $intentPath ([ordered]@{Grant=$Grant;AttemptSlot=$slot;AttemptConsumed=$true;FrozenSHA256=$FrozenSHA256;AuthorizedHost=1;AuthorizedChildren=$oracle.Grants[$Grant].Children})}
 $row=[ordered]@{Grant=$Grant;AttemptSlot=$slot;Started=$false;PID=$null;OwnedExit=$false;StreamsComplete=$false;ExitCode=$null;TimedOut=$false;TerminationRequested=$false;PrimaryError=$null;SecondaryErrors=@();Overflow=$false;PostPinsIntact=$false;Exact=$false;StdoutSHA256=$null;StderrSHA256=$null;EvidenceSHA256=$null;EvidenceValid=$false;ChildrenObserved=0;EvidenceState='Unknown';ExpectedNegative=$false;ExpectedOutputSHA256=$null;Rescue=$false;SourceVerified=$false;LiveActionsPerformed=$false;RuntimeApproved=$false;FormalAcceptance=$false;RealGateImplemented=$false}
 $row.FrozenSHA256=$FrozenSHA256
 $cleanup=[Collections.Generic.List[string]]::new()
@@ -1166,7 +1326,7 @@ if(-not $row.Exact){throw 'Grant nonexact/unknown: freeze all remaining grants a
 }catch{
     $actual=$_
     $stopRoot=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))) '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-    $stopName=if($Epoch -ceq 'extent-contract'){'extent-contract.stop.json'}else{'pin-binding.stop.json'}
+    $stopName=if($Epoch -ceq 'history-contract'){'history-contract.stop.json'}elseif($Epoch -ceq 'extent-contract'){'extent-contract.stop.json'}else{'pin-binding.stop.json'}
     if((Test-Path -LiteralPath $stopRoot) -and -not (Test-Path -LiteralPath (Join-Path $stopRoot $stopName))){
         Driver-JSON (Join-Path $stopRoot $stopName) ([ordered]@{Action=$Action;Grant=$Grant;Message=$actual.Exception.Message;ErrorId=$actual.FullyQualifiedErrorId;Position=$actual.InvocationInfo.PositionMessage;Stack=$actual.ScriptStackTrace;Remainder='FROZEN'})
     }
