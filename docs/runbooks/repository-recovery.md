@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal: [history-contract recovery design](../superpowers/specs/2026-11-03-offline-history-contract-recovery-design.md)
+is DRAFT/PENDING_APPROVAL. Proposed fresh history-contract epoch and disjoint
+binding-red/green versus history-contract-host identities retain all12old stops.
+Proposes2auxiliary22/23, one new Prepare, explicit reactivation of unused1host/
+31snapshots only; downstream stays frozen. No execution/code edits in this turn.
+Actual counters21/4/3/186; await written design and later execution-plan approval.
+
 Latest actual: [v3 local repair result](../roadmap/2026-11-03-offline-history-path-v3-result.md).
 Original RED20 retained; single remaining GREEN21 passed18/18, no errors.
 Only driver verifier/call changed; reverse restoration equals original bytes.

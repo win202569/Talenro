@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-03
 
+## Latest — history-repaired full contract recovery design drafted
+
+[恢复设计](../superpowers/specs/2026-11-03-offline-history-contract-recovery-design.md)
+拟用history-contract新清单、独立辅助编号与history-contract-host宿主编号；保留12stop。
+拟新增RED22/GREEN23及一次Prepare，明确重新授权尚未消耗的1宿主/31快照，
+要求实际路径/来源校验及原52组完整契约通过。本轮仅文档，累计21/4/3/186不变。
+设计待批准，不代表恢复运行；NOT_ACCEPTED。
+
 ## Latest — historical-path local repair passed18/18; runtime still frozen
 
 [实际结果](2026-11-03-offline-history-path-v3-result.md)：原RED20保留未重跑，
