@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — corrected auxiliary identities approved; RED18 prepared
+
+用户批准193be974命名修订，辅助使用extent-contract-binding-red/green。
+新22组测试及准备/运行/归档工具已编写，静态解析通过；31源码与原候选一致，
+2276旧pins核对无变化，2307历史输入固定。新批准/输入记录已创建，未调用测试。
+准备归档推送后只运行RED18；本轮尚未消耗辅助或宿主额度，整体NOT_ACCEPTED。
+
 ## Latest — execution approved; preflight found auxiliary/host name collision
 
 用户已批准881bdd0a实施计划。启动前发现GREEN19辅助记录与正式宿主共用

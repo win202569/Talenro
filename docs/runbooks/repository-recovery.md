@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+Latest preparation: naming correction193be974 approved with “是”. Auxiliary
+slots are extent-contract-binding-red/green; host slot stays extent-contract-green.
+New22group test and three mechanical/phase helpers parse; input binds2307history
+files and31baseline sources, parent2276pins checked unchanged. No test invoked.
+Use portable-extent-contract-preparation.json once its checkpoint is pushed;
+new approval/input and helpers are embedded there. Input SHA
+50A088C0BFE6E931BB5F1DB3194399DEF9F1AD15CC7C949EF4091EF2A93737E2.
+Test SHA9382D7EEADE427FE006A86E43F55316E4C98999B5D62674167E0E662C1595599.
+Original report/addendum remains immutable because its hash binds approval.
+
 Latest preflight: plan881bdd0a was approved, but execution has not started.
 [Preflight finding and proposed correction](../roadmap/2026-11-03-offline-extent-contract-rebind.md)
 records a collision: auxiliary GREEN19 and contract host both name
