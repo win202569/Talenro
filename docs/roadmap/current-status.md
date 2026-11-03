@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-03
 
+## Latest — historical-path local repair passed18/18; runtime still frozen
+
+[实际结果](2026-11-03-offline-history-path-v3-result.md)：原RED20保留未重跑，
+修正版GREEN21全部18组通过，错误为空。真实2307历史记录与实际gate调用均验证，
+31源码/2326输入前后一致；仅driver修改，反向还原等于原文件。
+累计21辅助/4宿主/3编译/186快照；12旧stop保留，无新宿主/冻结，整体NOT_ACCEPTED。
+最终归档580文件/135目录/31零字节逐字节解码核对一致，SHA
+114AC7CFA7A081F62466129814CCEA8F2512DFC82FF4B0F65DE3426F7E06B078。
+
 ## Latest — v3 test preparation passed; driver-only repair ready for GREEN21
 
 用户批准修正未执行草稿后，另建v3保留全部旧版本。四脚本语法通过，输入固定：

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest actual: [v3 local repair result](../roadmap/2026-11-03-offline-history-path-v3-result.md).
+Original RED20 retained; single remaining GREEN21 passed18/18, no errors.
+Only driver verifier/call changed; reverse restoration equals original bytes.
+Production verifier processed2307original history and actual extracted gate call;
+31sources/2326immutable files unchanged pre/post. Use portable-history-path-v3-final.json.
+Counters21/4/3/186; all12old stops preserved. No new host/freeze, no product acceptance.
+Do not reuse old candidate hashes or stopped extent route; later runtime recovery
+requires a new approved route/freeze. No v3stop was generated.
+Final archive verified580files/135directories/31zero-byte, SHA
+114AC7CFA7A081F62466129814CCEA8F2512DFC82FF4B0F65DE3426F7E06B078.
+
 Latest candidate: approved syntax correction uses version3, preserving v1/v2
 tests and stops. Four scripts parse; preparation succeeded with2326immutable
 files/2307original history/31sources. Only driver verifier/call changed. GREEN21
