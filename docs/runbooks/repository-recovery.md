@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest proposal: [fresh contract epoch design](../superpowers/specs/2026-11-03-offline-extent-contract-rebind-design.md)
+is DRAFT/PENDING_APPROVAL. Proposed epoch extent-contract uses a new manifest and
+extent-contract-green host slot, never overwrites old repair/contract artifacts.
+Four binding files require coordinated changes; proposed added allowance is
+2auxiliary/1host/31snapshots. No new code, freeze or execution occurred. Await
+written design approval and a detailed execution plan; all existing stops remain.
+
 Latest actual2026-11-03: [local command extent repair](../roadmap/2026-11-02-offline-command-extent-repair.md)
 completed expected RED16 then GREEN17=10PASS/exit0; all errors null and pre/post
 inputs unchanged. NEW portable-command-extent.json541files/135directories/

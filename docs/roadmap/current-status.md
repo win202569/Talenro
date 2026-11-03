@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — fresh contract epoch design drafted; no execution
+
+[重新冻结与单次契约设计](../superpowers/specs/2026-11-03-offline-extent-contract-rebind-design.md)
+拟使用extent-contract新清单和extent-contract-green新编号，保留旧失败/九stop。
+只读发现四处清单/编号绑定，设计明确四文件调整及writer历史来源；原断言不变。
+拟新增2辅助、1宿主、31快照，均未批准执行/未消耗。本轮只改文档，NOT_ACCEPTED。
+
 ## Latest — local command extent repair passed10/10; runtime remains frozen
 
 [实际结果](2026-11-02-offline-command-extent-repair.md)：RED16精确复现后仅插入一条
