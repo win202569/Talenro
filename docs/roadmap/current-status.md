@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — runtime plan execution approved; preflight complete
+
+用户“批准”授权1e7fd083计划的限定执行序列，无需重复申请同一批准。
+[执行记录](2026-11-03-offline-green24-runtime-recovery-result.md)：31源码、2356保存文件和辅助脚本哈希无漂移。
+新运行命名空间为空；20组测试及准备工具尚待编写，未运行RED25、未改生产源码。
+累计24/4/3/186不变，保留13旧stop；实施未完成，NOT_ACCEPTED。
+
 ## Latest — runtime design approved; execution plan pending
 
 用户批准067f05a7设计。[实施计划](../superpowers/plans/2026-11-03-offline-green24-runtime-recovery.md)

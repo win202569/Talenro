@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest execution authority: user approved plan1e7fd083 with “批准”. Resume its
+Task1 test/helper authoring without duplicate approval. Read
+../roadmap/2026-11-03-offline-green24-runtime-recovery-result.md.
+Preflight31sources/2356preserved files/helper hashes matched. No new runtime
+namespace artifacts, source edits or phase invocation. Counters24/4/3/186.
+The old pending-approval entries below are historical; no test pass is implied.
+
 Latest: design067f05a7 approved with “是”; original bytes retained.
 The GREEN24 runtime implementation plan now awaits execution approval.
 It fixes20groups for25/26,68unique appended paths,2344total pins and one
