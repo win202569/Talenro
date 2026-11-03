@@ -4,6 +4,23 @@ Status: APPROVED / PREFLIGHT_COMPLETE / IMPLEMENTATION_INCOMPLETE / NOT_ACCEPTED
 
 ## Latest test-authoring checkpoint
 
+Superseding authoring update:all20group bodies and Invoke-ODRuntimeBindingRegression
+now exist; parser reports zero errors and zero top-level executable statements.
+No regression invoked. Preparation/run/preservation helpers and immutable fixtures
+remain unfinished, so the test is not yet frozen or ready to run.
+
+Fixture contract for preparation:Binding.FixtureBindings contains Parent
+(Path,SHA256),WriterSHA256,ExternalHistory and Stops(path/hash map of13old stops).
+Binding.Green24Artifacts contains SHA256(path/hash map) and Records with actual
+Amendment,Intent,Final,Tool objects read from preserved GREEN24 artifacts. Production
+validation must authenticate these actual records, not trust input booleans.
+Returned HistoricalGreen24 is the authenticated SHA256 map. Exact rejection
+messages in the new tests distinguish approval,parent,writer,receipt,candidate
+mismatches. New candidate filename uses the plan's dot separator.
+
+The earlier partial-draft description below is historical and no longer describes
+the current test's completeness; it still accurately records that no run occurred.
+
 Created L/history-contract-runtime.tests.ps1 as an explicitly unfinished,
 definitions-only draft. It contains the20ordered group names, local AST parsing,
 scalar command extraction, read-only definition allowlist, precise rejection

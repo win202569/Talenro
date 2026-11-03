@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-03
 
+## Latest — all20runtime test bodies authored; fixtures pending
+
+20组测试体及结果记录入口已编写，语法检查无错误、顶层无执行语句。
+准备/运行/归档工具和固定输入仍待完成；测试尚未冻结，RED25未运行。
+生产源码未改，累计24/4/3/186不变；继续原批准计划，不需重复批准。
+
 ## Latest — runtime test helpers authored; suite incomplete
 
 已开始编写新测试：20组名称、单节点AST提取、只读提取白名单和错误记录工具已写入。

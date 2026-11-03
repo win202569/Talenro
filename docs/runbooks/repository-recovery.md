@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+Latest:all20runtime regression group bodies and receipt entry point are authored
+and parse, with no top-level execution. Complete the preparation/run/archive
+helpers and immutable fixtures before freezing or invoking RED25. Read the latest
+fixture contract in the runtime execution report. No source edit or phase consumed;
+older partial-draft notes below are historical. Existing execution approval stands.
+
 Latest authoring: history-contract-runtime.tests.ps1 is a tracked unfinished
 definitions-only draft:20group names and scalar-AST/error helpers exist, but
 the full regression entry point/group bodies are not implemented. Do not run or
