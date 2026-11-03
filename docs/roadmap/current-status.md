@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-03
 
+## Latest — execution approved; preflight found auxiliary/host name collision
+
+用户已批准881bdd0a实施计划。启动前发现GREEN19辅助记录与正式宿主共用
+extent-contract-green，后续CreateNew会拒绝运行；这是计划错误，不是测试失败。
+[问题及最小修订](2026-11-03-offline-extent-contract-rebind.md)提议仅将辅助记录改为
+extent-contract-binding-red/green，正式宿主编号不变。等待此身份修订确认。
+尚未修改源码或创建新运行记录，未消耗新增额度；累计17辅助/4宿主/3编译/
+186快照不变。旧记录全部保留，NOT_ACCEPTED。
+
 ## Latest — extent contract design approved; implementation plan awaits execution approval
 
 用户“是”批准2c58fb47书面设计；原设计文件保持原字节。

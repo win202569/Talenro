@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest preflight: plan881bdd0a was approved, but execution has not started.
+[Preflight finding and proposed correction](../roadmap/2026-11-03-offline-extent-contract-rebind.md)
+records a collision: auxiliary GREEN19 and contract host both name
+extent-contract-green.intent/final/tool-record. Do not execute the uncorrected
+plan or overwrite either receipt. Proposed auxiliary slots are
+extent-contract-binding-red/green, retaining the fixed host slot and all budgets.
+Correction awaits confirmation; original approved plan/spec bytes are unchanged.
+No new runtime artifacts or operational edits; counters remain17/4/3/186.
+
 Latest planning2026-11-03: user approved design at2c58fb47 with “是”; keep its
 original draft bytes for provenance. [Implementation plan](../superpowers/plans/2026-11-03-offline-extent-contract-rebind.md)
 is pending execution approval. It defines four operational edits, RED18/GREEN19,
