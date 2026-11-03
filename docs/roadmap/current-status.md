@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-03
 
+## Latest — expected RED20 confirmed; frozen fixture defect stops GREEN21
+
+[实际记录](2026-11-03-offline-history-path-repair.md)：RED20精确复现原始路径错误，
+准备/记录错误为空。后续只读检查发现新测试从错误字典获取相对文件哈希，得到空值。
+已保存history-path.stop，原测试/输入不改；未修复生产源码、未运行GREEN21。
+累计20辅助/4宿主/3编译/186快照，剩余一次GREEN未消耗但冻结，NOT_ACCEPTED。
+最终归档566文件/135目录/31零字节解码一致，SHA
+3FA4492545F0187F47E051C0D22DAF21C5B9396AFF2AD6A8B6E5ACC59A014CAA。
+
 ## Latest — historical-path plan approved; RED20 prepared, not invoked
 
 用户批准ed3cead3计划。18组测试及辅助工具已编写/解析；31源码、2307原历史记录

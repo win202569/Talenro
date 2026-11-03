@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+Latest actual: [history-path result](../roadmap/2026-11-03-offline-history-path-repair.md).
+RED20 expected failure confirmed, but frozen test's relative-file fixture reads
+the wrong map (OriginalHistory lacks live expected-output key; BaselineSources
+contains it). Local stop recorded before source implementation or GREEN21.
+Use portable-history-path-final.json for full RED20/stop records. Counters20/4/3/186;
+remaining GREEN21 frozen, not consumed. No candidate archive/source repair exists.
+Preserve frozen test/input and all eleven stops. A versioned fixture amendment
+needs explicit approval; do not replay RED20 or launch stopped runtime stages.
+Final archive566files/135directories/31zero-byte verified; SHA
+3FA4492545F0187F47E051C0D22DAF21C5B9396AFF2AD6A8B6E5ACC59A014CAA.
+
 Latest preparation: historical-path plan ed3cead3 approved.18group definitions
 and three helpers parse;31sources/2307original history/2314immutable inputs bound.
 Use portable-history-path-preparation.json after its checkpoint push. RED20 not
