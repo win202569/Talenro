@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-03
 
+## Latest — expected RED18 confirmed; four-file candidate prepared
+
+RED18实际0PASS/1FAIL/21NotRun/exit1，精确缺失新绑定函数，准备/记录错误均为空。
+四处绑定候选已实现并通过静态解析；旧断言/清单/停止记录保留，尚未运行GREEN19。
+候选输入固定31源码指纹，继承不可变输入中的历史记录。累计18辅助/4宿主/
+3编译/186快照；未冻结新源码、未启动新宿主，NOT_ACCEPTED。
+
 ## Latest — corrected auxiliary identities approved; RED18 prepared
 
 用户批准193be974命名修订，辅助使用extent-contract-binding-red/green。

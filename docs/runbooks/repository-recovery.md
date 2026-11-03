@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+Latest candidate: expected RED18=0PASS/1FAIL/21NotRun/exit1, no setup/recording
+errors; full tool result preserved. Four operational binding files now edited
+and parse; GREEN19 not invoked. Use portable-extent-contract-candidate.json.
+Candidate input binds31source hashes and immutable history through InputSHA256.
+Do not replay RED18, use old driver route, or launch host before GREEN19 and
+the single new freeze. Counters18aux/4hosts/3compiles/186snapshots; NOT_ACCEPTED.
+
 Latest preparation: naming correction193be974 approved with “是”. Auxiliary
 slots are extent-contract-binding-red/green; host slot stays extent-contract-green.
 New22group test and three mechanical/phase helpers parse; input binds2307history

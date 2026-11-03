@@ -1,13 +1,15 @@
 param(
     [Parameter(Mandatory)][ValidateSet('writer-green','contract-green','core','lifecycle','continuation')][string]$Grant,
-    [Parameter(Mandatory)][ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256
+    [Parameter(Mandatory)][ValidatePattern('^[A-F0-9]{64}$')][string]$FrozenSHA256,
+    [string]$Epoch='legacy'
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $packet=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-$attemptSlot=if($Grant -ceq 'writer-green'){'writer-projection-green'}else{$Grant}
+if($Epoch -cnotin @('legacy','extent-contract') -or ($Epoch -ceq 'extent-contract' -and $Grant -cne 'contract-green')){throw 'OD: invalid capture epoch'}
+$attemptSlot=if($Epoch -ceq 'extent-contract'){'extent-contract-green'}elseif($Grant -ceq 'writer-green'){'writer-projection-green'}else{$Grant}
 $script:Groups=[Collections.Generic.List[object]]::new()
 $script:Details=[Collections.Generic.List[object]]::new()
 $script:ActiveSessions=[Collections.Generic.List[object]]::new()
@@ -111,7 +113,7 @@ try{
     . (Join-Path $PSScriptRoot entry.tests.ps1)
     switch -CaseSensitive ($Grant){
         'writer-green' {. (Join-Path $PSScriptRoot record-boundary.tests.ps1);Invoke-ODWriterTests}
-        'contract-green' {. (Join-Path $PSScriptRoot observation-contract.tests.ps1);Invoke-ODContractTests}
+        'contract-green' {. (Join-Path $PSScriptRoot observation-contract.tests.ps1);Invoke-ODContractTests $Epoch}
         'core' {Invoke-ODEntryContract $Grant;Invoke-ODRuntimeContract $Grant}
         'lifecycle' {Invoke-ODEntryContract $Grant;Invoke-ODRuntimeContract $Grant}
         'continuation' {Invoke-ODEntryContract $Grant;Invoke-ODRuntimeContract $Grant}

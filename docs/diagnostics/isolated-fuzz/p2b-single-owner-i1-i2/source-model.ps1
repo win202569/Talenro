@@ -1,3 +1,11 @@
+function Get-ODEpochManifestName([string]$Epoch='legacy'){
+    if($Epoch -ceq 'legacy'){return 'repair-green.frozen.json'}
+    if($Epoch -ceq 'extent-contract'){return 'extent-contract.frozen.json'}
+    throw 'OD: invalid explicit epoch'
+}
+function Assert-ODExtentLineage([Collections.IDictionary]$Manifest,[Collections.IDictionary]$Parent,[string]$ParentSHA256,[string]$WriterSHA256){
+    if($ParentSHA256 -cne 'A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556' -or $WriterSHA256 -cne '182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461' -or $Manifest.PreviousFrozenSHA256 -cne $ParentSHA256 -or $Parent.PreviousFrozenSHA256 -cne $WriterSHA256 -or $Manifest.ExtentContractRecovery.ParentSHA256 -cne $ParentSHA256 -or $Manifest.ExtentContractRecovery.WriterSHA256 -cne $WriterSHA256){throw 'OD: extent contract lineage mismatch'}
+}
 # Read-only context construction, deliberately outside the pure predicates.
 # Merely dot-sourcing this file reads no files and executes no stored code.
 function Get-ODPinnedSHA256([string]$Path,[Collections.IDictionary]$Manifest){
@@ -81,7 +89,7 @@ function Get-ODIntentCallBinding([Collections.IDictionary]$SourceModel,[string]$
     if($call.Source -cne $Source -or $call.SHA256 -cne $model.SHA256 -or $call.Owner -cne 'Invoke-ODOwnerControls' -or $call.Variable -cne 'controls'){throw 'OD: unit call binding mismatch'}
     return $call
 }
-function New-ODFixedContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest,[string]$FrozenSHA256,[bool]$Historical){
+function New-ODFixedContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest,[string]$FrozenSHA256,[bool]$Historical,[string]$Epoch='legacy'){
     if($Profile -cnotin @('entry-migration-core','entry-migration-owned','entry-migration-live')){throw 'OD: source model unsupported profile'}
     $Repo=[IO.Path]::GetFullPath($Repo)
     # The two callers below choose these fixed namespaces. Runtime never falls
@@ -98,7 +106,7 @@ function New-ODFixedContext([string]$Repo,[string]$Profile,[Collections.IDiction
     $entry=[IO.Path]::GetFullPath((Join-Path $Repo $entryRelative))
     $kernel=[IO.Path]::GetFullPath((Join-Path $Repo ($runtime+'/session.psm1')))
     $packetRoot=[IO.Path]::GetFullPath((Join-Path $Repo $packetRelative))
-    $manifestPath=Join-Path $packetRoot $(if($Historical){'runtime-green.frozen.json'}else{'repair-green.frozen.json'})
+    $manifestPath=Join-Path $packetRoot $(if($Historical){'runtime-green.frozen.json'}else{Get-ODEpochManifestName $Epoch})
     if($Historical){$FrozenSHA256=Get-ODPinnedSHA256 $manifestPath $Manifest}
     elseif((Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash -cne $FrozenSHA256){throw 'OD: source model runtime freeze mismatch'}
     $literalPath=Join-Path $Repo 'docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/expected-observations.json'
@@ -116,8 +124,8 @@ function New-ODFixedContext([string]$Repo,[string]$Profile,[Collections.IDiction
         Kernel=[ordered]@{Path=$kernel;SHA256=$sourceModel[$kernel].SHA256};Manifest=[ordered]@{Path=$manifestPath;SHA256=$FrozenSHA256}
     }
 }
-function New-ODRuntimeContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest,[string]$FrozenSHA256){
-    return New-ODFixedContext $Repo $Profile $Manifest $FrozenSHA256 $false
+function New-ODRuntimeContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest,[string]$FrozenSHA256,[string]$Epoch='legacy'){
+    return New-ODFixedContext $Repo $Profile $Manifest $FrozenSHA256 $false $Epoch
 }
 function New-ODHistoricalContext([string]$Repo,[string]$Profile,[Collections.IDictionary]$Manifest){
     return New-ODFixedContext $Repo $Profile $Manifest '' $true
@@ -125,11 +133,17 @@ function New-ODHistoricalContext([string]$Repo,[string]$Profile,[Collections.IDi
 
 # This explicit data-unit context is never selected by the runtime consumer.
 # It describes the already planned writer-green IntentFailureNoWork case only.
-function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifest,[string]$RepairSHA256){
-    $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256
+function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifest,[string]$RepairSHA256,[string]$Epoch='legacy'){
+    $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256 $Epoch
     $writerManifest=Join-Path $context.PacketRoot 'writer-projection-repair.frozen.json'
     $writerHash=(Get-FileHash -LiteralPath $writerManifest -Algorithm SHA256).Hash
-    if($Manifest.PreviousFrozenSHA256 -cne $writerHash){throw 'OD: unit context prior freeze mismatch'}
+    if($Epoch -ceq 'extent-contract'){
+        $parentPath=Join-Path $context.PacketRoot 'repair-green.frozen.json'
+        $parentHash=(Get-FileHash -LiteralPath $parentPath -Algorithm SHA256).Hash
+        $parent=Get-Content -LiteralPath $parentPath -Raw|ConvertFrom-Json -AsHashtable
+        Assert-ODExtentLineage $Manifest $parent $parentHash $writerHash
+        if((Get-FileHash -LiteralPath $parentPath -Algorithm SHA256).Hash -cne $parentHash){throw 'OD: unit parent drift'}
+    }elseif($Manifest.PreviousFrozenSHA256 -cne $writerHash){throw 'OD: unit context prior freeze mismatch'}
     $context.Manifest=[ordered]@{Path=$writerManifest;SHA256=$writerHash}
     $context.ProfileRoot=[IO.Path]::GetFullPath((Join-Path $context.PacketRoot 'unit/writer-projection-green/owner-controls/intent-profile/entry-migration-core'))
     $extra=Read-ODSourceModel $Repo @('docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/record-boundary.tests.ps1','docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/case-module.ps1') $Manifest

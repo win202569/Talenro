@@ -80,6 +80,7 @@ function Invoke-ODContractStaticChecks($Manifest,$Suite){
     } $Suite
 }
 function Invoke-ODContractTests {
+    param([string]$Epoch='legacy')
     . (Join-Path $PSScriptRoot observation-contract.ps1)
     $available=$true
     foreach($name in @('Assert-ODProfileObservations','Assert-ODProfileReport')){
@@ -96,7 +97,7 @@ function Invoke-ODContractTests {
     LS-Details SchemaSuite ($suite.ToArray())
     $script:ContractSuiteRow=$script:Details[$script:Details.Count-1]
     . (Join-Path $PSScriptRoot source-model.ps1)
-    $manifestPath=Join-Path $packet 'repair-green.frozen.json'
+    $manifestPath=Join-Path $packet (Get-ODEpochManifestName $Epoch)
     LS-Need ((Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash -ceq $FrozenSHA256) 'contract host bound to repair freeze'
     $manifest=Get-Content -LiteralPath $manifestPath -Raw|ConvertFrom-Json -AsHashtable
     $historical=Join-Path $repo '.superpowers/sdd/2026-10-31-offline-diagnostic-runtime-migration'
@@ -169,7 +170,7 @@ function Invoke-ODContractTests {
     $intentCases=@($owners[0].Value|Where-Object Name -CEQ IntentFailureNoWork)
     LS-Need ($intentCases.Count -eq 1) 'actual intent-failure input'
     $intentReport=$intentCases[0].IntentReport
-    $intentContext=New-ODIntentUnitContext $repo $manifest $FrozenSHA256
+    $intentContext=New-ODIntentUnitContext $repo $manifest $FrozenSHA256 $Epoch
     Invoke-ODContractCase Schema2IntentFailure entry-migration-core IntentFailure $false {Assert-ODProfileReport $intentReport entry-migration-core $intentContext;LS-Need ($intentReport.Status -ceq 'INCOMPLETE') 'valid representation is not successful disposition'} $suite
     for($vector=1;$vector -le 18;$vector++){
         $report=Copy-ODContractData $(if($vector -cin @(10,12)){$intentReport}else{$reports[0]})
