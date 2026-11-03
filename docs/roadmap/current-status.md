@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-03
 
+## Latest — v2 preparation stopped at parser; GREEN21 remains unconsumed
+
+[v2实际记录](2026-11-03-offline-history-path-v2-result.md)：用户批准版本化修订后，
+新测试生成过程中的字符串替换错误导致语法检查失败；这是助手编写工具错误。
+已保留v2停止记录，未创建新测试意图、未运行GREEN21、未修改生产源码。
+累计20辅助/4宿主/3编译/186快照不变；检查点未完成，NOT_ACCEPTED。
+v2最终归档570文件/135目录/31零字节解码一致，SHA
+52F2B69A4814F6B23121E07F875B3DEB136554258A6A006BA5E017452A3146A2。
+
 ## Latest — expected RED20 confirmed; frozen fixture defect stops GREEN21
 
 [实际记录](2026-11-03-offline-history-path-repair.md)：RED20精确复现原始路径错误，

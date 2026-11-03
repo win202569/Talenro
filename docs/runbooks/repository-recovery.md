@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+Latest actual: [history-path v2 preparation result](../roadmap/2026-11-03-offline-history-path-v2-result.md).
+Approved versioned correction did not reach regression: generated test failed
+parsing during preparation. history-path-v2.stop.json exists; v2 test is malformed
+and must not be run. No production edits or GREEN21 invocation. Counters20/4/3/186.
+portable-history-path-v2-final.json preserves this unfinished draft and actual
+stop; all originals remain. This is not a successful repair or runtime acceptance.
+Final archive verified570files/135directories/31zero-byte; SHA
+52F2B69A4814F6B23121E07F875B3DEB136554258A6A006BA5E017452A3146A2.
+
 Latest actual: [history-path result](../roadmap/2026-11-03-offline-history-path-repair.md).
 RED20 expected failure confirmed, but frozen test's relative-file fixture reads
 the wrong map (OriginalHistory lacks live expected-output key; BaselineSources
