@@ -1,5 +1,15 @@
 # Runtime prefix timing execution ledger
 
+## Latest: v3 preparation verified; diagnostic not yet invoked
+
+User approved full dependency review and versioned correction. All14 definitions
+reverse to original hashes; only Get-Content was missing. Active helpers3 verified.
+InputSHA256 C1D11AF0B5824E44149AA71A02F4417C3B95C89F5CD63B502D7E58FB8FEBF44C.
+Preparation archive20files decoded byte-identical, SHA256
+39275AFD2924556CDC71792CDDA579BA7883801CAE7AF6DAC9B9633244CF0C86.
+Counters26/5/3/217. Exactly one computation27 / at most host6 remains approved.
+NOT_ACCEPTED. Older statuses below are historical.
+
 Status: STOPPED / PREPARATION_V2_DEPENDENCY_ALLOWLIST_FAILURE / NOT_ACCEPTED.
 
 ## Latest: approved versioned correction, second preparation stop

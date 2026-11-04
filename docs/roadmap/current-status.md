@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-04
 
+## Latest — v3准备通过，待执行唯一计时诊断
+
+14个定义可逆、3个工具身份核验通过；20文件归档逐字节一致。
+固定输入已生成，诊断尚未启动，累计26/5/3/217。下一步仅运行已批准的一轮27号诊断，
+最多启动第6个进程；无重试、无产品验收。旧停止记录全部保留。
+
 ## Latest — corrected sorting verified; dependency allowlist stopped preparation
 
 版本化修正已通过插入可逆性检查，随后依赖闭包检查发现准备工具漏列Get-Content。

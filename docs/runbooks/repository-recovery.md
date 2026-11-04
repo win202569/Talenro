@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST: v3 preparation verified, not executed. Restore portable-runtime-prefix-timing-v3-preparation.json
+(20 files, SHA25639275AFD2924556CDC71792CDDA579BA7883801CAE7AF6DAC9B9633244CF0C86).
+Input SHA256C1D11AF0B5824E44149AA71A02F4417C3B95C89F5CD63B502D7E58FB8FEBF44C.
+Use only parent-v3 after reading the approved plan and v3 approval appendix.
+A new computer cannot automatically reproduce fixed runtime/identity/path bindings.
+Before execution check intent remains absent. Existing intent forbids retry.
+Counters26/5/3/217; one approved diagnostic remains. NOT_ACCEPTED.
+
 LATEST preparation-v2 STOP: explicit integer key sorting fixed reversal; next
 dependency check rejected original Get-Content because preparer omitted it from
 its allowlist. No input/instrumentation/approval or diagnostic27/process created.
