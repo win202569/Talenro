@@ -8,8 +8,8 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $packet=Join-Path $repo '.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner'
-if($Epoch -cnotin @('legacy','extent-contract','history-contract') -or ($Epoch -cin @('extent-contract','history-contract') -and $Grant -cne 'contract-green')){throw 'OD: invalid capture epoch'}
-$attemptSlot=if($Epoch -ceq 'history-contract'){'history-contract-host'}elseif($Epoch -ceq 'extent-contract'){'extent-contract-green'}elseif($Grant -ceq 'writer-green'){'writer-projection-green'}else{$Grant}
+if($Epoch -cnotin @('legacy','extent-contract','history-contract','history-contract-runtime') -or ($Epoch -cin @('extent-contract','history-contract','history-contract-runtime') -and $Grant -cne 'contract-green')){throw 'OD: invalid capture epoch'}
+$attemptSlot=if($Epoch -ceq 'history-contract-runtime'){'history-contract-runtime-host'}elseif($Epoch -ceq 'history-contract'){'history-contract-host'}elseif($Epoch -ceq 'extent-contract'){'extent-contract-green'}elseif($Grant -ceq 'writer-green'){'writer-projection-green'}else{$Grant}
 $script:Groups=[Collections.Generic.List[object]]::new()
 $script:Details=[Collections.Generic.List[object]]::new()
 $script:ActiveSessions=[Collections.Generic.List[object]]::new()

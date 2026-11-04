@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST candidate: approved four-file implementation authored, syntax/LF/unique
+definitions checked; protected functions/process tail unchanged. Candidate input
+SHA2560D47E2B3E7007ECBD112B02846B90BA7CE4646D3D5F0DA98D00527C88FD58D58.
+Use portable-history-contract-runtime-execution-v2-candidate.json (619files,
+135dirs,31empty, decoded equal), SHA256
+856397BF68527853CF970545B393E6A87565150FD0D38A69CDEB7DCF647B3DDC.
+GREEN26 unused at this checkpoint. Verify no existing green intent/new stop, then
+run the approved v2 runner once after remote confirmation. No host/freeze yet.
+
 LATEST RED25 checkpoint: Task1 complete, exact expected0PASS/1FAIL/19NotRun/exit1,
 RuntimeException OD: invalid explicit epoch; SetupError/RecordingError null.
 2401 source/history hashes match pre/post/live; no new stop. Counters25/4/3/186.

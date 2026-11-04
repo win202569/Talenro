@@ -1,6 +1,30 @@
 # GREEN24 runtime recovery execution progress
 
-Status: RED25_EXPECTED_FAILURE / TASK1_COMPLETE / NOT_ACCEPTED.
+Status: CANDIDATE_PREPARED / GREEN26_PENDING / NOT_ACCEPTED.
+
+## 2026-11-04: Task2 implementation candidate
+
+Implemented runtime input authentication separating historical GREEN24 maps from
+current31source identities, exact25/26receipt/tool validation, private early
+CreateNew ownership, gate, lineage and2344pin/31snapshot Prepare construction.
+Extended only driver/capture/source-model/suite epoch binding. Original historical
+route remains untouched; runtime failures use the approved execution-v2 stop.
+
+Authoring inspection corrected a patch ordering issue and an overbroad source-model
+text selection before candidate fixation. No regression/host was invoked during
+authoring. Final checks:four scripts parse,LF,unique functions; exactlyfour changed
+sources;2370historical hashes intact. Protected history/extent/recorder/false-flags
+functions and owned-process tail byte-identical. GREEN26 remains unrun.
+
+Ruling: RED25 actual tool wrapper has Input/InitialResult/Polls/Result but no Tool
+label; authenticate its exact command/workdir/result and versioned runner hash in
+the actual intent, rather than invent a missing field in immutable evidence.
+Historical GREEN24 keeps its original Tool label and full hash-bound record.
+
+CandidateSHA256:0D47E2B3E7007ECBD112B02846B90BA7CE4646D3D5F0DA98D00527C88FD58D58.
+Candidate archive619files/135dirs/31empty,decoded equal; SHA256
+856397BF68527853CF970545B393E6A87565150FD0D38A69CDEB7DCF647B3DDC.
+Counters25/4/3/186. Next remote verification, single GREEN26; stop on unexpected.
 
 ## 2026-11-04: versioned entry and actual RED25
 

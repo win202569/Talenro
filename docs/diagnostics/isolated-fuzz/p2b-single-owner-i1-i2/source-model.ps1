@@ -1,4 +1,5 @@
 function Get-ODEpochManifestName([string]$Epoch='legacy'){
+    if($Epoch -ceq 'history-contract-runtime'){return 'history-contract-runtime.frozen.json'}
     if($Epoch -ceq 'legacy'){return 'repair-green.frozen.json'}
     if($Epoch -ceq 'extent-contract'){return 'extent-contract.frozen.json'}
     if($Epoch -ceq 'history-contract'){return 'history-contract.frozen.json'}
@@ -11,6 +12,13 @@ function Assert-ODHistoryLineage([Collections.IDictionary]$Manifest,[Collections
     if($ParentSHA256 -cne 'A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556' -or $WriterSHA256 -cne '182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461' -or $Manifest.PreviousFrozenSHA256 -cne $ParentSHA256 -or $Parent.PreviousFrozenSHA256 -cne $WriterSHA256 -or $Manifest.HistoryContractRecovery.ParentSHA256 -cne $ParentSHA256 -or $Manifest.HistoryContractRecovery.WriterSHA256 -cne $WriterSHA256){throw 'OD: history contract lineage mismatch'}
     foreach($key in @('ApprovalSHA256','InputSHA256','CandidateSHA256','RedSHA256','GreenSHA256')){if($Manifest.HistoryContractRecovery[$key] -isnot [string] -or $Manifest.HistoryContractRecovery[$key] -cnotmatch '^[A-F0-9]{64}$'){throw 'OD: history contract lineage mismatch'}}
     if($Manifest.HistoryContractRecovery.WriterArtifacts['writer-projection-repair.frozen.json'] -cne $WriterSHA256 -or $Manifest.HistoryContractRecovery.PrepareToken -cne $Manifest.PrepareToken){throw 'OD: history contract lineage mismatch'}
+}
+function Assert-ODRuntimeLineage([Collections.IDictionary]$Manifest,[Collections.IDictionary]$Parent,[string]$ParentSHA256,[string]$WriterSHA256){
+    if($ParentSHA256 -cne 'A9949DD46C7F928CFE7DB33F092AF0497E6F89556E8F359A8A55CB4484BB1556' -or $WriterSHA256 -cne '182B85886304BFE3CBFB248DDA70F2EB99DF3E2158F574DBE299519DE7CE0461' -or $Manifest.PreviousFrozenSHA256 -cne $ParentSHA256 -or $Parent.PreviousFrozenSHA256 -cne $WriterSHA256 -or $Manifest.RuntimeRecovery.ParentSHA256 -cne $ParentSHA256 -or $Manifest.RuntimeRecovery.WriterSHA256 -cne $WriterSHA256){throw 'OD: runtime lineage mismatch'}
+    foreach($key in @('ApprovalSHA256','InputSHA256','CandidateSHA256','RedSHA256','GreenSHA256')){if($Manifest.RuntimeRecovery[$key] -isnot [string] -or $Manifest.RuntimeRecovery[$key] -cnotmatch '^[A-F0-9]{64}$'){throw 'OD: runtime lineage mismatch'}}
+    if($Manifest.RuntimeRecovery.WriterArtifacts['writer-projection-repair.frozen.json'] -cne $WriterSHA256 -or $Manifest.RuntimeRecovery.PrepareToken -cne $Manifest.PrepareToken){throw 'OD: runtime lineage mismatch'}
+    $prefix='.superpowers/sdd/2026-11-01-offline-i1-i2-single-owner/'
+    if($Manifest.RuntimeRecovery.HistoricalGreen24.Count -ne 4 -or $Manifest.RuntimeRecovery.HistoricalGreen24[$prefix+'history-contract-v2.input.json'] -cne 'FA9A9A82DFC135A2284B62C341F1D1B16B47ABFC3ADCDDC42DF39D765F1A99E2' -or $Manifest.RuntimeRecovery.HistoricalGreen24[$prefix+'history-contract-v2-green.final.json'] -cne 'AB86CCC7042089B0D705E9FB5933B4ADD92045514B5B976068315693F7CCFC8A'){throw 'OD: runtime lineage mismatch'}
 }
 # Read-only context construction, deliberately outside the pure predicates.
 # Merely dot-sourcing this file reads no files and executes no stored code.
@@ -143,7 +151,13 @@ function New-ODIntentUnitContext([string]$Repo,[Collections.IDictionary]$Manifes
     $context=New-ODRuntimeContext $Repo 'entry-migration-core' $Manifest $RepairSHA256 $Epoch
     $writerManifest=Join-Path $context.PacketRoot 'writer-projection-repair.frozen.json'
     $writerHash=(Get-FileHash -LiteralPath $writerManifest -Algorithm SHA256).Hash
-    if($Epoch -ceq 'history-contract'){
+    if($Epoch -ceq 'history-contract-runtime'){
+        $parentPath=Join-Path $context.PacketRoot 'repair-green.frozen.json'
+        $parentHash=(Get-FileHash -LiteralPath $parentPath -Algorithm SHA256).Hash
+        $parent=Get-Content -LiteralPath $parentPath -Raw|ConvertFrom-Json -AsHashtable
+        Assert-ODRuntimeLineage $Manifest $parent $parentHash $writerHash
+        if((Get-FileHash -LiteralPath $parentPath -Algorithm SHA256).Hash -cne $parentHash){throw 'OD: unit parent drift'}
+    }elseif($Epoch -ceq 'history-contract'){
         $parentPath=Join-Path $context.PacketRoot 'repair-green.frozen.json'
         $parentHash=(Get-FileHash -LiteralPath $parentPath -Algorithm SHA256).Hash
         $parent=Get-Content -LiteralPath $parentPath -Raw|ConvertFrom-Json -AsHashtable

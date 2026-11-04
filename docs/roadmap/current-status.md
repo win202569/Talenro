@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-04
 
+## Latest — four-file runtime candidate prepared; GREEN26 pending
+
+新验证/回执绑定、运行入口、一次性所有权和冻结来源链已实现，仅4个批准文件变化。
+语法/LF/函数唯一性检查通过，原历史校验、错误定位、记录器、能力标志和进程尾部未改。
+候选输入0D47E2B3E7007ECBD112B02846B90BA7CE4646D3D5F0DA98D00527C88FD58D58；
+归档619文件/135目录/31空文件解码一致。GREEN26尚未运行，累计25/4/3/186。
+远端确认后仅运行一次GREEN26，任何非预期结果停止；NOT_ACCEPTED。
+
 ## Latest — RED25 exact expected failure preserved
 
 RED25一次返回0PASS/1FAIL/19NotRun/exit1；错误精确为OD: invalid explicit epoch，
