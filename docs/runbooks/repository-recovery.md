@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST STOP: bounded disk adapter preparation failed once at prepare.ps1:15,
+strict-mode Message property access while formatting parser diagnostics. Do not
+run the draft worker/parent or overwrite the original preparation/stop.
+Recover portable-runtime-bounded-disk-adapter-stopped.json (11files/1directory),
+SHA25655464D60ACAF838C65B301135FD88A77B35B980A75C7D1D38D8977DDEC15D84D.
+Original drafts, actual failed call, stop and independent2439hash verification are
+included and decoded byte-equal. No input/intent/compile/worker output or DLL.
+Counters29/8/3/217 unchanged; Task1 incomplete, Task2 not invoked, NOT_ACCEPTED.
+Read ../roadmap/2026-11-04-runtime-bounded-disk-adapter-result.md. Versioned
+correction requires renewed approval despite unconsumed30/9/4 allowance.
+
 LATEST PLAN PENDING: design dcc3b586 approved; read
 ../superpowers/plans/2026-11-04-runtime-bounded-disk-adapter.md.
 Proposed scope: fixed24adapter cases in one owned verification worker, one compile,
