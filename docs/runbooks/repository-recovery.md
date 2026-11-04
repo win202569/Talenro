@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST FINAL: computation29/host8 completed once; counters29/8/3/217, allowance consumed.
+Do NOT rerun runtime-copy-transport-parent.ps1 or preparation in its used namespace.
+Recover portable-runtime-copy-transport-final.json (26files/2directories),
+SHA256 4887A84DD04E8D9D6FA2E1B40803C0E7EE9296C6C90AE0741F81A323C52B10D7.
+Decoded length/hash/content verification passed; includes preparation machinery,
+input/intent/claim, original tool records,62events, child/parent results and independent
+verification. Both real output files available: stdout48bytes, stderr0bytes.
+COPY_PREFIX_COMPLETED; execution16239ms, no timeout/errors/deferred release.
+Read ../roadmap/2026-11-04-runtime-copy-transport-result.md for limitations.
+NOT_ACCEPTED; no product fix or main merge. Next step is read-only synthesis of
+saved evidence; new execution requires a new finite scope. Earlier pending labels below are historical.
+
 LATEST PREPARED: plan825b98a7 approved; Task1 complete, Task2 not invoked.
 Recover portable-runtime-copy-transport-preparation.json (15files/1directory),
 SHA256 A581469AE62D66A670ED9EE37ACE57905A887B2DB64A5DECE5FBFB0E111B988B.
