@@ -1,5 +1,47 @@
 # Bounded disk adapter: stopped preparation
 
+## Final v2: ADAPTER_VERIFIED / NOT_ACCEPTED
+
+Preparation checkpoint2ca03b30d7e142c0afcd31660e5c4b67fa45bde2 was pushed before
+invocation. A transient network error affected only the subsequent ls-remote;
+a read-only repeat confirmed remote equality and a clean worktree before running.
+Exactly computation30, one owned verification worker(host9) and one compilation4
+executed. Counters30/9/4/217; allowance exhausted. No business host or retry.
+
+All24fixed cases and111recorded assertions passed, including alternate write
+entries, hard capacity rejection, invalid input, pre/in-flight cancellation,
+partial faults, concurrent calls, prohibited operations and finalization state.
+Fake sinks establish deterministic adapter behavior, not real filesystem failure
+probabilities. Actual filesystem cases checked exact48/0bytes and CreateNew
+preservation. Overflow copy case10 retained0bytes: the rejected chunk was whole,
+not silently truncated; no promise of a65536-byte prefix is inferred.
+
+Parent exit0, owned exit, both output-copy tasks RanToCompletion; stdout18bytes
+exactly ADAPTER_VERIFIED plus CRLF, stderr0bytes. Execution5087ms, preflight979ms,
+cleanup159ms, drain54ms. No timeout/termination/overflow/error/deferred release.
+Independent2470hash comparisons/2436unique paths match, including all31original
+sources. Four recorded maps (379850bytes each) match expected observations and
+their references.52events/5881bytes form26closed intervals in order.14stable
+data files total524340bytes; each<=65536, inventory/bytes within approved limits.
+No pending operations, unexecuted cases, unavailable outputs or new stop.
+
+Final archive portable-runtime-bounded-disk-adapter-v2-final.json contains51files
+and26directories, decoded length/hash/containment/bytes verified; SHA256
+BD10DDFB8D2523ACDBCB4BBD3177776DC5F283387ECF76A6A911B995B78294E9.
+One local generated DLL excluded:50176bytes, SHA256
+4C1470B94B3DEAA87635F1375A05161BE0E1F4C4D2CF65595214A8E39CDBCCDA.
+Archive retains sources, compile command/result, raw tool records, tests, four
+identity maps and independent verification. Restore progress on another computer;
+recompiling the missing DLL needs renewed scope, not automatic execution.
+
+This verifies only the adapter matrix in its isolated worker. Parent disk I/O
+latency/finalization ownership for a future business-host copy remains unresolved.
+No original timeout fix, full-suite success, or product acceptance claim; all five
+flags remain false. Next step may only review that lifecycle boundary read-only;
+do not implement/run a business host without separate design and finite approval.
+The map-reference ruling remains documented below; old preparation failures and
+their whitespace warnings are immutable history, not current verification failures.
+
 ## Latest: versioned preparation passed, verification not invoked
 
 User approved versioned correction after7faf2155. Data-only reproduction confirmed

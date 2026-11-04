@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST ADAPTER VERIFIED: one computation30/verification worker9/compile4 completed;
+counters30/9/4/217, allowance exhausted. No business host. Do not rerun parent-v2.
+Recover portable-runtime-bounded-disk-adapter-v2-final.json (51files/26directories),
+SHA256BD10DDFB8D2523ACDBCB4BBD3177776DC5F283387ECF76A6A911B995B78294E9.
+24cases/111assertions,52events,14stable data files and four identity maps verified.
+Includes original stops, source/commands, actual tool records and independent
+2470hash check. One local DLL excluded (50176bytes, hash in result/archive); fresh
+computer recompilation requires new scope. Source/evidence progress is recoverable.
+ADAPTER_VERIFIED is NOT_ACCEPTED. Read the latest adapter result; future business
+parent disk finalization/ownership must be reviewed before separately authorized
+implementation/run. Earlier pending/stopped labels below are historical.
+
 LATEST V2 PREPARED: corrected preparation after7faf2155 approved, static checks passed.
 Recover portable-runtime-bounded-disk-adapter-v2-preparation.json (21files), SHA256
 F3ED30F86F3584D157F07451A31BE598244CB30B94C36DD3382E15310BC7012C.
