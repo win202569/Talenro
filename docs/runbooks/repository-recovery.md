@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION STOPPED: plan e4507347 approved; five source drafts and18
+unit cases authored, uncompiled/unexecuted. One static preparation failed at
+prepare.ps1:45 on Measure-Object -Property MaxStarts for ordered-dictionary rows.
+No retry, compilation or synthetic child. Counters remain30/9/4/217.
+Read ../roadmap/2026-11-04-runtime-isolated-writer-result.md and restore the
+portable-runtime-isolated-writer-preparation.json STOPPED checkpoint only after
+verifying paths, decoded lengths and hashes. Old evidence/drafts/stop stay frozen.
+There is no input.json or successful static-checks report. Versioned correction
+needs renewed approval; never rerun the consumed original preparation or infer
+runtime permission from unused allowance. No main merge/business acceptance.
+The adapter DLL remains intentionally excluded: source progress is portable,
+but fresh-machine recompilation requires separately approved scope.
+
 LATEST PLAN PENDING: design168a05f8 approved. Read
 ../superpowers/plans/2026-11-04-runtime-isolated-writer.md.
 Proposed31..40computations: compiler/unit worker plus9synthetic scenarios;
