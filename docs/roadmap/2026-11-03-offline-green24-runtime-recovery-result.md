@@ -1,6 +1,38 @@
 # GREEN24 runtime recovery execution progress
 
-Status: STOPPED / PREPARATION_PARSER_FAILURE / NOT_ACCEPTED.
+Status: PREPARATION_OUTPUTS_VERIFIED / EXECUTION_BINDING_BLOCKED / NOT_ACCEPTED.
+
+## 2026-11-04: corrected preparation output reconciliation
+
+User approved versioned preparation correction after9513ae07. The original helper
+and parser stop remain unchanged. Corrected helper ran once in session74542;
+the final output and exit status are unavailable after the session expired.
+This is not a successful tool receipt. No replay was made.
+
+Fresh read-only reconciliation exited0:2405 hash checks matched (31 baseline
+sources,2370 historical entries,4 helpers). Approval hash matches binding;
+correction reply is 是.68 append entries and2344 expected pins.14stops remain;
+runtime-preparation-v2.stop absent. Only input,approval,original stop exist in
+the runtime namespace; RED25 not invoked and production sources unchanged.
+
+- Input SHA256:1E03F5ADE584EA955746736F836195DDC6BF049EF0BB09B9ED2352C4894CBB89
+- Approval SHA256:6557E675C707B352CEA6050C0933807EBB04B5FCB8991F5F98F68EECD5637D5C
+- Test SHA256:61C32125F913E76F3A8A639DA5BFA4A1850582775A2364E01CEF818D4ACA6988
+
+Preparation archive completed exit0:612files/135directories/31zero-byte,
+decoded bytes equal. SHA256:
+24C869B3B395C773F283C921CDB368A3C47FC104381BD471C7823899B54B6B1C.
+It preserves the corrected ignored helper and generated input/approval.
+
+Execution remains blocked: old runner unconditionally rejects the retained
+history-contract-runtime.stop.json, and uses that same occupied name for new
+failure records. Do not bypass/delete the stop. Seek explicit versioned execution
+binding approval: authenticate exact historical stop and correction/input identities,
+reject every new stop, use a separate new failure record, retain original runner
+and all budgets/checks. Missing original terminal result remains disclosed.
+No RED25/GREEN26/freeze/host; counters24/4/3/186 unchanged.
+
+The entries below are historical.
 
 Final archive verified609files/135directories/31zero-byte, decoded bytes equal.
 SHA256:F4CAFB362F3B8CA565228E81104AF6C58D9EB729455E318773D5DF2C6CAC6F39.

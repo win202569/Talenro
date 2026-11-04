@@ -1,4 +1,12 @@
-# Project status — updated 2026-11-03
+# Project status — updated 2026-11-04
+
+## Latest — preparation outputs verified; execution binding blocked
+
+修正版准备输出已生成。只读核对2405项哈希一致（31源码、2370历史文件、4工具）；
+原调用最终输出/退出码不可恢复，不补造成功回执、不重跑准备。14stop保留，无新增stop。
+准备归档612文件/135目录/31空文件，逐字节验证一致。RED25未运行，累计24/4/3/186。
+现有runner拒绝历史准备stop，且失败写入同名stop会冲突；需明确批准版本化执行绑定后继续。
+详见运行恢复报告；旧条目均为历史记录，整体NOT_ACCEPTED。
 
 ## Latest — runtime preparation stopped at parser
 

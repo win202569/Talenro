@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST 2026-11-04: corrected preparation outputs exist and 2405 hash checks match.
+Recover from portable-history-contract-runtime-preparation.json (612 files,
+135 directories,31 zero-byte; decoded equality verified), SHA256
+24C869B3B395C773F283C921CDB368A3C47FC104381BD471C7823899B54B6B1C.
+Original execution session74542 no longer available: terminal exit/output unknown;
+do not invent a successful receipt or replay preparation.14stops remain, no new
+v2 stop or RED25 intent. Counters24/4/3/186. The original runner rejects the old
+preparation stop and would collide with it when recording failure. Do not invoke
+it. Next requires explicit versioned execution binding, retaining all old bytes
+and using a distinct new failure record. NOT_ACCEPTED; earlier notes historical.
+
 LATEST STOP: runtime preparation helper is malformed (missing outer foreach
 brace). Syntax preflight failed; assistant orchestration nevertheless invoked it,
 which failed parsing before execution. Use portable-history-contract-runtime-final.json
