@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY COMPARISON: read ../roadmap/2026-11-04-runtime-host-prefix-comparison.md.
+No new execution or source changes;2396bound hashes verified, counters27/6/3/217.
+Root cause still unconfirmed. Full-host wrapper/output/error paths were not covered
+by successful diagnostic27. A new real-host tracing design and finite allowance
+are needed before implementation/execution; do not reuse consumed intents.
+
 LATEST FINAL: computation27 consumed, process6 started and exited normally.
 Do NOT rerun parent-v3: intent/claim already exist. Counters27/6/3/217; NOT_ACCEPTED.
 Recover portable-runtime-prefix-timing-v3-final.json (30files, decoded equal), SHA256
