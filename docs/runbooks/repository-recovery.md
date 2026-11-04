@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST freeze completed once:2344pins/31snapshots freshly verified. Frozen SHA256
+186FE2C2B44A31A98EA5406109AC888A625FD1B0061C5338D0382268015D9BBA.
+Restore portable-history-contract-runtime-completion-freeze.json (657files,
+143dirs,31empty,decoded equal), SHA256
+17A5EC422B168DDA7853661EF9E3479790FC518C42FFE7F924959EEB4DDE3AC0.
+Counters26/4/3/217; Prepare consumed, no host yet at this checkpoint. After remote
+verification, one RunOne contract-green/history-contract-runtime is approved.
+Never replay Prepare or auxiliary phases; check actual host intent before running.
+
 LATEST GREEN26:20PASS/0FAIL/0NotRun/exit0,all errors null;2401 pre/post/live
 hashes equal. No new stop. Counters26/4/3/186; no auxiliary attempts remain.
 Use portable-history-contract-runtime-completion-candidate.json:623files/135dirs/

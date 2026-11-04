@@ -1,6 +1,17 @@
 # GREEN24 runtime recovery execution progress
 
-Status: GREEN26_PASS / TASK2_COMPLETE / FREEZE_PENDING / NOT_ACCEPTED.
+Status: FREEZE_COMPLETE / SINGLE_HOST_PENDING / NOT_ACCEPTED.
+
+## 2026-11-04: actual single Prepare
+
+After remote checkpointfd28cf85, Prepare ran once,exit0,2344pins/31snapshots.
+Full actual initial/poll/final tool record saved. Fresh read-only checks verified
+all2344pin states/hashes and31snapshot hashes. No new stop. Frozen SHA256:
+186FE2C2B44A31A98EA5406109AC888A625FD1B0061C5338D0382268015D9BBA.
+Completion-freeze archive657files/143dirs/31empty,decoded equal,SHA256
+17A5EC422B168DDA7853661EF9E3479790FC518C42FFE7F924959EEB4DDE3AC0.
+Counters26/4/3/217. Prepare consumed; after remote preservation, only one approved
+RunOne remains. No host invocation at this checkpoint; NOT_ACCEPTED.
 
 ## 2026-11-04: actual GREEN26
 

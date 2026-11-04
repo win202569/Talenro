@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-04
 
+## Latest — runtime freeze complete; single host pending
+
+一次Prepare成功，2344项pins和31快照已另行只读核对。冻结SHA256为
+186FE2C2B44A31A98EA5406109AC888A625FD1B0061C5338D0382268015D9BBA。
+归档657文件/143目录/31空文件解码一致，无新增stop。累计26/4/3/217。
+远端确认后仅运行一次contract-green宿主；辅助/Prepare不可重跑，NOT_ACCEPTED。
+
 ## Latest — GREEN26 all20passed; freeze pending
 
 GREEN26一次20PASS/0FAIL/0NotRun/exit0，全部错误为空；2401项前后和当前哈希一致。
