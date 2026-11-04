@@ -1,5 +1,40 @@
 # Real-host prefix trace: preparation stop
 
+## Final: HOST_PREFIX_COMPLETED / NOT_ACCEPTED
+
+Preparation9e5bf866 was remotely preserved before exactly one computation28 and
+one process. Counters28/7/3/217. Actual exit0, no timeout/overflow/termination or
+parent/child/recording errors; owned exit and both streams complete.
+Preflight942ms; execution13234ms; cleanup37ms. No further execution authorized.
+
+Independent read-only verification:62events/8897bytes,31closed intervals, valid
+schema/sequence/stack/monotonic ticks.2420hash checks covering2386unique paths
+match actual bytes and all four parent/child before/after maps. Exactly two
+successful groups/SchemaSuite rows, ContractAPIAvailable and BaselineCore.
+Stdout exactly48UTF8bytes (two original CRLF result lines); stderr empty.
+
+Measured setup237.4735ms, including guard.start24.5686ms and publisher.import22.9457ms.
+Contexts in original core/owned/live order:864.0919/2904.4079/3542.1268ms.
+Baseline copy18.1085ms; wrapper1192.4395ms (body1183.13ms,
+suite update1.9193ms, baseline result write0.9586ms); terminal flush3.7371ms.
+Input checks876.1469/2349.5256ms. Nested inclusive timings must not be added to
+parent intervals. All per-stage values and checker input/output are archived.
+
+Final archive37files/2directories decoded byte-identical, including empty stderr:
+portable-runtime-host-prefix-trace-v3-final.json, SHA256
+8E98345719003801FF4DC7935490360EFD3D9ED9D0629029292D3F84FCE9067E.
+Original failures/stops and31operational sources retained unchanged.
+
+This run covers original setup ordering, guard observation, real wrapper,
+suite bookkeeping and result writes in derived same-directory scripts. It does
+not reproduce the earlier120second timeout. Source locations/timing instrumentation
+and bounded parent transport differ. Original CopyToAsync parent, later groups
+and full publication remain unvalidated; no product fix/52group acceptance claim.
+Next decision should focus on the remaining original-parent transport difference
+versus transient conditions, with a separately scoped minimal comparison if wanted,
+not another unchanged prefix run or a timeout increase. All prior entries follow
+as historical records; both preparation defects were resolved before this run.
+
 ## Latest: v3 preparation verified, diagnostic not yet invoked
 
 All18rules use named fields;12static checks passed. Independent2420hash checks

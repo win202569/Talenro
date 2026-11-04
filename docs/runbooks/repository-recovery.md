@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FINAL: computation28 consumed and process7 completed. Do NOT rerun parent-v3.
+Counters28/7/3/217; HOST_PREFIX_COMPLETED is NOT product acceptance.
+Recover portable-runtime-host-prefix-trace-v3-final.json (37files/2directories),
+SHA2568E98345719003801FF4DC7935490360EFD3D9ED9D0629029292D3F84FCE9067E.
+Contains actual intent/claim,62events, child/parent results, stdout48bytes/empty stderr,
+all helper/preparation history and independent2420hash verification evidence.
+Read latest trace result. Old timeout not reproduced; original parent transport
+and later suite/publication remain unvalidated. New runs require new scoped approval.
+
 LATEST V3 PREPARED: recover portable-runtime-host-prefix-trace-v3-preparation.json,
 26files/1directory, SHA256843EED86D7CAE7A36D8A489B695C02ACE5E90A2A3E7800C68C024946ACD2BFAE.
 InputSHA2567E731A84FCC87999EB16F5A84DAEE527E37872728B59B04C45D16DF6E1260B57.
