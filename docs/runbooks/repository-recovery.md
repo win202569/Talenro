@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PLAN PENDING: design dcc3b586 approved; read
+../superpowers/plans/2026-11-04-runtime-bounded-disk-adapter.md.
+Proposed scope: fixed24adapter cases in one owned verification worker, one compile,
+computation30/at most host9/compile4; snapshots217 unchanged. No business host.
+Current29/8/3/217; no new implementation/compilation/run. Await plan approval.
+Generated DLL stays local, not in Git/portable archive. Restore source and evidence
+on a new computer; any required recompilation needs renewed scope. Earlier design
+pending labels are historical. Successful adapter gate does not authorize a host.
+
 LATEST DESIGN PENDING: user selected bounded disk-adapter design/feasibility only.
 Read ../superpowers/specs/2026-11-04-runtime-bounded-disk-adapter-design.md.
 No adapter implementation, compilation, test or new diagnostic. Counters29/8/3/217.
