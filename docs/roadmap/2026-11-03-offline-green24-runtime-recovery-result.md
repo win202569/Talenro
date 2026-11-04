@@ -1,6 +1,19 @@
 # GREEN24 runtime recovery execution progress
 
-Status: CANDIDATE_PREPARED / GREEN26_PENDING / NOT_ACCEPTED.
+Status: GREEN26_PASS / TASK2_COMPLETE / FREEZE_PENDING / NOT_ACCEPTED.
+
+## 2026-11-04: actual GREEN26
+
+Candidate checkpoint0cd4a114 remotely verified before single invocation.
+Actual20PASS/0FAIL/0NotRun/exit0,Expected true;RootError/SetupError/RecordingError
+null. Full initial result,three polls and final result preserved verbatim.
+Fresh read-only2401source/history pre/post/live checks matched; no execution-v2
+stop. FinalSHA256:A148FE18B683434DAC92F1B876BCD1769D423217917F0900C7737549A65F4F77.
+Completion-candidate archive623files/135dirs/31empty decoded equal,SHA256
+5904410B3009AD1FD4DE81EC63854DFFA5D181FD82619CC24AE5EAF1F7F6EC73.
+Task2 complete. Counters26/4/3/186; no auxiliary budget remains. Task3 next:
+one approved Prepare, archive+remote verification, then at most one host. No
+overall acceptance and no replay of GREEN26 or prior phases.
 
 ## 2026-11-04: Task2 implementation candidate
 

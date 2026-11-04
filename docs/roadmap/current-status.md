@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-04
 
+## Latest — GREEN26 all20passed; freeze pending
+
+GREEN26一次20PASS/0FAIL/0NotRun/exit0，全部错误为空；2401项前后和当前哈希一致。
+完整工具记录已保存，归档623文件/135目录/31空文件解码一致。无新增stop。
+累计26辅助/4宿主/3编译/186快照；辅助额度已用完，禁止重跑。
+下一步已批准的一次Prepare，成功归档推送后一次宿主；整体NOT_ACCEPTED。
+
 ## Latest — four-file runtime candidate prepared; GREEN26 pending
 
 新验证/回执绑定、运行入口、一次性所有权和冻结来源链已实现，仅4个批准文件变化。

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST GREEN26:20PASS/0FAIL/0NotRun/exit0,all errors null;2401 pre/post/live
+hashes equal. No new stop. Counters26/4/3/186; no auxiliary attempts remain.
+Use portable-history-contract-runtime-completion-candidate.json:623files/135dirs/
+31empty,decoded equal,SHA2565904410B3009AD1FD4DE81EC63854DFFA5D181FD82619CC24AE5EAF1F7F6EC73.
+Actual GREEN final SHA256 A148FE18B683434DAC92F1B876BCD1769D423217917F0900C7737549A65F4F77.
+Next approved single Prepare; inspect actual intent before any attempt. Never
+replay25/26. Successful freeze must be archived/remotely preserved before one host.
+
 LATEST candidate: approved four-file implementation authored, syntax/LF/unique
 definitions checked; protected functions/process tail unchanged. Candidate input
 SHA2560D47E2B3E7007ECBD112B02846B90BA7CE4646D3D5F0DA98D00527C88FD58D58.
