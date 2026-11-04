@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST V2 PREPARED: corrected preparation after7faf2155 approved, static checks passed.
+Recover portable-runtime-bounded-disk-adapter-v2-preparation.json (21files), SHA256
+F3ED30F86F3584D157F07451A31BE598244CB30B94C36DD3382E15310BC7012C.
+Input90B312F6DBFF4115FC7BD6A3C2F391C119568ED8067F116F585169D5CDBB3CF8.
+Use parent-v2 only after remote checkpoint equality and verifying no intent/new stop.
+Original stop is authenticated history, not erased. Current29/8/3/217; only one
+approved adapter verification/worker/compile remains (30/9/4), no business host.
+
 LATEST STOP: bounded disk adapter preparation failed once at prepare.ps1:15,
 strict-mode Message property access while formatting parser diagnostics. Do not
 run the draft worker/parent or overwrite the original preparation/stop.

@@ -1,5 +1,20 @@
 # Bounded disk adapter: stopped preparation
 
+## Latest: versioned preparation passed, verification not invoked
+
+User approved versioned correction after7faf2155. Data-only reproduction confirmed
+zero parser errors and strict-mode failure of the old unconditional Message access.
+prepare-v2 enumerates individual errors; parent-v2 authenticates original stop and
+uses separate execution-v2.stop.json. Adapter/test/worker code unchanged.
+12static checks and four script parses passed; independent2470hash checks/2436unique
+paths match. All11original stopped-archive files remain byte-identical.
+Prepared input90B312F6DBFF4115FC7BD6A3C2F391C119568ED8067F116F585169D5CDBB3CF8.
+Preparation archive21files/1directory decoded equal, SHA256
+F3ED30F86F3584D157F07451A31BE598244CB30B94C36DD3382E15310BC7012C.
+No C# compile/test/worker yet; current29/8/3/217. After remote checkpoint equality,
+only the approved single30/9/4 adapter verification is allowed. NOT_ACCEPTED.
+Earlier stopped status below remains immutable history.
+
 Status: PREPARATION_STOPPED / NOT_ACCEPTED.
 User approved plan9c560ff4 and proposed ceiling30/9/4/217. Task1 began;
 Task2 was never invoked. Current counters remain29/8/3/217.
