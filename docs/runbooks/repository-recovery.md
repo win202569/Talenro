@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST DESIGN PENDING: user selected a separately supervised writer, design only.
+Read ../superpowers/specs/2026-11-04-runtime-isolated-writer-design.md.
+Supervisor directly owns producer/writer siblings; bounded framed standard-input
+relay replaces direct disk copy. Scope is a future synthetic protocol gate first,
+not a business run or exact original-path replay. Document-only builder check found
+no material planning gaps. No implementation/process/compile; counters30/9/4/217.
+Approval permits planning only; that plan must enumerate every added process and
+compile. OS termination uncertainty and post-run recording latency remain explicit.
+
 LATEST ADAPTER VERIFIED: one computation30/verification worker9/compile4 completed;
 counters30/9/4/217, allowance exhausted. No business host. Do not rerun parent-v2.
 Recover portable-runtime-bounded-disk-adapter-v2-final.json (51files/26directories),
