@@ -1,6 +1,35 @@
 # GREEN24 runtime recovery execution progress
 
-Status: PREPARATION_OUTPUTS_VERIFIED / EXECUTION_BINDING_BLOCKED / NOT_ACCEPTED.
+Status: RED25_EXPECTED_FAILURE / TASK1_COMPLETE / NOT_ACCEPTED.
+
+## 2026-11-04: versioned entry and actual RED25
+
+User explicitly approved versioned execution binding after0f07d4c0. New runner
+authenticates exact prepared input/test/approval and preserved parser stop;
+original runner and all14stops remain unchanged. New failures have an exclusive
+history-contract-runtime-execution-v2.stop.json destination. Both helper scripts
+parsed with zero errors. Preparation checkpoint024f84af was remotely verified
+before the single RED25 invocation. No preparation replay or fabricated exit.
+
+Actual RED25:0PASS/1FAIL/19NotRun/exit1, Expected true, RuntimeException message
+and ErrorId both OD: invalid explicit epoch, SetupError/RecordingError null.
+NewEpochBinding FAIL; remaining19NotRun. Full actual tool call/result saved in
+history-contract-runtime-binding-red.tool-record.json. Final SHA256:
+7D4A1F25C2CA9A05BE90642146169F52EC5FEC6BAD19E49AB6225ABD2849F1EF.
+Fresh read-only verification:2401 entries (31sources+2370history) pre/post/live
+equal. No execution-v2 stop. Counters25aux/4hosts/3compiles/186snapshots.
+
+Checkpoint archive617files/135directories/31zero-byte, decoded equality verified:
+portable-history-contract-runtime-execution-v2-final.json, SHA256
+44BAFD1FD91C5D63EB88465F3B627B8651C87D9093DC230D29754BD7A379DD75.
+Final suffix describes this entry-recovery checkpoint, not overall completion;
+never overwrite it. Future checkpoint names must remain exclusive.
+
+Task1 complete. Task2 not started:31production files unchanged. Continue already
+approved four-file implementation, candidate checkpoint, then sole GREEN26.
+Task3 freeze/host not started. Do not replay25; no duplicate approval needed for
+the existing scope. New runtime gate must authenticate versioned runner through
+actual intent/tool identity while retaining original68provenance entries.
 
 ## 2026-11-04: corrected preparation output reconciliation
 

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST RED25 checkpoint: Task1 complete, exact expected0PASS/1FAIL/19NotRun/exit1,
+RuntimeException OD: invalid explicit epoch; SetupError/RecordingError null.
+2401 source/history hashes match pre/post/live; no new stop. Counters25/4/3/186.
+Recover latest actual records from portable-history-contract-runtime-execution-v2-final.json:
+617files/135dirs/31empty, decoded equal, SHA256
+44BAFD1FD91C5D63EB88465F3B627B8651C87D9093DC230D29754BD7A379DD75.
+The archive's final suffix ends this execution-entry checkpoint, NOT the whole
+runtime plan. Do not overwrite it. Next: approved Task2 four-file implementation;
+GREEN26 remains unused. Do not replay RED25 or request duplicate implementation
+approval. New runner hash is bound in actual RED intent; authenticate it downstream.
+
 LATEST execution update: versioned entry approved after0f07d4c0. Read
 ../roadmap/2026-11-04-runtime-execution-v2-approval.md. Recover new helpers from
 portable-history-contract-runtime-execution-v2-preparation.json;614files/135dirs/

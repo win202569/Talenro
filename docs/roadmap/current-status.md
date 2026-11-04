@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-04
 
+## Latest — RED25 exact expected failure preserved
+
+RED25一次返回0PASS/1FAIL/19NotRun/exit1；错误精确为OD: invalid explicit epoch，
+SetupError/RecordingError为空。2401项源码/历史文件前后及当前哈希一致，无新增stop。
+617文件恢复归档已逐字节核对。累计25辅助/4宿主/3编译/186快照；31源码未改。
+Task1完成，下一步按已批准计划实现四文件运行绑定，再使用唯一剩余GREEN26。
+无需重复申请同一实现批准；不得重跑RED25，整体仍NOT_ACCEPTED。
+
 ## Latest — versioned execution binding approved and prepared
 
 用户批准新增版本化入口。原runner/stop不变，新入口严格核验历史身份，新失败另存。
