@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST PLAN PENDING: designb062c319 approved. Read
+../superpowers/plans/2026-11-04-runtime-copy-transport.md before implementation.
+No tools implemented or new runs started. Current28/7/3/217; proposed29/8 requires
+plan approval. Nonterminal-copy outputs must remain explicitly unavailable, not empty.
+Old design pending label is historical; this entry records its approval.
+
 LATEST DESIGN PENDING: read ../superpowers/specs/2026-11-04-runtime-copy-transport-design.md.
 User selected bounded-copy comparison, not execution. Current28/7/3/217 unchanged.
 Proposed29/8 allowance needs design then implementation-plan approval; no new helpers/run.
