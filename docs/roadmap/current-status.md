@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-04
 
+## Latest — host timed out; bounded execution stopped
+
+GREEN26全部20组通过，冻结2344pins/31快照成功；随后唯一宿主达到120秒上限。
+已请求终止并确认退出/输出流完成，宿主exit=-1；仅输出PASS: ContractAPIAvailable。
+Exact=false/EvidenceValid=false/PostPinsIntact=false，不能称52组通过，原因未定位。
+累计26辅助/5宿主/3编译/217快照，15stop保留；未重跑、未放宽限制。
+最终归档664文件/144目录/32空文件解码一致。范围执行已停止，整体NOT_ACCEPTED。
+后续只能先明确只读诊断范围；任何修复或重跑需另行授权，不继承已耗尽额度。
+
 ## Latest — runtime freeze complete; single host pending
 
 一次Prepare成功，2344项pins和31快照已另行只读核对。冻结SHA256为

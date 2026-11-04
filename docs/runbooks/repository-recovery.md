@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST TERMINAL RESULT: single runtime host timed out at original120000ms cap.
+OwnedExit=true,StreamsComplete=true,TerminationRequested=true,ExitCode=-1;
+Exact=false,EvidenceValid=false,PostPinsIntact=false. Stdout28bytes contains only
+PASS: ContractAPIAvailable; stderr0bytes. Cause not diagnosed. Driver exited1.
+Counters26/5/3/217;15stops preserved. Do not replay host/Prepare/auxiliaries.
+Recover portable-history-contract-runtime-completion-final.json:664files/144dirs/
+32empty,decoded bytes verified, SHA256
+11EFF0959FA2AA181A44FF1D38E9FAA5C59C6CAA6B7C2F7AF56CEE11EE51C5F0.
+Full actual calls/polls/partial output/stop retained. GREEN26 and freeze succeeded
+but host acceptance failed; overall NOT_ACCEPTED. Earlier pending steps below
+are historical, not permission to rerun. Any new execution requires new authority.
+
 LATEST freeze completed once:2344pins/31snapshots freshly verified. Frozen SHA256
 186FE2C2B44A31A98EA5406109AC888A625FD1B0061C5338D0382268015D9BBA.
 Restore portable-history-contract-runtime-completion-freeze.json (657files,

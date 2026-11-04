@@ -1,6 +1,34 @@
 # GREEN24 runtime recovery execution progress
 
-Status: FREEZE_COMPLETE / SINGLE_HOST_PENDING / NOT_ACCEPTED.
+Status: STOPPED / HOST_TIMEOUT / NOT_ACCEPTED.
+
+## 2026-11-04: terminal host result and preservation
+
+Remote freeze checkpoint10980db5 confirmed before the single RunOne. Host started,
+reached120000ms cap, termination requested, owned process exit and streams complete.
+HostExitCode=-1;driver exit1. Exact=false,EvidenceValid=false,PostPinsIntact=false;
+no claim of post-pin validation or full52group acceptance. Only28stdout bytes:
+PASS: ContractAPIAvailable;stderr0bytes. No cause attributed without diagnosis.
+Overflow=false,Rescue=false,ChildrenObserved=0; evidence remains Unknown.
+
+The approved first-unexpected-result rule stopped execution. No patch, repeat,
+extra host, timeout extension or safety relaxation followed. Preserved full tool
+Input/InitialResult/11Polls/finalResult plus combined output, actual final record,
+partial streams, exclusive host intent and execution-v2 stop. All14prior stops
+remain:15total. Host final SHA256:
+F61CD13A55E6B8E98AF702A89477F4E89173B6BFC6FC3566D12081E219D7EBA7.
+
+Final completion archive664files/144directories/32zero-byte, decoded bytes equal;
+SHA25611EFF0959FA2AA181A44FF1D38E9FAA5C59C6CAA6B7C2F7AF56CEE11EE51C5F0.
+Cumulative26aux/5hosts/3compiles/217snapshots. The bounded execution has ended;
+Task3 host acceptance failed. Task1/Task2 and freeze successes are not invalidated,
+but overall product remains NOT_ACCEPTED. Next possible work is explicitly scoped
+read-only timeout diagnosis; fixes or new executions need separate authority.
+
+Authoring ruling retained: actual RED25 tool wrapper has no Tool label. Command,
+workdir,result and exact runner hash are validated instead; no evidence field was
+fabricated. Risk if identity validation is wrong: accepting a mismatched tool record;
+GREEN26 tests input validation, while actual Prepare exercised receipt gate checks.
 
 ## 2026-11-04: actual single Prepare
 
