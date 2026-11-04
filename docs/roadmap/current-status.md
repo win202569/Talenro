@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-04
 
+## Latest — prefix timing approach selected; design awaiting approval
+
+用户选择局部计时诊断；短设计见../superpowers/specs/2026-11-04-runtime-prefix-timing-design.md。
+拟新增一次辅助诊断及最多一个诊断进程，120秒执行上限，退出/收尾各2秒；
+只到首个真实断言，不跑完整宿主、不改31源码、不重开旧入口。尚未批准执行。
+本轮仅文档，累计26/5/3/217、15stop不变。设计批准后再编写实施计划。
+
 ## Latest — read-only timeout diagnosis; cause unconfirmed
 
 已追踪首项输出到历史上下文构建/首个断言之间的路径。日志仅begin，没有分段耗时。

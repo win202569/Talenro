@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST planning: user selected the bounded prefix-timing approach. Design draft:
+../superpowers/specs/2026-11-04-runtime-prefix-timing-design.md. Await design approval
+before implementation planning; no execution authority/new allowance consumed.
+Proposed one computation27/at most one diagnostic process counted as host6,
+120000ms execution plus separate2000ms exit/2000ms drain bounds. Original scopes
+remain closed,31sources unchanged,counters26/5/3/217 and15stops retained.
+
 LATEST read-only diagnosis: see ../roadmap/2026-11-04-runtime-timeout-readonly-diagnosis.md.
 Cause remains unconfirmed. Only begin journal/no per-stage timestamps; first
 availability output does not locate the timeout. Static repeated14file context
