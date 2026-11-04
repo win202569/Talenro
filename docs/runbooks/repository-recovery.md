@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST read-only diagnosis: see ../roadmap/2026-11-04-runtime-timeout-readonly-diagnosis.md.
+Cause remains unconfirmed. Only begin journal/no per-stage timestamps; first
+availability output does not locate the timeout. Static repeated14file context
+construction implies42parses/232056pin-row comparisons, not measured elapsed time.
+No code/test/host execution. Counters26/5/3/217 and15stops unchanged. Additional
+instrumentation or diagnostic execution requires separately bounded approval.
+
 LATEST TERMINAL RESULT: single runtime host timed out at original120000ms cap.
 OwnedExit=true,StreamsComplete=true,TerminationRequested=true,ExitCode=-1;
 Exact=false,EvidenceValid=false,PostPinsIntact=false. Stdout28bytes contains only

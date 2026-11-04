@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-04
 
+## Latest — read-only timeout diagnosis; cause unconfirmed
+
+已追踪首项输出到历史上下文构建/首个断言之间的路径。日志仅begin，没有分段耗时。
+三个历史上下文重复解析14文件（共42次），清单扫描静态约23.2万行；这是待测候选原因，
+不能认定为根因或“第二项测试卡住”。三组历史证据哈希一致。未改代码、未运行任何测试。
+详见2026-11-04-runtime-timeout-readonly-diagnosis.md。累计26/5/3/217、15stop不变。
+进一步定位需要另行批准有边界的计时诊断；不能沿用耗尽额度重跑。
+
 ## Latest — host timed out; bounded execution stopped
 
 GREEN26全部20组通过，冻结2344pins/31快照成功；随后唯一宿主达到120秒上限。
