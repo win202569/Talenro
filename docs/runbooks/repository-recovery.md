@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PREPARED: plan825b98a7 approved; Task1 complete, Task2 not invoked.
+Recover portable-runtime-copy-transport-preparation.json (15files/1directory),
+SHA256 A581469AE62D66A670ED9EE37ACE57905A887B2DB64A5DECE5FBFB0E111B988B.
+InputSHA256 E45AAD367F9AF3C30012FF870186682552FD4AB30DE344A885A9A8FE2CE1A845.
+14 static checks,2439 hash comparisons,4 byte-exact reversals passed. Current28/7/3/217.
+After verified preparation push, permit only the approved computation29/at most host8.
+Confirm no intent/stop before invocation; never rerun consumed entries. NOT_ACCEPTED.
+
 LATEST PLAN PENDING: designb062c319 approved. Read
 ../superpowers/plans/2026-11-04-runtime-copy-transport.md before implementation.
 No tools implemented or new runs started. Current28/7/3/217; proposed29/8 requires
