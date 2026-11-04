@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST STOP: prefix-timing mechanical preparation failed its insertion-map
+reversibility check (exit1) before any input/approval/instrumentation writes.
+Read ../roadmap/2026-11-04-runtime-prefix-timing-result.md. Recover originals from
+portable-runtime-prefix-timing-v1-stopped-preparation.json:8files,decoded equal,
+SHA25675D9EC7155BEBAB958D8E17175AAB8EFB890E55D9CF989DB3FDA185CF2655067.
+Do not run the unverified helper drafts or retry preparer. No computation27 or
+process consumed;26/5/3/217 unchanged,31sources intact.15old stops plus new D stop
+retained. Versioned correction needs separate approval; old scopes stay closed.
+
 LATEST: user approved timing design72f722ec. Implementation plan at
 ../superpowers/plans/2026-11-04-runtime-prefix-timing.md awaits execution approval.
 Only documents authored; no diagnostic helper/body/process run or new budget used.

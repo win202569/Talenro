@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-04
 
+## Latest — timing preparation stopped at insertion-map verification
+
+三个独立工具初稿及准备脚本语法通过，但准备调用在“PT: insertion map”校验失败。
+未生成固定输入、未运行27号诊断、未启动进程；按规则停止，未修补重试。
+原稿/实际失败/新stop已归档8文件并逐字节核对。31原源码未变，累计26/5/3/217。
+原15stop及新目录准备stop均保留；下一步需批准版本化纠正，工具初稿禁止直接运行。
+
 ## Latest — timing design approved; implementation plan pending approval
 
 用户批准72f722ec设计；实施计划已固定抽取白名单、计时事件、一次27号诊断/最多一个
