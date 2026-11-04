@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST PLAN PENDING: user approved design6508337b. Read
+../superpowers/plans/2026-11-04-runtime-host-prefix-trace.md before implementation.
+No helper authored or new diagnostic started; counters27/6/3/217 unchanged.
+Plan proposes computation28/at most host7; execution needs plan approval.
+Original design pending label is historical; this entry records its approval.
+
 LATEST DESIGN PENDING: read ../superpowers/specs/2026-11-04-runtime-host-prefix-trace-design.md.
 User selected bounded real-host prefix option1; design is not yet approved.
 No helpers implemented or runs started. Counters remain27/6/3/217.
