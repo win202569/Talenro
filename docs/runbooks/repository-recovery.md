@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST DESIGN PENDING: read ../superpowers/specs/2026-11-04-runtime-copy-transport-design.md.
+User selected bounded-copy comparison, not execution. Current28/7/3/217 unchanged.
+Proposed29/8 allowance needs design then implementation-plan approval; no new helpers/run.
+New namespace required; never reuse diagnostic28 claims or its output directory.
+
 LATEST FINAL: computation28 consumed and process7 completed. Do NOT rerun parent-v3.
 Counters28/7/3/217; HOST_PREFIX_COMPLETED is NOT product acceptance.
 Recover portable-runtime-host-prefix-trace-v3-final.json (37files/2directories),
