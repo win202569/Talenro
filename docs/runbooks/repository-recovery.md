@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST V3 PREPARED: recover portable-runtime-host-prefix-trace-v3-preparation.json,
+26files/1directory, SHA256843EED86D7CAE7A36D8A489B695C02ACE5E90A2A3E7800C68C024946ACD2BFAE.
+InputSHA2567E731A84FCC87999EB16F5A84DAEE527E37872728B59B04C45D16DF6E1260B57.
+Active entry is parent-v3; other parents are historical. Confirm intent absent
+before any authorized run. Fixed local paths/runtime/identity still apply; cloning
+alone is not execution readiness. Counters27/6/3/217, one approved attempt remains.
+
 LATEST V2 STOP: syntax passed; mechanical prepare-v2 failed line100 before outputs.
 Rule-table concatenation/comma precedence produced a one-element row; no runtime run.
 Restore portable-runtime-host-prefix-trace-stopped-preparation-v2.json (14files,

@@ -1,5 +1,17 @@
 # Real-host prefix trace: preparation stop
 
+## Latest: v3 preparation verified, diagnostic not yet invoked
+
+All18rules use named fields;12static checks passed. Independent2420hash checks
+match and all3generated scripts reverse exactly to original text. Intent absent.
+InputSHA2567E731A84FCC87999EB16F5A84DAEE527E37872728B59B04C45D16DF6E1260B57.
+Preparation archive26files/1directory decoded equal, SHA256
+843EED86D7CAE7A36D8A489B695C02ACE5E90A2A3E7800C68C024946ACD2BFAE.
+Use portable-runtime-host-prefix-trace-v3-preparation.json. Original failures
+retained; active parent-v3 authenticates both historical stops. Common unchanged.
+Counters27/6/3/217; one approved computation28/at most host7 remains.
+Earlier entries below are historical. NOT_ACCEPTED.
+
 ## Latest: preparation-v2 rule-table stop
 
 User approved versioned correction after6e5c5f07. Corrected literal and AST-finally
