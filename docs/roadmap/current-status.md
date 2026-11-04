@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-04
 
+## Latest — timing design approved; implementation plan pending approval
+
+用户批准72f722ec设计；实施计划已固定抽取白名单、计时事件、一次27号诊断/最多一个
+诊断进程、120秒执行及各2秒退出/收尾上限、输出容量和不可重试规则。
+见../superpowers/plans/2026-11-04-runtime-prefix-timing.md。本轮仅文档，未编写或执行工具。
+累计26/5/3/217不变；等待计划执行批准，不重开旧入口。
+
 ## Latest — prefix timing approach selected; design awaiting approval
 
 用户选择局部计时诊断；短设计见../superpowers/specs/2026-11-04-runtime-prefix-timing-design.md。

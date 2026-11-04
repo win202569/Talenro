@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST: user approved timing design72f722ec. Implementation plan at
+../superpowers/plans/2026-11-04-runtime-prefix-timing.md awaits execution approval.
+Only documents authored; no diagnostic helper/body/process run or new budget used.
+Existing counters26/5/3/217 and stopped scopes remain unchanged. Read plan before
+authoring; do not interpret design approval as permission for computation27.
+
 LATEST planning: user selected the bounded prefix-timing approach. Design draft:
 ../superpowers/specs/2026-11-04-runtime-prefix-timing-design.md. Await design approval
 before implementation planning; no execution authority/new allowance consumed.
