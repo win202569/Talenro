@@ -1,5 +1,29 @@
 # Runtime prefix timing execution ledger
 
+## Final v3: PREFIX_COMPLETED / NOT_ACCEPTED
+
+One approved computation27 and one diagnostic process executed; counters27/6/3/217.
+Exit0, execution14458ms, preflight920ms, cleanup34ms. OwnedExit/StreamsComplete true;
+no timeout, overflow, primary or secondary errors; stdout/stderr both0bytes.
+Independent read-only verification:610events/145049bytes,305closed intervals,
+monotonic ticks, exact stack pairing;2396bound hash comparisons match.
+
+Measured inclusive top-level context times: core2197.1406ms, owned3214.581ms,
+live2606.4651ms. Baseline copy18.5832ms; actual assertion1107.0586ms.
+Initialization989.4441ms; pre/post input checks811.3016/2521.0454ms.
+Nested:99pin lookups5936.6704ms,99pin hashes161.8122ms,42source parses159.6556ms,
+42source models1370.1475ms. These overlap enclosing intervals; do not sum together.
+Complete per-stage values and original tool input/results are in final archive.
+
+Final archive30files decoded byte-identical, SHA256
+72F4638D83566BEF22B4DE90A1B388D0B4B7F0CC5BA49B1CCEF126C6B2DBFDEF.
+Preparation checkpoint b427498fd3ab6ea4dae03c8058487622d2068f91 preserved first.
+No product sources changed. Original stops retained. Instrumentation perturbs timing;
+this sample does not prove the old host timeout cause, full52group success or a fix.
+Scope exhausted: no retry/repair/new suite. Recommended next scope is read-only
+comparison of original host setup/output/error paths with this completed prefix.
+All earlier entries below are historical.
+
 ## Latest: v3 preparation verified; diagnostic not yet invoked
 
 User approved full dependency review and versioned correction. All14 definitions

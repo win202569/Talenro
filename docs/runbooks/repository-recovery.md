@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FINAL: computation27 consumed, process6 started and exited normally.
+Do NOT rerun parent-v3: intent/claim already exist. Counters27/6/3/217; NOT_ACCEPTED.
+Recover portable-runtime-prefix-timing-v3-final.json (30files, decoded equal), SHA256
+72F4638D83566BEF22B4DE90A1B388D0B4B7F0CC5BA49B1CCEF126C6B2DBFDEF.
+Contains actual inputs, helpers, intent, claim,610-event journal, empty streams,
+child/parent results, tool records and read-only verification. Older stops retained.
+Prefix completed in14458ms; original host timeout cause remains unresolved.
+Read latest result before any action. No further execution without new scoped approval.
+
 LATEST: v3 preparation verified, not executed. Restore portable-runtime-prefix-timing-v3-preparation.json
 (20 files, SHA25639275AFD2924556CDC71792CDDA579BA7883801CAE7AF6DAC9B9633244CF0C86).
 Input SHA256C1D11AF0B5824E44149AA71A02F4417C3B95C89F5CD63B502D7E58FB8FEBF44C.
