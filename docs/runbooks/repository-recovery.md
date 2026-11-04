@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PLAN PENDING: design168a05f8 approved. Read
+../superpowers/plans/2026-11-04-runtime-isolated-writer.md.
+Proposed31..40computations: compiler/unit worker plus9synthetic scenarios;
+18in-process checks, at most18new child starts, one compile. Ceiling40/27/5/217.
+Current30/9/4/217 unchanged; no implementation/run. No business host. Plan approval
+required; unexpected failure stops remaining cases without reusing unused budget.
+Frozen adapter DLL must already match its recorded hash; fresh-machine rebuild
+requires additional scope, never automatic compilation under this helper budget.
+
 LATEST DESIGN PENDING: user selected a separately supervised writer, design only.
 Read ../superpowers/specs/2026-11-04-runtime-isolated-writer-design.md.
 Supervisor directly owns producer/writer siblings; bounded framed standard-input
