@@ -1,5 +1,24 @@
 # Real-host prefix trace: preparation stop
 
+## Latest: preparation-v2 rule-table stop
+
+User approved versioned correction after6e5c5f07. Corrected literal and AST-finally
+extent in new prepare-v2; parent-v2 authenticates original stop, writes new stops.
+All three active draft scripts parsed successfully. One mechanical preparation
+then exited1 at line100: Index was outside the bounds of the array.
+Readonly data-only inspection showed PowerShell concatenation/comma precedence
+produced a one-element rule containing both command and stage; field1 access failed.
+This is a second preparer authoring defect, not product/runtime failure.
+No patch/retry. No generated scripts/input/transformations/intent/child process.
+2396original bound hashes match; counters27/6/3/217 unchanged.
+Original and v2 stops/tool records preserved.14file archive decoded equal:
+portable-runtime-host-prefix-trace-stopped-preparation-v2.json, SHA256
+A26E948B8EF30D2DF61F5D9564F6CE61248E1C60509BB923A7F9E464269EA633.
+Next proposed correction should review ALL rule-table row construction, not only
+line100, using named fields or explicitly parenthesized command expressions and
+row-shape validation before indexing. Requires renewed versioned-correction approval.
+All entries below are historical; no diagnostic was launched by either preparation.
+
 Status: PREPARATION_SYNTAX_STOPPED / NOT_ACCEPTED.
 User approved plan0792af75 with 是, including one computation28/at most host7.
 Task1 began in the verified existing worktree; proposed paths were absent.

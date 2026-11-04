@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST V2 STOP: syntax passed; mechanical prepare-v2 failed line100 before outputs.
+Rule-table concatenation/comma precedence produced a one-element row; no runtime run.
+Restore portable-runtime-host-prefix-trace-stopped-preparation-v2.json (14files,
+decoded equal), SHA256A26E948B8EF30D2DF61F5D9564F6CE61248E1C60509BB923A7F9E464269EA633.
+Both original/v2 stops retained; counters27/6/3/217. Do not launch draft helpers.
+Read latest trace result. Full rule-table review/versioned correction requires approval.
+
 LATEST STOP: real-host trace preparer failed first static syntax check at line179.
 No fixed input, generated host or intent; counters27/6/3/217. Do not run draft tools.
 Restore portable-runtime-host-prefix-trace-stopped-preparation.json (7files,
