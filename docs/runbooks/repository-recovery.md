@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST DESIGN PENDING: read ../superpowers/specs/2026-11-04-runtime-host-prefix-trace-design.md.
+User selected bounded real-host prefix option1; design is not yet approved.
+No helpers implemented or runs started. Counters remain27/6/3/217.
+Proposed28/7 ceiling needs a separately approved implementation plan before use.
+Do not reuse consumed intents or treat design/selection as execution authority.
+
 LATEST READ-ONLY COMPARISON: read ../roadmap/2026-11-04-runtime-host-prefix-comparison.md.
 No new execution or source changes;2396bound hashes verified, counters27/6/3/217.
 Root cause still unconfirmed. Full-host wrapper/output/error paths were not covered
