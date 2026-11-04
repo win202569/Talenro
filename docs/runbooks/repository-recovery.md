@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST execution update: versioned entry approved after0f07d4c0. Read
+../roadmap/2026-11-04-runtime-execution-v2-approval.md. Recover new helpers from
+portable-history-contract-runtime-execution-v2-preparation.json;614files/135dirs/
+31empty verified, SHA2564BAE4395F36A8B99A47F4135E823E43657CE4E8A0C74343A717F2D3ED6B6B649.
+Runner SHA256 B8AF66B02F708CED518412E081E30A4819ED7E00122E8C39115079DEF2DE1A56.
+RED25 not yet run at this checkpoint. Check actual intent before any invocation;
+never replay an occupied slot. Original stop retained; new failures use execution-v2.stop.
+
 LATEST 2026-11-04: corrected preparation outputs exist and 2405 hash checks match.
 Recover from portable-history-contract-runtime-preparation.json (612 files,
 135 directories,31 zero-byte; decoded equality verified), SHA256

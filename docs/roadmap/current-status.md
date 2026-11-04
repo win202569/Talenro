@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-04
 
+## Latest — versioned execution binding approved and prepared
+
+用户批准新增版本化入口。原runner/stop不变，新入口严格核验历史身份，新失败另存。
+两个新工具语法检查通过；执行准备归档614文件/135目录/31空文件，解码一致。
+RED25待本检查点远端核对后运行一次；31源码未改，累计24/4/3/186，NOT_ACCEPTED。
+
 ## Latest — preparation outputs verified; execution binding blocked
 
 修正版准备输出已生成。只读核对2405项哈希一致（31源码、2370历史文件、4工具）；
