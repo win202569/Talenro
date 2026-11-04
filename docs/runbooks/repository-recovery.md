@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST STOP: real-host trace preparer failed first static syntax check at line179.
+No fixed input, generated host or intent; counters27/6/3/217. Do not run draft tools.
+Restore portable-runtime-host-prefix-trace-stopped-preparation.json (7files,
+decoded equal), SHA256C2660DDD7A80286ED39372753A8D207BA98221CDA14350E01F961E0BF578ABE1.
+Read ../roadmap/2026-11-04-runtime-host-prefix-trace-result.md. Originals/stops retained.
+Versioned correction needs approval; unused runtime allowance is not retry authority.
+
 LATEST PLAN PENDING: user approved design6508337b. Read
 ../superpowers/plans/2026-11-04-runtime-host-prefix-trace.md before implementation.
 No helper authored or new diagnostic started; counters27/6/3/217 unchanged.
