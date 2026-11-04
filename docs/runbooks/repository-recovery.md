@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DESIGN PENDING: user selected bounded disk-adapter design/feasibility only.
+Read ../superpowers/specs/2026-11-04-runtime-bounded-disk-adapter-design.md.
+No adapter implementation, compilation, test or new diagnostic. Counters29/8/3/217.
+Design approval permits a plan only. New compilation and adapter verification need
+explicit budgets; a business-host run needs separate approval after that gate.
+Pre-write capacity checks are proposed; disk finalization timing remains unresolved.
+Do not reuse consumed29 or relax limits to obtain an exact unbounded replay.
+
 LATEST FINAL: computation29/host8 completed once; counters29/8/3/217, allowance consumed.
 Do NOT rerun runtime-copy-transport-parent.ps1 or preparation in its used namespace.
 Recover portable-runtime-copy-transport-final.json (26files/2directories),
