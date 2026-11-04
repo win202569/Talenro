@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-04
 
+## Latest — corrected sorting verified; dependency allowlist stopped preparation
+
+版本化修正已通过插入可逆性检查，随后依赖闭包检查发现准备工具漏列Get-Content。
+已按规则再次停止，未修补重试。仍未生成固定输入、未启动27号诊断或进程。
+13文件归档解码一致，原稿与两次失败均保留。累计26/5/3/217不变；工具初稿不可直接运行。
+
 ## Latest — timing preparation stopped at insertion-map verification
 
 三个独立工具初稿及准备脚本语法通过，但准备调用在“PT: insertion map”校验失败。

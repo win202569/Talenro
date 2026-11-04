@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST preparation-v2 STOP: explicit integer key sorting fixed reversal; next
+dependency check rejected original Get-Content because preparer omitted it from
+its allowlist. No input/instrumentation/approval or diagnostic27/process created.
+Restore portable-runtime-prefix-timing-v1-stopped-preparation-v2.json:13files,
+decoded equal, SHA25606C3BC19A803874A71DD82C2AA069765C2D5E5BF7A00D9F7BB6A87D77CCF494C.
+Originals and both preparation stops retained;26/5/3/217 unchanged. No automatic
+repair/retry. Read the latest result and obtain a scoped versioned correction
+approval before further preparation. Unverified parent-v2 must not be launched.
+
 LATEST STOP: prefix-timing mechanical preparation failed its insertion-map
 reversibility check (exit1) before any input/approval/instrumentation writes.
 Read ../roadmap/2026-11-04-runtime-prefix-timing-result.md. Recover originals from

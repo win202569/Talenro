@@ -1,6 +1,31 @@
 # Runtime prefix timing execution ledger
 
-Status: STOPPED / PREPARATION_INSERTION_MAP_FAILURE / NOT_ACCEPTED.
+Status: STOPPED / PREPARATION_V2_DEPENDENCY_ALLOWLIST_FAILURE / NOT_ACCEPTED.
+
+## Latest: approved versioned correction, second preparation stop
+
+User approved versioned correction after27a7d3e3. Read-only metadata investigation
+confirmed ordered-dictionary named-property sorting did not reverse the offsets;
+explicit integer key sorting did. New prepare-v2 preserves original bytes and
+fixes both sort keys. New parent-v2 authenticates the exact historical stop and
+uses separate new stops; original common/child/parent remain unchanged.
+
+Both revised scripts parsed. One prepare-v2 invocation passed insertion-map
+reversibility and transformed parsing, then exited1 at dependency closure:
+PT: dependency Get-Content -LiteralPath $literalPath -Raw.
+The original New-ODFixedContext uses Get-Content; the preparer's command allowlist
+omitted it. This is another preparation-tool authoring defect, not a new product
+failure. No patch/retry after this new result, and no extracted business execution.
+
+Preserved original and revised helpers, actual second call/result and new
+preparation-v2.stop.json. No approval/input/instrumentation/27intent or process.
+Counters26/5/3/217 unchanged;15original stops plus two preparation stops retained.
+Archive13files decoded equal, outer JSON LF; SHA256
+06C3BC19A803874A71DD82C2AA069765C2D5E5BF7A00D9F7BB6A87D77CCF494C.
+Use portable-runtime-prefix-timing-v1-stopped-preparation-v2.json. Further
+correction requires renewed scope; do not run any unverified helper directly.
+
+Earlier record below is historical.
 
 User approved plan913725e8 with 是. Native implementation began with read-only
 preflight:2344pin states,31source hashes,15original stops and original final
