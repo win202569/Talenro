@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST OFFLINE HARNESS CHECKPOINT: plan072f86ac approved; bootstrap
+RED735a03/GREEN2b2b86 passed B01–B03. Two harmless in-process runspaces,
+zero verifier evaluations/OS children; matrix not yet invoked. Resume bounded
+matrix after checking later result/claim files; never repeat occupied fixtures.
+Both runspace location and .NET CurrentDirectory are bound to a fixture root,
+then restored only after terminal invocation. No concurrent fixture execution.
+
 LATEST GAP REVIEW/PLAN ONLY: read docs/roadmap/2026-11-05-staged-integrity-integration-gap-review.md
 and docs/superpowers/plans/2026-11-05-staged-integrity-offline-evidence-validation.md.
 Next proposed gate is an offline16case evidence matrix in isolated fixture copies,

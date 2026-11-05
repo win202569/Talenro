@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-05
 
+## Latest — 离线证据计划已批准，测试工具基础检查通过
+
+计划072f86ac获批；bootstrap RED735a03→GREEN2b2b86，B01/B02/B03通过。
+仅运行两个无业务逻辑的进程内PowerShell运行空间，未启动OS子进程；证据矩阵尚未运行。
+新helper/test和执行记录待保存后继续最多16案例矩阵；44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 集成前差距审查完成，离线证据验证计划待批准
 
 审查见 `docs/roadmap/2026-11-05-staged-integrity-integration-gap-review.md`。
