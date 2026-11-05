@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY FOLLOW-UP: see post-COMPLETE exit analysis in
+docs/roadmap/2026-11-04-runtime-isolated-writer-result.md. Existing producer
+input.after took2579.3967ms, but writer phase timings were not recorded; do not
+claim a measured writer-map stall. COMPLETE precedes full writer-map verification
+and role-result publication. More phase evidence needs a new version/budget;
+do not replay42, change its files, remove checks or expand deadlines implicitly.
+No new runtime/compile occurred; counters remain42/30/6/217, NOT_ACCEPTED.
+
 LATEST BUSINESS PREFIX FAILED: computation42 consumed; current42/30/6/217.
 Prepared checkpoint37785d3f3831f5bd2781d37e92dd453e88ce6bc1 was remote-equal
 before the sole invocation. DrainTimeout after17029ms; producer exit0, writer

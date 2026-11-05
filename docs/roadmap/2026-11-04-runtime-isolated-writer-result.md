@@ -1,5 +1,49 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 read-only follow-up — post-COMPLETE exit path
+
+No new process, compilation, benchmark, replay or failed-output inspection.
+Counters remain42/30/6/217. Original runtime files/evidence stay frozen.
+
+Source trace: Writer.RunAsync closes both sinks, hashes closed files, emits
+COMPLETE and returns0. The PowerShell writer role then performs Map-IW in finally
+(Assert-HTInputs over the complete manifest, serialize/CreateNew/flush the map,
+hash that map), writes role-result and exits. The supervisor requires normal
+owned exits AND terminal control/diagnostic readers; receipt alone is insufficient.
+Thus the post-receipt work shares the same2000ms drain/exit-success window.
+
+Existing evidence comparison (not a new timing run):
+
+|Observation|Recorded duration / inventory|
+|---|---|
+|Synthetic S01 producer-exit observation to supervision finish|785ms|
+|Synthetic S02 producer-exit observation to supervision finish|786ms|
+|Business42 producer input.before interval|953.2089ms|
+|Business42 producer input.after interval|2579.3967ms|
+|Business42 drain start to failure-exit start|2015ms|
+|Synthetic pinned inventory|2558comparisons/2524unique paths/194661307unique file bytes|
+|Business pinned inventory|2657comparisons/2623unique paths/219763790unique file bytes|
+
+Inventory byte counts use file metadata only; they are not measured I/O, and
+duplicate comparisons may read a file repeatedly. Failed data paths are not inputs.
+Producer input.after uses the same Assert-HTInputs implementation as writer
+Map-IW but runs in another process/time; its2579ms does NOT establish writer timing.
+Pin growth (+99unique paths,+25102483unique bytes) is a plausible contributor,
+not a demonstrated cause. Cache, scheduling and filesystem variation remain open.
+
+Confirmed: no successful writer exit within budget, COMPLETE captured, absent
+writer.after-map/role-result, both exits confirmed after termination. The missing
+map cannot distinguish an unfinished hash scan, pre-file serialization, a pending
+post-emission continuation, or a process scheduling delay. No timestamp marks
+COMPLETE emission/return/Map-IW entry, so a precise stalled instruction cannot be
+reconstructed. Do not present this as the original full-host timeout root cause.
+
+Recommended next scope: design a new version with bounded phase timing around
+the existing writer completion and after-map steps, then request a finite new
+observation budget. Preserve checks and deadlines initially; do not simply remove
+the writer map, accept COMPLETE alone, or extend the timeout on this evidence.
+This is an investigation recommendation, not approval to instrument or rerun.
+
 ## 2026-11-05 latest — business prefix42 stopped at DrainTimeout
 
 Preparation37785d3f was pushed/remote-equal before the single invocation.
