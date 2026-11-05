@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION CHECKPOINT: plan07c19f76 approved. Task1 new
+runtime-staged-integrity.ps1 and .tests.ps1 passed11cases/102assertions
+(RED a9721f, GREEN36cccb). Resume Task2; observation44 not launched.
+Actual43/32/6/217 unchanged; NOT_ACCEPTED. Do not rerun consumed finite tests.
+
 LATEST PLAN ONLY: staged integrity design at2067616c was approved by the user.
 Read docs/superpowers/plans/2026-11-05-runtime-staged-integrity.md next.
 Native inline implementation and proposed ceiling44/34/6/217 await plan approval.

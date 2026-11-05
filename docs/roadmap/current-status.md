@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-05
 
+## Latest — 分阶段完整性计划已批准，Task1内存测试通过
+
+用户批准07c19f76计划。新helper/tests完成RED（a9721f缺少helper）→GREEN（36cccb，11案例102断言）。
+Task2版本化角色、父进程复核与静态检查尚待完成；未启动观察44。实际43/32/6/217，NOT_ACCEPTED。
+
 ## Latest — 分阶段完整性核验设计已批准，实施计划待审阅
 
 用户批准设计检查点2067616c；实施计划见 `docs/superpowers/plans/2026-11-05-runtime-staged-integrity.md`。
