@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+LATEST V4 OFFLINE MATRIX PASSED: strict Boolean implementationbf3aecb8.
+Actual role predicate REDaae9d4/GREEN00decd,65 assertions; preflight054211.
+One matrix51d8a8/session13879 ended6f360b exit0: MATRIX_VERIFIED,16/16 matched,
+none NOT_RUN. C07 duplicate-key and C08 string-Boolean refusals both verified.
+Do not rerun consumed matrix-v4 or reuse roots. Prior failures remain evidence,
+not overwritten verdicts. No business/OS children/Docker;44/34/6/217 unchanged.
+Portable package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-runtime-staged-evidence-matrix-v4.json
+425 files,56994469 bytes; SHA256 CE60C4A1C11779F7CE1643F63E9903FD31528F42CCEA318D328E26897EA1A35C.
+Decode/source verified7f3916. Contains all16 fixtures, baselines/mutations,
+versioned source, verdicts, matrix result and ledger; restore evidence only,
+never automatically execute archived scripts. Old versions/evidence unchanged.
+Overall NOT_ACCEPTED/all five capability flags false; no full suite, independent
+review, formal C12 integration or main merge. Next recommended step is read-only
+planning for formal-entry lifecycle and real parent-audit persistence failures;
+execution needs separate scope/approval. Clean-machine dependencies remain separate.
+
 LATEST V3 OFFLINE MATRIX: duplicate-key repair checkpoint4a8e3f3e. Actual parser
 REDfe578f against v2, GREENa83450 against v3 (9 cases); preflight02d611.
 One matrixee8f8d/session11340 endedb3ecba exit1 after8 terminal evaluations.

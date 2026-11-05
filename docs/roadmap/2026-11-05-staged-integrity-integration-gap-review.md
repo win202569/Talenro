@@ -1,5 +1,34 @@
 # Staged integrity integration readiness review
 
+## Latest v4 follow-up: complete offline matrix matched
+
+Strict Boolean repair approved after986d5a48: Test-SIBool requires actual Boolean
+type and expected value;29 expression mappings replace truthiness/false coercion.
+Inverse-delta check preserves all other v3 logic, including duplicate-key parsing,
+numeric identity/map/output checks. Actual role predicate REDaae9d4/GREEN00decd
+passed65 assertions across typed values and string/number/null/array/object errors.
+Preflight054211 passed; implementationbf3aecb8.
+
+|Cases|v4 result|
+|---|---|
+|C01|PASS: unchanged valid baseline accepted|
+|C02-C06|PASS: missing/failed/malformed/wrong-identity audit refused|
+|C07-C08|PASS: duplicate keys and string Boolean refused|
+|C09-C11|PASS: missing/drifted map and actual exit1 refused|
+|C12-C13|PASS: pending/unknown terminal state refused before missing outputs|
+|C14-C15|PASS: incomplete trace and wrong stderr length refused|
+|C16|PASS: existing verdict sentinel preserved; no passing verdict|
+
+Sole matrix51d8a8 ended6f360b exit0;16 terminal evaluations, none NOT_RUN;
+MATRIX_VERIFIED. Read-only405868 confirms persisted outcomes. All45 original
+files unchanged per case. v4 archive425files56994469bytes verified7f3916.
+This closes the saved-evidence matrix gap, not real parent audit-write/disk-hang
+fault coverage, formal-entry lifecycle integration, clean-machine dependencies,
+independent review or full-suite acceptance. No business/OS children/Docker;
+44/34/6/217 unchanged. NOT_ACCEPTED/all five flagsfalse; no main merge.
+Next: read-only scoped plan for remaining parent persistence and integration gaps,
+then separate execution approval. No new runtime budget implied by this result.
+
 ## Latest v3 follow-up: duplicate keys refused, Boolean coercion reproduced
 
 Approved duplicate-key repair is isolated in review-v3, with raw JSON member
