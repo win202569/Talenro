@@ -1,5 +1,35 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 latest — business prefix42 stopped at DrainTimeout
+
+Preparation37785d3f was pushed/remote-equal before the single invocation.
+Runtime session63686 exited1; supervisor elapsed17029ms, normal-drain start14999ms,
+failure-exit start17014ms. Producer PID9668 exit0; writer PID27388 was terminated
+and owned exit-1 confirmed. Both starts consumed; counters42/30/6/217, no retry,
+compilation, deadline change or safety-check removal. No pending or unknown exits.
+
+Child reports HOST_PREFIX_COMPLETED, ContractAPIAvailable/BaselineCore passed,
+cutoff true, no errors, and62events/31intervals structurally match computation29.
+Relay reports48/0bytes and real EOF; control contains matching READY and COMPLETE.
+Nevertheless writer did not normally exit within the shared2000ms drain window.
+Transport FAILED/DrainTimeout is authoritative; outputs remain unavailable/null.
+No physical failure output was inspected, hashed or salvaged.
+
+Acceptance verifier baca92 exited1 at its transport-success gate, correctly refusing
+to accept the business result alone. Read-only review68bb61 checked2657pins,
+2623unique paths and5available maps. Writer after-map and role-result are absent.
+Writer role runs full Map-IW in finally after Writer.RunAsync emits COMPLETE;
+this is the next investigation target, not proof of the exact blocking operation.
+Original full-host timeout remains unresolved; no integration/full acceptance claim.
+
+Final archive37files/3429629bytes,2unavailable outputs excluded, decode/source checks
+passed: SHA25693F36D09D25F18D4ED46D01B1B809822F5D5A7357AC4C67AC690FD4701927DAD.
+Sources, scripts and original records now frozen. Author scope review only, under
+the approved no-agent/no-broad-test exception; no fresh independent reviewer.
+Separate business verification is authoritative, never result.json BusinessVerified=false
+or the presence of COMPLETE alone. Any repair/new observation needs a new version
+and separately approved finite budget. All five flags remain false; NOT_ACCEPTED.
+
 ## 2026-11-05 latest — finite synthetic scenario gate verified
 
 Preparation checkpointb142444b84bec91c4d841aca02dd5244ca229443 was pushed and

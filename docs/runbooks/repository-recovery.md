@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+LATEST BUSINESS PREFIX FAILED: computation42 consumed; current42/30/6/217.
+Prepared checkpoint37785d3f3831f5bd2781d37e92dd453e88ce6bc1 was remote-equal
+before the sole invocation. DrainTimeout after17029ms; producer exit0, writer
+terminated exit-1, both owned exits confirmed; no pending/unknown resource.
+READY and COMPLETE do not substitute for normal writer exit. Business child
+reports HOST_PREFIX_COMPLETED and62events match prior structure, but observation
+is FAILED/NOT_ACCEPTED. No failed data contents/length/hash inspected or salvaged.
+Restore portable-runtime-isolated-writer-business-prefix-final.json:
+37files/3429629bytes/SHA25693F36D09D25F18D4ED46D01B1B809822F5D5A7357AC4C67AC690FD4701927DAD;
+2unavailable data paths excluded. Read verification.json, supervision.json,
+execution.stop.json and progress.md; never rerun consumed claims or edit frozen scripts.
+Read-only checks2657pins/2623unique/5maps passed; acceptance verifier stopped
+at transport-success gate. Next: investigate post-COMPLETE writer exit path,
+including full-map check in finally, before proposing separately approved changes.
+No additional runtime, compilation or relaxed timeout is authorized by this failure.
+
 LATEST BUSINESS PREFIX PREPARED: plan288cb9d0 approved; native finite execution.
 Restore portable-runtime-isolated-writer-business-prefix-preparation.json:
 17files/639830bytes/SHA25687FC9BACD3EDDA5F62E2D5BC7A27CF6D62701419D98C245CC8135D19E8AE47F9.
