@@ -1,5 +1,20 @@
 # Recover the project on a new computer
 
+LATEST SYNTHETIC SCENARIOS VERIFIED: S01..S09/computations33..41 completed in one
+invocation.2normal successes,7expected failures;17owned starts,all exits confirmed,
+0pending/unknown exits,0new compiles. Counters41/28/6/217; finite allowance consumed.
+Recover portable-runtime-isolated-writer-scenarios-final.json:124files,
+17147719bytes,SHA25671B8CFA5EBFF2519FEA1EE29E9EF9777671E844D75120871BBCDB950DBF98FB5.
+12unavailable failure data paths excluded without reading/hashing their contents.
+Successful S01/S02 outputs are4files/8241bytes, independently matched.
+All2558pins and31available maps checked;5missing writer after-maps correspond
+only to expected confirmed termination.18balanced journal records/1638bytes.
+Earlier compiled checkpoint/DLL metadata remain prerequisites; no DLL bundled.
+Do not rerun the consumed scenario driver/claims. Synthetic containment success
+does not fix/prove the original business-host timeout or grant business execution.
+Next work is a separately approved bounded business-prefix plan preserving the
+original guards and success conditions. No main merge/full acceptance.
+
 LATEST SCENARIOS PREPARED: user continued after4b935dae. New scenario-only scripts
 use the already verified v3 helper/adapter, with zero compilation allowed.
 Read2026-11-05-runtime-isolated-writer-scenarios.md. S01..S09 =>33..41,17starts max;

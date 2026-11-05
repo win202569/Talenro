@@ -1,5 +1,52 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 latest — finite synthetic scenario gate verified
+
+Preparation checkpointb142444b84bec91c4d841aca02dd5244ca229443 was pushed and
+remote-equal before one scenario-driver invocation. Session16311 exited0.
+No retry, new compilation, C# edit, unit rerun or business host was performed.
+
+|Case|Computation|Observed outcome|Elapsed ms|
+|---|---:|---|---:|
+|S01|33|SUCCESS,8193stdout/48stderr exact pattern,two exit0|3131|
+|S02|34|SUCCESS,0/0real finalized empty output,two exit0|3024|
+|S03|35|ReadyTimeout,producer never started,writer terminated/exit confirmed|5017|
+|S04|36|DrainTimeout,held write,producer exit0,writer terminated|4046|
+|S05|37|DrainTimeout,held finalization,producer exit0,writer terminated|4130|
+|S06|38|WriterExited,writer exit23,producer exit0|2904|
+|S07|39|ProducerFailed,producer exit23,writer terminated|1997|
+|S08|40|CapacityExceeded,65537read/65536sent,both owned exits|2080|
+|S09|41|MissingReceipt,both exit0,outputs unavailable|2890|
+
+All9fixed assertions passed, including7intentional failure observations. These
+seven are NOT successful output captures. All17started processes have confirmed
+owned exits; no pending resources/unknown exits. Programmed deadlines were retained;
+observed elapsed values are not OS wall-clock guarantees.
+
+Independent read-only verification checked2558pins/2524unique paths, raw bounded
+UTF8/LF control order/identities,18balanced journal records/1638bytes,31available
+identity maps and5allowed absent writer after-maps (S03,S04,S05,S07,S08 termination).
+Available maps each393451bytes/SHA256
+2F74262F4DE4A3F12B6833915D89CABBF4C54D876FF68B7BEB999134FA64623A.
+S01/S02 four closed success files total8241bytes matched independently generated
+pattern/empty expectations and COMPLETE hashes/lengths. Fault-case file contents,
+lengths and hashes were not read to manufacture evidence; fields remain null.
+
+Final archive124files/17147719bytes,12unavailable data exclusions, decoded and
+source-byte checked; SHA256
+71B8CFA5EBFF2519FEA1EE29E9EF9777671E844D75120871BBCDB950DBF98FB5.
+Both existing DLLs are referenced by pinned identity, not copied into the archive.
+Original sources, compiler failures, claims and prior33-file compiled archive
+remain unchanged. Current41/28/6/217; finite scenario task complete.
+
+Together with the earlier18unit cases/81assertions, this verifies the selected
+synthetic protocol/containment gate only. No claim of original timeout root cause,
+exact original transport replay, business correctness, full-suite pass or publication
+acceptance. All five capability flags remain false; overall NOT_ACCEPTED.
+Stop here. A future bounded business-prefix observation requires its own approved
+plan/budget, unchanged business guards/cutoff and original48/0-byte success checks.
+No main merge, cleanup, fault-file salvage or additional process is authorized.
+
 ## 2026-11-05 remaining scenario gate prepared
 
 User continued after4b935dae. New role/driver accept only writer/producer and
