@@ -1,5 +1,23 @@
 # Recover the project on a new computer
 
+LATEST V3 COMPILER/UNITS VERIFIED: computation32/worker11/compile6 completed once;
+18cases81assertions PASS,exit0,4371ms,no kill/pending resources. Counters32/11/6/217.
+Recover portable-runtime-isolated-writer-v3-compiled.json:33files/2817369bytes,
+SHA256755D55B0EB738031266D4B58CAAA096A8916EE4881B7A28243B410994AE87FC6.
+Independent2531pins and four full maps verified; runtime/protocol unchanged.
+One DLL excluded:80896bytes,SHA256
+2AEF2A39B5D499981378D8FD1F749A3073AD92C03641CEBBA28E9060B3FFCD7B.
+Original compiler failures and all raw files remain intact. One post-run controller
+read used a missing session-store workdir and failed in main checkout; the explicit
+worktree read-only verification passed. The incomplete controller record is retained
+and labelled; tool-record.json summarizes the original successful response rather
+than claiming a byte-identical raw dump. No runtime replay.
+Do not invoke driver-v3 Compile again. It and role-v3 accept Compile only.
+Nine scenario runs remain NOT_RUN; future continuation needs versioned script
+entries/numbering and its own explicit scope, reusing the verified local DLL.
+A fresh computer still needs separate authority to rebuild missing excluded DLLs.
+This is NOT_ACCEPTED, no business-host run or main merge.
+
 LATEST V3 PREPARED: user approved one versioned CS1690 correction and one extra
 compiler/verification worker. Read the2026-11-05compile-correction plan.
 Only Pending's declaration changed to a property;18unit bodies unchanged.

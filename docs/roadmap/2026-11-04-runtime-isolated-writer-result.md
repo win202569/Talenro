@@ -1,5 +1,42 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 latest — v3 compiler and unit gate verified
+
+Prepared checkpoint6dfbd38dcdbc36dcbff27d4da4491cb297bc439e was pushed and
+remote-equal before the one driver-v3 Compile invocation. Computation32,
+worker11,compilation6 succeeded. U01..U18 all passed,81assertions, no case errors.
+Owned process19324 exited0 in4371ms; no kill or pending resources. Both captured
+streams completed:32stdout bytes (ISOLATED_WRITER_UNITS_VERIFIED plus CRLF),stderr0.
+Journal2balanced records/190strict-UTF8 LF bytes.
+
+Independent verification checked2531hashes/2495unique pins and all four388920-byte
+maps, SHA256A54FFA60581E8063921F87409A68C863433B7A653F4724A6AD2E9A36B4DB1FF8.
+The80896-byte DLL matches the compiler receipt/reference identity:
+SHA2562AEF2A39B5D499981378D8FD1F749A3073AD92C03641CEBBA28E9060B3FFCD7B.
+It is retained locally and excluded from Git/portable archive.
+
+Compiled archive33files/2817369bytes,1excluded binary, decoded/source-byte checked:
+SHA256755D55B0EB738031266D4B58CAAA096A8916EE4881B7A28243B410994AE87FC6.
+All old failures and original source/evidence retained. The only C# correction
+remains the test-helper field-to-property declaration; no assertion relaxation.
+
+Post-run recording caveat: after a new user turn, session-store paths/metadata were
+unavailable. A read-only verification accidentally defaulted to main checkout and
+failed before reading input; an incomplete controller record was also written
+there. It was retained under compile/routing-incomplete.tool-record.json, not
+discarded or presented as a full receipt. Explicit absolute-worktree read-only
+verification then passed. compile/tool-record.json records the original successful
+tool response's summary and distinguishes it from a byte-identical raw dump.
+No compiler/unit/process replay or original evidence mutation occurred.
+
+Active correction complete; counters32/11/6/217. Nine real-process scenarios remain
+NOT_RUN. No business host, old-timeout repair claim, full-suite acceptance or main
+merge. All five capability flags remain false; overall NOT_ACCEPTED.
+Next is a separately scoped versioned scenario entry and renumbered33..41ledger,
+reusing the verified DLL without recompilation. Compile-only v3 entry cannot launch
+those scenarios. The next run's updated script/identity binding must be frozen
+and pushed before any scenario starts.
+
 ## 2026-11-05 v3 correction prepared — compiler not invoked
 
 User approved one additional compilation/worker after6c167190. New test source
