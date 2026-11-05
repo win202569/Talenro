@@ -1,5 +1,21 @@
 # Staged integrity integration readiness review
 
+## Next gate planned: parent persistence, not formal wiring
+
+Read-only source review confirms diagnostic driver Save-IW uses exclusive
+CreateNew writes; supervision is persisted before terminal gating, audit before
+result, and outer failure recording can itself fail. Formal Invoke-C12Group has
+separate package/profile gates, resource ownership and deadlines. A fixed-root
+diagnostic run is not a substitute for that lifecycle.
+Plan: docs/superpowers/plans/2026-11-05-parent-audit-persistence-validation.md.
+Ten proposed cases use exact existing parent-tail code and tiny real files; cover
+hash drift, absent-pin violation, exclusive-open collisions, pending/unknown exits
+and transport failure. No live driver entry, runtime binaries or full scan.
+Write/flush/disk-full/ACL/hang and failure-marker persistence remain separate gaps.
+Formal integration design is deferred until this finite gate is reviewed; passing
+it cannot authorize real runtime work or capability promotion. Plan not executed;
+44/34/6/217 unchanged,NOT_ACCEPTED. This is an author review, not independent audit.
+
 ## Latest v4 follow-up: complete offline matrix matched
 
 Strict Boolean repair approved after986d5a48: Test-SIBool requires actual Boolean

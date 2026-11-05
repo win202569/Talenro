@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN ONLY: docs/superpowers/plans/2026-11-05-parent-audit-persistence-validation.md
+proposes10 tiny-file parent-tail cases using exact pinned driver definitions and
+post-supervision tail, not the original operational entry. Approval pending; no
+tests/runtime/Docker executed this planning turn. Do not rerun consumed v4 matrix.
+Driver SHA2565031ED56375B5DB1194567E6D7D8B95405DD36595324D9BC6B4AED7A89BFECDC.
+Formal entry remains separate; no modifications, new runtime budget or main merge.
+Counters44/34/6/217 unchanged,NOT_ACCEPTED. Resume with plan review/approval.
+
 LATEST V4 OFFLINE MATRIX PASSED: strict Boolean implementationbf3aecb8.
 Actual role predicate REDaae9d4/GREEN00decd,65 assertions; preflight054211.
 One matrix51d8a8/session13879 ended6f360b exit0: MATRIX_VERIFIED,16/16 matched,
