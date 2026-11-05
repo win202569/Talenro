@@ -1,5 +1,21 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 staged integrity implementation stop
+
+Plan07c19f76 approved. Task1 helper/decision gate RED a9721f -> GREEN36cccb,
+11 cases/102 assertions. Task2 static RED b2aa14 expected missing role; first
+GREEN attempt ab73ac failed the no-duplicate-source-pass assertion. Read-only
+e6521a found a checker false positive: Contains('Get-FileHash $p') matches
+Get-FileHash $path in the eligible business-output verification at line129.
+No assertion was bypassed; later checks remain unexecuted. No repair or retry.
+No preparation or computation44; counters43/32/6/217, all five flags false,
+NOT_ACCEPTED. Stopped sources and records are retained in the staged-integrity
+final portable checkpoint (not a successful runtime archive):16files103943bytes,
+SHA256 F1E8804C937D31A6F5FFE46DD4DBB6F2DE7B950F5024926ED5DC878194F7C501,
+decoded/source-verified by preserve082e37. Next action needs approval for a
+precise AST predicate and one bounded static recheck, without changing process
+safety or the original single-observation runtime allowance.
+
 ## 2026-11-05 read-only pin inventory follow-up
 
 No hash benchmark, runtime replay, compilation or failed-output access. Counters

@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-05
 
+## Latest — 分阶段实现停在静态检查，未启动观察44
+
+Task1内存测试通过11案例102断言；Task2脚本已编写，但静态GREEN尝试ab73ac退出1。
+只读定位：检测`Get-FileHash $p`的子串误命中合法输出检查`Get-FileHash $path`（verify.ps1:129）；后续静态检查尚未执行，不能视为通过。
+按批准计划停止，未修复/重试、未准备、未运行。实际43/32/6/217，NOT_ACCEPTED。
+保留全部新源码与停止记录；下一步需批准修正静态检测并增加一次有限静态复核，原运行额度不变。
+
 ## Latest — 分阶段完整性计划已批准，Task1内存测试通过
 
 用户批准07c19f76计划。新helper/tests完成RED（a9721f缺少helper）→GREEN（36cccb，11案例102断言）。

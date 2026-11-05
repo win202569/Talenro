@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST STOPPED CHECKPOINT: Task2 staged integrity static check ab73ac exited1.
+The substring Get-FileHash $p wrongly matched the allowed Get-FileHash $path
+output hash at verify.ps1:129 (read-only finding e6521a). Remaining static
+assertions were not reached. No repair/retry/preparation/observation44 occurred.
+portable-runtime-staged-integrity-final.json is the STOPPED implementation
+checkpoint, NOT a prepared or accepted runtime. Restore its entries for review;
+read static.stop.json/progress.md before any continuation. Actual43/32/6/217.
+Need approval for a precise static-check repair and one bounded recheck;
+do not rerun Task1 or consumed RED checks. Runtime budget remains unused.
+
 LATEST IMPLEMENTATION CHECKPOINT: plan07c19f76 approved. Task1 new
 runtime-staged-integrity.ps1 and .tests.ps1 passed11cases/102assertions
 (RED a9721f, GREEN36cccb). Resume Task2; observation44 not launched.
