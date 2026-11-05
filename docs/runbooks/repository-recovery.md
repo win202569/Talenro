@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN ONLY: read docs/superpowers/plans/2026-11-05-runtime-isolated-writer-business-prefix.md.
+The user approved preparing the design extension/plan, not launching the host.
+No new implementation, intent, process or compilation exists from this planning step.
+Current41/28/6/217; proposed one computation42/two starts, ceiling42/30/6/217.
+Keep all consumed evidence intact. Missing pinned DLLs stop recovery execution;
+this plan does not authorize rebuilding them. Await plan review before execution.
+
 LATEST SYNTHETIC SCENARIOS VERIFIED: S01..S09/computations33..41 completed in one
 invocation.2normal successes,7expected failures;17owned starts,all exits confirmed,
 0pending/unknown exits,0new compiles. Counters41/28/6/217; finite allowance consumed.
