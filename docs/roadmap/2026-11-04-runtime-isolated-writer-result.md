@@ -1,5 +1,45 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 latest — phase observation43 failed with two valid markers
+
+Plan919122d0 approved;12memory cases/63assertions and static RED/GREEN passed.
+Draft preparation historical references were corrected before its FIRST invocation;
+no prior evidence changed. First preparation2657pins/37archive files/10script parses
+passed. Prepared checkpointdd773432b6c07b2014781cddf67c6da1b46f361e remote-equal
+before session38489, chunks604b24/daabec exit1. No runtime/test/preparation retry.
+
+Supervisor FAILED/DrainTimeout, elapsed16236ms, DrainStart14205ms,
+ExitStart16220ms. Producer5448 exit0; writer4216 was terminated and exit-1 confirmed.
+Both owned exits confirmed; no pending resources/unknown exits. Counters43/32/6/217.
+READY/COMPLETE and relay48/0 real EOF were recorded, but writer normal exit absent;
+therefore outputs remain unavailable/null. No failure data inspection or salvage.
+
+Timing parser: PARTIAL,481bytes,2valid identity-bound records, no tail/truncation:
+
+|Seq|Phase|ElapsedTicks|Frequency|
+|---|---|---:|---:|
+|1|task.returned|126054191|10000000|
+|2|pins.begin|126815166|10000000|
+
+Local gap76.0975ms includes instrumentation and scheduling. There is no paired
+pins.end, so no full pin-check duration is available. Writer after-map/role-result
+absent. This narrows observed progress to after task return and recorded pins.begin,
+before receipt of pins.end; it does not prove a particular file or permanent hash
+deadlock. Begin-record write/flush and scheduling are also inside that uncertainty.
+Do not align writer elapsed ticks with supervisor clocks or infer cross-pipe order.
+
+Verifier d2f63d ran once, exit1 TIMED_PREFIX_FAILED;2703pins/2669unique paths matched.
+Read-only b27b77 confirmed5available maps and62events matching computation29; child
+HOST_PREFIX_COMPLETED, two business groups passed, no reported errors/open intervals.
+Transport success, business checks and timing completeness remain separate conditions.
+
+Final40files/3520045bytes,2unavailable data files excluded, decoded/source-byte
+verification passed; SHA25698278C9EBA3AE834220D81E4D880B51F5C4AA52610091B007B90C95E6CEB2E4C.
+Author scope review only; no independent reviewer or broad suite per finite plan.
+Original protocol/DLLs/checks/deadlines unchanged; five flags false, NOT_ACCEPTED.
+Gate ended. Next recommend read-only input-set and Assert-HTInputs call-path analysis
+before proposing revised instrumentation/check architecture or a new finite run.
+
 ## 2026-11-05 read-only follow-up — post-COMPLETE exit path
 
 No new process, compilation, benchmark, replay or failed-output inspection.

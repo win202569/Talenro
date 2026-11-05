@@ -1,5 +1,20 @@
 # Recover the project on a new computer
 
+LATEST TIMING OBSERVATION FAILED: computation43 consumed; current43/32/6/217.
+Prepareddd773432b6c07b2014781cddf67c6da1b46f361e was remote-equal before sole run.
+DrainTimeout at16236ms; producer5448 exit0, writer4216 terminated exit-1, both owned
+exits confirmed, no pending/unknown resources. No retry or new compile.
+Read timing-review.json: PARTIAL,2records/481bytes, task.returned then pins.begin;
+no pins.end, no raw tail/truncation. This is not a measured full hash duration or
+proof of a specific blocking file; diagnostic emission/scheduling remain included.
+Verifier d2f63d exit1;2703pins/2669unique verified. Read-only b27b77 confirmed5maps,
+62event structure and two passed business groups. Transport/observation remain FAILED.
+Restore portable-runtime-writer-phase-timing-final.json:40files/3520045bytes,
+SHA25698278C9EBA3AE834220D81E4D880B51F5C4AA52610091B007B90C95E6CEB2E4C.
+2unavailable output files excluded without contents/length/hash inspection.
+Keep consumed scripts/receipts frozen; next scope is read-only pin-set/call-path
+analysis and a separately approved revision, not rerunning43 or relaxing checks.
+
 LATEST TIMING PREPARED: approved plan919122d0 implemented with12memory cases/
 63assertions and static RED/GREEN. First preparation verified2657pins/37archive
 files/10parsed scripts. Draft historical-path substitution corrected before that
