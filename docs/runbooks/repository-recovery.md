@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST PARENT AUDIT MATRIX PASSED: plan19946250 approved; bootstrap
+RED2b289d/GREENd461d6; implementation6229b867. Sole matrix1ef38d exit0,
+PARENT_AUDIT_MATRIX_VERIFIED,10/10 matched.10 parent-tail runspaces plus2 harmless
+bootstrap runspaces; no OS children/business/Docker. No original driver entry run.
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-runtime-parent-audit-persistence-v1.json
+147 files,184491 bytes; SHA256 CFF0F7B92222178B7C0D253F822302A36813B140220D22C417102A8BBE7E3E2E.
+Decode/source checkcc18fc passed. Restore evidence only; synthetic contexts are
+not real supervision receipts. Never execute archived scripts automatically or
+rerun consumed parent cases. Original driver/common source stayed byte-identical.
+Next is formal integration design, not live execution. Define configuration,
+ownership, receipt bindings, caller error contract and parent audit time limits.
+Disk-full/mid-write/flush/ACL/hang/stop-marker persistence remain untested.
+No full suite or independent review;44/34/6/217 unchanged,NOT_ACCEPTED; no main merge.
+
 LATEST PLAN ONLY: docs/superpowers/plans/2026-11-05-parent-audit-persistence-validation.md
 proposes10 tiny-file parent-tail cases using exact pinned driver definitions and
 post-supervision tail, not the original operational entry. Approval pending; no

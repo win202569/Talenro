@@ -1,5 +1,30 @@
 # Staged integrity integration readiness review
 
+## Latest parent persistence follow-up: ten cases matched
+
+Approved plan19946250 executed with exact pinned driver helpers/tail/catch and
+real tiny-file hashing/CreateNew writes, not mocked persistence. No driver entry
+or supervisor launched. Bootstrap2b289d→d461d6 passed; checkpoint6229b867.
+
+|Cases|Result|
+|---|---|
+|P01|PASS: normal audit VERIFIED, result remains NOT_ACCEPTED|
+|P02-P03|PASS: real hash drift/absent-pin violation yields FAILED audit and stops|
+|P04-P07|PASS: preoccupied map/audit/result/supervision bytes preserved; no false success|
+|P08-P09|PASS: pending/unknown exit blocks audit before deliberate input drift|
+|P10|PASS: audit success does not upgrade failed transport|
+
+Sole matrix1ef38d exit0,10 matches;2 harmless bootstrap plus10 terminal parent
+runspaces. Capture of original Console.Out success marker is synchronous and
+separate from PowerShell output; source decisions unchanged. Archive147files
+184491bytes verifiedcc18fc, containing setup/context/slice/input/output/verdicts.
+This covers real exclusive-open collisions, not general disk resilience. Mid-write,
+flush, disk-full, ACL, hung filesystem and failure-marker save failures remain
+untested. Formal lifecycle, clean-machine dependencies and full-suite/independent
+acceptance remain open. Counters44/34/6/217 unchanged;NOT_ACCEPTED.
+Recommend separate formal integration design next; no direct fixed-root driver
+wiring, runtime budget, security changes or main merge follows from these tests.
+
 ## Next gate planned: parent persistence, not formal wiring
 
 Read-only source review confirms diagnostic driver Save-IW uses exclusive
