@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST STATIC REPAIR: user-approved exact AST predicate passed10new cases and
+the sole static recheck96d575 (RED57510e missing predicate). No Task1 rerun,
+preparation or observation44; actual43/32/6/217, NOT_ACCEPTED unchanged.
+Restore portable-runtime-staged-integrity-final.json first, then apply
+portable-runtime-staged-integrity-static-repair.json: it supersedes only the
+static checker and adds fixtures/receipts. Never overwrite the new checker by
+restoring the old archive afterward. Supplement4files/13870bytes, SHA256
+36E061D0578C816801C6E3095620ED1E61ECE953D8B84A6D4184F7FE81365FD5.
+Before preparation, add the new predicate test to the preparation pin list and
+choose a new final archive destination; preserve the original stopped archive.
+
 LATEST STOPPED CHECKPOINT: Task2 staged integrity static check ab73ac exited1.
 The substring Get-FileHash $p wrongly matched the allowed Get-FileHash $path
 output hash at verify.ps1:129 (read-only finding e6521a). Remaining static

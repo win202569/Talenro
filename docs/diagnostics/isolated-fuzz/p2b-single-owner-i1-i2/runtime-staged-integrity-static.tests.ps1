@@ -5,6 +5,25 @@ $d='.superpowers/sdd/2026-11-05-runtime-staged-integrity-v1'
 $old='.superpowers/sdd/2026-11-05-runtime-writer-phase-timing-v1'
 function Need([bool]$Ok,[string]$Why){if(-not $Ok){throw "SI_STATIC: $Why"}}
 function Read([string]$Name){$p=Join-Path $PSScriptRoot $Name;Need (Test-Path $p) "missing $Name";return (Get-Content $p -Raw).Replace("`r`n","`n").TrimEnd()}
+function Test-SINoSourceRescan([string]$Source){
+ $tokens=$null;$errors=$null
+ $tree=[Management.Automation.Language.Parser]::ParseInput($Source,[ref]$tokens,[ref]$errors)
+ if($errors.Count){throw 'SI_STATIC: source parse failed'}
+ $commands=@($tree.FindAll({param($a)$a -is [Management.Automation.Language.CommandAst]},$true))
+ foreach($command in $commands){
+  $name=$command.GetCommandName()
+  if($null -eq $name){continue}
+  $name=($name -split '\\')[-1]
+  if($name -ieq 'Assert-HTInputs'){return $false}
+  if($name -ine 'Get-FileHash'){continue}
+  foreach($argument in @($command.CommandElements|Select-Object -Skip 1)){
+   $variables=@($argument.FindAll({param($a)$a -is [Management.Automation.Language.VariableExpressionAst]},$true))
+   foreach($variable in $variables){if(($variable.VariablePath.UserPath -split ':')[-1] -ieq 'p'){return $false}}
+  }
+ }
+ return $true
+}
+& (Join-Path $PSScriptRoot runtime-staged-integrity-static-predicate.tests.ps1)
 $role=Read runtime-staged-integrity-role.ps1
 $driver=Read runtime-staged-integrity-driver.ps1
 $capture=Read runtime-staged-integrity-capture.ps1
@@ -27,7 +46,7 @@ Need ($driver.IndexOf('Save-IW supervision.json') -lt $driver.IndexOf('Need-IW $
 Need ($driver.Contains("`$audit.After=`$null;`$audit.State='FAILED'") -and $driver.Contains('Save-IW integrity-review.json $audit') -and $driver.Contains("Need-IW (`$audit.State -ceq 'VERIFIED')")) 'persisted failed audit blocks success'
 Need ($driver.IndexOf('Save-IW integrity-review.json $audit') -lt $driver.IndexOf("Need-IW (`$audit.State -ceq 'VERIFIED')")) 'persist before success'
 $verify=(Get-Content "$d/verify.ps1" -Raw).Replace("`r`n","`n")
-Need (-not $verify.Contains('Get-FileHash $p') -and -not $verify.Contains('Assert-HTInputs')) 'no duplicate full source pass'
+Need (Test-SINoSourceRescan $verify) 'no duplicate full source pass'
 foreach($key in @('TransportVerified','TerminalVerified','BusinessVerified','AuditPersisted','AuditIdentityVerified','AuditMapsVerified','WriterDelegationVerified','RoleVerified','TimingVerified','OutputVerified')){Need ($verify.Contains("`$facts.$key=`$true")) "checked fact $key"}
 foreach($text in @('integrity-review.json','audit identity','map path','map metadata','map count','PARENT_POST_EXIT_REQUIRED','Test-SIObservation','Read-SITrace','ObservationPassed','NOT_ACCEPTED')){Need ($verify.Contains($text)) "verifier requirement $text"}
 Need ($verify.Contains('$n=@(48,0)[$i]') -and $verify.Contains('$diagnostic.Length -le 1920')) 'separate output/trace limits'

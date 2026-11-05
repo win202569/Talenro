@@ -1,5 +1,19 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 static predicate repair verified
+
+After user approval at aef50fac, changed only the static checker and added
+predicate fixtures. Exact command-argument AST matching distinguishes p/path,
+named/nested/scoped arguments and comments/literals, and rejects parse errors.
+RED57510e missing predicate; sole static recheck96d575 exit0:
+STAGED_STATIC_PREDICATE_VERIFIED:10cases; STAGED_INTEGRITY_STATIC_VERIFIED.
+This is a targeted known-source check, not general alias/dataflow analysis.
+Task1 not rerun; runtime source unchanged; no preparation/observation44.
+Counters43/32/6/217, NOT_ACCEPTED. Supplement archive4files13870bytes,
+SHA25636E061D0578C816801C6E3095620ED1E61ECE953D8B84A6D4184F7FE81365FD5,
+decode/source-verified6217c9. Original failed archive/receipts unchanged.
+Next preparation must pin the new fixture and use a new final archive path.
+
 ## 2026-11-05 staged integrity implementation stop
 
 Plan07c19f76 approved. Task1 helper/decision gate RED a9721f -> GREEN36cccb,
