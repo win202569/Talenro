@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST SCENARIOS PREPARED: user continued after4b935dae. New scenario-only scripts
+use the already verified v3 helper/adapter, with zero compilation allowed.
+Read2026-11-05-runtime-isolated-writer-scenarios.md. S01..S09 =>33..41,17starts max;
+current32/11/6/217, ceiling41/28/6/217. No gate claim yet.
+Restore portable-runtime-isolated-writer-scenarios-preparation.json:19files,
+751268bytes,SHA256100487A3C7E850F32C283BC5F29F708EB9C98FC264DD87F33454B9399662CC57.
+InputSHA256B8EA519BD519671C7E2E10FED2FF379441CC22E38BA7F6A649822FE3A2CED049.
+Independent2558pins verified. Freeze/push before one scenario-driver invocation.
+Missing DLLs, unexpected outcomes or recording failures stop; do not replay claims.
+
 LATEST V3 COMPILER/UNITS VERIFIED: computation32/worker11/compile6 completed once;
 18cases81assertions PASS,exit0,4371ms,no kill/pending resources. Counters32/11/6/217.
 Recover portable-runtime-isolated-writer-v3-compiled.json:33files/2817369bytes,

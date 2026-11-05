@@ -1,5 +1,22 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 remaining scenario gate prepared
+
+User continued after4b935dae. New role/driver accept only writer/producer and
+Scenarios respectively; no compiler entry or C# change. Existing v3 DLL reused.
+S01..S09 are now computations33..41 with at most17starts and0compilations.
+Current32/11/6/217, ceiling41/28/6/217. Original expected outcomes/deadlines unchanged.
+Per-case handoff additionally records available writer-map identities and checks
+successful S01/S02 stable files against fixed pattern/empty bytes before next row.
+Failed files stay unavailable and are never read/hash-salvaged.
+
+Preparation ran once; four scripts parsed. Independent2558hashes/2524unique pins
+passed; prior33-file compiled evidence and both DLLs unchanged.
+InputSHA256B8EA519BD519671C7E2E10FED2FF379441CC22E38BA7F6A649822FE3A2CED049.
+19-file751268-byte preparation archive decoded/source-byte checked:
+SHA256100487A3C7E850F32C283BC5F29F708EB9C98FC264DD87F33454B9399662CC57.
+No scenario executed yet; checkpoint must be pushed before the one invocation.
+
 ## 2026-11-05 latest — v3 compiler and unit gate verified
 
 Prepared checkpoint6dfbd38dcdbc36dcbff27d4da4491cb297bc439e was pushed and
