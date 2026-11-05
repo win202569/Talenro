@@ -1,5 +1,32 @@
 # Staged integrity integration readiness review
 
+## Latest follow-up: duplicate audit key acceptance reproduced
+
+After user approval, versioned payload compatibility passed13 checks (REDa50432,
+GREEN6127a8), including both real archive formats. Existing byte length/hash
+checks remain. Matrix decisions and original verifier source unchanged (003768).
+The sole v2 matrix8af4a6 ended6e1914 exit1 after7 terminal evaluations:
+
+|Cases|Result|
+|---|---|
+|C01|PASS: baseline accepted|
+|C02-C06|PASS: missing/failed/malformed/wrong-identity audits rejected|
+|C07|FAIL: duplicate State FAILED then VERIFIED accepted|
+|C08-C16|NOT_RUN: stopped at first unexpected outcome|
+
+Read-only d9f9a3 confirms the raw duplicate keys and persisted passing verdict.
+ReadJson currently uses ConvertFrom-Json -AsHashtable and checks only resulting
+audit.State; the C07 artifact demonstrates that this loses the conflicting key.
+This is now an observed validation defect, not merely a source-review concern.
+C08 string Boolean coercion remains untested; no conclusion about that case.
+Do not use C07's passing verdict as acceptance or weaken the expected rejection.
+No verifier repair/retry this turn. Propose separately approved strict duplicate
+key rejection in a new verifier version, targeted regression and bounded matrix.
+188-file portable-runtime-staged-evidence-matrix-v2.json preserves all v2 fixtures,
+snapshots, mutated/baseline inputs, verdicts and stop result (ad6d6b verified).
+45 originals unchanged,44/34/6/217 unchanged; zero business/OS children/Docker.
+NOT_READY_FOR_FORMAL_INTEGRATION/NOT_ACCEPTED; no full suite or independent review.
+
 ## Execution follow-up: fixture preparation stopped
 
 Plan072f86ac was approved. Bootstrap RED735a03/GREEN2b2b86 passed B01–B03

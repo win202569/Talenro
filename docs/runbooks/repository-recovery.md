@@ -1,5 +1,20 @@
 # Recover the project on a new computer
 
+LATEST V2 OFFLINE MATRIX: compatibility fix checkpoint31d1f4d4; 13 payload checks
+passed6127a8. One matrix8af4a6/session67365 ended6e1914 exit1: C01-C06 matched,
+C07 duplicate State FAILED then VERIFIED unexpectedly accepted; C08-C16 NOT_RUN.
+Seven terminal in-process verifier evaluations, no OS children/business/Docker.
+Do not rerun consumed matrix-v2 or reuse its case roots. Old v1 files remain intact.
+Portable package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-runtime-staged-evidence-matrix-v2.json
+188 files,24670035 bytes; SHA256 B86B950DBE1F182EEBB888A108C442A32349BE8C093524505B6F06E8AD8CF399.
+Decode/source verification ad6d6b passed. Restore as evidence only, never execute
+archived scripts automatically. C07's passing verdict is the reproduced defect,
+not valid acceptance. Matrix-result.json and case-result.json retain the mismatch.
+All45 original files unchanged;44/34/6/217 unchanged;NOT_ACCEPTED.
+Next requires separate approval for a new verifier version rejecting duplicate
+JSON keys, regression tests and a fresh bounded validation. No full suite or
+independent review performed; no formal C12 integration or main merge authorized.
+
 LATEST OFFLINE MATRIX STOPPED:1b894b failed preparing C01, before any verifier
 evaluation. All C01–C16 NOT_RUN; bootstrap B01–B03 had passed. Old copy-transport
 archive uses Base64 while the new helper expects RawBase64 (read-only262952).
