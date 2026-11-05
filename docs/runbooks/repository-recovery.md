@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST DESIGN ONLY: read docs/superpowers/specs/2026-11-05-runtime-writer-phase-timing-design.md.
+User chose existing writer-stderr diagnostics; design itself awaits approval.
+Nine normal phase records, at most10records/3840bytes; original checks and deadlines
+unchanged. No new source/runtime/compile; counters42/30/6/217. Proposed43/32/6/217
+requires a separately approved execution plan. Never rerun consumed observation42.
+
 LATEST READ-ONLY FOLLOW-UP: see post-COMPLETE exit analysis in
 docs/roadmap/2026-11-04-runtime-isolated-writer-result.md. Existing producer
 input.after took2579.3967ms, but writer phase timings were not recorded; do not
