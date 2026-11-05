@@ -1,5 +1,32 @@
 # Staged integrity integration readiness review
 
+## Latest v3 follow-up: duplicate keys refused, Boolean coercion reproduced
+
+Approved duplicate-key repair is isolated in review-v3, with raw JSON member
+inspection before dictionary conversion for file JSON and control/event/journal
+lines. Nested/escaped/case-alias duplicate tests pass; valid siblings and literal
+key text remain accepted (9 cases, REDfe578f/GREENa83450). No downstream predicates
+changed; preflight02d611 checks permitted deltas and45 unchanged originals.
+
+|Cases|v3 result|
+|---|---|
+|C01-C06|PASS: valid baseline and earlier refusal checks|
+|C07|PASS: duplicate State rejected with duplicate/ambiguous JSON reason|
+|C08|FAIL: Writer.Associated JSON string "false" accepted|
+|C09-C16|NOT_RUN: stopped at first unexpected outcome|
+
+Sole matrixee8f8d endedb3ecba exit1;8 terminal in-process evaluations.
+Read-only4a06cd confirms C08 raw string and wrong passing verdict. Existing
+role predicate uses $p.Associated as truthiness without requiring Boolean type.
+This previously suspected gap is now reproduced. Matching result.Result was
+mutated too, so a copy mismatch did not mask the actual type-validation defect.
+Do not weaken C08 expectation or count its verdict as acceptance. No repair or
+retry this turn. Proposed next scope: strict Boolean evidence validation in a
+new verifier version, targeted type regressions and fresh finite matrix.
+Portable v3 package225files28215523bytes verified273761. No business/OS children,
+Docker, full suite, independent review or main merge.44/34/6/217 unchanged;
+NOT_READY_FOR_FORMAL_INTEGRATION/NOT_ACCEPTED.
+
 ## Latest follow-up: duplicate audit key acceptance reproduced
 
 After user approval, versioned payload compatibility passed13 checks (REDa50432,

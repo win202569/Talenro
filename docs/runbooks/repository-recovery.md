@@ -1,5 +1,22 @@
 # Recover the project on a new computer
 
+LATEST V3 OFFLINE MATRIX: duplicate-key repair checkpoint4a8e3f3e. Actual parser
+REDfe578f against v2, GREENa83450 against v3 (9 cases); preflight02d611.
+One matrixee8f8d/session11340 endedb3ecba exit1 after8 terminal evaluations.
+C01-C07 matched, including real duplicate-key refusal. C08 Writer.Associated
+JSON string "false" unexpectedly accepted; C09-C16 NOT_RUN. Do not rerun the
+consumed matrix-v3 or reuse its roots. Passing C08 verdict is defective evidence,
+not acceptance. Old scripts/archives remain unchanged.
+Portable package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-runtime-staged-evidence-matrix-v3.json
+225 files,28215523 bytes; SHA256 02FED9E0F23982A127535E6E1FAB207C04CA1F9404A3ED18D6ADBF7EF54CD7CB.
+Decode/source verified273761. Includes parser inputs, versioned source, fixture
+baselines/mutations/verdicts/stop result and ledger. Restore evidence only; never
+automatically execute archived scripts. No business/OS children/Docker/full suite
+or independent review.45 originals unchanged;44/34/6/217 unchanged;NOT_ACCEPTED.
+Next requires approval for strict Boolean evidence validation in a new version,
+targeted regression tests and one fresh bounded matrix. No formal integration,
+runtime replay or main merge authorized.
+
 LATEST V2 OFFLINE MATRIX: compatibility fix checkpoint31d1f4d4; 13 payload checks
 passed6127a8. One matrix8af4a6/session67365 ended6e1914 exit1: C01-C06 matched,
 C07 duplicate State FAILED then VERIFIED unexpectedly accepted; C08-C16 NOT_RUN.
