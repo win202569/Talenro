@@ -1,5 +1,23 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 v3 correction prepared — compiler not invoked
+
+User approved one additional compilation/worker after6c167190. New test source
+changes only Pending from a public ReadOnlyMemory<byte> field to a property with
+a private setter. No runtime/protocol/assertion changes. SavedCS1690 is the prior
+failing evidence; no extra RED build or suppression. Active scope is computation32,
+worker11,compilation6 with18unchanged unit cases; no scenario starts this turn.
+Role-v3 and driver-v3 accept Compile only and use a fresh directory and claims.
+
+One preparation invocation passed. Independent2531hashes/2495unique pins verified
+all original inputs and the37-file stopped archive. Four scripts parsed; only the
+approved test declaration differs.17-file725144-byte preparation archive decoded
+and source-byte checked, SHA256
+E64FB67C725C078EB68C6940B5B1CF9E2891C9515E418BF013EA934A7515A5E0.
+InputSHA256E0886A836D7DB319EEC90BD6F31AE7661551C295E0C1126199891E2BE77D2E88.
+Current31/10/5/217 unchanged; runtime not yet verified. Push before invoking once.
+Original failures below are retained historical evidence.
+
 ## 2026-11-05 latest — compilation failed, gate stopped
 
 After preparation checkpoint a6d4329196ba004eb5d0d9152f91f86d9a542d24 was pushed

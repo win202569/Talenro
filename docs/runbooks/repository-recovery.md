@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST V3 PREPARED: user approved one versioned CS1690 correction and one extra
+compiler/verification worker. Read the2026-11-05compile-correction plan.
+Only Pending's declaration changed to a property;18unit bodies unchanged.
+New directory .superpowers/sdd/2026-11-05-runtime-isolated-writer-v3, Compile-only
+role-v3/driver-v3. Current31/10/5/217; active ceiling32/11/6/217. No scenarios.
+Preparation archive17files/725144bytes:
+SHA256E64FB67C725C078EB68C6940B5B1CF9E2891C9515E418BF013EA934A7515A5E0.
+InputSHA256E0886A836D7DB319EEC90BD6F31AE7661551C295E0C1126199891E2BE77D2E88.
+Independent2531hash checks passed. Old37-file archive and all failures stay frozen.
+Push this checkpoint before the one invocation; never replay a consumed claim.
+Cloning still does not restore the prerequisite adapter DLL or grant rebuild scope.
+
 LATEST V2 COMPILE FAILED (2026-11-05): preparation checkpoint a6d43291 was pushed
 before the sole computation31/compiler worker. CS1690 at tests.cs174:56 prevented
 compilation; unit Report=null, no units/scenarios ran. Worker owned exit1,
