@@ -1,5 +1,27 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 observation44 read-only review v2 passed
+
+User approved a new read-only verifier after51e81b8f. Focused test extracts only
+the expected-output statement: original RED705251 confirmed null stderr;
+new GREEN4a0d27 passed4assertions for typed empty bytes, equality, nonempty
+rejection and exact48byte stdout. Allowed code delta is branch-local assignment
+plus exclusive output directory/failure guard; original verifier is unchanged.
+Single saved-result review2a0550 exit0: STAGED_PREFIX_VERIFIED,
+ObservationPassed=true/all10facts true.2749manifest comparisons/2715unique pins;
+3business/writer maps plus2parent audit maps,62events31intervals,48/0bytes.
+HashChecks reports manifest/map comparison cardinality, not a new full source scan.
+Original measurements remain16296ms supervision and2728.8593ms parent audit.
+No new business process, compile or snapshot; counters44/34/6/217 unchanged.
+
+45original archive files unchanged before/after review89adc5/9db907; original
+failed verdict retained. New review evidence and now-verified output bytes are
+in portable-runtime-staged-integrity-review-v2.json,11files33185bytes,
+SHA2565943F342A08B6ADF65A1605267876905F2A3E0934BCA31B9BDEB4BE3ADD1AB87,
+decode/source checked60a887. This closes the finite observation, not project
+acceptance or the original full-host timeout investigation. All five flagsfalse,
+NOT_ACCEPTED; no main merge. No additional runtime allowance inferred.
+
 ## 2026-11-05 observation44: transport/audit success, verifier failure
 
 Prepared checkpoint3a878cdf remote-equal before one invocation f28ee5/session79268,

@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY REVIEW PASSED: restore observation-final then
+portable-runtime-staged-integrity-review-v2.json (newest additive layer).
+11files33185bytes, SHA256
+5943F342A08B6ADF65A1605267876905F2A3E0934BCA31B9BDEB4BE3ADD1AB87,
+decode/source checked60a887. Includes verified48/0byte output, so the earlier
+warning about those bytes being local-only is superseded for observation44.
+Original failed verification.json remains; successful review-v2/verification.json
+is separate. RED705251/GREEN4a0d27 and saved-result review2a0550 exit0 retained.
+45original files unchanged before/after (89adc5/9db907). No runtime replay;
+counters44/34/6/217. ObservationPassed=true, overall NOT_ACCEPTED/all flagsfalse.
+This completes the finite observation only. Never rerun its consumed claims;
+new integration/acceptance work requires separately scoped authority.
+
 LATEST OBSERVATION44 FINISHED, REVIEW FAILED: restore the newest
 portable-runtime-staged-integrity-observation-final.json last.45files3592286bytes,
 SHA256EEBC1498D8DD1760D36B37CB79EB7C56199AF5B62AFFBB8F8D501D17033DC905;
