@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST TIMING PLAN: user approved designf46d4236; read
+docs/superpowers/plans/2026-11-05-runtime-writer-phase-timing.md. Plan awaits review.
+12memory-only helper cases plus static checks precede a proposed single43/two-start
+observation. No implementation/runtime this turn; current42/30/6/217, proposed
+ceiling43/32/6/217. Preserve raw diagnostic bytes separately from business output;
+partial timing evidence cannot turn failed transport into acceptance.
+
 LATEST DESIGN ONLY: read docs/superpowers/specs/2026-11-05-runtime-writer-phase-timing-design.md.
 User chose existing writer-stderr diagnostics; design itself awaits approval.
 Nine normal phase records, at most10records/3840bytes; original checks and deadlines
