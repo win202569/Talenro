@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST STAGED DESIGN ONLY: user selected staged checks; read
+docs/superpowers/specs/2026-11-05-runtime-staged-integrity-design.md for review.
+Proposed parent post-exit audit replaces writer-local after-map, not producer guards
+or full pin coverage. This changes temporal/process guarantees; not equivalent.
+Transport SUCCESS remains insufficient without a successful persisted audit.
+Current43/32/6/217 unchanged. No runtime or source implementation authorized by
+this document; proposed44/34/6/217 awaits a separately approved finite plan.
+
 LATEST PIN INVENTORY ANALYSIS: result document records2703comparisons/
 227013378logical bytes per full scan;2669unique paths/225795692bytes.
 Duplicate portion34comparisons/1217686bytes only; metadata is not a timing benchmark.
