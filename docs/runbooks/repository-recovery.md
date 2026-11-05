@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST TIMING PREPARED: approved plan919122d0 implemented with12memory cases/
+63assertions and static RED/GREEN. First preparation verified2657pins/37archive
+files/10parsed scripts. Draft historical-path substitution corrected before that
+first invocation; no old evidence changed, no preparation/test retry.
+Restore portable-runtime-writer-phase-timing-preparation.json:19files/671444bytes,
+SHA2565DF7E618B342B3314B177D13D83C52257C11DE9FFB6627649D9ECF1DA1F818F7.
+InputSHA2562DD7626B97CFFB1DF8D7DD8CE645C0DA159B1379B09693981AADEAA44BA05105.
+Current42/30/6/217; once remote checkpoint confirmed, new driver may consume43,
+at most2starts/zero compile; ceiling43/32/6/217. Missing DLLs stop; no old replay.
+
 LATEST TIMING PLAN: user approved designf46d4236; read
 docs/superpowers/plans/2026-11-05-runtime-writer-phase-timing.md. Plan awaits review.
 12memory-only helper cases plus static checks precede a proposed single43/two-start
