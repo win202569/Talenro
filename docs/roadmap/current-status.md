@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-05
 
+## Latest — 分阶段完整性核验设计已批准，实施计划待审阅
+
+用户批准设计检查点2067616c；实施计划见 `docs/superpowers/plans/2026-11-05-runtime-staged-integrity.md`。
+拟在本会话逐项实现，新增一次观察、最多两个子进程；计划额度44/34/6/217尚待批准。
+本轮仅计划与恢复文档，实际累计43/32/6/217不变；未实现、未运行，仍NOT_ACCEPTED。
+
 ## Latest — 分阶段完整性核验设计待审阅
 
 用户选择分阶段方案；设计见 `docs/superpowers/specs/2026-11-05-runtime-staged-integrity-design.md`。

@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST PLAN ONLY: staged integrity design at2067616c was approved by the user.
+Read docs/superpowers/plans/2026-11-05-runtime-staged-integrity.md next.
+Native inline implementation and proposed ceiling44/34/6/217 await plan approval.
+No source/runtime changes this turn; actual43/32/6/217, NOT_ACCEPTED unchanged.
+
 LATEST STAGED DESIGN ONLY: user selected staged checks; read
 docs/superpowers/specs/2026-11-05-runtime-staged-integrity-design.md for review.
 Proposed parent post-exit audit replaces writer-local after-map, not producer guards
