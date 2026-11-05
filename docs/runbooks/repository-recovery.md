@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST GAP REVIEW/PLAN ONLY: read docs/roadmap/2026-11-05-staged-integrity-integration-gap-review.md
+and docs/superpowers/plans/2026-11-05-staged-integrity-offline-evidence-validation.md.
+Next proposed gate is an offline16case evidence matrix in isolated fixture copies,
+not a runtime replay or formal C12 integration. Approval pending; no new tests or
+processes this turn,44/34/6/217 unchanged. JSON coercion/duplicate-key concerns are
+source-review risks, not reproduced failures. Preserve original observations.
+
 LATEST READ-ONLY REVIEW PASSED: restore observation-final then
 portable-runtime-staged-integrity-review-v2.json (newest additive layer).
 11files33185bytes, SHA256

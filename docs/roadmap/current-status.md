@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-05
 
+## Latest — 集成前差距审查完成，离线证据验证计划待批准
+
+审查见 `docs/roadmap/2026-11-05-staged-integrity-integration-gap-review.md`。
+主要缺口：真实损坏证据拒绝测试、JSON类型/重复键、父进程写盘失败、正式入口生命周期及跨机运行准备。
+建议先执行16案例离线证据矩阵，不启动子进程/业务/Docker，不直接接入正式C12入口。
+计划见 `docs/superpowers/plans/2026-11-05-staged-integrity-offline-evidence-validation.md`，尚未批准或执行。
+本轮仅只读审查与文档，44/34/6/217不变；NOT_READY_FOR_FORMAL_INTEGRATION/NOT_ACCEPTED。
+
 ## Latest — 观察44只读复核通过，项目整体仍未验收
 
 用户批准51e81b8f后的独立修正版复核。空数组测试RED705251→GREEN4a0d27（4断言）。
