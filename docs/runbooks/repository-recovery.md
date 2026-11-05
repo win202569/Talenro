@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST BUSINESS PREFIX PREPARED: plan288cb9d0 approved; native finite execution.
+Restore portable-runtime-isolated-writer-business-prefix-preparation.json:
+17files/639830bytes/SHA25687FC9BACD3EDDA5F62E2D5BC7A27CF6D62701419D98C245CC8135D19E8AE47F9.
+InputSHA256DF6F1F7A96C8E74987B325C010CB47E2C4918D8E3C8D19F5CFA002F4DA188962.
+2531prior pins/124archive files/8script parses verified; no runtime attempt yet.
+Current41/28/6/217; one computation42, at most2starts, zero compile; ceiling42/30/6/217.
+After remote preparation checkpoint, invoke new business-driver once, never any
+consumed old driver. Missing DLLs stop. Verification requires business plus transport
+success; transport alone is explicitly not business acceptance. Preserve all evidence.
+
 LATEST PLAN ONLY: read docs/superpowers/plans/2026-11-05-runtime-isolated-writer-business-prefix.md.
 The user approved preparing the design extension/plan, not launching the host.
 No new implementation, intent, process or compilation exists from this planning step.
