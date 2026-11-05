@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST V2 PREPARED (2026-11-05): user approved versioned count correction.
+Original11files/stop remain frozen. Restore portable-runtime-isolated-writer-v2-preparation.json:
+20files,701088bytes,SHA2563F8C652EE92F2FC071EF96D0F314D6B1CBA745EB3EF94E602CDE586678F23B68.
+InputSHA256493FCEFCE38D71415497F7AE5D068483242F1DDBEB4ED6038CC60935EF28D6B3.
+Independent2503hash checks passed; no child/compile yet, counters30/9/4/217.
+Only runtime-isolated-writer-driver-v2.ps1 is the corrected continuation entry.
+Never replay preparation. Check for compile/intents/stops before any continuation;
+compiler evidence must be verified and remotely checkpointed before scenarios.
+This preparation is NOT_ACCEPTED; existing adapter binary still requires its
+recorded hash, and missing-binary recovery requires separate compilation scope.
+
 LATEST IMPLEMENTATION STOPPED: plan e4507347 approved; five source drafts and18
 unit cases authored, uncompiled/unexecuted. One static preparation failed at
 prepare.ps1:45 on Measure-Object -Property MaxStarts for ordered-dictionary rows.

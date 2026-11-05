@@ -1,5 +1,22 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 approved v2 correction — preparation verified, runtime not invoked
+
+User approved preserving originals, correcting dictionary-value summation in a
+new prepare-v2 and continuing in the original budget. Driver-v2 authenticates
+the original stop SHA and rejects separate new preparation/execution-v2 stops.
+C# sources, tests and role entry are unchanged. Preserve-v2 writes new archives.
+
+Preparation ran once and exited0. Independent read-only verification checked2503
+hashes/2465unique pins,18unit names/9scenarios,17scenario+1compiler starts.
+InputSHA256493FCEFCE38D71415497F7AE5D068483242F1DDBEB4ED6038CC60935EF28D6B3.
+The20-file701088-byte v2 preparation archive was decoded and source-byte checked:
+SHA2563F8C652EE92F2FC071EF96D0F314D6B1CBA745EB3EF94E602CDE586678F23B68.
+Counters remain30/9/4/217. No new compiler, process, unit or scenario execution.
+This checkpoint must be pushed before invoking the single compiler31/compile5.
+No new design ruling: only approved count correction and authenticated versioned
+entry/archive names. Original stopped preparation below remains historical evidence.
+
 Status: PREPARATION_STOPPED / NOT_ACCEPTED. No compiler or synthetic child ran.
 Approved plan: e45073471e25ea8d3b016b931d29776040ae5564, user reply 是.
 Current counters remain30/9/4/217; approved ceiling40/27/5/217 was not consumed.
