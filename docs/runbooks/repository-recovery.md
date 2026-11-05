@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST PREPARED CHECKPOINT: first staged preparation e3e1b5 passed2703prior
+hash comparisons/40archive files/11script parses. InputSHA256
+CBE2E13A897F677CFC3D50F8A97D736C14854EAF54A6BD9B56D0436573DBDA27.
+Restore portable-runtime-staged-integrity-observation-preparation.json after
+the stopped and static-repair archives. This newest layer includes the updated
+pin list and observation-specific archive destination.23files/698372bytes,
+SHA25635C66AE8898408BB13B64457E319B614A78B6F2805C8EC01E96864F2D905808D.
+Source/decode verification passedceca27. No runtime yet at this checkpoint;
+check for a later observation-final archive/claims before attempting any start.
+Dependencies and pinned account/runtime guards still apply on a fresh machine.
+
 LATEST STATIC REPAIR: user-approved exact AST predicate passed10new cases and
 the sole static recheck96d575 (RED57510e missing predicate). No Task1 rerun,
 preparation or observation44; actual43/32/6/217, NOT_ACCEPTED unchanged.

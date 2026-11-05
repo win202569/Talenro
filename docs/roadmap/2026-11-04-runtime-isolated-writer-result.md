@@ -1,5 +1,14 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 staged integrity preparation passed
+
+Preparation e3e1b5 exit0,2703prior comparisons/40archive entries/11parses.
+Input CBE2E13A897F677CFC3D50F8A97D736C14854EAF54A6BD9B56D0436573DBDA27.
+Preparation archive ceca27:23files698372bytes, SHA256
+35C66AE8898408BB13B64457E319B614A78B6F2805C8EC01E96864F2D905808D.
+No runtime at this checkpoint;43/32/6/217. Only bookkeeping pin-list/archive
+destination changes since static verification; original runtime source frozen.
+
 ## 2026-11-05 static predicate repair verified
 
 After user approval at aef50fac, changed only the static checker and added

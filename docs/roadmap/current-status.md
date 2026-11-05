@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-05
 
+## Latest — 观察44准备通过，等待检查点推送后单次启动
+
+首轮准备e3e1b5通过2703次历史哈希核对、40项归档记录、11脚本解析；没有重跑已完成测试。
+输入SHA256 CBE2E13A897F677CFC3D50F8A97D736C14854EAF54A6BD9B56D0436573DBDA27。
+observation-preparation归档23文件698372字节，解码及源文件核对通过ceca27。
+当前仍43/32/6/217；准备检查点推送后仅允许原计划一次观察44、最多2starts、零编译/快照。NOT_ACCEPTED。
+
 ## Latest — 静态误报已修正，有限复核通过
 
 用户批准aef50fac后的修正。精确命令参数AST检测替代子串匹配；新增用例RED57510e→GREEN96d575。
