@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PIN INVENTORY ANALYSIS: result document records2703comparisons/
+227013378logical bytes per full scan;2669unique paths/225795692bytes.
+Duplicate portion34comparisons/1217686bytes only; metadata is not a timing benchmark.
+Do not infer a slow file or drop historical integrity checks. Next scope is design
+discussion of check scheduling/coverage and equivalent guarantees, not implicit
+rerun or deadline expansion. Counters43/32/6/217 unchanged; no source/evidence edits.
+
 LATEST TIMING OBSERVATION FAILED: computation43 consumed; current43/32/6/217.
 Prepareddd773432b6c07b2014781cddf67c6da1b46f361e was remote-equal before sole run.
 DrainTimeout at16236ms; producer5448 exit0, writer4216 terminated exit-1, both owned

@@ -1,5 +1,52 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 read-only pin inventory follow-up
+
+No hash benchmark, runtime replay, compilation or failed-output access. Counters
+remain43/32/6/217. Inventory uses computation43 input.json plus file metadata.
+
+|Input map|Hash comparisons|Sum of current file lengths, bytes|
+|---|---:|---:|
+|SourceSHA256|31|712273|
+|PreservedSHA256|2400|175910433|
+|HistoricalEvidenceSHA256|265|50346034|
+|HelperSHA256|7|44638|
+|Total|2703|227013378|
+
+2669unique literal paths contain225795692bytes.34extra comparisons account for
+1217686bytes (about0.54percent of total). Deduplication alone does not remove most
+of the byte workload; its timing effect is unmeasured and repeated checks are not
+automatically redundant from an integrity/observation-window perspective.
+No absent-path pins are present in this particular manifest.
+
+Largest individual inputs include portable-history-contract-runtime-completion-final.json
+(38061125bytes), pinned System.Management.Automation.dll (19646264bytes), and
+portable-runtime-isolated-writer-scenarios-final.json (17147719bytes). Most compared
+bytes belong to retained/historical maps, not the31active source pins. File lengths
+are logical bytes, not physical disk reads; caching, command overhead and scheduling
+are not measured here. No particular large file is proven slow.
+
+Call path: writer finally -> Map-IW -> Assert-HTInputs -> four sequential map loops
+-> Get-HTHash -> Get-FileHash SHA256 for every entry. The observed output dictionary
+overwrites duplicate literal-path keys only AFTER each hash, so it does not avoid
+the duplicate work. Map serialization/write/hash occurs only after the full scan.
+Observation43's last marker pins.begin precedes that scan; no pins.end was captured.
+The helper neither caches hashes nor partitions historical versus live inputs.
+
+Read-only inventory reporting initially used ordered dictionaries with property
+sorting/Measure-Object, yielding null unique bytes and invalid ordering. Those
+derived fields were discarded and recomputed with PSCustomObject metadata rows;
+corrected figures above are from tool chunkf10ef4. This did not modify evidence or
+rerun workload. Map subtotals were accumulated explicitly and were unaffected.
+
+Conclusion: the2second exit-success window includes a full2703-comparison audit
+whose logical byte workload grows with retained history. This is a structural
+budget risk, not proof of the exact cause of timeout42/43 or the original full-host
+timeout. Next design discussion should examine integrity-check scope/scheduling
+and its guarantees, not merely extend the deadline, remove checks or repeat runs.
+Moving checks to another phase changes the observation window and requires explicit
+design approval and equivalent integrity reasoning; no such change is made here.
+
 ## 2026-11-05 latest — phase observation43 failed with two valid markers
 
 Plan919122d0 approved;12memory cases/63assertions and static RED/GREEN passed.
