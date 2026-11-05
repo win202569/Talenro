@@ -1,5 +1,19 @@
 # Staged integrity integration readiness review
 
+## Execution follow-up: fixture preparation stopped
+
+Plan072f86ac was approved. Bootstrap RED735a03/GREEN2b2b86 passed B01–B03
+(two harmless in-process runspaces). Matrix1b894b stopped restoring C01 before
+any verifier invocation; C01–C16 all NOT_RUN. Read-only262952 located archive
+schema mismatch: historical stages uses Base64, new helper expects RawBase64.
+No fix/retry;18restored files and45unchanged original files verified/preserved.
+This exposes a test-harness compatibility gap; it neither confirms nor refutes
+the JSON-coercion/duplicate-key concerns below. All integration blockers remain.
+Stopped archive29files3515023bytes SHA256
+DD1CC3CA249928653F8C8068F76C9404C900541DCA0FF2E0A068620930EC36F9.
+Next proposed approval: versioned dual-schema decoder with missing/ambiguous
+field tests, then one matrix invocation in fresh roots, no business processes.
+
 Baseline: a79c83767e44037b8894767b69f0a0f66a5cccee. Read-only source/document
 review; no workload, fixture execution, full suite, Docker or compilation.
 Counters44/34/6/217 unchanged. Conclusion: NOT_READY_FOR_FORMAL_INTEGRATION.

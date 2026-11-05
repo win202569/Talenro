@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST OFFLINE MATRIX STOPPED:1b894b failed preparing C01, before any verifier
+evaluation. All C01–C16 NOT_RUN; bootstrap B01–B03 had passed. Old copy-transport
+archive uses Base64 while the new helper expects RawBase64 (read-only262952).
+Do not rerun the consumed matrix or reuse its occupied C01; no repair yet.
+portable-runtime-staged-evidence-matrix-v1.json preserves29files3515023bytes,
+SHA256DD1CC3CA249928653F8C8068F76C9404C900541DCA0FF2E0A068620930EC36F9,
+decode/source checkedf4f805. Includes18partially restored fixture files and all
+failure receipts. Original45observation files unchanged;44/34/6/217 unchanged.
+Next requires approval for versioned archive-field compatibility tests/fix and
+one new bounded matrix in fresh roots. This failure is harness preparation,
+not a malformed-evidence verdict or a regression of passed observation44.
+
 LATEST OFFLINE HARNESS CHECKPOINT: plan072f86ac approved; bootstrap
 RED735a03/GREEN2b2b86 passed B01–B03. Two harmless in-process runspaces,
 zero verifier evaluations/OS children; matrix not yet invoked. Resume bounded
