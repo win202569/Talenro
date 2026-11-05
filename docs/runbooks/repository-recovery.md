@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+LATEST V2 COMPILE FAILED (2026-11-05): preparation checkpoint a6d43291 was pushed
+before the sole computation31/compiler worker. CS1690 at tests.cs174:56 prevented
+compilation; unit Report=null, no units/scenarios ran. Worker owned exit1,
+3306ms, no kill/pending resources. Counters31/10/5/217; compile allowance consumed.
+Restore portable-runtime-isolated-writer-v2-final.json:37files,2773373bytes,
+SHA2565F59F55C10BFF526BD2634B11F5A611621FEADC2845351A1A73ED2D1E6E1E59B.
+All2503pins and four full maps independently verified. The failed0byte DLL is
+excluded, not a loadable assembly. Original sources, claims and stops are frozen.
+Do not run driver-v2 again or create compiled-checkpoint.json: no compiled success
+exists. Correction requires versioned source plus a newly approved compiler/process
+allowance, with explicit updated computation numbering before any execution.
+Unused nine scenario slots do not authorize recompilation or a business host.
+
 LATEST V2 PREPARED (2026-11-05): user approved versioned count correction.
 Original11files/stop remain frozen. Restore portable-runtime-isolated-writer-v2-preparation.json:
 20files,701088bytes,SHA2563F8C652EE92F2FC071EF96D0F314D6B1CBA745EB3EF94E602CDE586678F23B68.

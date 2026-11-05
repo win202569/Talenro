@@ -1,5 +1,40 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 latest — compilation failed, gate stopped
+
+After preparation checkpoint a6d4329196ba004eb5d0d9152f91f86d9a542d24 was pushed
+and remote equality confirmed, driver-v2 Compile was invoked exactly once.
+Computation31 launched one owned worker and attempted compilation5 once.
+The compiler rejected tests.cs174:56 with CS1690: accessing a member on
+HeldWriteStream.Pending (ReadOnlyMemory<byte>, a value-type field of the
+MemoryStream-derived marshal-by-reference test helper) may cause a runtime exception.
+The diagnostic and full caught error text are preserved in both compile receipts.
+
+CompileSucceeded=false and Report=null:18unit cases did not execute. No scenario
+gate claim or scenario directory was created. Worker exited1 after3306ms; owned
+exit confirmed, no termination requested, no pending resources. Both captured
+streams completed: stdout30bytes ISOLATED_WRITER_UNITS_FAILED plus CRLF,stderr0.
+No source repair, retry, recompile, new unit run or process lookup followed.
+
+Read-only independent verification checked2503hashes/2465unique pins and all four
+384285-byte identity maps (same SHA256
+0B44B04F203B0B6A2AF20BBF4BB5BAA5DAEE7D81E4D1ED5EE821E1A230C95363).
+Journal:2balanced records,190strict-UTF8/LF bytes. Original11drafts/stop and prior
+adapter evidence remain unchanged. A0byte failed DLL artifact exists locally;
+it was not loaded or deleted and is explicitly excluded from the portable archive.
+
+Final archive:37files,2773373bytes,1excluded binary; decoded/source bytes verified.
+SHA2565F59F55C10BFF526BD2634B11F5A611621FEADC2845351A1A73ED2D1E6E1E59B.
+Counters31/10/5/217. Task1 prepared; Task2 STOPPED; scenarios32..40 NOT_RUN.
+There is no valid compiled checkpoint and no basis to claim protocol/runtime pass.
+All five flags remain false and overall status remains NOT_ACCEPTED.
+
+Proposed next action, NOT authorized or implemented: preserve original test source,
+make a versioned correction to the test helper's struct-field access (a property
+or an explicit local copy), and request one additional compilation/worker attempt
+with updated computation numbering. Existing unused scenario budget cannot be
+repurposed to retry compilation. No business host or main merge is included.
+
 ## 2026-11-05 approved v2 correction — preparation verified, runtime not invoked
 
 User approved preserving originals, correcting dictionary-value summation in a
