@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-05
 
+## Latest — 观察44进程成功，最终验证被空数组错误阻塞
+
+单次观察已完成：transport SUCCESS16296ms，writer/producer均正常owned exit0，无kill/pending/unknown。
+父进程全量复核VERIFIED2728.8593ms、2715唯一路径；四阶段trace完整，两业务组通过。
+最终验证81b098在stderr空字节数组比较处抛错（verify.ps1:128，SequenceEqual第二参数null）；未到最终合取判定，仍NOT_ACCEPTED。
+没有修改冻结代码或重跑。实际44/34/6/217，原观察/验证额度已用完。
+最终归档45文件3592286字节，排除2个未完成验证的输出文件（本地原件保留）；下一步建议另建只读复核版本，不重跑业务。
+
 ## Latest — 观察44准备通过，等待检查点推送后单次启动
 
 首轮准备e3e1b5通过2703次历史哈希核对、40项归档记录、11脚本解析；没有重跑已完成测试。

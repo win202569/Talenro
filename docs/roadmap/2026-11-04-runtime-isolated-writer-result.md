@@ -1,5 +1,31 @@
 # Isolated writer implementation — preparation stopped
 
+## 2026-11-05 observation44: transport/audit success, verifier failure
+
+Prepared checkpoint3a878cdf remote-equal before one invocation f28ee5/session79268,
+terminal16a8cd exit0. Supervisor SUCCESS16296ms; writer29480/producer20828 owned
+exit0, no kill/pending/unconfirmed exit. DrainStart16075ms -> terminal221ms later.
+Parent audit VERIFIED2728.8593ms over2715unique entries, outside child supervision.
+Trace COMPLETE4records, no tail; role.save interval5.6856ms includes instrumentation.
+Child HOST_PREFIX_COMPLETED, ContractAPIAvailable/BaselineCore passed,62events
+checked by verifier before output inspection. Supervisor metadata stdout48/stderr0.
+
+Frozen verifier81b098 exit1 at line128: SequenceEqual second parameter null.
+Read-only f919db identifies expected-empty-array assignment through if/else:
+PowerShell pipeline unrolls empty byte[] to null. No repair/retry; original
+verification.json remains ObservationPassed=false/NOT_ACCEPTED. Final gate and
+stderr hash cross-check were not reached. Source inspection is not a repaired
+test result, and this narrow run does not establish the original timeout cause.
+Eligible transport-success data was read by the verifier: stdout comparison/hash
+completed; stderr comparison threw. Archive policy excludes both unverified data
+files; originals remain locally unchanged. Do not claim failed-output salvage or
+that no bytes were inspected. Runtime44/34/6/217, zero added compile/snapshots.
+
+Final portable archive45files3592286bytes/2excluded, decode/source checkedcbac1b:
+EEBC1498D8DD1760D36B37CB79EB7C56199AF5B62AFFBB8F8D501D17033DC905.
+All five flags remain false. Next proposal: authorized new versioned read-only
+verifier with focused empty-array tests; review saved results, no runtime replay.
+
 ## 2026-11-05 staged integrity preparation passed
 
 Preparation e3e1b5 exit0,2703prior comparisons/40archive entries/11parses.

@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST OBSERVATION44 FINISHED, REVIEW FAILED: restore the newest
+portable-runtime-staged-integrity-observation-final.json last.45files3592286bytes,
+SHA256EEBC1498D8DD1760D36B37CB79EB7C56199AF5B62AFFBB8F8D501D17033DC905;
+decode/source checkedcbac1b. Runtime claims consumed; NEVER rerun computation44.
+Transport SUCCESS, both owned exit0, no pending/unknown; parent audit VERIFIED,
+four-phase trace COMPLETE. Original verifier81b098 failed at line128 because
+the expected empty stderr byte[] was unrolled to null. NOT_ACCEPTED remains.
+Two unverified output files excluded by existing archive policy, originals
+remain on this machine. A clone restores receipts/source/progress but not those
+bytes; do not assume it can reproduce a complete output review on a new machine.
+Next requires approval for a new read-only verifier and focused empty-array
+tests against saved results only. Keep original verifier/receipts immutable.
+Counters44/34/6/217; no compilation or snapshots added.
+
 LATEST PREPARED CHECKPOINT: first staged preparation e3e1b5 passed2703prior
 hash comparisons/40archive files/11script parses. InputSHA256
 CBE2E13A897F677CFC3D50F8A97D736C14854EAF54A6BD9B56D0436573DBDA27.
