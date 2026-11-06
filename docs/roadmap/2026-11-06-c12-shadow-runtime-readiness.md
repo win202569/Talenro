@@ -1,5 +1,17 @@
 # Shadow audit runtime readiness — read-only review
 
+## Wait tooling local verification — real access not established
+
+Approved plan aftere5fc7817: five diagnostic PowerShell files added, no production
+runner/pin changes. RED1971e3 expected missing implementation; GREENc0e25a exit0,
+16 cases matched with both owned fixture exits confirmed. Inline author review
+checked fixed worker executable/script, parent/session/creation/path/hash binding,
+no command-line/environment enumeration, and independent executor deadline from
+collector requests. Not an independent security audit; query roles remain untested
+against real cross-permission access until the single authorized preflight.
+No Go/C12/devtools/containers/downloads performed at this checkpoint.
+Remaining preflight1/Go-at-most1; RED/GREEN consumed.44/34/6/217,NOT_ACCEPTED.
+
 ## Approved sampled root attempt after1e1b75cb — timed out
 
 Single c731c2/session52726→a1d7c1 exit1. Same pinned Go/offline/GOMAXPROCS=2

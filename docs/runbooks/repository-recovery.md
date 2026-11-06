@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST TOOLING CHECKPOINT (2026-11-06): approved wait-diagnostic plan implemented
+as five runtime-cache-wait*.ps1 files under docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/.
+RED1971e3 failed for missing implementation as expected; GREENc0e25a passed16
+contract/lifecycle cases, including two owned harmless children with confirmed exits.
+No real preflight/Go attempt yet at this checkpoint. Local unit coverage does not
+establish cross-permission access or full security acceptance. Remaining scope:
+one preflight, at most one120s root attempt, then archive and stop. Do not rerun
+the consumed RED/GREEN slots. Fresh machines need explicit paths/dependency prep;
+scripts intentionally retain this approved machine's pinned executable coordinates.
+44/34/6/217 unchanged;NOT_ACCEPTED. No main merge.
+
 LATEST WAIT-DIAGNOSTIC PLAN (2026-11-06): design2bec1f67 approved; implementation
 plan docs/superpowers/plans/2026-11-06-c12-lightweight-wait-diagnostic.md awaits
 approval. One RED/GREEN pair, at most16 cases/two harmless lifecycle fixture
