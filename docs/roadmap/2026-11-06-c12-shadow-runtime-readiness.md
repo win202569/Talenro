@@ -1,5 +1,37 @@
 # Shadow audit runtime readiness — read-only review
 
+## Read-only timeout investigation aftera78543a7
+
+No verify rerun. Read saved result and installed Go1.26.5 source
+src/cmd/go/internal/modcmd/verify.go (6b5c13). The command loads a module graph,
+checks archive and extracted directory hashes, limits concurrent module checks by
+GOMAXPROCS, and normally prints success only after the batch finishes. Empty
+stdout is therefore not proof of a hang. Previous launcher used GOMAXPROCS=2;
+16 logical processors observed now, but more parallelism is not a demonstrated fix.
+
+Read-only ZIP central-directory inventory2a7152 (no extraction/content hashing):
+99 declared root modules,22765 entries,608597910 expanded bytes,181059375 zip bytes.
+Largest expanded sets: modernc.org/sqlite259376605 bytes; modernc.org/libc86622583;
+github.com/klauspost/compress46238299; github.com/pierrec/lz4/v4 36988230;
+golang.org/x/text29567911. Metadata read1805.283ms. This does not measure hashing
+throughput or establish the resolved module graph used by the timed-out process.
+Available C: space69346148352 bytes at observation, not historical free space.
+No Go process observed. The command's final absent-process query produced exit1;
+the metadata inventory itself completed and emitted the numbers above.
+
+Evidence supports a substantial I/O/hash workload as a hypothesis, not a root
+cause. Missing process CPU/I/O samples and stack/progress evidence prevent
+distinguishing slow active verification from waiting on a filesystem or lock.
+Do not infer cache corruption, disk-full, antivirus interference or deadlock.
+No security exclusions, parallelism changes, timeout extensions or cache edits.
+
+Recommended next scoped experiment, requiring approval: one new root-only attempt,
+same120s/offline/toolchain/GOMAXPROCS=2 parameters, adding bounded CPU/memory and
+exit-state samples. No devtools attempt, auto-retry, downloads, compile or C12.
+Preserve old failure and new observations separately; stop at120s and confirm
+owned-process exit. Sampling may distinguish activity from inactivity but cannot
+by itself prove a specific filesystem/lock cause.44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## Approved offline content verification — stopped at deadline
 
 After13a96123 user approved exact cached Go1.26.5 offline verification, one attempt

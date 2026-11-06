@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY TIMEOUT INVESTIGATION (2026-11-06): installed Go verify source
+normally emits success only after batch completion; absent output does not establish a hang.
+ZIP metadata inventory2a7152:99 declared root modules,22765 entries,608597910
+expanded bytes,181059375 zip bytes. No content hashing/extraction or verify rerun.
+Current16 logical CPUs and69346148352 free C: bytes; previous GOMAXPROCS=2.
+No Go process observed. Workload is a hypothesis, not cause; prior CPU/I/O samples
+are missing. See runtime-readiness document for caveats and metadata command exit.
+Next proposed experiment needs approval: exactly one fresh root-only120s attempt
+with unchanged offline/toolchain/concurrency and added CPU/memory/exit sampling.
+No devtools/automatic retries/downloads/compile/C12/security changes. Existing
+failure preserved;44/34/6/217 unchanged,NOT_ACCEPTED.
+
 LATEST CACHE VERIFY STOP (2026-11-06): user approved exact Go1.26.5 offline
 root/devtools verification with120s each.47cf88/session24033→901b38 exit1: root
 timed out120044.7983ms with empty stdout/stderr; owned process tree killed and exit
