@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST CACHE INVENTORY (2026-11-06): root99 and devtools318 declared dependency
+entries have cache directories/mod/info/zip/ziphash and matching go.sum ziphash
+metadata (a68210→49050c). This is filesystem inventory, not source/archive hash
+authentication or complete graph resolution. Root Join-Path diagnostic error was
+nonterminating; correct go.sum assigned before reading; details in runtime-readiness
+document. No Go verify/build/test/download or cache writes performed.
+GOPATH matches expected; GIT_PAGER still present with profiles disabled5eac6c,
+absent from user/machine scopes. Injector unknown; no gate/config changes.
+Next propose bounded exact-toolchain offline integrity checks, then separate live
+plan.44/34/6/217 unchanged,NOT_ACCEPTED; prior coverage/runtime gaps remain.
+
 LATEST DOCKER STARTUP (2026-11-06): user approved existing Desktop startup after
 514ecd19 and read-only queries, not a live run. Normal-desktop query1fec5a confirms
 Linux engine29.6.2,0 running containers, all3 specified postgres/redis/nats images

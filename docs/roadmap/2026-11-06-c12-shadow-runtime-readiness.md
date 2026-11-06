@@ -1,5 +1,38 @@
 # Shadow audit runtime readiness — read-only review
 
+## Read-only cache/environment inventory after46a27e54
+
+Filesystem-only inventorya68210/session45270→49050c inspected explicitly declared
+requirements, not a resolved build graph:
+
+|Module|Declared entries|Cache directory/mod/info/zip/ziphash present and ziphash metadata matches go.sum|
+|---|---:|---:|
+|Root|99|99|
+|tools/devtools|318|318|
+
+No missing items or ziphash metadata mismatches among these declarations. This
+does not hash extracted source/archives or prove transitive graph completeness;
+go mod verify, compilation and workload execution were not performed. The read
+command emitted a nonterminating Join-Path empty-parent error for root go.mod,
+then explicitly assigned go.sum before reading it; root and devtools sum paths
+were confirmed present5eac6c. Counts are inventory observations, not a clean
+integrity-verification result. No downloads/cache writes/settings changes made.
+
+Presence-only environment checks show GOPATH set in user/process scopes and
+matching the expected user go directory; GOTOOLCHAIN/GOWORK/GOENV/GOMODCACHE/
+GOFLAGS/GOPROXY/GOSUMDB unset in checked scopes. GIT_PAGER remains present even
+with shell profile loading disabled (5eac6c), absent from user/machine environment.
+This narrows the cause to inherited/tool-process environment rather than proving
+a profile setting; the precise injector remains unidentified. Preserve the gate.
+No full environment values or credentials recorded. Worktree clean after checks.
+
+Next proposed scope: exact cached Go1.26.5, offline dependency-content verification
+for root and devtools with explicit finite deadlines, no compilation/downloads/
+container operations. A dedicated command process may need an explicitly approved
+clean environment; do not change user/machine variables or weaken runner checks.
+Only after integrity checks should a bounded live C12 plan be proposed. Existing
+native containment/reparse/fault acceptance gaps remain.44/34/6/217 unchanged.
+
 ## Approved Docker startup follow-up
 
 After514ecd19 user approved starting the installed Docker Desktop and read-only
