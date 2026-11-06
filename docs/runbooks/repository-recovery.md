@@ -1,5 +1,23 @@
 # Recover the project on a new computer
 
+LATEST ELAPSED FIX (2026-11-06): approved extra RED/GREEN after5ec95df5.
+RED05b434 exit1 missing final ElapsedMilliseconds; GREEN3bd6a3 exit0,5 cases
+matched (matched/drift/incomplete/occupied/deadline). Session Stopwatch and numeric
+summary field added. Wall interval includes intervening work, ends at summary
+preparation, excludes its own publication; not CPU or audit-only time. No deadline
+or verdict changes. The known elapsed-field gap is closed; prior21-group result
+was not rerun this turn. Reparse remains BLOCKED; no overall acceptance claim.
+Original plan4/7 used plus separate1 junction diagnostic and2 elapsed calls.
+Task3/4 not started; no workload/Docker/full suite/main merge;44/34/6/217 unchanged.
+Next is guarded runner integration/offline verification, retaining coverage blocker.
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-elapsed-v1.json
+47 files,41824 bytes LF JSON; SHA256
+E2096215EE69BA393DA561DBFC6ACA101B689A08D6C0A042D2F31A81D1DBDA20.
+Per-entry Base64 decodes to Length/SHA256-checked bytes (0a07b6); outer checkout
+EOL can vary. Includes Red/Green claims, results, synthetic evidence, ledger and
+archive helper. Restore only into a fresh evidence directory after path/reparse
+checks; never auto-execute or reuse consumed phase roots. Original evidence kept.
+
 LATEST TASK2 CORE CHECKPOINT (2026-11-06): user approved Task2 continuation with
 reparse coverage explicitly blocked. RecordsRed8714cd expected missing lifecycle
 interface; sole RecordsGreen9cab1f/session68202 ended24eaa7 exit0,21 groups matched

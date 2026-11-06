@@ -1,5 +1,15 @@
 # C12 shadow source-audit implementation plan
 
+## Elapsed follow-up result — 2026-11-06
+
+User approved an additional bounded RED/GREEN after5ec95df5. RED05b434 missing
+ElapsedMilliseconds; GREEN3bd6a3 exit0,5 cases matched. Final summary now samples
+a session Stopwatch before its own serialization/publication. Known field gap
+closed without changing state/deadlines; not a complete suite rerun. Reparse
+remains BLOCKED, NOT_ACCEPTED. Original4/7 budget unchanged; separate additions
+are1 junction diagnostic+2 elapsed calls. Task3/4 remain unstarted. Earlier
+missing-field notes below are historical, superseded only for this field.
+
 ## Execution addendum — 2026-11-06 Task2 continuation
 
 After checkpoint8bed43f5 the user explicitly approved Task2 with reparse coverage

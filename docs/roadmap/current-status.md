@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-06
 
+## Latest — 最终汇总耗时字段已补齐，5项定向验证通过
+
+用户批准5ec95df5后的额外RED/GREEN。RED05b434准确复现缺少ElapsedMilliseconds；GREEN3bd6a3退出0，matched/drift/incomplete/occupied/deadline五项通过。
+新增会话Stopwatch和最终摘要数值毫秒字段；测量从会话创建到汇总准备时刻的墙钟间隔，包含中间工作，不包含汇总自身写入，也不是纯审计耗时。不延长截止时间、不改状态判定。
+此前耗时字段缺口已关闭；此前21组记录/解析结果为历史验证，本轮未重跑完整记录集。reparse覆盖仍BLOCKED，项目NOT_ACCEPTED；Task3正式入口钩子与Task4组合验证尚未开始。
+原计划4/7调用不变，独立追加1次目录联接诊断+本次2次耗时验证。44/34/6/217不变，无业务/Docker/全套测试/独立审查/main合并。
+恢复包portable-c12-shadow-elapsed-v1.json含47文件41824字节；解码/源文件核对0a07b6通过。下一步为Task3守卫式入口接入及离线验证，继续保留路径覆盖阻塞。
+
 ## Latest — 第2阶段核心记录测试通过，字段缺口与路径覆盖阻塞保留
 
 用户批准在reparse覆盖阻塞下继续Task2。新增会话/组生命周期、独占记录写入、引用字节与身份核对、最终汇总及封闭原因警告；正式入口未改。

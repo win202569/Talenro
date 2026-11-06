@@ -28,7 +28,7 @@ function Read-C12ShadowReference($Session,$Reference){
  return (ConvertFrom-C12ShadowJSON ([Text.UTF8Encoding]::new($false,$true).GetString($bytes)))
 }
 function New-C12ShadowSession([string]$InvocationRoot,[bool]$Synthetic=$false){
- $session=[ordered]@{AuditId=[guid]::NewGuid().ToString('N');EvidenceRoot=$null;Groups=[Collections.Generic.List[object]]::new();FirstReason=$null;ModuleSHA256=$null;Synthetic=$Synthetic;Finalized=$false}
+ $session=[ordered]@{Clock=[Diagnostics.Stopwatch]::StartNew();AuditId=[guid]::NewGuid().ToString('N');EvidenceRoot=$null;Groups=[Collections.Generic.List[object]]::new();FirstReason=$null;ModuleSHA256=$null;Synthetic=$Synthetic;Finalized=$false}
  try{
   $root=Assert-C12ShadowRoot $InvocationRoot
   $parent=Resolve-C12ShadowPath $root '.superpowers/c12-shadow'
@@ -141,7 +141,8 @@ function Complete-C12ShadowSession($Session,[int]$FormalExitCode,[bool]$OuterCle
    }catch{Set-C12ShadowIssue $Session (Get-C12ShadowReason $_)}
   }
   if($null -ne $Session.FirstReason){$state='INCOMPLETE'}
-  $summary=[ordered]@{Schema=1;Mode='SHADOW';Synthetic=$Session.Synthetic;AuditId=$Session.AuditId;ModuleSHA256=$Session.ModuleSHA256;State=$state;Reason=$Session.FirstReason;Groups=$refs.ToArray();FormalExitCode=$FormalExitCode;OuterCleanupFailed=$OuterCleanupFailed;EnvironmentRestored=$EnvironmentRestored}
+  # Elapsed wall time through summary preparation, excluding its own publication.
+  $summary=[ordered]@{Schema=1;Mode='SHADOW';Synthetic=$Session.Synthetic;AuditId=$Session.AuditId;ModuleSHA256=$Session.ModuleSHA256;State=$state;Reason=$Session.FirstReason;Groups=$refs.ToArray();FormalExitCode=$FormalExitCode;OuterCleanupFailed=$OuterCleanupFailed;EnvironmentRestored=$EnvironmentRestored;ElapsedMilliseconds=$Session.Clock.Elapsed.TotalMilliseconds}
   if([datetime]::UtcNow -ge $Deadline){throw 'DEADLINE'}
   $reference=Write-C12ShadowRecord $Session 'run.json' $summary
  }catch{Set-C12ShadowIssue $Session (Get-C12ShadowReason $_);$state='INCOMPLETE';$reference=$null}

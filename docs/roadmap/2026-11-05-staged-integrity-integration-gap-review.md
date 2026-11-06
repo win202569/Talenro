@@ -1,5 +1,17 @@
 # Staged integrity integration readiness review
 
+## Latest elapsed metadata follow-up: known field gap closed
+
+Approved separate RED05b434 reproduced missing final elapsed field; GREEN3bd6a3
+passed5 cases with numeric independent stopwatch bounds and persisted digest/
+state checks. Occupied/expired cases still publish no successful reference.
+Two-line functional addition measures session wall interval through summary
+preparation, not audit-only duration; excludes summary publication. Prior21-group
+core verification remains historical, not rerun here. Reparse remains BLOCKED;
+Task3/4, full-suite and independent acceptance remain open. Archive47files41824
+bytes verified0a07b6. Original4/7 planned calls plus1 diagnosis+2 elapsed calls;
+44/34/6/217 unchanged,NOT_ACCEPTED. No runner hooks or live runs this follow-up.
+
 ## Latest Task2 core evidence: 21 matched, reparse blocked, schema gap open
 
 User explicitly approved continuation despite reparse creation access denial.
