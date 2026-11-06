@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'runtime-cache-wait-common.ps1')
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
-$root=New-C12WaitRoot (Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-v1/Live')
+$root=New-C12WaitRoot (Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-v2/Live')
 $go='C:/Users/Lenovo/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.5.windows-amd64/bin/go.exe'
 $goHash='D6A71E6DC9806CB3F1FCB817D562175C5A7B1505FC3F6638299648E0B9F0F74F'
 $child=$null; $started=$false; $failure=$null; $result=$null

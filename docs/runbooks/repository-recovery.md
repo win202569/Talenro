@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+V2 TOOLING CHECKPOINT: user approved after737d73c0. RootRedc07ff4 expected two
+old-path failures; RootGreen9a0fc3 4/4,UTC5516be 8/8,loop8d74a7 8/8. All offline,
+no children or Live creation. Both role scripts now use fixed v2/Live; only test
+phase enumerations/root tests otherwise changed. No change to pin/environment/
+identity/deadlines/privileges. Remaining budget: preflight1,Go at most1; no real
+result at this checkpoint. Preserve previous roots;44/34/6/217,NOT_ACCEPTED.
+
 LATEST V2 PLAN (2026-11-06): docs/superpowers/plans/2026-11-06-c12-wait-diagnostic-v2.md
 is READY_FOR_REVIEW, not approved/executed. Proposed fresh v2/Live root; root-path
 RED/GREEN then UTC/loop V2Gate once each, followed only if passing by one parent

@@ -1,5 +1,5 @@
 # Offline characterization/regression: never dot-source the live collector.
-param([ValidateSet('Offline','ReasonRed','ReasonGreen')][string]$Phase='Offline')
+param([ValidateSet('Offline','ReasonRed','ReasonGreen','V2Gate')][string]$Phase='Offline')
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'runtime-cache-wait-common.ps1')

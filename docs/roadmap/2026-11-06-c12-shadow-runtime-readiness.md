@@ -1,5 +1,13 @@
 # Shadow audit runtime readiness — read-only review
 
+## V2 offline gates passed — real attempt pending
+
+Approved after737d73c0. RootRedc07ff4 expected two old-root failures, then
+RootGreen9a0fc3 4/4,UTC5516be 8/8,loop8d74a7 8/8. No children/Live creation.
+Inline diff confirms paired fixed-root migration and test phase additions only;
+no worker,pin,identity,deadline,environment or production changes. Single real
+preflight/at-most-one120s attempt remain under approved v2 plan. Not acceptance.
+
 ## V2 bounded observation plan — awaiting approval
 
 Plan docs/superpowers/plans/2026-11-06-c12-wait-diagnostic-v2.md proposes a fresh

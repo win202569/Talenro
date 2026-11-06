@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][ValidateSet('Red','Green')][string]$Phase)
+param([Parameter(Mandatory)][ValidateSet('Red','Green','V2Gate')][string]$Phase)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'runtime-cache-wait-common.ps1')

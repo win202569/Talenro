@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'runtime-cache-wait-common.ps1')
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
-$root=Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-v1/Live'
+$root=Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-v2/Live'
 Assert-C12WaitPath $root
 $worker=$null; $failure=$null; $count=0; $exitConfirmed=$false; $stderr=$null; $endReason=$null
 function Invoke-BoundQuery($Identity,[int]$Sequence,[string]$Phase) {
