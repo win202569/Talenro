@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PHASE-TIMING DESIGN: user selected approach1 after3173882f; short design
+docs/superpowers/specs/2026-11-06-c12-cache-phase-timing-design.md awaits approval.
+Proposed text v0.40.0 then sqlite v1.49.1,ZIP then directory,one120s helper run;
+exact pinned-toolchain dirhash source,isolated offline build,read-only selected
+cache inputs,explicit phase/preparation records and owned cleanup. Build/test/run
+counts still need an implementation plan after design approval. No implementation,
+build,test or live action this turn. Diagnostic comparisons are not authoritative
+root verification or full acceptance. Preserve old roots;44/34/6/217,NOT_ACCEPTED.
+
 LATEST SAVED-SAMPLE ANALYSIS: docs/roadmap/2026-11-06-c12-wait-v2-analysis.md
 records read-only archive/source analysis9da630/f99ebf/df857b.22 samples,21 positive
 read/CPU intervals; mean observed read-counter growth~1.31MiB/s,CPU~0.096 cores.

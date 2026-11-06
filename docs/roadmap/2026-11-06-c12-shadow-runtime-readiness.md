@@ -1,5 +1,16 @@
 # Shadow audit runtime readiness — read-only review
 
+## Selected phase timing — design only
+
+Approach1 selected after3173882f. Proposed short design at
+docs/superpowers/specs/2026-11-06-c12-cache-phase-timing-design.md selects two
+root-pinned contrasting modules,text/sqlite,with sequential ZIP/directory timing,
+explicit preparation events and120s total live cap. Separate helper/build would
+require approved implementation budgets; no new work executed here. Keep exact
+hashing semantics but disclose omitted graph/concurrency and cache-warmth effects.
+No physical-disk/original-root-cause inference from surrogate timing alone.
+Written design awaits approval;44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## Saved v2 analysis — attribution gap remains
 
 Read-only9da630 decoded and SHA-checked22 archived samples; all21 intervals have
