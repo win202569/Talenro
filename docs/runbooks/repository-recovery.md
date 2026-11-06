@@ -1,5 +1,24 @@
 # Recover the project on a new computer
 
+LATEST JUNCTION DIAGNOSIS (2026-11-06): one separately approved new-root attempt,
+6a7144 exit1, PowerShell7.6.5. New-Item Junction returned Win32Exception access
+denied (NewItemCreateIOError,Microsoft.PowerShell.Commands.NewItemCommand).
+CreationSucceeded=false; ModuleEvaluated=false. No elevated retry, security
+change, original suite rerun or implementation fix. Specific access-control layer
+remains unknown; the lost original failure cannot be retrospectively recovered.
+Original plan consumed2/7 plus this one separate diagnostic; Task1 incomplete,
+Tasks2-4 not started;44/34/6/217 unchanged,NOT_ACCEPTED.
+Tracked diagnostic: scripts/tests/c12-shadow-junction-diagnostic.ps1; its root is
+consumed and must not be reused. Portable evidence (claim/result only):
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-junction-diagnostic-v1.json
+2 files,1885 bytes LF JSON; SHA256
+D0FE20EC4A5DCC0F0FDE666A9D09AF01CFD2108A4AA6FA91B46B6E2174E49DFA.
+Decode each Base64 and check Length/SHA256 (verified e5a915); checkout newlines
+can change outer JSON hash but not payloads. Restore evidence only into a fresh
+directory; never execute automatically. Original target directory remains empty,
+no junction was created. Recommend explicit scope revision to continue later
+tasks with reparse coverage blocked, not a false Task1 pass or live acceptance.
+
 LATEST STOPPED CHECKPOINT (2026-11-06): plan9830af55 approved; Task1 partial
 module/scripts tests only. RED552c9d expected missing module; GREENd95195 exit1.
 Seven parser groups matched, but reparse fixture junction creation failed before

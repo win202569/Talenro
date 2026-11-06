@@ -1,5 +1,16 @@
 # Staged integrity integration readiness review
 
+## Latest junction diagnosis: creation access denied, coverage still blocked
+
+One separately approved fresh-root attempt6a7144 exited1 at New-Item Junction:
+Win32Exception access denied, NewItemCreateIOError. Original exception fields
+now preserved, unlike the earlier parser catch. Module rejection was not evaluated.
+Exact access-control layer remains unknown; no elevated retry or security change.
+Portable claim/result2files1885bytes verified e5a915. Original parser/module/runner
+unchanged; Task1 incomplete, Tasks2-4 not started. Continuing implementation with
+this explicit gap requires scoped approval; never silently omit or pass the case.
+No business/Docker/main merge;44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## Latest shadow integration follow-up: Task1 incomplete
 
 Plan9830af55 approved; parser RED552c9d expected missing module, GREENd95195

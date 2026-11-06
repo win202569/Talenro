@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-06
 
+## Latest — 目录联接单次诊断确认“拒绝访问”
+
+用户批准独立诊断后，仅在新目录执行一次scripts/tests/c12-shadow-junction-diagnostic.ps1；6a7144退出1。
+PowerShell7.6.5在New-Item创建Junction时返回System.ComponentModel.Win32Exception“拒绝访问。”，错误ID为NewItemCreateIOError,Microsoft.PowerShell.Commands.NewItemCommand。
+CreationSucceeded=false，ModuleEvaluated=false；本次确认是创建阶段访问被拒绝，尚未确定具体权限/运行环境限制来源，不能把旧次未记录的底层异常认定为完全相同。
+未提权重试、未改安全设置、未改模块或原测试；Tasks2–4仍未开始。原计划2/7调用外新增1次单独批准的诊断，不计作ParserGreen通过；44/34/6/217不变，NOT_ACCEPTED。
+新诊断恢复包2文件1885字节，解码/源文件核对e5a915通过。建议保留reparse覆盖阻塞；后续实现需明确允许在该覆盖未完成的状态下继续，不得标记Task1全部通过或启动正式验收。
+
 ## Latest — 并行审计第一阶段停止，保存未完成检查点
 
 实施计划9830af55已批准。Task1新增清单/扫描模块及定向测试；RED552c9d按预期缺少模块，GREENd95195退出1。
