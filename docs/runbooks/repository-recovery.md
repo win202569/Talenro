@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST CACHE VERIFY STOP (2026-11-06): user approved exact Go1.26.5 offline
+root/devtools verification with120s each.47cf88/session24033→901b38 exit1: root
+timed out120044.7983ms with empty stdout/stderr; owned process tree killed and exit
+confirmed. Devtools NOT_RUN, no retry. Integrity remains unverified; cause unknown.
+Four go.mod/go.sum hashes unchanged; child-only offline environment, no persistent
+settings change/build/C12/container operation. Cache-wide metadata changes unmeasured.
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-verify-stop-v1.json
+4 files,6604 bytes LF JSON; SHA256
+F4D0EBB81961B79141A0E05F7D5A18715D56E3B0FF4A3D26D787B89E4CA48481.
+Base64 payload Length/SHA256 and originals verifiedf18cd8. Restore evidence only
+to a new directory after path checks; never auto-execute launcher or reuse its
+claimed root. Next: separately scoped read-only timeout investigation, not a longer
+retry.44/34/6/217 unchanged,NOT_ACCEPTED; no main merge.
+
 LATEST CACHE INVENTORY (2026-11-06): root99 and devtools318 declared dependency
 entries have cache directories/mod/info/zip/ziphash and matching go.sum ziphash
 metadata (a68210→49050c). This is filesystem inventory, not source/archive hash

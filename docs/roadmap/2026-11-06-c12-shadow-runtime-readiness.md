@@ -1,5 +1,32 @@
 # Shadow audit runtime readiness — read-only review
 
+## Approved offline content verification — stopped at deadline
+
+After13a96123 user approved exact cached Go1.26.5 offline verification, one attempt
+per root/devtools module,120 seconds each. Launcher47cf88/session24033 ended901b38
+exit1: root go mod verify reached120044.7983ms, TimedOut=true, child ExitCode=-1,
+stdout/stderr empty. The owned process tree was terminated and exit confirmed.
+Devtools NOT_RUN: stopped on first unexpected outcome, no retry or budget increase.
+This is neither successful integrity verification nor evidence of corrupt cache.
+The specific cause of delay was not established; no active-process metrics captured.
+
+Child-only environment cleared inherited GO*/GIT_* and selected fixed local
+toolchain/cache, GOENV/GOWORK off, GOPROXY/GOSUMDB/GOAUTH off, GOVCS all:off,
+GOFLAGS=-mod=readonly, GOMAXPROCS=2. User/machine environment unchanged. No build,
+test, container operation or network-enabled download. All four root/devtools
+go.mod/go.sum hashes unchanged. Cache-wide before/after inventory was not captured;
+do not claim the Go command made no internal cache metadata changes.
+Pinned Go executableSHA256:
+D6A71E6DC9806CB3F1FCB817D562175C5A7B1505FC3F6638299648E0B9F0F74F.
+
+Portable stop package4files6604bytes, decoded/source-verifiedf18cd8:
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-verify-stop-v1.json
+SHA256F4D0EBB81961B79141A0E05F7D5A18715D56E3B0FF4A3D26D787B89E4CA48481.
+Contains claim, root outcome, summary and exact launcher; original evidence kept.
+Next proposed scope: read-only timeout investigation, without repeating verify,
+changing security settings or extending the deadline. Future execution requires
+separate scope.44/34/6/217 unchanged,NOT_ACCEPTED; no C12 run or main merge.
+
 ## Read-only cache/environment inventory after46a27e54
 
 Filesystem-only inventorya68210/session45270→49050c inspected explicitly declared
