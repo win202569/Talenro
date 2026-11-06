@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-06
 
+## Latest — 离线循环测试完成：5通过，3个结束原因记录缺口
+
+用户在c1ba31fc后同意补离线采集循环/结束原因测试。新增runtime-cache-wait-loop.tests.ps1，提取并执行现有采集器的实际循环和结果赋值；外部查询/等待/执行器状态用合成输入替代，样本发布与增量计算使用真实公共函数。
+单次b2c647：8项中5通过，3失败。等待后采样、截止不再查询、执行器结束不再查询、24项上限、查询失败停止且不重试通过；deadline-reason-retained、executor-completion-reason-retained、sample-limit-reason-retained失败，当前结果无EndReason，三种结束路径都写COLLECTION_ENDED。
+本轮仅补测试，未改采集逻辑、未修复或重复运行。未启动子进程/Go/CIM/真实采集/C12或全套测试。原始合成记录归档portable-c12-cache-wait-loop-v1.json，逐项解码/长度/哈希/源文件核验通过。
+下一步建议仅修复结束原因记录并离线复验，不运行真实诊断。当前检查点有3项明确失败，不是验收通过；44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 采集器UTC解析已做离线修复，8项回归通过
 
 用户在174ab855后批准仅修复采集器并补离线回归，暂不重跑Go。保留JSON已反序列化的UTC DateTime，不再经字符串二次Parse；非UTC/未解析输入关闭失败，原120秒截止与执行器不变。

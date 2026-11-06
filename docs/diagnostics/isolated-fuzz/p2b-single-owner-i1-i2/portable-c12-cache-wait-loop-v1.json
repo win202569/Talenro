@@ -1,0 +1,122 @@
+{
+  "Scope": "Synthetic offline loop/receipt tests only",
+  "Schema": 1,
+  "Files": [
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/cap/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MjQsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIldvcmtlclN0ZGVyciI6bnVsbCwiRmFpbHVyZSI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIifSwiU2xlZXBzIjowLCJTeW50aGV0aWMiOnRydWUsIlF1ZXJpZXMiOjB9",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/cap/scenario-result.json",
+      "Length": 234,
+      "SHA256": "9F440245CEC77B3C73F1F29F200FA60F0C6BD302A4BDCF7B409ADE8F4F848319"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/deadline/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MCwiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjAsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MH0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/deadline/scenario-result.json",
+      "Length": 233,
+      "SHA256": "4065CD0500256AF992D0EB2BEBCDA855CA8FA841BBE703B2900F93B647403C32"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/finished/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MCwiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjAsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MH0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/finished/scenario-result.json",
+      "Length": 233,
+      "SHA256": "4065CD0500256AF992D0EB2BEBCDA855CA8FA841BBE703B2900F93B647403C32"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/query-error/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOlsxXSwiTmV4dE1zIjo1MDAwLjAsIlJlY2VpcHQiOnsiU3RhdHVzIjoiU1RPUFBFRCIsIlNhbXBsZXMiOjAsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIldvcmtlclN0ZGVyciI6bnVsbCwiRmFpbHVyZSI6IlFVRVJZX1RJTUVPVVQiLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjAsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MX0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/query-error/scenario-result.json",
+      "Length": 236,
+      "SHA256": "863CBC4E0E25D8FD1113934A6EE17ECCC3769A98B646E39F6D135997F7D4D4EA"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-cap/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MjQsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIldvcmtlclN0ZGVyciI6bnVsbCwiRmFpbHVyZSI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIifSwiU2xlZXBzIjowLCJTeW50aGV0aWMiOnRydWUsIlF1ZXJpZXMiOjB9",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-cap/scenario-result.json",
+      "Length": 234,
+      "SHA256": "9F440245CEC77B3C73F1F29F200FA60F0C6BD302A4BDCF7B409ADE8F4F848319"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-deadline/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MCwiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjAsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MH0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-deadline/scenario-result.json",
+      "Length": 233,
+      "SHA256": "4065CD0500256AF992D0EB2BEBCDA855CA8FA841BBE703B2900F93B647403C32"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-executor/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MCwiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjAsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MH0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/reason-executor/scenario-result.json",
+      "Length": 233,
+      "SHA256": "4065CD0500256AF992D0EB2BEBCDA855CA8FA841BBE703B2900F93B647403C32"
+    },
+    {
+      "Base64": "eyJMaXZlQ29sbGVjdG9yU3RhcnRlZCI6ZmFsc2UsIkdvU3RhcnRlZCI6ZmFsc2UsIkNoaWxkUHJvY2Vzc2VzU3RhcnRlZCI6MCwiQ291bnQiOjgsIkZhaWxlZCI6MywiQ2FzZXMiOlt7Ik5hbWUiOiJ3YWl0LXRoZW4tb25lLXNhbXBsZS1uby1jYXRjaHVwIiwiU3RhdHVzIjoiUEFTUyJ9LHsiTmFtZSI6ImRlYWRsaW5lLWRvZXMtbm90LXF1ZXJ5IiwiU3RhdHVzIjoiUEFTUyJ9LHsiTmFtZSI6ImV4ZWN1dG9yLWZpbmlzaGVkLWRvZXMtbm90LXF1ZXJ5IiwiU3RhdHVzIjoiUEFTUyJ9LHsiTmFtZSI6InNhbXBsZS1jYXAtZG9lcy1ub3QtcXVlcnkiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoicXVlcnktZmFpbHVyZS1pcy1zdG9wcGVkLXdpdGhvdXQtcmV0cnkiLCJTdGF0dXMiOiJQQVNTIn0seyJFcnJvciI6IkRlYWRsaW5lIHJlYXNvbiBtaXNzaW5nIiwiTmFtZSI6ImRlYWRsaW5lLXJlYXNvbi1yZXRhaW5lZCIsIlN0YXR1cyI6IkZBSUwifSx7IkVycm9yIjoiRXhlY3V0b3IgY29tcGxldGlvbiByZWFzb24gbWlzc2luZyIsIk5hbWUiOiJleGVjdXRvci1jb21wbGV0aW9uLXJlYXNvbi1yZXRhaW5lZCIsIlN0YXR1cyI6IkZBSUwifSx7IkVycm9yIjoiU2FtcGxlIGxpbWl0IHJlYXNvbiBtaXNzaW5nIiwiTmFtZSI6InNhbXBsZS1saW1pdC1yZWFzb24tcmV0YWluZWQiLCJTdGF0dXMiOiJGQUlMIn1dLCJTdGF0dXMiOiJPRkZMSU5FX0NPVkVSQUdFX0dBUFMiLCJTeW50aGV0aWMiOnRydWV9",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/result.json",
+      "Length": 732,
+      "SHA256": "A737740BBFB19688BFCDAD5B8FEB31FDCFD1047BDC4872B96AE9F66682560878"
+    },
+    {
+      "Base64": "",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/wait/exclusive.claim",
+      "Length": 0,
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "Base64": "eyJEZWx0YSI6eyJXcml0ZU9wZXJhdGlvbnMiOm51bGwsIldyaXRlQnl0ZXMiOm51bGwsIkNQVW1zIjpudWxsLCJSZWFkQnl0ZXMiOm51bGwsIlJlYWRPcGVyYXRpb25zIjpudWxsLCJJbnZhbGlkRmllbGRzIjpbIkNQVW1zIiwiUmVhZE9wZXJhdGlvbnMiLCJSZWFkQnl0ZXMiLCJXcml0ZU9wZXJhdGlvbnMiLCJXcml0ZUJ5dGVzIl19LCJPYnNlcnZlZEVsYXBzZWRNcyI6MTIwMDA2Ljc5NjgsIlJhdyI6eyJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiIsIlJlYWRCeXRlcyI6MTAwLCJUaHJlYWRTdGF0ZXMiOnsiV2FpdCI6MX0sIlBoYXNlIjoic2FtcGxlIiwiQ1BVbXMiOjEwLCJUaW1lc3RhbXBVdGMiOiIyMDI2LTExLTA2VDAwOjAwOjAwWiIsIldyaXRlQnl0ZXMiOjAsIklkZW50aXR5Ijp7IkZpeHR1cmUiOnRydWV9LCJVbmF2YWlsYWJsZUZpZWxkcyI6W10sIldyaXRlT3BlcmF0aW9ucyI6MCwiU2VxdWVuY2UiOjEsIldvcmtpbmdTZXRCeXRlcyI6MTAwMCwiUmVhZE9wZXJhdGlvbnMiOjEsIldhaXRSZWFzb25zIjp7IlVzZXJSZXF1ZXN0IjoxfSwiU3RhdHVzIjoiT0JTRVJWRUQiLCJQcml2YXRlQnl0ZXMiOjEwMDB9LCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/wait/sample-01.json",
+      "Length": 645,
+      "SHA256": "380A177D8ED4CC0E73878F41566A63917E8F51B660AC3985C274C888D9F33929"
+    },
+    {
+      "Base64": "eyJTZXF1ZW5jZXMiOlsxXSwiTmV4dE1zIjoxMjUwNTguNDAzNywiUmVjZWlwdCI6eyJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MSwiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9LCJTbGVlcHMiOjEsIlN5bnRoZXRpYyI6dHJ1ZSwiUXVlcmllcyI6MX0=",
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline/wait/scenario-result.json",
+      "Length": 239,
+      "SHA256": "0A286693A09A3FA065EF3919EF25C0FFC9A5F44CBE8ADAAEF0097044430D7172"
+    }
+  ],
+  "Tool": "b2c647",
+  "Result": "5 PASS, 3 missing end-reason FAIL"
+}

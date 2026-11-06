@@ -1,5 +1,20 @@
 # Shadow audit runtime readiness — read-only review
 
+## Offline sampling loop coverage — known receipt failures
+
+Afterc1ba31fc, tests-only authorization produced runtime-cache-wait-loop.tests.ps1.
+Actual loop and receipt AST fragments execute offline; external read/query/wait
+boundaries are synthetic. This does not test real worker/CIM/process coordination.
+Singleb2c647:5/8 pass; deadline-reason-retained,executor-completion-reason-retained,
+sample-limit-reason-retained fail because receipt has no EndReason. All three
+normal stop paths currently collapse to COLLECTION_ENDED. No implementation edit,
+repair or second test invocation this turn. Scheduling/no-query bounds and query
+failure/no-retry passed. No new live observation,Go,children,C12 or full suite.
+Original synthetic evidence is in portable-c12-cache-wait-loop-v1.json with
+decode/length/hash/source checks passed. Preserve red outcomes; next proposed
+work is narrow end-reason repair/offline verification, separately approved.
+44/34/6/217,NOT_ACCEPTED; root timeout cause and full collector readiness unresolved.
+
 ## UTC conversion repair — offline coverage only
 
 Approval after174ab855 limited to collector repair/offline regression, no Go.

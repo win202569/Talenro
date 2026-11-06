@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+LATEST LOOP TEST CHECKPOINT (2026-11-06): afterc1ba31fc user approved offline
+loop/end-reason coverage, not live execution. runtime-cache-wait-loop.tests.ps1
+executes actual collector loop/receipt AST fragments with synthetic external
+read/query/wait inputs; publication and delta helpers remain real. Singleb2c647:
+8 cases,5 PASS,3 FAIL: deadline-reason-retained,executor-completion-reason-retained,
+sample-limit-reason-retained. All three miss EndReason; current receipt collapses
+them to COLLECTION_ENDED. No collector implementation modified or retry performed.
+Passing cases cover wait/sample spacing, deadline/no-query, executor-exit/no-query,
+sample cap and query failure/no-retry. No child/Go/CIM/live collector/C12/full suite.
+portable-c12-cache-wait-loop-v1.json beside test source contains original synthetic
+claims/results/sample, verified by Base64 decode/length/SHA and source comparison.
+This is an unfinished development checkpoint with known red tests. Next proposed
+scope: add explicit end reasons and offline regression; no fresh live authorization.
+Use a fresh evidence root for any approved follow-up; keep all old roots/archives.
+44/34/6/217,NOT_ACCEPTED; no main merge. Go timeout root cause remains unknown.
+
 LATEST UTC OFFLINE FIX (2026-11-06): user approved narrow repair after174ab855,
 without Go/live collection. Collector now uses Get-C12WaitStartUtc, preserving
 the JSON reader's UTC DateTime/ticks and rejecting ambiguous/non-UTC values.
