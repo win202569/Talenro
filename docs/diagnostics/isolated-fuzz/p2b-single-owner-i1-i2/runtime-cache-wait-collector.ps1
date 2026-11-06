@@ -5,7 +5,7 @@ $ErrorActionPreference='Stop'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
 $root=Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-v1/Live'
 Assert-C12WaitPath $root
-$worker=$null; $failure=$null; $count=0; $exitConfirmed=$false; $stderr=$null
+$worker=$null; $failure=$null; $count=0; $exitConfirmed=$false; $stderr=$null; $endReason=$null
 function Invoke-BoundQuery($Identity,[int]$Sequence,[string]$Phase) {
     $request=@{ SessionId=$SessionId; Sequence=$Sequence; Phase=$Phase; Identity=$Identity }
     $null=Write-C12WaitRecord $root ("request-{0:D2}.json" -f $Sequence) $request
@@ -49,9 +49,9 @@ try {
     $start=Get-C12WaitStartUtc $target.StartedUtc
     $next=5000.0
     while ($count -lt 24) {
-        if ($null -ne (Read-C12WaitRecord $root 'executor-result.json')) { break }
+        if ($null -ne (Read-C12WaitRecord $root 'executor-result.json')) { $endReason='EXECUTOR_FINISHED'; break }
         $elapsed=([DateTime]::UtcNow-$start).TotalMilliseconds
-        if ($elapsed -ge 120000) { break }
+        if ($elapsed -ge 120000) { $endReason='DEADLINE'; break }
         if ($elapsed -lt $next) { Start-Sleep -Milliseconds 100; continue }
         $answer=Invoke-BoundQuery $target.Identity ($count+1) 'sample'
         $null=Write-C12WaitRecord $root ("sample-{0:D2}.json" -f ($count+1)) @{ SessionId=$SessionId; Raw=$answer; Delta=(Get-C12WaitDelta $previous $answer); ObservedElapsedMs=([DateTime]::UtcNow-$start).TotalMilliseconds }
@@ -73,7 +73,7 @@ finally {
     if ($null -ne $stderr -and $stderr.IsCompletedSuccessfully) {
         if ([Text.Encoding]::UTF8.GetByteCount($stderr.Result) -le 8192) { $workerError=$stderr.Result } else { $workerError='STDERR_LIMIT' }
     }
-    $receipt=@{ SessionId=$SessionId; Samples=$count; Failure=$failure; WorkerExitConfirmed=$exitConfirmed; WorkerStderr=$workerError; Status=$(if ($null -eq $failure) { 'COLLECTION_ENDED' } else { 'STOPPED' }) }
+    $receipt=@{ SessionId=$SessionId; Samples=$count; Failure=$failure; WorkerExitConfirmed=$exitConfirmed; WorkerStderr=$workerError; EndReason=$(if ($null -ne $failure) { 'ERROR' } elseif ($count -ge 24) { 'SAMPLE_LIMIT' } else { $endReason }); Status=$(if ($null -eq $failure) { 'COLLECTION_ENDED' } else { 'STOPPED' }) }
     $null=Write-C12WaitRecord $root 'collector-stop.json' $receipt
     $receipt | ConvertTo-Json -Depth 10
 }

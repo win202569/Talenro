@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-06
 
+## Latest — 结束原因记录已修复，离线8项全部通过
+
+用户在64467cbd后批准仅修复结束原因并离线复验。ReasonRed/2f9635再次复现5通过3失败；修复后的ReasonGreen/96c66c返回OFFLINE_LOOP_VERIFIED，8项全部通过。
+采集器结果新增EndReason：DEADLINE、EXECUTOR_FINISHED、SAMPLE_LIMIT；有异常时为ERROR，Failure原始信息保留。原有Status、采样频率、120秒截止、进程清理及执行器均未改变。测试仅增加独立阶段根和初始化状态，不放宽原断言。
+38文件原始合成证据portable-c12-cache-wait-reasons-v1.json已通过401e2b解码/长度/哈希/源文件核验，旧失败记录不变。未启动子进程、Go、CIM、真实采集或C12/全套测试。
+下一步可制定新一轮有界真实诊断计划，使用新的独占记录目录并重新批准预算；本轮不授予真实运行权限。局部回归通过不代表采集器端到端或项目验收。Go超时根因仍未知，44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 离线循环测试完成：5通过，3个结束原因记录缺口
 
 用户在c1ba31fc后同意补离线采集循环/结束原因测试。新增runtime-cache-wait-loop.tests.ps1，提取并执行现有采集器的实际循环和结果赋值；外部查询/等待/执行器状态用合成输入替代，样本发布与增量计算使用真实公共函数。

@@ -1,5 +1,20 @@
 # Shadow audit runtime readiness — read-only review
 
+## End-reason fix — offline8/8, no live acceptance
+
+After64467cbd approval, ReasonRed2f9635 reproduced the three missing-reason
+failures. Minimal collector edit records DEADLINE/EXECUTOR_FINISHED at their
+existing break paths, derives SAMPLE_LIMIT at count24 and ERROR on failure.
+Status and Failure remain, as do120s bound, sampling schedule and cleanup.
+ReasonGreen96c66c passed all8 existing assertions with no weakening; test-only
+phase roots preserve earlier evidence. No Go/children/CIM/live collector/C12/full
+suite. Inline diff review limited to state/receipt recording, no process changes.
+38 synthetic files in portable-c12-cache-wait-reasons-v1.json were decode/length/
+SHA/source-verified401e2b. Old failed runs remain historical, not rewritten.
+Real sampling/worker coordination remain unverified after these repairs. Next
+step may be a fresh bounded live diagnostic plan with new roots and explicit
+budget; current approval does not permit launching it.44/34/6/217,NOT_ACCEPTED.
+
 ## Offline sampling loop coverage — known receipt failures
 
 Afterc1ba31fc, tests-only authorization produced runtime-cache-wait-loop.tests.ps1.

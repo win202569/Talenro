@@ -1,5 +1,20 @@
 # Recover the project on a new computer
 
+LATEST END-REASON FIX (2026-11-06): user approved narrow repair after64467cbd.
+ReasonRed2f9635 reproduced5 pass/3 fail; ReasonGreen96c66c passed all8 offline
+loop/receipt cases. Collector adds EndReason DEADLINE/EXECUTOR_FINISHED/SAMPLE_LIMIT,
+or ERROR when Failure exists. Existing Status/failure details/scheduling/deadline/
+cleanup stay unchanged. Tests now select exclusive Offline/ReasonRed/ReasonGreen
+roots and initialize endReason; original assertions unchanged. Do not reuse roots.
+portable-c12-cache-wait-reasons-v1.json beside tooling preserves38 synthetic files;
+decode/length/SHA/source check401e2b passed. Historical red receipts remain intact.
+No child,Go,CIM,live collector,C12/full-suite invocation; this is not end-to-end
+acceptance. Next proposed scope is a fresh bounded live diagnostic plan, including
+new exclusive evidence roots and explicit execution budget, before any real run.
+Existing live scripts still target the occupied original root: do not launch or
+delete/reuse it. No additional live permission is implied by this offline fix.
+44/34/6/217 unchanged,NOT_ACCEPTED; no main merge; Go timeout cause unresolved.
+
 LATEST LOOP TEST CHECKPOINT (2026-11-06): afterc1ba31fc user approved offline
 loop/end-reason coverage, not live execution. runtime-cache-wait-loop.tests.ps1
 executes actual collector loop/receipt AST fragments with synthetic external

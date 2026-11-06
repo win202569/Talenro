@@ -1,9 +1,10 @@
 # Offline characterization/regression: never dot-source the live collector.
+param([ValidateSet('Offline','ReasonRed','ReasonGreen')][string]$Phase='Offline')
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'runtime-cache-wait-common.ps1')
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
-$suiteRoot=New-C12WaitRoot (Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/Offline')
+$suiteRoot=New-C12WaitRoot (Join-Path $repo ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/$Phase")
 $tokens=$null; $errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'runtime-cache-wait-collector.ps1'),[ref]$tokens,[ref]$errors)
 if ($errors.Count -ne 0) { throw 'Collector syntax errors' }
@@ -21,7 +22,7 @@ function Run-Scenario([string]$Name,[double]$Elapsed,[int]$InitialCount,[bool]$E
     $count=$InitialCount; $previous=$null; $next=5000.0
     $start=[DateTime]::UtcNow.AddMilliseconds(-$Elapsed)
     $state=@{Queries=0;Sleeps=0;Sequences=[Collections.Generic.List[int]]::new()}
-    $failure=$null; $exitConfirmed=$true; $workerError=$null
+    $failure=$null; $exitConfirmed=$true; $workerError=$null; $endReason=$null
     # Replace only external read/query/wait boundaries. Publication/deltas stay real.
     function Read-C12WaitRecord($Root,$Leaf) { if ($ExecutorDone) { return @{Status='ATTEMPTED'} }; return $null }
     function Start-Sleep([int]$Milliseconds) {

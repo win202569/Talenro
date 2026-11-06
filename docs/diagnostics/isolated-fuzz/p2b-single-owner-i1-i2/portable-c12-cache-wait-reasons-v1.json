@@ -1,0 +1,237 @@
+{
+  "Result": "Red 5 pass 3 fail; Green 8 pass",
+  "Scope": "Synthetic offline end-reason repair only",
+  "RedTool": "2f9635",
+  "Files": [
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/cap/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/cap/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjoyNH19",
+      "SHA256": "8EB404D08892F501C176C7DF5CD8F1A913DE6B4811CC17C818F890D6224E6B5D",
+      "Length": 234
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/deadline/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/deadline/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjowfX0=",
+      "SHA256": "BAEA0BEED028B355464DB82AC0D37E1D72D311544DF452E455E87377EE7E48F8",
+      "Length": 233
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/finished/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/finished/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjowfX0=",
+      "SHA256": "BAEA0BEED028B355464DB82AC0D37E1D72D311544DF452E455E87377EE7E48F8",
+      "Length": 233
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/query-error/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/query-error/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6WzFdLCJOZXh0TXMiOjUwMDAuMCwiUXVlcmllcyI6MSwiU2xlZXBzIjowLCJSZWNlaXB0Ijp7IldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIlNlc3Npb25JZCI6ImJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiIiwiU3RhdHVzIjoiU1RPUFBFRCIsIldvcmtlclN0ZGVyciI6bnVsbCwiRmFpbHVyZSI6IlFVRVJZX1RJTUVPVVQiLCJTYW1wbGVzIjowfX0=",
+      "SHA256": "6EAED5085AB40F6B5591B53A03ABA9A3897C983E2D1F7918EA24349F64393F56",
+      "Length": 236
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-cap/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-cap/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjoyNH19",
+      "SHA256": "8EB404D08892F501C176C7DF5CD8F1A913DE6B4811CC17C818F890D6224E6B5D",
+      "Length": 234
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-deadline/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-deadline/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjowfX0=",
+      "SHA256": "BAEA0BEED028B355464DB82AC0D37E1D72D311544DF452E455E87377EE7E48F8",
+      "Length": 233
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-executor/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/reason-executor/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJRdWVyaWVzIjowLCJTbGVlcHMiOjAsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjowfX0=",
+      "SHA256": "BAEA0BEED028B355464DB82AC0D37E1D72D311544DF452E455E87377EE7E48F8",
+      "Length": 233
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/result.json",
+      "Base64": "eyJDYXNlcyI6W3siU3RhdHVzIjoiUEFTUyIsIk5hbWUiOiJ3YWl0LXRoZW4tb25lLXNhbXBsZS1uby1jYXRjaHVwIn0seyJTdGF0dXMiOiJQQVNTIiwiTmFtZSI6ImRlYWRsaW5lLWRvZXMtbm90LXF1ZXJ5In0seyJTdGF0dXMiOiJQQVNTIiwiTmFtZSI6ImV4ZWN1dG9yLWZpbmlzaGVkLWRvZXMtbm90LXF1ZXJ5In0seyJTdGF0dXMiOiJQQVNTIiwiTmFtZSI6InNhbXBsZS1jYXAtZG9lcy1ub3QtcXVlcnkifSx7IlN0YXR1cyI6IlBBU1MiLCJOYW1lIjoicXVlcnktZmFpbHVyZS1pcy1zdG9wcGVkLXdpdGhvdXQtcmV0cnkifSx7IlN0YXR1cyI6IkZBSUwiLCJOYW1lIjoiZGVhZGxpbmUtcmVhc29uLXJldGFpbmVkIiwiRXJyb3IiOiJEZWFkbGluZSByZWFzb24gbWlzc2luZyJ9LHsiU3RhdHVzIjoiRkFJTCIsIk5hbWUiOiJleGVjdXRvci1jb21wbGV0aW9uLXJlYXNvbi1yZXRhaW5lZCIsIkVycm9yIjoiRXhlY3V0b3IgY29tcGxldGlvbiByZWFzb24gbWlzc2luZyJ9LHsiU3RhdHVzIjoiRkFJTCIsIk5hbWUiOiJzYW1wbGUtbGltaXQtcmVhc29uLXJldGFpbmVkIiwiRXJyb3IiOiJTYW1wbGUgbGltaXQgcmVhc29uIG1pc3NpbmcifV0sIkNoaWxkUHJvY2Vzc2VzU3RhcnRlZCI6MCwiRmFpbGVkIjozLCJTeW50aGV0aWMiOnRydWUsIkdvU3RhcnRlZCI6ZmFsc2UsIkNvdW50Ijo4LCJTdGF0dXMiOiJPRkZMSU5FX0NPVkVSQUdFX0dBUFMiLCJMaXZlQ29sbGVjdG9yU3RhcnRlZCI6ZmFsc2V9",
+      "SHA256": "12DB6317E058DE77F17C6643822DD462489855AB88B54F045BF641DB1B7CD3EB",
+      "Length": 732
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/wait/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/wait/sample-01.json",
+      "Base64": "eyJEZWx0YSI6eyJXcml0ZUJ5dGVzIjpudWxsLCJJbnZhbGlkRmllbGRzIjpbIkNQVW1zIiwiUmVhZE9wZXJhdGlvbnMiLCJSZWFkQnl0ZXMiLCJXcml0ZU9wZXJhdGlvbnMiLCJXcml0ZUJ5dGVzIl0sIlJlYWRCeXRlcyI6bnVsbCwiQ1BVbXMiOm51bGwsIldyaXRlT3BlcmF0aW9ucyI6bnVsbCwiUmVhZE9wZXJhdGlvbnMiOm51bGx9LCJPYnNlcnZlZEVsYXBzZWRNcyI6MTIwMDA2Ljk3NjcsIlNlc3Npb25JZCI6ImJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiIiwiUmF3Ijp7IldyaXRlQnl0ZXMiOjAsIlBoYXNlIjoic2FtcGxlIiwiV2FpdFJlYXNvbnMiOnsiVXNlclJlcXVlc3QiOjF9LCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiIsIklkZW50aXR5Ijp7IkZpeHR1cmUiOnRydWV9LCJDUFVtcyI6MTAsIlByaXZhdGVCeXRlcyI6MTAwMCwiUmVhZEJ5dGVzIjoxMDAsIlRocmVhZFN0YXRlcyI6eyJXYWl0IjoxfSwiVW5hdmFpbGFibGVGaWVsZHMiOltdLCJXcml0ZU9wZXJhdGlvbnMiOjAsIlNlcXVlbmNlIjoxLCJUaW1lc3RhbXBVdGMiOiIyMDI2LTExLTA2VDAwOjAwOjAwWiIsIldvcmtpbmdTZXRCeXRlcyI6MTAwMCwiU3RhdHVzIjoiT0JTRVJWRUQiLCJSZWFkT3BlcmF0aW9ucyI6MX19",
+      "SHA256": "23F8B31F0683EB20F1475A405A5F533B48C3F6DCC76AB07D19777E8CCB828C2F",
+      "Length": 645
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonRed/wait/scenario-result.json",
+      "Base64": "eyJTeW50aGV0aWMiOnRydWUsIlNlcXVlbmNlcyI6WzFdLCJOZXh0TXMiOjEyNTA1OC40NjUxLCJRdWVyaWVzIjoxLCJTbGVlcHMiOjEsIlJlY2VpcHQiOnsiV29ya2VyRXhpdENvbmZpcm1lZCI6dHJ1ZSwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiV29ya2VyU3RkZXJyIjpudWxsLCJGYWlsdXJlIjpudWxsLCJTYW1wbGVzIjoxfX0=",
+      "SHA256": "10E575D26507ABB383E839AB564B39CB1E418FA5CB09750C0DF564C1AC431C21",
+      "Length": 239
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/cap/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/cap/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJTQU1QTEVfTElNSVQiLCJXb3JrZXJFeGl0Q29uZmlybWVkIjp0cnVlLCJGYWlsdXJlIjpudWxsLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MjR9LCJTbGVlcHMiOjAsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJTeW50aGV0aWMiOnRydWV9",
+      "SHA256": "824B308253AD03213671AFF9FB901E9DABA5C6AF1B54D83F1D5FE310DB4EC97E",
+      "Length": 261
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/deadline/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/deadline/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJERUFETElORSIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOm51bGwsIlN0YXR1cyI6IkNPTExFQ1RJT05fRU5ERUQiLCJTYW1wbGVzIjowfSwiU2xlZXBzIjowLCJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "C25DA84A061D89DBF53DA1BAE8B6A9A53F457289C042D63DC2574699CFA51F84",
+      "Length": 256
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/finished/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/finished/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJFWEVDVVRPUl9GSU5JU0hFRCIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOm51bGwsIlN0YXR1cyI6IkNPTExFQ1RJT05fRU5ERUQiLCJTYW1wbGVzIjowfSwiU2xlZXBzIjowLCJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "989B884646D59D620E5235114868049A88B9B9D98E89851C54B894C4810DF0D2",
+      "Length": 265
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/query-error/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/query-error/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjoxLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJFUlJPUiIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOiJRVUVSWV9USU1FT1VUIiwiU3RhdHVzIjoiU1RPUFBFRCIsIlNhbXBsZXMiOjB9LCJTbGVlcHMiOjAsIlNlcXVlbmNlcyI6WzFdLCJOZXh0TXMiOjUwMDAuMCwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "EAD1BBD9C7435545F22B8A7183840D9439F4913B173613036A5EB9677A925EDA",
+      "Length": 256
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-cap/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-cap/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJTQU1QTEVfTElNSVQiLCJXb3JrZXJFeGl0Q29uZmlybWVkIjp0cnVlLCJGYWlsdXJlIjpudWxsLCJTdGF0dXMiOiJDT0xMRUNUSU9OX0VOREVEIiwiU2FtcGxlcyI6MjR9LCJTbGVlcHMiOjAsIlNlcXVlbmNlcyI6W10sIk5leHRNcyI6NTAwMC4wLCJTeW50aGV0aWMiOnRydWV9",
+      "SHA256": "824B308253AD03213671AFF9FB901E9DABA5C6AF1B54D83F1D5FE310DB4EC97E",
+      "Length": 261
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-deadline/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-deadline/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJERUFETElORSIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOm51bGwsIlN0YXR1cyI6IkNPTExFQ1RJT05fRU5ERUQiLCJTYW1wbGVzIjowfSwiU2xlZXBzIjowLCJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "C25DA84A061D89DBF53DA1BAE8B6A9A53F457289C042D63DC2574699CFA51F84",
+      "Length": 256
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-executor/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/reason-executor/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjowLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJFWEVDVVRPUl9GSU5JU0hFRCIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOm51bGwsIlN0YXR1cyI6IkNPTExFQ1RJT05fRU5ERUQiLCJTYW1wbGVzIjowfSwiU2xlZXBzIjowLCJTZXF1ZW5jZXMiOltdLCJOZXh0TXMiOjUwMDAuMCwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "989B884646D59D620E5235114868049A88B9B9D98E89851C54B894C4810DF0D2",
+      "Length": 265
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/result.json",
+      "Base64": "eyJTdGF0dXMiOiJPRkZMSU5FX0xPT1BfVkVSSUZJRUQiLCJGYWlsZWQiOjAsIkdvU3RhcnRlZCI6ZmFsc2UsIkNoaWxkUHJvY2Vzc2VzU3RhcnRlZCI6MCwiTGl2ZUNvbGxlY3RvclN0YXJ0ZWQiOmZhbHNlLCJTeW50aGV0aWMiOnRydWUsIkNvdW50Ijo4LCJDYXNlcyI6W3siTmFtZSI6IndhaXQtdGhlbi1vbmUtc2FtcGxlLW5vLWNhdGNodXAiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoiZGVhZGxpbmUtZG9lcy1ub3QtcXVlcnkiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoiZXhlY3V0b3ItZmluaXNoZWQtZG9lcy1ub3QtcXVlcnkiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoic2FtcGxlLWNhcC1kb2VzLW5vdC1xdWVyeSIsIlN0YXR1cyI6IlBBU1MifSx7Ik5hbWUiOiJxdWVyeS1mYWlsdXJlLWlzLXN0b3BwZWQtd2l0aG91dC1yZXRyeSIsIlN0YXR1cyI6IlBBU1MifSx7Ik5hbWUiOiJkZWFkbGluZS1yZWFzb24tcmV0YWluZWQiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoiZXhlY3V0b3ItY29tcGxldGlvbi1yZWFzb24tcmV0YWluZWQiLCJTdGF0dXMiOiJQQVNTIn0seyJOYW1lIjoic2FtcGxlLWxpbWl0LXJlYXNvbi1yZXRhaW5lZCIsIlN0YXR1cyI6IlBBU1MifV19",
+      "SHA256": "26050F76C56351FC600B769C352D8EDB71C4DB8F927C86604181F5C6D6630EC3",
+      "Length": 615
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/wait/exclusive.claim",
+      "Base64": "",
+      "SHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "Length": 0
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/wait/sample-01.json",
+      "Base64": "eyJSYXciOnsiU3RhdHVzIjoiT0JTRVJWRUQiLCJSZWFkQnl0ZXMiOjEwMCwiV2FpdFJlYXNvbnMiOnsiVXNlclJlcXVlc3QiOjF9LCJDUFVtcyI6MTAsIlBoYXNlIjoic2FtcGxlIiwiSWRlbnRpdHkiOnsiRml4dHVyZSI6dHJ1ZX0sIldvcmtpbmdTZXRCeXRlcyI6MTAwMCwiU2VxdWVuY2UiOjEsIldyaXRlT3BlcmF0aW9ucyI6MCwiVW5hdmFpbGFibGVGaWVsZHMiOltdLCJSZWFkT3BlcmF0aW9ucyI6MSwiUHJpdmF0ZUJ5dGVzIjoxMDAwLCJUaHJlYWRTdGF0ZXMiOnsiV2FpdCI6MX0sIlNlc3Npb25JZCI6ImJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiIiwiVGltZXN0YW1wVXRjIjoiMjAyNi0xMS0wNlQwMDowMDowMFoiLCJXcml0ZUJ5dGVzIjowfSwiT2JzZXJ2ZWRFbGFwc2VkTXMiOjEyMDAwNi4yNzY0LCJEZWx0YSI6eyJSZWFkQnl0ZXMiOm51bGwsIldyaXRlT3BlcmF0aW9ucyI6bnVsbCwiSW52YWxpZEZpZWxkcyI6WyJDUFVtcyIsIlJlYWRPcGVyYXRpb25zIiwiUmVhZEJ5dGVzIiwiV3JpdGVPcGVyYXRpb25zIiwiV3JpdGVCeXRlcyJdLCJXcml0ZUJ5dGVzIjpudWxsLCJSZWFkT3BlcmF0aW9ucyI6bnVsbCwiQ1BVbXMiOm51bGx9LCJTZXNzaW9uSWQiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYiJ9",
+      "SHA256": "FAD1E52CC5E6AA1273008B87237A3D9803537658A622AE461C3C8829F67A66B8",
+      "Length": 645
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-cache-wait-loop-v1/ReasonGreen/wait/scenario-result.json",
+      "Base64": "eyJRdWVyaWVzIjoxLCJSZWNlaXB0Ijp7IldvcmtlclN0ZGVyciI6bnVsbCwiU2Vzc2lvbklkIjoiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIiLCJFbmRSZWFzb24iOiJERUFETElORSIsIldvcmtlckV4aXRDb25maXJtZWQiOnRydWUsIkZhaWx1cmUiOm51bGwsIlN0YXR1cyI6IkNPTExFQ1RJT05fRU5ERUQiLCJTYW1wbGVzIjoxfSwiU2xlZXBzIjoxLCJTZXF1ZW5jZXMiOlsxXSwiTmV4dE1zIjoxMjUwNTYuOTUyMSwiU3ludGhldGljIjp0cnVlfQ==",
+      "SHA256": "914A58B546B29EC7408F795917FF76477D27AB0580DE040E4BBBE35FD76B0BD4",
+      "Length": 262
+    }
+  ],
+  "Schema": 1,
+  "GreenTool": "96c66c"
+}
