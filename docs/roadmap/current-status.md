@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-06
 
+## Latest — 并行审计设计已批准，实施计划待批准
+
+设计2017b01d已获用户批准。本轮仅形成docs/superpowers/plans/2026-11-06-c12-shadow-audit-integration.md，尚未实现或运行测试。
+计划4阶段：严格清单/安全扫描、不可覆盖记录、默认关闭的正式入口钩子、组合离线验证。最多7次测试脚本调用；最终不超过24模块案例+12入口场景，不启动Go/Docker/业务。
+首期限定6个源码/配置文件，默认关闭不读取审计文件；正式结果和清理责任不变。44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 并行记录审计设计待批准
 
 用户选择方案1：先独立记录审计，不改变正式测试/清理判定。设计见docs/superpowers/specs/2026-11-06-c12-shadow-audit-design.md。

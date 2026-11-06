@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN (2026-11-06): design2017b01d approved; implementation plan
+docs/superpowers/plans/2026-11-06-c12-shadow-audit-integration.md awaits approval.
+Four tasks, at most7 offline script invocations, final <=24 module+12 hook cases;
+no live runner/Go/Docker/business. New code not implemented. Review exact source
+coverage, strict default-off behavior, Suite root binding and post-cleanup summary
+before execution.44/34/6/217 unchanged;NOT_ACCEPTED. Prior design-only notes below
+are historical; their pending-design approval is superseded, not their runtime limits.
+
 LATEST DESIGN ONLY (2026-11-06): user chose shadow recording, not mandatory audit.
 Read docs/superpowers/specs/2026-11-06-c12-shadow-audit-design.md and seek document
 approval before implementation planning. Default-off/source-only/size ceilings

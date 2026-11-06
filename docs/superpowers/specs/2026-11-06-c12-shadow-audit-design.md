@@ -1,6 +1,7 @@
 # C12 shadow source-audit integration design
 
-Status: DESIGN_PENDING_APPROVAL. User selected approach1: parallel recording,
+Status: DESIGN_APPROVED by user after2017b01d; implementation plan pending approval.
+User selected approach1: parallel recording,
 not a new formal pass/fail gate. This document does not authorize implementation
 or a live run. Baseline5b1dfdd2; existing counters44/34/6/217 unchanged.
 
@@ -170,7 +171,7 @@ implementation. The check is not a security or runtime acceptance review.
 
 ## Approval checkpoint
 
-User selected only approach1. Assistant proposals needing review here: stable
+User approved this document after2017b01d, including the proposals: stable
 source-only first increment, default-off switch, explicit manifest/size ceilings,
 retained metadata-only evidence and synchronous timing caveat. After document
 approval, write an implementation plan; do not implement in this design turn.
