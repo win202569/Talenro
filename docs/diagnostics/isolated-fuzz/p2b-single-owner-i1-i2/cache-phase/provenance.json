@@ -1,0 +1,20 @@
+{
+  "Toolchain": "go1.26.5.windows-amd64",
+  "Origin": "installed toolchain src/cmd/vendor/golang.org/x/mod",
+  "Files": [
+    {
+      "Path": "internal/dirhash/hash.go",
+      "SHA256": "24DE6A735C1605E39B6381E6962787FAA5C59ADAB896FB66DBC1AC8B6AFCB297"
+    },
+    {
+      "Path": "internal/dirhash/LICENSE",
+      "SHA256": "911F8F5782931320F5B8D1160A76365B83AEA6447EE6C04FA6D5591467DB9DAD"
+    },
+    {
+      "Path": "internal/dirhash/PATENTS",
+      "SHA256": "96F408BFAE65BF137FC2525D3ECB030271C50C1E90799F87ABF8846D8DD505CC"
+    }
+  ],
+  "License": "BSD-3-Clause; PATENTS retained",
+  "Use": "Isolated diagnostic only"
+}

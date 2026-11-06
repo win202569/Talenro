@@ -164,3 +164,20 @@ Synthetic reparse tests are not a real-junction acceptance claim; live adapter m
 fail closed on unreadable attributes. Build costs/cache warmth and omitted graph
 loading remain explicit. No new runtime action this planning turn.
 PLAN_READY_FOR_REVIEW; await approval,then execute inline within these budgets.
+
+## Execution outcome — 2026-11-06
+
+Approved after72bae466. Task1 complete (commit7a8ef1a3): OwnerRed expected missing
+implementation; OwnerGreen10/10 with2 harmless owned children,exits confirmed.
+Task2 partial: vendor/source/license byte hashes verified; GoRed03130d compiled
+and failed16 unimplemented assertions as expected (46991.1073ms).
+GoGreen72f676 failed TestMonotonicPhaseEvidence after2228.9569ms,exit confirmed,
+no timeout. Other15 groups did not report failure. The assertion does not identify
+which END had nonpositive duration; timer resolution remains unproven.
+STOP applied: no repair/retry,Build/Live NOT_RUN,all owner/Go test slots consumed.
+Four module files unchanged. Task4 unfinished-checkpoint archive/recovery updates
+prepared. Archive final source only; GoRed original stub hashes retained in claim.
+Additive Candidate.SumFile/Event.Expected support expected digest reads inside
+PREPARE/comparison evidence; no broader CLI/cache allowlist. Author-only review,
+synthetic reparse test limitation;44/34/6/217,NOT_ACCEPTED. Fresh approval required
+for further runtime work. Historical checkboxes above are the original plan.

@@ -1,5 +1,16 @@
 # Shadow audit runtime readiness — read-only review
 
+## Phase execution — blocked at synthetic GREEN
+
+Approved72bae466 plan: owner10/10 passed; GoRed16 expected failures observed.
+GoGreen72f676 failed TestMonotonicPhaseEvidence (positive duration assertion),
+15 other groups did not report failure. Exit confirmed,no timeout,root/devtools
+module hashes unchanged. No corrective retry,build or live cache workload.
+Timing resolution is only a hypothesis; saved assertion lacks phase/value detail.
+Final source and bounded synthetic evidence archived in portable-c12-cache-phase-v1.json.
+All test slots consumed; new scoped approval needed. No independent/full acceptance,
+no actual-junction test.44/34/6/217,NOT_ACCEPTED.
+
 ## Phase-timing implementation plan — awaiting approval
 
 Designf8eb10d7 approved. Plan docs/superpowers/plans/2026-11-06-c12-cache-phase-timing.md

@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST PHASE EXECUTION: approved after72bae466; Task1 source commit7a8ef1a3.
+Owner10/10 passed with both harmless exits confirmed. GoRed03130d:16 expected
+unimplemented assertion failures,46.99s. GoGreen72f676:exit1,2.23s,
+TestMonotonicPhaseEvidence missing positive duration; other15 groups did not fail.
+No timeout,owned exit confirmed,4 module hashes unchanged. Build/Live NOT_RUN.
+All owner/Go test slots consumed; do not retry or launch remaining stages without
+fresh approval. Exact failed phase/value unavailable; clock resolution unproven.
+Portable archive portable-c12-cache-phase-v1.json contains final diagnostic source,
+licenses,synthetic fixture records and original bounded streams; no real cache data.
+Pre-implementation GoRed stub bytes were replaced; receipt retains their hashes.
+Source main.go intentionally pins this machine's worktree/cache: another machine
+requires reviewed path/prerequisite changes,not immediate execution after cloning.
+Preserve raw roots; no binaries/caches in Git.44/34/6/217,NOT_ACCEPTED.
+
 LATEST PHASE PLAN: design approved afterf8eb10d7; implementation plan
 docs/superpowers/plans/2026-11-06-c12-cache-phase-timing.md awaits approval.
 Proposed slots: owner RED/GREEN once each(10 cases,at most2 harmless GREEN children),
