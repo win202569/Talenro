@@ -1,5 +1,20 @@
 # C12 shadow source-audit implementation plan
 
+## Execution addendum — 2026-11-06 Task2 continuation
+
+After checkpoint8bed43f5 the user explicitly approved Task2 with reparse coverage
+blocked, not passed. Records phases retain that blocked result without retrying
+junction creation; other parser cases rerun in fresh Records phase roots.
+Optional typed Synthetic=false on New-C12ShadowSession supplies the specified
+test/real distinction without changing real defaults. RecordsRed8714cd expected
+missing interface; RecordsGreen9cab1f→24eaa7 exit0,21 matched groups+1 blocked.
+Total4/7 planned calls consumed plus one separately approved junction diagnosis.
+Task2 core behavior implemented; author review found final summary elapsed field
+missing, so full Task2 completion is NOT claimed. A bounded follow-up RED/GREEN
+needs approval; do not use remaining Task3/4 calls as implicit retry authority.
+No formal hooks/manifest/combined suite or live run this continuation. Historical
+plan text and its original stop/budget requirements below remain applicable.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans inline, task by task. Await user approval before implementation.
 
 **Goal:** Add default-off source audit recording without changing formal C12 verdict logic or resource ownership.

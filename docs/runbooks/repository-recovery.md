@@ -1,5 +1,29 @@
 # Recover the project on a new computer
 
+LATEST TASK2 CORE CHECKPOINT (2026-11-06): user approved Task2 continuation with
+reparse coverage explicitly blocked. RecordsRed8714cd expected missing lifecycle
+interface; sole RecordsGreen9cab1f/session68202 ended24eaa7 exit0,21 groups matched
+(7 parser+14 record groups),1 BLOCKED reparse. No junction retry. Original suite
+budget now4/7 plus1 separate diagnostic; Task3/4 not started, runner unchanged.
+New-C12ShadowSession takes optional typed Synthetic=false; fixtures pass true.
+Four lifecycle APIs now publish exclusive files and verify references/bindings.
+Self-review found final run-summary elapsed metadata absent: Task2 is not fully
+complete despite core checks passing. Next scope should add a failing field
+assertion and implementation with one bounded RED/GREEN pair before hook work;
+do not consume Task3/4 budget implicitly or relabel reparse as passed.
+
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-records-v1.json
+151 files,191 directories,154518 bytes LF JSON; SHA256
+5DDE9F074E303705EA0F358FA0D387156B44B9BB35FA8DD0CB59E1512F0EFF46.
+Per-entry GzipBase64 decodes to Length/SHA256-checked original bytes; directories
+preserve empty fixtures. Decode/source verification3d0e17 passed. Payloads include
+RecordsRed/Green claims, results, synthetic fixtures/evidence and task2 ledger.
+Sources/tests are tracked separately. Outer JSON checkout EOL may vary; validate
+decoded entries. Restore only to a fresh evidence root after path/reparse checks;
+never execute archives or reuse consumed phase roots. Original evidence preserved.
+No marker password found in archived bytes. No live workload, Docker, full suite,
+independent review or main merge;44/34/6/217 unchanged,NOT_ACCEPTED.
+
 LATEST JUNCTION DIAGNOSIS (2026-11-06): one separately approved new-root attempt,
 6a7144 exit1, PowerShell7.6.5. New-Item Junction returned Win32Exception access
 denied (NewItemCreateIOError,Microsoft.PowerShell.Commands.NewItemCommand).

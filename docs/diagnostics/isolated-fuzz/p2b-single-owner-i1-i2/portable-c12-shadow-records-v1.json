@@ -1,0 +1,1110 @@
+{
+  "Schema": 1,
+  "Encoding": "per-file gzip+base64",
+  "Overall": "NOT_ACCEPTED",
+  "CoverageBlocked": [
+    "reparse"
+  ],
+  "Task2Complete": false,
+  "Directories": [
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture001",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture001/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture001/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture002",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture002/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture002/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture003",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture003/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture003/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture004",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture004/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture004/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture005",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture005/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture005/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture006",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture006/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture006/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture007",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture007/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture007/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture008",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture008/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture008/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture009",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture009/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture009/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture010",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture010/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture010/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture011",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture011/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture011/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture012",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture012/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture012/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture013",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture013/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture013/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture014",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture014/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture014/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture015",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture015/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture015/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture016",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture016/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture016/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture017",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture017/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture017/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture018",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture018/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture018/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture019",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture019/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture019/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture020",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture020/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture020/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture021",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture021/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture021/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture022",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture022/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture022/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers/c12-shadow/e9af1e386e7c463f8ba1513b67b37ee0",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers/c12-shadow/b95238b4eb174efea56ae1724ff9e991",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow/7f8dc20af5274eb7858a7874c22f26c1",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers/c12-shadow/7f2c09627e7145028dc1c1a7ebcfa2d4",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers/c12-shadow/3d70e1912fa0464ab25930b137953f20",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers/c12-shadow/25735324a4a64e528823feeaf99a288a",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/.superpowers/c12-shadow/ab2a32ba2de34b08a429aa572fa13f62",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/.superpowers/c12-shadow/31c983dc7a7e41b0b9f41affdd5cfc57",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers/c12-shadow/bc97be359cc14d6a90cfdce18f53e5a0",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow/edcce713e35a4bd29a946c129ddbdb5b",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/.superpowers",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/.superpowers/c12-shadow",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/.superpowers/c12-shadow/e2f2ae5586e2429a8889854289eaeb71",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/testdata",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/testdata/c12",
+    ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsRed"
+  ],
+  "Files": [
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/claim.json",
+      "Length": 52,
+      "SHA256": "10E3E11D7EC2B499A9632FC417D3ACF9C58A6BC0E93845E7A35FA0296166A0D4",
+      "GzipBase64": "H4sIAAAAAAAACqvm5VJQUArISCxOVbJSUApKTc4vSil2L0pNzVPSAcs55+cVl+ampihZKZQUlabyctUCAA5lzRc0AAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture001/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture001/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture002/a.txt",
+      "Length": 7,
+      "SHA256": "D67E2E944994496C8D8EC76EED0CF9F09679448D584B532BEBF941852A37F5ED",
+      "GzipBase64": "H4sIAAAAAAAACkvOSMxLT00BAPo986MHAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture002/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture003/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture004/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture004/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 4,
+      "SHA256": "17EED55D881C0DD5FE0935A98D89DD9E52D62AED941F3FB7D17BD490E5AA3E8F",
+      "GzipBase64": "H4sIAAAAAAAACqtOSkwBAGgYEOAEAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture005/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture005/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 42,
+      "SHA256": "832F3E32A5C44A29447811FB5134E2CF01DC3952CCCB95F07485F6345BDA52EB",
+      "GzipBase64": "H4sIAAAAAAAACqtWCk7OSM1NVLIqKSpN1VHyzU9JVbJSCvZwdPEPV9JRcsvMSS1WsoqOrQUAOMmpKSoAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture006/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture006/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 50,
+      "SHA256": "C99D41E5B8F70EA9CB22F3774ABBB8828EF3FC3CD02E995195A9983FD1EAD700",
+      "GzipBase64": "H4sIAAAAAAAACqtWCk7OSM1NVLIy1EFm+uanpCpZKQV7OLr4hyvpKLll5qQWK1lFx9YCAHH6kl0yAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture007/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture007/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 50,
+      "SHA256": "E6155514D06B0A385622A89863E04A63AFE5574E0C0BAB7B4F6EEC5827CC421E",
+      "GzipBase64": "H4sIAAAAAAAACqtWCk7OSM1NVLIy1FEqRjB981NSlayUgj0cXfzDlXSU3DJzUouVrKJjawELQ+qZMgAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture008/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture008/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 49,
+      "SHA256": "9E65C6A4DADD9519D622B95C08D2520C41207F20CDB62A2381C6B1F05F777B2D",
+      "GzipBase64": "H4sIAAAAAAAACqtWCk7OSM1NVLIy1FHyzU9JVbJSCvZwdPEPV9JRcsvMSS1WsoqO1VFyrSgpSlSyMqgFAM1nw3IxAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture009/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture009/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 69,
+      "SHA256": "B1FE7CCE9C07BADF12E1BF7D3FC7EC32244C70297FCB338460162CA7CDD56391",
+      "GzipBase64": "H4sIAAAAAAAACqtWCk7OSM1NVLIy1FHyzU9JVbJSCvZwdPEPV9JRcsvMSS1WsoquVgpILMlQslJK1CupKFHSAakwMjVTsiopKk2tja0FAEsfvE1FAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture010/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture010/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 185,
+      "SHA256": "186062308C8EDE15F5A44F1B34DD7022BEA1C35F427A165111B676892AE011DF",
+      "GzipBase64": "H4sIAAAAAAAACiVNvQrCMBDehb7DcbPUuzRNf7ZL09BFFDo4iEPRQgXFwQ5C6btLmunj+1+SHQAeP48Ra8C+E3e64H4T+/s0vgesgSP3z9f4xRqugQEsEUKwE5Wb0LdSlGysLz1x41vRrFmTa3MnrVIqs0SZYckqw0UhVWM1k/eGvSLiXFx83kbPwzyFyTQ9DOn8mzE6a4Bbslv/fYE5GbkAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture011/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture011/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 185,
+      "SHA256": "8C3A6671CC2808DA1C676D55869AF314FD6FE7A88614CACCF1BD5A357D623EC2",
+      "GzipBase64": "H4sIAAAAAAAACiVNvQrCMBDeC32H42bRXJqmbbZL09BFFDo4iEPQQgXFwQ5C6btLmunj+1/yDACPn8eIBnDo2Z0uuNvE4T6N74AGKHH/fI1fNHCNDGBJEIM9y1LHvuWqJm197QW1vmNFipRwXem4k1IWVohCExeNpqriprWKhPeavBSCSnbpeRs9h3mKk84cwn7+zZicNcItz9Y/3FIry7kAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture012/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture012/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 187,
+      "SHA256": "33572AD86CE3D177EF46245D5C56949482FFD2E6337899268CC1A23C60953FA7",
+      "GzipBase64": "H4sIAAAAAAAACiVNuwqDMBTdBf8h3LngvTHGx3ZjDC6lBYcOpYO0AQstBS1dxH8vMdPhvNc0EQKOn4eHRsDQsz1d4LCLw33y7xEaQZG758sv0IhrYEKsEUKwZ1no0DdcVqSNqxxS6zpWpEih7QrLnZQyN4i5Js5rTWXJdWsUoXOanESkgm183kfP43cKk1m2+Pnn52yE6G0Bbmmy/QF/Zt+euwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture013/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture013/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 189,
+      "SHA256": "08D807DB23E99373993C9EBAD3CC2BC2D991168E00207D9C38B1A14B54F1E785",
+      "GzipBase64": "H4sIAAAAAAAACiVNuwrCMBTdC/2HkFkkN03TNttNk9BFFDo4iEPQQAWLYDMIpf8uaabDea9lQQg9fZ6BKkLHAc35Sg+7OD6mMHuqCGTuXu+wUEVuiRGyZkjBAXktU19j04LUrnUMemdRgADBjK0NWs55pRmrJGDVSWga7HotgDknwXHGoEaTn/fRi49TmvTH+Itqid/gZ5rdLcG9LLY/eCa6Rr0AAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture014/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture014/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 182,
+      "SHA256": "AD1CF78109584D7814902A6860E74A8E2ADD07A4AF2B72EC38BBB1BED5002D3E",
+      "GzipBase64": "H4sIAAAAAAAACiWNuwrCQBBF+0D+YZhSRHY2m82jm81mSCMKKSzEImgggmJhCiHk32Wz1eUe7mNJEwA8fh4j1oB9x/50wf0G+/s0vgesgaKX52v8Yg3X4ACWKCHYsc5t6DsuSrJOSlHUSMuGDBnl29xzq7XOnFKZJc4qS0XBVeMMKRFLopWinH183kbPwzyFyd1h/s0Y8RrklibrH5axf7+2AAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture015/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture015/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 186,
+      "SHA256": "885B6FE050987C8A7B905A7D1477D1E7B25672E433087A35A9DA51F176079131",
+      "GzipBase64": "H4sIAAAAAAAACiVNuwqDMBTdBf/hkrlobozxsd0YLy6lBYcOxUFawUJLhzoI4r+XmOlw3lscAYjz9zmJGkTfkbvcxOkQ+8c8fUZRAwbOr/f0EzXcPQPYAvhgRyo3vm+pKNFYLlliwy1p1Kila3NHrVIqs1JmBimrDBYFVY3VKJkNspISc3Lh+Ri9jsvsJ9c0ScdkWRcRrN3DEEf7HydfJAW6AAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture016/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture016/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 185,
+      "SHA256": "F56EB2985BDBD317F3020EE8B0A500D04F27CB979D1A7500EA3AC88A6D849465",
+      "GzipBase64": "H4sIAAAAAAAACiVNuwqDMBTdBf8h3LnUe2OMj+3GGFxKCw4dSofQChZaOtRBEP+9xEyH817TRAg4fZ8jNAKGnu35CoddHB7T+PHQCIrcvd7jDxpxC0yINUII9iwLHfqGy4q0cZVDal3HihQptF1huZNS5gYx18R5raksuW6NInROk5OIVLCNz/voxc9TmFyyzB/nZYbobAHuabL9AXG8wGu5AAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture017/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture017/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 183,
+      "SHA256": "5AE93A8CCB4FDA24D01D0B0816FF7CE0693EF9067F05D19E43B5751353F1DC08",
+      "GzipBase64": "H4sIAAAAAAAACiWNuwqDQBBFe8F/GKYOYWZd10c367rYhAQsUoQUYgQDCSliERD/PaxbXe7hPtY0AcDT5zFhDdh34s5XPOywH+fpPWANHL1/vqYv1nALDmCNEoKdqNyEvpWiZGN96Ykb34pmzZpcmztplVKZJcoMS1YZLgqpGquZvDfsFRHn4uLzPnoZljlMDsfltwBGvgW5p8n2BxxRlBS3AAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture018/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture018/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 305,
+      "SHA256": "7DE0A7C0F5A4E087F96C09D97A6614C429FDCA2C9D6E7FE7C1D43F7A7A6D6088",
+      "GzipBase64": "H4sIAAAAAAAACr2NvQrCQBCE+0De4bhaZPdyufx0e7ksaUQhhYVYHBqIoFiYQgh5d7mchU9gNczM7nxzmgghd8/rIGsh+47c/ig3a9hfxuHhZS0wer7dh5esxSk4IeYo4bAjlZvwb6ko0VguGbDhljRq1ODa3FGrlMosQGaQsspgUVDVWI3AbJAVAObkInkdPfhpDJN+O70nGePlW/8JTb/oIOc0WT4UhDN3MQEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture019/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture019/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 16205,
+      "SHA256": "3A0AAAA50D297E27FCBE284303BB2CC233598A4184CBF17DBA7C92A6467BA12A",
+      "GzipBase64": "H4sIAAAAAAAACsXbvUrDUBjG8V3oPYQzF3nf93x3O2kauohCBwdxKFqpoDjYQSi9d0kzeQP+p5DQ5tl+pM3znBc3Xefuvl4PbtW53bYN949ueb24ezkePvdu1el8Pr5/HL7dqnuazrruPB+mD26bxTR9v2+5aOrHMoqux00LGjTIsIlD25iZ70V80uZr0pxbXfdBZRyTjiaisQ1z8vWmD/vTcbrlm96efk5uvn5Z/m+2gdkezA5gdgSzE5idwewCZlcwW4UMJ2VTkjYlbVMSNyV1U5I3JX1TEjglhTNSOEOf3UjhjBTOSOGMFM5I4YwUzkjhjBTOk8J5UjiP/jwlhfOkcJ4UzpPCeVI4TwrnSeECKVwghQukcAH9B44ULpDCBVK4QAoXSOECKVwkhYukcJEULpLCRfQlAylcJIWLpHCRFC6SwiVSuEQKl0jhEilcIoVL6HtUUrhECpdI4RIpXCaFy6RwmRQuk8JlUrhMCpfRqggpXCaFy6RwhRSukMIVUrhCCldI4QopXCGFK2gbjhSukMJVUrhKCldJ4SopXCWFq6RwlRSuksJVtPDLNn7Ryq+gnV9BS7+Ctn4Frf0K2vsVtPgraPNX0OqvoNbB8wbUOnbgwC4c2IkDu3FgRw7syoGdOaA7B0WHDoouHRSdOii6dVB07KDo2kHRuYOiewdFBw/6d/EwHZ4XN5dfR+Yqx00/AAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture020/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture020/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 1048577,
+      "SHA256": "9D78DE4E5B12FC166BED811CD230621EA1E1E353553FE31B92A73BFBF45D68EE",
+      "GzipBase64": "H4sIAAAAAAAACu3BMQEAAADCoCrrn9IQvkABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJwGDPovoQEAEAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture021/a.txt",
+      "Length": 33554433,
+      "SHA256": "BDF7FBB54387C24608FD757A1B31C32CABCD7B6BEE8FF3345C897139FFFC072A",
+      "GzipBase64": "H4sIAAAAAAAACuzBAQEAAACAkP6v7ggKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA2YMDAQAAAAAg/9dGUFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWEPDggAAAAAhPR/dUcQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzB4cCAAAAAAA+b82gqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgp7cEAAAAAAIKT/qzuCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYPbgQAAAAAAAyP+1EVRVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVXYgwMCAAAAACH9X90RBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALcHBwQAAAAAQv6/bkgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF4Clh/t1AEAAAI="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture021/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture022/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture022/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c/g0001.after.json",
+      "Length": 812,
+      "SHA256": "7A604E997CDA41D91A8F67CC5EB828456A8F9571E797179654B2E159D9C7BE6B",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfH7k5sQ2orIpYpB6aHszGWaKmDkocCbTa/14lC1V76nU887wja06wP7zEXwFKXMBubCOUsL819us3KGD/nvJLzP0ByjwtsQCztH2+a6GEZ00kIkII9NyxiKRiBxkCbmP7zDoqD1DAlz6tztDlOEEBVZ/aPh2hhFPzCWqgbP6LaqBo4D6GbnMfEUJ4k/60az7qNXDXxpT7/N5AeWrgZhqX1zu7xW4+Qg/T2PVDvBwOc7yI4fAzHC/i1XWfcpxSGK5znHOfuilspscl7Zeu69822/TZog6p7duQ49MUV0JahuG8thuX6RAfxzHvbw3hYks5i4ymwjFnuBGyUtRJRrUhpmaUESEJZZZSQpATWmjLsCWq0riyiDEl7XZxF1LfxfkfrrbCY60crpRBXNVSCEEUooTLitWESFzR2llmkcIMe+t95aW0NeLcc8ou3LFdhvgXlRrhNBEGU2s51whhV1HJpWDSsppS7bz1htdK17R2uhZeCYeZRkoq6VbqGQp4CO/DGFooT7DPIa8D25mn+tZZKOAxhnlMl18rwPdDnKH8foKHkF/W7Vzlt7wypjjHlD9neB/TcX2nxbpVwgWUUBmpsKi88gjX3hmGGWbIOm6NI4TQCiEqsKFaYCmNriuGkfcCe4IQ5sbC+UcBbgivc2x3/TD0czyMqZ2hJPxKEq3O599KW5wILAMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c/g0001.before.json",
+      "Length": 813,
+      "SHA256": "7013EAB7CDCD7874EEE12E137F6A8F2A43E23721409E2C3F471793E15788EBCC",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfjnNzYhtQWRWxSD00PZjEWaymDkocCbTa/15tFqr21Ot45nlH1hxh372EXx4qXMBu6gNUsL/V5us3KGD/nvJLyLGDKs9rKECvfcx3PVTwrIhERAiBngcWkCxZJ73Hfeif2UBlBwV8iWlzhmGaAxRQx9THdIAKju0nqYWq/S+rhaKF++CHzX1ACOFN+lOv/ejXwl0fUo75vYXq2MLNPK2vd2aL3XyEHuZpiGO4HPZLuIi+++kPF/HqOqYc5uTH6xyWHNMw+830uKb9OgzxbbPNny0an/rY+xye5nAmpHUcT+d20zp34XGa8v5WEy62lDVIKyoss5prIeuSWsmo0kQ3jDIiJKHMUEoIskIJZRg2pKwVrg1irJRmu7jzKQ5h+YerjHBYlRbXpUa8bKQQgpSIEi5r1hAicU0ba5hBJWbYGedqJ6VpEOeOU3bhTv06hr+oVAuriNCYGsO5QgjbmkouBZOGNZQq64zTvClVQxurGuFKYTFTqJSltGfqCQp48O/j5HuojrDPPp8XttNPza01UMBj8MuULr9WgItjWKD6foQHn1+gAn+V3/KZMYclpPy5w/uQDud3WpzHSriACmotSyxqVzqEG2c1wwwzZCw32hJCaI0QFVhTJbCUWjU1w8g5gR1BCHNt4PSjADv61yX0uziOcQndlPoFKiKuOJfsdPoNFMTRNy0DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "C8C99EB4DCBEC304A4271E4DD30BDE060CABEE24E1ED99AC3172539D7B90A4E7",
+      "GzipBase64": "H4sIAAAAAAAACoVTyW7bMBT8l3cWUu6LbhRJNUbjJoiD9qILY1GOWpUytKANAv97QTspuhx6nTcbwOEL7PZP8VuAEhewHdsIJeyujbv9DAXsntPyFJd+D+UyrbEAs7b9smmhhEdNJCJCCPTYsYikYnsZAm5j+8g6KvdQwIc+ZeZhGtcjFFD1qe3TAUp4ad6MGiib/1o1UDRwE0N3Zh8QQvgM/WrXvNZrYNPGtPTLcwPlSwPvc/LGnWXvX0V309j1Q7wEhzlewLD/Gg4X8Opdn5Y4pTC8W+K89Kmbwpl0v6bd2nX9jzNtemthQ2r7NizxYYrZIa3DcMrtxnXax/txXHbXhnBxVnmHjKbCM2+4EbJS1EtGtSHGMsqIkIQyRykhyAsttGPYEVVpXDnEmJLunLgNqe/i/IevdqLGWnlcKYO4slIIQRSihMuKWUIkrqj1jjmkMMO1q+uqltJZxHnNKbv4ju06xN9cqRFeE2EwdY5zjRD2FZVcCiYds5RqX7vacKu0pdZrK2olPGYaKamkz64nKOAuPA9jaKF8gd0Sljywu/vbT5vd5vajuYECtuH4dtiaB3vtXV5L7MYpZtFdWJ7yjPK7Xz2e4asv85iggJuYDvmoMC3yagkXUIJEmHpTSeusk0oy7z0mHlNZC6NqYhj1hEqCGdKeWFoziaWmHnOplK+shVMBplvi9E96yOi/4eT3cCMQ81pL6wzDTmOjaiGt5b5SRDGeK2gusZc6xwrOKuIx105bWXlR5fCHOC916IfYQtmFYY4F2CGGtB7/Qm+/pzjNT/3Rjqnrp2/5dPmofgjHObbbfhj6Oe7H1M5QEi6uFMHidPoJGp9D9vYDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c/run.json",
+      "Length": 406,
+      "SHA256": "5A93347C20C4EBFF65433AE2473B4C529182E9FCE725C7AC471DF12AABFE7C29",
+      "GzipBase64": "H4sIAAAAAAAACiWQQWvDMBSD/8s7m2LHjh375tgv62Clox3sMHZwE7fNSJOSOGOj9L+PdFdJiE+6wb4+x0sAwwhshiaCgf3a+u07ENj/9ukcU1uDSeMcCdi5adNzAwYOOlM0k1LSw1FEqgpRqxBYE5uDOHJVw6Nt7uJ+bbNcggFuJepMWsa9z3NNKcOSq1xJobxwnGusfGVzV2jHHWonq0IiE5oWqlDIxcKTQloAN/bNrdEDgV0M09CD6eeuI/A0DvN1AvNxg9eQzmDgRCllq9Oir76WJIGX2J8Wj1EmyLL1H88VTmsshXclOk6FFZliKLzntPRIJXW2RMwEMvRaW8eZynKuvSo1tQIV3D8JVMN4CR3+tMk9rqQEtnOKo+ti6OdrFdouNmCOoZsiAey/23HoL7FPuzilYVy85ej7Hy4BzyyWAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/invocation/.superpowers/c12-shadow/b927026660bf4e0784c7aa1dedb4f37c/session.json",
+      "Length": 172,
+      "SHA256": "2661FCD405463DAD109BA55F955EC78A1F953C8E1660CEB135D191BA81B77038",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwee9wIbAk0djAODcwuYNvGRGDoY47+beD7gfCCXtd1ncHyA07M2cJAnH88XGCC/H31tfSvg+mtvA/i9bv1YwcFiBTGBiGy5qsbIqELzzGuri7pKKvDf9lvLkxcawYH0mKxAz2WMWlvGeDpI0oSKogpS2jTG0etgbJAh2YCjwcSVZYYMJang+wM7vge0rAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture023/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0/g0001.after.json",
+      "Length": 812,
+      "SHA256": "D131BE2B18487D51D0F4F4388F2B8155FC3DAC4C40697E68FE193CF19FE65708",
+      "GzipBase64": "H4sIAAAAAAAACoWSTW+cMBiE/8t7Rom/jbkZfyRRs2qUjdRD6cEFs0GlJgIjJVrtf68gSdVbr+OZx6NXc4Zj+xx/B6hwAYepi1DB8Vbbr9+ggONbys8xDy1UeV5jAXrthnzXQQVUBSV6RJloFesECQy3HZdBMRbarkdQwJchbc7Q5zhDAfWQuiGdoIJz8wlqoGr+i2qgaOA+hn53nxBCeJf+tms+6jVw18WUh/zWQHVu4Gae1pc7u8duPkIP89QPY9y1n2GJ72Jof4XTu3h1PaQc5xTG6xyXPKR+DrvpcU3Hte+H1902f7YwIXVDF3J8muNGSOs4XrZ20zq38XGa8vFWEy72FLHcWW2MREw7ZJBEWFONEXGeeOE1rWtfktphJQiTSgtkZY0ZKQ2yFDO7/3gIaejj8i/XKSs8VqXDdakRL40UQpASUcJlzQwhEtfUOMssKjHD3npfeymtQZx7Ttk7d+rWMf5DpVo4RYTG1FrOFULY1VRyKZi0zFCqnLdec1MqQ41TRvhSOMwUKmUp3Ua9QAEP4W2cQgfVGY455G1gB/1kbp2FAh5jWKb0frUC/DDGBarvZ3gI+XnbzlV+zRtjjktM+XOG9zGdtndabFslXEAFtZYlFrUvPcLGO80wwwxZx612hBBaI0QF1lQJLKVWpmYYeS+wJwhhri1cfhTgxvCyxO4wjOOwxHZK3QIVEVeSE3K5/AFxdLpSLAMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0/g0001.before.json",
+      "Length": 811,
+      "SHA256": "4D7DD42D12805C066F711C1A702BD522A7BE62A175F2CC573356B6F40C2A2818",
+      "GzipBase64": "H4sIAAAAAAAACoWSS0/cMBzEv8v/HIHfj9wSP2BVUNEuUg9NDyZxlqipgxKvBFrtd68SoOLWgy/jmZ9H1pzh0D7HPwFKXMD91EUo4XBb2e8/oIDDW8rPMQ8tlHk+xQKqUzfkXQclUB206BFlotWsEyQw3HZcBs1YaLseQQHfhrQ6n2I/zREKqIfUDekIJZybT1IDZfNfVgNFA3cx9Jv7iBDCm/SvXvPRr4FdF1Me8lsD5bmBm3k6vezsFrv5CD3MUz+McdOewhLfxdD+Dsd38ep6SDnOKYzXOS55SP0cNtP+lA6nvh9eN9v82cKE1A1dyPFxjishncbxsrabTnMb99OUD7cV4WJLEcudrYyRiFUOGSQRrmiFEXGeeOErWtdekdphLQiTuhLIyhozogyyFDO7vXgf0tDH5SvXaSs81srhWlWIKyOFEEQhSrismSFE4poaZ5lFCjPsrfe1l9IaxLnnlL1zp+40xi9UWgmniagwtZZzjRB2NZVcCiYtM5Rq562vuFHaUOO0EV4Jh5lGSirpVuoFCngIb+MUOijPcMghrwuz+51/hAL2MSxTev+zAvwwxgXKn2d4CPkZSghX+TWvhDkuMeXPFd7FdFzvZbFOlXCxEoV0xGnG9HqEUVY5I4VzFhmvPdJCasaU5YrVnJLa1V4zrDipqPTcWbj8KsCN4WWJ3f0wjsMS2yl1C5REXyHJ1eXyF8XGsFsrAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0/g0001.group.json",
+      "Length": 1012,
+      "SHA256": "5E3D18BB0113921F0FB6A4A2A3E868AA3C2F160015773808DF30A46AEFD7CD58",
+      "GzipBase64": "H4sIAAAAAAAACoVTSW/cNhj9L99ZcLgvulFckkHs2vAY7UUXZkSN2SjUQAtaw5j/XkiOC6M59Pq+twF8fIXj6Tn9iFDjCu7GLkENxy/G3f8BFRxfyvKclnyCepnWVIFZu7wcOqiB6qhFjygTJ806QSLDp47LqBmLp65HUMHXXDbmeRrXC1TQ5NLlcoYaXtt3oxbq9n+tWqhauE2x39lnhBDeoX/btT/rtXDoUlny8tJC/drC5y354HbZ55+ih2ns85B27Fuc0xsYT9/j+Q28+ZTLkqYSh09Lmpdc+inupMe1HNe+z3/vtOm9hY2ly11c0tOUNoeyDsN1azeu0yk9juNy/GIIF7uKOO6dsVYiZjyySCJsqMGI+ECCCIY2TVCk8VgLwqQ2AjnZYEaURY5i5vbEu1hyn+aPvl47EbBWHjfKIK6sFEIQhSjhsmGWEIkbar1jDinMcHAhNEFKZxHngVP25jt265A+uFIjvCbCYOoc5xoh7BsquRRMOmYp1T64YLhV2lLrtRVBCY+ZRkoq6TfXK1TwEF+GMXZQv8Jxics2sIfH+98Px8P9b+YWKriLl/eDezyEp20rqR+ntEke4vK8jWh79ZtvO3zz5zwWqOA2lfN2VBhX22YJF1ADc9I5RhwmCnGLhAgSY4uNRKRxnBAjGy+IwZIHYi2XlHLRiMCQJYYorOBagemXNP2SHjf013DyIdxhihtPGqyYko5jhwILjCoVSKMw58FSZyyzDAktvVDBY01twDp4wSXaw5/SvISYh9RB3cdhThXYIcWyXv6D3v9V0jQ/54sdS5+nH9vp7Zv6IV7m1N3lYchzOo2lm6EmRN4QRdT1+g+V7NTm9AMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0/run.json",
+      "Length": 404,
+      "SHA256": "AEF3492B5E4670EB645E6347346F4904D3EE585D16CBE5F4F7D12EB0E5FACB14",
+      "GzipBase64": "H4sIAAAAAAAACiWQyWrDMBRF/+WtRZCs2TtZQxNoSUkKXZQuhK0kLo4dHLm0hPx7Ubq9w+O8e4N9e0rnCDVB8DJ1CWrYr43bvgOC/e+YTyn3LdR5XhICs3R93nRQA9VRiwOmTLSadaKKjLQdl1EzFtvugOFxbRnSfm0qLkrDCK8rYQh1jnONMfENlVwKJh2zlGofXDDcKm2p9dqKoIQnTGMllfSUFZ4ccwF0u014AwS7FK/TCPW4DAOCp3laLleoP27wGvMJajhijMnqWPTVV0kieE7jsXgEkwqVT//huKeOqKbBhFBdkYBDIwwzlaFeCWUMtVUgAmPCpaQKKxcoNkwYH5y0jiu4fyII03yOg//ps30MiRFsl5xmO6Q4LpcQ+yF1UB/icE0I/Pjdz9N4TmPepWue5uKVme9/bb+Sp5QBAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/invocation/.superpowers/c12-shadow/39a96f0346c94d62a41cd57a944acdf0/session.json",
+      "Length": 172,
+      "SHA256": "C8C3A77D092E8014745642DB383CCE704836F43FF28CAD875DF84D1B1B6EBA11",
+      "GzipBase64": "H4sIAAAAAAAACh3MvQ7CIBAA4He5uQOU4+C6IdDUwTh0cCZA0yb+JIYOxvjuRh/g+94w57XeEgyyg9OjVBhgnlw4X6CD+XVva21bhqE999qB28vWjgUGUJyYFqGQMmOhPqHMRZvEiCmXRcB/2691nlyv6SccRe7JSRWC1iyEjAdltCE0Ab1SHMcwOu0te+UjexotRYksrLEmKoTPF2q7yxysAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture024/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers/c12-shadow/e9af1e386e7c463f8ba1513b67b37ee0/g0001.before.json",
+      "Length": 813,
+      "SHA256": "F367B53EFFA86181B0A52C22EBBBD9F8B3F2244C961BD55405C9CA3E25D0FA42",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsCOP5Ob4w9AZVXEIvXQ9ODdOIvV1EGJI4FW+9+rBKi49TqeeTx6NWfYH5/DHw81LmA3dgFq2N8q8/0HFLB/S/k55HiEOk9LKEAtXcx3HdQQKt/jQCQP4kg56eXBY4bJgYsDESEgKOBbTKvzEPpxClBAE1MX0wlqOLefpBbq9r+sFooW7oPvN/cJIYQ36V+99qNfC3ddSDnmtxbqcws307i83JktdvMRepjGPg5h0w5+Du+iP/72p3fx6jqmHKbkh+sc5hxTP/nN9Lik/dL38XWzTZ8ttE9d7HwOT1NYCWkZhsvablymY3gcx7y/VSXjWwpbhAVmSHDtnJFOkUZJy0tmieSyMYJUnJW2VFg4yhiyVFvKleASCWkI337c+RT7MH/l2spwhytpcSMVYlILznkpESmZaKguS4Eboq2hBklMsTPONU4IoxFjjhH6zh27ZQhfqERxW5VcYWIMYxVC2DZEMMGpMFQTUllnnGJaVppoW2nuJLeYVkgKKexKvUABD/5tGH0H9Rn22ed1YTv1pG+tgQIeg5/H9H61Alwcwgz1zzM8+PwMNfir/JpXxhTmkPLnDu9DOq3vpFjHWjIONTRKSMwbJx3C2llFMcUUGcuMsmVZkgYhwrEiFcdCqEo3FCPnOHYlQpgpA5dfBdjBv8yh28VhiHM4jqmboa74FRYUXy5/AXDSAjktAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers/c12-shadow/e9af1e386e7c463f8ba1513b67b37ee0/run.json",
+      "Length": 298,
+      "SHA256": "E9EF2AC1F56064D76164FF00483073D83C332FF9C7502F0F813AF71ABF6F83CE",
+      "GzipBase64": "H4sIAAAAAAAACh2PzWqEMBhF3+VbZ2Emmr9dmsSO0BnLOFBK6SLqJyP4M2gsLaXvXpztPXA55xeq5oZjAE0JnOYWQUN1NK58AwLVzxRvGPsGdFw2JGC2to9FCxpQhY4ikxxFk3LWyTrQjLKai5oJxAQeb9uA1dEcMg4amOFeHbihzLksU0lC/RMTmeCpcKllTPnc5SazUllmvbI8l9zTVCVSSOFZuvvEEHfB4mzL0+uLv3ogcMGwztO+On++Ftd3IPC8zNt9Bf3xSSCflzEM/ruP9pGXECi3iIsdMEzbPQ/9gC3oLgwrEvDTV7/M04hTvOAa52Vne/zfP1zjohcqAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/invocation/.superpowers/c12-shadow/e9af1e386e7c463f8ba1513b67b37ee0/session.json",
+      "Length": 172,
+      "SHA256": "FFF62307B7C22E2DA038F25CFEA11EE888D773317BDB6672F3AA23CBBBA2EC3E",
+      "GzipBase64": "H4sIAAAAAAAACh3MOw7CMAwA0Lt47tDgxE6yhSRVGRBDBuZ+XLUSHwmlA0LcHYl3gPeBMq1yH8CrBs7PWcBD6UO6XKGB8n7UVeo2ga+vXRoI+7zV0wwexA2LErQkPGnCxY6DMgpH4hFZpIX/tt+k9OFgCDxgoOwOFBSmZIxrW5WPyIZJc9IR0eUudcFE6yLG7CJ1lrLSrrVsOaOG7w//GDC3rAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture025/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers/c12-shadow/b95238b4eb174efea56ae1724ff9e991/g0001.before.json",
+      "Length": 812,
+      "SHA256": "63C85F2B572FE56AE90A7C3AAEDA2C99B37F739CCAF6D8FF240C810C6183B418",
+      "GzipBase64": "H4sIAAAAAAAACoWSS0/cQBCE/0ufLZjxvH0bzwNQWAWxSDnEOQzr8WLFGSN7LIFW+98jeyHilmt11delVp9gf3iJfwJUuIDd2EaoYH+r7fcfUMD+PeWXmPsDVHlaYgF6aft810IFz4qVRD7T+IwFjV0MjIeIRUm7TkWlMBTwrU+bM3bjFKGAuk9tn45Qwan5JDVQNf9lNVA0cB9Dt7mPCKGL9K9e89Gvgbs2ptzn9waqUwM307i83tktdvMRepjGrh/iZXGY40UMh9/heBGvrvuU45TCcJ3jnPvUTWEzPS5pv3Rd/7bZps8WJqS2b0OOT1NcCWkZhvPablymQ3wcx7y/1SXjW8ogRjGvsdfSMo21pRgZYYlUmDPhtMcelcQibDwXikhTM+m5cL6UzDlKto27kPouzl+5TlnusZIO11IjJo3gnJcSkZKJmpqyFLgmxllqkcQUe+t97YWwBjHmGaEX7tguQ/xCJZo7VXKNibWMKYSwq4lgglNhqSFEOW+9ZkYqQ4xThnvJHaYKSSGFW6lnKOAhvA9jaKE6wT6HvH7YTj+ZW2ehgMcY5jFdrlaA74c4Q/XzBA8hv0AF4Sq/5ZUxxTmm/PmH9zEd1zkp1mctGYcKai0k5rWXfr2e0xRTTJF1zGpXliWpESIca6I4FkIrU1OMvOfYlwhhpi2cfxXghvA6x3bXD0M/x8OY2hkqTPGVxOfzXznbhiwsAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers/c12-shadow/b95238b4eb174efea56ae1724ff9e991/run.json",
+      "Length": 298,
+      "SHA256": "8CA4EDEEEE5728B43AEBC805514F2CDE6A2DCD181EE8F6E2B9D8CCFD21136187",
+      "GzipBase64": "H4sIAAAAAAAACoWP0WqDMBiF3+W/zoU2Gk3usiS2QltHFcYYuwj1HxU0KTEZG2PvPuwL7FyeA4fv+4H+esPFgsgJnPyIIKA/SN29AIH+28UbxukKIoaEBGQap9iOICD7J/B4SzP2B7krGQigkhm+YzKnWpclz7LcPNGqrFhR6UJRyk2jG1mqmiuqDFesqZnJC57VVV0ZWmw80cYNsD2r7vR8NIMBAhe0q3dbq815aIdXILAPPt1XEG/vBBofFjubrymqh15GoEsRg5rRunRv7DTjCOLDzisSMO5zCt4t6OIF1+jDtm3yv392PcQ8KgEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/invocation/.superpowers/c12-shadow/b95238b4eb174efea56ae1724ff9e991/session.json",
+      "Length": 172,
+      "SHA256": "D46F0F27B1B735B523B24B931B5483B47A0BE60C4A9223362257F1119948E6C6",
+      "GzipBase64": "H4sIAAAAAAAACh3MuwrCMBQA0H+5c4cmN6+bLSYpdRCHDM593NJCVZB0EPHfBc8HnA+UaeX7AF40cHnODB5KH9L1Bg2U96OuXLcJfH0d3EA45q2eZ/AwkpboRsWjsIoXHrQZWFiploWYSMB/O3YufZDagAcMJpM0QWBKWlPbinxCq61RNqmISLlLXdDRUcSYKZrOmSwUtc46m1HB9wdzOunHrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture026/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow/7f8dc20af5274eb7858a7874c22f26c1/g0001.before.json",
+      "Length": 813,
+      "SHA256": "8961D16DB6D775957B08940EEF18E8DF5F4B873A8A7E0897B4B45890B9C4CAF4",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfdnJz/AGorIpYpB6aHkziLFFTByWOBFrtf6+yCxW3Xsczj0ev5gj79iX+CVDhAnZTF6GC/a22339AAfv3lF9iHlqo8rzGAvTaDfmugwpkr7qWoNBzIll8loqrIJVkLSE9ES2GAr4NaXM+x36aIxRQD6kb0gEqODafpAaq5r+sBooG7mPoz+4DQugi/avXfPRr4K6LKQ/5vYHq2MDNPK2vd/Ycu/kIPcxTP4zxrD2HJV7E0P4Oh4t4dT2kHOcUxusclzykfg5n0+Oa9mvfD29n2/zZwoTUDV3I8WmOGyGt43ja2k3r3MbHacr7W024OKdKpw22jltUI2SVrrUkzmBjNDY1Ml57pwwrOdFOWkZl6Y3XtDaMoNIjzs4/7kIa+rh85brSCo9L5XCtNOLKSCEEUYgSLmtmCJG4psZZZpHCDHvrfe2ltAZx7jn94E7dOsYvVKqFK4nQmFrLeYkQdjWVXAomLTOUls5br7lRpaHGlUZ4JRxmJVJSSbdRT1DAQ3gfp9BBdYR9Dnlb2E4/mVtnoYDHGJYpXa5WgB/GuED18wgPIb9ABeEqv+WNMcclpvy5w/uYDts7LbaxEi6gglpLhUXtlUfYeKcZZpih7dbaEUJojRAVWNNSYCl1aWqGkfcCe4IQ5trC6VcBbgyvS+x2wzgOS2yn1C1QKXLFpWSn01+4vBvTLQMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow/7f8dc20af5274eb7858a7874c22f26c1/g0002.before.json",
+      "Length": 794,
+      "SHA256": "7EAE5ED1F587974A02AB50C0461631D5BFF58C92A2B0FB973FD593F4CB81370E",
+      "GzipBase64": "H4sIAAAAAAAACoWSS2vcQBCE/0ufRZj3Q7fRPGITLzFeQw5RDmNptCuiSEYagc2y/z1ItoNvuVZXfd00dYFjc05/IpS4gMPUJijheGPc9x9QwPF1zOeU+wbKPK+pALO2fb5toQTZqbYhKHacSJaepOIqSiVZQ0hHRIOhgG/9uDmfUjfNCQqo+rHtxxOUcKk/SDWU9X9ZNRQ13KXY7e4TQojs0r/z6vf7arht05j7/FpDeanh6zytz7duj035nOY9dj9PXT+kXX2KS3oTY/M7nt7E5115WMfj2nX9y67NbyttHNu+jTk9zmkzj+swXLdTpnVu0sM05eONIVzsGe2Nxc5zhyqEnDKVkcRbbK3BtkI2mOCVZZoT46VjVOpgg6GVZQTpgDjbNx7i2Hdp+cz12omAtfK4UgZxZaUQgihECZcVs4RIXFHrHXNIYYaDC6EKUjqLOA+cvnOndh3SJyo1wmsiDKbOca4Rwr6ikkvBpGOWUu2DC4ZbpS21XlsRlPCYaaSkkn6jXqGA+/g6TLGF8gLHHPNWp4N5tDfeQQEPKS7T+Pa1AkI/pAXKnxe4j/kMJcQv+SVvjDktacwfpbtL42mb02JrJuECSqiMVFhUQQWEbfCGYYYZ2n5tPCGEVghRgQ3VAktptK0YRiEIHAhCmBsH118F+CE+L6k99MPQL6mZxnaBUusvRCB5vf4FuOBFdRoDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow/7f8dc20af5274eb7858a7874c22f26c1/run.json",
+      "Length": 298,
+      "SHA256": "A46C5FEB7A24F311C9FF988000DE6638327119185E3082BC9E8A058A7E152222",
+      "GzipBase64": "H4sIAAAAAAAACh2PzWqEMBRG3+Wus9DE/JidjbEjdMYyDpShdJHqlRE0GTSWltJ3L872O/Bxzi+03Q1nBzolcAw9gob2UJTNGxBof3y8YRw70HHZkECx9WOse9AgB9V3NHEDpzLDT6m4clLJrKN0oKJL4fG2TdgeCsoFaGCFsDkVRcrKkvM8SVL7xCSXIpNlZhjLbVVWBTcqN8zY3IhKCZtmeaKkkpZlu090cResT6Y5vr7YiwUCZ3Rr8Pta2tOlvlyBwPMStvsK+v2DQBWW2U32e4zmkZcQaLaIi5nQ+e1euXHCHvTgphUJWP81LsHP6OMZ1xiWne3xf/9fnacsKgEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/invocation/.superpowers/c12-shadow/7f8dc20af5274eb7858a7874c22f26c1/session.json",
+      "Length": 172,
+      "SHA256": "5B7FB1690C642B4D2FA2B741CFBDAAD7E8879F0A3342883A92BC5E62725CBCBD",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwfe98KGQFMH48DgXIGmTXwkhg7G+O8mng84H8hlbfcZHB/g9KwNHOTJx/MFBsjvR19b3wq4/trbAH6vWz9WcIAL1SLYvGiBql2RNM1IqIoQizCFw3/bby1PXmgDDqQ3yQrjuYxRa8sYTweJGo3CqIKUNo1x9DqQDTIkG8xIJnFlGSFhkgq+P3y5GQ+sAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture027/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5/g0001.after.json",
+      "Length": 813,
+      "SHA256": "F969C60217B08BFAAE1D2D3070B734ADA239E42E28A16218074479E7EDF799DC",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsCOv3Nz/AGorIpYpB6aHszGWaKmDkocCbTa/14lCxW3Xsczj8fWnGB/eIl/AlS4gN3YRqhgf6vt9x9QwP495ZeY+wNUeVpiAXpp+3zXQgWtCog+E3GgmFBxCKrsOsGUoDJQzAKDAr71aXWGLscJCqj71PbpCBWcmk9QA1XzX1QDRQP3MXSb+4gQwpv0r13zUa+Buzam3Of3BqpTAzfTuLze2S128xF6mMauH+KmPYc5XsRw+B2OF/Hquk85TikM1znOuU/dFDbT45L2S9f1b5tt+mxhQmr7NuT4NMWVkJZhOK/txmU6xMdxzPtbXTK+pQQVnFmJSsMoI0p7zYypuXXOMIywoUZaUTpMqRJGam6VtgqVSjjhBVdqu3EXUt/F+SvXKcs9VtLhWmrEpBGc81IiUjJRU1OWAtfEOEstkphib72vvRDWIMY8I/TCHdtliF+oRHOnSq4xsZYxhRB2NRFMcCosNYQo5+36AqkMMU4Z7iV3mCokhRRupZ6hgIfwPoyhheoE+xzyOrCdfjK3zkIBjzHMY7r8WgG+H+IM1c8TPIT8sm7nKr/llTHFOab8OcP7mI7rOSnWrZaMQwW1FhLz2kuPsPFOU0wxRdYxq11ZlqRGiHCsieJYCK1MTTHynmNfIoSZtnD+VYAbwusc210/DP0cD2NqZ6gwklecKXY+/wUBV9rlLQMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5/g0001.before.json",
+      "Length": 815,
+      "SHA256": "C170BE06152893A0D7239F1D7FDC523C9090ED33DD61B1A88BE46D857463494C",
+      "GzipBase64": "H4sIAAAAAAAACoWSTWvcMBiE/0p5zyaRrG/fZH0koVkasoEe6h6UtbwxdeVgy9Cw7H8v9iYlt15HM49GYk6wP7zE3wEqXMBubCNUsL/V9tt3KGD/lvJLzP0BqjwtsQC9tH2+a6GCVgVEn4k4UEyoOARVdp1gSlAZKGaBQQFf+7Q6n2M3ThEKqPvU9ukIFZyaD1IDVfNfVgNFA/cxdJv7iBDCm/SvXvPer4G7Nqbc57cGqlMDN9O4vN7ZLXbzHnqYxq4f4qY9hzlexHD4FY4X8eq6TzlOKQzXOc65T90UNtPjkvZL1/V/Ntv00cKE1PZtyPFpiishLcNwXtuNy3SIj+OY97e6ZHxLCSo4sxKVhlFGlPaaGVNz65xhGGFDjbSidJhSJYzU3CptFSqVcMILrtR24y6kvovzZ65TlnuspMO11IhJIzjnpUSkZKKmpiwFrolxllokMcXeel97IaxBjHlG6IU7tssQP1GJ5k6VXGNiLWMKIexqIpjgVFhqCFHO2/UFUhlinDLcS+4wVUgKKdxKPUMBD+FtGEML1Qn2OeR1YTv9ZG6dhQIeY5jHdPm1Anw/xBmqHyd4CPkFKghX+U9eGVOcY8ofO7yP6biek2Ida8k4VFBrITGvvfQIG+80xRRTZB2z2pVlSWqECMeaKI6F0MrUFCPvOfYlQphpC+efBbghvM6x3fXD0M/xMKZ2hgpjecUQpufzl787IOvrLwMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "5E9ACBA276A4EE68F97955A341D1B3CC31C7E155E35D7FB864B53ECFDE60139E",
+      "GzipBase64": "H4sIAAAAAAAACoVTSU/kRhj9L9/ZYmpffCvXAq2hA6LR5OJL0S43zphyy4sShPq/RzYwQplDru97W8nPb3A4PqeXCCUuYD80CUo43Bh39ycUcHjN83OauyOU87ikAszSdPOugRIaHRF7ovLIMGXyGDVpW8m1ZCoyzCOHAr53eWWexmE5QwFVl5sun6CEt/rTqIay/l+rGooablNsN/YJIYQ36Fe7+qNeDbsm5bmbX2so32q4XpN3bpNdf4jux6Ht+rRhT3FK72A8/oynd/DqW5fnNObYf5vTNHe5HeNGeljyYWnb7p+NNn62sDE3XRPn9Dim1SEvfX9Z2w3LeEwPwzAfbgzhYlNJJgV3ChHLGafaBMOtrYTz3nKMsGVWOUk8ZkxLq4xw2jiNiJZeBim03hL3MXdtmr76eu1EwFp5XCmDuLJSCEEUooTLillCJK6o9Y45pDDDwYVQBSmdRZwHTtm779AsffriSo3wmgiDqXOca4Swr6jkUjDpmKVU++DWFyhtqfXaiqCEx0wjJZX0q+sFCriPr/0QGyjf4DDHeR3Y/cPdj91hd/eHuYUC9vH8edibR3vj3bqW1A5jWkX3cX5eZ7R+96unDb76axoyFHCb8mk9KsyKdbWECyghUM2c5lKbinLjLXa2oiTIqqLSKKSFwxph4jkVjDhLdHAIIUSd1iQ44uFSgGnnNP6WHlf093D6NVwLbQUiWFZIVcEYjx1xFElUScqMM4Rqz4gnymBBsEKSMam99C5IrZ1dwx/TNIfY9amBso39lAqwfYp5Of8Hvfs7p3F67s52yG03vqyn9x/V9/E8pWbf9X03peOQmwlKJcSVwIpeLv8Ch7LXhfYDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5/run.json",
+      "Length": 298,
+      "SHA256": "C8984DC62B989ECF72AC0D527F3E08EE4DC8B5A53AB6FA287C211700E41B9E98",
+      "GzipBase64": "H4sIAAAAAAAACh2P0WqDMBhG3+W/zoWaxJjcZTGuwlpHLYwydpFppIImJSZjY+zdh739Dnyc8wv9cLOrAZEjOPrRgoD+IOvuDRD0Py7ebJwHEDEki0CmcY7tCAJGbjLyidlAckzYYHgxTYxyRipDcmooPN7SYvuDLGgJArAsNS9KmeO6ppRnWa6fMKOsJKwmCmOum7qRVFVcYaW5Kpuq1DnhWcUqpjHZfaKJu2B7Ut3x9UVfNCA4W7N5t6+1Pl3ayxUQPAef7huI9w8EjQ+rWfT3HNUjL0PQpWiDWqxx6d6YebEjiMksm0Wg3dccvFuti2e7RR92tsf//QMmtoYxKgEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/invocation/.superpowers/c12-shadow/d9a04b37c41347ca92ff759748a415a5/session.json",
+      "Length": 172,
+      "SHA256": "6A0A4E9FA0F400DB10527DCF102F307001A3E3913EBE644F985E29ED712A2257",
+      "GzipBase64": "H4sIAAAAAAAACh3MvQ7CIBAA4He5uUPpHRzHhkBTB+PQwRlbmjbxJzF0MMZ3N/F7gO8D47SWewanGjg95wIOxsHH8wUaGN+Pupa6TeDqay8N+H3e6nEGB7Pklq7IEykknrJ0y8JamGwmpbOG/7bfyjj4ThtwgN4k6YxXGKPW0rYqHZA1G+JIAVFSH3uvg5WAIUkwvTVJkbSWLSck+P4AxlGmzqwAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture028/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0/g0001.after.json",
+      "Length": 813,
+      "SHA256": "8298849CE16203522A534E693138C15F19BED5E799380797A528C6B2C4FA3413",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfdnJz/AGorIpYpB6aHrwbZ4maOihxJNBq/3uVABW3Xsczj0ev5gz743P8E6DCBezGNkIF+1ttv/+AAvZvKT/H3B+hytMSC9BL2+e7FirAtMWqxAdBBGeBHA8stAyj7qCEwl2LoIBvfVqdoctxggLqPrV9OkEF5+YT1EDV/BfVQNHAfQzd5j4hhPAm/WvXfNRr4K6NKff5rYHq3MDNNC4vd3aL3XyEHqax64e4aYcwx3cxHH+H07t4dd2nHKcUhusc59ynbgqb6XFJ+6Xr+tfNNn22MCG1fRtyfJriSkjLMFzWduMyHePjOOb9rSZcbClvPSmJ897jknpmCRPIC1pLpz0VmkrljDcaW0SU47SsXV16ZWxpOcGcsO3HXUh9F+evXFda4XGpHK6VRlwZKYQgClHCZc0MIRLX1DjLLFKYYW+9r72U1iDOPacf3LFdhviFSrVwJREaU2s5LxHCrqaSS8GkZYbS0nnrNTeqNNS40givhMOsREoq6VbqBQp4CG/DGFqozrDPIa8D2+knc+ssFPAYwzym96sV4PshzlD9PMNDyM/rdq7ya14ZU5xjyp8zvI/ptL7TYt0q4QIqqLVUWNReeYSNd5phhhmyjlvtCCG0RogKrGkpsJS6NDXDyHuBPUEIc23h8qsAN4SXOba7fhj6OR7H1M5QYcqvmMTscvkLqd1s1i0DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0/g0001.before.json",
+      "Length": 814,
+      "SHA256": "56C03C0E4ECF85A72F6896CA8022532FECA37A795A216D431C0B318CB061C3B9",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfsXNz/AGorIpYpB6aHrwbZ4maOihxJNBq/3uVABW3Xsczj0ev5gz743P8E6DCBezGNkIF+1ttv/+AAvZvKT/H3B+hytMSC9BL2+e7FirAtMVS4YMggrNAjgcWWoZRd5BC4q5FUMC3Pq3OQ+zGKUIBdZ/aPp2ggnPzSWqgav7LaqBo4D6GbnOfEEJ4k/7Vaz76NXDXxpT7/NZAdW7gZhqXlzu7xW4+Qg/T2PVD3LRDmOO7GI6/w+ldvLruU45TCsN1jnPuUzeFzfS4pP3Sdf3rZps+W5iQ2r4NOT5NcSWkZRgua7txmY7xcRzz/lYTLraUt54o4rz3WFHPLGECeUHr0mlPhaaldMYbjS0i0nGqalcrL41VlhPMCdt+3IXUd3H+ynXKCo+VdLiWGnFpSiEEkYgSXtbMEFLimhpnmUUSM+yt97UvS2sQ557TD+7YLkP8QqVaOEWExtRazhVC2NW05KVgpWWGUuW89ZobqQw1ThnhpXCYKSRLWbqVeoECHsLbMIYWqjPsc8jrwnb6ydw6CwU8xjCP6f1qBfh+iDNUP8/wEPIzVBCu8mteGVOcY8qfO7yP6bS+02IdK+ECKqh1KbGovfQIG+80wwwzZB232hFCaI0QFVhTJXBZamVqhpH3AnuCEObawuVXAW4IL3Nsd/0w9HM8jqmdocJYXCFJ6OXyF9zFG5IuAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "407273E9E5D3D8E8869C351DE78BF41F1FF6C06F2D475304C7D9D58E91E3A4A4",
+      "GzipBase64": "H4sIAAAAAAAACoVTSW/cNhj9L99ZcLgvulFc4kE9seExmosunBE1VqtQAy1IDWP+eyHZLozk0Ov73gbw8RUOp+f0I0KJC9gPTYISDrfG3X+HAg4veX5Oc3eCch6XVIBZmm7eNVACpg1WGh8FEZxFcjqy2DCM2qMSCrcNggL+6PLKPI/DcoECqi43XT5DCa/1h1ENZf2/VjUUNdyl2G7sM0IIb9B/7er3ejXsmpTnbn6poXyt4euavHOb7Ou76GEc2q5PG3aMU3oD4+nveH4Db750eU5jjv2XOU1zl9sxbqTHJR+Wtu3+2WjjRwsbc9M1cU5PY1od8tL317XdsIyn9DgM8+HWEC42VXCBaOJDCFjTwBxhAgVBK+lNoMJQqbwN1mCHiPKc6spXOijrtOMEc8K2xH3MXZumz75eOxGwVh5XyiCurBRCEIUo4bJilhCJK2q9Yw4pzHBwIVRBSmcR54HTd9+hWfr0yZUa4TURBlPnONcIYV9RyaVg0jFLqfbBBcOt0pZar60ISnjMNFJSSb+6XqGAh/jSD7GB8hUOc5zXgT083v+5O+zuv5k7KGAfLx+HvXmyt96ta0ntMKZV9BDn53VG67vfHDf45q9pyFDAXcrn9agwK9bVEi6gBC4sohZ55m1Q3EgShNLCGoUI4ZQEbw2VRmpuCBaOUWxRRbGyFRLY0krDtQDTzmn8LT2u6O/h9FO4Iloppq3HgiDKCTGcMi80xVRZzAPWlXfcS62pQlJLw4myoiKWBUMZpmv4U5rmELs+NVC2sZ9SAbZPMS+XX9D7nzmN03N3sUNuu/HHenr7qL6Plyk1+67vuymdhtxMUCqFbiii5Hr9F9zlBzr2AwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0/run.json",
+      "Length": 8,
+      "SHA256": "2B7847B7B705781D7CF21A05E9C1BB37CBF078AEA103BC3EDCC6ACA52AB65453",
+      "GzipBase64": "H4sIAAAAAAAACitOzSvJzEvNAQBP7jb4CAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/invocation/.superpowers/c12-shadow/13d1891b62654a2cb4ad410fb8681fd0/session.json",
+      "Length": 172,
+      "SHA256": "DD52A60B8333B3AB0E826AF0591646585E127A202C01E0C2D4C387ECDF719C6C",
+      "GzipBase64": "H4sIAAAAAAAACh3MuwrCMBQA0H+5c4fc3uTmscUkpQ7ikMG5bSIt+ABJBxH/XfB8wPlAXtZ6n8BhB6dnqeAgjz6eL9BBfj/aWtu2gGuvvXbg97K1YwEHSAWNxZl7VnLql1lORaK4zoYNXouA/7bfah59rxgckOdke/ZIMSplhcB0IK00Sx1lILJpiINXwdhAIdnAg+GE0gqjjU4k4fsDFvAtsKwAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture029/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9/g0001.after.json",
+      "Length": 811,
+      "SHA256": "81C6BB405C933DF6780661C1BF4EE833553F5F163AD9C7537B798171DAA4258C",
+      "GzipBase64": "H4sIAAAAAAAACoWSTW+cMBiE/8t7Rom/jbkZfyRRs2qUjdRD6cEFs0GlJgIjJVrtf68gSdVbjx7PPB5Zc4Zj+xx/B6hwAYepi1DB8Vbbr9+ggONbys8xDy1UeV5jAXrthnzXQQVMRNoL1LIoIgsdDiFKGmSPQ9v3slVQwJchbc7Q5zhDAfWQuiGdoIJz8wlqoGr+i2qgaOA+hn53nxBCeJf+tms+6jVw18WUh/zWQHVu4Gae1pc7u8duPkIP89QPY9y1n2GJ72Jof4XTu3h1PaQc5xTG6xyXPKR+DrvpcU3Hte+H1902f7YwIXVDF3J8muNGSOs4XrZ20zq38XGa8vFWEy72FHa1Esgj7EolJLaqJoYIrST2jpUeESmpEoJvJ6Mkpowa7awzwhheW7K/eAhp6OPyL9cpKzxWpcN1qREvjRRCkBJRwmXNDCES19Q4yywqMcPeel97Ka1BnHtO2Tt36tYx/kOlWjhFhMbUWs4VQtjVVHIpmLTMUKqct15zUypDjVNG+FI4zBQqZSndRr1AAQ/hbZxCB9UZjjnkbWAH/WRunYUCHmNYpvT+awX4YYwLVN/P8BDy87adq/yaN8Ycl5jy5wzvYzpt97TYtkq4gApqLUssal96hI13mmGGGbKOW+0IIbRGiAqsqRJYSq1MzTDyXmBPEMJcW7j8KMCN4WWJ3WEYx2GJ7ZS6BSrJrziTl8sfdLTaISsDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9/g0001.before.json",
+      "Length": 814,
+      "SHA256": "D66450940D611D97C6D05EDF82784B08BDF7A609A3749675E638BF24F9356B45",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfjnNz/AGorIpYpB6aHkziLFFTByWOBFrtf6+yCxW3Hj2eeTyy5gj79iX+CVDhAnZTF6GC/a22339AAfv3lF9iHlqo8rzGAvTaDfmugwqYiLQXqGVRRBY6HEKUNMgeh7bvZauggG9D2pzPsZ/mCAXUQ+qGdIAKjs0nqYGq+S+rgaKB+xj6s/uAEMJn6V+95qNfA3ddTHnI7w1UxwZu5ml9vbPn2M1H6GGe+mGMZ+05LPEihvZ3OFzEq+sh5TinMF7nuOQh9XM4mx7XtF/7fng72+bPFiakbuhCjk9z3AhpHcfT1m5a5zY+TlPe32rCxTmFXa0E8gi7UgmJraqJIUIrib1jpUdESqqE4NvJKIkpo0Y764wwhteWnF/chTT0cfnKdcoKj1XpcF1qxEsjhRCkRJRwWTNDiMQ1Nc4yi0rMsLfe115KaxDnnlN24U7dOsYvVKqFU0RoTK3lXCGEXU0ll4JJywylynnrNTelMtQ4ZYQvhcNMoVKW0m3UExTwEN7HKXRQHWGfQ94WttNP5tZZKOAxhmVKl18rwA9jXKD6eYSHkF+ggnCV3/LGmOMSU/7c4X1Mh+2eFttYCRdQQa1liUXtS4+w8U4zzDBD1nGrHSGE1ghRgTVVAkuplakZRt4L7AlCmGsLp18FuDG8LrHbDeM4LLGdUrdAhRG6wpST0+kvm/k6Ly4DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9/g0001.group.json",
+      "Length": 8,
+      "SHA256": "2B7847B7B705781D7CF21A05E9C1BB37CBF078AEA103BC3EDCC6ACA52AB65453",
+      "GzipBase64": "H4sIAAAAAAAACitOzSvJzEvNAQBP7jb4CAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9/run.json",
+      "Length": 292,
+      "SHA256": "CA20F9194C9654A9EFAABDA0AFEA3FA56EB671403BA579AEF96FB242F4F7464E",
+      "GzipBase64": "H4sIAAAAAAAACh2PwWrEIBRF/+WtXcTRaHRnjekMdJoyKXQxdCHJCxNIdDCmtJT+e8ls74HLOb/Q9TdcPGhK4BwHBA3d0dTtBxDofkK+YZ560DltSMBsw5RPA2jgAtkoip6jQO4H6j1K5uVIfT+OslfweNtm7I7mUArQwIxw6iAMZXVdlqooqHtispSCy5pbxpRr6saUtlKWWaesaCrhKFdFJSvpGN99ss+74OnVtue3F/fugMAF/RrDvrZA4DnF7b6Cvn4SaGJa/Oy+p2wfYQWBdsuY7Iw+bPfGTzMOoEc/r0jAha8pxbBgyBdcc0w727P//gGR0Y5mJAEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/invocation/.superpowers/c12-shadow/46e3f60c4e6e4ad1aae73a7f1acff7c9/session.json",
+      "Length": 172,
+      "SHA256": "BD14688BF960E1F5C89B469C3E367CC9B753CE9FE94012C4EB9F6558017E2065",
+      "GzipBase64": "H4sIAAAAAAAACh3MvQ7CIBAA4He5uQP04K6wIdDUwTh0cCb0iE38SUw7GOO7m/g9wPeBuV7lXsDrDk7PRcDDPIV0vkAH8/uxXWVbK/jttUsHYV/W7biAB0OCjVQ1QmLKoksRxsJNl9oaVwf/bb/JPIXeEnjAQNn1FDSmZK1TSucDsmUynExEdHlMY7BxcBFjdpHGgbI2Tg08cEYD3x//V1CjrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture030/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers/c12-shadow/7f2c09627e7145028dc1c1a7ebcfa2d4/g0001.before.json",
+      "Length": 813,
+      "SHA256": "F12B4B534C99F9421F4D7D490D801DBD4E08328BF5FA39DE10B5CF756AD86455",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfdnJz/AGorIpYpB6aHkziLFFTByWOBFrtf6+yCxW3Xsczj0ev5gj79iX+CVDhAnZTF6GC/a22339AAfv3lF9iHlqo8rzGAvTaDfmugwpkT1pUCiKjxIwjoroWtzjI+Nz2gXQMCvg2pM35HPtpjlBAPaRuSAeo4Nh8khqomv+yGigauI+hP7sPCCF8lv7Vaz76NXDXxZSH/N5AdWzgZp7W1zt7jt18hB7mqR/GeNaewxIvYmh/h8NFvLoeUo5zCuN1jkseUj+Hs+lxTfu174e3s23+bGFC6oYu5Pg0x42Q1nE8be2mdW7j4zTl/a0mXJxTnJTaSUcd9cZQxLX1XnhpmXRcGU451laUnlqtOGHYGUysFp5xZY10uj7/uAtp6OPyletKKzwulcO10ogrI4UQRCFKuKyZIUTimhpnmUUKM+yt97WX0hrEuef0cuLd1K1j/EKlWriSCI2ptZyXCGFXU8mlYNIyQ2npvPWaG1UaalxphFfCYVYiJZV0G/UEBTyE93EKHVRH2OeQt4Xt9JO5dRYKeIxhmdLlagX4YYwLVD+P8BDyC1QQrvJb3hhzXGLKnzu8j+mwvdNiGyvhAiqotVRY1F55hI13mmGGGbKOW+0IIbRGiAqsaSmwlLo0NcPIe4E9QQhzbeH0qwA3htcldrthHIcltlPqFqgUuhKkFKfTXxH4bW4tAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers/c12-shadow/7f2c09627e7145028dc1c1a7ebcfa2d4/run.json",
+      "Length": 297,
+      "SHA256": "2FE7CB7A400D7041315FB293EA1C29179F44E93B6BDAAF2E95EE92986E7138F6",
+      "GzipBase64": "H4sIAAAAAAAACh2PTWuEMBgG/8tzzsEYTUxuaYzdhf1ibemh9JDqu6zg6qKxtJT+9+KeB4aZX9TNlW4BhjPsx5ZgUG9seXwDQ/0zxCvFroGJ00IMdmm7uG1hoC5pk2iZKlI8y5O0aBve8KDos7mEtM3wsC091Rub5hIGwkqvU2m5KMs810nC/ZNQuZKZKjMnhPZVWdncFdoJ57WTVSE9z3RSqEJ5sRrrGOIauD244/608y8eDGcK8zjAwO28PbyewPA8jct9hnn/YKjG6RZ6/91F97hLGI5LpMn1FIblXoWupxbmEvqZGPzw1U3jcKMhnmmO47Sy9f3vH0hPuaIpAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/invocation/.superpowers/c12-shadow/7f2c09627e7145028dc1c1a7ebcfa2d4/session.json",
+      "Length": 172,
+      "SHA256": "7DA66CC279BFFF4BB6DD13DA0C45D61507E2D25AD41B39B68695C1ED76506AED",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwfeF9gQaOpgHBicK9ymTXwkhg7G+O8mng84Hyh1pfsMng9wejYCD2UK6XyBAcr70VfqWwXfXzsNEPa29WMDD7iIypwRSMiVZsK2yiufka51mUVT8N/2G5UpCG3AgwwmO2EClylp7Rjj+SBRo1GYVJTS5TGNQUfroozZRTNak7lyzKLFLBV8f2HuNDasAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture031/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers/c12-shadow/3d70e1912fa0464ab25930b137953f20/g0001.before.json",
+      "Length": 814,
+      "SHA256": "6C14C731EB8099540F2E31E7BDBDFCFC193F355F254C0E7C463F673B012E5FFC",
+      "GzipBase64": "H4sIAAAAAAAACoWSy27bMBRE/+WuhYRvitpRfCRBYzSIA3RRdUFblC1UpQKJAhIY/vdCdlJk1+1w5nBwMSfY7o/xT4AKF7AZ2wgVbO+1/f4DCti+p3yMud9DlaclFqCXts8PLVRAW4kiVph0ATHBwo5wRdEOU6k47QiCAr71aXXuYjdOEQqo+9T26QAVnJpPUgNV819WA0UDjzF0F/cBIYQv0r96zUe/Bh7amHKf3xuoTg3cTePy+mAvsbuP0NM0dv0QL9ouzPEqhv3vcLiKN7d9ynFKYbjNcc596qZwMT0vabt0Xf92sU2fLUxIbd+GHF+muBLSMgzntd24TPv4PI55e68JF5eUxc4oabRltSNMWYSd8ppQ7R1hGCOpvLFYCmWIFcTXzlhFa2cUqRUl7vrjJqS+i/NXrlNWeKxKh+tSI14aKYQgJaKEy5oZQiSuqXGWWVRihr31vvZSWoM495yyK3dslyF+oVItnCJCY2ot5woh7GoquRRMWmYoVc5br7kplaHGKSN8KRxmCpWylG6lnqGAp/A+jKGF6gTbHPK6sI1+MffOQgHPMcxjul6tAN8PcYbq5wmeQj5CBeEmv+WVMcU5pvy5w8eYDus7LdaxEi6gglrLEovalx5h451mmGGGrONWO0IIrRGiAmuqBJZSK1MzjLwX2BOEMNcWzr8KcEN4nWO76Yehn+N+TO0MFUb4BpWSns9/AcC1DdMuAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers/c12-shadow/3d70e1912fa0464ab25930b137953f20/run.json",
+      "Length": 299,
+      "SHA256": "917258D71989C659D38E56DACD6C6A0D8F0BD44692DE82EC486499017918D491",
+      "GzipBase64": "H4sIAAAAAAAACh2Py26DMBQF/+WuvbAxtrF31JiC1IQoVMqi6sIJFwWJRwR21arqv1dkfTRHM7/Q3u44eTCMwGHpEAy0VV40FyDQ/szhjmG4gQlrRAJ57IZQd2CAd4oi0yzpPU1l6q+J0JxeGVda8D6h8HyLI7ZVngi5E7l0OpE540UhhKaUuReuhJKpKlLLuXZlUebCZtpy67SVZSYdSzXNVKYcT3ef4MMuWB9tczi9uXcHBM7ot2UGA83l6M5tVZ+AwOu6xMcG5uOTQLmskx/d9xDss48SaGLA1Y7o5/go/TBiB6b344YE3Pw1rMs84RzOuIVl3be9/u8fdoY3KysBAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/invocation/.superpowers/c12-shadow/3d70e1912fa0464ab25930b137953f20/session.json",
+      "Length": 172,
+      "SHA256": "D8B87E6B9BDE14B6F22734A74A39BA5B075B9CEB77A421EA8F4DBA6FF2804D8A",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwfg8rpsCDR1MA4Mzm2haRMfiaGDMf670Q845w15XuttBMc7OD1KBQd58PF8gQ7y697W2rYZXHvutQO/l60dCzjAYljlxMUyMqnlOAlFyCaOhhQugsF/2681D14o/RNeJxLac4xRKWKMpwMaZbQ0UQZESn3svQqWAoZEQfdWJy6JWWNNQgmfL9Ji6x6sAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture032/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers/c12-shadow/25735324a4a64e528823feeaf99a288a/g0001.before.json",
+      "Length": 814,
+      "SHA256": "66DE6390A48B3C661EC3F3E2514DB43022A3C5675DE670F31B944D326B08E18D",
+      "GzipBase64": "H4sIAAAAAAAACoWSy27bMBRE/+WuhYTvh3Z8iEnQGA3iAF1UXTAW5QhVqUCigASG/72wnRTZdTucORxczAG2u5f0J0KNK9hMXYIatrfGf/8BFWzfc3lJZdhBXeY1VWDWbih3HdRAuKScEhZZFCxxohShfUqx1zoSpSJU8G3IJ+dz6qc5QQV2yN2Q91DDof0ktVC3/2W1ULVwn2J/du8RQvgs/avXfvRr4a5LuQzlvYX60MLNPK2vd/4cu/kIPcxTP4zprD3HJV3EuPsd9xfx6nrIJc05jtclLWXI/Xxp8Ljm7dr3w9vZNn+2cDF3QxdLeprTiZDXcTye2k3rvEuP01S2t4ZwcU5ZIQJtBJJBWyk94rgJNGjuuBLUGaYttUIKa7E3WAtrBPbWuuAl9xZbe/5xE/PQp+Urt9FeBKxVg60yiCsnhRBEIUq4tMwRIrGlrvHMI4UZDj4EG6T0DnEeOGUX7tStY/pCpUY0mgiDqfeca4RwY6nkUjDpmaNUN8EHw53SjrpGOxGUaDDTSEklmxP1CBU8xPdxih3UB9iWWE4L25gnd9t4qOAxxWXKl6tVEIYxLVD/PMBDLC9QQ7wqb+XEmNOScvnc4X3K+9M7rU5jJVxADdZIhYUNKiDsQmMYZpgh33BvGkIItQhRgQ3VAktptLMMoxAEDgQhzI2H468KmjG+LqnbDOM4LGk35W6BGiNyxbjQx+NfvEMCkC4DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers/c12-shadow/25735324a4a64e528823feeaf99a288a/run.json",
+      "Length": 298,
+      "SHA256": "D757C135AA4F3E6B7DC7185D920DC46790D145F291E382F990E5B0672856A030",
+      "GzipBase64": "H4sIAAAAAAAACh2Py2rDMBQF/+WutbD1sqSdKsmNIYlLXOgidCHia2LwI9hyaSn99+Jsz8Bh5hea2x3HCCYncJpbBAPNwfr6Awg0P1O6Y+pvYNKyIQG7tX2qWjBARcEEozzyKDkKqhRlHWLstI5UqQjPt23A5mCpkGCAWRk0lTZn3guhsywPL6wQheSF544xHUpfWuGUdswF7WSpZMi5zlShisD47pNi2gWrs6tPb8fwHoDABeM6T2DAB+uP1XnfXpd5e6xgrp8EynkZ4xC+++SeeRmBeku4uAHjtD3K2A/YgunisCKBMH31yzyNOKULrmledrbH//0D2J1l+ioBAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/invocation/.superpowers/c12-shadow/25735324a4a64e528823feeaf99a288a/session.json",
+      "Length": 172,
+      "SHA256": "5656402D289FCF31BBFEB1A6ED1752A97A35138C5BEA8401BE48240FE057E081",
+      "GzipBase64": "H4sIAAAAAAAACh3MvQ7CIBAA4He5uUPhOODYEGjqYBw6OJP2Gpv4kxg6GOO7m/g9wPeBab7KvUJQHZyei0CAaYz5fIEOpvejXaVtM4T22qWDuC9bOy4QQJNDQm2qqdYIae81riJ1Za7a+wr/bb/JNEZNFgJgtIW1jQpzJuK+V+WAjpw1LpuEyGXIQ6TkOWEqnOzgbVGGe++8K2jg+wNhzfMgrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture033/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/.superpowers/c12-shadow/ab2a32ba2de34b08a429aa572fa13f62/run.json",
+      "Length": 299,
+      "SHA256": "F3A6223FAEB2D83BEB56A13102475241FFC495D9F4302C28EF4EB73D4F8F2270",
+      "GzipBase64": "H4sIAAAAAAAACh2PXWuDMBRA/8t9zoMmMZq8ZTG2hbWWurGHMca1XqngR9E4Nsb++7DPBw7n/EJ1vdGAYGIGx6khMFDtbV6+AYPqZww3Ct0VTJhXYmDXpguHBgxgzVHwGnlDQtZRhpJrxCTlLcaiVRwetrWnam95osCAsMprrmws8jxJdBTF/kmkSapkmksnhPZFXtjEZdoJ57VTRaZ8LHWUpVnqhdx6AoYt8HBy5fH87F88MLgQLtMIBk7l5+5Svp4rYLCbp/W+gHn/YFBM84C9/+6Ce/xFDMo10Ox6wnG9F9j11IBpsV+IgR+/unkaBxrDhZYwzRvb7v/+AWRq79ErAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/.superpowers/c12-shadow/ab2a32ba2de34b08a429aa572fa13f62/session.json",
+      "Length": 172,
+      "SHA256": "DAD7836EC083DBED777668E6290BE63BA4239226080EA27F6E85AB0D155749BA",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwfg8t4QaOpgHBicbwumTXwkhg7G+O8mng84HyjL2u4Eng9wetYGHsoU0vkCA5T3o6+tbwv4/trbAGGvWz9W8ECzIBQzidpQzsySFI5IGXEljlct4L/tt1amIJQGDxh0dkIHjikp5Rjj+YBGGS1NkhHR5TGNQUXrIsbsoh6tzlw6Zo01GSV8f4VOSBmsAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture034/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/.superpowers/c12-shadow/31c983dc7a7e41b0b9f41affdd5cfc57/run.json",
+      "Length": 292,
+      "SHA256": "7D4F2EC2FA3DB7AB540E5DEA513BAD9D1ED1A5D65FAAA896D2D20633502F22E4",
+      "GzipBase64": "H4sIAAAAAAAACh2PwW7DIBBE/2XPHEwwYHyjGDeRmrqKK/UQ9UBgrVhycIRx1arqv1fOdUYzeu8Xen/Fm4OaEjjOAaGGfq+b7gMI9D8xXzGPHuqcViSg1zDmQ4AaGPWqYsFLJ7Gkl+KihpK6YQiB+8FzCY+3dcJ+r3dcbAstrNoJTVnTcK6KgtonJrkUpWxKw5iybdNqbiplmLHKiLYSlpaqqGQlLSs3nuzyBnh4Nd3x7cW+WyBwQrfMcUs7IPCc5vW+QH3+JNDO6eYm+z1m8xArCHRrxmQmdHG9t26cMEA9uGlBAjZ+jWmON4z5hEue09Zt2n//F9xLHCQBAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/.superpowers/c12-shadow/31c983dc7a7e41b0b9f41affdd5cfc57/session.json",
+      "Length": 172,
+      "SHA256": "9AF9DAE86D19614D2CA2079B8438E4325E8B9E917B5C73F5220EFC4D2A45B34D",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5c4fSC1xgQ6Cpg3FgcG55pE18JIYOxvjvRj/gnDfEtJbbDIZ1cHrkAgbiZP35Ah3E172tpW0JTHvupQO7560dMxhAlrTCnGimwtnSL7pyNteas0g1CYL/tl9LnOwg5E9YGfQgLUPvhdB9z8IBSZDk5LlD1GH0oxVOaYcuaCdHJQPjulekKCCHzxdVTbMsrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture035/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers/c12-shadow/bc97be359cc14d6a90cfdce18f53e5a0/g0001.before.json",
+      "Length": 813,
+      "SHA256": "D1BE69F4644B7B304899B2E0CF1EF7A2C6503CCAAC9FB13A959AE5769126A103",
+      "GzipBase64": "H4sIAAAAAAAACoWSy27bMBRE/+WuhYTvh3YUH0nQGA3iAF1UXTAS5QhVqUCigQSG/72wnRTtqtvhzOHgYg6w7V7Srwg1rmAz9wlq2N4a9/UbVLB9z+UllbGDuiz7VIHZ92O566GG507L50S57jrMehE16oa+S1gNnCYeEVTwZcxnZxrmJUEFzZj7Me+ghkP7SWqhbv/LaqFq4T7F4ezeIYTwWfpTr/3o18Jdn3IZy3sL9aGFm2Xev965c+zmI/SwzMM4pcvHcU0XMXY/4+4iXl2PuaQlx+m6pLWMeVji2fS4z9v9MIxvZ9vy2cLG3I99LOlpSSdC3k/T8dRu3i9depznsr01hItzyltJCA1UWcwsoU5Zhr1unJHEWGNN4IE1DDXeEyOtZiJ4qwVFWLpgnb6cYhPzOKT1H652ImCtPG6UQVxZKYQgClHCZcMsIRI31HrHHFKY4eBCaIKUziLOA6fswp37/ZT+olIjvCbCYOoc5xoh7BsquRRMOmYp1T64YLhV2lLrtRVBCY+ZRkoq6U/UI1TwEN+nOfZQH2BbYjktbGOe7K13UMFjiuucL1erIIxTWqH+foCHWF6ghnhV3sqJsaQ15fK5w/uUd6d3Wp3GSriAGhojFRZNUAFhG7xhmGGGnOfOeEIIbRCiAhuqBZbSaNswjEIQOBCEMDcOjj8q8FN8XVO/GadpXFM3536FWqkrTBE9Hn8DSlO6nC0DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers/c12-shadow/bc97be359cc14d6a90cfdce18f53e5a0/run.json",
+      "Length": 298,
+      "SHA256": "0FA82B2ABC79126063D9388C6540E2A8235E18BC4114353CBFAF35C7392EE95E",
+      "GzipBase64": "H4sIAAAAAAAACh2PwWqEMBRF/+WtszATk5jsbIwdoTOWUSildJGJT0bQOGgsLaX/XpztPXA55xcaf8PJgaYETnOHoKE55kX9BgSanxBvGAcPOi4bEsi3bohVBxquXskrMq68p2knnEp833mkWc8ZcpfA420bsTnmBy5AA8uFVQeRU1YUnKskofaJSS5FKovUMKZsWZQ5N5kyzFhlRJkJS1OVZDKTlqW7T3RxF6zOpj69vtjWAoELunUO+1rYc1u170DgeZm3+wr645NAOS+TG+33EM0jLyFQbxEXM6IL2710w4gd6N6NKxKw4WtY5jBhiBdc47zsbI//+wcCG8TcKgEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/invocation/.superpowers/c12-shadow/bc97be359cc14d6a90cfdce18f53e5a0/session.json",
+      "Length": 172,
+      "SHA256": "E043EEB9E269264E6CCCE59128AC663E66BF470809C413F88D4F4004B442E3C4",
+      "GzipBase64": "H4sIAAAAAAAACh3MuwrCMBQA0H+5c4fEm9fNFpOUOohDB+c2uaUFHyDpIOK/C54POB8Yy8r3Cbzs4PysDB7GIaTLFToY34+2ctsK+PbauYOw162dKniYC9mZUVMpUlUzkShLLSzdopH1JOC/7Tceh3DQBjxgMJkOJkhMSWsSQuYjWm2NsklFRMp96oOOjiLGTNH0zmSpSDjrbEYF3x+fBoQarAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture036/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8/g0001.after.json",
+      "Length": 812,
+      "SHA256": "72CEC4B8FB11F683DB407C24C4BAC1F6BFF3026AA81CC487DCF857A4BB1649FC",
+      "GzipBase64": "H4sIAAAAAAAACoWSy27bMBRE/+WuhYQPkRS14zMJGqNBHKCLqgvaomyhKhVIFJDA8L8XspMiu27nzhwMLuYE2/0x/glQ4wI2Yxuhhu29st9/QAHb95SPMfd7qPO0xALU0vb5oYUaENpVLe12LeaolKILgWAu9ru24ru4CxUU8K1PqzN0OU5QgO5T26cD1HBqPkEN1M1/UQ0UDTzG0F3cB4QQvkj/2jUf9Rp4aGPKfX5voD41cDeNy+uDvcTuPkJP09j1Q7xouzDHqxj2v8PhKt7c9inHKYXhNsc596mbwsX0vKTt0nX928U2fbYwIbV9G3J8meJKSMswnNd24zLt4/M45u29IoxfUsxoKrHiBtOKSKYQ4ZQ55aWk3HtiJBbMEOMF9txKSxWTWJfae0m18vr6ik1IfRfnr1wnLfdYVg7rSiFWGcE5JxWihAldGkIE1tQ4W1pU4RJ76732QliDGPOMllfu2C5D/EKlijtJuMLUWsYkQthpKpjgpbCloVQ6b71ippKGGicN9xV3uJSoEpVwK/UMBTyF92EMLdQn2OaQ14Ft1Iu5dxYKeI5hHtP1awX4fogz1D9P8BTycd3OTX7LK2OKc0z5c4aPMR3WOy3WrRLGoQatRIW59pVH2HinSlziElnHrHKEEKoRohwrKjkWQkmjS4y859gThDBTFs6/CnBDeJ1ju+mHoZ/jfkztDLVgN4xzfj7/BbUhIhosAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8/g0001.before.json",
+      "Length": 813,
+      "SHA256": "B1F85E28A0EEA56001EB83F3F103B032D1D2B5EFFB815AFF09C9ECDB1EA33D95",
+      "GzipBase64": "H4sIAAAAAAAACoWSy27bMBRE/+WuhYQP8aUdRYpJ0BgN4gBdVF3QFmUTValAooAEhv+9kJ0U2XU7d+ZgcDEn2O6P4Y+HChewGbsAFWzvtf3+AwrYvqd8DDnuocrTEgrQSxfzQwcVILSTHe13HeaoVKL3nmAu9rtO8l3YeQkFfItpde5CP04BCqhj6mI6QAWn9pPUQtX+l9VC0cJj8P3FfUAI4Yv0r1770a+Fhy6kHPN7C9WphbtpXF4f7CV29xF6msY+DuGi7fwcrqLf//aHq3hzG1MOU/LDbQ5zjqmf/MX0vKTt0vfx7WKbPlsYn7rY+RxeprAS0jIM57XduEz78DyOeXuvCeOXFDM1VVhzg6kkimlEOGWNdkpR7hwxCgtmiHECO26VpZopXJe1c4rW2tXXV2x8in2Yv3IbZbnDSja4lhoxaQTnnEhECRN1aQgRuKamsaVFEpfYWedqJ4Q1iDHHaHnljt0yhC9UqnmjCNeYWsuYQgg3NRVM8FLY0lCqGmedZkYqQ02jDHeSN7hUSAopmpV6hgKe/Psw+g6qE2yzz+vCNvrF3DcWCngOfh7T9WsFuDiEGaqfJ3jy+QgV+Jv8llfGFOaQ8ucOH0M6rHdarGMljEMFtRYS89pJh7BxjS5xiUtkG2Z1QwihNUKUY00Vx0JoZeoSI+c4dgQhzLSF868CmsG/zqHbxGGIc9iPqZuhUvKGl1Kez38B2C59wS0DAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "A5172EF300B97FAB4B4DA1C0A635DEA76F249206C404DF3055DF8B52BF2A9CBF",
+      "GzipBase64": "H4sIAAAAAAAACoVTyW7jRhT8l3cmPL2wN956HQtjxYZlJBdeWmJTZobTFLggMQz9e0BqHBiZQ671akOz+A6H02v6EaHCBeyHJkEFh3vtHv+AAg5veX5Nc3eCah6XVIBemm7eNVABQkfZ0PbYYI5KJdoYCebidGwkP6ZjlFDAty6vzPM4LBcowHS56fIZKnivP4xqqOr/taqhqOEhxXZjnxFCeIP+bVf/rFfDrkl57ua3Gqr3Gr6uyTu3yb7+FD2NQ9v1acOOcUo3MJ6+x/MNvPvS5TmNOfZf5jTNXW7HuJGel3xY2rb7e6ONHy1szE3XxDm9jGl1yEvfX9d2wzKe0vMwzId7TRjfVMwaqrDmFlNJFNOIcMq8DkpRHgKxCgtmiQ0CB+6Uo5opbEoTgqJGB3N7in3MXZumz75eOR6wkh4bqRGTVnDOiUSUMGFKS4jAhlrvSockLnFwIZgghLOIscBoefMdmqVPn1yp5l4RrjF1jjGFEPaGCiZ4KVxpKVU+uKCZlcpS65XlQXKPS4WkkMKvrlco4Cm+9UNsoHqHwxzndWBPz4+/7w67x9/0AxSwj5ePw16/2Hvv1rWkdhjTKnqK8+s6o/W73x03+O7PachQwEPK5/UoMS3W1RLGoQKDg2SeSI2814xvtSUNNGBEDaLEYUcM8yEYiZkOASmrvHUGe02pUwyuBeh2TuMv6XFFfw0nn8IFsd6WRgaDceCSOlMiYUlpS6MtDtyEQBHhWktsbSmFs0EyoUtjMC9VsGv4S5rmELs+NVC1sZ9SAbZPMS+X/6CPf+U0Tq/dxQ657cYf6+n2o/o+XqbU7Lu+76Z0GnIzQSWwvENSiOv1H4o0QKf2AwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8/run.json",
+      "Length": 413,
+      "SHA256": "3C6EE81BE809EB9C3DFA8C7278AA63F4FE11747C64CFC9E71F87AC80AA405039",
+      "GzipBase64": "H4sIAAAAAAAACjWQyW7CMBiE3+U/W8iOtzg3x0tBYhO06qHqwSEGUkGCglO1Qrx7FSquM6PRN3OD7e4YzwEKgmDR1REK2E61Xb0Dgu1vm44xNTsoUj9EBHqomzSroQCMq7ym+6omAjMl9yFkRMhdVeeiilXI4dE2nOJ2qjMuoACqhVOZ0IRay7nCmLiSSi4Fk5YZSpXz1mtucmWoccoInwtHmMK5zKWjbORJIY2As6VZLdZz9+oAwSaGa9dCAWbu9PJtDQhe+m64XKH4uME6pCMUcMAYk8lh1CdfYxzBPLaH0SOYMDRu/sfUnMjMeYpxqaTXJSuZ1cRgLSi3TkvhM6YyLAzDzHqKObc+L3lW+kwrU3q4fyLwXX8OJ/fTJPO4lCBYDSn25hRDO1x8aE6xfp7q2u+m79pzbNMmXlPXP637H1Hva5qdAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/invocation/.superpowers/c12-shadow/00b8d3fbd160497faa2167cbd86beba8/session.json",
+      "Length": 172,
+      "SHA256": "B80D09FC105B048108BC96DA2F3057B89921605542E851A54EEEED6A5C3BD473",
+      "GzipBase64": "H4sIAAAAAAAACh3Muw7CIBQA0H+5cwfohctjQ6Cpg3FgcIaCaRMfiaGDMf67iecDzgfSsrZ7BssHOD1rAwtpduF8gQHS+9HX1rcFbH/tbQC3160fK1hgrOiK11I5MWHUNeeRk1pK1VRayRr+235raXajJLCAjqIZyXEMQUrDGI8HVFKRUEF4RBOnMDnptfHoo/E0aYpcGKaVVhEFfH/oONNGrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture037/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9/g0001.after.json",
+      "Length": 812,
+      "SHA256": "0560A04DE40E3373DB2188C471109A8158B2ADD2AD8A02F5322EC3247276C717",
+      "GzipBase64": "H4sIAAAAAAAACoWSy07cQBRE/+WuLeiH++VdPwGFURCDlEWcRWP3DFYcG9ltCTSaf4/sgYhdttVVp0tXdYJ985L+RKhwAbuxTVDB/la77z+ggP37kF9S7hqo8rSkAvTSdvmuhQpaIZ6T4JI3hJTPisiGN5jHpmWqkaJVUMC3blid8ZDTBAWYbmi74QgVnOpPUA1V/V9UDUUN9ykeNvcRIYQ36V+7+qNeDXdtGnKX32uoTjXcTOPyeue22M1H6GEaD12fNu05zukixuZ3PF7Eq+tuyGkaYn+d05y74TDFzfS4DPvlcOjeNtv02cLGoe3amNPTlFbCsPT9eW03LlOTHscx7281YXxLWRGoIEoJyr1hGulSeYkEQhILYhGTzpdCWW1MybmwzDofjMaoREwaQ/n24y4O3SHNX7leOR6wkh4bqRGTVnDOiUSUMGFKS4jAhlrvSockLnFwIZgghLOIscBoeeGO7dKnL1SquVeEa0ydY0whhL2hggleCldaSpUPLmhmpbLUemV5kNzjUiEppPAr9QwFPMT3fowtVCfY55jXge30k731Dgp4THEeh8vVCghdn2aofp7gIeaXdTtX+S2vjCnNacifM7xPw3F9p8W6VcI4VGC0kJibIAPCNnhd4hKXyHnmtCeEUIMQ5VhTxbEQWllTYhQCx4EghJl2cP5VgO/j65zaXdf33ZyacWhnqLi8IhLT8/kv2XIfDSwDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9/g0001.before.json",
+      "Length": 813,
+      "SHA256": "CAB6D601E7892015FC11C3FA2E8E9004394EA7DDE1187AA112C2B183D07494F2",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsBO/JmbPwGVVRGL1EPTgzfxLlFTByWOBFrtf68SoOLW63jm8ejVnGHfPsc/AWpcwG7sItSwv1X2+w8oYP+W8nPMfQt1npZYgFq6Pt91UEPH+SFyJlhbluQgS9GyFrPQdlS2gncSCvjWp9V5iMdxilCA7lPXpxPUcG4+SQ3UzX9ZDRQN3Mdw3NwnhBDepH/1mo9+Ddx1MeU+vzVQnxu4mcbl5c5usZuP0MM0HvshbtohzPFdDO3vcHoXr677lOOUwnCd45z7dJzCZnpc0n45HvvXzTZ9tjAhdX0Xcnya4kpIyzBc1nbjMrXxcRzz/laVlG0pw33FSyl5xZymCikinUAcIYF5aRAV1hEujdKaMMYNNdZ5rTAiiAqtK7b9uAupP8b5K9dJyzyWwmEtFKLCcMZYKVBVUq6JKUuOdWWcJRYJTLC33mvPuTWIUk8r8s4du2WIX6iVYk6WTOHKWkolQtjpilPOCLfEVJV03npFjZCmMk4a5gVzmEgkuOBupV6ggIfwNoyhg/oM+xzyurCdejK3zkIBjzHMY3q/WgG+H+IM9c8zPIT8DDWEq/yaV8YU55jy5w7vYzqt71WxjrWkDGrQigvMtBceYeOdIphggqyjVrmyLCuNUMWwqiTDnCtpNMHIe4Z9iRCmysLlVwFuCC9z7Hb9MPRzbMfUzVALccWZxJfLX8/uADQtAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "19C864C2BA683C4F505D1645D6FC9A442DE1E697E264261D8994219698BB34D9",
+      "GzipBase64": "H4sIAAAAAAAACoVTyW7kNhT8l3cWPNwX3SiSGjfGHRtuI7noQktUmxkN1dCCxDD63wPJ48DIHHKtVxvA4huc2pf4I0CJCziOXYQSTrfG3f8BBZxe8/ISl9RCuUxrLMCsXVoOHZTQSfkcpVCiJYQ9a6Ja0WIR2o7rVslOQwHfUt6Y52lcL1BAlXKX8hlKeGs+jBoom/+1aqBo4C6GfmefEUJ4h/5t1/ys18Chi3lJy2sD5VsDX7fkg9tlX3+KHqaxT0Pcsecwx3cwtN/D+R28+ZLyEqcchi9LnJeU+ynspMc1n9a+T3/vtOmjhQ25S11Y4tMUN4e8DsN1azeuUxsfx3E53RrCxa6ysqaSaC2p8BU3yDDtFZIIKSyJRVw5z6S2pqqYENJy63xdGYwY4qqqqNgTjyGnPs6ffb12osZaeVwpg7iyUghBFKKEy4pZQiSuqPWOOaQww7Wr66qW0lnEec0pe/cdu3WIn1ypEV4TYTB1jnONEPYVlVwKJh2zlGpfu9pwq7Sl1msraiU8ZhopqaTfXK9QwEN4HcbQQfkGpyUs28AeHu9/P5wO97+ZOyjgGC4fh6N5srfebWuJ/TjFTfQQlpdtRtu73zzv8M2f85ihgLuYz9tRYVpsqyVcQAnWVMIJhL1UmiDMa4uxpbUhXnmNEKOaeSOd8xgraQzGxJIKK+qQZJrVBK4FmH6J0y/pYUN/DSefwhEXyCDmPEOeUkldRbBSlkmMkTYKc1UR4xwxThlEak4J8ZYSJokUVmK5hT/FealDGmIHZR+GORZghxjyevkPev9XjtP8ki52zH2afmyn94/qh3CZY3dMw5Dm2I65m6HkCt8QisT1+g9VL2Jk9gMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9/run.json",
+      "Length": 415,
+      "SHA256": "90F2136AF31A006E3E464F883EA7CC49091B3CC800BE072E7D256730D21D8EAD",
+      "GzipBase64": "H4sIAAAAAAAACj2QT2vcMBTEv8s7i2D9e9LTTSvJTWCTXbItPZQeFFvddfHawSuXlpDvXpxCrzPD8Jt5g1N3KdcMjjN4nPsCDk73Ph6+AoPTn6leSh06cHVZCwO/9kN96MFBb8xLMWixE0K9kLAddhxz12vqrOkJPtrWsZzuvdAIDqTHRAI9lzFqTU3D004abVCZqIKUlNrYeh0sBRkSBWwtJq6oscaaJNXGU3PdAB+ewuHxuE+fEzB4Lvk2T+Ag7JN/+nIEBp+WeX29gfv2BsdcL+Dg3DQNvztv+t3PLc5gX6bz5vGGK7Zt/ofJKVhUQew8WhlUqxsdOSodsQ3klRIx8YRkkkAlkEdLpAQnJLvbSRUJ3r8zaOflmsf0e6jh41LO4LDWsoSx5Gl9bfMwlh7cjzzeCoM0/RqWebqWqT6XW52X/977Xz6N5bafAQAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/invocation/.superpowers/c12-shadow/d77be7686c224b928c6c16acd59c87d9/session.json",
+      "Length": 172,
+      "SHA256": "BE3B21D4007327A7C198BE70341F037B3B747E1BC10D8D2200C2ACB85B331AB6",
+      "GzipBase64": "H4sIAAAAAAAACh3MuwrCMBQA0H+5c4fmdW9utpik1EEcMji3ScCCD5B0EPHfBc8HnA/kcm33BZwY4PSsDRzk2cfzBQbI70e/tr4VcP21twH8Xrd+rOCgEq2N0GKRUq8sbcEicCnVcLFUGf7bfmt59tIgOFAeE0v0QsVoDI+jSAdFhlBT1EEpTlOcvAmWgwqJA04Wk9A8WrKUlIbvD/aEtCOsAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture038/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow/edcce713e35a4bd29a946c129ddbdb5b/g0001.after.json",
+      "Length": 812,
+      "SHA256": "21BBBD23F25E2D787A87FA5D98DE6D88D14AEA33546C9D365B8772E4D23A6E24",
+      "GzipBase64": "H4sIAAAAAAAACoWSTU/cMBiE/8t7jsDfjnNL/AGorIpYpB6aHryxd4maOihxJNBq/3uVABW3Xsczj0ev5gz77jn+8VDhAnZjiFDB/rY2339AAfu3lJ9j7juo8rTEAuol9PkuQAUxdF2UmEbKPTsEorxiosNEhXAIB36AAr71aXX6Y44TFND0KfTpBBWc209QC1X7X1QLRQv30R839wkhhDfpX7v2o14LdyGm3Oe3FqpzCzfTuLzcmS128xF6mMZjP8RNO/g5vou+++1P7+LVdZ9ynJIfrnOcc5+Ok99Mj0vaL8dj/7rZps8W2qfQB5/j0xRXQlqG4bK2G5epi4/jmPe3NeFiSxnMXMMaJaQtkaxtKRFi2ikkSk2xVkoJpDFyTnDRGKNMg0tNFTdEc8oasv2486k/xvkr1yojHFalxU1ZI15qKYQgJaKEy4ZpQiRuqLaGGVRihp1xrnFSGo04d5yyd+4YliF+odJaWEVEjakxnCuEsG2o5FIwaZimVFlnXM11qTTVVmnhSmExU6iUpbQr9QIFPPi3YfQBqjPss8/rwHb1k761Bgp4jH4e0/vVCnD9EGeofp7hwefndTtX+TWvjCnOMeXPGd7HdFrfabFulXABFTS1LLFoXOkQ1s7WDDPMkLHc1JYQQhuEqMA1VQJLWSvdsO3O2BGEMK8NXH4VYAf/Msew64ehn2M3pjBDVZIriRW7XP4CRUmF2SwDAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow/edcce713e35a4bd29a946c129ddbdb5b/g0001.before.json",
+      "Length": 814,
+      "SHA256": "280A87AC52D30AB85493DC018F9CD8D016782529BE2C7313242ACDC1AA259F56",
+      "GzipBase64": "H4sIAAAAAAAACoWSy07cQBRE/+WuLej3wzu7H4DCKIhByiLOosfuGaw4bWS3JdBo/j2ygYhdttVVp0tXdYZ9+xz/BChxAbuxi1DC/ray339AAfu3lJ9j7lso87TEAqql6/NdByXErm2jxDRSHtihIzpoJlpMdNcdugM/QAHf+rQ6D/E4ThEKqPvU9ekEJZybT1IDZfNfVgNFA/cxHDf3CSGEN+lfveajXwN3XUy5z28NlOcGbqZxebmzW+zmI/Qwjcd+iJt2CHN8F0P7O5zexavrPuU4pTBc5zjnPh2nsJkel7Rfjsf+dbNNny1MSF3fhRyfprgS0jIMl7XduExtfBzHvL+tCBdbymLma1ZrIZ1CsnJKIsSM10goQ7HRWgtkMPJecFFbq22NlaGaW2I4ZTXZftyF1B/j/JXrtBUea+VwrSrElZFCCKIQJVzWzBAicU2Ns8wihRn21vvaS2kN4txzyt65Y7cM8QuVVsJpIipMreVcI4RdTSWXgknLDKXaeesrbpQ21DhthFfCYaaRkkq6lXqBAh7C2zCGDsoz7HPI68J21ZO5dRYKeIxhHtP71Qrw/RBnKH+e4SHkZyghXOXXvDKmOMeUP3d4H9NpfafFOlbCBZRQV1JhUXvlETbeVQwzzJB13FaOEEJrhKjAFdUCS1lpU7PtztgThDCvLFx+FeCG8DLHbtcPQz/HdkzdDCVG7AorSi6Xv4C96/cuAwAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow/edcce713e35a4bd29a946c129ddbdb5b/g0001.group.json",
+      "Length": 1014,
+      "SHA256": "084274431FCEBD0EEF04865623AB31D382DBC010AC028867E59BDC095F774DA7",
+      "GzipBase64": "H4sIAAAAAAAACoVTyW7bSBT8l3cmnN4X3pq9xEKs2LCMmQsvLbEpc8I0BS5IDEP/HpCOB8bkMNd6taFZfIXD6Tl9j1DiAvZDk6CEw61x939DAYeXPD+nuTtBOY9LKsAsTTfvGighNadTkpgmyiM7NkRHzcQJE900x+bIj1DAly6vzPM4LBcooOpy0+UzlPBavxvVUNb/a1VDUcNdiu3GPiOE8Ab9267+Xa+GXZPy3M0vNZSvNXxek3duk33+LXoYh7br04Yd45TewHj6Fs9v4M2nLs9pzLH/NKdp7nI7xo30uOTD0rbdz402vrewMTddE+f0NKbVIS99f13bDct4So/DMB9uDeFiUznMQsUqLaRXSBqvJELMBo2EshRbrbVAFqMQBBeVc9pVWFmquSOWU1aRLXEfc9em6aOv104ErJXHlTKIKyuFEEQhSrismCVE4opa75hDCjMcXAhVkNJZxHnglL35Ds3Spw+u1AiviTCYOse5Rgj7ikouBZOOWUq1Dy4YbpW21HptRVDCY6aRkkr61fUKBTzEl36IDZSvcJjjvA7s4fH+r91hd//V3EEB+3h5P+zNk731bl1LaocxraKHOD+vM1q/+81xg2/+mYYMBdylfF6PCrNiXS3hAkogChkljeXEUWQqxZmmziKsgrZOOYSFVIQTXXliJcWUMGKss9gYwnXgAq4FmHZO4x/pcUX/DCcfw3FVVY7QQLgnTipplAyGO62cF04ph5nxhlLOhNWOCl4pKYlnjqyvTdga/pSmOcSuTw2UbeynVIDtU8zL5T/o/Y+cxum5u9ght934fT29/ai+j5cpNfuu77spnYbcTFAKhm4IVvh6/QVZO4379gMAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/invocation/.superpowers/c12-shadow/edcce713e35a4bd29a946c129ddbdb5b/session.json",
+      "Length": 172,
+      "SHA256": "5DEE010A7121B35C9A2167054D76A16C8AC187DDE0A73CE4CD20D8E7916702F8",
+      "GzipBase64": "H4sIAAAAAAAACh3MuwrCMBQA0H+5c4emN6+bLSYpdRCHDM5NcsGCD5B0EPHfBc8HnA/keuX7Ck4McHo2Bgd58fF8gQHy+9Gv3LcKrr92HsDvbevHBg641cpGIKNaZWkTrSR1FRO1VlpRBf7bfuO8+ElpcIBeJ5q0FxijUjSOIh3QKKOliTIgUprj7FWwFDAkCnq2OglJozXWJJTw/QHrnzIFrAAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture039/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/.superpowers/c12-shadow/e2f2ae5586e2429a8889854289eaeb71/run.json",
+      "Length": 306,
+      "SHA256": "E03D7199826C5C6D2A3E0166D2AFCB32F93CA7E48B334091B0EE30CDB9D0A1EB",
+      "GzipBase64": "H4sIAAAAAAAACh2Qy2rDMBRE/+WutYglS5a0UyW5McRxiUOzKKWo8Q0x+BFsubSU/nuxt3NgODO/UF/v2AfQCYFybBA01HvjqgsQqH+GeMfYXkHHaUECZmnaWDSgAemNBuRcCqQpVUFKqSRPqVQY8DNLYGtbOqz3hnIBGpgRXlFhEuYc52q3S/wTy3gm0sylljHlc5cbbqWyzHplRS6FT1K1k5nMPEtXnxjiKlgcbVW+HPzZA4EThnkctvTVHAr3UZpjkfv6DASep3F5zKDf3gnk49SHzn+30W4zEwLVEnGyHYZheeSh7bABfQvdjAT88NVO49DjEE84x3Fa2XrC3z/4D2k6MgEAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/.superpowers/c12-shadow/e2f2ae5586e2429a8889854289eaeb71/session.json",
+      "Length": 172,
+      "SHA256": "31522FADFA0BBEF213FC04DFDAF3798F9930D97EE6822E67CE4846B4298AF343",
+      "GzipBase64": "H4sIAAAAAAAACh3MOw7CMAwA0Lt47tB8nNjZQpKqDIghA3OhRq3ER0LpgBB3R+Id4H2gXha5TxBUB4fnLBCgjjEfT9BBfT/aIm29QGivTTqI27y2/QwBRF/1JIjkRFvNExExodXEMsnZK/hv203qGDU6CGCiK6xdVCZnRO57VXbGo3fWZ5uM4TLkIWIiTiYVTm4gV5Tlnjz5Yix8f94GTgmsAAAA"
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/a.txt",
+      "Length": 3,
+      "SHA256": "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
+      "GzipBase64": "H4sIAAAAAAAACktMSgYAwkEkNQMAAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/fixture040/testdata/c12/shadow-source-manifest.v1.json",
+      "Length": 131,
+      "SHA256": "E9D6F198E1B8A058C76662803257B4C2271B3CED4D08141FDFFBF77DC055F534",
+      "GzipBase64": "H4sIAAAAAAAAChXKuwrCQBAF0H+5dZCZfSXZbja7g40opLAQi0UDERQLUwgh/y6e+qwYb/P0qojc4PC+T4gY95KPZzTQx3P6IF5WnOoyI6Lulu+C5j+MD4hI0nYcknZKPGgRx44d5eKzFGOMTUQ2sNg+cNtKPyTHpBpYDRF7ydiu2w+hfltkgwAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsGreen/result.json",
+      "Length": 1887,
+      "SHA256": "3069B5782AB66B9941DF0689B69519A758D84C2892B19ADACCD3D2015545BC16",
+      "GzipBase64": "H4sIAAAAAAAACq2VTWvjMBCG74X+h8Hn5LLH7il1vG3YDwcntIdlMVNpEovKkpmRUkLpf1+cOMmysGxr+ySsd95HX6/k1+srgCTfEaO1yQ0kP/J1OUvTbLnO5snkoC4rFGq1gpRnLXdM5DptFTBEacXV/WyeP5ZFlubFfFU+ZMXiyyKbl4+L9X2Z5g9ZMbvLyttvefo1Kzp36tuBt3RrvXomndzAz7YfIGFqkIWS9vPXsbggiTbIpej12AAk3zGo6uAPHGly7k+7ie/QGn1gAbxNPurWbDaht7s2IsZte/tFVVRjb3uDoZLebmtqE/rbNaG2xtE/AafC03FfEAWheNdqS6ad8VHsHrTBrfNCGlApEgFNzpD+DFGIAZuG/Y40rFGeP4HyLhgXMRjv4MWEyscATIH3fwxzye8xmV3m/1rdBq1Q303g462Z1l3dUM4TbTzTdFgqzzDj9JB0njgB64Z4hNV5pWJjSE8l1jXyfjzgln1sBuOUJXQjcPyLI5bKDCf995K9F+T8cY9kMCk6JtT4ZGlaozMbkuFJ7d7R8XIRA/Fox9mw2aE6z+rw27q+evsNQAh4fl8HAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsRed/claim.json",
+      "Length": 50,
+      "SHA256": "35515A250770A231C00D94EF0BCF4493F6F740F377FC4DC31AEB273D1C17AEEB",
+      "GzipBase64": "H4sIAAAAAAAACqvm5VJQUArISCxOVbJSUApKTc4vSikOSk1R0gHLOOfnFZfmpqYoWSmUFJWm8nLVAgCfVMQlMgAAAA=="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/RecordsRed/result.json",
+      "Length": 382,
+      "SHA256": "7A187A6F2466F5EB9BBF4FE840A230B066B3B771C38CB47C2ECE66B6B9F84F11",
+      "GzipBase64": "H4sIAAAAAAAACmWQQWvCQBCF74L/YcnZSPVmEMEmQk8mJIEeOkWmm7Fus92VnUlFSv97SRp78TTwvTePN/M9nSgVlYTsXZSoqHraZvnzodxlifo0zMa9K2uOpK/akjJOKBxRUzQb9va+JAnXKFESOvpjlaBu+ygUta50MGd5tF63m5nKEoAi+A/SwgA1WnLBA8wvPrQSiBhAL5bx28MiFuR2FWvvQ2Mcig8APGQxgBD3o7fyCRt/ibFrjMwHPj/zIlHWOFLLFQRw9zXWe6+OxtLm5huvKU7I1DcvSfvQcEnNqKSjYD3eUP5FAa3t6T6vD9s03RX1LhvVSlA6Hh5a50Xxz0vizkovvLxOJz+/r2yLNH4BAAA="
+    },
+    {
+      "Path": ".superpowers/sdd/2026-11-06-c12-shadow-audit-integration-v1/task2-progress.md",
+      "Length": 2050,
+      "SHA256": "E0E187EF562FDC9A110D810CCC642EC4D98C96F962F4C9D1E8F1B0955BFCB874",
+      "GzipBase64": "H4sIAAAAAAAACm1VTXPiRhC961d0VY4ByWDH69i1By9mN66kjAs7u0dXM9NCHUYzSvcMmJzyI/IL80tSIwHeTe0FMQPqj9fvvf4BnlE3UzDBR/YJIwcP//79D3QOPdhgtNLUkXRhR6JVvtVqeja9HE8m47PLsZlMx9qgDbsxJstxzD7SWvo4ZWuL4gMqXa3IXpzXP5Xwu5IAdp2ELdlD6h3HBoQ6FCUwYUuCa4KVC2ZDdgQ+ROhQlWxZLJNjv76GJZkgVqFrUEnzy0Ei0Gvn2HCED78tZr/O7/rIIUX4I3nTNyYUZX8DQXjNHl3xmHPKJyHKv2lyEYRaZK+QvGnQr8mWcOscKG3JQ4gNCfSVCqwlpE5BkgdcI/uCPdRC2pzKkxCilrBk3VxD8lsSrpnsqdkVNbjlINBJDh8V0BjqInpDZfFkQkfXEDwdAy7Jwo9fX/SV34DG0EHy9NqRiQNmgCmGFiObPhtLWTyEHvDzXLEngSaEjY5glZQ9qVZ3GXCpFk9gGnZWyFd1yq0njlRlVKAlWdPbGB5oN55Npk/9/J9INWM8tKAQugw5Ooj7jiw87X1sKLJ5X6NTuoFIGrWfbBEl0Wl6bl/Cc8MKmrrOMSnEht44I33nUDM5expwjjUO3u3h9vFey+IxrRwbYEs+ctwDK9Armjje0B5M6JjsDQjugF6j4BBMKxIJouBpSwJKwuj4r0y7e+/YU4a0CQJCW6YdoLd5bkqSy6JtTmYIMn+FLcGaPAkb0A07B8YR+tSNiiFjjykISfLaR2JvqSOfCz4kKC8uqvOL6rKaTt4dWPkVKYtZZv71gZffMHJ04tdBByOoQ5I4kHxg5oG776fTw9eyKJbzu6t3kwtjgV45TuBIJ2hZlf0aHNdk9sYRZJFLjYZK+LSczx9+Nria1JUOFLi8mp5Ni9yMnV4Q4rs+4Nn1dHLM22I0DdnR5P+llrAktMMoB0FOzy+vLBUm+JqlVXj65fZu8eVlOZ8tlndPL5/ny/uP9/O7ly/3z7+8zBaf58vbT/OXIdyyelg8v9zOZvPH5/ldWXwMSSDUR9Acek8Z+m0wvWFptkFNbZZQ55L2UtNcIUZ6cxHLuPZBWXtN9Z5SQq9WIG8VMA7OdjPorbroPUwjSi/Oo/scdfjVUL9HtGuoj/8GTW2LsgeHZqNADjslO47cErQU0WJEEPozsZCF1b7IytEG8+k4+Wz0giaWcB/zSShXFqnqes0MC+BNmzlOOvRTsMLD4hmyK2QZtZ2jSCXcWgsINXJ2BcgvyRClof7jINbkbTb/E6BuX6xCvrRQB+fCbpw6WFGdS6qDtOh6i4JdkM0N2DCgyI58zOkdcvuNX84Oq+Ma0MSEDmp2BPfVYgT0alxS3ub94hxnkmbn20eqTh4Rse1I2K9HYIXrOCp8GPd8rQ4CGE4jGDYTtOi5Jo2jo7irsPMk2nBXWUKbR5m1qDEI2YL8liX4Nit8jZFGEBsJuwzZDsXnp7Lf9G7QomxIjmWHvFdCe/KYnnZv1gxBvmcf8BCgCRrZ0VgwO5OAZd2M86CSEHQSQl0W/wEYeI/EAggAAA=="
+    }
+  ]
+}

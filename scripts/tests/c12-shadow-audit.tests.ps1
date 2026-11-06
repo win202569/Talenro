@@ -37,6 +37,14 @@ try{
  $r=Scan-Fixture (New-Fixture (' '*1048577));Check ($r.Reason -ceq 'LIMIT') 'manifest limit'
  $root=New-Fixture $null $null;$s=[IO.File]::Open((Join-Path $root a.txt),[IO.FileMode]::CreateNew);try{$s.SetLength(33554433)}finally{$s.Dispose()};$r=Scan-Fixture $root;Check ($r.Reason -ceq 'LIMIT') 'aggregate limit';Record-Pass $current
  $current='deadline';$r=Scan-Fixture (New-Fixture) ([datetime]::UtcNow.AddSeconds(-1));Check ($r.State -ceq 'INCOMPLETE' -and $r.Reason -ceq 'DEADLINE') 'deadline';Record-Pass $current
+ if($Phase -in @('RecordsRed','RecordsGreen')){
+ $results.Add(@{Case='reparse';Matched=$false;Status='BLOCKED';Reason='Previously diagnosed access denied; user approved Task2 continuation without retry'})
+ Write-Output 'BLOCKED: reparse (not retried, not passed)'
+ . (Join-Path $PSScriptRoot 'c12-shadow-record-cases.ps1')
+ Save-Test (Join-Path $phaseRoot result.json) @{Status='SHADOW_RECORDS_VERIFIED_WITH_COVERAGE_BLOCKER';Phase=$Phase;Results=$results.ToArray();CoverageBlocked=@('reparse');Overall='NOT_ACCEPTED'}
+ 'SHADOW_RECORDS_VERIFIED_WITH_COVERAGE_BLOCKER'
+ return
+ }
  $current='reparse';$root=New-Fixture;$target=Join-Path $root target;$null=[IO.Directory]::CreateDirectory($target)
  $junction=Join-Path $root link
  try{$null=New-Item -ItemType Junction -Path $junction -Target $target}catch{throw 'SHADOW_COVERAGE_BLOCKED: local junction unavailable'}

@@ -1,5 +1,20 @@
 # Staged integrity integration readiness review
 
+## Latest Task2 core evidence: 21 matched, reparse blocked, schema gap open
+
+User explicitly approved continuation despite reparse creation access denial.
+RED8714cd expected missing API; GREEN9cab1f→24eaa7 exit0,21 groups matched and
+1 reparse BLOCKED. Actual filesystem cases exercised exclusive collisions,
+byte/attempt-binding tampering, retained before drift, missing/locked evidence,
+cleanup/ownership/deadline/restoration gates, throwing warning sink and privacy.
+No junction retry or formal-runner change. Four planned calls consumed plus one
+separate diagnostic. Author review found final run summary lacks elapsed-time
+metadata required by shared contract: Task2 remains incomplete, not accepted.
+Follow up with bounded failing assertion/field implementation before Task3 hooks.
+Archive151files/191directories/154518bytes verified3d0e17; original receipts kept.
+Coverage does not prove reparse rejection, hostile-race safety, disk resilience,
+full-suite correctness or independent acceptance.44/34/6/217 unchanged.
+
 ## Latest junction diagnosis: creation access denied, coverage still blocked
 
 One separately approved fresh-root attempt6a7144 exited1 at New-Item Junction:
