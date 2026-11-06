@@ -1,5 +1,15 @@
 # Shadow audit runtime readiness — read-only review
 
+## V2 bounded observation plan — awaiting approval
+
+Plan docs/superpowers/plans/2026-11-06-c12-wait-diagnostic-v2.md proposes a fresh
+fixed v2/Live root, root-path RED/GREEN and existing UTC/loop offline gates, then
+one parent preflight and at most one120s root attempt. Independent executor and
+separate collector/worker retained; no permission/deadline/environment expansion.
+Zero samples cannot establish Go activity even with a normal end reason. Original
+records remain immutable. Planning only this turn: no code,test or live execution.
+Fresh execution budget needs approval;44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## End-reason fix — offline8/8, no live acceptance
 
 After64467cbd approval, ReasonRed2f9635 reproduced the three missing-reason

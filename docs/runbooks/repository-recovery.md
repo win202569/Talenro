@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST V2 PLAN (2026-11-06): docs/superpowers/plans/2026-11-06-c12-wait-diagnostic-v2.md
+is READY_FOR_REVIEW, not approved/executed. Proposed fresh v2/Live root; root-path
+RED/GREEN then UTC/loop V2Gate once each, followed only if passing by one parent
+preflight and at most one120s root observation. Existing process separation,
+pin/offline environment/query/sample/cleanup limits unchanged. No old-root reuse.
+This turn changes documents only; no code/tests/processes. Read plan and obtain
+approval before using its new budget.44/34/6/217,NOT_ACCEPTED; no main merge.
+
 LATEST END-REASON FIX (2026-11-06): user approved narrow repair after64467cbd.
 ReasonRed2f9635 reproduced5 pass/3 fail; ReasonGreen96c66c passed all8 offline
 loop/receipt cases. Collector adds EndReason DEADLINE/EXECUTOR_FINISHED/SAMPLE_LIMIT,

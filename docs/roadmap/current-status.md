@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-06
 
+## Latest — v2真实诊断计划待批准，尚未执行
+
+新增docs/superpowers/plans/2026-11-06-c12-wait-diagnostic-v2.md。先将两角色固定目录迁移到全新v2/Live，并做目录RED/GREEN及UTC/循环各一次离线复验；全部通过后，一次父进程预检，至多一次120秒根模块验证。
+原执行权限、Go固定版本、离线环境、5秒查询、至多24样本和所属进程退出确认不变。旧目录/证据不删不复用，异常不重试、不加时，不运行devtools/C12/Docker工作负载。
+本轮仅编写并自审计划，未改代码、未测试或启动进程；等待用户批准新预算。44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 结束原因记录已修复，离线8项全部通过
 
 用户在64467cbd后批准仅修复结束原因并离线复验。ReasonRed/2f9635再次复现5通过3失败；修复后的ReasonGreen/96c66c返回OFFLINE_LOOP_VERIFIED，8项全部通过。
