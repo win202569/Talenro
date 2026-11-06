@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST SAMPLED ROOT STOP (2026-11-06): approved single c731c2/session52726→a1d7c1
+exit1,120038.3429ms,TimedOut/ExitConfirmed true; empty stdout/stderr,devtools NOT_RUN.
+24 samples show CPU increasing to13828.125ms,working set18325504–20164608 bytes.
+This establishes activity, not its bottleneck or module progress. No I/O counters/
+stacks; no integrity success or corruption claim. Four go.mod/go.sum unchanged.
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-sampled-stop-v1.json
+27 files,21821 bytes LF JSON; SHA256
+0034DD28AFE0A3BF80CDB95649939F5FBB4226FEAD691F4C366E0A7C762A65C7.
+Base64 Length/SHA256 and originals verified61c914. Restore evidence only into a
+fresh directory after path checks; never auto-run launcher/reuse consumed root.
+Earlier failure retained. Next design stronger bounded I/O-vs-lock observation
+before further execution approval; no automatic repeat/extension/security changes.
+44/34/6/217 unchanged,NOT_ACCEPTED; no C12 or main merge.
+
 LATEST READ-ONLY TIMEOUT INVESTIGATION (2026-11-06): installed Go verify source
 normally emits success only after batch completion; absent output does not establish a hang.
 ZIP metadata inventory2a7152:99 declared root modules,22765 entries,608597910

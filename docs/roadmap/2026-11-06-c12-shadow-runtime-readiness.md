@@ -1,5 +1,30 @@
 # Shadow audit runtime readiness — read-only review
 
+## Approved sampled root attempt after1e1b75cb — timed out
+
+Single c731c2/session52726→a1d7c1 exit1. Same pinned Go/offline/GOMAXPROCS=2
+parameters and120s limit, with approximately5s CPU/memory samples. Root elapsed
+120038.3429ms,TimedOut=true,ExitConfirmed=true,ExitCode=-1; no launcher exception,
+empty stdout/stderr. Owned process terminated at deadline; devtools NOT_RUN.
+Twenty-four samples: CPU increased from2875ms at~5s to13828.125ms at~120s;
+working set18325504–20164608 bytes. Process was active, not continuously CPU-idle.
+CPU time was much less than wall time; this alone does not distinguish I/O/lock
+wait, scheduler contention, scanning overhead or progress through particular files.
+No disk-I/O counters, stacks or per-module progress were captured. Root cause
+remains unknown; no integrity success/corruption/deadlock conclusion.
+
+Four go.mod/go.sum hashes unchanged. Child-only environment, no persistent
+configuration/security changes, no compilation/C12/containers/downloads. No
+automatic retry or extension. Cache-wide mutation was not measured.
+Portable27files21821bytes decode/source-verified61c914:
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-sampled-stop-v1.json
+SHA2560034DD28AFE0A3BF80CDB95649939F5FBB4226FEAD691F4C366E0A7C762A65C7.
+Contains claim,24 samples,result and exact launcher. Earlier failure preserved.
+Next should design a bounded observation that can separate I/O from lock waiting
+before seeking another execution approval; do not simply repeat the same probe,
+raise concurrency/deadline or alter security controls.44/34/6/217 unchanged,
+NOT_ACCEPTED; no main merge.
+
 ## Read-only timeout investigation aftera78543a7
 
 No verify rerun. Read saved result and installed Go1.26.5 source
