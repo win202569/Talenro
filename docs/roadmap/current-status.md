@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-06
 
+## Latest — 第3阶段守卫式入口接入及12项离线检查通过
+
+新增Focused/Suite共用-ShadowAudit开关，默认关闭。组前记录使用实际源码根；受控Go调用正常返回且清理无失败才允许后置扫描；外层快照/资源清理和环境恢复结束后才写最终摘要。
+REDfb276a按预期缺少开关/钩子；GREEN9ca66d退出0，12场景匹配：关闭/模块缺失、匹配/漂移、审计I/O失败、正式失败、清理失败、归属不明、Suite不同源码根、外层清理失败、恢复失败、最终截止。
+只执行AST提取的钩子、原清理/判定尾段和使用外部资源替身的Suite/主流程；没有完整runner、Go或Docker运行。测试session头验证真实Synthetic=false默认，随后测试maps标true；所有归档内容均为合成夹具，不能当作真实监督证据。
+只读076414确认6412原始行顺序保留、仅新增75行、4个生命周期调用均有开关守卫、6个固定哈希匹配。现有Windows检出规则决定固定字节：core.autocrlf=true，Go源码LF，其余5个覆盖文件CRLF；扫描不做归一化或运行时重算。
+恢复包120文件140目录158661字节，解码/源核对92693e通过。原计划6/7调用已用，另有1诊断+2耗时验证；Task4组合验证未运行。reparse仍BLOCKED，44/34/6/217不变，NOT_ACCEPTED，未合并main。
+
 ## Latest — 最终汇总耗时字段已补齐，5项定向验证通过
 
 用户批准5ec95df5后的额外RED/GREEN。RED05b434准确复现缺少ElapsedMilliseconds；GREEN3bd6a3退出0，matched/drift/incomplete/occupied/deadline五项通过。

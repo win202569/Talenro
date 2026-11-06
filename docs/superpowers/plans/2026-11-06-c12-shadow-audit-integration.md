@@ -1,5 +1,18 @@
 # C12 shadow source-audit implementation plan
 
+## Task3 execution result — 2026-11-06
+
+User continued afterd060d3fe. REDfb276a expected missing hooks; GREEN9ca66d exit0,
+12 scenarios matched. Actual AST hooks/formal cleanup/tails executed with synthetic
+external resource boundaries, no full runner or live workloads. Shared switch off
+by default; native-return flag is conservative; caller cleanup failure flags and
+final post-restoration summary added. Original6412 lines retained with75 additions,
+4 lifecycle calls guarded,6 pins matched076414. Test session header exercises
+actual Synthetic=false default, then fixture maps explicitly true; all artifacts
+remain synthetic. Windows EOL policy preserved (core.autocrlf=true; .go LF;
+other covered inputs CRLF). Archive verified92693e. Planned6/7 calls used plus
+separate1 diagnostic+2 elapsed. Task4 remains unrun; reparse BLOCKED/NOT_ACCEPTED.
+
 ## Elapsed follow-up result — 2026-11-06
 
 User approved an additional bounded RED/GREEN after5ec95df5. RED05b434 missing

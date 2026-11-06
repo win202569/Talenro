@@ -18,6 +18,10 @@ param(
   [Parameter(Mandatory = $true, ParameterSetName = 'Suite')]
   [string]$Suite,
 
+  [Parameter(ParameterSetName = 'Focused')]
+  [Parameter(ParameterSetName = 'Suite')]
+  [switch]$ShadowAudit,
+
   [Parameter(Mandatory = $true, ParameterSetName = 'Focused')]
   [Parameter(Mandatory = $true, ParameterSetName = 'Suite')]
   [string]$Timeout
@@ -6006,6 +6010,18 @@ function Invoke-C12Group {
   if ($runSuffix -notmatch '^[0-9a-f]{32}$') {
     throw 'cryptographic C12 run suffix is malformed'
   }
+  if ($ShadowAudit) {
+    $shadowGroup = $null
+    $shadowNativeReturned = $false
+    $script:c12ShadowDeadline = $groupDeadline
+    try {
+      if ($null -ne $script:c12ShadowSession) {
+        $shadowIdentity = @{ GroupID = $GroupID; Profile = $GroupProfile; Package = $Package; RunSuffix = $runSuffix; CandidateTree = $(if ([string]::IsNullOrEmpty($CandidateTree)) { $null } else { $CandidateTree }) }
+        $shadowGroup = Start-C12ShadowGroup $script:c12ShadowSession $script:c12RepositoryRoot $shadowIdentity $groupDeadline
+      }
+    }
+    catch { try { Write-Warning 'C12 shadow audit unavailable IO' } catch {} }
+  }
   $databaseName = "talenro_c12_$runSuffix"
   $databasePassword = New-C12DatabasePassword -RunSuffix $runSuffix
   $pitrNonce = ''
@@ -6122,6 +6138,7 @@ function Invoke-C12Group {
     }
     $goArgs += $Package
     $testResult = Invoke-C12Go -Arguments $goArgs -Stage "tagged Go test group $GroupID" -Timeout $groupDuration -Deadline $groupDeadline -AllowFailure
+    if ($ShadowAudit) { $shadowNativeReturned = $true }
     try {
       Assert-C12GoJSONResult -Result $testResult -Package $expectedImportPath -ExpectedTests $ExpectedTests
     }
@@ -6197,6 +6214,14 @@ function Invoke-C12Group {
     finally {
       $script:c12NativeDeadline = $priorNativeDeadline
     }
+  }
+  if ($ShadowAudit) {
+    try {
+      if ($null -ne $shadowGroup) {
+        $null = Complete-C12ShadowGroup $shadowGroup ($null -ne $primaryFailure) ($cleanupFailures.Count -ne 0) ($shadowNativeReturned -and $cleanupFailures.Count -eq 0) $groupDeadline
+      }
+    }
+    catch { try { Write-Warning 'C12 shadow audit unavailable IO' } catch {} }
   }
   if ($null -ne $primaryFailure) {
     [Console]::Error.WriteLine("C12 test failure [$GroupID]: $primaryFailure")
@@ -6332,9 +6357,19 @@ function Invoke-C12SuiteMode {
       try {
         Assert-C12CandidateSnapshotClean -Candidate $candidate -Snapshot $validationSnapshot -Deadline $script:c12SuiteDeadline
       }
+      catch {
+        if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
+        throw
+      }
       finally {
         $script:c12RepositoryRoot = $originalRoot
+        try {
         Remove-C12CandidateMaterialization -Candidate $candidate -Snapshot $validationSnapshot -Deadline $script:c12SuiteDeadline
+        }
+        catch {
+          if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
+          throw
+        }
       }
     }
     foreach ($group in $groups) {
@@ -6354,9 +6389,19 @@ function Invoke-C12SuiteMode {
         try {
           Assert-C12CandidateSnapshotClean -Candidate $candidate -Snapshot $groupSnapshot -Deadline $snapshotGroupDeadline
         }
+        catch {
+          if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
+          throw
+        }
         finally {
           $script:c12RepositoryRoot = $originalRoot
+          try {
           Remove-C12CandidateMaterialization -Candidate $candidate -Snapshot $groupSnapshot -Deadline $snapshotGroupDeadline
+          }
+          catch {
+            if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
+            throw
+          }
         }
       }
     }
@@ -6364,13 +6409,31 @@ function Invoke-C12SuiteMode {
   finally {
     $script:c12RepositoryRoot = $originalRoot
     if ($null -ne $candidate) {
+      try {
       Remove-C12CandidateSnapshot -OwnerRoot ([string]$candidate.OwnerRoot) -Ownership $candidate.Ownership -Deadline $script:c12SuiteDeadline
+      }
+      catch {
+        if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
+        throw
+      }
     }
     $script:c12NativeDeadline = $priorNativeDeadline
   }
 }
 
 $script:c12RepositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+if ($ShadowAudit) {
+  $script:c12ShadowInvocationRoot = $script:c12RepositoryRoot
+  $script:c12ShadowSession = $null
+  $script:c12ShadowDeadline = $script:c12SuiteDeadline
+  $script:c12ShadowOuterCleanupFailed = $false
+  $script:c12ShadowEnvironmentRestored = $false
+  try {
+    . (Join-Path $script:c12ShadowInvocationRoot 'scripts/private/c12-shadow-audit.ps1')
+    $script:c12ShadowSession = New-C12ShadowSession $script:c12ShadowInvocationRoot
+  }
+  catch { try { Write-Warning 'C12 shadow audit unavailable IO' } catch {} }
+}
 $selectedMode = $PSCmdlet.ParameterSetName
 $priorGoEnvironment = @{
   GOOS = [System.Environment]::GetEnvironmentVariable('GOOS', 'Process')
@@ -6402,11 +6465,23 @@ finally {
   catch {
     [Console]::Error.WriteLine("C12 prepared artifact final cleanup failed: $($_.Exception.Message)")
     $scriptExitCode = 1
+    if ($ShadowAudit) { $script:c12ShadowOuterCleanupFailed = $true }
   }
   finally {
     foreach ($name in $priorGoEnvironment.Keys) {
       [System.Environment]::SetEnvironmentVariable($name, $priorGoEnvironment[$name], 'Process')
     }
+    if ($ShadowAudit) { $script:c12ShadowEnvironmentRestored = $true }
   }
+}
+if ($ShadowAudit) {
+  try {
+    if ($null -ne $script:c12ShadowSession) {
+      $shadowFinalDeadline = $script:c12ShadowDeadline
+      if ($script:c12SuiteDeadline -lt $shadowFinalDeadline) { $shadowFinalDeadline = $script:c12SuiteDeadline }
+      $null = Complete-C12ShadowSession $script:c12ShadowSession $scriptExitCode $script:c12ShadowOuterCleanupFailed $script:c12ShadowEnvironmentRestored $shadowFinalDeadline
+    }
+  }
+  catch { try { Write-Warning 'C12 shadow audit unavailable IO' } catch {} }
 }
 exit $scriptExitCode

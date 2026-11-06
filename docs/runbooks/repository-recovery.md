@@ -1,5 +1,36 @@
 # Recover the project on a new computer
 
+LATEST TASK3 HOOKS (2026-11-06): REDfb276a expected missing switch/hooks;
+GREEN9ca66d exit0,12/12 offline scenarios matched. -ShadowAudit is default off
+in both Focused/Suite. No live runner/Go/Docker was invoked. AST-extracted hooks,
+original group cleanup/verdict and Suite/main tails used synthetic resource
+boundaries; this is not live containment proof. Original6412 lines retained in
+order,75 additions;4 lifecycle calls guarded;6 manifest pins matched (076414).
+Ownership is conservatively confirmed only after tagged Invoke-C12Go returns
+through its existing containment/finally contract and group cleanup has no error.
+Caller snapshot/global cleanup failures prevent final MATCHED; restoration throw
+leaves no summary. Existing formal exits, cleanup order and deadlines remain.
+
+Manifest testdata/c12/shadow-source-manifest.v1.json covers only six approved
+source/config paths. Pins require existing Windows checkout conventions:
+core.autocrlf=true with repository .gitattributes; Go source LF, scripts/mod/sum/
+registry CRLF. Current working files were formatted to that policy before pinning;
+no Git-content changes to the five otherwise unchanged files. A different EOL
+policy may produce DRIFT. Do not normalize during scanning or regenerate pins
+automatically. Task4 must still verify checkout-byte reproducibility and combined
+behavior before any broader readiness claim. Live use remains separately gated.
+
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-hooks-v1.json
+120 files,140 directories,158661 bytes LF JSON; SHA256
+54699FC91971E7659B1C51913EDA8AE1DA4DDE77EDACE24CC08C7E833198FF92.
+Per-file GzipBase64 → Length/SHA256 verified against originals (92693e). All are
+synthetic fixtures, including immutable session headers exercising real default
+Synthetic=false; later fixture maps explicitly use true. Never interpret headers
+as live evidence or auto-execute archives. Restore only to a fresh path after
+relative-path/reparse checks. Prior evidence unchanged. Planned calls6/7 plus
+1 diagnostic+2 elapsed; next Task4 combined offline handoff, not live execution.
+Reparse BLOCKED,44/34/6/217 unchanged,NOT_ACCEPTED; no main merge or independent review.
+
 LATEST ELAPSED FIX (2026-11-06): approved extra RED/GREEN after5ec95df5.
 RED05b434 exit1 missing final ElapsedMilliseconds; GREEN3bd6a3 exit0,5 cases
 matched (matched/drift/incomplete/occupied/deadline). Session Stopwatch and numeric

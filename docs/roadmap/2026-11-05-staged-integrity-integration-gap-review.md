@@ -1,5 +1,22 @@
 # Staged integrity integration readiness review
 
+## Latest guarded hooks: twelve offline scenarios matched
+
+REDfb276a expected missing hooks; GREEN9ca66d exit0,12 scenarios matched using
+actual extracted hooks/formal tails and synthetic resource boundaries. Default
+off no evidence side effects, Suite candidate source/persistent evidence root,
+outer cleanup failure and restoration failure verified. Return from contained
+tagged Go call plus clean group cleanup is conservative after-scan eligibility;
+uncertain outcomes skip it. No live containment/Go/Docker/full-suite evidence.
+076414 confirms original6412 lines retained,75 additions,4 guarded calls and6
+pins. Off throwing sentinels could be caught by isolation, so AST guard review
+supplements behavioral no-files assertions; this is author review, not independent.
+Windows checkout EOL policy explicitly documented; combined checkout verification
+still pending Task4. Archive120files/140directories/158661bytes verified92693e.
+All archived contents synthetic, including session-default test headers false.
+Reparse remains BLOCKED; planned6/7 calls+1 diagnostic+2 elapsed;NOT_ACCEPTED,
+44/34/6/217 unchanged. No main merge or capability promotion.
+
 ## Latest elapsed metadata follow-up: known field gap closed
 
 Approved separate RED05b434 reproduced missing final elapsed field; GREEN3bd6a3
