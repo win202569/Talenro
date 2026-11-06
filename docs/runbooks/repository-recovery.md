@@ -1,5 +1,34 @@
 # Recover the project on a new computer
 
+LATEST COMBINED OFFLINE HANDOFF (2026-11-06): sole orchestrator c5061c/session98376
+ended62cd45 exit0.21 module groups matched,1 reparse BLOCKED,12 hooks matched.
+Marker C12_SHADOW_OFFLINE_VERIFIED_WITH_COVERAGE_BLOCKER;Overall NOT_ACCEPTED.
+Final elapsed field and counted off-path audit-call sentinels included. Definition-
+only module verified. Six read-only Git cat-file --filters outputs (explicit
+core.autocrlf=true with repository attributes) and current working bytes matched
+all6 frozen pins. No actual clone, real candidate snapshot or full runner executed;
+dependencies, credentials and clean-machine runtime are separate preparation.
+
+OFF_BY_DEFAULT: only explicit -ShadowAudit enables recording. Six-file source/
+configuration coverage is not a complete dependency/runtime audit. When changing
+covered source or checkout rules, review and regenerate pins during development,
+never during a run. Synchronous I/O may delay/hang; no hard timeout guarantee.
+Do not rerun consumed Combined/HooksCombined/OfflineCombined roots. Original7/7
+plan slots consumed plus separate1 junction diagnosis+2 elapsed calls. Next is
+read-only readiness review and a separately approved live budget, not auto-run.
+
+Package: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-combined-v1.json
+274 files,330 directories,454611 bytes LF JSON; SHA256
+77BAF09E7241E2C5C457B9109D2BF0A18BF7F5BB68400755544A50B1F97DF171.
+GzipBase64 entries decode to original Length/SHA256 (verified603aea). Includes
+both fresh phase fixtures, combined result/claim, ledger and six checkout byte
+captures: checkout-NN.bin are source/config contents, not executable binaries.
+All artifacts are synthetic, including init headers checking Synthetic=false
+default. Restore only to a new evidence directory after relative-path/reparse
+checks; never auto-execute. Outer checkout JSON EOL may vary; verify decoded bytes.
+All originals retained. Reparse/disk-failure/hung-I/O/full-suite/independent review
+remain open;44/34/6/217 unchanged; no main merge or capability promotion.
+
 LATEST TASK3 HOOKS (2026-11-06): REDfb276a expected missing switch/hooks;
 GREEN9ca66d exit0,12/12 offline scenarios matched. -ShadowAudit is default off
 in both Focused/Suite. No live runner/Go/Docker was invoked. AST-extracted hooks,

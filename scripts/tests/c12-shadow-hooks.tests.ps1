@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][ValidateSet('Red','Green')][string]$Phase)
+param([Parameter(Mandatory)][ValidateSet('Red','Green','Combined')][string]$Phase)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $repo=Split-Path (Split-Path $PSScriptRoot)
@@ -62,10 +62,11 @@ try{
    $script:c12GroupCleanupBudget=[timespan]::FromSeconds(1);$script:c12ProfileAllowances=@{base=[timespan]::FromMinutes(1);'authority-v7-pitr'=[timespan]::FromMinutes(1)}
    $Suite='batch01';$Timeout='120m';$selectedMode=if($current -like 'suite-*'){'Suite'}else{'Focused'}
    $scriptExitCode=0;$outerThrown=$false
-   function New-C12ShadowSession {throw 'OFF audit factory reached'}
-   function Start-C12ShadowGroup {throw 'OFF audit group reached'}
-   function Complete-C12ShadowGroup {throw 'OFF audit completion reached'}
-   function Complete-C12ShadowSession {throw 'OFF audit finalization reached'}
+   $script:hookUnexpectedAuditCalls=0
+   function New-C12ShadowSession {$script:hookUnexpectedAuditCalls++;throw 'OFF audit factory reached'}
+   function Start-C12ShadowGroup {$script:hookUnexpectedAuditCalls++;throw 'OFF audit group reached'}
+   function Complete-C12ShadowGroup {$script:hookUnexpectedAuditCalls++;throw 'OFF audit completion reached'}
+   function Complete-C12ShadowSession {$script:hookUnexpectedAuditCalls++;throw 'OFF audit finalization reached'}
    function Assert-C12NoInheritedDependencies {}
    function Clear-C12InheritedCapabilities {}
    function Close-C12AllPreparedArtifacts {}
@@ -114,7 +115,7 @@ try{
     Check-Hook ($scriptExitCode -eq $expectedExit) "formal exit $current"
     Check-Hook ($outerThrown -eq ($current -eq 'restore-failure')) 'restoration throw changed'
     $state='DISABLED'
-    if(-not $ShadowAudit){Check-Hook (-not(Test-Path -LiteralPath (Join-Path $invocation '.superpowers'))) 'off side effect'}
+    if(-not $ShadowAudit){Check-Hook ($script:hookUnexpectedAuditCalls -eq 0 -and -not(Test-Path -LiteralPath (Join-Path $invocation '.superpowers'))) 'off call or side effect'}
     else{
      $runPath=Join-Path $script:c12ShadowSession.EvidenceRoot 'run.json'
      if($current -in @('restore-failure','final-deadline')){Check-Hook (-not(Test-Path -LiteralPath $runPath)) 'invalid final summary';$state='INCOMPLETE'}

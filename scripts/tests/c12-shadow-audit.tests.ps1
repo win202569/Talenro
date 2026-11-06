@@ -37,7 +37,7 @@ try{
  $r=Scan-Fixture (New-Fixture (' '*1048577));Check ($r.Reason -ceq 'LIMIT') 'manifest limit'
  $root=New-Fixture $null $null;$s=[IO.File]::Open((Join-Path $root a.txt),[IO.FileMode]::CreateNew);try{$s.SetLength(33554433)}finally{$s.Dispose()};$r=Scan-Fixture $root;Check ($r.Reason -ceq 'LIMIT') 'aggregate limit';Record-Pass $current
  $current='deadline';$r=Scan-Fixture (New-Fixture) ([datetime]::UtcNow.AddSeconds(-1));Check ($r.State -ceq 'INCOMPLETE' -and $r.Reason -ceq 'DEADLINE') 'deadline';Record-Pass $current
- if($Phase -in @('RecordsRed','RecordsGreen')){
+ if($Phase -in @('RecordsRed','RecordsGreen','Combined')){
  $results.Add(@{Case='reparse';Matched=$false;Status='BLOCKED';Reason='Previously diagnosed access denied; user approved Task2 continuation without retry'})
  Write-Output 'BLOCKED: reparse (not retried, not passed)'
  . (Join-Path $PSScriptRoot 'c12-shadow-record-cases.ps1')

@@ -18,6 +18,7 @@ Check ($p.State -ceq 'PROVISIONAL' -and -not(Test-Path (Join-Path $f.Session.Evi
 $r=Finish-Session $f;Check ($r.State -ceq 'MATCHED' -and $null -ne $r.Reference) 'final matched'
 $saved=Read-Record $f.Session $r.Reference
 Check ($saved.Synthetic -is [bool] -and $saved.Synthetic -and $saved.FormalExitCode -eq 0 -and $saved.State -ceq 'MATCHED') 'persisted outcome'
+Check ($saved.Contains('ElapsedMilliseconds') -and $saved.ElapsedMilliseconds -is [double] -and [double]::IsFinite($saved.ElapsedMilliseconds) -and $saved.ElapsedMilliseconds -ge 0) 'final elapsed metadata'
 Record-Pass $current
 # Restoring contents after a drifting before-map cannot erase drift.
 $current='records-before-drift';$f=New-RecordFixture 'changed';[IO.File]::WriteAllText((Join-Path $f.Source 'a.txt'),'abc',$utf8)

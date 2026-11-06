@@ -1,5 +1,19 @@
 # Staged integrity integration readiness review
 
+## Latest combined offline evidence: 33 matched, reparse still blocked
+
+Single c5061c→62cd45 exit0:21 module groups+12 hooks matched,1 reparse BLOCKED.
+Counted off sentinels now catch even swallowed unexpected audit calls. Elapsed
+metadata asserted in combined records. Definition-only module and six actual Git
+filtered checkout byte captures match pinned/working bytes under Windows policy.
+No complete clone/runtime readiness claim; no live runner/Go/Docker/snapshot.
+Archive274files330directories454611bytes verified603aea. Original7/7 plan slots
+consumed plus1 diagnostic+2 elapsed calls; no automatic retry authority remains.
+Default-off source-only recording is implemented with offline evidence; unqualified
+acceptance remains blocked by reparse and wider runtime/fault/independent-review
+gaps.44/34/6/217 unchanged,NOT_ACCEPTED; no main merge. Next: scoped readiness
+review and separately approved live budget, not immediate execution.
+
 ## Latest guarded hooks: twelve offline scenarios matched
 
 REDfb276a expected missing hooks; GREEN9ca66d exit0,12 scenarios matched using
