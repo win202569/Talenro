@@ -1,5 +1,21 @@
 # Recover the project on a new computer
 
+LATEST UTC OFFLINE FIX (2026-11-06): user approved narrow repair after174ab855,
+without Go/live collection. Collector now uses Get-C12WaitStartUtc, preserving
+the JSON reader's UTC DateTime/ticks and rejecting ambiguous/non-UTC values.
+No executor/deadline/process ownership changes. RED09a09d:6/8 failed as expected;
+GREENc91c8f:8/8 passed. Test executes the collector's actual isolated conversion
+assignment selected by AST, not the live collector; real record JSON roundtrip,
+two cultures, precision/deadline/rejection cases. Full loop remains unverified.
+Portable six original test files/receipts:
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-utc-fix-v1.json.
+Decode/length/SHA/source verification2309dc passed. New test source alongside
+tooling is runtime-cache-wait-utc.tests.ps1; it requires fresh exclusive phase
+roots. Do not reuse old roots or automatically run live scripts after cloning.
+No child processes,Go,CIM,C12/full suite or new live budget consumed/authorized.
+Next proposed scope: offline collector-loop and end-reason coverage, before any
+separately approved live attempt. Prior archives untouched;44/34/6/217,NOT_ACCEPTED.
+
 LATEST WAIT-DIAGNOSTIC STOP (2026-11-06): tooling000e5d63 remains UNFINISHED.
 Single real parent preflight passed, but collector ec986f ended with0 Go samples.
 Its COLLECTION_ENDED/Failure=null is misleading: read-only7bf213 shows JSON

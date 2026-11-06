@@ -46,7 +46,7 @@ try {
     }
     if ($null -eq $target -or $targetClock.ElapsedMilliseconds -ge 15000 -or $target.SessionId -cne $SessionId -or $target.DeadlineMs -ne 120000) { throw 'TARGET_TIMEOUT_OR_BINDING' }
     $previous=$null
-    $start=[DateTime]::Parse($target.StartedUtc).ToUniversalTime()
+    $start=Get-C12WaitStartUtc $target.StartedUtc
     $next=5000.0
     while ($count -lt 24) {
         if ($null -ne (Read-C12WaitRecord $root 'executor-result.json')) { break }

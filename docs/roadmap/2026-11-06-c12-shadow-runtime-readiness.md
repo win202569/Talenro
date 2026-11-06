@@ -1,5 +1,22 @@
 # Shadow audit runtime readiness — read-only review
 
+## UTC conversion repair — offline coverage only
+
+Approval after174ab855 limited to collector repair/offline regression, no Go.
+Get-C12WaitStartUtc preserves the deserialized UTC DateTime without culture-based
+reparsing, refuses non-UTC/ambiguous values. Collector calls it; executor and
+120s deadline are unchanged. RED09a09d reproduced6 failures of8; GREENc91c8f8/8.
+Actual collector conversion assignment executes in isolation through AST selection;
+tests include real JSON publication/read, en-US/tr-TR, exact ticks,5s/120s and
+invalid inputs. This is not execution of the sampling loop or process lifecycle.
+No child/Go/CIM/live collector/full suite/C12 invocation. Prior16case lifecycle
+suite not rerun under this narrow authorization. Six evidence files archived in
+portable-c12-cache-wait-utc-fix-v1.json, decode/source-verified2309dc.
+Inline diff review confirms one collector call replacement plus definition-only
+helper; no process or privilege changes. Live readiness and Go root cause remain
+unresolved. Recommend offline loop/end-reason coverage next, then explicit fresh
+live budget if desired.44/34/6/217,NOT_ACCEPTED; historical receipts unchanged.
+
 ## Lightweight wait attempt — collector defect, zero samples, stopped
 
 Tooling000e5d63, RED1971e3 expected failure, GREENc0e25a16/16. Real parent

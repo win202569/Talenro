@@ -1,4 +1,10 @@
 # Definition-only helpers. No process enumeration, launch or filesystem writes on import.
+function Get-C12WaitStartUtc($Value) {
+    # Read-C12WaitRecord already deserializes the executor's Z timestamp to UTC.
+    # Never coerce DateTime through a culture-dependent string: it loses Kind/ticks.
+    if ($Value -isnot [DateTime] -or $Value.Kind -ne [DateTimeKind]::Utc) { throw 'START_UTC_REQUIRED' }
+    return $Value
+}
 function Assert-C12WaitPath([string]$Path) {
     if (-not [IO.Path]::IsPathFullyQualified($Path)) { throw 'PATH_NOT_ABSOLUTE' }
     for ($item = [IO.DirectoryInfo]::new($Path); $null -ne $item; $item = $item.Parent) {
