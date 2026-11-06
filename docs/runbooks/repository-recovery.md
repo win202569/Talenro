@@ -12,6 +12,12 @@ Portable package:
 docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-parser-stop-v1.json
 53 files,73 directories,81186 bytes; SHA256
 F123A1D5CA059E13A12575097849CEBAEE1BD38D3B9D24FBFBC9C5C433941591.
+The size/hash above identifies the original Windows working-copy JSON. Git
+normalizes its outer JSON line endings: committed LF representation is80786 bytes,
+SHA25683688AD4381707B23FA7F7825CA2E94E10E08B819FDB1475DE2F4F9030780923
+(read back from commit58b9c975,20a2a8). Checkout line endings may differ; per-file
+compressed payloads and decoded hashes are unchanged. Use those decoded hashes
+for portable evidence verification, not an assumed checkout newline convention.
 Each Files entry has repository-relative Path,Length,SHA256,GzipBase64; decode
 base64 then gzip, verify decoded length/SHA256. Directories preserves empty fixture
 directories. Archive/source verification14596b passed. Contains original receipts,
