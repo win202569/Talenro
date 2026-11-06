@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-06
 
+## Latest — 已保存样本只读分析完成，下一诊断方式待选择
+
+报告docs/roadmap/2026-11-06-c12-wait-v2-analysis.md：从证据包解码校验22个样本，21个区间读字节和CPU增量均为正；5.43–119.66秒区间平均读计数增长约1.31MiB/s、约0.096个CPU核等效用量。不是物理磁盘吞吐，也不能排除局部阻塞。
+本机固定Go源码显示ZIP与解压目录分别校验、完整结果较晚输出；当前计数无法定位模块或阶段。下一步推荐单独设计有界的模块/ZIP/目录分阶段计时；备选是权限与隐私范围更大的系统I/O跟踪。方式尚未选择，未编写实施工具或启动任何新运行。
+不直接重跑、不改时限/并发/安全设置。44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — v2取得22个真实样本；根模块仍超时，已停止
 
 工具检查点4357dbbd之后，唯一预检通过；执行器e8905d/session1473→c2ca56于120048.1025ms超时，已确认所属Go退出，stdout/stderr空，四个模块文件未变。采集器f6d739/session13532→e0dad8正常结束，EndReason=DEADLINE、22样本、WorkerExitConfirmed=true、Failure=null。

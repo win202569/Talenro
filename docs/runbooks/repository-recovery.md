@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST SAVED-SAMPLE ANALYSIS: docs/roadmap/2026-11-06-c12-wait-v2-analysis.md
+records read-only archive/source analysis9da630/f99ebf/df857b.22 samples,21 positive
+read/CPU intervals; mean observed read-counter growth~1.31MiB/s,CPU~0.096 cores.
+No per-module/ZIP-vs-directory attribution or physical disk/root-cause conclusion.
+Recommended next choice: separately designed limited phase-timing helper; alternative
+is explicitly authorized OS I/O tracing with broader privacy/tooling review. Neither
+approach selected or authorized for build/run. No new Go/CIM/compilation/children,
+trace,Docker,C12 or security changes this turn. Preserve all archives; do not reuse
+occupied roots.44/34/6/217,NOT_ACCEPTED. Obtain approach/design/plan approval first.
+
 LATEST V2 RESULT (2026-11-06): approved plan consumed; do not rerun automatically.
 Tooling4357dbbd. Prelaunch493b58 verified pin/modules/source hashes. Executor
 e8905d/session1473→c2ca56 exit1:120048.1025ms,TimedOut=true,ExitConfirmed=true,

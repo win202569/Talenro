@@ -1,5 +1,16 @@
 # Shadow audit runtime readiness — read-only review
 
+## Saved v2 analysis — attribution gap remains
+
+Read-only9da630 decoded and SHA-checked22 archived samples; all21 intervals have
+positive reads/CPU. Mean1.31MiB/s read-counter growth and0.096 core-equivalents
+over5.43–119.66s do not identify physical I/O latency or module/phase attribution.
+Installed pinned sourcef99ebf/df857b confirms graph loading,ZIP then directory
+hashing,limited parallelism and no per-module CLI argument. See detailed analysis
+docs/roadmap/2026-11-06-c12-wait-v2-analysis.md for interpretation and two candidate
+approaches. No new runtime/trace/build actions; user choice/design approval pending.
+44/34/6/217,NOT_ACCEPTED; Go timeout cause unknown.
+
 ## V2 real observation —22 samples, verifier timed out
 
 Tooling4357dbbd, all offline gates passed; single preflight passed. Executor
