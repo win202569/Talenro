@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST LIGHTWEIGHT DIAGNOSTIC DESIGN (2026-11-06): approach1 selected, written
+design awaits approval at docs/superpowers/specs/2026-11-06-c12-lightweight-wait-diagnostic-design.md.
+Own-process probes: restricted thread inspection worked but CIM access failed
+b4906f; normal-desktop own-process I/O query worked514ed7. Cross-process access
+not established. No verifier run or collector implementation. Proposed separation
+keeps Go in its original context, with independently privileged read-only collector;
+preflight failure prevents launch. Counters/wait reasons are clues, not root-cause
+proof. Approve design then write a bounded plan; no automatic execution/retry.
+44/34/6/217 unchanged,NOT_ACCEPTED; no main merge or settings change.
+
 LATEST SAMPLED ROOT STOP (2026-11-06): approved single c731c2/session52726→a1d7c1
 exit1,120038.3429ms,TimedOut/ExitConfirmed true; empty stdout/stderr,devtools NOT_RUN.
 24 samples show CPU increasing to13828.125ms,working set18325504–20164608 bytes.
