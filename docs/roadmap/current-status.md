@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-06
 
+## Latest — 正式运行前只读核查：Docker引擎未就绪
+
+只读核查8b8d0f/2d3ef4：PowerShell7.6.5；PATH Go为1.25.5，但缓存中的固定Go1.26.5存在且版本查询通过。Docker客户端存在，Linux引擎管道缺失，未观察到Desktop/backend进程；未启动或修复服务。
+当前工具进程带GIT_PAGER（用户/机器作用域无此变量），会被正式入口环境门禁拒绝；来源未确定，未放宽检查。六个源码固定哈希匹配。依赖缓存完整性、镜像和真实运行准备尚未确认。
+详情见2026-11-06-c12-shadow-runtime-readiness.md。下一步需批准启动现有Docker Desktop后仅查询引擎/镜像；启动可能恢复已有工作负载，不自动拉镜像或跑C12。
+本轮未运行正式测试、容器或下载，44/34/6/217不变，NOT_ACCEPTED，未合并main。
+
 ## Latest — 组合离线验证通过，保留1项覆盖阻塞
 
 唯一组合调用c5061c/session98376→62cd45退出0：21组模块检查、12组入口场景匹配，reparse明确BLOCKED。最终标记C12_SHADOW_OFFLINE_VERIFIED_WITH_COVERAGE_BLOCKER，不是无条件验收。

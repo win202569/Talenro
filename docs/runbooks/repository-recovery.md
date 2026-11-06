@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY RUNTIME REVIEW (2026-11-06): see
+docs/roadmap/2026-11-06-c12-shadow-runtime-readiness.md (baseline6ff362e6).
+Docker CLI installed but Linux engine pipe unavailable; Desktop/backend processes
+not observed. PATH Go1.25.5 differs, but exact cached Go1.26.5 exists and reports
+the expected version. Current tool process has forbidden GIT_PAGER; user/machine
+scopes do not. Source of injection unknown; preserve runner gate. Six pins match.
+No engine start/download/container/live test. Dependency/image/containment readiness
+still unknown. Next seek approval to start existing Docker Desktop and query only;
+startup may resume existing workloads. No automatic pulls or C12 execution.
+44/34/6/217 unchanged,NOT_ACCEPTED; existing offline/reparse limitations remain.
+
 LATEST COMBINED OFFLINE HANDOFF (2026-11-06): sole orchestrator c5061c/session98376
 ended62cd45 exit0.21 module groups matched,1 reparse BLOCKED,12 hooks matched.
 Marker C12_SHADOW_OFFLINE_VERIFIED_WITH_COVERAGE_BLOCKER;Overall NOT_ACCEPTED.
