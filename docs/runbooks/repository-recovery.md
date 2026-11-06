@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DESIGN ONLY (2026-11-06): user chose shadow recording, not mandatory audit.
+Read docs/superpowers/specs/2026-11-06-c12-shadow-audit-design.md and seek document
+approval before implementation planning. Default-off/source-only/size ceilings
+and timing caveat are proposals, not implemented behavior. Suite source binding
+uses actual group snapshot; evidence root stays persistent outside snapshots;
+final shadow summary follows outer cleanup. One read-only builder check informed
+these clarifications. No code/test/runtime changes,44/34/6/217 unchanged.
+
 LATEST PARENT AUDIT MATRIX PASSED: plan19946250 approved; bootstrap
 RED2b289d/GREENd461d6; implementation6229b867. Sole matrix1ef38d exit0,
 PARENT_AUDIT_MATRIX_VERIFIED,10/10 matched.10 parent-tail runspaces plus2 harmless
