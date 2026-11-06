@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST DOCKER STARTUP (2026-11-06): user approved existing Desktop startup after
+514ecd19 and read-only queries, not a live run. Normal-desktop query1fec5a confirms
+Linux engine29.6.2,0 running containers, all3 specified postgres/redis/nats images
+present as linux/amd64. Exact IDs and startup observations are recorded in
+docs/roadmap/2026-11-06-c12-shadow-runtime-readiness.md. Desktop remains running.
+Restricted pipe access denied is an execution-context limit, not engine absence.
+No pulls/containers/settings changes/C12. Existing Go selection/GIT_PAGER/cache/
+containment/reparse gaps remain; next scoped environment readiness review, then
+separate live-plan approval.44/34/6/217 unchanged,NOT_ACCEPTED; no main merge.
+
 LATEST READ-ONLY RUNTIME REVIEW (2026-11-06): see
 docs/roadmap/2026-11-06-c12-shadow-runtime-readiness.md (baseline6ff362e6).
 Docker CLI installed but Linux engine pipe unavailable; Desktop/backend processes

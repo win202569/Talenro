@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-06
 
+## Latest — Docker已启动，三个固定标签镜像均在本地
+
+用户批准后启动现有Docker Desktop；正常桌面权限查询1fec5a确认Linux引擎29.6.2、运行容器0，PostgreSQL18.4/Redis8.8.1/NATS2.14.3指定标签均为linux/amd64且已存在。镜像ID记录于运行准备核查文档。
+受限环境查询返回管道拒绝访问，不能据此误判引擎未启动。未拉镜像、创建容器、改变设置或运行C12；Desktop保持运行。
+后续仍需核对专用执行环境、固定工具链选择、GIT_PAGER门禁和依赖缓存完整性，再提出独立真实运行预算。目录联接覆盖阻塞保留，44/34/6/217不变，NOT_ACCEPTED，未合并main。
+
 ## Latest — 正式运行前只读核查：Docker引擎未就绪
 
 只读核查8b8d0f/2d3ef4：PowerShell7.6.5；PATH Go为1.25.5，但缓存中的固定Go1.26.5存在且版本查询通过。Docker客户端存在，Linux引擎管道缺失，未观察到Desktop/backend进程；未启动或修复服务。

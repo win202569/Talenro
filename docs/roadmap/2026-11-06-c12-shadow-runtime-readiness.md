@@ -1,5 +1,31 @@
 # Shadow audit runtime readiness — read-only review
 
+## Approved Docker startup follow-up
+
+After514ecd19 user approved starting the installed Docker Desktop and read-only
+engine/image queries only. Initial restricted launch40f255/09de14 left no observed
+Desktop/backend process or pipe. Normal-desktop launch1bce07 started successfully;
+restricted querya358d6 then reported pipe access denied, not engine absence.
+Normal-desktop read-only query1fec5a succeeded:
+
+- Engine29.6.2,OSType linux; running containers0 at query time.
+- postgres:18.4-alpine3.23,linux/amd64,
+  sha256:996d0920e4ff9df1fc19dacb904492f3c1ec0ec1cc338f0ad7123be7731c5f5e.
+- redis:8.8.1-alpine3.23,linux/amd64,
+  sha256:8096655e437712b07503796fb64d81359256cfcff0ab29d95a7da72863786efb.
+- nats:2.14.3-alpine3.22,linux/amd64,
+  sha256:c11af972c99ae542de8925e6a7d9c533aa1eb039660420d2074beed6089b3bf0.
+
+No image pull, container creation, installation, setting change or C12 execution.
+Desktop remains running as authorized. Engine/image-availability blocker below
+is superseded by this observation, not by a full runtime attestation. Image tags
+can change later; future runner still must obtain its own identity receipts.
+Restricted pipe access remains a separate execution-context limitation. Pinned
+toolchain selection, inherited GIT_PAGER gate, dependency-cache completeness and
+native containment readiness remain unresolved/unverified. Next: scoped read-only
+environment/dependency preparation review, then a separately approved finite live
+plan.44/34/6/217 unchanged;NOT_ACCEPTED; no main merge.
+
 Baseline:6ff362e623cbdd8752bfda26ce33df60b6236822. This review does not authorize
 or execute a live runner, dependency download, container creation or settings change.
 
