@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-06
 
+## Latest — 分阶段设计已批准，实施计划待批准
+
+用户批准f8eb10d7书面设计。新增docs/superpowers/plans/2026-11-06-c12-cache-phase-timing.md：所属进程/协议RED-GREEN各一次（10项，GREEN最多2个无业务子进程），Go合成测试RED-GREEN各一次（16组、每轮含编译最多180秒），一次180秒离线构建，最后至多一次120秒双模块分阶段诊断。
+固定Go与dirhash源码，独立构建缓存，真实模块缓存只读；准备、ZIP、目录事件分开记录。任何非预期失败/超时停止，不自动修复重试。重解析点测试用合成属性，不能当作真实junction验收。
+本轮只写计划和核对源码/样例摘要，未实现、构建、测试或启动工具。计划待批准，44/34/6/217不变，NOT_ACCEPTED。
+
 ## Latest — 分阶段计时方案已选择，短设计待批准
 
 用户在3173882f后选择方案1。新增docs/superpowers/specs/2026-11-06-c12-cache-phase-timing-design.md，提议以x/text v0.40.0和sqlite v1.49.1为两个大小对照样本，顺序计时ZIP/目录，单次辅助进程总上限120秒。

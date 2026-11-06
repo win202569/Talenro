@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## Phase-timing implementation plan — awaiting approval
+
+Designf8eb10d7 approved. Plan docs/superpowers/plans/2026-11-06-c12-cache-phase-timing.md
+specifies owner/Go RED-GREEN gates,one180s offline build and at most one120s live
+helper run. Fixed hashing source/provenance,synthetic digest literals,read-only
+allowlist,preparation and phase events,output bounds and owned cleanup. Reparse
+attribute fixture coverage is explicitly synthetic. No real workload or code
+implementation this planning turn; approval needed.44/34/6/217,NOT_ACCEPTED.
+
 ## Selected phase timing — design only
 
 Approach1 selected after3173882f. Proposed short design at

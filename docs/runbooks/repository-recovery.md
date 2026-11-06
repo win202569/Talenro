@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST PHASE PLAN: design approved afterf8eb10d7; implementation plan
+docs/superpowers/plans/2026-11-06-c12-cache-phase-timing.md awaits approval.
+Proposed slots: owner RED/GREEN once each(10 cases,at most2 harmless GREEN children),
+Go RED/GREEN once each(16 groups,180s outer bound including compile,30s test bound),
+one180s offline build,at most one120s live helper run. Fresh isolated cache/output;
+exact pinned dirhash/license provenance,read-only text/sqlite inputs. Unexpected
+failure/timeout stops,no retry or broader workload. Synthetic reparse attributes
+do not establish real junction coverage. This planning turn only checked source
+hash and independently derived fixture digest; no helper/build/test/live execution.
+Read plan before implementation;44/34/6/217,NOT_ACCEPTED; no main merge.
+
 LATEST PHASE-TIMING DESIGN: user selected approach1 after3173882f; short design
 docs/superpowers/specs/2026-11-06-c12-cache-phase-timing-design.md awaits approval.
 Proposed text v0.40.0 then sqlite v1.49.1,ZIP then directory,one120s helper run;

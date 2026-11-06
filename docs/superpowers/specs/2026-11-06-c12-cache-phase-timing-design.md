@@ -1,7 +1,8 @@
 # C12 selected-cache phase timing — short design
 
-Status: DESIGN_READY_FOR_REVIEW. User selected approach1 after3173882f;
-the concrete choices below are proposals, not execution authorization.
+Status: DESIGN_APPROVED by user afterf8eb10d7. Approach1 selected after3173882f.
+Concrete choices below are approved design; implementation plan still needs
+separate approval and this document alone does not authorize execution.
 
 ## Intent and evidence
 
