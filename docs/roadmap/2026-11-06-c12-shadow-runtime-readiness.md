@@ -24,7 +24,9 @@ separately decide whether to authorize another real observation.
 
 Portable26files4236144bytes decode/source-verifiedfe704d:
 docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-stop-v1.json
-SHA25697D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA.
+Canonical LF archive SHA25675BCAFB0ED8272913B09F59B737AFDB3AB2AF0DB95967FCB667C4543A106E406.
+Initial local CRLF envelope hash97D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA;
+Git-normalized outer JSON line endings only, no embedded evidence changes.
 Includes synthetic4MiB quota fixture, separately labelled from live receipts.
 All original evidence retained.44/34/6/217 unchanged,NOT_ACCEPTED.
 

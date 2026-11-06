@@ -13,7 +13,9 @@ All plan slots consumed: RED1/GREEN1(16 cases/two harmless children),preflight1,
 Portable evidence: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-stop-v1.json.
 26files4236144decoded bytes; includes intentional4MiB synthetic quota fixture,
 NOT4MiB of live observation. Decode/length/SHA/source checkfe704d passed;
-archive SHA25697D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA.
+Canonical repository LF archive SHA25675BCAFB0ED8272913B09F59B737AFDB3AB2AF0DB95967FCB667C4543A106E406.
+The initial local CRLF envelope hash was97D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA;
+only outer JSON line endings were normalized; embedded original bytes are unchanged.
 Exact tooling,claims,test results,live receipts,read-only diagnosis and packaging
 source are embedded; no caches/binaries/credentials. Preserve originals. Do not
 run these scripts automatically on recovery. Next proposed scope is a separately
