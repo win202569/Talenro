@@ -1,5 +1,26 @@
 # Recover the project on a new computer
 
+LATEST V2 RESULT (2026-11-06): approved plan consumed; do not rerun automatically.
+Tooling4357dbbd. Prelaunch493b58 verified pin/modules/source hashes. Executor
+e8905d/session1473→c2ca56 exit1:120048.1025ms,TimedOut=true,ExitConfirmed=true,
+empty stdout/stderr, module files unchanged. Collectorf6d739/session13532→e0dad8
+exit0:22 samples,EndReason=DEADLINE,WorkerExitConfirmed=true,Failure=null.
+First/last samples at5427.6505/119655.7048ms: read bytes641048365/798191417,
+read operations220527/289181,CPUms7578.125/18531.25. Activity evidence only,
+not physical disk throughput, lock attribution, correctness or completion estimate.
+Go timeout root cause remains unknown. No devtools/C12/Docker workload/retry.
+Archive docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-v2.json:
+120 files109395 decoded bytes; cd3428 verified decode/length/SHA/source plus
+sample identity/sequence/deltas and unchanged module/five diagnostic sources.
+LF envelope SHA256995D2D1AF7A3BA34EF7DFF801024F08727EFE6AD6D678166C979935BE0267519.
+Includes exact tooling,claims,offline gates,real samples and packaging/analysis
+source; synthetic paths explicitly labelled. No caches/binaries/credentials.
+All four offline invocations,preflight1,Go1 consumed. Current fixedv2/Live is
+occupied: preserve it, never delete/reuse. Further execution needs new scope.
+Next proposed work is evidence-based diagnostic design, not another blind repeat.
+Inline author review only; no independent security/full-suite acceptance.
+44/34/6/217 unchanged,NOT_ACCEPTED; no main merge.
+
 V2 TOOLING CHECKPOINT: user approved after737d73c0. RootRedc07ff4 expected two
 old-path failures; RootGreen9a0fc3 4/4,UTC5516be 8/8,loop8d74a7 8/8. All offline,
 no children or Live creation. Both role scripts now use fixed v2/Live; only test

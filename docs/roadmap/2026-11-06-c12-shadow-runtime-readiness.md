@@ -1,5 +1,25 @@
 # Shadow audit runtime readiness — read-only review
 
+## V2 real observation —22 samples, verifier timed out
+
+Tooling4357dbbd, all offline gates passed; single preflight passed. Executor
+e8905d/session1473→c2ca56:120048.1025ms timeout,exit confirmed,empty output,
+four module hashes unchanged. Collectorf6d739/session13532→e0dad8:exit0,
+22 samples,DEADLINE,worker exit confirmed,empty stderr,nullFailure.
+Samples span5427.6505–119655.7048ms; CPU7578.125→18531.25ms,
+read bytes641048365→798191417,read operations220527→289181; first/last
+write counters0. Generic waits (including UserRequest/Executive) are not lock
+owner/stack evidence. Activity does not identify physical disk throughput or
+establish root cause; no correctness/completion inference. Observer overhead exists.
+All sample identity/sequence/deltas checked; module and five source hashes match
+prelaunch.120 files109395 bytes archived and source/decode-verifiedcd3428 in
+portable-c12-cache-wait-v2.json,LF SHA256995D2D1AF7A3BA34EF7DFF801024F08727EFE6AD6D678166C979935BE0267519.
+Offline fixtures labelled separately from Live. No raw evidence deleted/rewritten.
+All v2 slots consumed; no automatic retry,extension,devtools,C12,Docker workload
+or security changes. Inline author review is not independent/full-suite acceptance.
+Root cause unresolved; next diagnostic scope must be designed from existing
+evidence and separately approved.44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## V2 offline gates passed — real attempt pending
 
 Approved after737d73c0. RootRedc07ff4 expected two old-root failures, then
