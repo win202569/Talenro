@@ -1,5 +1,20 @@
 # C12 Lightweight Wait Diagnostic Implementation Plan
 
+## Execution outcome — 2026-11-06 STOPPED, budget consumed
+
+User approved aftere5fc7817. Tooling checkpoint000e5d63; RED1971e3 expected
+missing implementation; GREENc0e25a16 cases passed, two owned fixtures exited.
+Single real preflight succeeded. Collector ec986f ended prematurely with zero
+samples: UTC DateTime was reparsed through local time, falsely crossing deadline.
+Read-only7bf213 established-14400052.0103ms shift. No repair/retry undertaken.
+Executor2ad97c/session31957→2e4061 independently timed out120027.3885ms with
+owned exit confirmed and module hashes unchanged. Worker/collector exited.
+Task1 local contracts complete, Task2 observation objective NOT achieved; all
+RED/GREEN/preflight/Go invocation slots consumed. Task3 evidence packaged and
+decode/source-verifiedfe704d. See latest status/recovery for portable archive.
+Further implementation/regression or live execution requires a new approved
+scope; this plan is not reusable authorization.44/34/6/217,NOT_ACCEPTED.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans inline, task by task. Await plan approval. Preserve the design's inline author review boundary.
 
 **Goal:** Observe one root-only offline verification attempt without changing its execution context or120s limit.

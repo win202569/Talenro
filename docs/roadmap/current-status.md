@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-06
 
+## Latest — 轻量诊断异常停止：预检通过，Go样本为0，未验收
+
+工具检查点000e5d63后的唯一预检通过：所属受限父进程的身份、I/O与线程指标可读。但采集器ec986f提前退出，错误返回COLLECTION_ENDED/Failure=null/0样本；这不代表采样成功。
+只读复核7bf213定位新工具缺陷：ConvertFrom-Json已产生UTC DateTime，再次DateTime.Parse丢失时区与小数秒，按本地UTC+4换算后偏移-14400052.0103ms，错误触发120秒截止判断。未修改实现或重跑。
+独立执行器2ad97c/session31957→2e4061仍按120秒限制结束：120027.3885ms、TimedOut=true、ExitConfirmed=true、stdout/stderr空、四个模块文件不变。采集器/工作进程退出已确认，Go超时根因仍未知。
+RED1/GREEN1（16项通过、2个无业务子进程）、预检1、Go1预算全部使用。26文件4236144解码字节证据包fe704d解码/源核验通过（包含4MiB配额测试填充，非真实采样数据）；原始记录未改。
+下一步建议仅批准离线修复UTC反序列化/截止判定并补回归，先不再跑Go；任何新真实诊断另定预算。未运行devtools/C12/Docker工作负载，未扩大权限或更改安全配置。44/34/6/217不变，NOT_ACCEPTED，未合并main。
+
 ## Latest — 轻量诊断工具检查点：16项通过，真实预检尚未运行
 
 用户批准e5fc7817后的实施计划。RED 1971e3按预期报告缺少实现；单次GREEN c0e25a返回WAIT_DIAGNOSTIC_TESTS_VERIFIED，16项通过，两个所属PowerShell生命周期样例确认退出。

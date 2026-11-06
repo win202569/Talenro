@@ -1,5 +1,33 @@
 # Shadow audit runtime readiness — read-only review
 
+## Lightweight wait attempt — collector defect, zero samples, stopped
+
+Tooling000e5d63, RED1971e3 expected failure, GREENc0e25a16/16. Real parent
+preflight succeeded with no unavailable metrics. This proves only that the
+collector could inspect the live restricted PowerShell parent, not Go sampling.
+Collector ec986f exit0/WorkerExitConfirmed=true/0samples is a semantic failure:
+read-only7bf213 showed StartedUtc already UTC DateTime, but a second Parse coerces
+through a timezone-less string, losing52.0103ms and applying UTC+4 again.
+The resulting-14400052.0103ms shift falsely triggers the elapsed cutoff. Its
+COLLECTION_ENDED/nullFailure receipt is preserved unchanged, not accepted as success.
+No repair or extra test/observer invocation was performed after the unexpected result.
+
+Executor2ad97c/session31957→2e4061 exit1: root verify independently timed out
+120027.3885ms,ExitConfirmed=true,ExitCode=-1,Failure=null,empty stdout/stderr.
+Four module hashes unchanged; no remaining owned process according to executor
+and worker exit receipts plus completed tool sessions. No Go activity sample
+exists, so this attempt supplies no new evidence about Go's timeout cause.
+No devtools/C12/Docker workload/download/security change; all execution slots
+consumed. Local16case coverage missed the JSON/date integration; it is not broad
+acceptance. Next proposed work: offline regression/fix under new approval, then
+separately decide whether to authorize another real observation.
+
+Portable26files4236144bytes decode/source-verifiedfe704d:
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-stop-v1.json
+SHA25697D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA.
+Includes synthetic4MiB quota fixture, separately labelled from live receipts.
+All original evidence retained.44/34/6/217 unchanged,NOT_ACCEPTED.
+
 ## Wait tooling local verification — real access not established
 
 Approved plan aftere5fc7817: five diagnostic PowerShell files added, no production

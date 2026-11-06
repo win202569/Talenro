@@ -1,5 +1,25 @@
 # Recover the project on a new computer
 
+LATEST WAIT-DIAGNOSTIC STOP (2026-11-06): tooling000e5d63 remains UNFINISHED.
+Single real parent preflight passed, but collector ec986f ended with0 Go samples.
+Its COLLECTION_ENDED/Failure=null is misleading: read-only7bf213 shows JSON
+already creates a UTC DateTime, then DateTime.Parse coerces away timezone and
+fractions; local UTC+4 conversion shifts start by-14400052.0103ms. This makes the
+sampling loop immediately think120s elapsed. No source repair/retry performed.
+Executor2ad97c/session31957→2e4061 independently timed out120027.3885ms; owned
+Go exit confirmed, stdout/stderr empty, four module files unchanged. Collector
+tool exited; worker exit confirmed. Go's underlying timeout cause is still unknown.
+All plan slots consumed: RED1/GREEN1(16 cases/two harmless children),preflight1,Go1.
+Portable evidence: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-cache-wait-stop-v1.json.
+26files4236144decoded bytes; includes intentional4MiB synthetic quota fixture,
+NOT4MiB of live observation. Decode/length/SHA/source checkfe704d passed;
+archive SHA25697D2BD84696FF37B67302C91A676D5FCEFC172902D77193BDC6D8DC990318BFA.
+Exact tooling,claims,test results,live receipts,read-only diagnosis and packaging
+source are embedded; no caches/binaries/credentials. Preserve originals. Do not
+run these scripts automatically on recovery. Next proposed scope is a separately
+approved offline UTC/deadline regression and fix; a new real run needs new budget.
+44/34/6/217,NOT_ACCEPTED; no main merge or full-security/full-C12 acceptance.
+
 LATEST TOOLING CHECKPOINT (2026-11-06): approved wait-diagnostic plan implemented
 as five runtime-cache-wait*.ps1 files under docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/.
 RED1971e3 failed for missing implementation as expected; GREENc0e25a passed16
