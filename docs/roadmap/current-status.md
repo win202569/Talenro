@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-06
 
+## Latest — 并行审计第一阶段停止，保存未完成检查点
+
+实施计划9830af55已批准。Task1新增清单/扫描模块及定向测试；RED552c9d按预期缺少模块，GREENd95195退出1。
+保存结果显示valid/drift/missing/schema/paths/limits/deadline七组通过；reparse组创建目录联接失败，尚未执行模块拒绝检查。底层异常被测试catch替换，原因未知，不能归因于权限或认定模块有缺陷。
+按计划立即停止，未重试、未修复、未继续Task2–4。已使用2/7次脚本调用，余量不代表自动重试授权。正式入口未修改，生产清单未生成；项目NOT_ACCEPTED，44/34/6/217不变，无业务/Docker/全套测试或main合并。
+恢复包portable-c12-shadow-parser-stop-v1.json保存53文件、73目录，81186字节；逐文件解压/哈希/源文件核对14596b通过。详情见恢复手册。
+下一步建议单独批准保留原异常的目录联接诊断及新隔离目录验证；不重用旧目录，不调整安全设置。此前“计划待批准/未实现”条目为历史记录。
+
 ## Latest — 并行审计设计已批准，实施计划待批准
 
 设计2017b01d已获用户批准。本轮仅形成docs/superpowers/plans/2026-11-06-c12-shadow-audit-integration.md，尚未实现或运行测试。

@@ -1,5 +1,19 @@
 # Staged integrity integration readiness review
 
+## Latest shadow integration follow-up: Task1 incomplete
+
+Plan9830af55 approved; parser RED552c9d expected missing module, GREENd95195
+stopped at junction fixture creation after seven groups matched. Reparse rejection
+not evaluated; underlying creation exception was discarded, cause unknown.
+No retries or post-stop fixes.2/7 calls consumed; Task2 records, Task3 formal hooks
+and Task4 combined checks not started. Formal runner and production manifest are
+unchanged/absent respectively. These partial helpers do not establish integration
+or safety acceptance. Portable stop archive53files/73directories/81186bytes verified
+14596b by decoding hashes and comparing original files. See recovery runbook.
+Next proposed scope: retain original junction error in new-root diagnosis, then
+seek bounded continuation if needed. No security changes, business/Docker, full
+suite, independent review or main merge;44/34/6/217 unchanged;NOT_ACCEPTED.
+
 ## Latest parent persistence follow-up: ten cases matched
 
 Approved plan19946250 executed with exact pinned driver helpers/tail/catch and

@@ -1,5 +1,29 @@
 # Recover the project on a new computer
 
+LATEST STOPPED CHECKPOINT (2026-11-06): plan9830af55 approved; Task1 partial
+module/scripts tests only. RED552c9d expected missing module; GREENd95195 exit1.
+Seven parser groups matched, but reparse fixture junction creation failed before
+module evaluation. The test replaced the original exception; cause unknown.
+No retry/repair after stop. Tasks2-4 NOT_STARTED, formal runner unchanged, no
+production manifest.2/7 invocations consumed; remaining budget is not retry authority.
+Overall NOT_ACCEPTED;44/34/6/217 unchanged. Do not run unfinished phase placeholders.
+
+Portable package:
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-shadow-parser-stop-v1.json
+53 files,73 directories,81186 bytes; SHA256
+F123A1D5CA059E13A12575097849CEBAEE1BD38D3B9D24FBFBC9C5C433941591.
+Each Files entry has repository-relative Path,Length,SHA256,GzipBase64; decode
+base64 then gzip, verify decoded length/SHA256. Directories preserves empty fixture
+directories. Archive/source verification14596b passed. Contains original receipts,
+fixtures, ledger, archival script and current source/tests. Restore only into a
+new evidence directory after rejecting absolute/traversal/duplicate paths and
+reparse ancestors; never overwrite a checkout or execute archived scripts automatically.
+No original evidence was deleted. The large limit fixture is losslessly compressed.
+Source/tests are tracked normally; ignored session workspace is not required to
+recover this checkpoint. Next requires scoped diagnosis approval with original
+exception capture and a fresh fixture root, not security changes or live runs.
+Prior pending-plan notes below are historical and superseded by this stop.
+
 LATEST PLAN (2026-11-06): design2017b01d approved; implementation plan
 docs/superpowers/plans/2026-11-06-c12-shadow-audit-integration.md awaits approval.
 Four tasks, at most7 offline script invocations, final <=24 module+12 hook cases;
