@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST 2026-11-07 TIMING REPAIR: see docs/roadmap/2026-11-07-c12-phase-timing-fix.md.
+Real-clock and frozen-clock RED reproduce valid END/OK with0ns; old positive-only
+test was incorrect. Corrected nonnegative timing plus ordered completion/digest
+assertions passed all16 groups in GREEN e1849c. Runtime/safety code unchanged.
+Portable evidence: docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-phase-timing-fix.json.
+Two test slots consumed; no build/live this turn. Previous failed receipts retained.
+Next requires pre-build review/resumption of bounded build/live,not an automatic
+run on clone. Machine-specific paths still need review.44/34/6/217,NOT_ACCEPTED.
+
 LATEST PHASE EXECUTION: approved after72bae466; Task1 source commit7a8ef1a3.
 Owner10/10 passed with both harmless exits confirmed. GoRed03130d:16 expected
 unimplemented assertion failures,46.99s. GoGreen72f676:exit1,2.23s,

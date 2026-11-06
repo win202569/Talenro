@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## 2026-11-07 timing test corrected —16 groups pass
+
+REDa3becf reproduced real-clock ZIP/directory END/OK at0ns and frozen-clock zero.
+Test-only fix permits measured nonnegative duration while asserting ordered
+START/END,status and literal digests. GREENe1849c passed16 groups; exit confirmed,
+no timeout,4 module files unchanged. Runtime/path/process checks unchanged.
+No release build/live cache input this turn; old failures preserved. Scoped
+author-reviewed diagnostic result only,44/34/6/217,NOT_ACCEPTED.
+
 ## Phase execution — blocked at synthetic GREEN
 
 Approved72bae466 plan: owner10/10 passed; GoRed16 expected failures observed.
