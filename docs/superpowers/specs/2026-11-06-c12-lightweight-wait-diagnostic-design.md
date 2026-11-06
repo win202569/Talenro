@@ -1,7 +1,7 @@
 # C12 lightweight wait diagnosis — proposed design
 
-Status: DESIGN_AWAITING_APPROVAL. User selected approach1 after3c1341b8;
-selection authorizes this design, not another verification run.
+Status: DESIGN_APPROVED by user after2bec1f67. User selected approach1 after3c1341b8;
+implementation plan still requires review; no verification run started.
 
 ## Intent and evidence
 

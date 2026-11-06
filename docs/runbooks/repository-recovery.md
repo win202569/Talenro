@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST WAIT-DIAGNOSTIC PLAN (2026-11-06): design2bec1f67 approved; implementation
+plan docs/superpowers/plans/2026-11-06-c12-lightweight-wait-diagnostic.md awaits
+approval. One RED/GREEN pair, at most16 cases/two harmless lifecycle fixture
+children, then one cross-process preflight and at most one120s root observation.
+Restricted executor and separate normal-desktop collector with one persistent
+read-only worker;5s query bounds,24 samples maximum, independent Go watchdog.
+Failed preflight prevents launch. No tool implementation/run this planning turn.
+Read plan/spec before any action; no automatic execution.44/34/6/217 unchanged,
+NOT_ACCEPTED; no C12/devtools/trace installation/security changes/main merge.
+
 LATEST LIGHTWEIGHT DIAGNOSTIC DESIGN (2026-11-06): approach1 selected, written
 design awaits approval at docs/superpowers/specs/2026-11-06-c12-lightweight-wait-diagnostic-design.md.
 Own-process probes: restricted thread inspection worked but CIM access failed
