@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST SINGLE-H ATTEMPT FAILED:2026-11-07-c12-exporter-help-h-result.md.
+One approved original-privilege-h query exited-532462766 in6.389s;exit confirmed,
+no timeout,four module files unchanged. stderr byte hash equals previous-help:
+startup registry SecurityException plus missing deps.json diagnostic. No retry.
+portable-c12-exporter-help-h.json has8 verified entries;all original evidence kept.
+This new runtime slot is consumed. Observation remains BLOCKED;do not try another
+spelling/elevation/repair/capture automatically. Any further environment diagnosis
+needs a new explicit scope,or choose another project task. NOT_ACCEPTED unchanged.
+
 LATEST EXPORTER READ-ONLY ANALYSIS:
 docs/roadmap/2026-11-07-c12-exporter-readonly-analysis.md. Saved109-entry archive
 verified;installed exporter hashes unchanged. Fatal chain identifies startup
