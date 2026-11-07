@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST GRAPH RESULT: docs/roadmap/2026-11-07-c12-graph-boundary-result.md.
+One approved run7f9b8f completed306.9959ms,exit0,no timeout/failure,exit confirmed,
+1059 graph edges,empty stderr,four module hashes unchanged. GRAPH_COMMAND_COMPLETED
+is not cache integrity/BuildList count or historical timeout attribution.
+portable-c12-graph-boundary.json preserves reviewed original output and exact
+recipe/source/receipts;no binary/cache. Single runtime slot consumed. Next only
+read-only saved-graph/go.mod/helper-allowlist comparison for separate diagnostic
+scope.44/34/6/217,NOT_ACCEPTED. Earlier awaiting-approval text below is historical.
+
 LATEST PLAN AWAITING APPROVAL: docs/superpowers/plans/2026-11-07-c12-graph-boundary.md.
 One offline native graph attempt,max60s,unchanged owner/pins,exclusive root;no verify,
 tests/build/collector. Baseline comes from decoded portable root archive,not old

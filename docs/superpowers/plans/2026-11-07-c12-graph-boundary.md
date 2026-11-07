@@ -127,3 +127,15 @@ Task3 with privacy gate. No producer/consumer mismatch found. Runtime budget,
 failure gates and ambiguous-output behavior are explicit. No custom runtime source
 or tests needed. Inline author review retained. PLAN_READY_FOR_REVIEW;no Go run
 while writing this plan. Approval covers at most one60s graph attempt,not root verify.
+
+## Execution outcome
+
+User approved after1197cbd2. Task1 remote83c14e and syntax6e25e2 passed;
+preflight checked fixed pins/paths and decoded portable baseline.
+Task2 single invocation7f9b8f completed306.9959ms,exit0,exit confirmed,no timeout,
+1059 edges,empty stderr,unchanged module hashes;all classification gates passed.
+Task3 output review9064b5 found no sensitive/unusual tokens or error text;original
+outputs retained and portable archive checked before checkpoint. See result report
+docs/roadmap/2026-11-07-c12-graph-boundary-result.md. Inline author review retained.
+No additional runtime or source changes;budget consumed. NOT_ACCEPTED remains.
+This outcome supersedes PLAN_READY_FOR_REVIEW and historical unchecked steps above.
