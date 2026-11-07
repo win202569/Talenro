@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST STAGED DESIGN APPROVED / STAGE1 PLAN AWAITING REVIEW:
+The user approved the ledger validation/integration design after bd297480 for
+Stage1 plan writing only. Read docs/superpowers/plans/2026-11-07-task11-ledger-evidence-reconciliation.md.
+The proposed review produces one eight-row evidence table and one disposition.
+Missing security disposition/safe outer control means a blocked report, not an
+automatic diagnostic or repair loop. No evidence review has executed under this
+new plan yet; no tests, native runs or rollout authority are granted.
+
 LATEST TASK11 LEDGER ROLLOUT DESIGN AWAITING REVIEW:
 Read docs/superpowers/specs/2026-11-07-task11-ledger-validation-integration-design.md.
 Selected approach: reconcile existing evidence once, separately authorize bounded

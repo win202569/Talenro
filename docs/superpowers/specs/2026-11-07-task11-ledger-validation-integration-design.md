@@ -1,8 +1,9 @@
 # Task11 ledger validation and limited integration design
 
 Date: 2026-11-07. Source baseline: af008736.
-Status: approach selected; written design awaiting user review. No implementation,
-test budget, native run or acceptance activation is authorized by this document.
+Status: written design approved by the user after bd297480; Stage 1 plan writing
+only. No implementation, test budget, native run or acceptance activation is
+authorized by this document.
 
 ## Intent and existing contracts
 

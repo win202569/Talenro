@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 账本分阶段设计已批准，第一阶段计划待审阅
+
+用户在bd297480后批准正式设计，仅授权编写第一阶段计划。计划见 ../superpowers/plans/2026-11-07-task11-ledger-evidence-reconciliation.md：一次性完成G1–G8证据缺口表，复用已保存且来源适用的证据，不运行测试或探针。若安全处置或安全外层运行器仍缺失，交付明确阻塞报告并停止，不自动追加诊断或修复。
+此轮仅编写计划并更新批准状态，尚未执行证据核对。Task11实现和真实验证均未放行；44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 新账本验证与Task11限定接入设计待审阅
 
 用户选择“先验证、后仅接入Task11”，正式设计见 ../superpowers/specs/2026-11-07-task11-ledger-validation-integration-design.md。三阶段分别是一次证据缺口核对、另批精确输入的有限真实探针、证据审阅后的Task11专用接入；公共验收拒绝条件及旧入口保持不变。
