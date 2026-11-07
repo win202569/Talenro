@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST STOP BEFORE LIBC BUILD:manifest publication d16513 hit TOTAL_LIMIT because
+manifest-check.ps1 targeted the whole plan workspace including isolated caches.
+No manifest success receipt;854810 confirms Build/Live absent. Go/owner RED/GREEN
+already consumed and passed their expected gates;do not rerun them.
+See2026-11-07-c12-libc-profile-result.md and portable-c12-libc-profile.json.
+Next requires scoped receipt-root correction/offline revalidation approval;do not
+loosen4MiB cap,delete cache or automatically start unused Build/Live. Source launcher
+is unfinished/end-to-end unverified.44/34/6/217,NOT_ACCEPTED unchanged.
+
+LIBC OWNER CHECKPOINT:OwnerRed7e8499 expected ORDER;OwnerGreen374e41 passed18 cases
+including4 owned fixture exits. Go/owner RED/GREEN slots consumed;do not rerun.
+Source binding was being prepared before publication failure. Original evidence in
+portable-c12-libc-profile.json. No real libc result;NOT_ACCEPTED unchanged.
+
 LIBC IMPLEMENTATION CHECKPOINT: Go selector RED expected assertion,Go GREEN5075e6
 passed diagnostic-local package suite. See2026-11-07-c12-libc-profile-result.md and
 portable-c12-libc-profile-go.json for exact snapshots/receipts. Go slots consumed;

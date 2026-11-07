@@ -1,6 +1,14 @@
 # Definition-only. Reuse immutable publication and path checks; no launch on import.
 . (Join-Path $PSScriptRoot '../runtime-cache-wait-common.ps1')
-function Read-C12PhaseEvents([string]$Path,[string]$Session) {
+function Get-C12PhaseProfile([string]$Profile='paired-v1') {
+    if($Profile -ceq 'paired-v1'){
+        return @(@{Module='golang.org/x/text';Version='v0.40.0'},@{Module='modernc.org/sqlite';Version='v1.49.1'})
+    }
+    if($Profile -ceq 'libc-v1'){return @{Module='modernc.org/libc';Version='v1.72.1'}}
+    throw 'PROFILE'
+}
+function Read-C12PhaseEvents([string]$Path,[string]$Session,[string]$Profile='paired-v1') {
+    $candidates=@(Get-C12PhaseProfile $Profile)
     Assert-C12WaitPath $Path
     if((Get-Item -LiteralPath $Path).Length -gt 4194304){throw 'TOTAL_LIMIT'}
     # Acknowledge the owner's existing writer while opening read-only. The writer
@@ -22,12 +30,12 @@ function Read-C12PhaseEvents([string]$Path,[string]$Session) {
     foreach($part in $parts){if([Text.Encoding]::UTF8.GetByteCount($part) -gt 65536){throw 'EVENT_LIMIT'}}
     $partial=$parts[-1].Length -gt 0
     $phases=[Collections.Generic.List[object]]::new()
-    foreach($candidate in @(@('golang.org/x/text','v0.40.0'),@('modernc.org/sqlite','v1.49.1'))){
-        foreach($phase in @('PREPARE','ZIP','DIRECTORY')){$phases.Add(@{Module=$candidate[0];Version=$candidate[1];Phase=$phase;Status='NotRun';ElapsedNs=$null;Digest=$null})}
+    foreach($candidate in $candidates){
+        foreach($phase in @('PREPARE','ZIP','DIRECTORY')){$phases.Add(@{Module=$candidate.Module;Version=$candidate.Version;Phase=$phase;Status='NotRun';ElapsedNs=$null;Digest=$null})}
     }
     $events=[Collections.Generic.List[object]]::new();$slot=0;$expect='START';$failed=$false
     for($i=0;$i -lt $parts.Length-1;$i++){
-        if($slot -ge 6 -or $failed){throw 'ORDER_AFTER_TERMINAL'}
+        if($slot -ge $phases.Count -or $failed){throw 'ORDER_AFTER_TERMINAL'}
         $e=$parts[$i]|ConvertFrom-Json -AsHashtable -Depth 10
         foreach($key in @('Schema','Sequence','Session','Module','Version','Phase','Kind','Status','Digest','ElapsedNs')){if(-not $e.ContainsKey($key)){throw 'EVENT_SCHEMA'}}
         if($e.Schema -ne 1 -or $e.Sequence -ne $i+1 -or $e.Session -cne $Session){throw 'BINDING'}
@@ -46,10 +54,12 @@ function Read-C12PhaseEvents([string]$Path,[string]$Session) {
         }
         $events.Add($e)
     }
-    return @{Complete=($slot -eq 6 -and -not $partial -and -not $failed);Partial=$partial;Failed=$failed;Phases=$phases.ToArray();Events=$events.ToArray()}
+    return @{Complete=($slot -eq $phases.Count -and -not $partial -and -not $failed);Partial=$partial;Failed=$failed;Phases=$phases.ToArray();Events=$events.ToArray()}
 }
 function Invoke-C12PhaseOwned {
-    param([string]$Executable,[string[]]$Arguments,[string]$WorkingDirectory,[hashtable]$Environment,[string]$Root,[int]$DeadlineMs,[string]$Session='')
+    param([string]$Executable,[string[]]$Arguments,[string]$WorkingDirectory,[hashtable]$Environment,[string]$Root,[int]$DeadlineMs,[string]$Session='',[string]$Profile='paired-v1')
+    $null=Get-C12PhaseProfile $Profile
+    if($Profile -cne 'paired-v1' -and -not $Session){throw 'PROFILE_SESSION'}
     Assert-C12WaitPath $Root
     if($DeadlineMs -le 0){throw 'INVALID_DEADLINE'}
     $p=[Diagnostics.Process]::new()
@@ -82,7 +92,7 @@ function Invoke-C12PhaseOwned {
                     if($keep -gt 0){$c.File.Write($c.Buffer,0,$keep);$c.File.Flush();$retained+=$keep}
                     if($keep -ne $n){throw 'TOTAL_LIMIT'}
                     if($Session -and $c.Name -ceq 'stdout'){
-                        $parsed=Read-C12PhaseEvents -Path $c.Path -Session $Session
+                        $parsed=Read-C12PhaseEvents -Path $c.Path -Session $Session -Profile $Profile
                         if($parsed.Failed){throw 'PHASE_FAILED'}
                     }
                     $c.Pending=$c.Input.ReadAsync($c.Buffer,0,$c.Buffer.Length)
@@ -95,7 +105,7 @@ function Invoke-C12PhaseOwned {
             }
             Start-Sleep -Milliseconds 10
         }
-        if($Session -and -not $timedOut){$parsed=Read-C12PhaseEvents -Path $channels[0].Path -Session $Session;if(-not $parsed.Complete){throw 'EVENTS_INCOMPLETE'}}
+        if($Session -and -not $timedOut){$parsed=Read-C12PhaseEvents -Path $channels[0].Path -Session $Session -Profile $Profile;if(-not $parsed.Complete){throw 'EVENTS_INCOMPLETE'}}
     }catch{$failure=$_.Exception.Message;if(-not $timedOut){$reason='ERROR'}}
     finally{
         if($started){

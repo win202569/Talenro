@@ -185,3 +185,14 @@ profile names/order/default match,source snapshots distinguish stages,and failur
 stop later work. No occupied historical roots reused. Task4 preserves every outcome.
 Plan approval authorizes these finite stages only. PLAN_READY_FOR_REVIEW;
 no source changes or validation runs while planning.
+
+## Execution outcome — stopped before Build
+
+Approved aftere7e2a9b9. Task1 GoRed08a212 expected TestProfileLibc failure;
+GoGreen5075e6 diagnostic-local suite passed. Task2 OwnerRed7e8499 expected ORDER;
+OwnerGreen374e41 passed18 cases/four synthetic owned exits. Four module files unchanged.
+Task3 manifest comparison reached receipt publication d16513 then TOTAL_LIMIT:
+receipt destination incorrectly includes isolated caches under whole plan root.
+No durable manifest success;Build/Live NOT_RUN confirmed854810. No retries or cap
+changes. Task4 preserves partial implementation and failure for recovery,not acceptance.
+See2026-11-07-c12-libc-profile-result.md. New correction/resumption scope required.

@@ -1,5 +1,16 @@
 # Project status — updated 2026-11-07
 
+## Latest — libc模式离线通过，构建前记录发布被配额阻塞
+
+Go诊断包测试通过；PowerShell18项通过（含4个合成子进程）。随后d16513在保存源码集合核对记录时触发TOTAL_LIMIT：新脚本误把包含隔离编译缓存的整个工作目录作为4MiB证据根。记录未写出，Build/Live均未启动。
+原始测试、源码快照、失败脚本及说明保存在portable-c12-libc-profile.json与2026-11-07-c12-libc-profile-result.md。未修复重试、放宽配额或改缓存。建议另行批准仅修正记录目录并做离线复核，再审定恢复未用的构建/真实运行额度。
+这是未完成开发检查点；44/34/6/217，NOT_ACCEPTED。下方“准备构建”为历史阶段状态。
+
+## Latest — libc模式两端离线验证通过，准备绑定构建
+
+PowerShell GREEN374e41为18项通过，含4个合成子进程退出确认；默认双模块、libc单模块、跨模式拒绝及原生文本路径均验证。Go测试已通过；四个模块文件不变。证据保存在libc-profile结果报告及分阶段可移植包。
+当前按已批准计划整理完整源码集合与新二进制绑定，再运行有界构建/单次真实libc。尚无真实libc结果；44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — libc模式Go侧已通过离线测试，继续PowerShell侧
 
 Go RED按预期仅因缺失libc选择失败；实现后Go GREEN5075e6正常退出，诊断包测试通过，模块文件未变。原默认模式保留。证据见2026-11-07-c12-libc-profile-result.md及portable-c12-libc-profile-go.json。
