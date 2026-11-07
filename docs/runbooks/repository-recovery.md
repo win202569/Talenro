@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY SYNTHESIS:2026-11-07-c12-sample-synthesis.md verifies111 entries
+across four committed archives. Three selected module runs have matching digests;
+directory phases account for96–97% of their phase sums. Three of99 root-declared
+pairs have this sample evidence;the remaining96 are not classified as failures.
+No new runtime or cache reads. Native300s timeout remains unattributed;do not
+extrapolate sample timings or treat them as a selected BuildList/acceptance score.
+Next:design a bounded same-invocation native-phase attribution method for approval,
+not another sample or timeout increase. Existing runtime slots remain consumed.
+44/34/6/217,NOT_ACCEPTED unchanged;recover from latest development branch.
+
 LATEST LIBC BUILD/LIVE PASSED: source d5b2714c;Build11.620s,Live66.887s,
 PREPARE2.022s/ZIP0.365s/DIRECTORY64.004s. Six complete events,two matching digests,
 exit0,empty stderr,four module files unchanged. See2026-11-07-c12-libc-profile-result.md
