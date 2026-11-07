@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST TASK11 LEDGER ROLLOUT DESIGN AWAITING REVIEW:
+Read docs/superpowers/specs/2026-11-07-task11-ledger-validation-integration-design.md.
+Selected approach: reconcile existing evidence once, separately authorize bounded
+native probes, then separately review Task11-only integration. Keep public runner
+and schema4 rejection unchanged. No runtime budget or rollout authority has been
+granted. Probe success cannot accept metadata001 or clear broader safety gates.
+After written approval, prepare the bounded Stage1 plan; do not directly run or
+implement Stage2/3. All prior consumed identities and NOT_ACCEPTED remain intact.
+
 LATEST PATH-SPECIFIC LF POLICY SAVED:
 The approved .gitattributes rule now pins only
 testdata/c12/authority-v7/schema-name-registry.v1.json to text eol=lf.

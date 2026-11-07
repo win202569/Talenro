@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 新账本验证与Task11限定接入设计待审阅
+
+用户选择“先验证、后仅接入Task11”，正式设计见 ../superpowers/specs/2026-11-07-task11-ledger-validation-integration-design.md。三阶段分别是一次证据缺口核对、另批精确输入的有限真实探针、证据审阅后的Task11专用接入；公共验收拒绝条件及旧入口保持不变。
+设计批准不等于运行或接入批准，探针成功也不接受旧RED。真实验证仍受来源绑定、外层控制和安全处置等前置条件约束，不能因文档完成自动推进。此次仅新增设计/恢复记录，无代码或测试运行，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 已固定单文件LF检出规则
 
 用户明确批准后，.gitattributes仅新增schema-name-registry.v1.json的text eol=lf规则。Git属性查询确认目标为LF，相邻golden文件规则未变；目标文件哈希仍精确匹配原F505A358…冻结值。该规则随Git保存，替代下方“尚无持久规则”的历史状态；未进行全新电脑克隆演练。

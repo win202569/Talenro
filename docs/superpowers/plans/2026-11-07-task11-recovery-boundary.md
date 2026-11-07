@@ -66,6 +66,11 @@ Ruling: apply the approved documentation-only scope instead of generic implement
 
 ## Task 2: Runtime resumption decision — blocked, not executable
 
+The user selected staged ledger validation then Task11-only integration. The
+[new written design](../specs/2026-11-07-task11-ledger-validation-integration-design.md)
+is awaiting review; it does not unblock this task or authorize runtime. It is the
+next design reference, not another request to repeat source-drift or LF work.
+
 ### Approved durable path-specific LF rule — 2026-11-07
 
 After b927a28a the user explicitly approved a rule for this one JSON. Added only `testdata/c12/authority-v7/schema-name-registry.v1.json text eol=lf` to `.gitattributes`; no global Git settings or other path rules changed. `git check-attr` reports text=set/eol=lf for the target and unchanged text=auto/eol=unspecified for the neighboring golden JSON. `git ls-files --eol` reports i/lf w/lf; target SHA256 still exactly matches the original F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1 pin.
