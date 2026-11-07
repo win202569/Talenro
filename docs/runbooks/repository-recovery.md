@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN AWAITING APPROVAL: docs/superpowers/plans/2026-11-07-c12-graph-boundary.md.
+One offline native graph attempt,max60s,unchanged owner/pins,exclusive root;no verify,
+tests/build/collector. Baseline comes from decoded portable root archive,not old
+ignored local files. Review all output before publishing;retain originals locally
+if private/uncertain and explicitly mark any portable omissions. No Go run in this
+planning turn.44/34/6/217,NOT_ACCEPTED. Await plan approval before execution.
+
 LATEST READ-ONLY ANALYSIS: docs/roadmap/2026-11-07-c12-root-verify-analysis.md.
 All13 root archive entries revalidated. Native verify delays error collection
 until after worker dispatch;empty output cannot locate its slow phase or exclude
