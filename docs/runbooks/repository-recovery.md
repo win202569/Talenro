@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST STAGE1 COMPLETE / STAGE2-3 BLOCKED:
+Read docs/roadmap/2026-11-07-task11-ledger-evidence-gap-review.md first.
+Eight source/evidence rows and seven hashes reconcile repaired historical findings
+without treating fake checks or old adapter reads as current workload acceptance.
+Missing legitimate security-owner/vendor disposition and current ledger-specific
+outer-control/exact-input evidence prevent runtime/rollout. No follow-up execution
+plan or new budget was issued. Stop this route; generic continuation is not the
+missing safety decision. No automatic environment/registry/WPR/cache detour.
+Source/tests unchanged;44/34/6/217 and NOT_ACCEPTED preserved. This supersedes
+the Stage1 awaiting-execution entries below. Recover the development branch,
+not main; old machine identities and private raw records are not portable clearance.
+
 LATEST STAGED DESIGN APPROVED / STAGE1 PLAN AWAITING REVIEW:
 The user approved the ledger validation/integration design after bd297480 for
 Stage1 plan writing only. Read docs/superpowers/plans/2026-11-07-task11-ledger-evidence-reconciliation.md.

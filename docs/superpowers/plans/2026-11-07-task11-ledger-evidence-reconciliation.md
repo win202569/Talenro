@@ -10,7 +10,7 @@
 
 **Spec:** [Approved staged design](../specs/2026-11-07-task11-ledger-validation-integration-design.md), approved after bd297480.
 
-**Status:** Proposed execution plan; not executed. Native/inline retained. Approval of this plan permits the complete source/document review below, not its future runtime recommendations.
+**Status:** Approved and executed documentation review. Stage1 complete; Stage2/3 BLOCKED. See ../../roadmap/2026-11-07-task11-ledger-evidence-gap-review.md. Conditional follow-up proposal is not applicable; no runtime authority granted. Commit/push preservation is checked at handoff.
 
 ## Global constraints
 
@@ -35,12 +35,12 @@
 
 **Interface:** Output exactly eight requirement rows, each with ID, requirement, current source reference/hash, saved report and recorded binding, evidence class, applicability, remaining gap and responsible role. Do not assign a real external owner without evidence.
 
-- [ ] Record current HEAD/branch, read worktree instructions, and inspect status. Preserve unrelated changes. Use `git -c safe.directory=D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator` for read-only Git commands.
-- [ ] Read `ordinary-ledger.cs`, `ordinary-ledger-session.cs`, `ordinary-ledger-receipt.ps1`, `ordinary-ledger-native-probe.ps1`, `process-native.cs`, `run.ps1`, and `matrix-check.ps1` under `docs/diagnostics/isolated-fuzz`; hash these seven files. Read the matching ledger test definitions for the requirements below without loading them.
-- [ ] Read the ledger implementation, final review, review-repair, initial-snapshot-fix, probe preparation/review/repair, inbox-policy, timing-coverage and stageb-readiness reports under `docs/roadmap/2026-10-17-ordinary-ledger-*.md`. Follow explicit superseding references only for an unresolved row. Use `current-status.md` as an index, not acceptance evidence. Missing portable evidence is a recorded gap, not permission to reconstruct it from private caches.
-- [ ] Fill G1 acquisition/ownership/retained identity; G2 sticky failure/cap/sampled count; G3 time/release/cleanup; G4 schema/diagnostic/legacy isolation; G5 serialization and pure evidence validation; G6 source/executable/run bindings; G7 raw capture/outer containment/durable finalization; G8 security disposition and exact runtime/rollout authority.
-- [ ] Give each row an evidence class (`source-only`, `historical-fake`, `historical-native`, `external-disposition`, or `missing`) and applicability (`bound`, `changed`, `unknown`, or `not-applicable`). If multiple classes apply, list each separately inside that row. Reported success without a usable binding remains historical, not a new pass. Where source changed, identify the relevant delta before proposing regression.
-- [ ] Check the eight rows against the approved design and the five review-focus risks. G1-G5 cannot close G6-G8. The table must explicitly distinguish a known missing test, a stale binding, an external dependency and a rollout prohibition.
+- [x] Record current HEAD/branch, read worktree instructions, and inspect status. Preserve unrelated changes. Use `git -c safe.directory=D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator` for read-only Git commands.
+- [x] Read `ordinary-ledger.cs`, `ordinary-ledger-session.cs`, `ordinary-ledger-receipt.ps1`, `ordinary-ledger-native-probe.ps1`, `process-native.cs`, `run.ps1`, and `matrix-check.ps1` under `docs/diagnostics/isolated-fuzz`; hash these seven files. Read the matching ledger test definitions for the requirements below without loading them.
+- [x] Read the ledger implementation, final review, review-repair, initial-snapshot-fix, probe preparation/review/repair, inbox-policy, timing-coverage and stageb-readiness reports under `docs/roadmap/2026-10-17-ordinary-ledger-*.md`. Follow explicit superseding references only for an unresolved row. Use `current-status.md` as an index, not acceptance evidence. Missing portable evidence is a recorded gap, not permission to reconstruct it from private caches.
+- [x] Fill G1 acquisition/ownership/retained identity; G2 sticky failure/cap/sampled count; G3 time/release/cleanup; G4 schema/diagnostic/legacy isolation; G5 serialization and pure evidence validation; G6 source/executable/run bindings; G7 raw capture/outer containment/durable finalization; G8 security disposition and exact runtime/rollout authority.
+- [x] Give each row an evidence class (`source-only`, `historical-fake`, `historical-native`, `external-disposition`, or `missing`) and applicability (`bound`, `changed`, `unknown`, or `not-applicable`). If multiple classes apply, list each separately inside that row. Reported success without a usable binding remains historical, not a new pass. Where source changed, identify the relevant delta before proposing regression.
+- [x] Check the eight rows against the approved design and the five review-focus risks. G1-G5 cannot close G6-G8. The table must explicitly distinguish a known missing test, a stale binding, an external dependency and a rollout prohibition.
 
 ## Task 2: Issue one finite disposition and preserve it
 
@@ -48,10 +48,10 @@
 
 **Interface:** Consumes G1-G8; produces either a concrete blocked handoff or one bounded follow-up proposal, never a launch instruction authorized by this plan.
 
-- [ ] If safety disposition or a safe outer runner remains unavailable, mark native/rollout work BLOCKED with the exact missing evidence and responsible role. Stop after the report. Do not draft an executable experiment packet, issue nonces or automatically start repair/environment work. Avoid repeated requests for generic approval as a substitute for missing evidence.
-- [ ] Otherwise, create `docs/superpowers/plans/2026-11-07-task11-ledger-targeted-verification.md` listing only uncovered or source-changed cases, exact suite/case names, source/host prerequisites, fixed maximum calls and stop rules. Historical passing suites are not blindly replayed. No speculative case count may be reported as approved.
-- [ ] If the follow-up is ready to propose native observations, cap it at the existing two questions (root then conditional child), with 5s/20s native and 120s outer ceilings, shared 500ms natural/5000ms cleanup limits. Require a later separately approved exact-input packet; never invoke a probe here. If exact inputs cannot yet be fixed, record that prerequisite instead of fabricating a runnable plan.
-- [ ] Review the report for unsupported claims; verify all local reference paths exist, every G1-G8 row is present, and no product/test file changed. Use `git diff --check` (expected exit0), `git diff --name-only` and `git status --short`; explicitly include newly created documentation when reviewing.
+- [x] If safety disposition or a safe outer runner remains unavailable, mark native/rollout work BLOCKED with the exact missing evidence and responsible role. Stop after the report. Do not draft an executable experiment packet, issue nonces or automatically start repair/environment work. Avoid repeated requests for generic approval as a substitute for missing evidence.
+- [x] Otherwise, create `docs/superpowers/plans/2026-11-07-task11-ledger-targeted-verification.md` listing only uncovered or source-changed cases, exact suite/case names, source/host prerequisites, fixed maximum calls and stop rules. Historical passing suites are not blindly replayed. No speculative case count may be reported as approved. **Not applicable: blocked branch selected.**
+- [x] If the follow-up is ready to propose native observations, cap it at the existing two questions (root then conditional child), with 5s/20s native and 120s outer ceilings, shared 500ms natural/5000ms cleanup limits. Require a later separately approved exact-input packet; never invoke a probe here. If exact inputs cannot yet be fixed, record that prerequisite instead of fabricating a runnable plan. **Not applicable: blocked branch selected.**
+- [x] Review the report for unsupported claims; verify all local reference paths exist, every G1-G8 row is present, and no product/test file changed. Use `git diff --check` (expected exit0), `git diff --name-only` and `git status --short`; explicitly include newly created documentation when reviewing.
 - [ ] Stage only the reviewed documentation paths, commit and push normally per AGENTS.md, then compare `git ls-remote origin refs/heads/codex/c12-b01-task9-coordinator` with local HEAD and require a clean task worktree (or disclose preserved unrelated changes). Report the disposition without claiming runtime acceptance.
 
 ## Completion and self-review
