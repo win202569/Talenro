@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST TASK11 RECOVERY BOUNDARY:
+Read docs/superpowers/plans/2026-11-07-task11-recovery-boundary.md first.
+The user reported two administrator STOPs; no nonadmin comparison exists.
+The environment/capture route is shelved, superseding the pending instruction below.
+Metadata product/fixtures are still absent; the initial inventory test exists.
+Next proposed work is one source/design drift review, not another diagnostic run.
+Do not resume GREEN or spend historical unused runtime slots: accepted RED and
+a separately scoped safe verification decision remain prerequisites. No code or
+tests changed in this documentation checkpoint. NOT_ACCEPTED,44/34/6/217 unchanged.
+
 LATEST NONADMIN COMPARISON PENDING:
 2026-11-07-c12-nonadmin-comparison-handoff.md. Approved outside-restriction call
 6c56d5 detected an administrator context and stopped BEFORE registry access.
