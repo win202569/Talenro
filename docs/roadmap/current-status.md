@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — Windows交互设计已批准，实施计划受工具链前置条件约束
+
+计划见../superpowers/plans/2026-11-07-windows-client-offline-demo.md，分为工具链确认、纯状态模型、原生页面、拒绝提示和视觉验证。仓库无现有WinUI项目，PATH无dotnet/MSBuild，常见.NET/Visual Studio目录未发现；Windows Kits根目录存在但未确认完整开发工具链。不是全盘安装缺失证明。
+尚不能执行：需提供自定义安装位置或另批开发工具准备，再固定版本、依赖与有限构建/测试额度。本轮未安装、生成代码、构建、测试或启动应用；仍为文档计划检查点。Task11/12和44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — Windows四页视觉已确认，交互设计待批准
 
 用户确认四页视觉符合预期。正式稿见../superpowers/specs/2026-11-07-windows-client-four-screen-design.md：明确离线演示、固定虚构凭据、页面状态、节点切换确认、国家锁定和额度拒绝；未实现入口不伪报成功。作者提出的演示机制、尺寸及次级流程边界仍需书面审阅。

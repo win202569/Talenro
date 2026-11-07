@@ -1,7 +1,8 @@
 # Windows client four-screen interaction design
 
-Date: 2026-11-07. Status: four-screen visual direction approved; this written
-interaction design awaits approval. No implementation or runtime authority.
+Date: 2026-11-07. Status: four-screen visuals and written interaction design
+approved by user after86dfc037, for implementation planning only. No implementation
+or runtime authority. Plan: ../plans/2026-11-07-windows-client-offline-demo.md.
 
 ## Intent and scope
 

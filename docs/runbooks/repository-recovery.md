@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS INTERACTION APPROVED / PLAN READINESS-GATED:
+Read docs/superpowers/plans/2026-11-07-windows-client-offline-demo.md.
+Design approval after86dfc037 authorized planning, not implementation. No existing
+WinUI project or PATH dotnet/MSBuild was found; standard SDK/VS roots absent,
+Windows Kits root present but completeness unverified. Custom installations may
+exist. Supply a custom path or separately scope tool preparation; do not auto-install
+or substitute a web UI. Exact versions/commands/runtime budget remain prerequisite.
+No client code/build/tests/launch occurred. Previous project gates unchanged.
+
 LATEST WINDOWS VISUALS CONFIRMED / INTERACTION DESIGN AWAITING APPROVAL:
 Read docs/superpowers/specs/2026-11-07-windows-client-four-screen-design.md.
 All four visuals are user-confirmed; offline-demo interaction proposals await
