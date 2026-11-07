@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 官方Visual Studio安装器已下载核验，未运行
+
+用户批准下载/核验/选择审阅，不批准工作负载安装。微软官网所链安装器已下载至本机临时目录，Authenticode为Valid、签名者Microsoft Corporation，产品Visual Studio 2026，5,690,136字节；SHA256及来源见安装方案新增记录。
+尚未运行安装器；computer-use规则要求首次运行新下载程序前临执行确认，下一步为确认打开后查看界面。组件/容量/许可/系统兼容性仍未确认，遇UAC或协议交给用户，不安装工作负载、不改安全设置、不构建测试。44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — Windows开发工具安装方案已整理，尚未安装
 
 见2026-11-07-windows-client-tool-installation-proposal.md。推荐Visual Studio 2026稳定版的C# WinUI工作负载，版本/组件/容量需安装器实际清单确认；Community许可适用性由用户确认。建议IDE与缓存放D盘，但部分共享组件仍占C盘。

@@ -109,6 +109,30 @@ pins and this report in Git, never SDK executables or installation caches.
 
 ## Current result
 
+### Subsequent approved download record — 2026-11-07
+
+User subsequently approved official download/verification/selection inspection,
+not workload installation. Download completed once; bootstrapper not launched.
+The official thank-you page's `c2r_downloadResult.url` supplied this endpoint:
+https://c2rsetup.officeapps.live.com/c2r/downloadVS.aspx?sku=community&channel=stable&version=VS18&source=VSLandingPage&cid=2500
+
+- Source page: https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?channel=Stable&cid=2500&passive=false&sku=Community&source=VSLandingPage&version=VS18
+- File description: Visual Studio Installer; product version: Visual Studio 2026.
+- Length: 5,690,136 bytes.
+- Authenticode: Valid; signer CN/O Microsoft Corporation, Redmond, Washington, US.
+- SHA256: `4FF68902AAC5BA8890B062919D5651B1ABC80E5FB40796B6B3F6A4F4E9ECD180`.
+- Local-only file: `C:\Users\Lenovo\AppData\Local\Temp\Talenro-VS-review-f52407fed809427f93d59b5a606ed754\vs_community.exe`.
+
+Binary intentionally not committed. Initial restricted-network DNS failed;
+approved network access retrieved the official page and file. No alternate
+unofficial source used. Computer-use action-time confirmation is required before
+first launch of the downloaded program. No terms accepted, UAC acted on, workload
+installed, security setting changed or project built/tested. Exact workload
+versions/selection/disk costs and machine compatibility remain unverified.
+Task11/12 gates and44/34/6/217,NOT_ACCEPTED remain unchanged.
+
+### Historical proposal-only result
+
 Proposal ready for route selection. Zero installer downloads/launches, installs,
 SDK commands, builds or tests this turn. Only web documentation, path/free-space
 metadata and repository documents were inspected. Task11/12 gates unchanged;

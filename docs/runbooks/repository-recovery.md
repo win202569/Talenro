@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS INSTALLER DOWNLOADED / NOT LAUNCHED:
+User approved download, signature verification and selection review only.
+See the installation proposal's download record for official source and SHA256.
+Valid Microsoft-signed Visual Studio 2026 bootstrapper is in this machine's temp
+directory, intentionally excluded from Git; a new computer must obtain and verify
+its own official copy. No launch/workload install has occurred. First UI launch
+awaits action-time confirmation; terms/UAC remain user-handled. Exact components,
+disk estimates and system compatibility remain unverified. No project run authorized.
+
 LATEST WINDOWS TOOL INSTALLATION PROPOSAL:
 Read docs/roadmap/2026-11-07-windows-client-tool-installation-proposal.md.
 Stable Visual Studio/C# WinUI route is proposed, not approved or installed.
