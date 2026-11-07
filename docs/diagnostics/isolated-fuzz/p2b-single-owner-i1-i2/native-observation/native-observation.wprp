@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WindowsPerformanceRecorder Version="1.0">
+  <Profiles>
+    <SystemCollector Id="C12SystemCollector" Name="C12 Native Observation">
+      <BufferSize Value="1024"/>
+      <Buffers Value="128"/>
+    </SystemCollector>
+    <SystemProvider Id="C12SystemProvider">
+      <Keywords>
+        <Keyword Value="ProcessThread"/>
+        <Keyword Value="Loader"/>
+        <Keyword Value="SampledProfile"/>
+        <Keyword Value="FileIO"/>
+        <Keyword Value="FileIOInit"/>
+      </Keywords>
+    </SystemProvider>
+    <Profile Id="C12NativeObservation.Light.Memory" Name="C12NativeObservation" Description="Bounded native observation candidate" LoggingMode="Memory" DetailLevel="Light">
+      <Collectors>
+        <SystemCollectorId Value="C12SystemCollector">
+          <SystemProviderId Value="C12SystemProvider"/>
+        </SystemCollectorId>
+      </Collectors>
+    </Profile>
+  </Profiles>
+</WindowsPerformanceRecorder>
