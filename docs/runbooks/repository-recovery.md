@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST ROOT ATTEMPT: approved plan executed once,final95c553,300059.2263ms,
+DEADLINE/TimedOut=true,ExitConfirmed=true,Go exit-1,empty stdout/stderr.
+Four module hashes unchanged;STOP/NOT_PASSED,44/34/6/217,NOT_ACCEPTED.
+See docs/roadmap/2026-11-07-c12-root-verify-result.md and
+docs/diagnostics/isolated-fuzz/p2b-single-owner-i1-i2/portable-c12-root-verify-completion.json.
+Archive preserves source/recipes/preflight/claims/raw receipts,not binaries or caches.
+The one-run budget is consumed;do not rerun the recipe on recovery or extend it.
+Next is read-only synthesis for a separately scoped diagnostic,not automatic runtime.
+Recover from latest codex/c12-b01-task9-coordinator checkpoint;historical proposed
+plan text below is superseded by this outcome. No main merge or broader acceptance.
+
 LATEST PROPOSED ROOT PLAN: docs/superpowers/plans/2026-11-07-c12-root-verify-completion.md,
 with paired design2026-11-07-c12-root-verify-completion-design.md. Await approval.
 Proposes one300s native go mod verify with unchanged corrected owner,no collector,

@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## Root native attempt — budget exhausted, not passed
+
+Approved300s attempt95c553 reached deadline at300059.2263ms,owned exit confirmed,
+Go exit-1,no stdout/stderr. Four module hashes unchanged. No retries or additional
+runtime. See2026-11-07-c12-root-verify-result.md and portable root evidence archive.
+Timeout does not establish cause or corruption. Next only read-only synthesis
+for a separate narrow diagnostic scope.44/34/6/217,NOT_ACCEPTED unchanged.
+Earlier proposed-plan headings below are historical,not pending authorization.
+
 ## Proposed native root completion budget — awaiting approval
 
 Evidence synthesis recommends one300s root go mod verify,unchanged offline pins/

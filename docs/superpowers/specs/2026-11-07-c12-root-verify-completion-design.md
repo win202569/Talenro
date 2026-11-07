@@ -1,6 +1,8 @@
 # Root verifier completion attempt — evidence and scope
 
-Status: PROPOSED; requires approval of the paired plan before any Go invocation.
+Status: APPROVED AND EXECUTED once;300s deadline reached,STOP/NOT_PASSED.
+Result: docs/roadmap/2026-11-07-c12-root-verify-result.md. Remaining proposal
+language below preserves the original rationale;it does not authorize another run.
 This is an execution-budget proposal using existing tooling,not a new verifier.
 
 ## Evidence synthesis

@@ -109,4 +109,17 @@ estimate. Existing owner supplies tested bounded drains/exits;no new launch libr
 No need for extra fixture children or full-suite reruns for unchanged owner.
 Preflight covers coordinates/pins,Task2 covers exact success and cleanup,Task3
 covers archive integrity and non-overclaiming. Inline method retained.
-PLAN_READY_FOR_REVIEW. This turn is documents/read-only checks only;await approval.
+Original planning checkpoint was PLAN_READY_FOR_REVIEW; user subsequently approved.
+
+## Execution outcome — 2026-11-07
+
+Task1 complete: syntax e66e29,remote a55c42,fixed pins/paths/module hashes passed.
+Task2 complete as a bounded attempt,not a passed verification:95c553 reached
+300059.2263ms,DEADLINE,exit confirmed,Go exit-1,empty streams,four hashes unchanged.
+Status STOP/NOT_PASSED. One runtime slot consumed;no retries or follow-on workload.
+Task3 evidence/report and recovery updates prepared with exact source/recipe/raw
+receipts; archive entries verified against originals before checkpoint commit.
+See docs/roadmap/2026-11-07-c12-root-verify-result.md. Inline author review retained.
+No source changes,cache repairs or wider acceptance;44/34/6/217,NOT_ACCEPTED.
+Checklist above records original execution requirements;this outcome supersedes
+the earlier awaiting-approval state. New runtime requires separate scope.
