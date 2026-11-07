@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 非采集配置与测试通过，导出工具阻塞真实观察
+
+配置21项用例及实际配置通过；就绪判定59项通过。WPR只读详情确认128MiB声明缓冲区、五类指定事件。随后wpaexporter帮助查询异常退出：注册表访问被拒绝，同时提示缺少deps.json；未重试、未提权或安装修复。
+详见2026-11-07-c12-native-observation-preflight-result.md及portable-c12-observation-preflight-final.json。真实观察仍BLOCKED：导出路径、会话归属、保存空间限制及采集授权均未完成。下一步建议只读查阅导出器安装文件/文档，不重新启动工具。没有采集或Go运行；44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 外部观察设计已批准，非采集实施计划待批准
 
 计划docs/superpowers/plans/2026-11-07-c12-native-observation-preflight.md分为最小配置验证、就绪判定合成测试、本机帮助/配置检查。候选128MiB缓冲区不等于总内存或磁盘硬上限；实际会话归属、保存空间和分析能力未证明就保持阻塞。

@@ -178,3 +178,15 @@ Spec runtime lifecycle,ETL handling and analysis are deliberately deferred behin
 its separate approval gate rather than falsely covered by this preflight plan.
 Plan status:READY_FOR_REVIEW. Approval would authorize only the finite offline
 implementation/tests/help inspections above,not real recording or native verify.
+
+## Execution outcome
+
+Approved afterf27ae030. Task1 RED7bde83/GREEN86fee7 passed21 cases plus shipped
+profile;Task2 RED993964/GREEN3db6d3 passed59 cases. Task3 WPR profile inspections
+2236b5/152ede matched exact128MiB/five keywords;three WPR help calls passed.
+ExporterHelp826c2f crashed with registry SecurityException/missing deps.json message;
+stopped without retry/elevation. Version metadata read after launch is a disclosed
+sequencing deviation;executable hash was claimed before launch. Six tool calls used.
+Actual readiness BLOCKED87cd0b;remaining feasibility unproved,not waived. Evidence
+packaged and handoff report written;no live plan/recording or Go invocation.
+See2026-11-07-c12-native-observation-preflight-result.md. GlobalNOT_ACCEPTED unchanged.

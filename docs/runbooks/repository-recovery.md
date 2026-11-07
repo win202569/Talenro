@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST PREFLIGHT RESULT:2026-11-07-c12-native-observation-preflight-result.md.
+Profile21 cases plus shipped candidate and readiness59 cases passed. WPR details
+show128MiB declared buffers/five keywords. ExporterHelp exited-532462766 with
+registry SecurityException and missing deps.json diagnostic;no retry/elevation.
+Runtime readiness BLOCKED,not authorized. Six of eight help slots consumed;both
+test RED/GREEN pairs consumed. Do not reuse occupied roots or rerun automatically.
+portable-c12-observation-preflight-final.json preserves109 verified entries;no
+vendor schema/binaries/caches/ETL. Source and tests are ordinary tracked files.
+Next proposed scope is read-only exporter packaging/documentation investigation,
+not tool relaunch/repair/recording.44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST PREFLIGHT PLAN AWAITING APPROVAL:
 docs/superpowers/plans/2026-11-07-c12-native-observation-preflight.md.
 Design approved after1a145f52. Plan covers minimal profile validation,pure readiness
