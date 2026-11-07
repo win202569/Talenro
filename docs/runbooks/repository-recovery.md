@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST TASK11 SOURCE REVIEW COMPLETE:
+Recovery-plan Task1 found no identity/count or approved N9/R27/D16 mapping drift.
+One frozen input has checkout-only line-ending drift: schema-name-registry.v1.json
+is CRLF here (raw C0946C58...), while in-memory LF matches original F505A358....
+Three other frozen hashes match. Do not change the expected pin or count semantic
+equality as byte-level acceptance. No file normalization or test ran this turn.
+A separately scoped one-file LF restoration is a possible next preparation step,
+not a resolution of the historical runtime stop. Task2 remains blocked; no replay.
+
 LATEST TASK11 RECOVERY BOUNDARY:
 Read docs/superpowers/plans/2026-11-07-task11-recovery-boundary.md first.
 The user reported two administrator STOPs; no nonadmin comparison exists.
