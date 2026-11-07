@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PUBLICATION FIX VERIFIED:2026-11-07-c12-manifest-publication-fix.md and
+portable-c12-manifest-publication-fix.json. RED reproduced TOTAL_LIMIT;GREEN saved
+and reread5 checks in exclusive ManifestCheck directory;duplicate write rejected.
+Old archive/common/module hashes unchanged. Corrected ignored recipe is embedded
+in new archive,not silently substituted into the old one. No Go/owner test/build/
+live this turn. Remaining Build180s/Live120s require resumption approval;do not
+rerun consumed test slots or occupied receipt directories. NOT_ACCEPTED unchanged.
+
 LATEST STOP BEFORE LIBC BUILD:manifest publication d16513 hit TOTAL_LIMIT because
 manifest-check.ps1 targeted the whole plan workspace including isolated caches.
 No manifest success receipt;854810 confirms Build/Live absent. Go/owner RED/GREEN

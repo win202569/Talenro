@@ -196,3 +196,11 @@ receipt destination incorrectly includes isolated caches under whole plan root.
 No durable manifest success;Build/Live NOT_RUN confirmed854810. No retries or cap
 changes. Task4 preserves partial implementation and failure for recovery,not acceptance.
 See2026-11-07-c12-libc-profile-result.md. New correction/resumption scope required.
+
+## Scoped publication correction
+
+User subsequently approved receipt-directory fix/offline recheck only.
+RED0871e6 reproduced TOTAL_LIMIT;GREENe50889 saved/read5 manifest cases in a fresh
+ManifestCheck directory and verified duplicate rejection. Original4MiB cap and
+old evidence preserved. See2026-11-07-c12-manifest-publication-fix.md.
+Build/Live still NOT_RUN;resumption requires approval,no Go/owner test retries.

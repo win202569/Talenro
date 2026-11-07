@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 记录目录已修正，离线复核通过
+
+RED0871e6复现原TOTAL_LIMIT；仅将发布目标改为独立ManifestCheck目录后，GREENe50889成功保存并读回5项集合核对，重复覆盖仍拒绝。4MiB限制未变，旧证据包及四个模块文件未变。
+说明2026-11-07-c12-manifest-publication-fix.md和portable-c12-manifest-publication-fix.json保存新旧脚本及记录。本轮无Go/进程夹具/构建/真实libc运行；Build/Live仍未启动。下一步需批准恢复原剩余有界构建/Live阶段，不重跑已消耗测试。44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — libc模式离线通过，构建前记录发布被配额阻塞
 
 Go诊断包测试通过；PowerShell18项通过（含4个合成子进程）。随后d16513在保存源码集合核对记录时触发TOTAL_LIMIT：新脚本误把包含隔离编译缓存的整个工作目录作为4MiB证据根。记录未写出，Build/Live均未启动。
