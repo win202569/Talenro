@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST NONADMIN COMPARISON PENDING:
+2026-11-07-c12-nonadmin-comparison-handoff.md. Approved outside-restriction call
+6c56d5 detected an administrator context and stopped BEFORE registry access.
+No ordinary-user comparison result exists. User must manually open nonadmin
+PowerShell for the scoped read-only check;do not manipulate tokens or use another
+automatic execution route. No values/permissions changed;NOT_ACCEPTED unchanged.
+
 LATEST EXACT-KEY ACCESS DENIED:2026-11-07-c12-ceip-read-access-result.md.
 One approved read-only base/subkey-open attempt69fb96 returned SecurityException,
 HResult-2146233078. No values read,enumeration,write,elevation or retry. This shows

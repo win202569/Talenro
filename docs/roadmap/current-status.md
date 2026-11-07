@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 普通用户对照尚未执行，管理员保护条件已停止工具检查
+
+获批后6c56d5先检查工具进程权限，发现管理员角色，按保护条件立即停止，未访问注册表。因此没有新的键访问结果，不能判断普通用户是否可读。
+见2026-11-07-c12-nonadmin-comparison-handoff.md。下一步由用户手动打开非管理员PowerShell执行同键只读检查；不读取值、不改权限、不自动换执行通道。观察路线BLOCKED，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 精确注册表只读访问也被拒绝，已停止
 
 批准后的单次检查69fb96未读取值，仅尝试只读打开HKCU\Software\Microsoft\Windows Kits\CEIP，返回SecurityException及“Requested registry access is not allowed.”。未重试、提权或改权限；报告2026-11-07-c12-ceip-read-access-result.md保留原结果与解释边界。
