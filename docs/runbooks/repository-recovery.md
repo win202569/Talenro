@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS VISUALS CONFIRMED / INTERACTION DESIGN AWAITING APPROVAL:
+Read docs/superpowers/specs/2026-11-07-windows-client-four-screen-design.md.
+All four visuals are user-confirmed; offline-demo interaction proposals await
+written approval. Native WinUI remains intended, no web substitution or real
+auth/VPN/payment implementation. Future toolchain/build/test scope is separate;
+do not launch anything from the visual confirmation. Prior blockers unchanged.
+
 LATEST WINDOWS CLIENT VISUAL DRAFT:
 docs/design/windows-client/2026-11-07/README.md and four adjacent PNGs preserve
 selected direction1 plus login/nodes/account concepts. They are static generated

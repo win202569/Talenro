@@ -2,8 +2,9 @@
 
 Date: 2026-11-07. User selected the first displayed concept (light native,
 teal accent, connection-first) and requested expansion to the four core pages.
-Only the visual direction is selected; these expanded screens and interaction
-proposals await review. No implementation plan or runtime permission follows.
+User subsequently confirmed all four visual screens. The written interaction
+design now awaits approval: [design](../../../superpowers/specs/2026-11-07-windows-client-four-screen-design.md).
+No implementation plan or runtime permission follows from visual approval.
 
 ## Screens
 
@@ -67,8 +68,8 @@ screen-reader names and Persian RTL remain unrendered/unverified.
 
 ## Handoff
 
-Next: review these three expanded pages alongside the selected connection page.
-After feedback, settle the interaction states and write the bounded design before
-any implementation. No code, service, installation, test or build was performed.
+Next: review the linked written interaction design, including its explicitly
+labelled author proposals, before implementation planning. No code, service,
+installation, test or build was performed.
 Task11/12 and the prior security/runtime blocks remain unchanged;44/34/6/217,
 NOT_ACCEPTED. This checkpoint preserves design progress only.
