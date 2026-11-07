@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## Proposed native root completion budget — awaiting approval
+
+Evidence synthesis recommends one300s root go mod verify,unchanged offline pins/
+concurrency and corrected bounded owner,no extra collector/tests/build. Resource
+budget only,not an extrapolated finish estimate. Plan/design under2026-11-07-c12-root-verify-completion.
+Exact success output,empty stderr,exit0,no timeout,confirmed exit and unchanged
+module hashes required. Uncached modules may be skipped by native verify;no full
+availability/acceptance claim. This turn read-only/docs only;44/34/6/217,NOT_ACCEPTED.
+
 ## Phase v3 complete — selected digests match
 
 Run3ee142 normal exit in56.717s;12 events/6 completed phases/4 content matches.

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PROPOSED ROOT PLAN: docs/superpowers/plans/2026-11-07-c12-root-verify-completion.md,
+with paired design2026-11-07-c12-root-verify-completion-design.md. Await approval.
+Proposes one300s native go mod verify with unchanged corrected owner,no collector,
+new exclusive root,offline fixed cache/toolchain,strict raw-success/exit/hash gates.
+300s is a resource proposal,not predicted completion. Native verify skips absent
+cached modules,so success is not full availability/build/test/C12 acceptance.
+No new Go/test/build/runtime in planning turn.44/34/6/217,NOT_ACCEPTED.
+
 LATEST PHASE V3 COMPLETE: docs/roadmap/2026-11-07-c12-phase-v3-result.md.
 One run3ee142 exit0/56.717s,no timeout,owned exit confirmed.12 complete events,
 6 OK phases,4 matching content digests;4 root/devtools module hashes unchanged.
