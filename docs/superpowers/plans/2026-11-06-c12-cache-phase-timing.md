@@ -181,3 +181,14 @@ Additive Candidate.SumFile/Event.Expected support expected digest reads inside
 PREPARE/comparison evidence; no broader CLI/cache allowlist. Author-only review,
 synthetic reparse test limitation;44/34/6/217,NOT_ACCEPTED. Fresh approval required
 for further runtime work. Historical checkboxes above are the original plan.
+
+## Resumed build outcome — 2026-11-07
+
+Timing repair e307084c passed16 groups; user continued to Task3. Current sources
+matched GREEN receipt; source checkpoint verified remote. Original Build slot
+consumed:56c195 exit1 in24015.731ms,VCS status exit128,no timeout,exit confirmed.
+Read-only Git ownership rejection explains stamping failure; no helper binary.
+Live NOT_RUN. Stop applied,no retry/security changes. See
+docs/roadmap/2026-11-07-c12-phase-build-result.md. Separate archive preserves
+build receipt without overwriting previous test evidence. Next command amendment
+(-buildvcs=false plus new exclusive build root/budget) is proposed,not executed.

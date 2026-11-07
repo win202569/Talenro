@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## 2026-11-07 release build stopped before live
+
+Current source matched16-group GREEN; one build56c195 failed VCS status exit128
+after24.02s,owned exit confirmed,no timeout. Plain Git status read-only check
+rejects worktree ownership; Go build stamping uses this query,unlike default tests.
+No binary or Live run;4 module hashes unchanged,no security/config edits or retry.
+Proposed future -buildvcs=false preserves explicit receipt provenance but needs
+new scoped build approval/root.44/34/6/217,NOT_ACCEPTED.
+
 ## 2026-11-07 timing test corrected —16 groups pass
 
 REDa3becf reproduced real-clock ZIP/directory END/OK at0ns and frozen-clock zero.

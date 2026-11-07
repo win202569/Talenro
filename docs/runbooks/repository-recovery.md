@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST BUILD STOP (2026-11-07): see docs/roadmap/2026-11-07-c12-phase-build-result.md.
+Build56c195 exit1 in24.02s,no timeout,owned exit confirmed. VCS stamping failed:
+plain git status rejects dubious ownership. No helper.exe,Live NOT_RUN,4 module
+hashes unchanged. Original build slot exhausted; no retry/config/security change.
+Portable receipt/source archive: portable-c12-phase-build-v1.json alongside earlier
+diagnostic archives. Proposed next step needs scoped approval: -buildvcs=false,
+fresh build root/one180s build,explicit source/binary provenance retained,then at
+most one120s live after gates. Do not reuse occupied Build.44/34/6/217,NOT_ACCEPTED.
+
 LATEST 2026-11-07 TIMING REPAIR: see docs/roadmap/2026-11-07-c12-phase-timing-fix.md.
 Real-clock and frozen-clock RED reproduce valid END/OK with0ns; old positive-only
 test was incorrect. Corrected nonnegative timing plus ordered completion/digest
