@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST EXECUTION PLAN AWAITING APPROVAL:
+docs/superpowers/plans/2026-11-07-c12-libc-profile.md;paired design now approved.
+Plan covers bounded Go/owner RED/GREEN,default compatibility/four synthetic children,
+fresh complete-set artifact binding,one build and at most one120s libc live run.
+Failures stop subsequent stages;no retries. No implementation/runtime in planning
+turn. Existing inline boundary retained;44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST DESIGN AWAITING DOCUMENT APPROVAL:
 docs/superpowers/specs/2026-11-07-c12-libc-profile-design.md.
 User selected fixed profiles over duplicated tools. Proposed paired-v1 default

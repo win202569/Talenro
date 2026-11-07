@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — libc固定模式设计已批准，实施计划待批准
+
+实施计划docs/superpowers/plans/2026-11-07-c12-libc-profile.md已明确两端RED/GREEN、默认模式回归、四个合成子进程、构建产物完整文件集绑定，以及最多一次120秒libc真实诊断。前置/验证失败停止后续阶段，不自动重试。
+本轮仅编写计划，无源码修改或运行；设计批准不等于新结果已验证。计划批准后沿用内联实施；44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — 固定libc模式设计已整理，待文档批准
 
 用户已选择共用工具的固定模式方案。设计docs/superpowers/specs/2026-11-07-c12-libc-profile-design.md保留paired-v1默认双模块模式，新增libc-v1；两端精确匹配模式与事件数量，未知模式提前拒绝，不提供任意模块入口。

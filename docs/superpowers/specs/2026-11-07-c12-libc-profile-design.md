@@ -1,7 +1,8 @@
 # Fixed libc diagnostic profile — short design
 
-Status: DESIGN_READY_FOR_REVIEW. User selected the fixed-profile approach;
-this document's detailed contract awaits approval. No implementation/runtime yet.
+Status: DESIGN_APPROVED by user after d26780f4. Execution plan is
+docs/superpowers/plans/2026-11-07-c12-libc-profile.md;await plan approval before
+implementation/runtime. Proposal wording below preserves the original design.
 
 ## Intent and evidence
 
