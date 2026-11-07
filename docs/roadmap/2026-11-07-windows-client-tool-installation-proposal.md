@@ -109,6 +109,57 @@ pins and this report in Git, never SDK executables or installation caches.
 
 ## Current result
 
+### Dependency and host review — 2026-11-07
+
+Resolved the prior SDK-selection question without installing or running any SDK.
+Read local Installer catalog at
+`C:\Users\Lenovo\AppData\Local\Microsoft\VisualStudio\Packages\_Channels\433fad92\catalog.json`.
+Catalog SHA256: `417B8D3FEE577BDB0E192835692446DE51B4626526E4B555162FD9C2FCA7DFF1`.
+Identity: VisualStudio/18.11.3+12328.437, stable, RTW, not prerelease.
+Bootstrapper metadata identifies Community / VisualStudio.18.Release.
+
+Required dependency edges observed in that catalog:
+`Microsoft.VisualStudio.Workload.Universal`
+→ `Microsoft.VisualStudio.ComponentGroup.WindowsAppDevelopment.Prerequisites`
+→ `Microsoft.VisualStudio.Component.WindowsAppSdkSupport.CSharp`
+→ `Microsoft.VisualStudio.PackageGroup.MSIX.Shared`
+→ `Microsoft.Windows.SDK.BuildTools_10.0.26100.7705` (Nupkg).
+This is bundled build tooling, not the full standalone Windows SDK. The three
+standalone Windows11 SDK components are explicitly Optional. Thus their unchecked
+boxes alone do NOT prove missing C# WinUI prerequisites. Recommend keeping the
+reviewed C# selection rather than adding a full SDK without a concrete need.
+Later project targeting/package restore and build must still be verified.
+
+Catalog .NET SDK dependency identifies toolset10.0.403-servicing.26523.112;
+component version18.11.12324.64 is not the .NET CLI version. MSBuild component
+18.11.12301.404 resolves Microsoft.Build package18.11.1.2651303. These are proposed
+catalog versions, not installed-command results. C# tooling also depends on
+HostX64.TargetX64/TargetX86 native tools internally; excluding optional C++ workload
+does not imply no native dependencies. Preserve required dependencies.
+
+Official cross-checks (documentation has older package revisions than local catalog):
+- [VS component directory](https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-community): WinUI workload requires MSBuild/.NET and lists standalone Windows SDK as optional; do not copy its older versions into current selection.
+- [WinUI quickstart](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here): VS2026 WinUI route; no broad WinGet configuration executed.
+- [VS requirements](https://learn.microsoft.com/en-us/visualstudio/releases/2026/vs-system-requirements) and [Windows lifecycle](https://learn.microsoft.com/en-us/lifecycle/products/windows-11-home-and-pro).
+
+Read-only CIM queries initially unavailable in restricted execution; approved
+read-only execution returned Windows11 Pro64-bit, build26200 (25H2 family), x64,
+Intel Core7 240H10 cores, physical RAM16,699,781,120 bytes, display1920x1200 pixels.
+OS family/architecture, CPU and RAM meet documented baseline. Physical display
+exceeds minimum, but effective logical resolution after scaling remains unverified;
+do not claim complete display compatibility or change scaling automatically.
+Free bytes C:67,922,391,040, D:508,217,372,672. Previous14.39GB selection plus20GiB
+headroom fits even if charged entirely to C. No UI changes this turn; previous
+selection estimate must be refreshed immediately before any approved install.
+
+Next: user confirms Community eligibility/terms and effective display suitability,
+then grants explicit installation approval. Refresh selection and stop on drift.
+Install only reviewed WinUI required set, retain excluded AI/optional C++ choices,
+product/cache D paths and unchanged shared path. No automatic reboot, sign-in,
+Developer Mode/security changes, IDE/project launch or tests. Metadata verification
+after installation should be separately stated; actual toolchain readiness still
+requires installed versions and later bounded project checks. Task11/12 gates unchanged.
+
 ### Subsequent selection review — workload installation not started
 
 After launch approval, bootstrapper was opened and stopped at the license screen.

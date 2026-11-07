@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — WinUI必需SDK依赖已核实，待安装授权
+
+实际18.11.3稳定版catalog证明C# WinUI经MSIX.Shared依赖Windows SDK BuildTools10.0.26100.7705；完整Windows SDK为Optional，未勾选并非缺失证明。catalog还定位.NET SDK10.0.403工具集及Microsoft.Build18.11.1.2651303，均未安装验证。建议保持现有14.39GB选择，不额外添加完整SDK。
+本机Windows11 Pro/build26200/x64、10核、约16GB内存符合基础要求；物理1920x1200，有效缩放后分辨率未确认。磁盘有足够余量。详情及catalog哈希见安装方案。下一步确认Community许可适用、显示条件及安装授权，再刷新清单；尚未点击安装、不运行项目，44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — WinUI安装选择已初审，尚未启动工作负载安装
 
 用户已手动进入组件选择页。实际产品Community 2026 18.11.3；仅预选WinUI工作负载，取消IntelliCode、GitHub Copilot、.NET Copilot Skills，未勾选C++扩展。当前估算14.39 GB，产品/缓存路径预填D盘，未点击安装。详情见安装方案的选择审阅记录。

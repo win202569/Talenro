@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS REQUIRED SDK QUESTION RESOLVED / INSTALL STILL PENDING:
+Installation proposal records hashed18.11.3 stable catalog dependency chain from
+C# WinUI to SDK BuildTools10.0.26100.7705. Standalone Windows SDK remains optional;
+unchecked boxes are not a missing-prerequisite finding. Proposed SDK toolset10.0.403
+and Microsoft.Build18.11.1.2651303 are catalog facts, NOT installed versions.
+Host baseline OS/CPU/RAM and disk checked; scaled display suitability and Community
+eligibility remain user confirmations. Do not auto-install: obtain explicit approval,
+refresh UI selection, preserve D paths/exclusions and stop on drift. No project run.
+
 LATEST WINDOWS SELECTION REVIEW / WORKLOAD NOT INSTALLED:
 User manually reached selection page after bootstrapper launch. Installer is now
 present, but no workload installation was started by the agent. VS Community2026
