@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 外部观察设计已批准，非采集实施计划待批准
+
+计划docs/superpowers/plans/2026-11-07-c12-native-observation-preflight.md分为最小配置验证、就绪判定合成测试、本机帮助/配置检查。候选128MiB缓冲区不等于总内存或磁盘硬上限；实际会话归属、保存空间和分析能力未证明就保持阻塞。
+本轮只写计划并只读查阅本机XSD/示例及工具路径，未生成采集配置、未运行测试/Go/采集。批准本计划也只允许非采集阶段；真实运行仍须独立审批。44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — 原生命令外部观察设计已整理，待批准
 
 用户选择不修改Go、使用外部观察的路线。设计见docs/superpowers/specs/2026-11-07-c12-native-observation-design.md。本机WPR/WPA存在，但内置CPU.light+FileIO.light配置列出1771MiB缓冲区和额外提供程序，因此不能直接采用；先验证最小专用配置、会话归属、资源上限和离线分析路径。

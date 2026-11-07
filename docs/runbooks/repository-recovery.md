@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PREFLIGHT PLAN AWAITING APPROVAL:
+docs/superpowers/plans/2026-11-07-c12-native-observation-preflight.md.
+Design approved after1a145f52. Plan covers minimal profile validation,pure readiness
+tests and bounded non-recording help/profile queries only. No collector controller,
+real ETL analysis or Go invocation is authorized. Synthetic success cannot satisfy
+unproved ownership/storage/analysis gates. Candidate128MiB capacity is not a total
+memory/disk cap. Actual recording remains separately approved;NOT_ACCEPTED unchanged.
+
 LATEST DESIGN AWAITING APPROVAL:
 docs/superpowers/specs/2026-11-07-c12-native-observation-design.md.
 External WPR observation selected;no Go modification or runtime authorized here.

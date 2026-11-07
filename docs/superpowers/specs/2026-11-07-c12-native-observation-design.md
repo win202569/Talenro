@@ -1,6 +1,7 @@
 # Native verifier observation — proposed design
 
-Status: DESIGN_READY_FOR_REVIEW, not execution approval.
+Status: DESIGN_APPROVED by user after1a145f52;not runtime approval.
+First-stage plan:docs/superpowers/plans/2026-11-07-c12-native-observation-preflight.md.
 User selected external observation of the unchanged native command;this document
 proposes the concrete boundaries. Source checkpoint f248366b. PowerShell only,
 existing codex/c12-b01-task9-coordinator worktree,inline author review.
