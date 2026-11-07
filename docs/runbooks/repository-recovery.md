@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LIBC IMPLEMENTATION CHECKPOINT: Go selector RED expected assertion,Go GREEN5075e6
+passed diagnostic-local package suite. See2026-11-07-c12-libc-profile-result.md and
+portable-c12-libc-profile-go.json for exact snapshots/receipts. Go slots consumed;
+next OwnerRed/OwnerGreen then gated Build/Live under approved plan. Do not rerun Go
+stages or assume old binaries support profiles.44/34/6/217,NOT_ACCEPTED.
+
 LATEST EXECUTION PLAN AWAITING APPROVAL:
 docs/superpowers/plans/2026-11-07-c12-libc-profile.md;paired design now approved.
 Plan covers bounded Go/owner RED/GREEN,default compatibility/four synthetic children,

@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — libc模式Go侧已通过离线测试，继续PowerShell侧
+
+Go RED按预期仅因缺失libc选择失败；实现后Go GREEN5075e6正常退出，诊断包测试通过，模块文件未变。原默认模式保留。证据见2026-11-07-c12-libc-profile-result.md及portable-c12-libc-profile-go.json。
+这是阶段检查点；PowerShell协议侧、构建与真实libc尚未运行。继续执行已批准计划，不扩展预算。44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — libc固定模式设计已批准，实施计划待批准
 
 实施计划docs/superpowers/plans/2026-11-07-c12-libc-profile.md已明确两端RED/GREEN、默认模式回归、四个合成子进程、构建产物完整文件集绑定，以及最多一次120秒libc真实诊断。前置/验证失败停止后续阶段，不自动重试。
