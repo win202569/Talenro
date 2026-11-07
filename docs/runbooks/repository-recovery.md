@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST EXPORTER READ-ONLY ANALYSIS:
+docs/roadmap/2026-11-07-c12-exporter-readonly-analysis.md. Saved109-entry archive
+verified;installed exporter hashes unchanged. Fatal chain identifies startup
+registry access;missing deps.json causality remains unproved. Historical-help
+spelling differs from Microsoft article's-h or /?;no alternative was executed.
+No relaunch/registry reads/elevation/repair/recording. Read-only scope complete;
+any executable follow-up needs a new explicit scope,not the stopped help budget.
+Observation remains BLOCKED;do not repeatedly recheck the same files as progress.
+44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST PREFLIGHT RESULT:2026-11-07-c12-native-observation-preflight-result.md.
 Profile21 cases plus shipped candidate and readiness59 cases passed. WPR details
 show128MiB declared buffers/five keywords. ExporterHelp exited-532462766 with
