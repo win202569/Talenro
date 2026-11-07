@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST ENVIRONMENT ANALYSIS:2026-11-07-c12-exporter-environment-analysis.md.
+Metadata-only inspection of installed Base DLL identifies the getter's Windows
+target:HKCU\Software\Microsoft\Windows Kits\CEIP,OptIn. No DLL execution or
+registry reads performed. Exact key access/policy and historical child token
+remain unknown. Current DetectorsAppHealth compatibility variable is not proven
+causal;do not clear it. Proposed next scope is only exact-key read-access checking,
+without publishing the preference value or changing permissions. No exporter or
+capture retry authorized;44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST SINGLE-H ATTEMPT FAILED:2026-11-07-c12-exporter-help-h-result.md.
 One approved original-privilege-h query exited-532462766 in6.389s;exit confirmed,
 no timeout,four module files unchanged. stderr byte hash equals previous-help:

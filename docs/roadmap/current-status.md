@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 环境排查定位到具体注册表读取位置
+
+只读解析Microsoft.Performance.Base.dll元数据，定位Windows初始化路径读取HKCU\Software\Microsoft\Windows Kits\CEIP的OptIn值；未执行DLL或访问注册表。当前兼容性变量为DetectorsAppHealth，尚无因果证据，未改动。
+详见2026-11-07-c12-exporter-environment-analysis.md。下一步建议只检查这个确切键的只读可访问性，不读取发布偏好值、不改权限、不重跑导出器；仍需明确范围。观察路线BLOCKED，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 单次-h帮助检查仍失败，停止自动观察路线
 
 批准后的唯一-h调用76ea41约6.39秒异常退出，进程退出已确认，非超时。错误流1886字节与此前-help完全相同：初始化时注册表访问被拒绝，并有缺少deps.json提示。更换参数没有解决当前环境中的启动问题；未尝试/?、提权或修复。
