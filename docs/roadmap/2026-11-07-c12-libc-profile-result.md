@@ -2,6 +2,44 @@
 
 Source plan approved after e7e2a9b9. Global44/34/6/217,NOT_ACCEPTED.
 
+## Final scoped result — Build and libc Live passed
+
+User approved resuming only Build180s then Live120s after publication correction.
+Source checkpoint d5b2714c63e2f665255f1d8fa9c8c89d93469620 matched remote before
+launch. Build4a947b passed in11619.698ms;Live3d8226 passed in66887.2084ms.
+Both exited0 with confirmed exit,no timeout/owner failure,and unchanged four module
+files. Build stdout/stderr empty;Live stdout1597 bytes,stderr empty,raw output read.
+Complete six events/three OK phases for modernc.org/libc v1.72.1:
+
+| Phase | Seconds |
+| --- | ---: |
+| PREPARE | 2.0218729 |
+| ZIP | 0.3651346 |
+| DIRECTORY | 64.0042556 |
+
+ZIP and DIRECTORY both match root go.sum/ziphash:
+`h1:db1xwJ6u1kE3KHTFTTbe2GCrczHPKzlURP0aDC4NGD0=`.
+Binary SHA256 E195ACAE63ED26DF5AC23EC6E9C8257BE81B4AEFE0910A8F7781AD694FFA6F5B.
+Launcher checked tested Go/owner sources,18-case owner receipt,complete Build/Live
+manifest equality and binary binding. No Go/owner tests rerun;no runtime retry.
+Directory hashing dominated this selected run;this does not attribute the earlier
+root verifier timeout,prove all dependencies intact,or establish C12 acceptance.
+
+portable-c12-libc-profile-live.json:60 entries,194815 decoded bytes,all lengths and
+SHA256 checked against originals;archive SHA256
+9A60F7E4A74C87BDB61329C6301D06DFC96A88208B4216AB726141C9FAFDF9E4.
+It preserves exact pre-handoff spec/plan,source snapshots,claims,receipts,raw output,
+corrected manifest record and packaging recipe. Prior archives remain unchanged and
+are referenced by hash. Binary/caches/real module contents excluded;binary hash is
+retained. Expected local paths are present;no credential/private payload observed.
+
+Inline author review only:five plan focus areas checked against existing tests and
+new runtime binding/output;no new independent review claimed. All finite stage
+slots consumed. No cleanup of original evidence,no main merge,no acceptance change.
+Next safe step:read-only synthesis of saved text/sqlite/libc timings and coverage
+gaps before proposing any further bounded validation;no automatic new run.
+Historical checkpoint sections below retain the original sequence,not current status.
+
 ## Go selector checkpoint
 
 GoRed08a212/891406:29.693s,exit1,only TestProfileLibc assertion failed with PROFILE

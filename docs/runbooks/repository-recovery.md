@@ -1,5 +1,19 @@
 # Recover the project on a new computer
 
+LATEST LIBC BUILD/LIVE PASSED: source d5b2714c;Build11.620s,Live66.887s,
+PREPARE2.022s/ZIP0.365s/DIRECTORY64.004s. Six complete events,two matching digests,
+exit0,empty stderr,four module files unchanged. See2026-11-07-c12-libc-profile-result.md
+and portable-c12-libc-profile-live.json (60 entries;SHA256
+9A60F7E4A74C87BDB61329C6301D06DFC96A88208B4216AB726141C9FAFDF9E4).
+Read this together with unchanged parent archives referenced inside it. Exact
+pre-handoff plan/spec/source snapshots are embedded;later documentation does not
+retroactively alter the build manifest. No binaries/caches/credentials are restored.
+All stage slots consumed;do not rerun historical scripts or reuse occupied roots.
+Resume from latest codex/c12-b01-task9-coordinator checkpoint,not main. Next is
+read-only synthesis of saved module timings/coverage;any new runtime needs its own
+scope. Root timeout remains unexplained;44/34/6/217,NOT_ACCEPTED unchanged.
+The older LATEST sections below are historical checkpoints.
+
 LATEST PUBLICATION FIX VERIFIED:2026-11-07-c12-manifest-publication-fix.md and
 portable-c12-manifest-publication-fix.json. RED reproduced TOTAL_LIMIT;GREEN saved
 and reread5 checks in exclusive ManifestCheck directory;duplicate write rejected.

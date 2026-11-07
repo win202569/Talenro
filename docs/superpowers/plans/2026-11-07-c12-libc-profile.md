@@ -204,3 +204,14 @@ RED0871e6 reproduced TOTAL_LIMIT;GREENe50889 saved/read5 manifest cases in a fre
 ManifestCheck directory and verified duplicate rejection. Original4MiB cap and
 old evidence preserved. See2026-11-07-c12-manifest-publication-fix.md.
 Build/Live still NOT_RUN;resumption requires approval,no Go/owner test retries.
+
+## Approved resumption outcome
+
+User subsequently approved one Build180s and,only on success,one Live120s.
+At d5b2714c,Build4a947b passed11.620s;Live3d8226 passed66.887s with six complete
+events/three OK phases,two expected digests and unchanged module files. No test
+reruns or runtime retries. Task3 complete for selected libc diagnosis;Task4 evidence
+saved in new portable-c12-libc-profile-live.json without replacing old archives.
+All finite runtime slots consumed. Inline author review retained;no new independent
+review. Exact pre-update plan preserved in archive for Build/Live manifest checks.
+Global44/34/6/217,NOT_ACCEPTED unchanged;root timeout attribution remains open.
