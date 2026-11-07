@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST SINGLE-FILE LF RESTORATION COMPLETE:
+The approved schema-name-registry.v1.json formatting-only operation restored
+SHA256 F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1.
+Current index/worktree are LF; no content diff exists because Git already stores LF.
+Existing text=auto can produce CRLF again on checkout. No Git config/attribute
+change was authorized or made, so this is NOT a durable checkout-policy fix.
+Verify raw bytes on the next machine; do not update the frozen expected hash.
+Only the documentation checkpoint travels as a new Git change. No tests ran;
+the historical natural-shutdown gate and Task2 runtime decision remain blocked.
+
 LATEST TASK11 SOURCE REVIEW COMPLETE:
 Recovery-plan Task1 found no identity/count or approved N9/R27/D16 mapping drift.
 One frozen input has checkout-only line-ending drift: schema-name-registry.v1.json

@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 单文件LF恢复完成，原runtime阻塞未解除
+
+用户批准后，仅将 schema-name-registry.v1.json 的CRLF转换为LF；写入前后均核对原冻结哈希，落盘SHA256精确匹配F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1，CR字节为0。Git显示i/lf w/lf，该文件相对提交无差异。
+现有text=auto可能在未来检出时再次产生CRLF；未改Git设置或.gitattributes，不能声称换机后自动保持此原始哈希。恢复说明已记录这一限制。未运行测试或修改产品逻辑，Task2仍受原自然退出检查阻塞；44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — Task11 源码核对完成；发现一份冻结文件的换行差异
 
 恢复方案 Task1 已完成只读核对：146组名称映射在源码及两份名称fixture中一致，分类计数与初始inventory测试一致，N9/R27/D16附录四字段核对一致。没有新设计冲突，不重建146项对照。

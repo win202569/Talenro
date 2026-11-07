@@ -66,6 +66,14 @@ Ruling: apply the approved documentation-only scope instead of generic implement
 
 ## Task 2: Runtime resumption decision — blocked, not executable
 
+### Approved one-file LF restoration — 2026-11-07
+
+After the source-review checkpoint a535dd7f, the user approved continuation of the proposed one-file LF restoration only. A bounded PowerShell formatting operation checked the exact C0946C58... input hash, converted CRLF to LF in memory, required the original full F505A358... hash before writing, and re-hashed the saved file. Result: `F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1`, zero CR bytes, `git ls-files --eol` reports `i/lf w/lf`. `git diff --exit-code` for the file returned 0: the committed content already contains LF. No JSON values, expected pins, attributes or Git settings changed.
+
+This resolves only the current checkout's one-file raw-byte mismatch. Git warned that its existing text=auto policy may replace LF with CRLF when it next touches the file. The normalization is not a durable cross-machine checkout-policy fix; cloning alone does not guarantee these raw bytes. On another checkout, inspect and compare against the original hash before any runtime proposal; do not silently replace the expected pin. A durable path-specific attribute change is outside this approved one-file formatting scope.
+
+Only the documentation result is newly committed, since the normalized fixture matches the existing Git blob. No Go/test/Docker/native helper or system-setting operation ran. The original natural-shutdown failure and Task2 gate below remain unresolved; this success grants no runtime or implementation authority.
+
 The metadata work is independent of WPR/exporter access, but its accepted native test path is not yet established. Before implementation, a separate scoped decision must identify a verification route preserving ownership, identity, natural-exit, cleanup and audit requirements, with fresh source bindings and explicit budget. This document neither selects an unverified alternate runner nor spends the old remaining allowance.
 
 Once that decision exists, resume the original plan at its unsatisfied fixture-red prerequisite, not fixture-green. Preserve the original failed attempt and do not reuse its identity. Follow the original independent fixtures, malformed-input, framing, API ownership and complete-package test requirements. No default authorization to replay the failed phase is granted here.
