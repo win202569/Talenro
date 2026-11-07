@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 固定libc模式设计已整理，待文档批准
+
+用户已选择共用工具的固定模式方案。设计docs/superpowers/specs/2026-11-07-c12-libc-profile-design.md保留paired-v1默认双模块模式，新增libc-v1；两端精确匹配模式与事件数量，未知模式提前拒绝，不提供任意模块入口。
+设计要求默认兼容、跨模式拒绝、半条日志/截止处理测试及重新绑定构建产物，提出有限离线/构建/真实运行预算供后续计划审定。本轮仅写设计，未改工具或运行任何验证。设计批准后再编写实施计划；44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — 已定位诊断覆盖缺口，建议单独检查libc
 
 只读比较8901f5确认99条根require声明均出现在101条根依赖边中（另两条为Go/toolchain）；这不是实际缓存或BuildList清单。现有辅助工具只检查text/sqlite自身，不递归覆盖sqlite依赖的libc。

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DESIGN AWAITING DOCUMENT APPROVAL:
+docs/superpowers/specs/2026-11-07-c12-libc-profile-design.md.
+User selected fixed profiles over duplicated tools. Proposed paired-v1 default
+preserves old behavior;libc-v1 selects only libc v1.72.1. Exact profile binding in
+producer/parser/claims,new regression tests and fresh source/binary binding required.
+No implementation or runtime this turn;budgets in design are proposals,not spent.
+After design approval write execution plan.44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST COVERAGE COMPARISON: docs/roadmap/2026-11-07-c12-diagnostic-coverage.md.
 Saved graph matches99 root require pairs plus Go/toolchain edges. Current helper
 does not recurse from sqlite into libc. Proposed next object:root-declared
