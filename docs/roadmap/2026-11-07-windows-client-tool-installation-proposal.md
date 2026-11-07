@@ -109,6 +109,14 @@ pins and this report in Git, never SDK executables or installation caches.
 
 ## Current result
 
+### Installation completed after subsequent approval — 2026-11-08
+
+See [installation result](2026-11-08-windows-client-tool-installation-result.md).
+User confirmed Community eligibility, reported manually changing scaling from150%
+to125%, then explicitly approved the reviewed installation. Installer now shows
+Community2026 18.11.3 installed. No SDK/MSBuild commands, IDE/project launch or tests
+were performed. Historical pending-install sections below are retained as history.
+
 ### Dependency and host review — 2026-11-07
 
 Resolved the prior SDK-selection question without installing or running any SDK.

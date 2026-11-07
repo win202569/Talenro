@@ -1,4 +1,9 @@
-# Project status — updated 2026-11-07
+# Project status — updated 2026-11-08
+
+## Latest — Visual Studio WinUI安装完成，尚未进行工具链命令验证
+
+用户确认Community许可适用、手动调整显示缩放后明确批准安装。复核18.11.3/14.39GB与D盘产品缓存路径一致后只启动一次安装；下载约3.47GB、562个包，最终安装器已安装页显示Community2026 18.11.3和修改/启动按钮，无安装错误或重启提示。未点击启动，未启用开发者模式，未运行项目或SDK/MSBuild命令。
+详见2026-11-08-windows-client-tool-installation-result.md。下一步建议一次有限的工具链元数据检查及导出安装配置，再更新原生离线演示实施前置条件；安装完成不等于项目验收。Task11/12及44/34/6/217、NOT_ACCEPTED不变。
 
 ## Latest — WinUI必需SDK依赖已核实，待安装授权
 

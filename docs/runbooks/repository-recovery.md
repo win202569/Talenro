@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS WINUI INSTALLATION COMPLETED ON THIS HOST:
+Read docs/roadmap/2026-11-08-windows-client-tool-installation-result.md first.
+Installer completed Community2026 18.11.3 after explicit approval, without observed
+error/reboot prompt or IDE launch. This supersedes earlier pending-install notes.
+No SDK/MSBuild metadata commands, project restore/build/tests or native demo launch
+were run. Installed tool binaries/caches are not in Git; another computer needs its
+own approved tool setup. Next: finite metadata verification and portable configuration
+export, then update implementation readiness. Prior project runtime gates unchanged.
+
 LATEST WINDOWS REQUIRED SDK QUESTION RESOLVED / INSTALL STILL PENDING:
 Installation proposal records hashed18.11.3 stable catalog dependency chain from
 C# WinUI to SDK BuildTools10.0.26100.7705. Standalone Windows SDK remains optional;
