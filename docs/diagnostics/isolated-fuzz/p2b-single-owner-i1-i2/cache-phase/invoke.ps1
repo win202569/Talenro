@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'owner.ps1')
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../../..'))
-$workspace=Join-Path $repo '.superpowers/sdd/2026-11-06-c12-cache-phase-v1'
+$workspace=Join-Path $repo '.superpowers/sdd/2026-11-07-c12-cache-phase-v2'
 $root=New-C12WaitRoot (Join-Path $workspace $Stage)
 $go='C:/Users/Lenovo/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.5.windows-amd64/bin/go.exe'
 if((Get-FileHash -LiteralPath $go).Hash -cne 'D6A71E6DC9806CB3F1FCB817D562175C5A7B1505FC3F6638299648E0B9F0F74F'){throw 'PIN_MISMATCH'}
@@ -17,7 +17,7 @@ $session='';$executable=$go;$deadline=180000
 switch($Stage){
     GoRed {$arguments=@('test','-count=1','-timeout=30s','./...')}
     GoGreen {$arguments=@('test','-count=1','-timeout=30s','./...')}
-    Build {$arguments=@('build','-trimpath','-o',(Join-Path $root 'helper.exe'),'.')}
+    Build {$arguments=@('build','-buildvcs=false','-trimpath','-o',(Join-Path $root 'helper.exe'),'.')}
     Live {
         $build=Read-C12WaitRecord (Join-Path $workspace 'Build') 'stage-result.json'
         if($null -eq $build -or -not $build.Passed){throw 'BUILD_NOT_VERIFIED'}
