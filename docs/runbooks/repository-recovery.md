@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS TOOL INSTALLATION PROPOSAL:
+Read docs/roadmap/2026-11-07-windows-client-tool-installation-proposal.md.
+Stable Visual Studio/C# WinUI route is proposed, not approved or installed.
+Review exact component versions, license eligibility, disk costs and prompts
+before workload install. Developer Mode/security changes and builds/launches are
+separate; no bundled configuration script. No installer downloaded this turn.
+
 LATEST WINDOWS INTERACTION APPROVED / PLAN READINESS-GATED:
 Read docs/superpowers/plans/2026-11-07-windows-client-offline-demo.md.
 Design approval after86dfc037 authorized planning, not implementation. No existing

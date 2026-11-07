@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — Windows开发工具安装方案已整理，尚未安装
+
+见2026-11-07-windows-client-tool-installation-proposal.md。推荐Visual Studio 2026稳定版的C# WinUI工作负载，版本/组件/容量需安装器实际清单确认；Community许可适用性由用户确认。建议IDE与缓存放D盘，但部分共享组件仍占C盘。
+明确分离下载与选择审阅、实际安装、开发者模式、项目构建/运行；不自动开启开发者模式或修改安全设置。本轮仅官方资料与磁盘元数据核对，未下载/运行安装器。下一步待用户选择安装路线或提供已有工具路径，44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — Windows交互设计已批准，实施计划受工具链前置条件约束
 
 计划见../superpowers/plans/2026-11-07-windows-client-offline-demo.md，分为工具链确认、纯状态模型、原生页面、拒绝提示和视觉验证。仓库无现有WinUI项目，PATH无dotnet/MSBuild，常见.NET/Visual Studio目录未发现；Windows Kits根目录存在但未确认完整开发工具链。不是全盘安装缺失证明。
