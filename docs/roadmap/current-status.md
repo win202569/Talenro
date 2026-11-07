@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 精确注册表只读访问也被拒绝，已停止
+
+批准后的单次检查69fb96未读取值，仅尝试只读打开HKCU\Software\Microsoft\Windows Kits\CEIP，返回SecurityException及“Requested registry access is not allowed.”。未重试、提权或改权限；报告2026-11-07-c12-ceip-read-access-result.md保留原结果与解释边界。
+已在不运行导出器的情况下复现当前执行环境的注册表读取拒绝，但尚不能确定策略来源或普通交互环境是否相同。停止自动检查此键；新的执行环境对照需独立明确授权。观察路线BLOCKED，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 环境排查定位到具体注册表读取位置
 
 只读解析Microsoft.Performance.Base.dll元数据，定位Windows初始化路径读取HKCU\Software\Microsoft\Windows Kits\CEIP的OptIn值；未执行DLL或访问注册表。当前兼容性变量为DetectorsAppHealth，尚无因果证据，未改动。

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST EXACT-KEY ACCESS DENIED:2026-11-07-c12-ceip-read-access-result.md.
+One approved read-only base/subkey-open attempt69fb96 returned SecurityException,
+HResult-2146233078. No values read,enumeration,write,elevation or retry. This shows
+denial in the current execution context,not its policy source or behavior in a
+normal interactive session. Shared catch does not distinguish the two open calls.
+Attempt consumed;stop automatic key diagnosis. A further execution-context
+comparison needs separate explicit scope,not a workaround around denied access.
+Observation BLOCKED;44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST ENVIRONMENT ANALYSIS:2026-11-07-c12-exporter-environment-analysis.md.
 Metadata-only inspection of installed Base DLL identifies the getter's Windows
 target:HKCU\Software\Microsoft\Windows Kits\CEIP,OptIn. No DLL execution or
