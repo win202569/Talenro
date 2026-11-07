@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — WinUI安装选择已初审，尚未启动工作负载安装
+
+用户已手动进入组件选择页。实际产品Community 2026 18.11.3；仅预选WinUI工作负载，取消IntelliCode、GitHub Copilot、.NET Copilot Skills，未勾选C++扩展。当前估算14.39 GB，产品/缓存路径预填D盘，未点击安装。详情见安装方案的选择审阅记录。
+独立Windows 11 SDK三个版本均未勾选；先决条件内部SDK内容、MSBuild/.NET精确版本、完整系统兼容性及Community许可适用性仍需确认，不能宣称工具链就绪或最终清单完整。下一步只核对这些缺口并形成最终选择，再决定安装。44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — 官方Visual Studio安装器已下载核验，未运行
 
 用户批准下载/核验/选择审阅，不批准工作负载安装。微软官网所链安装器已下载至本机临时目录，Authenticode为Valid、签名者Microsoft Corporation，产品Visual Studio 2026，5,690,136字节；SHA256及来源见安装方案新增记录。

@@ -109,6 +109,45 @@ pins and this report in Git, never SDK executables or installation caches.
 
 ## Current result
 
+### Subsequent selection review — workload installation not started
+
+After launch approval, bootstrapper was opened and stopped at the license screen.
+User then reported manually reaching selection. Observed Installer executable is
+now under `C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe`.
+This supersedes the earlier not-launched status, not the no-workload-install gate.
+
+Observed product: Visual Studio Community2026, October2026 feature update18.11.3.
+Initial core-only selection estimated1.37GB. Selecting WinUI application
+development estimated15.69GB. Included required group lists .NET WinUI application
+development prerequisites, .NET Native/.NET Standard, NuGet package manager and
+Blend for Visual Studio. Deselected IntelliCode (confirmed removal of dependent
+GitHub Copilot from the pending selection) and .NET Copilot Skills; three AI boxes
+visually unchecked. Optional C++/UWP/DirectX items were not selected.
+
+Current provisional estimate14.39GB; location breakdown observed:
+- Product2.97GB: `D:\DeveloperTools\VisualStudio\2026` entered and read back.
+- Download cache3.44GB: `D:\DeveloperTools\VisualStudio\Packages` entered and read back;
+  retain-download-cache option remains selected.
+- Shared components66MB: unchanged `C:\Program Files (x86)\Microsoft Visual Studio\Shared`.
+- System cache/tools/fixed-location SDKs7.92GB.
+
+These are rounded UI values, not measured installed usage. Current free bytes:
+C:67,921,747,968; D:508,217,819,136. Even conservatively allocating all14.39GiB
+plus20GiB headroom to C fits this snapshot, but additions require recalculation.
+
+Individual-components view visually showed .NET SDK and .NET Framework4.8 SDK
+selected, and .NET10/.NET8 runtimes selected. It did not expose exact .NET SDK or
+MSBuild patch versions. Windows11 SDK10.0.22621.0,10.0.26100.9457 and10.0.28000.2705
+boxes were all unchecked. Do not infer that merely listed SDKs are included.
+The contents of the required WinUI prerequisite group and whether a standalone
+Windows SDK must be added remain to be resolved. A subsequent Windows10 SDK filter
+showed stale/disconnected list items, so it supplies no reliable Windows10 inventory.
+
+Stop before installation: final dependency selection, OS/architecture/RAM support
+and Community license eligibility remain unverified. Current selection is NOT a
+complete accepted toolchain configuration. No Install action, developer-mode or
+security change, project build/test/launch occurred. Preserve existing project gates.
+
 ### Subsequent approved download record — 2026-11-07
 
 User subsequently approved official download/verification/selection inspection,

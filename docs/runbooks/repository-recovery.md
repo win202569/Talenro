@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS SELECTION REVIEW / WORKLOAD NOT INSTALLED:
+User manually reached selection page after bootstrapper launch. Installer is now
+present, but no workload installation was started by the agent. VS Community2026
+18.11.3 WinUI selection and proposed D-drive paths were reviewed; AI options were
+deselected. Current estimate14.39GB is provisional. Read installation proposal's
+selection record: standalone Windows SDK boxes are unchecked; resolve prerequisite
+contents, exact .NET/MSBuild versions, compatibility and license eligibility before
+final installation approval. UI choices are not a portable installed toolchain.
+
 LATEST WINDOWS INSTALLER DOWNLOADED / NOT LAUNCHED:
 User approved download, signature verification and selection review only.
 See the installation proposal's download record for official source and SHA256.
