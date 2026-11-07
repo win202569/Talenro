@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS CLIENT VISUAL DRAFT:
+docs/design/windows-client/2026-11-07/README.md and four adjacent PNGs preserve
+selected direction1 plus login/nodes/account concepts. They are static generated
+images, not a working app or approved full interaction design. Source originals
+were copied and hash-compared; no dependence on private image caches remains.
+Review expanded screens before design/implementation. No runtime permission or
+Task11/12 unblock follows;44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST TASK12 STATIC PREPARATION SAVED:
 Read docs/roadmap/2026-11-07-task12-static-preparation.md for dependency/source
 mapping and pending coverage families. Nine planned Task12 files are absent;

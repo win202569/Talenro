@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — Windows客户端方向1已选定，四页视觉草案待审阅
+
+用户选择浅色原生/青绿色方向；已扩展登录、节点、账户与套餐，与连接首页组成四页静态概念。图片及交互草案保存在docs/design/windows-client/2026-11-07/README.md，保留演示标识、既有原生WinUI方向及国家锁定规则。
+只有视觉方向获选，新增页面和交互仍待审阅；未实现客户端、服务、真实VPN或支付，未运行测试。Task11/12及安全/运行阻塞不变，44/34/6/217，NOT_ACCEPTED。
+
 ## Latest — Task12静态准备完成，未启动实现
 
 见2026-11-07-task12-static-preparation.md：整理Task11/Task8依赖、规范章节、九个待交付路径及十二组待覆盖用例。九个Task12计划文件均未存在；既有封闭grant/Down authorization类型必须复用，旧摘要公式遵循已批准的talenro.c12.前缀勘误。
