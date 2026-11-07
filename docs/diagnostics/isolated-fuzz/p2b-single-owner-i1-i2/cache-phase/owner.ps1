@@ -3,7 +3,21 @@
 function Read-C12PhaseEvents([string]$Path,[string]$Session) {
     Assert-C12WaitPath $Path
     if((Get-Item -LiteralPath $Path).Length -gt 4194304){throw 'TOTAL_LIMIT'}
-    $text=[Text.UTF8Encoding]::new($false,$true).GetString([IO.File]::ReadAllBytes($Path))
+    # Acknowledge the owner's existing writer while opening read-only. The writer
+    # still shares Read only, so this does not allow a second writer or deletion.
+    $reader=[IO.File]::Open($Path,'Open','Read','ReadWrite')
+    try {
+        $length=$reader.Length
+        if($length -gt 4194304){throw 'TOTAL_LIMIT'}
+        $bytes=[byte[]]::new([int]$length);$offset=0
+        # Snapshot the current length; never chase a growing stream past the cap.
+        while($offset -lt $bytes.Length){
+            $n=$reader.Read($bytes,$offset,$bytes.Length-$offset)
+            if($n -eq 0){throw 'STREAM_TRUNCATED'}
+            $offset+=$n
+        }
+    }finally{$reader.Dispose()}
+    $text=[Text.UTF8Encoding]::new($false,$true).GetString($bytes)
     $parts=$text.Split("`n")
     foreach($part in $parts){if([Text.Encoding]::UTF8.GetByteCount($part) -gt 65536){throw 'EVENT_LIMIT'}}
     $partial=$parts[-1].Length -gt 0

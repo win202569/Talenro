@@ -1,5 +1,14 @@
 # Shadow audit runtime readiness — read-only review
 
+## Offline stream sharing fix —10/10 integration cases
+
+RED15cf43 reproduced open-writer conflict; GREEN10e257 passed10 checks after
+minimal bounded read-only snapshot fix. Three real session-enabled synthetic
+children:complete738ms,protocol-stop306ms,deadline3033ms;all exits confirmed.
+Writer exclusivity,identity/order/digest/quota checks retained. No Go/build/live
+run. Old v2 manifest mismatch must not be bypassed for future live work.
+Portable source/evidence preserved;44/34/6/217,NOT_ACCEPTED.
+
 ## Phase v2 — build passed; live logging integration failed
 
 Build2f7cc3 passed23.49s with approved-buildvcs=false. Live64f41f ERROR0.49s:

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST STREAM FIX: docs/roadmap/2026-11-07-c12-phase-stream-fix.md.
+RED15cf43 reproduced sharing conflict with writer open; GREEN10e257 passed10
+offline cases,including3 actual session-enabled owned PowerShell fixtures.
+Normal/protocol-stop/deadline exits confirmed. Read-only snapshot handle fixed;
+writer exclusivity,protocol and quotas retained. No Go/build/live work this turn.
+Archive portable-c12-phase-stream-fix.json contains RED/GREEN source and original
+synthetic evidence (4MiB zero-filled quota fixture,not real module data).
+Old v2 build manifest no longer matches owner.ps1: future execution needs reviewed
+binding and fresh approved root/budget; never bypass gate/reuse occupied Live.
+44/34/6/217,NOT_ACCEPTED; previous evidence untouched.
+
 LATEST PHASE V2: source0b73dedd; build2f7cc3 passed23.49s with-buildvcs=false.
 Live64f41f stopped0.49s:owner parser ReadAllBytes conflicts with still-open log
 writer. Exit confirmed,no timeout,4 module files unchanged. Only text PREPARE
