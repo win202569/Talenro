@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST DESIGN AWAITING APPROVAL:
+docs/superpowers/specs/2026-11-07-c12-native-observation-design.md.
+External WPR observation selected;no Go modification or runtime authorized here.
+Local help/profile queries found CPU.light+FileIO.light declares1771MiB buffers
+and extra providers. Do not start that combination. A minimal bounded custom
+profile,owned collector lifecycle,offline analysis and privacy scope must pass
+feasibility before separate runtime approval. Raw ETL stays local and is not
+Git-portable;only reviewed derived evidence may be published. Design approval
+leads to an implementation plan,not recording.44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST READ-ONLY SYNTHESIS:2026-11-07-c12-sample-synthesis.md verifies111 entries
 across four committed archives. Three selected module runs have matching digests;
 directory phases account for96–97% of their phase sums. Three of99 root-declared
