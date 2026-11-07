@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST COVERAGE COMPARISON: docs/roadmap/2026-11-07-c12-diagnostic-coverage.md.
+Saved graph matches99 root require pairs plus Go/toolchain edges. Current helper
+does not recurse from sqlite into libc. Proposed next object:root-declared
+modernc.org/libc v1.72.1,not claimed slow/corrupt or confirmed cached. Graph also
+contains older versions;do not use all endpoints as a selected module list.
+Both Go CLI and PowerShell event parser hardcode the old two-module profile.
+Next requires a separately approved single-module design,offline verification and
+finite build/live budgets;none ran or changed in this comparison turn.
+44/34/6/217,NOT_ACCEPTED. Recover from latest existing development branch checkpoint.
+
 LATEST GRAPH RESULT: docs/roadmap/2026-11-07-c12-graph-boundary-result.md.
 One approved run7f9b8f completed306.9959ms,exit0,no timeout/failure,exit confirmed,
 1059 graph edges,empty stderr,four module hashes unchanged. GRAPH_COMMAND_COMPLETED

@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-07
 
+## Latest — 已定位诊断覆盖缺口，建议单独检查libc
+
+只读比较8901f5确认99条根require声明均出现在101条根依赖边中（另两条为Go/toolchain）；这不是实际缓存或BuildList清单。现有辅助工具只检查text/sqlite自身，不递归覆盖sqlite依赖的libc。
+报告docs/roadmap/2026-11-07-c12-diagnostic-coverage.md建议下一步设计固定modernc.org/libc v1.72.1单模块诊断；选择理由是未覆盖的相邻依赖，不是已证实慢或损坏。Go候选名单与PowerShell协议判定均需一致，不能只改一端。
+本轮未运行Go、扫描缓存或修改工具。尚未批准新的实现/构建/真实运行预算；44/34/6/217，NOT_ACCEPTED。先审定单模块设计，不重复整库验证。
+
 ## Latest — 离线依赖图检查完成，约0.307秒
 
 批准后的唯一运行7f9b8f正常退出，306.9959ms，无超时/错误流，1059条结构有效的依赖关系，四个模块文件未变。状态GRAPH_COMMAND_COMPLETED；这不是缓存内容验证，也不能反推此前300秒超时阶段。
