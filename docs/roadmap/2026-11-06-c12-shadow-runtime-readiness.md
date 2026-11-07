@@ -1,5 +1,15 @@
 # Shadow audit runtime readiness — read-only review
 
+## Phase v2 — build passed; live logging integration failed
+
+Build2f7cc3 passed23.49s with approved-buildvcs=false. Live64f41f ERROR0.49s:
+ReadAllBytes sharing conflict while owner writer stays open. Exit confirmed,
+no timeout,4 module hashes unchanged. One text PREPARE START; incomplete,all
+later phases NotRun. This is diagnostic tooling failure,not cache attribution.
+Existing closed-file parser and no-session process fixtures missed integration.
+No repair/retry; both slots consumed. Offline integration fix recommended next.
+Source/receipts archived separately;44/34/6/217,NOT_ACCEPTED.
+
 ## 2026-11-07 release build stopped before live
 
 Current source matched16-group GREEN; one build56c195 failed VCS status exit128

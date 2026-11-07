@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PHASE V2: source0b73dedd; build2f7cc3 passed23.49s with-buildvcs=false.
+Live64f41f stopped0.49s:owner parser ReadAllBytes conflicts with still-open log
+writer. Exit confirmed,no timeout,4 module files unchanged. Only text PREPARE
+START saved; incomplete,all later phases NotRun. No hashes/timings accepted.
+See docs/roadmap/2026-11-07-c12-phase-v2-result.md and diagnostic archive
+portable-c12-cache-phase-v2.json. Both approved slots consumed,old evidence intact.
+Next needs offline live-parser/open-writer regression and minimal correction;
+no automatic real-cache rerun or occupied-root reuse.44/34/6/217,NOT_ACCEPTED.
+
 LATEST BUILD STOP (2026-11-07): see docs/roadmap/2026-11-07-c12-phase-build-result.md.
 Build56c195 exit1 in24.02s,no timeout,owned exit confirmed. VCS stamping failed:
 plain git status rejects dubious ownership. No helper.exe,Live NOT_RUN,4 module

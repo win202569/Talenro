@@ -192,3 +192,12 @@ Live NOT_RUN. Stop applied,no retry/security changes. See
 docs/roadmap/2026-11-07-c12-phase-build-result.md. Separate archive preserves
 build receipt without overwriting previous test evidence. Next command amendment
 (-buildvcs=false plus new exclusive build root/budget) is proposed,not executed.
+
+## Approved v2 amendment outcome — 2026-11-07
+
+User approved afterf97a7cf4; source0b73dedd uses new v2 workspace and
+-buildvcs=false only. Build2f7cc3 passed23488.7821ms. Live64f41f stopped487.077ms
+with log-file sharing conflict in owner ReadAllBytes; exit confirmed,no timeout.
+Text PREPARE incomplete; all remaining phases NotRun. Both slots exhausted,
+no correction/retry. See2026-11-07-c12-phase-v2-result.md and separate portable
+v2 archive. Prior checklists/outcomes retained historically;NOT_ACCEPTED.
