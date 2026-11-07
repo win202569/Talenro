@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST TASK12 STATIC PREPARATION SAVED:
+Read docs/roadmap/2026-11-07-task12-static-preparation.md for dependency/source
+mapping and pending coverage families. Nine planned Task12 files are absent;
+existing Task8 sealed grants/Down authorization and normalized DTOs must be reused.
+Respect the approved talenro.c12. digest-prefix correction. This is not an
+implementation plan, accepted RED or test budget. Task11/runtime remain blocked.
+No code/tests/fixtures changed or workloads ran;44/34/6/217,NOT_ACCEPTED unchanged.
+
 LATEST STAGE1 COMPLETE / STAGE2-3 BLOCKED:
 Read docs/roadmap/2026-11-07-task11-ledger-evidence-gap-review.md first.
 Eight source/evidence rows and seven hashes reconcile repaired historical findings

@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — Task12静态准备完成，未启动实现
+
+见2026-11-07-task12-static-preparation.md：整理Task11/Task8依赖、规范章节、九个待交付路径及十二组待覆盖用例。九个Task12计划文件均未存在；既有封闭grant/Down authorization类型必须复用，旧摘要公式遵循已批准的talenro.c12.前缀勘误。
+此轮仅静态准备与文档保存，不是实施计划或运行授权。完整字段/角色向量和工厂参数仍需在Task11接口可用后细化；Task11及真实运行阻塞不变。不运行测试、不修改产品，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 第一阶段八项证据核对完成，真实运行与接入仍阻塞
 
 获批后完成2026-11-07-task11-ledger-evidence-gap-review.md的G1–G8核对及七份源码哈希绑定。旧首次快照、探针绑定、系统shell硬链接策略和两项时序覆盖已修复，不重复列为当前缺陷。历史fake结果及真实只读适配器观察不等于当前账本运行验收。
