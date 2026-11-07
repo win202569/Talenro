@@ -1,5 +1,16 @@
 # Shadow audit runtime readiness — read-only review
 
+## Phase v3 complete — selected digests match
+
+Run3ee142 normal exit in56.717s;12 events/6 completed phases/4 content matches.
+text preparation0.283s,ZIP0.120s,directory12.378s;sqlite0.612s,0.761s,42.456s.
+Raw/receipt/source/go.sum verification8dcd14 passed;4 module files unchanged.
+Directory share96.86% in this sequential two-module sample only; no physical I/O,
+antivirus,lock or root-timeout causation established. Root graph/concurrency and
+other modules omitted,warm cache possible. Source/binary and corrected-owner
+proof separately bound; archived original records. One live slot consumed.
+Next read-only synthesis/planning;44/34/6/217,NOT_ACCEPTED.
+
 ## Offline stream sharing fix —10/10 integration cases
 
 RED15cf43 reproduced open-writer conflict; GREEN10e257 passed10 checks after

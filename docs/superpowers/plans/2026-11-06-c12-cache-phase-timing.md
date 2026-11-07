@@ -201,3 +201,16 @@ with log-file sharing conflict in owner ReadAllBytes; exit confirmed,no timeout.
 Text PREPARE incomplete; all remaining phases NotRun. Both slots exhausted,
 no correction/retry. See2026-11-07-c12-phase-v2-result.md and separate portable
 v2 archive. Prior checklists/outcomes retained historically;NOT_ACCEPTED.
+
+## Corrected-owner v3 completion — 2026-11-07
+
+Offline sharing fixbbf0ea4a passed10 checks. User continued to source/binary
+correspondence review and one bounded live diagnostic. Go sources/binary unchanged
+from v2 build; corrected owner independently matched GREEN snapshot/receipt.
+Separate v3 claim preserves both provenances without rewriting old manifest.
+3ee142:exit0,56717.0329ms,12 complete events,all6 phases OK,4 digest matches.
+4 module hashes unchanged. Read-only8dcd14 verified raw/receipt/source/go.sum.
+Task3 selected phase evidence and Task4 portable handoff now obtained; this does
+not complete authoritative root/C12 acceptance. Detailed timings/caveats in
+docs/roadmap/2026-11-07-c12-phase-v3-result.md;archive separate v3. No extra
+build/test/retry,old failures retained,44/34/6/217,NOT_ACCEPTED.

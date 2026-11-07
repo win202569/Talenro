@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST PHASE V3 COMPLETE: docs/roadmap/2026-11-07-c12-phase-v3-result.md.
+One run3ee142 exit0/56.717s,no timeout,owned exit confirmed.12 complete events,
+6 OK phases,4 matching content digests;4 root/devtools module hashes unchanged.
+text ZIP0.120s/directory12.378s;sqlite ZIP0.761s/directory42.456s.
+Directory phases account for96.86% of measured phase time for these two samples.
+Not root verifier/full C12 acceptance or physical I/O/root-cause attribution.
+Archive portable-c12-cache-phase-v3.json contains exact invocation and dual
+provenance:unchanged v2 Go binary/source hashes plus corrected owner GREEN proof.
+No embedded binary/private caches; new computer requires prerequisites/rebuild.
+Live slot consumed; next is read-only evidence synthesis/planning,not rerunning
+occupied roots or extending timeouts.44/34/6/217,NOT_ACCEPTED;old failures retained.
+
 LATEST STREAM FIX: docs/roadmap/2026-11-07-c12-phase-stream-fix.md.
 RED15cf43 reproduced sharing conflict with writer open; GREEN10e257 passed10
 offline cases,including3 actual session-enabled owned PowerShell fixtures.
