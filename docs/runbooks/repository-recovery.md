@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY ANALYSIS: docs/roadmap/2026-11-07-c12-root-verify-analysis.md.
+All13 root archive entries revalidated. Native verify delays error collection
+until after worker dispatch;empty output cannot locate its slow phase or exclude
+queued errors. Proposed next boundary is shared graph loading via one offline
+60s go mod graph,not another verify. Proposal only;new recipe/scope approval needed.
+No new runtime in analysis turn.44/34/6/217,NOT_ACCEPTED;recover latest dev checkpoint.
+
 LATEST ROOT ATTEMPT: approved plan executed once,final95c553,300059.2263ms,
 DEADLINE/TimedOut=true,ExitConfirmed=true,Go exit-1,empty stdout/stderr.
 Four module hashes unchanged;STOP/NOT_PASSED,44/34/6/217,NOT_ACCEPTED.
