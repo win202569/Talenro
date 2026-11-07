@@ -66,6 +66,12 @@ Ruling: apply the approved documentation-only scope instead of generic implement
 
 ## Task 2: Runtime resumption decision — blocked, not executable
 
+### Approved durable path-specific LF rule — 2026-11-07
+
+After b927a28a the user explicitly approved a rule for this one JSON. Added only `testdata/c12/authority-v7/schema-name-registry.v1.json text eol=lf` to `.gitattributes`; no global Git settings or other path rules changed. `git check-attr` reports text=set/eol=lf for the target and unchanged text=auto/eol=unspecified for the neighboring golden JSON. `git ls-files --eol` reports i/lf w/lf; target SHA256 still exactly matches the original F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1 pin.
+
+The tracked rule now carries the intended LF checkout policy to a new clone. This supersedes the earlier absence-of-policy warning below for this exact path only. A clean-machine clone was not exercised; local attribute overrides or external editors can still require byte verification. No tests or native runtime ran; the original shutdown gate remains blocked.
+
 ### Approved one-file LF restoration — 2026-11-07
 
 After the source-review checkpoint a535dd7f, the user approved continuation of the proposed one-file LF restoration only. A bounded PowerShell formatting operation checked the exact C0946C58... input hash, converted CRLF to LF in memory, required the original full F505A358... hash before writing, and re-hashed the saved file. Result: `F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1`, zero CR bytes, `git ls-files --eol` reports `i/lf w/lf`. `git diff --exit-code` for the file returned 0: the committed content already contains LF. No JSON values, expected pins, attributes or Git settings changed.

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PATH-SPECIFIC LF POLICY SAVED:
+The approved .gitattributes rule now pins only
+testdata/c12/authority-v7/schema-name-registry.v1.json to text eol=lf.
+Effective attributes and original frozen SHA256 were checked; neighboring golden
+JSON attributes remain unchanged. This supersedes the older no-durable-policy
+warning below for this path. No fresh-clone rehearsal was performed; still verify
+raw bytes before any runtime, especially with local overrides or external edits.
+No tests ran and no global Git settings changed. Task2 remains blocked.
+
 LATEST SINGLE-FILE LF RESTORATION COMPLETE:
 The approved schema-name-registry.v1.json formatting-only operation restored
 SHA256 F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1.

@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-07
 
+## Latest — 已固定单文件LF检出规则
+
+用户明确批准后，.gitattributes仅新增schema-name-registry.v1.json的text eol=lf规则。Git属性查询确认目标为LF，相邻golden文件规则未变；目标文件哈希仍精确匹配原F505A358…冻结值。该规则随Git保存，替代下方“尚无持久规则”的历史状态；未进行全新电脑克隆演练。
+未改全局Git设置、产品逻辑或测试，未运行Go/Docker/native验证。原自然退出安全阻塞仍在，Task2未恢复，44/34/6/217，NOT_ACCEPTED不变。
+
 ## Latest — 单文件LF恢复完成，原runtime阻塞未解除
 
 用户批准后，仅将 schema-name-registry.v1.json 的CRLF转换为LF；写入前后均核对原冻结哈希，落盘SHA256精确匹配F505A358044D4F4292B97BE7003C54FC21E573276C3308B6E2055A755AD981E1，CR字节为0。Git显示i/lf w/lf，该文件相对提交无差异。
