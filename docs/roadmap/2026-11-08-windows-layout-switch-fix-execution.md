@@ -1,5 +1,10 @@
 # CountryLock language fix — blocked before valid RED
 
+Planning follow-up after1ac1c19e: prepared
+docs/superpowers/plans/2026-11-08-windows-switch-native-recheck.md (proposed2 builds,
+4 launches). Await approval; no test/build/launch in the planning turn. Existing
+source/test success below remains distinct from pending native defect closure.
+
 ## Latest — source correction verified, native recheck pending
 
 After5d6039d6 user approved minimal implementation plus one targeted GREEN and

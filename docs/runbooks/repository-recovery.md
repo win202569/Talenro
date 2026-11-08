@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — SWITCH NATIVE RECHECK AWAITS APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-switch-native-recheck.md. Proposed
+2 cached --no-restore builds and4 sequential native sessions, no retries/settings
+changes. This planning checkpoint did not execute them. Missing caches/assets on
+a fresh PC block the plan; they do not authorize downloads/restores. Scope closes
+only the switch finding if observed, not all Stage B or broader acceptance.
+
 LATEST — SWITCH SOURCE FIX SAVED, NATIVE CLOSURE PENDING:
 CountryLock OnContent/OffContent now has explicit en-US/zh-Hans resources and
 diagnostic bindings/required-key validation. Fresh targeted35/35 and full226/226
