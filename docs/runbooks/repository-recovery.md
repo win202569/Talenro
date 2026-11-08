@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS NODE GREEN (USER-RUN):
+After0dedb281, user summary reports17/17 passed,0 skipped,build success; numeric
+exit code not supplied. Node RED→GREEN established, combined regression unrun.
+Next CountryLockTests before lock recovery implementation. Task A incomplete.
+
 LATEST WINDOWS NODE RED CONFIRMED / GREEN PENDING:
 User output:17 tests,14 expected assertion failures,3 pass,0 skipped. Added node
 fixtures and selection/confirmation implementation; tests unchanged, no new run.

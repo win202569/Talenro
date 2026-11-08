@@ -1,5 +1,19 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: NodeSelectionTests GREEN confirmed by user summary
+
+After0dedb281, user supplied17 total,17 passed,0 failed,0 skipped,1.3s tests,
+2.6s overall with build success. Exit-code echo was not supplied; no numeric exit
+code is asserted. This is user-run evidence, not an independent agent repeat.
+Combined with the14 expected assertion failures at853d7ad8, node selection has
+observed RED→GREEN with unchanged tests. Original T6/14 consumed; G0/3,B0/2,
+native launches0. No combined regression after node changes has run.
+
+Next planned class: CountryLockTests, covering initial-off, unknown-country
+refusal, exactly three locked-failure choices, once-only cross-country recovery
+without changing saved lock, same-country retry and stay-disconnected. Full lock
+recovery/entitlement/UI behavior is not complete; Task A remains incomplete.
+
 ## Latest: NodeSelection RED confirmed; implementation awaits GREEN
 
 User supplied full output after853d7ad8:17 tests,14 failed,3 passed,0 skipped,

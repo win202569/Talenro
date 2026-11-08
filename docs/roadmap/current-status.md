@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — NodeSelectionTests用户实测17/17通过
+
+0dedb281后用户回传17成功、0失败、0跳过；测试1.3秒，总计2.6秒，构建成功。
+节点组已完成RED→GREEN，测试未改；未回传数字退出码，不推断其值。
+尚未运行节点修改后的合并回归。下一组为CountryLockTests，国家锁恢复及额度
+规则仍待实现；Task A未完成，无原生应用启动，NOT_ACCEPTED不变。
+
 ## Latest — 节点组预期RED已确认，节点选择实现待GREEN
 
 用户完整输出：17项、14断言失败/3通过/0跳过；失败均对应缺失节点行为。
