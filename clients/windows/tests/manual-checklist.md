@@ -1,5 +1,10 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest source-only follow-up: CountryLock state-language resources/bindings fixed;
+targeted35/35 and full226/226 passed. No App rebuild or native recheck yet. V3
+closure remains pending; all old artifact hashes refer to pre-fix outputs. Observe
+both On and Off in English/Chinese after newly authorized builds and sessions.
+
 Latest Stage B attempt:9/14 invocations, stopped at English baseline V3 because
 CountryLock off text remained Chinese '关'. Ordinary four-page route and Chinese
 baseline route/dialog/reset observed; six rejection exit/message checks passed.

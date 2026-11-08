@@ -21,6 +21,7 @@ internal static class LayoutResourceCatalog
         ProtocolAuto NodeDisabled NodeTransitionBlocked NodeFixtures ConfirmNodeChange Confirm Cancel AccountHeading.Text
         MockPlan.Text UsageHeading.Text UsageUnavailable.Text DevicesHeading.Text DemoUsage DemoUsageExhausted DemoDevices
         DemoDevicesLimit Mfa.Content Devices.Content Language.Content Delete.Content ExitDemo.Content CountryLock.Header
+        CountryLock.OnContent CountryLock.OffContent
         LockOff RecoverOnce.Content RetryCountry.Content StayDisconnected.Content ScenarioLockedFailed.Content NoticePlaceholder
         NoticeConnectionFailed NoticeLockedFailed NoticeExpired NoticeExhausted NoticeUnknown NoticeStale NoticeDeviceLimit
         NoticePermissionUnknown NoticeFinishOperation NoticeChooseCountry NoticeNoRecoveryNode NoticeCannotEdit NoticePendingChange

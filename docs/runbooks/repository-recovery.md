@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SWITCH SOURCE FIX SAVED, NATIVE CLOSURE PENDING:
+CountryLock OnContent/OffContent now has explicit en-US/zh-Hans resources and
+diagnostic bindings/required-key validation. Fresh targeted35/35 and full226/226
+passed in approved execution context with ordinary-token guards. No App build or
+native launch. Old App hashes are PRE-FIX; do not use them to attest the correction.
+Read switch-fix execution ledger, then prepare bounded build/artifact/native
+validation. Prior launch/test allowances do not automatically carry forward.
+
 LATEST — VALID SWITCH REGRESSION RED OBTAINED:
 Approved-context comparison after3b33c9ad ran35 tests:31 passed,4 expected missing-
 resource failures,0 skipped,exit1. Ordinary token verified; no timeout/security

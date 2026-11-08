@@ -89,6 +89,8 @@
   <data name="Delete.Content" xml:space="preserve"><value>Delete account (not implemented)</value></data>
   <data name="ExitDemo.Content" xml:space="preserve"><value>Exit demo and reset</value></data>
   <data name="CountryLock.Header" xml:space="preserve"><value>Country lock (simulated)</value></data>
+  <data name="CountryLock.OnContent" xml:space="preserve"><value>On</value></data>
+  <data name="CountryLock.OffContent" xml:space="preserve"><value>Off</value></data>
   <data name="LockOff" xml:space="preserve"><value>Country lock off</value></data>
   <data name="RecoverOnce.Content" xml:space="preserve"><value>Recover across countries once</value></data>
   <data name="RetryCountry.Content" xml:space="preserve"><value>Retry locked country</value></data>

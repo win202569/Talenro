@@ -1,5 +1,36 @@
 # CountryLock language fix — blocked before valid RED
 
+## Latest — source correction verified, native recheck pending
+
+After5d6039d6 user approved minimal implementation plus one targeted GREEN and
+one full suite. Added CountryLock.OnContent/OffContent resources (en-US On/Off,
+zh-Hans 开/关), both required-key entries and explicit typed ToggleSwitch setters.
+Seven production lines in four files; no Core/state/handler changes. Shared resw
+also supplies these explicit values to ordinary x:Uid localization; diagnostic
+bindings apply the selected language without changing OS language or switch state.
+
+Used the already observed valid RED (4 missing-resource failures/31 passes) without
+rerunning it. Fresh approved-context verification, ordinary token False each time,
+Debug/--no-restore, unchanged default timeout:
+- targeted LayoutPresentationTests|LayoutViewContractTests:35/35 passed,0 skipped,
+  exit0, no compiler warnings; local receipt layout-switch-green.trx.
+- full Windows demo suite:226/226 passed,0 skipped,exit0,no compiler warnings;
+  local receipt layout-switch-full.trx.
+Both receipts are under the ignored TestResults directory. Authorized1/1 targeted
+and1/1 full calls consumed. No App build/restore/native launch/settings changes.
+
+Coverage: real resource Copy and missing-key validation plus existing declaration
+binding coverage. These tests do not compile/run native WinUI setters. Review of
+the seven-line diff found no extra changes; no fresh independent review claimed.
+Production source correction is saved, but V3 native defect closure remains
+PENDING until new ordinary/diagnostic builds and observed English/Chinese On/Off
+transitions. Existing App output hashes describe pre-fix artifacts and MUST NOT
+be reused to claim this fix was tested natively. Stage B V4–V8 remain NOT_RUN.
+
+Next prepare a bounded build/artifact/native recheck scope; no launch permission
+is implied by this checkpoint. Wider NOT_ACCEPTED and no-main-merge unchanged.
+Historical investigation and failure records below are retained unchanged.
+
 Base8c5fe2a6. User requested continuing the recommended diagnosis/correction.
 Announced scope: one targeted RED, one targeted GREEN, one full suite; zero App
 builds/restores/native launches. Prior Stage B unused launch slots are not reused.

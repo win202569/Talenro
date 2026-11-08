@@ -89,6 +89,8 @@
   <data name="Delete.Content" xml:space="preserve"><value>删除账号（未实现）</value></data>
   <data name="ExitDemo.Content" xml:space="preserve"><value>退出演示并重置</value></data>
   <data name="CountryLock.Header" xml:space="preserve"><value>锁定国家（模拟）</value></data>
+  <data name="CountryLock.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="CountryLock.OffContent" xml:space="preserve"><value>关</value></data>
   <data name="LockOff" xml:space="preserve"><value>国家锁定已关闭</value></data>
   <data name="RecoverOnce.Content" xml:space="preserve"><value>仅此次跨国恢复</value></data>
   <data name="RetryCountry.Content" xml:space="preserve"><value>重试锁定国家</value></data>

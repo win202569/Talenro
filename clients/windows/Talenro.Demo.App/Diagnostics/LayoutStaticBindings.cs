@@ -30,6 +30,8 @@ internal static class LayoutStaticBindings
         Bind<TextBlock>("Connection", viewId, root, "ConnectionHeading", "ConnectionHeading.Text", (control, value) => control.Text = value, presentation);
         Bind<Button>("Connection", viewId, root, "ChooseLocation", "ChooseLocation.Content", (control, value) => control.Content = value, presentation);
         Bind<ToggleSwitch>("Connection", viewId, root, "CountryLock", "CountryLock.Header", (control, value) => control.Header = value, presentation);
+        Bind<ToggleSwitch>("Connection", viewId, root, "CountryLock", "CountryLock.OnContent", (control, value) => control.OnContent = value, presentation);
+        Bind<ToggleSwitch>("Connection", viewId, root, "CountryLock", "CountryLock.OffContent", (control, value) => control.OffContent = value, presentation);
         Bind<Button>("Connection", viewId, root, "RecoverOnce", "RecoverOnce.Content", (control, value) => control.Content = value, presentation);
         Bind<Button>("Connection", viewId, root, "RetryCountry", "RetryCountry.Content", (control, value) => control.Content = value, presentation);
         Bind<Button>("Connection", viewId, root, "StayDisconnected", "StayDisconnected.Content", (control, value) => control.Content = value, presentation);
