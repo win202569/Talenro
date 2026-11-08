@@ -1,6 +1,76 @@
 # Native verification — PARTIAL, not accepted
 
-## Latest observed sessions, 2026-11-08
+## Latest gap-only session, 2026-11-08 — PARTIAL
+
+User approved the one-launch/20-minute gap plan after14d50ff8. The allowance is
+consumed; no further launch or retry is authorized by this record. Preconditions
+confirmed ordinary token (AdministratorToken=False), no existing demo process or
+window, clean worktree and unchanged App/Core source against0d8a436f. Executable
+path/hash are the same as recorded below; this does not attest adjacent files.
+
+- PID17108, start2026-11-08T16:33:04.8659079+04:00. Startup observed within30s.
+- Ordinary Alt+F4 close at about16:50:38+04:00, elapsed17.6minutes, before the
+  minute18 scenario cutoff and20-minute session limit. Read-only process check
+  outside the restricted context confirmed PID17108 absent; repeated window
+  enumeration confirmed no Talenro window. No kill, restart or retry launch.
+- Cumulative accounting: four launch requests, three observed closed sessions,
+  including the historical interrupted request. This allowance used1/1.
+- No source edit, automated test/build/restore, installation or settings change.
+  Earlier159/159 and compilation evidence were not rerun. No confirmed app defect
+  was observed in the exercised paths; this is not full acceptance.
+
+### Additional PASS — native observations only
+
+1. Auto/no known country refuses country lock and leaves it off, with a reason.
+2. Expired, exhausted, unknown, stale and device-limit each actually refuse the
+   Connect button: remain disconnected and display the corresponding reason.
+   Account: expired12.4/100GB and2/5; exhausted100/100GB and2/5; unknown/stale
+   usage and devices unavailable; device-limit12.4/100GB and5/5 activated devices,
+   explicitly not concurrent. Returning through logout restores active entry.
+3. Disabled node input leaves Auto selected. Loading, unavailable and explicit
+   empty scenarios each show an empty list, matching explanation and disabled
+   Apply; normal restores the list and enables Apply.
+4. With jp-1 connected and JP locked, draft de-1 Apply explicitly names JP→DE,
+   saved lock change and simulated restart. Default Return cancels; inspection
+   shows connected/JP lock and reopening Nodes shows jp-1 selected. Independently
+   repeating with the Cancel button preserves those same values. Confirm enters
+   Connecting with DE lock; later Nodes inspection shows de-1 selected. These
+   observations do not establish hidden atomicity or internal dispatch counts.
+5. Explicit locked-country failure followed by Retry locked country enters
+   Connecting with DE lock. Failing again then Stay disconnected leaves it
+   disconnected, preserves DE lock, clears the recovery offer and notice.
+   Together with the earlier one-time recovery this covers all three choices.
+6. Registration, sidebar Traffic/Devices/Settings, and account Manage devices,
+   Language/Delete account all show the offline unimplemented explanation;
+   Escape dismisses. These are placeholders, not real account/settings actions.
+   Earlier reset-password/MFA observations remain applicable. No full focus-return
+   or assistive-technology claim is made for these additional dialogs.
+7. Deliberately set Nodes search JP and list Loading, then logout. Login returns
+   normal with blank notice. Reenter: disconnected, lock off; Nodes screenshot
+   confirms empty search, normal full list and Auto selected (no saved DE choice).
+8. Pointer wheel scrolling visibly moves Connection, Account and Nodes content;
+   selected keyboard dropdown/navigation paths work. No viewport-size assertion.
+
+One native dropdown extended outside the main window. Attempting to click its
+item returned an outside-window geometry error. A refreshed observation followed
+by keyboard selection reached Loading successfully. This is recorded as a tool
+targeting limitation, not an established application defect. No launch retry.
+
+### Remaining UNVERIFIED / next scope
+
+- Change Login scenario before entry, return it to normal, then logout and inspect
+  its reset: this particular sequence was not performed in the gap session.
+- Full keyboard order and focus return, screen-reader behavior, measured contrast,
+  enlarged text, target1024x768/1440x1024 logical viewports, RTL/long content,
+  English fallback and final design comparison. Do not change settings implicitly.
+- Hidden atomicity, broader runtime/network/storage/security acceptance remain
+  outside this native observation scope. Task11/12 and44/34/6/217 NOT_ACCEPTED;
+  no main merge. Next agree a bounded remaining-check scope, not repeat core flows.
+
+The following session records are historical. Their then-unverified gaps are
+superseded only by the explicit additional evidence above.
+
+## Earlier observed sessions, 2026-11-08
 
 User explicitly approved one replacement first session after the interrupted
 request below. Two observed sessions are now closed; no further launch allowance

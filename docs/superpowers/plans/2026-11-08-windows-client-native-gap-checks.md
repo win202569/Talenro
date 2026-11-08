@@ -9,8 +9,10 @@ events only. Record each result independently; no code changes or automated test
 **Tech Stack:** Existing WinUI3 executable, native UI observation, PowerShell.
 **Spec:** ../specs/2026-11-07-windows-client-four-screen-design.md.
 
-Status: proposed after user requested continuation following c76c9b0a; exact new
-allowance awaits approval. Previous launch allowances remain consumed.
+Status: user approved after14d50ff8; one session observed and normally closed,
+PID17108,17.6minutes. Allowance1/1 consumed. Results PARTIAL, not accepted; see
+../../roadmap/2026-11-08-windows-client-native-verification.md. Compound steps
+below remain unchecked where any subcheck is unverified; no automatic extension.
 
 ## Global Constraints
 
@@ -41,33 +43,40 @@ allowance awaits approval. Previous launch allowances remain consumed.
 Files: update docs/roadmap/2026-11-08-windows-client-native-verification.md and
 clients/windows/tests/manual-checklist.md with PASS/FAIL/UNVERIFIED evidence.
 
-- [ ] Check preconditions and launch exact executable once; record PID/path/time.
-- [ ] With Auto/no known country, enable lock: refusal and lock remains off.
-- [ ] For expired, exhausted, unknown, stale and device-limit: select scenario,
+- [x] Check preconditions and launch exact executable once; record PID/path/time.
+- [x] With Auto/no known country, enable lock: refusal and lock remains off.
+- [x] For expired, exhausted, unknown, stale and device-limit: select scenario,
   actually press Connect, verify remains disconnected with correct reason; inspect
   Account values, including unavailable rather than zero and activated count.
-- [ ] Restore active. In Nodes exercise loading/unavailable/explicit empty and
+- [x] Restore active. In Nodes exercise loading/unavailable/explicit empty and
   disabled-row input; verify appropriate unavailable Apply and no invalid selection.
-- [ ] Select JP, connect explicitly, lock JP. Draft DE and Apply: confirmation
+- [x] Select JP, connect explicitly, lock JP. Draft DE and Apply: confirmation
   names JP/DE and lock change. Default Enter cancels; inspect JP preference/lock.
   Repeat with Cancel button and inspect preserved state. Confirm separately:
   Connecting, saved DE preference/lock; do not infer hidden atomicity from UI alone.
-- [ ] Explicit locked-country failure: Retry this country enters Connecting with
+- [x] Explicit locked-country failure: Retry this country enters Connecting with
   same lock; fail again, Stay disconnected leaves disconnected and clears offer.
 - [ ] Exercise remaining registration/sidebar/account placeholder explanations
   without real account operations. Inspect focus return and selected keyboard paths.
 - [ ] Change search/list scenario and then logout; reenter to inspect default
   list scenario and empty search. Change login scenario before entry, return normal;
   logout and inspect normal selector. Do not repeat process-reopen verification.
-- [ ] Check pointer scrolling within observed content. Keyboard traversal is
+- [x] Check pointer scrolling within observed content. Keyboard traversal is
   limited to controls exercised here, not full screen-reader acceptance.
-- [ ] Close normally, verify exact process exited and record elapsed time.
+- [x] Close normally, verify exact process exited and record elapsed time.
+
+Partial steps: all listed placeholder explanations were observed, but full focus
+return was not checked. Changed Nodes search/list reset was observed; the specific
+changed Login-selector sequence remains unverified. No defect was established.
 
 ## Task 2: Preserve bounded result
 
-- [ ] Reconcile every step against observed evidence, leaving all gaps explicit.
-- [ ] Update current-status.md, offline-demo-execution.md and repository-recovery.md;
-  review explicit file diff, commit/push existing development branch and compare SHA.
+- [x] Reconcile every step against observed evidence, leaving all gaps explicit.
+- [x] Update current-status.md, offline-demo-execution.md and repository-recovery.md;
+  review explicit file diff.
+- Commit/push this documentation checkpoint to the existing development branch and
+  compare remote/local SHA after commit. The handoff reports the transport result;
+  no committed document can attest its own future push.
 
 ## Deferred, not hidden acceptance
 

@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+LATEST GAP-ONLY RESULTS — PARTIAL, NOT ACCEPTED:
+Approved after14d50ff8; one17.6-minute session PID17108 normally closed and exact
+exit confirmed. Additional functional paths have direct evidence; see
+docs/roadmap/2026-11-08-windows-client-native-verification.md and
+clients/windows/tests/manual-checklist.md. Three observed sessions now closed;
+all launch allowances consumed. No source/test/build/settings changes this round.
+Remaining: particular Login-selector reset sequence, full keyboard/focus and
+accessibility/visual/locale checks; hidden atomicity and broader acceptance not
+claimed. Agree a bounded remaining scope before another launch. No implicit
+rebuild/install/settings change on a new computer; ignored binaries/caches are
+not restored by cloning. Continue this development branch, not main. Earlier
+awaiting-approval and missing-functionality entries below are historical.
+
 LATEST GAP-ONLY PLAN — AWAITING APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-client-native-gap-checks.md.
 Proposes ONE additional launch,20minutes, remaining functional observations only.

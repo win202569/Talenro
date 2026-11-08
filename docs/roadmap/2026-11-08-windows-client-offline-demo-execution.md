@@ -1,5 +1,20 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Gap-only functional observations recorded, still PARTIAL
+
+User approved after14d50ff8. PID17108 ran17.6minutes and closed normally; exact
+process exit and window disappearance verified. Extra launch allowance1/1 used.
+Five actual admission refusals, list/disabled-row cases, unknown-country refusal,
+independent default-Enter/Cancel preservation, DE confirmation, retry/stay recovery,
+remaining placeholders, changed Nodes search/list reset and pointer scroll observed.
+See2026-11-08-windows-client-native-verification.md for evidence and residual gaps.
+Specific changed Login-selector reset sequence and full accessibility/visual checks
+remain unverified. No source/build/test/restore/settings changes; no confirmed app
+defect observed. This verification-only plan used an observation ledger, not a
+new implementation/test cycle. Prior159/159 not rerun. No further launch allowed
+without a new bounded scope; wider NOT_ACCEPTED unchanged, no main merge.
+Earlier entries below are historical where superseded by this result.
+
 ## Latest: Partial native verification and reset observed, not accepted
 
 After the interrupted request and explicit replacement approval, two ordinary-user
