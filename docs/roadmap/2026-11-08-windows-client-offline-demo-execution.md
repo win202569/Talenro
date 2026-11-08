@@ -1,5 +1,23 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: EntitlementTests prepared; RED pending
+
+Afterd7a99e0f, added EntitlementTests and declaration-only SetEntitlement(Status).
+Reducer unchanged. Literal cases cover Expired,Exhausted,Unknown,Stale,DeviceLimit
+for connect refusal, confirmed reconnect without preference/lock commit, both
+recovery options, continued account access, exact scenario-state retention,
+invalidation after confirmation opens and late-completion refusal. Quota-exhaustion
+cases require hard stop from Connected/Connecting plus clearing pending operations;
+reactivation never auto-connects and unauthenticated scenario events are no-ops.
+No unknown/stale state is converted to Active; visual usage-number presentation
+remains a later UI contract, not proven by these state tests.
+
+No compilation or test run this turn. Next original T RED call in user's same
+ordinary shell: --no-restore -c Debug --filter FullyQualifiedName~EntitlementTests.
+Compilation required; no --no-build, downloads or native app launch. Keep5-minute
+observation budget and no automatic retry. T8/14 remains consumed until run;
+G0/3,B0/2. Task A incomplete; full core regression follows final core GREEN.
+
 ## Latest: CountryLockTests GREEN confirmed by user output
 
 After00c4eef9, user reported17 total,17 passed,0 failed,0 skipped,0.8s tests,

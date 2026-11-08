@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS ENTITLEMENT TESTS PREPARED / RED PENDING:
+EntitlementTests plus SetEntitlement declaration added; reducer unchanged. Next
+ordinary-shell --no-restore EntitlementTests call with compilation. No app launch.
+Full core regression is still pending after this class's eventual GREEN.
+
 LATEST WINDOWS COUNTRY LOCK GREEN (USER-RUN):
 After00c4eef9, CountryLockTests passed17/17,0 skipped,exit0. RED→GREEN confirmed
 from user console output; no independent agent run. Next EntitlementTests before

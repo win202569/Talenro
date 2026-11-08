@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 额度与权限测试已添加，待验证RED
+
+新增EntitlementTests和SetEntitlement事件声明，覆盖五种拒绝状态在连接/确认
+重连/两种恢复入口的检查、账户可访问、确认中途失效、过期完成事件及额度耗尽
+硬断开。未修改reducer、未编译或测试。下一步普通PowerShell执行EntitlementTests。
+Task A仍未完成；最终核心GREEN后还需整套模型回归，无原生启动，NOT_ACCEPTED不变。
+
 ## Latest — CountryLockTests用户实测17/17通过
 
 00c4eef9后用户回传17成功、0失败、0跳过，exit0；测试0.8秒，总计1.8秒，构建成功。

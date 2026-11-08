@@ -21,3 +21,4 @@ public sealed record FailLockedCountry : DemoEvent;
 public sealed record RecoverAcrossCountriesOnce : DemoEvent;
 public sealed record RetryLockedCountry : DemoEvent;
 public sealed record StayDisconnected : DemoEvent;
+public sealed record SetEntitlement(EntitlementStatus Status) : DemoEvent;
