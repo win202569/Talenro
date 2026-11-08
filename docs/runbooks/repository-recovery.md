@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN — SAME-OBJECT LIVE OBSERVATION AWAITS APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-same-object-live-observation.md.
+Proposed one launch, unchanged hash-bound app/module, short focused-search route,
+same original Process snapshots about every5s,30s close deadline/360s overall cap.
+No debugger/dump/kill/retry/build/settings/source change. Plan preparation did not
+run the live adapter or app. Preserve signal/property disagreements; synthetic
+32/32 is historical only. All broader gates remain NOT_ACCEPTED.
+
 LATEST IMPLEMENTATION — PROCESS OBSERVATION MODULE, SYNTHETIC ONLY:
 Implementation68ec4a7c adds clients/windows/tests/process-observation.psm1 and
 process-observation.tests.ps1. Run `& ./clients/windows/tests/process-observation.tests.ps1`

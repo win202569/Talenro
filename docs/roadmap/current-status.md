@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 同对象真实观测方案已准备，待单次运行批准
+
+方案：docs/superpowers/plans/2026-11-08-windows-same-object-live-observation.md。
+拟复用未修改程序与已审查模块，只做短搜索路线，在原始进程对象上约每5秒记录
+等待/退出标志/退出码/时间及逐字段异常。保留30秒关闭判定、360秒观察总上限。
+只启动1次，无重试/强杀/调试器/构建/源码或设置变更；本轮仅文档、未启动应用。
+32/32为此前模拟结果，真实适配器仍未执行。批准新范围后再运行，验收阻塞不变。
+
 ## Latest — 轻量观察模块完成，模拟32/32通过，独立复核无发现
 
 实现提交68ec4a7c：clients/windows/tests/process-observation.psm1及对应tests.ps1。
