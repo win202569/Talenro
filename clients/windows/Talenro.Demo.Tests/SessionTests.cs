@@ -40,7 +40,7 @@ public class SessionTests
         var before = new DemoState { HasSession = true, Page = DemoPage.Account,
             PreferredNode = "jp-1", LockedCountry = "JP" };
         var after = DemoReducer.Reduce(before, new ShowPlaceholder(destination));
-        Assert.Equal("此功能不在本次演示范围内", after.Notice);
+        Assert.Equal("NoticePlaceholder", after.Notice);
         Assert.Equal(before, after with { Notice = before.Notice });
     }
 

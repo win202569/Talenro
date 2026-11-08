@@ -117,8 +117,8 @@ public class NodeSelectionTests
     {
         var before = Editing(ConnectionPhase.Connected) with { DraftNode = "de-1", LockedCountry = "JP" };
         var pending = DemoReducer.Reduce(before, new ApplyNodeSelection());
-        Assert.Contains("JP", pending.Notice);
-        Assert.Contains("DE", pending.Notice);
+        Assert.Equal("NoticeConfirmCountry", pending.Notice);
+        Assert.Equal(new NoticeContext("JP", "DE"), pending.NoticeContext);
         Assert.Equal("JP", pending.LockedCountry);
         Assert.Equal("jp-1", pending.PreferredNode);
         var after = DemoReducer.Reduce(pending, new ConfirmNodeChange());

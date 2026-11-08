@@ -24,7 +24,7 @@ public class ConnectionTests
     public void ExplicitCompletionMarksSimulatedConnectionConnected()
     {
         var before = At(ConnectionPhase.Connecting);
-        Assert.Equal(before with { Connection = ConnectionPhase.Connected },
+        Assert.Equal(before with { Connection = ConnectionPhase.Connected, CurrentCountry = "JP" },
             DemoReducer.Reduce(before, new CompleteConnection()));
     }
 

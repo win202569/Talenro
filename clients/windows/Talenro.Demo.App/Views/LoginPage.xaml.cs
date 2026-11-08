@@ -20,7 +20,7 @@ public sealed partial class LoginPage : Page
     {
         model.Dispatch(new ShowPlaceholder("login"));
         await new ContentDialog { XamlRoot = XamlRoot, Title = MainWindow.Copy("DemoTitle"),
-            Content = model.State.Notice, CloseButtonText = MainWindow.Copy("Close") }.ShowAsync();
+            Content = NoticeFormatter.Format(model.State, MainWindow.Copy), CloseButtonText = MainWindow.Copy("Close") }.ShowAsync();
         (sender as Control)?.Focus(FocusState.Programmatic);
     }
 }

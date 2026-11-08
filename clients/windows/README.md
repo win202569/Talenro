@@ -1,5 +1,10 @@
 # Windows offline demo — native implementation checkpoint
 
+Latest fix checkpoint: country lifecycle and localized notices have targeted
+GREEN8/8 and19/19; app compilation passed. Full159 run had158 pass and one stale
+CurrentCountry expectation. That expectation is corrected but not rerun; do not
+read the historical132-pass result below as verification of this latest edit.
+
 Contains the in-memory Core reducer, five behavioral test classes, a native WinUI
 four-page App, and two static XAML/resource contract test classes. Latest full
 model/declaration suite:132 passed,0 failed/skipped,exit0. Static checks do not

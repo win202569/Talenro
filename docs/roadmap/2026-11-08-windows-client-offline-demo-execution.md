@@ -1,5 +1,37 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Approved two-defect fix pass; full-suite reconfirmation pending
+
+User approved4 targeted calls,1 full suite,1 app build after391e2944. No restore,
+native launch or security changes; commands used an in-command non-admin guard.
+Country tests RED8 total,6 expected failures/2 pass,25ms,exit1; GREEN8/8,18ms,exit0.
+Completion now records recovery or enabled preferred fixture country; Auto stays
+unknown. Attempts/reconnects and terminal failure/disconnection/exhaustion clear
+stale current identity. Saved preference/lock is preserved on one-time recovery.
+
+Localization RED19 total,18 expected failures/1 pass,39ms,exit1; GREEN19/19,71ms,
+exit0. Replaced Chinese reducer prose with resource IDs and immutable From/ToCountry
+context. Shell and notice dialogs use one shared formatter, linked into tests and
+exercised with real copied zh-Hans/en-US resources (18 new notice resources each).
+Existing Session/Node tests now assert semantic key and exact country arguments,
+not Chinese prose. No original behavioral assertion was dropped.
+Ruling: retain Notice as a resource-key string plus typed NoticeContext rather
+than replace the state API with an enum — smaller migration; cost: key spelling
+is verified by resource tests, not the C# type system.
+
+Full run159 total,158 passed,1 failed,0 skipped,66ms,exit1. Sole failure:
+ConnectionTests.ExplicitCompletionMarksSimulatedConnectionConnected still expected
+CurrentCountry=null; approved fix producesJP. Corrected the literal expected
+whole state to includeJP, without relaxing equality. This edit has NOT been rerun.
+No full GREEN claim. Build after diagnosis: start2026-11-08T15:47:36.5706026+04:00,
+end15:47:54.7737366+04:00,exit0,App.dll output,no warnings/errors reported.
+
+Fix allowance consumed4/4 targeted,1/1 full,1/1 build; original budget unchanged.
+Need approval for one additional unfiltered --no-restore Debug test call with
+5-minute observation/non-admin guard. No automatic retry or second review dispatch;
+this remains the single fix pass. Task B pending this gate; Task5 and wider
+NOT_ACCEPTED conditions unchanged. Preserve unfinished checkpoint for recovery.
+
 ## Independent review complete — two important blockers (not fixed)
 
 Independent reviewer identified two important correctness/coverage issues:

@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 两项修复已实现，编译通过；完整回归待补一次
+
+当前国家测试RED6失败/2通过→GREEN8/8；提示资源测试RED18失败/1通过→GREEN19/19。
+全套159项中158通过，唯一失败是旧ConnectionTests仍要求成功后CurrentCountry为空；
+已改为明确期望JP，保留整份状态比较，未复跑。原生编译exit0。
+新增预算针对测试4/4、全套1/1、编译1/1已用完；建议另批一次全套确认。
+未启动应用，Task B尚未最终结项，NOT_ACCEPTED不变。
+
 ## Review findings — 两项重要问题阻止Task B结项
 
 独立审查已确认：领域Notice仍含中文原文，英文资源无法覆盖关键拒绝/确认提示；

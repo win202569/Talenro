@@ -94,4 +94,22 @@
   <data name="RetryCountry.Content" xml:space="preserve"><value>Retry locked country</value></data>
   <data name="StayDisconnected.Content" xml:space="preserve"><value>Stay disconnected</value></data>
   <data name="ScenarioLockedFailed.Content" xml:space="preserve"><value>Simulate all locked-country nodes failing</value></data>
+  <data name="NoticePlaceholder" xml:space="preserve"><value>This feature is outside this demo.</value></data>
+  <data name="NoticeConnectionFailed" xml:space="preserve"><value>Simulated connection failed. Retry or choose another location.</value></data>
+  <data name="NoticeLockedFailed" xml:space="preserve"><value>All demo nodes in the locked country failed. Recover across countries once, retry this country, or stay disconnected.</value></data>
+  <data name="NoticeExpired" xml:space="preserve"><value>The demo subscription has expired. A connection cannot start.</value></data>
+  <data name="NoticeExhausted" xml:space="preserve"><value>The demo quota is exhausted. The connection has stopped.</value></data>
+  <data name="NoticeUnknown" xml:space="preserve"><value>The demo quota is unknown. A connection cannot start.</value></data>
+  <data name="NoticeStale" xml:space="preserve"><value>The demo quota information is stale. A connection cannot start.</value></data>
+  <data name="NoticeDeviceLimit" xml:space="preserve"><value>The demo device limit has been reached. A connection cannot start.</value></data>
+  <data name="NoticePermissionUnknown" xml:space="preserve"><value>Demo permission cannot be confirmed. A connection cannot start.</value></data>
+  <data name="NoticeFinishOperation" xml:space="preserve"><value>Complete or cancel the current simulated operation first.</value></data>
+  <data name="NoticeChooseCountry" xml:space="preserve"><value>Select an available demo node with a known country first.</value></data>
+  <data name="NoticeNoRecoveryNode" xml:space="preserve"><value>No demo node matches this recovery choice.</value></data>
+  <data name="NoticeCannotEdit" xml:space="preserve"><value>The simulated connection is transitioning. Nodes cannot be edited.</value></data>
+  <data name="NoticePendingChange" xml:space="preserve"><value>Confirm or cancel the current node change first.</value></data>
+  <data name="NoticeNodeUnavailable" xml:space="preserve"><value>This demo node is unavailable.</value></data>
+  <data name="NoticeCannotApply" xml:space="preserve"><value>The simulated connection is transitioning. Nodes cannot be applied.</value></data>
+  <data name="NoticeConfirmCountry" xml:space="preserve"><value>Switch from {0} to {1} and update country lock to {1}? The simulated connection will restart.</value></data>
+  <data name="NoticeConfirmNode" xml:space="preserve"><value>Switch node? The simulated connection will restart.</value></data>
 </root>

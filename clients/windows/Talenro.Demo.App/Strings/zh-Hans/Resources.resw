@@ -94,4 +94,22 @@
   <data name="RetryCountry.Content" xml:space="preserve"><value>重试锁定国家</value></data>
   <data name="StayDisconnected.Content" xml:space="preserve"><value>保持断开</value></data>
   <data name="ScenarioLockedFailed.Content" xml:space="preserve"><value>模拟锁定国家全部失败</value></data>
+  <data name="NoticePlaceholder" xml:space="preserve"><value>此功能不在本次演示范围内</value></data>
+  <data name="NoticeConnectionFailed" xml:space="preserve"><value>模拟连接失败，请重试或选择其他位置</value></data>
+  <data name="NoticeLockedFailed" xml:space="preserve"><value>锁定国家的演示节点均失败：可仅此次跨国恢复、重试本国或保持断开</value></data>
+  <data name="NoticeExpired" xml:space="preserve"><value>演示订阅已过期，暂不能开始连接</value></data>
+  <data name="NoticeExhausted" xml:space="preserve"><value>演示额度已耗尽，连接已停止</value></data>
+  <data name="NoticeUnknown" xml:space="preserve"><value>演示额度未知，暂不能开始连接</value></data>
+  <data name="NoticeStale" xml:space="preserve"><value>演示额度信息已陈旧，暂不能开始连接</value></data>
+  <data name="NoticeDeviceLimit" xml:space="preserve"><value>演示设备数量已达上限，暂不能开始连接</value></data>
+  <data name="NoticePermissionUnknown" xml:space="preserve"><value>演示权限无法确认，暂不能开始连接</value></data>
+  <data name="NoticeFinishOperation" xml:space="preserve"><value>请先完成或取消当前模拟操作</value></data>
+  <data name="NoticeChooseCountry" xml:space="preserve"><value>请先选择一个已知国家的可用演示节点</value></data>
+  <data name="NoticeNoRecoveryNode" xml:space="preserve"><value>没有符合本次恢复条件的演示节点</value></data>
+  <data name="NoticeCannotEdit" xml:space="preserve"><value>模拟连接正在转换，暂不能编辑节点</value></data>
+  <data name="NoticePendingChange" xml:space="preserve"><value>请先确认或取消当前节点切换</value></data>
+  <data name="NoticeNodeUnavailable" xml:space="preserve"><value>该演示节点不可用</value></data>
+  <data name="NoticeCannotApply" xml:space="preserve"><value>模拟连接正在转换，暂不能应用节点</value></data>
+  <data name="NoticeConfirmCountry" xml:space="preserve"><value>确认从 {0} 切换至 {1} 并将国家锁定更新为 {1}？模拟连接将重新开始。</value></data>
+  <data name="NoticeConfirmNode" xml:space="preserve"><value>确认切换节点？模拟连接将重新开始。</value></data>
 </root>

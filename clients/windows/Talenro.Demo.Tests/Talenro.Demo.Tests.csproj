@@ -5,6 +5,9 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Talenro.Demo.App/ViewModels/NoticeFormatter.cs" Link="AppLogic/NoticeFormatter.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="../Talenro.Demo.App/**/*.xaml" Exclude="../Talenro.Demo.App/obj/**;../Talenro.Demo.App/bin/**" Link="AppSources/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../Talenro.Demo.App/Strings/**/*.resw" Link="AppSources/Strings/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

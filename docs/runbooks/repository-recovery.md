@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST REVIEW FIX PASS / FULL SUITE RECONFIRMATION PENDING:
+Country lifecycle and localized notices implemented. Targeted tests passed8/8
+and19/19 after expected RED. Full159:158 pass,1 failure in
+ConnectionTests.ExplicitCompletionMarksSimulatedConnectionConnected: old expected
+state omitted required CurrentCountry=JP. Updated expected state to include JP,
+keeping whole-state equality; no rerun after edit. App compileexit0.
+New allowance exhausted:4/4 targeted,1/1 full,1/1 build. Seek one extra full
+suite confirmation before closing review fixes. No native launch or acceptance.
+
 REVIEW BLOCKERS — DO NOT TREAT AS ACCEPTED:
 Independent review identified untranslated Chinese domain Notice text in key
 refusal/confirmation flows, and missing CurrentCountry update after successful

@@ -27,7 +27,7 @@ public sealed partial class MainWindow : Window
         if (hadSession && !model.State.HasSession) { login.Reset(); nodes.Reset(); }
         hadSession = model.State.HasSession;
         Sidebar.Visibility = model.State.HasSession ? Visibility.Visible : Visibility.Collapsed;
-        Notice.Text = model.State.Notice;
+        Notice.Text = NoticeFormatter.Format(model.State, Copy);
         PageHost.Content = model.State.Page switch
         {
             DemoPage.Login => login,
@@ -51,7 +51,7 @@ public sealed partial class MainWindow : Window
     {
         model.Dispatch(new ShowPlaceholder("sidebar"));
         var dialog = new ContentDialog { XamlRoot = Root.XamlRoot, Title = Copy("DemoTitle"),
-            Content = model.State.Notice, CloseButtonText = Copy("Close") };
+            Content = NoticeFormatter.Format(model.State, Copy), CloseButtonText = Copy("Close") };
         await dialog.ShowAsync();
         (sender as Control)?.Focus(FocusState.Programmatic);
     }

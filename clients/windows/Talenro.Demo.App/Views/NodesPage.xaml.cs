@@ -67,7 +67,7 @@ public sealed partial class NodesPage : Page
         model.Dispatch(new ApplyNodeSelection());
         if (!model.State.HasPendingNodeChange) return;
         var result = await new ContentDialog { XamlRoot = XamlRoot,
-            Title = MainWindow.Copy("ConfirmNodeChange"), Content = model.State.Notice,
+            Title = MainWindow.Copy("ConfirmNodeChange"), Content = NoticeFormatter.Format(model.State, MainWindow.Copy),
             PrimaryButtonText = MainWindow.Copy("Confirm"), CloseButtonText = MainWindow.Copy("Cancel"),
             DefaultButton = ContentDialogButton.Close }.ShowAsync();
         model.Dispatch(result == ContentDialogResult.Primary ? new ConfirmNodeChange() : new CancelNodeChange());
