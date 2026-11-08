@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — ConnectionTests用户实测24/24通过
+
+21e531e0后用户回传：24成功、0失败、0跳过，exit0，测试0.9秒、总计1.8秒。
+连接状态组已完成RED→GREEN，未修改测试预期；证据来自用户普通PowerShell运行。
+此前SessionTests13/13记录保留，但连接修改后的合并回归尚未运行。下一组为
+NodeSelectionTests。Task A未完成，原生UI/真实VPN未验收，NOT_ACCEPTED不变。
+
 ## Latest — ConnectionTests预期RED已确认，最小转换实现待GREEN
 
 用户完整输出确认24项中7项断言失败、17通过、0跳过，exit1；失败均为未实现的

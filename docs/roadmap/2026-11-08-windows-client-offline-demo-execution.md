@@ -1,5 +1,20 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: ConnectionTests GREEN confirmed by user output
+
+After21e531e0, user supplied the prescribed ConnectionTests run result:
+24 total,24 passed,0 failed,0 skipped; test duration0.9s,overall1.8s,exit0.
+This is user-run ordinary PowerShell evidence, not an independent agent rerun.
+Together with the7 expected assertion failures at6070f3f2, it establishes
+ConnectionTests RED→GREEN without changing test expectations.
+
+Original filtered T4/14 consumed; G0/3,B0/2,native launches0. SessionTests13/13
+was verified before connection edits; no combined regression after those edits
+has yet run. Task A remains incomplete. Next planned class is NodeSelectionTests:
+draft versus committed preference, Back/Cancel, disabled rows, connected-change
+confirmation, atomic country-lock updates and transition-phase editing refusal.
+Do not infer real tunnel, UI, entitlement or full-model acceptance from this result.
+
 ## Latest: Connection RED confirmed; minimal transitions await GREEN
 
 User supplied full output for6070f3f2:24 tests,7 failed,17 passed,0 skipped,

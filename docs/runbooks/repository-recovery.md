@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS CONNECTION GREEN (USER-RUN):
+After21e531e0, ConnectionTests passed24/24,0 skipped,exit0 in user's ordinary
+PowerShell. RED→GREEN established; no agent rerun. Next write NodeSelectionTests
+before implementation. Combined regression remains unrun; Task A incomplete.
+
 LATEST WINDOWS CONNECTION RED CONFIRMED / GREEN PENDING:
 User full output confirms24 tests:7 expected transition failures,17 passed,exit1.
 Six guarded reducer transitions added without changing tests; not yet compiled
