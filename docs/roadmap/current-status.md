@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 单次观测因输入工具错误停止，登录页退出0
+
+已用完1/1启动额度。PID19528原始句柄成功保留；首次“进入演示”点击报
+`coordinate input geometry is unavailable`，按计划停止、不重试；复核仍在登录页。
+正常关闭后约0.333秒取得真实APP_EXIT0，后续CIM/名称查询及窗口清单均无残留。
+这只验证本次登录页关闭，原C3节点/对话框路线未执行，不能宣布原异常已修复。
+记录：2026-11-08-windows-c3-exit-observation-execution.md。本轮未构建/测试/改源码。
+下一步应修订界面观测方式（首次点击前取得截图状态），另行批准新启动；
+不自动重试。全部NOT_ACCEPTED和C4-C6缺口保留。
+
 ## Latest — C3单次退出观测方案已准备，待批准
 
 方案：docs/superpowers/plans/2026-11-08-windows-c3-exit-observation.md。

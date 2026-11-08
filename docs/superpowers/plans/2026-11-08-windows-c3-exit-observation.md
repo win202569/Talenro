@@ -10,7 +10,7 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md; incident constraints/evidence in docs/roadmap/2026-11-08-windows-layout-stage-b-continuation-execution.md (read-only diagnosis appendix).
 
-Status: PROPOSED after642c0daf. This checkpoint authorizes no runtime execution.
+Status: approved afterfeb90856; one attempt consumed. First UI click failed with unavailable input geometry, so the route stopped at Login and closed with actual exit0. Original C3 route remains unverified. See docs/roadmap/2026-11-08-windows-c3-exit-observation-execution.md; no launch allowance remains. Historical approval requests below are superseded.
 
 ## Global constraints
 

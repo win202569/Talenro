@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST RESULT — LOGIN EXIT0, ORIGINAL C3 ROUTE STILL UNVERIFIED:
+The approved one attempt is consumed. PID19528 started21:54:02+04:00 with retained
+handle; first Enter-demo click after text-only state failed with unavailable input
+geometry. No retry; fresh screenshot/text still showed Login. Normal close at
+21:54:35.260 produced explicit APP_EXIT0 at21:54:35.5927660. Follow-up CIM/name/UI
+checks found no residual demo. This does not test the original C3 final Nodes state.
+Read docs/roadmap/2026-11-08-windows-c3-exit-observation-execution.md. Next amend
+input observation to capture screenshot-backed state before clicking, and obtain
+new single-attempt approval; do not relaunch under the consumed allowance.
+No source/settings changes, builds/tests, kill or debugger. Wider gates unchanged.
+
 LATEST PLAN — ONE C3 EXIT OBSERVATION, AWAITING APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-c3-exit-observation.md.
 Proposed one launch of the hash-bound diagnostic artifact, same C3 route, retained
