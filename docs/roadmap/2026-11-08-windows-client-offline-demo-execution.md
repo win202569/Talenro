@@ -1,5 +1,15 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Guarded layout diagnostics Stage A verified, native checks pending
+
+See2026-11-08-windows-layout-test-mode-execution.md for implementation, receipts,
+artifact hashes, independent review and explicit rulings. Full217/217, ordinary
+and diagnostic builds clean, Release gate correctly rejected, static artifact
+isolation passed. Eight targeted calls, one full call, one cache-only restore and
+three build calls used. No native launch. One deferred minor negative-localization
+coverage gap remains; request a bounded test follow-up before Stage B. Historic
+native observations do not attest newly built outputs. Wider NOT_ACCEPTED unchanged.
+
 ## Latest: Design approved; bounded Stage A plan awaits execution choice
 
 Written design approved after f376dcbd. Plan:

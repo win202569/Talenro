@@ -7,7 +7,10 @@
 **Tech Stack:** Existing C#/net10.0 Core/tests, WinUI net10.0-windows10.0.19041.0 App, Microsoft.WindowsAppSDK2.6.5, xUnit and PowerShell; no added package.
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md (approved after f376dcbd).
 
-Status: proposed implementation plan; execution method and Stage A allowance await approval.
+Status: Native execution and Stage A allowance approved after80307866; Stage A
+implemented/verified with one deferred minor test gap. See
+docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md for all receipts/rulings.
+Stage B is not authorized. Historical proposal wording below is superseded here.
 Existing worktree: D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator.
 All paths below are relative to it; commands run from clients/windows unless stated.
 
@@ -101,7 +104,7 @@ with LAYOUT_DIAGNOSTICS, except pure copies linked into the test assembly.
 
 ## Task1 — Fail-closed activation and build isolation
 
-- [ ] Write LayoutOptionsTests plus compilable unimplemented signatures above.
+- [x] Write LayoutOptionsTests plus compilable unimplemented signatures above.
   Assert empty args => Enabled=false; --layout-test => zh-Hans/baseline; every valid
   language/profile combination accepted; selectors without activation, duplicate
   flags/selectors, --layout-test=true, unknown --layout-* and invalid casing/values
@@ -109,26 +112,26 @@ with LAYOUT_DIAGNOSTICS, except pure copies linked into the test assembly.
   arguments too; ordinary guard preserves unrelated args. Errors never echo input.
   Assert project gates exclude diagnostic Compile/EmbeddedResource when false,
   explicit opt-in creates LAYOUT_DIAGNOSTICS, and Release opt-in has an error target.
-- [ ] Run targeted RED with filter FullyQualifiedName~LayoutOptionsTests, confirm
+- [x] Run targeted RED with filter FullyQualifiedName~LayoutOptionsTests, confirm
   assertion/NotImplemented failure for intended contract, not environment failure.
-- [ ] Implement parser, fixed error code2 startup rejection and early build guards.
+- [x] Implement parser, fixed error code2 startup rejection and early build guards.
   App reads process arguments excluding executable; ordinary build uses only the
   reserved guard. Diagnostic build validates options/resources before MainWindow.
   Report fixed error text to stderr when available plus exit code; no error window.
   Disabled diagnostic build branch creates exactly the original ordinary window.
-- [ ] In Directory.Build.props, conditional on MSBuildProjectName=Talenro.Demo.App
+- [x] In Directory.Build.props, conditional on MSBuildProjectName=Talenro.Demo.App
   and opt-in, set early BaseIntermediateOutputPath=obj/layout-diagnostics/ and
   BaseOutputPath=bin/layout-diagnostics/. Ensure MSBuildProjectExtensionsPath follows
   isolated intermediate location. Exclude ALL obj/** and bin/** from source globs,
   not just the active variant. Core/tests retain their own paths; no outputs deleted.
   Embed the existing JSON/resw only with opt-in; exclude Diagnostics/**/*.cs normally.
-- [ ] Run targeted GREEN (same filter), expect all selected tests pass/exit0.
-- [ ] Review explicit file diff and commit scoped checkpoint; incomplete runtime
+- [x] Run targeted GREEN (same filter), expect all selected tests pass/exit0.
+- [x] Review explicit file diff and commit scoped checkpoint; incomplete runtime
   integration remains clearly labelled, no native acceptance claim.
 
 ## Task2 — Pure profile and language presentation
 
-- [ ] Write LayoutPresentationTests. Assert exact fixture text at ConnectionStatus
+- [x] Write LayoutPresentationTests. Assert exact fixture text at ConnectionStatus
   only for Connecting; JP group text exactly long-country and jp-1 row exactly
   long-country + " · jp-1"; UsageValue override only Unknown/Stale; rtl heading exact
   fixture string; all other target/state combinations return ordinaryText.
@@ -136,19 +139,19 @@ with LAYOUT_DIAGNOSTICS, except pure copies linked into the test assembly.
   Assert input DemoState equality before/after calls, default text unchanged,
   exact zh/en resource values, and missing required key fails diagnostic preparation.
   Assert invalid fixture size/IDs/duplicates/direction rejected; no original text edits.
-- [ ] Run RED filter FullyQualifiedName~LayoutPresentationTests.
-- [ ] Implement the pure catalog/presentation interfaces. Load selected embedded
+- [x] Run RED filter FullyQualifiedName~LayoutPresentationTests.
+- [x] Implement the pure catalog/presentation interfaces. Load selected embedded
   resw using bounded XML parsing with DTD disabled, one dictionary keyed by original
   dotted resource keys. No OS language override or custom missing-key fallback.
   Fail startup if either language's required view/dynamic/dialog key is absent.
   IsProfileActive: baseline always; long-status on Connection+Connecting; long-country
   on Nodes; rtl-mixed always (root mirrored); unknown-usage on Account+Unknown/Stale.
   Report condition activity, not a claim that an offscreen target has been inspected.
-- [ ] Run GREEN same filter; review and commit only this task's files.
+- [x] Run GREEN same filter; review and commit only this task's files.
 
 ## Task3 — Shared-view integration and language coverage
 
-- [ ] Write LayoutViewContractTests against copied source declarations and binding
+- [x] Write LayoutViewContractTests against copied source declarations and binding
   manifest. Enumerate each view's x:Uid plus applicable resw property; require one
   explicit binding per view/target/property, both languages covered. Verify dynamic
   and dialog keys from current source/resource inventory, including composed state
@@ -156,64 +159,64 @@ with LAYOUT_DIAGNOSTICS, except pure copies linked into the test assembly.
   credentials, PageHost no Tab stop). Add tests for init/Refresh/logout hooks and
   preserved handler/Tag/search/confirmation expressions. Label these static checks,
   not proof of live event wiring or focus. Add failure case for a new unmapped UID.
-- [ ] Run RED filter FullyQualifiedName~LayoutViewContractTests.
-- [ ] Add stable x:Name only where bindings need it; implement explicit typed
+- [x] Run RED filter FullyQualifiedName~LayoutViewContractTests.
+- [x] Add stable x:Name only where bindings need it; implement explicit typed
   assignments in LayoutStaticBindings, with an inspectable key/target manifest
   matching actual setters. No generic property setter or new visual controls.
   Apply selected-language static text after InitializeComponent and before profile
   replacements. Keep adapter initialized before constructors can trigger callbacks.
   Route diagnostic MainWindow.Copy through adapter; ordinary path unchanged.
-- [ ] Apply profile text after relevant Refresh output; reapply Login heading after
+- [x] Apply profile text after relevant Refresh output; reapply Login heading after
   Reset. Nodes changes display label only, preserving search on original selected-
   language labels and node identity/selection/confirmation. For RTL set root direction
   only in mode; isolate email and technical node/lock identifiers LTR without adding
   focusable wrappers. Keep actual state/action labels, notice meaning and enablement.
   Title observer must see state/page refreshes without subscribing to new actions.
-- [ ] Run GREEN same filter. Review default and active paths separately; commit.
+- [x] Run GREEN same filter. Review default and active paths separately; commit.
 
 ## Task4 — Actual dimensions and readout lifecycle
 
-- [ ] Write LayoutMeasurementTests. Assert prefix LAYOUT TEST, language/profile,
+- [x] Write LayoutMeasurementTests. Assert prefix LAYOUT TEST, language/profile,
   active/inactive, distinct root/page dimensions, render/text scales; unknown for
   null/zero/negative/NaN/infinity, invariant formatting with3 decimal places.
   Assert no equality decision based on rounded title. Add declaration checks for
   event-based observer, unsubscription on close, no timer/forced layout/Dispatch.
-- [ ] Run RED filter FullyQualifiedName~LayoutMeasurementTests.
-- [ ] Implement pure record/formatter; inspect installed framework reference docs
+- [x] Run RED filter FullyQualifiedName~LayoutMeasurementTests.
+- [x] Implement pure record/formatter; inspect installed framework reference docs
   before selecting native read APIs. Use actual laid-out Root and PageHost bounds
   in logical units plus root rendering scale. Read text scale only through supported
   read-only API; otherwise unknown. Use Loaded/SizeChanged/root-scale and state/page
   notifications; invalidate unavailable/old measurements on page/root replacement.
   Handle UI-thread delivery safely, suppress identical titles, dispose subscriptions
   on close. No live-region declaration, polling, model mutation or automatic resize.
-- [ ] Run GREEN same filter. Record API evidence/unknown fields and commit.
+- [x] Run GREEN same filter. Record API evidence/unknown fields and commit.
 
 ## Task5 — Whole-change checks and portable handoff (no native launch)
 
-- [ ] Independent whole-change code review after Tasks1–4; resolve findings only
+- [x] Independent whole-change code review after Tasks1–4; resolve findings only
   within scope. New verification calls beyond budget require further allowance.
-- [ ] Read-only evaluate build properties for ordinary and diagnostic App, confirm
+- [x] Read-only evaluate build properties for ordinary and diagnostic App, confirm
   output/intermediate/project-assets isolation and effective source/embed item lists.
   A declared path without evaluated evidence is insufficient. Use dotnet msbuild
   -getProperty / -getItem only, not an implicit Build target.
-- [ ] If isolated assets need restore, use at most two locked cache-only restores.
+- [x] If isolated assets need restore, use at most two locked cache-only restores.
   Use an existing verified package cache and an explicit empty local feed directory
   under .cache as the sole --source, with --locked-mode and NuGetAudit=false; no
   network source or lockfile update. Diagnostic App restore carries
   -p:EnableLayoutDiagnostics=true. Missing package stops work; no download fallback.
-- [ ] Run full tests once with --no-restore -c Debug, expect exit0 and all tests
+- [x] Run full tests once with --no-restore -c Debug, expect exit0 and all tests
   pass/none skipped. Record actual total, never assume it remains160.
-- [ ] Build ordinary Debug once (--no-restore), then diagnostic Debug once with
+- [x] Build ordinary Debug once (--no-restore), then diagnostic Debug once with
   -p:EnableLayoutDiagnostics=true. Both must exit0,0 warnings/errors. Run Release
   opt-in once with --no-restore, expect fixed diagnostic-build gate error before
   compilation rather than missing-assets failure; gate scheduling must ensure this.
-- [ ] Implement/run verify-layout-artifacts.ps1 against the two managed App outputs
+- [x] Implement/run verify-layout-artifacts.ps1 against the two managed App outputs
   using System.Reflection.Metadata/PEReader, not Assembly.Load or app execution.
   Ordinary must have no diagnostic types, fixture JSON or embedded diagnostic resw;
   diagnostic must have them. Check effective MSBuild item list and output paths too.
   Metadata presence alone does not prove ordinary startup behavior. Hash executable
   and managed App files separately, recording exact paths/configuration.
-- [ ] Update manual-checklist.md with pending new checks (do not check them off),
+- [x] Update manual-checklist.md with pending new checks (do not check them off),
   README.md, current-status.md, execution ledger and repository-recovery.md. Record
   changes, calls consumed, errors, artifacts and unresolved native checks. Explicit
   file staging/commit/push to codex/c12-b01-task9-coordinator; verify remote SHA and

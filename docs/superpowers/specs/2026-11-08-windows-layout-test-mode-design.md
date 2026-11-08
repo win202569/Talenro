@@ -1,6 +1,8 @@
 # Windows test-only presentation and measurement mode
 
-Status: APPROVED by user after f376dcbd; implementation plan awaits execution approval.
+Status: APPROVED after f376dcbd; Stage A implemented/verified after80307866 approval.
+See docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md for a deferred minor
+coverage-test finding and still-unverified native behavior. No Stage B allowance.
 Baseline85f8663c; no implementation, test/build or launch is authorized here.
 Independent read-only builder check: nothing important left before planning.
 This checks design clarity, not implementation correctness or native acceptance.

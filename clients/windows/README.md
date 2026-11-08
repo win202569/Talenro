@@ -1,5 +1,25 @@
 # Windows offline demo — native implementation checkpoint
 
+## Latest: layout-diagnostic mode (Stage A only)
+
+Implementation and verification are recorded in
+[the execution ledger](../../docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md).
+Full217/217 passed; ordinary and diagnostic Debug builds had0warnings/errors;
+Release opt-in was rejected. Metadata isolation passed. No native launch of these
+new artifacts occurred. One minor negative-localization test gap remains deferred.
+
+EnableLayoutDiagnostics defaults false even for Debug. An explicitly enabled
+Debug build uses isolated bin/layout-diagnostics and obj/layout-diagnostics paths;
+it still needs --layout-test to activate. Options are --layout-language=zh-Hans|en-US
+and --layout-profile=baseline|long-status|long-country|rtl-mixed|unknown-usage.
+These describe future authorized runs, not permission to launch. Normal builds
+reject reserved --layout options. Test strings do not change reducer state.
+The test title reports root/page logical sizes and render/text scales; unknown
+values and rounded values are not acceptance evidence. No settings are changed.
+No-switch behavior, English/RTL rendering and readout accuracy need Stage B.
+
+The following older notes are retained as history, superseded by this section.
+
 Latest handoff supersedes the historical startup notes below: six native sessions
 have been observed and closed, most recently the six scoped keyboard-gap groups
 at6be52b54. Prior full suite160/160 and PageHost fix are recorded in the focus-fix

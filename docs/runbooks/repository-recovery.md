@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION — STAGE A VERIFIED, NATIVE PENDING:
+Read docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md. Default-off
+diagnostic mode is now implemented; full217/217, two clean builds, Release refusal
+and metadata isolation checked. One minor future-UID negative-test gap is deferred.
+Next recommend fixing that test under a new finite allowance, then planning native
+Stage B. No app launch is authorized or running; existing launch history is older.
+Both .exe apphosts have identical hashes: variant identification also needs App.dll
+hash and directory. Outputs/caches are ignored, not committed; a new computer must
+prepare dependencies and obtain new verification allowance. Source, fixtures,
+resource mapping, artifact-check script and this ledger are portable in the branch.
+
 LATEST PLAN — DESIGN APPROVED, EXECUTION NOT YET APPROVED:
 Read docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md and its linked
 design. User approved the design after f376dcbd. Five implementation/verification

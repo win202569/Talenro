@@ -1,5 +1,16 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest Stage A diagnostic implementation has passed code/build checks only; none
+of the native rows below were rerun on its new ordinary/diagnostic outputs.
+See2026-11-08-windows-layout-test-mode-execution.md in docs/roadmap for hashes and
+the deferred minor negative-localization test gap. Additional pending checks:
+
+- [ ] Ordinary executable retains behavior; reserved options reject without window.
+- [ ] Diagnostic executable without activation behaves as ordinary; invalid options reject.
+- [ ] Activated zh-Hans/en-US baseline and all four samples render at intended conditions.
+- [ ] Measured title root/page dimensions agree with independent client/DPI evidence.
+- [ ] Resize/scale updates and normal shutdown clean up observer subscriptions.
+
 Six authorized ordinary-user sessions were observed and closed on2026-11-08,
 after one interrupted request and explicit replacement approval. See
 ../../../docs/roadmap/2026-11-08-windows-client-native-verification.md for exact
