@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS ENTITLEMENT RED CONFIRMED / IMPLEMENTATION UNVERIFIED:
+User output after ce0c1089:39 total,33 expected assertion failures,6 passed,
+0 skipped,exit1. Added entitlement admission at connect/reconnect/recovery and
+late completion, exact status updates and exhausted-quota hard stop/cleanup.
+Tests unchanged; implementation has not been compiled or run. Next ordinary
+PowerShell EntitlementTests --no-restore -c Debug (T10); T9/14 used,G0/3,B0/2.
+Keep five-minute observation limit, no automatic retry or native app launch.
+Full core regression follows GREEN; Task A and UI acceptance remain incomplete.
+
 LATEST WINDOWS ENTITLEMENT TESTS PREPARED / RED PENDING:
 EntitlementTests plus SetEntitlement declaration added; reducer unchanged. Next
 ordinary-shell --no-restore EntitlementTests call with compilation. No app launch.

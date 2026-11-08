@@ -13,9 +13,16 @@ public static class DemoReducer
         },
         Navigate navigation when state.HasSession => state with { Page = navigation.Page },
         ShowPlaceholder => state with { Notice = "此功能不在本次演示范围内" },
+        SetEntitlement change when state.HasSession => ChangeEntitlement(state, change.Status),
+        RequestConnection when state.HasSession && state.Connection == ConnectionPhase.Disconnected
+            && state.Entitlement != EntitlementStatus.Active
+            => state with { Notice = EntitlementNotice(state.Entitlement) },
         RequestConnection when state.HasSession && state.Connection == ConnectionPhase.Disconnected
             => state with { Connection = ConnectionPhase.Connecting, Notice = "",
                 RecoveryChoices = LockRecoveryChoices.None, RecoveryCountry = null },
+        CompleteConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
+            && state.Entitlement != EntitlementStatus.Active
+            => ChangeEntitlement(state, state.Entitlement),
         CompleteConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
             => state with { Connection = ConnectionPhase.Connected, RecoveryCountry = null },
         CancelConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
@@ -59,6 +66,32 @@ public static class DemoReducer
     private static bool IsTransitioning(DemoState state) =>
         state.Connection is ConnectionPhase.Connecting or ConnectionPhase.Disconnecting;
 
+    private static string EntitlementNotice(EntitlementStatus status) => status switch
+    {
+        EntitlementStatus.Expired => "演示订阅已过期，暂不能开始连接",
+        EntitlementStatus.Exhausted => "演示额度已耗尽，连接已停止",
+        EntitlementStatus.Unknown => "演示额度未知，暂不能开始连接",
+        EntitlementStatus.Stale => "演示额度信息已陈旧，暂不能开始连接",
+        EntitlementStatus.DeviceLimit => "演示设备数量已达上限，暂不能开始连接",
+        _ => "演示权限无法确认，暂不能开始连接"
+    };
+
+    private static DemoState ChangeEntitlement(DemoState state, EntitlementStatus status)
+    {
+        if (status == EntitlementStatus.Active)
+            return state with { Entitlement = status, Notice = "" };
+
+        return state with
+        {
+            Entitlement = status,
+            Connection = status == EntitlementStatus.Exhausted || state.Connection == ConnectionPhase.Connecting
+                ? ConnectionPhase.Disconnected : state.Connection,
+            PendingNode = null, HasPendingNodeChange = false,
+            RecoveryCountry = null, RecoveryChoices = LockRecoveryChoices.None,
+            Notice = EntitlementNotice(status)
+        };
+    }
+
     private static bool CanRecover(DemoState state, LockRecoveryChoices choice) =>
         state.HasSession && state.LockedCountry is not null
         && state.Connection == ConnectionPhase.Disconnected && (state.RecoveryChoices & choice) != 0;
@@ -82,6 +115,8 @@ public static class DemoReducer
 
     private static DemoState StartRecovery(DemoState state, bool crossCountry)
     {
+        if (state.Entitlement != EntitlementStatus.Active)
+            return state with { Notice = EntitlementNotice(state.Entitlement) };
         var candidate = DemoFixtures.Nodes.FirstOrDefault(node => node.Enabled &&
             (crossCountry ? node.Country != state.LockedCountry : node.Country == state.LockedCountry));
         if (candidate is null)
@@ -129,6 +164,9 @@ public static class DemoReducer
 
     private static DemoState ConfirmSelection(DemoState state)
     {
+        if (state.Entitlement != EntitlementStatus.Active)
+            return state with { PendingNode = null, HasPendingNodeChange = false,
+                Notice = EntitlementNotice(state.Entitlement) };
         if (!IsSelectable(state.PendingNode))
             return state with { PendingNode = null, HasPendingNodeChange = false, Notice = "该演示节点不可用" };
         var country = CountryOf(state.PendingNode);

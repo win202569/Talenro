@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 额度权限预期RED确认，最小实现待GREEN
+
+用户回传EntitlementTests：39项、33预期断言失败、6通过、0跳过，exit1。
+现已补上连接/确认重连/恢复/迟到完成事件的权限检查，以及额度耗尽硬断开、
+待确认与恢复状态清理；保留原节点偏好和国家锁。测试未改，尚未编译或运行。
+下一步普通PowerShell执行EntitlementTests GREEN（原预算T10）；已用T9/14，
+G0/3、B0/2。之后仍需整套核心回归；Task A未完成，无原生启动，NOT_ACCEPTED不变。
+
 ## Latest — 额度与权限测试已添加，待验证RED
 
 新增EntitlementTests和SetEntitlement事件声明，覆盖五种拒绝状态在连接/确认

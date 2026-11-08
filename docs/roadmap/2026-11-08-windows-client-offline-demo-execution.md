@@ -1,5 +1,29 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: Entitlement RED confirmed; minimal implementation awaits GREEN
+
+User ordinary-shell attachment after ce0c1089 reports39 total,33 failed,6 passed,
+0 skipped,0.9s tests,1.8s overall,exit1. Both projects built successfully.
+Failures match missing scenario updates, admission guards, invalidated dialogs,
+late completion and exhausted-quota hard stop. Account access and unauthenticated
+event no-op already pass. This is user-run evidence, not an agent rerun.
+
+Added explicit messages distinguishing Expired,Exhausted,Unknown,Stale,DeviceLimit;
+all non-Active values fail closed at connection admission. Connect refusal only
+changes Notice. Confirmation refusal clears the pending dialog without committing
+node/lock; recovery refusal cannot start an attempt. Denied entitlement changes
+clear pending/recovery operations; Exhausted hard-stops, and any denied state
+cancels Connecting. Other denied states do not forcibly end an existing Connected
+session. Active restoration does not auto-connect. Late completion rechecks status.
+No test changes, dependencies, security changes, network behavior or native launch.
+
+Implementation is an UNVERIFIED development checkpoint: no compilation or tests
+were run by the agent. Next original GREEN slot T10: EntitlementTests --no-restore
+-c Debug in the same ordinary PowerShell, with compilation (no --no-build).
+Keep5-minute observation budget; Ctrl+C once if exceeded, no automatic retry.
+Original T9/14 consumed,G0/3,B0/2. Full core regression remains pending after GREEN;
+Task A incomplete, Task11/12 and44/34/6/217 NOT_ACCEPTED unchanged.
+
 ## Latest: EntitlementTests prepared; RED pending
 
 Afterd7a99e0f, added EntitlementTests and declaration-only SetEntitlement(Status).
