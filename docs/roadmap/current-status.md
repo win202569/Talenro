@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — ConnectionTests预期RED已确认，最小转换实现待GREEN
+
+用户完整输出确认24项中7项断言失败、17通过、0跳过，exit1；失败均为未实现的
+阶段转换，不是环境故障。已新增六个带会话/阶段限制的纯内存转换分支，未改测试，
+不含网络或后台任务。尚未编译/运行修改后的代码；下一步普通PowerShell验证
+ConnectionTests。Task A未完成，额度/节点/UI仍待实现，NOT_ACCEPTED不变。
+
 ## Latest — ConnectionTests已添加，待普通PowerShell验证RED
 
 新增连接/取消/断开/失败的显式事件声明与连接状态测试，覆盖转换顺序、重复请求、

@@ -1,5 +1,25 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: Connection RED confirmed; minimal transitions await GREEN
+
+User supplied full output for6070f3f2:24 tests,7 failed,17 passed,0 skipped,
+test duration0.8s,overall1.8s,exit1. Compilation succeeded and failures were
+assertions in RequestOnlyStartsConnecting,CancelReturnsToDisconnectedWithoutLosingPreferences,
+ExplicitCompletionMarksSimulatedConnectionConnected,CompletionAfterCancelCannotReviveConnection,
+RepeatedRequestsNeverAdvancePastTransitionalPhase,FailureWaitsForExplicitRetry,
+DisconnectRequiresExplicitCompletion. Each reported the unchanged prior phase
+instead of the required transition. This establishes intended RED, not a tool failure.
+
+Added six reducer branches guarded by session presence and source phase. Requests
+enter Connecting/Disconnecting; explicit results complete them; Cancel/Fail return
+Disconnected. Failure supplies a simulated notice; retry clears it. Preferences
+are retained and invalid-phase events remain no-ops. No I/O/workers/timers added;
+tests unchanged. Entitlement/node/lock behavior remains later work.
+Not compiled or tested after this edit; Connection GREEN and regression unverified.
+Next one original filtered GREEN call: --no-restore -c Debug --filter
+FullyQualifiedName~ConnectionTests, in user's same ordinary shell, compilation
+enabled,5-minute budget, no retry. Original T3/14 consumed; G0/3,B0/2 unchanged.
+
 ## Latest: ConnectionTests prepared, RED not yet run
 
 Afterd461fed2, added ConnectionTests and six payload-free event declarations:

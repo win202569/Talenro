@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS CONNECTION RED CONFIRMED / GREEN PENDING:
+User full output confirms24 tests:7 expected transition failures,17 passed,exit1.
+Six guarded reducer transitions added without changing tests; not yet compiled
+or verified afterward. Next one ConnectionTests --no-restore run (compile enabled)
+in ordinary PowerShell. Do not claim full model/regression or native app acceptance.
+
 LATEST WINDOWS CONNECTION TESTS PREPARED / RED UNRUN:
 ConnectionTests and six connection event declarations are committed; reducer
 still only implements session behavior. Next one --no-restore ConnectionTests
