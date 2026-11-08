@@ -1,5 +1,14 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Six keyboard-gap groups observed, session closed
+
+Approved after f349823c; PID8700 ran about798seconds, closed normally and exact
+process/window absence was confirmed. K1–K6 scoped PASS; see latest native record
+for targets, order adjustments, hash, times and limitations. No source/test/build/
+settings changes; prior160/160 not rerun. One-launch allowance consumed, no live
+session. Full accessibility/layout and wider NOT_ACCEPTED gates remain unchanged.
+Next proposed work is read-only method preparation, not another native launch.
+
 ## Latest: Missing keyboard-path matrix ready, not executed
 
 See docs/superpowers/plans/2026-11-08-windows-keyboard-gap-verification.md for six

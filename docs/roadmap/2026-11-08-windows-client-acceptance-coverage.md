@@ -1,5 +1,12 @@
 # Windows demo acceptance coverage — evidence reconciliation only
 
+Latest addendum: after f349823c approval, PID8700 observed K1–K6 keyboard gaps
+and closed normally; see latest native-verification record. Priority1 below is
+completed only for those explicit paths. No full keyboard/accessibility acceptance;
+expanded dropdown and disabled-state permutations remain outside those checks.
+Next safe step is read-only preparation of priorities2–4 methods/constraints,
+not a repeated core-flow session. No launch allowance remains.
+
 Baseline: d64de426. User approved splitting compound checklist rows and mapping
 existing evidence. This update changes documentation only: no app launch, tests,
 build, dependency restore, instrumentation or settings change. No acceptance gate
@@ -47,6 +54,6 @@ retained with its baseline rather than silently described as a current-build rer
 5. Internal atomicity and exhaustive storage/reset evidence need a scoped method,
    not another general UI session. Keep those boundaries explicitly unresolved.
 
-Next safe step: prepare the missing-path matrix and its bounded proposed native
-session before requesting any new launch. This record itself grants no new runs.
+The original missing-path matrix/session proposal above is now historical and
+superseded by the latest addendum. This record itself grants no new runs.
 Overall native checklist remains PARTIAL; Task11/12 and44/34/6/217 NOT_ACCEPTED.

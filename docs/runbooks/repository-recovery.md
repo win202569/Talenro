@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST KEYBOARD GAP RESULT — SUPERSEDES PENDING PROPOSAL BELOW:
+The six-group plan was approved after f349823c and executed on unchanged App/Core.
+PID8700 closed normally after about798seconds; exact process and window absent.
+K1–K6 scoped PASS; read latest native-verification record and manual checklist.
+No runtime session remains; allowance consumed. No new source/test/build/settings
+changes. Full keyboard/accessibility/layout and broader NOT_ACCEPTED are retained.
+Resume from this development checkpoint, not main. Next prepare feasible read-only
+screen-reader/layout verification methods; any new runtime work needs scoped approval.
+Historical pending proposals below do not grant another run or require repetition.
+
 NEXT PROPOSED KEYBOARD SESSION — APPROVAL PENDING:
 docs/superpowers/plans/2026-11-08-windows-keyboard-gap-verification.md contains
 six missing-path groups and one20minute proposed allowance. Read before execution;

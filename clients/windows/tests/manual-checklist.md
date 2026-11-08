@@ -1,6 +1,6 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
-Five authorized ordinary-user sessions were observed and closed on2026-11-08,
+Six authorized ordinary-user sessions were observed and closed on2026-11-08,
 after one interrupted request and explicit replacement approval. See
 ../../../docs/roadmap/2026-11-08-windows-client-native-verification.md for exact
 PASS/UNVERIFIED subchecks. Unchecked compound rows below are not wholly verified.
@@ -31,6 +31,14 @@ checks. Compilation/XML tests do not substitute for native observations.
 - [x] Changed Login scenario before entry, returned normal, then logout reset sequence.
 - [x] Pointer scrolling visibly moves Connection/Nodes/Account content.
 - [ ] Keyboard traversal, visible focus, Escape/Enter, dialog return focus.
+- [x] K1–K4: remaining three-page reverse paths and sidebar reverse sequence,
+  with visible focus/automatic scrolling in the tested normal state (PID8700).
+- [x] K5: Return/Escape on MFA, Language, Devices and Traffic explanations;
+  visible focus returns to each invoking control (PID8700).
+- [x] K6: JP-failure recovery panel Country lock↔Recover once↔Retry country↔
+  Stay disconnected↔Success, each adjacent step in both directions (PID8700).
+  Recovery choices not activated. Expanded dropdown/disabled-state permutations
+  and full accessibility remain outside these scoped checks.
 - [x] Observed Login forward/reverse path and Registration Escape focus return.
 - [x] Observed Connection/Nodes/Account primary controls and lower-control auto-scroll.
 - [x] Node arrows skip disabled rows; confirmation Tab/Shift+Tab stays in dialog,

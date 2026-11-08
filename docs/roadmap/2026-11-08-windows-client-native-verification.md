@@ -1,5 +1,55 @@
 # Native verification — PARTIAL, not accepted
 
+## Latest — six keyboard-gap groups observed, PID8700
+
+User approved the bounded plan after f349823c. Read-only preflight confirmed
+AdministratorToken=False, no demo process/window, clean worktree, App/Core
+unchanged against d64de426 and the expected Debug executable SHA256
+83921BD364A6FEA64587E9684D7FEA2266299ACBE79D8EE8D2BF6439F60CC2B6.
+This hashes the executable, not all adjacent artifacts. PID8700 started
+2026-11-08T17:34:57.9884850+04:00; initial window observed within30seconds.
+Ordinary Alt+F4 was issued at17:48:16.066+04:00 (about798seconds,13m18s).
+Exact PID was absent at17:48:23.560+04:00; refreshed enumeration also returned
+no Talenro window. The immediate close snapshot briefly retained the window.
+No kill/relaunch, code edit, test/build/restore, install or settings change occurred.
+Previous160/160 is historical, not rerun. Live screenshots were not saved.
+Six observed closed sessions cumulatively, plus one interrupted historical request.
+The approved one-launch allowance is consumed; no session remains running.
+
+### PASS — all listed transitions, scoped to the observed state
+
+- K1: recovery hidden; Entitlement → Disconnect completion → Locked-all-failed
+  → Failure → Success → Country lock → Choose location → Connect with Shift+Tab.
+  Focus was visible at each stop; offscreen controls scrolled into view.
+- K2: normal Nodes list, Auto selected; List scenario → Apply → Back → Auto
+  → Search with Shift+Tab. Visible focus/caret; no disabled/group row selected.
+- K3: Account Exit → Delete placeholder → Language → Manage devices → MFA,
+  all in reverse with visible focus. Exit/Delete were not activated.
+- K4: Settings → Account → Devices → Traffic → Nodes → Connection with
+  Shift+Tab, without activation or page navigation; each focus outline visible.
+- K5: Return separately opened MFA, Language, Devices and Traffic offline
+  explanations. Escape closed each; after transition settled, focus returned
+  visibly to the exact invoking control. No real account action occurred.
+- K6: applied jp-1, requested connection, explicitly simulated success, enabled
+  JP lock, requested/completed disconnect, requested connection and invoked
+  locked-country failure while Connecting. Recovery panel then appeared in
+  disconnected state with JP lock retained. Observed Success → Stay disconnected
+  → Retry country → Recover once → Country lock using Shift+Tab, then the exact
+  reverse using Tab. Each target had a visible outline; recovery choices were
+  never activated and the panel/state remained unchanged during traversal.
+
+Order adjustment only: K4 preceded K3 during setup; K5 used MFA/Language/Devices/
+Traffic; K6 reverse preceded forward to reuse the scenario-button focus. No path
+was omitted or scope expanded. Fresh observations after input/animations were
+used; stale accessibility metadata alone was not evidence of focus.
+
+Full keyboard/accessibility remains PARTIAL: expanded dropdown behavior, disabled
+state permutations, screen-reader output, contrast/enlarged text, target logical
+viewports and long/RTL/English rendering remain unverified. Runtime atomicity and
+exhaustive reset/storage are also outside this session. Task11/12 and44/34/6/217
+remain NOT_ACCEPTED. Next: read-only preparation of feasible accessibility/layout
+verification methods, not another general keyboard rerun or automatic launch.
+
 ## Latest addendum — PageHost correction verified on three entry paths
 
 After e19a7e38, one authorized session PID9008 ran about215seconds and closed

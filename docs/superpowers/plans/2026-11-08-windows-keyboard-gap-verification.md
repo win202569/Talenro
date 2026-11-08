@@ -1,6 +1,9 @@
 # Windows keyboard gap verification plan
 
-Status: proposed, execution approval pending. Baseline b3c19c55; application
+Status: approved after f349823c and executed; K1–K6 observed PASS, PID8700 closed
+normally after about798seconds. Allowance consumed. Evidence and actual ordering:
+docs/roadmap/2026-11-08-windows-client-native-verification.md.
+Original planning baseline b3c19c55; application
 source last changed in d64de426. This is an observation plan, not implementation:
 no TDD, code edits, delegated implementation or new build is required.
 
@@ -28,7 +31,7 @@ Execution: one operator in this chat using the existing Windows app-control tool
 
 ## Missing-path matrix
 
-All rows below are pending observation. Previously passed entry crossings,
+All rows below now have scoped observations in the linked record. Previously passed entry crossings,
 ordinary forward paths, reset sequences and primary connection flows are not
 being re-certified. Navigation/setup needed to reach a missing path is permitted.
 
@@ -52,12 +55,12 @@ rows stay UNVERIFIED; do not extend the session or silently launch again.
 
 ## Execution and evidence handoff
 
-- [ ] Complete read-only preflight, then one approved launch and startup observation.
-- [ ] Perform K1–K6 in priority order; record actual target sequence and exceptions.
+- [x] Complete read-only preflight, then one approved launch and startup observation.
+- [x] Perform K1–K6; actual order adjustments recorded with no omitted transition.
   A complete row needs every listed transition; partial rows list passed subpaths.
-- [ ] Close normally before20minutes, confirm exact process exit and no target window.
+- [x] Close normally before20minutes, confirm exact process exit and no target window.
   No forced termination is authorized; if close fails, report and request direction.
-- [ ] Update native-verification record, manual checklist, current status, execution
+- [x] Update native-verification record, manual checklist, current status, execution
   record and recovery document with evidence labels; commit/push explicit files to
   existing development branch under standing authorization. No main merge.
 
