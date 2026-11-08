@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — PAIRED SAME-HANDLE OBSERVATION AWAITS APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-paired-native-observation.md.
+Proposes one offline demo launch, retained original Process/SafeHandle, native-first
+paired receipts, creation-time identity check and30s/360s limits. No execution in
+this planning round, no carryover runtime allowance. Explicit approval is needed
+before the first native read or launch; all prior acceptance blockers remain.
+
 LATEST FOLLOW-UP — LOADER COVERAGE GAP CLOSED:
 Run & ./clients/windows/tests/native-process-observation.loader.tests.ps1 in its
 own fresh PowerShell7 host. All11 assertions pass: first compilation, exact cached

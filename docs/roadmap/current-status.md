@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 同一句柄配对观测方案已准备，待单次运行批准
+
+方案：docs/superpowers/plans/2026-11-08-windows-paired-native-observation.md。
+拟保留原始进程及句柄，先原生后托管逐组记录，核对创建时间，不替换矛盾值。
+限1次启动、30秒关闭判定/360秒观察上限；无重试/强杀/调试器/代码或设置修改。
+本轮仅方案，未启动应用或调用原生接口；所有NOT_ACCEPTED保留。
+
 ## Latest — 加载缓存与重新导入检查已补齐
 
 新增native-process-observation.loader.tests.ps1，11/11通过：首次加载、缓存复用、

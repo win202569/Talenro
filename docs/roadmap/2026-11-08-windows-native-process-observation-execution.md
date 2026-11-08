@@ -94,3 +94,11 @@ all pass. Deferred loader coverage item is now closed; earlier review remains
 historical, this small test-only follow-up was self-reviewed. Actual ABI, handle
 lifetime, launch identity and application shutdown still require scoped runtime
 evidence. Next prepare same-handle paired observation scope, not automatic launch.
+
+## Paired observation plan handoff
+
+Prepared docs/superpowers/plans/2026-11-08-windows-paired-native-observation.md
+after20e45326. One proposed launch, original SafeHandle, native/managed correlation,
+creation identity check, fixed order and conservative stop/classification rules.
+Awaiting explicit runtime approval; this round only wrote documents. No tests,
+compilation, native calls or application launch; prior counts remain historical.
