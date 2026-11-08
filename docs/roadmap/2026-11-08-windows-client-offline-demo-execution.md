@@ -1,4 +1,22 @@
-# Windows offline demo execution — stopped at test-host connection
+# Windows offline demo execution — core regression passed, native UI pending
+
+## Latest: G1 full core regression passed; Task A complete
+
+Agent executed the approved unfiltered G command after2e0c5a82:
+dotnet test Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore -c Debug.
+In-command AdministratorToken=False guard passed in the working context.
+Started2026-11-08T12:18:36.4889095+04:00;
+ended2026-11-08T12:18:38.9896432+04:00.
+Both projects compiled;110 total,110 passed,0 failed,0 skipped,49ms tests,exit0.
+No dependency restore, security/timeout changes, retry or native app launch.
+
+This completes Task A's full core gate following the recorded five class-level
+RED/GREEN cycles. Original T10/14 consumed plus separate entitlement diagnostic
+1/1; G1/3 now consumed,B0/2. Next Task B ShellContractTests RED before native
+shell implementation. App restore/locked restore, remaining two filtered test
+classes, two full regressions and two app builds remain planned, not executed.
+Native launches remain zero. No UI/runtime/accessibility acceptance or main merge;
+Task11/12 and44/34/6/217 NOT_ACCEPTED unchanged.
 
 ## Latest: Entitlement GREEN verified by one approved agent diagnostic run
 

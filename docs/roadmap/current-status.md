@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 核心完整回归110/110通过，Task A测试关卡完成
+
+代理在非管理员上下文运行首次完整G回归：110项全部通过、0失败、0跳过，
+exit0，测试49ms。未恢复依赖、未修改超时/安全设置、未启动原生应用。
+五组核心行为已完成RED→GREEN并通过合并回归，Task A完成；原T10/14，
+另批额度诊断1/1，G1/3、B0/2。下一阶段Task B先写ShellContractTests。
+UI、原生运行和可访问性尚未验收；Task11/12及44/34/6/217 NOT_ACCEPTED不变。
+
 ## Latest — 额度测试代理实测39/39通过
 
 用户另行批准的一次诊断测试已完成：启动前AdministratorToken=False，

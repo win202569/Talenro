@@ -119,14 +119,19 @@ repeat-until-pass. Unexpected failure stops execution for diagnosis, not gate re
 **Files/interfaces:** Parent Task2 owns Core and the five test classes; preserve
 `DemoFixtures.Initial(): DemoState` and `DemoReducer.Reduce(DemoState, DemoEvent): DemoState`.
 
-- [ ] Create local build configuration, Core and Tests projects; run R1, inspect
+- [x] Create local build configuration, Core and Tests projects; run R1, inspect
   lockfiles, then L1. Package/setup failure is not behavioral RED.
-- [ ] For each class SessionTests, ConnectionTests, NodeSelectionTests,
+- [x] For each class SessionTests, ConnectionTests, NodeSelectionTests,
   CountryLockTests, EntitlementTests: add the parent's assertions, run T once
   against a compiling minimal implementation to observe assertion RED.
-- [ ] Implement only that class's required transitions; run its T once for GREEN.
-- [ ] Run G once; require all discovered tests pass, none skipped. Commit explicit
+- [x] Implement only that class's required transitions; run its T once for GREEN.
+- [x] Run G once; require all discovered tests pass, none skipped. Commit explicit
   configuration/source/test/lockfile paths and a short result/remaining-budget log.
+
+Completion note2026-11-08: G1 passed110/110,0 skipped,exit0 in a verified
+non-admin command context. Class cycles and separately approved environment
+diagnostic calls are detailed in the execution record; do not infer that aborted
+test-host runs counted as behavioral results. Task B remains unstarted.
 
 ## Task B: Parent Tasks3–4, native shell and remaining views
 

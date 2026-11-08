@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST FULL CORE REGRESSION GREEN / TASK A COMPLETE:
+First full unfiltered dotnet test --no-restore -c Debug passed110/110,0 failed,
+0 skipped,exit0,49ms tests. Agent verified non-admin token in the command.
+No restore, timeout/security changes or native launch. Task A core gate complete;
+Task B starts with ShellContractTests RED, not native launch or acceptance.
+Original T10/14 used, separate entitlement diagnostic1/1,G1/3,B0/2.
+UI/runtime/accessibility and wider NOT_ACCEPTED gates remain unchanged.
+
 LATEST ENTITLEMENT GREEN (AGENT-RUN):
 One separately approved diagnostic run after b98a37e2 passed39/39,0 failed,
 0 skipped,exit0,35ms tests. Non-admin token verified inside the test command.
