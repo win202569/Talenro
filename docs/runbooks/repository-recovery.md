@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — VALID SWITCH REGRESSION RED OBTAINED:
+Approved-context comparison after3b33c9ad ran35 tests:31 passed,4 expected missing-
+resource failures,0 skipped,exit1. Ordinary token verified; no timeout/security
+change. Earlier connectivity failures are not assertion evidence; this new receipt
+is. Production unchanged. Next confirm minimal fix plus one GREEN/one full suite
+in approved execution context, still rejecting administrator token. No native
+launch/build permission implied. See switch-fix execution ledger for exact scope.
+
 LATEST DIAGNOSTIC RESULT — LOCAL SOCKET ACCESS DENIED:
 Single approved diagnostic retry aftere877100a aborted with0 executed tests.
 Host log identifies SocketException10013 during local runner connection, preceding

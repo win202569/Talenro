@@ -115,3 +115,30 @@ Use new receipt/log names; no automatic retry. A success would support a context
 specific restriction, not prove which policy caused it. A repeated10013 would
 require further host-side diagnosis. This turn does not perform that comparison.
 Application defect remains unfixed; no valid assertion RED yet, no App build/launch.
+
+## Approved context comparison after3b33c9ad — valid RED obtained
+
+One approved broader-execution invocation consumed1/1. AdministratorToken=False;
+same Debug/--no-restore/filter, no timeout/debug override, new --diag
+layout-switch-context-red.log and TRX layout-switch-context-red.trx under the same
+ignored TestResults directory. No source or system-setting change between attempts.
+
+Command completed in about4.5seconds, exit1:35 executed,31 passed,4 failed,0 skipped.
+All four failures are the new SwitchStateTextUsesSelectedLanguageAndCannotBeMissing
+cases (en-US/zh-Hans × OnContent/OffContent), throwing InvalidDataException:
+'Missing layout resource.' from LayoutPresentation.Copy. This is the intended
+assertion-level RED, unlike the two earlier0-executed connection failures. Final
+current-context testhost count0. Original receipts/logs preserved, not committed.
+
+The controlled comparison supports an execution-context-specific connection
+restriction; it does not identify the exact enforcing policy or prove every future
+run will succeed. No reason established to alter firewall/UAC or timeout. Optional
+discovery warnings in previous logs are not evidence requiring package installation.
+
+Next recommended scope: implement the minimal two-language state resources,
+required-key entries and typed OnContent/OffContent bindings, then ONE targeted
+GREEN (same35 cases) and ONE full suite using approved broader execution with the
+same nonadministrator guard. No replacement RED needed on unchanged source/tests.
+No App builds/native launches included; those require later artifact verification.
+Await confirmation of this implementation/verification scope. This comparison turn
+only obtained evidence and saved documentation; the production fix is still pending.
