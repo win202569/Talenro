@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN — ONE C3 EXIT OBSERVATION, AWAITING APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-c3-exit-observation.md.
+Proposed one launch of the hash-bound diagnostic artifact, same C3 route, retained
+original process handle/actual exit receipt plus independent process snapshots.
+Route5minutes maximum; close observation30s; launcher absolute cap360s. No retry,
+build, test, kill, debugger, source or settings changes. Planning launched nothing.
+Missing artifacts block rather than authorize rebuild. All wider gates stay open.
+
 LATEST — READ-ONLY SHUTDOWN DIAGNOSIS:
 At2026-11-08T21:48:44+04:00 CIM listed C3 PID12928 (one thread) and launcher6852,
 while .NET GetProcessById reported12928 not running. The original630-second wait
