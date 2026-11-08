@@ -1,6 +1,6 @@
 # Windows test-only presentation and measurement mode
 
-Status: DRAFT — approach1 selected by user; this written design awaits approval.
+Status: APPROVED by user after f376dcbd; implementation plan awaits execution approval.
 Baseline85f8663c; no implementation, test/build or launch is authorized here.
 Independent read-only builder check: nothing important left before planning.
 This checks design clarity, not implementation correctness or native acceptance.

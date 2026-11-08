@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PLAN — DESIGN APPROVED, EXECUTION NOT YET APPROVED:
+Read docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md and its linked
+design. User approved the design after f376dcbd. Five implementation/verification
+tasks are ready, but execution method and Stage A finite budget await confirmation.
+Stage A has zero native launches; Stage B observation remains separately gated.
+No new packages/downloads/system changes. Ordinary and diagnostic artifacts must
+be isolated; locate existing tool/cache paths without assuming default NuGet path.
+No implementation has started. Older awaiting-design entries below are historical.
+
 LATEST DESIGN — AWAITING WRITTEN APPROVAL:
 User selected the in-app test-only approach. Read
 docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md before proceeding.

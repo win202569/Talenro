@@ -1,5 +1,14 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Design approved; bounded Stage A plan awaits execution choice
+
+Written design approved after f376dcbd. Plan:
+docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md. Sequential Native
+execution recommended; independent whole-change review, four RED/GREEN pairs,
+one full suite, up to two cache-only restores and three build calls proposed.
+No runtime allowance included. Stage B requires separate native-session approval.
+Planning only; no source/test/build/launch activity or new acceptance this turn.
+
 ## Latest: Selected diagnostic-mode approach, written design pending approval
 
 User chose approach1. See docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md.
