@@ -1,5 +1,29 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: NodeSelection RED confirmed; implementation awaits GREEN
+
+User supplied full output after853d7ad8:17 tests,14 failed,3 passed,0 skipped,
+test duration0.8s,overall1.9s. Both projects compiled; all14 failures are assertions
+for missing draft initialization/edit, Back reset, disconnected commit (explicit/
+Auto), invalid-node notice, connected pending confirmation/cancel, captured commit
+(explicit/Auto), cross-country notice and transitional-edit refusal. Exit-code echo
+was not included in this attachment; the runner explicitly reports test failure.
+This is intended behavioral RED, not setup failure. Original T5/14 consumed.
+
+Added immutable synthetic node fixtures and reducer selection helpers. Draft and
+committed preference stay separate; Back resets draft/pending state; disabled or
+unknown IDs refuse selection/application. Connected Apply captures the choice,
+Cancel leaves committed connection/preference/lock, Confirm commits captured node
+and any explicit country-lock change together while entering Connecting. Auto
+does not invent a country or erase a saved lock. Transition editing is refused;
+pending confirmation freezes the draft. No network, worker, persistence or UI.
+
+Tests unchanged. Source/diff reviewed only; new code is not compiled or verified.
+Next one original T GREEN call in user's ordinary shell: --no-restore -c Debug
+--filter FullyQualifiedName~NodeSelectionTests. Do not add --no-build; preserve
+5-minute observation budget and no automatic retry. G0/3,B0/2,native launches0.
+Entitlement and full country-lock rules remain later tasks, not implied complete.
+
 ## Latest: NodeSelectionTests prepared; RED pending
 
 After3f48008f, added NodeSelectionTests and declaration-only events SelectNode,

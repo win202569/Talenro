@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS NODE RED CONFIRMED / GREEN PENDING:
+User output:17 tests,14 expected assertion failures,3 pass,0 skipped. Added node
+fixtures and selection/confirmation implementation; tests unchanged, no new run.
+Next one NodeSelectionTests --no-restore call with compilation in ordinary shell.
+Do not infer country-lock/entitlement completion or native UI acceptance.
+
 LATEST WINDOWS NODE TESTS PREPARED / RED PENDING:
 NodeSelectionTests and event/state declarations added, no reducer implementation.
 Pending flag distinguishes Auto(null) from absent confirmation. Next one ordinary

@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 节点组预期RED已确认，节点选择实现待GREEN
+
+用户完整输出：17项、14断言失败/3通过/0跳过；失败均对应缺失节点行为。
+已补虚构只读节点表、草稿/应用/撤销、确认捕获选择及国家锁原子更新；测试未改。
+尚未编译或运行修改后的代码，下一步普通PowerShell验证NodeSelectionTests。
+额度及国家锁完整规则仍待后续实现；Task A未完成、NOT_ACCEPTED不变。
+
 ## Latest — 节点选择测试已写，待验证RED
 
 新增NodeSelectionTests、选择/应用/撤销/确认事件声明，以及区分待确认Auto与无
