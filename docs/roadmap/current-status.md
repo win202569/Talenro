@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 轻量观察模块完成，模拟32/32通过，独立复核无发现
+
+实现提交68ec4a7c：clients/windows/tests/process-observation.psm1及对应tests.ps1。
+已取得缺少模块的RED，再实现并取得32/32 GREEN；逐字段保留值/异常，不把空值变0。
+模块不启动/终止/枚举进程，真实适配器只做静态检查，尚未执行。独立复核无严重/重要/轻微发现。
+主执行者及复核者均重跑32/32通过；下一步另行安排启动器集成与真实退出观测，不自动运行。
+仅新增诊断记录工具；未运行应用/构建/全套应用测试，原退出根因与NOT_ACCEPTED不变。
+
 ## Latest — 观察模块设计已批准，实施计划待确认
 
 设计批准基线d1644653；实施计划见docs/superpowers/plans/2026-11-08-windows-process-observation.md。

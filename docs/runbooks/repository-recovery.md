@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION — PROCESS OBSERVATION MODULE, SYNTHETIC ONLY:
+Implementation68ec4a7c adds clients/windows/tests/process-observation.psm1 and
+process-observation.tests.ps1. Run `& ./clients/windows/tests/process-observation.tests.ps1`
+from this worktree in PowerShell7; current synthetic/static32/32 pass after recorded
+RED. No dependencies required. Live adapter NOT_RUN; do not call it without new
+runtime scope. Independent review found no issues and reran32/32 successfully;
+details and excluded runtime claims are in process-observation-execution ledger.
+No application behavior/acceptance claim; preserve all existing blockers.
+
 LATEST PLAN — OBSERVATION DESIGN APPROVED, IMPLEMENTATION AWAITS CONFIRMATION:
 Design approved afterd1644653. Read docs/superpowers/plans/2026-11-08-windows-process-observation.md
 and its linked spec. Two tasks: recorder plus synthetic RED/GREEN, then review and

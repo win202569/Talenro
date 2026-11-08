@@ -10,7 +10,7 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-process-observation-design.md (approved afterd1644653).
 
-Status: proposed implementation plan; no implementation or tests run at preparation.
+Status: approved after6a1e632f; implementation68ec4a7c has synthetic32/32 GREEN after missing-module RED. Final review/handoff tracked in docs/roadmap/2026-11-08-windows-process-observation-execution.md. Live adapter remains NOT_RUN.
 
 ## Global Constraints
 
