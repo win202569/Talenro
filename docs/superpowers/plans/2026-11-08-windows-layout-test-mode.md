@@ -8,7 +8,8 @@
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md (approved after f376dcbd).
 
 Status: Native execution and Stage A allowance approved after80307866; Stage A
-implemented/verified with one deferred minor test gap. See
+implemented/verified; the minor test gap is closed by the test-only follow-up
+(targeted16/16 and full222/222). See
 docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md for all receipts/rulings.
 Stage B is not authorized. Historical proposal wording below is superseded here.
 Existing worktree: D:/Projects/Talenro/.worktrees/c12-b01-task9-coordinator.

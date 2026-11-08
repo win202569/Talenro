@@ -29,12 +29,41 @@ public class LayoutViewContractTests
         var bindings = Bindings(view);
         var resources = LayoutResourceCatalog.Parse(Read("Strings/en-US/Resources.resw"));
         var chinese = LayoutResourceCatalog.Parse(Read("Strings/zh-Hans/Resources.resw"));
+        AssertLocalizationCoverage(doc, bindings, resources, chinese);
+    }
+
+    [Theory]
+    [InlineData("Shell")]
+    [InlineData("Login")]
+    [InlineData("Connection")]
+    [InlineData("Nodes")]
+    [InlineData("Account")]
+    public void NewLocalizedControlWithoutResourcesIsRejected(string view)
+    {
+        var doc = XDocument.Parse(Read(FileFor(view)));
+        // Mutate a real declaration in memory, not the checked-in application.
+        doc.Root!.Add(new XElement(doc.Root.Name.Namespace + "TextBlock",
+            new XAttribute(X + "Name", "NewUnmappedControl"),
+            new XAttribute(X + "Uid", "NewUnmappedUid")));
+        var error = Assert.Throws<InvalidDataException>(() => AssertLocalizationCoverage(doc, Bindings(view),
+            LayoutResourceCatalog.Parse(Read("Strings/en-US/Resources.resw")),
+            LayoutResourceCatalog.Parse(Read("Strings/zh-Hans/Resources.resw"))));
+        Assert.Contains("NewUnmappedUid", error.Message);
+    }
+
+    private static void AssertLocalizationCoverage(XDocument doc,
+        (string Name, string Key, string Property, string Type)[] bindings,
+        IReadOnlyDictionary<string, string> resources, IReadOnlyDictionary<string, string> chinese)
+    {
         var expectedCount = 0;
         foreach (var node in doc.Descendants().Where(x => x.Attribute(X + "Uid") is not null))
         {
             var uid = (string)node.Attribute(X + "Uid")!;
             var name = (string?)node.Attribute(X + "Name");
-            foreach (var key in resources.Keys.Where(key => key.StartsWith(uid + ".", StringComparison.Ordinal)))
+            var keys = resources.Keys.Where(key => key.StartsWith(uid + ".", StringComparison.Ordinal)).ToArray();
+            if (keys.Length == 0)
+                throw new InvalidDataException($"Localized UID '{uid}' has no resource properties.");
+            foreach (var key in keys)
             {
                 expectedCount++;
                 Assert.Contains(bindings, entry => entry.Name == name && entry.Key == key &&
@@ -44,8 +73,6 @@ public class LayoutViewContractTests
         }
         Assert.Equal(expectedCount, bindings.Length);
         Assert.True(expectedCount > 0);
-        // A newly introduced localized UID cannot accidentally count as covered.
-        Assert.DoesNotContain(bindings, entry => entry.Key == "NewUnmappedUid.Text");
     }
 
     [Fact]

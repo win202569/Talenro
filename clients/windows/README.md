@@ -4,9 +4,10 @@
 
 Implementation and verification are recorded in
 [the execution ledger](../../docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md).
-Full217/217 passed; ordinary and diagnostic Debug builds had0warnings/errors;
-Release opt-in was rejected. Metadata isolation passed. No native launch of these
-new artifacts occurred. One minor negative-localization test gap remains deferred.
+Latest test-only follow-up: full222/222 passed and the minor negative-localization
+coverage gap is closed (five genuine missing-resource cases). Earlier ordinary and
+diagnostic Debug builds had0warnings/errors; Release opt-in was rejected and metadata
+isolation passed. Those builds were not repeated; no native launch of these artifacts.
 
 EnableLayoutDiagnostics defaults false even for Debug. An explicitly enabled
 Debug build uses isolated bin/layout-diagnostics and obj/layout-diagnostics paths;

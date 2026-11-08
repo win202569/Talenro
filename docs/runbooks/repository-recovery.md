@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — MINOR TEST GAP CLOSED:
+The latest development checkpoint includes five missing-resource negative cases
+and a corrected coverage validator. Fresh targeted16/16 and full222/222 passed
+after the expected RED failures. Read the layout-test-mode execution ledger for
+scope and receipts. App/Core unchanged; no new app builds/restores/native launches.
+The follow-up test allowance is exhausted. Next prepare the separately authorized
+Stage B native matrix. Earlier deferred-minor notes below are historical only.
+Clone the development branch, not automatically main; dependencies/build outputs
+and native acceptance do not transfer with Git. Raw receipts and caches stay ignored.
+
 LATEST IMPLEMENTATION — STAGE A VERIFIED, NATIVE PENDING:
 Read docs/roadmap/2026-11-08-windows-layout-test-mode-execution.md. Default-off
 diagnostic mode is now implemented; full217/217, two clean builds, Release refusal

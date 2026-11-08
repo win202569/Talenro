@@ -1,5 +1,30 @@
 # Layout diagnostics Stage A execution
 
+## Follow-up after 1e0a5c4f — minor coverage finding closed
+
+User approved continuing with the recommended bounded test-only correction.
+Added five in-memory negative cases (Shell/Login/Connection/Nodes/Account): a new
+localized control without resource properties must be rejected by the same coverage
+validator used for real declarations. The validator now rejects zero matching keys;
+removed the vacuous invented-key absence assertion. App/Core sources unchanged.
+
+Fresh ordinary-user verification, Debug and --no-restore:
+- RED: LayoutViewContractTests, 16 total, 5 expected failures and 11 passes, exit1.
+  All five failed because the old validator did not throw InvalidDataException.
+- GREEN: same filter, 16/16 passed, 0 skipped, exit0, no warnings.
+- Full suite: 222/222 passed, 0 failed/skipped, exit0, no warnings.
+
+Ignored local receipts under clients/windows/Talenro.Demo.Tests/TestResults:
+layout-unmapped-red.trx, layout-unmapped-green.trx, layout-unmapped-full.trx.
+The follow-up allowance is consumed: targeted2/2 and full1/1. No application build,
+dependency restore, native launch or system-setting change. Earlier build hashes
+below are historical, not freshly checked here. The deferred minor finding below
+is superseded by this closure. Native Stage B remains unapproved/unverified;
+next prepare its finite observation matrix. Wider NOT_ACCEPTED and no-main-merge
+boundaries remain unchanged. Raw receipts/caches are not needed to recover source.
+
+## Original Stage A record (historical)
+
 Plan: docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md.
 User approved Native execution and Stage A budget after80307866. Base80307866.
 Tasks1–5 Stage A checks complete, with one deferred minor test-coverage finding.

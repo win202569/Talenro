@@ -3,7 +3,8 @@
 Latest Stage A diagnostic implementation has passed code/build checks only; none
 of the native rows below were rerun on its new ordinary/diagnostic outputs.
 See2026-11-08-windows-layout-test-mode-execution.md in docs/roadmap for hashes and
-the deferred minor negative-localization test gap. Additional pending checks:
+the closed minor negative-localization test gap (latest full222/222). This test-only
+follow-up does not complete any native row. Additional pending checks:
 
 - [ ] Ordinary executable retains behavior; reserved options reject without window.
 - [ ] Diagnostic executable without activation behaves as ordinary; invalid options reject.

@@ -1,5 +1,14 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: minor localization coverage finding closed
+
+After1e0a5c4f, five genuine in-memory negative cases reproduced the missing-resource
+gap. RED5 failed/11 passed; corrected validator GREEN16/16; full222/222, exit0,
+0 skipped and no warnings. Follow-up targeted2/2 and full1/1 consumed. Test-only;
+no App/Core changes, app builds, restores or launches. See the layout-test-mode
+execution ledger. Older deferred-finding notes below are superseded. Prepare a
+finite Stage B matrix next; native authorization and wider acceptance unchanged.
+
 ## Latest: Guarded layout diagnostics Stage A verified, native checks pending
 
 See2026-11-08-windows-layout-test-mode-execution.md for implementation, receipts,
