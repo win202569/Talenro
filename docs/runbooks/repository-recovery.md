@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY DIAGNOSIS — ROOT CAUSE STILL UNKNOWN:
+Switch-fix execution ledger now records receipt comparison, unchanged test config,
+installed runtime/output presence, unset debug/timeout overrides and no matching
+Application crash events in the narrow failure window. No rerun/settings change.
+Next proposed step needs approval: one diagnostic-enabled replacement targeted RED,
+unique local logs/TRX, same default90second timeout/context, no automatic retry.
+Do not treat missing crash events as proof of a healthy host or change firewall/UAC.
+
 LATEST TEST-ONLY CHECKPOINT — SWITCH FIX NOT IMPLEMENTED:
 Read docs/roadmap/2026-11-08-windows-layout-switch-fix-execution.md. Four new state-
 language regression cases compile but have not executed: first RED attempt aborted
