@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 同一对象真实观测完成，退出矛盾已确认
+
+单次1/1已用完；搜索jp-1及过滤通过。PID5136关闭后同一原始对象持续报告：
+WaitSignaled=false、HasExited=true、ExitCode=0、ExitTime=1601-01-01。
+360秒结束仍无退出信号；随后应用/等待程序均消失，未强杀。不能判正常退出。
+新模块真实记录了运行期读取异常与关闭后矛盾值，但尚未观察到正常信号路径。
+见2026-11-08-windows-same-object-live-observation-execution.md。无源码/设置/构建变更。
+下一步先只读分析0/1601/无信号组合及原生读取边界；不再无差别重复UI路线。
+应用、运行时或系统层根因未确定，所有NOT_ACCEPTED保留。
+
 ## Latest — 同对象真实观测方案已准备，待单次运行批准
 
 方案：docs/superpowers/plans/2026-11-08-windows-same-object-live-observation.md。

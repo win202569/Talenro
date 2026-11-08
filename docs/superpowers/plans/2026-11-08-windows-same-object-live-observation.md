@@ -10,7 +10,7 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-process-observation-design.md. Incident and short route: docs/roadmap/2026-11-08-windows-c3-exit-observation-execution.md.
 
-Status: proposed after9fb2a871, awaiting one-launch/live-adapter approval. Preparation launches nothing.
+Status: approved after4c5a323d, one launch consumed. Input passed; same-object false wait/true HasExited/exit0/1601 exit time persisted through360s timeout. See execution ledger; no runtime allowance remains. Historical approval request below is superseded.
 
 ## Global constraints
 

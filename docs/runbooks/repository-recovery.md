@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST RESULT — SAME-OBJECT DISAGREEMENT CONFIRMED, SHUTDOWN UNRESOLVED:
+Approved one live attempt after4c5a323d consumed. PID5136 short focused jp-1 search
+passed. After close18:24:41.186Z, the original Process repeatedly returned false
+WaitSignaled, true HasExited, numeric ExitCode0 and ExitTime1601-01-01. Final
+snapshot at18:29:47.103Z unchanged;360s timeout, no kill/no outer signal. Later
+CIM/name checks found no app/launcher. This is not normal-shutdown acceptance.
+Read docs/roadmap/2026-11-08-windows-same-object-live-observation-execution.md.
+Module live running/error/conflict paths exercised, signaled exit path not observed.
+Next analyze getter/native-read semantics before another runtime attempt; native
+probe/debugger/dump or changed launcher context needs separate scope. No source,
+build/test/settings changes this round. All wider gates remain NOT_ACCEPTED.
+
 LATEST PLAN — SAME-OBJECT LIVE OBSERVATION AWAITS APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-same-object-live-observation.md.
 Proposed one launch, unchanged hash-bound app/module, short focused-search route,
