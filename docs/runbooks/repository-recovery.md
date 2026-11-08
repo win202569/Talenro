@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST GAP-ONLY PLAN — AWAITING APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-client-native-gap-checks.md.
+Proposes ONE additional launch,20minutes, remaining functional observations only.
+Not launched; exact allowance requires approval. No code/test/build or settings
+changes proposed. Screen-reader/contrast/target-size and wider acceptance deferred.
+
 LATEST NATIVE PARTIAL VERIFICATION — NOT ACCEPTED:
 Explicit replacement approval followed the interrupted request. Two observed
 sessions (14.6min and1.43min reset-only) closed normally; exact processes absent.
