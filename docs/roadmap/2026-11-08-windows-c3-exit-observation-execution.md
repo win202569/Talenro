@@ -134,3 +134,49 @@ set_value, second input attempt, debugger, force-kill or product changes. Reuse
 If input still fails, stop automatic attempts and propose user-assisted comparison
 instead of repeatedly spending launches. A successful input check alone does not
 verify full C3 or establish the old shutdown cause.
+
+## Input-only check — approved after20d52400
+
+New one-launch scope approved; original attempts remain consumed. Preflight clean,
+AdministratorToken=False, CIM/name counts0, no demo window; exact existing DLL/EXE
+hashes match. No build/test/product-code/settings changes. Budget1/1 consumed.
+APP_START PID18160 at2026-11-08T22:02:46.1133601+04:00, launcher3480, retained
+original process handle acquired; same diagnostic zh-Hans/long-country arguments.
+
+Entered demo, opened Nodes, refreshed screenshot/text until it matched Nodes.
+Clicked inside the screenshot-observed SearchBox: caret and active underline became
+visible, and accessibility reported SearchBox focus. Sent jp-1 exactly once.
+Screenshot and accessibility both reported Text/Value jp-1; after a fresh capture
+the list contained only the long-country JP group and jp-1 row, with no Auto,
+disabled-1 or de-1. Input/filter check PASS in this scope. The initial immediate
+screenshot lagged the list tree, so only the stable refreshed capture is counted.
+This supports explicit field focus as a workable input procedure, not proof of
+all prior input-tool causes. No selection/apply/connection/dialog route performed.
+
+Close requested at18:03:39.833Z (22:03:39.833+04:00). Window inventory subsequently
+empty, but retained-object launcher session24258 provided no APP_EXIT receipt.
+At22:03:48.1669466 CIM/name counts were both1. At22:03:58.6602586 CIM identified
+18160/start22:02:46/parent3480/same exe/one thread. Separate Get-Process returned
+MainWindowHandle0 and HasExited=True. At22:04:15.4021433 it again reported True
+but ExitCode and ExitTime were blank; CIM still listed one thread. These are
+inconsistent/incomplete observations, not an actual exit0 receipt. The30-second
+close deadline failed. Only bounded read-only observation remains until360s.
+
+Final receipt: OBSERVATION_TIMEOUT at22:08:46.4070010+04:00, Killed=False;
+shell exit0 is not application exit0. At22:08:50.7349744 the broader CIM query
+returned neither a demo process nor launcher3480; name-based demo count0.
+No forced termination occurred. Disappearance after observer termination is a
+temporal association, not proof of the application/launcher root cause.
+
+Final classification: input/filter PASS; normal shutdown evidence FAIL/UNRESOLVED
+(no actual exit code within30s or by360s). The missing-exit-receipt symptom occurred
+after only search entry, without selecting/applying a node, connecting, opening
+a dialog or returning from one. Those later C3 actions are not necessary to
+observe this symptom in this environment; this does not prove search causes it.
+This is a smaller observed route, not a definitive native-hang diagnosis.
+
+Next recommended work: separately scope inspection of launcher/OS process-lifetime
+observations using this shorter route; no app-source patch or automatic rerun.
+Any native stack/dump capture, debugger attachment or changed launcher execution
+environment needs explicit approval and privacy/cleanup scope. All broader gates
+remain NOT_ACCEPTED. New1/1 allowance consumed; no runtime allowance carries over.

@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST — INPUT CHECK PASSED; SHORT ROUTE EXIT RECEIPT TIMED OUT:
+One approved input-only launch consumed after20d52400. PID18160 started22:02:46
+on2026-11-08 +04:00. Explicit field click then one jp-1 input produced verified
+Text/Value and only matching JP group/jp-1 row. No later C3 state transitions ran.
+Normal close22:03:39.833 removed the window, but no APP_EXIT arrived. Separate
+HasExited=True lacked ExitCode/ExitTime while CIM still listed one thread.
+At22:08:46.407 the360s observer returned TIMEOUT, Killed=False; at22:08:50.735
+both application/launcher were absent. Shell exit0 is not app exit0. No kill or
+source/build/test/settings changes. See the exit-observation ledger's input-only
+section. Next scope process-lifetime/launcher evidence for this shorter route;
+no automatic rerun or debugger/dump authorization. All wider gates remain open.
+
 LATEST — READ-ONLY SEARCH INPUT DIAGNOSIS:
 No app-source explanation established for missing typed text. Refresh reads Text;
 only logout Reset clears it; diagnostic bindings change Header/PlaceholderText.
