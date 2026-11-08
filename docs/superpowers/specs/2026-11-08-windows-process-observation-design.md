@@ -1,7 +1,7 @@
 # Lightweight Windows process observation records
 
-Status: proposed design, pending document approval. User selected the lightweight
-approach after8ce36286. This document does not authorize a demo launch or debugger.
+Status: design approved afterd1644653. User selected the lightweight approach
+after8ce36286. Implementation plan review is next; no demo launch or debugger.
 
 ## Intent and approaches
 

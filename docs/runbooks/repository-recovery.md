@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — OBSERVATION DESIGN APPROVED, IMPLEMENTATION AWAITS CONFIRMATION:
+Design approved afterd1644653. Read docs/superpowers/plans/2026-11-08-windows-process-observation.md
+and its linked spec. Two tasks: recorder plus synthetic RED/GREEN, then review and
+portable preservation. Exact exports/schema/test categories are pinned. Live
+adapter is statically reviewed only; no app launch/build/runtime tests authorized.
+No implementation or tests yet. Preserve sequential workflow and all open gates.
+
 LATEST DESIGN — LIGHTWEIGHT PROCESS OBSERVATION, PENDING DOCUMENT APPROVAL:
 Read docs/superpowers/specs/2026-11-08-windows-process-observation-design.md.
 User selected a standalone recording module with synthetic tests, not a launcher
