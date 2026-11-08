@@ -1,5 +1,13 @@
 # Layout diagnostics Stage A execution
 
+## Next-stage planning checkpoint
+
+After7e25a4fc, prepared docs/superpowers/plans/2026-11-08-windows-layout-native-stage-b.md:
+14 proposed invocations (6 rejected startups,8 visible sessions), sequential and
+bounded with no retries/builds/settings changes. Await user approval. This planning
+turn ran no tests/builds/restores/native launches. Prior222/222 evidence unchanged;
+all native outcomes remain unverified until observed. No acceptance or main merge.
+
 ## Follow-up after 1e0a5c4f — minor coverage finding closed
 
 User approved continuing with the recommended bounded test-only correction.

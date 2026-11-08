@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — NATIVE STAGE B AWAITS APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-layout-native-stage-b.md. Proposed
+ceiling14 launches (6 rejection,8 visible sessions), no retries/builds/restores or
+settings changes. No launches performed while writing it. Approval is still needed;
+missing/mismatched ignored artifacts on another PC blocks it, not permission to build.
+Previous222/222 tests remain historical; native and wider acceptance unchanged.
+
 LATEST FOLLOW-UP — MINOR TEST GAP CLOSED:
 The latest development checkpoint includes five missing-resource negative cases
 and a corrected coverage validator. Fresh targeted16/16 and full222/222 passed
