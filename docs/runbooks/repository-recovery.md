@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST UI CHECK — WAIT-CHAIN ENTRY NOT YET VERIFIED:
+Task Manager opened; UI automation exposes title only and one navigation click
+produced no observed change. No privilege cause established or settings changed.
+User handoff: open Details, inspect Taskmgr.exe context menu for Analyze wait chain,
+without ending tasks or creating dumps. No wait-chain query or demo launch occurred.
+Task Manager remains open. See paired-observation ledger for evidence/limitations.
+
 LATEST INVENTORY — BUILT-IN WAIT-CHAIN OPTION RECOMMENDED, NOT EXECUTED:
 Current machine has VS Community2026 at D:/DeveloperTools/VisualStudio/2026,
 Task Manager/Resource Monitor and WPR/WPA. Native VS attach readiness unverified;

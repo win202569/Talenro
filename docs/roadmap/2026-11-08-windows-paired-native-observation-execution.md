@@ -139,3 +139,16 @@ References:
 
 No tool install, target execution, debugger attachment, tracing, memory dump or
 test occurred. Inventory is preparation only, not authorization for a new run.
+
+## Wait-chain UI readiness check
+
+Aftercbbca5ef, opened installed Task Manager via supported Windows UI API, without
+launching the demo. Screenshot shows the Processes page; accessibility exposes
+only window/title. One navigation-menu click reported no error but fresh capture
+showed no navigation change. Stopped rather than guessing further clicks or
+changing privileges/settings. Cause of ineffective input is unknown; elevation
+is not established by this observation. Task Manager left open for user handoff.
+The Analyze wait chain entry is NOT_YET_VERIFIED, and no wait-chain query occurred.
+Ask user to open Details and inspect Taskmgr.exe's context menu, reporting whether
+Analyze wait chain is present; do not select End task or dump. No debugger, trace,
+memory collection, target process action, app tests or source changes this round.
