@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS COMPARISON PREFLIGHT STOP:
+Available outside-restriction shell reported Administrator=True; guard stopped
+before dotnet. Non-admin comparison remains UNRUN, allowance unused. User must
+open an ordinary PowerShell session; no token/security workaround is authorized.
+
 LATEST WINDOWS DIAGNOSTIC: LOOPBACK ACCESS DENIED:
 Approved extra diagnostic attempt exited1 after90s; host log identifies socket
 error10013 on127.0.0.1 before assertions. See execution record for reviewed evidence

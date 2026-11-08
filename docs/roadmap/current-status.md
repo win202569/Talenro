@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 对照环境为管理员权限，测试前已停止
+
+用户批准非管理员对照后，执行入口令牌检查返回Administrator=True，保护检查
+在dotnet调用前停止。没有重跑测试、创建对照日志或修改安全设置；对照额度未用。
+需要用户打开普通权限PowerShell再执行同条件对照，不能用管理员运行替代。
+已有10013回环拒绝结论不变，Task A未完成、NOT_ACCEPTED不变。
+
 ## Latest — 诊断运行确认本机回环通信被拒绝
 
 获批的一次--no-build/--no-restore诊断运行已结束exit1：testhost启动后连接

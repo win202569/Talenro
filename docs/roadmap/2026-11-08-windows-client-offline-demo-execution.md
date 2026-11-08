@@ -1,5 +1,18 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: ordinary-context comparison stopped before execution
+
+User approved one non-administrator comparison after2c2d07b0. The available
+outside-restriction PowerShell context was checked in-process using
+WindowsPrincipal.IsInRole(Administrator); result True. The guard threw STOP before
+any dotnet invocation, environment modification or diagnostic-log creation.
+Comparison test NOT RUN, allowance remains unused. No attempt to lower tokens,
+launch through another service or change security settings was made.
+Next action requires a user-opened ordinary (non-administrator) PowerShell session.
+Keep the same admin guard, existing compiled artifacts, --no-build/--no-restore,
+90s default timeout and5-minute observation budget. Do not interpret the guard
+exit1 as a test outcome or as additional evidence about testhost behavior.
+
 ## Latest: approved diagnostic run identifies loopback access denial
 
 User approved the single diagnostic attempt after83ab13a7. Exact proposed
