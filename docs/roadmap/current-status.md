@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 额度测试代理实测39/39通过
+
+用户另行批准的一次诊断测试已完成：启动前AdministratorToken=False，
+EntitlementTests共39项、39通过、0失败、0跳过，exit0，测试35ms。
+使用本机连接探测成功的命令上下文，未改代码/测试/UAC/超时，未自动重试。
+原T10/14加本次另批诊断1/1；G0/3、B0/2。下一步完整核心回归，
+Task A尚未完成，无原生启动，NOT_ACCEPTED不变。原始诊断日志保留本机且不提交。
+
 ## Latest — 已定位执行上下文本机通信差异，待授权一次对照测试
 
 两种命令上下文均AdministratorToken=False。默认上下文回环监听成功但连接

@@ -1,5 +1,27 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: Entitlement GREEN verified by one approved agent diagnostic run
+
+User explicitly approved one diagnostic EntitlementTests call in the working
+non-admin execution context. In-command guard reported AdministratorToken=False;
+would abort before dotnet if true. Command used --no-restore -c Debug and filter
+FullyQualifiedName~EntitlementTests, with --diag pointing to ignored local
+entitlement-diag-003.log. Existing local CLI/package directories and first-use
+opt-outs were used; no VSTEST timeout override, source/test edits or security
+setting changes. No automatic retry or native application launch occurred.
+
+Both projects compiled. Agent output:39 total,39 passed,0 failed,0 skipped,
+35ms tests,exit0; command elapsed2.77s. This verifies entitlement GREEN after
+the user's33/39 expected RED, unlike the earlier T10 host-connection abort.
+It demonstrates this context can run this test group; it is not proof that the
+default restricted context has been repaired or that all future runs will pass.
+
+Budget accounting: original T10/14 consumed; this explicitly approved diagnostic
+comparison1/1 used separately. G0/3,B0/2,native0. Next full core regression in
+the working context with a fresh non-admin guard. Task A remains incomplete
+until regression; Task11/12 and44/34/6/217 NOT_ACCEPTED unchanged. Raw logs stay
+ignored locally; this committed summary preserves portable verification status.
+
 ## Latest: Loopback differential isolates an execution-context restriction
 
 No test rerun. Inspected project/runtime configuration and relevant environment

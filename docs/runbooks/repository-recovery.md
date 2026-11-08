@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST ENTITLEMENT GREEN (AGENT-RUN):
+One separately approved diagnostic run after b98a37e2 passed39/39,0 failed,
+0 skipped,exit0,35ms tests. Non-admin token verified inside the test command.
+Used the context whose loopback probe succeeded; no source/test/security/timeout
+changes. Original T10/14 plus separate diagnostic allowance1/1 consumed;
+G0/3,B0/2. Next full core regression, not yet run; Task A remains incomplete.
+Raw entitlement-diag-003 logs remain ignored locally; this portable summary
+records the result without depending on private logs for recovery.
+
 LATEST LOOPBACK DIFFERENTIAL DIAGNOSIS (NO TEST RETRY):
 Both default and outside-default command contexts report AdministratorToken=False.
 Default IPv4 loopback listen succeeds but connect fails SocketException10013;
