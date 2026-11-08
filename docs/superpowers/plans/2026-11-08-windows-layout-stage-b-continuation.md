@@ -10,7 +10,7 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md.
 
-Status: proposed after07840d17; awaiting explicit approval of6 launches. This preparation runs no application, build or test.
+Status: approved after98434867; execution stopped after4/6 starts at C3 shutdown failure. C4 was prematurely started before C3 exit confirmation and then normally closed without profile validation; C5/C6 NOT_RUN. See docs/roadmap/2026-11-08-windows-layout-stage-b-continuation-execution.md. Unused slots do not carry over; historical approval wording below is superseded.
 
 ## Global constraints
 

@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — CONTINUATION STOPPED, SHUTDOWN UNRESOLVED:
+C1 English dialog/reset and C2 long-status passed and exited0. C3 long-country UI
+checks passed but normal close left PID12928 (start2026-11-08T21:38:35+04:00) with
+MainWindowHandle0 and no exit receipt. Executor prematurely launched C4 before C3
+exit confirmation; C4 was then normally closed/exit0 without profile verification.
+C5/C6 NOT_RUN;4/6 slots consumed, unused2 not carried forward. No forced cleanup.
+See continuation-execution ledger for exact path, hashes, process evidence and
+limitations. First scope read-only shutdown/lifecycle and launcher diagnosis;
+do not automatically relaunch, terminate or repair. Process IDs are host-specific:
+never kill a reused PID. Wider gates remain NOT_ACCEPTED; no main merge.
+
 LATEST PLAN — REMAINING STAGE B ROUTES:
 Read docs/superpowers/plans/2026-11-08-windows-layout-stage-b-continuation.md.
 Proposed6 launches: English dialog route, four conditional synthetic profiles,

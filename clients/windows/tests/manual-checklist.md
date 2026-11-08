@@ -1,5 +1,14 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest continuation: C1 English confirmation/Cancel, original selection retention
+and logout/re-entry observed; C2 exact long-status Connecting-only text and Cancel
+restoration observed; both normal close exit0. C3 exact long-country labels/jp-1
+search/selection and Chinese Cancel route observed, but normal close left a
+windowless process: shutdown FAIL, row not accepted. C4 started prematurely before
+C3 exit confirmation, was closed/exit0 without profile validation; C5/C6 NOT_RUN.
+See docs/roadmap/2026-11-08-windows-layout-stage-b-continuation-execution.md.
+No compound acceptance box or broader gate is closed by this partial attempt.
+
 Latest scoped recheck (2026-11-08): fresh ordinary/diagnostic builds and static
 isolation passed; four sessions exited0. See switch-fix execution ledger in
 docs/roadmap for exact artifact hashes, arguments and observation limits.

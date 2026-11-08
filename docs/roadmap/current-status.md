@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 剩余复验在第三组退出异常处停止
+
+C1英文对话框/取消/重进、C2长状态条件显示通过并退出0；C3长节点显示、搜索、
+选择与取消检查完成，但窗口关闭后PID12928仍残留、退出码未返回，不能判整组通过。
+执行时误在确认C3退出前启动C4，违反串行要求；已停止检查并正常关闭C4（退出0），
+C4不计验收，C5/C6未运行。共4/6启动，剩余2次不沿用；未强杀/重建/改源码或设置。
+详见2026-11-08-windows-layout-stage-b-continuation-execution.md。
+下一步先另行只读排查C3关闭后的进程及退出等待，确认原因后再安排剩余复验。
+NOT_ACCEPTED不变；PID12928在最后一次较宽只读检查中仍存在，不能声称已清理。
+
 ## Latest — 剩余布局复验计划已准备，待6次启动批准
 
 见docs/superpowers/plans/2026-11-08-windows-layout-stage-b-continuation.md。
