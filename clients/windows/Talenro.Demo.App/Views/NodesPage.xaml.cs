@@ -2,12 +2,26 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Talenro.Demo.App.ViewModels;
 using Talenro.Demo.Core;
+#if LAYOUT_DIAGNOSTICS
+using Talenro.Demo.App.Layout;
+#endif
 namespace Talenro.Demo.App.Views;
 public sealed partial class NodesPage : Page
 {
     private readonly DemoViewModel model;
     private bool rendering;
-    public NodesPage(DemoViewModel model) { this.model = model; InitializeComponent(); Refresh(); }
+#if LAYOUT_DIAGNOSTICS
+    private bool diagnosticReady;
+#endif
+    public NodesPage(DemoViewModel model)
+    {
+        this.model = model;
+        InitializeComponent();
+#if LAYOUT_DIAGNOSTICS
+        diagnosticReady = true;
+#endif
+        Refresh();
+    }
     public void Reset()
     {
         SearchBox.Text = "";
@@ -19,6 +33,9 @@ public sealed partial class NodesPage : Page
         rendering = true;
         try
         {
+#if LAYOUT_DIAGNOSTICS
+            ApplyDiagnosticPresentation();
+#endif
             NodeList.Items.Clear();
             var scenario = (ListScenario?.SelectedItem as ComboBoxItem)?.Tag as string ?? "Ready";
             var blocked = model.State.Connection is ConnectionPhase.Connecting or ConnectionPhase.Disconnecting;
@@ -37,7 +54,12 @@ public sealed partial class NodesPage : Page
             if (query.Length == 0) AddNode(null, MainWindow.Copy("AutoNode"), true);
             foreach (var group in visible.GroupBy(node => node.Country))
             {
-                NodeList.Items.Add(new ListViewItem { Content = MainWindow.Copy("Country" + group.Key), IsEnabled = false });
+                var countryLabel = MainWindow.Copy("Country" + group.Key);
+#if LAYOUT_DIAGNOSTICS
+                if (group.Key == "JP" && App.DiagnosticPresentation is { } presentation)
+                    countryLabel = presentation.Text("CountryJP", model.State, countryLabel);
+#endif
+                NodeList.Items.Add(new ListViewItem { Content = countryLabel, IsEnabled = false });
                 foreach (var node in group)
                     AddNode(node.Id, node.Id + " · " + MainWindow.Copy("ProtocolAuto") +
                         (node.Enabled ? "" : " · " + MainWindow.Copy("NodeDisabled")), node.Enabled);
@@ -49,10 +71,25 @@ public sealed partial class NodesPage : Page
     }
     private void AddNode(string? id, string label, bool enabled)
     {
+#if LAYOUT_DIAGNOSTICS
+        if (id == "jp-1" && App.DiagnosticPresentation is { } presentation)
+            label = presentation.Text("NodeJp1", model.State, label);
+#endif
         var item = new ListViewItem { Content = label, Tag = id, IsEnabled = enabled };
+#if LAYOUT_DIAGNOSTICS
+        if (id is not null && App.DiagnosticPresentation?.IsRtl == true)
+            item.FlowDirection = FlowDirection.LeftToRight;
+#endif
         NodeList.Items.Add(item);
         if (enabled && id == model.State.DraftNode) NodeList.SelectedItem = item;
     }
+#if LAYOUT_DIAGNOSTICS
+    private void ApplyDiagnosticPresentation()
+    {
+        if (diagnosticReady && App.DiagnosticPresentation is { } presentation)
+            LayoutStaticBindings.Apply("Nodes", this, presentation);
+    }
+#endif
     private void Search_Changed(object sender, TextChangedEventArgs e) => Refresh();
     private void ListScenario_Changed(object sender, SelectionChangedEventArgs e) => Refresh();
     private void Node_Selected(object sender, SelectionChangedEventArgs e)

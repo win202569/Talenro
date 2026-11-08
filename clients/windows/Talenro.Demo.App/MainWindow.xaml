@@ -6,12 +6,12 @@
       <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
       <StackPanel x:Name="Sidebar" Width="220" Padding="20" Spacing="12">
         <TextBlock Text="Talenro" FontSize="26" FontWeight="SemiBold" Margin="0,12,0,24"/>
-        <Button x:Uid="NavConnection" Tag="Connection" Click="Navigate_Click"/>
-        <Button x:Uid="NavNodes" Tag="Nodes" Click="Navigate_Click"/>
-        <Button x:Uid="NavTraffic" Click="Placeholder_Click"/>
-        <Button x:Uid="NavDevices" Click="Placeholder_Click"/>
-        <Button x:Uid="NavAccount" Tag="Account" Click="Navigate_Click"/>
-        <Button x:Uid="NavSettings" Click="Placeholder_Click"/>
+        <Button x:Name="NavConnection" x:Uid="NavConnection" Tag="Connection" Click="Navigate_Click"/>
+        <Button x:Name="NavNodes" x:Uid="NavNodes" Tag="Nodes" Click="Navigate_Click"/>
+        <Button x:Name="NavTraffic" x:Uid="NavTraffic" Click="Placeholder_Click"/>
+        <Button x:Name="NavDevices" x:Uid="NavDevices" Click="Placeholder_Click"/>
+        <Button x:Name="NavAccount" x:Uid="NavAccount" Tag="Account" Click="Navigate_Click"/>
+        <Button x:Name="NavSettings" x:Uid="NavSettings" Click="Placeholder_Click"/>
       </StackPanel>
       <ContentControl x:Name="PageHost" Grid.Column="1" IsTabStop="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
     </Grid>

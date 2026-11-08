@@ -1,30 +1,30 @@
 <Page x:Class="Talenro.Demo.App.Views.ConnectionPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ScrollViewer><StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Center">
-    <TextBlock x:Uid="ConnectionHeading" FontSize="28" FontWeight="SemiBold"/>
+    <TextBlock x:Name="ConnectionHeading" x:Uid="ConnectionHeading" FontSize="28" FontWeight="SemiBold"/>
     <TextBlock x:Name="PowerGlyph" Text="⏻" FontSize="100" Foreground="{StaticResource DemoAccent}" HorizontalAlignment="Center" IsTextSelectionEnabled="False" AutomationProperties.AccessibilityView="Raw"/>
     <TextBlock x:Name="ConnectionStatus" FontSize="24" TextWrapping="Wrap" HorizontalAlignment="Center" AutomationProperties.LiveSetting="Polite"/>
     <Button x:Name="PrimaryConnectionButton" Style="{StaticResource DemoPrimaryButton}" HorizontalAlignment="Center" Click="PrimaryConnection_Click"/>
-    <Button x:Uid="ChooseLocation" Click="ChooseLocation_Click" HorizontalAlignment="Center"/>
+    <Button x:Name="ChooseLocation" x:Uid="ChooseLocation" Click="ChooseLocation_Click" HorizontalAlignment="Center"/>
     <ToggleSwitch x:Name="CountryLock" x:Uid="CountryLock" Toggled="Lock_Toggled"/>
     <TextBlock x:Name="LockedCountryValue" TextWrapping="Wrap"/>
     <StackPanel x:Name="RecoveryPanel" Spacing="8" Visibility="Collapsed">
-      <Button x:Uid="RecoverOnce" Click="Recover_Click"/>
-      <Button x:Uid="RetryCountry" Click="Retry_Click"/>
-      <Button x:Uid="StayDisconnected" Click="Stay_Click"/>
+      <Button x:Name="RecoverOnce" x:Uid="RecoverOnce" Click="Recover_Click"/>
+      <Button x:Name="RetryCountry" x:Uid="RetryCountry" Click="Retry_Click"/>
+      <Button x:Name="StayDisconnected" x:Uid="StayDisconnected" Click="Stay_Click"/>
     </StackPanel>
     <StackPanel x:Name="ScenarioPanel" Spacing="12" Margin="0,32,0,0">
-      <TextBlock x:Uid="DemoScenarios" FontWeight="SemiBold"/>
-      <Button x:Uid="ScenarioConnected" Click="Complete_Click"/>
-      <Button x:Uid="ScenarioFailed" Click="Fail_Click"/>
-      <Button x:Uid="ScenarioLockedFailed" Click="LockedFailed_Click"/>
-      <Button x:Uid="ScenarioDisconnected" Click="Disconnected_Click"/>
+      <TextBlock x:Name="DemoScenarios" x:Uid="DemoScenarios" FontWeight="SemiBold"/>
+      <Button x:Name="ScenarioConnected" x:Uid="ScenarioConnected" Click="Complete_Click"/>
+      <Button x:Name="ScenarioFailed" x:Uid="ScenarioFailed" Click="Fail_Click"/>
+      <Button x:Name="ScenarioLockedFailed" x:Uid="ScenarioLockedFailed" Click="LockedFailed_Click"/>
+      <Button x:Name="ScenarioDisconnected" x:Uid="ScenarioDisconnected" Click="Disconnected_Click"/>
       <ComboBox x:Name="EntitlementScenario" x:Uid="EntitlementScenario" SelectionChanged="Entitlement_Changed">
-        <ComboBoxItem x:Uid="StatusActive" Tag="Active" IsSelected="True"/>
-        <ComboBoxItem x:Uid="StatusExpired" Tag="Expired"/>
-        <ComboBoxItem x:Uid="StatusExhausted" Tag="Exhausted"/>
-        <ComboBoxItem x:Uid="StatusUnknown" Tag="Unknown"/>
-        <ComboBoxItem x:Uid="StatusStale" Tag="Stale"/>
-        <ComboBoxItem x:Uid="StatusDeviceLimit" Tag="DeviceLimit"/>
+        <ComboBoxItem x:Name="StatusActive" x:Uid="StatusActive" Tag="Active" IsSelected="True"/>
+        <ComboBoxItem x:Name="StatusExpired" x:Uid="StatusExpired" Tag="Expired"/>
+        <ComboBoxItem x:Name="StatusExhausted" x:Uid="StatusExhausted" Tag="Exhausted"/>
+        <ComboBoxItem x:Name="StatusUnknown" x:Uid="StatusUnknown" Tag="Unknown"/>
+        <ComboBoxItem x:Name="StatusStale" x:Uid="StatusStale" Tag="Stale"/>
+        <ComboBoxItem x:Name="StatusDeviceLimit" x:Uid="StatusDeviceLimit" Tag="DeviceLimit"/>
       </ComboBox>
     </StackPanel>
   </StackPanel></ScrollViewer>

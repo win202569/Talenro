@@ -3,6 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 using Talenro.Demo.App.ViewModels;
 using Talenro.Demo.App.Views;
 using Talenro.Demo.Core;
+#if LAYOUT_DIAGNOSTICS
+using Talenro.Demo.App.Layout;
+#endif
 namespace Talenro.Demo.App;
 public sealed partial class MainWindow : Window
 {
@@ -15,6 +18,13 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+#if LAYOUT_DIAGNOSTICS
+        if (App.DiagnosticPresentation is { } presentation)
+        {
+            LayoutStaticBindings.Apply("Shell", Root, presentation);
+            Root.FlowDirection = presentation.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        }
+#endif
         login = new LoginPage(model);
         connection = new ConnectionPage(model);
         nodes = new NodesPage(model);
@@ -40,8 +50,13 @@ public sealed partial class MainWindow : Window
         nodes.Refresh();
         account.Refresh();
     }
-    internal static string Copy(string key) =>
-        new Microsoft.Windows.ApplicationModel.Resources.ResourceLoader().GetString(key.Replace('.', '/'));
+    internal static string Copy(string key)
+    {
+#if LAYOUT_DIAGNOSTICS
+        if (App.DiagnosticPresentation is { } presentation) return presentation.Copy(key);
+#endif
+        return new Microsoft.Windows.ApplicationModel.Resources.ResourceLoader().GetString(key.Replace('.', '/'));
+    }
     private void Navigate_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: string tag } && Enum.TryParse<DemoPage>(tag, out var page))

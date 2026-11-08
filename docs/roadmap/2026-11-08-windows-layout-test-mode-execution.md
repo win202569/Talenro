@@ -2,9 +2,9 @@
 
 Plan: docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md.
 User approved Native execution and Stage A budget after80307866. Base80307866.
-Tasks1/2 targeted checks passed; Task3 in progress; Tasks4/5 pending. No native launches authorized.
+Tasks1–3 targeted checks passed; Task4 in progress; Task5 pending. No native launches authorized.
 
-Budget used: targeted4/8; full0/1; cache-only restores0/2; builds0/3.
+Budget used: targeted6/8; full0/1; cache-only restores0/2; builds0/3.
 Preflight: ordinary token(False), no Talenro.Demo.App process, clean linked worktree
 on codex/c12-b01-task9-coordinator; dotnet at C:/Program Files/dotnet/dotnet.exe.
 Existing assets identify clients/windows/.nuget/packages and .dotnet-home locally.
@@ -36,3 +36,9 @@ remaining planned full suite, not an extra targeted rerun. RED stub CS9113 warni
 were removed with implementation. GREEN receipt layout-presentation-green.trx.
 Task2 commit is a tested-behavior checkpoint with warning cleanup pending full
 verification, not a warning-free build claim. Startup/view integration not yet built.
+
+Task3: RED11/11 missing bindings/hooks, GREEN11/11 passed,0 skipped,exit0 and no
+compiler warnings. Explicit typed bindings cover shell/four pages and both resource
+inventories. Source/declaration checks do not establish runtime wiring. Added
+diagnostic initialization guard to Nodes so XAML selection callbacks cannot bind
+not-yet-created controls; final full suite/build still pending. Receipt layout-views-green.trx.
