@@ -14,17 +14,34 @@ public static class DemoReducer
         Navigate navigation when state.HasSession => state with { Page = navigation.Page },
         ShowPlaceholder => state with { Notice = "此功能不在本次演示范围内" },
         RequestConnection when state.HasSession && state.Connection == ConnectionPhase.Disconnected
-            => state with { Connection = ConnectionPhase.Connecting, Notice = "" },
+            => state with { Connection = ConnectionPhase.Connecting, Notice = "",
+                RecoveryChoices = LockRecoveryChoices.None, RecoveryCountry = null },
         CompleteConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
-            => state with { Connection = ConnectionPhase.Connected },
+            => state with { Connection = ConnectionPhase.Connected, RecoveryCountry = null },
         CancelConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
-            => state with { Connection = ConnectionPhase.Disconnected },
+            => state with { Connection = ConnectionPhase.Disconnected, RecoveryCountry = null },
         RequestDisconnection when state.HasSession && state.Connection == ConnectionPhase.Connected
             => state with { Connection = ConnectionPhase.Disconnecting },
         CompleteDisconnection when state.HasSession && state.Connection == ConnectionPhase.Disconnecting
             => state with { Connection = ConnectionPhase.Disconnected },
         FailConnection when state.HasSession && state.Connection == ConnectionPhase.Connecting
-            => state with { Connection = ConnectionPhase.Disconnected, Notice = "模拟连接失败，请重试或选择其他位置" },
+            => state with { Connection = ConnectionPhase.Disconnected, RecoveryCountry = null,
+                Notice = "模拟连接失败，请重试或选择其他位置" },
+        SetCountryLock change when state.HasSession => SetLock(state, change.Enabled),
+        FailLockedCountry when state.HasSession && state.LockedCountry is not null
+            && state.Connection == ConnectionPhase.Connecting => state with
+            {
+                Connection = ConnectionPhase.Disconnected, RecoveryCountry = null,
+                RecoveryChoices = LockRecoveryChoices.CrossCountryOnce | LockRecoveryChoices.RetryLockedCountry
+                    | LockRecoveryChoices.StayDisconnected,
+                Notice = "锁定国家的演示节点均失败：可仅此次跨国恢复、重试本国或保持断开"
+            },
+        RecoverAcrossCountriesOnce when CanRecover(state, LockRecoveryChoices.CrossCountryOnce)
+            => StartRecovery(state, crossCountry: true),
+        RetryLockedCountry when CanRecover(state, LockRecoveryChoices.RetryLockedCountry)
+            => StartRecovery(state, crossCountry: false),
+        StayDisconnected when CanRecover(state, LockRecoveryChoices.StayDisconnected)
+            => state with { RecoveryChoices = LockRecoveryChoices.None, RecoveryCountry = null, Notice = "" },
         SelectNode selection when state.HasSession && state.Page == DemoPage.Nodes
             => SelectDraft(state, selection.NodeId),
         ApplyNodeSelection when state.HasSession && state.Page == DemoPage.Nodes
@@ -41,6 +58,38 @@ public static class DemoReducer
 
     private static bool IsTransitioning(DemoState state) =>
         state.Connection is ConnectionPhase.Connecting or ConnectionPhase.Disconnecting;
+
+    private static bool CanRecover(DemoState state, LockRecoveryChoices choice) =>
+        state.HasSession && state.LockedCountry is not null
+        && state.Connection == ConnectionPhase.Disconnected && (state.RecoveryChoices & choice) != 0;
+
+    private static DemoState SetLock(DemoState state, bool enabled)
+    {
+        if (IsTransitioning(state) || state.HasPendingNodeChange)
+            return state with { Notice = "请先完成或取消当前模拟操作" };
+        if (!enabled)
+            return state with { LockedCountry = null, RecoveryChoices = LockRecoveryChoices.None,
+                RecoveryCountry = null, Notice = "" };
+
+        var selected = DemoFixtures.Nodes.FirstOrDefault(node => node.Id == state.PreferredNode && node.Enabled);
+        var country = state.Connection == ConnectionPhase.Connected && state.CurrentCountry is not null
+            ? state.CurrentCountry : selected?.Country;
+        if (country is null || !DemoFixtures.Nodes.Any(node => node.Enabled && node.Country == country))
+            return state with { Notice = "请先选择一个已知国家的可用演示节点" };
+        return state with { LockedCountry = country, RecoveryChoices = LockRecoveryChoices.None,
+            RecoveryCountry = null, Notice = "" };
+    }
+
+    private static DemoState StartRecovery(DemoState state, bool crossCountry)
+    {
+        var candidate = DemoFixtures.Nodes.FirstOrDefault(node => node.Enabled &&
+            (crossCountry ? node.Country != state.LockedCountry : node.Country == state.LockedCountry));
+        if (candidate is null)
+            return state with { Notice = "没有符合本次恢复条件的演示节点" };
+        // Consume the offered choice immediately; no reusable cross-country permission.
+        return state with { Connection = ConnectionPhase.Connecting, RecoveryCountry = candidate.Country,
+            RecoveryChoices = LockRecoveryChoices.None, Notice = "" };
+    }
 
     private static bool IsSelectable(string? nodeId) =>
         nodeId is null || DemoFixtures.Nodes.Any(node => node.Id == nodeId && node.Enabled);

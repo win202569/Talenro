@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 国家锁预期RED确认，恢复规则实现待GREEN
+
+用户输出17项、15预期断言失败/2通过/0跳过，exit1。已实现已知国家启用/关闭、
+失败后三种选择及单次恢复消费，保留原锁和偏好；取消/成功/失败后清除恢复状态。
+测试未改，修改后尚未编译/运行。下一步普通PowerShell验证CountryLockTests；
+额度准入及UI仍待后续实现，Task A未完成，NOT_ACCEPTED不变。
+
 ## Latest — 国家锁测试已添加，待验证RED
 
 新增CountryLockTests及锁定/失败恢复事件、当前虚构国家和单次恢复状态声明。

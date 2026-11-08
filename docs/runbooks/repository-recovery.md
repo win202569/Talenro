@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS COUNTRY LOCK RED CONFIRMED / GREEN PENDING:
+User output17 total,15 expected failures,2 passed,0 skipped,exit1. Lock/recovery
+branches now implemented without changing tests; no compilation/run afterward.
+Next original GREEN-slot CountryLockTests --no-restore in ordinary PowerShell;
+do not infer entitlement/UI or full regression acceptance.
+
 LATEST WINDOWS COUNTRY LOCK TESTS PREPARED / RED PENDING:
 CountryLockTests and event/state declarations added; reducer unchanged. Recovery
 country is attempt-scoped, not saved permission. Next ordinary-shell CountryLockTests

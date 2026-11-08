@@ -1,5 +1,26 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: CountryLock RED confirmed; implementation awaits GREEN
+
+User full output afterfbe015ad:17 total,15 failed,2 passed,0 skipped,0.9s tests,
+1.8s overall,exit1. Both projects compiled; failures are expected assertions for
+missing enable/disable/refusal, locked-failure choices, recovery transitions and
+single-attempt state clearing. No environment/compile failure. Original T7/14 used.
+
+Implemented SetLock with enabled fixture/current-country validation; unknown
+country refusal; disable clears pending recovery. Locked-country failure offers
+exactly three choices without starting a connection. Recovery requires an offered
+choice, session, saved lock and Disconnected phase; selects enabled fixture in/out
+of saved country and consumes the offer immediately. Saved lock/preference stay
+unchanged. Cancel/success/ordinary or locked failure clears RecoveryCountry;
+normal RequestConnection also starts without inherited recovery state.
+
+Tests unchanged. No new compile/test run; GREEN and combined regression pending.
+Next one original T GREEN call: --no-restore -c Debug --filter
+FullyQualifiedName~CountryLockTests in user's same ordinary shell, compilation
+enabled,5-minute observation budget,no automatic retry. G0/3,B0/2,native launches0.
+Entitlement admission rules and native UI remain later work; Task A incomplete.
+
 ## Latest: CountryLockTests prepared; RED pending
 
 Afterc1e3295d, added CountryLockTests and declaration-only events SetCountryLock,
