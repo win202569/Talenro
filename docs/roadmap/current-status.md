@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-08
 
+## Latest — 只读排查指向共享页面宿主，尚未修复
+
+已检查源码、原生观察与本机WinUI2.6.5默认样式：PageHost未排除Tab导航，默认
+ContentControl模板无焦点绘制；ScrollViewer默认已IsTabStop=False。最强解释是共享
+PageHost形成额外不可见停点，但未直接测得运行时焦点对象，不能称为已确认修复。
+详见2026-11-08-windows-client-focus-diagnosis.md。建议仅为PageHost显式禁用Tab停点，
+保留子控件导航，并增加声明回归和有限原生对照；实施/验证额度待批准。
+本轮仅只读诊断及记录保存，无代码变更/启动/测试/构建；NOT_ACCEPTED不变。
+
 ## Latest — 登录重置及主要键盘路径已实测，焦点入口仍待查
 
 用户批准后的单次会话PID10372运行约11.15分钟，正常关闭并核实退出，额度1/1用尽。

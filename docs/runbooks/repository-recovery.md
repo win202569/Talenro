@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY FOCUS DIAGNOSIS:
+Read docs/roadmap/2026-11-08-windows-client-focus-diagnosis.md. Shared PageHost
+is the strongest source-level explanation for the extra focus stop; local WinUI
+default ScrollViewer is already excluded from Tab navigation. Runtime focus
+identity remains unconfirmed. No fix/test/build/launch occurred. Proposed targeted
+PageHost change and finite verification require approval; prior allowances remain
+consumed. Evidence summary is portable; local package caches are not committed.
+Continue this dev branch, retain NOT_ACCEPTED and do not merge main.
+
 LATEST KEYBOARD/RESET RESULT — PARTIAL:
 User confirmed afterc4f64190; PID10372 normally closed after11.15minutes, exact
 process exit verified. Login reset and recorded four-page keyboard/modal paths

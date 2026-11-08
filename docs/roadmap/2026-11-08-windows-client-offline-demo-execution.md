@@ -1,5 +1,15 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Read-only focus diagnosis — PageHost is strongest hypothesis
+
+After8bfc37d8, inspected source/history/tests and restored WinUI2.6.5 default
+styles. Shared PageHost lacks a tab-stop override and its plain ContentControl
+template lacks focus treatment; default ScrollViewer already sets IsTabStop=False.
+See2026-11-08-windows-client-focus-diagnosis.md for evidence, limits and a proposed
+single-property correction with bounded validation. Runtime object identity not
+confirmed. No source edits, launch, tests/build/restore or settings changes.
+Implementation allowance not granted; broader NOT_ACCEPTED unchanged.
+
 ## Latest: Keyboard/reset observations recorded, content-entry focus unresolved
 
 Confirmed afterc4f64190; PID10372 ran11.15minutes and exited normally with exact
