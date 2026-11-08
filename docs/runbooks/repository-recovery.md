@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS CONNECTION TESTS PREPARED / RED UNRUN:
+ConnectionTests and six connection event declarations are committed; reducer
+still only implements session behavior. Next one --no-restore ConnectionTests
+invocation in ordinary PowerShell must compile new tests; no --no-build. Do not
+implement connection behavior until intended assertion failures are observed.
+
 LATEST WINDOWS SESSION GREEN (USER-RUN):
 After1860166f, ordinary PowerShell build+SessionTests passed13/13,0 skipped,exit0.
 Console evidence supplied by user; not an independent agent rerun. Session

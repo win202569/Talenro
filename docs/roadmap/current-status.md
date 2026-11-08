@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — ConnectionTests已添加，待普通PowerShell验证RED
+
+新增连接/取消/断开/失败的显式事件声明与连接状态测试，覆盖转换顺序、重复请求、
+非法阶段、无会话调用、取消/退出后的过期完成和手动重试。尚未实现连接分支，
+未构建/运行新增测试；下一步用户普通PowerShell执行一次ConnectionTests。
+SessionTests13/13历史结果保留，不外推到新测试。无应用启动，NOT_ACCEPTED不变。
+
 ## Latest — SessionTests用户实测13/13通过
 
 1860166f后，用户在同一普通PowerShell执行编译及SessionTests：13成功、0失败、

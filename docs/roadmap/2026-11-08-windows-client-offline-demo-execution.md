@@ -1,5 +1,23 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: ConnectionTests prepared, RED not yet run
+
+Afterd461fed2, added ConnectionTests and six payload-free event declarations:
+RequestConnection,CompleteConnection,CancelConnection,RequestDisconnection,
+CompleteDisconnection,FailConnection. Reducer behavior unchanged; no connection
+implementation before observed RED. Tests assert explicit transitional phases,
+preference preservation, ignored invalid-phase events, no unauthenticated changes,
+cancel/logout stale-result refusal, repeated-request stability, and failure that
+waits for explicit retry. All are synchronous in-memory model checks; they do not
+prove OS-level absence of workers or native UI behavior.
+
+Next: one original T-slot RED call in the user's same non-admin shell:
+`dotnet test Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore -c Debug --filter FullyQualifiedName~ConnectionTests`.
+Compilation required for new tests; no restore/app launch. Preserve first-use
+opt-outs, unchanged timeout,5-minute budget; no automatic retry. Static source
+review only this turn; no compilation/test result claimed. T remains2/14 consumed
+until the user executes the call. Task A incomplete.
+
 ## Latest: SessionTests GREEN confirmed by user-run output
 
 After1860166f, user ran the prescribed SessionTests command in the same ordinary
