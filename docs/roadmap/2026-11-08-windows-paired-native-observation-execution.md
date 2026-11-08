@@ -66,3 +66,43 @@ Next: read-only analysis of teardown and observer lifetime, guided by native-bou
 evidence; no further identical launch. Stack/dump, changed launch context or other
 runtime experiment requires a new discriminator and separately approved scope.
 All Task11/12 and44/34/6/217 NOT_ACCEPTED remain.
+
+## Read-only teardown follow-up
+
+Inspected App.xaml.cs, MainWindow.xaml.cs, Views/NodesPage.xaml.cs,
+ViewModels/DemoViewModel.cs, Diagnostics/LayoutWindowObserver.cs and project file.
+Search_Changed calls synchronous Refresh: local fixture filtering and ListView
+updates; no application-created background thread/task or blocking wait was found
+on this inspected route. This does not exclude framework/COM/input-method threads.
+Normal startup activates MainWindow; explicit Application.Exit occurs only on
+rejected diagnostic arguments, which is not the successful observed route.
+LayoutWindowObserver subscribes window.Closed to Dispose; Dispose marks disposed
+and removes root/page/XamlRoot/UISettings/window subscriptions. Source inspection
+does not prove this callback ran or completed in the observed binary. No shutdown
+fix is justified merely by the remaining thread count or managed event references.
+
+Microsoft documents process termination and object lifetime separately: retaining
+a handle can retain the process object after termination, but completed termination
+signals that object. Process.Close releases observer resources; it is not the
+CloseMainWindow request. Thus ordinary handle retention alone does not explain
+the persistent unsignaled wait, and post-observer disappearance is correlation,
+not proof that Dispose killed the app. Host/job lifetime effects remain unmeasured.
+References:
+- https://learn.microsoft.com/en-us/windows/win32/procthread/terminating-a-process
+- https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.close?view=net-10.0
+
+ExitProcess documentation describes DLL detach callbacks before final termination
+and warns of possible detach-lock deadlocks. That is a candidate diagnostic class,
+not a diagnosis: no remaining-thread stack, wait chain or loaded-module evidence
+was collected. The documented ordering does not by itself explain this sustained
+exit-code0/unsignaled tuple; do not label it a confirmed DLL deadlock or OS bug.
+Reference: https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitprocess
+
+Next useful discriminator is the remaining thread's wait/stack location during
+the contradictory state, with target identity and time bound preserved. Before
+any new run, establish an available approved collection method and its effects:
+debugger attachment may pause execution, dumps may contain private memory, and
+neither is authorized by this read-only source review. A separate launcher-context
+control is an alternative if stack collection is unavailable, but is not yet run.
+This follow-up performed no app launch, native probe, attach, dump, code/settings
+change, build or tests. Root cause unresolved; all existing gates remain unchanged.

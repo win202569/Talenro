@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — TEARDOWN SOURCE REVIEW, NO CONFIRMED FIX:
+Read the teardown appendix in the paired-native-observation execution ledger.
+Inspected search path is synchronous; diagnostics has close-time unsubscription.
+Framework/native shutdown remains unobserved. Ordinary retained-handle lifetime
+does not alone explain no signal; observer-end correlation is not kill causality.
+Next identify an approved way to capture the remaining thread's wait/stack before
+another run. Debugger/dump effects and memory privacy need separately scoped consent.
+No launch/probe/attach/dump/code/settings/build/test action in this follow-up.
+
 LATEST RESULT — NATIVE-BOUNDARY DISAGREEMENT OBSERVED, SHUTDOWN UNRESOLVED:
 Single approved attempt after0fbb76e0 consumed: PID21236, original retained handle,
 73 identity-valid pairs. Search/filter passed. Post-close60 pairs showed native
