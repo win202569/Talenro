@@ -1,5 +1,17 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: CountryLockTests GREEN confirmed by user output
+
+After00c4eef9, user reported17 total,17 passed,0 failed,0 skipped,0.8s tests,
+1.8s overall,build success,exit0. Evidence is the user's ordinary PowerShell
+output, not an independent agent rerun. Combined with15 expected assertion
+failures atfbe015ad, this establishes country-lock RED→GREEN without test changes.
+Original T8/14 consumed; G0/3,B0/2,native launches0. No combined regression after
+the lock changes has run. Next planned class: EntitlementTests for expired,
+exhausted,unknown,stale and device-limit refusal, guarded reconnect/recovery,
+account access and hard stop on exhausted quota. Task A remains incomplete;
+native UI/real VPN acceptance is not implied by these model-only results.
+
 ## Latest: CountryLock RED confirmed; implementation awaits GREEN
 
 User full output afterfbe015ad:17 total,15 failed,2 passed,0 skipped,0.9s tests,

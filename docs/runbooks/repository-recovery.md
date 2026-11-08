@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS COUNTRY LOCK GREEN (USER-RUN):
+After00c4eef9, CountryLockTests passed17/17,0 skipped,exit0. RED→GREEN confirmed
+from user console output; no independent agent run. Next EntitlementTests before
+admission implementation. Combined model regression/UI acceptance remain pending.
+
 LATEST WINDOWS COUNTRY LOCK RED CONFIRMED / GREEN PENDING:
 User output17 total,15 expected failures,2 passed,0 skipped,exit1. Lock/recovery
 branches now implemented without changing tests; no compilation/run afterward.

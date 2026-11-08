@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — CountryLockTests用户实测17/17通过
+
+00c4eef9后用户回传17成功、0失败、0跳过，exit0；测试0.8秒，总计1.8秒，构建成功。
+国家锁组已完成RED→GREEN，测试预期未改；这是用户实测而非代理独立复跑。
+下一组EntitlementTests，覆盖过期/耗尽/未知/陈旧/设备数限制及重连拒绝。
+整套模型回归尚未执行，Task A仍未完成，无原生应用启动，NOT_ACCEPTED不变。
+
 ## Latest — 国家锁预期RED确认，恢复规则实现待GREEN
 
 用户输出17项、15预期断言失败/2通过/0跳过，exit1。已实现已知国家启用/关闭、
