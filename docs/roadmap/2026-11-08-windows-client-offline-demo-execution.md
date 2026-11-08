@@ -1,5 +1,13 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Compound acceptance rows reconciled against existing evidence
+
+After d64de426, documentation-only reconciliation split visible confirmation
+outcomes from runtime atomicity, and observed logout/reopen sequences from
+exhaustive reset/storage claims. See2026-11-08-windows-client-acceptance-coverage.md.
+No new tests/build/launch, source change or acceptance. Next prepare only the
+missing keyboard-path matrix; new runtime work still requires finite approval.
+
 ## Latest: PageHost correction passed bounded verification
 
 User approved after e19a7e38. One-property fix and declaration regression completed;

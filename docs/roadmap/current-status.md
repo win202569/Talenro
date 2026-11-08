@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 复合验收项已按证据拆分，无新增运行
+
+已拆分确认提交及退出/重开清单：历史已观察结果与模型测试分别列明，内部原子性、
+所有字段/持久化行为仍未验证，未提升为整体验收。详见
+2026-11-08-windows-client-acceptance-coverage.md。本轮仅文档整理；后续先准备缺失
+键盘路径矩阵，再申请有界验证，不重复已覆盖核心流程。NOT_ACCEPTED不变。
+
 ## Latest — 页面入口多余焦点停点已在限定路径修复并验证
 
 PageHost仅增加IsTabStop=False；声明回归RED→GREEN，完整测试160/160通过，

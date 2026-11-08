@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST ACCEPTANCE COVERAGE MAP:
+Read docs/roadmap/2026-11-08-windows-client-acceptance-coverage.md before repeating
+verification. Compound confirmation/reset rows now distinguish historical native
+observations, prior model tests and unverified runtime internals. This was docs-only,
+not a fresh test or launch. Next prepare the missing-path keyboard matrix; no new
+run allowance exists. Overall PARTIAL/NOT_ACCEPTED and no-main-merge remain.
+
 LATEST FOCUS FIX CHECKPOINT:
 Read docs/roadmap/2026-11-08-windows-client-focus-fix.md. Source/test are committed:
 PageHost excludes itself from Tab stops without disabling descendants. RED/GREEN,
