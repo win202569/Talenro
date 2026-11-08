@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST DESIGN — LIGHTWEIGHT PROCESS OBSERVATION, PENDING DOCUMENT APPROVAL:
+Read docs/superpowers/specs/2026-11-08-windows-process-observation-design.md.
+User selected a standalone recording module with synthetic tests, not a launcher
+rewrite. No module/tests have been implemented or run. Design specifies independent
+typed field receipts, explicit getter errors, preserved disagreements and live vs
+synthetic labeling. No process launch/enumeration/kill/disposal or file-writing
+behavior in the module. Approve design before implementation planning; runtime
+integration remains separately scoped. Original failure/NOT_ACCEPTED gates persist.
+
 LATEST — WAIT/API EVIDENCE GAP IDENTIFIED, NO ROOT CAUSE CLAIM:
 Read the wait/API appendix in the C3 exit-observation ledger. Original-object
 wait receipts and a separately enumerated object's HasExited are not equivalent
