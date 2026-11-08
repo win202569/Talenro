@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DESIGN — INDEPENDENT NATIVE RECORDER AWAITS DESIGN APPROVAL:
+User selected approach1. Read docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md.
+Keep the existing recorder unchanged; proposed helper records same-handle native
+wait/code/raw times, separating API failure from values and protecting handle lifetime.
+No implementation, compilation, tests, native calls or app launches this round.
+Next obtain written-design approval, then prepare implementation plan. Live scope
+remains separate; no remaining launch budget or acceptance promotion is implied.
+
 LATEST FOLLOW-UP — API SEMANTICS REVIEWED, NATIVE CAUSE STILL UNKNOWN:
 See the API/source appendix in the same-object-live-observation execution ledger.
 Reference v10.0.14 source checks output exit code before wait signaling; epoch1601

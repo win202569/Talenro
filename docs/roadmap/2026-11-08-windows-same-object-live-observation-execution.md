@@ -104,3 +104,12 @@ or implemented here; no repeat launch allowance remains. It must not attach a
 debugger, kill a process or relax shutdown acceptance. Native results would separate
 managed interpretation from OS-returned data, but may still require later teardown
 diagnosis. Root cause remains unresolved; Task11/12 and44/34/6/217 NOT_ACCEPTED.
+
+## Independent recorder design handoff
+
+User selected approach1: a separate native recorder, leaving the managed module
+unchanged. Short design saved at
+docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md.
+Written design awaits approval; no implementation, helper compilation, tests,
+native invocation or app launch occurred. Next is design approval and implementation
+planning, not another live attempt. Existing evidence and acceptance blocks stand.
