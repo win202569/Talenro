@@ -1,5 +1,13 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest Stage B attempt:9/14 invocations, stopped at English baseline V3 because
+CountryLock off text remained Chinese '关'. Ordinary four-page route and Chinese
+baseline route/dialog/reset observed; six rejection exit/message checks passed.
+V4–V8 NOT_RUN; exact-size/resize and transient-window absence UNVERIFIED. All
+processes exited. See docs/roadmap/2026-11-08-windows-layout-native-stage-b-execution.md
+from repository root. Compound rows below remain unchecked; older no-native-check
+wording is historical, not the latest status.
+
 Latest Stage A diagnostic implementation has passed code/build checks only; none
 of the native rows below were rerun on its new ordinary/diagnostic outputs.
 See2026-11-08-windows-layout-test-mode-execution.md in docs/roadmap for hashes and

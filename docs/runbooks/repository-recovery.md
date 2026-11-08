@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST NATIVE RESULT — STOPPED ON ENGLISH MIXED-LANGUAGE CONTROL:
+Read docs/roadmap/2026-11-08-windows-layout-native-stage-b-execution.md first.
+Stage B approved after508475b0;9/14 invocations used. R1–R6 exit/message passed;
+V1/V2 observations partial; V3 English CountryLock retained Chinese off text '关'.
+V4–V8 not run. All processes exited, final count0. No source/build/test changes.
+Next separately scope diagnosis/correction and fresh validation;5 unused slots
+are not standing permission after handoff. Keep exact-size/native acceptance open.
+Earlier 'awaiting approval' notes below are historical; execution stopped on defect.
+
 LATEST PLAN — NATIVE STAGE B AWAITS APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-layout-native-stage-b.md. Proposed
 ceiling14 launches (6 rejection,8 visible sessions), no retries/builds/restores or

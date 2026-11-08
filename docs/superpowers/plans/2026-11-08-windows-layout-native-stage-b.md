@@ -10,7 +10,7 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md.
 
-Status: PROPOSED after7e25a4fc; user requested preparation of the next step, not this launch allowance. Await confirmation before any invocation. Prior sequential execution method retained. This is a verification-only plan: no implementation or TDD cycle required.
+Status: APPROVED after508475b0; executed9/14 invocations and stopped at V3 English mixed-language switch state. See docs/roadmap/2026-11-08-windows-layout-native-stage-b-execution.md. Five unused slots are not standing permission after handoff. Historical proposal/confirmation wording below is superseded. Prior sequential execution method retained. This is a verification-only plan: no implementation or TDD cycle required.
 
 ## Global Constraints
 

@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-08
 
+## Latest — Stage B发现英文开关混排，已按停止条件收尾
+
+批准后实际启动9/14次：6次拒绝均退出2且消息正确；普通四页导航和中文基线主要
+流程已观察。英文连接页Country lock开关仍显示中文“关”，V3失败，V4–V8未启动。
+全部进程正常退出，最终演示进程数0。精确尺寸、缩放更新及瞬时闪窗排除仍未验证。
+详见2026-11-08-windows-layout-native-stage-b-execution.md。未修改源码、未构建或
+重跑测试；此前222/222不代表原生验收。剩余5次不自动延续为新额度。
+下一步建议单独排查并修复开关状态文字，再安排有界验证；NOT_ACCEPTED不变。
+
 ## Latest — 原生Stage B验证计划已准备，待批准
 
 计划见docs/superpowers/plans/2026-11-08-windows-layout-native-stage-b.md。
