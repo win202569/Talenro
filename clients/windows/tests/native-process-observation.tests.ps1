@@ -94,7 +94,41 @@ foreach ($name in @('Wait','ExitCode','Times')) {
 }
 Check ([datetime]::Parse($s.ObservationEndedUtc) -ge $previous) 'snapshot contains calls'
 Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) 'synthetic path never loads helper'
+# Synthetic DTO adapter coverage: no helper loading, handles or native invocation.
+$dto=[pscustomobject]@{StartedUtc='2026-01-01T00:00:00.0000000Z';EndedUtc='2026-01-01T00:00:01.0000000Z';SnapshotError='System.ArgumentException'}
+foreach ($name in @('Wait','ExitCode','Times')) {
+    $dto | Add-Member -NotePropertyName $name -NotePropertyValue ([pscustomobject]@{NotRun=$true;StartedUtc=$null;EndedUtc=$null})
+}
+$adapted=& $module { param($fixture) Convert-NativeProbeSnapshot $fixture 'dto-fixture' } $dto
+foreach ($name in @('Wait','ExitCode','Times')) {
+    Check ($adapted.Calls.$name.Status -ceq 'not-run' -and $null -eq $adapted.Calls.$name.StartedUtc -and $null -eq $adapted.Calls.$name.EndedUtc) "not-run $name has absent timestamps"
+}
+Check ($adapted.SnapshotError -ceq 'System.ArgumentException' -and $adapted.ObservationStartedUtc -ceq $dto.StartedUtc -and $adapted.ObservationEndedUtc -ceq $dto.EndedUtc) 'adapter preserves acquisition evidence'
+$begin='2026-01-01T00:00:00.1000000Z'; $end='2026-01-01T00:00:00.2000000Z'
+$dto.SnapshotError=$null
+$dto.Wait=[pscustomobject]@{NotRun=$false;StartedUtc=$begin;EndedUtc=$end;ExceptionType='System.EntryPointNotFoundException'}
+$dto.ExitCode=[pscustomobject]@{NotRun=$false;StartedUtc=$begin;EndedUtc=$end;ExceptionType=$null;ApiSucceeded=$true;RawResult=$null;ExitCode=[uint32]::MaxValue;Times=$null;LastError=$null}
+$dto.Times=[pscustomobject]@{NotRun=$false;StartedUtc=$begin;EndedUtc=$end;ExceptionType=$null;ApiSucceeded=$true;RawResult=$null;ExitCode=$null;LastError=$null;Times=(& (Fixtures).Times).Times}
+$adapted=& $module { param($fixture) Convert-NativeProbeSnapshot $fixture 'dto-fixture' } $dto
+Check ($adapted.Calls.Wait.Status -ceq 'exception' -and $adapted.Calls.Wait.ExceptionType -ceq 'System.EntryPointNotFoundException' -and $adapted.Calls.Wait.StartedUtc -ceq $begin -and $adapted.Calls.Wait.EndedUtc -ceq $end) 'adapter preserves original exception timing'
+Check ($adapted.Calls.ExitCode.ExitCode -eq 4294967295 -and $adapted.Calls.ExitCode.ExitCode -is [uint32] -and $adapted.Calls.Times.Status -ceq 'ok') 'adapter continues with high-bit and time values'
 $tokens=$null; $errors=$null
+# Regression: member reads must not enumerate malformed singleton arrays into scalars.
+foreach ($entry in @(
+    @('Wait', { @{RawResult=@([uint32]0);LastError=$null} }),
+    @('Wait', { @{RawResult=[uint32]::MaxValue;LastError=@([int]5)} }),
+    @('ExitCode', { @{ApiSucceeded=@($true);ExitCode=[uint32]0;LastError=$null} }),
+    @('ExitCode', { @{ApiSucceeded=$true;ExitCode=@([uint32]0);LastError=$null} }),
+    @('Times', { @{ApiSucceeded=@($false);LastError=5} }),
+    @('Times', { @{ApiSucceeded=$true;LastError=$null;Times=@{
+        Creation=@{High=@([uint32]0);Low=[uint32]0}; Exit=@{High=[uint32]0;Low=[uint32]0}
+        Kernel=@{High=[uint32]0;Low=[uint32]0}; User=@{High=[uint32]0;Low=[uint32]0}
+    }} })
+)) {
+    $r=Fixtures; $r[$entry[0]]=$entry[1]
+    $c=(Observe $r).Calls.($entry[0])
+    Check ($c.Status -ceq 'invalid' -and $null -eq $c.ApiSucceeded -and $null -eq $c.RawResult -and $null -eq $c.ExitCode -and $null -eq $c.Times) "reject nested array $($entry[0])"
+}
 $ast=[Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
 Check ($errors.Count -eq 0) 'module parses'
 Check (($module.ExportedFunctions.Keys | Sort-Object) -join ',' -ceq 'Get-TalenroNativeProcessObservation,Get-TalenroSyntheticNativeProcessObservation') 'only two public adapters'

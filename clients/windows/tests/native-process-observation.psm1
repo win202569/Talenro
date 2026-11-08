@@ -1,7 +1,8 @@
 #requires -Version 7.0
 
 function New-NativeCallRecord {
-    param([string]$StartedUtc, [string]$EndedUtc)
+    # Untyped timestamps preserve null for calls that never ran.
+    param($StartedUtc, $EndedUtc)
     [pscustomobject][ordered]@{
         Status='invalid'; StartedUtc=$StartedUtc; EndedUtc=$EndedUtc
         ApiSucceeded=$null; RawResult=$null; WaitState=$null; ExitCode=$null
@@ -11,10 +12,10 @@ function New-NativeCallRecord {
 
 function Get-RawMember {
     param($Value, [string]$Name)
-    if ($Value -is [Collections.IDictionary]) { return $Value[$Name] }
+    if ($Value -is [Collections.IDictionary]) { return ,$Value[$Name] }
     if ($null -ne $Value) {
         $property=$Value.PSObject.Properties[$Name]
-        if ($null -ne $property) { return $property.Value }
+        if ($null -ne $property) { return ,$property.Value }
     }
 }
 

@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 原生观察模块已实现，复核两项问题已修正
+
+实现提交d0ff97e7/ccbf9ac0：独立模块、C#帮助程序及模拟/编译检查。
+已观察缺失模块/帮助程序的RED；独立复核发现嵌套数组展开及空时间被转为空字符串，
+两项分别补充失败测试后修正，模拟静态78/78通过。编译20/20、原有回归32/32已通过。
+现有观察模块未变；未调用原生接口、启动应用或改设置。
+完整结果见2026-11-08-windows-native-process-observation-execution.md。
+真实行为、退出根因及所有NOT_ACCEPTED仍未验收。下一步先补加载缓存/重导入检查，
+再准备同一句柄集成的真实观测范围；不自动启动应用。
+
 ## Latest — 原生观察设计已批准，实施计划待确认
 
 设计批准基线3bf6a2d5；计划见docs/superpowers/plans/2026-11-08-windows-native-process-observation.md。

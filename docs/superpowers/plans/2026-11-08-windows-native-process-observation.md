@@ -10,7 +10,10 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md (approved after3bf6a2d5).
 
-Status: prepared for user review; no implementation or tests yet.
+Status: approved after85169c27; Task1/2 implemented in d0ff97e7 and ccbf9ac0.
+Task3 independent review completed; two P2 findings fixed with RED/GREEN evidence;
+authoritative results/rulings and deferred loader coverage are in
+docs/roadmap/2026-11-08-windows-native-process-observation-execution.md.
 
 ## Global Constraints
 

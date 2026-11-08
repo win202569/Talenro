@@ -1,5 +1,25 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION — NATIVE RECORDER, REVIEW FINDINGS FIXED:
+Commits d0ff97e7/ccbf9ac0 add clients/windows/tests/native-process-observation.psm1,
+native-process-observation.cs and two test scripts. In separate fresh PowerShell7
+hosts from this worktree, run:
+- & ./clients/windows/tests/native-process-observation.tests.ps1
+- & ./clients/windows/tests/native-process-observation.compile.tests.ps1
+- & ./clients/windows/tests/process-observation.tests.ps1
+
+Initial results66/66 synthetic/static,20/20 compile/reflection,32/32 regression.
+Independent review found two P2s: nested-array enumeration and null timestamp
+coercion. Both reproduced RED then fixed; synthetic/static now78/78, including
+in-memory DTO fixtures (not native evidence). Additional successful loader-cache/
+forced-reimport coverage is deferred until before live integration.
+These commands do not invoke Capture/native APIs. Compilation is not ABI/runtime
+proof. Read the native recorder execution
+ledger for final results before resuming. Live adapter NOT_RUN; no app root-cause
+claim. Forced module reimport after helper loading fails closed: use a fresh host.
+Caller must retain original Process/handle and establish identity separately;
+receipts are sequential, not atomic. All NOT_ACCEPTED gates remain unchanged.
+
 LATEST PLAN — NATIVE RECORDER DESIGN APPROVED, IMPLEMENTATION REVIEW NEXT:
 Design approved after3bf6a2d5. Read docs/superpowers/plans/2026-11-08-windows-native-process-observation.md
 and its spec. Three sequential tasks pin synthetic receipts, compile-only interop

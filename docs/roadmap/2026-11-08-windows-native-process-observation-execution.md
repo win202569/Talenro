@@ -29,3 +29,51 @@ Compile check invoked only the private stale-type loader rejection branch after
 explicit compilation; it did not invoke live export, Capture or any native API.
 Interop manually inspected for immediate errors and reference finally; ABI and
 concurrent handle behavior remain runtime-unverified. Task3 review pending.
+
+## Final independent review and one fix pass
+
+Fresh reviewer reviewed85169c27..ccbf9ac0, independently reran66/20/32 checks,
+and found two Important/P2 issues, no Critical or separate Minor findings:
+1. Get-RawMember pipeline enumeration allowed nested singleton arrays to bypass
+   exact scalar checks. Added six malformed nested-field regression assertions;
+   observed RED at reject nested array Wait, then preserved member values without
+   enumeration in both dictionary and object-property paths.
+2. New-NativeCallRecord string binding coerced absent not-run times into empty
+   strings. Added in-memory DTO conversion fixtures (no helper or native calls),
+   observed RED at not-run Wait has absent timestamps, then retained nullable
+   timestamps. Fixtures cover acquisition errors, original exception type/timing,
+   later high-bit code/time data and no accidental conversion of unavailable data.
+Final: fixed both findings — separate regression RED observed for each; combined
+GREEN78/78 synthetic/static assertions. No second review or native invocation.
+
+Final: minor (deferred): reviewer recommended executable successful loader-cache
+reuse/forced-reimport coverage. Preloaded-type rejection is tested; reuse/reimport
+control flow is currently inspected only. Defer this additional coverage until
+before live integration; no known loader defect or claim of that runtime coverage.
+
+Reviewer declined-to-judge rulings:
+- Final: Ruling: native ABI/Windows results remain NOT_RUN — explicitly excluded;
+  cost is possible native defects despite compilation.
+- Final: Ruling: disposal races/reference acquisition remain static-only — no
+  runtime probing allowed; cost is unverified concurrent lifetime behavior.
+- Final: Ruling: launch ownership/creation identity stays caller responsibility —
+  recorder accepts a retained handle; integration must enforce identity or evidence
+  could be attached to the wrong launch.
+- Final: Ruling: application shutdown/root cause/acceptance unchanged — diagnostic
+  component is not a fix; cost is existing unresolved shutdown blockage.
+- Final: Ruling: full suites/builds/installs/historical changes excluded — preserve
+  approved scope; no broader project regression coverage is claimed.
+- Final: Ruling: preserve development branch/worktree and ordinary checkpoint push
+  under AGENTS standing authorization, no merge/PR/cleanup — broader readiness
+  remains unassessed. No disposable workspace was created or deleted.
+
+Primary references checked for implementation boundary:
+- https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.marshal.getlastpinvokeerror?view=net-10.0
+- https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.safehandle.dangerousaddref?view=net-10.0
+
+Task3: complete for approved development-checkpoint scope. Final fresh-host runs:
+native synthetic/static78/78, compile/reflection20/20, original synthetic32/32;
+all exit0 after fixes. Native adapter/Capture/API invocation NOT_RUN throughout.
+No app launch/build/restore/full suite/settings changes. Original recorder/test
+unchanged. Recovery records include deferred loader-cache/reimport coverage and
+all runtime limitations. Only ordinary development checkpoint push is intended.
