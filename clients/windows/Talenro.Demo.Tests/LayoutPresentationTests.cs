@@ -72,6 +72,22 @@ public class LayoutPresentationTests
     public void UnsafeOrAmbiguousResourcesRejected(string xml) =>
         Assert.Throws<InvalidDataException>(() => LayoutResourceCatalog.Parse(xml));
 
+    [Theory]
+    [InlineData("en-US", "CountryLock.OnContent", "On")]
+    [InlineData("en-US", "CountryLock.OffContent", "Off")]
+    [InlineData("zh-Hans", "CountryLock.OnContent", "开")]
+    [InlineData("zh-Hans", "CountryLock.OffContent", "关")]
+    public void SwitchStateTextUsesSelectedLanguageAndCannotBeMissing(string language, string key, string expected)
+    {
+        // Catches omitted state text that otherwise falls back to the host UI language.
+        var resources = LayoutResourceCatalog.Parse(Resource(language));
+        var presentation = new LayoutPresentation(new(language, "baseline"), LayoutFixtureCatalog.Parse(Fixture), resources);
+        Assert.Equal(expected, presentation.Copy(key));
+        var missing = resources.ToDictionary(x => x.Key, x => x.Value);
+        missing.Remove(key);
+        Assert.Throws<InvalidDataException>(() => LayoutResourceCatalog.Validate(missing));
+    }
+
     [Fact]
     public void ProfileMappingDoesNotMutateStateOrUnrelatedText()
     {

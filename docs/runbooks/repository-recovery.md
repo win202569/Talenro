@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST TEST-ONLY CHECKPOINT — SWITCH FIX NOT IMPLEMENTED:
+Read docs/roadmap/2026-11-08-windows-layout-switch-fix-execution.md. Four new state-
+language regression cases compile but have not executed: first RED attempt aborted
+on90second vstest/testhost connection failure (TRX executed0). Production unchanged.
+Do not treat this as a valid RED or a fixed native defect. Preserve original receipt;
+next diagnose connectivity read-only and obtain bounded replacement test allowance.
+No automatic timeout/security changes or reuse of prior native launch slots.
+
 LATEST NATIVE RESULT — STOPPED ON ENGLISH MIXED-LANGUAGE CONTROL:
 Read docs/roadmap/2026-11-08-windows-layout-native-stage-b-execution.md first.
 Stage B approved after508475b0;9/14 invocations used. R1–R6 exit/message passed;
