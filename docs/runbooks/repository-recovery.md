@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS EXECUTION APPROVED / R1 RESTORE FAILED:
+Read docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md first.
+clients/windows has pinned project configuration only, no C# implementation or app.
+R1 failed NU1301 (NuGet host resolution); no retry/build/tests/launch. Failed empty
+test lock is not committed. Core dependency-free lock is not test-tool readiness.
+Future recipe now disables first-use certificate/PATH setup explicitly; previous
+certificate message was not corroborated by readonly store inspection. No cleanup.
+One bounded R1 retry needs approval; remaining validation slots do not authorize it.
+
 LATEST WINDOWS EXECUTION AMENDMENT PROPOSED / NOT EXECUTED:
 Read docs/superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md
 with its parent plan/spec. Pins, TFMs, NuGet source, lockfile procedure and finite

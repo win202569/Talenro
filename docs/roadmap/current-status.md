@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 执行已批准；首次NuGet恢复失败，尚未进入实现
+
+用户批准5c61627c附录后，建立Windows Core/Tests配置；R1一次执行失败：
+NU1301，api.nuget.org域名无法解析。无重试、构建、测试或原生启动。
+首次运行提示开发证书安装及PATH添加失败；只读证书检查未找到匹配项，
+实际证书持久化未确认，未信任/删除证书。已纠正未来命令的首次运行开关。
+见2026-11-08-windows-client-offline-demo-execution.md。Task A未完成；
+需另批一次有限R1网络恢复重试，剩余额度不自动替代失败首轮。
+保存仅配置的未完成检查点；44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — 原生离线演示执行附录已拟定，待审阅
 
 见../superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md。

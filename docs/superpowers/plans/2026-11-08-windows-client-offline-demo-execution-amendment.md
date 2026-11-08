@@ -15,7 +15,11 @@ Model tests remain independent of WinUI and do not launch the app.
 Read with [parent plan](2026-11-07-windows-client-offline-demo.md); its interfaces,
 file ownership and behavior requirements remain authoritative.
 
-Status2026-11-08: PROPOSED, awaiting approval. This is documentation, not restore,
+Status2026-11-08: approved by user after5c61627c for Tasks2–4. First R1 failed
+with NU1301/DNS resolution; execution stopped. See
+[execution record](../../roadmap/2026-11-08-windows-client-offline-demo-execution.md).
+The following original proposal describes intended work, not completed work.
+This is documentation, not restore,
 build, test or launch evidence. Tool metadata is verified; this package combination
 has NOT been restored or compiled. Supersedes the parent's unresolved command recipe,
 not its acceptance gates. No new SDK installation is included.
@@ -69,9 +73,15 @@ files stay beside the executable. Do not use APIs requiring additional MSIX pack
 
 Run PowerShell from the checked-out `clients/windows` directory; resolve these
 tool paths anew on another computer. Set only process-local environment values:
-DOTNET_CLI_TELEMETRY_OPTOUT=1, DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1,
+DOTNET_CLI_TELEMETRY_OPTOUT=1, DOTNET_NOLOGO=1,
+DOTNET_GENERATE_ASPNET_CERTIFICATE=false, DOTNET_ADD_GLOBAL_TOOLS_TO_PATH=false,
 DOTNET_CLI_HOME=`$PWD/.dotnet-home`, NUGET_PACKAGES=`$PWD/.nuget/packages`.
 Never overwrite HOME/CODEX_HOME or machine/user environment settings.
+
+Post-R1 correction: the original DOTNET_SKIP_FIRST_TIME_EXPERIENCE is unsupported
+on modern .NET. The explicit certificate/PATH opt-outs above prevent unwanted
+first-use setup; they have NOT yet been exercised here. No retry is authorized
+by this correction. See the execution record before any further command.
 
 ```powershell
 $demoDotnet = 'C:\Program Files\dotnet\dotnet.exe'
