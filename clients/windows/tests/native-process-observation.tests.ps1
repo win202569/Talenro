@@ -94,4 +94,20 @@ foreach ($name in @('Wait','ExitCode','Times')) {
 }
 Check ([datetime]::Parse($s.ObservationEndedUtc) -ge $previous) 'snapshot contains calls'
 Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) 'synthetic path never loads helper'
-"SYNTHETIC_ONLY_PASS: $script:count assertions; native NOT_RUN"
+$tokens=$null; $errors=$null
+$ast=[Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+Check ($errors.Count -eq 0) 'module parses'
+Check (($module.ExportedFunctions.Keys | Sort-Object) -join ',' -ceq 'Get-TalenroNativeProcessObservation,Get-TalenroSyntheticNativeProcessObservation') 'only two public adapters'
+foreach ($statement in $ast.EndBlock.Statements) {
+    Check ($statement -is [Management.Automation.Language.FunctionDefinitionAst] -or $statement.Extent.Text.StartsWith('Export-ModuleMember ')) 'import declarations only'
+}
+$source=Get-Content (Join-Path $PSScriptRoot 'native-process-observation.cs') -Raw
+Check (([regex]::Matches($source,'\[DllImport\(')).Count -eq 3) 'only three native imports'
+Check ($source -notmatch 'OpenProcess|CloseHandle|DuplicateHandle|TerminateProcess|Process\.Start|\.Dispose\(') 'helper has no process lifetime operations'
+Check ($source -match 'WaitForSingleObject\(pointer, 0\)' -and $source -notmatch 'Thread\.Sleep|while\s*\(') 'zero wait without polling'
+Check ($source -match 'DangerousAddRef\(ref held\)' -and $source -match 'finally[\s\S]*if \(held\) handle.DangerousRelease\(\)') 'balanced borrowed reference structure'
+Check (([regex]::Matches($source,'Marshal.GetLastPInvokeError\(\)')).Count -eq 3) 'three immediate error capture sites'
+$loader=$ast.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -ceq 'Get-NativeProbeType'},$true)
+Check ($null -ne $loader -and $loader.Extent.Text -match 'Preloaded native helper' -and $loader.Extent.Text -match 'Add-Type') 'private loader fails closed for stale helper'
+Check ($ast.Extent.Text -notmatch 'Start-Process|Stop-Process|Get-Process|Invoke-Expression|Set-Content|Out-File') 'adapter no lifecycle or write commands'
+"SYNTHETIC_STATIC_PASS: $script:count assertions; native NOT_RUN"

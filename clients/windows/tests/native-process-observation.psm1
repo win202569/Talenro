@@ -101,4 +101,51 @@ function Get-TalenroSyntheticNativeProcessObservation {
     New-NativeSnapshot 'synthetic' $CorrelationId $started ([datetime]::UtcNow.ToString('o')) $null $calls
 }
 
-Export-ModuleMember -Function Get-TalenroSyntheticNativeProcessObservation
+function Get-NativeProbeType {
+    # This private loader is reached only by an explicitly requested live call.
+    $cached=Get-Variable -Name NativeProbeType -Scope Script -ErrorAction SilentlyContinue
+    if ($null -ne $cached) { return $cached.Value }
+    if ($null -ne ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) {
+        throw [InvalidOperationException]::new('Preloaded native helper; use a fresh host.')
+    }
+    $types=Add-Type -Path (Join-Path $PSScriptRoot 'native-process-observation.cs') -PassThru -ErrorAction Stop
+    $script:NativeProbeType=$types | Where-Object FullName -CEQ 'Talenro.Diagnostics.NativeObservationV1.NativeProbe'
+    if ($null -eq $script:NativeProbeType) { throw [InvalidOperationException]::new('Native helper type missing.') }
+    return $script:NativeProbeType
+}
+
+function Convert-NativeProbeSnapshot {
+    param($Snapshot, [string]$CorrelationId)
+    $calls=[ordered]@{}
+    foreach ($name in @('Wait','ExitCode','Times')) {
+        $raw=$Snapshot.$name
+        if ($raw.NotRun) {
+            $record=New-NativeCallRecord $null $null; $record.Status='not-run'
+        } elseif ($null -ne $raw.ExceptionType) {
+            $record=New-NativeCallRecord $raw.StartedUtc $raw.EndedUtc
+            $record.Status='exception'; $record.ExceptionType=$raw.ExceptionType
+        } else {
+            $payload=@{RawResult=$raw.RawResult;ApiSucceeded=$raw.ApiSucceeded;ExitCode=$raw.ExitCode;Times=$raw.Times;LastError=$raw.LastError}
+            $record=Convert-NativeCall $name $payload $raw.StartedUtc $raw.EndedUtc
+        }
+        $calls[$name]=$record
+    }
+    New-NativeSnapshot 'native-live' $CorrelationId $Snapshot.StartedUtc $Snapshot.EndedUtc $Snapshot.SnapshotError $calls
+}
+
+function Get-TalenroNativeProcessObservation {
+    <# No PID reopening. Caller owns the original Process and retained handle.
+       Sequential receipts, not a verdict. Native execution needs its own scope. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][ValidateNotNull()][Microsoft.Win32.SafeHandles.SafeProcessHandle]$ProcessHandle,
+        [Parameter(Mandatory)][ValidateLength(1,128)][string]$CorrelationId
+    )
+    $ErrorActionPreference='Stop'
+    if (-not $IsWindows) { throw [PlatformNotSupportedException]::new('Windows required.') }
+    $probe=Get-NativeProbeType
+    $snapshot=$probe::Capture($ProcessHandle)
+    Convert-NativeProbeSnapshot $snapshot $CorrelationId
+}
+
+Export-ModuleMember -Function Get-TalenroNativeProcessObservation, Get-TalenroSyntheticNativeProcessObservation

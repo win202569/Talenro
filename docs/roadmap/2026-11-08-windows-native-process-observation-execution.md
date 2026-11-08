@@ -18,3 +18,14 @@ Task1: complete. Missing-module RED (exit1) then48/48 synthetic GREEN (exit0).
 Commands: & ./clients/windows/tests/native-process-observation.tests.ps1.
 Only normalization/synthetic export exists at this checkpoint; native helper not loaded.
 Task2 in progress; Task3 pending. No native API/application calls.
+
+Task2: complete. RED missing live export and missing helper source (both exit1),
+then66/66 synthetic/static and20/20 compile/reflection checks passed (exit0).
+Original synthetic regression32/32 passed; original module/test diff empty.
+Commands: & ./clients/windows/tests/native-process-observation.tests.ps1;
+& ./clients/windows/tests/native-process-observation.compile.tests.ps1;
+& ./clients/windows/tests/process-observation.tests.ps1 (separate fresh hosts).
+Compile check invoked only the private stale-type loader rejection branch after
+explicit compilation; it did not invoke live export, Capture or any native API.
+Interop manually inspected for immediate errors and reference finally; ABI and
+concurrent handle behavior remain runtime-unverified. Task3 review pending.
