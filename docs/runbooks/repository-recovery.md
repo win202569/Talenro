@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — READ-ONLY SEARCH INPUT DIAGNOSIS:
+No app-source explanation established for missing typed text. Refresh reads Text;
+only logout Reset clears it; diagnostic bindings change Header/PlaceholderText.
+The failed automation did not explicitly click SearchBox before focus-based typing.
+This identifies a missing observation step, not a proven native-focus/tool cause.
+See the C3 exit-observation execution appendix for a proposed one-launch input-only
+check: explicit field click, focus observation, one jp-1 input, visible value and
+filtered list verification, normal close. New approval required; no full C3 route,
+retry, settings/source changes or fallback injection. If it fails, prefer a
+user-assisted comparison. This phase launched/tested nothing; wider gates remain.
+
 LATEST — SCREENSHOT-BACKED ATTEMPT CONSUMED, FULL C3 STILL UNVERIFIED:
 After6451e456 the user approved one new screenshot-first attempt. PID4124 entered
 demo and Nodes successfully, but jp-1 typing did not appear despite accessibility

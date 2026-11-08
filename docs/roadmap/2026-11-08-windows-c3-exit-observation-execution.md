@@ -93,3 +93,44 @@ app reproduction. A future approved route should explicitly click the observed
 SearchBox, verify actual editable focus, then enter text and verify its value;
 do not launch again merely because accessibility claimed focus. Alternatively,
 agree on user-assisted entry. This is a recommendation, not a new launch allowance.
+
+## Read-only input-path diagnosis aftera4847f34
+
+No launch, UI input, build/test, app-source change or system change in this phase.
+Inspected NodesPage.xaml/.xaml.cs, MainWindow.xaml.cs, LayoutStaticBindings.cs,
+both language resource entries, recent file history and existing run records.
+
+- SearchBox is an ordinary TextBox with TextChanged=Search_Changed, without an
+  explicit read-only setting or key handler in the inspected app code.
+- Search_Changed calls Refresh; Refresh reads SearchBox.Text.Trim() and filters
+  IDs/country/localized country labels. It does not assign SearchBox.Text.
+  SearchBox is disabled only in Connecting/Disconnecting, not the observed
+  disconnected initial Nodes state.
+- The explicit empty assignment is in NodesPage.Reset. MainWindow calls it when
+  a previously active session becomes inactive, not on ordinary Nodes navigation.
+  No logout occurred in the failed input attempt.
+- Diagnostic bindings and both resource sets assign only SearchBox.Header and
+  PlaceholderText, not Text. No app-source changes occurred between the two
+  recent attempts. Original C3's earlier successful jp-1 search remains historical
+  evidence, not a repeatable result of this phase.
+- The record shows no click inside SearchBox before type_text. The tool API says
+  type_text targets current focus; it does not target an indexed TextBox. Its
+  successful return therefore does not prove delivery to SearchBox. Accessibility
+  focus plus empty screenshots is insufficient to establish actual input delivery.
+
+Finding: the observation workflow lacks an explicit editable-control focus action
+and value-delivery checkpoint. Missing focus is a testable hypothesis, not a proven
+root cause; OS input handling, tool behavior and runtime focus are not resolved by
+source inspection. Do not patch search code or change UAC/input settings based on
+this evidence. The original shutdown problem remains separately unresolved.
+
+Recommended next diagnostic scope (requires new approval): one launch, same bound
+artifact/profile, Enter demo -> Nodes -> click inside the screenshot-observed
+SearchBox -> fresh screenshot/text focus check -> type jp-1 once -> fresh value
+and list check -> normal close. Require visible jp-1 value and only matching JP
+group/jp-1 row before calling input verified. No connection/dialog route, fallback
+set_value, second input attempt, debugger, force-kill or product changes. Reuse
+30s startup/30s close and360s observer cap, but limit input route to2minutes.
+If input still fails, stop automatic attempts and propose user-assisted comparison
+instead of repeatedly spending launches. A successful input check alone does not
+verify full C3 or establish the old shutdown cause.
