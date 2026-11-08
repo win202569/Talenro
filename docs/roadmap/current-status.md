@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 普通PowerShell已执行断言，首组最小实现待验证
+
+用户回传对照结果：13项，12失败/1通过/0跳过，exit1；失败对应占位提示、
+导航、退出重置和进入演示尚未实现，已取得预期RED，不是宿主连接超时。
+已补DemoReducer这四类分支，未改测试；尚未构建或验证GREEN，不宣称修复通过。
+下一步在用户普通PowerShell用--no-restore运行SessionTests（需编译新代码），
+保留原超时和首次运行限制。Task A仍未完成，NOT_ACCEPTED不变。
+
 ## Latest — 对照环境为管理员权限，测试前已停止
 
 用户批准非管理员对照后，执行入口令牌检查返回Administrator=True，保护检查

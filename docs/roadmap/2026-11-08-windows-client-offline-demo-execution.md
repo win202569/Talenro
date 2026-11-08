@@ -1,5 +1,27 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: user-run comparison reached expected RED; minimal implementation pending GREEN
+
+User supplied ordinary PowerShell output aftercde269e5. Diagnostic002 logs exist
+locally; user output reports xUnit adapter3.1.5 on64-bit.NET10.0.14,13 total,
+12 failed,1 passed,0 skipped,5.5s test duration,exit1. Tests actually reached
+assertions: eight missing placeholder notices, two missing navigation transitions,
+missing full logout reset and missing demo entry. Connection→Connection is the
+single passing no-op case; it is not evidence that navigation was implemented.
+This is expected behavioral RED against the identity reducer, unlike prior aborts.
+The successful host/test execution in the user's context supports an execution-
+context-specific communication problem; it does not identify the exact denying
+security policy or prove that all machine-level issues are absent.
+
+Implemented only those session branches in DemoReducer: EnterDemo, Logout,
+session-gated Navigate and placeholder notice. Tests unchanged. No connection,
+node, entitlement or UI implementation added. GREEN is UNRUN; do not mark Task A
+complete or claim the fix verified. Original filtered GREEN slot remains available.
+Next run must rebuild changed Core (omit --no-build), retain --no-restore, same
+SessionTests filter and first-use opt-outs in user's non-admin PowerShell; one
+invocation,5-minute observation budget, no automatic retries. App launch stays0.
+No agent-side test/build was run while reviewing user output or changing code.
+
 ## Latest: ordinary-context comparison stopped before execution
 
 User approved one non-administrator comparison after2c2d07b0. The available

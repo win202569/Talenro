@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS SESSION RED CONFIRMED / GREEN PENDING:
+User-run non-admin comparison reached13 assertions:12 failures,1 pass,0 skipped.
+Minimal session reducer branches now implemented, not compiled/tested afterward.
+Next is one original GREEN-slot SessionTests run with --no-restore (NOT --no-build)
+in user's ordinary shell. No automatic retry/app launch. Read execution record.
+
 LATEST WINDOWS COMPARISON PREFLIGHT STOP:
 Available outside-restriction shell reported Administrator=True; guard stopped
 before dotnet. Non-admin comparison remains UNRUN, allowance unused. User must
