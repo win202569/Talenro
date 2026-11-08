@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FOCUS FIX CHECKPOINT:
+Read docs/roadmap/2026-11-08-windows-client-focus-fix.md. Source/test are committed:
+PageHost excludes itself from Tab stops without disabling descendants. RED/GREEN,
+full160/160 and build passed; one native session verified three entry/reverse paths,
+representative modal return and lower-control auto-scroll, then closed normally.
+No runtime session remains. All current validation allowances consumed. Resume
+with read-only remaining-checklist review; new runtime work requires scoped approval.
+This is the development branch, not main or full accessibility/product acceptance.
+
 LATEST READ-ONLY FOCUS DIAGNOSIS:
 Read docs/roadmap/2026-11-08-windows-client-focus-diagnosis.md. Shared PageHost
 is the strongest source-level explanation for the extra focus stop; local WinUI

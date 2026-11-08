@@ -1,5 +1,15 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: PageHost correction passed bounded verification
+
+User approved after e19a7e38. One-property fix and declaration regression completed;
+RED expected failure, GREEN1/1, full160/160, build0warnings/errors, independent
+review no findings. PID9008 ran about215seconds and exited normally. Three page
+entry forward/reverse paths now have no extra stop; representative modal return
+and lower-control auto-scroll passed. See2026-11-08-windows-client-focus-fix.md.
+All newly approved calls consumed. Stale focus metadata and broader acceptance
+remain unresolved; no main merge, Task11/12 plus44/34/6/217 NOT_ACCEPTED unchanged.
+
 ## Latest: Read-only focus diagnosis — PageHost is strongest hypothesis
 
 After8bfc37d8, inspected source/history/tests and restored WinUI2.6.5 default

@@ -13,7 +13,7 @@
         <Button x:Uid="NavAccount" Tag="Account" Click="Navigate_Click"/>
         <Button x:Uid="NavSettings" Click="Placeholder_Click"/>
       </StackPanel>
-      <ContentControl x:Name="PageHost" Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+      <ContentControl x:Name="PageHost" Grid.Column="1" IsTabStop="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
     </Grid>
     <TextBlock x:Name="Notice" Grid.Row="2" Margin="24,12" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
   </Grid>

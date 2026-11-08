@@ -28,6 +28,29 @@ public class ShellContractTests
     }
 
     [Fact]
+    public void PageHostDeclaresNoTabStopWithoutDisablingPageControls()
+    {
+        var host = Named(Source("MainWindow.xaml"), "PageHost");
+        Assert.Equal("False", (string?)host.Attribute("IsTabStop"));
+        Assert.NotEqual("False", (string?)host.Attribute("IsEnabled"));
+        Assert.NotEqual("None", (string?)host.Attribute("TabFocusNavigation"));
+        foreach (var (page, control) in new[]
+        {
+            ("LoginPage", "EnterDemoButton"),
+            ("ConnectionPage", "PrimaryConnectionButton"),
+            ("NodesPage", "SearchBox"),
+            ("AccountPage", "MfaButton"),
+        })
+        {
+            var entry = Named(Source($"Views/{page}.xaml"), control);
+            Assert.DoesNotContain(entry.AncestorsAndSelf(), element =>
+                (string?)element.Attribute("IsEnabled") == "False" ||
+                (string?)element.Attribute("TabFocusNavigation") == "None");
+            Assert.NotEqual("False", (string?)entry.Attribute("IsTabStop"));
+        }
+    }
+
+    [Fact]
     public void OfflineNoticeLivesOutsideReplaceablePageContent()
     {
         var shell = Source("MainWindow.xaml");

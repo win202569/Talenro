@@ -1,5 +1,17 @@
 # Native verification — PARTIAL, not accepted
 
+## Latest addendum — PageHost correction verified on three entry paths
+
+After e19a7e38, one authorized session PID9008 ran about215seconds and closed
+normally (exact PID absent and refreshed window list empty). Settings→Connect,
+Settings→Search and Settings→MFA each take one Tab; Shift+Tab returns directly.
+Representative Settings explanation Escape focus return and Account lower-control
+auto-scroll passed. See2026-11-08-windows-client-focus-fix.md for commands, times,
+artifact hash, scope and limitations. Stale focus metadata remains untrusted.
+Five observed closed sessions cumulatively, plus one historical interrupted request.
+This addendum supersedes the historical extra-stop blocker below only for those
+tested paths, not full keyboard/accessibility acceptance. No launch allowance remains.
+
 ## Latest keyboard/reset session, 2026-11-08 — PARTIAL
 
 User confirmed the one-launch/20-minute keyboard/reset plan afterc4f64190.

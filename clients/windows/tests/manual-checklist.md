@@ -1,6 +1,6 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
-Four authorized ordinary-user sessions were observed and closed on2026-11-08,
+Five authorized ordinary-user sessions were observed and closed on2026-11-08,
 after one interrupted request and explicit replacement approval. See
 ../../../docs/roadmap/2026-11-08-windows-client-native-verification.md for exact
 PASS/UNVERIFIED subchecks. Unchecked compound rows below are not wholly verified.
@@ -27,8 +27,10 @@ checks. Compilation/XML tests do not substitute for native observations.
 - [x] Observed Connection/Nodes/Account primary controls and lower-control auto-scroll.
 - [x] Node arrows skip disabled rows; confirmation Tab/Shift+Tab stays in dialog,
   Escape returns to Apply; Manage devices Enter dismissal returns to its button.
-- [ ] Identify intermediate focus stop between Settings and each page's content;
-  screenshot outline unidentifiable, metadata stale. Full keyboard pass withheld.
+- [x] Correct extra Tab stop: Settings↔Connect/Search/MFA each observed in one
+  forward/reverse key after PageHost fix; see focus-fix execution record.
+  Runtime internal object identity remains unmeasured and metadata stale;
+  this scoped visual check does not establish full keyboard/accessibility acceptance.
 - [ ] Screen reader names, decorative glyph excluded, status text not color-only.
 - [ ] Contrast and enlarged text; 1024x768 and 1440x1024 logical viewport.
 - [ ] Long/RTL test-only samples, LTR email, no clipped actions; main content scrolls.
