@@ -1,5 +1,14 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Keyboard/reset proposal prepared, not launched
+
+Aftercd9bdfbe the user requested the suggested next step. Prepared
+../superpowers/plans/2026-11-08-windows-client-keyboard-reset-checks.md:
+one proposed20-minute launch, Login reset sequence and bounded four-page keyboard
+paths/modal focus return. Exact allowance awaits approval. No source changes,
+tests/builds, native launch or settings changes. Prior evidence and NOT_ACCEPTED
+unchanged; incomplete coverage must not become an automatic extra launch.
+
 ## Latest: Gap-only functional observations recorded, still PARTIAL
 
 User approved after14d50ff8. PID17108 ran17.6minutes and closed normally; exact

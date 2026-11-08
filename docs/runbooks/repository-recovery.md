@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST KEYBOARD/RESET PROPOSAL — AWAITING APPROVAL:
+Read docs/superpowers/plans/2026-11-08-windows-client-keyboard-reset-checks.md.
+Proposed1 additional launch/20minutes, Login reset plus bounded keyboard/focus
+checks only. Not launched; exact allowance awaits approval. Priorcd9bdfbe results
+remain partial. Do not rebuild, install or change settings implicitly. All prior
+launch allowances consumed; wider NOT_ACCEPTED and dev-branch-only boundary stay.
+
 LATEST GAP-ONLY RESULTS — PARTIAL, NOT ACCEPTED:
 Approved after14d50ff8; one17.6-minute session PID17108 normally closed and exact
 exit confirmed. Additional functional paths have direct evidence; see
