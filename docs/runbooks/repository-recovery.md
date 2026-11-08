@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST OBSERVATION — BUDGET EXHAUSTED, USER WAIT-CHAIN RESULT PENDING:
+After user confirmed the menu, one newly approved run consumed 1/1 launches.
+PID1772 search passed; 73 identity-valid pairs, 45 post-close pairs with native
+wait258/code API success0/raw exit time0. Timeout360.019s, no kill; subsequent
+query found neither demo nor observer. Shutdown remains FAIL/UNRESOLVED.
+Read docs/roadmap/2026-11-08-windows-wait-chain-observation-execution.md.
+User was asked for the exact PID's wait-chain screenshot/text; none received yet.
+Next inspect saved user evidence only. No WCT capture/no-wait claim, no further
+launch allowance, no source/settings changes; all NOT_ACCEPTED gates remain.
+
 LATEST UI CHECK — WAIT-CHAIN ENTRY NOT YET VERIFIED:
 Task Manager opened; UI automation exposes title only and one navigation click
 produced no observed change. No privilege cause established or settings changed.
