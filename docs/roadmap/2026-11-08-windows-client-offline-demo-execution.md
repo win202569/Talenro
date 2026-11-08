@@ -1,5 +1,24 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: Loopback differential isolates an execution-context restriction
+
+No test rerun. Inspected project/runtime configuration and relevant environment
+variable names; no matching VSTEST/DOTNET/COR_/CORECLR/COMPlus overrides appeared
+in the new default shell. Historical PID7180 was not found in either context;
+this is a point-in-time observation, not proof of all descendant cleanup.
+
+Minimal IPv4 loopback probe (ephemeral port,3-second connect bound,all sockets
+disposed) in default context: AdministratorToken=False,listen OK,connect denied
+with SocketException10013. Same probe in outside-default context:
+AdministratorToken=False,listen OK,connect OK. Prior session-diag-001 host log
+also records10013. This supports context-specific communication restriction;
+T10 lacked internal diagnostics, so its exact causal chain remains unproven.
+
+No UAC/firewall changes, installs, timeout increase, process termination or test
+retry. T10/14,G0/3,B0/2 remain unchanged. Request one diagnostic EntitlementTests
+run in working context with an in-command non-admin guard, unchanged timeout,
+and no further automatic retries. GREEN and full regression remain pending.
+
 ## Latest: Agent non-admin confirmed; T10 aborted at test-host connection
 
 User reported fixing non-admin PowerShell through UAC settings and authorized

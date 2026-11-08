@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST LOOPBACK DIFFERENTIAL DIAGNOSIS (NO TEST RETRY):
+Both default and outside-default command contexts report AdministratorToken=False.
+Default IPv4 loopback listen succeeds but connect fails SocketException10013;
+outside-default listen/connect both succeed. Probe sockets disposed immediately.
+Prior testhost logs also contain10013. T10 had no internal diagnostic log, so its
+exact failure is not independently proven. No system setting/timeout changes.
+Next seek approval for one diagnostic EntitlementTests run in the working
+non-admin context, rechecking token before invoking dotnet. T10/14 remains used.
+
 LATEST AGENT NON-ADMIN CHECK / ENTITLEMENT GREEN BLOCKED:
 User reports a UAC adjustment; agent verified AdministratorToken=False without
 changing security settings. One original T10 EntitlementTests --no-restore run
