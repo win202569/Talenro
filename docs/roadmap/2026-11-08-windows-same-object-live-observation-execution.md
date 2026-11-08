@@ -68,3 +68,39 @@ Do not repeat the UI route without a new discriminator. A native wait/exit-code
 probe, altered launcher environment or stack/dump capture would need a separately
 reviewed scope/approval. Current evidence does not identify app vs runtime vs
 OS/execution-environment root cause; all broader NOT_ACCEPTED gates remain.
+
+## Read-only API/source follow-up
+
+No application launch, native probe, test, build or settings change in this follow-up.
+Local Process assembly informational version is
+10.0.14+0427b9abbead3fa64c6655eb4290c537397131fa. Exact-commit raw source retrieval
+was unavailable (404/cache miss); the public v10.0.14 tag is reference evidence,
+not a proven source match for the deployed binary.
+
+The tag's ProcessManager.HasExited first accepts a successful GetExitCodeProcess
+whose output differs from STILL_ACTIVE, before checking the wait handle. Therefore
+HasExited and a signaled wait are not interchangeable evidence. This is a possible
+managed explanation of the observed disagreement, not proof of its native cause.
+Reference: https://raw.githubusercontent.com/dotnet/runtime/v10.0.14/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/ProcessManager.Windows.cs
+
+ProcessThreadTimes converts the exit field with DateTime.FromFileTime. Windows
+defines FILETIME relative to1601-01-01; GetProcessTimes documents its exit-time
+output as undefined before exit. The observed epoch is consistent with zero-like
+time data, but raw FILETIME was not collected, and no actual exit date is established.
+References:
+- https://raw.githubusercontent.com/dotnet/runtime/v10.0.14/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/ProcessThreadTimes.cs
+- https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes
+
+GetExitCodeProcess has separate API-success and output-code values; a zero BOOL
+means API failure, whereas a zero output code can be an exit status. Existing
+managed receipts do not expose these native return values or last-error data.
+Reference: https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getexitcodeprocess
+
+Next discriminator: design a bounded same-handle native observation that separately
+records zero-time wait result, API success, output exit code and raw process times;
+capture last-error only where the API documents failure. Preserve handle lifetime,
+identity and existing managed receipts. This is a proposed next scope, NOT executed
+or implemented here; no repeat launch allowance remains. It must not attach a
+debugger, kill a process or relax shutdown acceptance. Native results would separate
+managed interpretation from OS-returned data, but may still require later teardown
+diagnosis. Root cause remains unresolved; Task11/12 and44/34/6/217 NOT_ACCEPTED.

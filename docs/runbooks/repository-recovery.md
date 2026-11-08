@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — API SEMANTICS REVIEWED, NATIVE CAUSE STILL UNKNOWN:
+See the API/source appendix in the same-object-live-observation execution ledger.
+Reference v10.0.14 source checks output exit code before wait signaling; epoch1601
+is not a credible actual exit date. Exact deployed source commit was unavailable,
+so tag analysis is conditional. No native return values have been measured.
+Next design bounded same-handle native wait/code/time receipts with separate API
+success/error fields; implementation and live run remain separate scopes. No app
+launch/test/build/settings changes this follow-up; all NOT_ACCEPTED gates persist.
+
 LATEST RESULT — SAME-OBJECT DISAGREEMENT CONFIRMED, SHUTDOWN UNRESOLVED:
 Approved one live attempt after4c5a323d consumed. PID5136 short focused jp-1 search
 passed. After close18:24:41.186Z, the original Process repeatedly returned false
