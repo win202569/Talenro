@@ -1,5 +1,10 @@
 # Project status — updated 2026-11-08
 
+## Latest — 工具版本已验证，换机组件配置已整理
+
+只读命令确认.NET SDK10.0.403、MSBuild18.11.1.51303；VS实例完整且无需重启。已安装状态包含WinUI必需组件和SDK BuildTools。原生export未产生文件，改为从实际selectedPackages重建25项.vsconfig，明确非原生导出且未验证导入。见2026-11-07-windows-client-toolchain-readiness.md与docs/toolchains说明。
+下一步固定Windows App SDK/测试依赖、TFM、恢复源和有限执行命令，形成实施计划附录；本轮无项目创建/构建/测试/启动，不能宣称应用可运行。44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — Visual Studio WinUI安装完成，尚未进行工具链命令验证
 
 用户确认Community许可适用、手动调整显示缩放后明确批准安装。复核18.11.3/14.39GB与D盘产品缓存路径一致后只启动一次安装；下载约3.47GB、562个包，最终安装器已安装页显示Community2026 18.11.3和修改/启动按钮，无安装错误或重启提示。未点击启动，未启用开发者模式，未运行项目或SDK/MSBuild命令。

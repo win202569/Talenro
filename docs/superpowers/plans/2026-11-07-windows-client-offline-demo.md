@@ -37,6 +37,14 @@ does not authorize installation, package restoration, compilation or launching.
 
 ## Observed prerequisite gap and finite gate
 
+Update2026-11-08: tool installation and metadata checks now completed; see
+[readiness evidence](../../roadmap/2026-11-07-windows-client-toolchain-readiness.md).
+.NET SDK10.0.403 and MSBuild18.11.1.51303 are verified. Portable component config
+is reconstructed from installed state (native export did not produce a file).
+This resolves the historical absence below, NOT project execution readiness:
+Windows App SDK/test pins, TFMs, restore sources and finite commands still need
+the approved amendment. Do not begin Tasks2–5 from tool verification alone.
+
 At baseline86dfc037, repository search found no .csproj/.sln/.xaml/global.json.
 Get-Command found no dotnet or MSBuild on PATH. Both standard Program Files dotnet
 roots and both standard Visual Studio roots were absent. Windows Kits/10 exists,
@@ -54,7 +62,7 @@ or launch commands. No SDK versions are guessed or downloaded here.
 **Output:** `docs/roadmap/2026-11-07-windows-client-toolchain-readiness.md` and an
 approved amendment to this plan. No product files before qualification.
 
-- [ ] Obtain a user-provided custom tool path, or explicit approval for a separate
+- [x] Obtain a user-provided custom tool path, or explicit approval for a separate
   developer-tool installation scope. Do not repeatedly search the whole disk.
 - [ ] Record exact .NET SDK, Windows SDK, Windows App SDK, build/test tooling,
   architecture and deployment approach compatible with official documentation.

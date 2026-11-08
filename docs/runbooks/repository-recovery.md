@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS TOOL METADATA VERIFIED / PORTABLE CONFIG RECONSTRUCTED:
+Read docs/roadmap/2026-11-07-windows-client-toolchain-readiness.md and
+docs/toolchains/README.md. SDK10.0.403/MSBuild18.11.1.51303 confirmed by commands;
+VS reports complete/no reboot. windows-winui.vsconfig preserves25 selected IDs
+reconstructed from installed state; native export produced no file. Not a version
+lock or tested import. Do not auto-import/install on another PC. Next qualify app
+NuGet/test pins and bounded execution amendment; no project build/run yet.
+
 LATEST WINDOWS WINUI INSTALLATION COMPLETED ON THIS HOST:
 Read docs/roadmap/2026-11-08-windows-client-tool-installation-result.md first.
 Installer completed Community2026 18.11.3 after explicit approval, without observed
