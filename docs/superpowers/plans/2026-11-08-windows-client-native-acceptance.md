@@ -14,7 +14,10 @@ observed results separately from static/model tests, then close gracefully.
 
 **Spec:** ../specs/2026-11-07-windows-client-four-screen-design.md
 
-Status: PROPOSED, NOT APPROVED. Planning does not consume or grant a launch.
+Status: approved by user after735383cb. First launch request interrupted by
+physical Escape before any window observation; continuation checks found no
+window/process. Await explicit replacement-session approval, not automatic retry.
+See ../../roadmap/2026-11-08-windows-client-native-verification.md.
 Baseline source0d8a436f; evidence checkpointfe9c9f14:159 tests pass and repaired
 App compile passed. This is verification-only, not a feature implementation plan.
 

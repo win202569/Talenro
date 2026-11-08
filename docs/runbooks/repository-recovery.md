@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST NATIVE START INTERRUPTED:
+User approved plan; first launch request was interrupted by physical Escape.
+No successful window observation. On continuation no matching window/process was
+found. See docs/roadmap/2026-11-08-windows-client-native-verification.md.
+Do not launch again without explicit replacement-session approval; original
+second launch is for reset verification, not retry. Native acceptance unverified.
+
 LATEST NATIVE VERIFICATION PROPOSAL — NOT APPROVED/NOT RUN:
 Read docs/superpowers/plans/2026-11-08-windows-client-native-acceptance.md.
 Proposes at most2 ordinary-user launches,20+5minutes, no installs/builds/settings
