@@ -1,4 +1,71 @@
-# CountryLock language fix — blocked before valid RED
+# CountryLock language fix — scoped native recheck passed
+
+## Latest — approved native recheck, 2026-11-08
+
+Executed docs/superpowers/plans/2026-11-08-windows-switch-native-recheck.md after
+user approval. Source identity:1ac1c19e; starting documentation HEAD:baf22d43.
+Task1 complete: ordinary and diagnostic cached Debug builds, --no-restore,
+EnableLayoutDiagnostics=false/true respectively, each exit0 with0 warnings/errors
+(8.53s /8.21s). Ordinary-token guards passed; both assets files existed; initially
+no demo process/window. Existing PowerShell7 verify-layout-artifacts.ps1 PASS:
+ordinary has no diagnostic payload, diagnostic has9 required types/3 resources.
+Metadata inspection did not load/execute the managed App assembly.
+
+Fresh SHA256 identities (under clients/windows/Talenro.Demo.App):
+
+| Variant | Directory | Talenro.Demo.App.dll | Talenro.Demo.App.exe |
+| --- | --- | --- | --- |
+| O | bin/Debug/net10.0-windows10.0.19041.0/win-x64 | 845DABA84381CA3A952175543D9D7EC18AD2997522D332EA1F25F67CE5D86612 | 4180C9016386080AE442AEE091E9CBED4C638CF5E96DBD36316EC85E62CE3B95 |
+| D | bin/layout-diagnostics/Debug/net10.0-windows10.0.19041.0/win-x64 | 7F0A24D21A11084A57DEBD089BA2D5D258ADB923BC592A241D5997F4B77250BB | 4180C9016386080AE442AEE091E9CBED4C638CF5E96DBD36316EC85E62CE3B95 |
+
+Task2 complete. Each row launched the exact resolved executable above directly,
+with ordinary-token guard, one at a time; process handles supplied actual exit
+codes. All startup observations were within30s, interactions below10minutes,
+normal Alt+F4 closes below30s. Start times below retain the host's +04:00 offset.
+
+| Row | Variant / arguments | PID / start | Observed result | Exit |
+| --- | --- | --- | --- | --- |
+| S1 | O / none | 6868 /20:13:38.1497164+04:00 | PASS: Chinese Login/offline notice; no diagnostic marker; disconnected, 关→开 (JP)→关, 国家锁定已关闭 | 0 |
+| S2 | D / --layout-test --layout-language=en-US --layout-profile=baseline | 6852 /20:15:14.2860515+04:00 | PASS: English Login/offline notice and en-US/baseline marker; disconnected, Off→On (JP)→Off, Country lock off; refresh/reset checks below | 0 |
+| S3 | D / --layout-test --layout-language=zh-Hans --layout-profile=baseline | 7100 /20:18:14.5081566+04:00 | PASS: Chinese Login/offline notice and zh-Hans/baseline marker; disconnected, 关→开 (JP)→关, 国家锁定已关闭; refresh/reset checks below | 0 |
+| S4 | D / none | 8180 /20:21:20.4179570+04:00 | PASS: Chinese Login/default disconnected/off state after explicit-language sessions; no marker; 关→开 (JP)→关, 国家锁定已关闭 | 0 |
+
+All rows selected jp-1 on Nodes and applied while disconnected before enabling
+CountryLock. On/Off text and JP/lock-off status were inspected visually and in
+the accessibility tree; scrolled to reveal status below the initial viewport.
+S2/S3 additionally enabled lock again, visited Account then Connection and
+observed On/开 plus JP retained in the chosen language. Disabled lock, visited
+Account, scrolled to Exit demo/reset, returned to Login and re-entered: still
+chosen language, disconnected and Off/关 with localized lock-off status. Tab
+after the switch showed a visible focus outline on the next scenario button
+in both languages; it was not activated. Offline notice persisted throughout.
+No credentials, real account/network action, OS settings or window resizing.
+
+Observation note: S2's first indexed click on the switch left it Off; a refreshed
+screenshot showed the pointer beside the state label. Clicking the observed
+slider toggled On immediately. Subsequent slider clicks used fresh screenshots.
+This records an input-targeting no-op, not a failed launch or a language failure.
+Accessibility focus reporting stayed at the pane while the screenshot showed
+the Tab outline; no screen-reader/focus-metadata correctness claim is made.
+
+Budget closed:2/2 builds,4/4 launches; zero restore/test-suite/retry invocations.
+Post-close Get-Process found no Talenro.Demo.App process. Historical226/226 tests
+were not repeated. No source changes in this verification-only checkpoint.
+
+Ruling: use PowerShell and portable execution records instead of Bash task
+helpers, and no new implementation/TDD/reviewer cycle — approved verification-only
+scope and Windows requirement — this supplies scoped observations, not a fresh
+independent whole-branch review or renewed automated-suite assurance.
+
+Only the V3 CountryLock language finding is CLOSED by S2/S3; S1/S4 supply scoped
+ordinary-path regression evidence. Broader V3 English dialog route, V4–V7 profiles,
+remaining V8 checks, exact sizes/resize, text enlargement, screen-reader speech,
+contrast and fallback remain unverified/not run. Task11/12 and44/34/6/217 remain
+NOT_ACCEPTED; no main merge. Next propose a bounded continuation of the remaining
+Stage B routes, using these fresh identities (or re-identifying rebuilt outputs).
+No runtime allowance remains after this handoff.
+
+The sections below are historical checkpoints, superseded by this latest result.
 
 Planning follow-up after1ac1c19e: prepared
 docs/superpowers/plans/2026-11-08-windows-switch-native-recheck.md (proposed2 builds,

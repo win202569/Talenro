@@ -1,5 +1,24 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest scoped recheck (2026-11-08): fresh ordinary/diagnostic builds and static
+isolation passed; four sessions exited0. See switch-fix execution ledger in
+docs/roadmap for exact artifact hashes, arguments and observation limits.
+
+- [x] Scoped CountryLock state text: explicit en-US On/Off and zh-Hans 开/关;
+  select jp-1 while disconnected, observe JP on and localized off status.
+- [x] Scoped selected-language retention: Account→Connection while on; then off,
+  Exit demo/reset and re-enter; disconnected/off and selected language retained.
+- [x] Scoped ordinary Chinese paths: ordinary build and diagnostic/no-flag build
+  show no diagnostic marker; initial off and JP on/off transition observed.
+- [x] Local Tab observation in both diagnostic languages: next scenario button
+  has visible outline, not activated; offline notice persists.
+
+These close only the V3 switch-language finding. Broader V3 dialogs, V4–V7 profiles,
+remaining V8 checks and all compound acceptance rows remain pending. No exact
+size, complete keyboard traversal, accessibility metadata or screen-reader claim.
+No test suite rerun in this scope. Earlier pending-native statements below are
+historical and superseded only for the explicit checks above.
+
 Latest source-only follow-up: CountryLock state-language resources/bindings fixed;
 targeted35/35 and full226/226 passed. No App rebuild or native recheck yet. V3
 closure remains pending; all old artifact hashes refer to pre-fix outputs. Observe

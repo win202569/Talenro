@@ -1,5 +1,20 @@
 # Recover the project on a new computer
 
+LATEST — SWITCH NATIVE RECHECK PASSED IN SCOPE:
+Approved2/2 cached builds and4/4 ordinary-token native sessions completed with
+exit0; static artifact isolation PASS. S1 ordinary and S4 diagnostic without flags
+showed Chinese ordinary UI without marker. S2 English/S3 Chinese showed correct
+On/Off and 开/关, JP, navigation retention and logout/re-entry reset/localization.
+Only the V3 switch-language finding is closed. Full V3 dialogs, V4–V7 profiles and
+remaining V8 checks are still pending; broader NOT_ACCEPTED gates unchanged.
+Read docs/roadmap/2026-11-08-windows-layout-switch-fix-execution.md for fresh O/D
+hashes, paths, process receipts and limitations.226/226 remains historical.
+No app process remains. No build/launch allowance carries over. Recover from the
+latest codex/c12-b01-task9-coordinator commit, not main; binaries/caches/screenshots
+are intentionally excluded. A new computer must prepare dependencies separately.
+Next prepare a bounded plan for remaining Stage B routes, not repeat completed
+switch sessions. Earlier pending-closure paragraphs below are historical.
+
 LATEST PLAN — SWITCH NATIVE RECHECK AWAITS APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-switch-native-recheck.md. Proposed
 2 cached --no-restore builds and4 sequential native sessions, no retries/settings

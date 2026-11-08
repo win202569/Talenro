@@ -7,7 +7,7 @@
 **Tech Stack:** Existing .NET10/WinUI2.6.5, PowerShell, installed native UI observation tools; no new dependencies.
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md. Correction/evidence: docs/roadmap/2026-11-08-windows-layout-switch-fix-execution.md.
 
-Status: proposed after1ac1c19e, awaiting approval. Preparation authorizes no runtime action. Existing226/226 suite is historical and will not be repeated in this scope.
+Status: approved by user and executed2026-11-08. Task1 builds2/2 and static inspection PASS; Task2 sessions S1–S4 PASS with exit0; Task3 portable results recorded for checkpoint preservation. Detailed evidence: docs/roadmap/2026-11-08-windows-layout-switch-fix-execution.md. Runtime allowance exhausted. Existing226/226 suite is historical and was not repeated in this scope. Checkboxes below preserve the original execution instructions; the ledger records their results.
 
 ## Global constraints
 
