@@ -106,3 +106,36 @@ neither is authorized by this read-only source review. A separate launcher-conte
 control is an alternative if stack collection is unavailable, but is not yet run.
 This follow-up performed no app launch, native probe, attach, dump, code/settings
 change, build or tests. Root cause unresolved; all existing gates remain unchanged.
+
+## Read-only diagnostic-tool inventory
+
+After60b1f1f0, checked PATH, bounded standard paths and installed VS metadata;
+did not start any diagnostic UI or app. vswhere reports complete/launchable
+Visual Studio Community2026,18.11.12328.437 at D:/DeveloperTools/VisualStudio/2026;
+devenv.exe and Debugger/vsdebugeng.impl.dll exist. Query requiring
+Microsoft.VisualStudio.Component.VC.Tools.x86.x64 returned no installation;
+this does not prove debugger absence, but native attach capability is unverified.
+
+Taskmgr.exe and resmon.exe exist in System32. wpr.exe is on PATH; wpa.exe is
+installed under Windows Performance Toolkit. No tracing session started.
+WinDbg/CDB/ProcDump/Process Explorer/dotnet-dump absent from PATH; CDB/WinDbg
+not found in checked Windows Kits x64 debugger paths, dotnet-dump not found in
+the current user's standard tool path. These bounded checks are NOT a whole-disk
+absence claim. WinDbg Appx inventory query was access-denied, so Store installation
+status is unknown; no permission/security changes attempted.
+
+Recommended next scope: built-in Task Manager or Resource Monitor wait-chain
+inspection on the identity-bound remaining demo process after the observed close
+failure. First verify the UI offers that action before spending a launch attempt.
+No End task, dump, priority/affinity change or automatic elevation. WCT covers
+specific synchronization relationships, not a full call stack; an empty/unsupported
+result cannot establish normal shutdown or exclude deadlock. VS native attachment
+is an alternative only after readiness and pause/detach effects are separately
+confirmed. WPR/WPA tracing is wider data collection and is not the first choice.
+References:
+- https://learn.microsoft.com/en-us/windows/win32/debug/wait-chain-traversal
+- https://techcommunity.microsoft.com/blog/askperf/alternative-tools-for-application-hangs/1685245
+- https://learn.microsoft.com/en-us/visualstudio/debugger/debug-multithreaded-applications-in-visual-studio?view=visualstudio
+
+No tool install, target execution, debugger attachment, tracing, memory dump or
+test occurred. Inventory is preparation only, not authorization for a new run.

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST INVENTORY — BUILT-IN WAIT-CHAIN OPTION RECOMMENDED, NOT EXECUTED:
+Current machine has VS Community2026 at D:/DeveloperTools/VisualStudio/2026,
+Task Manager/Resource Monitor and WPR/WPA. Native VS attach readiness unverified;
+WinDbg/CDB absent from checked paths only, Store inventory access denied.
+See paired-observation ledger inventory appendix. Next inspect built-in wait-chain
+UI availability before a separately approved target run; no dump/attach/trace,
+installs or target launches were performed. Empty WCT results cannot clear blockers.
+
 LATEST FOLLOW-UP — TEARDOWN SOURCE REVIEW, NO CONFIRMED FIX:
 Read the teardown appendix in the paired-native-observation execution ledger.
 Inspected search path is synchronous; diagnostics has close-time unsubscription.
