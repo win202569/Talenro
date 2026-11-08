@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — WAIT/API EVIDENCE GAP IDENTIFIED, NO ROOT CAUSE CLAIM:
+Read the wait/API appendix in the C3 exit-observation ledger. Original-object
+wait receipts and a separately enumerated object's HasExited are not equivalent
+observations; blank getters lacked explicit field errors. Official docs/reference
+source explain distinct mechanisms but do not diagnose this local incident.
+Next prepare a bounded reusable observation harness capturing same-object wait,
+HasExited, ExitCode/ExitTime and individual getter exceptions. Review receipt logic
+before requesting a new runtime allowance. No unbounded wait, app-lifecycle patch,
+kill, debugger or dump is implied. This phase launched/tested nothing; gates stay.
+
 LATEST — INPUT CHECK PASSED; SHORT ROUTE EXIT RECEIPT TIMED OUT:
 One approved input-only launch consumed after20d52400. PID18160 started22:02:46
 on2026-11-08 +04:00. Explicit field click then one jp-1 input produced verified

@@ -180,3 +180,57 @@ observations using this shorter route; no app-source patch or automatic rerun.
 Any native stack/dump capture, debugger attachment or changed launcher execution
 environment needs explicit approval and privacy/cleanup scope. All broader gates
 remain NOT_ACCEPTED. New1/1 allowance consumed; no runtime allowance carries over.
+
+## Read-only wait/API investigation after0167d0b5
+
+No demo launch, debugger/dump, product-code change, build/test or settings change.
+Current command host reports PowerShell7.6.9, runtime10.0.14, Windows10.0.26200,
+Process assembly10.0.0.0/file10.0.1426.52326. This identifies the inspected host,
+not retroactive proof of each earlier launcher binary. Existing verification
+script inventory contains verify-layout-artifacts.ps1; the recent launch/wait
+commands were session commands rather than a checked-in reusable observer.
+
+Primary references inspected:
+- https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.waitforexit?view=net-10.0
+- https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.hasexited?view=net-10.0
+- https://raw.githubusercontent.com/dotnet/runtime/v10.0.0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Windows.cs
+- https://raw.githubusercontent.com/dotnet/runtime/v10.0.0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/ProcessManager.Windows.cs
+
+Reference-source inference, not an exact10.0.14 binary audit: timed WaitForExitCore
+waits on the process handle; UpdateHasExited can accept an invalid reopened handle,
+and ProcessManager.HasExited first checks an exit code before signal state. Thus
+the two checks are not interchangeable. Microsoft also documents administrative
+information retained through open handles after exit. Mere list presence or its
+later disappearance does not establish continuing application execution or cause.
+These general mechanisms do not explain the observed one-thread state conclusively.
+
+The original launcher used timed waits without redirected streams/async readers;
+the documented infinite-wait step for draining asynchronous redirected output is
+not applicable evidence here. Do not add an unbounded wait as a proposed repair.
+Its timeout branch and final Dispose complete normally, so shell exit0 remains
+expected even when no APP_EXIT was obtained. Disposing this observation object
+does not itself issue an application kill.
+
+Evidence gap: the retained original Process object supplied only WaitForExit and
+read ExitCode only on successful wait. The separate HasExited=True observation
+came from a newly enumerated object in a different execution context. Blank
+PowerShell property output was not accompanied by explicit getter-level error
+receipts, so it cannot be promoted to a valid zero exit code or a precise native
+error. No observation compared wait state, HasExited and exit-code retrieval on
+the same original object at the same checkpoint.
+
+Recommended next change is to the observation harness, not app lifecycle: prepare
+a reusable observer which records timestamp/PID/start and independently guarded
+original-object WaitForExit(0), get_HasExited(), get_ExitCode(), get_ExitTime()
+results, with per-field success/error/exception type. Numeric exit0 must remain
+distinct from missing/error. Preserve existing bounded waits, single-start ceiling
+and no-kill rule; never treat HasExited alone as normal-shutdown acceptance.
+First review/validate this receipt logic without launching the demo, then seek
+new scoped runtime approval. No implementation or new launch is authorized by
+this read-only investigation. Native stack capture is not yet required by these
+findings and remains separately permissioned if later justified.
+
+Conclusion: a missing same-object observation boundary is identified; neither an
+application shutdown defect nor a PowerShell/.NET defect is proven. Original
+failure and all NOT_ACCEPTED gates remain. Do not patch Exit/Dispose in the app
+or claim search caused the shutdown based on temporal association.
