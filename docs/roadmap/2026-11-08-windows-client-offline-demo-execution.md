@@ -1,5 +1,15 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Native verification proposal prepared, no launch
+
+User requested next step afterfe9c9f14. Prepared separate native acceptance plan
+with at most2 launches/20+5minutes; awaits approval. Read-only check found the
+existing App.exe,312320bytes,modified2026-11-08T15:47:51.8789838+04:00,
+SHA256 026D8642F47107CE84465BCF0E3133EC02242AD25B59D41068A58BC11CA67C95.
+This executable hash alone does not attest all adjacent DLLs/resources.
+No native launch, code change, test/build, restore or system-setting change.
+Actual UI/accessibility/runtime observations remain pending,NOT_ACCEPTED unchanged.
+
 ## Latest: Final full suite159/159 GREEN; review fix verification complete
 
 User approved one additional full call after0d8a436f. Agent command rechecked

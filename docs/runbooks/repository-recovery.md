@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST NATIVE VERIFICATION PROPOSAL — NOT APPROVED/NOT RUN:
+Read docs/superpowers/plans/2026-11-08-windows-client-native-acceptance.md.
+Proposes at most2 ordinary-user launches,20+5minutes, no installs/builds/settings
+changes or retries. User approval is still required; native launch allowance0.
+Only existing executable presence was checked. Source/tests remain unchanged.
+
 LATEST FINAL REGRESSION GREEN:
 After0d8a436f, separately approved full regression passed159/159,0 failed/skipped,
 exit0,60ms. Agent verified non-admin token. Both review fixes now have targeted
