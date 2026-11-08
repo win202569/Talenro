@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — LOADER COVERAGE GAP CLOSED:
+Run & ./clients/windows/tests/native-process-observation.loader.tests.ps1 in its
+own fresh PowerShell7 host. All11 assertions pass: first compilation, exact cached
+Type reuse and fail-closed forced reimport. No Capture/native calls or handles.
+Existing78/20/32 checks also rerun successfully; production module/helper unchanged.
+This test-only follow-up characterizes existing behavior (no RED/fix claim).
+The deferred loader test item below is now closed. Next prepare separately scoped
+same-handle paired runtime evidence; live adapter and app shutdown remain unverified.
+
 LATEST IMPLEMENTATION — NATIVE RECORDER, REVIEW FINDINGS FIXED:
 Commits d0ff97e7/ccbf9ac0 add clients/windows/tests/native-process-observation.psm1,
 native-process-observation.cs and two test scripts. In separate fresh PowerShell7

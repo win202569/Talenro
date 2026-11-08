@@ -77,3 +77,20 @@ all exit0 after fixes. Native adapter/Capture/API invocation NOT_RUN throughout.
 No app launch/build/restore/full suite/settings changes. Original recorder/test
 unchanged. Recovery records include deferred loader-cache/reimport coverage and
 all runtime limitations. Only ordinary development checkpoint push is intended.
+
+## Loader coverage follow-up
+
+User requested the next step after3b5e38dc. Added only
+clients/windows/tests/native-process-observation.loader.tests.ps1, exercising the
+existing private loader in a fresh PowerShell7 host. First load compiles the helper;
+second load returns the identical cached Type. Forced reimport loses the private
+cache and rejects the already loaded helper on both attempts without adopting or
+replacing it. Import itself still does not load the helper. All11 assertions pass.
+This is characterization coverage of existing behavior, not a new production fix;
+first run passed, no RED/GREEN implementation claim. Production files unchanged.
+No handles were constructed, no live export/Capture/native APIs were invoked.
+Regression reruns:78 synthetic/static,20 compile/reflection,32 original synthetic,
+all pass. Deferred loader coverage item is now closed; earlier review remains
+historical, this small test-only follow-up was self-reviewed. Actual ABI, handle
+lifetime, launch identity and application shutdown still require scoped runtime
+evidence. Next prepare same-handle paired observation scope, not automatic launch.
