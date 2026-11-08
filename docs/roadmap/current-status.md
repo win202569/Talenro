@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 配对观测完成，系统接口层矛盾已记录
+
+获批1/1启动已用完。PID21236搜索jp-1/过滤通过；73组创建身份核对均通过。
+关闭后60组：原生等待258/退出码API成功且为0/退出时间全零，托管等待false、
+HasExited=true、code0、时间1601。360秒无退出信号，TIMEOUT/Killed=false。
+随后应用/观察程序查询均为0；不能推断观察程序退出导致应用消失。关闭未验收。
+详见2026-11-08-windows-paired-native-observation-execution.md；原生真实运行/矛盾路径
+已记录，但正常信号/失败路径未实测。下一步只读分析退出流程与观察程序生命周期，
+不重复相同启动；所有NOT_ACCEPTED保留，无源码/设置变更。
+
 ## Latest — 同一句柄配对观测方案已准备，待单次运行批准
 
 方案：docs/superpowers/plans/2026-11-08-windows-paired-native-observation.md。

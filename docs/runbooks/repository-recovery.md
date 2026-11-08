@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST RESULT — NATIVE-BOUNDARY DISAGREEMENT OBSERVED, SHUTDOWN UNRESOLVED:
+Single approved attempt after0fbb76e0 consumed: PID21236, original retained handle,
+73 identity-valid pairs. Search/filter passed. Post-close60 pairs showed native
+wait258, successful exit-code0, successful raw exit-time0; managed false wait/
+true HasExited/code0/1601. Timeout360.016s, no kill/no signal. Later app/launcher
+absent. Read docs/roadmap/2026-11-08-windows-paired-native-observation-execution.md.
+Live running/conflict paths observed; signaled and API-failure paths not observed.
+No remaining launch allowance. Next read-only teardown/observer-lifetime analysis;
+any new runtime discriminator needs separate scope. Root cause and all broader
+NOT_ACCEPTED gates remain; no source/settings change or automated test this round.
+
 LATEST PLAN — PAIRED SAME-HANDLE OBSERVATION AWAITS APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-paired-native-observation.md.
 Proposes one offline demo launch, retained original Process/SafeHandle, native-first

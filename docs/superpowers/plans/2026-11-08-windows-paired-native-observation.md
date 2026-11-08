@@ -10,7 +10,9 @@
 
 **Spec:** docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md; prior route and limits in 2026-11-08-windows-same-object-live-observation.md.
 
-Status: proposed; awaiting explicit approval of one application launch and native reads. No attempt made or granted by document preparation.
+Status: approved after0fbb76e0; one attempt consumed.73 pairs recorded, shutdown
+timed out without signal; see paired-native-observation-execution ledger. No
+remaining runtime allowance. Approval request below is historical.
 
 ## Global constraints
 
