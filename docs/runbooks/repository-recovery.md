@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — READ-ONLY SHUTDOWN DIAGNOSIS:
+At2026-11-08T21:48:44+04:00 CIM listed C3 PID12928 (one thread) and launcher6852,
+while .NET GetProcessById reported12928 not running. The original630-second wait
+then returned `C3 TIMEOUT; not killed`; its shell exit0 is NOT an application exit.
+At21:49:09 CIM listed neither PID and name-based Get-Process found no demo.
+No termination, debugger attachment, relaunch, build, test or source change occurred.
+Application exit code and root cause remain unknown. Read the continuation ledger
+appendix; earlier statements of a remaining PID describe earlier observations only.
+Next prepare a separately approved single bounded reproduction with independent
+exit observation; do not reuse old launch slots or treat disappearance as acceptance.
+
 LATEST — CONTINUATION STOPPED, SHUTDOWN UNRESOLVED:
 C1 English dialog/reset and C2 long-status passed and exited0. C3 long-country UI
 checks passed but normal close left PID12928 (start2026-11-08T21:38:35+04:00) with

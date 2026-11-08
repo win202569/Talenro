@@ -79,3 +79,40 @@ the launcher exit wait before any replacement native sessions. Preserve original
 records. Do not patch code, force-kill, reuse unused slots or mark Stage B accepted.
 Earlier switch-language closure stands only in its prior scope; Task11/12 and
 44/34/6/217 remain NOT_ACCEPTED. C4–C6 and exact-size/accessibility gaps stay open.
+
+## Read-only shutdown diagnosis — user approved after checkpoint3f95d9f0
+
+No application launch, build, test, source/settings change, debugger attachment,
+dump capture or forced termination was performed. Original records are retained.
+All following times are2026-11-08 +04:00.
+
+- At21:48:44, broader read-only CIM reported PID12928, creation21:38:35,
+  parent6852, ThreadCount1. Parent6852 was pwsh.exe, creation21:38:34,18 threads.
+  In the same check .NET GetProcessById(12928) reported not running. Earlier
+  restricted-context absence is not reliable; these inconsistent API observations
+  do not establish whether application execution or process teardown was blocked.
+- Original launcher session8604 subsequently returned `C3 TIMEOUT; not killed`.
+  Tool receipt reported shell exit0. That is the timeout branch completing normally,
+  NOT C3 exit0; C3's application exit code was never obtained.
+- At21:49:09, broader CIM returned neither12928 nor6852; name-based Get-Process
+  also returned no Talenro.Demo.App. Disappearance followed the timeout/launcher
+  completion, but this timing alone does not prove causality or successful shutdown.
+- The bounded Application-log query returned no matching Talenro/12928 event
+  among queried1000/1001/1026 records. This is not proof that no fault occurred.
+
+Source inspection: LayoutWindowObserver subscribes Window.Closed and its Dispose
+sets disposed then removes window/root/page/UISettings subscriptions. Refresh has
+a disposed guard. Thus missing observer cleanup is not demonstrated. App holds
+its Window; MainWindow caches pages/model and refreshes synchronously. NodesPage
+awaits ContentDialog.ShowAsync and dispatches its result; DemoViewModel dispatch
+is synchronous. No custom foreground-thread launch was identified in inspected
+app code. Neither those facts nor the completed dialog UI prove native shutdown
+completed. C1 ended after reset on Connection; C3 ended on Nodes after selection,
+search and cancelled dialog. This is a possible reproduction variable, not a cause.
+
+Conclusion: symptom and wait timeout confirmed, no root cause established. Current
+snapshot has no matching process, but no normal-exit receipt. Do not patch an
+assumed lifecycle defect or add unconditional Exit/kill as a workaround. Next
+prepare a single bounded reproduction with independent exit observation and
+explicit process identity checks; runtime work or diagnostic attachment requires
+new scoped approval. Old unused slots remain expired. All acceptance gates remain.
