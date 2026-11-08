@@ -10,7 +10,23 @@
     <SelfContained>true</SelfContained>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <PublishSingleFile>false</PublishSingleFile>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableLayoutDiagnostics)' == 'true'">
+    <DefineConstants>$(DefineConstants);LAYOUT_DIAGNOSTICS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableLayoutDiagnostics)' != 'true'">
+    <Compile Remove="Diagnostics/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableLayoutDiagnostics)' == 'true'">
+    <EmbeddedResource Include="../tests/ui-copy-cases.json" LogicalName="LayoutFixtures.json" />
+    <EmbeddedResource Include="Strings/zh-Hans/Resources.resw" LogicalName="LayoutStrings.zh-Hans.xml" />
+    <EmbeddedResource Include="Strings/en-US/Resources.resw" LogicalName="LayoutStrings.en-US.xml" />
+  </ItemGroup>
+  <Target Name="RejectReleaseLayoutDiagnostics" BeforeTargets="PrepareForBuild;ResolvePackageAssets;CoreCompile"
+          Condition="'$(EnableLayoutDiagnostics)' == 'true' And '$(Configuration)' == 'Release'">
+    <Error Code="LAYOUT001" Text="Layout diagnostics are forbidden in Release builds." />
+  </Target>
   <ItemGroup>
     <ProjectReference Include="../Talenro.Demo.Core/Talenro.Demo.Core.csproj" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="[2.6.5]" />

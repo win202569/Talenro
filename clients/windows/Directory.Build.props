@@ -1,8 +1,14 @@
 <Project>
   <PropertyGroup>
+    <EnableLayoutDiagnostics Condition="'$(EnableLayoutDiagnostics)' == ''">false</EnableLayoutDiagnostics>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Talenro.Demo.App' And '$(EnableLayoutDiagnostics)' == 'true'">
+    <BaseIntermediateOutputPath>obj/layout-diagnostics/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/layout-diagnostics/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/layout-diagnostics/</BaseOutputPath>
   </PropertyGroup>
 </Project>
