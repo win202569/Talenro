@@ -1,6 +1,6 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
-Three authorized ordinary-user sessions were observed and closed on2026-11-08,
+Four authorized ordinary-user sessions were observed and closed on2026-11-08,
 after one interrupted request and explicit replacement approval. See
 ../../../docs/roadmap/2026-11-08-windows-client-native-verification.md for exact
 PASS/UNVERIFIED subchecks. Unchecked compound rows below are not wholly verified.
@@ -20,9 +20,15 @@ checks. Compilation/XML tests do not substitute for native observations.
 - [x] Excluded actions explain nonimplementation; no external links or false success.
 - [ ] Logout resets model, selectors, drafts, notices; close/reopen starts fresh.
 - [x] Changed Nodes search/list reset to empty/normal/Auto on logout and reentry.
-- [ ] Changed Login scenario before entry, returned normal, then logout reset sequence.
+- [x] Changed Login scenario before entry, returned normal, then logout reset sequence.
 - [x] Pointer scrolling visibly moves Connection/Nodes/Account content.
 - [ ] Keyboard traversal, visible focus, Escape/Enter, dialog return focus.
+- [x] Observed Login forward/reverse path and Registration Escape focus return.
+- [x] Observed Connection/Nodes/Account primary controls and lower-control auto-scroll.
+- [x] Node arrows skip disabled rows; confirmation Tab/Shift+Tab stays in dialog,
+  Escape returns to Apply; Manage devices Enter dismissal returns to its button.
+- [ ] Identify intermediate focus stop between Settings and each page's content;
+  screenshot outline unidentifiable, metadata stale. Full keyboard pass withheld.
 - [ ] Screen reader names, decorative glyph excluded, status text not color-only.
 - [ ] Contrast and enlarged text; 1024x768 and 1440x1024 logical viewport.
 - [ ] Long/RTL test-only samples, LTR email, no clipped actions; main content scrolls.

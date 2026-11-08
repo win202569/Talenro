@@ -1,5 +1,77 @@
 # Native verification — PARTIAL, not accepted
 
+## Latest keyboard/reset session, 2026-11-08 — PARTIAL
+
+User confirmed the one-launch/20-minute keyboard/reset plan afterc4f64190.
+Preconditions: AdministratorToken=False; no demo process/window; clean worktree;
+App/Core unchanged against0d8a436f; executable path/hash matched the record below.
+PID10372 started2026-11-08T16:58:24.3141461+04:00, Login observed within30seconds.
+Ordinary Alt+F4 requested17:09:33.125+04:00 (11.15minutes). Exact PID absent in an
+authorized read-only check outside the restricted context; a subsequent window
+enumeration returned no Talenro window. No kill, retry, or additional launch.
+This allowance1/1 consumed; cumulative5 requests,4 observed closed sessions and
+one historical interrupted request. No code/test/build/restore/settings changes;
+prior159/159 was not rerun. Screenshots inspected live, not saved or committed.
+
+### PASS — observed paths, not full keyboard/accessibility acceptance
+
+- Login: visible initial Enter focus; Tab → Reset password → Registration →
+  Login scenario. Shift+Tab from scenario → Registration → Reset password →
+  Enter. Lower controls automatically scrolled into view. Fixed email/password
+  remained text in the tree, with no editable credential control in this path.
+- Registration: keyboard Return opened the offline explanation; Escape closed
+  it and the visible focus outline returned to Registration.
+- Login reset: Down on scenario selected invalid input, disabled entry and showed
+  the simulation explanation; Home restored normal and enabled entry. Entered,
+  visited Account, keyboard-activated Exit. Login then visibly showed normal
+  selector, enabled entry and blank global notice. This does not claim that a
+  nonnormal scenario survived entry: normal was deliberately restored first.
+- Account: from the Account sidebar button, Tab → Settings → one unidentified
+  focus stop (see below) → MFA → Manage devices → Language → Delete placeholder
+  → Exit. Lower actions automatically scrolled into view. Return on Manage devices
+  opened the explanation; Return closed it and visible focus returned to that
+  button. Delete was only traversed, not activated in this session.
+- Connection: visible sidebar sequence Connection → Nodes → Traffic → Devices →
+  Account → Settings; then unidentified stop → labelled primary Connect → Choose
+  location → Country lock → Success → Failure → Locked-all-failed → Disconnect
+  completion → Entitlement selector. Shift+Tab from selector returned to Disconnect
+  completion. Lower controls auto-scrolled. No extra actionable power-glyph stop
+  was identified; the unidentified stop prevents a comprehensive focus claim.
+- Nodes: sidebar Settings → unidentified stop → visible Search caret → Auto row.
+  Down selected jp-1, skipping JP heading; Down selected de-1, skipping disabled-1
+  and DE heading; Up returned jp-1. Tab → Back → Apply → List scenario; Shift+Tab
+  returned Apply. Lower actions auto-scrolled and disabled rows were not selected.
+- Confirmation setup only: applied jp-1, explicitly simulated success, drafted
+  de-1 with lock off. Keyboard Return on Apply opened the restart confirmation.
+  Initial visible focus was Cancel. Tab cycled Cancel → Confirm → Cancel;
+  Shift+Tab cycled Cancel → Confirm → Cancel. Escape closed the dialog and visible
+  focus returned to Apply. No cross-country confirmation was submitted.
+
+### Unresolved observation — do not silently mark passed
+
+After Settings, the first Tab into each authenticated page had no identifiable
+focus outline in the bounded screenshot; the next Tab reached MFA/Connect/Search
+respectively. On Account a second read-only snapshot still did not identify the
+intermediate focus. Metadata repeatedly reported the root pane or stale Search
+even when another control visibly had focus. Therefore metadata alone cannot
+identify this stop or establish whether it is an app focus defect, a container
+focus presentation issue, or an observation limitation. No confirmed app defect
+was established; whole-page focus visibility remains UNVERIFIED.
+
+Next recommended step: scoped read-only source inspection of focusable content
+containers and navigation (no new launch/build/settings change) before proposing
+any repair or additional runtime check. Full reverse traversal of every control,
+all modal variants, screen reader, contrast, enlarged text, target viewports,
+RTL/English and design comparison remain unverified; broader runtime/security/
+storage/atomicity acceptance unchanged. Task11/12 and44/34/6/217 NOT_ACCEPTED.
+
+Ruling: this approved observation-only plan uses the portable evidence ledger,
+not implementation/TDD/build or delegated review machinery; it authorizes no
+code repair. Some Account and Login focus checks were performed while completing
+the reset sequence to avoid repeating navigation. Cost/limit: no implementation
+or independent accessibility acceptance is inferred. All prior records below
+remain historical, superseded only by the explicit observations in this entry.
+
 ## Latest gap-only session, 2026-11-08 — PARTIAL
 
 User approved the one-launch/20-minute gap plan after14d50ff8. The allowance is

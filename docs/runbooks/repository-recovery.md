@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST KEYBOARD/RESET RESULT — PARTIAL:
+User confirmed afterc4f64190; PID10372 normally closed after11.15minutes, exact
+process exit verified. Login reset and recorded four-page keyboard/modal paths
+observed. See docs/roadmap/2026-11-08-windows-client-native-verification.md.
+Unresolved: Settings→content intermediate focus stop lacks identifiable outline;
+metadata is stale. Next recommend read-only source diagnosis, not another launch
+or assumed fix. All native launch allowances consumed (4 observed closed sessions,
+plus1 interrupted request). No source/test/build/settings changes this round.
+Full accessibility/visual and wider NOT_ACCEPTED gates unchanged; dev branch only.
+Older awaiting-approval entries below are superseded by this result.
+
 LATEST KEYBOARD/RESET PROPOSAL — AWAITING APPROVAL:
 Read docs/superpowers/plans/2026-11-08-windows-client-keyboard-reset-checks.md.
 Proposed1 additional launch/20minutes, Login reset plus bounded keyboard/focus

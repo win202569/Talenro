@@ -1,5 +1,17 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Keyboard/reset observations recorded, content-entry focus unresolved
+
+Confirmed afterc4f64190; PID10372 ran11.15minutes and exited normally with exact
+process/window checks. One launch consumed. Login reset, primary keyboard paths,
+auto-scroll, disabled-row skipping and three representative dialog focus-return
+paths observed. Settings→content includes an unidentified focus stop on each
+authenticated page; stale focus metadata prevents attribution. Full keyboard
+acceptance withheld. See2026-11-08-windows-client-native-verification.md.
+Recommend read-only focus/container source diagnosis before any repair or new
+launch. No source/test/build/restore/settings changes or confirmed app defect.
+Prior159/159 not rerun; broader NOT_ACCEPTED unchanged. Earlier entries historical.
+
 ## Latest: Keyboard/reset proposal prepared, not launched
 
 Aftercd9bdfbe the user requested the suggested next step. Prepared

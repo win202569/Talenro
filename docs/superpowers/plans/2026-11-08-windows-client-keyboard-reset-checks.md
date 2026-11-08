@@ -10,8 +10,10 @@ This is an observation plan, not authorization to implement or fix code.
 **Tech Stack:** Existing WinUI3 executable, native UI observations, PowerShell.
 **Spec:** ../specs/2026-11-07-windows-client-four-screen-design.md.
 
-Status: proposed aftercd9bdfbe and user request to continue with the recommendation.
-Exact new launch/time allowance awaits approval. All previous allowances consumed.
+Status: user confirmed afterc4f64190; PID10372 observed and normally closed after
+11.15minutes. This allowance1/1 consumed. Observed checks recorded in
+../../roadmap/2026-11-08-windows-client-native-verification.md; overall PARTIAL
+because intermediate content-entry focus remains unidentified. No new launch.
 
 ## Global Constraints
 
@@ -49,10 +51,10 @@ Exact new launch/time allowance awaits approval. All previous allowances consume
 Files: append evidence to docs/roadmap/2026-11-08-windows-client-native-verification.md;
 update clients/windows/tests/manual-checklist.md only for fully observed subchecks.
 
-- [ ] Check preconditions; launch once; record exact PID/path/start and startup.
-- [ ] On Login, select invalid-input scenario with keyboard; observe disabled
+- [x] Check preconditions; launch once; record exact PID/path/start and startup.
+- [x] On Login, select invalid-input scenario with keyboard; observe disabled
   entry and explanation. Return selector to normal; observe enabled entry.
-- [ ] Enter demo, visit Account, exit demo. Inspect Login selector normal, blank
+- [x] Enter demo, visit Account, exit demo. Inspect Login selector normal, blank
   notice and enabled entry. Record this specific sequence, not a stronger claim
   that a nonnormal selector survived entry (entry deliberately requires normal).
 
@@ -63,10 +65,10 @@ if they disagree and focus cannot be established, mark the subcheck UNVERIFIED.
 Use one action then refresh. Pointer navigation may set up a page, but cannot
 count as keyboard reachability. Record actual control sequence, not just PASS.
 
-- [ ] Login: Tab through actionable controls to the scenario selector; reverse
+- [x] Login: Tab through actionable controls to the scenario selector; reverse
   with Shift+Tab. Observe visible focus and lower-control auto-scroll. Read-only
   fields may receive reading focus but must not become editable.
-- [ ] Keyboard-open registration placeholder, dismiss with Escape, verify focus
+- [x] Keyboard-open registration placeholder, dismiss with Escape, verify focus
   returns to Registration. If inaccessible, record the observed limitation.
 - [ ] Enter demo. Connection: traverse sidebar and content controls, observe one
   labelled primary action (decorative glyph not an extra action), lock/scenario
@@ -74,23 +76,30 @@ count as keyboard reachability. Record actual control sequence, not just PASS.
 - [ ] Nodes: keyboard-reach search, node list, Back/Apply and scenario selector;
   inspect arrows over country/disabled rows without applying an invalid selection.
   Confirm lower actions reachable and reverse traversal returns usable focus.
-- [ ] Set up jp-1 connected using explicit demo events, draft de-1 and open Apply
+- [x] Set up jp-1 connected using explicit demo events, draft de-1 and open Apply
   confirmation. Inspect initial Cancel focus, Tab/Shift+Tab containment, Escape
   dismissal and return to Apply. Do not reconfirm a cross-country switch.
 - [ ] Account: traverse available actions; keyboard-open Manage devices placeholder,
   dismiss with Enter and verify return focus. Inspect exit action reachability.
-- [ ] Close normally within the time limit and verify exact process exit/window
+- [x] Close normally within the time limit and verify exact process exit/window
   disappearance. Mark any unvisited control/path UNVERIFIED; do not infer a
   whole-page or whole-app keyboard pass from a few successful controls.
 
+Connection/Nodes/Account steps executed, but remain partially verified: primary
+controls and recorded reverse paths were visible; each page's intermediate focus
+stop after Settings was not identifiable. Account placeholder/Exit checks passed.
+See the exact sequences in the evidence ledger; do not repeat whole matrices.
+
 ## Task 3: Preserve results
 
-- [ ] Reconcile the two tasks against observations; update manual subchecks without
+- [x] Reconcile the two tasks against observations; update manual subchecks without
   treating focus metadata or source tests as assistive-technology acceptance.
-- [ ] Update docs/roadmap/current-status.md,
+- [x] Update docs/roadmap/current-status.md,
   docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md and
-  docs/runbooks/repository-recovery.md. Review explicit changed files, diff check,
-  commit/push existing dev branch and verify remote/local SHA plus clean worktree.
+  docs/runbooks/repository-recovery.md.
+- Preserve the explicit documentation checkpoint after diff checks; commit/push
+  existing dev branch and compare remote/local SHA and clean worktree. The handoff
+  reports that transport result; this file cannot attest its own future push.
 
 ## Deferred and self-review
 
