@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS EXECUTION AMENDMENT PROPOSED / NOT EXECUTED:
+Read docs/superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md
+with its parent plan/spec. Pins, TFMs, NuGet source, lockfile procedure and finite
+Tasks2–4 allowance are proposed for review. No client scaffold/package download,
+restore/build/test or native launch occurred. Approval must precede implementation;
+native Task5 launch remains separately gated. Installed tools are not portable Git
+content, and package compatibility remains unverified until the first approved run.
+No change to Task11/12,44/34/6/217,NOT_ACCEPTED. Earlier entries below are historical.
+
 LATEST WINDOWS TOOL METADATA VERIFIED / PORTABLE CONFIG RECONSTRUCTED:
 Read docs/roadmap/2026-11-07-windows-client-toolchain-readiness.md and
 docs/toolchains/README.md. SDK10.0.403/MSBuild18.11.1.51303 confirmed by commands;

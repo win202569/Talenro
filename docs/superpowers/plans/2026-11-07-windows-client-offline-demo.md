@@ -37,6 +37,11 @@ does not authorize installation, package restoration, compilation or launching.
 
 ## Observed prerequisite gap and finite gate
 
+Update2026-11-08: [execution amendment](2026-11-08-windows-client-offline-demo-execution-amendment.md)
+now proposes exact pins, TFMs, source/lockfiles and finite Tasks2–4 recipes.
+Await user review/approval; none has been executed. Its handoff supersedes the
+historical tool-location/installation decision at the end of this document.
+
 Update2026-11-08: tool installation and metadata checks now completed; see
 [readiness evidence](../../roadmap/2026-11-07-windows-client-toolchain-readiness.md).
 .NET SDK10.0.403 and MSBuild18.11.1.51303 are verified. Portable component config

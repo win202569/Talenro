@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-08
 
+## Latest — 原生离线演示执行附录已拟定，待审阅
+
+见../superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md。
+固定SDK10.0.403、WindowsAppSDK2.6.5及测试依赖，明确net10.0/Windows TFM、
+免安装自包含x64、唯一NuGet源与锁文件。拟议额度为4次恢复、14次分组测试、
+3次全套测试、2次应用构建；异常停止，无自动重试，原生启动额度为0。
+仅核对官方元数据并编写计划，未创建客户端、下载包、恢复、构建或测试。
+依赖组合尚未实测；xUnit2为仅安全修复的旧版，文档已披露。待用户审阅批准后
+按inline方式实施Tasks2–4；Task5视觉/启动另行授权。44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — 工具版本已验证，换机组件配置已整理
 
 只读命令确认.NET SDK10.0.403、MSBuild18.11.1.51303；VS实例完整且无需重启。已安装状态包含WinUI必需组件和SDK BuildTools。原生export未产生文件，改为从实际selectedPackages重建25项.vsconfig，明确非原生导出且未验证导入。见2026-11-07-windows-client-toolchain-readiness.md与docs/toolchains说明。

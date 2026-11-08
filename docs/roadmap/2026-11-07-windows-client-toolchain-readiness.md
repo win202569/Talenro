@@ -47,6 +47,12 @@ behavior; no new-machine install/import was run. See toolchains README for limit
 
 ## Remaining implementation gate
 
+Update2026-11-08: [execution amendment](../superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md)
+has been written and author-reviewed, awaiting user approval. It proposes exact
+package pins and bounded commands but provides no restore/build compatibility
+evidence. No project execution or new tool installation occurred in this planning
+pass. The paragraph below describes the preceding metadata checkpoint.
+
 Host/tool absence is resolved. Next prepare the plan amendment with exact Windows
 App SDK/test package versions, TFMs, deployment approach, approved restore sources,
 lockfiles and finite restore/build/test/launch commands. Then obtain implementation
