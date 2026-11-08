@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST FINAL REGRESSION GREEN:
+After0d8a436f, separately approved full regression passed159/159,0 failed/skipped,
+exit0,60ms. Agent verified non-admin token. Both review fixes now have targeted
+RED/GREEN plus full-suite GREEN; the repaired App previously compiled successfully.
+Task B code/automated gates complete, not native acceptance. Next plan a separate
+finite Task5 launch/visual/accessibility session; native launches still0.
+Extra full-run allowance1/1 used. Wider NOT_ACCEPTED gates and main remain unchanged.
+
 LATEST REVIEW FIX PASS / FULL SUITE RECONFIRMATION PENDING:
 Country lifecycle and localized notices implemented. Targeted tests passed8/8
 and19/19 after expected RED. Full159:158 pass,1 failure in

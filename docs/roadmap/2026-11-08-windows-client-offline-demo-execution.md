@@ -1,5 +1,22 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Final full suite159/159 GREEN; review fix verification complete
+
+User approved one additional full call after0d8a436f. Agent command rechecked
+AdministratorToken=False and ran unfiltered dotnet test --no-restore -c Debug.
+Start2026-11-08T15:50:08.5816698+04:00,end15:50:11.3502596+04:00;
+159 total,159 passed,0 failed,0 skipped,60ms tests,exit0. No warning/error output.
+No production/test source changes in this turn, no restore/retry/native launch.
+Extra full-call allowance1/1 consumed; original and fix allowances unchanged.
+
+Both important findings are now fixed with targeted RED→GREEN and full-suite
+GREEN; the fix-pass App compile already passed. No second independent review
+was dispatched under the single-fix-pass procedure. Task B code/automated gates
+complete. Native runtime, event interaction, resource resolution, visual fidelity,
+keyboard/focus, DPI/RTL and assistive technology remain explicitly unverified.
+Next is a separately scoped Task5 allowance proposal, not automatic launch.
+No main merge; Task11/12 and44/34/6/217 NOT_ACCEPTED unchanged.
+
 ## Latest: Approved two-defect fix pass; full-suite reconfirmation pending
 
 User approved4 targeted calls,1 full suite,1 app build after391e2944. No restore,

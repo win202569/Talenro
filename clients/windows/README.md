@@ -1,5 +1,10 @@
 # Windows offline demo — native implementation checkpoint
 
+Current verified result: final full suite159/159 passed,0 skipped,exit0 after
+0d8a436f. Both review fixes now pass regression; repaired App compile also passed.
+Historical pending-result notes below are retained for traceability. Native
+startup/visual/accessibility acceptance is still unrun and separately gated.
+
 Latest fix checkpoint: country lifecycle and localized notices have targeted
 GREEN8/8 and19/19; app compilation passed. Full159 run had158 pass and one stale
 CurrentCountry expectation. That expectation is corrected but not rerun; do not
