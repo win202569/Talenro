@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS SESSION GREEN (USER-RUN):
+After1860166f, ordinary PowerShell build+SessionTests passed13/13,0 skipped,exit0.
+Console evidence supplied by user; not an independent agent rerun. Session
+RED→GREEN established; Task A remains incomplete. Next write ConnectionTests
+before connection implementation. No full suite/app build/native launch yet.
+
 LATEST WINDOWS SESSION RED CONFIRMED / GREEN PENDING:
 User-run non-admin comparison reached13 assertions:12 failures,1 pass,0 skipped.
 Minimal session reducer branches now implemented, not compiled/tested afterward.

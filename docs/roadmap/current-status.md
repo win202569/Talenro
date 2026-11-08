@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — SessionTests用户实测13/13通过
+
+1860166f后，用户在同一普通PowerShell执行编译及SessionTests：13成功、0失败、
+0跳过，exit0；测试0.8秒，总计7.5秒。结合先前12项预期断言失败，首组会话逻辑
+已完成RED→GREEN；这是用户回传证据，非代理独立复跑。下一组为ConnectionTests。
+Task A全套回归尚未执行，节点/国家锁/额度/原生页面未完成；无应用启动。
+44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — 普通PowerShell已执行断言，首组最小实现待验证
 
 用户回传对照结果：13项，12失败/1通过/0跳过，exit1；失败对应占位提示、

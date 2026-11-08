@@ -1,5 +1,24 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: SessionTests GREEN confirmed by user-run output
+
+After1860166f, user ran the prescribed SessionTests command in the same ordinary
+PowerShell window, with --no-restore and compilation enabled. Supplied output:
+Core build1.8s, Tests build4.5s; xUnit adapter3.1.5,64-bit.NET10.0.14;
+13 total,13 passed,0 failed,0 skipped; test duration0.8s, overall7.5s,exit0.
+Evidence is user-provided console output, not an independently repeated agent run.
+Together with diagnostic002's12 assertion failures this establishes session
+RED→GREEN for the minimal implementation. No test expectation was relaxed.
+
+Original T allowance now2/14 used (initial abort plus Session GREEN); extra
+diagnostic1/1 and ordinary comparison1/1 used. Original restores2/4 plus retry1/1;
+G0/3,B0/2,native launches0. No complete Task A regression claimed.
+Next planned class: ConnectionTests, explicit simulated transitions, cancellation,
+stale completion after cancel/logout, and repeated-event behavior; write tests
+before implementing. Session logic verified; other model/UI tasks remain pending.
+The following entries are chronological history, not current blockers for this
+user-run SessionTests result. Agent-side ordinary execution is still unavailable.
+
 ## Latest: user-run comparison reached expected RED; minimal implementation pending GREEN
 
 User supplied ordinary PowerShell output aftercde269e5. Diagnostic002 logs exist
