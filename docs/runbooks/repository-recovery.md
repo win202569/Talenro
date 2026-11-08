@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS DIAGNOSTIC: LOOPBACK ACCESS DENIED:
+Approved extra diagnostic attempt exited1 after90s; host log identifies socket
+error10013 on127.0.0.1 before assertions. See execution record for reviewed evidence
+and raw-log hashes. No timeout/security changes, retry or app launch. Policy source
+is unknown. Any ordinary non-admin context comparison needs separate approval;
+do not circumvent a denied execution context. Previous failures remain failures.
+
 LATEST WINDOWS READONLY HOST DIAGNOSIS / CAUSE UNDETERMINED:
 Execution record now includes runtime/file-hash/environment/event-log checks.
 No test rerun or system change. Proposed single --no-build --no-restore --diag

@@ -1,5 +1,46 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: approved diagnostic run identifies loopback access denial
+
+User approved the single diagnostic attempt after83ab13a7. Exact proposed
+--no-restore --no-build SessionTests command ran once in the default execution
+context, with first-use opt-outs and unchanged90s connection timeout.
+UTC07:20:38.4003317→07:22:09.6697207; exit1, test run aborted. No assertions
+reported; not behavioral RED. No package restore/build/native app launch.
+
+Runner log: x64 host located/launched, DOTNET_ROOT_X64=C:\Program Files\dotnet,
+server listening127.0.0.1:60994. Host log: startup reached request processing,
+attempted the same endpoint (port rendered060994), then TcpClient.CompleteConnectAsync
+raised System.Net.Sockets.SocketException10013, access forbidden. A preceding
+"connected" trace is not a successful handshake: its callback immediately reports
+the exception. Runner eventually reports90s timeout and PID3512 still running.
+Later read-only PID query did not see3512; no termination or cleanup guarantee.
+Runner tail also logs another initialization/listener during abort teardown;
+no second command was issued by the agent and no second host log was observed.
+
+Finding: this attempt failed in test-host loopback communication due to access
+denial, before test assertions. Root policy/source of denial remains unknown:
+execution-context restrictions versus host security policy are not distinguished.
+This is not evidence of a slow test, broken reducer assertion, missing runtime or
+need to increase timeout. Do not change firewall/endpoint protection or bypass
+security checks based on this finding.
+
+Private raw logs retained in plan workspace (not committed):
+- session-diag-001.log:59035 bytes; SHA256
+  1C34175BC3A76B8D526B2C86FC92A052AF3DE065D38D20CF2F31D030336B1C17
+- session-diag-001.host.26-11-08_11-20-39_27731_5.log:5720 bytes; SHA256
+  B5950D0D0D8E25A2D03949759B790CE125163EA1E94D53ED8E1F2583AA91513E
+
+Original T allowance remains1/14 used; additional diagnostic allowance1/1 used.
+Original restores2/4 + extra retry1/1; G0/3,B0/2,native launches0. No automatic
+follow-up test. Proposed next decision: one separately approved comparison in an
+ordinary non-administrator PowerShell context, same compiled artifacts/filter,
+same90s timeout and5-minute observation budget, new diagnostic log. Do not alter
+machine security settings. If that context is unavailable or denied, stop and
+request user-run evidence rather than circumventing the restriction. It would
+distinguish an execution-context limitation from a wider machine issue, not
+retroactively convert either prior failure into success.
+
 ## Read-only follow-up after305630b3
 
 No test/restore/build was rerun. Test runtimeconfig requests Microsoft.NETCore.App
