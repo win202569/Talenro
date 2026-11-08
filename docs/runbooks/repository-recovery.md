@@ -1,5 +1,17 @@
 # Recover the project on a new computer
 
+LATEST NATIVE PARTIAL VERIFICATION — NOT ACCEPTED:
+Explicit replacement approval followed the interrupted request. Two observed
+sessions (14.6min and1.43min reset-only) closed normally; exact processes absent.
+Core login/connection/node/recovery/account-unavailable/logout/reopen paths have
+direct observations, not full checklist acceptance. Read
+docs/roadmap/2026-11-08-windows-client-native-verification.md for PASS and gaps.
+No source/build/test/settings changes. All native launch allowances consumed;
+propose a new bounded gap-only session before further launches. Do not rebuild
+implicitly on a new machine: binaries/caches are ignored and prerequisites need
+separate preparation. Wider NOT_ACCEPTED unchanged; continue this dev branch.
+The historical statuses below are superseded where they conflict with this entry.
+
 LATEST NATIVE START INTERRUPTED:
 User approved plan; first launch request was interrupted by physical Escape.
 No successful window observation. On continuation no matching window/process was

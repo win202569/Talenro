@@ -1,5 +1,17 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Partial native verification and reset observed, not accepted
+
+After the interrupted request and explicit replacement approval, two ordinary-user
+sessions were observed and closed (14.6minutes +1.43minutes reset-only). Login,
+core connection transitions, node search/confirmation, recovered-country relock,
+unknown/stale unavailable values, logout and reopen reset have direct evidence.
+See2026-11-08-windows-client-native-verification.md for exact scope and remaining
+UNVERIFIED cases. No source edits, automated tests/builds or environment changes.
+Launch allowance consumed; next propose bounded gap-only verification, not retry
+or general acceptance. Both exact processes exited. Wider NOT_ACCEPTED unchanged.
+Earlier proposal/not-run entries below are historical, superseded by this entry.
+
 ## Latest: Native verification proposal prepared, no launch
 
 User requested next step afterfe9c9f14. Prepared separate native acceptance plan

@@ -14,9 +14,11 @@ observed results separately from static/model tests, then close gracefully.
 
 **Spec:** ../specs/2026-11-07-windows-client-four-screen-design.md
 
-Status: approved by user after735383cb. First launch request interrupted by
-physical Escape before any window observation; continuation checks found no
-window/process. Await explicit replacement-session approval, not automatic retry.
+Status: partial verification recorded; launch allowance consumed. Approved after
+735383cb; interrupted first request then explicitly approved replacement session
+and original reset-only session were observed and closed (14.6min / 1.43min).
+Core flows/reset passed; remaining checklist gaps need a new bounded allowance.
+No overall native acceptance and no further automatic launch.
 See ../../roadmap/2026-11-08-windows-client-native-verification.md.
 Baseline source0d8a436f; evidence checkpointfe9c9f14:159 tests pass and repaired
 App compile passed. This is verification-only, not a feature implementation plan.
@@ -132,4 +134,5 @@ network/storage behavior; no security/production/runtime audit claim is authoriz
 All four views, confirmation/recovery, unknown entitlement and both reset types
 are assigned observable checks. Native-only gaps remain explicit above instead
 of weakening acceptance. No source change/TDD cycle is proposed in this plan.
-Await user approval of the2-launch/25-minute maximum scope before execution.
+Original approval was obtained; sessions are now closed. Consult the verification
+record for remaining gaps and obtain a new finite allowance before another launch.
