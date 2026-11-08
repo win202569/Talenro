@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST AGENT NON-ADMIN CHECK / ENTITLEMENT GREEN BLOCKED:
+User reports a UAC adjustment; agent verified AdministratorToken=False without
+changing security settings. One original T10 EntitlementTests --no-restore run
+compiled Core and Tests, then aborted: vstest could not connect to testhost within
+90 seconds,exit1. No test totals; this is neither GREEN nor assertion RED.
+T10/14 used,G0/3,B0/2. No retry, timeout increase or native app launch.
+Investigate the agent test-host connection before further runs; full regression
+and Task A remain pending. Non-admin token alone does not prove runtime readiness.
+
 LATEST WINDOWS ENTITLEMENT RED CONFIRMED / IMPLEMENTATION UNVERIFIED:
 User output after ce0c1089:39 total,33 expected assertion failures,6 passed,
 0 skipped,exit1. Added entitlement admission at connect/reconnect/recovery and

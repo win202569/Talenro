@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-08
 
+## Latest — 代理普通权限已确认，额度GREEN仍受测试宿主连接阻塞
+
+用户报告已调整UAC；代理只读确认AdministratorToken=False，未修改安全设置。
+代理执行一次EntitlementTests --no-restore：两项目编译成功，但vstest在90秒内
+未连接testhost，运行中止、exit1，无测试摘要。不能判定额度测试通过或断言失败。
+T10/14已用，G0/3、B0/2；未重试、未延长超时、未启动原生应用。
+下一步先排查代理执行环境的测试宿主连接问题，GREEN及全套回归仍待完成。
+
 ## Latest — 额度权限预期RED确认，最小实现待GREEN
 
 用户回传EntitlementTests：39项、33预期断言失败、6通过、0跳过，exit1。

@@ -1,5 +1,24 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: Agent non-admin confirmed; T10 aborted at test-host connection
+
+User reported fixing non-admin PowerShell through UAC settings and authorized
+agent command execution. Read-only WindowsPrincipal check returned
+AdministratorToken=False in the default tool context. No UAC/security changes
+were made by the agent and no elevated test invocation was attempted.
+
+Agent ran one EntitlementTests --no-restore -c Debug call after993709a5, using
+the existing local DOTNET_CLI_HOME/NUGET_PACKAGES and first-use opt-out variables.
+Both Core and Tests compiled. VSTest then reported failure to connect to testhost
+after90 seconds (reported process7180 still running at that moment), aborted,
+and returnedexit1. No test summary/assertion results. Process cleanup is not
+independently confirmed; no broad process termination was attempted.
+
+T10/14 now consumed,G0/3,B0/2,native0. No automatic retry or timeout increase.
+Entitlement GREEN, full core regression and Task A remain incomplete. Next step
+is scoped runtime diagnosis; the non-admin check does not establish that the
+agent test-host connection is working. NOT_ACCEPTED remains unchanged.
+
 ## Latest: Entitlement RED confirmed; minimal implementation awaits GREEN
 
 User ordinary-shell attachment after ce0c1089 reports39 total,33 failed,6 passed,
