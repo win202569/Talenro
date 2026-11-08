@@ -81,3 +81,37 @@ Capture actual outcome and runner/host diagnostics, redact private environment
 details from portable notes. If intended assertions fail, obtain/confirm subsequent
 fix/GREEN/full scope; if infrastructure fails again, stop and inspect saved logs.
 This proposal does not consume or repurpose the old remaining test/native slots.
+
+## Approved single diagnostic attempt aftere877100a
+
+One diagnostic-enabled replacement RED authorized and consumed1/1. Same ordinary
+token, default execution context, Debug, --no-restore and two-class filter as above;
+no debug/timeout override present. Added --diag at
+Talenro.Demo.Tests/TestResults/layout-switch-diag-red.log and new receipt
+layout-switch-diag-red.trx. Original receipt retained. No retry or production edit.
+
+Result: exit1, aborted after90second host-connection timeout; TRX total0/executed0.
+Host log layout-switch-diag-red.host.26-11-08_19-57-24_58464_5.log supplies the new
+evidence (host timestamps+04:00): runner20432 listened on127.0.0.1:51504 at19:57:24.580;
+testhost8172 started and attempted that endpoint at19:57:24.707; at19:57:24.728 its
+connection callback reported SocketException10013, socket access forbidden by
+access permissions, through TcpClient.CompleteConnectAsync. Earlier generic
+'connected' trace lines are superseded by the failed connection task/exception;
+they do not establish a completed protocol handshake. Runner timed out19:58:54.605.
+Final current-context testhost count0; no process killed.
+
+Diagnosis narrowed: immediate access-denied local socket connection, not slow
+assertions or a missing testhost executable/runtime. Exact policy owner remains
+unproven: execution restrictions versus host security/network policy. Runner also
+logged optional assembly-discovery warnings (Fakes/AsyncInterfaces); those are not
+established as causal given the direct host connection exception. Do not install
+packages, disable protection, modify firewall/UAC or increase timeout from this.
+
+Next recommended controlled comparison, requires new approval: ONE identical
+diagnostic targeted invocation through the tool's approved broader execution
+context, still enforce ordinary Windows token and stop if administrator. This
+changes the execution restriction boundary, not OS security settings or timeout.
+Use new receipt/log names; no automatic retry. A success would support a context-
+specific restriction, not prove which policy caused it. A repeated10013 would
+require further host-side diagnosis. This turn does not perform that comparison.
+Application defect remains unfixed; no valid assertion RED yet, no App build/launch.

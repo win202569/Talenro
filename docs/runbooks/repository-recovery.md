@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DIAGNOSTIC RESULT — LOCAL SOCKET ACCESS DENIED:
+Single approved diagnostic retry aftere877100a aborted with0 executed tests.
+Host log identifies SocketException10013 during local runner connection, preceding
+the90second timeout. Exact policy source unproven. No production/settings changes.
+See switch-fix execution ledger. Proposed one approved-context comparison must
+still reject an administrator token, preserve timeout and use unique logs; not run
+yet and needs approval. Do not increase timeout or disable security protections.
+
 LATEST READ-ONLY DIAGNOSIS — ROOT CAUSE STILL UNKNOWN:
 Switch-fix execution ledger now records receipt comparison, unchanged test config,
 installed runtime/output presence, unset debug/timeout overrides and no matching
