@@ -1,5 +1,14 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Selected diagnostic-mode approach, written design pending approval
+
+User chose approach1. See docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md.
+Dedicated opt-in build plus startup flag, shared views, presentation-only fixtures,
+explicit languages and title-based measurements; ordinary behavior remains default.
+Independent read-only builder check found no important planning questions. No
+implementation/test/build/native session occurred. Written-design approval precedes
+implementation planning; no new runtime allowance or broader acceptance implied.
+
 ## Latest: Accessibility/layout methods reviewed without execution
 
 See2026-11-08-windows-accessibility-layout-methods.md. Source confirms no existing

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST DESIGN — AWAITING WRITTEN APPROVAL:
+User selected the in-app test-only approach. Read
+docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md before proceeding.
+Independent builder check completed; source remains unchanged. Default-off dual
+gate, shared views, presentation-only fixtures, fixed language and title measurements
+are proposed, not implemented. Next obtain design approval then write a bounded
+implementation plan; do not build/launch on the strength of approach selection.
+
 LATEST READ-ONLY ACCESSIBILITY/LAYOUT FEASIBILITY:
 Read docs/roadmap/2026-11-08-windows-accessibility-layout-methods.md. Long/RTL
 fixtures are not connected to views, Language is a placeholder, exact client-size

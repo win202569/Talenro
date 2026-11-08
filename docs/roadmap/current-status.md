@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-08
 
+## Latest — 测试专用展示与测量模式设计待批准
+
+用户选择方案1（现有应用的测试专用模式）。正式草案见
+docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md：默认关闭、
+专用构建及显式参数双重启用，复用四页，固定语言/样本配置，标题报告逻辑尺寸，
+不改变模拟状态或系统设置。独立只读可实施性审阅无关键未决问题。仅设计文档，
+尚未获书面设计批准，未改代码/构建/测试/启动；下一步批准后编写实施计划与额度。
+读屏/对比度/资源回退及整体NOT_ACCEPTED、不合并main均不变。
+
 ## Latest — 读屏与布局验证可行性已只读梳理
 
 详见2026-11-08-windows-accessibility-layout-methods.md。读屏程序文件存在但实际
