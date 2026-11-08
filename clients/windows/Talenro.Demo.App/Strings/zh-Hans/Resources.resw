@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="OfflineNotice.Text" xml:space="preserve"><value>离线演示，不会连接 VPN 或提交账号信息</value></data>
+  <data name="EnterDemo.Content" xml:space="preserve"><value>进入演示</value></data>
+  <data name="DemoScenarios.Text" xml:space="preserve"><value>演示场景</value></data>
+  <data name="NavConnection.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="NavNodes.Content" xml:space="preserve"><value>节点</value></data>
+  <data name="NavTraffic.Content" xml:space="preserve"><value>流量</value></data>
+  <data name="NavDevices.Content" xml:space="preserve"><value>设备</value></data>
+  <data name="NavAccount.Content" xml:space="preserve"><value>账户与套餐</value></data>
+  <data name="NavSettings.Content" xml:space="preserve"><value>设置</value></data>
+  <data name="PendingView" xml:space="preserve"><value>此页面尚在实现中</value></data>
+  <data name="DemoTitle" xml:space="preserve"><value>离线演示</value></data>
+  <data name="Close" xml:space="preserve"><value>关闭</value></data>
+  <data name="LoginHeading.Text" xml:space="preserve"><value>体验离线演示</value></data>
+  <data name="EmailLabel.Text" xml:space="preserve"><value>演示账号（只读）</value></data>
+  <data name="PasswordLabel.Text" xml:space="preserve"><value>演示密码（只读）</value></data>
+  <data name="ResetPassword.Content" xml:space="preserve"><value>重置密码（未实现）</value></data>
+  <data name="RegisterAccount.Content" xml:space="preserve"><value>注册账号（未实现）</value></data>
+  <data name="LoginScenario.Header" xml:space="preserve"><value>登录演示状态</value></data>
+  <data name="ScenarioNormal.Content" xml:space="preserve"><value>正常演示</value></data>
+  <data name="ScenarioInvalid.Content" xml:space="preserve"><value>输入无效（模拟）</value></data>
+  <data name="ScenarioSubmitting.Content" xml:space="preserve"><value>提交中（模拟）</value></data>
+  <data name="ScenarioRejected.Content" xml:space="preserve"><value>凭据拒绝（模拟）</value></data>
+  <data name="ScenarioUnavailable.Content" xml:space="preserve"><value>服务不可用（模拟）</value></data>
+  <data name="ScenarioMfa.Content" xml:space="preserve"><value>需要 MFA（模拟）</value></data>
+  <data name="LoginNormal" xml:space="preserve"><value>仅使用固定虚构账号</value></data>
+  <data name="LoginInvalid" xml:space="preserve"><value>模拟输入无效；未校验真实账号。</value></data>
+  <data name="LoginSubmitting" xml:space="preserve"><value>模拟提交中；无请求发送。请选择正常演示以继续。</value></data>
+  <data name="LoginRejected" xml:space="preserve"><value>模拟无法验证凭据；不表明任何账号是否存在。</value></data>
+  <data name="LoginUnavailable" xml:space="preserve"><value>模拟服务不可用；未连接服务。</value></data>
+  <data name="LoginMfa" xml:space="preserve"><value>MFA 不在本次演示范围内；不会验证身份。</value></data>
+  <data name="ConnectionHeading.Text" xml:space="preserve"><value>连接</value></data>
+  <data name="ChooseLocation.Content" xml:space="preserve"><value>选择位置</value></data>
+  <data name="ScenarioConnected.Content" xml:space="preserve"><value>模拟连接成功</value></data>
+  <data name="ScenarioFailed.Content" xml:space="preserve"><value>模拟连接失败</value></data>
+  <data name="ScenarioDisconnected.Content" xml:space="preserve"><value>模拟断开完成</value></data>
+  <data name="EntitlementScenario.Header" xml:space="preserve"><value>权限演示状态</value></data>
+  <data name="StatusActive.Content" xml:space="preserve"><value>有效（模拟）</value></data>
+  <data name="StatusExpired.Content" xml:space="preserve"><value>过期（模拟）</value></data>
+  <data name="StatusExhausted.Content" xml:space="preserve"><value>额度耗尽（模拟）</value></data>
+  <data name="StatusUnknown.Content" xml:space="preserve"><value>额度未知（模拟）</value></data>
+  <data name="StatusStale.Content" xml:space="preserve"><value>信息陈旧（模拟）</value></data>
+  <data name="StatusDeviceLimit.Content" xml:space="preserve"><value>设备达上限（模拟）</value></data>
+  <data name="ConnectionDisconnected" xml:space="preserve"><value>○ 模拟：未连接</value></data>
+  <data name="ConnectionConnecting" xml:space="preserve"><value>◌ 模拟：连接中</value></data>
+  <data name="ConnectionConnected" xml:space="preserve"><value>● 模拟：已连接（非 VPN）</value></data>
+  <data name="ConnectionDisconnecting" xml:space="preserve"><value>◌ 模拟：断开中</value></data>
+  <data name="ActionDisconnected" xml:space="preserve"><value>模拟连接</value></data>
+  <data name="ActionConnecting" xml:space="preserve"><value>取消模拟连接</value></data>
+  <data name="ActionConnected" xml:space="preserve"><value>模拟断开</value></data>
+  <data name="ActionDisconnecting" xml:space="preserve"><value>等待显式模拟结果</value></data>
+  <data name="NodesHeading.Text" xml:space="preserve"><value>节点</value></data>
+  <data name="NodeSearch.Header" xml:space="preserve"><value>搜索国家或节点</value></data>
+  <data name="NodeSearch.PlaceholderText" xml:space="preserve"><value>国家、国家代码或节点名称</value></data>
+  <data name="ProtocolHeading.Text" xml:space="preserve"><value>协议</value></data>
+  <data name="Back.Content" xml:space="preserve"><value>返回（放弃草稿）</value></data>
+  <data name="ApplyNode.Content" xml:space="preserve"><value>应用选择</value></data>
+  <data name="ListScenario.Header" xml:space="preserve"><value>节点列表演示状态</value></data>
+  <data name="ScenarioLoading.Content" xml:space="preserve"><value>加载中（模拟）</value></data>
+  <data name="ScenarioEmpty.Content" xml:space="preserve"><value>无结果（模拟）</value></data>
+  <data name="NodesLoading" xml:space="preserve"><value>模拟加载中；无网络请求。</value></data>
+  <data name="NodesUnavailable" xml:space="preserve"><value>模拟列表不可用。</value></data>
+  <data name="NodesEmpty" xml:space="preserve"><value>没有匹配的演示节点。</value></data>
+  <data name="CountryJP" xml:space="preserve"><value>日本 · JP（演示）</value></data>
+  <data name="CountryDE" xml:space="preserve"><value>德国 · DE（演示）</value></data>
+  <data name="AutoNode" xml:space="preserve"><value>自动选择（演示）</value></data>
+  <data name="ProtocolAuto" xml:space="preserve"><value>自动协议（模拟）</value></data>
+  <data name="NodeDisabled" xml:space="preserve"><value>不可用</value></data>
+  <data name="NodeTransitionBlocked" xml:space="preserve"><value>请先完成或取消模拟连接，再编辑节点。</value></data>
+  <data name="NodeFixtures" xml:space="preserve"><value>以上均为虚构节点，不会连接 VPN。</value></data>
+  <data name="ConfirmNodeChange" xml:space="preserve"><value>确认切换演示节点</value></data>
+  <data name="Confirm" xml:space="preserve"><value>确认</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="AccountHeading.Text" xml:space="preserve"><value>账户与套餐</value></data>
+  <data name="MockPlan.Text" xml:space="preserve"><value>Plus · 虚构套餐示例</value></data>
+  <data name="UsageHeading.Text" xml:space="preserve"><value>账户累计用量（演示）</value></data>
+  <data name="UsageUnavailable.Text" xml:space="preserve"><value>不可用</value></data>
+  <data name="DevicesHeading.Text" xml:space="preserve"><value>已激活设备（非并发数，演示）</value></data>
+  <data name="DemoUsage" xml:space="preserve"><value>12.4 / 100 GB（虚构示例）</value></data>
+  <data name="DemoUsageExhausted" xml:space="preserve"><value>100 / 100 GB（模拟耗尽）</value></data>
+  <data name="DemoDevices" xml:space="preserve"><value>2 / 5（虚构已激活设备）</value></data>
+  <data name="DemoDevicesLimit" xml:space="preserve"><value>5 / 5（模拟设备上限）</value></data>
+  <data name="Mfa.Content" xml:space="preserve"><value>MFA（未实现）</value></data>
+  <data name="Devices.Content" xml:space="preserve"><value>管理设备（未实现）</value></data>
+  <data name="Language.Content" xml:space="preserve"><value>语言（未实现）</value></data>
+  <data name="Delete.Content" xml:space="preserve"><value>删除账号（未实现）</value></data>
+  <data name="ExitDemo.Content" xml:space="preserve"><value>退出演示并重置</value></data>
+  <data name="CountryLock.Header" xml:space="preserve"><value>锁定国家（模拟）</value></data>
+  <data name="LockOff" xml:space="preserve"><value>国家锁定已关闭</value></data>
+  <data name="RecoverOnce.Content" xml:space="preserve"><value>仅此次跨国恢复</value></data>
+  <data name="RetryCountry.Content" xml:space="preserve"><value>重试锁定国家</value></data>
+  <data name="StayDisconnected.Content" xml:space="preserve"><value>保持断开</value></data>
+  <data name="ScenarioLockedFailed.Content" xml:space="preserve"><value>模拟锁定国家全部失败</value></data>
+</root>

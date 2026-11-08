@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="OfflineNotice.Text" xml:space="preserve"><value>Offline demo. No VPN connection or account submission.</value></data>
+  <data name="EnterDemo.Content" xml:space="preserve"><value>Enter demo</value></data>
+  <data name="DemoScenarios.Text" xml:space="preserve"><value>Demo scenarios</value></data>
+  <data name="NavConnection.Content" xml:space="preserve"><value>Connection</value></data>
+  <data name="NavNodes.Content" xml:space="preserve"><value>Nodes</value></data>
+  <data name="NavTraffic.Content" xml:space="preserve"><value>Traffic</value></data>
+  <data name="NavDevices.Content" xml:space="preserve"><value>Devices</value></data>
+  <data name="NavAccount.Content" xml:space="preserve"><value>Account and plan</value></data>
+  <data name="NavSettings.Content" xml:space="preserve"><value>Settings</value></data>
+  <data name="PendingView" xml:space="preserve"><value>This page is not implemented yet.</value></data>
+  <data name="DemoTitle" xml:space="preserve"><value>Offline demo</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="LoginHeading.Text" xml:space="preserve"><value>Explore the offline demo</value></data>
+  <data name="EmailLabel.Text" xml:space="preserve"><value>Demo account (read-only)</value></data>
+  <data name="PasswordLabel.Text" xml:space="preserve"><value>Demo password (read-only)</value></data>
+  <data name="ResetPassword.Content" xml:space="preserve"><value>Reset password (not implemented)</value></data>
+  <data name="RegisterAccount.Content" xml:space="preserve"><value>Create account (not implemented)</value></data>
+  <data name="LoginScenario.Header" xml:space="preserve"><value>Login demo state</value></data>
+  <data name="ScenarioNormal.Content" xml:space="preserve"><value>Normal demo</value></data>
+  <data name="ScenarioInvalid.Content" xml:space="preserve"><value>Invalid input (simulated)</value></data>
+  <data name="ScenarioSubmitting.Content" xml:space="preserve"><value>Submitting (simulated)</value></data>
+  <data name="ScenarioRejected.Content" xml:space="preserve"><value>Credentials rejected (simulated)</value></data>
+  <data name="ScenarioUnavailable.Content" xml:space="preserve"><value>Service unavailable (simulated)</value></data>
+  <data name="ScenarioMfa.Content" xml:space="preserve"><value>MFA required (simulated)</value></data>
+  <data name="LoginNormal" xml:space="preserve"><value>Only fixed fictional account data is used.</value></data>
+  <data name="LoginInvalid" xml:space="preserve"><value>Simulated invalid input; no real account checked.</value></data>
+  <data name="LoginSubmitting" xml:space="preserve"><value>Simulated submission; no request sent. Select Normal demo to continue.</value></data>
+  <data name="LoginRejected" xml:space="preserve"><value>Simulated credential rejection; reveals no account existence.</value></data>
+  <data name="LoginUnavailable" xml:space="preserve"><value>Simulated service unavailable; no service contacted.</value></data>
+  <data name="LoginMfa" xml:space="preserve"><value>MFA is outside this demo; no identity verification.</value></data>
+  <data name="ConnectionHeading.Text" xml:space="preserve"><value>Connection</value></data>
+  <data name="ChooseLocation.Content" xml:space="preserve"><value>Choose location</value></data>
+  <data name="ScenarioConnected.Content" xml:space="preserve"><value>Simulate connection success</value></data>
+  <data name="ScenarioFailed.Content" xml:space="preserve"><value>Simulate connection failure</value></data>
+  <data name="ScenarioDisconnected.Content" xml:space="preserve"><value>Simulate disconnection complete</value></data>
+  <data name="EntitlementScenario.Header" xml:space="preserve"><value>Entitlement demo state</value></data>
+  <data name="StatusActive.Content" xml:space="preserve"><value>Active (simulated)</value></data>
+  <data name="StatusExpired.Content" xml:space="preserve"><value>Expired (simulated)</value></data>
+  <data name="StatusExhausted.Content" xml:space="preserve"><value>Exhausted (simulated)</value></data>
+  <data name="StatusUnknown.Content" xml:space="preserve"><value>Unknown (simulated)</value></data>
+  <data name="StatusStale.Content" xml:space="preserve"><value>Stale (simulated)</value></data>
+  <data name="StatusDeviceLimit.Content" xml:space="preserve"><value>Device limit (simulated)</value></data>
+  <data name="ConnectionDisconnected" xml:space="preserve"><value>○ Simulated: disconnected</value></data>
+  <data name="ConnectionConnecting" xml:space="preserve"><value>◌ Simulated: connecting</value></data>
+  <data name="ConnectionConnected" xml:space="preserve"><value>● Simulated: connected (not a VPN)</value></data>
+  <data name="ConnectionDisconnecting" xml:space="preserve"><value>◌ Simulated: disconnecting</value></data>
+  <data name="ActionDisconnected" xml:space="preserve"><value>Simulate connection</value></data>
+  <data name="ActionConnecting" xml:space="preserve"><value>Cancel simulated connection</value></data>
+  <data name="ActionConnected" xml:space="preserve"><value>Simulate disconnection</value></data>
+  <data name="ActionDisconnecting" xml:space="preserve"><value>Await explicit demo result</value></data>
+  <data name="NodesHeading.Text" xml:space="preserve"><value>Nodes</value></data>
+  <data name="NodeSearch.Header" xml:space="preserve"><value>Search country or node</value></data>
+  <data name="NodeSearch.PlaceholderText" xml:space="preserve"><value>Country, country code or node name</value></data>
+  <data name="ProtocolHeading.Text" xml:space="preserve"><value>Protocol</value></data>
+  <data name="Back.Content" xml:space="preserve"><value>Back (discard draft)</value></data>
+  <data name="ApplyNode.Content" xml:space="preserve"><value>Apply selection</value></data>
+  <data name="ListScenario.Header" xml:space="preserve"><value>Node list demo state</value></data>
+  <data name="ScenarioLoading.Content" xml:space="preserve"><value>Loading (simulated)</value></data>
+  <data name="ScenarioEmpty.Content" xml:space="preserve"><value>No results (simulated)</value></data>
+  <data name="NodesLoading" xml:space="preserve"><value>Simulated loading; no network request.</value></data>
+  <data name="NodesUnavailable" xml:space="preserve"><value>Simulated list unavailable.</value></data>
+  <data name="NodesEmpty" xml:space="preserve"><value>No matching demo nodes.</value></data>
+  <data name="CountryJP" xml:space="preserve"><value>Japan · JP (demo)</value></data>
+  <data name="CountryDE" xml:space="preserve"><value>Germany · DE (demo)</value></data>
+  <data name="AutoNode" xml:space="preserve"><value>Auto selection (demo)</value></data>
+  <data name="ProtocolAuto" xml:space="preserve"><value>Automatic protocol (simulated)</value></data>
+  <data name="NodeDisabled" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="NodeTransitionBlocked" xml:space="preserve"><value>Complete or cancel the simulated connection before editing nodes.</value></data>
+  <data name="NodeFixtures" xml:space="preserve"><value>All nodes are fictional; no VPN connection.</value></data>
+  <data name="ConfirmNodeChange" xml:space="preserve"><value>Confirm demo node change</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AccountHeading.Text" xml:space="preserve"><value>Account and plan</value></data>
+  <data name="MockPlan.Text" xml:space="preserve"><value>Plus · fictional plan example</value></data>
+  <data name="UsageHeading.Text" xml:space="preserve"><value>Account aggregate usage (demo)</value></data>
+  <data name="UsageUnavailable.Text" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="DevicesHeading.Text" xml:space="preserve"><value>Activated devices (not concurrent, demo)</value></data>
+  <data name="DemoUsage" xml:space="preserve"><value>12.4 / 100 GB (fictional example)</value></data>
+  <data name="DemoUsageExhausted" xml:space="preserve"><value>100 / 100 GB (simulated exhaustion)</value></data>
+  <data name="DemoDevices" xml:space="preserve"><value>2 / 5 (fictional activated devices)</value></data>
+  <data name="DemoDevicesLimit" xml:space="preserve"><value>5 / 5 (simulated device limit)</value></data>
+  <data name="Mfa.Content" xml:space="preserve"><value>MFA (not implemented)</value></data>
+  <data name="Devices.Content" xml:space="preserve"><value>Manage devices (not implemented)</value></data>
+  <data name="Language.Content" xml:space="preserve"><value>Language (not implemented)</value></data>
+  <data name="Delete.Content" xml:space="preserve"><value>Delete account (not implemented)</value></data>
+  <data name="ExitDemo.Content" xml:space="preserve"><value>Exit demo and reset</value></data>
+  <data name="CountryLock.Header" xml:space="preserve"><value>Country lock (simulated)</value></data>
+  <data name="LockOff" xml:space="preserve"><value>Country lock off</value></data>
+  <data name="RecoverOnce.Content" xml:space="preserve"><value>Recover across countries once</value></data>
+  <data name="RetryCountry.Content" xml:space="preserve"><value>Retry locked country</value></data>
+  <data name="StayDisconnected.Content" xml:space="preserve"><value>Stay disconnected</value></data>
+  <data name="ScenarioLockedFailed.Content" xml:space="preserve"><value>Simulate all locked-country nodes failing</value></data>
+</root>

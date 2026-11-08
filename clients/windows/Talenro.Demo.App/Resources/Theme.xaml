@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="DemoBackground" Color="#F6F9F8" />
+  <SolidColorBrush x:Key="DemoAccent" Color="#087F78" />
+  <Style x:Key="DemoPrimaryButton" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource DemoAccent}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Padding" Value="28,14" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+</ResourceDictionary>

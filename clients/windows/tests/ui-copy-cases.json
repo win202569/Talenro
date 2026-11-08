@@ -1,0 +1,9 @@
+{
+  "purpose": "Synthetic layout probes only; not approved product translations",
+  "cases": [
+    { "id": "long-status", "text": "Simulated connection is waiting for an explicit demonstration result; no VPN connection is established and no account information is submitted." },
+    { "id": "long-country", "text": "Fictional demonstration location with a deliberately extended country and node label" },
+    { "id": "rtl-mixed", "text": "\u202eRTL synthetic label\u202c \u2066demo@example.com\u2069", "direction": "RightToLeft" },
+    { "id": "unknown-usage", "text": "不可用 / Unavailable — no numeric usage is known" }
+  ]
+}

@@ -1,4 +1,84 @@
-# Windows offline demo execution — core regression passed, native UI pending
+# Windows offline demo execution — native code compiled, review/runtime pending
+
+## Independent review complete — two important blockers (not fixed)
+
+Independent reviewer identified two important correctness/coverage issues:
+1. DemoReducer stores Chinese prose in Notice; shell and confirmation dialogs
+   display it verbatim, bypassing English fallback for important instructions.
+   Needed: typed notice IDs/arguments and resource rendering, semantic tests.
+2. CompleteConnection discards RecoveryCountry without assigning CurrentCountry.
+   Reachable JP preference/lock → cross-country DE recovery → completion → toggle
+   lock off/on incorrectly reselects JP. Needed: retain known successful fixture
+   country and test the full reachable sequence, not only injected CurrentCountry.
+
+Executor accepts both as important. Existing132 tests passing is not evidence
+against these uncovered defects. No speculative fix or test run added after the
+original budget was exhausted. Preserve this unfinished checkpoint; request a
+bounded fix pass with new RED/GREEN/full-suite/build allowance before Task B closure.
+
+Review found no established critical issue or additional initialization/reset
+defect; no minor findings reported. Executor rulings on declined-to-judge items:
+- Actual startup/event order/clicking/resource resolution/dialog focus: deferred
+  to separately approved native session; cost is possible undiscovered UI faults.
+- Fidelity/DPI/contrast/RTL/assistive technology: deferred to manual checklist;
+  cost is no usable-layout/accessibility acceptance claim.
+- Runtime network/storage absence and close/reopen reset: source checks only;
+  cost is no OS-runtime assurance without a bounded native observation.
+- Production VPN/auth/payment/security: out of scope; cost is this remains an
+  offline demo and cannot establish production readiness.
+- Final documentation preservation: coordinator owns this handoff and explicit
+  staging/remote SHA check; cost if omitted is incomplete fresh-machine recovery.
+- Test/build evidence: coordinator directly observed exit0; reviewer did not
+  rerun under exhausted allowance; cost is no independent execution confirmation.
+
+Suggested next allowance for user approval: at most2 targeted RED and2 targeted
+GREEN calls for the two defects,1 full suite and1 no-restore app build, unchanged
+5-minute test/15-minute build observation limits, non-admin test guard, no native
+launch, no dependency/security changes and no automatic retries. This is a
+proposal only; no such calls have been run or authorized by this record.
+
+## Latest: Task B implementation and bounded checks; independent review pending
+
+BASE e49bb570. Added ShellContractTests before UI: T11 compiled and failed5/5
+expected missing-XAML assertions,exit1,23ms. Corrected3 xUnit2031 warnings using
+Assert.Single predicate overloads without relaxing assertions. Tests copy only
+App XAML/resw into output; no absolute source paths or WinUI launch dependency.
+
+Ruling: approved XML/resource checks are static declaration contracts despite
+generic test guidance discouraging text checks; they cannot prove event wiring,
+focus or native behavior. Ruling: R2 ran after App csproj creation, before full UI,
+to expose dependency failures early; restore is not UI validation.
+
+R2 start2026-11-08T12:21:04.4690087+04:00,end12:22:34.3760477+04:00,exit0;
+MSBuild reported84.9s,0 warnings/errors. Only configured nuget.org source used.
+Reviewed App lockfile exact versions/hashes: WindowsAppSDK family2.6.5;
+WebView2 1.0.3719.77; AI.MachineLearning2.4.89; Tensors9.0.0;
+SDK.BuildTools10.0.26100.4654; SDK.BuildTools.MSIX1.7.251221100.
+Downloaded SDK.NET.Ref10.0.19041.57 and runtime packs10.0.14 as restore inputs.
+These transitive packages are not invoked as runtime features by app code.
+L2 locked restore passed,exit0,2.62s. Core lockfile unchanged.
+
+Implemented native shell, login/connection pages, readonly DemoViewModel.State
+and Dispatch-only model updates, zh-Hans/en-US copy. T12 ShellContractTests5/5
+pass,101ms,exit0; G2 full115/115 pass,54ms,exit0; B1 shell compileexit0.
+T13 ViewContractTests17 total,15 expected missing-page/resource failures,2 pass,
+47ms,exit1. Added Nodes/Account, draft confirmation, grouped/filterable fictional
+nodes, unknown usage presentation, placeholder dialogs, recovery controls and
+logout UI resets. T14 passed17/17,97ms,exit0. No core reducer changes this turn.
+G3 passed132/132,0 failed/skipped,1s,exit0. B2 final App buildexit0 with App.dll
+output; no warnings/errors reported. B2 took several minutes; observed MSBuild
+start15:11:07+04:00, App output after15:15:17+04:00, within15-minute budget.
+
+All tests used working command context with a non-admin guard. Builds did not
+launch/register the app. No timeout/security changes. Original allowances now
+R4/4,T14/14,G3/3,B2/2 consumed; prior separately approved diagnostics unchanged.
+G3 and B2 briefly overlapped after G3 command yielded a running session; both
+exited0. No repeat test/build was issued. Future verification needs fresh allowance.
+
+Independent whole-scope read-only review dispatched per execution process;
+Task B remains review-pending. Native startup, fidelity, keyboard/focus, DPI,
+screen-reader/RTL and OS behavior not verified. Manual checklist and synthetic
+copy fixtures committed for later separate Task5 allowance; NOT_ACCEPTED unchanged.
 
 ## Latest: G1 full core regression passed; Task A complete
 

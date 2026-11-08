@@ -1,5 +1,22 @@
 # Recover the project on a new computer
 
+REVIEW BLOCKERS — DO NOT TREAT AS ACCEPTED:
+Independent review identified untranslated Chinese domain Notice text in key
+refusal/confirmation flows, and missing CurrentCountry update after successful
+cross-country recovery (disable/re-enable lock can choose old preferred country).
+132 passing tests do not cover these defects. Fixes and regression tests remain
+pending a new finite verification allowance; original budget exhausted.
+
+LATEST NATIVE FOUR-PAGE IMPLEMENTATION / REVIEW PENDING:
+App shell, four views, view-model adapter, zh-Hans/en-US resources and copied-source
+XML contract tests now exist. G3 passed132/132,0 failed/skipped,exit0; B1/B2 compile
+passed. These are not native runtime/visual/accessibility evidence. Independent
+read-only whole-scope review pending; do not mark Task B accepted yet.
+R2 app restore and L2 locked restore passed; app lockfile included. Original
+R4/4,T14/14,G3/3,B2/2 consumed (earlier extra diagnostics tracked separately).
+No native launch; new verification requires another scoped allowance. Follow
+clients/windows/tests/manual-checklist.md only after separate launch approval.
+
 LATEST FULL CORE REGRESSION GREEN / TASK A COMPLETE:
 First full unfiltered dotnet test --no-restore -c Debug passed110/110,0 failed,
 0 skipped,exit0,49ms tests. Agent verified non-admin token in the command.

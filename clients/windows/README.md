@@ -1,16 +1,30 @@
-# Windows offline demo — incomplete setup checkpoint
+# Windows offline demo — native implementation checkpoint
 
-This directory contains pinned Core/Tests configuration, SessionTests and initial
-session reducer branches. User-run tests observed expected RED (12 failed,1 passed),
-then GREEN (13 passed,0 failed,0 skipped,exit0) after1860166f. No app exists.
+Contains the in-memory Core reducer, five behavioral test classes, a native WinUI
+four-page App, and two static XAML/resource contract test classes. Latest full
+model/declaration suite:132 passed,0 failed/skipped,exit0. Static checks do not
+prove native click wiring, visual fidelity, focus, accessibility or runtime safety.
+First shell compile passed; final four-page compile/review status is recorded in
+the execution record. Do not infer acceptance from this implementation checkpoint.
 
 Read [execution record](../../docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md)
 and [approved plan](../../docs/superpowers/plans/2026-11-08-windows-client-offline-demo-execution-amendment.md)
-before running commands. The authorized network retry and locked restore passed;
-the test dependency lock is committed. First test invocation compiled both projects
-but aborted when VSTest could not connect to testhost within90seconds. Later user-run
-comparison reached assertions; session GREEN passed in ordinary PowerShell. Native
-launch remains unauthorized. Cloning does not restore tool binaries or caches.
+before running commands. App dependency restore and locked restore passed with
+Microsoft.WindowsAppSDK2.6.5. Both test and app package graphs are locked.
+Use the approved non-admin execution context: default agent context blocks local
+test-host connections with10013. Check the token before each test; never change
+UAC/firewall/timeout to force a pass. Original test/build allowance is now consumed;
+any further verification requires a scoped allowance. Native launch remains
+unauthorized. Cloning does not restore tool binaries or caches.
+
+Four pages: Login uses fixed read-only demo credentials; Connection dispatches
+explicit simulation events; Nodes edits a draft and confirms connected changes;
+Account shows fictional usage and activated-device counts. Unknown/stale usage
+shows unavailable. Excluded actions show explanations, not real account changes.
+No VPN, account submission, billing or persistence is implemented.
+
+Pending native checks are in tests/manual-checklist.md; long/RTL samples in
+tests/ui-copy-cases.json are synthetic test fixtures, not approved translations.
 
 SDK/package caches and outputs are intentionally ignored. No secrets or live data
 are required. This is not a production VPN client or an accepted build.

@@ -1,0 +1,31 @@
+<Page x:Class="Talenro.Demo.App.Views.ConnectionPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer><StackPanel Padding="40" Spacing="24" MaxWidth="800" HorizontalAlignment="Center">
+    <TextBlock x:Uid="ConnectionHeading" FontSize="28" FontWeight="SemiBold"/>
+    <TextBlock x:Name="PowerGlyph" Text="⏻" FontSize="100" Foreground="{StaticResource DemoAccent}" HorizontalAlignment="Center" IsTextSelectionEnabled="False" AutomationProperties.AccessibilityView="Raw"/>
+    <TextBlock x:Name="ConnectionStatus" FontSize="24" TextWrapping="Wrap" HorizontalAlignment="Center" AutomationProperties.LiveSetting="Polite"/>
+    <Button x:Name="PrimaryConnectionButton" Style="{StaticResource DemoPrimaryButton}" HorizontalAlignment="Center" Click="PrimaryConnection_Click"/>
+    <Button x:Uid="ChooseLocation" Click="ChooseLocation_Click" HorizontalAlignment="Center"/>
+    <ToggleSwitch x:Name="CountryLock" x:Uid="CountryLock" Toggled="Lock_Toggled"/>
+    <TextBlock x:Name="LockedCountryValue" TextWrapping="Wrap"/>
+    <StackPanel x:Name="RecoveryPanel" Spacing="8" Visibility="Collapsed">
+      <Button x:Uid="RecoverOnce" Click="Recover_Click"/>
+      <Button x:Uid="RetryCountry" Click="Retry_Click"/>
+      <Button x:Uid="StayDisconnected" Click="Stay_Click"/>
+    </StackPanel>
+    <StackPanel x:Name="ScenarioPanel" Spacing="12" Margin="0,32,0,0">
+      <TextBlock x:Uid="DemoScenarios" FontWeight="SemiBold"/>
+      <Button x:Uid="ScenarioConnected" Click="Complete_Click"/>
+      <Button x:Uid="ScenarioFailed" Click="Fail_Click"/>
+      <Button x:Uid="ScenarioLockedFailed" Click="LockedFailed_Click"/>
+      <Button x:Uid="ScenarioDisconnected" Click="Disconnected_Click"/>
+      <ComboBox x:Name="EntitlementScenario" x:Uid="EntitlementScenario" SelectionChanged="Entitlement_Changed">
+        <ComboBoxItem x:Uid="StatusActive" Tag="Active" IsSelected="True"/>
+        <ComboBoxItem x:Uid="StatusExpired" Tag="Expired"/>
+        <ComboBoxItem x:Uid="StatusExhausted" Tag="Exhausted"/>
+        <ComboBoxItem x:Uid="StatusUnknown" Tag="Unknown"/>
+        <ComboBoxItem x:Uid="StatusStale" Tag="Stale"/>
+        <ComboBoxItem x:Uid="StatusDeviceLimit" Tag="DeviceLimit"/>
+      </ComboBox>
+    </StackPanel>
+  </StackPanel></ScrollViewer>
+</Page>

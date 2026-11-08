@@ -5,6 +5,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="../Talenro.Demo.App/**/*.xaml" Exclude="../Talenro.Demo.App/obj/**;../Talenro.Demo.App/bin/**" Link="AppSources/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../Talenro.Demo.App/Strings/**/*.resw" Link="AppSources/Strings/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Talenro.Demo.Core/Talenro.Demo.Core.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="[18.11.0]" />
     <PackageReference Include="xunit" Version="[2.9.3]" />
