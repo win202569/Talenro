@@ -2,9 +2,9 @@
 
 Plan: docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md.
 User approved Native execution and Stage A budget after80307866. Base80307866.
-Tasks1–3 targeted checks passed; Task4 in progress; Task5 pending. No native launches authorized.
+Tasks1–4 targeted checks passed; Task5 in progress. No native launches authorized.
 
-Budget used: targeted6/8; full0/1; cache-only restores0/2; builds0/3.
+Budget used: targeted8/8; full0/1; cache-only restores0/2; builds0/3.
 Preflight: ordinary token(False), no Talenro.Demo.App process, clean linked worktree
 on codex/c12-b01-task9-coordinator; dotnet at C:/Program Files/dotnet/dotnet.exe.
 Existing assets identify clients/windows/.nuget/packages and .dotnet-home locally.
@@ -42,3 +42,11 @@ compiler warnings. Explicit typed bindings cover shell/four pages and both resou
 inventories. Source/declaration checks do not establish runtime wiring. Added
 diagnostic initialization guard to Nodes so XAML selection callbacks cannot bind
 not-yet-created controls; final full suite/build still pending. Receipt layout-views-green.trx.
+
+Task4: RED9/9 expected unimplemented formatter/missing observer, GREEN9/9 passed,
+0 skipped,exit0,no compiler warnings. Receipt layout-measurement-green.trx. Native
+observer itself is not executed by pure/declaration tests. Local WinUI2.6.5 XML
+documents ActualWidth/ActualHeight, Loaded/SizeChanged, XamlRoot.Changed and
+RasterizationScale (physical pixels per view pixel); SDK10.0.19041.57 XML documents
+UISettings.TextScaleFactor/TextScaleFactorChanged. Runtime correspondence still
+requires Stage B. Readout never asserts target PASS; unavailable values are unknown.

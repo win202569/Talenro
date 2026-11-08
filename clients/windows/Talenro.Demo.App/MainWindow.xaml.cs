@@ -15,6 +15,9 @@ public sealed partial class MainWindow : Window
     private readonly NodesPage nodes;
     private readonly AccountPage account;
     private bool hadSession;
+#if LAYOUT_DIAGNOSTICS
+    private readonly LayoutWindowObserver? layoutObserver;
+#endif
     public MainWindow()
     {
         InitializeComponent();
@@ -29,6 +32,10 @@ public sealed partial class MainWindow : Window
         connection = new ConnectionPage(model);
         nodes = new NodesPage(model);
         account = new AccountPage(model);
+#if LAYOUT_DIAGNOSTICS
+        if (App.DiagnosticPresentation is { } diagnostics)
+            layoutObserver = new(this, Root, PageHost, () => diagnostics.IsProfileActive(model.State), diagnostics.Options);
+#endif
         model.PropertyChanged += (_, _) => Refresh();
         Refresh();
     }
@@ -49,6 +56,9 @@ public sealed partial class MainWindow : Window
         connection.Refresh();
         nodes.Refresh();
         account.Refresh();
+#if LAYOUT_DIAGNOSTICS
+        layoutObserver?.Refresh();
+#endif
     }
     internal static string Copy(string key)
     {
