@@ -2,9 +2,9 @@
 
 Plan: docs/superpowers/plans/2026-11-08-windows-layout-test-mode.md.
 User approved Native execution and Stage A budget after80307866. Base80307866.
-Task1 complete (targeted checks); Task2 in progress; Tasks3–5 pending. No native launches authorized.
+Tasks1/2 targeted checks passed; Task3 in progress; Tasks4/5 pending. No native launches authorized.
 
-Budget used: targeted2/8; full0/1; cache-only restores0/2; builds0/3.
+Budget used: targeted4/8; full0/1; cache-only restores0/2; builds0/3.
 Preflight: ordinary token(False), no Talenro.Demo.App process, clean linked worktree
 on codex/c12-b01-task9-coordinator; dotnet at C:/Program Files/dotnet/dotnet.exe.
 Existing assets identify clients/windows/.nuget/packages and .dotnet-home locally.
@@ -27,3 +27,12 @@ dotnet test --no-restore -c Debug, ordinary token checked before both calls.
 Local GREEN receipt: clients/windows/Talenro.Demo.Tests/TestResults/layout-options-green.trx.
 Build declarations are static checks only; evaluated isolation and actual builds
 remain Task5. Diagnostic startup resource/presentation wiring remains Tasks2/3.
+
+Task2: RED15/15 expected missing implementation/exception-contract failures,
+GREEN15/15 passed,0 skipped,exit0 with CS9124 warning. Constructor parameter was
+captured by methods as well as copied into Options. Removed duplicate capture by
+using Options consistently; behavioral equivalence is to be rechecked by the
+remaining planned full suite, not an extra targeted rerun. RED stub CS9113 warnings
+were removed with implementation. GREEN receipt layout-presentation-green.trx.
+Task2 commit is a tested-behavior checkpoint with warning cleanup pending full
+verification, not a warning-free build claim. Startup/view integration not yet built.

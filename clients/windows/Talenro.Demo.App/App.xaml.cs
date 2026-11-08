@@ -4,6 +4,9 @@ namespace Talenro.Demo.App;
 public partial class App : Application
 {
     private Window? window;
+#if LAYOUT_DIAGNOSTICS
+    internal static LayoutPresentation? DiagnosticPresentation { get; private set; }
+#endif
     public App() => InitializeComponent();
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -11,7 +14,11 @@ public partial class App : Application
 #if LAYOUT_DIAGNOSTICS
         var parsed = LayoutOptions.Parse(arguments);
         if (parsed.ErrorCode is not null) { RejectLayoutArguments(); return; }
-        // Diagnostic resource preparation is integrated in the next task.
+        if (parsed.Enabled)
+        {
+            try { DiagnosticPresentation = LayoutResourceCatalog.Prepare(parsed.Options!, typeof(App).Assembly); }
+            catch (InvalidDataException) { RejectLayoutArguments(); return; }
+        }
 #else
         if (ReservedLayoutArguments.ContainsReserved(arguments)) { RejectLayoutArguments(); return; }
 #endif

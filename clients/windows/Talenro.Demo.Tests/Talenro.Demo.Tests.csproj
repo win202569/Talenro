@@ -8,6 +8,9 @@
     <Compile Include="../Talenro.Demo.App/ViewModels/NoticeFormatter.cs" Link="AppLogic/NoticeFormatter.cs" />
     <Compile Include="../Talenro.Demo.App/Layout/ReservedLayoutArguments.cs" Link="AppLogic/ReservedLayoutArguments.cs" />
     <Compile Include="../Talenro.Demo.App/Diagnostics/LayoutOptions.cs" Link="AppLogic/LayoutOptions.cs" />
+    <Compile Include="../Talenro.Demo.App/Diagnostics/LayoutFixtureCatalog.cs" Link="AppLogic/LayoutFixtureCatalog.cs" />
+    <Compile Include="../Talenro.Demo.App/Diagnostics/LayoutPresentation.cs" Link="AppLogic/LayoutPresentation.cs" />
+    <Compile Include="../Talenro.Demo.App/Diagnostics/LayoutResourceCatalog.cs" Link="AppLogic/LayoutResourceCatalog.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="../Talenro.Demo.App/Talenro.Demo.App.csproj" Link="AppSources/Talenro.Demo.App.csproj" CopyToOutputDirectory="PreserveNewest" />
