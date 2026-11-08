@@ -14,6 +14,18 @@ Status: approved afterfeb90856; one attempt consumed. First UI click failed with
 
 ## Global constraints
 
+Amendment after6451e456: user approved the recommendation to continue with one
+new attempt using screenshot-backed accessibility state before every click and
+fresh capture after each action. Prior attempt remains consumed and unchanged.
+Only this observation method changes; same artifact, route, deadlines, no retry,
+no source/build/test/settings/kill allowances. Append results separately below
+the original execution record. This approval supersedes the prior no-new-launch
+statement only for this one new attempt.
+
+Amendment outcome: new1/1 consumed; screenshot-backed clicks reached Nodes, but
+search text was not observed after typing. Route stopped; actual Nodes-close
+exit0 obtained. Full C3 still unverified; no remaining launch allowance.
+
 - One launch attempt total, including failed startup; no replacement or retry. Zero builds, restores, suite runs, installs, product-source changes or settings changes.
 - Ordinary Windows token; PowerShell only. No real account/network operations, force-kill, debugger attach, dumps, environment/security changes or main merge.
 - Startup30s; route maximum5minutes from launch. Request normal close at route completion or deadline. Observe up to30s from close request. Launcher absolute lifetime maximum360s from launch, without killing the application.

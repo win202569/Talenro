@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — SCREENSHOT-BACKED ATTEMPT CONSUMED, FULL C3 STILL UNVERIFIED:
+After6451e456 the user approved one new screenshot-first attempt. PID4124 entered
+demo and Nodes successfully, but jp-1 typing did not appear despite accessibility
+reporting SearchBox focus; two captures showed empty input. Route stopped without
+retry. Nodes close produced real APP_EXIT0 about0.184s after request; independent
+process/window inventories found no residue. No source/build/test/settings changes.
+Read the appended C3 exit-observation execution record. Diagnose input targeting
+before another reproduction; future input should explicitly focus the observed
+editable control and verify its value. No launch allowance remains. The original
+post-search/connection/dialog shutdown and all wider gates remain unverified.
+
 LATEST RESULT — LOGIN EXIT0, ORIGINAL C3 ROUTE STILL UNVERIFIED:
 The approved one attempt is consumed. PID19528 started21:54:02+04:00 with retained
 handle; first Enter-demo click after text-only state failed with unavailable input
