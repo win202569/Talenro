@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN — REMAINING STAGE B ROUTES:
+Read docs/superpowers/plans/2026-11-08-windows-layout-stage-b-continuation.md.
+Proposed6 launches: English dialog route, four conditional synthetic profiles,
+then diagnostic/no-flags defaults. Await explicit runtime approval; preparation
+ran no builds/tests/apps. Reuse hash-bound fixed diagnostic output, or stop if
+missing/mismatched; no rebuild/restore allowance. Prior switch result remains
+valid in its limited scope; independent measurements/accessibility remain pending.
+
 LATEST — SWITCH NATIVE RECHECK PASSED IN SCOPE:
 Approved2/2 cached builds and4/4 ordinary-token native sessions completed with
 exit0; static artifact isolation PASS. S1 ordinary and S4 diagnostic without flags
