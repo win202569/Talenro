@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS READONLY HOST DIAGNOSIS / CAUSE UNDETERMINED:
+Execution record now includes runtime/file-hash/environment/event-log checks.
+No test rerun or system change. Proposed single --no-build --no-restore --diag
+attempt retains90s connection timeout and5-minute observation budget; awaits
+approval. Do not infer that missing error logs proves a healthy test host.
+
 LATEST WINDOWS RESTORE PASSED / TEST HOST ABORTED:
 Read docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md first.
 Authorized extra R1 and L1 passed; Tests lock now committed. SessionTests plus

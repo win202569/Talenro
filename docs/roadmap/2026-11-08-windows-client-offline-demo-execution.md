@@ -1,5 +1,56 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Read-only follow-up after305630b3
+
+No test/restore/build was rerun. Test runtimeconfig requests Microsoft.NETCore.App
+10.0.0/net10.0; installed shared runtime directories include10.0.14 and8.0.33.
+This rules out absence of the .NET10 directory, not a loader failure or actual
+runtime selection. Output includes testhost.exe/dll, TestPlatform libraries and
+xUnit adapter. SHA256 matches to cached package files:
+
+- testhost.dll:629918AB2027E9E21169CBCC485B9689C2A14821850670FA99A625BD66DD407F
+- testhost.exe:608DFB309CB6D2FDB1C8DB9330CF780870D466664949FEC6A50DE0469B59EC8F
+- xunit.runner.visualstudio.testadapter.dll:384ABA4BAD96399A7FD2205A5A3517B643A16F4D7E843BD0B92E1E42F81FCE2A
+
+Current shell variables DOTNET_ROOT, DOTNET_ROOT_X64, DOTNET_ROLL_FORWARD,
+VSTEST_CONNECTION_TIMEOUT, VSTEST_HOST_DEBUG, VSTEST_RUNNER_DEBUG,
+CORECLR_ENABLE_PROFILING and COR_ENABLE_PROFILING are unset. This is a present
+snapshot, not proof of the failed child's environment. No dotnet/testhost process
+was returned by current name queries, including the authorized outside-restriction
+read-only query; historical process-tree completion remains unproven.
+
+No .log/.trx/.dmp files found under the Tests project. Application log read was
+initially denied; authorized read-only query for UTC07:14:50–07:17:20 at Error
+level returned no events. Absence of these records is not proof that no crash,
+policy denial or communication failure occurred. No settings/security changes.
+Test source contains synchronous in-memory calls only, with identity reducer;
+no application worker/network operation explains the pre-assertion timeout.
+
+Root cause UNDETERMINED. Execution restrictions, host startup/loader and runner
+communication remain hypotheses, not findings. Do not attribute to low machine
+performance from the generic error text or fix by raising the timeout.
+
+### Proposed next diagnostic invocation — requires approval
+
+One additional SessionTests attempt in the same default execution context, using
+the existing compiled artifacts, with original90s connection timeout and5-minute
+observation budget. No restore/build/package changes, privilege expansion, app
+launch, forced process cleanup or repeat-until-pass. Same process-local first-use
+opt-outs/cache settings as successful retry. Save logs in this plan's ignored
+workspace, not source. Command from clients/windows:
+
+```powershell
+& 'C:\Program Files\dotnet\dotnet.exe' test Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore --no-build -c Debug --filter 'FullyQualifiedName~SessionTests' --diag '../../.superpowers/sdd/2026-11-08-windows-client-offline-demo-execution-amendment/session-diag-001.log'
+```
+
+[Official VSTest CLI documentation](https://learn.microsoft.com/dotnet/core/tools/dotnet-test-vstest)
+states --diag writes platform and adjacent host diagnostics. Inspect startup,
+endpoint and handshake/error evidence; record test counts/assertions if reached.
+No logs is itself a result, not authority for another attempt. At budget overrun
+request cooperative cancellation, verify exit where observable, report unresolved
+session instead of killing by PID/name. Raw diagnostic logs stay private/ignored;
+only reviewed non-sensitive findings enter Git. This proposal is NOT executed.
+
 ## Latest: authorized retry and L1 passed; first test invocation aborted
 
 After5599042a, user authorized one network R1 retry. It used the explicit
