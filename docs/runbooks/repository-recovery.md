@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY ACCESSIBILITY/LAYOUT FEASIBILITY:
+Read docs/roadmap/2026-11-08-windows-accessibility-layout-methods.md. Long/RTL
+fixtures are not connected to views, Language is a placeholder, exact client-size
+evidence and actual screen-reader speech remain missing. Next recommended step:
+design (not yet implement) a test-only presentation/measurement entry; separately
+arrange a human speech observer. No app launches or new allowances in this review.
+Do not repeat keyboard checks or treat source declarations as native acceptance.
+
 LATEST KEYBOARD GAP RESULT — SUPERSEDES PENDING PROPOSAL BELOW:
 The six-group plan was approved after f349823c and executed on unchanged App/Core.
 PID8700 closed normally after about798seconds; exact process and window absent.

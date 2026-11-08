@@ -1,5 +1,13 @@
 # Windows offline demo — native implementation checkpoint
 
+Latest handoff supersedes the historical startup notes below: six native sessions
+have been observed and closed, most recently the six scoped keyboard-gap groups
+at6be52b54. Prior full suite160/160 and PageHost fix are recorded in the focus-fix
+ledger; no fresh tests were run in the methods review. Read
+[remaining verification methods](../../docs/roadmap/2026-11-08-windows-accessibility-layout-methods.md).
+Full accessibility/layout remains unaccepted. No current native launch allowance;
+fixture rendering/language selection/precise viewport diagnostics are not implemented.
+
 Current verified result: final full suite159/159 passed,0 skipped,exit0 after
 0d8a436f. Both review fixes now pass regression; repaired App compile also passed.
 Historical pending-result notes below are retained for traceability. Native

@@ -1,5 +1,13 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Accessibility/layout methods reviewed without execution
+
+See2026-11-08-windows-accessibility-layout-methods.md. Source confirms no existing
+fixture/language/viewport diagnostic entry; Narrator file presence is not speech
+verification. Recommend a separately approved test-only presentation design and
+human readout observer. No source edits, launches, builds/tests or settings changes;
+all runtime/acceptance boundaries remain unchanged.
+
 ## Latest: Six keyboard-gap groups observed, session closed
 
 Approved after f349823c; PID8700 ran about798seconds, closed normally and exact
