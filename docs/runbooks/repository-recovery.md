@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS RESTORE PASSED / TEST HOST ABORTED:
+Read docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md first.
+Authorized extra R1 and L1 passed; Tests lock now committed. SessionTests plus
+minimal model declarations/identity reducer compile, but first T invocation
+aborted after90s VSTest→testhost connection timeout. No assertion result/behavioral
+RED; do not treat the stub as implemented. Do not retry or raise timeout implicitly.
+Next proposed scope is readonly environment diagnosis. No native app launch.
+
 LATEST WINDOWS EXECUTION APPROVED / R1 RESTORE FAILED:
 Read docs/roadmap/2026-11-08-windows-client-offline-demo-execution.md first.
 clients/windows has pinned project configuration only, no C# implementation or app.

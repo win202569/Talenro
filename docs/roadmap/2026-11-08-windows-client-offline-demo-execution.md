@@ -1,4 +1,40 @@
-# Windows offline demo execution — stopped at dependency restore
+# Windows offline demo execution — stopped at test-host connection
+
+## Latest: authorized retry and L1 passed; first test invocation aborted
+
+After5599042a, user authorized one network R1 retry. It used the explicit
+certificate/PATH opt-outs, local caches and same pinned projects/source.
+UTC07:13:58.4755804→07:14:23.9087113, exit0; Tests restore24.47s.
+L1 locked restore UTC07:14:38.3454553→07:14:39.8432368, exit0.
+No certificate/PATH setup warning appeared in these outputs. This does not
+retroactively settle the earlier uncorroborated certificate message.
+
+Reviewed lock graph:12 packages,3 direct exactly18.11.0/2.9.3/3.1.5 as approved;
+transitive content hashes recorded in committed Tests/packages.lock.json.
+Microsoft.CodeCoverage18.11.0 is a transitive Test SDK dependency, not an added
+collector or enabled coverage run. Actual restore source only nuget.org; local
+package folder. Core empty graph unchanged. No app/runtime packs restored yet.
+
+Added SessionTests and minimal compiling Core records/events plus identity reducer
+for intended RED, not an implemented state machine. Tests cover demo entry, complete
+logout reset, eight placeholder destinations and guarded page navigation.
+Command: `dotnet test Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore -c Debug --filter FullyQualifiedName~SessionTests`.
+UTC07:15:07.5659814→07:17:04.9183231, exit1. Both projects compiled; one test
+assembly matched. VSTest could not connect to testhost within90seconds and aborted.
+It reported PID16188 still running at error time. Subsequent exact-PID read-only
+query did not see it; no termination attempted. This does not prove process-tree
+cleanup or identify the cause of the connection failure.
+
+No test assertions were reported; test count/result unknown, NOT behavioral RED.
+Do not implement reducer behavior until an authorized run demonstrates intended
+assertion failures. Do not increase VSTEST_CONNECTION_TIMEOUT, disable checks,
+change runner/packages, or automatically retry. Next proposed scope is bounded
+read-only test-host/environment diagnosis, followed by a separately specified run.
+
+Used: original restores2/4 (R1 failed,L1 passed) + extra retry1/1 passed;
+filtered T1/14 aborted, G0/3, B0/2, native launches0. R2/L2 remain unused.
+Task A incomplete; Task B unstarted; no final implementation review yet.
+The remaining sections preserve the original failed-restoration history.
 
 User approved the execution amendment after5c61627c. Work occurs in existing
 codex/c12-b01-task9-coordinator, not main. Task A is incomplete; Task B unstarted.

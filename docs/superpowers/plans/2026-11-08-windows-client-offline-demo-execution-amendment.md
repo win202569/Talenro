@@ -15,8 +15,9 @@ Model tests remain independent of WinUI and do not launch the app.
 Read with [parent plan](2026-11-07-windows-client-offline-demo.md); its interfaces,
 file ownership and behavior requirements remain authoritative.
 
-Status2026-11-08: approved by user after5c61627c for Tasks2–4. First R1 failed
-with NU1301/DNS resolution; execution stopped. See
+Status2026-11-08: approved by user after5c61627c for Tasks2–4. First R1 failed;
+separately approved retry and L1 passed. First SessionTests invocation aborted
+on testhost connection timeout; no behavioral RED. Execution stopped. See
 [execution record](../../roadmap/2026-11-08-windows-client-offline-demo-execution.md).
 The following original proposal describes intended work, not completed work.
 This is documentation, not restore,

@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-08
 
+## Latest — 依赖恢复已通过；首组测试因宿主连接超时中止
+
+用户批准一次额外联网重试，R1重试与L1锁定恢复均exit0，测试依赖锁已保存。
+SessionTests及最小可编译模型已建立；首轮测试编译成功，但VSTest90秒未连接
+testhost而中止，未获得断言结果，不能视为行为RED。停止实现，未改超时或重跑。
+错误时报告PID16188仍运行；随后只读查询不可见，未终止进程，不宣称进程树清理。
+详见2026-11-08-windows-client-offline-demo-execution.md。下一步建议只读排查
+测试宿主环境；Task A未完成，应用未构建/启动，44/34/6/217、NOT_ACCEPTED不变。
+
 ## Latest — 执行已批准；首次NuGet恢复失败，尚未进入实现
 
 用户批准5c61627c附录后，建立Windows Core/Tests配置；R1一次执行失败：
