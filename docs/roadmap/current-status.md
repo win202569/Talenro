@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 国家锁测试已添加，待验证RED
+
+新增CountryLockTests及锁定/失败恢复事件、当前虚构国家和单次恢复状态声明。
+覆盖未知国家拒绝、三种恢复选择、原锁不变，以及取消/完成/失败后清除单次恢复。
+未修改reducer、未构建/测试；下一步用户普通PowerShell运行一次CountryLockTests。
+Task A未完成，无原生应用启动，NOT_ACCEPTED不变。
+
 ## Latest — NodeSelectionTests用户实测17/17通过
 
 0dedb281后用户回传17成功、0失败、0跳过；测试1.3秒，总计2.6秒，构建成功。

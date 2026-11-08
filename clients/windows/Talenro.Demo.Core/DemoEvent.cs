@@ -16,3 +16,8 @@ public sealed record ApplyNodeSelection : DemoEvent;
 public sealed record CancelNodeSelection : DemoEvent;
 public sealed record ConfirmNodeChange : DemoEvent;
 public sealed record CancelNodeChange : DemoEvent;
+public sealed record SetCountryLock(bool Enabled) : DemoEvent;
+public sealed record FailLockedCountry : DemoEvent;
+public sealed record RecoverAcrossCountriesOnce : DemoEvent;
+public sealed record RetryLockedCountry : DemoEvent;
+public sealed record StayDisconnected : DemoEvent;

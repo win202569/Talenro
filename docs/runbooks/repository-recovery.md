@@ -1,5 +1,10 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS COUNTRY LOCK TESTS PREPARED / RED PENDING:
+CountryLockTests and event/state declarations added; reducer unchanged. Recovery
+country is attempt-scoped, not saved permission. Next ordinary-shell CountryLockTests
+--no-restore call must compile new tests. No claim of combined regression or UI.
+
 LATEST WINDOWS NODE GREEN (USER-RUN):
 After0dedb281, user summary reports17/17 passed,0 skipped,build success; numeric
 exit code not supplied. Node RED→GREEN established, combined regression unrun.

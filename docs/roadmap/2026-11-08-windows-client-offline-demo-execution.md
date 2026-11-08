@@ -1,5 +1,28 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: CountryLockTests prepared; RED pending
+
+Afterc1e3295d, added CountryLockTests and declaration-only events SetCountryLock,
+FailLockedCountry,RecoverAcrossCountriesOnce,RetryLockedCountry,StayDisconnected.
+State adds CurrentCountry (explicit fictional current country), RecoveryChoices
+(flags for exactly three offered actions) and RecoveryCountry (this attempt only).
+No reducer implementation changed. These fields do not represent a real exit or
+an enduring cross-country permission. Default values are null/None.
+
+Tests cover unknown/invalid-country refusal, selected/current fixture enable,
+disable, locked failure without silent fallback, three actions, unchanged saved
+lock and preference, consumed one-time recovery on cancel/success/failure,
+repeated or unoffered recovery refusal and unauthenticated-event refusal.
+Ruling: recovery choice immediately starts one deterministic attempt; its country
+is cleared when that attempt ends — avoids a reusable bypass flag — cost if wrong:
+later attempts could accidentally inherit cross-country authority.
+
+No compile/test run. Next original T RED invocation in user's same ordinary shell:
+--no-restore -c Debug --filter FullyQualifiedName~CountryLockTests. Compilation
+required; no --no-build, no dependency downloads, unchanged5-minute observation
+budget, no automatic retry/app launch. T6/14 remains consumed until that run.
+Task A incomplete; no combined regression after added state fields yet.
+
 ## Latest: NodeSelectionTests GREEN confirmed by user summary
 
 After0dedb281, user supplied17 total,17 passed,0 failed,0 skipped,1.3s tests,

@@ -3,6 +3,8 @@ namespace Talenro.Demo.Core;
 public enum DemoPage { Login, Connection, Nodes, Account }
 public enum ConnectionPhase { Disconnected, Connecting, Connected, Disconnecting }
 public enum EntitlementStatus { Active, Expired, Exhausted, Unknown, Stale, DeviceLimit }
+[Flags]
+public enum LockRecoveryChoices { None = 0, CrossCountryOnce = 1, RetryLockedCountry = 2, StayDisconnected = 4 }
 
 public sealed record DemoState
 {
@@ -12,6 +14,9 @@ public sealed record DemoState
     public string? PreferredNode { get; init; }
     public string? DraftNode { get; init; }
     public string? LockedCountry { get; init; }
+    public string? CurrentCountry { get; init; }
+    public LockRecoveryChoices RecoveryChoices { get; init; }
+    public string? RecoveryCountry { get; init; }
     public string? PendingNode { get; init; }
     public bool HasPendingNodeChange { get; init; }
     public EntitlementStatus Entitlement { get; init; } = EntitlementStatus.Active;
