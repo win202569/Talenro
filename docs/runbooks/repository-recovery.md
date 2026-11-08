@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+NEXT PROPOSED KEYBOARD SESSION — APPROVAL PENDING:
+docs/superpowers/plans/2026-11-08-windows-keyboard-gap-verification.md contains
+six missing-path groups and one20minute proposed allowance. Read before execution;
+this plan is not permission to launch. No build/test/code/settings changes needed.
+Preflight must confirm ordinary context and the intended unchanged local artifact.
+
 LATEST ACCEPTANCE COVERAGE MAP:
 Read docs/roadmap/2026-11-08-windows-client-acceptance-coverage.md before repeating
 verification. Compound confirmation/reset rows now distinguish historical native

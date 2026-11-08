@@ -1,5 +1,13 @@
 # Windows offline demo execution — native code compiled, review/runtime pending
 
+## Latest: Missing keyboard-path matrix ready, not executed
+
+See docs/superpowers/plans/2026-11-08-windows-keyboard-gap-verification.md for six
+bounded observation groups. Proposed one20minute session,18minute scenario cutoff,
+no tests/build/settings changes. Conditional recovery controls are included;
+already-proven core flows are setup only, not a fresh broad acceptance claim.
+No new launch authorized or performed; documentation-only checkpoint.
+
 ## Latest: Compound acceptance rows reconciled against existing evidence
 
 After d64de426, documentation-only reconciliation split visible confirmation
