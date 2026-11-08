@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PLAN — NATIVE RECORDER DESIGN APPROVED, IMPLEMENTATION REVIEW NEXT:
+Design approved after3bf6a2d5. Read docs/superpowers/plans/2026-11-08-windows-native-process-observation.md
+and its spec. Three sequential tasks pin synthetic receipts, compile-only interop
+checks and review/handoff. Existing recorder stays unchanged; native invocation
+is NOT_RUN and not allowed by the planned synthetic/compilation checks. No code,
+compilation or tests this planning round. Confirm plan before implementation;
+real observation scope and all existing NOT_ACCEPTED gates remain separate.
+
 LATEST DESIGN — INDEPENDENT NATIVE RECORDER AWAITS DESIGN APPROVAL:
 User selected approach1. Read docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md.
 Keep the existing recorder unchanged; proposed helper records same-handle native

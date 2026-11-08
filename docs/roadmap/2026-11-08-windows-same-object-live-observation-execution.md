@@ -113,3 +113,12 @@ docs/superpowers/specs/2026-11-08-windows-native-process-observation-design.md.
 Written design awaits approval; no implementation, helper compilation, tests,
 native invocation or app launch occurred. Next is design approval and implementation
 planning, not another live attempt. Existing evidence and acceptance blocks stand.
+
+## Implementation plan handoff
+
+User approved the written native-recorder design after3bf6a2d5. Plan saved at
+docs/superpowers/plans/2026-11-08-windows-native-process-observation.md, pending
+user review before implementation. It pins receipt schema, synthetic RED/GREEN,
+borrowed-handle helper, explicit compile/reflection-only verification, original
+module regression and final review. Current round changed documentation only:
+no implementation, compilation, tests or native/app execution. All gates remain.

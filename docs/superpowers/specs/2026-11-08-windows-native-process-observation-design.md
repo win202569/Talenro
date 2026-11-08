@@ -1,6 +1,6 @@
 # Independent native process observation — short design
 
-Status: approach 1 selected by user; written design awaiting approval.
+Status: approach 1 selected by user; written design approved after3bf6a2d5.
 This is a small diagnostic component, not an application shutdown fix.
 
 ## Intent and approaches
