@@ -11,3 +11,8 @@ public sealed record CancelConnection : DemoEvent;
 public sealed record RequestDisconnection : DemoEvent;
 public sealed record CompleteDisconnection : DemoEvent;
 public sealed record FailConnection : DemoEvent;
+public sealed record SelectNode(string? NodeId) : DemoEvent;
+public sealed record ApplyNodeSelection : DemoEvent;
+public sealed record CancelNodeSelection : DemoEvent;
+public sealed record ConfirmNodeChange : DemoEvent;
+public sealed record CancelNodeChange : DemoEvent;

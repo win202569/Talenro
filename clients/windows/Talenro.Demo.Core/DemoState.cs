@@ -13,6 +13,7 @@ public sealed record DemoState
     public string? DraftNode { get; init; }
     public string? LockedCountry { get; init; }
     public string? PendingNode { get; init; }
+    public bool HasPendingNodeChange { get; init; }
     public EntitlementStatus Entitlement { get; init; } = EntitlementStatus.Active;
     public string Notice { get; init; } = "";
     public string Search { get; init; } = "";

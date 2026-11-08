@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST WINDOWS NODE TESTS PREPARED / RED PENDING:
+NodeSelectionTests and event/state declarations added, no reducer implementation.
+Pending flag distinguishes Auto(null) from absent confirmation. Next one ordinary
+PowerShell NodeSelectionTests run with --no-restore, compilation enabled. Do not
+claim prior Session/Connection results cover the new declaration or node behavior.
+
 LATEST WINDOWS CONNECTION GREEN (USER-RUN):
 After21e531e0, ConnectionTests passed24/24,0 skipped,exit0 in user's ordinary
 PowerShell. RED→GREEN established; no agent rerun. Next write NodeSelectionTests

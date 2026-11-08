@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-08
 
+## Latest — 节点选择测试已写，待验证RED
+
+新增NodeSelectionTests、选择/应用/撤销/确认事件声明，以及区分待确认Auto与无
+确认框的布尔状态。覆盖草稿、返回撤销、无效节点、已连接确认/取消、跨国家锁
+原子提交和转换期间拒绝编辑。未修改reducer、未编译或运行新测试。
+下一步用户普通PowerShell执行一次NodeSelectionTests；Task A未完成，NOT_ACCEPTED不变。
+
 ## Latest — ConnectionTests用户实测24/24通过
 
 21e531e0后用户回传：24成功、0失败、0跳过，exit0，测试0.9秒、总计1.8秒。

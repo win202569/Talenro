@@ -1,5 +1,28 @@
 # Windows offline demo execution — stopped at test-host connection
 
+## Latest: NodeSelectionTests prepared; RED pending
+
+After3f48008f, added NodeSelectionTests and declaration-only events SelectNode,
+ApplyNodeSelection,CancelNodeSelection,ConfirmNodeChange,CancelNodeChange.
+Added HasPendingNodeChange=false to DemoState so a pending Auto(null) choice is
+not confused with no dialog. Reducer remains unchanged; no node logic before RED.
+Synthetic catalog contract for subsequent implementation: jp-1/JP and de-1/DE
+enabled; disabled-1 disabled; missing-node unknown; null means Auto.
+
+Tests cover opening draft, selection-only edits, Back discard, disconnected Apply,
+invalid nodes, connected confirmation, Cancel preservation, captured confirmation
+including Auto, atomic cross-country commit, transition editing refusal, pending
+dialog draft freeze, unsolicited confirmation and unauthenticated events.
+Ruling: explicit pending flag accompanies nullable node — Auto is a valid pending
+value — cost if wrong: confirmation could be omitted or apply the wrong preference.
+The flag is data declaration only, not a connection/selection implementation.
+
+No compile/test run this turn. Next one original T RED invocation in user's same
+ordinary shell: --no-restore -c Debug --filter FullyQualifiedName~NodeSelectionTests.
+Do not use --no-build: new tests/state declaration must compile. Same5-minute
+observation budget and first-use opt-outs; no retry or native app launch.
+Original T4/14 remains consumed until invocation; Task A incomplete.
+
 ## Latest: ConnectionTests GREEN confirmed by user output
 
 After21e531e0, user supplied the prescribed ConnectionTests run result:
