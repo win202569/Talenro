@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST PRESERVED-OLD-ARTIFACT RUN — SUCCESS WITHOUT RECORDER:
+Read docs/roadmap/2026-11-09-windows-preserved-artifact-observation.md. Approved1/1
+consumed; original unchanged EXE/DLL, long-country/automatic jp-1/Alt+F4, current
+observer procedure:42 identity-valid pairs, native/managed exit0,83.464s, no
+leftovers. No stage markers in old artifact. Recorder is not necessary for this
+success; original cause remains unresolved. Stop automatic repetitions. Next is
+read-only evidence/hypothesis consolidation, not another launch or speculative fix.
+
 LATEST ARTIFACT COMPARISON — READ-ONLY:
 Read docs/roadmap/2026-11-09-windows-close-stage-artifact-comparison.md.527 files
 per tree,522 identical; only App/Core binaries and symbols differ. Deployed
