@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST SOURCE-ONLY FOLLOW-UP — RTL/UNKNOWN USAGE:
+Read [static coverage review](../roadmap/2026-11-09-windows-rtl-usage-static-review.md).
+No confirmed functional defect, source/test edit or execution. Proposed next scope
+is test-only activity-matrix, direction-contract and presentation-sequence coverage,
+not native acceptance. No test/app launch budget is granted by this record.
+Shutdown investigation remains at the consolidated stop point below.
+
 LATEST CONSOLIDATED STOP POINT — UNRESOLVED, NO FURTHER LAUNCH BUDGET:
 Start with [shutdown evidence consolidation](../roadmap/2026-11-09-windows-shutdown-evidence-convergence.md).
 Historical stalls remain valid; the unchanged old artifact also exited under the
