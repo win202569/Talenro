@@ -113,6 +113,26 @@ inventory, screenshots or memory dumps are included in this report.
 
 ## Source records
 
+### Local input-interface inspection follow-up
+
+On2026-11-09, searched readable md/js/ts/json/cs/py files under the installed
+computer-use26.1103.32239 package for clipboard/type_text/paste. Matches provided
+only the documented literal-text contract, not transport implementation. Package
+root exposed docs/skills/assets/metadata. In the existing node runtime,
+import.meta.resolve('@oai/sky') returned the bare specifier, not a source path.
+These checks did not establish clipboard use or prove implementation source is
+unavailable everywhere. No helper executable search, reverse engineering, custom
+transport, UI input, target launch or clipboard-content access was performed.
+
+This local documentation route is exhausted within the inspected scope. Useful
+next work is a separately approved isolated single-TextBox WinUI sample, preserving
+the existing application unchanged; build and runtime budgets must be scoped before
+execution. Its purpose would be to test whether the application-specific search
+and layout code is necessary for the symptom, not to prove a vendor defect.
+Alternatively, a support inquiry can ask whether type_text uses clipboard/paste,
+how it restores clipboard state, and what non-sensitive diagnostics are supported.
+No inquiry has been sent and no reduced sample has been implemented.
+
 - [Adjacent comparison](2026-11-09-windows-adjacent-input-comparison.md).
 - [Earlier manual input](2026-11-09-windows-manual-input-observation-execution.md).
 - [Wait-chain screenshot and service follow-up](2026-11-08-windows-wait-chain-observation-execution.md).

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — LOCAL INPUT CONTRACT DOES NOT REVEAL TRANSPORT:
+Reproduction report records scoped readable-package search and module resolution;
+neither yielded implementation evidence of clipboard use. No new app/UI action.
+Next separately scope an isolated single-TextBox sample (original app unchanged),
+or obtain user direction for a support inquiry. Neither has been executed/sent.
+No runtime allowance or acceptance status changed.
+
 LATEST HANDOFF — REPRODUCTION REPORT PREPARED, NO NEW RUN:
 Start with docs/roadmap/2026-11-09-windows-input-shutdown-reproduction-report.md.
 It consolidates artifact hashes, observed recipe, adjacent results, WCT evidence
