@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <EnableLayoutDiagnostics Condition="'$(EnableLayoutDiagnostics)' == ''">false</EnableLayoutDiagnostics>
+    <EnableCloseStageRecording Condition="'$(EnableCloseStageRecording)' == ''">false</EnableCloseStageRecording>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
@@ -10,5 +11,16 @@
     <BaseIntermediateOutputPath>obj/layout-diagnostics/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/layout-diagnostics/</MSBuildProjectExtensionsPath>
     <BaseOutputPath>bin/layout-diagnostics/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Talenro.Demo.App' And '$(EnableCloseStageRecording)' == 'true'">
+    <BaseIntermediateOutputPath>obj/close-stage-recording/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/close-stage-recording/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/close-stage-recording/</BaseOutputPath>
+  </PropertyGroup>
+  <!-- App-only verification copies: absolute NuGet imports, no Core path overrides. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Talenro.Demo.App' And '$(EnableCloseStageRecording)' != 'true' And (('$(CloseStageVerificationMode)' == 'ordinary' And '$(EnableLayoutDiagnostics)' == 'false') Or ('$(CloseStageVerificationMode)' == 'layout' And '$(EnableLayoutDiagnostics)' == 'true'))">
+    <BaseIntermediateOutputPath>obj/close-stage-verification/$(CloseStageVerificationMode)/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/close-stage-verification/$(CloseStageVerificationMode)/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/close-stage-verification/$(CloseStageVerificationMode)/</BaseOutputPath>
   </PropertyGroup>
 </Project>

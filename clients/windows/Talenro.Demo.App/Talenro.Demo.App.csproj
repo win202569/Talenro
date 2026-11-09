@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="ValidateCloseStageConfiguration">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -15,6 +15,13 @@
   <PropertyGroup Condition="'$(EnableLayoutDiagnostics)' == 'true'">
     <DefineConstants>$(DefineConstants);LAYOUT_DIAGNOSTICS</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableCloseStageRecording)' == 'true' And '$(EnableLayoutDiagnostics)' == 'true' And '$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);CLOSE_STAGE_RECORDING</DefineConstants>
+  </PropertyGroup>
+  <Target Name="ValidateCloseStageConfiguration">
+    <Error Code="CLOSESTAGE001" Text="Close-stage recording requires Debug layout diagnostics and a boolean opt-in."
+           Condition="('$(EnableCloseStageRecording)' != 'true' And '$(EnableCloseStageRecording)' != 'false') Or ('$(EnableCloseStageRecording)' == 'true' And ('$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'true'))" />
+  </Target>
   <ItemGroup Condition="'$(EnableLayoutDiagnostics)' != 'true'">
     <Compile Remove="Diagnostics/**/*.cs" />
   </ItemGroup>

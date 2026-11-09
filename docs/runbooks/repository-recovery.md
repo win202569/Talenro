@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST IMPLEMENTATION — BUILD-ONLY, FINAL REVIEW PENDING:
+Read docs/roadmap/2026-11-09-windows-close-stage-implementation.md and
+clients/windows/diagnostics/close-stage-recording.md. Tests275/275; three isolated
+builds and metadata checks pass; six original hashes unchanged. No app launches
+authorized or performed. Original shutdown cause and broader acceptance remain
+open. Earlier planning entries below are historical.
+
 LATEST PLAN — DESIGN APPROVED, EXECUTION PENDING:
 Read docs/superpowers/plans/2026-11-09-windows-close-stage-recording.md and its
 approved design. Four dependent tasks, test-first behavior checks, isolated

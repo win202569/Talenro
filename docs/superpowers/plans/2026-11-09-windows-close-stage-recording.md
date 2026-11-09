@@ -20,7 +20,11 @@
 - “Lost/ambiguous traces remain INCONCLUSIVE, not PASS.”
 - “Normal build must exclude recorder and added call sites.”
 - Preserve original artifacts; no app launch, kill, services/settings changes or main merge.
-- This plan is pending user review/execution-method selection. Tests/build do not authorize UI runtime runs.
+- User approved this plan and native sequential execution with one final independent review. Tests/build do not authorize UI runtime runs.
+
+Execution tracking: Tasks1–3 committed; Task4 tests/builds passed, final review and
+preservation pending. Original checklists below are the approved brief; evidence
+and deviations are in docs/roadmap/2026-11-09-windows-close-stage-implementation.md.
 
 ## Review Focus
 

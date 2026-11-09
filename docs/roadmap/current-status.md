@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-09
 
+## Latest — 关闭阶段记录已实现，构建验证通过，待最终审查
+
+用户批准后已顺序实施；完整单元测试275/275，三种隔离构建均0警告0错误，
+程序集静态隔离检查通过，原六个EXE/DLL哈希未变。未启动应用；根因与运行验收
+仍未确认。详见2026-11-09-windows-close-stage-implementation.md。下方均为历史记录。
+
 ## Latest — 关闭阶段记录设计已批准，实现计划待确认
 
 用户已批准79611414设计。实现计划位于docs/superpowers/plans/2026-11-09-windows-close-stage-recording.md，
