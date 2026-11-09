@@ -3,6 +3,13 @@
 Status: evidence report, not a fix or a standalone minimal sample. Prepared from
 saved observations; no new runtime attempt and no external issue submission.
 
+Follow-up: an isolated single-TextBox prototype was subsequently built and observed.
+Automatic input closed normally; manual close also signaled but exact-value
+verification missed its route deadline. The prototype has not reproduced the stall.
+See [prototype observation](2026-11-09-windows-textbox-prototype-observation.md).
+The report body below describes the earlier demo evidence; its historical statements
+that a reduced sample had not yet been built are superseded by this follow-up.
+
 ## Summary
 
 In the existing offline WinUI demo, automated literal-text entry of `jp-1` followed

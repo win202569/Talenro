@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST PROTOTYPE RUNTIME — STALL NOT REPRODUCED, TIMING LIMIT RECORDED:
+Read docs/roadmap/2026-11-09-windows-textbox-prototype-observation.md. Automatic
+prototype input/close passed with signal~0.174s; manual close signaled~0.188s,
+but manual exact-value verification was121.6s (over120s), so full manual route
+NOT_ACCEPTED. Actual typing time unknown; do not silently waive the deviation.
+12/30 identity-valid pairs, final code0 agreement, no remaining targets/windows.
+Both2/2 launches consumed, no demo/source/settings changes. Prototype is not yet
+a failure reproducer. Next read-only difference review; no new launch allowance.
+
 LATEST BUILD-ONLY CHECKPOINT — ISOLATED TEXTBOX PROTOTYPE:
 Source/README/lock: clients/windows/diagnostics/TextBoxShutdownProbe/.
 Read docs/roadmap/2026-11-09-windows-textbox-prototype-build.md for build evidence

@@ -1,7 +1,8 @@
 # TextBox shutdown diagnostic prototype
 
 Experimental, non-production reduction for the input-associated shutdown report.
-Not a fix and not yet shown to reproduce the stall. Source is retained only for
+Not a fix and not shown to reproduce the stall in the first two observations.
+Source is retained only for
 diagnostic reproducibility; no product integration or promotion is implied.
 
 One WinUI Window with one empty TextBox (`ProbeInput`). No text-change handlers,
@@ -34,8 +35,12 @@ Restore may need network access on a fresh computer. Do not upgrade dependencies
 or change system settings to bypass build failures. The checked-in lockfile binds
 NuGet resolution; outputs are newly identified artifacts, not the previous demo.
 
-Current approval covers creation/compilation only: do not launch from this README.
+The later approved two-run observation is complete; no launch allowance remains.
+Automatic input/close passed; manual close also signaled, but its input-value
+verification missed the120s route deadline. See the observation ledger under
+`docs/roadmap/2026-11-09-windows-textbox-prototype-observation.md` for limitations.
+Do not launch from this README.
 Any future automatic/manual runtime comparison needs its own attempt limit,
 observer binding to this executable (not the demo hash/name), no-leftover checks,
 normal-close criteria and no-kill rules. The existing demonstration's observations
-do not establish this prototype's startup, layout, input or shutdown behavior.
+do not establish this prototype's behavior; use its own limited observation record.
