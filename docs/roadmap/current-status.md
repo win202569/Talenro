@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-09
 
+## Latest — 关闭阶段记录设计已批准，实现计划待确认
+
+用户已批准79611414设计。实现计划位于docs/superpowers/plans/2026-11-09-windows-close-stage-recording.md，
+分四项：有界队列、后台传输/保守解析、安全启用与关闭钩子、构建隔离验证。计划明确保留
+原六个EXE/DLL哈希，默认关闭诊断，缺失尾部不推断卡点。尚未修改源码、测试、构建或启动；
+待用户确认计划及执行方式，建议本会话顺序实施后独立总审查。UI运行预算仍为0。
+
 ## Latest — 关闭阶段记录设计草案待批准
 
 草案：docs/superpowers/specs/2026-11-09-windows-close-stage-recording-design.md。

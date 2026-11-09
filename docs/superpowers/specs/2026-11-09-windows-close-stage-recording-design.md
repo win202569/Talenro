@@ -1,8 +1,9 @@
 # Windows close-stage recording — short design for approval
 
-Status: DRAFT / NOT APPROVED. User requested the next design step after the
-read-only observer review. No implementation, compilation or runtime approval is
-implied. This is diagnostic instrumentation, not a shutdown fix or product feature.
+Status: DESIGN APPROVED by user “是” after the79611414 design handoff.
+Proceed to implementation planning; execution method and plan review remain pending.
+No runtime approval is implied. This is diagnostic instrumentation, not a shutdown
+fix or product feature. Earlier “proposed” wording records the design's provenance.
 
 ## Intent and scope
 

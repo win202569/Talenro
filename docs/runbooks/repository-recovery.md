@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — DESIGN APPROVED, EXECUTION PENDING:
+Read docs/superpowers/plans/2026-11-09-windows-close-stage-recording.md and its
+approved design. Four dependent tasks, test-first behavior checks, isolated
+builds, original artifact hashes preserved. User plan review/execution-method
+selection pending. No source/tests/build/runtime work performed by this planning
+checkpoint; no WinUI launch budget. Earlier draft status below is historical.
+
 LATEST DESIGN DRAFT — AWAITING APPROVAL:
 Read docs/superpowers/specs/2026-11-09-windows-close-stage-recording-design.md.
 Proposed isolated Debug-only bounded stage queue/background writer; no close-time
