@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST LONG-COUNTRY OBSERVATION:
+Read docs/roadmap/2026-11-09-windows-close-stage-long-country-observation.md.
+Newly approved1/1 launch consumed; same trace artifact/automatic input/titlebar
+close, only profile changed.24 healthy complete stages,43 identity-valid samples,
+native/managed exit0,85.208s, no leftovers. No root cause/fix established. Next
+candidate is Alt+F4 only, requiring separate bounded approval; do not auto-run.
+
 LATEST READ-ONLY COMPARISON:
 Read docs/roadmap/2026-11-09-windows-close-stage-history-comparison.md. Historical
 stall used long-country plus Alt+F4; recent success used baseline plus titlebar

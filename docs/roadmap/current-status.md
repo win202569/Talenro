@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-09
 
+## Latest — long-country 单变量观察完成，也正常退出
+
+另行批准1次已使用1/1；相同诊断程序/自动jp-1/标题栏×，仅改long-country。
+24阶段完整健康，43组原生/托管身份一致，进程退出码0，85.208秒结束，无遗留。
+详见2026-11-09-windows-close-stage-long-country-observation.md。长文本不是必然
+触发条件，原问题仍未定因；不能宣称修复。下一候选为仅改Alt+F4，须另行批准。
+
 ## Latest — 历史对比完成，发现配置与关闭方式不一致
 
 历史卡住为long-country/Alt+F4，最新成功为baseline/标题栏×，且程序增加了记录器，
