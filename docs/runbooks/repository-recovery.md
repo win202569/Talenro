@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — C4 DESIGN APPROVED, IMPLEMENTATION PLAN AWAITS CONFIRMATION:
+Read [C4 plan](../superpowers/plans/2026-11-09-windows-c4-observer-entry.md).
+One integrated task: dedicated entry, create-only manifest, synthetic coverage,
+guide and independent final review. Sequential implementation recommended. No
+implementation/tests/live run yet; runtime allowance0. Existing C5 remains unchanged.
+
 LATEST — DEDICATED C4 ENTRY SELECTED, WRITTEN DESIGN AWAITS APPROVAL:
 Read [C4 short design](../superpowers/specs/2026-11-09-windows-c4-observer-entry-design.md).
 Separate fixed English/RTL entry, unchanged C5 entry and shared observation modules.
