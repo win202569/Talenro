@@ -45,9 +45,36 @@ No WinUI launch, forced exit, service/security change or main merge.
    ApplicationDefinition absent. Cost: another opt-in build property; no Core
    source change, old-output deletion or change to preserved artifact paths.
 
+## Independent review and bounded fix pass
+
+Fresh read-only review of 41ce1d92..82ec5c49 identified one Important issue:
+unknown/mismatched verification mode silently selected canonical output paths.
+No Critical or Minor findings. Four negative cases reproduced RED (0/4 rejected),
+then the initial validation target was extended with CLOSESTAGE002; GREEN4/4 and
+the whole gate script passed. Full .NET suite again275/275. No second reviewer.
+Post-fix ordinary/layout/trace builds passed0warnings0errors in14.51/13.14/13.37s;
+metadata isolation passed again and all six original hashes matched again.
+
+Review boundary rulings (accepted, not acceptance waivers):
+
+9. Live callbacks/native removal/shutdown cause remain unjudged: no launch
+   authority. Cost: build success cannot establish shutdown correctness.
+10. Real overhead, storage latency/tail-loss and retained-process evidence remain
+    unmeasured. Cost: live recording may perturb timing or lose useful evidence.
+11. Hostile concurrent replacement and arbitrary deployment aliases are outside
+    the trusted-workspace model. Cost: path checks are not an adversarial sandbox.
+12. Deliberate global MSBuild output/intermediate overrides are outside supported
+    commands; documented rather than prohibited. Cost: callers can defeat isolation.
+13. Reviewer accepted validation ledger, did not rerun tests/builds/hashes under
+    its read-only mandate. Cost: review is not independent runtime reproduction;
+    executor's post-fix verification is the evidence.
+
+No deferred minor findings. Necessary source/tests/docs remain on the existing
+development branch; no PR, main merge, branch or worktree deletion authorized.
+
 ## Remaining gate
 
-Final independent review pending. Original shutdown issue remains unresolved;
+Original shutdown issue remains unresolved;
 runtime stage callbacks, overhead and retained-handle process observations not
 verified by these tests. All broader acceptance blockers remain. Recover from the
 development branch, read diagnostics/close-stage-recording.md for exact commands;

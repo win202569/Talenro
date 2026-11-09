@@ -36,6 +36,11 @@ an offline constraint, not evidence of a successful security audit. Do not pass
 global relative MSBuildProjectExtensionsPath or DefaultItemExcludes overrides:
 the former loses NuGet imports, and relocating Core exposes stale obj sources.
 The App-only verification mode keeps absolute import paths and Core unchanged.
+Unknown/mismatched verification modes and recording-plus-verification requests
+fail with CLOSESTAGE002 before build/restore. Explicit global MSBuild output/path
+overrides are outside these supported commands and can defeat isolation; do not
+direct them at preserved artifacts. This is not a guard against arbitrary build
+customizations.
 
 ## Activation and interpretation (not authorization to launch)
 

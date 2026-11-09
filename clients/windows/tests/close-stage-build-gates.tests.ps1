@@ -2,6 +2,16 @@
 $ErrorActionPreference = 'Stop'
 $project = Join-Path $PSScriptRoot '../Talenro.Demo.App/Talenro.Demo.App.csproj'
 function Check([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
+$rejectedModes = 0
+foreach ($arguments in @(
+    @('-p:CloseStageVerificationMode=layuot','-p:EnableLayoutDiagnostics=true','-p:EnableCloseStageRecording=false'),
+    @('-p:CloseStageVerificationMode=ordinary','-p:EnableLayoutDiagnostics=true','-p:EnableCloseStageRecording=false'),
+    @('-p:CloseStageVerificationMode=layout','-p:EnableLayoutDiagnostics=false','-p:EnableCloseStageRecording=false'),
+    @('-p:CloseStageVerificationMode=layout','-p:EnableLayoutDiagnostics=true','-p:EnableCloseStageRecording=true'))) {
+    $output = & dotnet msbuild $project -nologo -target:ValidateCloseStageConfiguration -p:Configuration=Debug @arguments 2>&1
+    if ($LASTEXITCODE -ne 0 -and ($output -join "`n") -match 'CLOSESTAGE002') { $rejectedModes++ }
+}
+Check ($rejectedModes -eq 4) "Unsafe verification modes rejected: $rejectedModes/4; must fail before build/restore."
 foreach ($arguments in @(
     @('-p:Configuration=Release','-p:EnableLayoutDiagnostics=true','-p:EnableCloseStageRecording=true'),
     @('-p:Configuration=Debug','-p:EnableLayoutDiagnostics=false','-p:EnableCloseStageRecording=true'),

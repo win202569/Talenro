@@ -19,6 +19,8 @@
     <DefineConstants>$(DefineConstants);CLOSE_STAGE_RECORDING</DefineConstants>
   </PropertyGroup>
   <Target Name="ValidateCloseStageConfiguration">
+    <Error Code="CLOSESTAGE002" Text="Verification mode must be ordinary without layout, or layout with layout diagnostics; recording must be disabled."
+           Condition="'$(CloseStageVerificationMode)' != '' And ('$(EnableCloseStageRecording)' != 'false' Or !(('$(CloseStageVerificationMode)' == 'ordinary' And '$(EnableLayoutDiagnostics)' == 'false') Or ('$(CloseStageVerificationMode)' == 'layout' And '$(EnableLayoutDiagnostics)' == 'true')))" />
     <Error Code="CLOSESTAGE001" Text="Close-stage recording requires Debug layout diagnostics and a boolean opt-in."
            Condition="('$(EnableCloseStageRecording)' != 'true' And '$(EnableCloseStageRecording)' != 'false') Or ('$(EnableCloseStageRecording)' == 'true' And ('$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'true'))" />
   </Target>
