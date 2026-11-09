@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST RUNTIME OBSERVATION — SINGLE APPROVED RUN COMPLETED:
+Read docs/roadmap/2026-11-09-windows-close-stage-first-observation.md. One launch,
+confirmed jp-1 input, normal close;24 stages with healthy completion and native/
+managed process exit0.49 paired samples,97.374s, no leftover targets. Budget1/1
+consumed, no retries. Original stall not reproduced or fixed. Next recommended
+action: read-only comparison with historical stalled case, not another launch.
+Raw receipts/binaries remain local and ignored; Git restores the portable ledger.
+Earlier zero-launch status below describes implementation, not this new approval.
+
 LATEST IMPLEMENTATION — BUILD-ONLY, REVIEW FINDING FIXED:
 Read docs/roadmap/2026-11-09-windows-close-stage-implementation.md and
 clients/windows/diagnostics/close-stage-recording.md. Tests275/275; three isolated
