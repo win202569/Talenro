@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — C4 ENTRY IMPLEMENTED, FINAL REVIEW PENDING (2026-11-10):
+Read [execution ledger](../roadmap/2026-11-09-windows-c4-observer-entry-execution.md)
+and [C4 guide](../../clients/windows/diagnostics/c4-observation.md). New152 synthetic
+checks passed; unchanged shared runtime, no native run or product build. Restore
+from latest codex/c12-b01-task9-coordinator, not main. Sources/tests/docs are portable;
+ignored fixed binaries and raw receipts are not. Missing/mismatching artifacts block,
+never rebuild/substitute automatically. Runtime allowance0; all acceptance gates stay.
+
 LATEST — C4 DESIGN APPROVED, IMPLEMENTATION PLAN AWAITS CONFIRMATION:
 Read [C4 plan](../superpowers/plans/2026-11-09-windows-c4-observer-entry.md).
 One integrated task: dedicated entry, create-only manifest, synthetic coverage,

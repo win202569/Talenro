@@ -1,8 +1,8 @@
 # Fixed C4 observer entry — short design
 
 Status: user selected the dedicated C4 entry approach and approved this written
-design after35d3271b. Implementation plan awaits confirmation; no implementation,
-tests, build or native launch has started.
+design after35d3271b and inline implementation plan after5a13d26b. Implementation
+and synthetic checks now exist; final review pending. No build or native launch.
 Existing live allowance0. Scope is a small observation-tool addition, not UI repair.
 
 ## Intent and approaches

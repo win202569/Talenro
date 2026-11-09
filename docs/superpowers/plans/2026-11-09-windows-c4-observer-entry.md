@@ -10,8 +10,9 @@
 
 **Spec:** docs/superpowers/specs/2026-11-09-windows-c4-observer-entry-design.md, user approved after35d3271b.
 
-Status: awaiting plan confirmation and execution-method choice. Code/test execution
-has not started. Live allowance0; future runtime approval is separate.
+Status: user approved sequential inline execution after5a13d26b. Implementation
+and synthetic coverage completed2026-11-10; final verification/review/preservation
+in progress. Live allowance0; future runtime approval is separate. See execution ledger.
 
 ## Global Constraints
 
