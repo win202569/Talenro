@@ -19,14 +19,17 @@ function Invoke-TalenroC5Observation {
     # Complete trusted callbacks only: no live fallback is present in this module.
     & $Backend.Preflight $Context | Out-Null
     $state=@{LastMs=[double]0;Sequence=0;TargetPid=$null;Phase='identity-failed'}
+    $readClock={
+        $value=& $Backend.ElapsedMs
+        if(($value -isnot [double] -and $value -isnot [long] -and $value -isnot [int]) -or
+            -not[double]::IsFinite([double]$value) -or $value -lt 0 -or $value -lt $state.LastMs){throw 'Invalid monotonic clock.'}
+        $state.LastMs=[double]$value
+        return [double]$value
+    }.GetNewClosure()
     $identityGuard=Get-Command Assert-TalenroObservationIdentity -CommandType Function
     $body={param($processResource,$writer)
         function Clock {
-            $value=& $Backend.ElapsedMs
-            if(($value -isnot [double] -and $value -isnot [long] -and $value -isnot [int]) -or
-                -not[double]::IsFinite([double]$value) -or $value -lt 0 -or $value -lt $state.LastMs){throw 'Invalid monotonic clock.'}
-            $state.LastMs=[double]$value
-            return [double]$value
+            & $readClock
         }
         function Save([string]$kind,[Collections.IDictionary]$data) {
             $state.Sequence++
@@ -60,7 +63,7 @@ function Invoke-TalenroC5Observation {
                 $m.Fields.StartTime.Status -cne 'ok' -or $m.Fields.StartTime.Value -cne $identity.StartUtc.ToString('o')){throw 'Managed identity mismatch.'}
         }
         function Finish([string]$outcome,[bool]$verified,[string]$reason){
-            Save 'outcome' @{Outcome=$outcome;ExitVerified=$verified;Reason=$reason;TargetPid=$state.TargetPid;OverrunMs=[Math]::Max(0,$state.LastMs-360000)}
+            Save 'outcome' @{Outcome=$outcome;ExitVerified=$verified;Finalized=$false;Reason=$reason;TargetPid=$state.TargetPid;OverrunMs=[Math]::Max(0,$state.LastMs-360000)}
         }
         try {
             if($null -eq $writer.PSObject.Methods['WriteLine']){throw 'Missing receipt writer.'}
@@ -88,13 +91,22 @@ function Invoke-TalenroC5Observation {
             $state.Phase='observation-failed'
             while((Clock) -lt 360000){
                 $native=& $Backend.ReadNative $identity.Handle $Context.RunId
-                [void](Clock)
-                if($state.LastMs -ge 360000){
+                $managed=$null
+                try{
+                    [void](Clock)
+                    if($state.LastMs -lt 360000){
+                        $managed=& $Backend.ReadManaged $processResource
+                        [void](Clock)
+                    }
+                }catch{
+                    # Keep the already acquired native evidence even if managed/time acquisition fails.
+                    [void](Save 'pair' @{Native=$native;Managed=$managed;IdentityVerified=$false;Incomplete=$true})
+                    throw
+                }
+                if($null -eq $managed -and $state.LastMs -ge 360000){
                     [void](Save 'pair' @{Native=$native;Managed=$null;IdentityVerified=$false;Incomplete=$true})
                     return (Finish 'timed-out' $false 'deadline')
                 }
-                $managed=& $Backend.ReadManaged $processResource
-                [void](Clock)
                 # Save raw receipts before checks, including disagreement or invalid evidence.
                 [void](Save 'pair' @{Native=$native;Managed=$managed;IdentityVerified=$true;Incomplete=$false})
                 if($state.LastMs -ge 360000){return (Finish 'timed-out' $false 'deadline')}
@@ -119,17 +131,27 @@ function Invoke-TalenroC5Observation {
             return (Finish 'timed-out' $false 'deadline')
         } catch {
             # Best-effort failure receipt. Writer failure still throws; no fabricated receipt.
-            try {[void](Save 'outcome' @{Outcome=$state.Phase;ExitVerified=$false;Reason='callback-or-evidence-error';TargetPid=$state.TargetPid;OverrunMs=[Math]::Max(0,$state.LastMs-360000)})} catch {}
+            $timingVerified=$false
+            try{[void](Clock);$timingVerified=$true}catch{}
+            try {[void](Save 'outcome' @{Outcome=$state.Phase;ExitVerified=$false;Finalized=$false;TimingVerified=$timingVerified;Reason='callback-or-evidence-error';TargetPid=$state.TargetPid;OverrunMs=[Math]::Max(0,$state.LastMs-360000)})} catch {}
             throw [InvalidOperationException]::new("C5 $($state.Phase).")
         }
     }.GetNewClosure()
     try {
         $result=Invoke-TalenroObservationScope -AcquireWriter { & $Backend.AcquireWriter $Context } `
             -AcquireProcess { & $Backend.AcquireProcess $Context } -Observe $body
+        # Persisted outcome is provisional: cleanup can fail or take us past the cap.
+        $elapsed=& $readClock
+        $result.ElapsedMs=[double]$elapsed
+        $result.OverrunMs=[Math]::Max(0,$elapsed-360000)
+        if($elapsed -ge 360000){$result.Outcome='timed-out';$result.ExitVerified=$false;$result.Reason='deadline'}
+        $result.Finalized=$true
         & $Backend.Publish $result | Out-Null
         return $result
     } catch {
-        try { & $Backend.Publish ([pscustomobject]@{SchemaVersion=1;Mode=$Mode;RunId=$Context.RunId;Kind='abort';TargetPid=$state.TargetPid;ExitVerified=$false;Reason='session-failed'}) | Out-Null } catch {}
+        $timingVerified=$false
+        try{[void](& $readClock);$timingVerified=$true}catch{}
+        try { & $Backend.Publish ([pscustomobject]@{SchemaVersion=1;Mode=$Mode;RunId=$Context.RunId;Kind='abort';TargetPid=$state.TargetPid;ExitVerified=$false;Reason='session-failed';ElapsedMs=$state.LastMs;OverrunMs=[Math]::Max(0,$state.LastMs-360000);TimingVerified=$timingVerified}) | Out-Null } catch {}
         throw [InvalidOperationException]::new('C5 session failed; no acceptance.')
     }
 }

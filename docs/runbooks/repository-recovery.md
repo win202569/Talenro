@@ -1,5 +1,18 @@
 # Recover the project on a new computer
 
+LATEST — FIXED C5 ENTRY IMPLEMENTED, REVIEW FIXES SYNTHETICALLY VERIFIED:
+Read [execution ledger](../roadmap/2026-11-09-windows-c5-observer-entry-execution.md)
+and [observer guide](../../clients/windows/diagnostics/c5-observation.md).
+Default invocation returns NotStarted, without environment queries or launch.
+Entry32/orchestration120/guard48/managed32/native78 synthetic checks passed (310 total).
+Independent review found two Important issues, both regression-tested RED→GREEN;
+one redundant test assertion naming issue is deferred in the ledger.
+No native retry, product build or acceptance promotion. Live budget remains0.
+Source/tests/docs are portable; preserved ignored binaries and raw receipts are not
+restored by cloning. Missing fixed artifact must block, not trigger rebuild/substitution.
+Use latest codex/c12-b01-task9-coordinator, not main. Earlier pending proposals below
+are historical; final review and remote checkpoint status are in the current ledger.
+
 LATEST PLAN — FIXED C5 ENTRY DESIGN APPROVED, IMPLEMENTATION PENDING:
 Read [implementation plan](../superpowers/plans/2026-11-09-windows-c5-observer-entry.md)
 and its approved spec. Two tasks: shared synthetic-tested orchestration, then fixed

@@ -74,6 +74,11 @@ foreach($fault in @('preflight','writer','launch','identity','native','cim','pid
 }
 foreach($fault in @('nonzero','zero-exit','disagree')){$s=New-Fixture $fault;$r=Run-Fixture $s;Check ($r.Outcome -ceq 'exited' -and -not $r.ExitVerified) "not verified exit: $fault"}
 foreach($fault in @('timeout','near-cap','overrun')){$s=New-Fixture $fault;$r=Run-Fixture $s;Check ($r.Outcome -ceq 'timed-out' -and -not $r.ExitVerified) "timeout: $fault";Check (@($s.Sleeps|Where-Object {$_ -gt 2000 -or $_ -le 0}).Count -eq 0) "bounded sleeps: $fault";if($fault -eq 'near-cap'){Check ($s.Sleeps[0] -eq 500) 'sleep clipped to remaining budget'}}
+$s=New-Fixture
+$s.Writer | Add-Member ScriptMethod Dispose {$this.Disposed=$true;$this.Stream.Dispose();$this.State.Now=[double]360007} -Force
+$r=Run-Fixture $s
+Check ($r.Outcome -ceq 'timed-out' -and -not $r.ExitVerified -and $r.OverrunMs -eq 7) 'cleanup overrun cannot report timely success'
+Check (-not $s.Rows[-1].Finalized -and $r.Finalized) 'raw outcome provisional until cleanup succeeds'
 $s=New-Fixture;$s.Backend.Remove('ReadNative');$failed=$false;try{Run-Fixture $s}catch{$failed=$true};Check ($failed -and $s.Calls.Count -eq 0) 'missing backend rejects without fallback'
 foreach($bad in @([double]-1,[double]::PositiveInfinity,'0')){
     $s=New-Fixture;$s.Backend.ElapsedMs={return $bad}.GetNewClosure();$failed=$false
@@ -83,5 +88,24 @@ $s=New-Fixture;$ticks=@{N=0};$s.Backend.ElapsedMs={$ticks.N++;if($ticks.N -eq 1)
 $failed=$false;try{Run-Fixture $s}catch{$failed=$true};Check ($failed -and $s.NativeCount -eq 0) 'decreasing clock rejected'
 $s=New-Fixture;$s.Now=[double]360000;$r=Run-Fixture $s;Check ($r.Outcome -eq 'timed-out' -and $s.NativeCount -eq 0 -and $s.Sleeps.Count -eq 0) 'exact cap no sample or sleep'
 $s=New-Fixture;$s.Backend.Extra={throw 'must not run'};$failed=$false;try{Run-Fixture $s}catch{$failed=$true};Check ($failed -and $s.Calls.Count -eq 0) 'extra backend callback rejected'
+foreach($failureKind in @('delayed-cim','failed-cleanup')){
+    $s=New-Fixture
+    if($failureKind -eq 'delayed-cim'){
+        $s.Backend.ReadCim={$s.Now=[double]360050;throw 'private-delayed-cim'}.GetNewClosure()
+    }else{
+        $s.Writer | Add-Member ScriptMethod Dispose {$this.Disposed=$true;$this.Stream.Dispose();$this.State.Now=[double]360060;throw 'private-delayed-cleanup'} -Force
+    }
+    $failed=$false;try{Run-Fixture $s}catch{$failed=$true}
+    Check ($failed -and $s.Process.Disposed -and $s.Writer.Disposed) "delayed failure stays failed and disposes: $failureKind"
+    if($failureKind -eq 'delayed-cim'){Check ($s.Rows[-1].ElapsedMs -eq 360050 -and $s.Rows[-1].OverrunMs -eq 50) 'throwing callback records actual overrun'}
+    Check ($s.Progress[-1].ElapsedMs -eq $s.Now -and $s.Progress[-1].OverrunMs -eq ($s.Now-360000)) "abort records post-cleanup time: $failureKind"
+}
+$s=New-Fixture
+$originalManaged=$s.Backend.ReadManaged
+$s.Backend.ReadManaged={param($process) if($s.NativeCount -eq 3){throw 'private-managed-after-signal'};& $originalManaged $process}.GetNewClosure()
+$failed=$false;try{Run-Fixture $s}catch{$failed=$true}
+$pairs=@($s.Rows|Where-Object Kind -eq 'pair')
+Check ($failed -and $pairs.Count -eq 2 -and $pairs[-1].Native.Calls.Wait.WaitState -ceq 'signaled' -and $pairs[-1].Incomplete -and $null -eq $pairs[-1].Managed) 'signaled native survives managed exception'
+Check ($s.NativeCount -eq 3 -and $s.Process.Disposed -and $s.Writer.Disposed) 'incomplete pair failure no retry and cleanup'
 Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) 'synthetic tests never loaded native probe'
 "C5_SYNTHETIC_PASS: $script:count assertions"

@@ -1,5 +1,15 @@
 # Project status — updated 2026-11-09
 
+## Latest — C5固定入口已实现，独立审查重要项已修正，合成检查310项通过
+
+默认调用只返回NotStarted；真实入口绑定旧产物/完整参数，检查普通权限、分支、源码和哈希。
+新入口32项、观察流程120项、原辅助48/32/78项合成检查通过；未启动应用、未做.NET构建。
+清理越过360秒预算不能标为按时成功；磁盘结果在清理完成前明确为暂定结果。
+见[执行记录](2026-11-09-windows-c5-observer-entry-execution.md)及
+[使用与恢复说明](../../clients/windows/diagnostics/c5-observation.md)。独立审查两项重要问题已用
+先失败后通过的回归测试修正：异常耗时刷新、托管采样失败时保留原生证据。一项小测试缺口暂缓。
+真实启动预算0；C5仍NOT_ACCEPTED，退出故障未定因。以下“待批准”是历史记录。
+
 ## Latest — C5固定入口设计已批准，实施计划待确认
 
 用户批准f26d509e短设计；[实施计划](../superpowers/plans/2026-11-09-windows-c5-observer-entry.md)

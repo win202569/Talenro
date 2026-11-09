@@ -10,7 +10,10 @@
 
 **Spec:** docs/superpowers/specs/2026-11-09-windows-c5-observer-entry-design.md (approved after f26d509e).
 
-Status: awaiting user confirmation. Native launch budget0. No implementation yet.
+Status: user approved after0f87ad74; both tasks complete, independent review fixes
+verified by310 synthetic checks. Native launch budget0. See the portable execution
+ledger for actual results and the one deferred Minor finding. Checklists below retain
+the original task wording; the execution ledger is the completion record.
 
 ## Global constraints
 
