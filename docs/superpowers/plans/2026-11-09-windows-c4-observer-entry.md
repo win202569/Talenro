@@ -147,7 +147,7 @@ Manifest is preparation metadata, never proof that a target launched or UI passe
   baseline must be empty. Explicitly stage only new source/tests/guide and necessary
   docs; commit `feat: add fixed C4 observer entry with synthetic coverage`.
 
-- [ ] **9. Obtain final independent read-only review and preserve result.**
+- [x] **9. Obtain final independent read-only review and preserve result.**
   Review entire task against spec and all five Review Focus items. No live execution
   by reviewer. Fix Critical/Important with failing regression then GREEN full scoped
   suite; record deferred Minor findings and limitations. Commit necessary fixes/docs,
