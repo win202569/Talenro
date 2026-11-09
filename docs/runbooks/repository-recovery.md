@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PLAN — FIXED C5 ENTRY DESIGN APPROVED, IMPLEMENTATION PENDING:
+Read [implementation plan](../superpowers/plans/2026-11-09-windows-c5-observer-entry.md)
+and its approved spec. Two tasks: shared synthetic-tested orchestration, then fixed
+no-start-by-default live entry and handoff. Await plan confirmation; no code/test
+execution yet. Proposed implementation is sequential with final independent review.
+No native launch budget, product change or acceptance promotion is included.
+
 LATEST DESIGN — FIXED C5 OBSERVER ENTRY, AWAITING APPROVAL:
 Read [short design](../superpowers/specs/2026-11-09-windows-c5-observer-entry-design.md).
 User selected the fixed-entry approach. No implementation or native run yet.

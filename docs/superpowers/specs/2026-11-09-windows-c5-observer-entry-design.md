@@ -1,7 +1,8 @@
 # Fixed C5 observation entry — short design
 
-Status: approach selected by user; written design awaiting approval. Implementation
-and native execution have not started. Existing launch allowance remains zero.
+Status: user approved the written design after f26d509e. Implementation plan awaits
+confirmation; implementation and native execution have not started. Existing launch
+allowance remains zero.
 
 ## Intent and approaches
 

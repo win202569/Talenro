@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-09
 
+## Latest — C5固定入口设计已批准，实施计划待确认
+
+用户批准f26d509e短设计；[实施计划](../superpowers/plans/2026-11-09-windows-c5-observer-entry.md)
+分为合成可测观察流程、固定入口与恢复交付两项，顺序实施后独立审查。
+只允许代码和合成验证，不启动应用、不改产品/系统设置。尚未实施；真实运行预算仍为0。
+
 ## Latest — C5固定观察入口方案已选，短设计待批准
 
 用户选择专用固定入口，不扩展通用运行器。[短设计](../superpowers/specs/2026-11-09-windows-c5-observer-entry-design.md)
