@@ -61,3 +61,13 @@ User must close its window normally; no additional UI inputs or launches planned
 
 Automatic-input comparison NOT_ACCEPTED; no root-cause/fix or acceptance claim.
 Existing project gates remain. Do not automatically resume or replenish launches.
+
+## Subsequent user closure
+
+User reported manually closing the window. Independent read-only CIM inventory
+at2026-11-09T16:39:37.6952298Z returned zero variant/baseline/demo processes and
+no observer19144. Initial result-formatting attempt used an unsupported .Select
+method and failed; corrected read-only query produced the explicit zero count.
+No restart, kill or second-mode launch. The retained-handle observer had already
+ended, so exact exit time/code and close latency were not captured; this confirms
+absence at the later check, not a successful automatic-input/close comparison.

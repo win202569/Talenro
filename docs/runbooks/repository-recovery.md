@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST CLEANUP CONFIRMATION:
+User reported manual close. Read-only CIM at2026-11-09T16:39:37.6952298Z found
+zero variant/baseline/demo processes and no previous observer. No restart/kill.
+Exact exit status/time unavailable because retained-handle observer had ended.
+Comparison remains NOT_ACCEPTED; below pending-close statements are historical.
+
 LATEST RUNTIME ATTEMPT — INTERRUPTED, NOT A COMPARISON RESULT:
 Read docs/roadmap/2026-11-09-windows-list-refresh-observation.md. Static launched
 once, no automatic text sent; user-input guard interrupted input and normal-close
