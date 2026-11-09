@@ -2,7 +2,8 @@
 
 Status: user selected the dedicated C4 entry approach and approved this written
 design after35d3271b and inline implementation plan after5a13d26b. Implementation
-and synthetic checks now exist; final review pending. No build or native launch.
+and synthetic checks now exist; independent review0 Critical/0 Important, one Minor
+coverage recommendation deferred. No build or native launch.
 Existing live allowance0. Scope is a small observation-tool addition, not UI repair.
 
 ## Intent and approaches

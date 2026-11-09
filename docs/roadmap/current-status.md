@@ -1,9 +1,10 @@
 # Project status — updated 2026-11-10
 
-## Latest — C4入口已实现，合成检查通过；独立审查待完成
+## Latest — C4入口已实现并完成独立审查，462项合成检查通过
 
 专用en-US/rtl-mixed入口默认不启动，启动前创建独立C4清单；记录创建失败阻止启动。
-新增152项合成检查通过，C5及共享运行文件未修改。见
+新增152项及原310项合成检查通过，C5及共享运行文件未修改。
+独立审查0严重/0重要，1项非阻塞异常路径测试覆盖建议暂缓，详见执行记录。见
 [执行记录](2026-11-09-windows-c4-observer-entry-execution.md)和
 [操作/恢复说明](../../clients/windows/diagnostics/c4-observation.md)。
 实机额度仍0，未运行应用/.NET构建或改变系统设置；C4仍UNVERIFIED，C5整体及

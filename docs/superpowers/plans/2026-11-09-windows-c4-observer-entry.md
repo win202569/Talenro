@@ -11,8 +11,9 @@
 **Spec:** docs/superpowers/specs/2026-11-09-windows-c4-observer-entry-design.md, user approved after35d3271b.
 
 Status: user approved sequential inline execution after5a13d26b. Implementation
-and synthetic coverage completed2026-11-10; final verification/review/preservation
-in progress. Live allowance0; future runtime approval is separate. See execution ledger.
+and synthetic coverage completed2026-11-10; six suites462 checks pass, independent
+review0 Critical/0 Important/1 deferred Minor. Preservation follows standing dev-branch
+push instruction. Live allowance0; future runtime approval is separate. See execution ledger.
 
 ## Global Constraints
 
@@ -71,7 +72,7 @@ inventory, arbitrary exception text or credentials needed. RunId must be lowerca
 nonzero GUID N and match Context. Expected path/command line must match Policy.
 Manifest is preparation metadata, never proof that a target launched or UI passed.
 
-- [ ] **1. Write default/policy/preflight tests before entry implementation.**
+- [x] **1. Write default/policy/preflight tests before entry implementation.**
   Define `Check($condition,$name)` and a failure assertion helper in the test script.
   Install fail-on-call Start-Process/Get-CimInstance/Add-Type/Start-Sleep/file wrappers
   before executing default entry or AST-extracted private definitions. Assert:
@@ -87,17 +88,17 @@ Manifest is preparation metadata, never proof that a target launched or UI passe
   switches reject; token/branch/dirty/source/missing/hash/target/inaccessible-CIM
   failures each produce zero writer/launch calls when composed with the shared scope.
 
-- [ ] **2. Run the initial RED.**
+- [x] **2. Run the initial RED.**
   Run `pwsh -NoProfile -File clients/windows/tests/observe-c4.tests.ps1`.
   Expected: explicit missing-entry assertion, exit1, no live effects.
 
-- [ ] **3. Implement default guard and private policy/preflight functions.**
+- [x] **3. Implement default guard and private policy/preflight functions.**
   Use advanced script binding so unknown parameters reject. Source list includes
   observe-c4.ps1 plus all shared runtime .psm1/.cs files it consumes, not observe-c5.ps1.
   Validate Git exit codes and normalized working source blobs. Inventory as in C5;
   broad prototype matching is conservative and documented. No live script body yet.
 
-- [ ] **4. Write receipt ownership tests, then run RED for missing receipt behavior.**
+- [x] **4. Write receipt ownership tests, then run RED for missing receipt behavior.**
   Execute private functions with recording wrappers and memory streams. Success order:
   destination-check, directory-create, manifest-open/CreateNew, write, flush/dispose,
   samples-open/CreateNew, writer transfer; process acquisition only after all succeed.
@@ -109,7 +110,7 @@ Manifest is preparation metadata, never proof that a target launched or UI passe
   Destination checker uses mockable path/attribute reads; no real reparse creation.
   Run same test command. Expected: new behavior assertion fails, not live invocation.
 
-- [ ] **5. Implement receipt factory and ownership transfer.**
+- [x] **5. Implement receipt factory and ownership transfer.**
   Validate context first. Manifest stream/writer belongs to factory until fully
   disposed; failed cleanup blocks launch. Sample stream belongs to factory until
   writer construction/AutoFlush succeeds; then returned writer transfers to existing
@@ -117,7 +118,7 @@ Manifest is preparation metadata, never proof that a target launched or UI passe
   primary error; do not delete partial artifacts or retry. A remaining incomplete
   directory is evidence, not a successful run. Use CreateNew for both files.
 
-- [ ] **6. Write adapter/integration tests and observe RED, then implement live body.**
+- [x] **6. Write adapter/integration tests and observe RED, then implement live body.**
   Assert exactly ten callbacks; fake launch invoked once with fixed arguments, clock
   starts immediately before launch, original object/handle forwarded, native before
   managed, exact PID CIM filter and explicit UTC. Zero/multiple CIM rows, missing date
@@ -130,14 +131,14 @@ Manifest is preparation metadata, never proof that a target launched or UI passe
   Never call RunApproved with real adapters during implementation. Expected GREEN:
   C4 suite exit0, native helper absent, recorded effect counts match expectations.
 
-- [ ] **7. Write guide and execution ledger.**
+- [x] **7. Write guide and execution ledger.**
   Include default versus later authorized invocation, manifest-only/incomplete files,
   raw provisional versus finalized terminal outcome, missing-artifact recovery and
   exact future C4 evidence route from spec. Codepoint/visual direction claims remain
   distinct; invisible controls stripped by tools stay UNVERIFIED. Capture actual
   RED/GREEN results and deviations. Update status/recovery without clearing gates.
 
-- [ ] **8. Run scoped verification and commit checkpoint.**
+- [x] **8. Run scoped verification and commit checkpoint.**
   In separate PowerShell hosts run C4 tests and existing observe-c5,
   c5-observation-session, observation-session-guard, process-observation and
   native-process-observation `.tests.ps1` scripts. Expected: all exit0; existing
