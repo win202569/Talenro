@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST C5 ATTEMPT — ABORTED BEFORE FUNCTIONAL CHECKS:
+Read [execution receipt](../roadmap/2026-11-09-windows-unknown-usage-native-execution.md).
+Approved1/1 consumed. Direct Process/CIM creation-time string comparison failed
+on a0.7us precision difference; no paired samples or C5 interactions. Normal close
+sent; later process/window inventories empty, exit code/handle verdict unavailable.
+No retry. Proposed next work is bounded timestamp/abort-cleanup verification,
+not another application launch. Original empty receipt must remain unchanged.
+
 LATEST PROPOSAL — ONE C5 DISPLAY-REFRESH SESSION, NOT YET APPROVED:
 Read [unknown-usage native plan](../superpowers/plans/2026-11-09-windows-unknown-usage-native-check.md).
 One proposed preserved-artifact launch, Active/Unknown/Stale/Active via controls,

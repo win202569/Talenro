@@ -15,7 +15,10 @@ existing native/managed process-observation modules. No new dependencies.
 **Spec:** docs/superpowers/specs/2026-11-08-windows-layout-test-mode-design.md;
 historical C5 in 2026-11-08-windows-layout-stage-b-continuation.md.
 
-Status: proposed, NOT approved for execution. This document grants no launch allowance.
+Status: user approved after cc565557; one launch consumed. Execution stopped before
+the first sample at creation-time string mismatch; normal close sent and no targets
+remained at subsequent checks. C5 NOT_RUN/NOT_ACCEPTED. See
+../../roadmap/2026-11-09-windows-unknown-usage-native-execution.md. No retry allowance.
 
 ## Global constraints
 

@@ -112,3 +112,12 @@ runtime/network/persistence behavior and final design comparison are unverified.
 Evidence mapping and remaining scope:
 [coverage map](../../../docs/roadmap/2026-11-08-windows-client-acceptance-coverage.md).
 Checked historical observations are not fresh reruns on every subsequent build.
+
+## C5 follow-up — 2026-11-09
+
+One approved unknown-usage launch stopped at observer identity validation before
+functional navigation (Process/CIM creation-time string precision mismatch).
+Normal close requested; later target process/window inventories empty. No original
+handle exit verdict. C5 remains NOT_RUN/NOT_ACCEPTED, not passed or an application
+display failure. See docs/roadmap/2026-11-09-windows-unknown-usage-native-execution.md
+from repository root. No further launch allowance.

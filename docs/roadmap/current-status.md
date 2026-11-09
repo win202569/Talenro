@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-09
 
+## Latest — C5启动后校验中止，正常关闭后无遗留；功能尚未检查
+
+获批1/1已用完。Process/CIM创建时间字符串相差0.7微秒，直接相等检查失败；
+路径/参数一致，但未补判身份通过。未进入演示或用量切换，原始记录为空。
+正常点击关闭后进程/窗口均未检出；因观察器提前结束，退出码/原句柄完成证据未知。
+见[执行记录](2026-11-09-windows-unknown-usage-native-execution.md)。下一步建议仅验证
+时间精度与中止清理规则，不启动应用；不自动补跑、不改产品逻辑，C5仍NOT_ACCEPTED。
+
 ## Latest — 未知用量单次界面验证方案待批准，尚未启动
 
 [方案](../superpowers/plans/2026-11-09-windows-unknown-usage-native-check.md)：仅补原C5，
