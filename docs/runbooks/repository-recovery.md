@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST RESULT — ADJACENT AUTOMATIC/MANUAL DIFFERENCE REPRODUCED:
+Read docs/roadmap/2026-11-09-windows-adjacent-input-comparison.md. Automatic input
+PID8516 timed out360.012s,73 valid pairs; user WCT screenshot points thread17368
+to svchost9888/thread1812, later mapped again to cbdhsvc_8b240. After independent
+no-leftover check, manual input PID23160 signaled about0.250s after normal close,
+22 valid pairs, native/managed code0 agreement. No final process/window remnants.
+Both2/2 launches consumed. Input-path association strengthened, cause unproven;
+fixed order, timing, IME/focus and system state confound causal interpretation.
+No code/service/settings change or broader acceptance. Next consolidate existing
+evidence into a minimal reproduction report, not another automatic run or workaround.
+
 LATEST RESULT — ONE MANUAL-INPUT RUN SIGNALED CLEANLY, NOT A FIX:
 Read docs/roadmap/2026-11-09-windows-manual-input-observation-execution.md.
 PID12012 manual jp-1 route verified through accessibility within120s; one normal
