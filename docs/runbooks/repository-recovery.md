@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST HANDOFF — REPRODUCTION REPORT PREPARED, NO NEW RUN:
+Start with docs/roadmap/2026-11-09-windows-input-shutdown-reproduction-report.md.
+It consolidates artifact hashes, observed recipe, adjacent results, WCT evidence
+and unknowns. It is not a tested standalone minimal sample or a turnkey runner.
+Ignored binaries are not restored by clone; rebuilt artifacts need new identity.
+No external issue submitted, no runtime allowance added, no acceptance expanded.
+Next clarify documented input transport or separately scope a reduced TextBox sample.
+
 LATEST RESULT — ADJACENT AUTOMATIC/MANUAL DIFFERENCE REPRODUCED:
 Read docs/roadmap/2026-11-09-windows-adjacent-input-comparison.md. Automatic input
 PID8516 timed out360.012s,73 valid pairs; user WCT screenshot points thread17368
