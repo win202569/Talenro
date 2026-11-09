@@ -51,3 +51,30 @@ evidence. Next review the user's saved result; if unavailable, record unavailabl
 without another launch. Any new runtime attempt requires separately scoped consent.
 No source/settings changes, rebuild, test rerun, debugger, dump or forced termination.
 Task11/12 and 44/34/6/217 NOT_ACCEPTED boundaries remain unchanged.
+
+## Follow-up 2026-11-09 — screenshot and service identity
+
+Supersedes the pending-evidence handoff above. User supplied a Task Manager
+Analyze wait chain screenshot: Talenro.Demo.App.exe PID1772/thread10816 waits on
+svchost.exe PID9888/thread1812. User confirmed clicking Cancel, not End process.
+The screenshot filename is dated 2026-11-08 231523; this is not an independently
+verified capture timestamp. No raw screenshot is added to Git.
+
+At 2026-11-09T05:22:34.5965105Z a read-only CIM query found PID9888 hosting exactly
+one returned service, cbdhsvc_8b240, Running. Process name/path were svchost.exe /
+C:\WINDOWS\system32\svchost.exe. Creation UTC before and after service enumeration
+was identical: 2026-11-08T17:11:36.0749030Z, earlier than the demo observation.
+This supports process continuity rather than a post-observation PID reuse; service
+membership was queried later and is not a historical service-membership snapshot.
+The local cbdhsvc service template ImagePath uses ClipboardSvcGroup. No clipboard
+contents were read. An app-source search for Clipboard/cbdhsvc returned no matches;
+that does not exclude indirect framework/automation involvement. The documented
+type_text contract does not establish its internal clipboard behavior.
+
+The evidence narrows investigation to a clipboard-service-related wait, not a
+proven service defect, deadlock or application root cause. No stack/operation is
+identified and thread1812 lifetime was not verified. Next perform read-only review
+of the input/shutdown path and diagnostic options before proposing a discriminating
+test; do not stop/restart the service or change clipboard/security settings.
+No demo launch, debugger, dump, build or tests in this follow-up. Runtime allowance
+remains exhausted; shutdown and all broader acceptance blockers are unchanged.

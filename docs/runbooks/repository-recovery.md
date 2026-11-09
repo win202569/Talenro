@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST FOLLOW-UP — WAIT-CHAIN SCREENSHOT RECEIVED, SERVICE MAPPED:
+User screenshot: demo PID1772/thread10816 -> svchost PID9888/thread1812; Cancel
+confirmed. Later CIM query on 2026-11-09 found cbdhsvc_8b240 in PID9888, with stable
+creation UTC2026-11-08T17:11:36.0749030Z predating the run. Local service template
+uses ClipboardSvcGroup. This is a clipboard-service-related lead, not proven cause;
+later membership is not a historical snapshot. See the wait-chain execution ledger
+follow-up for evidence limits. No clipboard contents, restart, launch or settings
+change. Next read-only input/shutdown review; new runtime needs separate scope.
+The pending-user-result sections below describe the earlier handoff, now superseded.
+
 LATEST OBSERVATION — BUDGET EXHAUSTED, USER WAIT-CHAIN RESULT PENDING:
 After user confirmed the menu, one newly approved run consumed 1/1 launches.
 PID1772 search passed; 73 identity-valid pairs, 45 post-close pairs with native
