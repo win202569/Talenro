@@ -18,6 +18,9 @@
   <ItemGroup Condition="'$(EnableLayoutDiagnostics)' != 'true'">
     <Compile Remove="Diagnostics/**/*.cs" />
   </ItemGroup>
+  <ItemGroup Condition="'$(EnableCloseStageRecording)' != 'true'">
+    <Compile Remove="Diagnostics/CloseStages/**/*.cs" />
+  </ItemGroup>
   <ItemGroup Condition="'$(EnableLayoutDiagnostics)' == 'true'">
     <EmbeddedResource Include="../tests/ui-copy-cases.json" LogicalName="LayoutFixtures.json" />
     <EmbeddedResource Include="Strings/zh-Hans/Resources.resw" LogicalName="LayoutStrings.zh-Hans.xml" />
