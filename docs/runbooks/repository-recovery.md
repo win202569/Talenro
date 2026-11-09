@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST FRESH COMPARISON — BOTH SCOPED ROUTES PASSED, STALL NOT REPRODUCED:
+Read docs/roadmap/2026-11-09-windows-list-refresh-comparison.md. Newly approved
+static/rebuild launches both confirmed automatic jp-1 within120s and exited0
+normally;27 valid pairs each, final native/managed agreement. No leftover targets
+or observers at16:46:53Z. Budget2/2 exhausted. No source/build/system changes.
+Earlier interrupted attempt remains historical NOT_ACCEPTED. Original bug and
+broader gates remain open. Next recommendation: read-only layout observer/close
+callback trace, not more launches or an unsupported product fix.
+
 LATEST CLEANUP CONFIRMATION:
 User reported manual close. Read-only CIM at2026-11-09T16:39:37.6952298Z found
 zero variant/baseline/demo processes and no previous observer. No restart/kill.
