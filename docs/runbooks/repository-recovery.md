@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY CLOSE-PATH REVIEW:
+Read docs/roadmap/2026-11-09-windows-observer-close-review.md. Closed synchronously
+disposes subscriptions, but no runtime stage evidence proves entry/completion.
+Existing lifecycle tests check source markers, not live removal. No cause/fix
+established. Next proposal: design bounded close-stage recording in an isolated
+diagnostic build, preserving originals. Implementation/runs not authorized by this
+review; no code/build/runtime changes. All broader acceptance gates remain.
+
 LATEST FRESH COMPARISON — BOTH SCOPED ROUTES PASSED, STALL NOT REPRODUCED:
 Read docs/roadmap/2026-11-09-windows-list-refresh-comparison.md. Newly approved
 static/rebuild launches both confirmed automatic jp-1 within120s and exited0
