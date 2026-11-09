@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-09
 
+## Latest — long-country + Alt+F4 也正常退出，停止自动追加运行
+
+新批准1/1已用完；同一诊断程序自动jp-1后仅改一次Alt+F4，24阶段完整健康，
+50组身份有效，原生/托管退出码0一致，99.283秒结束，无遗留。详见
+2026-11-09-windows-close-stage-altf4-observation.md。三条诊断路线均成功，但旧问题
+仍未定因或修复。下一步只读核对旧/新产物、依赖及观察方式剩余差异；无追加运行权限。
+
 ## Latest — long-country 单变量观察完成，也正常退出
 
 另行批准1次已使用1/1；相同诊断程序/自动jp-1/标题栏×，仅改long-country。

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST ALT+F4 OBSERVATION — COMPLETE, NO FURTHER RUN BUDGET:
+Read docs/roadmap/2026-11-09-windows-close-stage-altf4-observation.md. One approved
+long-country/automatic jp-1/Alt+F4 run:24 healthy complete stages,50 identity-valid
+pairs, native/managed exit0,99.283s, no leftovers. Three trace routes now succeeded;
+historical stall remains unresolved. Stop automatic repetitions. Next preparation
+is read-only comparison of remaining artifact/dependency/observer differences,
+not a new launch, rebuild, service change or acceptance promotion.
+
 LATEST LONG-COUNTRY OBSERVATION:
 Read docs/roadmap/2026-11-09-windows-close-stage-long-country-observation.md.
 Newly approved1/1 launch consumed; same trace artifact/automatic input/titlebar
