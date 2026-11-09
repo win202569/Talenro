@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SCOPED UNKNOWN→ACTIVE RESTORATION PASSED:
+Read [restoration report](../roadmap/2026-11-09-windows-c5-active-restoration.md).
+One separately approved launch consumed; no retries/remaining allowance. Numeric
+usage12.4/100GB and devices2/5 restored, title inactive.110 complete pairs, verified
+exit0, observer220.13s, no leftovers, unchanged hashes. No build/test rerun.
+Combined evidence spans two runs, not the original continuous full route. Broader
+acceptance and historical shutdown cause unchanged. Next: read-only reconciliation.
+
 LATEST — ONE FIXED-ENTRY C5 LIVE RUN COMPLETED, PARTIAL ACCEPTANCE ONLY:
 Read [native execution report](../roadmap/2026-11-09-windows-c5-fixed-entry-native-execution.md).
 One newly authorized launch consumed, no retries remain. Initial Active, Unknown,

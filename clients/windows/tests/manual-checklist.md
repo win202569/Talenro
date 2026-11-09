@@ -131,3 +131,11 @@ NOT_ACCEPTED, not fully passed. Original native/managed exit0 agreed; observer
 completed290.697s, no residual targets; unchanged old artifacts. No retry allowance.
 See docs/roadmap/2026-11-09-windows-c5-fixed-entry-native-execution.md. Historical
 shutdown cause, C4/RTL, C6 and broader acceptance remain unchanged.
+
+## C5 Unknown→Active restoration — 2026-11-09
+
+Separately approved single launch: PASS for Unknown unavailable values followed by
+Active numeric restoration12.4/100GB and2/5, title inactive.110 complete pairs,
+native/managed exit0, no residual target. No Stale rerun; original uninterrupted
+Active→Unknown→Stale→Active route is not implied. No broader acceptance promotion.
+See docs/roadmap/2026-11-09-windows-c5-active-restoration.md. No runtime allowance remains.
