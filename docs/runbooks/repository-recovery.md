@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST REVIEW — MANUAL-INPUT COMPARISON PROPOSED, NOT AUTHORIZED/RUN:
+Input/shutdown source review found synchronous fixture filtering, no direct
+clipboard call or app-owned wait on the inspected route. Tool documentation does
+not establish type_text transport. Read the wait-chain ledger's latest review.
+Proposed single new run substitutes user physical typing jp-1 (no paste), retaining
+same artifacts/observer and30s/360s limits. Requires new approval and user readiness;
+no automatic launch or retry. One outcome cannot establish cause or clear blockers.
+
 LATEST FOLLOW-UP — WAIT-CHAIN SCREENSHOT RECEIVED, SERVICE MAPPED:
 User screenshot: demo PID1772/thread10816 -> svchost PID9888/thread1812; Cancel
 confirmed. Later CIM query on 2026-11-09 found cbdhsvc_8b240 in PID9888, with stable

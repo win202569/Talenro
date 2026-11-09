@@ -78,3 +78,32 @@ of the input/shutdown path and diagnostic options before proposing a discriminat
 test; do not stop/restart the service or change clipboard/security settings.
 No demo launch, debugger, dump, build or tests in this follow-up. Runtime allowance
 remains exhausted; shutdown and all broader acceptance blockers are unchanged.
+
+## Read-only input/shutdown review, 2026-11-09
+
+Re-read App.xaml.cs, MainWindow.xaml.cs, Views/NodesPage.xaml(.cs),
+Diagnostics/LayoutWindowObserver.cs and the Nodes diagnostic bindings.
+SearchBox is a standard TextBox; TextChanged calls Refresh synchronously.
+Refresh trims text, filters fixture nodes, clears/repopulates list items and uses
+the rendering guard against selection dispatch. Nodes diagnostic bindings change
+Header/PlaceholderText, not Text. No direct clipboard call or app-owned wait was
+found on this path. App.Exit is used for rejected startup arguments, not normal
+close. The diagnostics Closed handler unsubscribes events through Dispose; source
+alone does not prove that callback completed in the observed process.
+
+The bundled computer-use API/guidance documents type_text as literal-text input
+but does not document its internal clipboard transport. Do not infer paste use,
+service fault, framework fault or a fix from this review. No implementation edits.
+
+Suggested next discriminator (NOT EXECUTED / approval required): one new launch
+with unchanged artifact, arguments, original-handle paired observer and safety
+checks; same Enter demo -> Nodes route, but user physically types jp-1 without
+paste instead of type_text. Confirm exact value/filter, then one normal close.
+Keep startup30s, route120s and absolute360s cap; if user is not ready or route
+deadline is missed, do not extend/retry. Close criterion remains30s; no signal
+continues read-only to cap. Any WCT handoff targets only that run's verified PID.
+No clipboard reads/clears, service restart, settings changes, debugger/dump or kill.
+Single success would only motivate the input-path hypothesis, not prove it or
+clear acceptance; repeated failure would show automatic text entry is not necessary
+for that failure under the tested conditions. Changed timing and intervening system
+state limit comparison with the historical run. No new launch allowance yet.
