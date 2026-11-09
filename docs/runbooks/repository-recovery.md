@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY COMPARISON:
+Read docs/roadmap/2026-11-09-windows-close-stage-history-comparison.md. Historical
+stall used long-country plus Alt+F4; recent success used baseline plus titlebar
+close and new instrumentation. Not an equal-conditions reproduction. Next proposed
+single change is long-country on the same trace artifact/procedure, retaining
+titlebar close, only after new bounded approval. No further launch authorized.
+
 LATEST RUNTIME OBSERVATION — SINGLE APPROVED RUN COMPLETED:
 Read docs/roadmap/2026-11-09-windows-close-stage-first-observation.md. One launch,
 confirmed jp-1 input, normal close;24 stages with healthy completion and native/
