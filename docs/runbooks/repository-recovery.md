@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST READ-ONLY REVIEW — INPUT CALLBACK BOUNDARY PROPOSED:
+Read docs/roadmap/2026-11-09-windows-prototype-difference-review.md. Shared locked
+package versions/hashes match; demo adds synchronous text-change list rebuilding,
+property changes, pages, diagnostics resources and layout observer. No cause proved.
+Recommended isolated variant keeps identical TextBox/ListView in both modes and
+switches only text-triggered rebuilding. Not implemented, built or runtime-approved.
+Preserve original baseline/app; do not substitute a multi-variable comparison.
+
 LATEST PROTOTYPE RUNTIME — STALL NOT REPRODUCED, TIMING LIMIT RECORDED:
 Read docs/roadmap/2026-11-09-windows-textbox-prototype-observation.md. Automatic
 prototype input/close passed with signal~0.174s; manual close signaled~0.188s,
