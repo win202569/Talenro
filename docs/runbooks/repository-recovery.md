@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST DESIGN — FIXED C5 OBSERVER ENTRY, AWAITING APPROVAL:
+Read [short design](../superpowers/specs/2026-11-09-windows-c5-observer-entry-design.md).
+User selected the fixed-entry approach. No implementation or native run yet.
+Default no-start, fixed artifact/profile, existing guards, synthetic orchestration
+coverage; written design approval precedes implementation planning. No live budget.
+
 LATEST SYNTHETIC REPAIR PREPARATION — NO NATIVE RETRY:
 Read [guard repair record](../roadmap/2026-11-09-windows-observation-session-guard.md)
 and clients/windows/diagnostics/observation-session-guard.md. New helper tests41,
