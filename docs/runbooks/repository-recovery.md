@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST DESIGN DRAFT — AWAITING APPROVAL:
+Read docs/superpowers/specs/2026-11-09-windows-close-stage-recording-design.md.
+Proposed isolated Debug-only bounded stage queue/background writer; no close-time
+disk wait or join. Tail loss is possible, so missing markers do not prove a stall.
+No implementation/build/launch performed. Next is design approval, then an
+implementation plan; no new runtime budget. Existing acceptance gates remain.
+
 LATEST READ-ONLY CLOSE-PATH REVIEW:
 Read docs/roadmap/2026-11-09-windows-observer-close-review.md. Closed synchronously
 disposes subscriptions, but no runtime stage evidence proves entry/completion.
