@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST RUNTIME ATTEMPT — INTERRUPTED, NOT A COMPARISON RESULT:
+Read docs/roadmap/2026-11-09-windows-list-refresh-observation.md. Static launched
+once, no automatic text sent; user-input guard interrupted input and normal-close
+attempts. Rebuild never launched. Budget1/2 used; remaining launch withheld under
+stop-on-anomaly. Observer ended without kill, last sample359.268s still alive;
+polling completion361.260s exceeded declared total cap by1.26s. At16:28:00Z original
+static PID13124 remained, observer gone. Ask user to close window normally and
+verify identity afresh before any later action (never reuse historical PID alone).
+Do not infer a shutdown stall, successful comparison, or permission for retries.
+
 LATEST BUILD-ONLY CHECKPOINT — LIST REFRESH VARIANT:
 Read docs/roadmap/2026-11-09-windows-list-refresh-prototype-build.md and
 clients/windows/diagnostics/TextBoxListRefreshProbe/README.md. Source and lockfile
