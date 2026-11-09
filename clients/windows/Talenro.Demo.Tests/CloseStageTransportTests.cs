@@ -108,6 +108,24 @@ public class CloseStageTransportTests
         finally { stream.Release.Set(); SpinWait.SpinUntil(() => session.WorkerCompleted, TimeSpan.FromSeconds(3)); }
     }
 
+    [Theory]
+    [InlineData(false, false)] [InlineData(false, true)] [InlineData(true, false)] [InlineData(true, true)]
+    public void NormalAndNullConditionalRemovalTracesComplete(bool noRoot, bool noSettings)
+    {
+        // Literal stage fixture, not a claim that live WinUI event accessors ran.
+        var stages = new List<int> { 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+        stages.AddRange(noRoot ? [20] : [18, 19]);
+        stages.AddRange(noSettings ? [23] : [21, 22]);
+        stages.AddRange([24, 25, 26, 27]);
+        var text = new StringBuilder(ReadyLine);
+        for (int i = 0; i < stages.Count; i++)
+            text.Append($"{{\"Type\":\"stage\",\"Schema\":1,\"Run\":\"11111111111111111111111111111111\",\"Sequence\":{i + 1},\"Stage\":{stages[i]},\"Ticks\":{i + 10}}}\n");
+        text.Append("{\"Type\":\"health\",\"Schema\":1,\"Run\":\"11111111111111111111111111111111\",\"Dropped\":0,\"InvalidProducer\":false,\"Failed\":false}\n");
+        Assert.True(Read(text.ToString()).CompletedClose);
+        Assert.False(Read(text.ToString().Replace("\"Dropped\":0", "\"Dropped\":1")).CompletedClose);
+        Assert.False(Read(text.ToString().Replace("\"Failed\":false", "\"Failed\":true")).CompletedClose);
+    }
+
     [Fact]
     public void FailureStreamDisablesRecordingWithoutThrowingOntoProducer()
     {

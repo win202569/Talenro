@@ -34,7 +34,11 @@ public sealed partial class MainWindow : Window
         account = new AccountPage(model);
 #if LAYOUT_DIAGNOSTICS
         if (App.DiagnosticPresentation is { } diagnostics)
-            layoutObserver = new(this, Root, PageHost, () => diagnostics.IsProfileActive(model.State), diagnostics.Options);
+            layoutObserver = new(this, Root, PageHost, () => diagnostics.IsProfileActive(model.State), diagnostics.Options
+#if CLOSE_STAGE_RECORDING
+                , App.CloseStageBuffer!
+#endif
+            );
 #endif
         model.PropertyChanged += (_, _) => Refresh();
         Refresh();
