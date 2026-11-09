@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST SYNTHETIC REPAIR PREPARATION — NO NATIVE RETRY:
+Read [guard repair record](../roadmap/2026-11-09-windows-observation-session-guard.md)
+and clients/windows/diagnostics/observation-session-guard.md. New helper tests41,
+then48 after review coverage additions; existing synthetic suites32/78 passed.
+Exact native identity remains mandatory;
+CIM normalization is microsecond truncation, not a time tolerance. Scope protects
+acquired observation resources on errors without killing the target. Future live
+wiring/launch is unverified and needs new bounded approval; old C5 stays unaccepted.
+
 LATEST C5 ATTEMPT — ABORTED BEFORE FUNCTIONAL CHECKS:
 Read [execution receipt](../roadmap/2026-11-09-windows-unknown-usage-native-execution.md).
 Approved1/1 consumed. Direct Process/CIM creation-time string comparison failed
