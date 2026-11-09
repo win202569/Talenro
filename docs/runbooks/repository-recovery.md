@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST CONSOLIDATED STOP POINT — UNRESOLVED, NO FURTHER LAUNCH BUDGET:
+Start with [shutdown evidence consolidation](../roadmap/2026-11-09-windows-shutdown-evidence-convergence.md).
+Historical stalls remain valid; the unchanged old artifact also exited under the
+current procedure. No recorder-fix or environmental-cause conclusion. This
+documentation-only checkpoint defines missing discriminators and stop rules.
+Do not resume historical proposed runs automatically: this entry supersedes their
+next-action suggestions. Preserve NOT_ACCEPTED gates. Recover the latest development
+branch, not automatically main; ignored raw receipts/binaries/live state are not
+restored by cloning. Further execution needs separately defined bounded scope.
+
 LATEST PRESERVED-OLD-ARTIFACT RUN — SUCCESS WITHOUT RECORDER:
 Read docs/roadmap/2026-11-09-windows-preserved-artifact-observation.md. Approved1/1
 consumed; original unchanged EXE/DLL, long-country/automatic jp-1/Alt+F4, current
