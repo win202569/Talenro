@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST ARTIFACT COMPARISON — READ-ONLY:
+Read docs/roadmap/2026-11-09-windows-close-stage-artifact-comparison.md.527 files
+per tree,522 identical; only App/Core binaries and symbols differ. Deployed
+dependencies/resources/runtime configs match. Core377 raw method IL/signature
+entries match, but PE platform/MVID differ; not a semantic equivalence proof.
+No new launch/build. A preserved-old-artifact run with current procedure is only
+a proposal requiring fresh bounded approval; do not rebuild/overwrite originals.
+
 LATEST ALT+F4 OBSERVATION — COMPLETE, NO FURTHER RUN BUDGET:
 Read docs/roadmap/2026-11-09-windows-close-stage-altf4-observation.md. One approved
 long-country/automatic jp-1/Alt+F4 run:24 healthy complete stages,50 identity-valid
