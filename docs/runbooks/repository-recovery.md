@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — DEDICATED C4 ENTRY SELECTED, WRITTEN DESIGN AWAITS APPROVAL:
+Read [C4 short design](../superpowers/specs/2026-11-09-windows-c4-observer-entry-design.md).
+Separate fixed English/RTL entry, unchanged C5 entry and shared observation modules.
+No implementation/test/build/launch yet. Design approval precedes implementation
+planning; later live verification needs separate bounded approval. Live allowance0.
+
 LATEST — SCOPED UNKNOWN→ACTIVE RESTORATION PASSED:
 Read [restoration report](../roadmap/2026-11-09-windows-c5-active-restoration.md).
 One separately approved launch consumed; no retries/remaining allowance. Numeric

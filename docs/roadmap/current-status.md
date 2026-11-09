@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-09
 
+## Latest — C4专用观察入口方案已选，短设计待批准
+
+用户选择独立固定入口，复用现有观察逻辑，保留C5入口与行为。
+见[短设计](../superpowers/specs/2026-11-09-windows-c4-observer-entry-design.md)：
+固定en-US/rtl-mixed、默认不启动、完整身份与清理保护；先合成验证，后另行批准实机。
+仅新增设计文档，尚未实施/测试/启动。真实额度仍0，所有既有验收限制不变。
+
 ## Latest — C5未知→有效恢复验证通过，实机额度已用完
 
 单独批准的1次补充验证完成：Unknown账户显示不可用；切回Active后恢复
