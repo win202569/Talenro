@@ -8,6 +8,39 @@ namespace Talenro.Demo.Tests;
 // Declaration coverage only: live handler/focus behavior remains a native check.
 public class LayoutViewContractTests
 {
+    // Deliberately source-contract checks, not a C# parser or native bidi/rendering proof.
+    // The approved scope excludes launching WinUI or refactoring production views.
+    public static TheoryData<string, string> DirectionContracts => new()
+    {
+        { "MainWindow.xaml.cs", "Root.FlowDirection = presentation.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;" },
+        { "Views/NodesPage.xaml.cs", "if (id is not null && App.DiagnosticPresentation?.IsRtl == true) item.FlowDirection = FlowDirection.LeftToRight;" },
+        { "Views/ConnectionPage.xaml.cs", "if (presentation.IsRtl) LockedCountryValue.FlowDirection = FlowDirection.LeftToRight;" }
+    };
+
+    private static void AssertDirectionContract(string source, string declaration) =>
+        Assert.Contains(Regex.Replace(declaration, @"\s+", ""), Regex.Replace(source, @"\s+", ""));
+
+    [Theory]
+    [MemberData(nameof(DirectionContracts))]
+    public void RtlAndTechnicalIdentifierDirectionDeclarationsArePresent(string file, string declaration) =>
+        AssertDirectionContract(Read(file), declaration);
+
+    [Theory]
+    [MemberData(nameof(DirectionContracts))]
+    public void DirectionContractRejectsRemovedOrChangedDeclaration(string file, string declaration)
+    {
+        var source = Regex.Replace(Read(file), @"\s+", "");
+        var expected = Regex.Replace(declaration, @"\s+", "");
+        AssertDirectionContract(source, declaration);
+        // Mutations stay in memory. Each must be real and fail the same positive assertion.
+        foreach (var replacement in new[] { "", expected.Replace("FlowDirection.LeftToRight", "FlowDirection.RightToLeft") })
+        {
+            var mutated = source.Replace(expected, replacement, StringComparison.Ordinal);
+            Assert.NotEqual(source, mutated);
+            Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => AssertDirectionContract(mutated, declaration));
+        }
+    }
+
     private static readonly XNamespace X = "http://schemas.microsoft.com/winfx/2006/xaml";
     private static string Read(string file) => File.Exists(Path.Combine(AppContext.BaseDirectory, "AppSources", file))
         ? File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "AppSources", file)) : "";

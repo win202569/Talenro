@@ -1,5 +1,37 @@
 # RTL and unknown-usage: source-only coverage review
 
+## Follow-up: test-only coverage implemented
+
+After ca4a1989 the user requested the next step. Only LayoutPresentationTests.cs
+and LayoutViewContractTests.cs changed; product source and WinUI output were not
+edited/rebuilt. Added 11 test cases: four page rows covering all six entitlement
+states, one Unknown -> Stale -> Active -> Unknown sequence on a reused presentation,
+three direction declaration checks, and three in-memory removal/change controls.
+The negative controls verify real mutations and catch assertion failures from the
+same declaration checker; no production-code RED/fix cycle is claimed.
+Direction checks normalize whitespace and inspect source text, not syntax/semantic
+analysis: comments, dead code or later overriding assignments could evade them.
+They remain limited declaration guards, not native behavior or rendering evidence.
+
+Fresh ordinary-token checks passed before both invocations; SDK10.0.403:
+
+- Targeted LayoutPresentationTests/LayoutViewContractTests with --no-restore:
+  46 passed, zero failed/skipped, exit0. This built Tests/Core only.
+- Full Talenro.Demo.Tests with --no-build --no-restore: 286 passed, zero
+  failed/skipped, exit0. No third run, retry, application build or UI launch.
+- git diff --check passed; Git warned of LF-to-CRLF conversion, not a test error.
+
+SDK first-use output reported automatic installation of an ASP.NET Core HTTPS
+development certificate. No trust command, explicit certificate management,
+service/security-setting change or cleanup was performed. This side effect is
+recorded rather than describing the execution as leaving all machine state unchanged.
+
+Two planned test invocations consumed. No confirmed product defect or shutdown
+repair. C4/C5 visual checks, actual page-refresh wiring and broader acceptance
+remain pending. Historical inspection/proposal below is preserved; its first three
+test-only candidates are now implemented within the stated limits, not permission
+for new application sessions.
+
 Baseline: 795400763a7313e44a910e1e3947dda3ffe67a94. User approved read-only
 source/test inspection, not implementation or execution. No app launch, tests,
 build, settings change or acceptance promotion occurred. Only this review and

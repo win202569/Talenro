@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST TEST-ONLY FOLLOW-UP — 286/286 UNIT TESTS:
+The [RTL/usage review follow-up](../roadmap/2026-11-09-windows-rtl-usage-static-review.md)
+records 11 added cases in two test files, targeted46/46 and full286/286, exit0.
+No product-source change or WinUI build/launch. Both test invocations consumed.
+SDK first use reported a development HTTPS certificate installation; no trust
+command was run. Static direction guards are not native rendering proof. C4/C5,
+live refresh and shutdown acceptance remain pending; no further launch authority.
+
 LATEST SOURCE-ONLY FOLLOW-UP — RTL/UNKNOWN USAGE:
 Read [static coverage review](../roadmap/2026-11-09-windows-rtl-usage-static-review.md).
 No confirmed functional defect, source/test edit or execution. Proposed next scope

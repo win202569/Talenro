@@ -129,4 +129,47 @@ public class LayoutPresentationTests
         Assert.True(Create("baseline").IsProfileActive(new()));
         Assert.True(Create("rtl-mixed").IsProfileActive(new()));
     }
+
+    [Theory]
+    [InlineData(DemoPage.Login, false)]
+    [InlineData(DemoPage.Connection, false)]
+    [InlineData(DemoPage.Nodes, false)]
+    [InlineData(DemoPage.Account, true)]
+    public void UnknownUsageActivityRequiresAccountAndUnavailableEntitlement(DemoPage page, bool unavailableIsActive)
+    {
+        // Catches a missing page guard or an omitted Unknown/Stale branch.
+        var view = Create("unknown-usage");
+        var cases = new[]
+        {
+            (EntitlementStatus.Active, false), (EntitlementStatus.Expired, false),
+            (EntitlementStatus.Exhausted, false), (EntitlementStatus.DeviceLimit, false),
+            (EntitlementStatus.Unknown, unavailableIsActive), (EntitlementStatus.Stale, unavailableIsActive)
+        };
+        Assert.Equal(Enum.GetValues<EntitlementStatus>().Order(), cases.Select(c => c.Item1).Order());
+        foreach (var (status, expected) in cases)
+            Assert.Equal(expected, view.IsProfileActive(new() { Page = page, Entitlement = status }));
+    }
+
+    [Fact]
+    public void UnknownUsageSequenceRestoresCurrentFallbackWithoutRetainingFixture()
+    {
+        // Catches retained fixture/fallback state in a reused presentation object.
+        var view = Create("unknown-usage");
+        var cases = new[]
+        {
+            (EntitlementStatus.Unknown, "unknown fallback", "不可用 / Unavailable — no numeric usage is known", true),
+            (EntitlementStatus.Stale, "stale fallback", "不可用 / Unavailable — no numeric usage is known", true),
+            (EntitlementStatus.Active, "12 GB / 100 GB", "12 GB / 100 GB", false),
+            (EntitlementStatus.Unknown, "new fallback", "不可用 / Unavailable — no numeric usage is known", true)
+        };
+        foreach (var (status, ordinary, expected, active) in cases)
+        {
+            var state = new DemoState { Page = DemoPage.Account, Entitlement = status, PreferredNode = "jp-1" };
+            var before = state with { };
+            Assert.Equal(expected, view.Text("UsageValue", state, ordinary));
+            Assert.Equal(active, view.IsProfileActive(state));
+            Assert.Equal("devices unchanged", view.Text("DevicesValue", state, "devices unchanged"));
+            Assert.Equal(before, state);
+        }
+    }
 }
