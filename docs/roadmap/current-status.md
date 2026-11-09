@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-09
 
+## Latest — 独立列表重建变体已编译，未启动
+
+新增TextBoxListRefreshProbe实验原型：两模式共享文本框、列表及三条初始数据，仅切换
+TextChanged是否同步重建列表。离线还原、锁定还原和Debug/x64编译成功，0警告0错误。
+原应用/原单文本框样例源码未改，EXE/DLL四个哈希与先前记录一致。未启动任何样例，
+未改服务/设置。详见2026-11-09-windows-list-refresh-prototype-build.md及新样例README。
+本轮仅创建/编译，不代表故障修复或运行验收；下一步需单独批准有界两模式对比，
+运行预算当前为零，所有既有NOT_ACCEPTED保持。以下Latest段落为历史记录。
+
 ## Latest — 原应用/样例差异复核完成，选定候选排查边界
 
 共同依赖锁版本/哈希未见差异；原应用另有TextChanged同步列表重建与属性更新、页面切换、

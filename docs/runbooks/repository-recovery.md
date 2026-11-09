@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST BUILD-ONLY CHECKPOINT — LIST REFRESH VARIANT:
+Read docs/roadmap/2026-11-09-windows-list-refresh-prototype-build.md and
+clients/windows/diagnostics/TextBoxListRefreshProbe/README.md. Source and lockfile
+are portable; binaries/caches are not committed. Offline/locked restores and
+Debug/x64 compilation passed (0 warnings/errors). Both modes have identical UI;
+only text-triggered synchronous rebuilding differs. No runtime approval or launch
+in this checkpoint; original demo/baseline unchanged. NOT_ACCEPTED gates remain.
+Next: separately approve bounded runtime comparison, not automatic rerunning.
+The following entries are historical; the proposed variant below is now built.
+
 LATEST READ-ONLY REVIEW — INPUT CALLBACK BOUNDARY PROPOSED:
 Read docs/roadmap/2026-11-09-windows-prototype-difference-review.md. Shared locked
 package versions/hashes match; demo adds synchronous text-change list rebuilding,
