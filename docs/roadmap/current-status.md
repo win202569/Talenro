@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-09
 
+## Latest — 独立单文本框诊断原型已创建并编译，尚未运行
+
+新增clients/windows/diagnostics/TextBoxShutdownProbe，仅窗口/文本框，不引用原应用，
+无搜索、剪贴板或关闭处理代码。现有缓存还原与锁定还原成功，Debug/x64编译0警告0错误。
+原应用EXE/DLL哈希未变；未启动样例或演示、未改服务/设置。源码/依赖锁与恢复说明保留，
+二进制及缓存不入库。详见2026-11-09-windows-textbox-prototype-build.md。
+这只是可构建的诊断原型，尚未证实复现问题；下一步需另行限定运行范围，所有NOT_ACCEPTED保持。
+
 ## Latest — 本地输入接口说明未披露内部机制
 
 已检索已安装computer-use包的可读文档/源码类型，仅找到literal-text接口约定；

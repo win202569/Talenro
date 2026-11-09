@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST BUILD-ONLY CHECKPOINT — ISOLATED TEXTBOX PROTOTYPE:
+Source/README/lock: clients/windows/diagnostics/TextBoxShutdownProbe/.
+Read docs/roadmap/2026-11-09-windows-textbox-prototype-build.md for build evidence
+and artifact hashes. Offline restore + locked restore succeeded; Debug/x64 build
+0warnings/0errors. No prototype/demo launch, no original application change.
+Not a confirmed minimal reproduction or fix. Clone restores source, not ignored
+binaries/caches. Fresh build needs prerequisites and new artifact identity.
+Separate runtime scope required; do not reuse demo name/hash/arguments unchanged.
+
 LATEST FOLLOW-UP — LOCAL INPUT CONTRACT DOES NOT REVEAL TRANSPORT:
 Reproduction report records scoped readable-package search and module resolution;
 neither yielded implementation evidence of clipboard use. No new app/UI action.

@@ -1,0 +1,9 @@
+<Window x:Class="TextBoxShutdownProbe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TextBox shutdown diagnostic prototype">
+  <Grid Padding="32">
+    <TextBox x:Name="ProbeInput" Header="Diagnostic input"
+             PlaceholderText="jp-1" VerticalAlignment="Top" />
+  </Grid>
+</Window>
