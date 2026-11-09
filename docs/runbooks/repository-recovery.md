@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ONE FIXED-ENTRY C5 LIVE RUN COMPLETED, PARTIAL ACCEPTANCE ONLY:
+Read [native execution report](../roadmap/2026-11-09-windows-c5-fixed-entry-native-execution.md).
+One newly authorized launch consumed, no retries remain. Initial Active, Unknown,
+Stale and off-page inactivity observed; final Active restoration NOT_RUN to close
+before300s.145 complete observation pairs; native/managed exit0, final cleanup
+completion290.697s, no residual targets, unchanged artifact hashes. C5 remains
+NOT_ACCEPTED; historical shutdown cause and wider gates unchanged. No build/tests
+rerun. Source/report recover via the dev branch; ignored raw/artifacts do not.
+
 LATEST — FIXED C5 ENTRY IMPLEMENTED, REVIEW FIXES SYNTHETICALLY VERIFIED:
 Read [execution ledger](../roadmap/2026-11-09-windows-c5-observer-entry-execution.md)
 and [observer guide](../../clients/windows/diagnostics/c5-observation.md).

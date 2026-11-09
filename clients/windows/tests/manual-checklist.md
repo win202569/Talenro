@@ -121,3 +121,13 @@ Normal close requested; later target process/window inventories empty. No origin
 handle exit verdict. C5 remains NOT_RUN/NOT_ACCEPTED, not passed or an application
 display failure. See docs/roadmap/2026-11-09-windows-unknown-usage-native-execution.md
 from repository root. No further launch allowance.
+
+## C5 fixed-entry follow-up — 2026-11-09
+
+Separate one-launch approval consumed. Initial Active numeric values, Unknown and
+Stale unavailable values, active Account/inactive Connection title conditions were
+observed. Final Active restoration NOT_RUN to preserve close-by300s. C5 PARTIAL /
+NOT_ACCEPTED, not fully passed. Original native/managed exit0 agreed; observer
+completed290.697s, no residual targets; unchanged old artifacts. No retry allowance.
+See docs/roadmap/2026-11-09-windows-c5-fixed-entry-native-execution.md. Historical
+shutdown cause, C4/RTL, C6 and broader acceptance remain unchanged.
