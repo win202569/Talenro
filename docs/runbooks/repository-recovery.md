@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST PROPOSAL — ONE C5 DISPLAY-REFRESH SESSION, NOT YET APPROVED:
+Read [unknown-usage native plan](../superpowers/plans/2026-11-09-windows-unknown-usage-native-check.md).
+One proposed preserved-artifact launch, Active/Unknown/Stale/Active via controls,
+360s absolute observation cap; no searches, rebuilds, tests or forced exit.
+No runtime work has started. Explicit new approval is required; this does not
+resume the shutdown investigation or grant RTL/general acceptance.
+
 LATEST TEST-ONLY FOLLOW-UP — 286/286 UNIT TESTS:
 The [RTL/usage review follow-up](../roadmap/2026-11-09-windows-rtl-usage-static-review.md)
 records 11 added cases in two test files, targeted46/46 and full286/286, exit0.
