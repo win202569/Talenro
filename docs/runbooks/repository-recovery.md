@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST RESULT — ONE MANUAL-INPUT RUN SIGNALED CLEANLY, NOT A FIX:
+Read docs/roadmap/2026-11-09-windows-manual-input-observation-execution.md.
+PID12012 manual jp-1 route verified through accessibility within120s; one normal
+close signaled about0.248s later by UTC. All27 identity-valid pairs; final native
+and managed waits signaled, code0, valid exit time. Later process/window absent.
+Scoped run PASS, no source/settings change; historical intermittent failure and
+all broader NOT_ACCEPTED gates remain. Native signaled path now observed, API-error
+paths untested. Budget1/1 exhausted. Next scope reproducibility evidence, no auto-run.
+Historical pending-proposal statements below are superseded by this run's ledger.
+
 LATEST REVIEW — MANUAL-INPUT COMPARISON PROPOSED, NOT AUTHORIZED/RUN:
 Input/shutdown source review found synchronous fixture filtering, no direct
 clipboard call or app-owned wait on the inspected route. Tool documentation does
