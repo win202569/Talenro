@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — C4 LIVE ATTEMPT BLOCKED BEFORE LAUNCH (2026-11-10):
+See [preflight report](../roadmap/2026-11-10-windows-c4-native-preflight-blocked.md).
+One authorized entry invocation exited1; read-only preflight reproduced inaccessible
+CIM process inventory. No new receipts/target windows; independent Get-Process had
+no target match. UI/exit NOT_RUN. No retry/settings changes/build. Attempt closed;
+do not automatically reuse its unused launch allowance. Next proposed work is
+read-only environment diagnosis; another live attempt requires renewed approval.
+
 LATEST — C4 ENTRY IMPLEMENTED AND INDEPENDENTLY REVIEWED (2026-11-10):
 Read [execution ledger](../roadmap/2026-11-09-windows-c4-observer-entry-execution.md)
 and [C4 guide](../../clients/windows/diagnostics/c4-observation.md). New152 plus
