@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — C4 NATIVE OBSERVATION FOUND ACCOUNT EMAIL CLIPPING (2026-11-10):
+Read [native report](../roadmap/2026-11-10-windows-c4-native-execution.md).
+One renewed ordinary-host launch consumed1/1; no retries remain. English/mirroring,
+login email/node IDs LTR, exposed heading bidi codepoints and selected re-entry
+state observed. Account email visually clipped beyond left edge: C4 PARTIAL /
+NOT_ACCEPTED.75 complete pairs, verified native/managed exit0, observer149.85s,
+no leftovers, unchanged artifact hashes. No product/build/settings change.
+Next proposed step: source-only diagnosis, no automatic fix/rebuild/live run.
+Raw receipts/binaries stay ignored and are not restored by cloning. Existing wider
+acceptance and historical shutdown cause remain unresolved.
+
 LATEST — CIM BLOCKER IS EXECUTION-CONTEXT-SPECIFIC (2026-11-10):
 Read [read-only diagnosis](../roadmap/2026-11-10-windows-c4-cim-environment-diagnosis.md).
 Same PowerShell7.6.9: restricted queries fail; approved ordinary host queries and
