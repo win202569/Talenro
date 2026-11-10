@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — REAL-PAGE EMAIL GEOMETRY APPROACH SELECTED, DESIGN AWAITS APPROVAL:
+Read [short design](../superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md).
+Independent opt-in diagnostic variant, unchanged layout/old artifacts/observer gates;
+bounded Login/Account snapshots in one coordinate space, explicit Unknown evidence.
+No implementation/build/test/run yet. Approve design before implementation planning;
+build and fixed-hash live route require separate authority. C4 remains NOT_ACCEPTED.
+
 LATEST — ACCOUNT EMAIL SOURCE DIAGNOSIS, ROOT CAUSE NOT YET PROVEN (2026-11-10):
 Read [layout diagnosis](../roadmap/2026-11-10-windows-c4-email-layout-diagnosis.md).
 Email text is intact; leading hypothesis is RTL parent/LTR child arrangement or
