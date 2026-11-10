@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — ACCOUNT EMAIL SOURCE DIAGNOSIS, ROOT CAUSE NOT YET PROVEN (2026-11-10):
+Read [layout diagnosis](../roadmap/2026-11-10-windows-c4-email-layout-diagnosis.md).
+Email text is intact; leading hypothesis is RTL parent/LTR child arrangement or
+clipping, with Account constrained/default-aligned container differing from Login's
+centered container. No geometry evidence proves a centering-only fix. Existing tests
+check declarations, not rendered containment. Product unchanged; no build/test/run.
+Next proposed work is a minimal geometry-diagnostic plan, not an automatic repair.
+Preserve old artifacts/hashes; new diagnostic build/run requires its own authority.
+C4 remains NOT_ACCEPTED and no live allowance remains.
+
 LATEST — C4 NATIVE OBSERVATION FOUND ACCOUNT EMAIL CLIPPING (2026-11-10):
 Read [native report](../roadmap/2026-11-10-windows-c4-native-execution.md).
 One renewed ordinary-host launch consumed1/1; no retries remain. English/mirroring,
