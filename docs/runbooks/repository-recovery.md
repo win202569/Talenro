@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — CIM BLOCKER IS EXECUTION-CONTEXT-SPECIFIC (2026-11-10):
+Read [read-only diagnosis](../roadmap/2026-11-10-windows-c4-cim-environment-diagnosis.md).
+Same PowerShell7.6.9: restricted queries fail; approved ordinary host queries and
+full C4 preflight pass, ADMIN=False. WMI/RPC services running; no settings changes
+needed or performed. Do not weaken guards or change UAC/WinRM. No app run authorized
+by diagnosis; another bounded C4 attempt needs renewed approval and fresh preflight.
+The prior failed attempt and all UI/exit acceptance limits remain unchanged.
+
 LATEST — C4 LIVE ATTEMPT BLOCKED BEFORE LAUNCH (2026-11-10):
 See [preflight report](../roadmap/2026-11-10-windows-c4-native-preflight-blocked.md).
 One authorized entry invocation exited1; read-only preflight reproduced inaccessible
