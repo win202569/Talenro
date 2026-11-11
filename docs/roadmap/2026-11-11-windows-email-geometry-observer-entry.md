@@ -100,3 +100,14 @@ interaction is not dismissed and remains Important1 — cost: repair must be des
 at the entry boundary or require a separately approved scope expansion.
 
 Deferred minors: none. No merge, PR, launch, build, restore or installation performed.
+
+## Follow-up design,2026-11-11
+
+User selected entry-owned sanitized failure state and resource adapters instead of
+changing shared modules. Short addendum written at
+docs/superpowers/specs/2026-11-11-windows-email-geometry-failure-recording-design.md;
+awaits approval of the written contract. Author proposals: finite deduplicated category
+sets, explicit SessionUnclassified for inaccessible shared failures, one-time adapter
+cleanup and information-channel/safe-exception summary without a new file sink.
+These are proposed design details, not implemented behavior. No tests rerun for this
+documentation-only step;642 remains previous checkpoint evidence. Important1 open.

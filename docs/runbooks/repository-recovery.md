@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — FAILURE RECORDING ADDENDUM AWAITS APPROVAL (2026-11-11):
+User selected entry-owned failure state/resource adapters. Read the
+[short design](../superpowers/specs/2026-11-11-windows-email-geometry-failure-recording-design.md).
+Written approval is pending; next is implementation planning, not live execution.
+Only docs changed. No new test evidence; Important1 remains open. Preserve original
+Process/SafeHandle, frozen shared modules and the no-launch boundary.
+
 LATEST — FIXED ENTRY IMPLEMENTED, REVIEW BLOCKED (2026-11-11):
 Read [entry execution/review ledger](../roadmap/2026-11-11-windows-email-geometry-observer-entry.md).
 Implementation commit d6da5ec9; review0 Critical/2 Important/0 Minor. Reparse mock
