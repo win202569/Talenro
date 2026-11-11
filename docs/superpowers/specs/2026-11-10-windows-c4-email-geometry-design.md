@@ -4,9 +4,10 @@ Status: user selected approach1 after42c0a97f and approved this written design a
 Implementation plan and inline method approved 2026-11-11. Initial portable baseline
 connection timed out; approved ordinary-host comparison passed286/286, exit0.
 Tasks1–3 source implementation and final independent review/fix pass complete;
-portable suite372/372 passed, synthetic462 passed. No native adapter compilation
-or geometry measurements; build/output/live verification remain separate gates.
-No native build/launch. Live allowance0; native builds and live runs need separate authority.
+portable suite372/372 passed, synthetic462 passed. Separately approved isolated
+native build/artifact checks completed; see2026-11-11 build record (offline audit warning).
+Fixed-entry continuation plan prepared; no geometry measurements or live launch.
+Live allowance0; future native launch requires separate authority.
 
 ## Intent and approaches
 

@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — FIXED GEOMETRY ENTRY PLAN PREPARED (2026-11-11):
+Read [entry plan](../superpowers/plans/2026-11-11-windows-email-geometry-observer-entry.md).
+New artifact hashes rechecked. Plan reuses shared observation loop without modifying
+old entries/modules and correlates one internal run ID with app/observer receipts.
+No new entry code/tests yet; confirm plan before implementation. No live authority.
+
 LATEST — GEOMETRY NATIVE BUILD/ARTIFACT CHECK PASSED, NOT LAUNCHED (2026-11-11):
 Approved cache-only locked restore and independent build succeeded,0 errors/1 NU1905
 warning: no local vulnerability data, audit NOT established. Read build record for
