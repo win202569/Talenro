@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — READ-ONLY GEOMETRY REVIEW, CAUSE UNRESOLVED (2026-11-11):
+Read [analysis](../roadmap/2026-11-11-windows-email-geometry-readonly-review.md).
+Four snapshots and 71 process records correlate; raw hashes unchanged. Account
+email exceeds recorded RootDIP right boundary by 82 DIP in both snapshots, while
+visual evidence showed screen-left clipping. Next trace RTL/root coordinate mapping
+read-only; do not assume equivalent screen orientation or implement a guessed fix.
+Clip chain incomplete; C4 NOT_ACCEPTED, live allowance0. Clone restores this
+sanitized analysis, not ignored raw records or conversation screenshots.
+
 LATEST — ORDINARY-TERMINAL LIVE RUN FINALIZED, CLIPPING REPRODUCED (2026-11-11):
 Read [run record](../roadmap/2026-11-11-windows-email-geometry-first-observation.md).
 Run55550244cd6449eab7d870733015eb23 at source82104a77: user-supplied final terminal
