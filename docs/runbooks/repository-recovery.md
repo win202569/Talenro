@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — DIAGNOSTIC HOST LOG SHOWS SOCKET ACCESS DENIED:
+Original baseline session46350 exited1 (90s host-connect timeout). Separately
+approved diagnostic session24920 logged SocketException10013 connecting to
+localhost; exact restriction source unresolved. See [diagnostic follow-up](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
+Diagnostic exit1 confirmed (90s connect timeout; total including compilation over120s).
+No candidate changes, retry, force termination, timeout/security change or native
+build. Next confirm residual process state read-only, not by rerunning tests.
+Ignored raw logs remain local, not cloneable. C4 NOT_ACCEPTED.
+
 LATEST — OFFLINE EXECUTION APPROVED BUT BASELINE HAS NO FINAL RESULT:
 Read the [execution checkpoint](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
 One baseline command compiled managed Core/Tests and reached VSTest discovery;
