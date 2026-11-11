@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — ALIGNMENT DESIGN APPROVED, OFFLINE PLAN PENDING CONFIRMATION:
+Read the [implementation plan](../superpowers/plans/2026-11-11-windows-account-panel-alignment-experiment.md).
+One task: strict old-baseline/mutation tests RED, single Center attribute, GREEN,
+targeted geometry regression and review. No steps executed. Plan confirmation and
+execution choice pending; native build/launch remains excluded, C4 NOT_ACCEPTED.
+
 LATEST — CENTER-ALIGNMENT EXPERIMENT DESIGN PENDING APPROVAL:
 User selected approach 1. Read the [short design](../superpowers/specs/2026-11-11-windows-account-panel-alignment-experiment-design.md).
 Only proposed app delta is Account panel HorizontalAlignment=Center; retain original

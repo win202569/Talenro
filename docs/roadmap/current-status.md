@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-11
 
+## Latest — Account实验设计已批准，离线实施计划待确认
+
+[实施计划](../superpowers/plans/2026-11-11-windows-account-panel-alignment-experiment.md)
+已准备并自查：原基线保护与反例测试先行，再加唯一Center属性，执行有界离线回归。
+尚未执行测试或修改应用；原生构建/启动额度仍0，C4未验收。建议当前会话实施后独立终审。
+
 ## Latest — Account居中单变量实验设计待批准
 
 用户已选择方案1；[简短设计](../superpowers/specs/2026-11-11-windows-account-panel-alignment-experiment-design.md)
