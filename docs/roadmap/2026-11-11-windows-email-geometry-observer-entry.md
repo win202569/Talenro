@@ -116,3 +116,38 @@ User subsequently approved the written addendum. Repair plan prepared/self-revie
 docs/superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md.
 Plan confirmation pending; preserved inline execution with one final repair review.
 No repair implementation or tests performed in this planning step. Important1 open.
+
+## Failure-recording repair execution
+
+Plan confirmed; BASE479ba646, clean linked coordinator worktree, no submodule.
+Baseline180 new assertions passed. Implemented bounded per-run state, writer/process
+owners, callback recording and final sanitized summary through unchanged shared loop.
+Real engine Synthetic regression retains ManagedRead plus sample writer/stream and
+process cleanup failures even when the shared engine throws its generic exception.
+Final exceptions have detached allowlisted summary data, no raw inner exception;
+publication failure adds Publication without retry. Opaque shared failures explicitly
+include SessionUnclassified. Process identity/managed reads still use original object
+and native reads its original SafeHandle. No PID reopen or forced termination.
+
+RED observations: missing state/owner helpers; original writer closed caller stream;
+original backend transferred bare process; constructor fault not intercepted;
+factory failures broadly mislabelled as directory failure. Corrected via focused
+regressions and green runs. Combined-fault fixture initially lacked stream failure;
+added actual throw. Mock delegation initially recursed because saved FunctionInfo
+updates on function redefinition (isolated reproduction confirmed); test snapshots
+ScriptBlock instead. Only synthetic test host was interrupted, never an app process.
+
+Task1 verification:269 new+152/32/120/48/32/78 existing=731 synthetic assertions,
+all seven separate pwsh commands exit0; git diff --check passes, frozen sources
+unchanged against BASE. New/old EXE/DLL hashes checked against build record. No build,
+restore, install, live invocation, real CIM/native probe or application launch.
+Task2 independent repair review pending; do not close Important1 before disposition.
+
+Repair Ruling: PowerShell/manual bookkeeping substitutes Bash helpers per repository
+requirement — risk bookkeeping drift, mitigated by explicit base and tracked evidence.
+Repair Ruling: seven named summary fields override plan's erroneous count of eight
+— no invented field — cost corrected numeric assertion differs from original prose.
+Repair Ruling: nullable RunId is untyped with explicit string validation to preserve
+null (PowerShell string coercion loses it) — cost internal-only signature difference.
+Repair Ruling: private New-EGStreamWriter construction seam permits real constructor-
+wrapper failure tests — cost one private helper; no public override or module change.
