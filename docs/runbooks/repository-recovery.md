@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — GEOMETRY NATIVE BUILD/ARTIFACT CHECK PASSED, NOT LAUNCHED (2026-11-11):
+Approved cache-only locked restore and independent build succeeded,0 errors/1 NU1905
+warning: no local vulnerability data, audit NOT established. Read build record for
+new hashes, exact output paths and restore config recipe. PE metadata confirms AMD64,
+geometry types present, CloseStage absent;586 outputs isolated. Old hashes and locks
+unchanged. Binaries/cache remain ignored; cloning requires approved dependency setup
+and rebuilding/reverifying hashes. Next is a separate fixed-hash observer entry,
+not changing old C4/C5 or launching. Live allowance0; C4 remains NOT_ACCEPTED.
+
 LATEST — ISOLATED NATIVE BUILD APPROVED BUT ASSETS MISSING (2026-11-11):
 Read [build record](../roadmap/2026-11-11-windows-c4-email-geometry-build.md).
 One --no-restore build stopped before compilation with NETSDK1004 for new isolated

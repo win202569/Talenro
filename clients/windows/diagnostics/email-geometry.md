@@ -1,8 +1,10 @@
 # Isolated email geometry diagnostics
 
-Status: source implementation only. Portable tests do not compile the WinUI adapter.
-No new native artifact, verified hashes or runnable fixed observation entry exists.
-Native build and live execution require separate approval. C4 remains NOT_ACCEPTED.
+Status: approved isolated native build and artifact inspection completed2026-11-11;
+see docs/roadmap/2026-11-11-windows-c4-email-geometry-build.md for verified hashes.
+The offline build has NU1905 (no local vulnerability audit data), not an audit pass.
+No runnable fixed observation entry yet; live execution requires separate approval.
+C4 remains NOT_ACCEPTED. Portable tests alone do not compile the WinUI adapter.
 
 The default-off `EnableEmailGeometryRecording` property permits Debug layout diagnostics
 only, incompatible with close-stage recording/verification. App outputs use
