@@ -1,6 +1,6 @@
 # Account panel alignment experiment — short design
 
-Status: approach 1 and this written design approved by user; implementation plan pending confirmation.
+Status: approach 1, written design and inline implementation plan approved by user; execution blocked at baseline verification, before candidate edits.
 Scope: small, single-variable candidate experiment, not an accepted fix.
 
 ## Intent and evidence

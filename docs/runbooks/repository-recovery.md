@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — OFFLINE EXECUTION APPROVED BUT BASELINE HAS NO FINAL RESULT:
+Read the [execution checkpoint](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
+One baseline command compiled managed Core/Tests and reached VSTest discovery;
+session46350 still reported running without summary/exit. No candidate/test source
+changes or retries. First investigate existing session/environment read-only; do
+not infer success from an empty process query. Resume before RED, not after it.
+Native build/launch remains excluded; C4 NOT_ACCEPTED. Local session not cloneable.
+
 LATEST — ALIGNMENT DESIGN APPROVED, OFFLINE PLAN PENDING CONFIRMATION:
 Read the [implementation plan](../superpowers/plans/2026-11-11-windows-account-panel-alignment-experiment.md).
 One task: strict old-baseline/mutation tests RED, single Center attribute, GREEN,

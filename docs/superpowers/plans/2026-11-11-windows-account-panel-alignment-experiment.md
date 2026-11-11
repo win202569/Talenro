@@ -84,4 +84,6 @@ is deliberately untested here and remains a blocker to claiming a fix.
 Recommended execution: implement inline in this session, followed by a fresh final
 review, since this is one tightly coupled test/code task. Alternative: delegated
 implementation plus independent review. User confirmation of plan/execution method
-is pending. No steps have run; approval of this plan does not authorize native work.
+was granted for inline execution. Baseline preparation began but no final test result
+was returned; see the execution checkpoint. RED and candidate edits have not begun.
+Approval of this plan does not authorize native work.

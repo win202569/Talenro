@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-11
 
+## Latest — 离线实施获批，基线测试未返回结果，尚未改代码
+
+单次基线命令已编译Core/Tests并进入VSTest，但有界观察结束仍无摘要或退出码，
+会话46350仍报告运行；进程查询无匹配行不足以认定已结束。未重跑、未强杀。
+见[执行检查点](2026-11-11-windows-account-panel-alignment-experiment.md)。先只读排查现有运行，
+再恢复RED步骤；本轮没有应用/测试源码改动，C4未验收、实机额度0。
+
 ## Latest — Account实验设计已批准，离线实施计划待确认
 
 [实施计划](../superpowers/plans/2026-11-11-windows-account-panel-alignment-experiment.md)
