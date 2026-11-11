@@ -5,6 +5,10 @@ see docs/roadmap/2026-11-11-windows-c4-email-geometry-build.md for verified hash
 The offline build has NU1905 (no local vulnerability audit data), not an audit pass.
 Fixed entry source now exists at tests/observe-email-geometry.ps1; its synthetic
 verification does not authorize live execution, which requires separate approval.
+Independent review found unresolved end-to-end failure-category loss through the
+shared session and entry catches. Entry readiness is BLOCKED, not ready for a live
+approval: first design and test entry-owned sanitized failure bookkeeping without
+changing frozen shared modules or weakening original Process/SafeHandle ownership.
 C4 remains NOT_ACCEPTED. Portable tests alone do not compile the WinUI adapter.
 
 The default-off `EnableEmailGeometryRecording` property permits Debug layout diagnostics

@@ -51,7 +51,7 @@ function Test-Path {param($LiteralPath,$PathType,$ErrorAction)
     if($script:fault -eq 'geometry-reparse'){return $LiteralPath -ceq $policy.GeometryRoot}
     return $false
 }
-function Get-Item {param($LiteralPath,$Force,$ErrorAction)
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
     @{Attributes=[IO.FileAttributes]::ReparsePoint}
 }
 function Get-FileHash {param($LiteralPath,$Algorithm)
@@ -75,6 +75,11 @@ Assert-EGPreflight $policy
 Check ($script:inventory -eq 1) 'complete preflight'
 foreach($fault in @('token','branch','dirty','source','missing','hash','target','cim','observer-collision','geometry-collision','claim-collision','geometry-reparse')){
     $script:fault=$fault
+    if($fault -eq 'geometry-reparse'){
+        $geometryError=$null
+        try{Assert-EGPreflight $policy}catch{$geometryError=$_.Exception.Message}
+        Check ($geometryError -ceq 'Reparse receipt path rejected.') 'geometry preflight inspects reparse attributes'
+    }
     Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $gate} "preflight rejects $fault"
     Check ($script:acquisitions -eq 0) "no acquisitions after $fault"
 }
@@ -82,7 +87,7 @@ $script:fault=''
 Check ($null -ne (Get-Command New-EGReceiptWriter -ErrorAction SilentlyContinue)) 'RED: receipt factory missing'
 # A removed path check must expose collision/reparse destinations before any write.
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $LiteralPath -in $script:existing}
-function Get-Item {param($LiteralPath,$Force,$ErrorAction)
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
     @{Attributes=$(if($LiteralPath -eq $script:reparse){[IO.FileAttributes]::ReparsePoint}else{[IO.FileAttributes]::Directory})}
 }
 $destination=Join-Path $policy.ReceiptRoot $context.RunId
@@ -94,7 +99,12 @@ foreach($kind in @('directory','file')){
     Reject {Assert-EGReceiptDestination $destination} "existing $kind rejected"
 }
 $script:existing=@($policy.ReceiptRoot);$script:reparse=$policy.ReceiptRoot
-Reject {Assert-EGReceiptDestination $destination} 'reparse ancestor rejected'
+$reparseError=$null
+try{Assert-EGReceiptDestination $destination}catch{$reparseError=$_.Exception.Message}
+Check ($reparseError -ceq 'Reparse receipt path rejected.') 'reparse rejected by attributes, not binding failure'
+$script:reparse=''
+Assert-EGReceiptDestination $destination
+Check $true 'ordinary existing parent accepted'
 $script:existing=@();$script:reparse=''
 # Capture real factory and encoder; wrappers below isolate all disk access.
 $script:factory=Get-Command New-EGReceiptWriter

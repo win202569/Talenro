@@ -10,8 +10,11 @@
 
 **Spec:** docs/superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md, especially Isolation and activation / Verification and later runtime boundary. Artifact evidence: docs/roadmap/2026-11-11-windows-c4-email-geometry-build.md.
 
-Status: prepared/self-reviewed2026-11-11; awaits plan confirmation. No new entry code
-or tests executed in this planning turn. User requested preparation, explicitly no launch.
+Status: confirmed and implemented2026-11-11; Task1 committed d6da5ec9. Task2 review
+found two Important issues: reparse test false-positive fixed RED→GREEN; failure-
+category preservation remains BLOCKED pending entry resource/bookkeeping design.
+Final synthetic642 pass, no launch. See tracked execution ledger for disposition.
+The checklist below retains original requirements; review completion is not acceptance.
 
 ## Global Constraints
 
@@ -105,5 +108,5 @@ Coverage: approved fixed-entry continuation, shared-loop reuse and verified hash
 are explicit; C4/C5 and app contract remain unchanged. Correlation and geometry
 acceptance are deliberately separate. Source tests have no live fallback. Main
 uncertainty is later real execution/receipt quality, not permission to launch.
-Recommended: current-session sequential implementation plus final independent review;
-the thin policy/writer/backend share one contract. Await plan confirmation before code.
+Execution used sequential implementation and one independent review. Do not launch:
+resolve the remaining Important failure-category issue before claiming entry readiness.

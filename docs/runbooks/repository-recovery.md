@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — FIXED ENTRY IMPLEMENTED, REVIEW BLOCKED (2026-11-11):
+Read [entry execution/review ledger](../roadmap/2026-11-11-windows-email-geometry-observer-entry.md).
+Implementation commit d6da5ec9; review0 Critical/2 Important/0 Minor. Reparse mock
+false-positive fixed RED→GREEN; final synthetic180+462=642 passed. One Important
+remains: primary and cleanup failure categories are erased by shared/entry catches.
+Do NOT treat this checkpoint as live-ready. Next: resolve entry-owned sanitized
+failure bookkeeping/resource ownership design and test combined failures without
+editing frozen shared modules or losing original Process/SafeHandle evidence.
+No application launched, no rebuild/restore, live allowance0, C4 NOT_ACCEPTED.
+
 LATEST — FIXED GEOMETRY ENTRY PLAN PREPARED (2026-11-11):
 Read [entry plan](../superpowers/plans/2026-11-11-windows-email-geometry-observer-entry.md).
 New artifact hashes rechecked. Plan reuses shared observation loop without modifying

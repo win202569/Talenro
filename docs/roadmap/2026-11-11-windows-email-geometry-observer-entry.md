@@ -43,4 +43,60 @@ requirements; shared engine enforces360s cap/2s maximum sleeps, not a UI timer.
 Geometry parsing, sample completeness and visual correlation are not inferred from
 process exit; require separately scoped evidence review after a separately approved run.
 
-Task1 verification complete; Task2 independent review pending. Live allowance0.
+Task1 committed d6da5ec9. Task2 review completed; handoff BLOCKED on one Important.
+Live allowance0. This is an unfinished development checkpoint, not entry readiness.
+
+## Independent review and disposition
+
+Fresh read-only reviewer inspected89579621..d6da5ec9 and independently reran640
+synthetic assertions. Result:0 Critical/2 Important/0 Minor, ready only with fixes.
+
+Important2 fixed: both Get-Item mocks incorrectly declared Force as an ordinary
+parameter, so reparse cases passed on parameter-binding failure. Added exact
+reparse-error assertion and existing-ordinary-parent success case: RED observed.
+Changed both mocks to switch parameters: GREEN; added direct geometry preflight
+assertion of the same intended error. Final new180+existing462=642 assertions pass.
+Production destination checker did not change. No second review dispatched.
+
+Important1 UNRESOLVED: New-EGTextWriter suppresses a cleanup error; shared C5 catches
+replace aggregated failures with generic exceptions, and entry catch sanitizes again.
+Reviewer injected managed-observation plus sample-writer-disposal failures: caller
+and abort publication retain only generic session failure, not both categories.
+Current behavior fails closed and never accepts geometry, but does not meet the
+plan's end-to-end diagnostic requirement. A generic throw is not proof of retention.
+Next repair must introduce allowlisted entry-owned failure bookkeeping and clarify
+resource ownership (including process disposal), preserving the original Process
+and SafeHandle and frozen shared modules. Do not simply expose raw exception text.
+Add combined primary/cleanup and final-surface tests before implementation.
+
+Final: Ruling: retain Important1 as an explicit readiness blocker, not a deferred
+Minor or silent acceptance — resource wrappers alter the specified direct original
+resource transfer contract and need a bounded design decision — cost is delayed
+entry readiness; current generic failures remain insufficient for diagnosis.
+
+### Reviewer boundaries ruled on
+
+Final: Ruling: real launch/CIM/native/UI timing/rendering/durability remain untested
+under the no-live instruction — synthetic tests establish only synthetic contracts
+— cost if mistaken: real environment faults may remain.
+Final: Ruling: reviewer did not rehash artifacts; implementer hashes were rechecked
+against the build record — later execution must recheck again — cost: artifacts
+can drift after this checkpoint.
+Final: Ruling: geometry completeness/parsing/readability/diagnosis remain separate
+post-run work and Unreviewed/NotAccepted remains mandatory — cost: no clipping
+conclusion is available from this entry alone.
+Final: Ruling: startup/close timings remain operator duties, not automated timers
+— cost: a later operator can miss the route even when process monitoring works.
+Final: Ruling: trusted-workspace/filesystem assumption remains; no hostile-race or
+function-substitution resistance claimed — cost: this entry is unsuitable for an
+untrusted workspace.
+Final: Ruling: a synthetic writer disposal failure before delegated stream cleanup
+does not prove a real .NET handle leak — retain it as fault-injection evidence only
+— cost: actual cleanup behavior requires separate evidence if disputed.
+Final: Ruling: PowerShell/manual bookkeeping stands as recorded above — cost remains
+bookkeeping drift, mitigated by tracked evidence.
+Final: Ruling: frozen shared modules/old entries stay unchanged; their category-loss
+interaction is not dismissed and remains Important1 — cost: repair must be designed
+at the entry boundary or require a separately approved scope expansion.
+
+Deferred minors: none. No merge, PR, launch, build, restore or installation performed.
