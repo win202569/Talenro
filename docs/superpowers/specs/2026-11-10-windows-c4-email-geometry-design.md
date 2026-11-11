@@ -1,8 +1,9 @@
 # C4 email geometry probe — short design
 
 Status: user selected approach1 after42c0a97f and approved this written design aftere9d85324.
-Implementation plan and inline method approved 2026-11-11. Portable baseline compiled,
-but runner-to-testhost connection timed out before test results; implementation blocked.
+Implementation plan and inline method approved 2026-11-11. Initial portable baseline
+connection timed out; approved ordinary-host comparison passed286/286, exit0.
+Implementation has not started; Task1 is next.
 No native build/launch. Live allowance0; native builds and live runs need separate authority.
 
 ## Intent and approaches

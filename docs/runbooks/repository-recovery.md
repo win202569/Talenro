@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY-HOST PORTABLE BASELINE PASSED (2026-11-11):
+One approved same-command comparison, administrator=False, unchanged timeout and
+--no-restore:286 passed/0 failed/0 skipped, exit0. Original connection-timeout evidence
+retained; exact cause not established. No product changes/native build/live launch.
+Resume Task1 test-first implementation from the approved plan; see execution ledger.
+
 LATEST — PLAN APPROVED, BASELINE RUNNER BLOCKED (2026-11-11):
 Read [execution ledger](../roadmap/2026-11-10-windows-c4-email-geometry-execution.md).
 Inline implementation and portable tests approved. Core/Tests compiled; VSTest

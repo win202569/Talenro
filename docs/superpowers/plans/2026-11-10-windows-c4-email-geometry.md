@@ -11,8 +11,9 @@
 **Spec:** docs/superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md, user approved aftere9d85324.
 
 Status: user approved inline implementation with final independent review on 2026-11-11.
-Baseline portable compilation succeeded, but VSTest aborted after its 90-second
-testhost connection timeout (exit1); no test verdict. Implementation has not started.
+Initial baseline aborted after VSTest's 90-second testhost connection timeout.
+One approved ordinary-host comparison then passed286/286, exit0, administrator=False,
+unchanged command/timeout. Implementation has not started; Task1 is next.
 See docs/roadmap/2026-11-10-windows-c4-email-geometry-execution.md. Live allowance0.
 
 ## Global Constraints
@@ -306,4 +307,4 @@ that scope. Design approval alone has not run any command listed in this plan.
 
 Recommended execution: sequential inline, final fresh review. Alternative: fresh
 implementer/reviewer per task, then whole-plan review; stronger interim checks at
-higher coordination cost. User selected inline; resolve baseline runner blocker first.
+higher coordination cost. User selected inline; ordinary-host baseline now verified.

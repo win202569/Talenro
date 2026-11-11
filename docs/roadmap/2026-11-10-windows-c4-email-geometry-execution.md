@@ -1,5 +1,20 @@
 # C4 email geometry execution ledger
 
+## 2026-11-11 — ordinary-host baseline comparison passed
+
+User approved one ordinary-host comparison using the identical command below.
+Precheck: Windows administrator-role check False; no dotnet/testhost/vstest.console
+processes observed; worktree clean. No timeout or system settings changed.
+`dotnet test clients/windows/Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore`
+completed with exit0: total286, passed286, failed0, skipped0, test duration403ms.
+No native App build or launch and no dependency restore. This establishes a passing
+portable baseline in ordinary-host context; it does not establish the exact cause
+of the earlier restricted-context connection timeout or a product repair.
+
+Tasks1/2/3 remain pending; next is Task1 evaluator tests, then RED→GREEN under the
+approved plan. Preserve original failed-run evidence. This comparison approval was
+for one run, not unlimited host-context retries. Final review remains pending.
+
 ## 2026-11-11 — approved, baseline runner blocked
 
 Plan: ../superpowers/plans/2026-11-10-windows-c4-email-geometry.md.
