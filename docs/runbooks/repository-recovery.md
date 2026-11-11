@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — FIRST GEOMETRY OBSERVATION PLAN PREPARED, NOT_RUN (2026-11-11):
+Read [bounded observation checklist](../superpowers/plans/2026-11-11-windows-email-geometry-first-observation.md).
+New EXE/DLL hashes rechecked unchanged. Proposed1 launch/0 retries requires explicit
+approval plus user presence; current allowance0. No app/CIM/native acquisition in
+preparation. Shared360s observation cap is not a hard kill guarantee. Do not launch
+on another computer without matching artifacts and preflight; no rebuild authorized.
+
 LATEST — FAILURE RECORDING REPAIR COMPLETE, NO LIVE RUN (2026-11-11):
 Repair implementation388e7c33 plus final getter-regression fix. Fresh repair review:
 0 Critical/1 Important/0 Minor; getter suppression reproduced then fixed by explicit
