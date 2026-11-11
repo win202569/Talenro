@@ -1,5 +1,21 @@
 # C4 email geometry execution ledger
 
+## 2026-11-11 — Task1 implementation
+
+Task1 BASE:8945c205. Added pure evidence/evaluator and budget/coordinator, linked
+explicitly into portable tests. Geometry filter first failed with missing new types,
+then passed20 cases; capture filter first failed with missing budget/coordinator,
+then passed6. Full portable suite passed312/312 before the final two evidence cases.
+The added extreme-coordinate fixture initially expected overflow of an arithmetic
+operation that actually rounded to a finite value; corrected its left coordinate
+to MaxValue/2 so subtracting -MaxValue genuinely overflows. Production unchanged.
+Final Task1 full portable suite:314/314 passed,0 failed,0 skipped, exit0 (95ms).
+Task1 complete; Tasks2/3 and final independent review pending. Evidence tests22,
+capture tests6; original286 retained. Source-only diagnostic addition, not a clipping fix.
+No native App build/launch. No changes to existing observers or page layout.
+Ruling: reserve attempts before reads; failed acquisition does not refund a slot.
+This follows the approved contract; incomplete samples remain evidence gaps.
+
 ## 2026-11-11 — ordinary-host baseline comparison passed
 
 User approved one ordinary-host comparison using the identical command below.

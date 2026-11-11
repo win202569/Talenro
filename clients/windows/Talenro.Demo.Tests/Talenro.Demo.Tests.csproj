@@ -5,6 +5,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Talenro.Demo.App/Diagnostics/EmailGeometry/GeometryEvidence.cs" Link="AppLogic/EmailGeometry/GeometryEvidence.cs" />
+    <Compile Include="../Talenro.Demo.App/Diagnostics/EmailGeometry/GeometryCaptureBudget.cs" Link="AppLogic/EmailGeometry/GeometryCaptureBudget.cs" />
     <Compile Include="../Talenro.Demo.App/Diagnostics/CloseStages/*.cs" Link="AppLogic/CloseStages/%(Filename)%(Extension)" />
     <Compile Include="../Talenro.Demo.App/ViewModels/NoticeFormatter.cs" Link="AppLogic/NoticeFormatter.cs" />
     <Compile Include="../Talenro.Demo.App/Layout/ReservedLayoutArguments.cs" Link="AppLogic/ReservedLayoutArguments.cs" />

@@ -13,7 +13,8 @@
 Status: user approved inline implementation with final independent review on 2026-11-11.
 Initial baseline aborted after VSTest's 90-second testhost connection timeout.
 One approved ordinary-host comparison then passed286/286, exit0, administrator=False,
-unchanged command/timeout. Implementation has not started; Task1 is next.
+unchanged command/timeout. Task1 now implemented, full portable suite314/314 passed.
+Tasks2/3 and final independent review remain pending.
 See docs/roadmap/2026-11-10-windows-c4-email-geometry-execution.md. Live allowance0.
 
 ## Global Constraints
@@ -119,7 +120,7 @@ TryBegin consumes only its matching pending token, then calls TryReserve before 
 stale tokens cannot clear newer work. Cancel handles dispatcher rejection; Stop
 invalidates work and stops the budget permanently. UI-thread-only, no dispatcher/IO.
 
-- [ ] **1. Write failing evaluator tests with literal fixtures.**
+- [x] **1. Write failing evaluator tests with literal fixtures.**
   Inside: element(10,20,30,40), boundary(0,0,100,100), RootDIP => Inside,
   insets10/20/70/60. Left(-2,20,30,40) => Overflow,left=-2. Add right101,
   top=-1,bottom101, exact-touch0, negative coordinates inside a negative-origin box.
@@ -127,22 +128,22 @@ invalidates work and stops the budget permanently. UI-thread-only, no dispatcher
   Missing/error/NaN/infinity/zero/reversed area, three corners, mixed-space and
   incomplete boundary => Unknown, never Inside. Incomplete overall clip chain must
   remain distinguishable from known-boundary Inside in snapshot serialization.
-- [ ] **2. Run RED:** `dotnet test clients/windows/Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore --filter FullyQualifiedName~EmailGeometryEvidenceTests`.
+- [x] **2. Run RED:** `dotnet test clients/windows/Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore --filter FullyQualifiedName~EmailGeometryEvidenceTests`.
   Expected failure from missing new production types, not missing dependencies. If
   dependency failure occurs, report blocked verification instead of treating it as RED.
-- [ ] **3. Implement pure evaluator and records; run same command.** Expected exit0,
+- [x] **3. Implement pure evaluator and records; run same command.** Expected exit0,
   all named cases pass, no WinUI or process calls. No geometric rounding tolerance.
-- [ ] **4. Write capture tests then run RED** with filter EmailGeometryCaptureTests:
+- [x] **4. Write capture tests then run RED** with filter EmailGeometryCaptureTests:
   Login2+Account2 total4; third Login rejects; unknown page/ineligible reserves0;
   exception after reservation consumes slot; Stop/re-entry/reentrant reservation
   cannot exceed limits. Expected missing budget behavior failure.
   Coordinator tests: duplicate queue rejects, navigation invalidates old token,
   stale cancel/begin preserves newer token, rejected enqueue releases pending slot,
   close invalidates all tokens, and ineligible acquisition consumes no attempt.
-- [ ] **5. Implement budget, run filter then full portable suite.**
+- [x] **5. Implement budget, run filter then full portable suite.**
   `dotnet test clients/windows/Talenro.Demo.Tests/Talenro.Demo.Tests.csproj --no-restore`.
   Expected exit0; record actual counts, do not assume old counts remain current.
-- [ ] **6. Commit explicit Task1 files:** `feat: add bounded email geometry evidence model`.
+- [x] **6. Commit explicit Task1 files:** `feat: add bounded email geometry evidence model`.
 
 ### Task2 — Activation and create-only recording lifecycle
 

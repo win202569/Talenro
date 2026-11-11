@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — EMAIL GEOMETRY TASK1 COMPLETE (2026-11-11):
+Pure evaluator and bounded capture coordinator implemented; full portable suite
+314/314 passed (28 new cases), exit0. No page layout/native build/live-run changes.
+Resume Task2 activation/receipt lifecycle, then Task3 and final independent review.
+This is an unfinished development checkpoint, not C4 acceptance or a clipping fix.
+
 LATEST — ORDINARY-HOST PORTABLE BASELINE PASSED (2026-11-11):
 One approved same-command comparison, administrator=False, unchanged timeout and
 --no-restore:286 passed/0 failed/0 skipped, exit0. Original connection-timeout evidence
