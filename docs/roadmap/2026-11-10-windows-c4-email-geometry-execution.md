@@ -1,5 +1,33 @@
 # C4 email geometry execution ledger
 
+## 2026-11-11 — Task3 source implementation, review pending
+
+BASE:ca176210. Debug/layout-only gate, isolated App paths, real-page adapter and
+guarded App/MainWindow/page-target hooks implemented; XAML changes are names only.
+Isolation RED: missing gates/probe exclusion, plus one test path-separator mismatch;
+normalize only separator in assertion. After implementation8/8 passed. Adapter
+contracts RED missing cleanup/invalidation helpers→5/5 passed; normalized XAML hashes
+match original Login/Account declarations after removing only approved names.
+Full portable suite367/367 passed, exit0. Six separate PowerShell hosts passed
+152/32/120/48/32/78 assertions (462 total); existing tests/modules/LayoutWindowObserver
+diff empty againste4c42a33. Old EXE/DLL SHA256 unchanged:
+4180C9016386080AE442AEE091E9CBED4C638CF5E96DBD36316EC85E62CE3B95 /
+7F0A24D21A11084A57DEBD089BA2D5D258ADB923BC592A241D5997F4B77250BB.
+
+Ruling: add small pure GeometryCleanup.Run and session Invalidate/RunId integration
+members — attempt every detach and retain observer failure while using shared state;
+risk: portable tests cannot exercise actual WinUI event registration. Review source,
+then separately approved native build/live tests remain mandatory.
+Ruling: always mark ClipChainComplete=false because implicit compositor/template clips
+cannot be proven from this bounded parent walk — avoids false visibility claims;
+cost: geometry may remain insufficient even when every measured box fits.
+Ruling: overall adapter read/subscription exceptions stop collection and invalidate
+the receipt; per-property failures preserve individual statuses. No retry/refund;
+cost: an exceptional attempt may produce no sample, explicitly unsuccessful transport.
+
+Independent review pending. No WinUI adapter compilation, native build/launch or
+new output hash binding. Source/evaluation tests do not verify native output metadata.
+
 ## 2026-11-11 — Task2 complete
 
 BASE:5c168a35. Fixed activation parser, validated/frozen bounded snapshot buffer,

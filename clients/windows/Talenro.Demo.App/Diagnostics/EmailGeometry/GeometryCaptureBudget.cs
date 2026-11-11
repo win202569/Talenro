@@ -1,5 +1,19 @@
 namespace Talenro.Demo.App.Layout.EmailGeometry;
 
+internal static class GeometryCleanup
+{
+    internal static bool Run(IEnumerable<Action> removals)
+    {
+        var success = true;
+        foreach (var remove in removals)
+        {
+            try { remove(); }
+            catch { success = false; }
+        }
+        return success;
+    }
+}
+
 // UI-thread state. Reservations are attempts, not successful snapshots.
 public sealed class GeometryCaptureBudget
 {

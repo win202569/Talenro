@@ -1,5 +1,5 @@
 <Page x:Class="Talenro.Demo.App.Views.LoginPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <ScrollViewer><StackPanel MaxWidth="460" Padding="32" Spacing="20" HorizontalAlignment="Center">
+  <ScrollViewer x:Name="LoginGeometryScroll"><StackPanel x:Name="LoginGeometryPanel" MaxWidth="460" Padding="32" Spacing="20" HorizontalAlignment="Center">
     <TextBlock Text="Talenro" FontSize="36" FontWeight="SemiBold" Margin="0,48,0,12"/>
     <TextBlock x:Name="LoginHeading" x:Uid="LoginHeading" FontSize="26" TextWrapping="Wrap"/>
     <TextBlock x:Name="EmailLabel" x:Uid="EmailLabel"/>

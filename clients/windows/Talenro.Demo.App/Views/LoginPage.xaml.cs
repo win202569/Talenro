@@ -9,6 +9,9 @@ namespace Talenro.Demo.App.Views;
 public sealed partial class LoginPage : Page
 {
     private readonly DemoViewModel model;
+#if EMAIL_GEOMETRY_RECORDING
+    internal Layout.EmailGeometry.EmailGeometryTargets GeometryTargets => new(this, LoginGeometryScroll, LoginGeometryPanel, DemoEmail);
+#endif
     public LoginPage(DemoViewModel model)
     {
         this.model = model;

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <EnableLayoutDiagnostics Condition="'$(EnableLayoutDiagnostics)' == ''">false</EnableLayoutDiagnostics>
     <EnableCloseStageRecording Condition="'$(EnableCloseStageRecording)' == ''">false</EnableCloseStageRecording>
+    <EnableEmailGeometryRecording Condition="'$(EnableEmailGeometryRecording)' == ''">false</EnableEmailGeometryRecording>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
@@ -22,5 +23,10 @@
     <BaseIntermediateOutputPath>obj/close-stage-verification/$(CloseStageVerificationMode)/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/close-stage-verification/$(CloseStageVerificationMode)/</MSBuildProjectExtensionsPath>
     <BaseOutputPath>bin/close-stage-verification/$(CloseStageVerificationMode)/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Talenro.Demo.App' And '$(EnableEmailGeometryRecording)' == 'true'">
+    <BaseIntermediateOutputPath>obj/email-geometry/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/email-geometry/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/email-geometry/</BaseOutputPath>
   </PropertyGroup>
 </Project>

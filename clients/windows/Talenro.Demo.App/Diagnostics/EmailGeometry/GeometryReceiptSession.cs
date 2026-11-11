@@ -19,6 +19,16 @@ public sealed class GeometryReceiptSession : IDisposable
     private readonly List<Exception> causes = [];
     private bool released;
     private GeometryFinishResult? result;
+    internal Guid RunId => runId;
+
+    internal void Invalidate()
+    {
+        lock (sync)
+        {
+            Fail("observer-failed");
+            if (result is not null) result = new(false, samples.Count, Array.AsReadOnly(errors.ToArray()));
+        }
+    }
 
     public GeometryReceiptSession(Guid runId, Stream ownedStream)
         : this(runId, ownedStream, value => JsonSerializer.Serialize(value)) { }

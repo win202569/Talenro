@@ -9,6 +9,9 @@ namespace Talenro.Demo.App.Views;
 public sealed partial class AccountPage : Page
 {
     private readonly DemoViewModel model;
+#if EMAIL_GEOMETRY_RECORDING
+    internal Layout.EmailGeometry.EmailGeometryTargets GeometryTargets => new(this, AccountGeometryScroll, AccountGeometryPanel, AccountGeometryEmail);
+#endif
     public AccountPage(DemoViewModel model) { this.model = model; InitializeComponent(); Refresh(); }
     public void Refresh()
     {

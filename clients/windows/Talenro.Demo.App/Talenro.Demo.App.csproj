@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" InitialTargets="ValidateCloseStageConfiguration">
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="ValidateEmailGeometryConfiguration;ValidateCloseStageConfiguration">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -24,6 +24,16 @@
     <Error Code="CLOSESTAGE001" Text="Close-stage recording requires Debug layout diagnostics and a boolean opt-in."
            Condition="('$(EnableCloseStageRecording)' != 'true' And '$(EnableCloseStageRecording)' != 'false') Or ('$(EnableCloseStageRecording)' == 'true' And ('$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'true'))" />
   </Target>
+  <PropertyGroup Condition="'$(EnableEmailGeometryRecording)' == 'true' And '$(EnableLayoutDiagnostics)' == 'true' And '$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);EMAIL_GEOMETRY_RECORDING</DefineConstants>
+  </PropertyGroup>
+  <Target Name="ValidateEmailGeometryConfiguration">
+    <Error Code="EMAILGEOMETRY001" Text="Email geometry requires a boolean opt-in, Debug layout diagnostics, and no close-stage modes."
+           Condition="('$(EnableEmailGeometryRecording)' != 'true' And '$(EnableEmailGeometryRecording)' != 'false') Or ('$(EnableEmailGeometryRecording)' == 'true' And ('$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'true' Or '$(EnableCloseStageRecording)' != 'false' Or '$(CloseStageVerificationMode)' != ''))" />
+  </Target>
+  <ItemGroup Condition="'$(EnableEmailGeometryRecording)' != 'true'">
+    <Compile Remove="Diagnostics/EmailGeometry/**/*.cs" />
+  </ItemGroup>
   <ItemGroup Condition="'$(EnableLayoutDiagnostics)' != 'true'">
     <Compile Remove="Diagnostics/**/*.cs" />
   </ItemGroup>

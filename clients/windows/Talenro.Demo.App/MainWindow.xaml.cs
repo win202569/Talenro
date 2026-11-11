@@ -3,6 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 using Talenro.Demo.App.ViewModels;
 using Talenro.Demo.App.Views;
 using Talenro.Demo.Core;
+#if EMAIL_GEOMETRY_RECORDING
+using Talenro.Demo.App.Layout.EmailGeometry;
+#endif
 #if LAYOUT_DIAGNOSTICS
 using Talenro.Demo.App.Layout;
 #endif
@@ -15,6 +18,9 @@ public sealed partial class MainWindow : Window
     private readonly NodesPage nodes;
     private readonly AccountPage account;
     private bool hadSession;
+#if EMAIL_GEOMETRY_RECORDING
+    private readonly EmailGeometryObserver? emailGeometry;
+#endif
 #if LAYOUT_DIAGNOSTICS
     private readonly LayoutWindowObserver? layoutObserver;
 #endif
@@ -32,6 +38,16 @@ public sealed partial class MainWindow : Window
         connection = new ConnectionPage(model);
         nodes = new NodesPage(model);
         account = new AccountPage(model);
+#if EMAIL_GEOMETRY_RECORDING
+        if (App.EmailGeometrySession is { } geometrySession)
+        {
+            emailGeometry = new(Root, PageHost,
+                () => model.State.Page is DemoPage.Login or DemoPage.Account ? model.State.Page.ToString() : null,
+                () => model.State.Page == DemoPage.Login ? login.GeometryTargets : model.State.Page == DemoPage.Account ? account.GeometryTargets : null,
+                geometrySession);
+            Closed += EmailGeometryClosed;
+        }
+#endif
 #if LAYOUT_DIAGNOSTICS
         if (App.DiagnosticPresentation is { } diagnostics)
             layoutObserver = new(this, Root, PageHost, () => diagnostics.IsProfileActive(model.State), diagnostics.Options
@@ -60,10 +76,23 @@ public sealed partial class MainWindow : Window
         connection.Refresh();
         nodes.Refresh();
         account.Refresh();
+#if EMAIL_GEOMETRY_RECORDING
+        emailGeometry?.RefreshPage();
+#endif
 #if LAYOUT_DIAGNOSTICS
         layoutObserver?.Refresh();
 #endif
     }
+#if EMAIL_GEOMETRY_RECORDING
+    private void EmailGeometryClosed(object sender, WindowEventArgs args)
+    {
+        var session = App.EmailGeometrySession;
+        var clean = GeometryCleanup.Run([() => emailGeometry?.Dispose(), () => Closed -= EmailGeometryClosed]);
+        if (!clean) session?.Invalidate();
+        try { if (session?.Finish().Completed != true) Environment.ExitCode = 3; }
+        catch { Environment.ExitCode = 3; session?.Dispose(); }
+    }
+#endif
     internal static string Copy(string key)
     {
 #if LAYOUT_DIAGNOSTICS
