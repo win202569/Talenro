@@ -1,5 +1,30 @@
 # C4 email geometry execution ledger
 
+## 2026-11-11 — final review fixes verified
+
+Independent review of e4c42a33..a28857c8:0 Critical,2 Important,0 Minor.
+Both Important findings fixed in one pass; targeted suite49/49 and final full portable
+suite372/372 passed,0 failed/0 skipped, exit0 (54s full run). No second reviewer run.
+See [review/disposition](2026-11-11-windows-c4-email-geometry-review.md) for findings,
+regression evidence and every declined-to-judge ruling. No deferred minors.
+
+Final: fixed physical callback accumulation — repeated-navigation queue fixture and
+drain-before-new-work test RED→GREEN. Preserve occupied slot across page invalidation.
+Final: fixed omitted explicit root/presenter clips — collector/receipt fixtures
+RED→GREEN, distinct allowlisted `<role>:clip` records with16-boundary cap.
+Final: Ruling: boundary records distinguish element boxes from explicit clips; queue
+eligibility is separate from physical occupancy — required by observed review defects;
+cost: a new page may miss a layout sample while an old callback drains, which remains
+Unknown rather than forced layout/retry. ClipChainComplete remains false.
+Final: Ruling: all nine deferred verification boundaries in the review disposition
+remain explicit gates, not waived checks. Their individual risks are recorded there.
+
+Tasks1/2/3 source implementation and planned independent review/fix pass complete.
+Native adapter compile, native output metadata isolation, new hashes and actual
+geometry observations remain UNVERIFIED/NOT_RUN. No native build or launch occurred.
+Keep existing development branch/worktree and ordinary push only per AGENTS; no PR,
+merge or wider acceptance. Future native build requires separate authority.
+
 ## 2026-11-11 — Task3 source implementation, review pending
 
 BASE:ca176210. Debug/layout-only gate, isolated App paths, real-page adapter and

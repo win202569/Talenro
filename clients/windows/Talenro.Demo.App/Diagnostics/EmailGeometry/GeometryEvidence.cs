@@ -22,6 +22,19 @@ public sealed record GeometrySnapshot(Guid RunId, int Sequence, string Page, dou
 public sealed record GeometryComparison(GeometryVerdict Verdict, double? LeftInset,
     double? TopInset, double? RightInset, double? BottomInset, string Reason);
 
+internal static class GeometryBoundaryCollector
+{
+    internal static void AddExplicitClip(List<GeometryBoundary> boundaries, string role,
+        Func<GeometryField<GeometryRect>?> read)
+    {
+        if (boundaries.Count >= 16) return;
+        GeometryField<GeometryRect>? bounds;
+        try { bounds = read(); }
+        catch { bounds = new(GeometryStatus.Error, null); }
+        if (bounds is not null) boundaries.Add(new(role + ":clip", bounds, bounds.Status == GeometryStatus.Ok));
+    }
+}
+
 public static class GeometryEvaluator
 {
     public static GeometryField<GeometryRect> Normalize(string space, IReadOnlyList<GeometryPoint> corners)

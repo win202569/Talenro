@@ -163,7 +163,7 @@ public sealed class GeometryReceiptSession : IDisposable
             ("ViewportWidth", scroll.ViewportWidth), ("ViewportHeight", scroll.ViewportHeight))) return false;
         if (!Nonnegative(scroll.HorizontalOffset) || !Nonnegative(scroll.VerticalOffset) ||
             !Nonnegative(scroll.ViewportWidth) || !Nonnegative(scroll.ViewportHeight)) return false;
-        if (s.Elements.Any(e => !ValidElement(e)) || s.Boundaries.Any(b => b is null || !Role(b.Role) || !Bounds(b.Bounds, false))) return false;
+        if (s.Elements.Any(e => !ValidElement(e)) || s.Boundaries.Any(b => b is null || !BoundaryRole(b.Role) || !Bounds(b.Bounds, false))) return false;
         if (s.Elements.Select(e => e.Role).Distinct().Count() != s.Elements.Count ||
             s.Boundaries.Select(b => b.Role).Distinct().Count() != s.Boundaries.Count) return false;
         // A claim of complete ancestry requires at least one complete known boundary.
@@ -204,6 +204,8 @@ public sealed class GeometryReceiptSession : IDisposable
     private static bool Nonnegative(double? value) => value is null || value >= 0;
     private static bool Role(string role) => role is "root" or "PageHost" or "page" or "scroll" or "panel" or "email" or "presenter" ||
         Enumerable.Range(1, 16).Any(i => role == "ancestor-" + i);
+    private static bool BoundaryRole(string role) => Role(role) ||
+        role is not null && role.EndsWith(":clip", StringComparison.Ordinal) && Role(role[..^5]);
     private static bool Bounds(GeometryField<GeometryRect> field, bool local)
     {
         if (field is null || !Enum.IsDefined(field.Status)) return false;

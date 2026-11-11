@@ -14,7 +14,9 @@ Status: user approved inline implementation with final independent review on 202
 Initial baseline aborted after VSTest's 90-second testhost connection timeout.
 One approved ordinary-host comparison then passed286/286, exit0, administrator=False,
 unchanged command/timeout. Task1 now implemented, full portable suite314/314 passed.
-Task2 now implemented, full portable suite354/354 passed. Task3 and final review pending.
+Tasks1–3 source implementation and final independent review/fix pass complete;
+full portable suite372/372 passed, existing synthetic462 passed. Native adapter
+compilation/output metadata/live observation remain unverified, separately gated.
 See docs/roadmap/2026-11-10-windows-c4-email-geometry-execution.md. Live allowance0.
 
 ## Global Constraints
@@ -114,8 +116,9 @@ on re-entry; stop permanently at4 or explicit Stop. Other pages/ineligible do no
 Also in GeometryCaptureBudget.cs: pure `GeometryCaptureCoordinator(GeometryCaptureBudget budget)`,
 `ChangePage(string? page) -> void`, `TryQueue(out long token) -> bool`,
 `TryBegin(long token, bool eligible, out int sequence) -> bool`,
-`Cancel(long token) -> void`, `Stop() -> void`. ChangePage invalidates pending tokens
-without resetting budget. Tokens are unique/increasing; at most one pending token.
+`Cancel(long token) -> void`, `Stop() -> void`. ChangePage invalidates capture eligibility
+without releasing the physical pending slot or resetting budget. The stale callback
+must drain before another enqueue. Tokens are unique/increasing; at most one pending token.
 TryBegin consumes only its matching pending token, then calls TryReserve before reads;
 stale tokens cannot clear newer work. Cancel handles dispatcher rejection; Stop
 invalidates work and stops the budget permanently. UI-thread-only, no dispatcher/IO.
@@ -246,7 +249,7 @@ No filesystem IO, UI mutation, UpdateLayout, model dispatch or forced navigation
 capture. Time from Stopwatch, same run ID, sequential reserved sequence. A read failure
 records target Error; it cannot reset budgets or cause automatic recapture.
 
-- [ ] **1. Add failing isolation tests** verifying evaluated MSBuild properties/Compile
+- [x] **1. Add failing isolation tests** verifying evaluated MSBuild properties/Compile
   items without build: ordinary, layout-only, geometry-valid, geometry+Release,
   geometry without layout, geometry+close-mode, invalid string flag. Plan uses
   `dotnet msbuild ... -getProperty:BaseOutputPath,BaseIntermediateOutputPath,MSBuildProjectExtensionsPath,DefineConstants -getItem:Compile`
@@ -254,7 +257,7 @@ records target Error; it cannot reset budgets or cause automatic recapture.
   no Build/Restore/Compile targets. Test assertions: valid paths isolated, gate
   errors named EMAILGEOMETRY001, ordinary excludes all probe files. Expected RED
   missing target/gate, not missing SDK failure. Implement gates then GREEN.
-- [ ] **2. Write adapter contract tests before hooks, run RED** filter
+- [x] **2. Write adapter contract tests before hooks, run RED** filter
   EmailGeometryAdapterContractTests. Compare XAML before/after removing only approved
   x:Name additions: same element tree/attributes. Verify UI-independent scheduling
   using recording event/dispatcher doubles: navigation before queued capture,
@@ -263,17 +266,17 @@ records target Error; it cannot reset budgets or cause automatic recapture.
   Drive Task1 GeometryCaptureCoordinator through those doubles; adapter uses the same
   coordinator, cancelling tokens when enqueue fails and stopping before detachment.
   No new scheduling interface or real UI execution in tests.
-- [ ] **3. Implement thin adapter and guarded hooks.** Validate API signatures against
+- [x] **3. Implement thin adapter and guarded hooks.** Validate API signatures against
   installed references/official docs; do not substitute WPF APIs. Suggested APIs:
   UIElement.TransformToVisual, GeneralTransform.TransformPoint and
   Controls.Primitives.LayoutInformation.GetLayoutSlot. Missing property/template
   support remains Unsupported, not invented data. Run Task3 tests then full portable
   suite. Expected exit0; WinUI adapter compilation remains UNVERIFIED until later build.
-- [ ] **4. Add guide and execution ledger.** Explain pure/static versus live evidence,
+- [x] **4. Add guide and execution ledger.** Explain pure/static versus live evidence,
   synchronous close-IO limits, incomplete-on-crash, full file+normal exit requirement,
   no recorded text/private payload, old-artifact preservation, no new runnable entry
   until verified hashes exist. Mark C4 NOT_ACCEPTED/no launch allowance.
-- [ ] **5. Final scoped verification.** Full portable dotnet suite --no-restore; separate
+- [x] **5. Final scoped verification.** Full portable dotnet suite --no-restore; separate
   hosts for observe-c4, observe-c5, c5-observation-session, observation-session-guard,
   process-observation, native-process-observation `.tests.ps1` via pwsh -NoProfile -File.
   Expected existing counts152/32/120/48/32/78, all exit0. Git diff --check; existing
@@ -282,11 +285,11 @@ records target Error; it cannot reset budgets or cause automatic recapture.
  7F0A24D21A11084A57DEBD089BA2D5D258ADB923BC592A241D5997F4B77250BB unchanged.
   No native App build/launch; declare adapter compile and actual output metadata
   isolation unverified, not passed by source/evaluation tests.
-- [ ] **6. Commit:** `feat: isolate real-page email geometry diagnostics` with explicit
+- [x] **6. Commit:** `feat: isolate real-page email geometry diagnostics` with explicit
   necessary files. Obtain one final independent read-only whole-plan review for inline
   execution, covering all five focus items. Fix Important/Critical with RED→GREEN;
   record deferred Minor items and every boundary the reviewer declines to judge.
-- [ ] **7. Preserve:** update current status/recovery/plan, commit review record, ordinary
+- [x] **7. Preserve:** update current status/recovery/plan, commit review record, ordinary
   push to verified origin existing branch, verify remote SHA=local and clean worktree.
   Final message states not built/not run. Request separate native build authority only
   after implementation review, never auto-advance to build/hash binding/native route.

@@ -131,15 +131,12 @@ internal sealed class EmailGeometryObserver : IDisposable
         // is present. Implicit template/compositor clipping remains unknown.
         foreach (var (role, node) in nodes)
         {
-            if (role is "root" or "presenter" || boundaries.Count == 16) continue;
-            try
+            GeometryBoundaryCollector.AddExplicitClip(boundaries, role, () =>
             {
                 var clip = node.Clip;
-                if (clip is null) continue;
-                var bounds = clip.Transform is null ? Transform(node, clip.Rect) : new GeometryField<GeometryRect>(GeometryStatus.Unsupported, null);
-                boundaries.Add(new(role, bounds, bounds.Status == GeometryStatus.Ok));
-            }
-            catch { boundaries.Add(new(role, new(GeometryStatus.Error, null), false)); }
+                if (clip is null) return null;
+                return clip.Transform is null ? Transform(node, clip.Rect) : new GeometryField<GeometryRect>(GeometryStatus.Unsupported, null);
+            });
         }
         var scrollFields = new Dictionary<string, GeometryStatus>();
         var scroll = new GeometryScroll(

@@ -19,7 +19,8 @@ directories are required; metadata checks are not protection against hostile par
 replacement races. No deletion or retry is automatic.
 
 On naturally occurring layout events, capture at most2 attempts per Login/Account and
-4 total, one queued callback. Navigation invalidates stale callbacks. No forced layout,
+4 total, one physical queued callback. Navigation invalidates stale captures without
+releasing the queue slot until that callback drains. No forced layout,
 input, scrolling, focus changes, navigation, model actions or timer. Names identify the
 real email controls; no text is read or recorded. Failed attempts are not refunded.
 
@@ -27,7 +28,8 @@ Snapshots contain allowlisted roles/properties/statuses only. Four corners are t
 into RootDIP and normalized; parent-local layout slots remain separately labeled.
 Unknown/error/nonfinite evidence cannot pass. Signed edge comparisons are box containment
 only, not glyph visibility. Presenter bounds and supported explicit rectangular clips
-are recorded; implicit template/compositor clipping is not assumed. ClipChainComplete
+are recorded for all measured roles, including root/presenter, as distinct `<role>:clip`
+boundaries; implicit template/compositor clipping is not assumed. ClipChainComplete
 remains false. Missing/ambiguous presenters stay missing, and absent second samples do
 not imply stable layout. Render/text scale and scroll measurements carry field statuses.
 

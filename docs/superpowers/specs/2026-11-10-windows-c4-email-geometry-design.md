@@ -3,8 +3,9 @@
 Status: user selected approach1 after42c0a97f and approved this written design aftere9d85324.
 Implementation plan and inline method approved 2026-11-11. Initial portable baseline
 connection timed out; approved ordinary-host comparison passed286/286, exit0.
-Tasks1/2 pure geometry/capture and activation/receipts implemented, portable suite354/354
-passed. Task3 and final independent review pending; no geometry measurements collected.
+Tasks1–3 source implementation and final independent review/fix pass complete;
+portable suite372/372 passed, synthetic462 passed. No native adapter compilation
+or geometry measurements; build/output/live verification remain separate gates.
 No native build/launch. Live allowance0; native builds and live runs need separate authority.
 
 ## Intent and approaches

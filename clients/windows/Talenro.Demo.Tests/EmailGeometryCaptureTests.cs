@@ -41,7 +41,7 @@ public class EmailGeometryCaptureTests
     }
 
     [Fact]
-    public void NavigationDiscardsStaleWorkWithoutClearingNewPendingWork()
+    public void NavigationDrainsPhysicalSlotBeforeAllowingNewWork()
     {
         var budget = new GeometryCaptureBudget();
         var coordinator = new GeometryCaptureCoordinator(budget);
@@ -49,6 +49,8 @@ public class EmailGeometryCaptureTests
         Assert.True(coordinator.TryQueue(out var old));
         Assert.False(coordinator.TryQueue(out _));
         coordinator.ChangePage("Account");
+        Assert.False(coordinator.TryQueue(out _));
+        Assert.False(coordinator.TryBegin(old, true, out _));
         Assert.True(coordinator.TryQueue(out var current));
         Assert.NotEqual(old, current);
         coordinator.Cancel(old);
@@ -58,6 +60,29 @@ public class EmailGeometryCaptureTests
         Assert.Equal(1, sequence);
         Assert.False(coordinator.TryBegin(current, true, out _));
         Assert.Equal(0, budget.Attempts("Login"));
+        Assert.Equal(1, budget.Attempts("Account"));
+    }
+
+    [Fact]
+    public void RepeatedNavigationCannotAccumulatePhysicalDispatcherCallbacks()
+    {
+        var budget = new GeometryCaptureBudget();
+        var coordinator = new GeometryCaptureCoordinator(budget);
+        var callbacks = new Queue<Action>();
+        var captures = 0;
+        for (var i = 0; i < 100; i++)
+        {
+            coordinator.ChangePage(i % 2 == 0 ? "Login" : "Account");
+            if (coordinator.TryQueue(out var token)) callbacks.Enqueue(() =>
+            {
+                if (coordinator.TryBegin(token, true, out _)) captures++;
+            });
+            Assert.Single(callbacks);
+        }
+        callbacks.Dequeue()();
+        Assert.Equal(0, captures);
+        Assert.True(coordinator.TryQueue(out var current));
+        Assert.True(coordinator.TryBegin(current, true, out _));
         Assert.Equal(1, budget.Attempts("Account"));
     }
 

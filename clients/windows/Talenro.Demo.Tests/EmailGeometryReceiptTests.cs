@@ -62,6 +62,16 @@ public class EmailGeometryReceiptTests
         Assert.Contains("\"Provisional\":true", Encoding.UTF8.GetString(stream.ToArray()));
     }
 
+    [Fact]
+    public void ExplicitBoundaryRolesSurviveReceiptValidation()
+    {
+        var sample = Sample();
+        var session = new GeometryReceiptSession(Run, new MemoryStream());
+        session.Add(sample with { Boundaries = [sample.Boundaries[0], sample.Boundaries[0] with { Role = "root:clip" },
+            sample.Boundaries[0] with { Role = "presenter:clip" }] });
+        Assert.True(session.Finish().Completed);
+    }
+
     [Theory]
     [InlineData("write", "write-failed")]
     [InlineData("flush", "flush-failed")]

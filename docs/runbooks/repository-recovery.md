@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EMAIL GEOMETRY SOURCE STAGE COMPLETE (2026-11-11):
+Tasks1–3 implemented; independent review0 Critical/2 Important/0 Minor, both Important
+fixed with RED→GREEN. Full portable suite372/372 pass; existing PS synthetic462 pass;
+old fixed EXE/DLL hashes unchanged. Read execution ledger and review disposition.
+Next requires separately approved native build in isolated output, old-hash preservation
+and new-artifact verification. Adapter NOT compiled, native isolation NOT verified,
+live NOT_RUN, no fixed-hash runner yet. C4 remains NOT_ACCEPTED. No merge/PR implied.
+
 LATEST — EMAIL GEOMETRY TASK2 COMPLETE (2026-11-11):
 Activation and bounded create-only receipt lifecycle implemented; full portable
 suite354/354 passed, exit0. Resume Task3 page adapter/build isolation, then independent

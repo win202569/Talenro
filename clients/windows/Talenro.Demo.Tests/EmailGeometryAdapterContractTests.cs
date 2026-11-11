@@ -9,6 +9,40 @@ namespace Talenro.Demo.Tests;
 public class EmailGeometryAdapterContractTests
 {
     [Theory]
+    [InlineData("root")]
+    [InlineData("presenter")]
+    public void ExplicitClipsRemainDistinctFromLargerContainingBoxes(string role)
+    {
+        var box = new GeometryField<GeometryRect>(GeometryStatus.Ok, new("RootDIP", 0, 0, 100, 100));
+        var email = new GeometryField<GeometryRect>(GeometryStatus.Ok, new("RootDIP", 10, 10, 30, 30));
+        var clip = new GeometryField<GeometryRect>(GeometryStatus.Ok, new("RootDIP", 20, 0, 100, 100));
+        var boundaries = new List<GeometryBoundary> { new(role, box, true) };
+        GeometryBoundaryCollector.AddExplicitClip(boundaries, role, () => clip);
+        Assert.Equal(2, boundaries.Count);
+        Assert.Equal(role + ":clip", boundaries[1].Role);
+        Assert.Equal(GeometryVerdict.Inside, GeometryEvaluator.Compare(email, boundaries[0]).Verdict);
+        Assert.Equal(GeometryVerdict.Overflow, GeometryEvaluator.Compare(email, boundaries[1]).Verdict);
+        Assert.Equal(-10, GeometryEvaluator.Compare(email, boundaries[1]).LeftInset);
+    }
+
+    [Fact]
+    public void ClipErrorsAndUnsupportedMappingsAreUnknownAndCollectionIsBounded()
+    {
+        var boundaries = new List<GeometryBoundary>();
+        GeometryBoundaryCollector.AddExplicitClip(boundaries, "root", () => throw new IOException());
+        GeometryBoundaryCollector.AddExplicitClip(boundaries, "presenter", () => new(GeometryStatus.Unsupported, null));
+        GeometryBoundaryCollector.AddExplicitClip(boundaries, "page", () => null);
+        Assert.Equal(2, boundaries.Count);
+        Assert.Equal(GeometryStatus.Error, boundaries[0].Bounds.Status);
+        Assert.False(boundaries[0].Complete);
+        Assert.False(boundaries[1].Complete);
+        for (var i = 1; i <= 14; i++) GeometryBoundaryCollector.AddExplicitClip(boundaries, "ancestor-" + i, () => new(GeometryStatus.Missing, null));
+        var called = false;
+        GeometryBoundaryCollector.AddExplicitClip(boundaries, "email", () => { called = true; return null; });
+        Assert.Equal(16, boundaries.Count);
+        Assert.False(called);
+    }
+    [Theory]
     [InlineData("LoginPage", "A3C830FDC2F8E493B7FFDD5BC67F039D7511DA565161FB2989243424BA0C7FD0", 2)]
     [InlineData("AccountPage", "F01C2618893423F1002CBD3EDE467FF634D821BE7031D45492437ED088D6B57F", 3)]
     public void OnlyApprovedNonvisualNamesAreAdded(string page, string baseline, int expectedNames)

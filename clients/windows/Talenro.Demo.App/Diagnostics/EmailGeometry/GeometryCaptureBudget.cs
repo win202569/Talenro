@@ -40,10 +40,13 @@ public sealed class GeometryCaptureCoordinator(GeometryCaptureBudget budget)
     private string? page;
     private long nextToken;
     private long? pending;
+    private bool pendingInvalid;
 
     public void ChangePage(string? value)
     {
-        pending = null;
+        // A queued dispatcher closure still occupies the physical slot. Navigation
+        // invalidates its capture, but must not permit another closure until it drains.
+        pendingInvalid = true;
         page = value;
     }
 
@@ -55,6 +58,7 @@ public sealed class GeometryCaptureCoordinator(GeometryCaptureBudget budget)
         if (nextToken == long.MaxValue) { Stop(); return false; }
         token = ++nextToken;
         pending = token;
+        pendingInvalid = false;
         return true;
     }
 
@@ -63,6 +67,7 @@ public sealed class GeometryCaptureCoordinator(GeometryCaptureBudget budget)
         sequence = 0;
         if (pending != token) return false;
         pending = null;
+        if (pendingInvalid) return false;
         return page is not null && budget.TryReserve(page, eligible, out sequence);
     }
 
