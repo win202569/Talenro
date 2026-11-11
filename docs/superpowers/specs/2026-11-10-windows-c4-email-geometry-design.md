@@ -1,7 +1,8 @@
 # C4 email geometry probe — short design
 
-Status: user selected approach1 after42c0a97f; this written design awaits approval.
-Design only: no implementation/build/test/native launch authority. Live allowance0.
+Status: user selected approach1 after42c0a97f and approved this written design aftere9d85324.
+Implementation plan awaits confirmation/method selection. No implementation/build/test
+or native launch has started. Live allowance0; builds and live runs need separate authority.
 
 ## Intent and approaches
 

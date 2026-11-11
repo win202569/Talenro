@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — EMAIL GEOMETRY DESIGN APPROVED, IMPLEMENTATION PLAN PENDING:
+Read [three-task plan](../superpowers/plans/2026-11-10-windows-c4-email-geometry.md).
+Self-reviewed 2026-11-11, including per-field statuses and stale callback contracts;
+await user plan confirmation and execution-method selection before implementation.
+Pure evaluator/capture budget, owned activation/receipt lifecycle, then guarded
+real-page adapter and build-mode isolation. Plan approval would include portable
+test compilation only (--no-restore), not WinUI App build or live run. Missing test
+dependencies block; no automatic install/restore. Future verified new hashes and
+fixed entry require separate build-stage authority. No implementation/tests run yet.
+
 LATEST — REAL-PAGE EMAIL GEOMETRY APPROACH SELECTED, DESIGN AWAITS APPROVAL:
 Read [short design](../superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md).
 Independent opt-in diagnostic variant, unchanged layout/old artifacts/observer gates;
