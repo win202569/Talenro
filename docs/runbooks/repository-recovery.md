@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — RTL AXIS DISCREPANCY EXPLAINED, ARRANGE CAUSE STILL OPEN:
+The [follow-up trace](../roadmap/2026-11-11-windows-email-geometry-readonly-review.md#follow-up-rtl-coordinate-trace)
+confirms the observer targets an RTL Root. Derived left-origin Account email bounds
+are [-82,104.9043], panel [-122,698], presenter [0,916]; these are not fresh screen
+measurements. Email fits its panel; panel overflows viewport. Next design a bounded
+single-variable alignment/width experiment, offline checks first. No code change or
+launch authorized by this review; native run requires fresh approval. C4 NOT_ACCEPTED.
+
 LATEST — READ-ONLY GEOMETRY REVIEW, CAUSE UNRESOLVED (2026-11-11):
 Read [analysis](../roadmap/2026-11-11-windows-email-geometry-readonly-review.md).
 Four snapshots and 71 process records correlate; raw hashes unchanged. Account

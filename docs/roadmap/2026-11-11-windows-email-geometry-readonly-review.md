@@ -68,3 +68,45 @@ coordinates based solely on this discrepancy. No new live allowance exists.
 Review disposition: limited structural and known-boundary analysis completed;
 visual root cause unresolved. Existing Unreviewed/NotAccepted receipts remain
 unchanged; C4 remains NOT_ACCEPTED. Startup-within-30s remains unproven.
+
+## Follow-up: RTL coordinate trace
+
+Read-only source and existing-receipt review, no application execution:
+
+- MainWindow sets Root.FlowDirection=RightToLeft for rtl-mixed, then passes that
+  exact Root to EmailGeometryObserver. The snapshot confirms root, host, page,
+  scroll, presenter, panel and recorded extra ancestors are RightToLeft; email
+  alone is LeftToRight. Root width is 1136 DIP.
+- TransformToVisual(root) produces coordinates relative to that specified
+  element, not desktop coordinates. Microsoft documents that an RTL element's
+  local coordinate origin is at its upper right. Thus the prior right/left
+  discrepancy is consistent with root-local versus screen-oriented axes, not
+  evidence that the receipt is corrupt.
+- Derived root-relative left-origin interval is [1136-right,1136-left]:
+  Account email [-82,104.904296875], panel [-122,698], presenter [0,916].
+  Login snapshot 2 email becomes [446.5,614.7138671875]. These are arithmetic
+  interpretations of existing bounds, NOT newly measured desktop rectangles.
+  Account left overflow of 82 DIP agrees directionally with the visual evidence;
+  the screenshot has not been independently pixel-calibrated to verify magnitude.
+- Account email is inside the panel's own horizontal bounds, ending 40 DIP before
+  the panel's RootDIP right edge (padding 40). The panel itself exceeds presenter
+  by 122 DIP, so the evidence points upstream of the email text's box placement.
+  Do not change the email to RTL or alter raw coordinate values as a repair.
+- Working Login panel explicitly uses HorizontalAlignment=Center, width 307;
+  Account panel uses default Stretch, MaxWidth=820, actual width 820 and desired
+  width 480 within a 916-wide viewport. These differ in several variables; Login
+  is not a controlled experiment proving alignment is the cause.
+
+The precise arrange/centering mechanism remains unproven: no per-ancestor affine
+matrices or native arrange inputs were captured. Existing adapter contract tests
+cover synthetic bounds/clips and nonvisual XAML naming, not native RTL arrangement.
+Next useful work is a bounded design for an isolated alignment/width experiment
+with offline regression checks first; native execution still needs new explicit
+approval. Do not treat repeated document review as further runtime validation.
+
+Official references inspected for this interpretation:
+- [FlowDirection: RTL local coordinate frame](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.frameworkelement.flowdirection?view=windows-app-sdk-1.8)
+- [TransformToVisual: specified target coordinate frame](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.transformtovisual?view=windows-app-sdk-1.8)
+
+Geometry receipt SHA256 remains AE5ABE46357E8E5AB2DF100A09843CB6C62BB4E9E8B865D226FE5619AB97DB1A.
+No source/tests/raw records changed. C4 remains NOT_ACCEPTED.

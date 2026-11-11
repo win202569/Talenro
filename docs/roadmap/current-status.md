@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-11
 
+## Latest — RTL坐标方向已解释，问题定位到Account内容面板越界
+
+源码及快照确认Root为RTL；按微软坐标契约换算，Account邮箱对应左侧越界82 DIP，
+与截图方向一致（不是新的屏幕测量）。面板本身越界122 DIP，邮箱仍在面板内部；
+不能简单修改邮箱文字方向。具体布局排列原因尚未证实。见[后续追踪](2026-11-11-windows-email-geometry-readonly-review.md#follow-up-rtl-coordinate-trace)。
+建议下一步设计单变量对齐/宽度实验，先离线检查；本轮未改代码、未启动，实机额度0，C4未验收。
+
 ## Latest — 几何记录只读复核：确认越界，屏幕方向映射仍待解释
 
 本次记录结构/运行关联已核对：四份快照、71条进程记录，原始哈希不变。
