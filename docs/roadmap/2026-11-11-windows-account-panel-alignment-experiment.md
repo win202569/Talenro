@@ -1,5 +1,36 @@
 # Account alignment experiment execution checkpoint
 
+## Ordinary-token comparison: baseline passes
+
+User approved one ordinary-PowerShell diagnostic comparison. Executed through the
+approved external tool context, not an administrator shell: token check returned
+Administrator=False, related process count0, unique log absent, and timeout/debug
+override variables absent. An initial command had a PowerShell interpolation parse
+error before any statements ran; corrected syntax did not repeat a test launch.
+
+One actual test invocation used the same project/filter/--no-restore/normal console
+logging as diagnostic01, with unique baseline-ordinary-01.log. UTC start
+19:07:14.2113895, end19:07:19.0369125: 8 passed,0 failed,0 skipped, exit0;
+VSTest total0.7378s, whole command~4.8s. Subsequent external CIM query matched0
+dotnet/testhost/vstest.console processes. No clients/windows tracked changes.
+
+This supports an execution-context-related local communication restriction in the
+failed run, not broken baseline assertions. Exact deny policy/component remains
+unidentified; no claim that all environment differences were controlled. No timeout,
+firewall/UAC/security-setting or dependency changes. No app launch or native build.
+
+Closed local diagnostic log hashes:
+- host baseline-ordinary-01.host.26-11-11_23-07-18_25196_5.log:
+  1580083E6B3CB4615C99316545027C153A26A2AE445D6FB05B57217861418AF5
+- runner baseline-ordinary-01.log:
+  6DD3D2DB8CC70EE17B55DABE8B9E71F32CDBD6B4F966124A5828FB2A56D659CC
+
+Baseline is now verified for these8 contract tests only. Next resume the approved
+alignment plan at RED test creation, not by repeating baseline diagnosis. New test
+commands must use the approved execution mechanism and ordinary-token check, with
+no automatic retries. Candidate still unimplemented; C4 NOT_ACCEPTED. Raw logs
+remain local/ignored, not part of remote recovery.
+
 ## Diagnostic follow-up: localhost socket access denied
 
 Original session46350 subsequently completed with exit1: VSTest failed to connect

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY-TOKEN BASELINE COMPARISON PASSED8/8:
+One approved external-context diagnostic test, Administrator=False, exit0,~4.8s;
+post-run matching processes0. Source unchanged. See [comparison evidence](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
+Prior10013 supports context-related communication denial, exact rule unknown.
+Resume approved plan at RED creation, not another baseline rerun. Candidate not
+implemented; native build/launch still excluded and C4 NOT_ACCEPTED.
+
 LATEST — DIAGNOSTIC HOST LOG SHOWS SOCKET ACCESS DENIED:
 Original baseline session46350 exited1 (90s host-connect timeout). Separately
 approved diagnostic session24920 logged SocketException10013 connecting to
