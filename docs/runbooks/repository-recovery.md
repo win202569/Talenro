@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — PLAN APPROVED, BASELINE RUNNER BLOCKED (2026-11-11):
+Read [execution ledger](../roadmap/2026-11-10-windows-c4-email-geometry-execution.md).
+Inline implementation and portable tests approved. Core/Tests compiled; VSTest
+aborted on 90-second testhost connection timeout, exit1, no test verdict. Related
+processes exited without intervention. Tasks1/2/3 not started; no native build/run.
+Resolve baseline first; proposed ordinary-host comparison has not been executed.
+
 LATEST — EMAIL GEOMETRY DESIGN APPROVED, IMPLEMENTATION PLAN PENDING:
 Read [three-task plan](../superpowers/plans/2026-11-10-windows-c4-email-geometry.md).
 Self-reviewed 2026-11-11, including per-field statuses and stale callback contracts;

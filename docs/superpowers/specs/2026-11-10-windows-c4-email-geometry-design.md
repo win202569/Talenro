@@ -1,8 +1,9 @@
 # C4 email geometry probe — short design
 
 Status: user selected approach1 after42c0a97f and approved this written design aftere9d85324.
-Implementation plan awaits confirmation/method selection. No implementation/build/test
-or native launch has started. Live allowance0; builds and live runs need separate authority.
+Implementation plan and inline method approved 2026-11-11. Portable baseline compiled,
+but runner-to-testhost connection timed out before test results; implementation blocked.
+No native build/launch. Live allowance0; native builds and live runs need separate authority.
 
 ## Intent and approaches
 
