@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — CENTER-ALIGNMENT EXPERIMENT DESIGN PENDING APPROVAL:
+User selected approach 1. Read the [short design](../superpowers/specs/2026-11-11-windows-account-panel-alignment-experiment-design.md).
+Only proposed app delta is Account panel HorizontalAlignment=Center; retain original
+XAML baseline through narrowly asserted normalization, not a blanket hash update.
+No implementation/tests/build/launch performed. Written design approval precedes
+implementation planning. Native build/artifact binding/live run remain separately
+scoped; live allowance0, C4 NOT_ACCEPTED. Existing artifacts/receipts stay unchanged.
+
 LATEST — RTL AXIS DISCREPANCY EXPLAINED, ARRANGE CAUSE STILL OPEN:
 The [follow-up trace](../roadmap/2026-11-11-windows-email-geometry-readonly-review.md#follow-up-rtl-coordinate-trace)
 confirms the observer targets an RTL Root. Derived left-origin Account email bounds

@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-11
 
+## Latest — Account居中单变量实验设计待批准
+
+用户已选择方案1；[简短设计](../superpowers/specs/2026-11-11-windows-account-panel-alignment-experiment-design.md)
+仅拟增加Account面板HorizontalAlignment=Center，其他属性不变。保留原XAML基线，
+测试只明确豁免这一项已批准变化；离线通过不代表裁切修复。尚未改代码、运行测试或启动应用。
+书面设计待批准，之后编写实施计划；实机/原生重建另行授权，C4仍NOT_ACCEPTED。
+
 ## Latest — RTL坐标方向已解释，问题定位到Account内容面板越界
 
 源码及快照确认Root为RTL；按微软坐标契约换算，Account邮箱对应左侧越界82 DIP，
