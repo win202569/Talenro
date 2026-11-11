@@ -1,6 +1,8 @@
 # Email geometry entry failure recording — short design addendum
 
-Status: approach selected by user; written design awaiting approval,2026-11-11.
+Status: approach and written design approved by user,2026-11-11.
+Implementation plan:../plans/2026-11-11-windows-email-geometry-failure-recording.md;
+plan confirmation pending. No repair implemented or live run authorized.
 This is a bounded repair to Important1 in the entry review, not a new observer.
 Parent:2026-11-10-windows-c4-email-geometry-design.md. Existing entry implementation
 and review disposition:docs/roadmap/2026-11-11-windows-email-geometry-observer-entry.md.

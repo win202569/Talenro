@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-11
 
+## Latest — 错误记录补充设计获批，修复计划待确认
+
+[实施计划](../superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md)
+包含入口内状态/资源所有权/最终错误输出修复，以及独立审查与恢复交接。
+明确27类操作失败与5类清理失败，先用组合故障测试复现，再修复；不改共享模块。
+本轮仅文档，未运行新测试、未改运行代码、未启动应用。重要阻塞仍开放，实机额度0。
+
 ## Latest — 错误类别保留补充设计已写成，待书面批准
 
 用户已选择入口层独立记录方案；[简短补充设计](../superpowers/specs/2026-11-11-windows-email-geometry-failure-recording-design.md)

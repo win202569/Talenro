@@ -1,5 +1,11 @@
 # Recover the project on a new computer
 
+LATEST — FAILURE DESIGN APPROVED, REPAIR PLAN PENDING (2026-11-11):
+Read [repair plan](../superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md).
+Written addendum approved. Preserve inline execution after plan confirmation:
+state/adapters/final-surface RED→GREEN repair, then independent review and handoff.
+No implementation/new tests this turn. Important1 remains open; live allowance0.
+
 LATEST — FAILURE RECORDING ADDENDUM AWAITS APPROVAL (2026-11-11):
 User selected entry-owned failure state/resource adapters. Read the
 [short design](../superpowers/specs/2026-11-11-windows-email-geometry-failure-recording-design.md).

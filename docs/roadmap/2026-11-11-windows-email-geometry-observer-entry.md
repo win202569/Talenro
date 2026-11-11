@@ -111,3 +111,8 @@ sets, explicit SessionUnclassified for inaccessible shared failures, one-time ad
 cleanup and information-channel/safe-exception summary without a new file sink.
 These are proposed design details, not implemented behavior. No tests rerun for this
 documentation-only step;642 remains previous checkpoint evidence. Important1 open.
+
+User subsequently approved the written addendum. Repair plan prepared/self-reviewed:
+docs/superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md.
+Plan confirmation pending; preserved inline execution with one final repair review.
+No repair implementation or tests performed in this planning step. Important1 open.
