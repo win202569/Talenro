@@ -360,6 +360,19 @@ $caught=$null
 try{Invoke-EGSession $policy $context $script:failureState $script:backend Synthetic 6>$null|Out-Null}catch{$caught=$_.Exception}
 Check (($caught.Data['EGFailureSummary'].OperationFailures -join ',') -ceq 'SessionUnclassified') 'internal validation explicitly unclassified'
 # Failure information publication may itself fail, but must not retry or leak.
+$identityMisses=[Collections.Generic.List[string]]::new()
+foreach($propertyName in @('Id','StartTime','SafeHandle')){
+    $savedValue=$script:original.PSObject.Properties[$propertyName].get_Value()
+    $script:original|Add-Member -MemberType ScriptProperty -Name $propertyName -Value {throw 'private-identity-getter'} -Force
+    Reset-Receipt;$script:original.Attempts=0
+    $script:backend=New-EGBackend $policy $script:failureState;$script:backend.Publish={param($r)}
+    $caught=$null
+    try{Invoke-EGSession $policy $context $script:failureState $script:backend Synthetic 6>$null|Out-Null}catch{$caught=$_.Exception}
+    finally{$script:original|Add-Member -MemberType NoteProperty -Name $propertyName -Value $savedValue -Force}
+    if($null -eq $caught -or $caught.Data['EGFailureSummary'].OperationFailures -notcontains 'Identity'){$identityMisses.Add($propertyName)}
+    Check ($script:original.Attempts -eq 1) "identity getter cleanup $propertyName"
+}
+Check ($identityMisses.Count -eq 0) ('identity getter categories retained: '+($identityMisses -join ','))
 $script:publications=0
 function Write-Information {param($MessageData,$InformationAction,$ErrorAction)$script:publications++;throw 'private-publication'}
 $caught=$null

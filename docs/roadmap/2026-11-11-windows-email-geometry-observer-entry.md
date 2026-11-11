@@ -151,3 +151,44 @@ Repair Ruling: nullable RunId is untyped with explicit string validation to pres
 null (PowerShell string coercion loses it) — cost internal-only signature difference.
 Repair Ruling: private New-EGStreamWriter construction seam permits real constructor-
 wrapper failure tests — cost one private helper; no public override or module change.
+
+## Final repair review and disposition
+
+Task1 committed388e7c33. One fresh read-only reviewer inspected479ba646..388e7c33,
+reran all731 assertions, and found0 Critical/1 Important/0 Minor. No second review.
+Important: ordinary PowerShell property reads suppress getter exceptions, losing
+Identity on Id/SafeHandle failures. Independently reproduced direct access returning
+versus explicit PSPropertyInfo.get_Value() throwing. Added full shared Synthetic
+Id/StartTime/SafeHandle regressions: RED reported missing Id,SafeHandle categories.
+Changed adapter Id and GetIdentity to explicit getter invocation; original Process
+and SafeHandle still retained, cleanup counters remain one. GREEN across all suites:
+282 new+152/32/120/48/32/78 existing=744 assertions, exit0; whitespace check passes.
+This single regression-first fix pass completes the repair. Original Important1 is
+closed on final failure-surface evidence, not on generic failure or process exit.
+No deferred minors. No live/build/restore/install/merge; C4 remains NOT_ACCEPTED.
+
+### Final repair review boundary rulings
+
+Final repair Ruling: real launch/Windows identity/CIM/native/rendering/scheduling
+remain untested under no-live authorization — cost real environment faults may remain.
+Final repair Ruling: synthetic cleanup attempt counters do not prove real OS handle
+leakage after a throw — cost actual cleanup behavior may require later evidence.
+Final repair Ruling: reviewer did not rehash artifacts; implementer did — require
+fresh preflight hash checks before any future run — cost later artifact drift.
+Final repair Ruling: geometry parsing/completeness/clipping/acceptance stay separate
+post-run work and Unreviewed/NotAccepted — cost no visual repair claim from this task.
+Final repair Ruling: startup/normal-close deadlines remain operator responsibilities
+— cost operator timing can fail despite working process observation.
+Final repair Ruling: crash/output-channel failure can lose summary delivery; no new
+durable sink promised — cost missing summaries cannot establish success.
+Final repair Ruling: private state and filesystem/functions assume trusted workspace
+— cost no defense claimed against deliberate state mutation or hostile substitution.
+Final repair Ruling: pending guide/status/recovery documentation now updated to the
+verified disposition while historical entries remain — cost readers must use Latest.
+Final repair Ruling: frozen shared code is not generally re-reviewed; interactions
+and existing timing suites were checked — cost unrelated shared defects remain possible.
+Final repair Ruling: no live readiness promotion/main merge/deployment follows this
+synthetic repair — cost those outcomes require separate authority/evidence.
+
+All current-plan rulings are preserved here before removing only this repair plan's
+ignored scratch ledger. Development branch/worktree and earlier plan scratch remain.

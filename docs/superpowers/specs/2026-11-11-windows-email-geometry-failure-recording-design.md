@@ -2,7 +2,8 @@
 
 Status: approach and written design approved by user,2026-11-11.
 Implementation plan:../plans/2026-11-11-windows-email-geometry-failure-recording.md;
-plan confirmation pending. No repair implemented or live run authorized.
+plan confirmed and repair implemented; final744 synthetic assertions pass. Independent
+review getter finding fixed RED→GREEN. No live run authorized; see execution ledger.
 This is a bounded repair to Important1 in the entry review, not a new observer.
 Parent:2026-11-10-windows-c4-email-geometry-design.md. Existing entry implementation
 and review disposition:docs/roadmap/2026-11-11-windows-email-geometry-observer-entry.md.

@@ -5,10 +5,10 @@ see docs/roadmap/2026-11-11-windows-c4-email-geometry-build.md for verified hash
 The offline build has NU1905 (no local vulnerability audit data), not an audit pass.
 Fixed entry source now exists at tests/observe-email-geometry.ps1; its synthetic
 verification does not authorize live execution, which requires separate approval.
-Independent review found unresolved end-to-end failure-category loss through the
-shared session and entry catches. Entry readiness is BLOCKED, not ready for a live
-approval: first design and test entry-owned sanitized failure bookkeeping without
-changing frozen shared modules or weakening original Process/SafeHandle ownership.
+The failure-category repair now records entry-owned sanitized state through the
+unchanged shared session; independent repair review's identity-getter finding was
+fixed with synthetic regression evidence. Do not treat this as live approval.
+Original Process/SafeHandle evidence remains mandatory.
 C4 remains NOT_ACCEPTED. Portable tests alone do not compile the WinUI adapter.
 
 The default-off `EnableEmailGeometryRecording` property permits Debug layout diagnostics
@@ -76,3 +76,20 @@ Account at scroll-top, no search/connection/node/settings change; normal titleba
 by300s, exit assessed within30s, total observation cap360s. Operator/UI evidence and
 retained original Process/SafeHandle evidence are both required. No forced termination.
 These are operator obligations, not implemented automatic navigation/close timers.
+
+## Failure recording contract
+
+One per-run state retains ordered, deduplicated allowlisted categories (27 operation,
+5 cleanup tokens). Writer/stream owners attempt each release once and attempt stream
+cleanup even if writer cleanup fails. Process owner retains the one launched Process;
+managed/identity reads use that original and native reads its original SafeHandle.
+Disposal does not terminate a process, retry a failed release or reopen by PID.
+
+After shared cleanup, failures emit a seven-field sanitized summary and terminal
+exception data EGFailureSummary: SchemaVersion,RunId,Outcome,OperationFailures,
+CleanupFailures,GeometryEvidenceStatus,Acceptance. No raw inner exception, user text
+or stack is attached. SessionUnclassified explicitly labels opaque shared errors;
+it may accompany a known callback failure and is not an inferred root cause.
+Publication failure adds Publication to terminal data without retry or fallback file.
+Host crash/output-channel failure can prevent delivery: this is not durable storage.
+A missing summary never proves success; geometry remains Unreviewed/NotAccepted.

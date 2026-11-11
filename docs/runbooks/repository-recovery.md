@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — FAILURE RECORDING REPAIR COMPLETE, NO LIVE RUN (2026-11-11):
+Repair implementation388e7c33 plus final getter-regression fix. Fresh repair review:
+0 Critical/1 Important/0 Minor; getter suppression reproduced then fixed by explicit
+property getter invocation. Final282 new+462 existing=744 synthetic assertions pass.
+Prior Important1 closed on final-surface/cleanup evidence; no shared/App source edits,
+four artifact hashes unchanged. Read [execution disposition](../roadmap/2026-11-11-windows-email-geometry-observer-entry.md).
+Keep branch/worktree. No launch/build/restore/merge. Next needs separate bounded live
+authorization and artifact revalidation; geometry remains Unreviewed/NotAccepted.
+
 LATEST — FAILURE DESIGN APPROVED, REPAIR PLAN PENDING (2026-11-11):
 Read [repair plan](../superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md).
 Written addendum approved. Preserve inline execution after plan confirmation:

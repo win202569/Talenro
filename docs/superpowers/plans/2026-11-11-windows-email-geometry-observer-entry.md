@@ -12,9 +12,9 @@
 
 Status: confirmed and implemented2026-11-11; Task1 committed d6da5ec9. Task2 review
 found two Important issues: reparse test false-positive fixed RED→GREEN; failure-
-category preservation remains BLOCKED pending entry resource/bookkeeping design.
-Final synthetic642 pass, no launch. See tracked execution ledger for disposition.
-The checklist below retains original requirements; review completion is not acceptance.
+category preservation subsequently fixed under the approved repair addendum.
+Final repair744 synthetic assertions pass, no launch. See tracked execution ledger.
+Both original findings closed; synthetic completion is not geometry acceptance.
 
 ## Global Constraints
 
@@ -89,18 +89,18 @@ Failure emits sanitized category and unsuccessful exit; never announces diagnosi
 
 ### Task1 — Fixed entry and synthetic contract tests
 
-- [ ] Write default guard/policy tests; run `pwsh -NoProfile -File clients/windows/tests/observe-email-geometry.tests.ps1`. Expected RED missing entry/function, not external-effect execution.
-- [ ] Implement fixed guard/policy. Test literal run11111111111141118111111111111111; exact hashes/args/path/source list; reject uppercase/zero/traversal/malformed run ID and public overrides. Expected GREEN, no imports/launch without switch.
-- [ ] Add RED gate/writer/backend tests before implementation: each token/branch/dirty/source/missing/hash/CIM/existing-target failure blocks all resources; context mismatches and both destination/claim/reparse collisions block launch. Writer construction/open/write/flush/dispose injections preserve ownership. Then implement minimal callbacks and rerun GREEN.
-- [ ] Test actual new backend with unchanged shared orchestrator in Synthetic mode using fake original Process/handle and synthetic native/managed readers. Assert one launch callback, native-first ordering, correlation, normal-exit0 finalization, failure cleanup and no fallback; all actual OS effects remain forbidden. Add regression proving finalized exit still yields Unreviewed/NotAccepted.
-- [ ] Run new synthetic suite and six existing scripts separately:observe-c4,observe-c5,c5-observation-session,observation-session-guard,process-observation,native-process-observation. Expected old152/32/120/48/32/78 counts, all exit0; record actual new count. No App compilation/live checks.
-- [ ] `git diff --check`; verify old/shared files unchanged and new/old artifact hashes still match. Commit explicit new files with `feat: bind isolated email geometry observation entry`.
+- [x] Write default guard/policy tests; run `pwsh -NoProfile -File clients/windows/tests/observe-email-geometry.tests.ps1`. Expected RED missing entry/function, not external-effect execution.
+- [x] Implement fixed guard/policy. Test literal run11111111111141118111111111111111; exact hashes/args/path/source list; reject uppercase/zero/traversal/malformed run ID and public overrides. Expected GREEN, no imports/launch without switch.
+- [x] Add RED gate/writer/backend tests before implementation: each token/branch/dirty/source/missing/hash/CIM/existing-target failure blocks all resources; context mismatches and both destination/claim/reparse collisions block launch. Writer construction/open/write/flush/dispose injections preserve ownership. Then implement minimal callbacks and rerun GREEN.
+- [x] Test actual new backend with unchanged shared orchestrator in Synthetic mode using fake original Process/handle and synthetic native/managed readers. Assert one launch callback, native-first ordering, correlation, normal-exit0 finalization, failure cleanup and no fallback; all actual OS effects remain forbidden. Add regression proving finalized exit still yields Unreviewed/NotAccepted.
+- [x] Run new synthetic suite and six existing scripts separately:observe-c4,observe-c5,c5-observation-session,observation-session-guard,process-observation,native-process-observation. Expected old152/32/120/48/32/78 counts, all exit0; record actual new count. No App compilation/live checks.
+- [x] `git diff --check`; verify old/shared files unchanged and new/old artifact hashes still match. Commit explicit new files with `feat: bind isolated email geometry observation entry`.
 
 ### Task2 — Review and durable handoff
 
-- [ ] Document readiness/limitations/operator instructions and both receipt locations. No ready-to-run claim or live approval implied; geometry parsing/visual correlation remains a separately scoped post-run review.
-- [ ] One fresh independent read-only review of Task1, using all five Review Focus items. Fix Important/Critical in one RED→GREEN pass then rerun new + existing synthetic suites. Record deferred Minor and all declined-to-judge rulings.
-- [ ] Update ledger/status/recovery/plan with exact evidence, no-live boundary and remaining steps. Commit/push necessary files, verify remote SHA=local and clean tree. No PR/merge.
+- [x] Document readiness/limitations/operator instructions and both receipt locations. No ready-to-run claim or live approval implied; geometry parsing/visual correlation remains a separately scoped post-run review.
+- [x] One fresh independent read-only review of Task1, using all five Review Focus items. Fix Important/Critical in one RED→GREEN pass then rerun new + existing synthetic suites. Record deferred Minor and all declined-to-judge rulings.
+- [x] Update ledger/status/recovery/plan with exact evidence, no-live boundary and remaining steps. Commit/push necessary files, verify remote SHA=local and clean tree. No PR/merge.
 
 ## Self-review and handoff
 
@@ -108,5 +108,6 @@ Coverage: approved fixed-entry continuation, shared-loop reuse and verified hash
 are explicit; C4/C5 and app contract remain unchanged. Correlation and geometry
 acceptance are deliberately separate. Source tests have no live fallback. Main
 uncertainty is later real execution/receipt quality, not permission to launch.
-Execution used sequential implementation and one independent review. Do not launch:
-resolve the remaining Important failure-category issue before claiming entry readiness.
+Execution used sequential implementation and one independent review, followed by the
+approved failure-recording addendum and its review/fix. No remaining Important finding;
+no launch or geometry acceptance authorized.

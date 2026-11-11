@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-11
 
+## Latest — 入口错误记录修复完成，744项合成断言通过，未启动
+
+入口保留观察失败与清理失败的脱敏类别；原重要阻塞Important1已按回归证据关闭。
+本次独立审查0严重/1重要/0轻微；Id/SafeHandle属性异常被PowerShell吞掉的问题
+已先复现再改为显式读取，Id/StartTime/SafeHandle均有完整流程回归覆盖。
+最终282新+462既有=744项通过；旧共享源码及四项新旧产物哈希不变。
+见[执行与审查处置](2026-11-11-windows-email-geometry-observer-entry.md)。未启动应用、
+未重建或还原。下一步只能另行准备/批准有界实机观察；当前实机额度0，C4仍NOT_ACCEPTED。
+
 ## Latest — 错误记录补充设计获批，修复计划待确认
 
 [实施计划](../superpowers/plans/2026-11-11-windows-email-geometry-failure-recording.md)

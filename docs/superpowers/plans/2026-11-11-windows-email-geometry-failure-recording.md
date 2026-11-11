@@ -10,7 +10,9 @@
 
 **Spec:** docs/superpowers/specs/2026-11-11-windows-email-geometry-failure-recording-design.md (approved2026-11-11).
 
-Status: prepared and self-reviewed; awaiting plan confirmation. No repair code executed.
+Status: confirmed and implemented2026-11-11. Final744 synthetic assertions pass;
+independent review0 Critical/1 Important/0 Minor, getter finding fixed RED→GREEN.
+No live run; see tracked entry execution ledger for rulings and evidence.
 
 ## Global Constraints
 
@@ -42,7 +44,7 @@ docs/roadmap/2026-11-11-windows-email-geometry-observer-entry.md for resulting c
 Update current-status.md, repository-recovery.md, this plan and approved spec status.
 
 Private interfaces (internal only, names fixed for tests):
-- New-EGFailureState([AllowNull()][string]$RunId) -> hashtable with RunId, ordered lists OperationFailures/CleanupFailures. Null allowed before ID generation; otherwise canonical nonzero lowercase32 GUID.
+- New-EGFailureState([AllowNull()]$RunId) -> hashtable with RunId, ordered lists OperationFailures/CleanupFailures. Null allowed before ID generation; otherwise canonical nonzero lowercase32 GUID.
 - Add-EGFailure($State,[string]$Category) -> no output; validates against lists below, deduplicates ordinally, preserves insertion order within each list.
 - Get-EGFailureSummary($State) -> detached PSCustomObject with exactly SchemaVersion=1,RunId,Outcome=Failed,OperationFailures[string[]],CleanupFailures[string[]],GeometryEvidenceStatus=Unreviewed,Acceptance=NotAccepted.
 - Stop-EGFailure($State) -> never returns; publish summary with Write-Information, then throw sanitized InvalidOperationException with Data['EGFailureSummary'] containing detached summary and no inner exception. If publication throws, record Publication and rebuild exception data without retrying publication.
@@ -68,11 +70,11 @@ all succeeded; add it even alongside known categories on any shared-session thro
 
 **Files:** new entry/tests above. **Consumes:** existing policy/context, shared ten-callback engine and original resource fixtures. **Produces:** all interfaces above and end-to-end failure evidence.
 
-- [ ] Add state tests before implementation: null/canonical run ID, invalid IDs, unknown tokens, insertion order/deduplication, detached snapshots, exact eight-field summary, no cross-run mutation. Assert operation/cleanup counts never exceed27/5 even after1000 repeats. Run `pwsh -NoProfile -File clients/windows/tests/observe-email-geometry.tests.ps1`; expected RED missing New-EGFailureState, no OS effect.
-- [ ] Implement state/summary helpers, run same command; expected GREEN for state tests and retained existing coverage.
-- [ ] Add adapter fault tests with independent counters: writer cleanup throws then stream cleanup still runs; both throw; process cleanup throws; repeated Dispose does not retry; constructor/adapter creation fails after raw acquisition. Assert each owned release attempted once and every distinct token retained. Run same command; expected RED absent adapters or incorrect ownership.
-- [ ] Implement adapters and integrate factory ownership. Construct writers using UTF8(no BOM), buffer1024, leaveOpen=true and existing AutoFlush=true. Mark release attempted before calling Dispose; attempt writer then stream in finally-equivalent logic, rethrow failure after both attempts. Use explicit factory-to-adapter transfer flags; failed construction leaves factory ownership. Record constructor-path cleanup failure rather than swallowing it. Update fixture streams to count attempts rather than equating a thrown Dispose with a proven leak. Run same command; expected GREEN.
-- [ ] Add real backend/shared Synthetic integration regression using simultaneous managed-read, samples writer/stream disposal and process disposal failures. Exercise Invoke-EGSession and Stop-EGFailure, capture final safe exception and information output. Pin core assertions:
+- [x] Add state tests before implementation: null/canonical run ID, invalid IDs, unknown tokens, insertion order/deduplication, detached snapshots, exact seven-field summary, no cross-run mutation. Assert operation/cleanup counts never exceed27/5 even after1000 repeats. Run `pwsh -NoProfile -File clients/windows/tests/observe-email-geometry.tests.ps1`; expected RED missing New-EGFailureState, no OS effect.
+- [x] Implement state/summary helpers, run same command; expected GREEN for state tests and retained existing coverage.
+- [x] Add adapter fault tests with independent counters: writer cleanup throws then stream cleanup still runs; both throw; process cleanup throws; repeated Dispose does not retry; constructor/adapter creation fails after raw acquisition. Assert each owned release attempted once and every distinct token retained. Run same command; expected RED absent adapters or incorrect ownership.
+- [x] Implement adapters and integrate factory ownership. Construct writers using UTF8(no BOM), buffer1024, leaveOpen=true and existing AutoFlush=true. Mark release attempted before calling Dispose; attempt writer then stream in finally-equivalent logic, rethrow failure after both attempts. Use explicit factory-to-adapter transfer flags; failed construction leaves factory ownership. Record constructor-path cleanup failure rather than swallowing it. Update fixture streams to count attempts rather than equating a thrown Dispose with a proven leak. Run same command; expected GREEN.
+- [x] Add real backend/shared Synthetic integration regression using simultaneous managed-read, samples writer/stream disposal and process disposal failures. Exercise Invoke-EGSession and Stop-EGFailure, capture final safe exception and information output. Pin core assertions:
 
 ```powershell
 Check ($summary.OperationFailures -contains 'ManagedRead') 'managed category retained'
@@ -84,20 +86,20 @@ Check (($summary | ConvertTo-Json -Depth 5) -notmatch 'private-') 'payload absen
 ```
 
   Run same command; expected RED missing session wrapper or lost categories, not real acquisition.
-- [ ] Add final-surface cases: inaccessible identity validation failure yields SessionUnclassified; information publication throws once and terminal Data contains Publication; state contains a failure despite synthetic successful result so wrapper rejects; context/run mismatch has zero acquisition. Preserve original Process reference checks on adapter.Original, managed argument and SafeHandle; assert native-first order and no PID reopening. Run same command; expected RED on each missing contract before implementation.
-- [ ] Wire all ten backend boundaries to the shared state, preserving callback output cardinality. Process acquisition catches adapter-construction errors and disposes acquired original exactly once. Id-forwarding/identity failures record Identity; callback failures record named category then rethrow. Writer methods record their Kind-specific category before rethrowing; Dispose records cleanup categories. Do not modify shared engine or catch based on raw message text.
-- [ ] Wire top-level initialization after inert guard: initialize state with null RunId, generate ID once and bind state/policy/context; tag setup/preflight/import failures where they occur. Invoke-EGSession once. Ensure Stop-EGFailure is not recaught and published twice by top-level catch (separate setup catch from session execution). Existing nonverified/unfinished result still exits unsuccessfully. Run same suite; expected GREEN, record actual assertion count.
-- [ ] Run seven suites separately using `pwsh -NoProfile -File clients/windows/tests/<name>.tests.ps1`: observe-email-geometry,observe-c4,observe-c5,c5-observation-session,observation-session-guard,process-observation,native-process-observation. Expected all exit0; existing counts152/32/120/48/32/78 unchanged. Previous new180 count is a baseline, not the new required total.
-- [ ] Run `git diff --check`; compare frozen files against execution BASE; read-only recheck old/new EXE/DLL hashes from2026-11-11-windows-c4-email-geometry-build.md. Expected clean whitespace, no frozen source edits and same hashes (missing artifact is reported, not rebuilt). Commit explicit entry/tests as `fix: retain geometry observation and cleanup failure categories`.
+- [x] Add final-surface cases: inaccessible identity validation failure yields SessionUnclassified; information publication throws once and terminal Data contains Publication; state contains a failure despite synthetic successful result so wrapper rejects; context/run mismatch has zero acquisition. Preserve original Process reference checks on adapter.Original, managed argument and SafeHandle; assert native-first order and no PID reopening. Run same command; expected RED on each missing contract before implementation.
+- [x] Wire all ten backend boundaries to the shared state, preserving callback output cardinality. Process acquisition catches adapter-construction errors and disposes acquired original exactly once. Id-forwarding/identity failures record Identity; callback failures record named category then rethrow. Writer methods record their Kind-specific category before rethrowing; Dispose records cleanup categories. Do not modify shared engine or catch based on raw message text.
+- [x] Wire top-level initialization after inert guard: initialize state with null RunId, generate ID once and bind state/policy/context; tag setup/preflight/import failures where they occur. Invoke-EGSession once. Ensure Stop-EGFailure is not recaught and published twice by top-level catch (separate setup catch from session execution). Existing nonverified/unfinished result still exits unsuccessfully. Run same suite; expected GREEN, record actual assertion count.
+- [x] Run seven suites separately using `pwsh -NoProfile -File clients/windows/tests/<name>.tests.ps1`: observe-email-geometry,observe-c4,observe-c5,c5-observation-session,observation-session-guard,process-observation,native-process-observation. Expected all exit0; existing counts152/32/120/48/32/78 unchanged. Previous new180 count is a baseline, not the new required total.
+- [x] Run `git diff --check`; compare frozen files against execution BASE; read-only recheck old/new EXE/DLL hashes from2026-11-11-windows-c4-email-geometry-build.md. Expected clean whitespace, no frozen source edits and same hashes (missing artifact is reported, not rebuilt). Commit explicit entry/tests as `fix: retain geometry observation and cleanup failure categories`.
 
 ## Task2 — Review, documentation and recovery
 
 **Files:** documentation listed above. **Consumes:** Task1 tested final summary and ownership contracts. **Produces:** review disposition, current/recovery status and remote checkpoint.
 
-- [ ] Document allowlist/unclassified limitations, no durable delivery guarantee, original resource ownership and no-live boundary. Record RED→GREEN evidence and exact actual tests; do not label Important1 fixed merely because code exists.
-- [ ] One fresh read-only final review for this repair plan, all five focus items, no live actions. This is the bounded addendum implementation review, not a repeat review of untouched prior code. Use preserved inline execution method; no per-task implementer agents. Address Critical/Important in one regression-first pass, rerun seven suites, record every declined boundary and deferred Minor; no re-review loop.
-- [ ] Update existing entry plan/ledger to close Important1 only when covered final-surface regressions and review disposition support it. Remaining real-run/geometry evidence stays NOT_RUN/NotAccepted. Update status/recovery/spec and this plan; retain historical test evidence as historical.
-- [ ] Check explicit diff list and `git diff --check`, commit documentation/fixes, push existing branch only. Verify `git rev-parse HEAD` equals `git ls-remote origin refs/heads/codex/c12-b01-task9-coordinator` and `git status --short` is empty. Expected remote recovery checkpoint; no PR/main merge or launch.
+- [x] Document allowlist/unclassified limitations, no durable delivery guarantee, original resource ownership and no-live boundary. Record RED→GREEN evidence and exact actual tests; do not label Important1 fixed merely because code exists.
+- [x] One fresh read-only final review for this repair plan, all five focus items, no live actions. This is the bounded addendum implementation review, not a repeat review of untouched prior code. Use preserved inline execution method; no per-task implementer agents. Address Critical/Important in one regression-first pass, rerun seven suites, record every declined boundary and deferred Minor; no re-review loop.
+- [x] Update existing entry plan/ledger to close Important1 only when covered final-surface regressions and review disposition support it. Remaining real-run/geometry evidence stays NOT_RUN/NotAccepted. Update status/recovery/spec and this plan; retain historical test evidence as historical.
+- [x] Check explicit diff list and `git diff --check`, commit documentation/fixes, push existing branch only. Verify `git rev-parse HEAD` equals `git ls-remote origin refs/heads/codex/c12-b01-task9-coordinator` and `git status --short` is empty. Expected remote recovery checkpoint; no PR/main merge or launch.
 
 ## Self-review and handoff
 
@@ -107,5 +109,5 @@ unchanged six suites; documentation/review/recovery in Task2. All five focus cas
 have explicit tests. Signatures consistently pass one shared State and retain exact
 backend keys; default guard stays ahead of all effects. Author choices: finite27/5
 tokens, detached exception-data summary, conservative SessionUnclassified on shared
-throws. No tests or implementation performed during planning. Confirm this plan
-before preserved inline execution; no separate live approval is implied.
+throws. Original planning turn performed no tests. Execution and final review are now
+complete; no live approval is implied. Final disposition/rulings are in the tracked ledger.

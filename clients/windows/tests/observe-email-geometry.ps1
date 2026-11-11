@@ -50,7 +50,9 @@ function New-EGWriterOwner($Writer,$Stream,[ValidateSet('Manifest','Samples')][s
 }
 function New-EGProcessOwner($Process,$State){
     $owner=[pscustomobject]@{Original=$Process;State=$State;Attempted=$false;Record=(Get-Command Add-EGFailure)}
-    $owner|Add-Member ScriptProperty Id {try{$this.Original.Id}catch{& $this.Record $this.State 'Identity';throw}}
+    # Explicit invocation is essential: ordinary PowerShell property reads can
+    # suppress getter exceptions before a surrounding catch can record them.
+    $owner|Add-Member ScriptProperty Id {try{$this.Original.PSObject.Properties['Id'].get_Value()}catch{& $this.Record $this.State 'Identity';throw}}
     $owner|Add-Member ScriptMethod Dispose {
         if(-not $this.Attempted){
             $this.Attempted=$true
@@ -238,7 +240,11 @@ function New-EGBackend($Policy,$State){
                 throw
             }
         }.GetNewClosure()
-        GetIdentity={param($process) @{ProcessId=$process.Original.Id;StartUtc=$process.Original.StartTime.ToUniversalTime();Handle=$process.Original.SafeHandle}}
+        GetIdentity={param($process) @{
+            ProcessId=$process.Original.PSObject.Properties['Id'].get_Value()
+            StartUtc=$process.Original.PSObject.Properties['StartTime'].get_Value().ToUniversalTime()
+            Handle=$process.Original.PSObject.Properties['SafeHandle'].get_Value()
+        }}
         ReadNative={param($handle,$runId) & $native -ProcessHandle $handle -CorrelationId $runId}.GetNewClosure()
         ReadCim={param($processId)
             $rows=@(& $cim -ClassName Win32_Process -Filter "ProcessId = $processId" -ErrorAction Stop)
