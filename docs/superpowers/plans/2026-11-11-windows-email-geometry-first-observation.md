@@ -10,8 +10,11 @@
 
 **Spec:** docs/superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md and2026-11-11-windows-email-geometry-failure-recording-design.md. Operator contract:clients/windows/diagnostics/email-geometry.md.
 
-Status: prepared2026-11-11; NOT_RUN, live allowance0 until explicit approval of the
-single run below. Preparation rechecked new hashes at source checkpoint5acd40fb.
+Status: user approved one attempt; entry invoked once at17778db8, then preflight
+failed before launch (exit1,category Preflight). Launches0/retries0; allowance0.
+Remaining UI/geometry steps NOT_RUN, not permission to retry. See attempt record
+docs/roadmap/2026-11-11-windows-email-geometry-first-observation.md.
+Preparation rechecked new hashes at source checkpoint5acd40fb.
 Prior744 synthetic assertions are historical, not rerun in this preparation step.
 
 ## Global Constraints

@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-11
 
+## Latest — 首次获批观察被启动前检查阻止，未启动应用
+
+固定入口仅调用1次，约1.85秒退出1，类别Preflight；运行编号
+1362f967af8440d9b0cbefb6847caebd。启动前普通权限检查为False（非管理员）。
+本次未进入资源获取/应用启动，未生成该编号的观察目录、几何目录或claim。
+具体失败检查项尚未确定，不据类别推测原因。见[本次记录](2026-11-11-windows-email-geometry-first-observation.md)。
+零重试约定已遵守，剩余实机额度0；下一步建议另行只读排查检查项，不重跑入口。
+
 ## Latest — 首次几何实机观察清单已准备，尚未启动
 
 [有界观察计划](../superpowers/plans/2026-11-11-windows-email-geometry-first-observation.md)

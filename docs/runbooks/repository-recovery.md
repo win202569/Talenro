@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — FIRST APPROVED ATTEMPT BLOCKED AT PREFLIGHT (2026-11-11):
+Entry invoked once at source17778db8, exit1 after~1.85s, category Preflight;
+run1362f967af8440d9b0cbefb6847caebd. No app/resource acquisition, no receipt directories
+or claim for this ID. Ordinary-token precheck was false for Administrator; exact
+failing gate is unknown. Read [attempt record](../roadmap/2026-11-11-windows-email-geometry-first-observation.md).
+Launches0/retries0; attempt consumed, remaining allowance0. Next is separately scoped
+read-only preflight diagnosis, not another RunApproved invocation or gate bypass.
+
 LATEST — FIRST GEOMETRY OBSERVATION PLAN PREPARED, NOT_RUN (2026-11-11):
 Read [bounded observation checklist](../superpowers/plans/2026-11-11-windows-email-geometry-first-observation.md).
 New EXE/DLL hashes rechecked unchanged. Proposed1 launch/0 retries requires explicit
