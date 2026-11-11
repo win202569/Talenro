@@ -3,7 +3,8 @@
 Status: approved isolated native build and artifact inspection completed2026-11-11;
 see docs/roadmap/2026-11-11-windows-c4-email-geometry-build.md for verified hashes.
 The offline build has NU1905 (no local vulnerability audit data), not an audit pass.
-No runnable fixed observation entry yet; live execution requires separate approval.
+Fixed entry source now exists at tests/observe-email-geometry.ps1; its synthetic
+verification does not authorize live execution, which requires separate approval.
 C4 remains NOT_ACCEPTED. Portable tests alone do not compile the WinUI adapter.
 
 The default-off `EnableEmailGeometryRecording` property permits Debug layout diagnostics
@@ -50,3 +51,24 @@ metadata isolation, clipping reproduction or repair. Those remain later-stage ch
 
 API references: [TransformToVisual](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.transformtovisual)
 and [LayoutInformation](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.primitives.layoutinformation).
+
+## Fixed entry (no live run authorized)
+
+No-argument invocation returns NotStarted before imports, probes or writes. The only
+public switch is RunApproved; it is not evidence of approval and must not be used
+without a separate bounded-run decision. No path/hash/profile/run-ID overrides exist.
+The entry binds the two verified new hashes, generates one run ID and checks ordinary
+token, branch/clean/source identity, hashes, conservative process inventory and both
+receipt destinations. It reuses the existing shared observation engine, not a copied loop.
+
+Process records:email-geometry-observations/<run>/manifest.json and samples.jsonl.
+App record:email-geometry-records/<run>/geometry.jsonl. Both under the fixed artifact
+directory, correlated by run ID. A missing/partial/unhealthy geometry record or absent
+samples cannot be accepted merely because process exit0 was verified; result stays
+GeometryEvidenceStatus=Unreviewed and Acceptance=NotAccepted.
+
+After future approval: one launch/no retry, startup observed within30s, Login then
+Account at scroll-top, no search/connection/node/settings change; normal titlebar close
+by300s, exit assessed within30s, total observation cap360s. Operator/UI evidence and
+retained original Process/SafeHandle evidence are both required. No forced termination.
+These are operator obligations, not implemented automatic navigation/close timers.
