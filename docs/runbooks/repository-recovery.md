@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ISOLATED NATIVE BUILD APPROVED BUT ASSETS MISSING (2026-11-11):
+Read [build record](../roadmap/2026-11-11-windows-c4-email-geometry-build.md).
+One --no-restore build stopped before compilation with NETSDK1004 for new isolated
+obj/email-geometry/project.assets.json. No new artifacts, old fixed hashes unchanged,
+no launch/restore/install. Proposed next step: approved cache-only locked restore
+for isolated assets, fail on missing packages, then build/check only. Do not copy
+old assets file or treat source tests as native compilation evidence.
+
 LATEST — EMAIL GEOMETRY SOURCE STAGE COMPLETE (2026-11-11):
 Tasks1–3 implemented; independent review0 Critical/2 Important/0 Minor, both Important
 fixed with RED→GREEN. Full portable suite372/372 pass; existing PS synthetic462 pass;
