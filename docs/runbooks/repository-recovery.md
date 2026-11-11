@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — EMAIL GEOMETRY TASK2 COMPLETE (2026-11-11):
+Activation and bounded create-only receipt lifecycle implemented; full portable
+suite354/354 passed, exit0. Resume Task3 page adapter/build isolation, then independent
+review. No native build/run or page layout changes. Read execution-ledger rulings:
+internal serializer/path metadata seams, persistent create-new claim, frozen data;
+trusted output parent is required and synchronous close IO may block. Not C4 acceptance.
+
 LATEST — EMAIL GEOMETRY TASK1 COMPLETE (2026-11-11):
 Pure evaluator and bounded capture coordinator implemented; full portable suite
 314/314 passed (28 new cases), exit0. No page layout/native build/live-run changes.

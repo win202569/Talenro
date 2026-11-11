@@ -1,5 +1,37 @@
 # C4 email geometry execution ledger
 
+## 2026-11-11 — Task2 complete
+
+BASE:5c168a35. Fixed activation parser, validated/frozen bounded snapshot buffer,
+create-only owned stream and idempotent Finish/Dispose implemented. Activation RED
+(missing parser)→7 passed; receipt RED (missing session)→25 passed; serializer-seam
+RED→27 passed. Additional element checks exposed swapped RootDIP/local-slot labels:
+31 passed/2 failed before enforcing field-specific spaces, then33/33 passed.
+Final full portable suite:354/354 passed,0 failed,0 skipped, exit0,113ms, no warnings.
+No native build/launch, page changes or existing observer changes. Task3 and final
+independent review pending; no diagnostic samples gathered and C4 remains NOT_ACCEPTED.
+
+Ruling: use an internal serializer dependency and direct UTF8/no-BOM buffer write,
+not StreamWriter — permits serialization failure injection and removes a separate
+writer-owned lifecycle; stream capability/construction failure remains tested. Risk:
+bounded buffered output uses memory before writing, acceptable for4 bounded samples.
+Ruling: factory is internal with injectable path metadata, not public CLI/private-only;
+an exclusive persistent `<run>.claim` file reserves each run before directory creation.
+This prevents cooperating writers reusing the same ID; collisions/reparse ancestors
+reject and existing content is untouched. Claim remains on failure (no deletion/retry).
+Risk: extra tiny claim file; trusted parent directories must not be concurrently
+replaced by a hostile actor. Metadata checks are not a handle-based hostile-race defense.
+Ruling: freeze nested collections on Add; field statuses are validated using exact
+property names, allowlisted roles/enums, finite values and field-specific spaces.
+Risk if incomplete: rejected evidence rather than silent publication; Task3 must use
+these exact names. Loaded/Visible retain false with non-Ok status when unavailable.
+
+Finish means transport cleanup succeeded, not diagnosis success. Zero samples are
+explicit; footer is provisional until external normal-exit0 evidence. IO is synchronous
+outside layout callbacks and can block; no hard timeout guarantee, retry or worker.
+All task-owned test temp directories were cleaned by scoped test cleanup; no user
+receipts removed. Original restricted-run timeout record remains below.
+
 ## 2026-11-11 — Task1 implementation
 
 Task1 BASE:8945c205. Added pure evidence/evaluator and budget/coordinator, linked

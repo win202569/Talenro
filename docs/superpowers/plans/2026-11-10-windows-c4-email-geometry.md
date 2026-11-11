@@ -14,7 +14,7 @@ Status: user approved inline implementation with final independent review on 202
 Initial baseline aborted after VSTest's 90-second testhost connection timeout.
 One approved ordinary-host comparison then passed286/286, exit0, administrator=False,
 unchanged command/timeout. Task1 now implemented, full portable suite314/314 passed.
-Tasks2/3 and final independent review remain pending.
+Task2 now implemented, full portable suite354/354 passed. Task3 and final review pending.
 See docs/roadmap/2026-11-10-windows-c4-email-geometry-execution.md. Live allowance0.
 
 ## Global Constraints
@@ -180,25 +180,25 @@ Synchronous IO may block:360s observer overrun remains unsuccessful; no hard dea
 claim, no hidden background worker or polling added. Preserve primary and cleanup
 errors internally, expose only sanitized categories, no exception messages in receipts.
 
-- [ ] **1. Write activation tests; run RED** filter EmailGeometryActivationTests.
+- [x] **1. Write activation tests; run RED** filter EmailGeometryActivationTests.
   Valid literal run11111111111141118111111111111111 returns same ID and3 layout args;
   empty/uppercase/all-zero/duplicate/extra/close-run/wrong-profile cases reject.
   Expected missing-type/behavior failure. Implement parser; same command GREEN exit0.
-- [ ] **2. Write recording tests; run RED** filter EmailGeometryReceiptTests.
+- [x] **2. Write recording tests; run RED** filter EmailGeometryReceiptTests.
   Memory tracking streams assert Add performs0 writes, Finish writes header+0..4
   snapshots+footer, exact IDs/sequence/schema, no user text, disposal before Completed.
   Inject serialize/write/flush/writer-construction/dispose and combined failures;
   assert Completed=false, all owned cleanup attempted, primary retained, no retry.
   Dispose without Finish, repeated Finish/Dispose, wrong thread, caps and invalid
   snapshot values fail safely; zero samples cannot imply diagnosis success.
-- [ ] **3. Implement session; run receipt filter GREEN.** Factory tests use a test-owned
+- [x] **3. Implement session; run receipt filter GREEN.** Factory tests use a test-owned
   temporary directory with cleanup limited to that exact directory (no real reparse
   creation needed; inject path metadata below factory for reparse cases). Existing
   file/directory content unchanged; invalid IDs cause no filesystem effects; stream
   ownership on construction failure explicitly tested. No new public CLI seams.
-- [ ] **4. Run full portable suite** using Task1 command; expected exit0. Record actual
+- [x] **4. Run full portable suite** using Task1 command; expected exit0. Record actual
   test totals and lifecycle limitations in execution ledger.
-- [ ] **5. Commit explicit Task2 files:** `feat: add fixed email geometry capture receipts`.
+- [x] **5. Commit explicit Task2 files:** `feat: add fixed email geometry capture receipts`.
 
 ### Task3 — Isolated WinUI adapter, build gates and recoverable handoff
 
