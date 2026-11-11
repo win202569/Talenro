@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-11
 
+## Latest — 普通终端观察正常结束，邮箱左侧裁切仍复现
+
+另行获批的单次运行55550244cd6449eab7d870733015eb23已结束；用户提供最终终端结果：
+ExitVerified=true、Finalized=true、退出码0，约135.7秒，无超时。Account初始顶部截图
+仍见邮箱左侧裁切；几何文件36114字节已生成并核对哈希，尚未做完整性/几何解读。
+启动30秒内出现未独立证实，不能宣称全部时限或场景验收通过。见[完整记录](2026-11-11-windows-email-geometry-first-observation.md)。
+剩余启动额度0；下一步建议只读复核该次记录，不重跑。C4仍NOT_ACCEPTED。
+
 ## Latest — 首次获批观察被启动前检查阻止，未启动应用
 
 固定入口仅调用1次，约1.85秒退出1，类别Preflight；运行编号

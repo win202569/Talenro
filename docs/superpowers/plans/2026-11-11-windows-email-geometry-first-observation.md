@@ -10,7 +10,13 @@
 
 **Spec:** docs/superpowers/specs/2026-11-10-windows-c4-email-geometry-design.md and2026-11-11-windows-email-geometry-failure-recording-design.md. Operator contract:clients/windows/diagnostics/email-geometry.md.
 
-Status: user approved one attempt; entry invoked once at17778db8, then preflight
+Status: subsequent separately approved ordinary-terminal run completed at82104a77,
+run55550244cd6449eab7d870733015eb23,final exit0/ExitVerified=true/Finalized=true,
+~135.7s,no overrun. Account clipping reproduced,geometry Unreviewed/NotAccepted.
+Startup30s not independently established; no blanket checklist/acceptance pass.
+Remaining launch allowance0. See attempt history and completed-run record below.
+
+Historical status: user approved one attempt; entry invoked once at17778db8, then preflight
 failed before launch (exit1,category Preflight). Launches0/retries0; allowance0.
 Remaining UI/geometry steps NOT_RUN, not permission to retry. See attempt record
 docs/roadmap/2026-11-11-windows-email-geometry-first-observation.md.

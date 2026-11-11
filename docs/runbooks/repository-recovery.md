@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY-TERMINAL LIVE RUN FINALIZED, CLIPPING REPRODUCED (2026-11-11):
+Read [run record](../roadmap/2026-11-11-windows-email-geometry-first-observation.md).
+Run55550244cd6449eab7d870733015eb23 at source82104a77: user-supplied final terminal
+ExitVerified/Finalized=true,exit0,135667.3054ms,no overrun. Account top email clipping
+visually reproduced. Startup30s requirement not independently proven. Geometry file
+36114bytes exists; schema/completeness/interpretation remain unreviewed. Launch budget0.
+Next is separately scoped read-only evidence review, not launch or repair. Raw files
+are local/ignored; clone restores sanitized metadata/hashes only, not raw evidence.
+
 LATEST — FIRST APPROVED ATTEMPT BLOCKED AT PREFLIGHT (2026-11-11):
 Entry invoked once at source17778db8, exit1 after~1.85s, category Preflight;
 run1362f967af8440d9b0cbefb6847caebd. No app/resource acquisition, no receipt directories
