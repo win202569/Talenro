@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-12
 
+## Latest — 隔离原生构建与新产物绑定方案已准备，待批准
+
+[方案](../superpowers/specs/2026-11-12-windows-account-alignment-native-binding-design.md)
+提议App专用account-center构建目录，旧目录/入口保持不变；新入口绑定实测哈希，
+默认不启动并继承原安全检查。新obj依赖仅提议另行批准缓存锁定还原，禁止复制旧assets。
+本轮仅文档，未构建/还原/改绑定/启动；方案尚未实施，C4未验收、实机额度0。
+
 ## Latest — Account居中候选已实现，离线97项回归通过
 
 应用仅增加面板HorizontalAlignment=Center。先观察预期RED（18通过/1失败），

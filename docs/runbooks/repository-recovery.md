@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — NATIVE ISOLATION/BINDING DESIGN PREPARED, NOT IMPLEMENTED:
+Read the [proposal](../superpowers/specs/2026-11-12-windows-account-alignment-native-binding-design.md).
+Proposes fixed App-only account-center output/intermediate paths and a separate
+default-inert observer bound to measured new hashes. Preserve old artifacts/entry.
+New assets require separately approved cache-only locked restore, never copied old
+assets. Design approval and implementation plan pending; no build/restore/binding
+edit/launch performed. Live budget0, C4 NOT_ACCEPTED.
+
 LATEST — ALIGNMENT CANDIDATE IMPLEMENTED, OFFLINE97/97 (2026-11-12):
 Read [execution record](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
 One Account Center attribute; original canonical baseline guarded by strict narrow
