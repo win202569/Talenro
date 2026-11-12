@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — ALL THREE PREPARATION STAGES COMPLETE; NO LIVE AUTHORITY:
+Fixed candidate entry commit daed2b4a; fresh review433b935a..daed2b4a found0
+Critical/Important/Minor. See [final review and limitations](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+Offline302/282/120 are executor results, not independent reruns. Static reviewer
+confirmed artifacts/paths/parity; executor checked six committed source blobs and
+actual policy hashes, target/prototype processes0. Keep branch/worktree/raw snapshots.
+No main merge/full-suite/security/visual acceptance. New machine still needs local
+dependencies/artifacts and measured binding verification. Any live run needs its own
+bounded approval; do not invoke -RunApproved from this recovery checkpoint alone.
+
 LATEST — CANDIDATE OBSERVER IMPLEMENTED/OFFLINE VERIFIED, FINAL REVIEW PENDING:
 Read [Task3 record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
 New observe-email-geometry-account-center.ps1 is fixed to Task2 measured path/hashes;

@@ -1,5 +1,48 @@
 # Account alignment native isolation and binding execution
 
+## Final independent review and scoped handoff (2026-11-12)
+
+Fresh reviewer account_center_final_review inspected433b935a..daed2b4a, plan/spec,
+implementation/tests and static local artifacts:0 Critical,0 Important,0 Minor.
+All five review-focus items checked. Reviewer independently matched candidate
+EXE/DLL hashes and copied Core, local-only locked assets/audit-enabled metadata,
+all586 generated paths and exact binding-only clone delta. No reviewer mutation,
+test rerun, restore/build or app launch. Scoped preparation is ready; not a merge,
+live-run, visual-quality or C4 acceptance decision.
+
+Executor postcommit check: only pure Get-EGPolicy function was extracted/evaluated
+(never the entry); actual EXE/DLL hashes match its literals; all6 Sources match HEAD
+Git blobs. Working tree clean before this documentation closure. Read-only target/
+prototype process query0. Task3 implementation commit daed2b4a5af464cb9cf6ab49e3dbe0052f674c5b.
+
+Reviewer declined-to-judge items and executor dispositions:
+
+1. Independent test reruns: rely on this session's recorded302/282/120 and earlier
+   Task118/107 executor evidence, not claim reviewer reran them. Cost: not independent
+   reproduction of execution.
+2. Historical operational ordering/token/process/absence/cache/budgets: procedural
+   evidence only; no reusable preflight program promised. Cost: future operators
+   must repeat the documented gates, not infer current authority from past success.
+3. Live/native/runtime cleanup and RTL/LTR/narrow layout: remain unverified until
+   separately authorized observation. Cost: visual/runtime defect may remain.
+4. Full-project/native-loader/compile suites: targeted scope only, not full regression.
+   Cost: unrelated regressions not excluded.
+5. Dependency vulnerability/signature clearance: not established; NU1905 retained.
+   Cost: local offline build must not be treated as security clearance.
+6. Fresh-machine binaries/cache: not portable via Git. Cost: local preparation,
+   rebuild and remeasurement needed; never substitute unverified hashes.
+7. Remote preservation: executor will push and compare remote/local SHA at handoff;
+   reviewer did not check remote. Cost if push fails: only local progress preserved.
+8. Hostile filesystem races: inherited trusted-workspace assumption retained,
+   no new race-proof guarantee. Cost: do not run in an adversarially mutated workspace.
+
+No findings require fixes; no deferred minors. Count ruling remains:462 was six
+historical suites, not this session's C5 script120. Keep development branch/worktree
+and plan-local failed snapshots intact per approved evidence preservation, overriding
+generic scratch cleanup; deleting them would lose raw restore evidence. No main merge.
+All three preparation tasks complete under the documented revisions. Next possible
+stage is separately approved bounded live observation; current live allowance0.
+
 ## Task3 — candidate binding and offline verification (2026-11-12)
 
 User requested the next stage. Added observe-email-geometry-account-center.ps1
