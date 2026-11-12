@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — NARROW RUN CLOSED NORMALLY; CONDITION NOT OBTAINED:
+Read [run inventory/result](../roadmap/2026-11-12-windows-account-center-narrow-observation.md).
+Run ef33d39285174f1095ac69feae7e6da5 used the one approved launch; normal exit0 at
+306.26s, no residual processes. Width stayed1136 DIP; Login2/Account0 samples.
+No narrow-layout conclusion; do not confuse process success with acceptance.
+Live0, no automatic retry. First resolve resize coordination. Preserve ignored
+local receipts; clone restores sanitized findings only. C4 NOT_ACCEPTED.
+
 LATEST — NARROW DESIGN APPROVED; EXECUTION CHECKLIST PREPARED:
 Read [checklist](../superpowers/plans/2026-11-12-windows-account-center-narrow-observation.md).
 Continue in the current session after checklist review. Separate one-launch approval

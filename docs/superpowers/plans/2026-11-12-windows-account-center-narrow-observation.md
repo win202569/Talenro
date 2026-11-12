@@ -78,7 +78,16 @@ If pwsh is unavailable, stop before invocation and locate an existing approved r
 
 ## Plan review record
 
+Execution checkpoint: checklist and one-launch approval received. One run
+ef33d39285174f1095ac69feae7e6da5 ended normally at306.26s/exit0, residual processes0.
+Manual resize completion was not observed; root stayed1136x620 and Account was
+never visited. Narrow condition NOT_OBTAINED, not a layout pass/failure. No retry.
+Tasks1/2 reached the authorized invalid-condition close path; Task3 recorded the
+missing-evidence outcome, not a successful geometry comparison. Unchecked capture
+steps remain unmet and MUST NOT be interpreted as authority for a new launch.
+See [run result](../../roadmap/2026-11-12-windows-account-center-narrow-observation.md).
+
 Self-review: approved scope, timing, artifact identity, dimension/scale conditions,
 invalid-run handling, close/receipt distinction and recovery gates mapped above.
 No implementation or observation executed while preparing this plan. Execution
-remains in the current session; checklist review and separate launch approval pending.
+was subsequently authorized once as recorded above; that live allowance is now0.

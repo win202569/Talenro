@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-12
 
+## Latest — 窄窗观察已正常结束，但未取得目标条件
+
+单次run ef33d39285174f1095ac69feae7e6da5正常退出，306.26秒、退出0、残留进程0。
+窗口未观察到缩窄，停留Connection；记录仅Login2样本、Account0，窄窗结论不确定。
+见[本次结果及哈希](2026-11-12-windows-account-center-narrow-observation.md)。未重跑、未强杀。
+启动额度已用完；下一步先解决缩窗配合方式，不能自动再启动。C4仍未验收。
+
 ## Latest — 窄窗口设计已批准，执行清单已准备；未启动
 
 见[执行清单](../superpowers/plans/2026-11-12-windows-account-center-narrow-observation.md)。
