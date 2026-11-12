@@ -1,5 +1,40 @@
 # Account alignment native isolation and binding execution
 
+## Task2 — approved, stopped during preflight (2026-11-12)
+
+User approved one cache-only locked restore followed by one conditional native
+build/inspection, no launch, stop on failure. Source2d8278a9fc513d573925466cf8a362d89630cc16
+was clean. Administrator=False; relevant dotnet/MSBuild/testhost/vstest/App/
+XamlCompiler process count0. Both candidate directories absent, existing ancestors
+checked without reparse points. Installed SDK10.0.403, MSBuild18.9.15+5a2162bea,
+runtime10.0.14, Windows10.0.26200, VS Community18.11.12328.437.
+
+The first cache preflight command stopped with `Cache hash mismatch:
+microsoft.windowsappsdk`. This was an agent-authored comparison error: it compared
+the .nupkg.sha512 archive hash to the lock's contentHash. These are different
+hash domains for signed packages, not evidence of cache corruption.
+[NuGet's extractor](https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/PackageExtractor.cs)
+writes the archive hash to the sidecar and content hash to .nupkg.metadata;
+[metadata specification](https://github.com/NuGet/Home/wiki/Nupkg-Metadata-File)
+describes the content hash excluding the signature.
+
+Read-only follow-up: all19 lock entries (including repeated framework entries)
+have .nupkg.metadata contentHash matching their lock entry. For WindowsAppSDK2.6.5,
+computed SHA512 of the72436-byte archive equals its sidecar:
+0CBOgQYP6BOwAfsJap3KnpMVRGBtY633GrsV0tE1bGSabvCal6eJ14bZgAHjPVS7MbiduvWR3EfbOb1AMQaLKQ==.
+Metadata/lock contentHash is:
+XmxRiyoq82OeitV2FpFKxahDEnnw1aL4j0GGEiF8QQYcVO3/IhSMsjbcoC02AWXnRqIT5JbQ2IbK7YH0LJZARQ==.
+This does not establish full archive integrity/signature validation for all packages.
+
+No restore/build command ran; no local config was created. Later property evaluation,
+full old-evidence inventory and Core snapshot were not reached. Candidate directories
+remain absent; no package/cache/source/lock/binding changes, no launch or termination.
+Task2 is incomplete; Task3 remains blocked. Preserve this failed preflight record.
+Next proposed action: corrected read-only cache checks (metadata contentHash against
+lock; actual archive SHA512 against sidecar), then remaining preflight and the still
+unused one-restore/one-build budget, only after user confirms continuation. No
+weakened checks, download, lock change or automatic restore/build retry.
+
 ## Task1 — fixed App-only variant, offline checkpoint
 
 User confirmed the three-stage plan and Task1 inline execution. Source baseline:

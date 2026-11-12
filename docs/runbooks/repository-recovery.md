@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — TASK2 PREFLIGHT STOPPED; RESTORE/BUILD NOT STARTED:
+Read [preflight record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+Source2d8278a9; ordinary token, processes0, candidate dirs absent/no reparse ancestors.
+Agent incorrectly compared archive SHA512 with lock contentHash. Read-only diagnosis
+found all19 metadata content hashes match lock entries and first archive matches its
+sidecar. Not proof of cache corruption or full signature validation. Stop-on-failure
+honored; no config/restore/build/launch. Resume corrected checks only after continuation
+confirmation, then remaining preflight; one restore/one build remain unused.
+Do not weaken guards or change locks/cache. Task3 blocked; live0, C4 NOT_ACCEPTED.
+
 LATEST — TASK1 ISOLATION IMPLEMENTED, TASK2 AWAITS SEPARATE APPROVAL:
 Read [execution record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
 Fixed App-only account-center namespace and initial guard implemented; empty variant
