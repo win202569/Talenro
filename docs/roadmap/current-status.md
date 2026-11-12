@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-12
 
+## Latest — 源码影响已归并，账户页最小补验清单待确认
+
+见[账户下方控件检查](../superpowers/plans/2026-11-12-windows-account-lower-controls-check.md)：
+仅补滚动/五按钮焦点、一个Manage devices说明框返回焦点、退出及重进的可见恢复。
+不重复邮箱/完整连接节点场景；普通版本布局另列，因Center是共享XAML变化。
+本轮仅准备文档，无启动/构建/测试；清单待确认，实机额度0，C4仍未验收。
+
 ## Latest — 剩余验收项已归并；本轮无运行
 
 见[剩余验收清单](2026-11-12-windows-remaining-acceptance.md)：区分常规/窄窗邮箱证据、

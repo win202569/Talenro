@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — MINIMAL ACCOUNT FOLLOW-UP CHECKLIST PREPARED:
+Read [lower-controls checklist](../superpowers/plans/2026-11-12-windows-account-lower-controls-check.md).
+It preserves source-impact findings and limits the next proposed session to lower
+control access/focus, one Manage devices explanation and visible logout/re-entry.
+Never activate Delete account; no full business-flow rerun or email investigation.
+Shared Center XAML also affects ordinary builds; their acceptance stays separate.
+Preparation only, review pending/live0. No launch/build/test or acceptance promotion.
+
 LATEST — REMAINING ACCEPTANCE RECONCILED WITHOUT EXECUTION:
 Start with [evidence/gap map](../roadmap/2026-11-12-windows-remaining-acceptance.md).
 Default/narrow email evidence is scoped; whole-page access, current-build route,
