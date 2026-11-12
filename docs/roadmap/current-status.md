@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-12
 
+## Latest — 新候选单次实机观察正常退出，几何记录待对比
+
+明确批准后仅启动一次，run66db34b22cc748bbb8fdf61f656b879a，约41.34秒正常退出、
+ExitVerified/Finalized=true、退出0、超时0；目标/原型残留进程0。
+账户邮箱在当前窗口完整可见；保存Login/Account各2个样本，采集无错误。
+落盘进程outcome为清理前provisional，与控制台清理后finalized分开记录。
+见[实机记录](2026-11-12-windows-account-center-live-observation.md)。尚未几何验收/C4验收，
+下一步只读对比旧记录；本轮启动额度已用完，不自动再次启动。
+
 ## Latest — 隔离构建/固定绑定准备完成，独立审查无发现
 
 新入口提交daed2b4a；最终审查覆盖433b935a..daed2b4a，0严重/0重要/0轻微。

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — CANDIDATE SINGLE LIVE RUN EXITED; GEOMETRY STILL UNREVIEWED:
+Read [run66db34b2 provenance](../roadmap/2026-11-12-windows-account-center-live-observation.md).
+One approved launch, normal title-bar close, final exit verified/finalized at41.34s,
+exit0, no overrun, target/prototype processes0. Four Login/Account samples, no capture
+errors; incomplete clip-chain flag retained. Persisted outcome is pre-cleanup,
+console finalization is separate. No automatic layout/C4 acceptance. Live budget
+consumed; next step read-only baseline/candidate comparison, not a new launch.
+Raw receipts remain ignored/local; this repository recovers sanitized progress only.
+
 LATEST — ALL THREE PREPARATION STAGES COMPLETE; NO LIVE AUTHORITY:
 Fixed candidate entry commit daed2b4a; fresh review433b935a..daed2b4a found0
 Critical/Important/Minor. See [final review and limitations](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
