@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-12
 
+## Latest — 新旧几何对比完成：本场景邮箱越界消除，仍未全面验收
+
+同语言/RTL配置、窗口、缩放及滚动条件下，Account已知边界余量从-82变为+258 DIP；
+面板由Stretch/820宽变为Center/480宽，邮箱尺寸不变。两样本一致，Login测量保持不变。
+8份原始记录哈希匹配；未改原始Unreviewed/NotAccepted值，裁剪链仍不完整。
+见[对比及剩余验收项](2026-11-12-windows-account-center-geometry-comparison.md)。
+下一步准备窄窗口场景及采样时机，暂不启动；每页仅2样本，采完后缩窗不能补新几何证据。
+未覆盖LTR/其他缩放/完整回归，实机额度0、C4未验收。本检查点仅保存文档。
+
 ## Latest — 新候选单次实机观察正常退出，几何记录待对比
 
 明确批准后仅启动一次，run66db34b22cc748bbb8fdf61f656b879a，约41.34秒正常退出、

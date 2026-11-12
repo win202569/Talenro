@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — BASELINE/CANDIDATE COMPARISON RECORDED, LIMITED IMPROVEMENT:
+Read [comparison and remaining evidence](../roadmap/2026-11-12-windows-account-center-geometry-comparison.md).
+Matched conditions show Account known-boundary inset -82 to+258 DIP; panel width820
+to480 with Center, unchanged email size/Login measurements. All8 receipt hashes match.
+ClipChainComplete=false and raw Unreviewed/NotAccepted remain. No full acceptance.
+Next prepare a distinct narrow-window capture condition without launching. Two samples
+per page are a hard evidence limit: resizing after capture is not a new geometry run.
+No profile/hash overrides or implicit relaunch. Live0/C4 NOT_ACCEPTED. Clone restores
+sanitized conclusions, not raw receipts/cache/binaries; retain existing evidence locally.
+
 LATEST — CANDIDATE SINGLE LIVE RUN EXITED; GEOMETRY STILL UNREVIEWED:
 Read [run66db34b2 provenance](../roadmap/2026-11-12-windows-account-center-live-observation.md).
 One approved launch, normal title-bar close, final exit verified/finalized at41.34s,
