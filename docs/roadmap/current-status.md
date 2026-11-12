@@ -1,4 +1,13 @@
-# Project status — updated 2026-11-11
+# Project status — updated 2026-11-12
+
+## Latest — Account居中候选已实现，离线97项回归通过
+
+应用仅增加面板HorizontalAlignment=Center。先观察预期RED（18通过/1失败），
+再GREEN19/19、几何回归97/97，均为普通权限托管测试；原XAML基线保护仍保留。
+源码/测试副本一致，旧EXE/DLL及几何记录哈希未变。独立审查0严重/0重要/0轻微。
+候选源码提交e6c77ddf；下一步另行准备隔离原生构建与新产物绑定，不自动启动。
+见[执行记录](2026-11-11-windows-account-panel-alignment-experiment.md)。未原生重建/启动，
+尚不能认定裁切修复；C4未验收，保留开发分支。
 
 ## Latest — 普通权限对照基线通过，可恢复RED准备
 

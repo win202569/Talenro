@@ -10,6 +10,18 @@
 
 **Spec:** [Approved short design](../specs/2026-11-11-windows-account-panel-alignment-experiment-design.md).
 
+## Execution tracker — 2026-11-12
+
+- [x] Steps1–3: baseline recovered, strict candidate/mutation tests written.
+- [x] Step4: RED19 total/18 passed/1 expected Center-null failure, exit1.
+- [x] Step5: sole candidate attribute applied.
+- [x] Step6: GREEN19/19; Account/Login source-copy hashes identical.
+- [x] Step7: geometry regression97/97, exit0, no skip.
+- [x] Step8: independent review0 Critical/Important/Minor; candidate committed as e6c77ddf, recovery documentation prepared for same development branch.
+
+The original task checklist below remains the execution recipe; this tracker and
+the execution record give current progress (do not repeat completed runs).
+
 ## Global Constraints
 
 - Only application change: AccountGeometryPanel HorizontalAlignment="Center".
@@ -84,6 +96,7 @@ is deliberately untested here and remains a blocker to claiming a fix.
 Recommended execution: implement inline in this session, followed by a fresh final
 review, since this is one tightly coupled test/code task. Alternative: delegated
 implementation plus independent review. User confirmation of plan/execution method
-was granted for inline execution. Baseline preparation began but no final test result
-was returned; see the execution checkpoint. RED and candidate edits have not begun.
+was granted for inline execution. See tracker and execution checkpoint for actual
+RED/GREEN/regression evidence and completed independent review. Offline candidate
+task complete; native acceptance and broader project-suite verification outstanding.
 Approval of this plan does not authorize native work.

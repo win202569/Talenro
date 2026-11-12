@@ -1,6 +1,6 @@
 # Account panel alignment experiment — short design
 
-Status: approach 1, written design and inline implementation plan approved by user; execution blocked at baseline verification, before candidate edits.
+Status: approved; candidate e6c77ddf implemented with RED/GREEN and97/97 offline regression on2026-11-12; independent review0 findings, native acceptance outstanding.
 Scope: small, single-variable candidate experiment, not an accepted fix.
 
 ## Intent and evidence
@@ -78,4 +78,4 @@ framework-internal root cause or full C4 acceptance.
 Builder may choose test organization and clear test names within these constraints.
 Any extra application property, new diagnostic mode or wider verification budget
 requires revisiting scope. Next after design approval: implementation plan, then
-approved offline candidate work. Current disposition: not implemented, C4 NOT_ACCEPTED.
+approved offline candidate work. Current disposition: offline candidate implemented, C4 NOT_ACCEPTED.

@@ -1,5 +1,48 @@
 # Account alignment experiment execution checkpoint
 
+## 2026-11-12: candidate implemented, offline verification complete
+
+Resumed from1f195f0f on the existing clean coordinator worktree. Sole application
+delta: AccountGeometryPanel HorizontalAlignment="Center". MaxWidth, padding,
+spacing, email direction, Login, diagnostic adapters and process gates unchanged.
+The original Account canonical hash is retained: validator first asserts the exact
+named StackPanel and Center value, then removes only this attribute from a clone
+before the existing diagnostic-name normalization and baseline comparison.
+
+Actual ordinary-token runs (no retries, restore, native build or application launch):
+- RED:19 total,18 passed,1 expected failure in Account OnlyApprovedPageChangesArePresent,
+  expected Center, actual null; exit1. Ten independent mutation cases and Login passed.
+- GREEN after the single XAML attribute:19/19 passed, exit0,0.6068s VSTest time.
+- Geometry regression:97/97 passed, exit0,5.7886s VSTest time, including existing
+  build-configuration evaluation/isolation checks. These do not build the native app.
+- RED produced xUnit2031; changed to Assert.Single's predicate overload, preserving
+  the same cardinality check. GREEN/regression emitted no compiler/analyzer warnings.
+
+Exact commands remain in the approved plan; full-project suite not run/claimed.
+Tests are source-scope guards, not proof that native layout clipping is fixed.
+Source and copied test fixture SHA256 matched:
+- Account: DFBF6C94A68E25573AED467013A9A8723B39045478E684FE010AFA283E23EE1C
+- Login: 89BE7A354A3041CA119FF95DB5B4B72A8CFADDDD92EFE3A9B7EAE5F42731DBBD
+Previously fixed EXE/DLL and run geometry hashes matched the preserved inventory.
+Git diff --check passed (Git reports normal LF-to-CRLF checkout warnings).
+
+Candidate source/tests commit: e6c77ddf2bdce4db6033f6402ca3070eae9d2176.
+Independent read-only review account_alignment_candidate_review:0 Critical,
+0 Important,0 Minor; suitable as an experimental checkpoint only. Reviewer also
+independently checked source/copied fixture hashes and all five focus items.
+Native RTL/LTR/narrow-window rendering,
+new candidate artifact build/binding and C4 remain NOT_ACCEPTED/unverified.
+No main merge, no raw evidence deletion or commit. Keep branch and worktree.
+
+Review dispositions/rulings: native layout/width/wrapping effects remain unverified
+and block a repair claim; full-suite health remains unverified under the approved
+targeted scope. Reviewer did not rerun tests or revalidate historical artifacts:
+parent-observed fresh runs/hashes above provide those limited checks, not broader
+independent runtime evidence. No deferred minor findings. PowerShell/manual ledger
+substitutes for Bash-only wrappers (bookkeeping requires explicit checks); retained
+ignored scratch preserves evidence but is not cloneable. Branch integration is not
+being completed: keep this checkpoint, without full-suite/visual acceptance or main merge.
+
 ## Ordinary-token comparison: baseline passes
 
 User approved one ordinary-PowerShell diagnostic comparison. Executed through the

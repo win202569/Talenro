@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ALIGNMENT CANDIDATE IMPLEMENTED, OFFLINE97/97 (2026-11-12):
+Read [execution record](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
+One Account Center attribute; original canonical baseline guarded by strict narrow
+normalization. RED18pass/1expected fail, GREEN19/19, geometry97/97. Fresh review
+0 Critical/Important/Minor. Candidate commit e6c77ddf2bdce4db6033f6402ca3070eae9d2176.
+Native artifact remains old, unchanged; do not run old observer as though
+it measures this candidate. Native build/binding/run require separate scope and
+approval. No main merge, C4 NOT_ACCEPTED; no full-project suite claim.
+
 LATEST — ORDINARY-TOKEN BASELINE COMPARISON PASSED8/8:
 One approved external-context diagnostic test, Administrator=False, exit0,~4.8s;
 post-run matching processes0. Source unchanged. See [comparison evidence](../roadmap/2026-11-11-windows-account-panel-alignment-experiment.md).
