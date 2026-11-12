@@ -1,5 +1,14 @@
 # Project status — updated 2026-11-12
 
+## Latest — 第一阶段隔离规则完成，等待单独批准缓存还原/原生构建
+
+App专用account-center路径及前置拒绝规则已实现；Core/Tests路径保持不变。
+RED10通过/8预期失败，GREEN18/18，几何回归107/107，退出0。
+旧产物/锁文件/原运行记录共10项哈希未变；新bin/obj仍不存在，相关进程0。
+见[执行记录](2026-11-12-windows-account-alignment-native-binding.md)。
+未还原、原生构建、绑定或启动；仅针对性离线验证，不代表完整项目验收。
+下一步Task2需单独授权一次缓存锁定还原及一次后续构建/检查，实机额度0、C4未验收。
+
 ## Latest — 隔离构建设计已批准，三阶段实施计划待确认
 
 [实施计划](../superpowers/plans/2026-11-12-windows-account-alignment-native-binding.md)

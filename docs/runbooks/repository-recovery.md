@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — TASK1 ISOLATION IMPLEMENTED, TASK2 AWAITS SEPARATE APPROVAL:
+Read [execution record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+Fixed App-only account-center namespace and initial guard implemented; empty variant
+and Core/Tests paths preserved. RED10pass/8expected failures, GREEN18/18,
+geometry107/107. Ten preserved hashes unchanged; candidate bin/obj absent.
+No restore/native build/binding/launch; no full-suite claim. Resume Task2 only after
+explicit cache-only locked restore/build authority and fresh local preflight.
+Clone recovers source/tests/docs, not binaries/cache/raw receipts. Do not reuse old
+observer as candidate evidence. Task3 awaits measured hashes; live0, C4 NOT_ACCEPTED.
+
 LATEST — NATIVE ISOLATION DESIGN APPROVED, PLAN PENDING:
 Read [three-stage plan](../superpowers/plans/2026-11-12-windows-account-alignment-native-binding.md).
 Task1 App-only paths/tests; Task2 separately authorized local locked restore/build
