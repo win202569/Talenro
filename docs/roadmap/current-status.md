@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-12
 
+## Latest — 隔离构建设计已批准，三阶段实施计划待确认
+
+[实施计划](../superpowers/plans/2026-11-12-windows-account-alignment-native-binding.md)
+已自查：先测试并实现App专用隔离规则，再单独授权缓存还原/构建及产物检查，
+最后绑定新入口并做完整合成回归/独立审查。本轮仅文档，没有执行上述命令。
+沿用当前会话实施方式；计划待确认，Task2授权门保留，实机额度0、C4未验收。
+
 ## Latest — 隔离原生构建与新产物绑定方案已准备，待批准
 
 [方案](../superpowers/specs/2026-11-12-windows-account-alignment-native-binding-design.md)

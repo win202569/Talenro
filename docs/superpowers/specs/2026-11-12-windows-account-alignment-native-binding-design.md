@@ -1,6 +1,6 @@
 # Account alignment: isolated native build and fixed binding proposal
 
-Status: preparation only; written design pending approval. No build, restore,
+Status: written design approved; implementation plan pending confirmation. No build, restore,
 source/entry edit or application launch performed to prepare this document.
 Independent builder check: no important unanswered questions. Exact commands,
 deadlines and test organization remain implementation-plan decisions as stated below.

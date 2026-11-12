@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — NATIVE ISOLATION DESIGN APPROVED, PLAN PENDING:
+Read [three-stage plan](../superpowers/plans/2026-11-12-windows-account-alignment-native-binding.md).
+Task1 App-only paths/tests; Task2 separately authorized local locked restore/build
+and metadata inspection; Task3 measured fixed observer binding and synthetic review.
+No execution while planning. Preserve inline method, no launch or assumed hashes.
+Task2 authorization gate remains; live budget0, C4 NOT_ACCEPTED.
+
 LATEST — NATIVE ISOLATION/BINDING DESIGN PREPARED, NOT IMPLEMENTED:
 Read the [proposal](../superpowers/specs/2026-11-12-windows-account-alignment-native-binding-design.md).
 Proposes fixed App-only account-center output/intermediate paths and a separate
