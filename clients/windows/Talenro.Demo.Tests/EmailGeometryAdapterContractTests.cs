@@ -45,15 +45,89 @@ public class EmailGeometryAdapterContractTests
     [Theory]
     [InlineData("LoginPage", "A3C830FDC2F8E493B7FFDD5BC67F039D7511DA565161FB2989243424BA0C7FD0", 2)]
     [InlineData("AccountPage", "F01C2618893423F1002CBD3EDE467FF634D821BE7031D45492437ED088D6B57F", 3)]
-    public void OnlyApprovedNonvisualNamesAreAdded(string page, string baseline, int expectedNames)
+    public void OnlyApprovedPageChangesArePresent(string page, string baseline, int expectedNames)
     {
-        var doc = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "AppSources", "Views", page + ".xaml"));
+        AssertApprovedPage(LoadPage(page), page, baseline, expectedNames);
+    }
+
+    private const string AccountBaseline = "F01C2618893423F1002CBD3EDE467FF634D821BE7031D45492437ED088D6B57F";
+
+    private static XDocument LoadPage(string page) =>
+        XDocument.Load(Path.Combine(AppContext.BaseDirectory, "AppSources", "Views", page + ".xaml"));
+
+    private static XElement AccountPanel(XDocument doc)
+    {
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var panel = Assert.Single(doc.Descendants(), e => (string?)e.Attribute(x + "Name") == "AccountGeometryPanel");
+        Assert.Equal(XName.Get("StackPanel", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"), panel.Name);
+        return panel;
+    }
+
+    private static void AssertApprovedPage(XDocument source, string page, string baseline, int expectedNames)
+    {
+        var doc = new XDocument(source);
+        if (page == "AccountPage")
+        {
+            var panel = AccountPanel(doc);
+            Assert.Equal("Center", (string?)panel.Attribute("HorizontalAlignment"));
+            panel.Attribute("HorizontalAlignment")!.Remove();
+        }
         XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
         string[] names = ["LoginGeometryScroll", "LoginGeometryPanel", "AccountGeometryScroll", "AccountGeometryPanel", "AccountGeometryEmail"];
         var added = doc.Descendants().Attributes(x + "Name").Where(a => names.Contains(a.Value)).ToArray();
         Assert.Equal(expectedNames, added.Length);
         foreach (var attr in added) attr.Remove();
         Assert.Equal(baseline, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(doc.ToString(SaveOptions.DisableFormatting)))));
+    }
+
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("stretch")]
+    [InlineData("left")]
+    [InlineData("wrong-node")]
+    [InlineData("duplicate-name")]
+    [InlineData("max-width")]
+    [InlineData("padding")]
+    [InlineData("spacing")]
+    [InlineData("email-direction")]
+    [InlineData("email-alignment")]
+    public void AccountCandidateRejectsUnapprovedMutations(string mutation)
+    {
+        var candidate = LoadPage("AccountPage");
+        AccountPanel(candidate).SetAttributeValue("HorizontalAlignment", "Center");
+        AssertApprovedPage(candidate, "AccountPage", AccountBaseline, 3);
+        var changed = new XDocument(candidate);
+        var panel = AccountPanel(changed);
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var email = changed.Descendants().Single(e => (string?)e.Attribute(x + "Name") == "AccountGeometryEmail");
+        switch (mutation)
+        {
+            case "missing": panel.Attribute("HorizontalAlignment")!.Remove(); break;
+            case "stretch": panel.SetAttributeValue("HorizontalAlignment", "Stretch"); break;
+            case "left": panel.SetAttributeValue("HorizontalAlignment", "Left"); break;
+            case "wrong-node":
+                panel.Attribute("HorizontalAlignment")!.Remove();
+                panel.Parent!.SetAttributeValue("HorizontalAlignment", "Center");
+                break;
+            case "duplicate-name": panel.AddAfterSelf(new XElement(panel)); break;
+            case "max-width": panel.SetAttributeValue("MaxWidth", "821"); break;
+            case "padding": panel.SetAttributeValue("Padding", "41"); break;
+            case "spacing": panel.SetAttributeValue("Spacing", "21"); break;
+            case "email-direction": email.SetAttributeValue("FlowDirection", "RightToLeft"); break;
+            case "email-alignment": email.SetAttributeValue("HorizontalAlignment", "Center"); break;
+            default: throw new ArgumentOutOfRangeException(nameof(mutation));
+        }
+        Assert.NotNull(Record.Exception(() => AssertApprovedPage(changed, "AccountPage", AccountBaseline, 3)));
+    }
+
+    [Fact]
+    public void AccountCandidateValidationDoesNotMutateInput()
+    {
+        var candidate = LoadPage("AccountPage");
+        AccountPanel(candidate).SetAttributeValue("HorizontalAlignment", "Center");
+        var before = candidate.ToString(SaveOptions.DisableFormatting);
+        AssertApprovedPage(candidate, "AccountPage", AccountBaseline, 3);
+        Assert.Equal(before, candidate.ToString(SaveOptions.DisableFormatting));
     }
 
     [Fact]
