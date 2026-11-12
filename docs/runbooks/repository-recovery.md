@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — TASK2 RESTORE FAILED NU1004; NO BUILD:
+Read [latest execution record and proposed revision](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+Source fcd970e6. Corrected19 metadata/16 archive checks passed. One restore consumed,
+exit1: plan's global win-x64 RID leaked to Core, conflicting with its unchanged lock.
+App partial assets retained, candidate bin absent;10 old hashes/Core DLL unchanged,
+processes0. Do not run build or repeat old plan command. Read-only evaluation without
+global RID retains App win-x64 and Core empty RID/default output. Await new approval
+to snapshot failed outputs, reuse only known-owned obj, then one corrected locked
+restore and conditional unused build. Never delete evidence/update locks/download.
+Task3 blocked; no new native hash, live0/C4 NOT_ACCEPTED. Clone does not restore assets.
+
 LATEST — TASK2 PREFLIGHT STOPPED; RESTORE/BUILD NOT STARTED:
 Read [preflight record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
 Source2d8278a9; ordinary token, processes0, candidate dirs absent/no reparse ancestors.

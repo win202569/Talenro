@@ -1,5 +1,58 @@
 # Account alignment native isolation and binding execution
 
+## Task2 — one restore attempted, NU1004 stop (2026-11-12)
+
+User authorized corrected hash checks and continuation of the unused one-restore/
+one-build budget. Source fcd970e69842a780c90c9922302ce564267cf2f1 clean.
+Corrected checks passed:19 framework lock entries matched metadata contentHash;
+all16 unique archives' computed SHA512 matched their sidecars. Ordinary token,
+relevant processes0, both candidate bin/obj absent and no reparse ancestors.
+Ten preserved hashes inventoried before the command; Core ordinary DLL SHA256
+8A4E020B477FEC9F0EC03CFC8D0235F08ACD4F6523C3969C3DEE7C9977B1C471.
+
+Created ignored .nuget/account-center-offline.config with only the existing local
+cache as package/audit source and globalPackagesFolder. No remote package source,
+download, installation, lock change or audit suppression. Ran exactly once:
+
+```powershell
+$variantArgs = @('-p:Configuration=Debug', '-p:RuntimeIdentifier=win-x64', '-p:EnableLayoutDiagnostics=true', '-p:EnableEmailGeometryRecording=true', '-p:EnableCloseStageRecording=false', '-p:CloseStageVerificationMode=', '-p:EmailGeometryBuildVariant=account-center')
+dotnet restore .\Talenro.Demo.App\Talenro.Demo.App.csproj --locked-mode --configfile .\.nuget\account-center-offline.config @variantArgs
+```
+
+Exit1 in approximately1.67s. Core NU1004: global RuntimeIdentifier=win-x64 differs
+from its lockfile's empty runtime set. App restore completed353ms, Core failed95ms.
+App warning NU1905: local audit source provides no vulnerability data. Overall
+restore FAILED; no build, retry, App execution or process termination performed.
+
+Root cause is the plan's global RuntimeIdentifier argument propagating into Core,
+not a package/hash failure. Preflight evaluation showed the Core win-x64 TargetPath,
+but the agent failed to reject that discrepancy before restore. App.csproj already
+defines win-x64 locally; Core.csproj has only net10.0 and its lock has no runtime.
+Read-only evaluation with the global RID argument omitted confirmed App retains
+win-x64/fixed candidate output while Core has empty RID/default net10.0 output.
+No corrected restore/build was executed. Keep locked mode; do not force-evaluate.
+
+Postflight: all10 preserved binary/lock/receipt hashes identical; ordinary Core DLL
+unchanged, Core bin/Debug/net10.0/win-x64 absent. Related process count0. Source tree
+clean before documentation edits. Candidate bin absent; candidate obj now contains
+five restore files. Assets list only the approved local config/cache/source, selected
+App obj path and restoreLockedMode=true. These are partial failed-run outputs, not
+an accepted restore prerequisite. Local assets SHA256:
+7CAF198FEEBB2FF9007920C50879831B8037D34B309FD7C6689A1ABA3954683B;
+project.nuget.cache SHA256:
+6FF30BB49E97B07BC93E642E62995F8E4B862FD21B99D37C0C615ABF3C417C35.
+
+Next proposed revised authorization (not yet granted): preserve all five failed-run
+App obj files and relevant Core restore records in a new ignored evidence snapshot,
+verify snapshot hashes, then allow reuse only of this known owned candidate obj
+(bin must remain absent). Remove only global -p:RuntimeIdentifier=win-x64 from both
+restore/build arguments; App's own RID stays fixed. Re-evaluate App/Core RID/TargetPath
+and reject any Core RID suffix. Authorize one new cache-only locked restore and,
+only after success/asset inspection, the unused one no-restore build. No deletion,
+lock update, weakened token/process/reparse checks, dependency download or launch.
+Original plan commands must not be repeated unchanged. Task2 incomplete, Task3
+blocked, live0 and C4 NOT_ACCEPTED. New computer has docs/source, not these local outputs.
+
 ## Task2 — approved, stopped during preflight (2026-11-12)
 
 User approved one cache-only locked restore followed by one conditional native
