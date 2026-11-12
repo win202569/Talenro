@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — NARROW DESIGN APPROVED; EXECUTION CHECKLIST PREPARED:
+Read [checklist](../superpowers/plans/2026-11-12-windows-account-center-narrow-observation.md).
+Continue in the current session after checklist review. Separate one-launch approval
+is still required; live0. No source/build/test/live actions occurred during planning.
+Preserve fixed bindings and all existing evidence; missing local artifacts are a
+blocker, not permission to change hashes. C4 remains NOT_ACCEPTED.
+
 LATEST — NARROW-WINDOW APPROACH SELECTED; DESIGN AWAITS APPROVAL:
 Read [design](../superpowers/specs/2026-11-12-windows-account-center-narrow-observation-design.md).
 Reuse fixed candidate; resize on Connection BEFORE first Account navigation.

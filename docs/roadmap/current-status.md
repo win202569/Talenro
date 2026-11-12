@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-12
 
+## Latest — 窄窗口设计已批准，执行清单已准备；未启动
+
+见[执行清单](../superpowers/plans/2026-11-12-windows-account-center-narrow-observation.md)。
+沿用当前会话：就绪检查与单独授权 → Connection缩窗后首次进入Account → 正常关闭及只读复核。
+执行清单待确认；启动授权仍未取得，额度0。不改代码、不重建、不重跑测试；C4仍未验收。
+
 ## Latest — 窄窗口方案1已选择，书面设计待批准；未启动
 
 复用固定候选，在Connection页缩窗后首次进入Account，避免两次采样额度被旧尺寸消耗。

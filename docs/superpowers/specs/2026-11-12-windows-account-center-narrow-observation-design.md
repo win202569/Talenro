@@ -1,6 +1,6 @@
 # Account-center narrow-window observation design
 
-Status: approach 1 selected by user; written design awaiting approval. No live
+Status: approach 1 and written design approved by user on 2026-11-12. No live
 authorization. Documentation only; no source, entry, build or raw-record changes.
 
 ## Intent and approaches
@@ -25,7 +25,7 @@ overrides and its existing preflight, process safety and time limits. Candidate:
 - DLL SHA256 6011FA7BB63A45D5FAEB4A44529904FEC0857741A4E810B20B38555655C838C1
 - en-US / rtl-mixed; rendering and text scale both1, as in the prior comparison.
 
-Proposed by the assistant, pending design approval: root width640 +/-20 DIP,
+Proposed by the assistant and approved with this design: root width640 +/-20 DIP,
 height620 +/-10 DIP, measured by the diagnostic title and ultimately the records,
 not outer-window desktop pixels. With the existing220 DIP sidebar this should
 yield page width400–440 DIP, below480. Actual recorded page width must confirm it.
@@ -77,7 +77,7 @@ security or C4 acceptance follows. Do not equate RootDIP right with desktop righ
 
 ## Handoff and next gate
 
-Obtain approval of this design, then prepare the execution checklist. Request
+Design approved; prepare and review the execution checklist. Request
 separate one-launch/zero-retry authority when ready; current live allowance is0.
 This document alone is not an executable instruction. Fresh clones recover source
 and this design, not ignored binaries/receipts; missing artifacts require their own
