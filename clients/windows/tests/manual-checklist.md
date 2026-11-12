@@ -1,5 +1,12 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest reconciliation (2026-11-12): current Account Center candidate has scoped
+email evidence at root1136x620 and640x620 DIP, en-US/rtl-mixed, scales1. Known-box
+containment and visible email do not close the compound layout/accessibility rows.
+See [remaining acceptance map](../../../docs/roadmap/2026-11-12-windows-remaining-acceptance.md).
+Historical checks below retain their original artifact baselines; C4/overall remain
+NOT_ACCEPTED, live allowance0. No app/test/build executed for this reconciliation.
+
 Latest continuation: C1 English confirmation/Cancel, original selection retention
 and logout/re-entry observed; C2 exact long-status Connecting-only text and Cancel
 restoration observed; both normal close exit0. C3 exact long-country labels/jp-1

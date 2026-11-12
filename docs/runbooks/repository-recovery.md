@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — REMAINING ACCEPTANCE RECONCILED WITHOUT EXECUTION:
+Start with [evidence/gap map](../roadmap/2026-11-12-windows-remaining-acceptance.md).
+Default/narrow email evidence is scoped; whole-page access, current-build route,
+clip-chain/stability, language/scales, required viewports and independent dimensions
+remain distinct gaps. Historical C3/C5/C6/accessibility/regression/security limits
+are not silently closed. Next recommended action is read-only impact mapping,
+not another launch. Live0, C4/overall NOT_ACCEPTED. No new tests/builds this turn.
+
 LATEST — SEPARATELY APPROVED NARROW CONDITION OBSERVED:
 Read [both runs and inventories](../roadmap/2026-11-12-windows-account-center-narrow-observation.md).
 New run f86a7c0d8cad4a02a6fd307c1652c790 confirmed user-visible window before resize;
