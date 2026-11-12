@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — NARROW-WINDOW APPROACH SELECTED; DESIGN AWAITS APPROVAL:
+Read [design](../superpowers/specs/2026-11-12-windows-account-center-narrow-observation-design.md).
+Reuse fixed candidate; resize on Connection BEFORE first Account navigation.
+Proposed root640+/-20 by620+/-10 DIP, actual Account width below480. Two attempts
+per page cannot be reset; Login samples are not narrow-window evidence. This is
+documentation only, no launch/build/source change or new test result. Approve design
+then prepare checklist; separate bounded launch approval remains required. Live0,
+C4 NOT_ACCEPTED. Clone does not restore the bound binaries or raw receipts.
+
 LATEST — BASELINE/CANDIDATE COMPARISON RECORDED, LIMITED IMPROVEMENT:
 Read [comparison and remaining evidence](../roadmap/2026-11-12-windows-account-center-geometry-comparison.md).
 Matched conditions show Account known-boundary inset -82 to+258 DIP; panel width820

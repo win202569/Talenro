@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-12
 
+## Latest — 窄窗口方案1已选择，书面设计待批准；未启动
+
+复用固定候选，在Connection页缩窗后首次进入Account，避免两次采样额度被旧尺寸消耗。
+见[窄窗口观察设计](../superpowers/specs/2026-11-12-windows-account-center-narrow-observation-design.md)。
+建议root640±20 ×620±10 DIP，记录须确认Account可用宽度低于480 DIP；Login不算窄窗证据。
+尺寸、无效条件及正常关闭规则待设计批准；随后准备执行清单，另行取得单次启动授权。
+本轮仅文档，未改源码/构建/运行/重跑测试。实机额度0，C4仍未验收。
+
 ## Latest — 新旧几何对比完成：本场景邮箱越界消除，仍未全面验收
 
 同语言/RTL配置、窗口、缩放及滚动条件下，Account已知边界余量从-82变为+258 DIP；
