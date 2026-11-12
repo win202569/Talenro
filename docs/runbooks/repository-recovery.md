@@ -1,5 +1,16 @@
 # Recover the project on a new computer
 
+LATEST — TASK2 ISOLATED NATIVE BUILD/INSPECTION COMPLETE:
+Read [measured provenance and corrected commands](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+Source bed155cb. Failed assets copied/hash-verified first; corrected local locked
+restore exit0, one no-restore build exit0/29.23s, NU1905 retained (no audit clearance).
+App uses its local win-x64; no global RID. AMD64/types/resources/output isolation
+verified;10 old hashes unchanged. Core default output rebuilt and candidate copy
+matches. Task3 fixed hash binding/synthetic tests/final review pending; no launch.
+Clone restores code/docs, not candidate binaries/cache/snapshots. New machine must
+prepare dependencies locally, inspect rebuilt hashes and never assume old observer
+measures this candidate. Live0; C4 NOT_ACCEPTED, visual repair unverified.
+
 LATEST — TASK2 RESTORE FAILED NU1004; NO BUILD:
 Read [latest execution record and proposed revision](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
 Source fcd970e6. Corrected19 metadata/16 archive checks passed. One restore consumed,

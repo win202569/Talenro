@@ -1,5 +1,73 @@
 # Account alignment native isolation and binding execution
 
+## Task2 complete — corrected locked restore and isolated build (2026-11-12)
+
+User explicitly approved preserving failed outputs, removing the global RID argument,
+one corrected locked restore and one conditional build, no launch. Source remained
+bed155cb6346af6e7707fd5bce167ba1e1b4f277 clean throughout restore/build/inspection.
+The earlier two stops below remain historical evidence, not current blockers.
+
+Preserved5 App and5 Core restore files in new ignored plan-local snapshot
+.superpowers/sdd/2026-11-12-windows-account-alignment-native-binding/failed-restore-bed155cb/.
+Every copied file's SHA256 matched its source before proceeding; no evidence deleted.
+Known failed App assets hash matched the recorded baseline. Reused only the approved
+owned App obj directory, while candidate bin remained absent until build. Ancestor
+reparse checks and ordinary-token/process checks passed; related processes0.
+Revalidated19 metadata/lock entries and16 archive/sidecar hashes. Ten old evidence
+hashes matched before and after. No global RID override used: explicit evaluation
+required App win-x64/candidate TargetPath and Core empty RID/default net10.0 TargetPath.
+
+Executed from clients/windows, identical properties for restore/build:
+
+```powershell
+$variantArgs = @('-p:Configuration=Debug', '-p:EnableLayoutDiagnostics=true', '-p:EnableEmailGeometryRecording=true', '-p:EnableCloseStageRecording=false', '-p:CloseStageVerificationMode=', '-p:EmailGeometryBuildVariant=account-center')
+dotnet restore .\Talenro.Demo.App\Talenro.Demo.App.csproj --locked-mode --configfile .\.nuget\account-center-offline.config @variantArgs
+# Asset inspection passed before this single build:
+dotnet build .\Talenro.Demo.App\Talenro.Demo.App.csproj --no-restore @variantArgs
+```
+
+Restore exit0, command approximately1.49s (Core107ms/App164ms). Both asset files
+verified only the approved local cache/config/source, their correct App-isolated/
+Core-default output namespaces and restoreLockedMode=true. Lockfiles unchanged.
+Build exit0 in29.23s,0 errors/1 warning NU1905. Same warning in restore: local audit
+source supplies no vulnerability data; offline success is not security clearance.
+No download/install, dependency version change, audit suppression, App execution,
+additional build retry or termination. SDK10.0.403/MSBuild18.9.15+5a2162bea,
+runtime10.0.14, VS Community18.11.12328.437 as preflight inventory.
+
+### Measured candidate for the next binding stage
+
+Artifact directory:
+clients/windows/Talenro.Demo.App/bin/email-geometry-account-center/Debug/net10.0-windows10.0.19041.0/win-x64/
+
+| File | Bytes | SHA256 |
+| --- | ---: | --- |
+| Talenro.Demo.App.exe | 312320 | CF7C577C2FF3F4A690B2EFEE054411B59006210440333C5E8EA1838A7062A48F |
+| Talenro.Demo.App.dll | 329728 | 6011FA7BB63A45D5FAEB4A44529904FEC0857741A4E810B20B38555655C838C1 |
+
+Inspected bytes with PEReader; did not load/execute App code. Both AMD64. DLL
+contains EmailGeometryObserver, EmailGeometryTargets, GeometryEvaluator,
+GeometryCaptureCoordinator, GeometryReceiptSession and LayoutOptions; no CloseStage
+type names. Three required Layout fixture/string resources present. Parsed deps
+target .NETCoreApp,Version=v10.0/win-x64; runtimeconfig net10.0/10.0.14. deps42809bytes,
+runtimeconfig359bytes. All586 App generated-file-list entries reside in the selected
+App bin/obj namespaces. Streams/readers disposed after inspection.
+
+Core was rebuilt in its normal bin/Debug/net10.0 path. DLL changed from
+8A4E020B477FEC9F0EC03CFC8D0235F08ACD4F6523C3969C3DEE7C9977B1C471 to
+BF14C9990084D5A4EA60BB0073CE8ADF884FFCBF8ED582149032CC1077B94963;
+candidate's copied Core DLL matches the rebuilt default-path output. This is an
+observed dependency rebuild, not a claim that all Core outputs stayed unchanged.
+Old layout/geometry binaries, App/Core lockfiles and four original run records
+(10 hashes total) all unchanged. Final related-process query succeeded with0 matches.
+
+Task2 now complete under the approved revision; Task3 fixed observer/binding and
+synthetic regression/final independent review are still pending. No observer was
+modified or invoked. Live allowance0, C4 NOT_ACCEPTED: native compilation/static
+inspection do not prove visual clipping fixed. Necessary provenance is committed;
+binaries/cache/config/failed snapshots stay local and ignored. A fresh clone must
+prepare local dependencies/build anew and verify hashes, not assume these binaries.
+
 ## Task2 — one restore attempted, NU1004 stop (2026-11-12)
 
 User authorized corrected hash checks and continuation of the unused one-restore/

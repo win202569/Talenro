@@ -12,6 +12,13 @@
 
 ## Global Constraints
 
+Approved execution revision2026-11-12: do not pass RuntimeIdentifier globally;
+App already defines win-x64, while Core must retain empty RID/default output.
+The original global RID command caused NU1004; one separately approved corrected
+restore/build succeeded after preserving failed App/Core restore records. The
+known-owned obj reuse exception was specific to that approved recovery; fresh
+destinations still require absence checks. See the execution record for evidence.
+
 - Variant: empty or `account-center` only. Empty retains all current behavior.
 - Selected variant requires App Debug, layout=true, geometry=true, close-stage=false, empty CloseStageVerificationMode.
 - App paths: bin/email-geometry-account-center/ and obj/email-geometry-account-center/; absolute MSBuildProjectExtensionsPath under App.
@@ -58,7 +65,7 @@
 - [ ] Use identical properties for restore/build; these are commands to execute only after the above gate, not instructions to run during planning:
 
 ```powershell
-$variantArgs = @('-p:Configuration=Debug', '-p:RuntimeIdentifier=win-x64', '-p:EnableLayoutDiagnostics=true', '-p:EnableEmailGeometryRecording=true', '-p:EnableCloseStageRecording=false', '-p:CloseStageVerificationMode=', '-p:EmailGeometryBuildVariant=account-center')
+$variantArgs = @('-p:Configuration=Debug', '-p:EnableLayoutDiagnostics=true', '-p:EnableEmailGeometryRecording=true', '-p:EnableCloseStageRecording=false', '-p:CloseStageVerificationMode=', '-p:EmailGeometryBuildVariant=account-center')
 dotnet restore .\Talenro.Demo.App\Talenro.Demo.App.csproj --locked-mode --configfile .\.nuget\account-center-offline.config @variantArgs
 # Inspect restore result/assets before executing the next command.
 dotnet build .\Talenro.Demo.App\Talenro.Demo.App.csproj --no-restore @variantArgs
