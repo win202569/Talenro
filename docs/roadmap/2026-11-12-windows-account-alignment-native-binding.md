@@ -1,5 +1,38 @@
 # Account alignment native isolation and binding execution
 
+## Task3 — candidate binding and offline verification (2026-11-12)
+
+User requested the next stage. Added observe-email-geometry-account-center.ps1
+and its synthetic test harness; original entry/tests and five shared source files
+remain unchanged. Binding uses Task2's exact path and measured EXE/DLL hashes above.
+Only four token substitutions differ from the old entry: executable relative path
+(policy and manifest), EXE hash, DLL hash, own filename in Sources. No shared
+runtime refactor, extra parameter or live invocation. Default remains NotStarted.
+
+RED: candidate harness exit1 with `FAIL: RED: EG entry missing` before implementation.
+GREEN:302 candidate assertions, exit0. Copied complete old harness with binding
+literals updated, plus exact clone parity/counts, changed-cap/removed-preflight
+negative fixtures, independent candidate artifact/receipt/geometry paths, and old
+EXE/DLL hash rejection before acquisition. Mutated fixtures are compared, never run.
+All external launch/CIM/native compilation/sleep effects are replaced before entry
+evaluation; fixtures use synthetic data/memory streams, not real app processes.
+
+Separate unchanged regressions: old entry282 assertions, shared C5 session120,
+both exit0. Each used absolute discovered PowerShell7 with -NoProfile -File;
+all finished within120s. Synthetic failure-summary output is expected fault-injection
+evidence, not a live failure. These tests never invoke an entry with -RunApproved.
+
+Count correction: the plan mislabeled historical462 as the C5 session script's
+count. The 2026-11-09 C4 entry execution record lists six suites totaling462;
+C5 session alone is120 and has no source diff. Ruling: report actual120 without
+reducing any tests or claiming all462 ran this turn. Approved scope excludes native
+compile/loader/live tests and full-project acceptance. Original harness282 unchanged.
+
+Postflight all12 old/candidate artifact/lock/receipt hashes unchanged; original
+entry/tests, shared sources and C5 harness have no diff from d9c765d2. No restore,
+native build, app launch, termination or security change in this stage. Final
+independent review is pending at this checkpoint. Live0; C4 NOT_ACCEPTED.
+
 ## Task2 complete — corrected locked restore and isolated build (2026-11-12)
 
 User explicitly approved preserving failed outputs, removing the global RID argument,

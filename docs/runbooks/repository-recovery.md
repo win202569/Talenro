@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — CANDIDATE OBSERVER IMPLEMENTED/OFFLINE VERIFIED, FINAL REVIEW PENDING:
+Read [Task3 record](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
+New observe-email-geometry-account-center.ps1 is fixed to Task2 measured path/hashes;
+default NotStarted, no public override. RED missing entry then302 candidate assertions;
+unchanged original282 and shared C5 session120 passed. Historical462 is six suites,
+not C5 alone. No shared source changes;12 evidence/candidate hashes unchanged.
+No live approval. Fresh clone restores scripts/tests/provenance, not bound binaries;
+do not replace hashes or launch to work around a new-machine mismatch. C4 NOT_ACCEPTED.
+
 LATEST — TASK2 ISOLATED NATIVE BUILD/INSPECTION COMPLETE:
 Read [measured provenance and corrected commands](../roadmap/2026-11-12-windows-account-alignment-native-binding.md).
 Source bed155cb. Failed assets copied/hash-verified first; corrected local locked
