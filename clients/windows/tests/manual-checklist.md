@@ -1,5 +1,13 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+Latest lower-controls scope (2026-11-12): at629x620 root/409x534 page, five Account
+buttons visible after scrolling; forward MFA→Exit and reverse Exit→Manage devices
+focus outlines observed. Manage devices dialog closed; next Tab reached Language.
+Immediate return outline and isolated keyboard auto-scroll remain UNVERIFIED.
+Logout/re-entry visible state restored; normal exit0, no residuals. See
+[scoped record](../../../docs/roadmap/2026-11-12-windows-account-lower-controls-observation.md).
+No compound checkbox or C4 acceptance closed; live0.
+
 Latest reconciliation (2026-11-12): current Account Center candidate has scoped
 email evidence at root1136x620 and640x620 DIP, en-US/rtl-mixed, scales1. Known-box
 containment and visible email do not close the compound layout/accessibility rows.

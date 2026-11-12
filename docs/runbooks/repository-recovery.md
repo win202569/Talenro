@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — LOWER-CONTROLS RUN RECORDED, LIMITED PASS/UNVERIFIED SPLIT:
+Read [result](../roadmap/2026-11-12-windows-account-lower-controls-observation.md).
+Run413d4b9827c2434a9e8ede6879f9b059 exited0 at229.93s, residuals0. Lower buttons,
+visible traversal and logout/re-entry have scoped evidence. Immediate focus outline
+after pointer dialog-close and isolated keyboard auto-scroll remain unverified.
+Do not turn next-Tab success into proof of immediate outline. Live0/C4 NOT_ACCEPTED;
+next read-only focus-behavior review, no automatic rerun. Preserve raw local files.
+
 LATEST — MINIMAL ACCOUNT FOLLOW-UP CHECKLIST PREPARED:
 Read [lower-controls checklist](../superpowers/plans/2026-11-12-windows-account-lower-controls-check.md).
 It preserves source-impact findings and limits the next proposed session to lower

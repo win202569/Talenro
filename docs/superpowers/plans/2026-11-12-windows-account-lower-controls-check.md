@@ -10,7 +10,10 @@
 
 **Spec:** [Remaining acceptance scope](../../roadmap/2026-11-12-windows-remaining-acceptance.md), R1/R2; size and binding constraints from [approved narrow design](../specs/2026-11-12-windows-account-center-narrow-observation-design.md).
 
-Status: preparation only, checklist awaiting review; live allowance0.
+Status: checklist confirmed and one separately approved run completed; live0.
+See [scoped result](../../roadmap/2026-11-12-windows-account-lower-controls-observation.md).
+Lower controls/traversal and selected recovery observed; immediate visible return
+focus and isolated keyboard auto-scroll remain UNVERIFIED. No automatic retry.
 
 ## Source-impact basis
 
@@ -106,4 +109,5 @@ Scope fits R1 plus the affected visible logout route of R2. Manage devices share
 the unchanged placeholder handler with the other account buttons, so one dialog
 is a representative check, not proof of all dialogs. Exact focus transitions and
 normal close are observed, not assumed. No source change or test cycle is proposed.
-Execution stays in the current session; review and separate launch approval pending.
+Execution occurred in the current session. The single allowance is consumed;
+unchecked steps do not authorize another run or imply every subcheck passed.

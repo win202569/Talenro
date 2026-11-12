@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-12
 
+## Latest — 下方控件及恢复补验完成一轮，保留两项观察限制
+
+run413d4b9827c2434a9e8ede6879f9b059，629×620/page409×534：五按钮完整可达，
+前向/反向焦点顺序、一个说明弹窗、退出重进的断开/锁定关闭状态取得证据。
+弹窗鼠标关闭后的即时可见焦点、独立键盘自动滚动仍未确认，不判定为缺陷。
+229.93秒正常退出、退出0、残留0；见[本轮结果](2026-11-12-windows-account-lower-controls-observation.md)。
+额度0，C4仍未全面验收；下一步先只读核对焦点显示机制，不重复整条路线。
+
 ## Latest — 源码影响已归并，账户页最小补验清单待确认
 
 见[账户下方控件检查](../superpowers/plans/2026-11-12-windows-account-lower-controls-check.md)：

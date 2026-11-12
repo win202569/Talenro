@@ -1,5 +1,11 @@
 # Windows remaining acceptance — reconciled 2026-11-12
 
+Latest addendum: [lower-controls run](2026-11-12-windows-account-lower-controls-observation.md)
+partially covers R1 (lower labels/access/traversal) and selected logout recovery in
+R2 on the current candidate. Immediate visible dialog-return focus and isolated
+keyboard auto-scroll remain unverified. Other gaps below are unchanged; no new
+launch authority or overall acceptance. Original reconciliation baseline follows.
+
 Documentation-only reconciliation at ec8bb093. No app launch, test rerun, build,
 restore, settings change or raw-record rewrite. This is an evidence map, not a new
 execution plan or acceptance approval. Live allowance0; C4 and overall native
