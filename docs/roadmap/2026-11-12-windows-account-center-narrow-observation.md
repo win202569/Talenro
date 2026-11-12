@@ -1,4 +1,71 @@
-# Narrow-window observation: condition not obtained
+# Narrow-window observations
+
+## Latest: separately approved visible-window run obtained the condition
+
+After the first run below, user reported not seeing its window. A new explicit
+one-launch/zero-retry/up-to-six-minute approval was obtained, with visibility
+confirmation before proceeding. Baseline faf8476b. New run
+`f86a7c0d8cad4a02a6fd307c1652c790`, PID26792 (now exited).
+
+The first inspected page was already Connection; the agent did not navigate to
+it in this run and does not attribute that transition to a specific action.
+After activation the user confirmed seeing the window, then manually resized it
+and confirmed completion. Two title observations more than one second apart
+showed root640x620/page420x534 DIP, rendering/text1. Account was first visited
+after this confirmation; no subsequent resize/scroll/navigation. The unobscured
+Account screenshot showed the complete demo@example.com. An occluded screenshot
+while the user replied was not treated as layout evidence; activation restored
+an unobscured target capture before Account navigation.
+
+Normal title-bar close: console sequence100, elapsed193911.7273ms,
+Outcome=exited, Reason=agreement, ExitVerified=true, Finalized=true, OverrunMs=0,
+command exit0. Persisted outcome elapsed193890.3365ms retains Finalized=false
+(pre-cleanup). UI target window absent and successful CIM query matched0 targets/
+prototypes afterward. No relaunch, forced termination, source/build/settings change.
+
+### Read-only evidence check
+
+Manifest language/profile and actual artifact hashes matched the approved fixed
+binding. All wrapper and snapshot run IDs correlate;100 process sequences are
+contiguous. Six geometry records: header, Login1/2, Account3/4, health. Samples4,
+Failed=false, ErrorCodes empty, Provisional=true. Login is NOT narrow evidence.
+
+Both Account samples have root640x620, viewport420x534, scales1, offsets0. Panel
+Center width360, RootDIP horizontal250–610 (30 DIP margins within presenter220–640).
+Email RootDIP383.095703125–570, vertical141–167.6015625, unchanged size
+186.904296875x26.6015625. All three recorded boundaries have usable matching-space
+bounds and Complete=true; insets in BOTH samples:
+
+| Boundary | Left | Right | Top | Bottom (DIP) |
+| --- | ---: | ---: | ---: | ---: |
+| root | 383.095703125 | 70 | 141 | 452.3984375 |
+| presenter | 163.095703125 | 70 | 98 | 409.3984375 |
+| presenter:clip | 163.095703125 | 70 | 98 | 409.3984375 |
+
+Limited result: narrow condition obtained; email visible and contained in known
+boxes. ClipChainComplete=false remains, and samples are only17.0264ms apart: no
+full compositor-clipping or long-duration claim. RootDIP right is not desktop right.
+Panel height726 exceeds the viewport, so whole-page fit and lower controls are
+not accepted by this email-only observation. Raw Unreviewed/NotAccepted remain;
+C4, LTR/other scales/full regression/security acceptance remain outstanding.
+
+### New run immutable local inventory
+
+Relative to the same candidate output directory specified below; RUN here means
+f86a7c0d8cad4a02a6fd307c1652c790. Old run records remain untouched.
+
+| Path | Bytes | SHA256 |
+| --- | ---: | --- |
+| email-geometry-observations/RUN/manifest.json | 730 | 30B94F0CCAE9E7477F6DB4B03248D37B3E80578FC72CDF56D8AF261DFCC82702 |
+| email-geometry-observations/RUN/samples.jsonl | 187957 | 70C2545FCF26AABFCFA6A5BA1A9804C8474CE5D0B42C449C018C9424C80407B7 |
+| email-geometry-records/RUN/geometry.jsonl | 36074 | 20DC34827A610A6775CE746027B1E2A7B22635AA830DF7D52A17E05B1C447347 |
+| email-geometry-records/RUN.claim | 0 | E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855 |
+
+The separately granted live allowance is consumed (0). Next: consolidate remaining
+acceptance gaps without another launch; no further source change is established
+as necessary by this result. Clone restores this summary, not local evidence.
+
+## Earlier run: condition not obtained (preserved history)
 
 User approved the checklist, then explicitly approved one launch, zero retries,
 up to six minutes with manual resize assistance. Source baseline433adcb1.

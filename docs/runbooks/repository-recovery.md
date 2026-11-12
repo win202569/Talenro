@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SEPARATELY APPROVED NARROW CONDITION OBSERVED:
+Read [both runs and inventories](../roadmap/2026-11-12-windows-account-center-narrow-observation.md).
+New run f86a7c0d8cad4a02a6fd307c1652c790 confirmed user-visible window before resize;
+root640x620/page420x534, Account2 snapshots, visible email within3 known boxes,
+right inset70 DIP. Normal exit0 at193.91s, residual processes0. Earlier incomplete
+run remains preserved. Incomplete clip chain/C4 NOT_ACCEPTED; live0, no relaunch.
+Next consolidate remaining acceptance gaps; clone does not recover ignored receipts.
+
 LATEST — NARROW RUN CLOSED NORMALLY; CONDITION NOT OBTAINED:
 Read [run inventory/result](../roadmap/2026-11-12-windows-account-center-narrow-observation.md).
 Run ef33d39285174f1095ac69feae7e6da5 used the one approved launch; normal exit0 at

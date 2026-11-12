@@ -78,6 +78,14 @@ If pwsh is unavailable, stop before invocation and locate an existing approved r
 
 ## Plan review record
 
+Latest execution: a NEW explicit bounded approval allowed run
+f86a7c0d8cad4a02a6fd307c1652c790 after the earlier invalid run. User confirmed window
+visibility and resize completion. Condition640x620/page420x534 obtained before first
+Account navigation; both Account samples and visible email support known-box
+containment. Normal exit0 at193.91s/no residual processes. Read-only inventories
+and limited result recorded in the linked run report. Live0; no further launch.
+Earlier unchecked steps describe the first attempt, not missing authority to retry.
+
 Execution checkpoint: checklist and one-launch approval received. One run
 ef33d39285174f1095ac69feae7e6da5 ended normally at306.26s/exit0, residual processes0.
 Manual resize completion was not observed; root stayed1136x620 and Account was
