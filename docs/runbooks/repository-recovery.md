@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY MINIMAL RUN DESIGN PREPARED, NO LIVE AUTHORITY:
+Read [fixed-hash no-argument proposal](../superpowers/specs/2026-11-13-windows-ordinary-minimal-observation-design.md).
+Dedicated entry proposed, not implemented. Bind six inspected candidate files;
+keep existing process guards. Ordinary title has no size readout: narrow visual
+evidence cannot assert root DIP/required viewport. Separate design, synthetic
+implementation/review and one-run approval gates; no build/test/launch this turn.
+
 LATEST — ORDINARY CANDIDATE STATIC CHECKS RECORDED:
 Read Task3 in [artifact record](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
 Center generated layout/deployed XBF correlation, no diagnostic metadata payload,

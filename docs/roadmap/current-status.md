@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版最小运行检查方案已准备，未启动
+
+见[固定哈希普通版方案](../superpowers/specs/2026-11-13-windows-ordinary-minimal-observation-design.md)。
+建议独立无参数入口，绑定EXE/DLL/Core/XBF及依赖配置六份哈希，复用进程观察模块。
+一轮仅默认/定性窄窗账户显示、键盘/一个弹窗/可见恢复及正常关闭；精确尺寸和参数拒绝另列。
+本轮仅文档；入口未实现，测试/构建/启动均未执行。设计待批准，启动额度0。
+
 ## Latest — 普通版静态产物核对与独立复核完成
 
 生成账户面板Center，obj/bin布局文件哈希一致；DLL47类型中无诊断载荷、0嵌入资源。
