@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版入口实现与合成测试清单已准备，待确认
+
+设计已批准；见[执行清单](../superpowers/plans/2026-11-13-windows-ordinary-minimal-observation.md)。
+仅新增独立入口及模拟测试，六份固定哈希、无参数启动、源码/进程/路径检查全部保留。
+清单覆盖失败前零获取、记录清理、严格身份与超时；随后受限合成回归及独立复核。
+本轮只改文档，未实现/测试/还原/构建/启动。建议下一步仅批准入口与合成测试；启动额度0。
+精确尺寸、普通版实际显示/退出、C4及安全仍未验收，既有警告和Minor不变。
+
 ## Latest — 普通版最小运行检查方案已准备，未启动
 
 见[固定哈希普通版方案](../superpowers/specs/2026-11-13-windows-ordinary-minimal-observation-design.md)。

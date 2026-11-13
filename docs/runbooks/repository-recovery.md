@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY ENTRY/SYNTHETIC CHECKLIST PREPARED, AWAITING CONFIRMATION:
+Read [implementation plan](../superpowers/plans/2026-11-13-windows-ordinary-minimal-observation.md).
+Design approved; no entry implementation/tests/restore/build/launch this turn.
+Next proposed scope is the fixed-six-hash no-argument wrapper and synthetic-only
+tests/review. Existing process guards and old entries remain unchanged; live0.
+Fresh clone must support synthetic fixtures without binaries. Missing fixed
+candidate/build-source object blocks live use, never permits substitution or
+automatic rebuilding. Runtime/C4/security/Release remain unaccepted.
+
 LATEST — ORDINARY MINIMAL RUN DESIGN PREPARED, NO LIVE AUTHORITY:
 Read [fixed-hash no-argument proposal](../superpowers/specs/2026-11-13-windows-ordinary-minimal-observation-design.md).
 Dedicated entry proposed, not implemented. Bind six inspected candidate files;

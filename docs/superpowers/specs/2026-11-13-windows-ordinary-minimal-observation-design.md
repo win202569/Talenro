@@ -1,7 +1,8 @@
 # Ordinary candidate minimal native observation design
 
-Date2026-11-13. Proposed design only, awaiting approval. No entry implementation,
-synthetic tests, build, restore or launch performed/authorized by this document.
+Date2026-11-13. Design approved; [implementation/test checklist](../plans/2026-11-13-windows-ordinary-minimal-observation.md)
+prepared for confirmation. No entry implementation, synthetic tests, build,
+restore or launch performed/authorized by this documentation step.
 
 ## Purpose and approaches
 
@@ -11,7 +12,7 @@ reusing unchanged c5-observation-session.psm1 and its process/identity modules.
 Existing C4/geometry entries pass diagnostic arguments and cannot be used directly.
 Manual direct launch lacks the existing retained-handle receipt guarantees;
 adding in-app geometry would cease to test this ordinary artifact. Neither is
-selected. Exact new entry names/budget/route below are proposals for approval.
+selected. Entry names/budget/route below are approved design, not live authority.
 
 No product behavior changes, new instrumentation or shared observer refactor.
 Future files: clients/windows/tests/observe-ordinary-account-center.ps1 and its
