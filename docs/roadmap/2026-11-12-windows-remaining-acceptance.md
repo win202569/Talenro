@@ -1,5 +1,13 @@
 # Windows remaining acceptance — reconciled 2026-11-12
 
+2026-11-13 addendum: [new keyboard-only run](2026-11-13-windows-keyboard-followup-observation.md)
+closes the isolated auto-scroll and keyboard-dialog-close visible return-focus
+questions on this candidate at650x620. Together with the lower-controls run this
+supports the scoped R1 path; not all dimensions or ordinary-build acceptance.
+Mouse-close immediate outline remains unverified, not a confirmed defect. R2–R7
+and broader limitations remain; no additional launch authority. Older text below
+records its original evidence baseline, superseded only for these two questions.
+
 Latest addendum: [lower-controls run](2026-11-12-windows-account-lower-controls-observation.md)
 partially covers R1 (lower labels/access/traversal) and selected logout recovery in
 R2 on the current candidate. Immediate visible dialog-return focus and isolated

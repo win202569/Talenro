@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — TWO KEYBOARD CHECKS OBSERVED ON A NEW AUTHORIZED RUN:
+Read [scoped result](../roadmap/2026-11-13-windows-keyboard-followup-observation.md).
+Run5b14bb63977d4ceb98cf0ea0a1cd2afb at650x620 passed keyboard-only auto-scroll
+and visible Manage devices focus return after keyboard dialog-close. Normal exit0
+at222.32s; successful residual query0. Prior timeout is preserved, not overwritten.
+Live0/C4 NOT_ACCEPTED. Next read-only coverage consolidation; no automatic launch.
+Clone recovers source/reports, not ignored raw evidence or binaries.
+
 LATEST — KEYBOARD FOLLOW-UP EXPIRED; NO RESTART ON RESUME:
 Read [timeout record](../roadmap/2026-11-13-windows-keyboard-followup-timeout.md).
 Runa9fb7f631688418ca06806aaaaeb0527 saved deadline/timed-out at360000.835ms,

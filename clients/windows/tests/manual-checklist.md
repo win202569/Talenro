@@ -1,5 +1,11 @@
 # Native verification — PARTIAL, NOT ACCEPTED
 
+2026-11-13 scoped update: keyboard-only Tab auto-scroll and visible focus return
+to Manage devices after Return closes its dialog observed at650x620/page430x534.
+See [keyboard result](../../../docs/roadmap/2026-11-13-windows-keyboard-followup-observation.md).
+Normal exit0, residual query0. Only these questions supersede the older unverified
+keyboard entries below; no compound checkbox/C4 acceptance promotion. Live0.
+
 Latest lower-controls scope (2026-11-12): at629x620 root/409x534 page, five Account
 buttons visible after scrolling; forward MFA→Exit and reverse Exit→Manage devices
 focus outlines observed. Manage devices dialog closed; next Tab reached Language.

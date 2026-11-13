@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-13
 
+## Latest — 两项键盘专项已取得通过证据
+
+新授权run5b14bb63977d4ceb98cf0ea0a1cd2afb，root650×620/page430×534：
+无鼠标滚动，Tab自动滚动到下方按钮；Enter关闭说明框后Manage devices焦点框返回。
+222.32秒正常退出、退出码0、只读查询残留0，未重试。见[专项记录](2026-11-13-windows-keyboard-followup-observation.md)。
+此前超时原样保留；仅更新这两项键盘结论，不扩大为C4全面验收。额度0。
+下一步只读归并普通版本及其他尺寸/缩放的剩余覆盖，不自动启动或构建。
+
 ## Latest — 键盘专项观察超时，恢复时未重跑
 
 run a9fb7f631688418ca06806aaaaeb0527落盘结果为360秒deadline超时，ExitVerified=false。
