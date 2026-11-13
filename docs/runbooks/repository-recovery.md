@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY ISOLATION TASK1 IMPLEMENTED, SCOPED TESTS GREEN:
+Read [execution record](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
+New16/16 and combined34/34 pass after expected RED;4278 protected files unchanged,
+205 mutable snapshots verified,24 Core/Tests files regenerated. No App outputs
+created; no App restore/build/launch. Independent review0 Critical/Important,
+1 deferred Minor: valid guard acceptance is evaluated but not directly invoked.
+Task2 still requires separate authority; source/config is not a native candidate.
+
 LATEST — ORDINARY DESIGN APPROVED; EXECUTION CHECKLIST AWAITS CONFIRMATION:
 Read [three-stage checklist](../superpowers/plans/2026-11-13-windows-ordinary-account-center-build.md).
 No implementation/tests/restore/build/launch performed. Task1 needs configuration

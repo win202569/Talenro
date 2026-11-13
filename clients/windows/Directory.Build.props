@@ -34,4 +34,9 @@
     <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/email-geometry-account-center/</MSBuildProjectExtensionsPath>
     <BaseOutputPath>bin/email-geometry-account-center/</BaseOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Talenro.Demo.App' And '$(OrdinaryBuildVariant)' == 'account-center'">
+    <BaseIntermediateOutputPath>obj/ordinary-account-center/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/ordinary-account-center/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/ordinary-account-center/</BaseOutputPath>
+  </PropertyGroup>
 </Project>

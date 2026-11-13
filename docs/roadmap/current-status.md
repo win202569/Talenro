@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版隔离配置第一阶段完成，保留一项非阻塞测试缺口
+
+Task1新增测试RED按预期12失败/4通过，GREEN16/16，组合回归34/34。
+4278份保护文件哈希不变，App无新增输出，205份Core/Tests快照已校验；测试更新24份可变文件。
+见[执行记录](2026-11-13-windows-ordinary-account-center-build.md)。独立审查0严重/重要问题，1项Minor：有效配置的校验目标未直接调用测试，留待另行授权补强。
+未还原/构建/启动App，候选bin/obj仍不存在；Task2另行授权，C4仍未验收。
+
 ## Latest — 普通版设计已批准，详细执行清单待确认
 
 见[三阶段清单](../superpowers/plans/2026-11-13-windows-ordinary-account-center-build.md)：

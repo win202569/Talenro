@@ -1,4 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk" InitialTargets="ValidateEmailGeometryBuildVariant;ValidateEmailGeometryConfiguration;ValidateCloseStageConfiguration">
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="ValidateOrdinaryBuildVariant;ValidateEmailGeometryBuildVariant;ValidateEmailGeometryConfiguration;ValidateCloseStageConfiguration">
+  <Target Name="ValidateOrdinaryBuildVariant">
+    <Error Code="ORDINARYBUILD001" Text="Ordinary build variant must be account-center with Debug, all diagnostics disabled, and no other build variants."
+           Condition="'$(OrdinaryBuildVariant)' != '' And ('$(OrdinaryBuildVariant)' != 'account-center' Or '$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'false' Or '$(EnableEmailGeometryRecording)' != 'false' Or '$(EnableCloseStageRecording)' != 'false' Or '$(EmailGeometryBuildVariant)' != '' Or '$(CloseStageVerificationMode)' != '')" />
+  </Target>
   <Target Name="ValidateEmailGeometryBuildVariant">
     <Error Code="EMAILGEOMETRY002" Text="Email geometry build variant must be account-center with Debug layout and geometry diagnostics, and no close-stage modes."
            Condition="'$(EmailGeometryBuildVariant)' != '' And ('$(EmailGeometryBuildVariant)' != 'account-center' Or '$(Configuration)' != 'Debug' Or '$(EnableLayoutDiagnostics)' != 'true' Or '$(EnableEmailGeometryRecording)' != 'true' Or '$(EnableCloseStageRecording)' != 'false' Or '$(CloseStageVerificationMode)' != '')" />
