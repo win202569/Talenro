@@ -32,6 +32,71 @@ candidate/receipt changed. Tests have not reached all assertions; no PASS count.
 
 ## Remaining work
 
+### Authorized continuation after65e545bc
+
+User approved correction, one focused attempt and conditional regression/review,
+still no App launch. Corrected three new-test Get-Item mocks to `[switch]$Force`;
+production entry unchanged. Added per-observer-source and per-product-path faults,
+untracked dirty state, fixed source/diff invocation assertions, public parameter
+and ArgumentList AST checks, strict trailing/extra command-line rejection and
+exact-deadline integration with finalization/cleanup assertions.
+
+Fresh PowerShell7.6.9 results, each once, all exit0:
+
+| Suite | Result |
+| --- | --- |
+| observe-ordinary-account-center.tests.ps1 |564 assertions PASS|
+| observe-c4.tests.ps1 |152 assertions PASS|
+| c5-observation-session.tests.ps1 |120 assertions PASS|
+| observation-session-guard.tests.ps1 |48 assertions PASS|
+| process-observation.tests.ps1 |32 cases PASS|
+| native-process-observation.tests.ps1 |78 assertions PASS|
+
+Only simulated process callbacks/memory writers used. No App, restore, build,
+native loader/compiler tests, real CIM query or live entry invocation. Prior
+failure retained above. The original entry/shared sources remain unchanged.
+Independent static review requested against4ec59956..65e545bc plus new test diff.
+Still require review disposition and explicit reconciliation of remaining
+CreateNew/combined wrapper-cleanup coverage before calling preparation complete.
+
+### Independent review disposition
+
+Reviewer ordinary_observer_review, static only, reviewed baseline4ec59956 to
+65e545bc plus continuation test diff. No Critical findings or demonstrated
+Important production regression. Two Important verification gates accepted:
+
+1. Real Open-OrdinaryNewStream CreateNew mode is not exercised/asserted; mocked
+   factory tests would not catch replacing CreateNew with Create (entry89,
+   tests149/165). Current implementation is correct but proof is missing.
+2. New wrapper factory primary+cleanup failure aggregation is not tested:
+   scalar Fault cannot combine errors and mock stream Dispose never throws
+   (tests156/205). Shared guard aggregate tests do not close this wrapper gate.
+
+Four deferred Minors (not repaired or retested this turn):
+- Entry99 inherits swallowed writer-disposal error after AutoFlush setup failure;
+  diagnostic limitation, not a new launch defect. Do not claim unrestricted
+  retention of every cleanup exception.
+- Tests32 lack independent executable/receipt-root literal expectations.
+- Tests51 stub Git helper; real nonzero handling and explicit documentation-only
+  HEAD success are not directly demonstrated.
+- Tests266 cover exact expiry but not a progressing ordinary loop/disagreement;
+  shared suites cover those behaviors, so exact-plan wrapper coverage differs.
+
+Ruling: preserve both Important gates as blockers, no live-ready claim — the
+bounded focused/regression allowance is spent — cost is delayed readiness, not
+weakened checks. Next continuation should add only the missing receipt tests,
+then bounded synthetic verification; no App launch or unrelated Minor fixes.
+
+Reviewer exclusions accepted: actual command-line serialization/UI/normal close
+and real exit require separately approved live observation; current candidate
+presence/hashes were not rechecked; hostile filesystem races/full dependency
+signatures exceed the six-file trusted-workspace contract; broader C4/security/
+Release/viewport acceptance remains excluded. Reviewer did not rerun tests;
+counts above are main-agent tool results. These exclusions leave corresponding
+runtime/security claims unverified, not implicitly passed.
+
+The following paragraph records the earlier65e545bc handoff, not current test results:
+
 Task1 incomplete. Finish checklist coverage including per-source/per-product-path
 faults, default side-effect coverage, CreateNew verification, combined cleanup
 failures, strict ordinary command-line negative cases and fake-clock deadline

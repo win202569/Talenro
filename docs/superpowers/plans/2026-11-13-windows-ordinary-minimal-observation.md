@@ -12,6 +12,8 @@
 
 Status2026-11-13: checklist confirmed, implementation started. Expected missing-entry RED exit1; first GREEN attempt failed on test mock Force binding, stopped without retry. Task1 coverage incomplete; Task2 not started. See [execution record](../../roadmap/2026-11-13-windows-ordinary-minimal-observation.md). No restore/build/launch.
 
+Continuation: separately approved Force correction and one focused run passed564 assertions; five planned regressions passed152/120/48/32 cases/78. Independent review complete:0 Critical,2 Important verification gaps,4 deferred Minors (execution record). Task1 D coverage remains open (real CreateNew behavior and combined wrapper errors). Earlier stop remains historical evidence, not current GREEN status. No further run or live allowance inferred.
+
 ## Global Constraints
 
 - Branch codex/c12-b01-task9-coordinator; Windows PowerShell only. No product/shared-module/original-entry edits, restore, build, install, security changes or live invocation in implementation scope.

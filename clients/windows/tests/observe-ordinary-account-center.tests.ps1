@@ -11,6 +11,9 @@ function Add-Type {throw 'Forbidden compilation'}
 function Start-Sleep {throw 'Forbidden sleep'}
 function New-Item {throw 'Forbidden write'}
 function Import-Module {throw 'Forbidden default import'}
+function git {throw 'Forbidden default git'}
+function Get-FileHash {throw 'Forbidden default hash'}
+function Stop-Process {throw 'Forbidden termination'}
 Check (Test-Path -LiteralPath $entry) 'RED: Ordinary entry missing'
 $result=@(& $entry)
 Check ($result.Count -eq 1 -and $result[0].Status -ceq 'NotStarted') 'one no-start result'
@@ -21,6 +24,8 @@ Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [typ
 $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile($entry,[ref]$tokens,[ref]$errors)
 Check ($errors.Count -eq 0) 'entry parses'
+Check ($ast.ParamBlock.Parameters.Count -eq 1 -and $ast.ParamBlock.Parameters[0].Name.VariablePath.UserPath -ceq 'RunApproved') 'only approval parameter'
+Check (@($ast.FindAll({param($a) $a -is [Management.Automation.Language.CommandParameterAst] -and $a.ParameterName -eq 'ArgumentList'},$true)).Count -eq 0) 'no ArgumentList launch parameter'
 foreach($fn in $ast.FindAll({param($a)$a -is [Management.Automation.Language.FunctionDefinitionAst]},$false)){
     . ([scriptblock]::Create($fn.Extent.Text))
 }
@@ -46,16 +51,19 @@ function Assert-OrdinaryOrdinaryToken {if($script:fault -eq 'token'){throw 'bloc
 function Invoke-OrdinaryGit {param($Root,$Arguments)
     switch($Arguments[0]){
         'branch' {if($script:fault -eq 'branch'){'main'}else{'codex/c12-b01-task9-coordinator'}}
-        'status' {if($script:fault -eq 'dirty'){' M changed'}}
-        'rev-parse' {if($script:fault -eq 'source'){'different'}else{'blob'}}
+        'status' {if($script:fault -eq 'dirty'){' M changed'};if($script:fault -eq 'untracked'){'?? new'}}
+        'rev-parse' {if($script:fault -eq 'source' -or $Arguments[1] -ceq $script:badSource){'different'}else{'blob'}}
         'hash-object' {'blob'}
-        'cat-file' {if($script:fault -eq 'history'){throw 'missing commit'}}
-        'diff' {if($script:fault -eq 'product'){throw 'changed product'}}
+        'cat-file' {Check ($Arguments[2] -ceq '5ee8a339b574171fc61f3cf0c0c636bd86421397^{commit}') 'fixed source object';if($script:fault -eq 'history'){throw 'missing commit'}}
+        'diff' {
+            Check (($Arguments -join '|') -ceq 'diff|--exit-code|5ee8a339b574171fc61f3cf0c0c636bd86421397|--|clients/windows/Talenro.Demo.App|clients/windows/Talenro.Demo.Core|clients/windows/Directory.Build.props') 'all product paths bound'
+            if($script:fault -eq 'product' -or ($script:changedProduct -and $script:changedProduct -in $Arguments)){throw 'changed product'}
+        }
         default {throw 'Unexpected git command'}
     }
 }
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $script:fault -ne 'missing'}
-function Get-Item {param($LiteralPath,$Force,$ErrorAction) @{Attributes=[IO.FileAttributes]::Normal}}
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction) @{Attributes=[IO.FileAttributes]::Normal}}
 function Get-FileHash {param($LiteralPath,$Algorithm,$ErrorAction)
     if($script:fault -eq 'hash'){return @{Hash='wrong'}}
     foreach($name in $expectedHashes.Keys){if($LiteralPath -eq (Join-Path ([IO.Path]::GetDirectoryName($policy.Executable)) $name)){return @{Hash=$expectedHashes[$name]}}}
@@ -76,14 +84,26 @@ $gate=@{
 }
 Assert-OrdinaryPreflight $policy
 Check ($script:inventory -eq 1) 'complete preflight'
-foreach($fault in @('token','branch','dirty','source','history','product','missing','hash','target','cim')){
+foreach($fault in @('token','branch','dirty','untracked','source','history','product','missing','hash','target','cim')){
     $script:fault=$fault
     Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $gate} "preflight rejects $fault"
     Check ($script:acquisitions -eq 0) "no acquisitions after $fault"
 }
 $script:fault=''
+foreach($source in $policy.Sources){
+    $script:badSource='HEAD:clients/windows/tests/'+$source
+    Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $gate} "changed source $source"
+    Check ($script:acquisitions -eq 0) 'source failure before acquisition'
+}
+$script:badSource=''
+foreach($path in @('clients/windows/Talenro.Demo.App','clients/windows/Talenro.Demo.Core','clients/windows/Directory.Build.props')){
+    $script:changedProduct=$path
+    Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $gate} "changed product $path"
+    Check ($script:acquisitions -eq 0) 'product failure before acquisition'
+}
+$script:changedProduct=''
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $LiteralPath -ne $script:missingPath}
-function Get-Item {param($LiteralPath,$Force,$ErrorAction)
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
     @{Attributes=$(if($LiteralPath -eq $script:reparsePath){[IO.FileAttributes]::ReparsePoint}else{[IO.FileAttributes]::Normal})}
 }
 function Get-FileHash {param($LiteralPath,$Algorithm,$ErrorAction)
@@ -112,7 +132,7 @@ Assert-OrdinaryPreflight $policy
 Check ($null -ne (Get-Command New-OrdinaryReceiptWriter -ErrorAction SilentlyContinue)) 'RED: receipt factory missing'
 # A removed path check must expose collision/reparse destinations before any write.
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $LiteralPath -in $script:existing}
-function Get-Item {param($LiteralPath,$Force,$ErrorAction)
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
     @{Attributes=$(if($LiteralPath -eq $script:reparse){[IO.FileAttributes]::ReparsePoint}else{[IO.FileAttributes]::Directory})}
 }
 $destination=Join-Path $policy.ReceiptRoot $context.RunId
@@ -239,6 +259,8 @@ function Get-CimInstance {param($ClassName,$Filter,$ErrorAction)
     if($script:cimFault -eq 'unspecified'){$date=[datetime]::SpecifyKind($date,[DateTimeKind]::Unspecified)}
     if($script:cimFault -eq 'local'){$date=$date.ToLocalTime()}
     $row=@{ProcessId=123;ExecutablePath=$policy.Executable;CommandLine=$policy.ExpectedCommandLine;CreationDate=$date}
+    if($script:cimFault -eq 'trailing'){$row.CommandLine+=' '}
+    if($script:cimFault -eq 'extra'){$row.CommandLine+=' --layout-test'}
     $row;if($script:cimFault -eq 'multiple'){$row}
 }
 function Start-Sleep {param($Milliseconds) Check ($Milliseconds -eq 7) 'bounded sleep forwarding only'}
@@ -267,10 +289,26 @@ foreach($failure in @($false,$true)){
     Check (($script:events -join ',') -ceq 'preflight,launch,native,native,managed') 'native first single launch'
     Check ($script:original.Disposed -and @($script:receipt.Resources|Where-Object {-not $_.Disposed}).Count -eq 0) 'all originals disposed'
     $rows=@($script:receipt.Rows|ForEach-Object {$_|ConvertFrom-Json})
+    Check (-not $rows[-1].Finalized) 'persisted outcome precedes cleanup finalization'
     Check (@($rows|Where-Object RunId -CNE ('a'*32)).Count -eq 0 -and $rows[0].Observation -ceq 'OrdinaryAccountCenter') 'manifest and samples correlate'
     Check (($script:receipt.Rows -join '') -notmatch 'private-') 'sanitized shared failure receipts'
     if($failure){Check ($rows[-1].Kind -ceq 'outcome' -and $rows[-1].Outcome -ceq 'observation-failed' -and @($rows|Where-Object {$_.Kind -eq 'pair' -and $_.Incomplete}).Count -eq 1) 'failure preserves incomplete native pair'}
 }
+foreach($bad in @('trailing','extra')){
+    Reset-Receipt;$script:events.Clear();$script:original.Disposed=$false;$script:managedFault=$false;$script:cimFault=$bad
+    $script:backend=New-OrdinaryBackend $policy
+    $script:backend.Publish={param($record)}
+    Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $script:backend} "strict command line rejects $bad"
+    Check (@($script:events|Where-Object {$_ -eq 'launch'}).Count -eq 1 -and $script:original.Disposed) 'identity failure single acquisition and cleanup'
+}
+$script:cimFault=''
+Reset-Receipt;$script:events.Clear();$script:original.Disposed=$false
+$script:backend=New-OrdinaryBackend $policy
+$script:backend.ElapsedMs={[double]360000}
+$script:backend.Publish={param($record)}
+$result=Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $script:backend
+Check ($result.Outcome -ceq 'timed-out' -and -not $result.ExitVerified -and $result.Finalized) 'exact deadline not verified exit'
+Check (@($script:events|Where-Object {$_ -eq 'launch'}).Count -eq 1 -and -not $script:events.Contains('native') -and $script:original.Disposed) 'deadline no native sample or retry and cleanup'
 Reset-Receipt;$script:events.Clear();$script:backend=New-OrdinaryBackend $policy;$script:backend.Remove('ReadNative')
 Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $script:backend} 'missing callback rejected'
 Check ($script:events.Count -eq 0 -and $script:receipt.Events.Count -eq 0) 'missing callback no live fallback'

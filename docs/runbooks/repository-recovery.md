@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — FOCUSED564 AND FIVE SYNTHETIC REGRESSIONS PASS; COVERAGE GATE OPEN:
+Read [continuation record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
+New-test Force mocks fixed under separate approval. One focused run564 assertions
+and five regression suites152/120/48/32 cases/78 passed, all exit0. No App launch,
+restore/build/CIM/native helper. Product/shared/old-entry files unchanged.
+Review identifies outstanding CreateNew no-overwrite and combined wrapper
+write/cleanup-error coverage. Do not treat green suites as all checklist items
+complete or invoke RunApproved. Additional tests need bounded continuation.
+
 LATEST — ORDINARY OBSERVER UNFINISHED; FIRST GREEN ATTEMPT FAILED:
 Read [execution record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
 New entry/test exist but are NOT live-ready. Expected missing-entry RED exit1;
