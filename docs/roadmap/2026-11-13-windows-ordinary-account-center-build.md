@@ -1,5 +1,57 @@
 # Ordinary account-center preparation — Task1 execution
 
+## Task2 — one locked local restore and one native build succeeded
+
+2026-11-13: user separately authorized Task2, failure-stop/zero retry/no launch.
+Source5ee8a339b574171fc61f3cf0c0c636bd86421397, clean development worktree.
+Ordinary token, successful relevant-process query0, SDK10.0.403. Candidate bin/obj
+absent; resolved ancestors non-reparse. Rechecked4278 protected file hashes and
+saved/verified58 current Core bin/obj snapshots in evidence-task2 before writes.
+19 locked package entries matched metadata contentHash;16 distinct archives'
+SHA512 matched their sidecars. No dependency download/install or lock update.
+
+Read-only App/Core evaluation matched fixed App-only namespace and default Core
+paths/empty RID. App win-x64, DefineConstants TRACE;DEBUG with no diagnostics.
+Dedicated ignored local-only NuGet config used the existing project cache as sole
+package/audit source and globalPackagesFolder. No audit suppression.
+
+Exactly one `dotnet restore` with --locked-mode and the plan's fixed properties:
+exit0,1.304s; Core77ms/App401ms. Inspected both assets: locked=true, sole intended
+config/source/cache, selected App obj/default Core obj. Lock hashes unchanged;
+candidate bin still absent before first build.
+
+Exactly one `dotnet build --no-restore` with the same properties: exit0,29.654s
+command/29.34s reported build,0 errors/1 warning. Both restore and build warned
+NU1905: local audit source provides no vulnerability data. This is not dependency
+security clearance. No global RID/output overrides or App execution.
+
+Candidate directory (relative to clients/windows/Talenro.Demo.App):
+bin/ordinary-account-center/Debug/net10.0-windows10.0.19041.0/win-x64/.
+
+| File | Bytes | SHA256 |
+| --- | ---: | --- |
+| Talenro.Demo.App.exe |312320|FEDA8E835E8390ED7F166FA764413FBEC9BCE591C7C7CF7E8E43E028B03C0375|
+| Talenro.Demo.App.dll |202752|773AE00EC4E5552D65ECDFA527FEEE6688AE380D8ED4DB4D3282DD10C1B76A0B|
+| Talenro.Demo.Core.dll |36864|67FDB3F42E69350400B8A9FC11BCFB54670233B4571F2E27BA91F30E8D19DE18|
+
+Post-build all4278 protected old file hashes unchanged,605 new App files all
+within selected candidate bin/obj namespaces,0 outside.12 preexisting Core files
+changed within the disclosed dependency outputs/restore records; verified original
+snapshots retained. Successful final related-process query0. No retries/force-kill.
+
+Local ignored logs in this plan's workspace:
+- restore-task2.log SHA256 F01FD6DBF6DDFE127C340B3432ABB8883F129B01C052048A060FC9DBEED20B35
+- build-task2.log SHA256 E735098DB1F9A56E47F5A8BC0C7CB4890B53C4B4FE2583E39475A70855039220
+
+Task2 complete. Build/preservation checks are not Task3's full PE/XAML/XBF/static
+artifact acceptance. Next: read-only Task3 inspection and provenance review; do
+not rebuild or launch. Both authorized invocations consumed, live allowance0.
+Earlier Task1 Minor stays deferred; no new test run or C4 acceptance. Fresh clone
+restores source/docs, not ignored candidate, cache, logs or snapshots.
+
+Historical Task1 report follows; its statements about then-absent candidate are
+superseded only by the Task2 result above.
+
 Date2026-11-13, baseline80db7a35b6e9a0bbd424005a64c4f6bf7e62834d.
 User approved isolation configuration and managed tests only. No App restore,
 native build or launch authorized/executed; Tasks2/3 remain gated.

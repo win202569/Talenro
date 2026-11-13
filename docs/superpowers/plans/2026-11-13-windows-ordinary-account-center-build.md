@@ -15,7 +15,9 @@ tests executed (RED4/16, GREEN16/16, combined34/34); Task1 checkpoint complete.
 Independent review:0 Critical/Important,1 deferred Minor (valid guard acceptance
 not directly invoked by tests; predicate correct on inspection).
 See [execution report](../../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
-Tasks2/3 remain unexecuted and no native build/live allowance exists. Historical
+Task2 subsequently separately approved and completed: one locked local restore
+exit0 and one no-restore native build exit0,0 errors/NU1905 warning; old4278 files
+unchanged. Task3 static inspection pending; no further build/live allowance. Historical
 checkbox list below records the prescribed steps, not further run authority.
 
 ## Global Constraints

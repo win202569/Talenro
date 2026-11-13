@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY TASK2 BUILD SUCCEEDED, NO LAUNCH:
+Read [build receipt/hashes](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
+Source5ee8a339, one local locked restore and one no-restore build exit0. NU1905
+retained; security not cleared.4278 old files unchanged;605 new App files in fixed
+ordinary candidate paths only;58 verified Core snapshots/12 changed Core files.
+Task3 full static artifact inspection remains pending. No remaining build/live
+allowance; clone restores source/report, not local binary/cache/evidence.
+
 LATEST — ORDINARY ISOLATION TASK1 IMPLEMENTED, SCOPED TESTS GREEN:
 Read [execution record](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
 New16/16 and combined34/34 pass after expected RED;4278 protected files unchanged,
