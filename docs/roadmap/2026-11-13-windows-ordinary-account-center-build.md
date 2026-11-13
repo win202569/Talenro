@@ -1,5 +1,52 @@
 # Ordinary account-center preparation — Task1 execution
 
+## Task3 — read-only static artifact inspection, 2026-11-13
+
+User authorized static checks only. No build, restore, tests, application launch,
+UI input or assembly loading. Read PE headers/metadata as data with PEReader.
+Inspection HEAD1680985e; App/Core/props have no diff from build source5ee8a339.
+Generated AssemblyInformationalVersion records that exact build-source SHA.
+
+| Check | Static result and boundary |
+| --- | --- |
+| Source/generated Account layout | Generated XML panel named AccountGeometryPanel has HorizontalAlignment=Center; shared source agrees |
+| Generated/deployed layout correlation | Both AccountPage.xbf files are1817bytes/SHA256 A50DDC403AD9E41EA977AE868551AE25B6079674094EBE0BE38CD12C2B7EFE6F; generated-file list includes source-derived XAML and both XBF paths |
+| Architecture | EXE and DLL AMD64; EXE native apphost, DLL managed metadata |
+| Diagnostic code isolation |47 DLL type definitions; none of selected LayoutPresentation/LayoutOptions/LayoutWindowObserver/geometry/close-stage payload types;0 manifest resources, hence no embedded diagnostic fixtures/strings |
+| Ordinary reserved arguments | ReservedLayoutArguments type present; unchanged source ordinary branch rejects reserved --layout arguments; runtime rejection not executed |
+| Dependency identity | Copied Core DLL36864bytes SHA25667FDB3F42E69350400B8A9FC11BCFB54670233B4571F2E27BA91F30E8D19DE18 equals current default Core output |
+| Target/runtime | deps target .NETCoreApp,Version=v10.0/win-x64; runtimeconfig net10.0, included Microsoft.NETCore.App10.0.14 |
+| Generated output isolation | All586 generated-file-list entries under selected App bin/obj;605 new App files total,0 outside those namespaces |
+| Preservation | All4278 protected file hashes unchanged;58 Core snapshot hashes verified,12 current Core files changed as disclosed |
+| Process state | Successful related-process query0; not evidence of a new application exit |
+
+App EXE/DLL hashes exactly match Task2 table; no replacement/rebuild. Additional
+identity: deps.json42809bytes SHA25699DD4D70751D66997DF9DA858C09DDA2BB68A8FDFAC7F671E4FAB5B35D910ED6;
+runtimeconfig.json359bytes SHA2563FA241FAED5CC59579FA3B630E1A873E5539428B9CED9A4CA48F5828488E9666.
+
+These correlated source/build/generated/deployed checks support that the ordinary
+candidate includes the Center fix and excludes diagnostic payload. They do not
+decode XBF semantics independently or prove rendered fit, keyboard behavior,
+normal shutdown or runtime side-effect absence. Shared geometry element names in
+XAML are expected, not evidence that diagnostic recorder code was compiled.
+NU1905 and the Task1 deferred Minor remain; no vulnerability/signature, Release,
+C4 or overall acceptance promotion.
+
+Fresh independent reviewer ordinary_artifact_final_review found0 Critical,
+0 Important and no new Minor; existing Task1 Minor remains deferred. Independently
+confirmed selected PE/type/resource/hash/layout/file-list/Core/asset/source
+identity evidence and bounded report claims. No reviewer mutation or execution.
+Reviewer did not independently repeat historical token/process/destination/cache
+checks or the entire4278-file/605-addition/58-snapshot inventory; those remain
+coordinator execution evidence. Runtime/security/Release/C4/broader branch and
+Git delivery are not inferred from review. Ruling: retain these limits, do not
+promote them to independently reproduced or runtime accepted results.
+
+Tasks1–3 scoped preparation complete, with one deferred test-coverage Minor and
+NU1905 retained. No source fix, extra test or build was made during final review.
+Next possible work is a separately reviewed, exact-artifact-bound ordinary native
+verification entry/plan, not an automatic launch. Build/live allowance0.
+
 ## Task2 — one locked local restore and one native build succeeded
 
 2026-11-13: user separately authorized Task2, failure-stop/zero retry/no launch.

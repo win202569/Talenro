@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY CANDIDATE STATIC CHECKS RECORDED:
+Read Task3 in [artifact record](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
+Center generated layout/deployed XBF correlation, no diagnostic metadata payload,
+matching candidate/Core hashes and isolated outputs checked without execution.
+Old4278 files unchanged; no build/restore/test/launch this turn. Independent scoped
+review0 Critical/Important, no new Minor; prior test-coverage Minor deferred.
+Static readiness is not native/C4/security/Release acceptance.
+Live0; any later launch needs a separately reviewed fixed artifact binding.
+
 LATEST — ORDINARY TASK2 BUILD SUCCEEDED, NO LAUNCH:
 Read [build receipt/hashes](../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
 Source5ee8a339, one local locked restore and one no-restore build exit0. NU1905

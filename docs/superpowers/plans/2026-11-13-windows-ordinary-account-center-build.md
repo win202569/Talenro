@@ -17,7 +17,9 @@ not directly invoked by tests; predicate correct on inspection).
 See [execution report](../../roadmap/2026-11-13-windows-ordinary-account-center-build.md).
 Task2 subsequently separately approved and completed: one locked local restore
 exit0 and one no-restore native build exit0,0 errors/NU1905 warning; old4278 files
-unchanged. Task3 static inspection pending; no further build/live allowance. Historical
+unchanged. Task3 static inspection and fresh independent scoped review completed:
+0 Critical/Important, no new Minor; existing Minor and NU1905 retained. No further
+build/live allowance; static preparation only, not C4/runtime acceptance. Historical
 checkbox list below records the prescribed steps, not further run authority.
 
 ## Global Constraints
