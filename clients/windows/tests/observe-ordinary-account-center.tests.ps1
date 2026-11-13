@@ -149,6 +149,27 @@ $script:existing=@();$script:reparse=''
 # Capture real factory and encoder; wrappers below isolate all disk access.
 $script:factory=Get-Command New-OrdinaryReceiptWriter
 $encoder=Get-Command New-OrdinaryTextWriter
+# Exercise the actual opener, not its memory double. Only these fresh ignored
+# fixture files touch disk; never use the candidate or its observation directory.
+$realOpener=Get-Command Open-OrdinaryNewStream
+$fixtureRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../.superpowers/sdd/2026-11-13-windows-ordinary-minimal-observation/fixtures'))
+$fixtureDirectory=Join-Path $fixtureRoot ([guid]::NewGuid().ToString('N'))
+$null=[IO.Directory]::CreateDirectory($fixtureDirectory)
+foreach($filename in @('manifest.json','samples.jsonl')){
+    $fixturePath=Join-Path $fixtureDirectory $filename
+    $stream=$null
+    try{
+        $stream=& $realOpener $fixturePath
+        Check ($stream -is [IO.FileStream] -and $stream.CanWrite) "real opener creates $filename"
+        $stream.WriteByte(42);$stream.Flush()
+    }finally{if($null -ne $stream){$stream.Dispose()}}
+    $second=$null;$collision=$null
+    try{$second=& $realOpener $fixturePath}catch{$collision=$_.Exception}
+    finally{if($null -ne $second){$second.Dispose()}}
+    Check ($null -ne $collision -and $null -eq $second) "real opener refuses existing $filename"
+    $bytes=[IO.File]::ReadAllBytes($fixturePath)
+    Check ($bytes.Length -eq 1 -and $bytes[0] -eq 42) "existing $filename bytes preserved"
+}
 $memory=[IO.MemoryStream]::new();$encoded=& $encoder $memory
 $encoded.WriteLine('C4')
 Check ($memory.Length -eq 4 -and $memory.ToArray()[0] -eq 67) 'UTF8 no BOM and immediate flush'
@@ -167,7 +188,10 @@ function Open-OrdinaryNewStream {param($Path)
     $script:receipt.Events.Add("$kind-open")
     if($script:receipt.Fault -eq "$kind-open"){throw 'private-open'}
     $s=[pscustomobject]@{Kind=$kind;State=$script:receipt;Disposed=$false;Memory=[IO.MemoryStream]::new()}
-    $s|Add-Member ScriptMethod Dispose {$this.Disposed=$true;$this.State.Events.Add($this.Kind+'-stream-dispose');$this.Memory.Dispose()}
+    $s|Add-Member ScriptMethod Dispose {
+        $this.Disposed=$true;$this.State.Events.Add($this.Kind+'-stream-dispose');$this.Memory.Dispose()
+        if($this.State.Fault -contains ($this.Kind+'-stream-dispose')){throw 'private-stream-dispose'}
+    }
     $script:receipt.Resources.Add($s);$s
 }
 function New-OrdinaryTextWriter {param($Stream)
@@ -213,6 +237,28 @@ foreach($bad in @(('A'*32),('0'*32),'../escape','', 'abc')){
     Reset-Receipt;$invalid=$context.Clone();$invalid.RunId=$bad
     Reject {& $script:factory $policy $invalid} 'invalid receipt id'
     Check ($script:receipt.Events.Count -eq 0) 'invalid id no filesystem effects'
+}
+# Direct factory assertions: the primary error must survive alongside every
+# subsequent cleanup error, and later cleanup must run after an earlier throw.
+foreach($case in @(
+    @{Faults=@('manifest-write','manifest-dispose','manifest-stream-dispose');Primary='private-write';Count=3;Writer=$true;Kind='manifest'},
+    @{Faults=@('manifest-flush','manifest-dispose','manifest-stream-dispose');Primary='private-flush';Count=3;Writer=$true;Kind='manifest'},
+    @{Faults=@('manifest-writer','manifest-stream-dispose');Primary='private-writer';Count=2;Writer=$false;Kind='manifest'},
+    @{Faults=@('samples-writer','samples-stream-dispose');Primary='private-writer';Count=2;Writer=$false;Kind='samples'}
+)){
+    Reset-Receipt $case.Faults
+    $failure=$null;$output=@()
+    try{$output=@(& $script:factory $policy $context)}catch{$failure=$_.Exception}
+    Check ($failure -is [AggregateException] -and $output.Count -eq 0) 'combined failure has no successful writer'
+    Check ($failure.InnerExceptions.Count -eq $case.Count) 'all primary and cleanup errors retained'
+    Check ($failure.InnerExceptions[0].ToString().Contains($case.Primary)) 'primary error retained first'
+    if($case.Writer){
+        Check ($failure.InnerExceptions[1].ToString().Contains('private-dispose')) 'writer disposal error retained second'
+        Check (($script:receipt.Events | Select-Object -Last 2) -join ',' -ceq ($case.Kind+'-writer-dispose,'+$case.Kind+'-stream-dispose')) 'stream cleanup continues after writer failure'
+    }
+    Check ($failure.InnerExceptions[-1].ToString().Contains('private-stream-dispose')) 'stream cleanup error retained last'
+    Check (@($script:receipt.Resources|Where-Object {-not $_.Disposed}).Count -eq 0) 'all acquired combined-failure resources attempted cleanup'
+    Check ($script:receipt.Launches -eq 0) 'combined factory failure never acquires process'
 }
 foreach($key in @('ExpectedPath','ExpectedCommandLine')){
     Reset-Receipt;$invalid=$context.Clone();$invalid[$key]='wrong'

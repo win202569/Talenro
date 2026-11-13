@@ -1,5 +1,15 @@
 # Recover the project on a new computer
 
+LATEST — TWO RECEIPT COVERAGE GATES CLOSED; SINGLE FOCUSED RUN598 PASS:
+Read [latest receipt-test record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
+Actual opener refuses overwrite for both receipt filenames and preserves bytes;
+four simultaneous primary/cleanup-failure cases assert all retained errors and
+cleanup continuation. One fresh-host run exit0/598; no App/build/restore/retry.
+Tests create two tiny ignored fixture files, never candidate/original receipts.
+Production unchanged; four deferred Minors remain. Previous five-suite results
+are not a new run. Live still requires separate approval and current preflight;
+clone does not restore candidate binaries, local fixtures or runtime acceptance.
+
 LATEST — FOCUSED564 AND FIVE SYNTHETIC REGRESSIONS PASS; COVERAGE GATE OPEN:
 Read [continuation record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
 New-test Force mocks fixed under separate approval. One focused run564 assertions

@@ -14,6 +14,12 @@ Status2026-11-13: checklist confirmed, implementation started. Expected missing-
 
 Continuation: separately approved Force correction and one focused run passed564 assertions; five planned regressions passed152/120/48/32 cases/78. Independent review complete:0 Critical,2 Important verification gaps,4 deferred Minors (execution record). Task1 D coverage remains open (real CreateNew behavior and combined wrapper errors). Earlier stop remains historical evidence, not current GREEN status. No further run or live allowance inferred.
 
+Latest continuation after3935c670: separately approved two receipt tests and one
+focused run now PASS598/exit0. Actual CreateNew no-overwrite and combined factory
+failure aggregation gates closed. Prior statuses above are historical; four
+review Minors and live/runtime acceptance boundaries remain. No production change,
+no rerun or new review, no live authority. See execution record for exact coverage.
+
 ## Global Constraints
 
 - Branch codex/c12-b01-task9-coordinator; Windows PowerShell only. No product/shared-module/original-entry edits, restore, build, install, security changes or live invocation in implementation scope.

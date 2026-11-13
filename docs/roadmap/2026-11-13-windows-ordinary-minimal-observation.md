@@ -1,5 +1,37 @@
 # Ordinary observer implementation — unfinished checkpoint
 
+## Latest: two receipt verification gates closed by approved synthetic run
+
+Continuation after3935c670: user approved only the two missing tests and one
+synthetic run, no App launch. New tests invoke the actual Open-OrdinaryNewStream
+for both manifest.json and samples.jsonl in a fresh GUID fixture directory under
+ignored .superpowers/sdd/2026-11-13-windows-ordinary-minimal-observation/fixtures.
+Each creates one byte42, closes it, attempts reopening, then verifies rejection
+and unchanged byte content. Two tiny fixtures retained; no original receipt or
+candidate modified. This is real local fixture I/O, not an entirely memory-only
+test; process/native/CIM/sleep effects remain simulated.
+
+Four direct factory cases inject simultaneous failures: manifest write or flush
+plus writer and stream disposal; manifest or samples writer construction plus
+stream disposal. Assertions check AggregateException counts2/3, primary first,
+each cleanup error retained, cleanup continues after writer failure, all acquired
+resources receive disposal attempts, no successful writer and no acquisition.
+
+Single fresh PowerShell7.6.9 invocation of observe-ordinary-account-center.tests.ps1:
+exit0,598 assertions PASS (previous564 plus34). No second run, broad regression,
+review dispatch, App launch, native compile, restore or build in this continuation.
+Production entry/shared files unchanged; five-suite results below are prior-run
+evidence, not repeated today. Both Important review coverage gates now have
+direct passing tests. This does not fix or dismiss the four deferred Minors,
+especially the inherited AutoFlush initialization/disposal diagnostic limitation.
+No new production behavior was added, so this is test-gap closure, not a claimed
+RED/GREEN production fix. Previous failures remain recorded below.
+
+Next: separate live approval, with current binary/source/path/process preflight
+still required, at most one visible run/zero retries/360000ms, close by300s.
+No current live allowance or runtime/C4/security/Release acceptance. Exact viewport
+and host command-line serialization still require their own evidence.
+
 Date2026-11-13; base4ec59956; branch codex/c12-b01-task9-coordinator.
 User approved entry implementation and synthetic tests, no application launch.
 
