@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版独立构建与静态检查方案待批准
+
+现有两份普通版仍是旧账户布局，不能用于居中修复补验；已记录其哈希。
+见[普通版隔离方案](../superpowers/specs/2026-11-13-windows-ordinary-account-center-build-design.md)。
+建议固定App专用bin/obj目录，诊断全关；保留旧App产物与记录，单独说明Core默认输出可能重建。
+本轮只编写方案，未改配置/源码、未测试/还原/构建/启动；实施及构建需后续明确批准。
+
 ## Latest — 两项键盘专项已取得通过证据
 
 新授权run5b14bb63977d4ceb98cf0ea0a1cd2afb，root650×620/page430×534：

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY CANDIDATE DESIGN PREPARED, NOT IMPLEMENTED:
+Read [isolated ordinary build proposal](../superpowers/specs/2026-11-13-windows-ordinary-account-center-build-design.md).
+Both existing ordinary copies lack Center in their generated Account layout.
+Proposed fixed App-only namespace keeps all diagnostics off and old App outputs
+unchanged; Core default output regeneration is a separately disclosed boundary.
+Design awaits approval; no configuration changes/restore/build/tests/launch this
+turn. No candidate hashes exist yet. Ordinary Debug evidence is not Release acceptance.
+
 LATEST — TWO KEYBOARD CHECKS OBSERVED ON A NEW AUTHORIZED RUN:
 Read [scoped result](../roadmap/2026-11-13-windows-keyboard-followup-observation.md).
 Run5b14bb63977d4ceb98cf0ea0a1cd2afb at650x620 passed keyboard-only auto-scroll
