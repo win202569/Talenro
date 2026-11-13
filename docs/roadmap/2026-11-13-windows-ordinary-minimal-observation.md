@@ -1,5 +1,26 @@
 # Ordinary observer implementation — unfinished checkpoint
 
+## Latest live authorization: blocked before launch by CIM access
+
+User approved one real observation, zero retries, at most6min. Invoked the fixed
+entry once with RunApproved on1e1ccf1a. Child PowerShell exit1 with generic
+observer failure; no start/outcome record. No rerun performed.
+
+Read-only follow-up extracted function declarations only and invoked preflight,
+never the entry body/backend. It reached the target/prototype CIM inventory and
+failed with `无法从客户端中访问 CIM 资源。` (CimException). Earlier ordinary-token,
+branch/clean-source, pinned source diff, six artifact hash and reparse checks
+therefore passed during that read-only preflight. A separate read-only inventory
+query failed with CimException too: residual process count is UNKNOWN, not zero.
+The ordinary-account-observations receipt root is absent. Entry ordering plus
+preflight failure establishes that this invocation never acquired a writer or
+launched the target. UI helper initialized only; no window selected or input sent.
+
+No build/restore/security change, alternative launch, bypass or retry. Runtime
+checks all NOT_RUN; no acceptance promotion. Do not automatically reuse this
+attempt's authorization. Next scope is read-only environment/CIM diagnosis or a
+user-run ordinary PowerShell preflight; new live invocation needs renewed approval.
+
 ## Latest: two receipt verification gates closed by approved synthetic run
 
 Continuation after3935c670: user approved only the two missing tests and one

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ONE APPROVED LIVE ENTRY ATTEMPT BLOCKED BEFORE APP LAUNCH:
+On1e1ccf1a entry exit1; read-only preflight isolated CIM inventory access failure.
+Six hashes/source/path/token checks passed before that query. No writer/target
+acquisition, receipt root absent; no UI input. Separate query also failed, so
+residual count UNKNOWN. See [record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
+No retry/bypass/security change. Diagnose environment read-only next; obtain new
+approval before another live entry invocation. Runtime checks remain NOT_RUN.
+
 LATEST — TWO RECEIPT COVERAGE GATES CLOSED; SINGLE FOCUSED RUN598 PASS:
 Read [latest receipt-test record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
 Actual opener refuses overwrite for both receipt filenames and preserves bytes;
