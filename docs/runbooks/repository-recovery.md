@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY DESIGN APPROVED; EXECUTION CHECKLIST AWAITS CONFIRMATION:
+Read [three-stage checklist](../superpowers/plans/2026-11-13-windows-ordinary-account-center-build.md).
+No implementation/tests/restore/build/launch performed. Task1 needs configuration
+and managed-test authority; Task2 separately needs one locked local restore and
+one conditional native build, including disclosed Core writes. Live0/C4 unaccepted.
+Resume from this branch's docs; no new ordinary candidate or hashes yet.
+
 LATEST — ORDINARY CANDIDATE DESIGN PREPARED, NOT IMPLEMENTED:
 Read [isolated ordinary build proposal](../superpowers/specs/2026-11-13-windows-ordinary-account-center-build-design.md).
 Both existing ordinary copies lack Center in their generated Account layout.

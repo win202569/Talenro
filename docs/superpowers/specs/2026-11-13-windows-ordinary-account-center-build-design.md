@@ -1,7 +1,8 @@
 # Ordinary account-center isolated build and static inspection design
 
-Date: 2026-11-13. Status: proposed, awaiting approval. Preparation only;
-no configuration implementation, restore, build, tests or application launch.
+Date: 2026-11-13. Status: design approved by user; detailed checklist prepared.
+Approval does not authorize implementation/tests/restore/build/application launch.
+See [execution checklist](../plans/2026-11-13-windows-ordinary-account-center-build.md).
 
 ## Intent and evidence
 
@@ -29,7 +30,7 @@ recommend a fixed App-only variant following the existing account-center pattern
 Reusing ordinary/close-stage paths would overwrite old evidence. Global arbitrary
 output overrides risk propagating to Core and NuGet imports; do not use them.
 A separate worktree duplicates environment preparation and is unnecessary here.
-The exact property/path names below are the agent's proposal, not yet approved.
+The exact property/path names below were included in the approved design.
 
 ## Fixed isolation contract
 

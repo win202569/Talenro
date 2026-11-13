@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版设计已批准，详细执行清单待确认
+
+见[三阶段清单](../superpowers/plans/2026-11-13-windows-ordinary-account-center-build.md)：
+Task1隔离配置与受限托管测试；Task2另行批准本地锁定还原/原生构建；Task3只读静态检查。
+本轮仅文档，未改配置、未测试/还原/构建/启动。建议下一步仅授权Task1，不能直接执行Task2。
+旧产物保护与Core可能重建的边界保持不变；候选产物尚不存在，C4未验收。
+
 ## Latest — 普通版独立构建与静态检查方案待批准
 
 现有两份普通版仍是旧账户布局，不能用于居中修复补验；已记录其哈希。
