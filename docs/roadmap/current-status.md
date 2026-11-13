@@ -1,4 +1,12 @@
-# Project status — updated 2026-11-12
+# Project status — updated 2026-11-13
+
+## Latest — 键盘专项观察超时，恢复时未重跑
+
+run a9fb7f631688418ca06806aaaaeb0527落盘结果为360秒deadline超时，ExitVerified=false。
+仅Login2样本、Account0；用户已回复缩窗完成，但代理未在截止前完成后续检查。
+原执行会话已不可恢复；当前CIM查询成功且相关进程0，不能据此补报正常退出或退出0。
+见[超时及恢复记录](2026-11-13-windows-keyboard-followup-timeout.md)。两项键盘专项仍未验证，
+额度0；无新增启动/强杀/构建/测试，C4未验收。任何新观察需新授权及连续配合时间。
 
 ## Latest — 下方控件及恢复补验完成一轮，保留两项观察限制
 

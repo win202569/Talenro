@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — KEYBOARD FOLLOW-UP EXPIRED; NO RESTART ON RESUME:
+Read [timeout record](../roadmap/2026-11-13-windows-keyboard-followup-timeout.md).
+Runa9fb7f631688418ca06806aaaaeb0527 saved deadline/timed-out at360000.835ms,
+ExitVerified=false; original terminal session unavailable. Current successful CIM
+query count0 is not an exit0/graceful-close receipt. Login2/Account0; keyboard-only
+return-focus and automatic-scroll checks remain unverified. Live0; preserve raw
+records and earlier scoped passes. A new run requires fresh bounded authority.
+
 LATEST — LOWER-CONTROLS RUN RECORDED, LIMITED PASS/UNVERIFIED SPLIT:
 Read [result](../roadmap/2026-11-12-windows-account-lower-controls-observation.md).
 Run413d4b9827c2434a9e8ede6879f9b059 exited0 at229.93s, residuals0. Lower buttons,
