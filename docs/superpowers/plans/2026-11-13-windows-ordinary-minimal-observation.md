@@ -10,7 +10,7 @@
 
 **Spec:** [Approved design](../specs/2026-11-13-windows-ordinary-minimal-observation-design.md).
 
-Status2026-11-13: design approved; checklist prepared for confirmation. No implementation, tests, restore, build or launch performed by this preparation.
+Status2026-11-13: checklist confirmed, implementation started. Expected missing-entry RED exit1; first GREEN attempt failed on test mock Force binding, stopped without retry. Task1 coverage incomplete; Task2 not started. See [execution record](../../roadmap/2026-11-13-windows-ordinary-minimal-observation.md). No restore/build/launch.
 
 ## Global Constraints
 

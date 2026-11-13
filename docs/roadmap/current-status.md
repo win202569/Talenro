@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-13
 
+## Latest — 普通版入口已初步实现，合成测试失败后按清单停止
+
+见[未完成记录](2026-11-13-windows-ordinary-minimal-observation.md)。RED按预期失败；
+首次GREEN在测试替身Get-Item的Force参数绑定处失败（退出1），未修正或重跑。
+需修正新测试的开关参数并补齐清单覆盖；五组合成回归与独立复核尚未执行。
+本轮无应用启动、还原或构建；入口未验收，不能用于实机检查，启动额度0。
+
 ## Latest — 普通版入口实现与合成测试清单已准备，待确认
 
 设计已批准；见[执行清单](../superpowers/plans/2026-11-13-windows-ordinary-minimal-observation.md)。

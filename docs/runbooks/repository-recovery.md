@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY OBSERVER UNFINISHED; FIRST GREEN ATTEMPT FAILED:
+Read [execution record](../roadmap/2026-11-13-windows-ordinary-minimal-observation.md).
+New entry/test exist but are NOT live-ready. Expected missing-entry RED exit1;
+first GREEN exit1 at test Get-Item Force binding, stopped without retry.
+Next: bounded test-mock correction and remaining coverage, then synthetic-only
+regression/review if green. No App/restore/build/live authority; do not run entry
+with RunApproved. Existing product/shared files unchanged; no acceptance uplift.
+
 LATEST — ORDINARY ENTRY/SYNTHETIC CHECKLIST PREPARED, AWAITING CONFIRMATION:
 Read [implementation plan](../superpowers/plans/2026-11-13-windows-ordinary-minimal-observation.md).
 Design approved; no entry implementation/tests/restore/build/launch this turn.
