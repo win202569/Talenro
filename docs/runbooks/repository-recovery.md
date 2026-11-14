@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY COVERAGE/FOCUS EVIDENCE CONSOLIDATED READ-ONLY:
+Read [remaining acceptance](../roadmap/2026-11-14-windows-ordinary-remaining-acceptance.md).
+Do not mistake pane/window focus metadata for a reproduced defect: prior diagnostic
+success also had pane2 metadata, but visible outlines. Ordinary run had no stable
+visible button-focus start and input interference. No code regression identified
+in four pages compared with build source; runtime keyboard remains UNVERIFIED.
+Next proposed work is manual-keyboard follow-up planning, not a fix or launch.
+No code/test/build/App actions this turn; live allowance0 and old evidence intact.
+
 LATEST — EXACT-BINDING LIVE RUN EXIT VERIFIED, UI COVERAGE PARTIAL:
 Read [run record](../roadmap/2026-11-14-windows-ordinary-exact-binding-live-observation.md).
 Runf3c2f05a843b42abac087ae32517791f once,173.66s, returned ExitVerified=true/
