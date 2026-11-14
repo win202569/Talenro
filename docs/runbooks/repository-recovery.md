@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ORDINARY LIVE RUN ABORTED ON EXACT COMMAND-LINE IDENTITY:
+Read [run record](../roadmap/2026-11-14-windows-ordinary-live-identity-abort.md).
+Run29a966a471034fb5bb838febb4a2f981 launched once; actual quoted EXE had one extra
+trailing space, so strict identity failed and entry exit1. No relaxation/retry.
+Normal titlebar Close followed by successful inventory0 and no window, but original
+observer ExitVerified=false remains; do not infer exit code/verified exit later.
+Account/keyboard route NOT_RUN, live budget spent. Next is read-only serialization
+analysis/design, no automatic binding edit or relaunch. Raw receipts stay ignored.
+
 LATEST2026-11-14 — CIM DENIAL IS EXECUTION-CONTEXT DEPENDENT:
 Read [read-only diagnosis](../roadmap/2026-11-14-windows-cim-access-diagnosis.md).
 Restricted context fails CIM/service access; permission-reviewed host execution,
