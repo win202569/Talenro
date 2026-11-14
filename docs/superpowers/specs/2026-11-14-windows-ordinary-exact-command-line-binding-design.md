@@ -1,7 +1,7 @@
 # Ordinary exact command-line binding amendment
 
-Date2026-11-14. User selected the precise-binding approach; this written design
-awaits approval. Documentation only: no entry/test/shared code changed, no tests,
+Date2026-11-14. User approved this design; [implementation/test checklist](../plans/2026-11-14-windows-ordinary-exact-command-line-binding.md)
+awaits confirmation. Documentation only: no entry/test/shared code changed, no tests,
 restore/build or application launch. Live allowance remains0.
 
 ## Intent and approaches
@@ -46,7 +46,7 @@ space, two spaces, tab, CR/LF, NBSP and any appended argument all fail.
 
 Proposed fixed host evidence, copied from the read-only inspection:
 - PowerShell version7.6.9, edition Core.
-- Command: Microsoft.PowerShell.Management\\Start-Process; command type Cmdlet.
+- Command: Microsoft.PowerShell.Management\Start-Process; command type Cmdlet.
 - Implementing type: Microsoft.PowerShell.Commands.StartProcessCommand.
 - Implementing assembly file: Microsoft.PowerShell.Commands.Management.dll,
   assembly version7.6.0.500, file version7.6.9.500.

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — EXACT BINDING DESIGN APPROVED; EXECUTION CHECKLIST PREPARED:
+Read [implementation/test plan](../superpowers/plans/2026-11-14-windows-ordinary-exact-command-line-binding.md).
+Preflight returns validated captured command/evidence; backend consumes that
+binding; receipt receives scalar verified evidence, strict Context stays unchanged.
+One exact terminal U+0020, no tolerance. Plan awaits confirmation, source still
+old contract. No test/build/launch this turn; next proposed scope synthetic-only.
+
 LATEST — EXACT-BINDING APPROACH SELECTED; WRITTEN DESIGN AWAITS APPROVAL:
 Read [amendment](../superpowers/specs/2026-11-14-windows-ordinary-exact-command-line-binding-design.md).
 One exact terminal U+0020, unchanged Ordinal comparator, pinned launcher component,

@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 精确绑定设计已批准，实施与测试清单待确认
+
+见[新清单](../superpowers/plans/2026-11-14-windows-ordinary-exact-command-line-binding.md)：
+唯一末尾U+0020、逐字符比较、验证并捕获启动命令、记录已核实启动组件信息；
+先合成RED/GREEN，再五组回归和独立复核，意外失败停止。旧失败结果和四项Minor保留。
+本轮只改文档，未改代码/测试/构建/启动；清单待确认，实机额度0。
+
 ## Latest — 精确绑定方向已选择，正式设计待批准
 
 见[正式设计](../superpowers/specs/2026-11-14-windows-ordinary-exact-command-line-binding-design.md)。
