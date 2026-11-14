@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST2026-11-14 — CIM DENIAL IS EXECUTION-CONTEXT DEPENDENT:
+Read [read-only diagnosis](../roadmap/2026-11-14-windows-cim-access-diagnosis.md).
+Restricted context fails CIM/service access; permission-reviewed host execution,
+still NON-admin and same PS7.6.9, sees three Running services, self1/targets0.
+No security/service changes or App launch. Do not change UAC/WMI ACLs. Future
+separately approved live entry may use that host context but must retain all
+preflight gates. No existing live/retry authorization carries forward.
+
 LATEST — ONE APPROVED LIVE ENTRY ATTEMPT BLOCKED BEFORE APP LAUNCH:
 On1e1ccf1a entry exit1; read-only preflight isolated CIM inventory access failure.
 Six hashes/source/path/token checks passed before that query. No writer/target

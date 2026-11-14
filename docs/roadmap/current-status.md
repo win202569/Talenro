@@ -1,4 +1,11 @@
-# Project status — updated 2026-11-13
+# Project status — updated 2026-11-14
+
+## Latest — CIM阻塞定位到执行环境访问边界，无需改安全设置
+
+只读对比：默认环境CIM/服务查询AccessDenied；获准的主机执行环境仍非管理员，
+同版PowerShell查询成功，WMI/RPC/DCOM服务运行，目标/原型进程0。
+见[诊断记录](2026-11-14-windows-cim-access-diagnosis.md)。未启动应用或修改设置。
+下次可在另行批准后使用该主机执行环境运行原入口，仍须全部检查通过；启动额度0。
 
 ## Latest — 实机入口在启动前被CIM访问错误阻塞
 
