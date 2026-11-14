@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 人工逐键最小补验方案已准备，未启动
+
+见[补验方案](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md)。
+用户独占键盘输入，代理只读观察；中途不回聊天以免转移焦点，先建立可见按钮焦点。
+主查前后遍历/自动滚动及一个管理设备弹窗，恢复仅时间充足时检查；阶段超时即停止并正常关闭。
+保留精确绑定及全部检查；本轮仅文档，无代码/测试/启动。方案待确认，实机额度0。
+
 ## Latest — 剩余普通版验收与焦点证据已只读归并
 
 见[覆盖清单](2026-11-14-windows-ordinary-remaining-acceptance.md)。已验证精确绑定/正常退出与部分显示；

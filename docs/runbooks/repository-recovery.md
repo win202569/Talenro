@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — MANUAL-KEYBOARD FOLLOW-UP PROTOCOL PREPARED, NOT AUTHORIZED LIVE:
+Read [protocol](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md).
+Single input owner: user presses individual prompted keys without returning to
+chat; agent only observes during that block. Visible outlines required, bounded
+stage deadlines and normal close by300s. Same exact binding/all safety gates.
+No code/test/build/launch this turn. Protocol approval and continuous cooperation
+must precede a separate one-run authorization; current live allowance0.
+
 LATEST — ORDINARY COVERAGE/FOCUS EVIDENCE CONSOLIDATED READ-ONLY:
 Read [remaining acceptance](../roadmap/2026-11-14-windows-ordinary-remaining-acceptance.md).
 Do not mistake pane/window focus metadata for a reproduced defect: prior diagnostic
