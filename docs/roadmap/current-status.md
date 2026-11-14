@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 精确绑定实机运行正常退出，界面仅部分验证
+
+runf3c2f05a843b42abac087ae32517791f单次启动，约173.66秒退出，ExitVerified/Finalized=true、入口退出0。
+默认及定性窄窗账户显示取得证据；Tab后未建立按钮焦点，键盘/弹窗/重置路线未完成。
+正常关闭后进程0、六份产物哈希一致。见[实机记录](2026-11-14-windows-ordinary-exact-binding-live-observation.md)。
+未重试/放宽检查/构建；额度0，不能提升为完整UI/C4/安全验收。建议只读归并剩余覆盖与焦点证据。
+
 ## Latest — 精确绑定已实现，专项751项与五组合成回归通过
 
 入口现在只接受引号EXE+单U+0020，校验并捕获固定启动cmdlet及组件证据；共享Ordinal检查不变。

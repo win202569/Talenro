@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EXACT-BINDING LIVE RUN EXIT VERIFIED, UI COVERAGE PARTIAL:
+Read [run record](../roadmap/2026-11-14-windows-ordinary-exact-binding-live-observation.md).
+Runf3c2f05a843b42abac087ae32517791f once,173.66s, returned ExitVerified=true/
+Finalized=true, entry0; persisted pre-cleanup Finalized=false preserved. Residual0,
+six hashes unchanged. Default/narrow qualitative display observed; button-focus
+route unverified, dialog/reset not run. No full UI/C4/security acceptance. Live
+budget spent; next read-only coverage/focus analysis, no automatic relaunch.
+
 LATEST — EXACT BINDING IMPLEMENTED; SYNTHETIC GREEN751 AND FIVE SUITES PASS:
 Read [execution record](../roadmap/2026-11-14-windows-ordinary-exact-binding-execution.md).
 Only ordinary wrapper/test changed; one exact U+0020, qualified verified/captured
