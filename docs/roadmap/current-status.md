@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 人工逐键观察已正常退出，按键交接证据不足
+
+见[本次记录](2026-11-14-windows-ordinary-manual-keyboard-observation.md)。单次启动约47.11秒正常退出，
+ExitVerified/Finalized=true、入口0、残留0、六份产物哈希不变。人工Tab提示后两次截图无明确焦点，
+但未独立确认用户已完成按键，不能认定人工输入失败或产品缺陷。遍历/滚动未验证，弹窗/重置未执行。
+无代码/测试/构建或重试，额度0。下一步先确认交接是否完成，改进无需切换焦点的完成信号，再考虑新方案。
+
 ## Latest — 人工逐键最小补验方案已准备，未启动
 
 见[补验方案](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md)。
