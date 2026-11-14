@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EXACT BINDING IMPLEMENTED; SYNTHETIC GREEN751 AND FIVE SUITES PASS:
+Read [execution record](../roadmap/2026-11-14-windows-ordinary-exact-binding-execution.md).
+Only ordinary wrapper/test changed; one exact U+0020, qualified verified/captured
+launcher, unchanged shared identity/ownership gates. RED expected, GREEN751,
+regressions152/120/48/32 cases/78 all exit0. No App/build/restore/live CIM.
+Review disposition is recorded there; no live allowance or automatic runtime
+substitution. Prior identity-failed run remains failed; four old Minors retained.
+
 LATEST — EXACT BINDING DESIGN APPROVED; EXECUTION CHECKLIST PREPARED:
 Read [implementation/test plan](../superpowers/plans/2026-11-14-windows-ordinary-exact-command-line-binding.md).
 Preflight returns validated captured command/evidence; backend consumes that

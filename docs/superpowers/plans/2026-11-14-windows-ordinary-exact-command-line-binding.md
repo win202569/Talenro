@@ -12,6 +12,13 @@
 
 Status2026-11-14: design approved; this checklist awaits confirmation. No code/test changes or execution in this preparation. Preserve existing inline implementation method plus final independent scoped review.
 
+Execution update: user confirmed; wrapper/test implemented. RED expected exact
+string failure; GREEN751 and five suites152/120/48/32 cases/78 pass. Independent
+review0 Critical/Important;3 minor proof deviations plus4 prior Minors deferred,
+explicitly recorded in [execution report](../../roadmap/2026-11-14-windows-ordinary-exact-binding-execution.md).
+The unchecked detailed steps below are the original checklist, not a claim every
+test subcase was proven; consult report for exact exceptions. No live run.
+
 ## Global Constraints
 
 - Worktree c12-b01-task9-coordinator, branch codex/c12-b01-task9-coordinator; PowerShell only.

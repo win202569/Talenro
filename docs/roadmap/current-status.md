@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-14
 
+## Latest — 精确绑定已实现，专项751项与五组合成回归通过
+
+入口现在只接受引号EXE+单U+0020，校验并捕获固定启动cmdlet及组件证据；共享Ordinal检查不变。
+RED按预期失败，GREEN751项退出0；既有五组152/120/48/32案例/78全部退出0。
+见[实施记录](2026-11-14-windows-ordinary-exact-binding-execution.md)。无App启动/构建/还原，原入口及共享模块未改。
+独立审查0严重/重要问题，新增三组次要测试覆盖差异已记录；既有四项Minor保留。
+可提出另行批准的实机观察，当前实机额度0，不自动启动或提升验收。
+
 ## Latest — 精确绑定设计已批准，实施与测试清单待确认
 
 见[新清单](../superpowers/plans/2026-11-14-windows-ordinary-exact-command-line-binding.md)：

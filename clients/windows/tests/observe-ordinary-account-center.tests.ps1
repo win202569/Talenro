@@ -14,6 +14,7 @@ function Import-Module {throw 'Forbidden default import'}
 function git {throw 'Forbidden default git'}
 function Get-FileHash {throw 'Forbidden default hash'}
 function Stop-Process {throw 'Forbidden termination'}
+function Get-Command {throw 'Forbidden default discovery'}
 Check (Test-Path -LiteralPath $entry) 'RED: Ordinary entry missing'
 $result=@(& $entry)
 Check ($result.Count -eq 1 -and $result[0].Status -ceq 'NotStarted') 'one no-start result'
@@ -21,6 +22,7 @@ foreach($parameter in @('Executable','Hash','Arguments','Profile','Language','De
     Reject {& $entry @{$parameter='forbidden'}} "reject public $parameter override"
 }
 Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) 'native helper absent'
+Remove-Item Function:Get-Command
 $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile($entry,[ref]$tokens,[ref]$errors)
 Check ($errors.Count -eq 0) 'entry parses'
@@ -31,7 +33,78 @@ foreach($fn in $ast.FindAll({param($a)$a -is [Management.Automation.Language.Fun
 }
 $policy=Get-OrdinaryPolicy 'D:\fixture with spaces'
 Check ($policy.Arguments -ceq '') 'fixed Ordinary arguments'
-Check ($policy.ExpectedCommandLine -ceq ('"'+$policy.Executable+'"')) 'independent command line'
+$expectedCommandLine='"D:\fixture with spaces\clients\windows\Talenro.Demo.App\bin\ordinary-account-center\Debug\net10.0-windows10.0.19041.0\win-x64\Talenro.Demo.App.exe"'+[char]32
+Check ($policy.ExpectedCommandLine -ceq $expectedCommandLine) 'exact one U+0020 command line'
+Check ($policy.CommandLineProfile -ceq 'shell-quoted-exe-one-u0020-v1') 'exact serialization profile'
+$expectedLauncher=@{
+    CommandName='Microsoft.PowerShell.Management\Start-Process';CommandType='Cmdlet'
+    ImplementingType='Microsoft.PowerShell.Commands.StartProcessCommand'
+    PowerShellVersion='7.6.9';Edition='Core';AssemblyName='Microsoft.PowerShell.Commands.Management.dll'
+    AssemblyVersion='7.6.0.500';FileVersion='7.6.9.500'
+    Sha256='2181516B3A55866A2263DDAB22A7547FC815240F474199088B8ABA030B92264A'
+}
+foreach($key in $expectedLauncher.Keys){Check ($policy.LauncherExpected[$key] -ceq $expectedLauncher[$key]) "independent launcher $key"}
+# Metadata access only; this command object is never invoked by these tests.
+$metadataCommand=Get-Command 'Microsoft.PowerShell.Management\Start-Process' -CommandType Cmdlet
+$script:launcherFixture=$expectedLauncher.Clone()
+$script:launcherFixture.Command=$metadataCommand
+$script:launcherFixture.AssemblyPath=$metadataCommand.ImplementingType.Assembly.Location
+$collector=Get-Command Get-OrdinaryLauncherEvidence
+$script:binding=Assert-OrdinaryLauncherBinding $policy $script:launcherFixture
+foreach($key in $expectedLauncher.Keys){
+    $bad=$script:launcherFixture.Clone();$bad[$key]='wrong';$errorSeen=$null
+    try{Assert-OrdinaryLauncherBinding $policy $bad|Out-Null}catch{$errorSeen=$_.Exception.Message}
+    Check ($errorSeen -ceq ('Launcher binding mismatch: '+$key)) "specific binding rejection $key"
+    $bad=$script:launcherFixture.Clone();$bad.Remove($key)
+    Reject {Assert-OrdinaryLauncherBinding $policy $bad} "missing launcher $key"
+}
+$bad=$script:launcherFixture.Clone();$bad.Command=Get-Command Check
+Reject {Assert-OrdinaryLauncherBinding $policy $bad} 'function cannot masquerade as cmdlet'
+$bad=$script:launcherFixture.Clone();$bad.AssemblyPath='relative.dll'
+Reject {Assert-OrdinaryLauncherBinding $policy $bad} 'relative launcher path rejected'
+$script:launcherFixture.FileVersion='mutated'
+Check ($script:binding.Evidence.FileVersion -ceq '7.6.9.500') 'binding scalar snapshot independent of input'
+$script:launcherFixture.FileVersion='7.6.9.500'
+$script:discoveryMode='';$script:launcherReparse=''
+$functionCommand=Get-Command Check
+function Get-Command {param($Name,$ErrorAction)
+    Check ($Name -ceq 'Microsoft.PowerShell.Management\Start-Process') 'collector uses qualified command'
+    switch($script:discoveryMode){
+        'zero' {return}
+        'many' {$metadataCommand;$metadataCommand;return}
+        'function' {$functionCommand;return}
+        default {$metadataCommand}
+    }
+}
+function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $script:discoveryMode -ne 'missing-file'}
+function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
+    if($script:discoveryMode -eq 'read'){throw 'read-denied'}
+    @{Attributes=$(if($LiteralPath -ceq $script:launcherReparse){[IO.FileAttributes]::ReparsePoint}else{[IO.FileAttributes]::Normal});VersionInfo=@{FileVersion='7.6.9.500'}}
+}
+function Get-FileHash {param($LiteralPath,$Algorithm,$ErrorAction)
+    if($script:discoveryMode -eq 'hash-read'){throw 'hash-denied'}
+    Check ($LiteralPath -ceq $metadataCommand.ImplementingType.Assembly.Location -and $Algorithm -ceq 'SHA256') 'collector hashes implementing assembly'
+    @{Hash=$expectedLauncher.Sha256}
+}
+$collected=& $collector
+foreach($key in $expectedLauncher.Keys){Check ($collected[$key] -ceq $expectedLauncher[$key]) "real collector field $key"}
+Check ([object]::ReferenceEquals($collected.Command,$metadataCommand)) 'collector retains resolved command'
+foreach($mode in @('zero','many','function','missing-file','read','hash-read')){
+    $script:discoveryMode=$mode
+    Reject {& $collector} "collector rejects $mode"
+}
+$script:discoveryMode='';$ancestor=$metadataCommand.ImplementingType.Assembly.Location
+while($ancestor){
+    $script:launcherReparse=$ancestor
+    $failureMessage=$null;try{& $collector|Out-Null}catch{$failureMessage=$_.Exception.Message}
+    Check ($failureMessage -ceq 'Reparse launcher path rejected.') 'each launcher ancestor rejects specifically'
+    $ancestor=[IO.Path]::GetDirectoryName($ancestor)
+}
+$script:launcherReparse=''
+Remove-Item Function:Get-Command
+Remove-Item Function:Test-Path
+Remove-Item Function:Get-Item
+function Get-OrdinaryLauncherEvidence { $script:launcherFixture.Clone() }
 $expectedHashes=@{
     'Talenro.Demo.App.exe'='FEDA8E835E8390ED7F166FA764413FBEC9BCE591C7C7CF7E8E43E028B03C0375'
     'Talenro.Demo.App.dll'='773AE00EC4E5552D65ECDFA527FEEE6688AE380D8ED4DB4D3282DD10C1B76A0B'
@@ -46,6 +119,15 @@ Check ($policy.BuildSourceCommit -ceq '5ee8a339b574171fc61f3cf0c0c636bd86421397'
 Check (($policy.Sources -join ',') -ceq 'observe-ordinary-account-center.ps1,c5-observation-session.psm1,observation-session-guard.psm1,process-observation.psm1,native-process-observation.psm1,native-process-observation.cs') 'all consumed sources checked'
 Remove-Item Function:Import-Module
 Import-Module (Join-Path $PSScriptRoot 'c5-observation-session.psm1')
+Import-Module (Join-Path $PSScriptRoot 'observation-session-guard.psm1')
+$identityTime=[datetime]::Parse('2026-11-09T18:39:47.4427247Z').ToUniversalTime()
+$identityFixture=@{ProcessId=123;CimProcessId=123;ExpectedPath=$policy.Executable;CimPath=$policy.Executable;ExpectedCommandLine=$expectedCommandLine;CimCommandLine=$expectedCommandLine;ProcessStartUtc=$identityTime;CimCreationUtc=$identityTime.AddTicks(-7);NativeCreationFileTime=$identityTime.ToFileTimeUtc()}
+Assert-TalenroObservationIdentity @identityFixture
+Check $true 'real identity guard accepts sole exact string'
+foreach($badLine in @($expectedCommandLine.Substring(0,$expectedCommandLine.Length-1),($expectedCommandLine+' '),($expectedCommandLine+[char]9),($expectedCommandLine+[char]13),($expectedCommandLine+[char]10),($expectedCommandLine+[char]160),($expectedCommandLine+'--layout-test'),($expectedCommandLine+'other'),$expectedCommandLine.Replace('fixture','Fixture'))){
+    $invalidIdentity=$identityFixture.Clone();$invalidIdentity.CimCommandLine=$badLine
+    Reject {Assert-TalenroObservationIdentity @invalidIdentity} 'real strict guard rejects near-match'
+}
 $script:fault='';$script:acquisitions=0;$script:inventory=0
 function Assert-OrdinaryOrdinaryToken {if($script:fault -eq 'token'){throw 'blocked'}}
 function Invoke-OrdinaryGit {param($Root,$Arguments)
@@ -82,7 +164,7 @@ $gate=@{
     AcquireProcess={$script:acquisitions++;throw 'unexpected process'}
     GetIdentity={};ReadNative={};ReadManaged={};ReadCim={};ElapsedMs={0};SleepMs={};Publish={}
 }
-Assert-OrdinaryPreflight $policy
+$null=Assert-OrdinaryPreflight $policy
 Check ($script:inventory -eq 1) 'complete preflight'
 foreach($fault in @('token','branch','dirty','untracked','source','history','product','missing','hash','target','cim')){
     $script:fault=$fault
@@ -102,6 +184,12 @@ foreach($path in @('clients/windows/Talenro.Demo.App','clients/windows/Talenro.D
     Check ($script:acquisitions -eq 0) 'product failure before acquisition'
 }
 $script:changedProduct=''
+foreach($key in $expectedLauncher.Keys){
+    $script:launcherFixture[$key]='wrong'
+    Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $gate} "binding blocks acquisition $key"
+    Check ($script:acquisitions -eq 0) 'no writer/process on launcher failure'
+    $script:launcherFixture[$key]=$expectedLauncher[$key]
+}
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $LiteralPath -ne $script:missingPath}
 function Get-Item {param($LiteralPath,[switch]$Force,$ErrorAction)
     @{Attributes=$(if($LiteralPath -eq $script:reparsePath){[IO.FileAttributes]::ReparsePoint}else{[IO.FileAttributes]::Normal})}
@@ -128,7 +216,7 @@ foreach($name in $expectedHashes.Keys){
     }
     $script:reparsePath=''
 }
-Assert-OrdinaryPreflight $policy
+$null=Assert-OrdinaryPreflight $policy
 Check ($null -ne (Get-Command New-OrdinaryReceiptWriter -ErrorAction SilentlyContinue)) 'RED: receipt factory missing'
 # A removed path check must expose collision/reparse destinations before any write.
 function Test-Path {param($LiteralPath,$PathType,$ErrorAction) $LiteralPath -in $script:existing}
@@ -213,18 +301,26 @@ function New-OrdinaryTextWriter {param($Stream)
     $script:receipt.Resources.Add($w);$w
 }
 Reset-Receipt
-$owned=@(& $script:factory $policy $context)
+$owned=@(& $script:factory $policy $context $script:binding)
 Check ($owned.Count -eq 1 -and $owned[0].Kind -eq 'samples') 'exactly one transferred writer'
 Check (($script:receipt.Events -join ',') -ceq 'check,directory,manifest-open,manifest-write,manifest-flush,manifest-writer-dispose,manifest-stream-dispose,manifest-stream-dispose,samples-open') 'manifest closed before sample acquisition'
 $manifest=$script:receipt.Rows[0]|ConvertFrom-Json
+Check ($manifest.CommandLineProfile -ceq 'shell-quoted-exe-one-u0020-v1' -and $manifest.ExpectedCommandLine -ceq $expectedCommandLine) 'manifest exact serialization'
+foreach($key in $expectedLauncher.Keys){Check ($manifest.Launcher.$key -ceq $expectedLauncher[$key]) "manifest launcher $key"}
+Check (@($manifest.Launcher.PSObject.Properties).Count -eq 9) 'manifest no command object or local assembly path'
 $expectedManifest=@{SchemaVersion=1;Observation='OrdinaryAccountCenter';RunId='a'*32;Language='default-environment';Profile='default-environment';ExecutableRelativePath='clients/windows/Talenro.Demo.App/bin/ordinary-account-center/Debug/net10.0-windows10.0.19041.0/win-x64/Talenro.Demo.App.exe';Arguments='';BuildSourceCommit='5ee8a339b574171fc61f3cf0c0c636bd86421397';ObservationCapMs=360000;MaxSleepMs=2000}
-Check (@($manifest.PSObject.Properties).Count -eq 11) 'manifest no private extras'
+Check (@($manifest.PSObject.Properties).Count -eq 14) 'manifest no private extras'
 foreach($name in $expectedHashes.Keys){Check ($manifest.ArtifactHashes.$name -ceq $expectedHashes[$name]) "manifest hash $name"}
 foreach($key in $expectedManifest.Keys){Check ($manifest.$key -ceq $expectedManifest[$key]) "manifest $key"}
 Check (-not $owned[0].Disposed) 'sample ownership transferred alive'
 $owned[0].Dispose()
+foreach($invalidBinding in @($null,@{Command=$script:binding.Command;Evidence=@{}})){
+    Reset-Receipt
+    Reject {& $script:factory $policy $context $invalidBinding} 'invalid binding blocks receipt'
+    Check ($script:receipt.Events.Count -eq 0) 'binding checked before receipt side effects'
+}
 $gate.Preflight={}
-$gate.AcquireWriter={param($c) & $script:factory $policy $c}
+$gate.AcquireWriter={param($c) & $script:factory $policy $c $script:binding}
 $gate.AcquireProcess={$script:receipt.Launches++;throw 'unexpected launch'}
 foreach($fault in @('collision','directory','manifest-open','manifest-writer','manifest-write','manifest-flush','manifest-dispose','samples-open','samples-writer')){
     Reset-Receipt $fault
@@ -235,7 +331,7 @@ foreach($fault in @('collision','directory','manifest-open','manifest-writer','m
 }
 foreach($bad in @(('A'*32),('0'*32),'../escape','', 'abc')){
     Reset-Receipt;$invalid=$context.Clone();$invalid.RunId=$bad
-    Reject {& $script:factory $policy $invalid} 'invalid receipt id'
+    Reject {& $script:factory $policy $invalid $script:binding} 'invalid receipt id'
     Check ($script:receipt.Events.Count -eq 0) 'invalid id no filesystem effects'
 }
 # Direct factory assertions: the primary error must survive alongside every
@@ -248,7 +344,7 @@ foreach($case in @(
 )){
     Reset-Receipt $case.Faults
     $failure=$null;$output=@()
-    try{$output=@(& $script:factory $policy $context)}catch{$failure=$_.Exception}
+    try{$output=@(& $script:factory $policy $context $script:binding)}catch{$failure=$_.Exception}
     Check ($failure -is [AggregateException] -and $output.Count -eq 0) 'combined failure has no successful writer'
     Check ($failure.InnerExceptions.Count -eq $case.Count) 'all primary and cleanup errors retained'
     Check ($failure.InnerExceptions[0].ToString().Contains($case.Primary)) 'primary error retained first'
@@ -262,7 +358,7 @@ foreach($case in @(
 }
 foreach($key in @('ExpectedPath','ExpectedCommandLine')){
     Reset-Receipt;$invalid=$context.Clone();$invalid[$key]='wrong'
-    Reject {& $script:factory $policy $invalid} "mismatched $key"
+    Reject {& $script:factory $policy $invalid $script:binding} "mismatched $key"
     Check ($script:receipt.Events.Count -eq 0) 'context mismatch no filesystem effects'
 }
 Check ($null -ne (Get-Command New-OrdinaryBackend -ErrorAction SilentlyContinue)) 'RED: backend missing'
@@ -273,8 +369,8 @@ $script:start=[datetime]::Parse('2026-11-09T18:39:47.4427247Z').ToUniversalTime(
 $script:original=[pscustomobject]@{Id=123;StartTime=$script:start;SafeHandle=[object]::new();Disposed=$false}
 $script:original|Add-Member ScriptMethod Dispose {$this.Disposed=$true}
 $script:cimFault='';$script:managedFault=$false
-function Assert-OrdinaryPreflight {param($Policy) $script:events.Add('preflight')}
-function Start-Process {param($FilePath,$ArgumentList,$WorkingDirectory,[switch]$PassThru,$ErrorAction)
+function Assert-OrdinaryPreflight {param($Policy) $script:events.Add('preflight'); if($script:backendPreflightFault){throw 'preflight-fault'}; @{Command=(Get-Command Invoke-FakeOrdinaryLaunch);Evidence=$expectedLauncher.Clone()} }
+function Invoke-FakeOrdinaryLaunch {param($FilePath,$ArgumentList,$WorkingDirectory,[switch]$PassThru,$ErrorAction)
     Check ($FilePath -ceq $policy.Executable -and (-not $PSBoundParameters.ContainsKey('ArgumentList')) -and $PassThru) 'fixed launch arguments'
     Check ($WorkingDirectory -ceq [IO.Path]::GetDirectoryName($policy.Executable)) 'fixed launch directory'
     Check ((& $script:backend.ElapsedMs) -gt 0) 'clock running before launch'
@@ -305,6 +401,7 @@ function Get-CimInstance {param($ClassName,$Filter,$ErrorAction)
     if($script:cimFault -eq 'unspecified'){$date=[datetime]::SpecifyKind($date,[DateTimeKind]::Unspecified)}
     if($script:cimFault -eq 'local'){$date=$date.ToLocalTime()}
     $row=@{ProcessId=123;ExecutablePath=$policy.Executable;CommandLine=$policy.ExpectedCommandLine;CreationDate=$date}
+    if($script:cimFault -eq 'old'){$row.CommandLine=$row.CommandLine.Substring(0,$row.CommandLine.Length-1)}
     if($script:cimFault -eq 'trailing'){$row.CommandLine+=' '}
     if($script:cimFault -eq 'extra'){$row.CommandLine+=' --layout-test'}
     $row;if($script:cimFault -eq 'multiple'){$row}
@@ -313,6 +410,10 @@ function Start-Sleep {param($Milliseconds) Check ($Milliseconds -eq 7) 'bounded 
 $script:backend=New-OrdinaryBackend $policy
 Check ((($script:backend.Keys|Sort-Object) -join ',') -ceq 'AcquireProcess,AcquireWriter,ElapsedMs,GetIdentity,Preflight,Publish,ReadCim,ReadManaged,ReadNative,SleepMs') 'exact ten callbacks'
 Check ((& $script:backend.ElapsedMs) -eq 0) 'clock not running before acquisition'
+Reject {& $script:backend.AcquireProcess $context} 'acquire before validation blocked'
+Reject {& $script:backend.AcquireWriter $context} 'writer before validation blocked'
+& $script:backend.Preflight $context
+function Start-Process {throw 'Forbidden shadow after validation'}
 $process=& $script:backend.AcquireProcess $context
 Check ([object]::ReferenceEquals($process,$script:original)) 'original process transferred'
 $identity=& $script:backend.GetIdentity $process
@@ -340,7 +441,7 @@ foreach($failure in @($false,$true)){
     Check (($script:receipt.Rows -join '') -notmatch 'private-') 'sanitized shared failure receipts'
     if($failure){Check ($rows[-1].Kind -ceq 'outcome' -and $rows[-1].Outcome -ceq 'observation-failed' -and @($rows|Where-Object {$_.Kind -eq 'pair' -and $_.Incomplete}).Count -eq 1) 'failure preserves incomplete native pair'}
 }
-foreach($bad in @('trailing','extra')){
+foreach($bad in @('old','trailing','extra')){
     Reset-Receipt;$script:events.Clear();$script:original.Disposed=$false;$script:managedFault=$false;$script:cimFault=$bad
     $script:backend=New-OrdinaryBackend $policy
     $script:backend.Publish={param($record)}
@@ -358,5 +459,12 @@ Check (@($script:events|Where-Object {$_ -eq 'launch'}).Count -eq 1 -and -not $s
 Reset-Receipt;$script:events.Clear();$script:backend=New-OrdinaryBackend $policy;$script:backend.Remove('ReadNative')
 Reject {Invoke-TalenroC5Observation -Mode Synthetic -Context $context -Backend $script:backend} 'missing callback rejected'
 Check ($script:events.Count -eq 0 -and $script:receipt.Events.Count -eq 0) 'missing callback no live fallback'
+$script:backend=New-OrdinaryBackend $policy
+& $script:backend.Preflight $context
+$script:backendPreflightFault=$true
+Reject {& $script:backend.Preflight $context} 'second preflight failure retained'
+Reject {& $script:backend.AcquireProcess $context} 'failed preflight clears captured command'
+Reject {& $script:backend.AcquireWriter $context} 'failed preflight clears writer evidence'
+$script:backendPreflightFault=$false
 Check ($null -eq ('Talenro.Diagnostics.NativeObservationV1.NativeProbe' -as [type])) 'native helper still absent'
 Write-Output "PASS: $script:checks Ordinary synthetic assertions; no real launch/CIM/native/sleep."
