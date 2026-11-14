@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 精确绑定方向已选择，正式设计待批准
+
+见[正式设计](../superpowers/specs/2026-11-14-windows-ordinary-exact-command-line-binding-design.md)。
+唯一预期为引号绝对路径+一个U+0020，保留Ordinal比较，绑定已观察启动组件版本/哈希。
+验证并捕获模块限定cmdlet，禁止别名/函数替代；默认入口仍在任何查询前返回。
+只改文档，未改代码/测试/启动；旧失败记录不改写。设计批准后再准备实施清单，启动额度0。
+
 ## Latest — 无参数命令行只读分析完成，精确绑定方案待选择
 
 Shell官方说明与已观察单空格一致；本机启动程序集版本/哈希已只读记录。

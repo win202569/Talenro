@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EXACT-BINDING APPROACH SELECTED; WRITTEN DESIGN AWAITS APPROVAL:
+Read [amendment](../superpowers/specs/2026-11-14-windows-ordinary-exact-command-line-binding-design.md).
+One exact terminal U+0020, unchanged Ordinal comparator, pinned launcher component,
+validated/captured module-qualified cmdlet, no normalization/fallback. Runtime
+updates fail closed; no installs. Documents only, code remains old contract.
+Next is design approval then implementation/test checklist, not a launch. Prior
+failed run stays failed; six artifact pins and all process gates remain intact.
+
 LATEST — SERIALIZATION ANALYSIS/OPTIONS PREPARED, NO BINDING CHANGE:
 Read [analysis](../roadmap/2026-11-14-windows-ordinary-command-line-analysis.md).
 Recommend unchanged launcher and one exact expected terminal U+0020, not trimming
