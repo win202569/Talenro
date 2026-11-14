@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SERIALIZATION ANALYSIS/OPTIONS PREPARED, NO BINDING CHANGE:
+Read [analysis](../roadmap/2026-11-14-windows-ordinary-command-line-analysis.md).
+Recommend unchanged launcher and one exact expected terminal U+0020, not trimming
+or accepting multiple formats; proposed launcher assembly binding limits host
+scope. Alternative new launcher needs broader lifecycle review. User choice and
+design amendment pending. No implementation/test/launch this turn; old contract
+and failed run remain unchanged. Do not reuse prior launch authorization.
+
 LATEST — ORDINARY LIVE RUN ABORTED ON EXACT COMMAND-LINE IDENTITY:
 Read [run record](../roadmap/2026-11-14-windows-ordinary-live-identity-abort.md).
 Run29a966a471034fb5bb838febb4a2f981 launched once; actual quoted EXE had one extra
