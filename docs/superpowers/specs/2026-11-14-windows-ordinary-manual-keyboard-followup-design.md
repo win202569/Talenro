@@ -1,7 +1,9 @@
 # Ordinary manual-keyboard minimal follow-up
 
-Date2026-11-14. Proposed observation protocol, awaiting approval. No code/test
-changes, build/restore, application launch or new live allowance this turn.
+Date2026-11-14. Revised phone-acknowledgement protocol, awaiting approval of this
+revision. User selected phone replies; no code/test changes, build/restore,
+application launch or new live allowance this turn. Earlier one-run allowance
+was consumed; its user-confirmed no-input result remains NOT_RUN.
 
 ## Scope and choice
 
@@ -37,23 +39,58 @@ This protocol does not promise the manual approach will establish focus.
 
 ## Single-owner input handoff
 
-Before launch, confirm user can keep continuous attention and see prompts without
-switching away from the demo during the keyboard block. If that is impractical,
-do not promise this run can prove uninterrupted keyboard focus; stop planning
-and agree on a usable observation arrangement rather than launching speculatively.
+### Approaches and selected channel
+
+User selected phone confirmation in this same conversation. Unlike elapsed-time
+inference, explicit acknowledgement distinguishes waiting from completed input.
+Desktop chat replies would interrupt tested focus and are not the selected route.
+No app instrumentation, new hotkey listener or automation input is introduced.
+
+Before any separately approved launch, perform a no-app channel check: ask for
+"手机准备完成" from the phone and wait for receipt in this conversation. A claim
+that the phone is available is not evidence that its replies reach this observer.
+If delivery fails, stop before launching; do not install/configure tools or switch
+to desktop replies. No screenshot or sensitive data needs sending from the phone.
 
 During preparation the agent may perform necessary Enter demo/Account navigation.
 User alone resizes horizontal edges if convenient, keeping height unchanged.
-One preparation reply is allowed. Then agent states that automated input has
-ended; user reactivates the demo by clicking its titlebar once, without a double
-click or resizing, and subsequently uses keyboard only. No content/scrollbar
-clicks, wheel, repeated/held keys or chat replies during the keyboard block.
+Then agent states that automated input has ended. Separate step0: user clicks the
+demo titlebar once (no double-click/resize) and replies from phone "第0步完成".
+Only after this acknowledgement may step1 request a key. No content/scrollbar
+clicks, wheel, held keys or desktop chat replies during the keyboard block.
 
-Agent issues one short prompt for one physical key at a time. User presses it
-once, releases, and pauses; agent obtains read-only fresh screenshots and text.
-No agent activation/click/press_key is interleaved during this block. Returning
-to chat would contaminate the focus sequence: report that and stop the block,
-do not infer where keys landed or silently restart it.
+### One outstanding numbered step
+
+Agent issues exactly one numbered action, for example "第1步：只按一次Tab，松开；
+然后用手机回复‘第1步完成’，不要再按键". A chord such as Shift+Tab is one action.
+User presses/releases, then replies on phone; a completion message is a user
+report of input, not proof of successful focus movement. Agent does not issue
+stepN+1 before receiving matching acknowledgement AND inspecting stepN results.
+
+Each prompt states a response deadline: proposed maximum30 seconds from issuance,
+or the existing stage deadline/normal-close deadline, whichever is earlier.
+Do not issue a step when fewer than30 seconds remain before its stage ceiling;
+mark remaining coverage incomplete and close normally. These bounds are proposed
+coordination policy, not added runtime allowance. User may phone-reply "未操作",
+"需要暂停" or "停止"; never ask them to hurry or batch multiple keys.
+
+While awaiting acknowledgement, monitor the retained session/time in bounded
+calls, not a final handoff that abandons the live observer. Screenshot absence of
+change is NOT input failure and must not cause early termination by itself.
+Safety failures, user stop, original process exit and deadline still take priority.
+No acknowledgement by deadline: announce the step cancelled, no further keys,
+then normal close; no reminder that repeats the key instruction or retry.
+
+Accept only the current step number. Duplicate, old, future, ambiguous "完成",
+or late replies never advance the sequence or cause a repeated key. Clarify the
+number via phone within the original deadline; do not extend it. Any cancelled
+step stays cancelled. If input was duplicated, misdirected or desktop focus was
+lost, stop the keyboard block and record contamination; no silent restart.
+
+After matching acknowledgement, allow a short render settle then take a fresh
+read-only screenshot (at most one further settled capture if ambiguous). Only
+these post-ack captures support that step's focus judgment. No agent activation,
+click or key is interleaved. Phone replies alone do not establish button focus.
 
 Use screenshots/visible outlines and scrolling as primary evidence. Accessibility
 pane/window focused-element text alone neither passes nor fails focus behavior.
@@ -64,20 +101,24 @@ Do not use a snapshot acquired before resize/input to identify the next target.
 | Elapsed ceiling | Action / stop condition |
 | --- | --- |
 | 0–60s | Confirm visible ordinary window; necessary Enter demo, disconnected/lock-off Connection and Account. No repeated polling if window unavailable. |
-| By90s | Optional horizontal resize and preparation handoff complete. If resize cannot be completed promptly, default-size route only; narrower geometry remains UNVERIFIED. |
+| By90s | Optional resize and separately acknowledged step0 complete. If resize is impractical, default-size route only. No step1 before step0 confirmation. |
 | By150s | Establish a visible actionable-button focus with manual Tab prompts. Maximum12 individual Tabs to find a clear start; stop at an observed wrap/no progress, uncertainty, or time ceiling, whichever comes first. Do not count window/pane metadata as an established start. |
 | By230s | From visible MFA (or earlier sidebar button), observe individual Tab steps through MFA, Manage devices, Language, Delete(focus only), Exit(focus only), then individual Shift+Tab steps back through Delete/Language to Manage. No pointer scrolling. Record automatic scrolling only if it actually occurs; at a roomy viewport it may be NOT_EXERCISED. |
 | By260s | Only with Manage devices visibly focused, user presses Enter once. Observe one offline placeholder. Only with its Close visibly focused, Enter once to close; wait for settled rendering and inspect returned Manage outline. If Close focus unclear, do not send speculative Enter. |
 | Before280s, optional | If primary checks succeeded and ample time remains, announce Exit-demo/reset action separately, observe Login/sidebar hidden and re-enter to disconnected/lock-off. Use existing safe navigation; end keyboard-only block first. Otherwise skip. |
 | By300s | Agent announces end of user input and normally closes the observed window by titlebar X; if agent cannot act safely, user performs X. Keep original observer running to its bounded result; no retry. |
 
-After each key allow a short settle interval and fresh read-only capture; at most
-one additional settled capture if the first image is ambiguous. These are
-observation reads, not additional key attempts. Any missed stage deadline or
-uncertain input/outline ends the keyboard block with UNVERIFIED and normal close;
-do not consume the rest of the budget trying arbitrary focus fixes.
+The stage ceilings remain upper bounds, not a promise all checks fit with phone
+round trips. Do fewer steps rather than shorten acknowledgement waiting, batch
+keys, extend the run or relax evidence. Missed deadline/uncertain post-ack outline
+ends the keyboard block with normal close. No arbitrary focus fixes.
 
 ## Result criteria
+
+- User explicitly confirms no input occurred: NOT_RUN. Missing acknowledgement alone means input
+  completion UNKNOWN, UI result UNVERIFIED (never assume it was or was not pressed).
+  Confirmed input with ambiguous focus: UNVERIFIED, not automatically FAIL.
+  Only observed behavior supports PASS/FAIL; preserve later user clarifications.
 
 - Keyboard traversal PASS only for the visibly recorded forward/reverse sequence;
   record start point and each label. Auto-scroll PASS only if lower controls were
@@ -96,7 +137,8 @@ do not consume the rest of the budget trying arbitrary focus fixes.
 ## Handoff and evidence
 
 Preserve prior ordinary/diagnostic successes and failures without rewriting them.
-Record timestamps/key sequence, input ownership changes, observed labels/outlines,
+Record each prompt number/key, issuance/deadline, matching phone receipt or timeout,
+post-ack screenshot order, input ownership changes, observed labels/outlines,
 per-item PASS/FAIL/UNVERIFIED/NOT_RUN, original session result and post-close
 read-only inventory/hashes. No fabricated geometry receipts. Commit sanitized
 record/status/recovery only; raw images/receipts/candidate remain ignored.

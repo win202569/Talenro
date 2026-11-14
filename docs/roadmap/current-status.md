@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-14
 
+## Latest — 手机逐键确认修订方案已准备，未启动
+
+用户选择手机发送完成确认。见[修订方案](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md)：
+启动前先验证手机同一会话送达；标题栏激活为独立第0步；每次仅一个编号动作，收到对应完成后才截图判定。
+建议每步最多30秒且不突破原阶段时限；无确认不推断按键失败，迟到/重复确认不触发重按。
+六分钟上限、五分钟开始正常关闭、精确绑定及全部安全检查保持不变。只有文档变更；修订待确认，额度0。
+
 ## Latest — 用户确认未操作，人工键盘检查未执行
 
 见[本次记录](2026-11-14-windows-ordinary-manual-keyboard-observation.md)。单次启动约47.11秒正常退出，

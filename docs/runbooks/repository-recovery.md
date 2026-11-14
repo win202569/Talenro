@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — PHONE ACKNOWLEDGEMENT REVISION PREPARED, NO LAUNCH:
+User selected phone completion replies. Read revised [protocol](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md).
+Verify same-conversation phone delivery before launch; separately acknowledge
+titlebar step0, then one outstanding numbered key at a time. Judge fresh screenshots
+only after matching completion. Proposed30s step limit within existing stage caps;
+no confirmation is not proof of failed input. Ignore duplicate/late advancement,
+never repeat keys automatically. All binding/safety/time bounds unchanged.
+Documentation only, revision awaiting approval; live allowance0, no code/tests/build.
+
 LATEST — EXIT VERIFIED; USER CONFIRMED NO MANUAL INPUT:
 Read [run record](../roadmap/2026-11-14-windows-ordinary-manual-keyboard-observation.md).
 Run cba6b07ba6da43faa802369cf19d30eb exited at47.11s, ExitVerified/Finalized=true,
