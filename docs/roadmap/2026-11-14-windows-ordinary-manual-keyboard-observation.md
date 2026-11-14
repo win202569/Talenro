@@ -24,10 +24,16 @@ No source/test/build changes. One launch only; remaining live allowance0.
 
 ## Results
 
+Post-run user clarification: "我没操作" (I did not operate it). Therefore the
+titlebar/Tab handoff was not performed. The agent captured too early and ended
+the attempt before user input; this is an observation-coordination failure, not
+application keyboard evidence. The earlier uncertainty above describes what was
+known during the run, not the final interpretation. Raw records remain unchanged.
+
 | Item | Result |
 | --- | --- |
 | Exact-bound launch and retained-process exit | PASS |
-| Visible Account keyboard start/traversal/auto-scroll | UNVERIFIED |
+| Visible Account keyboard start/traversal/auto-scroll | NOT_RUN (user confirmed no input) |
 | Placeholder keyboard close/focus return | NOT_RUN |
 | Exit-demo reset/re-entry | NOT_RUN |
 
@@ -43,7 +49,6 @@ Manifest SHA256 E4FF9AE414CDCA44DAB2AC5128A663999266A4E549C79D16769291670BA0E137
 Samples SHA256 780E150F6A8EFC193E41ED65F74B1F11956EE4C1D0E5CE0DE59C3267E1CC6733.
 Raw receipts/binaries are not portable repository content.
 
-Next: clarify whether the user completed that titlebar/Tab handoff before close;
-review a reliable non-focus-stealing completion signal before proposing another
+Next: review a reliable non-focus-stealing completion signal before proposing another
 run. Do not infer key delivery from elapsed time, alter code, or relaunch under
 this exhausted authorization. Existing remaining-acceptance list still applies.

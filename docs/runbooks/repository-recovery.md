@@ -1,12 +1,13 @@
 # Recover the project on a new computer
 
-LATEST — MANUAL FOLLOW-UP EXIT VERIFIED; KEY HANDOFF INCONCLUSIVE:
+LATEST — EXIT VERIFIED; USER CONFIRMED NO MANUAL INPUT:
 Read [run record](../roadmap/2026-11-14-windows-ordinary-manual-keyboard-observation.md).
 Run cba6b07ba6da43faa802369cf19d30eb exited at47.11s, ExitVerified/Finalized=true,
 entry0, residual0, six hashes unchanged. Two screenshots after one manual Tab
-prompt had no clear outline, but physical key completion was not confirmed.
-Do not call this a reproduced defect or failed manual input. Traversal unverified;
-dialog/reset not run. No code/test/build/retry; allowance0. Clarify handoff before
+prompt had no clear outline. User subsequently confirmed no operation took place.
+Agent captured and stopped prematurely; this is coordination failure, not a
+reproduced product defect. Keyboard/traversal/scroll/dialog/reset are NOT_RUN.
+No code/test/build/retry; allowance0. Improve completion signaling before
 any separately approved follow-up. Clone restores docs/source, not ignored receipts.
 
 LATEST — MANUAL-KEYBOARD FOLLOW-UP PROTOCOL PREPARED, NOT AUTHORIZED LIVE:
