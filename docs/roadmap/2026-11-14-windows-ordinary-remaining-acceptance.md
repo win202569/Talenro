@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Next proposal2026-11-15: [Language focus / conditional auto-scroll](../superpowers/specs/2026-11-15-windows-language-focus-scroll-design.md).
+At most four acknowledged Tabs; fourth only after fresh Devices evidence and
+before220s to reserve60s confirmation plus20s observation/close. Language focus
+and auto-scroll are judged separately; no need for scroll means NOT_EXERCISED.
+Delete/Exit, reverse navigation and dialog return remain separate, not authorized.
+
 Latest result2026-11-15: [three-Tab observation](2026-11-15-windows-devices-focus-observation.md)
 verified Settings -> MFA -> Manage devices with visible outlines and phone replies.
 Automatic scrolling was NOT_EXERCISED (layout unchanged, scrollbar0); Language/

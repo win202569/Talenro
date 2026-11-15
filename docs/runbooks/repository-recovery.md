@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — LANGUAGE FOCUS/CONDITIONAL SCROLL PROPOSAL, NO LAUNCH:
+Read [next minimum](../superpowers/specs/2026-11-15-windows-language-focus-scroll-design.md).
+At most four Tabs; last adds Devices -> Language with independent focus/scroll
+criteria. Steps3/4 each require fresh predecessor evidence and issuance by220s;
+reserve60s confirmation plus20s close/observation. Never batch to fit. No scroll
+needed means NOT_EXERCISED. Other buttons/reverse/dialog return remain separate.
+All safety gates/360s cap/close by300s unchanged. Docs only, allowance0, review pending.
+
 LATEST — SETTINGS -> MFA -> DEVICES FOCUS PASS, NO ACTIVATION:
 Read [successful three-Tab record](../roadmap/2026-11-15-windows-devices-focus-observation.md).
 Four phone confirmations within60s, visible outlines for all three targets.
