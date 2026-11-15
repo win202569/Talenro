@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — DELETE FOCUS-ONLY PROPOSAL, NO LAUNCH:
+Read [next minimum](../superpowers/specs/2026-11-15-windows-delete-focus-design.md).
+At most five individually acknowledged Tabs, ending at Delete without activation.
+Last prompt only after clear Language evidence before220s; each wait60s, cap360s,
+normal close by300s, all gates unchanged. Partial completion if time insufficient.
+Devices -> MFA already passed; Exit/other reverse paths/dialog return remain.
+Documentation only, allowance0; review and separate launch approval required.
+
 LATEST — DEVICES -> MFA REVERSE PAIR PASS:
 Read [reverse observation](../roadmap/2026-11-15-windows-reverse-focus-observation.md).
 Three acknowledged Tabs established Settings/MFA/Devices, one Shift+Tab returned

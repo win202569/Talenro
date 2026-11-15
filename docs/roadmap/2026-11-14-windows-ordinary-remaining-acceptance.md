@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Current proposal 2026-11-15: [Delete focus only](../superpowers/specs/2026-11-15-windows-delete-focus-design.md).
+At most five acknowledged Tabs, no activation; final step conditional on Language
+evidence before220s. Exit, reverse Exit->Delete/Delete->Language/Language->Devices/
+MFA->Settings, reverse scrolling and dialog return remain separate. Devices->MFA
+is already PASS. Full60s waits/cap360s/close by300s/all gates unchanged; allowance0.
+
 Latest result 2026-11-15: [reverse pair](2026-11-15-windows-reverse-focus-observation.md)
 PASS: acknowledged Settings -> MFA -> Devices, then Shift+Tab returned MFA outline.
 This supersedes pending status for Devices -> MFA only. Other reverse edges,
