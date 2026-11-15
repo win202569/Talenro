@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-15
 
+## Latest — 设置→MFA→管理设备焦点通过，未激活按钮
+
+见[三Tab观察](2026-11-15-windows-devices-focus-observation.md)。四步手机确认均及时收到，三次Tab依次出现清晰焦点框。
+run e244b029f0ba42d48d85aba17446388e约171.83秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+未追加第四次Tab/激活/滚动/弹窗。自动滚动未触发，后续按钮与反向遍历、弹窗返回仍待验。
+上轮中止已补记用户确认切回桌面聊天，原始记录不变。本轮无代码/测试/构建/重试，额度0。
+
 ## Latest — 管理设备补验在Tab前中止，退出验证通过
 
 见[中止记录](2026-11-15-windows-devices-focus-observation-abort.md)。第0步确认在60秒内收到，

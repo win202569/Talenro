@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SETTINGS -> MFA -> DEVICES FOCUS PASS, NO ACTIVATION:
+Read [successful three-Tab record](../roadmap/2026-11-15-windows-devices-focus-observation.md).
+Four phone confirmations within60s, visible outlines for all three targets.
+Run e244b029f0ba42d48d85aba17446388e exited171.83s, verified/finalized, entry0,
+residual0, six hashes match. Scroll not exercised; remaining buttons/reverse/dialog
+return still outstanding. Earlier desktop-chat switch clarified in abort record.
+No code/test/build/retry, allowance0; no automatic next launch.
+
 LATEST — DEVICES CHECK STOPPED BEFORE TAB, EXIT VERIFIED:
 Read [abort record](../roadmap/2026-11-15-windows-devices-focus-observation-abort.md).
 Step0 acknowledged within60s, but both target captures showed chat content. No

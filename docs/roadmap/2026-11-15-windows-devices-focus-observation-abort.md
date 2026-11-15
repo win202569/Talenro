@@ -1,5 +1,10 @@
 # Devices-focus observation stopped before Tab — 2026-11-15
 
+Subsequent user clarification: user confirmed switching the desktop back to chat
+("切了"). Focus continuity was therefore broken; previous cause-unknown language
+below records the evidence available at that time. No product defect inferred,
+and no raw evidence rewritten. Later successful run has its own separate record.
+
 User authorized one launch/zero retries/360s maximum, at most three Tabs with60s
 phone acknowledgements and no button activation. Starting checkpoint
 3ceeec4442dbf3950fb53dd91a53b431c9e76f6d. No code/test/build changes.

@@ -1,5 +1,10 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Latest result2026-11-15: [three-Tab observation](2026-11-15-windows-devices-focus-observation.md)
+verified Settings -> MFA -> Manage devices with visible outlines and phone replies.
+Automatic scrolling was NOT_EXERCISED (layout unchanged, scrollbar0); Language/
+Delete/Exit, reverse navigation and placeholder return remain unaccepted.
+
 Latest2026-11-15: Settings -> MFA now verified; next proposed minimum is
 [MFA -> Manage devices focus only](../superpowers/specs/2026-11-15-windows-devices-focus-design.md).
 That plan separates remaining forward/reverse traversal, automatic scrolling and
