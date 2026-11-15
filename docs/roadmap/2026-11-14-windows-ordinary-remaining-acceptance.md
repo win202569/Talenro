@@ -1,5 +1,12 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Latest2026-11-15: Settings -> MFA now verified; next proposed minimum is
+[MFA -> Manage devices focus only](../superpowers/specs/2026-11-15-windows-devices-focus-design.md).
+That plan separates remaining forward/reverse traversal, automatic scrolling and
+placeholder return evidence. At most three Tabs with60s phone acknowledgements;
+third key only if a full60s wait plus20s observation/close reserve remains before
+300s. No activation or launch authorized by this coverage update.
+
 ## 2026-11-15 update (supersedes next-step proposal below)
 
 Ordinary run b3aac484bee7448d8db59c6bb3b29de8 passed one acknowledged Tab to

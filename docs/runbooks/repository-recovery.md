@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — DEVICES FOCUS-ONLY MINIMUM PROPOSED; NO LAUNCH:
+Read [scope and design](../superpowers/specs/2026-11-15-windows-devices-focus-design.md).
+Remaining traversal/reverse/scroll/dialog-return evidence is separately enumerated.
+Proposed next run: re-establish Settings -> MFA, then conditional third Tab to
+Devices, no activation. Step3 must issue by220s to reserve60s acknowledgement and
+20s observation/close. Otherwise stop partial;360s cap/close by300s/all gates unchanged.
+Docs only, allowance0, awaiting review/separate launch approval. No complete UI claim.
+
 LATEST — ACCOUNT ENTRY SETTINGS -> MFA PASS; NO ACTIVATION:
 Read [two-Tab run](../roadmap/2026-11-15-windows-account-entry-focus-observation.md).
 Three phone acknowledgements arrived within60s; two Tabs visibly focused Settings
