@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-15
 
+## Latest — 管理设备→MFA反向焦点检查通过
+
+见[反向观察记录](2026-11-15-windows-reverse-focus-observation.md)。三次Tab依次显示设置、MFA、管理设备焦点框，
+一次Shift+Tab返回MFA；每步手机确认均在60秒内，无按钮激活或额外按键。
+run2602b503efa6498e947ba55082254ce6约215.96秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+仅接受这一条反向路径；删除/退出、其余反向遍历、弹窗返回及重置仍待验。无代码/构建/重试，额度0。
+
 ## Latest — 反向焦点最小补验方案已准备，未启动
 
 见[反向检查方案](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md)。建议三次Tab到管理设备，

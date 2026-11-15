@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — DEVICES -> MFA REVERSE PAIR PASS:
+Read [reverse observation](../roadmap/2026-11-15-windows-reverse-focus-observation.md).
+Three acknowledged Tabs established Settings/MFA/Devices, one Shift+Tab returned
+visible MFA outline. Run2602b503efa6498e947ba55082254ce6 exited215.96s, verified/
+finalized, entry0, residual0, six hashes unchanged. No activation or extra keys.
+Other reverse edges/Delete/Exit/dialog/reset remain pending. Allowance0; no retry.
+
 LATEST — REVERSE-PAIR PROPOSAL ONLY, NO LAUNCH:
 Read [next minimum](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md).
 Three acknowledged Tabs to Devices, then one Shift+Tab to inspect return to MFA.

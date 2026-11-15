@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Latest result 2026-11-15: [reverse pair](2026-11-15-windows-reverse-focus-observation.md)
+PASS: acknowledged Settings -> MFA -> Devices, then Shift+Tab returned MFA outline.
+This supersedes pending status for Devices -> MFA only. Other reverse edges,
+Delete/Exit focus-only checks and dialog return remain pending. No activation;
+normal exit verified at215.96s, allowance0. Proposal below is now historical.
+
 Current next proposal 2026-11-15: [single reverse pair](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md).
 Three Tabs to Devices, then one Shift+Tab to MFA, each separately acknowledged.
 Delete/Exit remain focus-only future checks; all reverse edges and dialog return
