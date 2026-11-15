@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — DEVICES CHECK STOPPED BEFORE TAB, EXIT VERIFIED:
+Read [abort record](../roadmap/2026-11-15-windows-devices-focus-observation-abort.md).
+Step0 acknowledged within60s, but both target captures showed chat content. No
+Tab issued. Fresh target selection/activation was only for normal close, not test
+continuation. Run028c06c63f5046a5a99194150baa78f3 exited137.83s, verified/finalized,
+entry0, residual0, six hashes unchanged. Cause unresolved; no user/product blame.
+No source/test/build/retry; allowance0. Read-only focus/capture clarification next.
+
 LATEST — DEVICES FOCUS-ONLY MINIMUM PROPOSED; NO LAUNCH:
 Read [scope and design](../superpowers/specs/2026-11-15-windows-devices-focus-design.md).
 Remaining traversal/reverse/scroll/dialog-return evidence is separately enumerated.

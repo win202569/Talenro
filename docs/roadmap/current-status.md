@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-15
 
+## Latest — 管理设备补验在Tab前中止，退出验证通过
+
+见[中止记录](2026-11-15-windows-devices-focus-observation-abort.md)。第0步确认在60秒内收到，
+但两次目标读取均显示聊天画面，无法可靠判断焦点；未发出任何Tab，重新定位仅用于正常关闭。
+run028c06c63f5046a5a99194150baa78f3约137.83秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+管理设备焦点仍未验证；原因未定，不推断用户误操作或产品缺陷。无代码/测试/构建/重试，额度0。
+下一步仅只读核对回复时桌面焦点与截图来源，不自动再启动。
+
 ## Latest — 剩余遍历/滚动/弹窗证据已分项，管理设备焦点方案待确认
 
 见[最小方案](../superpowers/specs/2026-11-15-windows-devices-focus-design.md)。下一轮建议只复现设置→MFA，
