@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-15
 
+## Latest — 反向焦点最小补验方案已准备，未启动
+
+见[反向检查方案](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md)。建议三次Tab到管理设备，
+再一次Shift+Tab确认返回MFA；最多四个逐步确认的按键动作，不激活按钮。
+删除/退出仅列为后续聚焦检查，完整反向遍历及弹窗关闭/焦点返回另行补验。
+每步60秒手机确认、六分钟总上限、300秒前开始正常关闭及全部安全检查不变。
+本次仅更新文档，无测试/构建/启动；额度0，方案待确认及单独启动批准。
+
 ## Latest — 语言焦点及该处键盘自动滚动通过
 
 见[四Tab观察](2026-11-15-windows-language-focus-scroll-observation.md)。五步手机确认均及时收到，

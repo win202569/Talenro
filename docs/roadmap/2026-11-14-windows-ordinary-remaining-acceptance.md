@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Current next proposal 2026-11-15: [single reverse pair](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md).
+Three Tabs to Devices, then one Shift+Tab to MFA, each separately acknowledged.
+Delete/Exit remain focus-only future checks; all reverse edges and dialog return
+are not covered by this minimum. The proposal below for Language is historical
+and has now been executed. No launch/test/build in this update; allowance 0.
+
 Latest result2026-11-15: [Language observation](2026-11-15-windows-language-focus-scroll-observation.md)
 passed four-Tab Settings -> MFA -> Devices -> Language and keyboard-only scrolling
 revealing previously clipped Language. This covers that transition/default view

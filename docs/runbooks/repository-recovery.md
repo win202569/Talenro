@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — REVERSE-PAIR PROPOSAL ONLY, NO LAUNCH:
+Read [next minimum](../superpowers/specs/2026-11-15-windows-reverse-focus-design.md).
+Three acknowledged Tabs to Devices, then one Shift+Tab to inspect return to MFA.
+Delete/Exit focus-only checks, broader reverse traversal and dialog return remain
+separate. Each phone wait 60s, total cap 360s, normal close by 300s, unchanged
+binding/preflight/exit gates. Docs only; allowance 0, review/new approval required.
+
 LATEST — LANGUAGE FOCUS AND ITS KEYBOARD AUTO-SCROLL PASS:
 Read [four-Tab record](../roadmap/2026-11-15-windows-language-focus-scroll-observation.md).
 Five timely phone acknowledgements, visible Settings/MFA/Devices/Language outlines.
