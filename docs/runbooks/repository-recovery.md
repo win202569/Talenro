@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — SIXTY-SECOND STEP0 TIMEOUT; EXIT VERIFIED, TAB NOT_RUN:
+Read [run record](../roadmap/2026-11-15-windows-sixty-second-ack-observation.md).
+Run dfc23e08440247ceb4e8c01a06ce41de exited105.45s, ExitVerified/Finalized=true,
+entry0, residual0, six hashes unchanged. No matching step0 acknowledgement within
+60s; actual user operation unknown. Step1 never issued. No source/test/build/retry.
+Allowance0. Next investigate active-turn phone delivery without app launch; prior
+between-turn readiness/sample does not prove active-turn delivery. No defect claim.
+
 LATEST — 60-SECOND ACK WAITS, SINGLE-TAB SCOPE; NO NEW LAUNCH:
 User clarified prior titlebar click occurred before close; phone reply arrived late.
 No-app roundtrip measured approximately30s including human/agent latency, not a
