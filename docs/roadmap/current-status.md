@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-15
 
+## Latest — 语言焦点及该处键盘自动滚动通过
+
+见[四Tab观察](2026-11-15-windows-language-focus-scroll-observation.md)。五步手机确认均及时收到，
+设置→MFA→管理设备→语言依次出现清晰焦点框；第四次Tab后内容上移，原被裁切的语言按钮及焦点框完整显示。
+run16c1222c16db44bbb50e0f8c0e7d567e约198.16秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+未激活按钮、未追加按键。删除/退出、反向遍历、弹窗返回及重置仍待验；只接受本次视口的这处滚动。
+无代码/测试/构建/重试，额度0，不自动启动下一轮。
+
 ## Latest — 语言焦点与条件性自动滚动最小方案已准备，未启动
 
 见[新方案](../superpowers/specs/2026-11-15-windows-language-focus-scroll-design.md)。下一轮建议最多四次Tab，

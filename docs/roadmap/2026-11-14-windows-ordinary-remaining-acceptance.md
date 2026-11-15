@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Latest result2026-11-15: [Language observation](2026-11-15-windows-language-focus-scroll-observation.md)
+passed four-Tab Settings -> MFA -> Devices -> Language and keyboard-only scrolling
+revealing previously clipped Language. This covers that transition/default view
+only. Delete/Exit, reverse traversal and dialog return remain outstanding; earlier
+pending statuses below are historical, not the current Language result.
+
 Next proposal2026-11-15: [Language focus / conditional auto-scroll](../superpowers/specs/2026-11-15-windows-language-focus-scroll-design.md).
 At most four acknowledged Tabs; fourth only after fresh Devices evidence and
 before220s to reserve60s confirmation plus20s observation/close. Language focus

@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — LANGUAGE FOCUS AND ITS KEYBOARD AUTO-SCROLL PASS:
+Read [four-Tab record](../roadmap/2026-11-15-windows-language-focus-scroll-observation.md).
+Five timely phone acknowledgements, visible Settings/MFA/Devices/Language outlines.
+Last Tab shifted Account content and fully revealed clipped Language; scrollbar31
+supplemental. Run16c1222c16db44bbb50e0f8c0e7d567e exited198.16s, verified/finalized,
+entry0, residual0, six hashes unchanged. No activation/extra keys. Delete/Exit,
+reverse/dialog-return/reset remain outstanding. No code/test/build/retry; allowance0.
+
 LATEST — LANGUAGE FOCUS/CONDITIONAL SCROLL PROPOSAL, NO LAUNCH:
 Read [next minimum](../superpowers/specs/2026-11-15-windows-language-focus-scroll-design.md).
 At most four Tabs; last adds Devices -> Language with independent focus/scroll
