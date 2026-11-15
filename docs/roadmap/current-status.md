@@ -1,5 +1,13 @@
 # Project status — updated 2026-11-15
 
+## Latest — 单次Tab可见焦点通过，正常退出
+
+见[成功观察记录](2026-11-15-windows-single-tab-focus-observation.md)。编号问题通道及时收到第0/1步确认，
+一次Tab后左侧“设置”出现清晰焦点框；辅助元数据仍为pane2，不能代替视觉证据。
+run b3aac484bee7448d8db59c6bb3b29de8约85.30秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+仅该单键路线通过；账户按钮正反遍历/滚动/弹窗焦点返回/重置仍未验。无代码/测试/构建/重试，额度0。
+下一步可只读整理剩余覆盖并准备另行限定的补验方案，不自动启动或扩大验收。
+
 ## Latest — 60秒第0步确认仍超时，单次Tab未执行
 
 见[本次记录](2026-11-15-windows-sixty-second-ack-observation.md)。run dfc23e08440247ceb4e8c01a06ce41de

@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — SINGLE TAB TO VISIBLE SETTINGS FOCUS PASS; EXIT VERIFIED:
+Read [successful run](../roadmap/2026-11-15-windows-single-tab-focus-observation.md).
+Asynchronous numbered questions received both confirmations within60s. One Tab
+produced clear Settings outline although accessibility still said pane2. No second
+key or expanded tests. Run b3aac484bee7448d8db59c6bb3b29de8 exited85.30s,
+ExitVerified/Finalized=true, entry0, residual0, six hashes unchanged. Account-content
+traversal/scroll/dialog/reset remain outstanding. No code/test/build/retry; allowance0.
+Only read-only coverage/follow-up planning proposed next; no automatic relaunch.
+
 LATEST — SIXTY-SECOND STEP0 TIMEOUT; EXIT VERIFIED, TAB NOT_RUN:
 Read [run record](../roadmap/2026-11-15-windows-sixty-second-ack-observation.md).
 Run dfc23e08440247ceb4e8c01a06ce41de exited105.45s, ExitVerified/Finalized=true,
