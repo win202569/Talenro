@@ -1,5 +1,28 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+## 2026-11-15 update (supersedes next-step proposal below)
+
+Ordinary run b3aac484bee7448d8db59c6bb3b29de8 passed one acknowledged Tab to
+visible Settings outline; original exit verified, entry0, residual0, six hashes
+unchanged. Pane2 metadata remained unreliable as a focus verdict. Earlier records
+remain intact; absence of full Account traversal is not a reproduced defect.
+
+| Remaining item | Current boundary |
+| --- | --- |
+| Single Tab to Settings | PASS for recorded ordinary route only |
+| Keyboard entry from Settings to Account content | Not yet observed; smallest next target |
+| Full forward/reverse Account button traversal | UNVERIFIED; not included in next minimum |
+| Automatic scroll through lower controls | UNVERIFIED; no pointer-scroll substitution |
+| Manage devices placeholder keyboard close/focus return | NOT_RUN |
+| Exit-demo/reset/re-entry | NOT_RUN |
+| Exact viewport/DPI/RTL, screen readers and broader acceptance | Separate scope, unchanged |
+
+Proposed [next minimum](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md):
+titlebar acknowledgement, one Tab to reproduce Settings, ONE additional Tab to
+record the next target (MFA expected but not assumed). No activation or third key.
+Each phone confirmation60s, total360s and normal close by300s, all safety gates
+unchanged. Documentation only, no launch or new allowance.
+
 Date2026-11-14; checkpoint a0559154. No code changes, test/build/restore, live
 process query or application launch. Read source and existing records only.
 

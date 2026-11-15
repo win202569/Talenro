@@ -1,5 +1,14 @@
 # Recover the project on a new computer
 
+LATEST — ACCOUNT-ENTRY MINIMUM PROPOSED, NOT LAUNCHED:
+Read [next design](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md)
+and updated [coverage](../roadmap/2026-11-14-windows-ordinary-remaining-acceptance.md).
+Single Tab to Settings passed; Account-content entry still unverified. Proposed
+three acknowledgements: titlebar, Tab to Settings, one more Tab to record actual
+target (MFA expected, not assumed). Maximum two Tabs, no activation/extra checks.
+60s each,360s total, close by300s and all exact safety gates unchanged. Docs only,
+allowance0; requires review/separate launch approval. No full traversal acceptance.
+
 LATEST — SINGLE TAB TO VISIBLE SETTINGS FOCUS PASS; EXIT VERIFIED:
 Read [successful run](../roadmap/2026-11-15-windows-single-tab-focus-observation.md).
 Asynchronous numbered questions received both confirmations within60s. One Tab
