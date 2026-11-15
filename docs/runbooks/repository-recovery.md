@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — 60-SECOND ACK WAITS, SINGLE-TAB SCOPE; NO NEW LAUNCH:
+User clarified prior titlebar click occurred before close; phone reply arrived late.
+No-app roundtrip measured approximately30s including human/agent latency, not a
+network bound. Updated [protocol](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md)
+reserves60s for each of two acknowledgements: titlebar step0 and one Tab step1.
+Then observe and close; no extra traversal/dialog/reset. All exact binding/safety
+gates and360s cap/normal close by300s unchanged. Documents only, allowance0.
+
 LATEST — PHONE STEP0 TIMED OUT; EXIT VERIFIED, NO KEYBOARD TEST:
 Read [2026-11-15 record](../roadmap/2026-11-15-windows-phone-ack-observation.md).
 Readiness message arrived before launch but no matching step0 reply within30s.

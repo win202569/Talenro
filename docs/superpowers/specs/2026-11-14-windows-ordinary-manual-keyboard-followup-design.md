@@ -1,16 +1,25 @@
 # Ordinary manual-keyboard minimal follow-up
 
-Date2026-11-14. Revised phone-acknowledgement protocol, awaiting approval of this
-revision. User selected phone replies; no code/test changes, build/restore,
-application launch or new live allowance this turn. Earlier one-run allowance
-was consumed; its user-confirmed no-input result remains NOT_RUN.
+Updated2026-11-15: user requested maximum60-second phone acknowledgement waits
+and fewer checks per run. This document records that revision; no launch approval
+is implied. No code/test/build/restore/launch this turn. Previous allowances were
+consumed; their original records and subsequent user clarifications remain intact.
 
 ## Scope and choice
 
-Use the existing exact-bound ordinary entry/candidate unchanged. Primary missing
-evidence: visible keyboard reachability/auto-scroll and one Manage devices
-placeholder's keyboard close/focus return. Reset/re-entry is optional only when
-time remains. Do not repeat display work except necessary navigation.
+Use the existing exact-bound ordinary entry/candidate unchanged. Next proposed run
+is limited to acknowledged titlebar activation plus ONE physical Tab and its
+post-ack visible focus observation, then normal close. Even if time remains, no
+second key, traversal sequence, dialog, reset/re-entry or optional resize is added.
+Full forward/reverse traversal, auto-scroll and placeholder focus return remain
+separate outstanding acceptance items, requiring separately scoped future work.
+
+No-app timing sample on2026-11-15: clock before prompt07:43:12 UTC
+(11:43:12 Asia/Tbilisi), first clock read after reply07:43:42 UTC: about30s.
+This includes prompt generation/delivery, user reaction/reply and agent scheduling;
+it is not network latency or an exact server message-arrival timestamp. One sample
+does not establish an upper bound. User chose60s to add response margin, without
+extending the six-minute process cap or weakening any identity/safety evidence.
 
 Recommended manual-input/read-only-observer approach: user sends the physical
 keys, agent observes rendered results. Automated Tab was inconclusive in the
@@ -33,9 +42,8 @@ This protocol does not promise the manual approach will establish focus.
   begin normal close by300s, earlier on failure or lost cooperation. Waiting for
   replies counts against the same budget. No extension or second launch.
 - No connections, Nodes, credentials, system settings, MFA changes or Delete
-  activation. Focus-only passage over those account controls is permitted; never
-  press Enter/Space unless the identified target is the approved placeholder,
-  its Close, or separately announced Exit demo/reset.
+  activation. This reduced route permits one Tab only: no Enter/Space, dialog
+  activation or Exit-demo/reset. Normal titlebar X remains the shutdown action.
 
 ## Single-owner input handoff
 
@@ -53,7 +61,7 @@ If delivery fails, stop before launching; do not install/configure tools or swit
 to desktop replies. No screenshot or sensitive data needs sending from the phone.
 
 During preparation the agent may perform necessary Enter demo/Account navigation.
-User alone resizes horizontal edges if convenient, keeping height unchanged.
+Keep default geometry; no resizing in this reduced route.
 Then agent states that automated input has ended. Separate step0: user clicks the
 demo titlebar once (no double-click/resize) and replies from phone "第0步完成".
 Only after this acknowledgement may step1 request a key. No content/scrollbar
@@ -67,11 +75,11 @@ User presses/releases, then replies on phone; a completion message is a user
 report of input, not proof of successful focus movement. Agent does not issue
 stepN+1 before receiving matching acknowledgement AND inspecting stepN results.
 
-Each prompt states a response deadline: proposed maximum30 seconds from issuance,
-or the existing stage deadline/normal-close deadline, whichever is earlier.
-Do not issue a step when fewer than30 seconds remain before its stage ceiling;
-mark remaining coverage incomplete and close normally. These bounds are proposed
-coordination policy, not added runtime allowance. User may phone-reply "未操作",
+Each prompt states a response deadline: maximum60 seconds from issuance,
+within the stage deadlines below. Reserve the full60s before issuing a prompt;
+if insufficient time remains, do not issue it and close normally. Record the
+issuance time and deadline; do not reset the timer for clarification or tool work.
+This coordination policy adds no runtime allowance. User may phone-reply "未操作",
 "需要暂停" or "停止"; never ask them to hurry or batch multiple keys.
 
 While awaiting acknowledgement, monitor the retained session/time in bounded
@@ -101,11 +109,9 @@ Do not use a snapshot acquired before resize/input to identify the next target.
 | Elapsed ceiling | Action / stop condition |
 | --- | --- |
 | 0–60s | Confirm visible ordinary window; necessary Enter demo, disconnected/lock-off Connection and Account. No repeated polling if window unavailable. |
-| By90s | Optional resize and separately acknowledged step0 complete. If resize is impractical, default-size route only. No step1 before step0 confirmation. |
-| By150s | Establish a visible actionable-button focus with manual Tab prompts. Maximum12 individual Tabs to find a clear start; stop at an observed wrap/no progress, uncertainty, or time ceiling, whichever comes first. Do not count window/pane metadata as an established start. |
-| By230s | From visible MFA (or earlier sidebar button), observe individual Tab steps through MFA, Manage devices, Language, Delete(focus only), Exit(focus only), then individual Shift+Tab steps back through Delete/Language to Manage. No pointer scrolling. Record automatic scrolling only if it actually occurs; at a roomy viewport it may be NOT_EXERCISED. |
-| By260s | Only with Manage devices visibly focused, user presses Enter once. Observe one offline placeholder. Only with its Close visibly focused, Enter once to close; wait for settled rendering and inspect returned Manage outline. If Close focus unclear, do not send speculative Enter. |
-| Before280s, optional | If primary checks succeeded and ample time remains, announce Exit-demo/reset action separately, observe Login/sidebar hidden and re-enter to disconnected/lock-off. Use existing safe navigation; end keyboard-only block first. Otherwise skip. |
+| Issue step0 by60s; complete by120s | One titlebar click then matching phone acknowledgement, up to60s from prompt. No key yet. Timeout cancels route; no inference of input failure. |
+| Issue step1 by150s; complete by210s | Only after step0 acknowledgement and a fresh target observation: request ONE Tab, release, then matching phone acknowledgement. Wait up to60s. If target evidence is unreliable, stop rather than send a key. |
+| By240s | After matching step1 acknowledgement, settle and read fresh target screenshot; at most one extra capture if unclear. Record visible focused control or UNVERIFIED. No further key, even if focus is absent. End input and start normal close promptly. |
 | By300s | Agent announces end of user input and normally closes the observed window by titlebar X; if agent cannot act safely, user performs X. Keep original observer running to its bounded result; no retry. |
 
 The stage ceilings remain upper bounds, not a promise all checks fit with phone
@@ -114,6 +120,12 @@ keys, extend the run or relax evidence. Missed deadline/uncertain post-ack outli
 ends the keyboard block with normal close. No arbitrary focus fixes.
 
 ## Result criteria
+
+- Reduced-route success means only one acknowledged Tab followed by a clearly
+  visible actionable focus outline. It is NOT complete keyboard traversal,
+  auto-scroll or dialog acceptance. Those deferred checks remain NOT_RUN in this
+  route even if their controls happen to be visible. No-focus alone is UNVERIFIED,
+  not evidence of a reproduced product defect.
 
 - User explicitly confirms no input occurred: NOT_RUN. Missing acknowledgement alone means input
   completion UNKNOWN, UI result UNVERIFIED (never assume it was or was not pressed).

@@ -16,6 +16,12 @@ operation UNKNOWN. No Tab or other numbered key was requested or sent. Keyboard,
 auto-scroll, dialog and reset checks NOT_RUN; no product failure conclusion.
 Readiness delivery beforehand does not establish timely in-run delivery.
 
+Post-run clarification: user sent late "第0步完成" and explicitly confirmed the
+titlebar had been clicked before the window closed; only the phone reply was late.
+Final interpretation: step0 performed per user report, acknowledgement timed out.
+This supersedes the in-run UNKNOWN above without changing raw records or advancing
+the cancelled step. Keyboard checks remain NOT_RUN; no product failure inferred.
+
 After cancellation, first read-only close-preparation capture unexpectedly showed
 chat content, so it was not used for target input. Agent enumerated windows again,
 selected the unique ordinary candidate, activated it solely for normal close,
@@ -32,6 +38,7 @@ ordinary-account-observations/b2d9a6029bb243f8bdd5bd9f73d1d609/.
 Manifest SHA256:9D536CAF4D3BC848D0E18EDE71263056265A10D5457FFE82C031C8BEE8C8E59F.
 Samples SHA256:7544B5EC049D09C83F55B47EFE2EB3422000F0ED5E288F71D45559CB9A20FD4E.
 No broader UI/C4/security acceptance. One-run authorization consumed, allowance0.
-Next: ask whether step0 was visible on phone and whether any operation/reply was
-attempted. Diagnose cooperation/delivery before proposing another launch; do not
-extend deadlines or relax safety checks without a revised approved protocol.
+Subsequent no-app roundtrip sample:07:43:12 to07:43:42 UTC, approximately30s,
+including human response and agent scheduling, not pure transport latency.
+User then requested60s waits and reduced per-run coverage with unchanged total
+cap/safety gates; see revised manual-keyboard protocol. No new launch occurred.
