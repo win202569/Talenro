@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — PHONE STEP0 TIMED OUT; EXIT VERIFIED, NO KEYBOARD TEST:
+Read [2026-11-15 record](../roadmap/2026-11-15-windows-phone-ack-observation.md).
+Readiness message arrived before launch but no matching step0 reply within30s.
+Actual titlebar operation unknown; no Tab requested/sent, UI checks NOT_RUN.
+Normal exit83.65s, ExitVerified/Finalized=true, entry0, residual0, six hashes match.
+No code/test/build/retry. Allowance0; clarify prompt visibility/reply delivery
+before further launch proposals. No product failure inferred from missing reply.
+
 LATEST — PHONE ACKNOWLEDGEMENT REVISION PREPARED, NO LAUNCH:
 User selected phone completion replies. Read revised [protocol](../superpowers/specs/2026-11-14-windows-ordinary-manual-keyboard-followup-design.md).
 Verify same-conversation phone delivery before launch; separately acknowledge

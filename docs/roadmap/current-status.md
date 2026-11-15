@@ -1,4 +1,10 @@
-# Project status — updated 2026-11-14
+# Project status — updated 2026-11-15
+
+## Latest — 手机确认第0步超时，正常退出，键盘检查未执行
+
+见[观察记录](2026-11-15-windows-phone-ack-observation.md)。手机准备消息已送达，但本次第0步30秒内无对应确认；
+实际操作未知，取消后正常关闭，未发送Tab。约83.65秒退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+无代码/测试/构建/重试，额度0。先确认用户是否看到第0步、是否尝试回复，再排查配合或送达问题；不认定应用失败。
 
 ## Latest — 手机逐键确认修订方案已准备，未启动
 
