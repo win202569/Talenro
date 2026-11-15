@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-15
 
+## Latest — 删除按钮焦点及自动显示通过，未激活
+
+见[五Tab观察](2026-11-15-windows-delete-focus-observation.md)。依次看到设置→MFA→管理设备→语言→删除账号焦点框，
+第五次Tab自动滚动显示完整删除按钮及焦点框；未激活、未删除、未追加按键。
+run32476fdb06dd41daad4c08ddd4768b1d约234.38秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+退出按钮、其余反向路径、弹窗返回和重置仍待验。无代码/测试/构建/重试，额度0，不自动启动。
+
 ## Latest — 删除按钮仅聚焦的最小方案已准备，未启动
 
 见[下一轮方案](../superpowers/specs/2026-11-15-windows-delete-focus-design.md)。建议最多五次逐步确认的Tab，

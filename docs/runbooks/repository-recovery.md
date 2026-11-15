@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — DELETE FOCUS AND KEYBOARD REVEAL PASS, NO ACTIVATION:
+Read [five-Tab record](../roadmap/2026-11-15-windows-delete-focus-observation.md).
+Settings/MFA/Devices/Language/Delete outlines confirmed; final Tab scrolled the
+Delete button fully into view. No deletion or activation. Run32476fdb06dd41daad4c08ddd4768b1d
+exited234.38s, verified/finalized, entry0, residual0, six hashes match. Exit/other
+reverse paths/dialog/reset remain pending. No code/test/build/retry; allowance0.
+
 LATEST — DELETE FOCUS-ONLY PROPOSAL, NO LAUNCH:
 Read [next minimum](../superpowers/specs/2026-11-15-windows-delete-focus-design.md).
 At most five individually acknowledged Tabs, ending at Delete without activation.
