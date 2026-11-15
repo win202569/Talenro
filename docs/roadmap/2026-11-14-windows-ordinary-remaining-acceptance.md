@@ -10,14 +10,16 @@ remain intact; absence of full Account traversal is not a reproduced defect.
 | Remaining item | Current boundary |
 | --- | --- |
 | Single Tab to Settings | PASS for recorded ordinary route only |
-| Keyboard entry from Settings to Account content | Not yet observed; smallest next target |
+| Keyboard entry from Settings to Account content | PASS on2026-11-15 run813ce5d94c374895822a7bbb6abb2987: two acknowledged Tabs showed Settings then MFA; no activation |
 | Full forward/reverse Account button traversal | UNVERIFIED; not included in next minimum |
 | Automatic scroll through lower controls | UNVERIFIED; no pointer-scroll substitution |
 | Manage devices placeholder keyboard close/focus return | NOT_RUN |
 | Exit-demo/reset/re-entry | NOT_RUN |
 | Exact viewport/DPI/RTL, screen readers and broader acceptance | Separate scope, unchanged |
 
-Proposed [next minimum](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md):
+The following minimum was subsequently executed successfully; see
+[Account-entry observation](2026-11-15-windows-account-entry-focus-observation.md).
+Historical proposed [minimum](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md):
 titlebar acknowledgement, one Tab to reproduce Settings, ONE additional Tab to
 record the next target (MFA expected but not assumed). No activation or third key.
 Each phone confirmation60s, total360s and normal close by300s, all safety gates

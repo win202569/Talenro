@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — ACCOUNT ENTRY SETTINGS -> MFA PASS; NO ACTIVATION:
+Read [two-Tab run](../roadmap/2026-11-15-windows-account-entry-focus-observation.md).
+Three phone acknowledgements arrived within60s; two Tabs visibly focused Settings
+then MFA. No third key/button activation. Run813ce5d94c374895822a7bbb6abb2987
+exited101.58s, ExitVerified/Finalized=true, entry0, residual0, six hashes match.
+Remaining traversal/scroll/dialog/reset not accepted. No code/test/build/retry,
+allowance0. Next only separately scoped planning/authorization, no automatic launch.
+
 LATEST — ACCOUNT-ENTRY MINIMUM PROPOSED, NOT LAUNCHED:
 Read [next design](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md)
 and updated [coverage](../roadmap/2026-11-14-windows-ordinary-remaining-acceptance.md).

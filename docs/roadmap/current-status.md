@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-15
 
+## Latest — 两次Tab从设置进入MFA通过，未激活按钮
+
+见[账户入口观察](2026-11-15-windows-account-entry-focus-observation.md)。三步手机确认均在60秒内收到，
+首次Tab清晰聚焦“设置”，第二次Tab清晰聚焦账户区“MFA”。未按第三次Tab/Enter/空格，未激活按钮。
+run813ce5d94c374895822a7bbb6abb2987约101.58秒正常退出，ExitVerified/Finalized=true、入口0、残留0、六哈希一致。
+仅账户焦点入口通过，后续按钮/反向遍历/滚动/弹窗/重置仍待补验。无代码/测试/构建/重试，额度0。
+
 ## Latest — 剩余覆盖已归并，账户区焦点入口最小方案已准备
 
 已通过单Tab到“设置”，未证明账户内容区可达。见[新方案](../superpowers/specs/2026-11-15-windows-account-entry-focus-design.md)：
