@@ -1,5 +1,11 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Current next proposal2026-11-15: [Exit focus only](../superpowers/specs/2026-11-15-windows-exit-focus-design.md).
+Delete focus/reveal already PASS. At most six acknowledged Tabs, sixth only with
+fresh Delete evidence before220s. Prior five-Tab pace would leave sixth NOT_RUN.
+No activation/logout; full60s waits/cap360s/close by300s and all gates retained.
+Remaining reverse edges, reverse scrolling and dialog return separate; allowance0.
+
 Latest result2026-11-15: [Delete focus observation](2026-11-15-windows-delete-focus-observation.md)
 PASS for fifth Tab Language->Delete and keyboard-only full reveal in this view.
 No activation/deletion; Exit, remaining reverse edges, reverse scrolling and

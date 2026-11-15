@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EXIT FOCUS-ONLY PROPOSAL, NO LAUNCH:
+Read [next minimum](../superpowers/specs/2026-11-15-windows-exit-focus-design.md).
+Maximum six acknowledged Tabs, no activation/logout. Sixth prompt only after
+clear Delete evidence before220s; prior run's pace would not allow it. Full60s
+waits, cap360s, normal close by300s, all gates unchanged. Partial result if slow;
+no batching/retry. Other reverse paths/dialog/reset remain pending. Docs only,
+allowance0; review and separate launch approval required.
+
 LATEST — DELETE FOCUS AND KEYBOARD REVEAL PASS, NO ACTIVATION:
 Read [five-Tab record](../roadmap/2026-11-15-windows-delete-focus-observation.md).
 Settings/MFA/Devices/Language/Delete outlines confirmed; final Tab scrolled the
