@@ -8,6 +8,8 @@
     <Compile Include="../CloseGuardian.Shared/GuardianContracts.cs" Link="Guardian/GuardianContracts.cs" />
     <Compile Include="../CloseGuardian.Shared/GuardianActivation.cs" Link="Guardian/GuardianActivation.cs" />
     <Compile Include="../CloseGuardian.Shared/GuardianProtocol.cs" Link="Guardian/GuardianProtocol.cs" />
+    <Compile Include="../CloseGuardian.Shared/GuardianState.cs" Link="Guardian/GuardianState.cs" />
+    <Compile Include="../CloseGuardian.Shared/ApplicationCloseState.cs" Link="Guardian/ApplicationCloseState.cs" />
     <Compile Include="../Talenro.Demo.App/Diagnostics/EmailGeometry/GeometryEvidence.cs" Link="AppLogic/EmailGeometry/GeometryEvidence.cs" />
     <Compile Include="../Talenro.Demo.App/Diagnostics/EmailGeometry/GeometryCaptureBudget.cs" Link="AppLogic/EmailGeometry/GeometryCaptureBudget.cs" />
     <Compile Include="../Talenro.Demo.App/Diagnostics/EmailGeometry/GeometryActivation.cs" Link="AppLogic/EmailGeometry/GeometryActivation.cs" />
