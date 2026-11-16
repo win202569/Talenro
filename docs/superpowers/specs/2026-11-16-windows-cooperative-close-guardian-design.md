@@ -1,5 +1,9 @@
 # Cooperative application close with independent guardian — revised design
 
+Status2026-11-16: user approved this revision and requested implementation/test
+planning only. See [staged checklist](../plans/2026-11-16-windows-cooperative-guardian-implementation.md).
+No implementation/build/test/native/live permission follows from design approval.
+
 Independent read-only builder check2026-11-16 found no important unanswered
 design-level requirements. Native identity/lifetime, bounded I/O/receipt handling,
 clock and UI API semantics remain implementation-plan gates, not verified results.
@@ -198,4 +202,4 @@ keyboard/scroll/dialog evidence on new hashes before expanded acceptance.
   documents same-user/elevation checking and asynchronous mode. Additional local-
   only/first-instance enforcement must be selected explicitly in planning.
 
-This revised design awaits user approval; it authorizes no implementation or run.
+This revised design is approved; it authorizes no implementation or run by itself.

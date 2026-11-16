@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-16
 
+## Latest — 修订设计已批准，分阶段实施清单待确认
+
+见[实施与测试清单](../superpowers/plans/2026-11-16-windows-cooperative-guardian-implementation.md)。第一阶段仅纯协议、
+身份/计时状态机及模拟通信/UI测试，链接现有托管测试；不还原/构建App、不运行守护器或原生关闭。
+后续原生适配、隔离构建、原生验证、首次无按键实机观察分别设批准门槛，不自动串行执行。
+保留290/300/360秒、精确绑定、全部检查、不强杀不重试；本轮只改文档，未测试/构建/启动，额度0。
+
 ## Latest — 应用协作正常关闭修订设计待批准
 
 见[修订设计](../superpowers/specs/2026-11-16-windows-cooperative-close-guardian-design.md)。守护器通过本轮认证连接发一次请求，

@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — COOPERATIVE DESIGN APPROVED, STAGED PLAN PENDING:
+Read [implementation/test checklist](../superpowers/plans/2026-11-16-windows-cooperative-guardian-implementation.md).
+Phase1 is pure shared code and mocked managed tests only; no App restore/build,
+helper/native execution or live run. Native adapters, isolated build, native
+fixtures and first no-keyboard live test need separate approvals. Exact binding,
+290/300/360s and all gates retained. Planning only; no tests executed, allowance0.
+
 LATEST — COOPERATIVE CLOSE REVISION PENDING APPROVAL:
 Read [revised design](../superpowers/specs/2026-11-16-windows-cooperative-close-guardian-design.md).
 Guardian sends one session/peer-bound authenticated request; app validates and
