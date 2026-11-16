@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-16
 
+## Latest — 第一阶段纯实现及模拟验证完成，独立审阅待完成
+
+见[实施记录](2026-11-16-guardian-phase1-implementation.md)。普通令牌主机原命令复核基线409项通过；
+纯协议、精确身份与计时/关闭状态机已实现，全套托管测试464项通过。未增加超时，未构建App、运行守护器或启动应用。
+独立审阅为当前最后一道门槛；第二阶段原生适配未获授权。旧产物/哈希/验收不变。
+
 ## Latest — 第一阶段已批准，基线测试连接中止，尚未实现
 
 见[基线阻塞](2026-11-16-guardian-phase1-baseline-blocked.md)。托管Core/Tests编译完成，VSTest90秒未连接testhost，

@@ -8,6 +8,36 @@ public sealed record GuardianEvent(GuardianEventKind Kind, IdentityEvidence? Ide
     bool Verified=false, int? ExitCode=null, ProcessIdentity? LaunchedTarget=null);
 public sealed record GuardianDecision(GuardianPhase State, CloseEffect? Effect, string Reason);
 public enum CloseVerdict { Failed, NotExercised, Passed }
+public sealed class GuardianPhoneSteps
+{
+    private readonly object gate=new();
+    private int next;
+    private long last=-1,started;
+    private bool outstanding,closed;
+    private bool Clock(long now)
+    {
+        if(now<0 || now<last) closed=true;
+        last=now; return !closed;
+    }
+    public bool TryPrompt(int step,long elapsedMs,bool bound)
+    {
+        lock(gate)
+        {
+            if(!Clock(elapsedMs) || !bound || outstanding || step!=next || elapsedMs>210000) return false;
+            started=elapsedMs; outstanding=true; return true;
+        }
+    }
+    public bool Confirm(int step,long elapsedMs)
+    {
+        lock(gate)
+        {
+            if(!Clock(elapsedMs) || !outstanding) return false;
+            if(elapsedMs-started>60000) { closed=true; outstanding=false; return false; }
+            if(step!=next) return false;
+            outstanding=false; next++; return true;
+        }
+    }
+}
 public sealed record CloseEvidence(long? ClaimMs,long? SendStartMs,long? SendCompleteMs,long? AcceptedMs,long? InvokedMs,
     long? ExitMs,bool OriginalExitVerified,bool Finalized,bool Correlated,bool HashesUnchanged,bool ManualOrEarlyExit);
 public static class GuardianVerdict

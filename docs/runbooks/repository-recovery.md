@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — PURE PHASE1 IMPLEMENTED, FINAL REVIEW PENDING:
+Read [phase1 implementation](../roadmap/2026-11-16-guardian-phase1-implementation.md).
+Approved ordinary-token host baseline409/409; current managed suite464/464.
+No App restore/build/launch or guardian/native execution. Phase2 needs separate
+authorization and detailed adapter contracts. Continue from development branch,
+not main; do not transfer historical acceptance to future new binaries.
+
 LATEST — PHASE1 APPROVED BUT BASELINE ABORTED BEFORE IMPLEMENTATION:
 Read [baseline blocker](../roadmap/2026-11-16-guardian-phase1-baseline-blocked.md).
 Managed Core/Tests compiled; VSTest failed to connect to testhost within90s,
