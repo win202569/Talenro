@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — COOPERATIVE CLOSE REVISION PENDING APPROVAL:
+Read [revised design](../superpowers/specs/2026-11-16-windows-cooperative-close-guardian-design.md).
+Guardian sends one session/peer-bound authenticated request; app validates and
+closes its retained own Window on UI thread. No external HWND dispatch/fallback.
+Dormant by default, new isolated candidate/hashes and revalidation required.
+290s target,300s request/accept/invoke deadline,360s cap, no kill/retry, unchanged
+safety gates. Design-only authorization, no code/build/test/launch; allowance0.
+
 LATEST — DESIGN APPROVED, NATIVE DISPATCH PLANNING BLOCKED:
 Read [blocker](../superpowers/plans/2026-11-16-windows-guardian-planning-blocker.md).
 Official HWND reuse warning leaves check-then-close identity safety unproven.

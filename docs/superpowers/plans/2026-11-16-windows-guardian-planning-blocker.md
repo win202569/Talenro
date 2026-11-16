@@ -1,5 +1,10 @@
 # Independent guardian implementation planning — blocked before implementation
 
+Update2026-11-16: user authorized designing the app-cooperative revision; see
+[revised design](../specs/2026-11-16-windows-cooperative-close-guardian-design.md).
+Revision approval/implementation are still pending. External HWND route remains
+blocked; this is not evidence that the replacement has passed native validation.
+
 Date2026-11-16. User approved formal design24b3d957. That approval is recorded,
 but platform research found an unresolved safety requirement before an executable
 implementation plan could be completed. This document is a blocker report, NOT

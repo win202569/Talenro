@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-16
 
+## Latest — 应用协作正常关闭修订设计待批准
+
+见[修订设计](../superpowers/specs/2026-11-16-windows-cooperative-close-guardian-design.md)。守护器通过本轮认证连接发一次请求，
+应用核验后在自身UI线程关闭原窗口对象，取消外部HWND关闭路径。默认无监听，完整启动绑定后才启用。
+290秒目标、300秒发送/接受/调用期限、360秒总上限、精确身份及全部检查不变；不强杀、不重试。
+需新隔离产物与六哈希，旧验收不直接迁移。仅设计/恢复文档，无程序修改/测试/构建/启动，额度0。
+
 ## Latest — 守护器设计已批准，具体关闭机制存在实施阻塞
 
 见[规划阻塞](../superpowers/plans/2026-11-16-windows-guardian-planning-blocker.md)。官方文档确认窗口句柄可在检查后复用，
