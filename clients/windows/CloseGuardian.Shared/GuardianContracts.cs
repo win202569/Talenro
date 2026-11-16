@@ -1,7 +1,10 @@
 using System.Security.Cryptography;
 namespace Talenro.Observation.CloseGuardian;
 
-public sealed record ProcessIdentity(int Pid, long CreationFileTimeUtc, string Path, string CommandLine);
+public sealed record ProcessIdentity(int Pid, long CreationFileTimeUtc, string Path, string CommandLine)
+{
+    public static ProcessIdentity Unassigned { get; }=new(0,0,"","");
+}
 public sealed record GuardianPolicy(Guid RunId, string Digest, long T0Ticks, long Frequency);
 public sealed record IdentityEvidence(bool NativeSucceeded,bool CimSucceeded,int ConnectedPeerPid,
     int RetainedPid,long RetainedCreation,int CimPid,long CimCreationUtcTicks,string CimPath,string CimCommandLine,bool Alive);

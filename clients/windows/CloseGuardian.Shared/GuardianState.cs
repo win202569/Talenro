@@ -10,6 +10,8 @@ public sealed record GuardianDecision(GuardianPhase State, CloseEffect? Effect, 
 public enum CloseVerdict { Failed, NotExercised, Passed }
 public sealed class GuardianPhoneSteps
 {
+    // Coordinator calls on close claim, cancellation, binding loss or session end.
+    public void Cancel() { lock(gate) { closed=true; outstanding=false; } }
     private readonly object gate=new();
     private int next;
     private long last=-1,started;
@@ -23,7 +25,8 @@ public sealed class GuardianPhoneSteps
     {
         lock(gate)
         {
-            if(!Clock(elapsedMs) || !bound || outstanding || step!=next || elapsedMs>210000) return false;
+            if(!bound) { closed=true; outstanding=false; }
+            if(!Clock(elapsedMs) || outstanding || step!=next || elapsedMs>210000) return false;
             started=elapsedMs; outstanding=true; return true;
         }
     }
@@ -69,9 +72,11 @@ public sealed class GuardianState(ProcessIdentity? target=null)
         lock(gate)
         {
             if(State==GuardianPhase.Finished) return Decision(null,"terminal");
-            // Only the sole launch resets the prelaunch READY clock to immutable T0.
-            if(input.Kind==GuardianEventKind.Launch && State==GuardianPhase.Ready && input.Verified && elapsedMs==0)
+            // READY timestamps are prelaunch age. Launch explicitly hands off to
+            // actual elapsed since immutable T0, including evidence acquisition time.
+            if(input.Kind==GuardianEventKind.Launch && State==GuardianPhase.Ready && input.Verified)
             {
+                if(elapsedMs<0 || elapsedMs>10000) return Finish("launch-binding-deadline");
                 if(input.LaunchedTarget is not null)
                 {
                     if(target is not null && !GuardianValidation.SameIdentity(target,input.LaunchedTarget)) return Finish("target-replacement");
@@ -79,7 +84,7 @@ public sealed class GuardianState(ProcessIdentity? target=null)
                     if(!Valid(input.Identity)) return Finish("launch-identity-blocked");
                 }
                 if(!GuardianValidation.Identity(target)) return Finish("missing-target");
-                last=0; State=GuardianPhase.AwaitBound; return Decision(null,"launched");
+                last=elapsedMs; State=GuardianPhase.AwaitBound; return Decision(null,"launched");
             }
             if(elapsedMs<0 || elapsedMs<last) return Finish("invalid-clock");
             last=elapsedMs;

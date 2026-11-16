@@ -4,12 +4,13 @@ using System.Text;
 namespace Talenro.Observation.CloseGuardian;
 public static class GuardianProtocol
 {
+    private static readonly string AbsentChallenge=new('0',64);
     private static readonly UTF8Encoding Utf8=new(false,true);
     private const string DomainLabel="Talenro.CloseGuardian.v1";
     internal static void Validate(GuardianFrame f)
     {
         if(f is null || !GuardianValidation.Policy(f.Policy) || !GuardianValidation.Identity(f.Guardian) ||
-            !GuardianValidation.Identity(f.App) || !GuardianValidation.Hex(f.GuardianChallenge,64) ||
+            !GuardianValidation.Hex(f.GuardianChallenge,64) ||
             !GuardianValidation.Hex(f.AppChallenge,64) || f.Sequence==0 || f.DeadlineMs!=300000 ||
             !Enum.IsDefined(f.Kind) || !Enum.IsDefined(f.Reason)) throw new GuardianProtocolException();
         bool allowed=f.Domain switch
@@ -34,7 +35,26 @@ public static class GuardianProtocol
             FrameKind.CloseEarly=>f.Reason==CloseReason.Early,
             _=>f.Reason==CloseReason.None
         };
-        if(!allowed || !reason) throw new GuardianProtocolException();
+        bool targetAssigned=GuardianValidation.Identity(f.App);
+        bool targetAbsent=f.App==ProcessIdentity.Unassigned && f.Policy.T0Ticks==0;
+        bool guardianChallengeAbsent=f.GuardianChallenge==AbsentChallenge;
+        bool appChallengeAbsent=f.AppChallenge==AbsentChallenge;
+        // Fixed wire fields; absence is canonical and allowed only at named stages.
+        // Zero challenge is reserved, never a valid generated challenge.
+        bool stage=f.Domain switch
+        {
+            ChannelDomain.Control=>guardianChallengeAbsent && appChallengeAbsent && (f.Kind switch
+            {
+                FrameKind.Ready=>targetAbsent,
+                FrameKind.AssignTarget or FrameKind.CloseEarly=>targetAssigned,
+                FrameKind.Abort or FrameKind.Ack or FrameKind.Reject=>targetAssigned || targetAbsent,
+                _=>false
+            }),
+            ChannelDomain.Application=>targetAssigned && !appChallengeAbsent &&
+                (f.Kind==FrameKind.Hello ? guardianChallengeAbsent : !guardianChallengeAbsent),
+            _=>false
+        };
+        if(!allowed || !reason || !stage) throw new GuardianProtocolException();
     }
     public static byte[] Encode(GuardianFrame frame, ReadOnlySpan<byte> key)
     {

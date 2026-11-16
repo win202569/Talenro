@@ -1,8 +1,10 @@
 # Recover the project on a new computer
 
-LATEST — PURE PHASE1 IMPLEMENTED, FINAL REVIEW PENDING:
+LATEST — PURE PHASE1 AND INDEPENDENT REVIEW FIX PASS COMPLETE:
 Read [phase1 implementation](../roadmap/2026-11-16-guardian-phase1-implementation.md).
-Approved ordinary-token host baseline409/409; current managed suite464/464.
+Approved ordinary-token host baseline409/409; final managed suite467/467.
+Three Important review findings fixed with separate RED/GREEN regressions; one
+minor fixture-coverage suggestion deferred in the implementation record.
 No App restore/build/launch or guardian/native execution. Phase2 needs separate
 authorization and detailed adapter contracts. Continue from development branch,
 not main; do not transfer historical acceptance to future new binaries.
