@@ -1,5 +1,11 @@
 # Project status — updated 2026-11-16
 
+## Latest — H1/H2设计已批准，第二阶段分批执行清单待确认
+
+见[执行清单](../superpowers/plans/2026-11-16-windows-guardian-phase2-execution-checklist.md)。批准仅覆盖受限句柄传递权限设计及控制通道v2设计，
+不等于实现/运行授权。建议先批次A：纯控制协议、握手及模拟测试；后续B/C/D另行批准。
+本轮仅文档检查与保存，未实现、运行测试、构建App/helper或启动程序。精确绑定与290/300/360秒不变。
+
 ## Latest — 第二阶段原生适配契约与测试清单已细化，待审批
 
 见[第二阶段清单](../superpowers/plans/2026-11-16-windows-guardian-phase2-adapter-contracts.md)。明确六个实现任务、

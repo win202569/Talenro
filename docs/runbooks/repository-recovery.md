@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — H1/H2 DESIGN APPROVED, BATCH EXECUTION NOT YET APPROVED:
+Read [phase2 execution checklist](../superpowers/plans/2026-11-16-windows-guardian-phase2-execution-checklist.md).
+H1/H2 no longer await design approval. Proposed A=pure protocol/handshake/mock
+tests, B=adapters, C=runner/coordinator, D=App wiring/isolation. Each has its own
+execution gate; none executed this turn. No App/helper build/native call/launch.
+Historical467/467 is not a fresh baseline; baseline rerun requires batch approval.
+
 LATEST — PHASE2 ADAPTER CONTRACTS PLANNED, NOT IMPLEMENTED:
 Read [phase2 contracts/checklist](../superpowers/plans/2026-11-16-windows-guardian-phase2-adapter-contracts.md).
 Planning only: no source changes/tests/App build/helper/app launch. H1 narrowly

@@ -10,6 +10,9 @@
 
 Status: DESIGN/IMPLEMENTATION CHECKLIST ONLY. No source/project edits, tests,
 restore/build, native calls, helper or application launch authorized this turn.
+User approved H1 and H2 as designs on2026-11-16, then requested the
+[execution checklist](2026-11-16-windows-guardian-phase2-execution-checklist.md).
+Design approval does not authorize their implementation or native invocation.
 This supplements phase2 of the original plan; phase1 interfaces in source take
 precedence over the older plan's byte-array digest signature.
 
@@ -31,7 +34,7 @@ precedence over the older plan's byte-array digest signature.
 - Phase2 source/mock tests, isolated build, native verification and live observation
   are separate approval gates. Native evidence cannot be replaced by mocks.
 
-## Approach and approval holds
+## Approach and approved design decisions
 
 Continue the already chosen cooperative design. External HWND dispatch is excluded
 by its identity race; observer-only timing cannot survive observer loss. This is
@@ -39,19 +42,19 @@ contract refinement, not selection of a new close architecture.
 
 H1 — **handle transfer rights:** the old plan says every OpenProcess is query/sync
 only, but DuplicateHandle needs PROCESS_DUP_HANDLE on source/recipient processes.
-Propose observer-only, short-lived DUP_HANDLE access to the verified guardian
+Approved design: observer-only, short-lived DUP_HANDLE access to the verified guardian
 recipient (observer source is its own process); NEVER to the target App. The
 duplicated App handle has only QUERY_LIMITED_INFORMATION|SYNCHRONIZE, non-inheritable,
 no SAME_ACCESS or CLOSE_SOURCE. Verify guardian creation before transfer and keep
-that recipient handle until completion. This narrow exception needs explicit
-approval; it is not implied by "preserve all checks". Until approved, no such call.
-If rejected, return for a retained-query-handle design revision; no silent fallback.
+that recipient handle until completion. This narrow exception is now explicitly
+approved at design level only; source implementation and native invocation retain
+their separate gates. No wider process rights or silent fallback are authorized.
 
 H2 — **control assignment schema:** v1 frame has no transferred-handle field or
 coordinator identity. Do not overload a challenge, PID, path or command line.
-Propose separate ControlEnvelopeV2, independent control secret/domain and exact
+Approved design: separate ControlEnvelopeV2, independent control secret/domain and exact
 coordinator/guardian binding, while preserving application-frame v1 byte vectors.
-Protocol extension requires approval before source implementation (Task1 below).
+Source implementation still requires execution approval (Task1 below).
 
 H3 — **bounded execution reality:** cancel request is not completion. Keep native
 overlapped buffers/handles alive until completion; at deadline consume the attempt,
@@ -161,7 +164,7 @@ the peer's message. Policy digest is SHA256 of the reviewed canonical manifest
 paths/command profiles, deadline constants); per-run T0/identities are separately
 MAC-covered. Native build must freeze the manifest before live approval.
 
-Proposed ControlEnvelopeV2 canonical order: uint32 body length, length-prefixed
+Approved ControlEnvelopeV2 canonical order: uint32 body length, length-prefixed
 UTF8 label `Talenro.CloseGuardian.Control.v2`, byte version2, byte direction,
 byte kind, RunId32 ASCII hex, uint64 sequence, digest32, int64 T0/frequency,
 coordinator identity, guardian identity, app identity (same field order as v1),
@@ -340,14 +343,15 @@ Compile-only native validation and real pipe/handle/UI tests require later appro
 
 Mapped native identity/ownership->Task2, protocol/handshake->Task1, I/O/clock->Task3,
 independent progress/phone->Task4, dormant own-window->Task5, pins/isolation->Task6.
-H1/H2 remain explicit design approvals; this is not an executable authorization.
+H1/H2 design approval is recorded above; this is not an executable authorization.
 H3 is an acceptance limitation, never a promise to forcibly end a stalled process.
 Recommend current-session implementation plus one independent final review after
 approval, preserving the user's phase1 workflow. No implementation begins now.
 Bounded independent builder check identified two gaps: receipt evidence fields
 and preassignment ABORT sequence. Both are now specified above and self-checked
 for field/sequence consistency; not a native audit or an implementation review.
-H1/H2 remain the only explicit user design decisions in this supplement.
+No H1/H2 design decision remains pending. Follow the execution checklist for the
+next approval boundary; do not infer source/test/native execution permission.
 
 ## Primary-source checks, not local compatibility proof
 
