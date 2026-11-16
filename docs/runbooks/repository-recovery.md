@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — PHASE2 ADAPTER CONTRACTS PLANNED, NOT IMPLEMENTED:
+Read [phase2 contracts/checklist](../superpowers/plans/2026-11-16-windows-guardian-phase2-adapter-contracts.md).
+Planning only: no source changes/tests/App build/helper/app launch. H1 narrowly
+scoped guardian-recipient DUP_HANDLE rights and H2 control-v2 assignment envelope
+need explicit design approval; no implicit relaxation. Six task gates retain
+exact binding and290/300/360s. Historical phase1 baseline remains467/467, not rerun.
+
 LATEST — PURE PHASE1 AND INDEPENDENT REVIEW FIX PASS COMPLETE:
 Read [phase1 implementation](../roadmap/2026-11-16-guardian-phase1-implementation.md).
 Approved ordinary-token host baseline409/409; final managed suite467/467.
