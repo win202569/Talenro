@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-16
 
+## Latest — 守护器设计已批准，具体关闭机制存在实施阻塞
+
+见[规划阻塞](../superpowers/plans/2026-11-16-windows-guardian-planning-blocker.md)。官方文档确认窗口句柄可在检查后复用，
+外部“核验再发消息”尚不能满足精确窗口绑定承诺；不是已复现误关，也不宣称所有外部方案均不可行。
+未实施、不放宽检查。建议先批准研究应用内协作关闭入口的设计修订；这会改变产物，需要新哈希及补验。
+另一选择是继续只读寻找可证明原子绑定的外部机制。无程序修改/测试/构建/启动，额度0。
+
 ## Latest — 独立正常关闭守护器正式设计待审阅
 
 见[正式设计](../superpowers/specs/2026-11-16-windows-independent-close-guardian-design.md)。用户已选择独立守护器方向，

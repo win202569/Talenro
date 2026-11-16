@@ -1,5 +1,12 @@
 # Recover the project on a new computer
 
+LATEST — DESIGN APPROVED, NATIVE DISPATCH PLANNING BLOCKED:
+Read [blocker](../superpowers/plans/2026-11-16-windows-guardian-planning-blocker.md).
+Official HWND reuse warning leaves check-then-close identity safety unproven.
+No implementation or relaxed gates. Proposed app-cooperative close endpoint would
+change candidate hashes and needs explicit design-revision approval; alternatively
+continue read-only external-mechanism research. No code/build/test/launch, allowance0.
+
 LATEST — INDEPENDENT CLOSE GUARDIAN DESIGN PENDING APPROVAL:
 Read [formal design](../superpowers/specs/2026-11-16-windows-independent-close-guardian-design.md).
 Selected independent helper, exact original-process/window binding, sole automatic

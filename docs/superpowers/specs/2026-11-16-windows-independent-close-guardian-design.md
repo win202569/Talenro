@@ -1,5 +1,11 @@
 # Independent normal-close guardian — formal design
 
+Status update2026-11-16: user approved this design. Implementation planning then
+found an unresolved external window check/dispatch race; see
+[planning blocker](../plans/2026-11-16-windows-guardian-planning-blocker.md).
+Approval remains recorded, but native implementation is blocked pending evidence
+or an explicitly approved design revision. No safety requirement is relaxed.
+
 Date 2026-11-16. Selected approach: independent guardian, explicitly chosen by
 the user. DESIGN ONLY; approval of this document, implementation/testing approval,
 and a new single-launch approval are distinct gates. No application or helper is
