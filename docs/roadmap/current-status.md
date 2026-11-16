@@ -1,5 +1,12 @@
 # Project status — updated 2026-11-16
 
+## Latest — 第一阶段已批准，基线测试连接中止，尚未实现
+
+见[基线阻塞](2026-11-16-guardian-phase1-baseline-blocked.md)。托管Core/Tests编译完成，VSTest90秒未连接testhost，
+测试中止exit1，无有效通过统计。原会话已结束；只读核对残留0、主机普通令牌。
+未改程序/测试源码，未构建App、未运行守护器或应用，未增加超时、未重跑或强杀。
+建议批准在普通令牌主机环境原命令仅复核一次；获得有效基线后再实施，独立审阅尚未开始。
+
 ## Latest — 修订设计已批准，分阶段实施清单待确认
 
 见[实施与测试清单](../superpowers/plans/2026-11-16-windows-cooperative-guardian-implementation.md)。第一阶段仅纯协议、

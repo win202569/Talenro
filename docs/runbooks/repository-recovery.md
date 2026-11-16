@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — PHASE1 APPROVED BUT BASELINE ABORTED BEFORE IMPLEMENTATION:
+Read [baseline blocker](../roadmap/2026-11-16-guardian-phase1-baseline-blocked.md).
+Managed Core/Tests compiled; VSTest failed to connect to testhost within90s,
+exit1, no passing baseline. Original session ended; later host inventory0,
+ordinary token verified. No source edits/App build/helper/app launch/retry.
+Proposed single host-context baseline rerun awaits direction; phase1 and final
+independent review incomplete. Do not advance to native/phase2 work.
+
 LATEST — COOPERATIVE DESIGN APPROVED, STAGED PLAN PENDING:
 Read [implementation/test checklist](../superpowers/plans/2026-11-16-windows-cooperative-guardian-implementation.md).
 Phase1 is pure shared code and mocked managed tests only; no App restore/build,
