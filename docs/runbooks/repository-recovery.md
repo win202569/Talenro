@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — EXIT OBSERVATION INTERRUPTED, NOT ACCEPTED (2026-11-16):
+Read [reconciliation](../roadmap/2026-11-16-windows-exit-focus-interrupted.md).
+Run d2a50105f2ff463d856c166e0bc69068 reached step0 reply only, no Tab prompts.
+Persisted deadline outcome360002.6553ms, ExitVerified=false, Finalized=false;
+normal close by300s was not achieved. Original session unavailable; entry code
+unknown. Current CIM count0 is not historical exit proof. Allowance0, no restart.
+Review interruption/normal-close ownership without launching before a new plan.
+
 LATEST — EXIT FOCUS-ONLY PROPOSAL, NO LAUNCH:
 Read [next minimum](../superpowers/specs/2026-11-15-windows-exit-focus-design.md).
 Maximum six acknowledged Tabs, no activation/logout. Sixth prompt only after

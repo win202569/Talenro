@@ -1,4 +1,12 @@
-# Project status — updated 2026-11-15
+# Project status — updated 2026-11-16
+
+## Latest — 退出焦点观察中断，超时未验收
+
+见[中断复核](2026-11-16-windows-exit-focus-interrupted.md)。上一轮仅到第0步回复，未发Tab；
+原记录在360002.6553ms报告timed-out/deadline、ExitVerified=false，未完成300秒前正常关闭约定。
+原终端会话已不可恢复，入口退出码未知。11月16日只读查询残留0，不补证当时正常退出。
+退出焦点仍NOT_RUN；既有通过项保留。额度0，本次无启动/重试/代码/构建。
+建议下一步先只读审查中断后的关闭保障，不直接再做实机观察。
 
 ## Latest — 退出按钮仅聚焦方案已准备，未启动
 

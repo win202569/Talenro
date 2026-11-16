@@ -1,5 +1,10 @@
 # Ordinary remaining acceptance and focus evidence — read-only consolidation
 
+Latest2026-11-16: [Exit attempt interrupted](2026-11-16-windows-exit-focus-interrupted.md).
+No Tab issued; Exit focus NOT_RUN. Persisted deadline timed-out/ExitVerified=false;
+300s close obligation unmet. Current residual0 cannot establish prior normal exit.
+Earlier passes unchanged, allowance0. Review interruption handling before new run.
+
 Current next proposal2026-11-15: [Exit focus only](../superpowers/specs/2026-11-15-windows-exit-focus-design.md).
 Delete focus/reveal already PASS. At most six acknowledged Tabs, sixth only with
 fresh Delete evidence before220s. Prior five-Tab pace would leave sixth NOT_RUN.
