@@ -1,5 +1,13 @@
 # Recover the project on a new computer
 
+LATEST — INDEPENDENT CLOSE GUARDIAN DESIGN PENDING APPROVAL:
+Read [formal design](../superpowers/specs/2026-11-16-windows-independent-close-guardian-design.md).
+Selected independent helper, exact original-process/window binding, sole automatic
+close authority;290s attempt, no dispatch at/after300s, observation cap360s.
+No force kill/retry. Future phone prompt cutoff210s; old220s plans not reusable
+unchanged. Startup binding gap/host failures explicitly remain failure cases.
+Design documents only, no implementation/build/test/launch; live allowance0.
+
 LATEST — EXIT OBSERVATION INTERRUPTED, NOT ACCEPTED (2026-11-16):
 Read [reconciliation](../roadmap/2026-11-16-windows-exit-focus-interrupted.md).
 Run d2a50105f2ff463d856c166e0bc69068 reached step0 reply only, no Tab prompts.
